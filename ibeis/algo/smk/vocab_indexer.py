@@ -229,13 +229,12 @@ def compute_vocab(depc, fid_list, config):
     max_iters = 100
     print('[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
           (num_words, len(fid_list), len(train_vecs)))
-    flann_params = vt.get_flann_params(random_seed=42)
-    kwds = dict(
-        max_iters=max_iters,
-        flann_params=flann_params
-    )
-
     if config['algorithm'] == 'kdtree':
+        flann_params = vt.get_flann_params(random_seed=42)
+        kwds = dict(
+            max_iters=max_iters,
+            flann_params=flann_params
+        )
         words = vt.akmeans(train_vecs, num_words, **kwds)
     elif config['algorithm'] == 'minibatch':
         print('Using minibatch kmeans')

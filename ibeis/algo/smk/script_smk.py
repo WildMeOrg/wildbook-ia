@@ -9,7 +9,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import numpy as np
 #from ibeis.algo.smk import match_chips5 as mc5
-from ibeis.algo.smk import vocab_indexer
 from ibeis.algo.smk import inverted_index
 from ibeis.algo.smk import smk_funcs
 from ibeis.algo.smk import smk_pipeline
@@ -42,11 +41,13 @@ def oxford_conic_test():
     Z = np.array([[A, B], [B, C]])
 
     import vtool as vt
-    V = vt.decompose_Z_to_V_2x2(Z)
-    invV = np.linalg.inv(V)
+    invV = vt.decompose_Z_to_invV_2x2(Z)  # NOQA
+    invV = vt.decompose_Z_to_invV_mats2x2(np.array([Z]))  # NOQA
+    # seems ok
+    #invV = np.linalg.inv(V)
 
 
-def load_external_oxford_data():
+def load_external_oxford_features():
     """
     # TODO: root sift with centering
 
@@ -55,22 +56,31 @@ def load_external_oxford_data():
     >>> from ibeis.algo.smk.script_smk import *  # NOQA
     """
     from os.path import join, basename, splitext
+    config = {
+        'root_sift': True,
+    }
+    suffix = ut.get_cfg_lbl(config)
     dbdir = ut.truepath('/raid/work/Oxford/')
-    data_fpath1 = join(dbdir, 'oxford_data1.pkl')
+    data_fpath1 = join(dbdir, ut.augpath('oxford_data1.pkl', suffix))
     if ut.checkpath(data_fpath1):
         oxford_data1 = ut.load_data(data_fpath1)
         return oxford_data1
     else:
-        readme_fpath = join(dbdir, 'README2.txt')
         word_dpath = join(dbdir, 'word_oxc1_hesaff_sift_16M_1M')
-        word_fpath_list = ut.ls(word_dpath)
-        import pandas as pd
-        imgid_to_df = {}
-
+        _word_fpath_list = ut.ls(word_dpath)
+        imgid_to_word_fpath = {
+            splitext(basename(word_fpath))[0]: word_fpath
+            for word_fpath in _word_fpath_list
+        }
+        readme_fpath = join(dbdir, 'README2.txt')
         imgid_order = ut.readfrom(readme_fpath).split('\n')[20:-1]
 
-        for word_fpath in ut.ProgIter(word_fpath_list, lbl='reading kpts'):
-            imgid = splitext(basename(word_fpath))[0]
+        imgid_order = imgid_order
+
+        import pandas as pd
+        imgid_to_df = {}
+        for imgid in ut.ProgIter(imgid_order, lbl='reading kpts'):
+            word_fpath = imgid_to_word_fpath[imgid]
             row_gen = (map(float, line.strip('\n').split(' '))
                        for line in ut.read_lines_from(word_fpath)[2:])
             rows = [(int(word_id), x, y, e11, e12, e22)
@@ -78,62 +88,138 @@ def load_external_oxford_data():
             df = pd.DataFrame(rows, columns=['word_id', 'x', 'y', 'e11', 'e12', 'e22'])
             imgid_to_df[imgid] = df
 
+        # Convert ellipses (in Z format to invV format)
+        import vtool as vt
+        for imgid in ut.ProgIter(imgid_to_df.keys()):
+            df = imgid_to_df[imgid]
+            e11, e12, e22 = df.loc[:, ('e11', 'e12', 'e22')].values.T
+            #import numpy as np
+            Z_mats2x2 = np.array([[e11, e12],
+                                 [e12, e22]])
+            Z_mats2x2 = np.rollaxis(Z_mats2x2, 2)
+            invV_mats2x2 = vt.decompose_Z_to_invV_mats2x2(Z_mats2x2)
+            invV_mats2x2 = invV_mats2x2.astype(np.float32)
+            a = invV_mats2x2[:, 0, 0]
+            c = invV_mats2x2[:, 1, 0]
+            d = invV_mats2x2[:, 1, 1]
+            df = df.assign(a=a, c=c, d=d)
+            imgid_to_df[imgid] = df
+
         df_list = ut.take(imgid_to_df, imgid_order)
+
         offset_list = [0] + ut.cumsum([len(df_) for df_ in df_list])
+        shape = (offset_list[-1], 128)
+        #shape = (16334970, 128)
         try:
             sift_fpath = join(dbdir, 'OxfordSIFTDescriptors',
                               'feat_oxc1_hesaff_sift.bin')
-            shape = (16334970, 128)
             file_ = open(sift_fpath, 'rb')
-            with ut.Timer('Reading file'):
-                sifts = np.fromstring(file_.read(16334970 * 128), dtype=np.uint8)
-            sifts = sifts.reshape(shape)
-
-            ROOT_SIFT = False
-            if ROOT_SIFT:
-                import vtool as vt
-                s = sifts[0:100000].astype(np.float32) / 512.0
-                s = vt.normalize(s, ord=1, axis=1, out=s)
-                s = np.sqrt(s, out=s)
-                s = (s * (512)).astype(np.uint8)
-
-                # sifts = (np.sqrt(sifts / np.float32(512)) * 512).astype(np.uint8)
-            assert offset_list[-1] == shape[0]
+            with ut.Timer('Reading SIFT binary file'):
+                nbytes = np.prod(shape)
+                vecs = np.fromstring(file_.read(nbytes), dtype=np.uint8)
+            vecs = vecs.reshape(shape)
         finally:
             file_.close()
 
-        vecs_list = [sifts[l:r] for l, r in ut.itertwo(offset_list)]
-        kpts_list = [df_.loc[:, ('x', 'y', 'e11', 'e12', 'e22')].values
+        if config['root_sift']:
+            # Have to do this in chunks to fit in memory
+            import vtool as vt
+            chunksize = shape[0] // 100
+            slices = list(ut.ichunk_slices(shape[0], chunksize))
+            fidelity = 512.0
+            for sl in ut.ProgIter(slices, lbl='apply rootsift'):
+                s = vecs[sl].astype(np.float32) / fidelity
+                s = vt.normalize(s, ord=1, axis=1, out=s)
+                s = np.sqrt(s, out=s)
+                s = (s * (fidelity)).astype(np.uint8)
+                vecs[sl] = s
+
+        vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
+        kpts_list = [df_.loc[:, ('x', 'y', 'a', 'c', 'd')].values
                      for df_ in df_list]
-        # zkpts_list = [df_.loc[:, ('x', 'y', 'e11', 'e12', 'e22')].values
-        #               for df_ in df_list]
-
-        # FIXME
-        # Z_mats = [np.array([[[a, b], [b, c]]
-        #                     for x, y, a, b, c in zkpts]) for zkpts in zkpts_list]
         wordid_list = [df_.loc[:, 'word_id'].values for df_ in df_list]
-
-        import vtool as vt
-        unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
-        assert ut.issorted(unique_word)
-        wx_to_sifts = vt.apply_grouping(sifts, groupxs, axis=0)
-
-        wx_to_word = np.array([
-            np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
-            for sift_group in ut.ProgIter(wx_to_sifts, lbl='compute words')
-        ])
-        vocab = vocab_indexer.VisualVocab(wx_to_word)
-        vocab.build()
 
         oxford_data1 = {
             'imgid_order': imgid_order,
             'kpts_list': kpts_list,
             'vecs_list': vecs_list,
             'wordid_list': wordid_list,
-            'vocab': vocab,
         }
         ut.save_data(data_fpath1, oxford_data1)
+
+        if False:
+            imgid = imgid_order[0]
+            imgdir = join(dbdir, 'oxbuild_images')
+            gpath = join(imgdir,  imgid.replace('oxc1_', '') + '.jpg')
+            image = vt.imread(gpath)
+            import plottool as pt
+            pt.qt4ensure()
+            pt.imshow(image)
+            kpts = kpts_list[0].copy()
+            vecs = vecs_list[0]
+            #h, w = image.shape[0:2]
+            #kpts.T[1] = h - kpts.T[1]
+
+            #pt.draw_kpts2(kpts, ell_alpha=.4, pts=True, ell=True)
+            pt.interact_keypoints.ishow_keypoints(image, kpts, vecs,
+                                                  ori=False, ell_alpha=.4,
+                                                  color='distinct')
+
+        #import vtool as vt
+        #unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
+        #assert ut.issorted(unique_word)
+        #wx_to_vecs = vt.apply_grouping(vecs, groupxs, axis=0)
+
+        #wx_to_word = np.array([
+        #np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
+        #for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
+        #])
+        #vocab = vocab_indexer.VisualVocab(wx_to_word)
+        #vocab.build()
+        #'vocab': vocab,
+
     return oxford_data1
+
+
+def train_vocabulary(vecs_list, num_words):
+    #oxford_data1 = load_external_oxford_features()
+    #imgid_order = oxford_data1['imgid_order']
+    #kpts_list = oxford_data1['kpts_list']
+    #vecs_list = oxford_data1['vecs_list']
+    #wordid_list = oxford_data1['wordid_list']
+
+    #num_words = 8000
+    from os.path import join
+    dbdir = ut.truepath('/raid/work/Oxford/')
+    fpath = join(dbdir, 'vocab_%d.pkl' % (num_words,))
+    if ut.checkpath(fpath):
+        return ut.load_data(fpath)
+
+    train_vecs = np.vstack(vecs_list)[::100].copy()
+
+    rng = np.random.RandomState(13421421)
+    import sklearn.cluster
+    train_vecs = train_vecs.astype(np.float32)
+    clusterer = sklearn.cluster.MiniBatchKMeans(
+        num_words, random_state=rng,
+        n_init=3, verbose=5)
+    clusterer.fit(train_vecs)
+    words = clusterer.cluster_centers_
+    words = words.astype(np.uint8)
+
+    from ibeis.algo.smk import vocab_indexer
+    vocab = vocab_indexer.VisualVocab(words)
+    vocab.build()
+
+    #tuned_params = vt.tune_flann(words, target_precision=.95)
+
+    ut.save_data(fpath, vocab)
+    return words
+
+    #import pyflann
+    #flann = pyflann.FLANN()
+    #centers1 = flann.kmeans(train_vecs, num_words, max_iterations=1)
+    #pass
 
 
 def load_external_data2():
@@ -142,17 +228,15 @@ def load_external_data2():
     """
     from os.path import join, basename, splitext
     import ibeis
-    oxford_data1 = load_external_oxford_data()
+    oxford_data1 = load_external_oxford_features()
     imgid_order = oxford_data1['imgid_order']
     kpts_list = oxford_data1['kpts_list']
     vecs_list = oxford_data1['vecs_list']
     wordid_list = oxford_data1['wordid_list']
-    vocab = oxford_data1['vocab']
+    num_words = 8000
+    vocab = train_vocabulary(vecs_list, num_words)
     uri_order = [x.replace('oxc1_', '') for x in imgid_order]
     assert len(ut.list_union(*wordid_list)) == 1E6
-
-    def lookup_oxford_annots(aids):
-        pass
 
     ibs = ibeis.opendb('Oxford')
 
@@ -173,13 +257,28 @@ def load_external_data2():
     # Build/load database info
     data_fpath2 = join(dbdir, 'oxford_data2.pkl')
     daids = data_annots.aids
+
+    nAssign = 1
+    all_vecs = np.vstack(vecs_list)
+    with ut.Timer('assign vocab neighbors'):
+        #idx_to_wxs, idx_to_maws = smk_funcs.assign_to_words(vocab, all_vecs, nAssign)
+        _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign)
+        if nAssign > 1:
+            idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
+                _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
+                massign_equal_weights=True)
+        else:
+            idx_to_wxs = _idx_to_wx.tolist()
+            idx_to_maws = [[1.0]] * len(idx_to_wxs)
+
     if not ut.checkpath(data_fpath2):
         Y_list = []
         _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True)
         for aid, vecs, wordids in _prog(zip(daids, vecs_list, wordid_list)):
-            fx_to_wxs = wordids[:, None] - 1
+            #fx_to_wxs = wordids[:, None] - 1
+            fx_to_wxs = None
             fx_to_vecs = vecs
-            X = new_external_annot(aid, vecs, fx_to_vecs, fx_to_wxs)
+            X = new_external_annot(aid, fx_to_vecs, vocab, fx_to_wxs)
             Y_list.append(X)
 
         for X, vecs in _prog(zip(Y_list, vecs_list)):
@@ -256,9 +355,10 @@ def load_external_data2():
         X_list = []
         _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True)
         for aid, vecs, wordids in _prog(zip(qaids, query_vecs, query_wids)):
-            fx_to_wxs = wordids[:, None] - 1
+            #fx_to_wxs = wordids[:, None] - 1
+            fx_to_wxs = None
             fx_to_vecs = vecs
-            X = new_external_annot(aid, vecs, fx_to_vecs, fx_to_wxs)
+            X = new_external_annot(aid, fx_to_vecs, vocab, fx_to_wxs)
             X_list.append(X)
 
         for X, vecs in _prog(zip(X_list, query_vecs)):
