@@ -38,6 +38,9 @@ References:
     Root SIFT technique
     https://hal.inria.fr/hal-00688169/document
 
+    Fisher Kernel For Large Scale Classification
+    https://www.robots.ox.ac.uk/~vgg/rg/papers/peronnin_etal_ECCV10.pdf
+
 Notes:
     * Results from SMK Oxford Paper (mAP)
     ASMK nAssign=1, SV=False: .78

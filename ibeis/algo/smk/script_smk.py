@@ -35,6 +35,17 @@ def load_internal_data():
     return qreq_, cm
 
 
+def oxford_conic_test():
+    # Test that these are what the readme says
+    A, B, C = [0.016682, 0.001693, 0.014927]
+    A, B, C = [0.010141, -1.1e-05, 0.02863]
+    Z = np.array([[A, B], [B, C]])
+
+    import vtool as vt
+    V = vt.decompose_Z_to_V_2x2(Z)
+    invV = np.linalg.inv(V)
+
+
 def load_external_oxford_data():
     """
     # TODO: root sift with centering
@@ -190,7 +201,7 @@ def load_external_data2():
     assert len(wx_list) == 1E6
 
     # Compute IDF weights
-    wx_to_aids = smk_funcs.invert_lists(daids, wx_lists, all_wxs=wx_list)
+    #wx_to_aids = smk_funcs.invert_lists(daids, wx_lists, all_wxs=wx_list)
     ndocs_total = len(daids)
     # TODO: use total count of words like in Video Google
     if False:
@@ -540,9 +551,9 @@ def bow_vector(X, wx_to_weight, nwords):
     import vtool as vt
     bow_ = tf * idf
     bow_ = vt.normalize(bow_)
-    import scipy.sparse
-    # nwords = max(wx_to_weight.keys()) + 1
     bow = SparseVector(dict(zip(wxs, bow_)))
+    #import scipy.sparse
+    # nwords = max(wx_to_weight.keys()) + 1
     # bow = scipy.sparse.coo_matrix((bow_, (
     #     wxs, np.zeros(len(wxs)))), shape=(nwords, 1), dtype=np.float32).tocsc()
     # bow.T.dot(bow).toarray()[0, 0]
