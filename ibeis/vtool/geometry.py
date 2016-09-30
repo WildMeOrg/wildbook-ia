@@ -466,7 +466,6 @@ def scale_extents(extents, sx, sy=None):
     """
     Args:
         extent (ndarray): tl_x, br_x, tl_y, br_y
-
     """
     bbox = bbox_from_extent(extents)
     bboxT = scale_bbox(bbox, sx, sy)

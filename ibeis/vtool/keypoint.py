@@ -1634,6 +1634,80 @@ def get_Z_mats(V_mats):
     return Z_mats
 
 
+# def assert_Z_mat(Z_mats2x2):
+#     for Z in Z_mats2x2:
+#         A, B, _, C = Z.ravel()
+#         X, Y = 0, 0
+#         theta = np.linspace(0, np.pi * 2)
+#         circle_xy = np.vstack([np.cos(theta), np.sin(theta)])
+#         invV = invV_mats[0, 0:2, 0:2]
+#         x, y = invV.dot(circle_xy)
+#         # V = np.linalg.inv(invV)
+#         # E = V.T.dot(V)
+#         ans = (A * (x - X) ** 2 + 2 * B * (x - X) * (y - Y) + C * (y - Y) ** 2)
+#         np.all(np.isclose(ans, 1))
+
+
+
+def get_V_mats_from_Zmats2x2(Z_mats2x2):
+    """
+    # Ignore:
+    #     # Working on figuring relationship between us and VGG
+    #     A, B, _, C = Z_mats2x2[0].ravel()
+    #     X, Y = 0, 0
+    #     theta = np.linspace(0, np.pi * 2)
+    #     circle_xy = np.vstack([np.cos(theta), np.sin(theta)])
+    #     invV = invV_mats[0, 0:2, 0:2]
+    #     x, y = invV.dot(circle_xy)
+    #     V = np.linalg.inv(invV)
+    #     E = V.T.dot(V)
+    #     [[A, B], [_, C]] = E
+    #     [[A_, B_], [_, C_]] = E
+    #     print(A*(x-X) ** 2 + 2*B*(x-X)*(y-Y) + C*(y-Y) ** 2)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> #V_mats2x2 = np.array([[[  1.0141-02,   0],
+        >>> #                       [ -1.1000-05,   2.8630-02]],
+        >>> #                      [[  7.0220-03,   0],
+        >>> #                       [ -3.6300-03,   4.4797-02]],
+        >>> #                      [[  1.3704-02,  0],
+        >>> #                       [ -3.5440-03,   2.0692-02]]])
+        >>> Z_mats2x2 = np.array([[[  1.0141-02,  -1.1000-05],
+        >>>                        [ -1.1000-05,   2.8630-02]],
+        >>>                       [[  7.0220-03,  -3.6300-03],
+        >>>                        [ -3.6300-03,   4.4797-02]],
+        >>>                       [[  1.3704-02,  -3.5440-03],
+        >>>                        [ -3.5440-03,   2.0692-02]]])
+        >>> V_mats = get_V_mats_from_Zmats2x2(Z_mats2x2)
+        >>> Z_mats = get_Z_mats(V_mats)
+        >>> np.isclose(Z_mats, Z_mats2x2)
+    """
+    import scipy.linalg
+    V_mats = []
+    for Z in Z_mats2x2:
+        t = np.trace(Z)
+        det = np.linalg.det(Z)
+
+        A = scipy.linalg.sqrtm(Z)
+        U, s, V = np.linalg.svd(Z)
+        S = np.diag(s)
+        Sq = np.sqrt(S)
+        A = Sq.dot(U)
+        A = U.dot(Sq)
+        V_mats.append(A)
+        Z2 = A.T.dot(A)
+        print('Z2 = %r' % (Z2,))
+        print('Z = %r' % (Z,))
+        assert np.all(np.isclose(Z2, Z))
+    return V_mats
+    # invV_mats =
+    # vt.rectify_invV_mats_are_up()
+    # pass
+
+
 #@profile
 def invert_invV_mats(invV_mats):
     r"""
@@ -1677,6 +1751,10 @@ def invert_invV_mats(invV_mats):
 
 def get_xy_axis_extents(kpts):
     r"""
+    TODO: rename to get kpts width/height
+
+    Gets the width / height diameter of a keypoint
+
     gets the diameter of the xaxis and yaxis of the keypoint.
 
     Args:
@@ -1686,19 +1764,6 @@ def get_xy_axis_extents(kpts):
         ndarray: (2xN) column1 is X extent and column2 is Y extent
 
     Ignore:
-        # Working on figuring relationship between us and VGG
-        X, Y, A, B, C = kpts[0][0:5]
-        X, Y = 0, 0
-        theta = np.linspace(0, np.pi * 2)
-        circle_xy = np.vstack([np.cos(theta), np.sin(theta)])
-        invV = invV_mats[0, 0:2, 0:2]
-        x, y = invV.dot(circle_xy)
-        V = np.linalg.inv(invV)
-        E = V.T.dot(V)
-        [[A, B], [_, C]] = E
-        [[A_, B_], [_, C_]] = E
-        print(A*(x-X) ** 2 + 2*B*(x-X)*(y-Y) + C*(y-Y) ** 2 - 1)
-
         # Determine formula for min/maxing x and y
         import sympy
         x, y = sympy.symbols('x, y', real=True)
