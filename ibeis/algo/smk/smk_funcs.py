@@ -32,6 +32,12 @@ References:
     http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
 
 
+    Local visual query expansion
+    https://hal.inria.fr/hal-00840721/PDF/RR-8325.pdf
+
+    Root SIFT technique
+    https://hal.inria.fr/hal-00688169/document
+
 Notes:
     * Results from SMK Oxford Paper (mAP)
     ASMK nAssign=1, SV=False: .78

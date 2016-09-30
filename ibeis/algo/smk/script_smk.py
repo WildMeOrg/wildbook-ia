@@ -37,6 +37,9 @@ def load_internal_data():
 
 def load_external_oxford_data():
     """
+    # TODO: root sift with centering
+
+
     Such hacks for reading external oxford
     >>> from ibeis.algo.smk.script_smk import *  # NOQA
     """
@@ -47,8 +50,6 @@ def load_external_oxford_data():
         oxford_data1 = ut.load_data(data_fpath1)
         return oxford_data1
     else:
-        sift_fpath = join(dbdir, 'OxfordSIFTDescriptors',
-                          'feat_oxc1_hesaff_sift.bin')
         readme_fpath = join(dbdir, 'README2.txt')
         word_dpath = join(dbdir, 'word_oxc1_hesaff_sift_16M_1M')
         word_fpath_list = ut.ls(word_dpath)
@@ -69,16 +70,30 @@ def load_external_oxford_data():
         df_list = ut.take(imgid_to_df, imgid_order)
         offset_list = [0] + ut.cumsum([len(df_) for df_ in df_list])
         try:
+            sift_fpath = join(dbdir, 'OxfordSIFTDescriptors',
+                              'feat_oxc1_hesaff_sift.bin')
             shape = (16334970, 128)
-            assert offset_list[-1] == shape[0]
             file_ = open(sift_fpath, 'rb')
             with ut.Timer('Reading file'):
                 sifts = np.fromstring(file_.read(16334970 * 128), dtype=np.uint8)
             sifts = sifts.reshape(shape)
+
+            ROOT_SIFT = False
+            if ROOT_SIFT:
+                import vtool as vt
+                s = sifts[0:100000].astype(np.float32) / 512.0
+                s = vt.normalize(s, ord=1, axis=1, out=s)
+                s = np.sqrt(s, out=s)
+                s = (s * (512)).astype(np.uint8)
+
+                # sifts = (np.sqrt(sifts / np.float32(512)) * 512).astype(np.uint8)
+            assert offset_list[-1] == shape[0]
         finally:
             file_.close()
 
         vecs_list = [sifts[l:r] for l, r in ut.itertwo(offset_list)]
+        kpts_list = [df_.loc[:, ('x', 'y', 'e11', 'e12', 'e22')].values
+                     for df_ in df_list]
         # zkpts_list = [df_.loc[:, ('x', 'y', 'e11', 'e12', 'e22')].values
         #               for df_ in df_list]
 
@@ -101,7 +116,7 @@ def load_external_oxford_data():
 
         oxford_data1 = {
             'imgid_order': imgid_order,
-            # 'kpts_list': kpts_list,
+            'kpts_list': kpts_list,
             'vecs_list': vecs_list,
             'wordid_list': wordid_list,
             'vocab': vocab,
