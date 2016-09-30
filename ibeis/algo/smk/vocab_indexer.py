@@ -87,7 +87,7 @@ class VisualVocab(ut.NiceRepr):
         if verbose:
             ut.toc(tt)
 
-    def nn_index(vocab, idx_to_vec, nAssign):
+    def nn_index(vocab, idx_to_vec, nAssign, checks=None):
         """
             >>> idx_to_vec = depc.d.get_feat_vecs(aid_list)[0]
             >>> vocab = vocab
@@ -95,9 +95,10 @@ class VisualVocab(ut.NiceRepr):
         """
         # Assign each vector to the nearest visual words
         assert nAssign > 0, 'cannot assign to 0 neighbors'
+        if checks is None:
+            checks = vocab.flann_params['checks']
         try:
             idx_to_vec = idx_to_vec.astype(vocab.wordflann._FLANN__curindex_data.dtype)
-            checks = vocab.flann_params['checks']
             _idx_to_wx, _idx_to_wdist = vocab.wordflann.nn_index(
                 idx_to_vec, nAssign, checks=checks)
         except pyflann.FLANNException as ex:
