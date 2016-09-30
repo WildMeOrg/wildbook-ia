@@ -1665,6 +1665,47 @@ def decompose_Z_to_V_2x2(Z_2x2):
     return V_2x2
 
 
+def decompose_Z_to_invV_mats2x2(Z_mats2x2):
+    RV_mats2x2 = decompose_Z_to_RV_mats2x2(Z_mats2x2)
+    invVR_mats2x2 = np.linalg.inv(RV_mats2x2)
+    invV_2x2, ori_ = rectify_invV_mats_are_up(invVR_mats2x2)
+    return invV_2x2
+
+
+def decompose_Z_to_RV_mats2x2(Z_mats2x2):
+    """
+    A, B, C = [0.016682, 0.001693, 0.014927]
+    #A, B, C = [0.010141, -1.1e-05, 0.02863]
+    Z = np.array([[A, B], [B, C]])
+
+    Z_mats2x2 = np.array([
+        [[  .016682,  .001693],
+        [  .001693,  .014927]],
+        [[  .01662,  .001693],
+        [  .001693,  .014927]],
+        [[  .016682,  .00193],
+        [  .00193,  .01492]],
+        ])
+
+    import scipy.linalg
+    %timeit np.array([scipy.linalg.sqrtm(Z) for Z in Z_mats2x2])
+    %timeit decompose_Z_to_VR_mats2x2(Z_mats2x2)
+    """
+    # explicit 2x2 square root matrix case
+    # https://en.wikipedia.org/wiki/Square_root_of_a_2_by_2_matrix
+    tr = np.trace(Z_mats2x2, axis1=1, axis2=2)
+    det = np.linalg.det(Z_mats2x2)
+    s = np.sqrt(det)
+    t = np.sqrt(tr + 2 * s)
+    a = Z_mats2x2[:, 0, 0]
+    b = Z_mats2x2[:, 0, 1]
+    c = Z_mats2x2[:, 1, 0]
+    d = Z_mats2x2[:, 1, 1]
+    RV_mats2x2 = np.array([[a + s, b], [c, d + s]]) / t
+    RV_mats2x2 = np.rollaxis(RV_mats2x2, 2)
+    return RV_mats2x2
+
+
 def get_V_mats_from_Zmats2x2(Z_mats2x2):
     """
     # Ignore:
