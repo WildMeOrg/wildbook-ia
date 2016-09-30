@@ -2744,10 +2744,10 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
     import plottool as pt
     pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
     pt.draw_kpts2(kpts, **kwargs)
-    wh = np.array(vt.get_kpts_image_extent(kpts))
     ax = pt.gca()
-    ax.set_xlim(0, wh[0])
-    ax.set_ylim(0, wh[0])
+    # wh = np.array(vt.get_kpts_image_extent_old(kpts))
+    # ax.set_xlim(0, wh[0])
+    # ax.set_ylim(0, wh[0])
     extents = vt.get_kpts_image_extent2(kpts)
     ax.set_xlim(*extents[0:2])
     ax.set_ylim(*extents[2:4])
