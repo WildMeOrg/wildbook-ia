@@ -146,6 +146,8 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
     axes_list = fig.get_axes()
     # Ensure my customized settings
     customize_figure(fig, docla)
+    if pnum is None:
+        return fig
     if ut.is_int(pnum):
         pnum = _convert_pnum_int_to_tup(pnum)
 

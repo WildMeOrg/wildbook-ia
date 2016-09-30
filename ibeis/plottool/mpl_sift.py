@@ -1,13 +1,10 @@
-from __future__ import absolute_import, division, print_function
-# Standard
-from itertools import product as iprod
+from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-# Science
+import itertools
 import numpy as np
-# Matplotlib
 import matplotlib as mpl
 import utool as ut
-from plottool import color_funcs as color_fns  # NOQA
+from plottool import color_funcs as color_fns
 ut.noinject(__name__, '[pt.mpl_sift]')
 
 
@@ -62,7 +59,7 @@ def _arm_collection(patch_list, color, alpha, lw):
 
 def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
                         arm2_color=BLACK, arm_alpha=1.0, arm1_lw=1.0,
-                        arm2_lw=2.0, circ_alpha=.5, **kwargs):
+                        arm2_lw=2.0, circ_alpha=.5, fidelity=512, **kwargs):
     """
     Creates a collection of SIFT matplotlib patches
 
@@ -78,6 +75,7 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         arm1_lw (float):
         arm2_lw (float):
         circ_alpha (float):
+        fidelity (int): quantization factor
 
     Returns:
         ?: coll_tup
@@ -108,21 +106,26 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
     _kwcirc = dict(transform=aff)
     arm_patches = []
     DSCALE   =  0.25  # Descriptor scale factor
-    ARMSCALE =  1.5   # Arm length scale factor
+    #ARMSCALE =  1.5   # Arm length scale factor
     XYSCALE  =  0.5   # Position scale factor
     XYOFFST  = -0.75  # Position offset
     NORI, NX, NY = 8, 4, 4  # SIFT BIN CONSTANTS
     NBINS = NX * NY
     discrete_ori = (np.arange(0, NORI) * (TAU / NORI))
     # Arm magnitude and orientations
-    arm_mag = sift / 255.0
+    #arm_mag = sift / 255.0
+    # If given the correct fidelity, each arm will have a max magnitude of 1.0
+    # Because the diameter of each circle is 1.0
+    arm_mag = sift / (float(fidelity))
+    print('arm_mag = %r' % (arm_mag.max(),))
     arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
     # Arm orientation in dxdy format
     arm_dxy = np.array(list(zip(*_cirlce_rad2xy(arm_ori, arm_mag))))
+    #np.linalg.norm(arm_dxy, axis=1).max()
     # Arm locations and dxdy index
-    yxt_gen = iprod(range(NY), range(NX), range(NORI))
+    yxt_gen = itertools.product(range(NY), range(NX), range(NORI))
     # Circle x,y locations
-    yx_gen  = iprod(range(NY), range(NX))
+    yx_gen  = itertools.product(range(NY), range(NX))
     # Draw 8 directional arms in each of the 4x4 grid cells
     arm_args_list = []
 
@@ -132,8 +135,8 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         (dx, dy) = arm_dxy[index]
         arm_x  = (x * XYSCALE) + XYOFFST  # MULTIPLY BY -1 to invert X axis
         arm_y  = (y * XYSCALE) + XYOFFST
-        arm_dy = (dy * DSCALE) * ARMSCALE
-        arm_dx = (dx * DSCALE) * ARMSCALE
+        arm_dy = (dy * DSCALE)  # * ARMSCALE
+        arm_dx = (dx * DSCALE)  # * ARMSCALE
         _args = [arm_x, arm_y, arm_dx, arm_dy]
         arm_args_list.append(_args)
 
