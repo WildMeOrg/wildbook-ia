@@ -1378,12 +1378,10 @@ def plot2(x_data, y_data, marker='o', title_pref='', x_label='x', y_label='y',
             # Equal aspect ratio
             if unitbox is True:
                 # Just plot a little bit outside  the box
-                ax.set_xlim(-.01, 1.01)
-                ax.set_ylim(-.01, 1.01)
+                set_axis_limit(-.01, 1.01, -.01, 1.01, ax)
                 #ax.grid(True)
             else:
-                ax.set_xlim(min_, max_)
-                ax.set_ylim(min_, max_)
+                set_axis_limit(min_, max_, min_, max_, ax)
                 #aspect_opptions = ['auto', 'equal', num]
                 ax.set_aspect('equal')
         else:
@@ -2654,8 +2652,7 @@ def draw_line_segments2(pts1, pts2, ax=None, **kwargs):
         >>> draw_line_segments2(pts1, pts2)
         >>> ut.quit_if_noshow()
         >>> ax = pt.gca()
-        >>> ax.set_xlim(-1, 3)
-        >>> ax.set_ylim(-1, 3)
+        >>> pt.set_axis_limit(-1, 3, -1, 3, ax)
         >>> ut.show_if_requested()
     """
     if ax is None:
@@ -2745,13 +2742,25 @@ def show_kpts(kpts, fnum=None, pnum=None, **kwargs):
     pt.figure(doclf=True, fnum=pt.ensure_fnum(fnum), pnum=pnum)
     pt.draw_kpts2(kpts, **kwargs)
     ax = pt.gca()
-    # wh = np.array(vt.get_kpts_image_extent_old(kpts))
-    # ax.set_xlim(0, wh[0])
-    # ax.set_ylim(0, wh[0])
-    extents = vt.get_kpts_image_extent2(kpts)
+    extents = vt.get_kpts_image_extent(kpts)
+    set_axis_extent(extents)
+    ax.set_aspect('equal')
+
+
+def set_axis_extent(extents, ax=None):
+    """
+
+    Args:
+        extents: xmin, xmax, ymin, ymax
+    """
+    if ax is None:
+        ax = gca()
     ax.set_xlim(*extents[0:2])
     ax.set_ylim(*extents[2:4])
-    ax.set_aspect('equal')
+
+
+def set_axis_limit(xmin, xmax, ymin, ymax, ax=None):
+    return set_axis_extent((xmin, xmax, ymin, ymax), ax=ax)
 
 
 def draw_kpts2(kpts, offset=(0, 0), scale_factor=1,
