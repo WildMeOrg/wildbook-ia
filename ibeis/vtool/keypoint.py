@@ -749,10 +749,9 @@ def get_kpts_eccentricity(kpts):
         >>> import plottool as pt
         >>> colors = pt.scores_to_color(ecc)
         >>> pt.draw_kpts2(kpts, color=colors, ell_linewidth=6)
-        >>> wh = np.array(vt.get_kpts_image_extent_old(kpts))
+        >>> extent = vt.get_kpts_image_extent(kpts)
         >>> ax = pt.gca()
-        >>> ax.set_xlim(0, wh[0])
-        >>> ax.set_ylim(0, wh[1])
+        >>> pt.set_axis_extent(extent, ax)
         >>> pt.dark_background()
         >>> pt.colorbar(ecc, colors)
         >>> ut.show_if_requested()
@@ -802,12 +801,11 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> import plottool as pt
         >>> pt.draw_kpts2(kpts, color=pt.ORANGE, ell_linewidth=6)
         >>> pt.draw_kpts2(kpts_, color=pt.LIGHT_BLUE, ell_linewidth=4)
-        >>> wh1 = np.array(vt.get_kpts_image_extent_old(kpts))
-        >>> wh2 = np.array(vt.get_kpts_image_extent_old(kpts_))
-        >>> wh = np.maximum(wh1, wh2)
+        >>> extent1 = np.array(vt.get_kpts_image_extent(kpts))
+        >>> extent2 = np.array(vt.get_kpts_image_extent(kpts_))
+        >>> extent = vt.union_extents([extent1, extent2])
         >>> ax = pt.gca()
-        >>> ax.set_xlim(0, wh[0])
-        >>> ax.set_ylim(0, wh[1])
+        >>> pt.set_axis_extent(extent)
         >>> pt.dark_background()
         >>> ut.show_if_requested()
         orig = np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
@@ -1551,9 +1549,8 @@ def rectify_invV_mats_are_up(invVR_mats):
         #ax.invert_yaxis()
         #pt.draw_kpts2(kpts, color='blue', ell_linewidth=3, ori=1, eig=True, ori_color='green', rect=True)
         pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1, eig=True, ori_color='green', rect=True)
-        extents = np.array(vt.get_kpts_image_extent2(np.vstack([kpts, kpts2])))
-        ax.set_xlim(*extents[0:2])
-        ax.set_ylim(*extents[2:4])
+        extents = np.array(vt.get_kpts_image_extent(np.vstack([kpts, kpts2])))
+        pt.set_axis_extent(extent, ax)
         pt.dark_background()
         ut.show_if_requested()
 
@@ -1680,6 +1677,20 @@ def decompose_Z_to_RV_mats2x2(Z_mats2x2):
 
     A, B, C = 0.010141, -1.1e-05, 0.02863
 
+    Ignore:
+        # Working on figuring relationship between us and VGG
+        A, B, _, C = Z_mats2x2[0].ravel()
+        X, Y = 0, 0
+        theta = np.linspace(0, np.pi * 2)
+        circle_xy = np.vstack([np.cos(theta), np.sin(theta)])
+        invV = invV_mats[0, 0:2, 0:2]
+        x, y = invV.dot(circle_xy)
+        V = np.linalg.inv(invV)
+        E = V.T.dot(V)
+        [[A, B], [_, C]] = E
+        [[A_, B_], [_, C_]] = E
+        print(A*(x-X) ** 2 + 2*B*(x-X)*(y-Y) + C*(y-Y) ** 2)
+
     Z_mats2x2 = np.array([
         [[  .016682,  .001693],
         [  .001693,  .014927]],
@@ -1708,62 +1719,6 @@ def decompose_Z_to_RV_mats2x2(Z_mats2x2):
     RV_mats2x2 = np.array([[a + s, b], [c, d + s]]) / t
     RV_mats2x2 = np.rollaxis(RV_mats2x2, 2)
     return RV_mats2x2
-
-
-def get_V_mats_from_Zmats2x2(Z_mats2x2):
-    """
-    # Ignore:
-    #     # Working on figuring relationship between us and VGG
-    #     A, B, _, C = Z_mats2x2[0].ravel()
-    #     X, Y = 0, 0
-    #     theta = np.linspace(0, np.pi * 2)
-    #     circle_xy = np.vstack([np.cos(theta), np.sin(theta)])
-    #     invV = invV_mats[0, 0:2, 0:2]
-    #     x, y = invV.dot(circle_xy)
-    #     V = np.linalg.inv(invV)
-    #     E = V.T.dot(V)
-    #     [[A, B], [_, C]] = E
-    #     [[A_, B_], [_, C_]] = E
-    #     print(A*(x-X) ** 2 + 2*B*(x-X)*(y-Y) + C*(y-Y) ** 2)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
-        >>> #V_mats2x2 = np.array([[[  1.0141-02,   0],
-        >>> #                       [ -1.1000-05,   2.8630-02]],
-        >>> #                      [[  7.0220-03,   0],
-        >>> #                       [ -3.6300-03,   4.4797-02]],
-        >>> #                      [[  1.3704-02,  0],
-        >>> #                       [ -3.5440-03,   2.0692-02]]])
-        >>> Z_mats2x2 = np.array([[[  1.0141-02,  -1.1000-05],
-        >>>                        [ -1.1000-05,   2.8630-02]],
-        >>>                       [[  7.0220-03,  -3.6300-03],
-        >>>                        [ -3.6300-03,   4.4797-02]],
-        >>>                       [[  1.3704-02,  -3.5440-03],
-        >>>                        [ -3.5440-03,   2.0692-02]]])
-        >>> V_mats = get_V_mats_from_Zmats2x2(Z_mats2x2)
-        >>> Z_mats = get_Z_mats(V_mats)
-        >>> np.isclose(Z_mats, Z_mats2x2)
-    """
-    import scipy.linalg
-    V_mats = []
-    for Z in Z_mats2x2:
-        #t = np.trace(Z)
-        #det = np.linalg.det(Z)
-
-        A = scipy.linalg.sqrtm(Z)
-        U, s, V = np.linalg.svd(Z)
-        S = np.diag(s)
-        Sq = np.sqrt(S)
-        A = Sq.dot(U)
-        A = U.dot(Sq)
-        V_mats.append(A)
-        Z2 = A.T.dot(A)
-        print('Z2 = %r' % (Z2,))
-        print('Z = %r' % (Z,))
-        assert np.all(np.isclose(Z2, Z))
-    return V_mats
 
 
 #@profile
@@ -1807,16 +1762,16 @@ def invert_invV_mats(invV_mats):
     return V_mats
 
 
-def get_xy_axis_extents(kpts):
+def get_kpts_wh(kpts, outer=True):
     r"""
-    TODO: rename to get kpts width/height
-
     Gets the width / height diameter of a keypoint
-
-    gets the diameter of the xaxis and yaxis of the keypoint.
+    ie the diameter of the xaxis and yaxis of the keypoint.
 
     Args:
         kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+        outer (bool): if True returns wh of bounding box.
+           This is useful because extracting a patch needs a rectangle.
+           If false it returns the otherwise gets the extent of the ellipse.
 
     Returns:
         ndarray: (2xN) column1 is X extent and column2 is Y extent
@@ -1849,7 +1804,11 @@ def get_xy_axis_extents(kpts):
         critical_xys = invV.dot(critical_uvs)
 
     CommandLine:
-        python -m vtool.keypoint --test-get_xy_axis_extents --show
+        python -m vtool.keypoint --test-get_kpts_wh --show
+
+
+    SeeAlso:
+        get_kpts_major_minor
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1858,7 +1817,7 @@ def get_xy_axis_extents(kpts):
         >>> kpts = vt.dummy.get_dummy_kpts()[0:5]
         >>> kpts[:, 0] += np.arange(len(kpts)) * 30
         >>> kpts[:, 1] += np.arange(len(kpts)) * 30
-        >>> xyexnts = get_xy_axis_extents(kpts)
+        >>> xyexnts = get_kpts_wh(kpts)
         >>> result = ut.repr2(xyexnts)
         >>> print(result)
         >>> ut.quit_if_noshow()
@@ -1866,10 +1825,9 @@ def get_xy_axis_extents(kpts):
         >>> pt.cla()
         >>> pt.draw_kpts2(kpts, color='red', ell_linewidth=6, rect=True)
         >>> ax = pt.gca()
-        >>> extent = np.array(get_kpts_image_extent2(kpts))
+        >>> extent = np.array(get_kpts_image_extent(kpts))
         >>> extent = vt.scale_extents(extent, 1.1)
-        >>> ax.set_xlim(*extent[0:2])
-        >>> ax.set_ylim(*extent[2:4])
+        >>> pt.set_axis_extent(extent, ax)
         >>> xs, ys = vt.get_xys(kpts)
         >>> radii = xyexnts / 2
         >>> horiz_pts1 = np.array([(xs - radii.T[0]), ys]).T
@@ -1885,8 +1843,7 @@ def get_xy_axis_extents(kpts):
                   [ 26.71114159,  63.47679138],
                   [ 32.10540009,  30.28536987]])
     """
-    BBOX = True
-    if BBOX:
+    if outer:
         # Either use bbox or elliptical points
         invV_mats2x2 = get_invVR_mats2x2(kpts)
         corners = np.array([
@@ -1931,74 +1888,11 @@ def get_xy_axis_extents(kpts):
 
     w = maxx - minx
     h = maxy - miny
-    xyexnts = np.vstack([w, h]).T
-    # else:
-    #     xyexnts = []
-    #     invV_mats2x2 = get_invVR_mats2x2(kpts)
-    #     for invV, kp in zip(invV_mats2x2, kpts):
-    #         # use manually calculated derivatives to find extents
-    #         c, d = kp[[3, 4]]
-    #         critical_thetas = [
-    #             0, np.pi,
-    #             -2 * np.arctan((c + np.sqrt(c ** 2 + d ** 2)) / d),
-    #             -2 * np.arctan((c - np.sqrt(c ** 2 + d ** 2)) / d),
-    #         ]
-    #         critical_uvs = np.vstack([np.cos(critical_thetas),
-    #                                   np.sin(critical_thetas)])
-    #         critical_xys = invV.dot(critical_uvs)
-    #         minx, miny = critical_xys.min(axis=1)
-    #         maxx, maxy = critical_xys.max(axis=1)
-    #         # Columns of U.dot(S) are in principle scaled directions
-    #         w = maxx - minx
-    #         h = maxy - miny
-    #         xyexnts.append((w, h))
-    #     xyexnts = np.array(xyexnts)
-    # xyexnts = get_invV_xy_axis_extents(invV_mats2x2)
-    return xyexnts
+    wh_list = np.vstack([w, h]).T
+    return wh_list
 
 
-def get_kpts_image_extent_old(kpts):
-    """
-    returns the width and height of keypoint bounding box
-    This combines xy and shape information
-    Does not take into account if keypoint extent goes under (0, 0)
-
-    DEPRICATE in favor of get_kpts_image_extent2 because it also returns min
-
-    Args:
-        kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
-
-    Returns:
-        tuple: wh_bound
-
-    CommandLine:
-        python -m vtool.keypoint --test-get_kpts_image_extent_old
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.keypoint import *  # NOQA
-        >>> import vtool as vt
-        >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> wh_bound = get_kpts_image_extent_old(kpts)
-        >>> result = kpts_repr(np.array(wh_bound))
-        >>> print(result)
-        array([ 51.79,  54.77])
-    """
-    # FIXME: this should produce the same result why not?
-    # x1, x2, y1, y2 = get_kpts_image_extent2(kpts)
-    # w = x2 - x1
-    # h = y2 - y1
-    # wh_bound = (w, h)
-    # return wh_bound
-    xs, ys = get_xys(kpts)
-    xyexnts = get_xy_axis_extents(kpts)
-    width = (xs + xyexnts.T[0]).max()
-    height = (ys + xyexnts.T[1]).max()
-    wh_bound = (width, height)
-    return wh_bound
-
-
-def get_kpts_image_extent2(kpts):
+def get_kpts_image_extent(kpts, outer=False):
     """
     returns the width and height of keypoint bounding box
     This combines xy and shape information
@@ -2006,39 +1900,49 @@ def get_kpts_image_extent2(kpts):
 
     Args:
         kpts (ndarray[float32_t, ndim=2][ndims=2]):  keypoints
+        outer: uses outer rectangle if True. Set to false for a
+            tighter extent.
 
     Returns:
         tuple: (minx, maxx, miny, maxy)
 
     CommandLine:
-        python -m vtool.keypoint --test-get_kpts_image_extent2
+        python -m vtool.keypoint --test-get_kpts_image_extent --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> wh_bound = get_kpts_image_extent2(kpts)
-        >>> result = ut.repr2(np.array(wh_bound), precision=2)
+        >>> extent = get_kpts_image_extent(kpts, outer=False)
+        >>> result = ut.repr2(np.array(extent), precision=2)
         >>> print(result)
-        np.array([ 12.21,  51.79,   0.08,  54.77])
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.draw_kpts2(kpts, bbox=True)
+        >>> ax = pt.gca()
+        >>> pt.set_axis_extent(extent, ax)
+        >>> ut.show_if_requested()
+        np.array([ 14.78,  48.05,   0.32,  51.58])
     """
     xs, ys = get_xys(kpts)
-    xyexnts = get_xy_axis_extents(kpts)
-    minx = (xs - xyexnts.T[0]).min()
-    miny = (ys - xyexnts.T[1]).min()
-    maxx = (xs + xyexnts.T[0]).max()
-    maxy = (ys + xyexnts.T[1]).max()
-    bounds = minx, maxx, miny, maxy
-    return bounds
+    wh_list = get_kpts_wh(kpts, outer=outer)
+    radii = wh_list / 2
+    minx = (xs - radii.T[0]).min()
+    maxx = (xs + radii.T[0]).max()
+    miny = (ys - radii.T[1]).min()
+    maxy = (ys + radii.T[1]).max()
+    extent = (minx, maxx, miny, maxy)
+    return extent
 
 
-def get_kpts_dlen_sqrd(kpts):
+def get_kpts_dlen_sqrd(kpts, outer=False):
     r"""
     returns diagonal length squared of keypoint extent
 
     Args:
         kpts (ndarray[float32_t, ndim=2]):  keypoints
+        outer (bool): loose if False tight if True
 
     Returns:
         float: dlen_sqrd
@@ -2054,11 +1958,14 @@ def get_kpts_dlen_sqrd(kpts):
         >>> dlen_sqrd = get_kpts_dlen_sqrd(kpts)
         >>> result = '%.2f' % dlen_sqrd
         >>> print(result)
-        5681.31
+        3735.01
     """
     if len(kpts) == 0:
         return 0.0
-    w, h = get_kpts_image_extent_old(kpts)
+    extent = get_kpts_image_extent(kpts, outer=outer)
+    x1, x2, y1, y2 = extent
+    w = x2 - x1
+    h = y2 - y1
     dlen_sqrd = (w ** 2) + (h ** 2)
     return dlen_sqrd
 

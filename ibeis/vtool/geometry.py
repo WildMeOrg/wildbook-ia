@@ -359,6 +359,15 @@ def extent_from_verts(verts):
     return extent
 
 
+def union_extents(extents):
+    extents = np.array(extents)
+    xmin = extents.T[0].min()
+    xmax = extents.T[1].max()
+    ymin = extents.T[2].min()
+    ymax = extents.T[3].max()
+    return (xmin, xmax, ymin, ymax)
+
+
 #def tlbr_from_bbox(bbox):
 def extent_from_bbox(bbox):
     """

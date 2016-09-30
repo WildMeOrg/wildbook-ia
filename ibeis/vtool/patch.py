@@ -527,7 +527,7 @@ def get_unwarped_patches(img, kpts):
 
     """
     _xs, _ys = ktool.get_xys(kpts)
-    xyexnts = ktool.get_xy_axis_extents(kpts)
+    xyexnts = ktool.get_kpts_wh(kpts)
     patches = []
     subkpts = []
 

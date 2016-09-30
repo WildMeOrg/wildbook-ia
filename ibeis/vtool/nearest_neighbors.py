@@ -100,7 +100,7 @@ def ann_flann_once(dpts, qpts, num_neighbors, flann_params={}):
         >>> dpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qpts = np.random.randint(0, 255, (5, 128)).astype(np.uint8)
         >>> qx2_dx, qx2_dist = ann_flann_once(dpts, qpts, 2)
-        >>> result = utool.list_str((qx2_dx.T, qx2_dist.T), precision=2)
+        >>> result = ut.list_str((qx2_dx.T, qx2_dist.T), precision=2)
         >>> print(result)
         (
             np.array([[3, 3, 3, 3, 0],

@@ -742,11 +742,13 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_f
         >>> result = ut.list_str(assigntup, precision=3)
         >>> print(result)
         (
-            np.array([0, 1, 2, 3, 4, 5], dtype=np.int32),
-            np.array([  77,  116,  122, 1075,  530,   45], dtype=np.int32),
-            np.array([971, 120, 128, 692,  45, 530], dtype=np.int32),
-            np.array([ 0.059,  0.021,  0.039,  0.15 ,  0.227,  0.216], dtype=np.float32),
-            np.array([ 0.239,  0.241,  0.248,  0.151,  0.244,  0.236], dtype=np.float32),
+            np.array([[ 77,   0],
+                      [122,   2],
+                      [530,   4],
+                      [ 45,   5]], dtype=np.int32),
+            np.array([ 0.059,  0.039,  0.226,  0.215], dtype=np.float32),
+            np.array([971, 128,  45, 530], dtype=np.int32),
+            np.array([ 0.238,  0.247,  0.244,  0.236], dtype=np.float32),
         )
     """
     # Infer the valid internal query feature indexes and ranks

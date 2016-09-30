@@ -4,7 +4,7 @@ from vtool import keypoint as ktool
 import vtool.math as mtool
 import numpy as np
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[dummy]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 DEFAULT_DTYPE = ktool.KPTS_DTYPE
@@ -452,10 +452,8 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
-        >>> # build test data
         >>> kpts = get_dummy_kpts()
         >>> sf = 1.0
-        >>> # execute function
         >>> img =  get_kpts_dummy_img(kpts, sf, 10)
 
     Ignore::
@@ -467,7 +465,9 @@ def get_kpts_dummy_img(kpts, sf=1.0, intensity=200):
         pt.update()
 
     """
-    w, h = ktool.get_kpts_image_extent_old(kpts)
+    (x1, x2, y1, y2) = ktool.get_kpts_image_extent(kpts)
+    w = x2 - x1
+    h = y2 - y1
     img_w = w * sf
     img_h = h * sf
     img = dummy_img(img_w, img_h, intensity=intensity)
@@ -611,10 +611,7 @@ def testdata_dummy_matches():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
-        >>> # build test data
-        >>> # execute function
         >>> matches_testtup = testdata_dummy_matches()
-        >>> # verify results
         >>> (kpts1, kpts2, fm, fs, rchip1, rchip2) = matches_testtup
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
@@ -673,10 +670,8 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
         >>> # ENABLE_DOCTEST
         >>> from vtool.tests.dummy import *  # NOQA
         >>> import vtool as vt
-        >>> # build test data
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
-        >>> # execute function
         >>> default_dict = vt.get_extract_features_default_params()
         >>> default_dict['ratio_thresh'] = .625
         >>> kwargs = ut.argparse_dict(default_dict)
