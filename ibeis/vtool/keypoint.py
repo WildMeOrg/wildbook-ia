@@ -1678,6 +1678,8 @@ def decompose_Z_to_RV_mats2x2(Z_mats2x2):
     #A, B, C = [0.010141, -1.1e-05, 0.02863]
     Z = np.array([[A, B], [B, C]])
 
+    A, B, C = 0.010141, -1.1e-05, 0.02863
+
     Z_mats2x2 = np.array([
         [[  .016682,  .001693],
         [  .001693,  .014927]],
@@ -1699,6 +1701,8 @@ def decompose_Z_to_RV_mats2x2(Z_mats2x2):
     t = np.sqrt(tr + 2 * s)
     a = Z_mats2x2[:, 0, 0]
     b = Z_mats2x2[:, 0, 1]
+    # FIXME; Z is symmetric, so c is not really needed
+    # should make another function that takes 3 args.
     c = Z_mats2x2[:, 1, 0]
     d = Z_mats2x2[:, 1, 1]
     RV_mats2x2 = np.array([[a + s, b], [c, d + s]]) / t
