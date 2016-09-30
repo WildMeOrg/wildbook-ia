@@ -64,6 +64,8 @@ Notes:
     .38 and .44
 
     Using oxford descriptors I get .51ish
+    Then changing to root-sift I get=0.56294936807700813
+    Then using tfidf bow2=0.56046968275748565
 
 Differences Between this and SMK
    * No RootSIFT

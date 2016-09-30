@@ -20,6 +20,101 @@ from six.moves import zip, map
 (print, rrr, profile) = ut.inject2(__name__)
 
 
+class SMK(ut.NiceRepr):
+    """
+    smk = SMK(wx_to_weight, method='bow')
+    smk.match_score(X, X)
+    """
+    def __nice__(smk):
+        return smk.method
+
+    def __init__(smk, wx_to_weight, method='asmk', **kwargs):
+        smk.wx_to_weight = wx_to_weight
+        smk.method = method
+        if method == 'asmk':
+            smk.match_score = smk.match_score_agg
+        elif method == 'smk':
+            smk.match_score = smk.match_score_sep
+        elif method == 'bow':
+            smk.match_score = smk.match_score_bow
+        if method in ['asmk', 'smk']:
+            smk.alpha = kwargs.pop('alpha', 0.0)
+            smk.thresh = kwargs.pop('thresh', 0.0)
+
+        if method == 'bow2':
+            smk.kernel = smk.kernel_bow_tfidf
+        else:
+            smk.kernel = smk.kernel_smk
+
+        assert len(kwargs) == 0, 'unexpected kwargs=%r' % (kwargs,)
+
+    def gamma(smk, X):
+        score = smk.match_score(X, X)
+        sccw = np.reciprocal(np.sqrt(score))
+        return sccw
+
+    def kernel_bow_tfidf(smk, X, Y):
+        return X.bow.dot(Y.bow)
+
+    def kernel_smk(smk, X, Y):
+        return X.gamma * Y.gamma * smk.match_score(X, Y)
+
+    def word_isect(smk, X, Y):
+        isect_wxs = X.wx_set.intersection(Y.wx_set)
+        X_idx = ut.take(X.wx_to_idx, isect_wxs)
+        Y_idx = ut.take(Y.wx_to_idx, isect_wxs)
+        weights = ut.take(smk.wx_to_weight, isect_wxs)
+        return X_idx, Y_idx, weights
+
+    def match_score_agg(smk, X, Y):
+        X_idx, Y_idx, weights = smk.word_isect(X, Y)
+        PhisX, flagsX = X.Phis_flags(X_idx)
+        PhisY, flagsY = Y.Phis_flags(Y_idx)
+        scores = smk_funcs.match_scores_agg(
+            PhisX, PhisY, flagsX, flagsY, smk.alpha, smk.thresh)
+        scores = np.multiply(scores, weights, out=scores)
+        score = scores.sum()
+        return score
+
+    def match_score_sep(smk, X, Y):
+        X_idx, Y_idx, weights = smk.word_isect(X, Y)
+        phisX_list, flagsY_list = X.phis_flags_list(X_idx)
+        phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
+        scores_list = smk_funcs.match_scores_sep(
+            phisX_list, phisY_list, flagsX_list, flagsY_list, smk.alpha,
+            smk.thresh)
+        for scores, w in zip(scores_list, weights):
+            np.multiply(scores, w, out=scores)
+        score = np.sum([s.sum() for s in scores_list])
+        return score
+
+    def match_score_bow(smk, X, Y):
+        isect_words = X.wx_set.intersection(Y.wx_set)
+        weights = ut.take(smk.wx_to_weight, isect_words)
+        score = np.sum(weights)
+        return score
+
+
+class SparseVector(ut.NiceRepr):
+    def __init__(self, _dict):
+        self._dict = _dict
+
+    def __nice__(self):
+        return '%d nonzero values' % (len(self._dict),)
+
+    def __getitem__(self, keys):
+        vals = ut.take(self._dict, keys)
+        return vals
+
+    def dot(self, other):
+        keys1 = set(self._dict.keys())
+        keys2 = set(other._dict.keys())
+        keys = keys1.intersection(keys2)
+        vals1 = np.array(self[keys])
+        vals2 = np.array(other[keys])
+        return np.multiply(vals1, vals2).sum()
+
+
 def load_internal_data():
     from ibeis.algo.smk.smk_pipeline import *  # NOQA
     import ibeis
@@ -50,7 +145,6 @@ def oxford_conic_test():
 def load_external_oxford_features():
     """
     # TODO: root sift with centering
-
 
     Such hacks for reading external oxford
     >>> from ibeis.algo.smk.script_smk import *  # NOQA
@@ -165,19 +259,6 @@ def load_external_oxford_features():
                                                   ori=False, ell_alpha=.4,
                                                   color='distinct')
 
-        #import vtool as vt
-        #unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
-        #assert ut.issorted(unique_word)
-        #wx_to_vecs = vt.apply_grouping(vecs, groupxs, axis=0)
-
-        #wx_to_word = np.array([
-        #np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
-        #for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
-        #])
-        #vocab = vocab_indexer.VisualVocab(wx_to_word)
-        #vocab.build()
-        #'vocab': vocab,
-
     return oxford_data1
 
 
@@ -226,6 +307,11 @@ def load_external_data2():
     """
     >>> from ibeis.algo.smk.script_smk import *  # NOQA
     """
+
+    config = {
+        'num_words': 1E6
+        #'num_words': 8000
+    }
     from os.path import join, basename, splitext
     import ibeis
     oxford_data1 = load_external_oxford_features()
@@ -233,8 +319,6 @@ def load_external_data2():
     kpts_list = oxford_data1['kpts_list']
     vecs_list = oxford_data1['vecs_list']
     wordid_list = oxford_data1['wordid_list']
-    num_words = 8000
-    vocab = train_vocabulary(vecs_list, num_words)
     uri_order = [x.replace('oxc1_', '') for x in imgid_order]
     assert len(ut.list_union(*wordid_list)) == 1E6
 
@@ -252,38 +336,58 @@ def load_external_data2():
     data_annots = _dannots.take(ut.take(lookup, uri_order))
     assert get_oxford_keys(data_annots) == uri_order
 
+    offset_list = [0] + ut.cumsum([len(v) for v in vecs_list])
+
     dbdir = ut.truepath('/raid/work/Oxford/')
     #======================
     # Build/load database info
-    data_fpath2 = join(dbdir, 'oxford_data2.pkl')
     daids = data_annots.aids
 
+    #======================
+    # Compute All Word Assignments
     nAssign = 1
     all_vecs = np.vstack(vecs_list)
-    with ut.Timer('assign vocab neighbors'):
-        #idx_to_wxs, idx_to_maws = smk_funcs.assign_to_words(vocab, all_vecs, nAssign)
-        _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign)
-        if nAssign > 1:
-            idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
-                _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
-                massign_equal_weights=True)
-        else:
-            idx_to_wxs = _idx_to_wx.tolist()
-            idx_to_maws = [[1.0]] * len(idx_to_wxs)
 
+    #num_words = 8000
+
+    if config['num_words'] == 1E6:
+        import vtool as vt
+        print('Using oxford word assignments')
+        unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
+        assert ut.issorted(unique_word)
+        wx_to_vecs = vt.apply_grouping(all_vecs, groupxs, axis=0)
+
+        wx_to_word = np.array([
+            np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
+            for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
+        ])
+        from ibeis.algo.smk import vocab_indexer
+        vocab = vocab_indexer.VisualVocab(wx_to_word)
+
+        wordid_list2 = [wids[:, None] - 1 for wids in wordid_list]
+    else:
+        vocab = train_vocabulary(vecs_list, config['num_words'])
+        with ut.Timer('assign vocab neighbors'):
+            #idx_to_wxs, idx_to_maws = smk_funcs.assign_to_words(vocab, all_vecs, nAssign)
+            _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign, checks=128)
+            if nAssign > 1:
+                idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
+                    _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
+                    massign_equal_weights=True)
+            else:
+                idx_to_wxs = _idx_to_wx.tolist()
+                #idx_to_maws = [[1.0]] * len(idx_to_wxs)
+
+        wordid_list2 = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
+
+    data_fpath2 = join(dbdir, 'oxford_data2.pkl')
     if not ut.checkpath(data_fpath2):
         Y_list = []
-        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True)
-        for aid, vecs, wordids in _prog(zip(daids, vecs_list, wordid_list)):
-            #fx_to_wxs = wordids[:, None] - 1
-            fx_to_wxs = None
-            fx_to_vecs = vecs
-            X = new_external_annot(aid, fx_to_vecs, vocab, fx_to_wxs)
+        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
+        for aid, wordids in _prog(zip(daids, wordid_list2)):
+            fx_to_wxs = wordids
+            X = new_external_annot(aid, fx_to_wxs)
             Y_list.append(X)
-
-        for X, vecs in _prog(zip(Y_list, vecs_list)):
-            fx_to_vecs = vecs
-            make_agg_vecs(X, vocab, fx_to_vecs)
         external_data2 = {
             'Y_list': Y_list,
         }
@@ -297,7 +401,7 @@ def load_external_data2():
     wx_lists = [Y.wx_list for Y in Y_list]
     wx_list = sorted(ut.list_union(*wx_lists))
     assert daids == data_annots.aids
-    assert len(wx_list) == 1E6
+    #assert len(wx_list) == 1E6
 
     # Compute IDF weights
     #wx_to_aids = smk_funcs.invert_lists(daids, wx_lists, all_wxs=wx_list)
@@ -327,13 +431,13 @@ def load_external_data2():
     if not ut.checkpath(data_fpath3):
         query_super_kpts = ut.take(kpts_list, qx_to_dx)
         query_super_vecs = ut.take(vecs_list, qx_to_dx)
-        query_super_wids = ut.take(wordid_list, qx_to_dx)
+        query_super_wids = ut.take(wordid_list2, qx_to_dx)
         import vtool as vt
         # Mark which keypoints are within the bbox of the query
         query_flags_list = []
         for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
             xys = kpts[:, 0:2]
-            wh_list = vt.get_xy_axis_extents(kpts)
+            wh_list = vt.get_kpts_wh(kpts)
             radii = wh_list / 2
             pts1 = xys + radii * (-1, 1)
             pts2 = xys + radii * (-1, -1)
@@ -348,22 +452,19 @@ def load_external_data2():
             query_flags_list.append(flags)
 
         qaids = _qannots.aids
-        # query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
+        query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
         query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
         query_wids = vt.zipcompress(query_super_wids, query_flags_list, axis=0)
 
         X_list = []
-        _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True)
-        for aid, vecs, wordids in _prog(zip(qaids, query_vecs, query_wids)):
+        _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
+        for aid, wordids in _prog(zip(qaids, query_wids)):
             #fx_to_wxs = wordids[:, None] - 1
-            fx_to_wxs = None
-            fx_to_vecs = vecs
-            X = new_external_annot(aid, fx_to_vecs, vocab, fx_to_wxs)
+            fx_to_wxs = wordids
+            #fx_to_wxs = None
+            X = new_external_annot(aid, fx_to_wxs)
             X_list.append(X)
 
-        for X, vecs in _prog(zip(X_list, query_vecs)):
-            fx_to_vecs = vecs
-            make_agg_vecs(X, vocab, fx_to_vecs)
         external_data3 = {
             'X_list': X_list,
         }
@@ -374,106 +475,96 @@ def load_external_data2():
     for Y, nid in zip(Y_list, ibs.get_annot_nids(daids)):
         Y.nid = nid
 
+    for X, nid in zip(X_list, ibs.get_annot_nids(qaids)):
+        X.nid = nid
+
     for Y, qual in zip(Y_list, ibs.get_annot_quality_texts(daids)):
         Y.qual = qual
 
+    #======================
+    # Add in other properties
+    for Y, vecs, kpts in zip(Y_list, vecs_list, kpts_list):
+        Y.vecs = vecs
+        Y.kpts = kpts
+
+    for X, vecs, kpts in zip(X_list, query_vecs, query_kpts):
+        X.kpts = kpts
+        X.vecs = vecs
+
     # Filter junk
     Y_list_ = [Y for Y in Y_list if Y.qual != 'junk']
+    test_kernel(X_list, Y_list_, vocab, wx_to_weight)
 
-    for X, nid in zip(X_list, ibs.get_annot_nids(qaids)):
-        X.nid = nid
+
+def test_kernel(X_list, Y_list_, vocab, wx_to_weight):
+    #======================
+    # Choose Query Kernel
 
     params = {
         'asmk': dict(alpha=3.0, thresh=0.0),
         'bow': dict(),
+        'bow2': dict(),
     }
-    method = 'bow'
-    # method = 'asmk'
+    #method = 'bow2'
+    method = 'asmk'
     smk = SMK(wx_to_weight, method=method, **params[method])
-    for X in ut.ProgIter(X_list, 'compute X gamma'):
-        X.gamma = smk.gamma(X)
-    for Y in ut.ProgIter(Y_list_, 'compute Y gamma'):
-        Y.gamma = smk.gamma(Y)
 
-    import sklearn.metrics
-    # ranked_lists = []
+    # Specific info for the type of query
+    if method == 'asmk':
+        # Make residual vectors:
+        _prog = ut.ProgPartial(lbl='agg Y rvecs', bs=True, adjust=True)
+        for Y in _prog(Y_list_):
+            make_agg_vecs(Y, vocab, Y.vecs)
+
+        _prog = ut.ProgPartial(lbl='agg X rvecs', bs=True, adjust=True)
+        for X in _prog(X_list):
+            make_agg_vecs(X, vocab, X.vecs)
+
+    if method == 'bow2':
+        # Hack for orig tf-idf bow vector
+        nwords = len(vocab)
+        for X in ut.ProgIter(X_list, lbl='make bow vector'):
+            ensure_tf(X)
+            bow_vector(X, wx_to_weight, nwords)
+
+        for Y in ut.ProgIter(Y_list_, lbl='make bow vector'):
+            ensure_tf(X)
+            bow_vector(Y, wx_to_weight, nwords)
+    else:
+        for X in ut.ProgIter(X_list, 'compute X gamma'):
+            X.gamma = smk.gamma(X)
+        for Y in ut.ProgIter(Y_list_, 'compute Y gamma'):
+            Y.gamma = smk.gamma(Y)
 
     scores_list = []
-    truths_list = []
+    for X in ut.ProgIter(X_list, lbl='query %s' % (smk,)):
+        # Execute matches
+        scores = [smk.kernel(X, Y) for Y in Y_list_]
+        scores_list.append(scores)
 
+    import sklearn.metrics
     avep_list = []
-    for X in ut.ProgIter(X_list, lbl='query'):
-        scores = []
-        truth = []
-        for Y in Y_list_:
-            score = X.bow.dot(Y.bow)
-            # score = smk.kernel(X, Y)
-            scores.append(score)
-            truth.append(X.nid == Y.nid)
-        scores = np.array(scores)
-        truth = np.array(truth)
-        sortx = scores.argsort()[::-1]
-        # ranked_lists.append(truth.take(sortx))
-        scores_list.append(scores.take(sortx))
-        truths_list.append(truth.take(sortx))
+    _iter = list(zip(scores_list, X_list))
+    _iter = ut.ProgIter(_iter, lbl='evaluate %s' % (smk,))
+    for scores, X in _iter:
+        truth = [X.nid == Y.nid for Y in Y_list_]
         avep = sklearn.metrics.average_precision_score(truth, scores)
         avep_list.append(avep)
     avep_list = np.array(avep_list)
     mAP = np.mean(avep_list)
     print('mAP  = %r' % (mAP,))
 
-    ap_list2 = []
-    # Sanity Check: calculate avep like in
-    # http://www.robots.ox.ac.uk/~vgg/data/oxbuildings/compute_ap.cpp
-    # It ends up the same. Good.
-    for truth, scores in zip(truths_list, scores_list):
-        # HACK THE SORTING SO GT WITH EQUAL VALUES COME FIRST
-        # (I feel like this is disingenuous, but lets see how it changes AP)
-        if True:
-            sortx = np.lexsort(np.vstack((scores, truth))[::-1])[::-1]
-            truth = truth.take(sortx)
-            scores = scores.take(sortx)
-        old_precision = 1.0
-        old_recall = 0.0
-        ap = 0.0
-        intersect_size = 0.0
-        npos = float(sum(truth))
-        pr = []
-        j = 0
-        for i in range(len(truth)):
-            score = scores[i]
-            if score > 0:
-                val = truth[i]
-                if val:
-                    intersect_size += 1
-                recall = intersect_size / npos
-                precision = intersect_size / (j + 1)
-                ap += (recall - old_recall) * ((old_precision + precision) / 2.0)
-                pr.append((precision, recall))
-                old_recall = recall
-                old_precision = precision
-                j += 1
 
-        ap_list2.append(ap)
-    ap_list2 = np.array(ap_list2)
-    print('mAP2 = %r' % (np.mean(ap_list2)))
-
-    # annots._internal_attrs['kpts'] = kpts_list
-    # annots._internal_attrs['vecs'] = vecs_list
-    # annots._internal_attrs['wordid'] = wordid_list
-    # annots._ibs = None
-
-
-def new_external_annot(aid, vecs, vocab, fx_to_wxs=None):
-    nAssign = 1
+def new_external_annot(aid, fx_to_wxs=None):
+    #nAssign = 1
     int_rvec = True
     # Compute assignments
-    fx_to_vecs = vecs
-    if fx_to_wxs is None:
-        fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs,
-                                                          nAssign)
-    else:
-        fx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in fx_to_wxs]
+    #fx_to_vecs = vecs
+    #if fx_to_wxs is None:
+    #    fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs,
+    #                                                      nAssign)
+    #else:
+    fx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in fx_to_wxs]
     """
     z = np.array(ut.take_column(fx_to_wxs, 0)) + 1
     y = np.array(wordid_list[0])
@@ -516,115 +607,7 @@ def make_agg_vecs(X, vocab, fx_to_vecs):
             _agg_rvec = smk_funcs.cast_residual_integer(_agg_rvec)
         X.agg_rvecs[idx] = _agg_rvec
         X.agg_flags[idx] = _agg_flag
-
-    # Ensure casting
-    #for X in ut.ProgIter(X_list):
-    #    X.agg_rvecs = smk_funcs.cast_residual_integer(X.agg_rvecs)
-    #    X.wx_list = np.array(X.wx_list, dtype=np.int32)
-    #    X.wx_to_idx = ut.map_dict_vals(np.int32, X.wx_to_idx)
-    #    X.wx_to_idx = ut.map_dict_keys(np.int32, X.wx_to_idx)
     return X
-
-
-class SMK(ut.NiceRepr):
-    """
-    smk = SMK(wx_to_weight, method='bow')
-    smk.match_score(X, X)
-    """
-    def __nice__(smk):
-        return smk.method
-
-    def __init__(smk, wx_to_weight, method='asmk', **kwargs):
-        smk.wx_to_weight = wx_to_weight
-        smk.method = method
-        if method == 'asmk':
-            smk.match_score = smk.match_score_agg
-        elif method == 'smk':
-            smk.match_score = smk.match_score_sep
-        elif method == 'bow':
-            smk.match_score = smk.match_score_bow
-        if method in ['asmk', 'smk']:
-            smk.alpha = kwargs.pop('alpha', 0.0)
-            smk.thresh = kwargs.pop('thresh', 0.0)
-        assert len(kwargs) == 0, 'unexpected kwargs=%r' % (kwargs,)
-
-    def gamma(smk, X):
-        score = smk.match_score(X, X)
-        sccw = np.reciprocal(np.sqrt(score))
-        return sccw
-
-    def kernel(smk, X, Y):
-        return X.gamma * Y.gamma * smk.match_score(X, Y)
-
-    def word_isect(smk, X, Y):
-        isect_words = X.wx_set.intersection(Y.wx_set)
-        X_idx = ut.take(X.wx_to_idx, isect_words)
-        Y_idx = ut.take(Y.wx_to_idx, isect_words)
-        weights = ut.take(smk.wx_to_weight, isect_words)
-        return X_idx, Y_idx, weights
-
-    def match_score_agg(smk, X, Y):
-        X_idx, Y_idx, weights = smk.word_isect(X, Y)
-        PhisX, flagsX = X.Phis_flags(X_idx)
-        PhisY, flagsY = Y.Phis_flags(Y_idx)
-        scores = smk_funcs.match_scores_agg(
-            PhisX, PhisY, flagsX, flagsY, smk.alpha, smk.thresh)
-        scores = np.multiply(scores, weights, out=scores)
-        score = scores.sum()
-        return score
-
-    def match_score_sep(smk, X, Y):
-        X_idx, Y_idx, weights = smk.word_isect(X, Y)
-        phisX_list, flagsY_list = X.phis_flags_list(X_idx)
-        phisY_list, flagsX_list = Y.phis_flags_list(Y_idx)
-        scores_list = smk_funcs.match_scores_sep(
-            phisX_list, phisY_list, flagsX_list, flagsY_list, smk.alpha,
-            smk.thresh)
-        for scores, w in zip(scores_list, weights):
-            np.multiply(scores, w, out=scores)
-        score = np.sum([s.sum() for s in scores_list])
-        return score
-
-    def match_score_bow(smk, X, Y):
-        isect_words = X.wx_set.intersection(Y.wx_set)
-        weights = ut.take(smk.wx_to_weight, isect_words)
-        score = np.sum(weights)
-        return score
-
-    # def kernel_tf_bow(smk, X, Y):
-    #     if not hasattr(X, 'termfreq'):
-    #         X.termfreq = ut.dict_hist(X.wx_list)
-    #         # do what video google does
-    #         X.termfreq = ut.map_dict_vals(lambda x: x / len(X.wx_list), X.termfreq)
-    #     if not hasattr(Y, 'termfreq'):
-    #         Y.termfreq = ut.dict_hist(Y.wx_list)
-    #         Y.termfreq = ut.map_dict_vals(lambda x: x / len(Y.wx_list), Y.termfreq)
-    #     isect_words = X.wx_set.intersection(Y.wx_set)
-    #     idf_weights = np.array(ut.take(smk.wx_to_weight, isect_words))
-    #     tf_weightsX = np.array(ut.take(X.termfreq, isect_words))
-    #     tf_weightsY = np.array(ut.take(X.termfreq, isect_words))
-    #     score = np.sum(idf_weights)
-    #     return score
-
-
-class SparseVector(ut.NiceRepr):
-    def __init__(self, _dict):
-        self._dict = _dict
-
-    def __nice__(self):
-        return '%d nonzero values' % (len(self._dict),)
-
-    def __getitem__(self, keys):
-        vals = ut.take(self._dict, keys)
-        return vals
-
-    def dot(self, other):
-        keys1 = set(self._dict.keys())
-        keys2 = set(other._dict.keys())
-        keys = keys1.intersection(keys2)
-        vals1 = np.array(self[keys])
-        vals2 = np.array(other[keys])
-        return np.multiply(vals1, vals2).sum()
 
 
 def ensure_tf(X):
@@ -644,22 +627,14 @@ def bow_vector(X, wx_to_weight, nwords):
         bow_vector(Y, wx_to_weight, nwords)
 
     """
-    ensure_tf(X)
+    import vtool as vt
     wxs = sorted(list(X.wx_set))
     tf = np.array(ut.take(X.termfreq, wxs))
     idf = np.array(ut.take(wx_to_weight, wxs))
-    import vtool as vt
     bow_ = tf * idf
     bow_ = vt.normalize(bow_)
     bow = SparseVector(dict(zip(wxs, bow_)))
-    #import scipy.sparse
-    # nwords = max(wx_to_weight.keys()) + 1
-    # bow = scipy.sparse.coo_matrix((bow_, (
-    #     wxs, np.zeros(len(wxs)))), shape=(nwords, 1), dtype=np.float32).tocsc()
-    # bow.T.dot(bow).toarray()[0, 0]
     X.bow = bow
-    # for wx, v in zip(wxs, bow_):
-    #     bow[wx, 1] = v
 
 
 def make_temporary_annot(aid, vocab, wx_to_weight, ibs, config):
@@ -744,3 +719,46 @@ def verify_score():
     assert np.isclose(score, cm.aid2_annot_score[daid2])
     assert np.isclose(smk_pipeline.match_kernel_agg(Y2, Y2, wx_to_weight, alpha, thresh)[0], 1.0)
     #Y2 = make_temporary_annot(daid2, vocab, wx_to_weight, ibs, config)
+
+
+#ap_list2 = []
+## Sanity Check: calculate avep like in
+## http://www.robots.ox.ac.uk/~vgg/data/oxbuildings/compute_ap.cpp
+## It ends up the same. Good.
+#for truth, scores in zip(truths_list, scores_list):
+#    # HACK THE SORTING SO GT WITH EQUAL VALUES COME FIRST
+#    # (I feel like this is disingenuous, but lets see how it changes AP)
+#    if True:
+#        sortx = np.lexsort(np.vstack((scores, truth))[::-1])[::-1]
+#        truth = truth.take(sortx)
+#        scores = scores.take(sortx)
+#    old_precision = 1.0
+#    old_recall = 0.0
+#    ap = 0.0
+#    intersect_size = 0.0
+#    npos = float(sum(truth))
+#    pr = []
+#    j = 0
+#    for i in range(len(truth)):
+#        score = scores[i]
+#        if score > 0:
+#            val = truth[i]
+#            if val:
+#                intersect_size += 1
+#            recall = intersect_size / npos
+#            precision = intersect_size / (j + 1)
+#            ap += (recall - old_recall) * ((old_precision + precision) / 2.0)
+#            pr.append((precision, recall))
+#            old_recall = recall
+#            old_precision = precision
+#            j += 1
+
+#    ap_list2.append(ap)
+#ap_list2 = np.array(ap_list2)
+#print('mAP2 = %r' % (np.mean(ap_list2)))
+
+# annots._internal_attrs['kpts'] = kpts_list
+# annots._internal_attrs['vecs'] = vecs_list
+# annots._internal_attrs['wordid'] = wordid_list
+# annots._ibs = None
+
