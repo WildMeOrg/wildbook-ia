@@ -59,7 +59,8 @@ def _arm_collection(patch_list, color, alpha, lw):
 
 def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
                         arm2_color=BLACK, arm_alpha=1.0, arm1_lw=1.0,
-                        arm2_lw=2.0, circ_alpha=.5, fidelity=512, **kwargs):
+                        arm2_lw=2.0, circ_alpha=.5, fidelity=256,
+                        scaling=True, **kwargs):
     """
     Creates a collection of SIFT matplotlib patches
 
@@ -106,7 +107,6 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
     _kwcirc = dict(transform=aff)
     arm_patches = []
     DSCALE   =  0.25  # Descriptor scale factor
-    #ARMSCALE =  1.5   # Arm length scale factor
     XYSCALE  =  0.5   # Position scale factor
     XYOFFST  = -0.75  # Position offset
     NORI, NX, NY = 8, 4, 4  # SIFT BIN CONSTANTS
@@ -117,8 +117,25 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
     # If given the correct fidelity, each arm will have a max magnitude of 1.0
     # Because the diameter of each circle is 1.0
     arm_mag = sift / (float(fidelity))
-    print('arm_mag = %r' % (arm_mag.max(),))
     arm_ori = np.tile(discrete_ori, (NBINS, 1)).flatten()
+
+    if scaling:
+        # Use entropy as a scaling factor to more clearly visualize differences
+        p = np.bincount(sift) / len(sift)
+        maximum_entropy = -np.log2(1 / len(sift))
+        entropy = -np.nansum(p * np.log2(p))
+        # Alpha is 1 when entropy is maximum
+        # When entropy is maximum, we want to scale things up a bit
+        alpha = (entropy / maximum_entropy)
+
+        max_ = arm_mag.max()
+        # Always scale up, but no more than max.
+        pt1 = min(max_, 1)  # max_
+        pt2 = max(max_, 1)  # 1
+        denom = (pt2 * alpha) + (pt1 * (1 - alpha))
+        scale_factor = 1 / denom
+        arm_mag = arm_mag * scale_factor
+
     # Arm orientation in dxdy format
     arm_dxy = np.array(list(zip(*_cirlce_rad2xy(arm_ori, arm_mag))))
     #np.linalg.norm(arm_dxy, axis=1).max()
@@ -130,13 +147,12 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
     arm_args_list = []
 
     for y, x, t in yxt_gen:
-        #print('y=%r, x=%r, t=%r' % (y, x, t))
         index = (y * NX * NORI) + (x * NORI) + (t)
         (dx, dy) = arm_dxy[index]
         arm_x  = (x * XYSCALE) + XYOFFST  # MULTIPLY BY -1 to invert X axis
         arm_y  = (y * XYSCALE) + XYOFFST
-        arm_dy = (dy * DSCALE)  # * ARMSCALE
-        arm_dx = (dx * DSCALE)  # * ARMSCALE
+        arm_dy = (dy * DSCALE)
+        arm_dx = (dx * DSCALE)
         _args = [arm_x, arm_y, arm_dx, arm_dy]
         arm_args_list.append(_args)
 
@@ -144,7 +160,6 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
         arm_patch = mpl.patches.FancyArrow(*_args, **_kwarm)
         arm_patches.append(arm_patch)
 
-    #print('len(arm_patches) = %r' % (len(arm_patches),))
     # Draw circles around each of the 4x4 grid cells
     circle_patches = []
     for y, x in yx_gen:
@@ -187,13 +202,9 @@ def draw_sifts(ax, sifts, invVR_aff2Ds=None, **kwargs):
         >>> ax.set_ylim(-1.5, 1.5)
         >>> sifts = testdata_sifts()
         >>> invVR_aff2Ds = None
-        >>> #kwargs = dict(arm1_lw=1, arm2_lw=2)
         >>> kwargs = dict(multicolored_arms=False)
-        >>> # execute function
         >>> result = draw_sifts(ax, sifts, invVR_aff2Ds, **kwargs)
-        >>> # verify results
         >>> print(result)
-        >>> #pt.dark_background()
         >>> pt.show_if_requested()
     """
     if invVR_aff2Ds is None:
