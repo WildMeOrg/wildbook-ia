@@ -142,17 +142,23 @@ def oxford_conic_test():
     #invV = np.linalg.inv(V)
 
 
-def load_external_oxford_features():
+def load_external_oxford_features(config):
     """
     # TODO: root sift with centering
 
     Such hacks for reading external oxford
-    >>> from ibeis.algo.smk.script_smk import *  # NOQA
-    """
-    from os.path import join, basename, splitext
+
     config = {
         'root_sift': True,
     }
+    >>> from ibeis.algo.smk.script_smk import *  # NOQA
+    """
+    relevant_params = [
+        'root_sift'
+    ]
+    config = ut.dict_subset(config, relevant_params)
+
+    from os.path import join, basename, splitext
     suffix = ut.get_cfg_lbl(config)
     dbdir = ut.truepath('/raid/work/Oxford/')
     data_fpath1 = join(dbdir, ut.augpath('oxford_data1.pkl', suffix))
@@ -309,12 +315,16 @@ def load_external_data2():
     """
 
     config = {
-        'num_words': 1E6
-        #'num_words': 8000
+        #'num_words': 1E6
+        'root_sift': True,
+        'num_words': 8000,
+        'checks': 128,
     }
+    nAssign = 1
+
     from os.path import join, basename, splitext
     import ibeis
-    oxford_data1 = load_external_oxford_features()
+    oxford_data1 = load_external_oxford_features(config)
     imgid_order = oxford_data1['imgid_order']
     kpts_list = oxford_data1['kpts_list']
     vecs_list = oxford_data1['vecs_list']
@@ -345,7 +355,6 @@ def load_external_data2():
 
     #======================
     # Compute All Word Assignments
-    nAssign = 1
     all_vecs = np.vstack(vecs_list)
 
     #num_words = 8000
@@ -364,58 +373,44 @@ def load_external_data2():
         from ibeis.algo.smk import vocab_indexer
         vocab = vocab_indexer.VisualVocab(wx_to_word)
 
-        wordid_list2 = [wids[:, None] - 1 for wids in wordid_list]
+        wx_lists = [wids[:, None] - 1 for wids in wordid_list]
     else:
         vocab = train_vocabulary(vecs_list, config['num_words'])
-        with ut.Timer('assign vocab neighbors'):
-            #idx_to_wxs, idx_to_maws = smk_funcs.assign_to_words(vocab, all_vecs, nAssign)
-            _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign, checks=128)
-            if nAssign > 1:
-                idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
-                    _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
-                    massign_equal_weights=True)
-            else:
-                idx_to_wxs = _idx_to_wx.tolist()
-                #idx_to_maws = [[1.0]] * len(idx_to_wxs)
+        word_hash = ut.hashstr_arr27(vocab.wx_to_word, 'words')
+        relevant_params = ['checks']
+        cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
+        assign_fpath = join(dbdir, 'assigns_' + ut.hashstr27(word_hash + cfglbl) + '.pkl')
+        if ut.checkpath(assign_fpath):
+            (idx_to_wxs, offset_list) = ut.load_data(assign_fpath)
+        else:
+            #query_hash = ut.hashstr_arr27(all_vecs, 'all_vecs')
+            with ut.Timer('assign vocab neighbors'):
+                #idx_to_wxs, idx_to_maws = smk_funcs.assign_to_words(vocab, all_vecs, nAssign)
+                _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign, checks=128)
+                if nAssign > 1:
+                    idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
+                        _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
+                        massign_equal_weights=True)
+                else:
+                    idx_to_wxs = _idx_to_wx.tolist()
+                    #idx_to_maws = [[1.0]] * len(idx_to_wxs)
+            # Maybe masked arrays is just overall better here
+            idx_to_wxs = [np.array(wxs, dtype=np.int32) for wxs in ut.ProgIter(idx_to_wxs, lbl='cast')]
+            ut.save_data(assign_fpath, (idx_to_wxs, offset_list))
+        wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
 
-        wordid_list2 = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
-
-    data_fpath2 = join(dbdir, 'oxford_data2.pkl')
-    if not ut.checkpath(data_fpath2):
+    relevant_params = ['num_words', 'root_sift', 'checks']
+    cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
+    ydata_fpath = join(dbdir, 'ydata' + cfglbl + '.pkl')
+    if not ut.checkpath(ydata_fpath):
         Y_list = []
         _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
-        for aid, wordids in _prog(zip(daids, wordid_list2)):
-            fx_to_wxs = wordids
-            X = new_external_annot(aid, fx_to_wxs)
-            Y_list.append(X)
-        external_data2 = {
-            'Y_list': Y_list,
-        }
-        ut.save_data(data_fpath2, external_data2)
+        for aid, fx_to_wxs in _prog(zip(daids, wx_lists)):
+            Y = new_external_annot(aid, fx_to_wxs)
+            Y_list.append(Y)
+        ut.save_data(ydata_fpath, Y_list)
     else:
-        external_data2 = ut.load_data(data_fpath2)
-        Y_list = external_data2['Y_list']
-
-    # Build inverted list
-    daids = [Y.aid for Y in Y_list]
-    wx_lists = [Y.wx_list for Y in Y_list]
-    wx_list = sorted(ut.list_union(*wx_lists))
-    assert daids == data_annots.aids
-    #assert len(wx_list) == 1E6
-
-    # Compute IDF weights
-    #wx_to_aids = smk_funcs.invert_lists(daids, wx_lists, all_wxs=wx_list)
-    ndocs_total = len(daids)
-    # TODO: use total count of words like in Video Google
-    if False:
-        # ndocs_per_word1 = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
-        pass
-    else:
-        ndocs_per_word2 = np.bincount(ut.flatten(wx_lists))
-        ndocs_per_word = ndocs_per_word2
-    idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
-    wx_to_weight = dict(zip(wx_list, idf_per_word))
-    print('idf stats: ' + ut.repr4(ut.get_stats(wx_to_weight.values())))
+        Y_list = ut.load_data(ydata_fpath)
 
     #======================
     # Build/load query info
@@ -427,11 +422,14 @@ def load_external_data2():
     dgid_to_dx = ut.make_index_lookup(data_annots.gids)
     qx_to_dx = ut.take(dgid_to_dx, _qannots.gids)
     # get_oxford_keys(_qannots)
-    data_fpath3 = join(dbdir, 'oxford_data3.pkl')
-    if not ut.checkpath(data_fpath3):
+    relevant_params = ['num_words', 'root_sift', 'checks']
+    cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
+    xquery_fpath = join(dbdir, 'xquery' + cfglbl + '.pkl')
+
+    if not ut.checkpath(xquery_fpath):
         query_super_kpts = ut.take(kpts_list, qx_to_dx)
         query_super_vecs = ut.take(vecs_list, qx_to_dx)
-        query_super_wids = ut.take(wordid_list2, qx_to_dx)
+        query_super_wxs = ut.take(wx_lists, qx_to_dx)
         import vtool as vt
         # Mark which keypoints are within the bbox of the query
         query_flags_list = []
@@ -454,21 +452,17 @@ def load_external_data2():
         qaids = _qannots.aids
         query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
         query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
-        query_wids = vt.zipcompress(query_super_wids, query_flags_list, axis=0)
+        query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
 
         X_list = []
         _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
-        for aid, wordids in _prog(zip(qaids, query_wids)):
-            #fx_to_wxs = wordids[:, None] - 1
-            fx_to_wxs = wordids
-            #fx_to_wxs = None
+        for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
             X = new_external_annot(aid, fx_to_wxs)
             X_list.append(X)
 
-        external_data3 = {
-            'X_list': X_list,
-        }
-        ut.save_data(data_fpath3, external_data3)
+        ut.save_data(xquery_fpath, X_list)
+    else:
+        X_list = ut.load_data(xquery_fpath)
 
     #======================
     # Add in some groundtruth
@@ -491,6 +485,29 @@ def load_external_data2():
         X.kpts = kpts
         X.vecs = vecs
 
+    #======================
+    # Build inverted list
+    daids = [Y.aid for Y in Y_list]
+    wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))
+    assert daids == data_annots.aids
+    assert len(wx_list) <= config['num_words']
+
+    #wx_to_aids = smk_funcs.invert_lists(
+    #    daids, [Y.wx_list for Y in Y_list], all_wxs=wx_list)
+
+    # Compute IDF weights
+    ndocs_total = len(daids)
+    if False:
+        # ndocs_per_word1 = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
+        pass
+    else:
+        # use total count of words like in Video Google
+        ndocs_per_word2 = np.bincount(ut.flatten([Y.wx_list for Y in Y_list]))
+        ndocs_per_word = ndocs_per_word2
+    idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
+    wx_to_weight = dict(zip(wx_list, idf_per_word))
+    print('idf stats: ' + ut.repr4(ut.get_stats(wx_to_weight.values())))
+
     # Filter junk
     Y_list_ = [Y for Y in Y_list if Y.qual != 'junk']
     test_kernel(X_list, Y_list_, vocab, wx_to_weight)
@@ -505,7 +522,8 @@ def test_kernel(X_list, Y_list_, vocab, wx_to_weight):
         'bow': dict(),
         'bow2': dict(),
     }
-    #method = 'bow2'
+    method = 'bow'
+    method = 'bow2'
     method = 'asmk'
     smk = SMK(wx_to_weight, method=method, **params[method])
 
@@ -536,9 +554,9 @@ def test_kernel(X_list, Y_list_, vocab, wx_to_weight):
         for Y in ut.ProgIter(Y_list_, 'compute Y gamma'):
             Y.gamma = smk.gamma(Y)
 
+    # Execute matches (could go faster by enumerating candidates)
     scores_list = []
     for X in ut.ProgIter(X_list, lbl='query %s' % (smk,)):
-        # Execute matches
         scores = [smk.kernel(X, Y) for Y in Y_list_]
         scores_list.append(scores)
 
@@ -611,10 +629,10 @@ def make_agg_vecs(X, vocab, fx_to_vecs):
 
 
 def ensure_tf(X):
-    if not hasattr(X, 'termfreq'):
-        X.termfreq = ut.dict_hist(X.wx_list)
-        # do what video google does
-        X.termfreq = ut.map_dict_vals(lambda x: x / len(X.wx_list), X.termfreq)
+    termfreq = ut.dict_hist(X.wx_list)
+    # do what video google does
+    termfreq = ut.map_dict_vals(lambda x: x / len(X.wx_list), termfreq)
+    X.termfreq = termfreq
 
 
 def bow_vector(X, wx_to_weight, nwords):
@@ -761,4 +779,3 @@ def verify_score():
 # annots._internal_attrs['vecs'] = vecs_list
 # annots._internal_attrs['wordid'] = wordid_list
 # annots._ibs = None
-

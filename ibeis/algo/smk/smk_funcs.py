@@ -64,8 +64,15 @@ Notes:
     .38 and .44
 
     Using oxford descriptors I get .51ish
-    Then changing to root-sift I get=0.56294936807700813
-    Then using tfidf bow2=0.56046968275748565
+    Then changing to root-sift I
+    smk-bow = get=0.56294936807700813
+    Then using tfidf-bow2=0.56046968275748565
+    asmk-gets 0.54146
+
+    Going down to 8K words smk-BOW gets .153
+    Going down to 8K words tfidf-BOW gets .128
+    Going down to 8K words smk-asmk gets 0.374
+
 
 Differences Between this and SMK
    * No RootSIFT
