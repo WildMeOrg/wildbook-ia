@@ -1536,12 +1536,13 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> kpts2.T[1] += 100
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.show_kpts(np.vstack([kpts, kpts2]), ori=1, eig=True, ori_color='green', rect=True)
+        >>> pt.show_kpts(np.vstack([kpts, kpts2]), ori=1, eig=True,
+        >>>              ori_color='green', rect=True)
         >>> # Redraw oriented to show difference
-        >>> pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1, eig=True, ori_color='green', rect=True)
+        >>> pt.draw_kpts2(kpts2, color='red', ell_linewidth=2, ori=1,
+        >>>               eig=True, ori_color='green', rect=True)
         >>> ax = pt.gca()
         >>> ax.set_aspect('auto')
-        >>>
         >>> pt.dark_background()
         >>> ut.show_if_requested()
 
@@ -1648,6 +1649,21 @@ def get_Z_mats(V_mats):
 #         np.all(np.isclose(ans, 1))
 
 
+def decompose_Z_to_invV_2x2(Z_2x2):
+    import vtool as vt
+    import scipy.linalg
+    RV_2x2 = scipy.linalg.sqrtm(Z_2x2)
+    invVR_2x2 = np.linalg.inv(RV_2x2)
+    invV_2x2, ori_ = vt.rectify_invV_mats_are_up(invVR_2x2[None, :, :])
+    invV_2x2 = invV_2x2[0]
+    return invV_2x2
+
+
+def decompose_Z_to_V_2x2(Z_2x2):
+    invV_2x2 = decompose_Z_to_invV_2x2(Z_2x2)
+    V_2x2 = np.linalg.inv(invV_2x2)
+    return V_2x2
+
 
 def get_V_mats_from_Zmats2x2(Z_mats2x2):
     """
@@ -1688,8 +1704,8 @@ def get_V_mats_from_Zmats2x2(Z_mats2x2):
     import scipy.linalg
     V_mats = []
     for Z in Z_mats2x2:
-        t = np.trace(Z)
-        det = np.linalg.det(Z)
+        #t = np.trace(Z)
+        #det = np.linalg.det(Z)
 
         A = scipy.linalg.sqrtm(Z)
         U, s, V = np.linalg.svd(Z)
@@ -1703,9 +1719,6 @@ def get_V_mats_from_Zmats2x2(Z_mats2x2):
         print('Z = %r' % (Z,))
         assert np.all(np.isclose(Z2, Z))
     return V_mats
-    # invV_mats =
-    # vt.rectify_invV_mats_are_up()
-    # pass
 
 
 #@profile
