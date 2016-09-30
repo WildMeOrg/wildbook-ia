@@ -43,7 +43,6 @@ Notes:
     Philbin with tf-idf ranking SV=True
     SIFT: .672, RootSIFT: .720 (+.05)
 
-
     * My Results (WITH BAD QUERY BBOXES)
     smk:nAssign=1,SV=True,: .58
     smk:nAssign=1,SV=False,: .38
@@ -54,6 +53,8 @@ Notes:
     .08 and .32 (sv=[F,T]) after deleting and redoing everything (also removing junk images)
     After fix of normalization I get
     .38 and .44
+
+    Using oxford descriptors I get .51ish
 
 Differences Between this and SMK
    * No RootSIFT

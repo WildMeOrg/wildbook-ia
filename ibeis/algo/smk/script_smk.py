@@ -1,3 +1,10 @@
+"""
+Results so far without SV / fancyness
+Using standard descriptors / vocabulary
+
+proot=bow,nWords=1E6 -> .594
+proot=asmk,nWords=1E6 -> .529
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
@@ -149,7 +156,8 @@ def load_external_data2():
             X = new_external_annot(aid, vecs, fx_to_vecs, fx_to_wxs)
             Y_list.append(X)
 
-        for X in _prog(Y_list):
+        for X, vecs in _prog(zip(Y_list, vecs_list)):
+            fx_to_vecs = vecs
             make_agg_vecs(X, vocab, fx_to_vecs)
         external_data2 = {
             'Y_list': Y_list,
@@ -169,7 +177,13 @@ def load_external_data2():
     # Compute IDF weights
     wx_to_aids = smk_funcs.invert_lists(daids, wx_lists, all_wxs=wx_list)
     ndocs_total = len(daids)
-    ndocs_per_word = [len(set(wx_to_aids[wx])) for wx in wx_list]
+    # TODO: use total count of words like in Video Google
+    if False:
+        # ndocs_per_word1 = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
+        pass
+    else:
+        ndocs_per_word2 = np.bincount(ut.flatten(wx_lists))
+        ndocs_per_word = ndocs_per_word2
     idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
     wx_to_weight = dict(zip(wx_list, idf_per_word))
     print('idf stats: ' + ut.repr4(ut.get_stats(wx_to_weight.values())))
@@ -247,8 +261,8 @@ def load_external_data2():
         'asmk': dict(alpha=3.0, thresh=0.0),
         'bow': dict(),
     }
-    # method = 'bow'
-    method = 'asmk'
+    method = 'bow'
+    # method = 'asmk'
     smk = SMK(wx_to_weight, method=method, **params[method])
     for X in ut.ProgIter(X_list, 'compute X gamma'):
         X.gamma = smk.gamma(X)
@@ -256,20 +270,67 @@ def load_external_data2():
         Y.gamma = smk.gamma(Y)
 
     import sklearn.metrics
+    # ranked_lists = []
+
+    scores_list = []
+    truths_list = []
+
     avep_list = []
-    ranked_lists = []
     for X in ut.ProgIter(X_list, lbl='query'):
         scores = []
         truth = []
         for Y in Y_list_:
-            score = smk.kernel(X, Y)
+            score = X.bow.dot(Y.bow)
+            # score = smk.kernel(X, Y)
             scores.append(score)
             truth.append(X.nid == Y.nid)
-        ranked_lists.append(ut.take(truth, ut.argsort(scores)[::-1]))
+        scores = np.array(scores)
+        truth = np.array(truth)
+        sortx = scores.argsort()[::-1]
+        # ranked_lists.append(truth.take(sortx))
+        scores_list.append(scores.take(sortx))
+        truths_list.append(truth.take(sortx))
         avep = sklearn.metrics.average_precision_score(truth, scores)
         avep_list.append(avep)
+    avep_list = np.array(avep_list)
     mAP = np.mean(avep_list)
-    print('mAP = %r' % (mAP,))
+    print('mAP  = %r' % (mAP,))
+
+    ap_list2 = []
+    # Sanity Check: calculate avep like in
+    # http://www.robots.ox.ac.uk/~vgg/data/oxbuildings/compute_ap.cpp
+    # It ends up the same. Good.
+    for truth, scores in zip(truths_list, scores_list):
+        # HACK THE SORTING SO GT WITH EQUAL VALUES COME FIRST
+        # (I feel like this is disingenuous, but lets see how it changes AP)
+        if True:
+            sortx = np.lexsort(np.vstack((scores, truth))[::-1])[::-1]
+            truth = truth.take(sortx)
+            scores = scores.take(sortx)
+        old_precision = 1.0
+        old_recall = 0.0
+        ap = 0.0
+        intersect_size = 0.0
+        npos = float(sum(truth))
+        pr = []
+        j = 0
+        for i in range(len(truth)):
+            score = scores[i]
+            if score > 0:
+                val = truth[i]
+                if val:
+                    intersect_size += 1
+                recall = intersect_size / npos
+                precision = intersect_size / (j + 1)
+                ap += (recall - old_recall) * ((old_precision + precision) / 2.0)
+                pr.append((precision, recall))
+                old_recall = recall
+                old_precision = precision
+                j += 1
+
+        ap_list2.append(ap)
+    ap_list2 = np.array(ap_list2)
+    print('mAP2 = %r' % (np.mean(ap_list2)))
 
     # annots._internal_attrs['kpts'] = kpts_list
     # annots._internal_attrs['vecs'] = vecs_list
@@ -403,6 +464,76 @@ class SMK(ut.NiceRepr):
         weights = ut.take(smk.wx_to_weight, isect_words)
         score = np.sum(weights)
         return score
+
+    # def kernel_tf_bow(smk, X, Y):
+    #     if not hasattr(X, 'termfreq'):
+    #         X.termfreq = ut.dict_hist(X.wx_list)
+    #         # do what video google does
+    #         X.termfreq = ut.map_dict_vals(lambda x: x / len(X.wx_list), X.termfreq)
+    #     if not hasattr(Y, 'termfreq'):
+    #         Y.termfreq = ut.dict_hist(Y.wx_list)
+    #         Y.termfreq = ut.map_dict_vals(lambda x: x / len(Y.wx_list), Y.termfreq)
+    #     isect_words = X.wx_set.intersection(Y.wx_set)
+    #     idf_weights = np.array(ut.take(smk.wx_to_weight, isect_words))
+    #     tf_weightsX = np.array(ut.take(X.termfreq, isect_words))
+    #     tf_weightsY = np.array(ut.take(X.termfreq, isect_words))
+    #     score = np.sum(idf_weights)
+    #     return score
+
+
+class SparseVector(ut.NiceRepr):
+    def __init__(self, _dict):
+        self._dict = _dict
+
+    def __nice__(self):
+        return '%d nonzero values' % (len(self._dict),)
+
+    def __getitem__(self, keys):
+        vals = ut.take(self._dict, keys)
+        return vals
+
+    def dot(self, other):
+        keys1 = set(self._dict.keys())
+        keys2 = set(other._dict.keys())
+        keys = keys1.intersection(keys2)
+        vals1 = np.array(self[keys])
+        vals2 = np.array(other[keys])
+        return np.multiply(vals1, vals2).sum()
+
+
+def ensure_tf(X):
+    if not hasattr(X, 'termfreq'):
+        X.termfreq = ut.dict_hist(X.wx_list)
+        # do what video google does
+        X.termfreq = ut.map_dict_vals(lambda x: x / len(X.wx_list), X.termfreq)
+
+
+def bow_vector(X, wx_to_weight, nwords):
+    """
+    nwords = len(vocab)
+    for X in ut.ProgIter(X_list):
+        bow_vector(X, wx_to_weight, nwords)
+
+    for Y in ut.ProgIter(Y_list):
+        bow_vector(Y, wx_to_weight, nwords)
+
+    """
+    ensure_tf(X)
+    wxs = sorted(list(X.wx_set))
+    tf = np.array(ut.take(X.termfreq, wxs))
+    idf = np.array(ut.take(wx_to_weight, wxs))
+    import vtool as vt
+    bow_ = tf * idf
+    bow_ = vt.normalize(bow_)
+    import scipy.sparse
+    # nwords = max(wx_to_weight.keys()) + 1
+    bow = SparseVector(dict(zip(wxs, bow_)))
+    # bow = scipy.sparse.coo_matrix((bow_, (
+    #     wxs, np.zeros(len(wxs)))), shape=(nwords, 1), dtype=np.float32).tocsc()
+    # bow.T.dot(bow).toarray()[0, 0]
+    X.bow = bow
+    # for wx, v in zip(wxs, bow_):
+    #     bow[wx, 1] = v
 
 
 def make_temporary_annot(aid, vocab, wx_to_weight, ibs, config):
