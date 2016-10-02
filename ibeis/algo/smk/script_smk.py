@@ -57,7 +57,9 @@ class SMK(ut.NiceRepr):
         return X.bow.dot(Y.bow)
 
     def kernel_smk(smk, X, Y):
-        return X.gamma * Y.gamma * smk.match_score(X, Y)
+        score = smk.match_score(X, Y)
+        score = X.gamma * Y.gamma * score
+        return score
 
     def word_isect(smk, X, Y):
         isect_wxs = X.wx_set.intersection(Y.wx_set)
@@ -268,7 +270,7 @@ def load_external_oxford_features(config):
     return oxford_data1
 
 
-def train_vocabulary(vecs_list, num_words):
+def train_vocabulary(all_vecs, config):
     #oxford_data1 = load_external_oxford_features()
     #imgid_order = oxford_data1['imgid_order']
     #kpts_list = oxford_data1['kpts_list']
@@ -276,13 +278,15 @@ def train_vocabulary(vecs_list, num_words):
     #wordid_list = oxford_data1['wordid_list']
 
     #num_words = 8000
+    num_words = config['num_words']
     from os.path import join
     dbdir = ut.truepath('/raid/work/Oxford/')
     fpath = join(dbdir, 'vocab_%d.pkl' % (num_words,))
     if ut.checkpath(fpath):
         return ut.load_data(fpath)
 
-    train_vecs = np.vstack(vecs_list)[::100].copy()
+    #train_vecs = np.vstack(vecs_list)[::100].copy()
+    train_vecs = all_vecs.astype(np.float32)
 
     rng = np.random.RandomState(13421421)
     import sklearn.cluster
@@ -293,6 +297,7 @@ def train_vocabulary(vecs_list, num_words):
     clusterer.fit(train_vecs)
     words = clusterer.cluster_centers_
     words = words.astype(np.uint8)
+    ut.save_data(ut.augpath(fpath, 'words'), words)
 
     from ibeis.algo.smk import vocab_indexer
     vocab = vocab_indexer.VisualVocab(words)
@@ -317,7 +322,8 @@ def load_external_data2():
     config = {
         #'num_words': 1E6
         'root_sift': True,
-        'num_words': 8000,
+        #'num_words': 8000,
+        'num_words': 65000,
         'checks': 128,
     }
     nAssign = 1
@@ -357,6 +363,58 @@ def load_external_data2():
     # Compute All Word Assignments
     all_vecs = np.vstack(vecs_list)
 
+    if False:
+        mean_vec = np.mean(all_vecs, axis=0)
+        # FOR ROOT SIFT
+        mean_vec = np.array([46.62654716,  31.21229356,  20.65256618,  19.79029916, 26.35339489,
+                             24.89652947,  25.73929759,  28.1263965 , 49.90879457,  39.53755507,
+                             35.60305786,  31.12662852, 32.59826317,  33.3061391 ,  34.21935008,
+                             33.61522911, 48.37291706,  34.53814424,  36.66045441,  35.01652565,
+                             32.9685514 ,  30.68111989,  33.24712142,  36.92554183, 44.53439247,
+                             28.89821659,  27.61463817,  26.57542163, 26.52943323,  19.98019709,
+                             20.12697373,  28.90332924, 60.3505775 ,  37.49316552,  23.39667829,
+                             26.81768004, 36.64132753,  31.33051857,  28.19458628,  36.05361797,
+                             62.16145931,  42.61728225,  33.45618204,  33.99012927, 39.2309187 ,
+                             35.93958642,  33.56585326,  39.49449849, 59.98748556,  39.56601898,
+                             35.1362548 ,  37.46382026, 40.00613604,  33.68649346,  32.18926408,
+                             41.0287681 , 57.70276193,  36.14551181,  29.74180816,  33.18968385,
+                             37.47753488,  27.27518575,  23.62592677,  36.28705048, 60.33918189,
+                             35.70739481,  28.27889338,  31.46749679, 36.64511836,  26.68877727,
+                             23.33377521,  37.78693368, 62.19426562,  39.23236523,  33.69995568,
+                             36.08645177, 39.22344608,  33.82699613,  33.29949893,  42.88519226,
+                             59.96339491,  40.77440589,  32.36521555,  33.88829536, 40.01698503,
+                             37.32365447,  35.03381512,  39.83779101, 57.69014384,  35.99944353,
+                             23.70292024,  27.42776124, 37.4634587 ,  33.06158922,  29.73344414,
+                             36.50520264, 46.65942545,  27.96910916,  25.83571901,  24.99287902,
+                             26.34822531,  19.6731151 ,  20.55268029,  31.34612668, 50.05258026,
+                             33.50795135,  34.33290915,  33.37659794, 32.55366866,  30.99947609,
+                             35.47599224,  39.74032484, 48.20281941,  36.76442332,  33.44254829,
+                             30.84983456, 32.96748179,  34.94445824,  36.59958041,  34.64582225,
+                             44.42460843,  28.77922249,  20.29438548,  20.14281416, 26.51264502,
+                             26.49364339,  27.59002478,  29.05427252])
+
+        #mean_vec = np.array([46, 31, 20, 19, 26, 24, 25, 28, 49, 39, 35, 31, 32, 33, 34, 33, 48,
+        #                     34, 36, 35, 32, 30, 33, 36, 44, 28, 27, 26, 26, 19, 20, 28, 60, 37,
+        #                     23, 26, 36, 31, 28, 36, 62, 42, 33, 33, 39, 35, 33, 39, 59, 39, 35,
+        #                     37, 40, 33, 32, 41, 57, 36, 29, 33, 37, 27, 23, 36, 60, 35, 28, 31,
+        #                     36, 26, 23, 37, 62, 39, 33, 36, 39, 33, 33, 42, 59, 40, 32, 33, 40,
+        #                     37, 35, 39, 57, 35, 23, 27, 37, 33, 29, 36, 46, 27, 25, 24, 26, 19,
+        #                     20, 31, 50, 33, 34, 33, 32, 30, 35, 39, 48, 36, 33, 30, 32, 34, 36,
+        #                     34, 44, 28, 20, 20, 26, 26, 27, 29], dtype=np.uint8)
+
+        arr1 = all_vecs
+        arr2 = mean_vec[None, :].astype(np.float32)
+
+        def batch_subtract(arr1, arr2):
+            # Center the vectors
+            out = np.empty(arr1.shape, dtype=np.int8)
+            chunksize = int(1E5)
+            slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
+            for sl in ut.ProgIter(slices, lbl='apply centering'):
+                s = arr1[sl].astype(np.float32)
+                out[sl] = np.subtract(s, arr2).astype(np.int8)
+            return out
+
     #num_words = 8000
 
     if config['num_words'] == 1E6:
@@ -375,7 +433,7 @@ def load_external_data2():
 
         wx_lists = [wids[:, None] - 1 for wids in wordid_list]
     else:
-        vocab = train_vocabulary(vecs_list, config['num_words'])
+        vocab = train_vocabulary(all_vecs, config['num_words'])
         word_hash = ut.hashstr_arr27(vocab.wx_to_word, 'words')
         relevant_params = ['checks']
         cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
@@ -568,6 +626,22 @@ def test_kernel(X_list, Y_list_, vocab, wx_to_weight):
         truth = [X.nid == Y.nid for Y in Y_list_]
         avep = sklearn.metrics.average_precision_score(truth, scores)
         avep_list.append(avep)
+
+        if False:
+            sortx = np.argsort(scores)[::-1]
+            yx = np.arange(len(Y_list_))
+            truth_ranked = np.array(truth).take(sortx)
+            scores_ranked = np.array(scores).take(sortx)
+            Y_ranked = ut.take(Y_list_, sortx)
+            Y_gts = ut.compress(Y_ranked, truth_ranked)
+
+            Y = Y_gts[-1]
+            ibs.show_annot(Y_gts[-1].aid, annote=False)
+            ibs.show_annot(Y_gts[-1].aid, annote=False)
+            #yx[truth]
+            #gt_yxs = yx.take(sortx)[truth]
+            #Y = Y_list_[gt_yxs[-1]]
+
     avep_list = np.array(avep_list)
     mAP = np.mean(avep_list)
     print('mAP  = %r' % (mAP,))
