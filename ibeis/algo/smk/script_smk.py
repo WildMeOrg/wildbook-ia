@@ -175,17 +175,16 @@ def load_external_oxford_features(config):
     }
     >>> from ibeis.algo.smk.script_smk import *  # NOQA
     """
-    relevant_params = [
-        'root_sift'
-    ]
-    config = ut.dict_subset(config, relevant_params)
-
+    # relevant_params = [
+    #     'root_sift'
+    # ]
+    # config = ut.dict_subset(config, relevant_params)
     from os.path import join, basename, splitext
-    suffix = ut.get_cfg_lbl(config)
+    # suffix = ut.get_cfg_lbl(config)
     dbdir = ut.truepath('/raid/work/Oxford/')
-    data_fpath1 = join(dbdir, ut.augpath('oxford_data1.pkl', suffix))
-    if ut.checkpath(data_fpath1):
-        oxford_data1 = ut.load_data(data_fpath1)
+    data_fpath0 = join(dbdir, 'oxford_data0.pkl')
+    if ut.checkpath(data_fpath0):
+        oxford_data1 = ut.load_data(data_fpath0)
         return oxford_data1
     else:
         word_dpath = join(dbdir, 'word_oxc1_hesaff_sift_16M_1M')
@@ -212,7 +211,7 @@ def load_external_oxford_features(config):
 
         # Convert ellipses (in Z format to invV format)
         import vtool as vt
-        for imgid in ut.ProgIter(imgid_to_df.keys()):
+        for imgid in ut.ProgIter(imgid_to_df.keys(), lbl='convert to invV'):
             df = imgid_to_df[imgid]
             e11, e12, e22 = df.loc[:, ('e11', 'e12', 'e22')].values.T
             #import numpy as np
@@ -243,49 +242,54 @@ def load_external_oxford_features(config):
         finally:
             file_.close()
 
-        if config['root_sift']:
-            # Have to do this in chunks to fit in memory
-            import vtool as vt
-            chunksize = shape[0] // 100
-            slices = list(ut.ichunk_slices(shape[0], chunksize))
-            fidelity = 512.0
-            for sl in ut.ProgIter(slices, lbl='apply rootsift'):
-                s = vecs[sl].astype(np.float32) / fidelity
-                s = vt.normalize(s, ord=1, axis=1, out=s)
-                s = np.sqrt(s, out=s)
-                s = (s * (fidelity)).astype(np.uint8)
-                vecs[sl] = s
+        # if config['root_sift']:
+        #     # Have to do this in chunks to fit in memory
+        #     import vtool as vt
+        #     chunksize = shape[0] // 100
+        #     slices = list(ut.ichunk_slices(shape[0], chunksize))
+        #     fidelity = 512.0
+        #     for sl in ut.ProgIter(slices, lbl='apply rootsift'):
+        #         s = vecs[sl].astype(np.float32) / fidelity
+        #         s = vt.normalize(s, ord=1, axis=1, out=s)
+        #         s = np.sqrt(s, out=s)
+        #         s = (s * (fidelity)).astype(np.uint8)
+        #         vecs[sl] = s
 
-        vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
+        # vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
         kpts_list = [df_.loc[:, ('x', 'y', 'a', 'c', 'd')].values
                      for df_ in df_list]
         wordid_list = [df_.loc[:, 'word_id'].values for df_ in df_list]
+        kpts = np.vstack(kpts_list)
+        wordids = np.hstack(wordid_list)
 
-        oxford_data1 = {
+        oxford_data0 = {
             'imgid_order': imgid_order,
-            'kpts_list': kpts_list,
-            'vecs_list': vecs_list,
-            'wordid_list': wordid_list,
+            'offset_list': offset_list,
+            'kpts': kpts,
+            'vecs': vecs,
+            'wordids': wordids,
+            # 'kpts_list': kpts_list,
+            # 'vecs_list': vecs_list,
         }
-        ut.save_data(data_fpath1, oxford_data1)
+        ut.save_data(data_fpath0, oxford_data0)
 
-        if False:
-            imgid = imgid_order[0]
-            imgdir = join(dbdir, 'oxbuild_images')
-            gpath = join(imgdir,  imgid.replace('oxc1_', '') + '.jpg')
-            image = vt.imread(gpath)
-            import plottool as pt
-            pt.qt4ensure()
-            pt.imshow(image)
-            kpts = kpts_list[0].copy()
-            vecs = vecs_list[0]
-            #h, w = image.shape[0:2]
-            #kpts.T[1] = h - kpts.T[1]
+        # if False:
+        #     imgid = imgid_order[0]
+        #     imgdir = join(dbdir, 'oxbuild_images')
+        #     gpath = join(imgdir,  imgid.replace('oxc1_', '') + '.jpg')
+        #     image = vt.imread(gpath)
+        #     import plottool as pt
+        #     pt.qt4ensure()
+        #     pt.imshow(image)
+        #     kpts = kpts_list[0].copy()
+        #     vecs = vecs_list[0]
+        #     #h, w = image.shape[0:2]
+        #     #kpts.T[1] = h - kpts.T[1]
 
-            #pt.draw_kpts2(kpts, ell_alpha=.4, pts=True, ell=True)
-            pt.interact_keypoints.ishow_keypoints(image, kpts, vecs,
-                                                  ori=False, ell_alpha=.4,
-                                                  color='distinct')
+        #     #pt.draw_kpts2(kpts, ell_alpha=.4, pts=True, ell=True)
+        #     pt.interact_keypoints.ishow_keypoints(image, kpts, vecs,
+        #                                           ori=False, ell_alpha=.4,
+        #                                           color='distinct')
 
     return oxford_data1
 
@@ -362,7 +366,6 @@ def load_jegou_oxford_data():
     #     print(sorted(ut.factors(nbytes - 8)))
     #     # header = file_.read(4)
     #     # num = np.fromstring(header, np.int32)
-
 
     # with open(words_fpath, 'rb') as file_:
     #     header = file_.read(4)
@@ -472,12 +475,16 @@ def load_external_data2():
     # ==============================================
     from os.path import basename, splitext
     import ibeis
-    oxford_data1 = load_external_oxford_features(config)
-    imgid_order = oxford_data1['imgid_order']
-    kpts_list = oxford_data1['kpts_list']
-    wordid_list = oxford_data1['wordid_list']
+    oxford_data0 = load_external_oxford_features(config)
+    imgid_order = oxford_data0['imgid_order']
+    offset_list = oxford_data0['offset_list']
+    all_kpts    = oxford_data0['kpts']
+    all_vecs    = oxford_data0['vecs']
+    # wordids     = oxford_data0['wordids']
+    del oxford_data
+
     uri_order = [x.replace('oxc1_', '') for x in imgid_order]
-    assert len(ut.list_union(*wordid_list)) == 1E6
+    # assert len(np.unique(wordids)) == 1E6
 
     ibs = ibeis.opendb('Oxford')
 
@@ -501,8 +508,6 @@ def load_external_data2():
     dgid_to_dx = ut.make_index_lookup(data_annots.gids)
     qx_to_dx = ut.take(dgid_to_dx, _qannots.gids)
 
-    offset_list = [0] + ut.cumsum([len(v) for v in kpts_list])
-
     dbdir = ut.truepath('/raid/work/Oxford/')
     #======================
     # Build/load database info
@@ -510,9 +515,8 @@ def load_external_data2():
 
     #======================
     # Compute All Word Assignments
-    vecs_list = oxford_data1['vecs_list']
-    all_vecs = np.vstack(vecs_list)
-    del oxford_data1['vecs_list']
+    all_vecs = oxford_data['vecs']
+    del oxford_data0['vecs']
     del vecs_list
 
     if config['centering']:
