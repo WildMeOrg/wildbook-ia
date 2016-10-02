@@ -117,6 +117,26 @@ class SparseVector(ut.NiceRepr):
         return np.multiply(vals1, vals2).sum()
 
 
+def ox_vocab():
+    # if config['num_words'] == 1E6:
+    #     import vtool as vt
+    #     print('Using oxford word assignments')
+    #     unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
+    #     assert ut.issorted(unique_word)
+    #     wx_to_vecs = vt.apply_grouping(all_vecs, groupxs, axis=0)
+
+    #     wx_to_word = np.array([
+    #         np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
+    #         for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
+    #     ])
+    #     from ibeis.algo.smk import vocab_indexer
+    #     vocab = vocab_indexer.VisualVocab(wx_to_word)
+
+    #     wx_lists = [wids[:, None] - 1 for wids in wordid_list]
+    # else:
+    pass
+
+
 def load_internal_data():
     from ibeis.algo.smk.smk_pipeline import *  # NOQA
     import ibeis
@@ -270,6 +290,118 @@ def load_external_oxford_features(config):
     return oxford_data1
 
 
+def load_jegou_oxford_data():
+    from os.path import join
+    smk_2013_dir = '/raid/work/Oxford/smk_data_iccv_2013/data/'
+
+    # with open(join(smk_2013_dir, 'paris_sift.uint8'), 'rb') as file_:
+    #     X = np.fromstring(file_.read(), np.uint8)
+    #     X = X.reshape(len(X) / 128, 128)
+    #     X = X.astype(np.float32)
+
+    with open(join(smk_2013_dir, 'oxford_sift.uint8'), 'rb') as file_:
+        X = np.fromstring(file_.read(), np.uint8)
+        X = X.reshape(len(X) / 128, 128)
+        X = X.astype(np.float32)
+
+    import vtool as vt
+
+    # Root SIFT
+    np.sqrt(X, out=X)
+    vt.normalize(X, ord=2, axis=1, out=X)
+
+    # Get mean after root-sift
+    Xm = np.mean(X, axis=0)
+
+    # Center and then re-normalize
+    np.subtract(X, Xm[None, :], out=X)
+    vt.normalize(X, ord=2, axis=1, out=X)
+
+    # def batch_elemwise_unary_op(func, arr1, chunksize, dtype=None,
+    #                             work_dtype=None, out=None):
+    #     if dtype is None:
+    #         dtype = arr1.dtype
+    #     if work_dtype is None:
+    #         work_dtype = arr1.dtype
+    #     if out is None:
+    #         out = np.empty(arr1.shape, dtype=dtype)
+    #     slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
+    #     for sl in ut.ProgIter(slices, lbl='unary op'):
+    #         _tmp = arr1[sl].astype(work_dtype)
+    #         out[sl] = func(_tmp)
+    #     return out
+
+    # beup = batch_elemwise_unary_op
+
+    # chunksize = 1000
+    # tmp = beup(root_sift, X, chunksize)
+    # mean_vec = tmp.mean(axis=1)
+    # tmp = beup(root_sift, X, chunksize)
+    # def minus_mean(x):
+    #     return np.subtract(x, mean_vec)
+    # beup(minus_mean, tmp, chunksize)
+
+    # words_fpath = join(smk_2013_dir, 'clust_preprocessed/oxford_train_vw.int32')
+    # with open(join(smk_2013_dir, 'paris_sift.uint8'), 'rb') as file_:
+    #     rawbytes = file_.read()
+    #     nbytes = len(rawbytes)
+    #     print('nbytes = %r' % (nbytes,))
+    #     print(sorted(ut.factors(nbytes - 0)))
+    #     print(sorted(ut.factors(nbytes - 4)))
+    #     print(sorted(ut.factors(nbytes - 8)))
+    #     data = np.fromstring(rawbytes, np.uint8)
+    #     data = data.reshape(len(data) / 128, 128)
+    #     # np.linalg.norm(data[0:100], axis=1)
+
+    # with open(join(smk_2013_dir, 'clust_preprocessed/oxford_vw.int32'), 'rb') as file_:
+    #     rawbytes = file_.read()
+    #     nbytes = len(rawbytes)
+    #     print('nbytes = %r' % (nbytes,))
+    #     print(sorted(ut.factors(nbytes - 0)))
+    #     print(sorted(ut.factors(nbytes - 4)))
+    #     print(sorted(ut.factors(nbytes - 8)))
+    #     # header = file_.read(4)
+    #     # num = np.fromstring(header, np.int32)
+
+
+    # with open(words_fpath, 'rb') as file_:
+    #     header = file_.read(4)
+    #     num = np.fromstring(header, np.int32)
+    #     data = np.fromstring(file_.read(), np.int32)
+
+    # from os.path import join
+    # sift_fpath = join(smk_2013_dir, 'oxford_sift.uint8')
+    # with open(words_fpath, 'rb') as file_:
+    #     sift = np.fromstring(file_.read(), np.uint8)
+
+    #     # sift /
+
+    # with open(join(smk_2013_dir, 'oxford_geom_sift.float'), 'rb') as file_:
+    #     geom = np.fromstring(file_.read(), np.float32)
+    #     geom = geom.reshape(geom.size / 5, 5)
+
+    # data[0:100]
+    # simulate load_ext https://github.com/Erotemic/yael/blob/master/matlab/load_ext.m
+    # filename = words_fpath
+    # nrows = 1
+    # def yael_load_ext_int32(filename, nrows=1, verbose=True):
+    #     nmin = 1
+    #     nmax = np.inf
+    #     if verbose:
+    #         print('< load int file %s\n', filename)
+    #     fid = open(filename, 'rb')
+    #     try:
+    #         bof = 0  # begining of file
+    #         offset = 4 * (nmin - 1) * nrows
+    #         fid.seek(offset, bof)
+    #         data = np.fromstring(fid.read(), np.int32)
+    #     finally:
+    #         fid.close()
+
+    # words = np.fromstring(data)
+    # vecs = vecs.reshape(shape)
+
+
 def train_vocabulary(all_vecs, config):
     #oxford_data1 = load_external_oxford_features()
     #imgid_order = oxford_data1['imgid_order']
@@ -320,20 +452,29 @@ def load_external_data2():
     """
 
     config = {
-        #'num_words': 1E6
         'root_sift': True,
+        'num_words': 2 ** 16,
+        'checks': 1024,
+        'centering': True,
+        #'num_words': 1E6
         #'num_words': 8000,
-        'num_words': 65000,
-        'checks': 128,
     }
     nAssign = 1
 
-    from os.path import join, basename, splitext
+    class SMKCacher(ut.Cacher):
+        def __init__(self, fname, relevant_params):
+            relevant_cfg = ut.dict_subset(config, relevant_params)
+            cfgstr = ut.get_cfg_lbl(relevant_cfg)
+            super(SMKCacher, self).__init__(fname, cfgstr, cache_dir=dbdir)
+
+    # ==============================================
+    # LOAD DATASET, EXTRACT AND POSTPROCESS FEATURES
+    # ==============================================
+    from os.path import basename, splitext
     import ibeis
     oxford_data1 = load_external_oxford_features(config)
     imgid_order = oxford_data1['imgid_order']
     kpts_list = oxford_data1['kpts_list']
-    vecs_list = oxford_data1['vecs_list']
     wordid_list = oxford_data1['wordid_list']
     uri_order = [x.replace('oxc1_', '') for x in imgid_order]
     assert len(ut.list_union(*wordid_list)) == 1E6
@@ -351,126 +492,6 @@ def load_external_data2():
     lookup = ut.make_index_lookup(intern_uris)
     data_annots = _dannots.take(ut.take(lookup, uri_order))
     assert get_oxford_keys(data_annots) == uri_order
-
-    offset_list = [0] + ut.cumsum([len(v) for v in vecs_list])
-
-    dbdir = ut.truepath('/raid/work/Oxford/')
-    #======================
-    # Build/load database info
-    daids = data_annots.aids
-
-    #======================
-    # Compute All Word Assignments
-    all_vecs = np.vstack(vecs_list)
-
-    if False:
-        mean_vec = np.mean(all_vecs, axis=0)
-        # FOR ROOT SIFT
-        mean_vec = np.array([46.62654716,  31.21229356,  20.65256618,  19.79029916, 26.35339489,
-                             24.89652947,  25.73929759,  28.1263965 , 49.90879457,  39.53755507,
-                             35.60305786,  31.12662852, 32.59826317,  33.3061391 ,  34.21935008,
-                             33.61522911, 48.37291706,  34.53814424,  36.66045441,  35.01652565,
-                             32.9685514 ,  30.68111989,  33.24712142,  36.92554183, 44.53439247,
-                             28.89821659,  27.61463817,  26.57542163, 26.52943323,  19.98019709,
-                             20.12697373,  28.90332924, 60.3505775 ,  37.49316552,  23.39667829,
-                             26.81768004, 36.64132753,  31.33051857,  28.19458628,  36.05361797,
-                             62.16145931,  42.61728225,  33.45618204,  33.99012927, 39.2309187 ,
-                             35.93958642,  33.56585326,  39.49449849, 59.98748556,  39.56601898,
-                             35.1362548 ,  37.46382026, 40.00613604,  33.68649346,  32.18926408,
-                             41.0287681 , 57.70276193,  36.14551181,  29.74180816,  33.18968385,
-                             37.47753488,  27.27518575,  23.62592677,  36.28705048, 60.33918189,
-                             35.70739481,  28.27889338,  31.46749679, 36.64511836,  26.68877727,
-                             23.33377521,  37.78693368, 62.19426562,  39.23236523,  33.69995568,
-                             36.08645177, 39.22344608,  33.82699613,  33.29949893,  42.88519226,
-                             59.96339491,  40.77440589,  32.36521555,  33.88829536, 40.01698503,
-                             37.32365447,  35.03381512,  39.83779101, 57.69014384,  35.99944353,
-                             23.70292024,  27.42776124, 37.4634587 ,  33.06158922,  29.73344414,
-                             36.50520264, 46.65942545,  27.96910916,  25.83571901,  24.99287902,
-                             26.34822531,  19.6731151 ,  20.55268029,  31.34612668, 50.05258026,
-                             33.50795135,  34.33290915,  33.37659794, 32.55366866,  30.99947609,
-                             35.47599224,  39.74032484, 48.20281941,  36.76442332,  33.44254829,
-                             30.84983456, 32.96748179,  34.94445824,  36.59958041,  34.64582225,
-                             44.42460843,  28.77922249,  20.29438548,  20.14281416, 26.51264502,
-                             26.49364339,  27.59002478,  29.05427252])
-
-        #mean_vec = np.array([46, 31, 20, 19, 26, 24, 25, 28, 49, 39, 35, 31, 32, 33, 34, 33, 48,
-        #                     34, 36, 35, 32, 30, 33, 36, 44, 28, 27, 26, 26, 19, 20, 28, 60, 37,
-        #                     23, 26, 36, 31, 28, 36, 62, 42, 33, 33, 39, 35, 33, 39, 59, 39, 35,
-        #                     37, 40, 33, 32, 41, 57, 36, 29, 33, 37, 27, 23, 36, 60, 35, 28, 31,
-        #                     36, 26, 23, 37, 62, 39, 33, 36, 39, 33, 33, 42, 59, 40, 32, 33, 40,
-        #                     37, 35, 39, 57, 35, 23, 27, 37, 33, 29, 36, 46, 27, 25, 24, 26, 19,
-        #                     20, 31, 50, 33, 34, 33, 32, 30, 35, 39, 48, 36, 33, 30, 32, 34, 36,
-        #                     34, 44, 28, 20, 20, 26, 26, 27, 29], dtype=np.uint8)
-
-        arr1 = all_vecs
-        arr2 = mean_vec[None, :].astype(np.float32)
-
-        def batch_subtract(arr1, arr2):
-            # Center the vectors
-            out = np.empty(arr1.shape, dtype=np.int8)
-            chunksize = int(1E5)
-            slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
-            for sl in ut.ProgIter(slices, lbl='apply centering'):
-                s = arr1[sl].astype(np.float32)
-                out[sl] = np.subtract(s, arr2).astype(np.int8)
-            return out
-
-    #num_words = 8000
-
-    if config['num_words'] == 1E6:
-        import vtool as vt
-        print('Using oxford word assignments')
-        unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
-        assert ut.issorted(unique_word)
-        wx_to_vecs = vt.apply_grouping(all_vecs, groupxs, axis=0)
-
-        wx_to_word = np.array([
-            np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
-            for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
-        ])
-        from ibeis.algo.smk import vocab_indexer
-        vocab = vocab_indexer.VisualVocab(wx_to_word)
-
-        wx_lists = [wids[:, None] - 1 for wids in wordid_list]
-    else:
-        vocab = train_vocabulary(all_vecs, config['num_words'])
-        word_hash = ut.hashstr_arr27(vocab.wx_to_word, 'words')
-        relevant_params = ['checks']
-        cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
-        assign_fpath = join(dbdir, 'assigns_' + ut.hashstr27(word_hash + cfglbl) + '.pkl')
-        if ut.checkpath(assign_fpath):
-            (idx_to_wxs, offset_list) = ut.load_data(assign_fpath)
-        else:
-            #query_hash = ut.hashstr_arr27(all_vecs, 'all_vecs')
-            with ut.Timer('assign vocab neighbors'):
-                #idx_to_wxs, idx_to_maws = smk_funcs.assign_to_words(vocab, all_vecs, nAssign)
-                _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign, checks=128)
-                if nAssign > 1:
-                    idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
-                        _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
-                        massign_equal_weights=True)
-                else:
-                    idx_to_wxs = _idx_to_wx.tolist()
-                    #idx_to_maws = [[1.0]] * len(idx_to_wxs)
-            # Maybe masked arrays is just overall better here
-            idx_to_wxs = [np.array(wxs, dtype=np.int32) for wxs in ut.ProgIter(idx_to_wxs, lbl='cast')]
-            ut.save_data(assign_fpath, (idx_to_wxs, offset_list))
-        wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
-
-    relevant_params = ['num_words', 'root_sift', 'checks']
-    cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
-    ydata_fpath = join(dbdir, 'ydata' + cfglbl + '.pkl')
-    if not ut.checkpath(ydata_fpath):
-        Y_list = []
-        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
-        for aid, fx_to_wxs in _prog(zip(daids, wx_lists)):
-            Y = new_external_annot(aid, fx_to_wxs)
-            Y_list.append(Y)
-        ut.save_data(ydata_fpath, Y_list)
-    else:
-        Y_list = ut.load_data(ydata_fpath)
-
-    #======================
     # Build/load query info
     _qannots = ibs.annots(ibs.filter_annots_general(has_any='query'))
     # Reorder by name
@@ -479,34 +500,132 @@ def load_external_data2():
     # Map each query annot to its corresponding data index
     dgid_to_dx = ut.make_index_lookup(data_annots.gids)
     qx_to_dx = ut.take(dgid_to_dx, _qannots.gids)
-    # get_oxford_keys(_qannots)
-    relevant_params = ['num_words', 'root_sift', 'checks']
-    cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
-    xquery_fpath = join(dbdir, 'xquery' + cfglbl + '.pkl')
 
-    if not ut.checkpath(xquery_fpath):
+    offset_list = [0] + ut.cumsum([len(v) for v in kpts_list])
+
+    dbdir = ut.truepath('/raid/work/Oxford/')
+    #======================
+    # Build/load database info
+    daids = data_annots.aids
+
+    #======================
+    # Compute All Word Assignments
+    vecs_list = oxford_data1['vecs_list']
+    all_vecs = np.vstack(vecs_list)
+    del oxford_data1['vecs_list']
+    del vecs_list
+
+    if config['centering']:
+        # Apply Centering
+        mean_vec = np.mean(all_vecs, axis=0)
+        work_dtyp = np.float32
+        output_type = np.float32
+        arr1 = all_vecs
+        arr2 = mean_vec[None, :].astype(work_dtyp)
+        def batch_subtract(arr1, arr2):
+            # output_type = np.int8
+            # Center the vectors
+            chunksize = int(1E5)
+            slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
+            out = np.empty(arr1.shape, dtype=output_type)
+            for sl in ut.ProgIter(slices, lbl='apply centering'):
+                _tmp = arr1[sl].astype(work_dtyp)
+                out[sl] = np.subtract(_tmp, arr2).astype(output_type)
+            return out
+
+        def batch_operation(func, arr2, chunksize):
+            # output_type = np.int8
+            # Center the vectors
+            chunksize = int(1E5)
+            slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
+            out = np.empty(arr1.shape, dtype=output_type)
+            for sl in ut.ProgIter(slices, lbl='apply centering'):
+                _tmp = arr1[sl].astype(work_dtyp)
+                out[sl] = np.subtract(_tmp, arr2).astype(output_type)
+            return out
+
+        chunksize = int(1E5)
+        all_vecs = batch_subtract(arr1, arr2)
+
+    vecs_list = [all_vecs[l:r] for l, r in ut.itertwo(offset_list)]
+
+    # =====================================
+    # BUILD VISUAL VOCABULARY
+    # =====================================
+    # vocab = train_vocabulary(all_vecs, config['num_words'])
+    word_cacher = SMKCacher('words', ['num_words', 'centering', 'root_sift'])
+    words = word_cacher.tryload()
+    if words is None:
+        import sklearn.cluster
+        train_vecs = all_vecs.astype(np.float32)
+        rng = np.random.RandomState(13421421)
+        clusterer = sklearn.cluster.MiniBatchKMeans(
+            config['num_words'], random_state=rng, n_init=3, verbose=5)
+        clusterer.fit(train_vecs)
+        words = clusterer.cluster_centers_
+        words = words.astype(np.uint8)
+        word_cacher.save(words)
+
+    from ibeis.algo.smk import vocab_indexer
+    vocab = vocab_indexer.VisualVocab(words)
+    vocab.build()
+
+    #tuned_params = vt.tune_flann(words, target_precision=.95)
+    # word_hash = ut.hashstr_arr27(vocab.wx_to_word, 'words')
+    # relevant_params = ['checks']
+    # cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
+    # assign_fpath = join(dbdir, 'assigns_' + ut.hashstr27(word_hash + cfglbl) + '.pkl')
+
+    # =====================================
+    # ASSIGN EACH VECTOR TO ITS NEAREST WORD
+    # =====================================
+    dassign_cacher = SMKCacher('words', ['checks', 'num_words', 'centering', 'root_sift'])
+    idx_to_wxs = dassign_cacher.tryload()
+    if idx_to_wxs is None:
+        with ut.Timer('assign vocab neighbors'):
+            _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign, checks=config['checks'])
+            if nAssign > 1:
+                idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
+                    _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
+                    massign_equal_weights=True)
+            else:
+                idx_to_wxs = _idx_to_wx.tolist()
+        # Maybe masked arrays is just overall better here
+        idx_to_wxs = [np.array(wxs, dtype=np.int32) for wxs in ut.ProgIter(idx_to_wxs, lbl='cast')]
+        dassign_cacher.save(idx_to_wxs)
+    wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
+
+    # =======================
+    # CONSTRUCT DATABASE REPR
+    # =======================
+    ydata_cacher = SMKCacher('ydata', ['num_words', 'root_sift', 'centering' 'checks'])
+    try:
+        Y_list = ydata_cacher.load()
+    except IOError:
+        Y_list = []
+        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
+        for aid, fx_to_wxs in _prog(zip(daids, wx_lists)):
+            Y = new_external_annot(aid, fx_to_wxs)
+            Y_list.append(Y)
+        ydata_cacher.save(Y_list)
+
+    # =======================
+    # CONSTRUCT QUERY REPR
+    # =======================
+
+    xdata_cacher = SMKCacher('xdata', ['num_words', 'root_sift', 'centering' 'checks'])
+    X_list = xdata_cacher.tryload()
+    if X_list is None:
         query_super_kpts = ut.take(kpts_list, qx_to_dx)
         query_super_vecs = ut.take(vecs_list, qx_to_dx)
         query_super_wxs = ut.take(wx_lists, qx_to_dx)
-        import vtool as vt
         # Mark which keypoints are within the bbox of the query
         query_flags_list = []
         for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
-            xys = kpts[:, 0:2]
-            wh_list = vt.get_kpts_wh(kpts)
-            radii = wh_list / 2
-            pts1 = xys + radii * (-1, 1)
-            pts2 = xys + radii * (-1, -1)
-            pts3 = xys + radii * (1, -1)
-            pts4 = xys + radii * (1, 1)
-            flags = np.logical_and.reduce([
-                vt.point_inside_bbox(pts1.T, bbox),
-                vt.point_inside_bbox(pts2.T, bbox),
-                vt.point_inside_bbox(pts3.T, bbox),
-                vt.point_inside_bbox(pts4.T, bbox),
-            ])
+            flags = kpts_inside_bbox_aggressive(kpts, bbox)
             query_flags_list.append(flags)
 
+        import vtool as vt
         qaids = _qannots.aids
         query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
         query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
@@ -517,10 +636,7 @@ def load_external_data2():
         for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
             X = new_external_annot(aid, fx_to_wxs)
             X_list.append(X)
-
-        ut.save_data(xquery_fpath, X_list)
-    else:
-        X_list = ut.load_data(xquery_fpath)
+        xdata_cacher.save(X_list)
 
     #======================
     # Add in some groundtruth
@@ -568,13 +684,12 @@ def load_external_data2():
 
     # Filter junk
     Y_list_ = [Y for Y in Y_list if Y.qual != 'junk']
-    test_kernel(X_list, Y_list_, vocab, wx_to_weight)
+    test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight)
 
 
-def test_kernel(X_list, Y_list_, vocab, wx_to_weight):
+def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
     #======================
     # Choose Query Kernel
-
     params = {
         'asmk': dict(alpha=3.0, thresh=0.0),
         'bow': dict(),
@@ -812,6 +927,32 @@ def verify_score():
     assert np.isclose(smk_pipeline.match_kernel_agg(Y2, Y2, wx_to_weight, alpha, thresh)[0], 1.0)
     #Y2 = make_temporary_annot(daid2, vocab, wx_to_weight, ibs, config)
 
+
+def kpts_inside_bbox_aggressive(kpts, bbox):
+    import vtool as vt
+    # Be aggressive with what is allowed in the query
+    xys = kpts[:, 0:2]
+    flags = vt.point_inside_bbox(xys.T, bbox),
+    return flags
+
+
+def kpts_inside_bbox_natural(kpts, bbox):
+    import vtool as vt
+    # Use keypoint extent to filter out what is in query
+    xys = kpts[:, 0:2]
+    wh_list = vt.get_kpts_wh(kpts)
+    radii = wh_list / 2
+    pts1 = xys + radii * (-1, 1)
+    pts2 = xys + radii * (-1, -1)
+    pts3 = xys + radii * (1, -1)
+    pts4 = xys + radii * (1, 1)
+    flags = np.logical_and.reduce([
+        vt.point_inside_bbox(pts1.T, bbox),
+        vt.point_inside_bbox(pts2.T, bbox),
+        vt.point_inside_bbox(pts3.T, bbox),
+        vt.point_inside_bbox(pts4.T, bbox),
+    ])
+    return flags
 
 #ap_list2 = []
 ## Sanity Check: calculate avep like in

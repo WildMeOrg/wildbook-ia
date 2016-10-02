@@ -1,8 +1,21 @@
 # -*- coding: utf-8 -*-
 """
 References:
+
+    Jegou's Source Code, Data, and Publications
+    http://people.rennes.inria.fr/Herve.Jegou/publications.html
+
     To aggregate or not to aggregate: selective match kernels for image search
     https://hal.inria.fr/hal-00864684/document
+
+    Image search with selective match kernels: aggregation across single and multiple images
+    http://image.ntua.gr/iva/files/Tolias_ijcv15_iasmk.pdf
+
+    Negative evidences and co-occurrences in image retrieval: the benefit of PCA and whitening
+    https://hal.inria.fr/file/index/docid/722626/filename/jegou_chum_eccv2012.pdf
+
+    Revisiting the VLAD image representation
+    https://hal.inria.fr/file/index/docid/850249/filename/nextvlad_hal.pdf
 
     Aggregating local descriptors into a compact image representation
     https://lear.inrialpes.fr/pubs/2010/JDSP10/jegou_compactimagerepresentation.pdf
@@ -31,6 +44,8 @@ References:
     Object retrieval with large vocabularies and fast spatial matching
     http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
 
+    Aggregating Local Descriptors into Compact Codes
+    https://hal.inria.fr/file/index/docid/633013/filename/jegou_aggregate.pdf
 
     Local visual query expansion
     https://hal.inria.fr/hal-00840721/PDF/RR-8325.pdf
@@ -40,6 +55,7 @@ References:
 
     Fisher Kernel For Large Scale Classification
     https://www.robots.ox.ac.uk/~vgg/rg/papers/peronnin_etal_ECCV10.pdf
+    x
 
 Notes:
     * Results from SMK Oxford Paper (mAP)
@@ -72,6 +88,8 @@ Notes:
     Going down to 8K words smk-BOW gets .153
     Going down to 8K words tfidf-BOW gets .128
     Going down to 8K words smk-asmk gets 0.374
+
+    Ok the 65K vocab smk-asmk gets mAP=0.461...
 
 
 Differences Between this and SMK
