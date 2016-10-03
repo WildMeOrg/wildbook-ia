@@ -7,7 +7,6 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import range, zip, map
-import six
 import utool as ut
 import sys
 import numpy as np
@@ -18,6 +17,398 @@ import vtool.nearest_neighbors as nntool
 
 
 CLUSTERS_FNAME = 'akmeans_centroids'
+
+
+def testdata_kmeans():
+    # import utool as ut
+    from sklearn.utils import check_array
+    # from sklearn.utils.extmath import row_norms, squared_norm
+    # from sklearn.metrics.pairwise import euclidean_distances
+    # import warnings
+    # import scipy.sparse as sp
+    rng = np.random.RandomState(42)
+    K = 1000
+    check_inputs = True
+    nump = 10000
+    dims = 128
+    dtype = np.uint8
+    data = rng.randint(0, 255, (nump, dims)).astype(dtype)
+    n_local_trials = 1
+    verbose = True
+    X = data
+    n_clusters = K
+    random_state = rng
+    import numpy as np
+    rng = np.random.RandomState(42)
+    nump, dims = K ** 2, 128
+    # dtype = np.uint8
+    dtype = np.float32
+    data = rng.randint(0, 255, (nump, dims)).astype(dtype)
+    num_samples = None
+    flann_params = None
+    X = data
+    X = check_array(X, accept_sparse="csr", order='C',
+                    dtype=[np.float32])
+    data = X
+    return locals()
+
+
+# def k_means_plus_plus(X, n_clusters, random_state, n_local_trials=None,
+#                       verbose=True):
+
+#     from sklearn.utils.extmath import row_norms
+#     from sklearn.utils import check_array
+
+#     X = check_array(X, accept_sparse="csr", order='C',
+#                     dtype=[np.float64, np.float32])
+#     n_samples, n_features = X.shape
+#     if n_samples < n_clusters:
+#         raise ValueError("Number of samples smaller than number "
+#                          "of clusters.")
+
+#     x_squared_norms = row_norms(X, squared=True)[np.newaxis, :]
+#     try:
+#         import sklearn.cluster.k_means_
+#         # with ut.Timer('km++'):
+#         #     centers = sklearn.cluster.k_means_._k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=n_local_trials, verbose=1)
+#         #     %timeit sklearn.cluster.k_means_._k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=n_local_trials, verbose=0)
+#     except KeyboardInterrupt:
+#         print('\n\n\n')
+#         raise
+#     return centers
+
+
+def kmeans_plusplus_sklearn(X, K, **kwargs):
+    import sklearn.cluster
+    from sklearn.utils.extmath import row_norms
+    from sklearn.utils import check_array
+    from sklearn.utils import check_random_state
+
+    self = sklearn.cluster.MiniBatchKMeans(n_clusters=K, **kwargs)
+
+    random_state = check_random_state(self.random_state)
+    X = check_array(X, accept_sparse="csr", order='C',
+                    dtype=[np.float64, np.float32])
+    n_samples, n_features = X.shape
+    if n_samples < self.n_clusters:
+        raise ValueError("Number of samples smaller than number "
+                         "of clusters.")
+
+    x_squared_norms = row_norms(X, squared=True)
+
+    if self.tol > 0.0:
+        old_center_buffer = np.zeros(n_features, dtype=X.dtype)
+    else:
+        old_center_buffer = np.zeros(0, dtype=X.dtype)
+
+    init_size = self.init_size
+    if init_size is None:
+        init_size = 3 * self.batch_size
+    if init_size > n_samples:
+        init_size = n_samples
+    self.init_size_ = init_size
+
+    validation_indices = random_state.choice(n_samples, init_size,
+                                             replace=False)
+    X_valid = X[validation_indices]
+    x_squared_norms_valid = x_squared_norms[validation_indices]
+
+    n_init = self.n_init
+
+    # perform several inits with random sub-sets
+    best_inertia = None
+    for init_idx in range(n_init):
+        if self.verbose:
+            print("Init %d/%d with method: %s"
+                  % (init_idx + 1, n_init, self.init))
+        counts = np.zeros(self.n_clusters, dtype=np.int32)
+
+        # TODO: once the `k_means` function works with sparse input we
+        # should refactor the following init to use it instead.
+
+        # Initialize the centers using only a fraction of the data as we
+        # expect n_samples to be very large when using MiniBatchKMeans
+        cluster_centers = sklearn.cluster.k_means_._init_centroids(
+            X, self.n_clusters, self.init,
+            random_state=random_state,
+            x_squared_norms=x_squared_norms,
+            init_size=init_size, check_inputs=False)
+
+        # Compute the label assignment on the init dataset
+        _t = sklearn.cluster.k_means_._mini_batch_step(
+            X_valid, x_squared_norms[validation_indices],
+            cluster_centers, counts, old_center_buffer, False,
+            distances=None, verbose=self.verbose)
+        batch_inertia, centers_squared_diff = _t
+
+        # Keep only the best cluster centers across independent inits on
+        # the common validation set
+        _, inertia = sklearn.cluster.k_means_._labels_inertia(
+            X_valid, x_squared_norms_valid, cluster_centers)
+
+        if self.verbose:
+            print("Inertia for init %d/%d: %f"
+                  % (init_idx + 1, n_init, inertia))
+        if best_inertia is None or inertia < best_inertia:
+            self.cluster_centers_ = cluster_centers
+            self.counts_ = counts
+            best_inertia = inertia
+    centers = self.cluster_centers_
+    return centers
+
+
+def k_means_pp_cv2(data, K):
+    # define criteria and apply kmeans()
+    # Crieteria is a 3-tuple:
+    #  (type, max_iter, epsilon)
+    import cv2
+    max_iter = 100
+    n_init = 1
+    # with ut.Timer('sklearn2km'):
+    #     est = sklearn.cluster.KMeans(n_clusters=K, max_iter=max_iter,
+    #                                  n_init=n_init)
+    #     est.fit(data)
+
+    with ut.Timer('sklearn2km++'):
+        clusters = kmeans_plusplus_sklearn(data, K)  # NOQA
+
+    criteria_type = cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER
+    max_iter = 0
+    epsilon = 0
+    criteria = (criteria_type, max_iter, epsilon)
+    with ut.Timer('cv2km++'):
+        loss, label, center = cv2.kmeans(data=data, K=K, bestLabels=None,
+                                         criteria=criteria, attempts=n_init,
+                                         flags=cv2.KMEANS_PP_CENTERS)
+
+
+@profile
+def akmeans_plusplus_init(data, K, num_samples=None, flann_params=None,
+                          rng=None):
+    """
+    Referencs:
+        http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import utool as ut
+        >>> import numpy as np
+        >>> rng = np.random.RandomState(42)
+        >>> K = 1000
+        >>> nump, dims = K ** 2, 128
+        >>> dtype = np.uint8
+        >>> data = rng.randint(0, 255, (nump, dims)).astype(dtype)
+        >>> num_samples = None
+        >>> flann_params = None
+        >>> centers = akmeans_plusplus_init(data, K, num_samples, flann_params)
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import sklearn.cluster
+        >>> from sklearn.cluster import *
+        >>> from sklearn.utils import check_array
+        >>> from sklearn.utils.extmath import row_norms, squared_norm
+        >>> from sklearn.metrics.pairwise import euclidean_distances
+        >>> import warnings
+        >>> import scipy.sparse as sp
+        >>> rng = np.random.RandomState(42)
+        >>> K = 6400
+        >>> check_inputs=True
+        >>> nump, dims = K * 10, 128
+        >>> dtype = np.uint8
+        >>> data = rng.randint(0, 255, (nump, dims)).astype(dtype)
+        >>> n_local_trials = 1
+        >>> verbose = True
+        >>> X = data
+        >>> n_clusters = K
+        >>> random_state = rng
+        >>> X = check_array(X, accept_sparse="csr", order='C',
+        >>>                 dtype=[np.float32])
+        >>> x_squared_norms = row_norms(X, squared=True)[np.newaxis, :]
+        >>> centers = k_means_plus_plus(data, K, rng)
+
+    Example2:
+        >>> # SLOW_DOCTEST
+        >>> from vtool.clustering2 import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> data = np.vstack(ibs.get_annot_vecs(ibs.get_valid_aids()))
+        >>> flann_params = None
+        >>> num_samples = 1000
+        >>> K = 8000  # 64000
+        >>> initial_centers = akmeans_plusplus_init(data, K, num_samples,
+        >>>                                         flann_params)
+
+    CommandLine:
+        python -m vtool akmeans_plusplus_init:0
+        python -m vtool akmeans_plusplus_init:1
+        python -m vtool akmeans_plusplus_init:0 --profile
+
+        vt
+        cd vtool
+        wget https://gist.githubusercontent.com/dwf/2200359/raw/aa3c79c6f432ad630cc6e01f1ba2dfbef238bfeb/kmeans.pyx
+        wget https://gist.githubusercontent.com/dwf/2200359/raw/aa3c79c6f432ad630cc6e01f1ba2dfbef238bfeb/setup.py
+
+        import numpy as np
+        import cv2
+        from matplotlib import pyplot as plt
+
+        X = np.random.randint(25,50,(25,2))
+        Y = np.random.randint(60,85,(25,2))
+        Z = np.vstack((X,Y))
+
+        # convert to np.float32
+        Z = np.float32(Z)
+
+        # define criteria and apply kmeans()
+        # Crieteria is a 3-tuple:
+        #  (type, max_iter, epsilon)
+        criteria_type = cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER
+        max_iter = 0
+        epsilon = 0
+        criteria = (criteria_type, max_iter, epsilon)
+        loss, label, center = cv2.kmeans(
+                data=Z, K=2, bestLabels=None, criteria=criteria, attempts=1,
+                flags=cv2.KMEANS_PP_CENTERS)
+
+        # ret,label,center=cv2.kmeans(Z,2,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
+
+        https://github.com/dbelll/bell_d_project/blob/master/cuda_kmeans.py
+
+        http://mloss.org/software/view/48/
+
+        export PATH=$PATH:/home/joncrall/venv2/lib/python2.7/site-packages/numpy/core/include
+        https://github.com/argriffing/pyvqcore
+        export CFLAGS="$CFLAGS -I/home/joncrall/venv2/lib/python2.7/site-packages/numpy/core/include/"
+        pip install git+https://github.com/argriffing/pyvqcore.git
+
+        python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
+
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,64000 \
+                --func="lambda K: 64 / K "
+
+        python -m plottool.draw_func2 --exec-plot_func --show --range=0,1E7 \
+                --func="lambda N: N * (64 / 65000) "
+
+
+    """
+    raise NotImplementedError('use sklearn or opencv')
+    return kmeans_plusplus_sklearn(data, K)
+    # # import pyflann
+    # # import six
+
+    # # rng = ut.ensure_rng(rng)
+
+    # # if num_samples is None:
+    #     # num_samples = 8192
+    # # num_samples = min(num_samples, len(data))
+    # # do_sampling = num_samples < len(data)
+
+    # # print('akmeans++ on %r points. K=%r, num_samples=%r. ' % (
+    #     # len(data), K, num_samples))
+
+    # # if len(data) == K:
+    #     # print('Warning, K is the same size as data')
+    #     # return data
+
+    # # assert len(data) > K
+
+    # # # Allocate data for centers
+    # # centers = np.empty((K, data.shape[1]), dtype=data.dtype)
+
+    # # # Create a mask denoting all unused elements
+    # # num_unused = len(data)
+    # # num_used = 0
+    # # is_unused = np.ones(len(data), dtype=np.bool)
+    # # unused_didxs = list(range(len(data)))
+    # # used_didxs = []
+
+    # # prog = ut.ProgPartial(lbl='akmeans++ init', freq=1, adjust=True, bs=True)
+    # # _iter = iter(prog(range(K)))
+
+    # # six.next(_iter)
+
+    # # # Choose an index and "use" it
+    # # chosen_datax = rng.randint(0, num_unused)
+    # # is_unused[chosen_datax] = False
+    # # centers[num_used] = data[chosen_datax]
+    # # num_used += 1
+    # # num_unused -= 1
+
+    # # # initalize flann index for approximate nn calculation
+    # # if flann_params is None:
+    #     # flann_params = {}
+    #     # #flann_params['algorithm'] = 'linear'
+    #     # flann_params['algorithm'] = 'kdtree'
+    #     # flann_params['trees'] = 1
+    #     # flann_params['checks'] = 8
+
+    # # flann = None
+
+    # # import vtool as vt
+    # # try:
+    #     # for count in _iter:
+
+    #         # # Randomly sample choose a set of data vectors
+    #         # if do_sampling:
+    #             # unused_didx = np.where(is_unused)[0]
+    #             # sx_to_uidx = rng.randint(num_unused, size=num_samples)
+    #             # sx_to_didx = unused_didx[sx_to_uidx]
+    #             # sx_to_data = data.take(sx_to_didx, axis=0)
+    #         # else:
+    #             # sx_to_data = data.compress(is_unused, axis=0)
+
+    #         # flann_on = num_used > 128
+
+    #         # if flann_on:
+    #             # if flann is None:
+    #                 # flann = pyflann.FLANN()
+    #                 # flann.build_index(centers[:num_used], **flann_params)
+    #             # # Distance from the sample data to current centers
+    #             # # (this call takes 98% of the time.)
+    #             # sx2_cidx, sx2_cdist = flann.nn_index(
+    #                 # sx_to_data, 1, checks=flann_params['checks'])
+    #         # else:
+    #             # # Dont use flann when number of centers is small
+    #             # # vt.L2(sx_to_data, centers[:num_used])
+    #             # import sklearn
+    #             # dists = sklearn.metrics.pairwise.euclidean_distances(
+    #                 # sx_to_data, centers[:num_used])
+
+    #         # # Choose unused sample with probability proportional to the squared
+    #         # # distance to the closest existing center
+    #         # rand_vals = rng.random_sample()
+    #         # sx2_cumdist = sx2_cdist.cumsum()
+    #         # sx2_cumprob = sx2_cumdist / sx2_cumdist[-1]
+    #         # chosen_sx = np.searchsorted(sx2_cumprob, rand_vals)
+    #         # if do_sampling:
+    #             # chosen_datax = sx_to_didx[chosen_sx]
+    #         # else:
+    #             # chosen_datax = chosen_sx
+
+    #         # # Remove the chosen index from unused indices
+    #         # is_unused[chosen_datax] = False
+    #         # chosen_data = data[chosen_datax]
+    #         # centers[num_used] = chosen_data
+    #         # num_used += 1
+    #         # num_unused -= 1
+
+    #         # if flann_on:
+    #             # # Append new center to data and flann index
+    #             # flann.add_points(chosen_data)
+
+    # # except KeyboardInterrupt:
+    #     # print('\n\n')
+    #     # raise
+
+    # # center_indices = np.where(~is_unused)[0]
+    # # # array(center_indices)
+    # # centers = data.take(center_indices, axis=0)
+    # # print('len(center_indices) = %r' % len(center_indices))
+    # # print('len(set(center_indices)) = %r' % len(set(center_indices)))
+    # return centers
 
 
 def get_akmeans_cfgstr(data, nCentroids, max_iters=5, initmethod='akmeans++', flann_params={},
@@ -155,106 +546,6 @@ def tune_flann2(data):
     print('Autotuning flann')
     tuned_params = flann.build_index(data, **flann_atkwargs)
     return tuned_params
-
-
-#@profile
-def akmeans_plusplus_init(data, K, samples_per_iter=None, flann_params=None):
-    """
-    Referencs:
-        http://datasciencelab.wordpress.com/2014/01/15/improved-seeding-for-clustering-with-k-means/
-
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> import utool as ut
-        >>> import numpy as np
-        >>> np.random.seed(42)
-        >>> K = 8000  # 64000
-        >>> nump = K * 2
-        >>> dims = 128
-        >>> max_iters = 300
-        >>> samples_per_iter = None
-        >>> dtype = np.uint8
-        >>> flann_params = None
-        >>> data = np.array(np.random.randint(0, 255, (nump, dims)), dtype=dtype)
-        >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter, flann_params)
-        >>> #result = str(initial_centers.sum())
-
-    130240088
-
-    Example2:
-        >>> # SLOW_DOCTEST
-        >>> from vtool.clustering2 import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> data = np.vstack(ibs.get_annot_vecs(ibs.get_valid_aids()))
-        >>> flann_params = None
-        >>> samples_per_iter = 1000
-        >>> K = 8000  # 64000
-        >>> initial_centers = akmeans_plusplus_init(data, K, samples_per_iter,  flann_params)
-
-    CommandLine:
-        utprof.sh ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
-        python ~/code/vtool/vtool/clustering2.py --test-akmeans_plusplus_init
-    """
-    import pyflann
-    if samples_per_iter is None:
-        #sample_fraction = 32.0 / K
-        sample_fraction = 64.0 / K
-        #sample_fraction = 128.0 / K
-        samples_per_iter = int(len(data) * sample_fraction)
-    print('akmeans++ on %r points. samples_per_iter=%r. K=%r' % (len(data), samples_per_iter, K))
-    #import random
-    eps = np.sqrt(data.shape[1])
-    flann = pyflann.FLANN()
-    # Choose an index and "use" it
-    unusedx2_datax = np.arange(len(data), dtype=np.int32)
-    chosen_unusedx = np.random.randint(0, len(unusedx2_datax))
-    center_indices = [unusedx2_datax[chosen_unusedx]]
-    unusedx2_datax = np.delete(unusedx2_datax, chosen_unusedx)
-
-    if flann_params is None:
-        flann_params = {}
-        flann_params['target_precision'] = .6
-        flann_params['trees'] = 1
-        flann_params['checks'] = 8
-        #flann_params['algorithm'] = 'linear'
-        flann_params['algorithm'] = 'kdtree'
-        flann_params['iterations'] = 3
-
-    # initalize flann index for approximate nn calculation
-    centers = data.take(center_indices, axis=0)
-    build_params = flann.build_index(np.array(centers), **flann_params)  # NOQA
-    num_sample = min(samples_per_iter, len(data))
-    progiter = ut.progiter(range(0, K), lbl='akmeans++ init', freq=200)
-    _iter = progiter.iter_rate()
-    six.next(_iter)
-
-    #for count in range(1, K):
-    for count in _iter:
-        # Randomly choose a set of unused potential seed points
-        sx2_unusedx = np.random.randint(len(unusedx2_datax), size=num_sample)
-        sx2_datax = unusedx2_datax.take(sx2_unusedx)
-        # Distance from a random sample of data to current centers
-        # (this call takes 98% of the time. optimize here only)
-        sample_data = data.take(sx2_datax, axis=0)
-        sx2_dist = flann.nn_index(sample_data, 1, checks=flann_params['checks'])[1] + eps
-        # Choose data sample index that has a high probability of being a new cluster
-        sx2_prob = sx2_dist / sx2_dist.sum()
-        chosen_sx = np.where(sx2_prob.cumsum() >= np.random.random() * .98)[0][0]
-        chosen_unusedx = sx2_unusedx[chosen_sx]
-        chosen_datax = unusedx2_datax[chosen_unusedx]
-        # Remove the chosen index from unused indices
-        unusedx2_datax = np.delete(unusedx2_datax, chosen_unusedx)
-        center_indices.append(chosen_datax)
-        chosen_data = data.take(chosen_datax, axis=0)
-        # Append new center to data and flann index
-        flann.add_points(chosen_data)
-    center_indices = np.array(center_indices)
-    centers = data.take(center_indices, axis=0)
-    print('len(center_indices) = %r' % len(center_indices))
-    print('len(set(center_indices)) = %r' % len(set(center_indices)))
-    return centers
 
 
 def akmeans(data, nCentroids, max_iters=5, initmethod='akmeans++',
