@@ -123,7 +123,7 @@ def ox_vocab():
     #     print('Using oxford word assignments')
     #     unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
     #     assert ut.issorted(unique_word)
-    #     wx_to_vecs = vt.apply_grouping(all_vecs, groupxs, axis=0)
+    #     wx_to_vecs = vt.apply_grouping(vecs, groupxs, axis=0)
 
     #     wx_to_word = np.array([
     #         np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
@@ -405,7 +405,7 @@ def load_jegou_oxford_data():
     # vecs = vecs.reshape(shape)
 
 
-def train_vocabulary(all_vecs, config):
+def train_vocabulary(vecs, config):
     #oxford_data1 = load_external_oxford_features()
     #imgid_order = oxford_data1['imgid_order']
     #kpts_list = oxford_data1['kpts_list']
@@ -421,7 +421,7 @@ def train_vocabulary(all_vecs, config):
         return ut.load_data(fpath)
 
     #train_vecs = np.vstack(vecs_list)[::100].copy()
-    train_vecs = all_vecs.astype(np.float32)
+    train_vecs = vecs.astype(np.float32)
 
     rng = np.random.RandomState(13421421)
     import sklearn.cluster
@@ -455,10 +455,11 @@ def load_external_data2():
     """
 
     config = {
+        'dtype': 'float32',
         'root_sift': True,
+        'centering': True,
         'num_words': 2 ** 16,
         'checks': 1024,
-        'centering': True,
         #'num_words': 1E6
         #'num_words': 8000,
     }
@@ -468,7 +469,10 @@ def load_external_data2():
         def __init__(self, fname, relevant_params):
             relevant_cfg = ut.dict_subset(config, relevant_params)
             cfgstr = ut.get_cfg_lbl(relevant_cfg)
+            dbdir = ut.truepath('/raid/work/Oxford/')
             super(SMKCacher, self).__init__(fname, cfgstr, cache_dir=dbdir)
+
+    relevant_params = ut.oset()
 
     # ==============================================
     # LOAD DATASET, EXTRACT AND POSTPROCESS FEATURES
@@ -478,10 +482,10 @@ def load_external_data2():
     oxford_data0 = load_external_oxford_features(config)
     imgid_order = oxford_data0['imgid_order']
     offset_list = oxford_data0['offset_list']
-    all_kpts    = oxford_data0['kpts']
-    all_vecs    = oxford_data0['vecs']
+    kpts    = oxford_data0['kpts']
+    vecs    = oxford_data0['vecs']
     # wordids     = oxford_data0['wordids']
-    del oxford_data
+    del oxford_data0
 
     uri_order = [x.replace('oxc1_', '') for x in imgid_order]
     # assert len(np.unique(wordids)) == 1E6
@@ -508,64 +512,47 @@ def load_external_data2():
     dgid_to_dx = ut.make_index_lookup(data_annots.gids)
     qx_to_dx = ut.take(dgid_to_dx, _qannots.gids)
 
-    dbdir = ut.truepath('/raid/work/Oxford/')
     #======================
     # Build/load database info
     daids = data_annots.aids
 
-    #======================
-    # Compute All Word Assignments
-    all_vecs = oxford_data['vecs']
-    del oxford_data0['vecs']
-    del vecs_list
+    # ================
+    # PRE-PROCESS
+    # ================
+    import vtool as vt
+
+    relevant_params.add('dtype')
+    if config['dtype'] == 'float32':
+        vecs = vecs.astype(np.float32)
+    else:
+        raise NotImplementedError('other dtype')
+
+    if config['root_sift']:
+        np.sqrt(vecs, out=vecs)
+        vt.normalize(vecs, ord=2, axis=1, out=vecs)
 
     if config['centering']:
         # Apply Centering
-        mean_vec = np.mean(all_vecs, axis=0)
-        work_dtyp = np.float32
-        output_type = np.float32
-        arr1 = all_vecs
-        arr2 = mean_vec[None, :].astype(work_dtyp)
-        def batch_subtract(arr1, arr2):
-            # output_type = np.int8
-            # Center the vectors
-            chunksize = int(1E5)
-            slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
-            out = np.empty(arr1.shape, dtype=output_type)
-            for sl in ut.ProgIter(slices, lbl='apply centering'):
-                _tmp = arr1[sl].astype(work_dtyp)
-                out[sl] = np.subtract(_tmp, arr2).astype(output_type)
-            return out
-
-        def batch_operation(func, arr2, chunksize):
-            # output_type = np.int8
-            # Center the vectors
-            chunksize = int(1E5)
-            slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
-            out = np.empty(arr1.shape, dtype=output_type)
-            for sl in ut.ProgIter(slices, lbl='apply centering'):
-                _tmp = arr1[sl].astype(work_dtyp)
-                out[sl] = np.subtract(_tmp, arr2).astype(output_type)
-            return out
-
-        chunksize = int(1E5)
-        all_vecs = batch_subtract(arr1, arr2)
-
-    vecs_list = [all_vecs[l:r] for l, r in ut.itertwo(offset_list)]
+        mean_vec = np.mean(vecs, axis=0)
+        # Center and then re-normalize
+        np.subtract(vecs, mean_vec[None, :], out=vecs)
+        vt.normalize(vecs, ord=2, axis=1, out=vecs)
 
     # =====================================
     # BUILD VISUAL VOCABULARY
     # =====================================
-    # vocab = train_vocabulary(all_vecs, config['num_words'])
-    word_cacher = SMKCacher('words', ['num_words', 'centering', 'root_sift'])
+    # vocab = train_vocabulary(vecs, config['num_words'])
+    relevant_params.add('root_sift')
+    relevant_params.add('centering')
+    relevant_params.add('num_words')
+    word_cacher = SMKCacher('words', relevant_params)
     words = word_cacher.tryload()
     if words is None:
         import sklearn.cluster
-        train_vecs = all_vecs.astype(np.float32)
         rng = np.random.RandomState(13421421)
         clusterer = sklearn.cluster.MiniBatchKMeans(
             config['num_words'], random_state=rng, n_init=3, verbose=5)
-        clusterer.fit(train_vecs)
+        clusterer.fit(vecs)
         words = clusterer.cluster_centers_
         words = words.astype(np.uint8)
         word_cacher.save(words)
@@ -583,11 +570,12 @@ def load_external_data2():
     # =====================================
     # ASSIGN EACH VECTOR TO ITS NEAREST WORD
     # =====================================
-    dassign_cacher = SMKCacher('words', ['checks', 'num_words', 'centering', 'root_sift'])
+    relevant_params.add('checks')
+    dassign_cacher = SMKCacher('words', relevant_params)
     idx_to_wxs = dassign_cacher.tryload()
     if idx_to_wxs is None:
         with ut.Timer('assign vocab neighbors'):
-            _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign, checks=config['checks'])
+            _idx_to_wx, _idx_to_wdist = vocab.nn_index(vecs, nAssign, checks=config['checks'])
             if nAssign > 1:
                 idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
                     _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
@@ -599,10 +587,13 @@ def load_external_data2():
         dassign_cacher.save(idx_to_wxs)
     wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
 
+    vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
+    kpts_list = [kpts[l:r] for l, r in ut.itertwo(offset_list)]
+
     # =======================
     # CONSTRUCT DATABASE REPR
     # =======================
-    ydata_cacher = SMKCacher('ydata', ['num_words', 'root_sift', 'centering' 'checks'])
+    ydata_cacher = SMKCacher('ydata', relevant_params)
     try:
         Y_list = ydata_cacher.load()
     except IOError:
@@ -617,7 +608,7 @@ def load_external_data2():
     # CONSTRUCT QUERY REPR
     # =======================
 
-    xdata_cacher = SMKCacher('xdata', ['num_words', 'root_sift', 'centering' 'checks'])
+    xdata_cacher = SMKCacher('xdata', relevant_params)
     X_list = xdata_cacher.tryload()
     if X_list is None:
         query_super_kpts = ut.take(kpts_list, qx_to_dx)
