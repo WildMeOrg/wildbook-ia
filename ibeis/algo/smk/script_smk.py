@@ -430,18 +430,22 @@ def train_vocabulary(vecs, config):
     import utool
     utool.embed()
 
-    clusterer = sklearn.cluster.MiniBatchKMeans(
-        num_words, random_state=rng,
-        init_size=num_words * 3,
-        n_init=3, verbose=5)
-    clusterer.fit(train_vecs)
-    words = clusterer.cluster_centers_
-    words = words.astype(np.uint8)
-    ut.save_data(ut.augpath(fpath, 'words'), words)
+    import utool
+    with utool.embed_on_exception_context:
 
-    from ibeis.algo.smk import vocab_indexer
-    vocab = vocab_indexer.VisualVocab(words)
-    vocab.build()
+        clusterer = sklearn.cluster.MiniBatchKMeans(
+            num_words, random_state=rng,
+            init_size=num_words * 3,
+            n_init=3, verbose=5)
+        clusterer.fit(train_vecs)
+
+        words = clusterer.cluster_centers_
+        words = words.astype(np.uint8)
+        ut.save_data(ut.augpath(fpath, 'words'), words)
+
+    # from ibeis.algo.smk import vocab_indexer
+    # vocab = vocab_indexer.VisualVocab(words)
+    # vocab.build()
 
     #tuned_params = vt.tune_flann(words, target_precision=.95)
 
@@ -553,14 +557,17 @@ def load_external_data2():
     word_cacher = SMKCacher('words', relevant_params)
     words = word_cacher.tryload()
     if words is None:
-        import sklearn.cluster
-        rng = np.random.RandomState(13421421)
-        clusterer = sklearn.cluster.MiniBatchKMeans(
-            config['num_words'], random_state=rng, n_init=3, verbose=5)
-        clusterer.fit(vecs)
-        words = clusterer.cluster_centers_
-        words = words.astype(np.uint8)
-        word_cacher.save(words)
+        import utool
+        utool.embed()
+        with utool.embed_on_exception_context:
+            import sklearn.cluster
+            rng = np.random.RandomState(13421421)
+            clusterer = sklearn.cluster.MiniBatchKMeans(
+                config['num_words'], random_state=rng, n_init=3, verbose=5)
+            clusterer.fit(vecs)
+            words = clusterer.cluster_centers_
+            words = words.astype(np.uint8)
+            word_cacher.save(words)
 
     from ibeis.algo.smk import vocab_indexer
     vocab = vocab_indexer.VisualVocab(words)
