@@ -989,3 +989,9 @@ def kpts_inside_bbox_natural(kpts, bbox):
 # annots._internal_attrs['vecs'] = vecs_list
 # annots._internal_attrs['wordid'] = wordid_list
 # annots._ibs = None
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.smk.script_smk
+    """
+    load_external_data2()
