@@ -426,8 +426,13 @@ def train_vocabulary(vecs, config):
     rng = np.random.RandomState(13421421)
     import sklearn.cluster
     train_vecs = train_vecs.astype(np.float32)
+
+    import utool
+    utool.embed()
+
     clusterer = sklearn.cluster.MiniBatchKMeans(
         num_words, random_state=rng,
+        init_size=num_words * 3,
         n_init=3, verbose=5)
     clusterer.fit(train_vecs)
     words = clusterer.cluster_centers_
