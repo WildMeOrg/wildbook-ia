@@ -460,6 +460,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
             -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
             ..
+            # -D CXX_FLAGS="-std=c++11" \ %TODO
 
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
         make -j$NCPUS
