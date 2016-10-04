@@ -151,19 +151,6 @@ def load_internal_data():
     return qreq_, cm
 
 
-def oxford_conic_test():
-    # Test that these are what the readme says
-    A, B, C = [0.016682, 0.001693, 0.014927]
-    A, B, C = [0.010141, -1.1e-05, 0.02863]
-    Z = np.array([[A, B], [B, C]])
-
-    import vtool as vt
-    invV = vt.decompose_Z_to_invV_2x2(Z)  # NOQA
-    invV = vt.decompose_Z_to_invV_mats2x2(np.array([Z]))  # NOQA
-    # seems ok
-    #invV = np.linalg.inv(V)
-
-
 def load_external_oxford_features(config):
     """
     # TODO: root sift with centering
@@ -320,142 +307,6 @@ def load_jegou_oxford_data():
     # Center and then re-normalize
     np.subtract(X, Xm[None, :], out=X)
     vt.normalize(X, ord=2, axis=1, out=X)
-
-    # def batch_elemwise_unary_op(func, arr1, chunksize, dtype=None,
-    #                             work_dtype=None, out=None):
-    #     if dtype is None:
-    #         dtype = arr1.dtype
-    #     if work_dtype is None:
-    #         work_dtype = arr1.dtype
-    #     if out is None:
-    #         out = np.empty(arr1.shape, dtype=dtype)
-    #     slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
-    #     for sl in ut.ProgIter(slices, lbl='unary op'):
-    #         _tmp = arr1[sl].astype(work_dtype)
-    #         out[sl] = func(_tmp)
-    #     return out
-
-    # beup = batch_elemwise_unary_op
-
-    # chunksize = 1000
-    # tmp = beup(root_sift, X, chunksize)
-    # mean_vec = tmp.mean(axis=1)
-    # tmp = beup(root_sift, X, chunksize)
-    # def minus_mean(x):
-    #     return np.subtract(x, mean_vec)
-    # beup(minus_mean, tmp, chunksize)
-
-    # words_fpath = join(smk_2013_dir, 'clust_preprocessed/oxford_train_vw.int32')
-    # with open(join(smk_2013_dir, 'paris_sift.uint8'), 'rb') as file_:
-    #     rawbytes = file_.read()
-    #     nbytes = len(rawbytes)
-    #     print('nbytes = %r' % (nbytes,))
-    #     print(sorted(ut.factors(nbytes - 0)))
-    #     print(sorted(ut.factors(nbytes - 4)))
-    #     print(sorted(ut.factors(nbytes - 8)))
-    #     data = np.fromstring(rawbytes, np.uint8)
-    #     data = data.reshape(len(data) / 128, 128)
-    #     # np.linalg.norm(data[0:100], axis=1)
-
-    # with open(join(smk_2013_dir, 'clust_preprocessed/oxford_vw.int32'), 'rb') as file_:
-    #     rawbytes = file_.read()
-    #     nbytes = len(rawbytes)
-    #     print('nbytes = %r' % (nbytes,))
-    #     print(sorted(ut.factors(nbytes - 0)))
-    #     print(sorted(ut.factors(nbytes - 4)))
-    #     print(sorted(ut.factors(nbytes - 8)))
-    #     # header = file_.read(4)
-    #     # num = np.fromstring(header, np.int32)
-
-    # with open(words_fpath, 'rb') as file_:
-    #     header = file_.read(4)
-    #     num = np.fromstring(header, np.int32)
-    #     data = np.fromstring(file_.read(), np.int32)
-
-    # from os.path import join
-    # sift_fpath = join(smk_2013_dir, 'oxford_sift.uint8')
-    # with open(words_fpath, 'rb') as file_:
-    #     sift = np.fromstring(file_.read(), np.uint8)
-
-    #     # sift /
-
-    # with open(join(smk_2013_dir, 'oxford_geom_sift.float'), 'rb') as file_:
-    #     geom = np.fromstring(file_.read(), np.float32)
-    #     geom = geom.reshape(geom.size / 5, 5)
-
-    # data[0:100]
-    # simulate load_ext https://github.com/Erotemic/yael/blob/master/matlab/load_ext.m
-    # filename = words_fpath
-    # nrows = 1
-    # def yael_load_ext_int32(filename, nrows=1, verbose=True):
-    #     nmin = 1
-    #     nmax = np.inf
-    #     if verbose:
-    #         print('< load int file %s\n', filename)
-    #     fid = open(filename, 'rb')
-    #     try:
-    #         bof = 0  # begining of file
-    #         offset = 4 * (nmin - 1) * nrows
-    #         fid.seek(offset, bof)
-    #         data = np.fromstring(fid.read(), np.int32)
-    #     finally:
-    #         fid.close()
-
-    # words = np.fromstring(data)
-    # vecs = vecs.reshape(shape)
-
-
-def train_vocabulary(vecs, config):
-    #oxford_data1 = load_external_oxford_features()
-    #imgid_order = oxford_data1['imgid_order']
-    #kpts_list = oxford_data1['kpts_list']
-    #vecs_list = oxford_data1['vecs_list']
-    #wordid_list = oxford_data1['wordid_list']
-
-    #num_words = 8000
-    num_words = config['num_words']
-    from os.path import join
-    dbdir = ut.truepath('/raid/work/Oxford/')
-    fpath = join(dbdir, 'vocab_%d.pkl' % (num_words,))
-    if ut.checkpath(fpath):
-        return ut.load_data(fpath)
-
-    #train_vecs = np.vstack(vecs_list)[::100].copy()
-    train_vecs = vecs.astype(np.float32)
-
-    rng = np.random.RandomState(13421421)
-    import sklearn.cluster
-    train_vecs = train_vecs.astype(np.float32)
-
-    import utool
-    utool.embed()
-
-    import utool
-    with utool.embed_on_exception_context:
-
-        clusterer = sklearn.cluster.MiniBatchKMeans(
-            num_words, random_state=rng,
-            init_size=num_words * 3,
-            n_init=3, verbose=5)
-        clusterer.fit(train_vecs)
-
-        words = clusterer.cluster_centers_
-        words = words.astype(np.uint8)
-        ut.save_data(ut.augpath(fpath, 'words'), words)
-
-    # from ibeis.algo.smk import vocab_indexer
-    # vocab = vocab_indexer.VisualVocab(words)
-    # vocab.build()
-
-    #tuned_params = vt.tune_flann(words, target_precision=.95)
-
-    ut.save_data(fpath, vocab)
-    return words
-
-    #import pyflann
-    #flann = pyflann.FLANN()
-    #centers1 = flann.kmeans(train_vecs, num_words, max_iterations=1)
-    #pass
 
 
 def load_external_data2():
@@ -787,9 +638,9 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
 
         if False:
             sortx = np.argsort(scores)[::-1]
-            yx = np.arange(len(Y_list_))
+            # yx = np.arange(len(Y_list_))
             truth_ranked = np.array(truth).take(sortx)
-            scores_ranked = np.array(scores).take(sortx)
+            # scores_ranked = np.array(scores).take(sortx)
             Y_ranked = ut.take(Y_list_, sortx)
             Y_gts = ut.compress(Y_ranked, truth_ranked)
 
@@ -997,6 +848,18 @@ def kpts_inside_bbox_natural(kpts, bbox):
     ])
     return flags
 
+
+def oxford_conic_test():
+    # Test that these are what the readme says
+    A, B, C = [0.016682, 0.001693, 0.014927]
+    A, B, C = [0.010141, -1.1e-05, 0.02863]
+    Z = np.array([[A, B], [B, C]])
+    import vtool as vt
+    invV = vt.decompose_Z_to_invV_2x2(Z)  # NOQA
+    invV = vt.decompose_Z_to_invV_mats2x2(np.array([Z]))  # NOQA
+    # seems ok
+    #invV = np.linalg.inv(V)
+
 #ap_list2 = []
 ## Sanity Check: calculate avep like in
 ## http://www.robots.ox.ac.uk/~vgg/data/oxbuildings/compute_ap.cpp
@@ -1037,6 +900,141 @@ def kpts_inside_bbox_natural(kpts, bbox):
 # annots._internal_attrs['vecs'] = vecs_list
 # annots._internal_attrs['wordid'] = wordid_list
 # annots._ibs = None
+
+    # def batch_elemwise_unary_op(func, arr1, chunksize, dtype=None,
+    #                             work_dtype=None, out=None):
+    #     if dtype is None:
+    #         dtype = arr1.dtype
+    #     if work_dtype is None:
+    #         work_dtype = arr1.dtype
+    #     if out is None:
+    #         out = np.empty(arr1.shape, dtype=dtype)
+    #     slices = list(ut.ichunk_slices(arr1.shape[0], chunksize))
+    #     for sl in ut.ProgIter(slices, lbl='unary op'):
+    #         _tmp = arr1[sl].astype(work_dtype)
+    #         out[sl] = func(_tmp)
+    #     return out
+
+    # beup = batch_elemwise_unary_op
+
+    # chunksize = 1000
+    # tmp = beup(root_sift, X, chunksize)
+    # mean_vec = tmp.mean(axis=1)
+    # tmp = beup(root_sift, X, chunksize)
+    # def minus_mean(x):
+    #     return np.subtract(x, mean_vec)
+    # beup(minus_mean, tmp, chunksize)
+
+    # words_fpath = join(smk_2013_dir, 'clust_preprocessed/oxford_train_vw.int32')
+    # with open(join(smk_2013_dir, 'paris_sift.uint8'), 'rb') as file_:
+    #     rawbytes = file_.read()
+    #     nbytes = len(rawbytes)
+    #     print('nbytes = %r' % (nbytes,))
+    #     print(sorted(ut.factors(nbytes - 0)))
+    #     print(sorted(ut.factors(nbytes - 4)))
+    #     print(sorted(ut.factors(nbytes - 8)))
+    #     data = np.fromstring(rawbytes, np.uint8)
+    #     data = data.reshape(len(data) / 128, 128)
+    #     # np.linalg.norm(data[0:100], axis=1)
+
+    # with open(join(smk_2013_dir, 'clust_preprocessed/oxford_vw.int32'), 'rb') as file_:
+    #     rawbytes = file_.read()
+    #     nbytes = len(rawbytes)
+    #     print('nbytes = %r' % (nbytes,))
+    #     print(sorted(ut.factors(nbytes - 0)))
+    #     print(sorted(ut.factors(nbytes - 4)))
+    #     print(sorted(ut.factors(nbytes - 8)))
+    #     # header = file_.read(4)
+    #     # num = np.fromstring(header, np.int32)
+
+    # with open(words_fpath, 'rb') as file_:
+    #     header = file_.read(4)
+    #     num = np.fromstring(header, np.int32)
+    #     data = np.fromstring(file_.read(), np.int32)
+
+    # from os.path import join
+    # sift_fpath = join(smk_2013_dir, 'oxford_sift.uint8')
+    # with open(words_fpath, 'rb') as file_:
+    #     sift = np.fromstring(file_.read(), np.uint8)
+
+    #     # sift /
+
+    # with open(join(smk_2013_dir, 'oxford_geom_sift.float'), 'rb') as file_:
+    #     geom = np.fromstring(file_.read(), np.float32)
+    #     geom = geom.reshape(geom.size / 5, 5)
+
+    # data[0:100]
+    # simulate load_ext https://github.com/Erotemic/yael/blob/master/matlab/load_ext.m
+    # filename = words_fpath
+    # nrows = 1
+    # def yael_load_ext_int32(filename, nrows=1, verbose=True):
+    #     nmin = 1
+    #     nmax = np.inf
+    #     if verbose:
+    #         print('< load int file %s\n', filename)
+    #     fid = open(filename, 'rb')
+    #     try:
+    #         bof = 0  # begining of file
+    #         offset = 4 * (nmin - 1) * nrows
+    #         fid.seek(offset, bof)
+    #         data = np.fromstring(fid.read(), np.int32)
+    #     finally:
+    #         fid.close()
+
+    # words = np.fromstring(data)
+    # vecs = vecs.reshape(shape)
+
+
+# def train_vocabulary(vecs, config):
+#     #oxford_data1 = load_external_oxford_features()
+#     #imgid_order = oxford_data1['imgid_order']
+#     #kpts_list = oxford_data1['kpts_list']
+#     #vecs_list = oxford_data1['vecs_list']
+#     #wordid_list = oxford_data1['wordid_list']
+
+#     #num_words = 8000
+#     num_words = config['num_words']
+#     from os.path import join
+#     dbdir = ut.truepath('/raid/work/Oxford/')
+#     fpath = join(dbdir, 'vocab_%d.pkl' % (num_words,))
+#     if ut.checkpath(fpath):
+#         return ut.load_data(fpath)
+
+#     #train_vecs = np.vstack(vecs_list)[::100].copy()
+#     train_vecs = vecs.astype(np.float32)
+
+#     rng = np.random.RandomState(13421421)
+#     import sklearn.cluster
+#     train_vecs = train_vecs.astype(np.float32)
+
+#     import utool
+#     utool.embed()
+
+#     import utool
+#     with utool.embed_on_exception_context:
+
+#         clusterer = sklearn.cluster.MiniBatchKMeans(
+#             num_words, random_state=rng,
+#             init_size=num_words * 3,
+#             n_init=3, verbose=5)
+#         clusterer.fit(train_vecs)
+
+#         words = clusterer.cluster_centers_
+#         words = words.astype(np.uint8)
+#         ut.save_data(ut.augpath(fpath, 'words'), words)
+
+#     # from ibeis.algo.smk import vocab_indexer
+#     # vocab = vocab_indexer.VisualVocab(words)
+#     # vocab.build()
+
+#     #tuned_params = vt.tune_flann(words, target_precision=.95)
+#     # ut.save_data(fpath, vocab)
+#     return words
+
+    #import pyflann
+    #flann = pyflann.FLANN()
+    #centers1 = flann.kmeans(train_vecs, num_words, max_iterations=1)
+    #pass
 if __name__ == '__main__':
     r"""
     CommandLine:
