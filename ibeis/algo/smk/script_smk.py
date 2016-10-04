@@ -451,31 +451,31 @@ def load_external_data2():
     # =======================
     # CONSTRUCT QUERY REPR
     # =======================
+    with ut.embed_on_exception_context:
+        xdata_cacher = SMKCacher('xdata', relevant_params)
+        X_list = xdata_cacher.tryload()
+        if X_list is None:
+            query_super_kpts = ut.take(kpts_list, qx_to_dx)
+            query_super_vecs = ut.take(vecs_list, qx_to_dx)
+            query_super_wxs = ut.take(wx_lists, qx_to_dx)
+            # Mark which keypoints are within the bbox of the query
+            query_flags_list = []
+            for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
+                flags = kpts_inside_bbox_aggressive(kpts, bbox)
+                query_flags_list.append(flags)
 
-    xdata_cacher = SMKCacher('xdata', relevant_params)
-    X_list = xdata_cacher.tryload()
-    if X_list is None:
-        query_super_kpts = ut.take(kpts_list, qx_to_dx)
-        query_super_vecs = ut.take(vecs_list, qx_to_dx)
-        query_super_wxs = ut.take(wx_lists, qx_to_dx)
-        # Mark which keypoints are within the bbox of the query
-        query_flags_list = []
-        for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
-            flags = kpts_inside_bbox_aggressive(kpts, bbox)
-            query_flags_list.append(flags)
+            import vtool as vt
+            qaids = _qannots.aids
+            query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
+            query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
+            query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
 
-        import vtool as vt
-        qaids = _qannots.aids
-        query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
-        query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
-        query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
-
-        X_list = []
-        _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
-        for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
-            X = new_external_annot(aid, fx_to_wxs)
-            X_list.append(X)
-        xdata_cacher.save(X_list)
+            X_list = []
+            _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
+            for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
+                X = new_external_annot(aid, fx_to_wxs)
+                X_list.append(X)
+            xdata_cacher.save(X_list)
 
     #======================
     # Add in some groundtruth
