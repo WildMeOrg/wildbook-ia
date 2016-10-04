@@ -509,6 +509,7 @@ def load_external_data2():
         # Preallocate agg residuals for all dxs
         all_agg_wxs = np.hstack(dx_to_wxs)
         all_agg_vecs = np.empty((num_agg_vecs, dim), dtype=np.float32)
+        all_agg_vecs[:, :] = np.nan
 
         # precompute agg residual stack
         wx_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
@@ -523,6 +524,7 @@ def load_external_data2():
             xs = groupxs[i]
 
             dxs = wx_to_unique_dxs[wx]
+            dx_groupxs = wx_to_dx_groupxs[wx]
             assert np.bincount(dxs).max() < 2
 
             offsets1 = agg_offset_list.take(dxs)
@@ -534,7 +536,6 @@ def load_external_data2():
                 assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +
                                                                dx_to_nagg[dxs[0]]])
 
-            unique_dxs, dx_groupxs = vt.group_indices(dxs)
             # Compute residual
             rvecs = all_vecs[xs] - word
             vt.normalize(rvecs, axis=1, out=rvecs)
