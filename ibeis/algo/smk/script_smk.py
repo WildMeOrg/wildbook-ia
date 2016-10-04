@@ -117,26 +117,6 @@ class SparseVector(ut.NiceRepr):
         return np.multiply(vals1, vals2).sum()
 
 
-def ox_vocab():
-    # if config['num_words'] == 1E6:
-    #     import vtool as vt
-    #     print('Using oxford word assignments')
-    #     unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
-    #     assert ut.issorted(unique_word)
-    #     wx_to_vecs = vt.apply_grouping(vecs, groupxs, axis=0)
-
-    #     wx_to_word = np.array([
-    #         np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
-    #         for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
-    #     ])
-    #     from ibeis.algo.smk import vocab_indexer
-    #     vocab = vocab_indexer.VisualVocab(wx_to_word)
-
-    #     wx_lists = [wids[:, None] - 1 for wids in wordid_list]
-    # else:
-    pass
-
-
 def load_internal_data():
     from ibeis.algo.smk.smk_pipeline import *  # NOQA
     import ibeis
@@ -972,6 +952,26 @@ def oxford_conic_test():
     #             criteria=criteria, attempts=n_init,
     #             flags=cv2.KMEANS_PP_CENTERS)
     # if False:
+
+
+def ox_vocab():
+    # if config['num_words'] == 1E6:
+    #     import vtool as vt
+    #     print('Using oxford word assignments')
+    #     unique_word, groupxs = vt.group_indices(np.hstack(wordid_list))
+    #     assert ut.issorted(unique_word)
+    #     wx_to_vecs = vt.apply_grouping(vecs, groupxs, axis=0)
+
+    #     wx_to_word = np.array([
+    #         np.round(np.mean(sift_group, axis=0)).astype(np.uint8)
+    #         for sift_group in ut.ProgIter(wx_to_vecs, lbl='compute words')
+    #     ])
+    #     from ibeis.algo.smk import vocab_indexer
+    #     vocab = vocab_indexer.VisualVocab(wx_to_word)
+
+    #     wx_lists = [wids[:, None] - 1 for wids in wordid_list]
+    # else:
+    pass
 
 
 # def train_vocabulary(vecs, config):
