@@ -378,6 +378,9 @@ def load_external_data2():
         np.subtract(vecs, mean_vec[None, :], out=vecs)
         vt.normalize(vecs, ord=2, axis=1, out=vecs)
 
+    import utool
+    utool.embed()
+
     # =====================================
     # BUILD VISUAL VOCABULARY
     # =====================================
@@ -405,12 +408,6 @@ def load_external_data2():
     vocab = vocab_indexer.VisualVocab(words)
     vocab.build()
 
-    #tuned_params = vt.tune_flann(words, target_precision=.95)
-    # word_hash = ut.hashstr_arr27(vocab.wx_to_word, 'words')
-    # relevant_params = ['checks']
-    # cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
-    # assign_fpath = join(dbdir, 'assigns_' + ut.hashstr27(word_hash + cfglbl) + '.pkl')
-
     # =====================================
     # ASSIGN EACH VECTOR TO ITS NEAREST WORD
     # =====================================
@@ -419,7 +416,8 @@ def load_external_data2():
     idx_to_wxs = dassign_cacher.tryload()
     if idx_to_wxs is None:
         with ut.Timer('assign vocab neighbors'):
-            _idx_to_wx, _idx_to_wdist = vocab.nn_index(vecs, nAssign, checks=config['checks'])
+            _idx_to_wx, _idx_to_wdist = vocab.nn_index(vecs, nAssign,
+                                                       checks=config['checks'])
             if nAssign > 1:
                 idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
                     _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
@@ -427,10 +425,12 @@ def load_external_data2():
             else:
                 idx_to_wxs = _idx_to_wx.tolist()
         # Maybe masked arrays is just overall better here
-        idx_to_wxs = [np.array(wxs, dtype=np.int32) for wxs in ut.ProgIter(idx_to_wxs, lbl='cast')]
+        idx_to_wxs = [np.array(wxs, dtype=np.int32)
+                      for wxs in ut.ProgIter(idx_to_wxs, lbl='cast')]
         dassign_cacher.save(idx_to_wxs)
-    wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
 
+    # Breakup vectors, keypoints, and word assignments by annotation
+    wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
     vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
     kpts_list = [kpts[l:r] for l, r in ut.itertwo(offset_list)]
 
@@ -451,34 +451,52 @@ def load_external_data2():
     # =======================
     # CONSTRUCT QUERY REPR
     # =======================
+    # FIXME: new_external_annot was not populated in namespace for with embed
     with ut.embed_on_exception_context:
-        xdata_cacher = SMKCacher('xdata', relevant_params)
-        X_list = xdata_cacher.tryload()
-        if X_list is None:
-            query_super_kpts = ut.take(kpts_list, qx_to_dx)
-            query_super_vecs = ut.take(vecs_list, qx_to_dx)
-            query_super_wxs = ut.take(wx_lists, qx_to_dx)
-            # Mark which keypoints are within the bbox of the query
-            query_flags_list = []
-            for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
-                flags = kpts_inside_bbox_aggressive(kpts, bbox)
-                query_flags_list.append(flags)
+        query_super_kpts = ut.take(kpts_list, qx_to_dx)
+        query_super_vecs = ut.take(vecs_list, qx_to_dx)
+        query_super_wxs = ut.take(wx_lists, qx_to_dx)
+        # Mark which keypoints are within the bbox of the query
+        query_flags_list = []
+        for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
+            flags = kpts_inside_bbox_aggressive(kpts, bbox)
+            query_flags_list.append(flags)
 
-            import vtool as vt
-            qaids = _qannots.aids
-            query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
-            query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
-            query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
+        print('Queries are crops of existing database images.')
+        print('Looking at average percents')
+        percent_list = [flags.sum() / flags.shape[0] for flags in query_flags_list]
+        percent_stats = ut.get_stats(percent_list)
+        print('percent_stats = %s' % (ut.repr4(percent_stats),))
 
-            X_list = []
-            _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
-            for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
-                X = new_external_annot(aid, fx_to_wxs)
-                X_list.append(X)
-            xdata_cacher.save(X_list)
+        if False:
+            from ibeis.viz import viz_chip
+            import plottool as pt
+            pt.qt4ensure()
+            fnum = 1
+            pnum_ = pt.make_pnum_nextgen(10, 5)
+            for aid in _qannots.aids:
+                pnum = pnum_()
+                viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
+                                   fnum=fnum, pnum=pnum)
+
+        # Look at the standard query images here
+        # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
+
+        import vtool as vt
+        qaids = _qannots.aids
+        query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
+        query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
+        query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
+
+        X_list = []
+        _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
+        for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
+            X = new_external_annot(aid, fx_to_wxs)
+            X_list.append(X)
 
     #======================
     # Add in some groundtruth
+    print('Add in some groundtruth')
     for Y, nid in zip(Y_list, ibs.get_annot_nids(daids)):
         Y.nid = nid
 
@@ -500,6 +518,7 @@ def load_external_data2():
 
     #======================
     # Build inverted list
+    print('Building inverted list')
     daids = [Y.aid for Y in Y_list]
     wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))
     assert daids == data_annots.aids
@@ -509,6 +528,7 @@ def load_external_data2():
     #    daids, [Y.wx_list for Y in Y_list], all_wxs=wx_list)
 
     # Compute IDF weights
+    print('Compute IDF weights')
     ndocs_total = len(daids)
     if False:
         # ndocs_per_word1 = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
@@ -771,7 +791,7 @@ def kpts_inside_bbox_aggressive(kpts, bbox):
     import vtool as vt
     # Be aggressive with what is allowed in the query
     xys = kpts[:, 0:2]
-    flags = vt.point_inside_bbox(xys.T, bbox),
+    flags = vt.point_inside_bbox(xys.T, bbox)
     return flags
 
 
@@ -1020,10 +1040,17 @@ def ox_vocab():
 #     # ut.save_data(fpath, vocab)
 #     return words
 
-    #import pyflann
-    #flann = pyflann.FLANN()
-    #centers1 = flann.kmeans(train_vecs, num_words, max_iterations=1)
-    #pass
+#tuned_params = vt.tune_flann(words, target_precision=.95)
+# word_hash = ut.hashstr_arr27(vocab.wx_to_word, 'words')
+# relevant_params = ['checks']
+# cfglbl = ut.get_cfg_lbl(ut.dict_subset(config, relevant_params))
+# assign_fpath = join(dbdir, 'assigns_' + ut.hashstr27(word_hash + cfglbl) + '.pkl')
+
+#import pyflann
+#flann = pyflann.FLANN()
+#centers1 = flann.kmeans(train_vecs, num_words, max_iterations=1)
+#pass
+
 if __name__ == '__main__':
     r"""
     CommandLine:

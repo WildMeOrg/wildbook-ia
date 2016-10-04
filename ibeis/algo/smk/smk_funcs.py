@@ -90,12 +90,20 @@ Notes:
     Going down to 8K words smk-asmk gets 0.374
 
     Ok the 65K vocab smk-asmk gets mAP=0.461...
+    Ok, after recomputing a new 65K vocab with centered and root-sifted
+        descriptors, using float32 precision (in most places), asmk
+        gets a new map score of mAP=.5275... :(
+        This is with permissive query kpts and oxford vocab.
 
+    Next step: ensure everything is float32.
+    After that try again at Jegou's data.
+    Ensure there are no smk algo bugs. There must be one.
 
 Differences Between this and SMK
    * No RootSIFT
    * No SIFT Centering
    * No independant vocabulary
+   * Chip RESIZE
 
 Differences between this and VLAD
    * residual vectors are normalized
