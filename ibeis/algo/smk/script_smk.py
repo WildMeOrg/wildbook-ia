@@ -290,10 +290,11 @@ def load_jegou_oxford_data():
 
 
 def load_external_data2():
-    """
-    >>> from ibeis.algo.smk.script_smk import *  # NOQA
-    """
-
+   """
+   >>> from ibeis.algo.smk.script_smk import *  # NOQA
+   """
+   # FIXME: new_external_annot was not populated in namespace for with embed
+   with ut.embed_on_exception_context:  # NOQA
     config = {
         'dtype': 'float32',
         'root_sift': True,
@@ -303,16 +304,23 @@ def load_external_data2():
         #'num_words': 1E6
         #'num_words': 8000,
     }
+    # Define which params are relevant for which operations
+    relevance = {}
+    relevance['vecs'] = ['dtype', 'root_sift', 'centering']
+    relevance['words'] = relevance['vecs'] + ['num_words']
+    relevance['assign'] = relevance['words'] + ['checks']
+    relevance['ydata'] = relevance['assign']
+    relevance['xdata'] = relevance['assign']
+
     nAssign = 1
 
     class SMKCacher(ut.Cacher):
-        def __init__(self, fname, relevant_params):
+        def __init__(self, fname):
+            relevant_params = relevance[fname]
             relevant_cfg = ut.dict_subset(config, relevant_params)
             cfgstr = ut.get_cfg_lbl(relevant_cfg)
             dbdir = ut.truepath('/raid/work/Oxford/')
             super(SMKCacher, self).__init__(fname, cfgstr, cache_dir=dbdir)
-
-    relevant_params = ut.oset()
 
     # ==============================================
     # LOAD DATASET, EXTRACT AND POSTPROCESS FEATURES
@@ -323,72 +331,83 @@ def load_external_data2():
     imgid_order = oxford_data0['imgid_order']
     offset_list = oxford_data0['offset_list']
     kpts    = oxford_data0['kpts']
-    vecs    = oxford_data0['vecs']
+    raw_vecs = oxford_data0['vecs']
     # wordids     = oxford_data0['wordids']
     del oxford_data0
 
-    uri_order = [x.replace('oxc1_', '') for x in imgid_order]
+    data_uri_order = [x.replace('oxc1_', '') for x in imgid_order]
     # assert len(np.unique(wordids)) == 1E6
 
+    # Reqd standard query order
+    dbdir = ut.truepath('/raid/work/Oxford/')
+    query_files = sorted(ut.glob(dbdir + '/oxford_groundtruth', '*_query.txt'))
+    query_uri_order = []
+    for qpath in query_files:
+        text = ut.readfrom(qpath, verbose=0)
+        query_uri = text.split(' ')[0].replace('oxc1_', '')
+        query_uri_order.append(query_uri)
+
+    # Open the ibeis version of oxford
     ibs = ibeis.opendb('Oxford')
 
-    def get_oxford_keys(_annots):
+    def reorder_annots(_annots, uri_order):
         _images = ibs.images(_annots.gids)
-        intern_uris = [splitext(basename(uri))[0] for uri in _images.uris_original]
-        return intern_uris
+        intern_uris = [splitext(basename(uri))[0]
+                       for uri in _images.uris_original]
+        lookup = ut.make_index_lookup(intern_uris)
+        _reordered = _annots.take(ut.take(lookup, uri_order))
+        return _reordered
 
-    # Load database annotations and reorder them to aggree with internals
+    # Load database annotations and reorder them to agree with internals
     _dannots = ibs.annots(ibs.filter_annots_general(has_none='query'))
-    intern_uris = get_oxford_keys(_dannots)
-    lookup = ut.make_index_lookup(intern_uris)
-    data_annots = _dannots.take(ut.take(lookup, uri_order))
-    assert get_oxford_keys(data_annots) == uri_order
-    # Build/load query info
+    data_annots = reorder_annots(_dannots, data_uri_order)
+
+    # Load query annototations and reorder to standard order
     _qannots = ibs.annots(ibs.filter_annots_general(has_any='query'))
-    # Reorder by name
-    unique_names, groupxs = ut.group_indices(_qannots.names)
-    _qannots = _qannots.take(ut.flatten(groupxs))
+    query_annots = reorder_annots(_qannots, query_uri_order)
+
     # Map each query annot to its corresponding data index
     dgid_to_dx = ut.make_index_lookup(data_annots.gids)
-    qx_to_dx = ut.take(dgid_to_dx, _qannots.gids)
+    qx_to_dx = ut.take(dgid_to_dx, query_annots.gids)
 
-    #======================
-    # Build/load database info
     daids = data_annots.aids
+    qaids = query_annots.aids
 
     # ================
     # PRE-PROCESS
     # ================
     import vtool as vt
 
-    relevant_params.add('dtype')
+    # Alias names to avoid errors in interactive sessions
+    proc_vecs = raw_vecs
+    del raw_vecs
+
     if config['dtype'] == 'float32':
-        vecs = vecs.astype(np.float32)
+        proc_vecs = proc_vecs.astype(np.float32)
     else:
+        proc_vecs = proc_vecs
         raise NotImplementedError('other dtype')
 
     if config['root_sift']:
-        np.sqrt(vecs, out=vecs)
-        vt.normalize(vecs, ord=2, axis=1, out=vecs)
+        with ut.Timer('Apply root sift'):
+            np.sqrt(proc_vecs, out=proc_vecs)
+            vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
     if config['centering']:
         # Apply Centering
-        mean_vec = np.mean(vecs, axis=0)
-        # Center and then re-normalize
-        np.subtract(vecs, mean_vec[None, :], out=vecs)
-        vt.normalize(vecs, ord=2, axis=1, out=vecs)
+        with ut.Timer('Apply centering'):
+            mean_vec = np.mean(proc_vecs, axis=0)
+            # Center and then re-normalize
+            np.subtract(proc_vecs, mean_vec[None, :], out=proc_vecs)
+            vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
-    import utool
-    utool.embed()
+    vecs = proc_vecs
+    del proc_vecs
 
     # =====================================
     # BUILD VISUAL VOCABULARY
     # =====================================
-    # vocab = train_vocabulary(vecs, config['num_words'])
-    relevant_params.add('root_sift')
-    relevant_params.add('centering')
-    relevant_params.add('num_words')
-    word_cacher = SMKCacher('words', relevant_params)
+    word_cacher = SMKCacher('words')
     words = word_cacher.tryload()
     if words is None:
         init_size = int(config['num_words'] * 2.5)
@@ -411,9 +430,8 @@ def load_external_data2():
     # =====================================
     # ASSIGN EACH VECTOR TO ITS NEAREST WORD
     # =====================================
-    relevant_params.add('checks')
-    dassign_cacher = SMKCacher('words', relevant_params)
-    idx_to_wxs = dassign_cacher.tryload()
+    dassign_cacher = SMKCacher('assign')
+    idx_to_wxs, idx_to_maws = dassign_cacher.tryload()
     if idx_to_wxs is None:
         with ut.Timer('assign vocab neighbors'):
             _idx_to_wx, _idx_to_wdist = vocab.nn_index(vecs, nAssign,
@@ -423,76 +441,79 @@ def load_external_data2():
                     _idx_to_wx, _idx_to_wdist, massign_alpha=1.2, massign_sigma=80.0,
                     massign_equal_weights=True)
             else:
-                idx_to_wxs = _idx_to_wx.tolist()
-        # Maybe masked arrays is just overall better here
-        idx_to_wxs = [np.array(wxs, dtype=np.int32)
-                      for wxs in ut.ProgIter(idx_to_wxs, lbl='cast')]
-        dassign_cacher.save(idx_to_wxs)
+                idx_to_wxs = np.ma.masked_array(_idx_to_wx, fill_value=-1)
+                idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=-1,
+                                         dtype=np.float32)
+                idx_to_maws.mask = idx_to_wxs.mask
+        dassign_cacher.save((idx_to_wxs, idx_to_maws))
 
     # Breakup vectors, keypoints, and word assignments by annotation
     wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
+    maw_lists = [idx_to_maws[l:r] for l, r in ut.itertwo(offset_list)]
     vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
     kpts_list = [kpts[l:r] for l, r in ut.itertwo(offset_list)]
 
     # =======================
-    # CONSTRUCT DATABASE REPR
-    # =======================
-    ydata_cacher = SMKCacher('ydata', relevant_params)
-    try:
-        Y_list = ydata_cacher.load()
-    except IOError:
-        Y_list = []
-        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
-        for aid, fx_to_wxs in _prog(zip(daids, wx_lists)):
-            Y = new_external_annot(aid, fx_to_wxs)
-            Y_list.append(Y)
-        ydata_cacher.save(Y_list)
-
-    # =======================
     # CONSTRUCT QUERY REPR
     # =======================
-    # FIXME: new_external_annot was not populated in namespace for with embed
-    with ut.embed_on_exception_context:
-        query_super_kpts = ut.take(kpts_list, qx_to_dx)
-        query_super_vecs = ut.take(vecs_list, qx_to_dx)
-        query_super_wxs = ut.take(wx_lists, qx_to_dx)
-        # Mark which keypoints are within the bbox of the query
-        query_flags_list = []
-        for kpts, bbox in zip(query_super_kpts, _qannots.bboxes):
-            flags = kpts_inside_bbox_aggressive(kpts, bbox)
-            query_flags_list.append(flags)
 
-        print('Queries are crops of existing database images.')
-        print('Looking at average percents')
-        percent_list = [flags.sum() / flags.shape[0] for flags in query_flags_list]
-        percent_stats = ut.get_stats(percent_list)
-        print('percent_stats = %s' % (ut.repr4(percent_stats),))
+    query_super_kpts = ut.take(kpts_list, qx_to_dx)
+    query_super_vecs = ut.take(vecs_list, qx_to_dx)
+    query_super_wxs = ut.take(wx_lists, qx_to_dx)
+    query_super_maws = ut.take(maw_lists, qx_to_dx)
+    # Mark which keypoints are within the bbox of the query
+    query_flags_list = []
+    for kpts_, bbox in zip(query_super_kpts, query_annots.bboxes):
+        flags = kpts_inside_bbox_aggressive(kpts_, bbox)
+        query_flags_list.append(flags)
 
-        if False:
-            from ibeis.viz import viz_chip
-            import plottool as pt
-            pt.qt4ensure()
-            fnum = 1
-            pnum_ = pt.make_pnum_nextgen(10, 5)
-            for aid in _qannots.aids:
-                pnum = pnum_()
-                viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
-                                   fnum=fnum, pnum=pnum)
+    print('Queries are crops of existing database images.')
+    print('Looking at average percents')
+    percent_list = [flags.sum() / flags.shape[0] for flags in query_flags_list]
+    percent_stats = ut.get_stats(percent_list)
+    print('percent_stats = %s' % (ut.repr4(percent_stats),))
 
+    import vtool as vt
+    query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
+    query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
+    query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
+    query_maws = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
+
+    int_rvec = not config['dtype'].startswith('float')
+
+    X_list = []
+    _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
+    for aid, fx_to_wxs, fx_to_maws in _prog(zip(qaids, query_wxs, query_maws)):
+        X = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
+        X_list.append(X)
+
+    if False:
+        # Visualize queries
         # Look at the standard query images here
         # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
+        from ibeis.viz import viz_chip
+        import plottool as pt
+        pt.qt4ensure()
+        fnum = 1
+        pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
+        for aid in ut.ProgIter(query_annots.aids):
+            pnum = pnum_()
+            viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
+                               notitle=True, draw_lbls=False,
+                               fnum=fnum, pnum=pnum)
 
-        import vtool as vt
-        qaids = _qannots.aids
-        query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
-        query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
-        query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
-
-        X_list = []
-        _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
-        for aid, fx_to_wxs in _prog(zip(qaids, query_wxs)):
-            X = new_external_annot(aid, fx_to_wxs)
-            X_list.append(X)
+    # =======================
+    # CONSTRUCT DATABASE REPR
+    # =======================
+    ydata_cacher = SMKCacher('ydata')
+    Y_list = ydata_cacher.tryload()
+    if Y_list is None:
+        Y_list = []
+        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
+        for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
+            Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
+            Y_list.append(Y)
+        ydata_cacher.save(Y_list)
 
     #======================
     # Add in some groundtruth
@@ -621,16 +642,15 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
     print('mAP  = %r' % (mAP,))
 
 
-def new_external_annot(aid, fx_to_wxs=None):
-    #nAssign = 1
-    int_rvec = True
+def new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec):
     # Compute assignments
     #fx_to_vecs = vecs
     #if fx_to_wxs is None:
     #    fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs,
     #                                                      nAssign)
     #else:
-    fx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in fx_to_wxs]
+    # fx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in fx_to_wxs]
+    # fx_to_maws.mask = fx_to_wxs.mask
     """
     z = np.array(ut.take_column(fx_to_wxs, 0)) + 1
     y = np.array(wordid_list[0])
@@ -648,6 +668,7 @@ def new_external_annot(aid, fx_to_wxs=None):
     X.wx_to_idx = ut.make_index_lookup(X.wx_list)
     X.int_rvec = int_rvec
     X.wx_set = set(X.wx_list)
+    # TODO: maybe use offset list structure instead of heavy nesting
     X.fxs_list = ut.take(wx_to_fxs, X.wx_list)
     X.maws_list = ut.take(wx_to_maws, X.wx_list)
     return X

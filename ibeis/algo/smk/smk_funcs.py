@@ -348,11 +348,17 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             masked_norm = masked_unorm_maw.sum(axis=1)[:, np.newaxis]
             masked_maw = np.divide(masked_unorm_maw, masked_norm)
             masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
-            # Remove masked weights and word indexes
-            idx_to_wxs  = [np.array(ut.filter_Nones(wxs), dtype=np.int32)
-                           for wxs in masked_wxs.tolist()]
-            idx_to_maws = [np.array(ut.filter_Nones(maw), dtype=np.float32)
-                           for maw in masked_maw.tolist()]
+            if True:
+                # Just keep masked arrays as they are
+                # (more efficient than python lists)
+                idx_to_wxs = masked_wxs
+                idx_to_maws = masked_maw
+            else:
+                # Remove masked weights and word indexes
+                idx_to_wxs  = [np.array(ut.filter_Nones(wxs), dtype=np.int32)
+                               for wxs in masked_wxs.tolist()]
+                idx_to_maws = [np.array(ut.filter_Nones(maw), dtype=np.float32)
+                               for maw in masked_maw.tolist()]
     return idx_to_wxs, idx_to_maws
 
 
@@ -433,6 +439,16 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         >>> wx_to_idxs, wx_to_maws = invert_assigns(idx_to_wxs, idx_to_maws)
         >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
         >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
+        wx_to_idxs = {
+            0: np.array([0, 2], dtype=np.int32),
+            2: np.array([1, 2], dtype=np.int32),
+            4: np.array([0], dtype=np.int32),
+        }
+        wx_to_maws = {
+            0: np.array([ 0.5,  0.5], dtype=np.float32),
+            2: np.array([ 1. ,  0.5], dtype=np.float32),
+            4: np.array([ 0.5], dtype=np.float32),
+        }
     """
     # Invert mapping -- Group by word indexes
     idx_to_nAssign = [len(wxs) for wxs in idx_to_wxs]
@@ -444,6 +460,65 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     maws_list = vt.apply_jagged_grouping(idx_to_maws, groupxs)
     maws_list = [np.array(maws, dtype=np.float32) for maws in maws_list]
     wx_to_maws = dict(zip(wx_keys, maws_list))
+    if verbose:
+        print('[vocab] L___ End Assign vecs to words.')
+    return (wx_to_idxs, wx_to_maws)
+
+
+def invert_assigns_flat(idx_to_wxs, idx_to_maws, verbose=False):
+    """
+    Inverts assignment of vectors to words into words to vectors.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> idx_to_wxs = np.ma.array([
+        >>>     (0, 4),
+        >>>     (2, -1),
+        >>>     (2, 0)], dtype=np.int32)
+        >>> idx_to_wxs[1, 1] = np.ma.masked
+        >>> idx_to_maws = np.ma.array([(.5, 1.), (1., np.nan), (.5, .5)], dtype=np.float32)
+        >>> idx_to_maws[1, 1] = np.ma.masked
+        >>> wx_to_idxs, wx_to_maws = invert_assigns_flat(idx_to_wxs, idx_to_maws)
+        >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
+        >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
+        wx_to_idxs = {
+            0: np.array([0, 2], dtype=np.int32),
+            2: np.array([1, 2], dtype=np.int32),
+            4: np.array([0], dtype=np.int32),
+        }
+        wx_to_maws = {
+            0: np.array([ 0.5,  0.5], dtype=np.float32),
+            2: np.array([ 1. ,  0.5], dtype=np.float32),
+            4: np.array([ 1.], dtype=np.float32),
+        }
+
+    """
+    assert isinstance(idx_to_wxs, np.ma.masked_array)
+    assert isinstance(idx_to_maws, np.ma.masked_array)
+    # Invert mapping -- Group by word indexes
+
+    nrows, ncols = idx_to_wxs.shape
+    valid_mask = ~idx_to_maws.mask
+    idx_to_nAssign = (valid_mask).sum(axis=1)
+
+    _valid_x2d = np.flatnonzero(valid_mask)
+    flat_idxs = np.floor_divide(_valid_x2d, ncols, dtype=np.int32)
+    flat_wxs = idx_to_wxs.compressed()
+    flat_maws = idx_to_maws.compressed()
+
+    sortx = flat_wxs.argsort()
+    flat_wxs = flat_wxs.take(sortx)
+    flat_idxs = flat_idxs.take(sortx)
+    flat_maws = flat_maws.take(sortx)
+
+    wx_keys, groupxs = vt.group_indices(flat_wxs)
+    idxs_list = vt.apply_grouping(flat_idxs, groupxs)
+    maws_list = vt.apply_grouping(flat_maws, groupxs)
+
+    wx_to_idxs = dict(zip(wx_keys, idxs_list))
+    wx_to_maws = dict(zip(wx_keys, maws_list))
+
     if verbose:
         print('[vocab] L___ End Assign vecs to words.')
     return (wx_to_idxs, wx_to_maws)
