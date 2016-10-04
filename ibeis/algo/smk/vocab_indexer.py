@@ -37,7 +37,7 @@ class VisualVocab(ut.NiceRepr):
         vocab.wordflann = None
 
         vocab.flann_params = vt.get_flann_params(random_seed=42)
-        vocab.flann_params['checks'] = 5120
+        vocab.flann_params['checks'] = 1024
         vocab.flann_params['trees'] = 8
         # TODO: grab the depcache rowid and maybe config?
         # make a dtool.Computable

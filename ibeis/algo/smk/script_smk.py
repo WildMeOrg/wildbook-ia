@@ -49,6 +49,7 @@ class SMK(ut.NiceRepr):
         assert len(kwargs) == 0, 'unexpected kwargs=%r' % (kwargs,)
 
     def gamma(smk, X):
+        """ gamma(X) = (M(X, X)) ** (-1/2) """
         score = smk.match_score(X, X)
         sccw = np.reciprocal(np.sqrt(score))
         return sccw
@@ -330,7 +331,7 @@ def load_external_data2():
     oxford_data0 = load_external_oxford_features(config)
     imgid_order = oxford_data0['imgid_order']
     offset_list = oxford_data0['offset_list']
-    kpts    = oxford_data0['kpts']
+    all_kpts    = oxford_data0['kpts']
     raw_vecs = oxford_data0['vecs']
     # wordids     = oxford_data0['wordids']
     del oxford_data0
@@ -401,7 +402,7 @@ def load_external_data2():
             np.subtract(proc_vecs, mean_vec[None, :], out=proc_vecs)
             vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
-    vecs = proc_vecs
+    all_vecs = proc_vecs
     del proc_vecs
 
     # =====================================
@@ -411,7 +412,6 @@ def load_external_data2():
     words = word_cacher.tryload()
     if words is None:
         init_size = int(config['num_words'] * 2.5)
-
         with ut.embed_on_exception_context:
             import sklearn.cluster
             rng = np.random.RandomState(13421421)
@@ -419,12 +419,26 @@ def load_external_data2():
                 config['num_words'], init_size=init_size,
                 batch_size=5000, compute_labels=False, random_state=rng,
                 n_init=3, verbose=5)
-            clusterer.fit(vecs)
+            clusterer.fit(all_vecs)
             words = clusterer.cluster_centers_
             word_cacher.save(words)
 
+    if False:
+        # Refine visual words
+        with ut.embed_on_exception_context:
+            import sklearn.cluster
+            rng = np.random.RandomState(194932)
+            clusterer = sklearn.cluster.MiniBatchKMeans(
+                config['num_words'], init=words,
+                batch_size=5000, compute_labels=False, random_state=rng,
+                n_init=3, verbose=5)
+            clusterer.fit(all_vecs)
+            words = clusterer.cluster_centers_
+        word_cacher.save(words)
+
     from ibeis.algo.smk import vocab_indexer
     vocab = vocab_indexer.VisualVocab(words)
+    # vocab.flann_params['algorithm'] = 'linear'
     vocab.build()
 
     # =====================================
@@ -434,7 +448,7 @@ def load_external_data2():
     idx_to_wxs, idx_to_maws = dassign_cacher.tryload()
     if idx_to_wxs is None:
         with ut.Timer('assign vocab neighbors'):
-            _idx_to_wx, _idx_to_wdist = vocab.nn_index(vecs, nAssign,
+            _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign,
                                                        checks=config['checks'])
             if nAssign > 1:
                 idx_to_wxs, idx_to_maws = smk_funcs.weight_multi_assigns(
@@ -450,16 +464,16 @@ def load_external_data2():
     # Breakup vectors, keypoints, and word assignments by annotation
     wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
     maw_lists = [idx_to_maws[l:r] for l, r in ut.itertwo(offset_list)]
-    vecs_list = [vecs[l:r] for l, r in ut.itertwo(offset_list)]
-    kpts_list = [kpts[l:r] for l, r in ut.itertwo(offset_list)]
+    vecs_list = [all_vecs[l:r] for l, r in ut.itertwo(offset_list)]
+    kpts_list = [all_kpts[l:r] for l, r in ut.itertwo(offset_list)]
 
     # =======================
-    # CONSTRUCT QUERY REPR
+    # FIND QUERY SUBREGIONS
     # =======================
 
     query_super_kpts = ut.take(kpts_list, qx_to_dx)
     query_super_vecs = ut.take(vecs_list, qx_to_dx)
-    query_super_wxs = ut.take(wx_lists, qx_to_dx)
+    query_super_wxs  = ut.take(wx_lists, qx_to_dx)
     query_super_maws = ut.take(maw_lists, qx_to_dx)
     # Mark which keypoints are within the bbox of the query
     query_flags_list = []
@@ -477,8 +491,114 @@ def load_external_data2():
     query_kpts = vt.zipcompress(query_super_kpts, query_flags_list, axis=0)
     query_vecs = vt.zipcompress(query_super_vecs, query_flags_list, axis=0)
     query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
-    query_maws = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
+    query_maws = vt.zipcompress(query_super_maws, query_flags_list, axis=0)
 
+    def jegou_redone_agg_all():
+        # Assume single assignment
+        offset_list = np.array(offset_list)
+
+        idx_to_dx = (np.searchsorted(
+            offset_list, np.arange(len(idx_to_wxs)), side='right') - 1).astype(np.int32)
+        wx_list = idx_to_wxs.T[0].compressed()
+        unique_wx, groupxs = vt.group_indices(wx_list)
+
+        dx_to_wxs = [np.unique(wxs) for wxs in wx_lists]
+        dx_to_nagg = [len(wxs) for wxs in dx_to_wxs]
+        agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
+        num_agg_vecs = sum(dx_to_nagg)
+        # Preallocate agg residuals for all dxs
+        all_agg_wxs = np.hstack(dx_to_wxs)
+        all_agg_vecs = np.empty((num_agg_vecs, dim), dtype=np.float32)
+
+        # precompute agg residual stack
+        wx_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
+        subgroup = [vt.group_indices(dxs) for dxs in ut.ProgIter(wx_to_dxs)]
+        wx_to_unique_dxs = ut.take_column(subgroup, 0)
+        wx_to_dx_groupxs = ut.take_column(subgroup, 1)
+        num_words = len(unique_wx)
+
+        for i in ut.ProgIter(range(num_words), 'agg'):
+            wx = unique_wx[i]
+            word = words[wx:wx + 1]
+            xs = groupxs[i]
+
+            dxs = wx_to_unique_dxs[wx]
+            assert np.bincount(dxs).max() < 2
+
+            offsets1 = agg_offset_list.take(dxs)
+            offsets2 = np.array([np.where(dx_to_wxs[dx] == wx)[0][0] for dx in dxs])
+            offsets = offsets1 + offsets2
+
+            if __debug__:
+                offset = agg_offset_list[dxs[0]]
+                assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +
+                                                               dx_to_nagg[dxs[0]]])
+
+            unique_dxs, dx_groupxs = vt.group_indices(dxs)
+            # Compute residual
+            rvecs = all_vecs[xs] - word
+            vt.normalize(rvecs, axis=1, out=rvecs)
+            # Aggregate across same images
+            grouped_rvecs = vt.apply_grouping(rvecs, dx_groupxs, axis=0)
+            #
+            agg_rvecs = np.array([rvec_group.sum(axis=0) for rvec_group in grouped_rvecs])
+            vt.normalize(agg_rvecs, axis=1, out=agg_rvecs)
+
+
+    def jegou_port_agg_all():
+        """
+        ...This really only works with the HE scheme
+
+        %  d  input matrix with descriptors (concatenated for all images)
+        %  v  input vector with visual words (concatenated for all images)
+        %  n  input vector with number of feature per image
+        %  da aggregated descriptors (concatenated for all images)
+        %  va unique visual words for each image (concatenated for all images)
+        %  na number of features per image after aggregation
+        """
+
+        def aggregate_port(v, d):
+            # % aggregate descriptors per visual word for a single image
+            # %  d   descriptors
+            # %  v   visual words
+            # %  da  aggregated descriptors
+            # %  va  unique visual words
+            va = np.unique(v);
+            n = len(va);
+            da = np.zeros((n, d.shape[1]), 'single');
+
+            for i in range(n):
+                f = np.where(v == va[i])[0]
+                if len(f) == 1:
+                    da[i, :] = d[f, :];
+                else:
+                    # compute mean descriptor here, median will be subtracted
+                    # before binarizing that would be equal to the mean
+                    # residual instead of aggregated residual but binarization
+                    # of each produces the same binary vector
+                    da[i, :] = np.mean(d[f, :], axis=0)
+            return va, da
+
+        n_ = np.diff(offset_list)
+        d_ = all_vecs
+        v_ = idx_to_wxs
+
+        da = {} # agg descriptors per image
+        va = {} # agg words per image
+        na = {} # num agg
+
+        cs = offset_list
+
+        for i in ut.ProgIter(range(len(n_))):
+            sl = slice(cs[i], cs[i + 1])
+            v = v_[sl]
+            d = d_[sl]
+            va[i], da[i] = aggregate_port(v, d)
+            na[i] = len(va[i])
+
+    # =======================
+    # CONSTRUCT QUERY / DATABASE REPR
+    # =======================
     int_rvec = not config['dtype'].startswith('float')
 
     X_list = []
@@ -487,24 +607,6 @@ def load_external_data2():
         X = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
         X_list.append(X)
 
-    if False:
-        # Visualize queries
-        # Look at the standard query images here
-        # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
-        from ibeis.viz import viz_chip
-        import plottool as pt
-        pt.qt4ensure()
-        fnum = 1
-        pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
-        for aid in ut.ProgIter(query_annots.aids):
-            pnum = pnum_()
-            viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
-                               notitle=True, draw_lbls=False,
-                               fnum=fnum, pnum=pnum)
-
-    # =======================
-    # CONSTRUCT DATABASE REPR
-    # =======================
     ydata_cacher = SMKCacher('ydata')
     Y_list = ydata_cacher.tryload()
     if Y_list is None:
@@ -541,7 +643,8 @@ def load_external_data2():
     # Build inverted list
     print('Building inverted list')
     daids = [Y.aid for Y in Y_list]
-    wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))
+    # wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))
+    wx_list = sorted(set.union(*[Y.wx_set for Y in Y_list]))
     assert daids == data_annots.aids
     assert len(wx_list) <= config['num_words']
 
@@ -558,6 +661,7 @@ def load_external_data2():
         # use total count of words like in Video Google
         ndocs_per_word2 = np.bincount(ut.flatten([Y.wx_list for Y in Y_list]))
         ndocs_per_word = ndocs_per_word2
+    print('ndocs_perword stats: ' + ut.repr4(ut.get_stats(ndocs_per_word)))
     idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
     wx_to_weight = dict(zip(wx_list, idf_per_word))
     print('idf stats: ' + ut.repr4(ut.get_stats(wx_to_weight.values())))
@@ -565,6 +669,27 @@ def load_external_data2():
     # Filter junk
     Y_list_ = [Y for Y in Y_list if Y.qual != 'junk']
     test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight)
+
+
+def sanity_checks():
+    nfeat_list = np.diff(offset_list)
+    for Y, nfeat in ut.ProgIter(zip(Y_list, nfeat_list), 'checking'):
+        assert nfeat == sum(ut.lmap(len, Y.fxs_list))
+
+    if False:
+        # Visualize queries
+        # Look at the standard query images here
+        # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
+        from ibeis.viz import viz_chip
+        import plottool as pt
+        pt.qt4ensure()
+        fnum = 1
+        pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
+        for aid in ut.ProgIter(query_annots.aids):
+            pnum = pnum_()
+            viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
+                               notitle=True, draw_lbls=False,
+                               fnum=fnum, pnum=pnum)
 
 
 def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
@@ -577,7 +702,7 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
     }
     method = 'bow'
     method = 'bow2'
-    method = 'asmk'
+    # method = 'asmk'
     smk = SMK(wx_to_weight, method=method, **params[method])
 
     # Specific info for the type of query
@@ -599,7 +724,7 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
             bow_vector(X, wx_to_weight, nwords)
 
         for Y in ut.ProgIter(Y_list_, lbl='make bow vector'):
-            ensure_tf(X)
+            ensure_tf(Y)
             bow_vector(Y, wx_to_weight, nwords)
     else:
         for X in ut.ProgIter(X_list, 'compute X gamma'):
@@ -643,23 +768,6 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
 
 
 def new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec):
-    # Compute assignments
-    #fx_to_vecs = vecs
-    #if fx_to_wxs is None:
-    #    fx_to_wxs, fx_to_maws = smk_funcs.assign_to_words(vocab, fx_to_vecs,
-    #                                                      nAssign)
-    #else:
-    # fx_to_maws = [np.ones(len(wxs), dtype=np.float32) for wxs in fx_to_wxs]
-    # fx_to_maws.mask = fx_to_wxs.mask
-    """
-    z = np.array(ut.take_column(fx_to_wxs, 0)) + 1
-    y = np.array(wordid_list[0])
-    float((z == y).sum()) / len(y)
-
-    vocab.flann_params['checks'] = 5120
-    vocab.flann_params['trees'] = 8
-    vocab.build()
-    """
     wx_to_fxs, wx_to_maws = smk_funcs.invert_assigns(fx_to_wxs, fx_to_maws)
     X = inverted_index.SingleAnnot()
     X.aid = aid
@@ -676,12 +784,9 @@ def new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec):
 
 def make_agg_vecs(X, vocab, fx_to_vecs):
     word_list = ut.take(vocab.wx_to_word, X.wx_list)
-    if X.int_rvec:
-        X.agg_rvecs = np.empty((len(X.wx_list), fx_to_vecs.shape[1]),
-                               dtype=np.int8)
-    else:
-        X.agg_rvecs = np.empty((len(X.wx_list), fx_to_vecs.shape[1]),
-                               dtype=np.float)
+    dtype = np.int8 if X.int_rvec else np.float32
+    dim = fx_to_vecs.shape[1]
+    X.agg_rvecs = np.empty((len(X.wx_list), dim), dtype=dtype)
     X.agg_flags = np.empty((len(X.wx_list), 1), dtype=np.bool)
     for idx in range(len(X.wx_list)):
         word = word_list[idx]
@@ -705,15 +810,6 @@ def ensure_tf(X):
 
 
 def bow_vector(X, wx_to_weight, nwords):
-    """
-    nwords = len(vocab)
-    for X in ut.ProgIter(X_list):
-        bow_vector(X, wx_to_weight, nwords)
-
-    for Y in ut.ProgIter(Y_list):
-        bow_vector(Y, wx_to_weight, nwords)
-
-    """
     import vtool as vt
     wxs = sorted(list(X.wx_set))
     tf = np.array(ut.take(X.termfreq, wxs))

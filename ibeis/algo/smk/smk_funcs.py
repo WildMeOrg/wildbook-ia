@@ -92,10 +92,13 @@ Notes:
     Ok the 65K vocab smk-asmk gets mAP=0.461...
     Ok, after recomputing a new 65K vocab with centered and root-sifted
         descriptors, using float32 precision (in most places), asmk
-        gets a new map score of mAP=.5275... :(
+        gets a new map score of:
+        mAP=.5275... :(
         This is with permissive query kpts and oxford vocab.
+        Next step: ensure everything is float32.
+        Ensured float32
+        mAP=.5279, ... better but indiciative of real error
 
-    Next step: ensure everything is float32.
     After that try again at Jegou's data.
     Ensure there are no smk algo bugs. There must be one.
 
@@ -217,13 +220,6 @@ def aggregate_rvecs(rvecs, maws, error_flags):
     r"""
     Compute aggregated residual vectors Phi(X_c)
 
-    #Example:
-    #    >>> rvecs = np.array([[ 0.30151134,  0.90453403, -0.30151134],
-    #    >>>                   [ 0.70710678,  0.        , -0.70710678]])
-    #    >>> maws = np.array([.1, .7])
-    #    >>> error_flags = np.array([False, False])
-    #    >>> agg_rvec, agg_flag = aggregate_rvecs(rvecs, maws, error_flags)
-
     CommandLine:
         python -m ibeis.algo.smk.smk_funcs aggregate_rvecs --show
 
@@ -303,8 +299,40 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> print('idx_to_wxs = %s' % (ut.repr4(idx_to_wxs),))
-        >>> print('idx_to_maws = %s' % (ut.repr4(idx_to_maws),))
+        >>> print('idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),))
+        >>> print('idx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),))
+        idx_to_wxs = MaskedArray([[0, 1],
+                        [2, --],
+                        [4, --],
+                        [2, 0]])
+        idx_to_maws = MaskedArray([[ 0.5 ,  0.5 ],
+                        [ 1.  ,   nan],
+                        [ 1.  ,   nan],
+                        [ 0.5 ,  0.5 ]])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> _idx_to_wx = np.array([[0, 1], [2, 3], [4, 5], [2, 0]])
+        >>> _idx_to_wdist = np.array([[.1, .11], [.2, .25], [.03, .25], [0, 1]])
+        >>> _idx_to_wx = _idx_to_wx.astype(np.int32)
+        >>> _idx_to_wdist = _idx_to_wdist.astype(np.float32)
+        >>> massign_alpha = 1.2
+        >>> massign_sigma = 80.0
+        >>> massign_equal_weights = True
+        >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
+        >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
+        >>>     massign_equal_weights)
+        >>> print('idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),))
+        >>> print('idx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),))
+        idx_to_wxs = MaskedArray([[0, 1],
+                        [2, --],
+                        [4, --],
+                        [2, 0]])
+        idx_to_maws = MaskedArray([[ 1.  ,  1.  ],
+                        [ 1.  ,   nan],
+                        [ 1.  ,   nan],
+                        [ 1.  ,  1.  ]])
     """
     if _idx_to_wx.shape[1] <= 1:
         idx_to_wxs = _idx_to_wx.tolist()
@@ -331,14 +359,18 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
 
         if massign_equal_weights:
             # Performance hack from jegou paper: just give everyone equal weight
-            masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
-            idx_to_wxs  = ut.lmap(ut.filter_Nones, masked_wxs.tolist())
-            idx_to_maws = [np.ones(len(wxs), dtype=np.float32)
-                           for wxs in idx_to_wxs]
+            idx_to_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid,
+                                            fill_value=-1)
+            # idx_to_wxs  = ut.lmap(ut.filter_Nones, masked_wxs.tolist())
+            idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=np.nan,
+                                     dtype=np.float32)
+            idx_to_maws.mask = idx_to_wxs.mask
+            # idx_to_maws = [np.ones(len(wxs), dtype=np.float32)
+            #                for wxs in idx_to_wxs]
         else:
             # More natural weighting scheme
             # Weighting as in Lost in Quantization
-            gauss_numer = np.negative(_idx_to_wdist.astype(np.float64))
+            gauss_numer = np.negative(_idx_to_wdist)
             gauss_denom = 2 * (massign_sigma ** 2)
             gauss_exp   = np.divide(gauss_numer, gauss_denom)
             unnorm_maw = np.exp(gauss_exp)
@@ -348,17 +380,15 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
             masked_norm = masked_unorm_maw.sum(axis=1)[:, np.newaxis]
             masked_maw = np.divide(masked_unorm_maw, masked_norm)
             masked_wxs = np.ma.masked_array(_idx_to_wx, mask=invalid)
-            if True:
-                # Just keep masked arrays as they are
-                # (more efficient than python lists)
-                idx_to_wxs = masked_wxs
-                idx_to_maws = masked_maw
-            else:
-                # Remove masked weights and word indexes
-                idx_to_wxs  = [np.array(ut.filter_Nones(wxs), dtype=np.int32)
-                               for wxs in masked_wxs.tolist()]
-                idx_to_maws = [np.array(ut.filter_Nones(maw), dtype=np.float32)
-                               for maw in masked_maw.tolist()]
+            # Just keep masked arrays as they are
+            # (more efficient than python lists)
+            idx_to_wxs = masked_wxs
+            idx_to_maws = masked_maw
+            # # Remove masked weights and word indexes
+            # idx_to_wxs  = [np.array(ut.filter_Nones(wxs), dtype=np.int32)
+            #                for wxs in masked_wxs.tolist()]
+            # idx_to_maws = [np.array(ut.filter_Nones(maw), dtype=np.float32)
+            #                for maw in masked_maw.tolist()]
     return idx_to_wxs, idx_to_maws
 
 
@@ -414,12 +444,16 @@ def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
             _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
             massign_equal_weights)
     else:
-        idx_to_wxs = _idx_to_wx.tolist()
-        idx_to_maws = [[1.0]] * len(idx_to_wxs)
+        # idx_to_wxs = _idx_to_wx.tolist()
+        # idx_to_maws = [[1.0]] * len(idx_to_wxs)
+        idx_to_wxs = np.ma.masked_array(_idx_to_wx, fill_value=-1)
+        idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=-1,
+                                 dtype=np.float32)
+        idx_to_maws.mask = idx_to_wxs.mask
     return idx_to_wxs, idx_to_maws
 
 
-def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
+def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
     """
     Inverts assignment of vectors to words into words to vectors.
 
@@ -436,7 +470,7 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         >>>     np.array([ 1.], dtype=np.float32),
         >>>     np.array([ 0.5,  0.5], dtype=np.float32),
         >>> ]
-        >>> wx_to_idxs, wx_to_maws = invert_assigns(idx_to_wxs, idx_to_maws)
+        >>> wx_to_idxs, wx_to_maws = invert_assigns_old(idx_to_wxs, idx_to_maws)
         >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
         >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
         wx_to_idxs = {
@@ -465,9 +499,11 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     return (wx_to_idxs, wx_to_maws)
 
 
-def invert_assigns_flat(idx_to_wxs, idx_to_maws, verbose=False):
+def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     """
     Inverts assignment of vectors to words into words to vectors.
+
+    This gives a HUGe speedup over the old invert_assigns
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -479,7 +515,7 @@ def invert_assigns_flat(idx_to_wxs, idx_to_maws, verbose=False):
         >>> idx_to_wxs[1, 1] = np.ma.masked
         >>> idx_to_maws = np.ma.array([(.5, 1.), (1., np.nan), (.5, .5)], dtype=np.float32)
         >>> idx_to_maws[1, 1] = np.ma.masked
-        >>> wx_to_idxs, wx_to_maws = invert_assigns_flat(idx_to_wxs, idx_to_maws)
+        >>> wx_to_idxs, wx_to_maws = invert_assigns(idx_to_wxs, idx_to_maws)
         >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
         >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
         wx_to_idxs = {
