@@ -409,49 +409,14 @@ def load_external_data2():
     words = word_cacher.tryload()
     if words is None:
         init_size = int(config['num_words'] * 2.5)
-        subset_idxs = np.random.choice(len(vecs), init_size)
-        vecs_subset = vecs[subset_idxs]
-        K = config['num_words']
-        n_init = 1
 
-        import utool
-        utool.embed()
-        with utool.embed_on_exception_context:
-
-            if True:
-                # 28.5 Hz using only one CPU, (can ctrl+c)
-                import sklearn.cluster
-                rng = np.random.RandomState(13421421)
-                centers_init = vt.kmeans_plusplus_sklearn(
-                    vecs_subset, K,
-                    random_state=rng, n_init=n_init,
-                    init_size=init_size)
-            if False:
-                # 32.9 Hz all CPUs, (can't ctrl+c)
-                import cv2
-                criteria_type = (cv2.TERM_CRITERIA_EPS |
-                                 cv2.TERM_CRITERIA_MAX_ITER)
-
-                max_iter = 0
-                epsilon = 100.
-                criteria = (criteria_type, max_iter, epsilon)
-                with ut.Timer('cv2km++'):
-                    loss, label, centers_init = cv2.kmeans(
-                        data=vecs_subset, K=K, bestLabels=None,
-                        criteria=criteria, attempts=n_init,
-                        flags=cv2.KMEANS_PP_CENTERS)
-            if False:
-                clusterer = sklearn.cluster.MiniBatchKMeans(
-                    K, init_size=init_size,
-                    random_state=rng, n_init=3, verbose=5)
-                clusterer.fit(vecs)
-                words = clusterer.cluster_centers_
-                word_cacher.save(words)
-
+        with ut.embed_on_exception_context:
+            import sklearn.cluster
+            rng = np.random.RandomState(13421421)
             clusterer = sklearn.cluster.MiniBatchKMeans(
-                K, init_size=init_size,
-                init=centers_init,
-                random_state=rng, n_init=3, verbose=5)
+                config['num_words'], init_size=init_size,
+                batch_size=5000, compute_labels=False, random_state=rng,
+                n_init=3, verbose=5)
             clusterer.fit(vecs)
             words = clusterer.cluster_centers_
             word_cacher.save(words)
@@ -983,6 +948,30 @@ def oxford_conic_test():
 
     # words = np.fromstring(data)
     # vecs = vecs.reshape(shape)
+
+    # if True:
+    #     # 28.5 Hz using only one CPU, (can ctrl+c)
+    #     import sklearn.cluster
+    #     rng = np.random.RandomState(13421421)
+    #     centers_init = vt.kmeans_plusplus_sklearn(
+    #         vecs_subset, K,
+    #         random_state=rng, n_init=n_init,
+    #         init_size=init_size)
+    # if False:
+    #     # 32.9 Hz all CPUs, (can't ctrl+c)
+    #     import cv2
+    #     criteria_type = (cv2.TERM_CRITERIA_EPS |
+    #                      cv2.TERM_CRITERIA_MAX_ITER)
+
+    #     max_iter = 0
+    #     epsilon = 100.
+    #     criteria = (criteria_type, max_iter, epsilon)
+    #     with ut.Timer('cv2km++'):
+    #         loss, label, centers_init = cv2.kmeans(
+    #             data=vecs_subset, K=K, bestLabels=None,
+    #             criteria=criteria, attempts=n_init,
+    #             flags=cv2.KMEANS_PP_CENTERS)
+    # if False:
 
 
 # def train_vocabulary(vecs, config):
