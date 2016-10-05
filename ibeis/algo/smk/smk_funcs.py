@@ -174,7 +174,7 @@ def uncast_residual_integer(rvecs):
         ndarray[float64_t]:
 
     """
-    return rvecs.astype(np.float) / 255.0
+    return rvecs.astype(np.float32) / 255.0
 
 
 def compute_rvec(vecs, word):
@@ -197,7 +197,7 @@ def compute_rvec(vecs, word):
         >>> import plottool as pt
         >>> pt.figure()
         >>> # recenter residuals for visualization
-        >>> cvecs = (word[None, :] - rvecs)
+        >>> cvecs = (rvecs + word[None, :])
         >>> pt.plot(word[0], word[1], 'r*', markersize=12, label='word')
         >>> pt.plot(vecs.T[0], vecs.T[1], 'go', label='original vecs')
         >>> pt.plot(cvecs.T[0], cvecs.T[1], 'b.', label='re-centered rvec')
@@ -206,7 +206,8 @@ def compute_rvec(vecs, word):
         >>> pt.legend()
         >>> ut.show_if_requested()
     """
-    rvecs = np.subtract(word.astype(np.float), vecs.astype(np.float))
+    # rvecs = np.subtract(word.astype(np.float), vecs.astype(np.float))
+    rvecs = np.subtract(vecs.astype(np.float32), word.astype(np.float32))
     # If a vec is a word then the residual is 0 and it cant be L2 noramlized.
     error_flags = np.all(rvecs == 0, axis=1)
     vt.normalize(rvecs, axis=1, out=rvecs)
@@ -236,8 +237,8 @@ def aggregate_rvecs(rvecs, maws, error_flags):
         >>> pt.qt4ensure()
         >>> pt.figure()
         >>> # recenter residuals for visualization
-        >>> agg_cvec = word - agg_rvec
-        >>> cvecs = (word[None, :] - rvecs)
+        >>> agg_cvec = agg_rvec + word
+        >>> cvecs = (rvecs + word[None, :])
         >>> pt.plot(word[0], word[1], 'r*', markersize=12, label='word')
         >>> pt.plot(agg_cvec[0], agg_cvec[1], 'ro', label='re-centered agg_rvec')
         >>> pt.plot(vecs.T[0], vecs.T[1], 'go', label='original vecs')
@@ -257,7 +258,7 @@ def aggregate_rvecs(rvecs, maws, error_flags):
         agg_rvec = rvecs
     else:
         # Prealloc residual vector, take the weighted sum and renormalize.
-        agg_rvec = np.empty(rvecs.shape[1], dtype=np.float)
+        agg_rvec = np.empty(rvecs.shape[1], dtype=np.float32)
         out = agg_rvec
 
         if False:
@@ -604,7 +605,7 @@ def inv_doc_freq(ndocs_total, ndocs_per_word):
         np.array([ 0.  ,  0.  ,  0.05,  2.35,  0.34,  0.97,  0.56,  3.04,  2.35])
     """
     # We add epsilon to numer and denom to ensure recep is a probability
-    out = np.empty(len(ndocs_per_word), dtype=np.float)
+    out = np.empty(len(ndocs_per_word), dtype=np.float32)
     out[:] = ndocs_per_word
     # use jegou's version
     out = np.divide(ndocs_total, out, out=out)

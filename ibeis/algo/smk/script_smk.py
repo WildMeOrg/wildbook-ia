@@ -555,6 +555,19 @@ def load_external_data2():
         all_error_flags = np.all(np.isnan(all_agg_vecs), axis=1)
         all_agg_vecs[all_error_flags, :] = 0
 
+        # ndocs_per_word1 = np.array(ut.lmap(len, wx_to_unique_dxs))
+        # ndocs_total1 = len(offset_list) - 1
+        # idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)
+
+        agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
+        agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
+
+        for Y, agg_rvecs, agg_flags in zip(Y_list, agg_rvecs_list, agg_flags_list):
+            Y.agg_rvecs = agg_rvecs
+            Y.agg_flags = agg_flags
+            # Y.vecs = vecs
+            # Y.kpts = kpts
+
 
     # def jegou_port_agg_all():
     #     """
@@ -659,19 +672,14 @@ def load_external_data2():
     assert daids == data_annots.aids
     assert len(wx_list) <= config['num_words']
 
-    #wx_to_aids = smk_funcs.invert_lists(
-    #    daids, [Y.wx_list for Y in Y_list], all_wxs=wx_list)
+    wx_to_aids = smk_funcs.invert_lists(
+       daids, [Y.wx_list for Y in Y_list], all_wxs=wx_list)
 
     # Compute IDF weights
     print('Compute IDF weights')
     ndocs_total = len(daids)
-    if False:
-        # ndocs_per_word1 = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
-        pass
-    else:
-        # use total count of words like in Video Google
-        ndocs_per_word2 = np.bincount(ut.flatten([Y.wx_list for Y in Y_list]))
-        ndocs_per_word = ndocs_per_word2
+    # Use only the unique number of words
+    ndocs_per_word = np.array([len(set(wx_to_aids[wx])) for wx in wx_list])
     print('ndocs_perword stats: ' + ut.repr4(ut.get_stats(ndocs_per_word)))
     idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
     wx_to_weight = dict(zip(wx_list, idf_per_word))
@@ -713,7 +721,7 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
     }
     method = 'bow'
     method = 'bow2'
-    # method = 'asmk'
+    method = 'asmk'
     smk = SMK(wx_to_weight, method=method, **params[method])
 
     # Specific info for the type of query
