@@ -415,6 +415,7 @@ def run_asmk_script():
             vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
     if config['dtype'] == 'int8':
+        smk_funcs
         pass
 
     all_vecs = proc_vecs
@@ -454,11 +455,12 @@ def run_asmk_script():
     else:
         from ibeis.algo.smk import vocab_indexer
         vocab = vocab_indexer.VisualVocab(words)
-        # vocab.flann_params['algorithm'] = 'linear'
-        vocab.build()
         dassign_cacher = SMKCacher('assign')
         idx_to_wxs, idx_to_maws = dassign_cacher.tryload()
         if idx_to_wxs is None:
+            # vocab.flann_params['algorithm'] = 'linear'
+            vocab.build()
+            # Takes 12 minutes to assign jegous vecs to 2**16 vocab
             with ut.Timer('assign vocab neighbors'):
                 _idx_to_wx, _idx_to_wdist = vocab.nn_index(all_vecs, nAssign,
                                                            checks=config['checks'])

@@ -539,6 +539,11 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
     """
     Sandbox class for maintaining state of an identification
 
+    TODO:
+        * Accept external query results
+        * Accept external feedback
+        * Return filtered edges
+
     CommandLine:
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
 
@@ -1529,6 +1534,156 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             #pass
         edges = ut.flatten(flagged_edges)
         return edges
+
+    def get_filtered_edges(infr, review_cfg):
+        """
+        Returns a list of edges (typically for user review) based on a specific
+        filter configuration.
+        """
+        review_cfg_defaults = {
+            'ranks_top': 3,
+            'ranks_bot': 2,
+
+            'score_thresh': None,
+            'max_num': None,
+
+            'filter_reviewed': True,
+            'filter_photobombs': False,
+
+            'filter_true_matches': True,
+            'filter_false_matches': False,
+
+            'filter_nonmatch_between_ccs': True,
+            'filter_dup_namepairs': True,
+        }
+
+        review_cfg = ut.update_existing(
+            review_cfg_defaults, review_cfg, assert_exists=True,
+            iswarning=True)
+
+        ibs = infr.ibs
+        graph = infr.graph
+        nodes = list(graph.nodes())
+        uv_list = list(graph.edges())
+
+        node_to_aids = nx.get_node_attributes(graph, 'aid')
+        node_to_nids = nx.get_node_attributes(graph, 'name_label')
+        aids = ut.take(node_to_aids, nodes)
+        nids = ut.take(node_to_nids, nodes)
+        aid_to_nid = dict(zip(aids, nids))
+        nid2_aids = ut.group_items(aids, nids)
+
+        # Initial set of edges
+        aids1 = ut.take_column(uv_list, 0)
+        aids2 = ut.take_column(uv_list, 1)
+
+        num_filtered = 0
+
+        def filter_between_ccs_neg(aids1, aids2, isneg_flags):
+            """
+            If two cc's have at least X=1 negative reviews then remove all other
+            reviews between those cc's
+            """
+            neg_aids1 = ut.compress(aids1, isneg_flags)
+            neg_aids2 = ut.compress(aids2, isneg_flags)
+            neg_nids1 = ut.take(aid_to_nid, neg_aids1)
+            neg_nids2 = ut.take(aid_to_nid, neg_aids2)
+
+            # Ignore inconsistent names
+            # Determine which CCs photobomb each other
+            invalid_nid_map = ut.ddict(set)
+            for nid1, nid2 in zip(neg_nids1, neg_nids2):
+                if nid1 != nid2:
+                    invalid_nid_map[nid1].add(nid2)
+                    invalid_nid_map[nid2].add(nid1)
+
+            impossible_aid_map = ut.ddict(set)
+            for nid1, other_nids in invalid_nid_map.items():
+                for aid1 in nid2_aids[nid1]:
+                    for nid2 in other_nids:
+                        for aid2 in nid2_aids[nid2]:
+                            impossible_aid_map[aid1].add(aid2)
+                            impossible_aid_map[aid2].add(aid1)
+
+            valid_flags = [aid2 not in impossible_aid_map[aid1]
+                           for aid1, aid2 in zip(aids1, aids2)]
+            return valid_flags
+
+        if review_cfg['filter_nonmatch_between_ccs']:
+            review_states = [
+                graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+                for edge in zip(aids1, aids2)]
+            is_nonmatched = [state == 'nomatch' for state in review_states]
+            #isneg_flags = is_nonmatched
+            valid_flags = filter_between_ccs_neg(aids1, aids2, is_nonmatched)
+            num_filtered += len(valid_flags) - sum(valid_flags)
+            aids1 = ut.compress(aids1, valid_flags)
+            aids2 = ut.compress(aids2, valid_flags)
+
+        if review_cfg['filter_photobombs']:
+            am_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+            ispb_flags = ibs.get_annotmatch_prop('Photobomb', am_list)
+            #isneg_flags = ispb_flags
+            valid_flags = filter_between_ccs_neg(aids1, aids2, ispb_flags)
+            num_filtered += len(valid_flags) - sum(valid_flags)
+            aids1 = ut.compress(aids1, valid_flags)
+            aids2 = ut.compress(aids2, valid_flags)
+
+        if review_cfg['filter_true_matches']:
+            nids1 = ut.take(aid_to_nid, aids1)
+            nids2 = ut.take(aid_to_nid, aids2)
+            valid_flags = [nid1 != nid2 for nid1, nid2 in zip(nids1, nids2)]
+            num_filtered += len(valid_flags) - sum(valid_flags)
+            aids1 = ut.compress(aids1, valid_flags)
+            aids2 = ut.compress(aids2, valid_flags)
+
+        if review_cfg['filter_false_matches']:
+            nids1 = ut.take(aid_to_nid, aids1)
+            nids2 = ut.take(aid_to_nid, aids2)
+            valid_flags = [nid1 == nid2 for nid1, nid2 in zip(nids1, nids2)]
+            num_filtered += len(valid_flags) - sum(valid_flags)
+            aids1 = ut.compress(aids1, valid_flags)
+            aids2 = ut.compress(aids2, valid_flags)
+
+        if review_cfg['filter_reviewed']:
+            valid_flags = [
+                graph.get_edge_data(*edge).get(
+                    'reviewed_state', 'unreviewed') == 'unreviewed'
+                for edge in zip(aids1, aids2)]
+            num_filtered += len(valid_flags) - sum(valid_flags)
+            aids1 = ut.compress(aids1, valid_flags)
+            aids2 = ut.compress(aids2, valid_flags)
+
+        if review_cfg['filter_dup_namepairs']:
+            # Only look at a maximum of one review between the current set of
+            # connected compoments
+            nids1 = ut.take(aid_to_nid, aids1)
+            nids2 = ut.take(aid_to_nid, aids2)
+            scores = np.array([
+                # hack
+                max(graph.get_edge_data(*edge).get('score', -1), -1)
+                for edge in zip(aids1, aids2)])
+            review_states = [
+                graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+                for edge in zip(aids1, aids2)]
+            is_notcomp = np.array([state == 'notcomp'
+                                   for state in review_states], dtype=np.bool)
+            # Notcomps should not be considered in this filtering
+            scores[is_notcomp] = -2
+            #
+            namepair_id_list = np.array(vt.compute_unique_data_ids_(
+                list(zip(nids1, nids2))), dtype=np.int)
+            unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
+            score_namepair_groups = vt.apply_grouping(scores, namepair_groupxs)
+            unique_rowx2 = sorted([
+                groupx[score_group.argmax()]
+                for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)
+            ])
+            aids1 = ut.take(aids1, unique_rowx2)
+            aids2 = ut.take(aids2, unique_rowx2)
+
+        print('[infr] num_filtered = %r' % (num_filtered,))
+        return aids1, aids2
 
 
 def piecewise_weighting(infr, normscores, edges):
