@@ -584,7 +584,7 @@ def invert_lists(aids, wx_lists, all_wxs=None):
     return wx_to_aids
 
 
-def inv_doc_freq(ndocs_total, ndocs_per_word, adjust=True):
+def inv_doc_freq(ndocs_total, ndocs_per_word):
     """
     Args:
         ndocs_total (int): numer of unique documents

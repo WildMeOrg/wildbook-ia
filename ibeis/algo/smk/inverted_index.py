@@ -400,8 +400,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
                         wx_to_ndocs[wx] += min(1.0, sum(maws))
 
                 ndocs_per_word = ut.take(wx_to_ndocs, wx_list)
-                idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word,
-                                                      adjust=True)
+                idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
                 wx_to_weight = dict(zip(wx_list, idf_per_word))
                 wx_to_weight = ut.DefaultValueDict(0, wx_to_weight)
         elif method == 'uniform':
