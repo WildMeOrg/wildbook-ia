@@ -206,7 +206,6 @@ def compute_rvec(vecs, word):
         >>> pt.legend()
         >>> ut.show_if_requested()
     """
-    # rvecs = np.subtract(word.astype(np.float), vecs.astype(np.float))
     rvecs = np.subtract(vecs.astype(np.float32), word.astype(np.float32))
     # If a vec is a word then the residual is 0 and it cant be L2 noramlized.
     error_flags = np.all(rvecs == 0, axis=1)

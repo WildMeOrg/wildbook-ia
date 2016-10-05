@@ -430,8 +430,9 @@ def load_external_data2():
             rng = np.random.RandomState(194932)
             clusterer = sklearn.cluster.MiniBatchKMeans(
                 config['num_words'], init=words,
-                batch_size=5000, compute_labels=False, random_state=rng,
-                n_init=3, verbose=5)
+                init_size=init_size,
+                batch_size=1000, compute_labels=False, random_state=rng,
+                n_init=1, verbose=5)
             clusterer.fit(all_vecs)
             words = clusterer.cluster_centers_
         word_cacher.save(words)
@@ -493,42 +494,46 @@ def load_external_data2():
     query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
     query_maws = vt.zipcompress(query_super_maws, query_flags_list, axis=0)
 
-    def jegou_redone_agg_all():
+    def jegou_redone_agg_all(flat_wxs_assign, flat_offsets, flat_vecs):
+        # flat_wxs_assign = idx_to_wxs
+        # flat_offsets = offset_list
+        # flat_vecs = all_vecs
+        grouped_wxs = [flat_wxs_assign[l:r] for l, r in ut.itertwo(flat_offsets)]
+
         # Assume single assignment, aggregate everything
         # across the entire database
-        offset_list = np.array(offset_list)
+        flat_offsets = np.array(flat_offsets)
 
         idx_to_dx = (np.searchsorted(
-            offset_list, np.arange(len(idx_to_wxs)), side='right') - 1).astype(np.int32)
-        wx_list = idx_to_wxs.T[0].compressed()
+            flat_offsets, np.arange(len(flat_wxs_assign)), side='right') - 1).astype(np.int32)
+        wx_list = flat_wxs_assign.T[0].compressed()
         unique_wx, groupxs = vt.group_indices(wx_list)
 
-        dx_to_wxs = [np.unique(wxs) for wxs in wx_lists]
+        dim = flat_vecs.shape[1]
+        dx_to_wxs = [np.unique(wxs.compressed()) for wxs in grouped_wxs]
         dx_to_nagg = [len(wxs) for wxs in dx_to_wxs]
-        agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
         num_agg_vecs = sum(dx_to_nagg)
-        # Preallocate agg residuals for all dxs
         all_agg_wxs = np.hstack(dx_to_wxs)
-        dim = all_vecs.shape[1]
+        agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
+        # Preallocate agg residuals for all dxs
         all_agg_vecs = np.empty((num_agg_vecs, dim), dtype=np.float32)
         all_agg_vecs[:, :] = np.nan
 
         # precompute agg residual stack
-        wx_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
-        subgroup = [vt.group_indices(dxs) for dxs in ut.ProgIter(wx_to_dxs)]
-        wx_to_unique_dxs = ut.take_column(subgroup, 0)
-        wx_to_dx_groupxs = ut.take_column(subgroup, 1)
+        i_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
+        subgroup = [vt.group_indices(dxs) for dxs in ut.ProgIter(i_to_dxs)]
+        i_to_unique_dxs = ut.take_column(subgroup, 0)
+        i_to_dx_groupxs = ut.take_column(subgroup, 1)
         num_words = len(unique_wx)
 
         # Overall this takes 5 minutes and 21 seconds
         # I think the other method takes about 12 minutes
         for i in ut.ProgIter(range(num_words), 'agg'):
             wx = unique_wx[i]
-            word = words[wx:wx + 1]
             xs = groupxs[i]
-
-            dxs = wx_to_unique_dxs[wx]
-            dx_groupxs = wx_to_dx_groupxs[wx]
+            dxs = i_to_unique_dxs[i]
+            dx_groupxs = i_to_dx_groupxs[i]
+            word = words[wx:wx + 1]
 
             offsets1 = agg_offset_list.take(dxs)
             offsets2 = [np.where(dx_to_wxs[dx] == wx)[0][0] for dx in dxs]
@@ -541,8 +546,9 @@ def load_external_data2():
             #                                                    dx_to_nagg[dxs[0]]])
 
             # Compute residuals
-            rvecs = all_vecs[xs] - word
+            rvecs = flat_vecs[xs] - word
             vt.normalize(rvecs, axis=1, out=rvecs)
+            rvecs[np.all(np.isnan(rvecs), axis=1)] = 0
             # Aggregate across same images
             grouped_rvecs = vt.apply_grouping(rvecs, dx_groupxs, axis=0)
             agg_rvecs_ = [rvec_group.sum(axis=0) for rvec_group in grouped_rvecs]
@@ -556,17 +562,40 @@ def load_external_data2():
         all_agg_vecs[all_error_flags, :] = 0
 
         # ndocs_per_word1 = np.array(ut.lmap(len, wx_to_unique_dxs))
-        # ndocs_total1 = len(offset_list) - 1
+        # ndocs_total1 = len(flat_offsets) - 1
         # idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)
 
         agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
         agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
+        return agg_rvecs_list, agg_flags_list
+
+        #     # Y.vecs = vecs
+        # Y.kpts = kpts
+
+    if False:
+        flat_query_vecs = np.vstack(query_vecs)
+        flat_query_wxs = np.vstack(query_wxs)
+        flat_query_offsets = np.array([0] + ut.cumsum(ut.lmap(len, query_wxs)))
+
+        flat_wxs_assign = flat_query_wxs
+        flat_offsets =  flat_query_offsets
+        flat_vecs = flat_query_vecs
+        agg_rvecs_list, agg_flags_list = jegou_redone_agg_all(
+            flat_wxs_assign, flat_offsets, flat_vecs)
+
+        for X, agg_rvecs, agg_flags in zip(X_list, agg_rvecs_list, agg_flags_list):
+            X.agg_rvecs = agg_rvecs
+            X.agg_flags = agg_flags[:, None]
+
+        flat_wxs_assign = idx_to_wxs
+        flat_offsets = offset_list
+        flat_vecs = all_vecs
+        agg_rvecs_list, agg_flags_list = jegou_redone_agg_all(
+            flat_wxs_assign, flat_offsets, flat_vecs)
 
         for Y, agg_rvecs, agg_flags in zip(Y_list, agg_rvecs_list, agg_flags_list):
             Y.agg_rvecs = agg_rvecs
-            Y.agg_flags = agg_flags
-            # Y.vecs = vecs
-            # Y.kpts = kpts
+            Y.agg_flags = agg_flags[:, None]
 
 
     # def jegou_port_agg_all():
