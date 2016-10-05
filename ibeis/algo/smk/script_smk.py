@@ -4,6 +4,73 @@ Using standard descriptors / vocabulary
 
 proot=bow,nWords=1E6 -> .594
 proot=asmk,nWords=1E6 -> .529
+
+Note:
+    * Results from SMK Oxford Paper (mAP)
+    ASMK nAssign=1, SV=False: .78
+    ASMK nAssign=5, SV=False: .82
+
+    Philbin with tf-idf ranking SV=False
+    SIFT: .636, RootSIFT: .683 (+.05)
+
+    Philbin with tf-idf ranking SV=True
+    SIFT: .672, RootSIFT: .720 (+.05)
+
+    * My Results (WITH BAD QUERY BBOXES)
+    smk:nAssign=1,SV=True,: .58
+    smk:nAssign=1,SV=False,: .38
+
+    Yesterday I got
+    .22 when I fixed the bounding boxes
+    And now I'm getting
+    .08 and .32 (sv=[F,T]) after deleting and redoing everything (also removing junk images)
+    After fix of normalization I get
+    .38 and .44
+
+    Using oxford descriptors I get .51ish
+    Then changing to root-sift I
+    smk-bow = get=0.56294936807700813
+    Then using tfidf-bow2=0.56046968275748565
+    asmk-gets 0.54146
+
+    Going down to 8K words smk-BOW gets .153
+    Going down to 8K words tfidf-BOW gets .128
+    Going down to 8K words smk-asmk gets 0.374
+
+    Ok the 65K vocab smk-asmk gets mAP=0.461...
+    Ok, after recomputing a new 65K vocab with centered and root-sifted
+        descriptors, using float32 precision (in most places), asmk
+        gets a new map score of:
+        mAP=.5275... :(
+        This is with permissive query kpts and oxford vocab.
+        Next step: ensure everything is float32.
+        Ensured float32
+        mAP=.5279, ... better but indiciative of real error
+
+    After that try again at Jegou's data.
+    Ensure there are no smk algo bugs. There must be one.
+
+    FINALLY!
+    Got Jegou's data working.
+    With jegou percmopute oxford feats, words, and assignments
+    And float32 version
+    asmk = .78415
+    bow = .545
+
+    asmk got 0.78415 with float32 version
+    bow got .545
+    bot2 got .551
+
+
+Differences Between this and SMK:
+   * No RootSIFT
+   * No SIFT Centering
+   * No Independent Vocab
+   * Chip RESIZE
+
+Differences between this and VLAD
+   * residual vectors are normalized
+   * larger default vocabulary size
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -116,6 +183,16 @@ class SparseVector(ut.NiceRepr):
         vals1 = np.array(self[keys])
         vals2 = np.array(other[keys])
         return np.multiply(vals1, vals2).sum()
+
+
+# class StackedLists(object):
+#     def __init__(self, list_, offsets):
+#         self.list_ = list_
+#         self.offsets = offsets
+#     def split(self):
+#         return [self._list_[l:r] for l, r in ut.itertwo(self.offsets)]
+#     stacked_vecs = StackedLists(all_vecs, offset_list)
+#     vecs_list = stacked_vecs.split()
 
 
 def load_oxford_2007(config):
@@ -346,15 +423,16 @@ def run_asmk_script():
 
         'extern_words': False,
         'extern_assign': False,
+        'assign_algo': 'linear',
         'data_year': 2013,
     }
     # Define which params are relevant for which operations
     relevance = {}
     relevance['feats'] = ['dtype', 'root_sift', 'centering', 'data_year']
     relevance['words'] = relevance['feats'] + ['num_words', 'extern_words']
-    relevance['assign'] = relevance['words'] + ['checks', 'extern_assign']
-    relevance['ydata'] = relevance['assign']
-    relevance['xdata'] = relevance['assign']
+    relevance['assign'] = relevance['words'] + ['checks', 'extern_assign', 'assign_algo']
+    # relevance['ydata'] = relevance['assign']
+    # relevance['xdata'] = relevance['assign']
 
     nAssign = 1
 
@@ -456,9 +534,9 @@ def run_asmk_script():
         from ibeis.algo.smk import vocab_indexer
         vocab = vocab_indexer.VisualVocab(words)
         dassign_cacher = SMKCacher('assign')
-        idx_to_wxs, idx_to_maws = dassign_cacher.tryload()
-        if idx_to_wxs is None:
-            # vocab.flann_params['algorithm'] = 'linear'
+        assign_tup = dassign_cacher.tryload()
+        if assign_tup is None:
+            vocab.flann_params['algorithm'] = config['assign_algo']
             vocab.build()
             # Takes 12 minutes to assign jegous vecs to 2**16 vocab
             with ut.Timer('assign vocab neighbors'):
@@ -473,7 +551,10 @@ def run_asmk_script():
                     idx_to_maws = np.ma.ones(idx_to_wxs.shape, fill_value=-1,
                                              dtype=np.float32)
                     idx_to_maws.mask = idx_to_wxs.mask
-            dassign_cacher.save((idx_to_wxs, idx_to_maws))
+            assign_tup = (idx_to_wxs, idx_to_maws)
+            dassign_cacher.save(assign_tup)
+
+    idx_to_wxs, idx_to_maws = assign_tup
 
     # Breakup vectors, keypoints, and word assignments by annotation
     wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
@@ -609,8 +690,11 @@ def run_asmk_script():
             flat_wxs_assign = flat_query_wxs
             flat_offsets =  flat_query_offsets
             flat_vecs = flat_query_vecs
-            agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
+            tup = smk_funcs.compute_stacked_agg_rvecs(
                 words, flat_wxs_assign, flat_vecs, flat_offsets)
+            all_agg_vecs, all_error_flags, agg_offset_list = tup
+            agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
+            agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
 
             for X, agg_rvecs, agg_flags in zip(X_list, agg_rvecs_list, agg_flags_list):
                 X.agg_rvecs = agg_rvecs
@@ -619,8 +703,11 @@ def run_asmk_script():
             flat_wxs_assign = idx_to_wxs
             flat_offsets = offset_list
             flat_vecs = all_vecs
-            agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
+            tup = smk_funcs.compute_stacked_agg_rvecs(
                 words, flat_wxs_assign, flat_vecs, flat_offsets)
+            all_agg_vecs, all_error_flags, agg_offset_list = tup
+            agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
+            agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
 
             for Y, agg_rvecs, agg_flags in zip(Y_list, agg_rvecs_list, agg_flags_list):
                 Y.agg_rvecs = agg_rvecs

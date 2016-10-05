@@ -54,74 +54,6 @@ References:
 
     Fisher Kernel For Large Scale Classification
     https://www.robots.ox.ac.uk/~vgg/rg/papers/peronnin_etal_ECCV10.pdf
-    x
-
-Note:
-    * Results from SMK Oxford Paper (mAP)
-    ASMK nAssign=1, SV=False: .78
-    ASMK nAssign=5, SV=False: .82
-
-    Philbin with tf-idf ranking SV=False
-    SIFT: .636, RootSIFT: .683 (+.05)
-
-    Philbin with tf-idf ranking SV=True
-    SIFT: .672, RootSIFT: .720 (+.05)
-
-    * My Results (WITH BAD QUERY BBOXES)
-    smk:nAssign=1,SV=True,: .58
-    smk:nAssign=1,SV=False,: .38
-
-    Yesterday I got
-    .22 when I fixed the bounding boxes
-    And now I'm getting
-    .08 and .32 (sv=[F,T]) after deleting and redoing everything (also removing junk images)
-    After fix of normalization I get
-    .38 and .44
-
-    Using oxford descriptors I get .51ish
-    Then changing to root-sift I
-    smk-bow = get=0.56294936807700813
-    Then using tfidf-bow2=0.56046968275748565
-    asmk-gets 0.54146
-
-    Going down to 8K words smk-BOW gets .153
-    Going down to 8K words tfidf-BOW gets .128
-    Going down to 8K words smk-asmk gets 0.374
-
-    Ok the 65K vocab smk-asmk gets mAP=0.461...
-    Ok, after recomputing a new 65K vocab with centered and root-sifted
-        descriptors, using float32 precision (in most places), asmk
-        gets a new map score of:
-        mAP=.5275... :(
-        This is with permissive query kpts and oxford vocab.
-        Next step: ensure everything is float32.
-        Ensured float32
-        mAP=.5279, ... better but indiciative of real error
-
-    After that try again at Jegou's data.
-    Ensure there are no smk algo bugs. There must be one.
-
-    FINALLY!
-    Got Jegou's data working.
-    With jegou percmopute oxford feats, words, and assignments
-    And float32 version
-    asmk = .78415
-    bow = .545
-
-    asmk got 0.78415 with float32 version
-    bow got .545
-    bot2 got .551
-
-
-Differences Between this and SMK:
-   * No RootSIFT
-   * No SIFT Centering
-   * No Independent Vocab
-   * Chip RESIZE
-
-Differences between this and VLAD
-   * residual vectors are normalized
-   * larger default vocabulary size
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
@@ -147,7 +79,7 @@ def cast_residual_integer(rvecs):
         python -m ibeis.algo.smk.smk_funcs cast_residual_integer --show
 
     Example:
-        >>> # ENABLE_DOCTET
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> rvecs = testdata_rvecs(dim=128)['rvecs'][4:]
         >>> rvecs_int8 = cast_residual_integer(rvecs)
@@ -196,7 +128,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         words (ndarray): entire vocabulary of words
         flat_wxs_assign (ndarray): maps a stacked index to word index
         flat_vecs (ndarray): stacked SIFT descriptors
-        flat_offsets (ndarray):
+        flat_offsets (ndarray): offset positions per annotation
 
     Example:
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
@@ -205,7 +137,21 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
         >>> flat_offsets = data['offset_list']
         >>> flat_wxs_assign, flat_vecs = ut.take(data, ['idx_to_wx', 'vecs'])
         >>> tup = compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets)
-        >>> agg_rvecs_list, agg_flags_list = tup
+        >>> all_agg_vecs, all_error_flags, agg_offset_list = tup
+        >>> agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
+        >>> agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
+        >>> assert len(agg_flags_list) == len(flat_offsets) - 1
+
+    Example:
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> data = testdata_rvecs(dim=2, nvecs=100, nannots=5)
+        >>> words = data['words']
+        >>> flat_offsets = data['offset_list']
+        >>> flat_wxs_assign, flat_vecs = ut.take(data, ['idx_to_wx', 'vecs'])
+        >>> tup = compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets)
+        >>> all_agg_vecs, all_error_flags, agg_offset_list = tup
+        >>> agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
+        >>> agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
         >>> assert len(agg_flags_list) == len(flat_offsets) - 1
     """
     grouped_wxs = [flat_wxs_assign[l:r]
@@ -294,9 +240,7 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
     # ndocs_total1 = len(flat_offsets) - 1
     # idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)
 
-    agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
-    agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
-    return agg_rvecs_list, agg_flags_list
+    return all_agg_vecs, all_error_flags, agg_offset_list
 
 
 def compute_rvec(vecs, word):
@@ -310,7 +254,7 @@ def compute_rvec(vecs, word):
         python -m ibeis.algo.smk.smk_funcs compute_rvec --show
 
     Example:
-        >>> # ENABLE_DOCTET
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> vecs, words = ut.take(testdata_rvecs(), ['vecs', 'words'])
         >>> word = words[-1]
@@ -346,7 +290,7 @@ def aggregate_rvecs(rvecs, maws, error_flags):
         python -m ibeis.algo.smk.smk_funcs aggregate_rvecs --show
 
     Example:
-        >>> # ENABLE_DOCTET
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> vecs, words = ut.take(testdata_rvecs(), ['vecs', 'words'])
         >>> word = words[-1]
