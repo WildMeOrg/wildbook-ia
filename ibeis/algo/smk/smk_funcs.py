@@ -57,7 +57,7 @@ References:
     https://www.robots.ox.ac.uk/~vgg/rg/papers/peronnin_etal_ECCV10.pdf
     x
 
-Notes:
+Note:
     * Results from SMK Oxford Paper (mAP)
     ASMK nAssign=1, SV=False: .78
     ASMK nAssign=5, SV=False: .82
@@ -600,22 +600,29 @@ def inv_doc_freq(ndocs_total, ndocs_per_word, adjust=True):
         >>> ndocs_total = 21
         >>> ndocs_per_word = [0, 21, 20, 2, 15, 8, 12, 1, 2]
         >>> idf_per_word = inv_doc_freq(ndocs_total, ndocs_per_word)
-        >>> print('idf_per_word = %r' % (idf_per_word,))
+        >>> print('%s' % (ut.repr2(idf_per_word, precision=2),))
+        np.array([ 0.  ,  0.  ,  0.05,  2.35,  0.34,  0.97,  0.56,  3.04,  2.35])
     """
     # We add epsilon to numer and denom to ensure recep is a probability
     out = np.empty(len(ndocs_per_word), dtype=np.float)
-    if not adjust:
-        # Typically for IDF, 1 is added to the denom to prevent divide by 0
-        out[:] = ndocs_per_word
-        ndocs_total += 1
-    else:
-        # We add the 1 to the denominator and 2 to the numberator
-        # to prevent words from receiving 0 weight
-        out = np.add(ndocs_per_word, 1, out=out)
-        ndocs_total += 2
+    out[:] = ndocs_per_word
+    # use jegou's version
     out = np.divide(ndocs_total, out, out=out)
     idf_per_word = np.log(out, out=out)
+    idf_per_word[np.isinf(idf_per_word)] = 0
     return idf_per_word
+    # if not adjust:
+    #     # Typically for IDF, 1 is added to the denom to prevent divide by 0
+    #     out[:] = ndocs_per_word
+    #     ndocs_total += 1
+    # else:
+    #     # We add the 1 to the denominator and 2 to the numberator
+    #     # to prevent words from receiving 0 weight
+    #     out = np.add(ndocs_per_word, 1, out=out)
+    #     ndocs_total += 2
+    # out = np.divide(ndocs_total, out, out=out)
+    # idf_per_word = np.log(out, out=out)
+    # return idf_per_word
 
 
 @profile

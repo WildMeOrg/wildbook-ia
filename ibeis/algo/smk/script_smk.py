@@ -494,7 +494,8 @@ def load_external_data2():
     query_maws = vt.zipcompress(query_super_maws, query_flags_list, axis=0)
 
     def jegou_redone_agg_all():
-        # Assume single assignment
+        # Assume single assignment, aggregate everything
+        # across the entire database
         offset_list = np.array(offset_list)
 
         idx_to_dx = (np.searchsorted(
@@ -508,6 +509,7 @@ def load_external_data2():
         num_agg_vecs = sum(dx_to_nagg)
         # Preallocate agg residuals for all dxs
         all_agg_wxs = np.hstack(dx_to_wxs)
+        dim = all_vecs.shape[1]
         all_agg_vecs = np.empty((num_agg_vecs, dim), dtype=np.float32)
         all_agg_vecs[:, :] = np.nan
 
@@ -518,6 +520,8 @@ def load_external_data2():
         wx_to_dx_groupxs = ut.take_column(subgroup, 1)
         num_words = len(unique_wx)
 
+        # Overall this takes 5 minutes and 21 seconds
+        # I think the other method takes about 12 minutes
         for i in ut.ProgIter(range(num_words), 'agg'):
             wx = unique_wx[i]
             word = words[wx:wx + 1]
@@ -525,77 +529,83 @@ def load_external_data2():
 
             dxs = wx_to_unique_dxs[wx]
             dx_groupxs = wx_to_dx_groupxs[wx]
-            assert np.bincount(dxs).max() < 2
 
             offsets1 = agg_offset_list.take(dxs)
-            offsets2 = np.array([np.where(dx_to_wxs[dx] == wx)[0][0] for dx in dxs])
-            offsets = offsets1 + offsets2
+            offsets2 = [np.where(dx_to_wxs[dx] == wx)[0][0] for dx in dxs]
+            offsets = np.add(offsets1, offsets2, out=offsets1)
 
-            if __debug__:
-                offset = agg_offset_list[dxs[0]]
-                assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +
-                                                               dx_to_nagg[dxs[0]]])
+            # if __debug__:
+            #     assert np.bincount(dxs).max() < 2
+            #     offset = agg_offset_list[dxs[0]]
+            #     assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +
+            #                                                    dx_to_nagg[dxs[0]]])
 
-            # Compute residual
+            # Compute residuals
             rvecs = all_vecs[xs] - word
             vt.normalize(rvecs, axis=1, out=rvecs)
             # Aggregate across same images
             grouped_rvecs = vt.apply_grouping(rvecs, dx_groupxs, axis=0)
-            #
-            agg_rvecs = np.array([rvec_group.sum(axis=0) for rvec_group in grouped_rvecs])
-            vt.normalize(agg_rvecs, axis=1, out=agg_rvecs)
+            agg_rvecs_ = [rvec_group.sum(axis=0) for rvec_group in grouped_rvecs]
+            # agg_rvecs = np.vstack(agg_rvecs_)
+            all_agg_vecs[offsets, :] = agg_rvecs_
+
+        assert not np.any(np.isnan(all_agg_vecs))
+        print('Apply normalization')
+        vt.normalize(all_agg_vecs, axis=1, out=all_agg_vecs)
+        all_error_flags = np.all(np.isnan(all_agg_vecs), axis=1)
+        all_agg_vecs[all_error_flags, :] = 0
 
 
-    def jegou_port_agg_all():
-        """
-        ...This really only works with the HE scheme
+    # def jegou_port_agg_all():
+    #     """
+    #     ...This really only works with the HE scheme
 
-        %  d  input matrix with descriptors (concatenated for all images)
-        %  v  input vector with visual words (concatenated for all images)
-        %  n  input vector with number of feature per image
-        %  da aggregated descriptors (concatenated for all images)
-        %  va unique visual words for each image (concatenated for all images)
-        %  na number of features per image after aggregation
-        """
+    #     %  d  input matrix with descriptors (concatenated for all images)
+    #     %  v  input vector with visual words (concatenated for all images)
+    #     %  n  input vector with number of feature per image
+    #     %  da aggregated descriptors (concatenated for all images)
+    #     %  va unique visual words for each image (concatenated for all images)
+    #     %  na number of features per image after aggregation
+    #     """
 
-        def aggregate_port(v, d):
-            # % aggregate descriptors per visual word for a single image
-            # %  d   descriptors
-            # %  v   visual words
-            # %  da  aggregated descriptors
-            # %  va  unique visual words
-            va = np.unique(v);
-            n = len(va);
-            da = np.zeros((n, d.shape[1]), 'single');
+    #     def aggregate_port(v, d):
+    #         # % aggregate descriptors per visual word for a single image
+    #         # %  d   descriptors
+    #         # %  v   visual words
+    #         # %  da  aggregated descriptors
+    #         # %  va  unique visual words
+    #         va = np.unique(v);
+    #         n = len(va);
+    #         da = np.zeros((n, d.shape[1]), 'single');
 
-            for i in range(n):
-                f = np.where(v == va[i])[0]
-                if len(f) == 1:
-                    da[i, :] = d[f, :];
-                else:
-                    # compute mean descriptor here, median will be subtracted
-                    # before binarizing that would be equal to the mean
-                    # residual instead of aggregated residual but binarization
-                    # of each produces the same binary vector
-                    da[i, :] = np.mean(d[f, :], axis=0)
-            return va, da
+    #         for i in range(n):
+    #             f = np.where(v == va[i])[0]
+    #             if len(f) == 1:
+    #                 da[i, :] = d[f, :];
+    #             else:
+    #                 # compute mean descriptor here, median will be subtracted
+    #                 # before binarizing that would be equal to the mean
+    #                 # residual instead of aggregated residual but binarization
+    #                 # of each produces the same binary vector
+    #                 da[i, :] = np.mean(d[f, :], axis=0)
+    #         return va, da
 
-        n_ = np.diff(offset_list)
-        d_ = all_vecs
-        v_ = idx_to_wxs
+    #     n_ = np.diff(offset_list)
+    #     d_ = all_vecs
+    #     v_ = idx_to_wxs
 
-        da = {} # agg descriptors per image
-        va = {} # agg words per image
-        na = {} # num agg
+    #     da = {} # agg descriptors per image
+    #     va = {} # agg words per image
+    #     na = {} # num agg
 
-        cs = offset_list
+    #     cs = offset_list
 
-        for i in ut.ProgIter(range(len(n_))):
-            sl = slice(cs[i], cs[i + 1])
-            v = v_[sl]
-            d = d_[sl]
-            va[i], da[i] = aggregate_port(v, d)
-            na[i] = len(va[i])
+    #     for i in ut.ProgIter(range(len(n_))):
+    #         sl = slice(cs[i], cs[i + 1])
+    #         v = v_[sl]
+    #         d = d_[sl]
+    #         va[i], da[i] = aggregate_port(v, d)
+    #         na[i] = len(va[i])
 
     # =======================
     # CONSTRUCT QUERY / DATABASE REPR
@@ -608,15 +618,15 @@ def load_external_data2():
         X = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
         X_list.append(X)
 
-    ydata_cacher = SMKCacher('ydata')
-    Y_list = ydata_cacher.tryload()
-    if Y_list is None:
-        Y_list = []
-        _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
-        for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
-            Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
-            Y_list.append(Y)
-        ydata_cacher.save(Y_list)
+    # ydata_cacher = SMKCacher('ydata')
+    # Y_list = ydata_cacher.tryload()
+    # if Y_list is None:
+    Y_list = []
+    _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
+    for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
+        Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
+        Y_list.append(Y)
+    # ydata_cacher.save(Y_list)
 
     #======================
     # Add in some groundtruth
