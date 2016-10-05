@@ -532,31 +532,6 @@ def run_asmk_script():
         Y_list.append(Y)
     # ydata_cacher.save(Y_list)
 
-    if False:
-        flat_query_vecs = np.vstack(query_vecs)
-        flat_query_wxs = np.vstack(query_wxs)
-        flat_query_offsets = np.array([0] + ut.cumsum(ut.lmap(len, query_wxs)))
-
-        flat_wxs_assign = flat_query_wxs
-        flat_offsets =  flat_query_offsets
-        flat_vecs = flat_query_vecs
-        agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
-            words, flat_wxs_assign, flat_vecs, flat_offsets)
-
-        for X, agg_rvecs, agg_flags in zip(X_list, agg_rvecs_list, agg_flags_list):
-            X.agg_rvecs = agg_rvecs
-            X.agg_flags = agg_flags[:, None]
-
-        flat_wxs_assign = idx_to_wxs
-        flat_offsets = offset_list
-        flat_vecs = all_vecs
-        agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
-            words, flat_wxs_assign, flat_vecs, flat_offsets)
-
-        for Y, agg_rvecs, agg_flags in zip(Y_list, agg_rvecs_list, agg_flags_list):
-            Y.agg_rvecs = agg_rvecs
-            Y.agg_flags = agg_flags[:, None]
-
     #======================
     # Add in some groundtruth
     print('Add in some groundtruth')
@@ -585,7 +560,6 @@ def run_asmk_script():
         X.vecs = vecs
 
     #======================
-    # Build inverted list
     print('Building inverted list')
     daids = [Y.aid for Y in Y_list]
     # wx_list = sorted(ut.list_union(*[Y.wx_list for Y in Y_list]))
@@ -608,12 +582,10 @@ def run_asmk_script():
 
     # Filter junk
     Y_list_ = [Y for Y in Y_list if Y.qual != 'junk']
-    test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight)
 
-
-def test_kernel(ibs, X_list, Y_list_, words, wx_to_weight):
-    #======================
-    # Choose Query Kernel
+    # =======================
+    # CHOOSE QUERY KERNEL
+    # =======================
     params = {
         'asmk': dict(alpha=3.0, thresh=0.0),
         'bow': dict(),
@@ -626,14 +598,42 @@ def test_kernel(ibs, X_list, Y_list_, words, wx_to_weight):
 
     # Specific info for the type of query
     if method == 'asmk':
-        # Make residual vectors:
-        _prog = ut.ProgPartial(lbl='agg Y rvecs', bs=True, adjust=True)
-        for Y in _prog(Y_list_):
-            make_agg_vecs(Y, words, Y.vecs)
+        # Make residual vectors
+        if True:
+            # The stacked way is 50x faster
+            # TODO: extend for multi-assignment and record fxs
+            flat_query_vecs = np.vstack(query_vecs)
+            flat_query_wxs = np.vstack(query_wxs)
+            flat_query_offsets = np.array([0] + ut.cumsum(ut.lmap(len, query_wxs)))
 
-        _prog = ut.ProgPartial(lbl='agg X rvecs', bs=True, adjust=True)
-        for X in _prog(X_list):
-            make_agg_vecs(X, words, X.vecs)
+            flat_wxs_assign = flat_query_wxs
+            flat_offsets =  flat_query_offsets
+            flat_vecs = flat_query_vecs
+            agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
+                words, flat_wxs_assign, flat_vecs, flat_offsets)
+
+            for X, agg_rvecs, agg_flags in zip(X_list, agg_rvecs_list, agg_flags_list):
+                X.agg_rvecs = agg_rvecs
+                X.agg_flags = agg_flags[:, None]
+
+            flat_wxs_assign = idx_to_wxs
+            flat_offsets = offset_list
+            flat_vecs = all_vecs
+            agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
+                words, flat_wxs_assign, flat_vecs, flat_offsets)
+
+            for Y, agg_rvecs, agg_flags in zip(Y_list, agg_rvecs_list, agg_flags_list):
+                Y.agg_rvecs = agg_rvecs
+                Y.agg_flags = agg_flags[:, None]
+        else:
+            # This non-stacked way is about 500x slower
+            _prog = ut.ProgPartial(lbl='agg Y rvecs', bs=True, adjust=True)
+            for Y in _prog(Y_list_):
+                make_agg_vecs(Y, words, Y.vecs)
+
+            _prog = ut.ProgPartial(lbl='agg X rvecs', bs=True, adjust=True)
+            for X in _prog(X_list):
+                make_agg_vecs(X, words, X.vecs)
     elif method == 'bow2':
         # Hack for orig tf-idf bow vector
         nwords = len(words)
@@ -884,7 +884,7 @@ def oxford_conic_test():
 
 
 def load_internal_data():
-    from ibeis.algo.smk.smk_pipeline import *  # NOQA
+    # from ibeis.algo.smk.smk_pipeline import *  # NOQA
     import ibeis
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='Oxford', a='oxford',

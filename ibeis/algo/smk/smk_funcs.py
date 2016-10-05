@@ -192,6 +192,12 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
     """
     More efficient version of agg on a stacked structure
 
+    Args:
+        words (ndarray): entire vocabulary of words
+        flat_wxs_assign (ndarray): maps a stacked index to word index
+        flat_vecs (ndarray): stacked SIFT descriptors
+        flat_offsets (ndarray):
+
     Example:
         >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
         >>> data = testdata_rvecs(dim=2, nvecs=1000, nannots=10)
