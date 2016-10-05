@@ -501,9 +501,11 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
 
 def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
     """
-    Inverts assignment of vectors to words into words to vectors.
+    Inverts assignment of
+    vectors->to->words into words->to->vectors.
+    Invert mapping -- Group by word indexes
 
-    This gives a HUGe speedup over the old invert_assigns
+    This gives a HUGE speedup over the old invert_assigns
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -513,9 +515,11 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         >>>     (2, -1),
         >>>     (2, 0)], dtype=np.int32)
         >>> idx_to_wxs[1, 1] = np.ma.masked
-        >>> idx_to_maws = np.ma.array([(.5, 1.), (1., np.nan), (.5, .5)], dtype=np.float32)
+        >>> idx_to_maws = np.ma.array(
+        >>>     [(.5, 1.), (1., np.nan), (.5, .5)], dtype=np.float32)
         >>> idx_to_maws[1, 1] = np.ma.masked
-        >>> wx_to_idxs, wx_to_maws = invert_assigns(idx_to_wxs, idx_to_maws)
+        >>> tup = invert_assigns(idx_to_wxs, idx_to_maws)
+        >>> wx_to_idxs, wx_to_maws = tup
         >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
         >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
         wx_to_idxs = {
@@ -528,15 +532,16 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
             2: np.array([ 1. ,  0.5], dtype=np.float32),
             4: np.array([ 1.], dtype=np.float32),
         }
-
     """
     assert isinstance(idx_to_wxs, np.ma.masked_array)
     assert isinstance(idx_to_maws, np.ma.masked_array)
-    # Invert mapping -- Group by word indexes
 
     nrows, ncols = idx_to_wxs.shape
-    valid_mask = ~idx_to_maws.mask
-    idx_to_nAssign = (valid_mask).sum(axis=1)
+    if len(idx_to_wxs.mask.shape) == 0:
+        valid_mask = np.ones((nrows, ncols), dtype=np.bool)
+    else:
+        valid_mask = ~idx_to_maws.mask
+        # idx_to_nAssign = (valid_mask).sum(axis=1)
 
     _valid_x2d = np.flatnonzero(valid_mask)
     flat_idxs = np.floor_divide(_valid_x2d, ncols, dtype=np.int32)
