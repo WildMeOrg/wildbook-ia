@@ -278,14 +278,29 @@ def load_jegou_oxford_data():
     from yael.ynumpy import fvecs_read
     from yael.yutils import load_ext
 
+    paris_words = fvecs_read(smk_2013_dir + 'clust_preprocessed/paris_codebook.fvecs')
+    paris_wids = load_ext(smk_2013_dir + 'clust_preprocessed/paris_vw.int32', verbose=True)
+    paris_vecs = load_ext(smk_2013_dir + 'paris_sift.uint8', ndims=128, verbose=True)
+    paris_nfeats = load_ext(smk_2013_dir + 'paris_nsift.uint32', verbose=True)
+    paris_kpts = load_ext(smk_2013_dir + 'paris_geom_sift.float', ndims=5, verbose=True)
+
     oxford_vecs = load_ext(smk_2013_dir + 'oxford_sift.uint8', ndims=128, verbose=True)
     oxford_words = fvecs_read(smk_2013_dir + 'clust_preprocessed/oxford_codebook.fvecs')
     oxford_wids = load_ext(smk_2013_dir + 'clust_preprocessed/oxford_vw.int32', verbose=True)
+    oxford_nfeats = load_ext(smk_2013_dir + 'oxford_nsift.uint32', verbose=True)
+    oxford_kpts = load_ext(smk_2013_dir + 'oxford_geom_sift.float', ndims=5, verbose=True)
+
+    import scipy.io
+    gnd_ox = scipy.io.loadmat(smk_2013_dir + 'gnd_oxford.mat')
+    gnd_ox['gnd']
+    gnd_ox['imlist']
+    gnd_ox['qidx']
 
     oxford_vecs = load_ext(smk_2013_dir + 'oxford_sift.uint8', ndims=128, verbose=True)
     oxford_words = fvecs_read(smk_2013_dir + 'clust_preprocessed/oxford_codebook.fvecs')
     oxford_wids = load_ext(smk_2013_dir + 'clust_preprocessed/oxford_vw.int32', verbose=True)
 
+    assert sum(oxford_nfeats) == len(oxford_vecs)
     assert len(oxford_wids) == len(oxford_vecs)
     assert oxford_wids.max() == len(oxford_words)
 
