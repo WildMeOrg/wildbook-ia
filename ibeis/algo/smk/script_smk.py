@@ -265,36 +265,48 @@ def load_external_oxford_features(config):
 def load_jegou_oxford_data():
     from os.path import join
     smk_2013_dir = '/raid/work/Oxford/smk_data_iccv_2013/data/'
-
-    # with open(join(smk_2013_dir, 'paris_sift.uint8'), 'rb') as file_:
-    #     X = np.fromstring(file_.read(), np.uint8)
-    #     X = X.reshape(len(X) / 128, 128)
-    #     X = X.astype(np.float32)
+    # from yael.yutils import load_ext
+    with open(join(smk_2013_dir, 'paris_sift.uint8'), 'rb') as file_:
+        X = np.fromstring(file_.read(), np.uint8)
+        X = X.reshape(len(X) // 128, 128)
 
     with open(join(smk_2013_dir, 'oxford_sift.uint8'), 'rb') as file_:
         X = np.fromstring(file_.read(), np.uint8)
-        X = X.reshape(len(X) / 128, 128)
-        X = X.astype(np.float32)
+        X = X.reshape(len(X) // 128, 128)
 
-    import vtool as vt
+    import yael  # NOQA
+    from yael.ynumpy import fvecs_read
+    from yael.yutils import load_ext
 
-    # Root SIFT
-    np.sqrt(X, out=X)
-    vt.normalize(X, ord=2, axis=1, out=X)
+    oxford_vecs = load_ext(smk_2013_dir + 'oxford_sift.uint8', ndims=128, verbose=True)
+    oxford_words = fvecs_read(smk_2013_dir + 'clust_preprocessed/oxford_codebook.fvecs')
+    oxford_wids = load_ext(smk_2013_dir + 'clust_preprocessed/oxford_vw.int32', verbose=True)
 
-    # Get mean after root-sift
-    Xm = np.mean(X, axis=0)
+    oxford_vecs = load_ext(smk_2013_dir + 'oxford_sift.uint8', ndims=128, verbose=True)
+    oxford_words = fvecs_read(smk_2013_dir + 'clust_preprocessed/oxford_codebook.fvecs')
+    oxford_wids = load_ext(smk_2013_dir + 'clust_preprocessed/oxford_vw.int32', verbose=True)
 
-    # Center and then re-normalize
-    np.subtract(X, Xm[None, :], out=X)
-    vt.normalize(X, ord=2, axis=1, out=X)
+    assert len(oxford_wids) == len(oxford_vecs)
+    assert oxford_wids.max() == len(oxford_words)
+
+    # import vtool as vt
+    # # Root SIFT
+    # np.sqrt(X, out=X)
+    # vt.normalize(X, ord=2, axis=1, out=X)
+
+    # # Get mean after root-sift
+    # Xm = np.mean(X, axis=0)
+
+    # # Center and then re-normalize
+    # np.subtract(X, Xm[None, :], out=X)
+    # vt.normalize(X, ord=2, axis=1, out=X)
 
 
 def load_external_data2():
-   """
+   """   # NOQA
    >>> from ibeis.algo.smk.script_smk import *  # NOQA
-   """
-   # FIXME: new_external_annot was not populated in namespace for with embed
+   """  # NOQA
+   # FIXME: new_external_annot was not populated in namespace for with embed   # NOQA
    with ut.embed_on_exception_context:  # NOQA
     config = {
         'dtype': 'float32',
@@ -410,6 +422,12 @@ def load_external_data2():
     # =====================================
     word_cacher = SMKCacher('words')
     words = word_cacher.tryload()
+
+    if False:
+        import yael
+        words = yael.ynumpy.fvecs_read(dbdir + '/smk_data_iccv_2013/data/clust_preprocessed/oxford_codebook.fvecs')
+        words = yael.ynumpy.fvecs_read(dbdir + '/smk_data_iccv_2013/data/clust_preprocessed/paris_codebook.fvecs')
+
     if words is None:
         init_size = int(config['num_words'] * 2.5)
         with ut.embed_on_exception_context:
@@ -484,7 +502,7 @@ def load_external_data2():
 
     print('Queries are crops of existing database images.')
     print('Looking at average percents')
-    percent_list = [flags.sum() / flags.shape[0] for flags in query_flags_list]
+    percent_list = [flags_.sum() / flags_.shape[0] for flags_ in query_flags_list]
     percent_stats = ut.get_stats(percent_list)
     print('percent_stats = %s' % (ut.repr4(percent_stats),))
 
