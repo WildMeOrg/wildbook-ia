@@ -1968,7 +1968,7 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
         maxx = (xs + radii.T[0]).max()
         miny = (ys - radii.T[1]).min()
         maxy = (ys + radii.T[1]).max()
-        extent = (minx, maxx, miny, maxy)
+    extent = (minx, maxx, miny, maxy)
     return extent
 
 
