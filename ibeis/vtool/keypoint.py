@@ -271,8 +271,38 @@ def get_scales(kpts):
 def get_ori_mats(kpts):
     """ Returns keypoint orientation matrixes """
     _oris = get_oris(kpts)
-    R_mats = [linalgtool.rotation_mat2x2(ori) for ori in _oris]
+    R_mats = [linalgtool.rotation_mat2x2(ori)
+              for ori in _oris]
     return R_mats
+
+
+def convert_kptsZ_to_kpts(kpts_Z):
+    """
+    Convert keypoints in Z format to invV format
+    """
+    import vtool as vt
+    x, y, e11, e12, e22 = kpts_Z.T
+    #import numpy as np
+    Z_mats2x2 = np.array([[e11, e12],
+                         [e12, e22]])
+    Z_mats2x2 = np.rollaxis(Z_mats2x2, 2)
+    invV_mats2x2 = vt.decompose_Z_to_invV_mats2x2(Z_mats2x2)
+    invV_mats2x2 = invV_mats2x2.astype(np.float32)
+    a = invV_mats2x2[:, 0, 0]
+    c = invV_mats2x2[:, 1, 0]
+    d = invV_mats2x2[:, 1, 1]
+    kpts = np.vstack([x, y, a, c, d]).T
+    return kpts
+
+
+# def test_kpts_type(kpts):
+#     import vtool as vt
+#     invV_mats2x2 = vt.get_invV_mats2x2(kpts)
+#     # Test if it is in Z format
+#     e11, e12, e22 = kpts.T[[2, 3, 4]]
+#     det = e11 * e22 - (e12 ** 2)
+#     Z_neg_evidence = (det < 0).sum() / len(det)
+#     kpts_invV = vt.convert_kptsZ_to_kpts(kpts)
 
 
 def get_invV_mats2x2(kpts):
