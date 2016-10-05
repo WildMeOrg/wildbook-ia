@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 References:
-
     Jegou's Source Code, Data, and Publications
     http://people.rennes.inria.fr/Herve.Jegou/publications.html
 
@@ -102,10 +101,22 @@ Note:
     After that try again at Jegou's data.
     Ensure there are no smk algo bugs. There must be one.
 
-Differences Between this and SMK
+    FINALLY!
+    Got Jegou's data working.
+    With jegou percmopute oxford feats, words, and assignments
+    And float32 version
+    asmk = .78415
+    bow = .545
+
+    asmk got 0.78415 with float32 version
+    bow got .545
+    bot2 got .551
+
+
+Differences Between this and SMK:
    * No RootSIFT
    * No SIFT Centering
-   * No independant vocabulary
+   * No Independent Vocab
    * Chip RESIZE
 
 Differences between this and VLAD
@@ -175,6 +186,111 @@ def uncast_residual_integer(rvecs):
 
     """
     return rvecs.astype(np.float32) / 255.0
+
+
+def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
+    """
+    More efficient version of agg on a stacked structure
+
+    Example:
+        >>> from ibeis.algo.smk.smk_funcs import *  # NOQA
+        >>> data = testdata_rvecs(dim=2, nvecs=1000, nannots=10)
+        >>> words = data['words']
+        >>> flat_offsets = data['offset_list']
+        >>> flat_wxs_assign, flat_vecs = ut.take(data, ['idx_to_wx', 'vecs'])
+        >>> tup = compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets)
+        >>> agg_rvecs_list, agg_flags_list = tup
+        >>> assert len(agg_flags_list) == len(flat_offsets) - 1
+    """
+    grouped_wxs = [flat_wxs_assign[l:r]
+                   for l, r in ut.itertwo(flat_offsets)]
+
+    # Assume single assignment, aggregate everything
+    # across the entire database
+    flat_offsets = np.array(flat_offsets)
+
+    idx_to_dx = (
+        np.searchsorted(
+            flat_offsets,
+            np.arange(len(flat_wxs_assign)),
+            side='right'
+        ) - 1
+    ).astype(np.int32)
+
+    if isinstance(flat_wxs_assign, np.ma.masked_array):
+        wx_list = flat_wxs_assign.T[0].compressed()
+    else:
+        wx_list = flat_wxs_assign.T[0].ravel()
+    unique_wx, groupxs = vt.group_indices(wx_list)
+
+    dim = flat_vecs.shape[1]
+    if isinstance(flat_wxs_assign, np.ma.masked_array):
+        dx_to_wxs = [np.unique(wxs.compressed())
+                     for wxs in grouped_wxs]
+    else:
+        dx_to_wxs = [np.unique(wxs.ravel())
+                     for wxs in grouped_wxs]
+    dx_to_nagg = [len(wxs) for wxs in dx_to_wxs]
+    num_agg_vecs = sum(dx_to_nagg)
+    # all_agg_wxs = np.hstack(dx_to_wxs)
+    agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
+    # Preallocate agg residuals for all dxs
+    all_agg_vecs = np.empty((num_agg_vecs, dim),
+                            dtype=np.float32)
+    all_agg_vecs[:, :] = np.nan
+
+    # precompute agg residual stack
+    i_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
+    subgroup = [vt.group_indices(dxs)
+                for dxs in ut.ProgIter(i_to_dxs)]
+    i_to_unique_dxs = ut.take_column(subgroup, 0)
+    i_to_dx_groupxs = ut.take_column(subgroup, 1)
+    num_words = len(unique_wx)
+
+    # Overall this takes 5 minutes and 21 seconds
+    # I think the other method takes about 12 minutes
+    for i in ut.ProgIter(range(num_words), 'agg'):
+        wx = unique_wx[i]
+        xs = groupxs[i]
+        dxs = i_to_unique_dxs[i]
+        dx_groupxs = i_to_dx_groupxs[i]
+        word = words[wx:wx + 1]
+
+        offsets1 = agg_offset_list.take(dxs)
+        offsets2 = [np.where(dx_to_wxs[dx] == wx)[0][0]
+                    for dx in dxs]
+        offsets = np.add(offsets1, offsets2, out=offsets1)
+
+        # if __debug__:
+        #     assert np.bincount(dxs).max() < 2
+        #     offset = agg_offset_list[dxs[0]]
+        #     assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +
+        #                                                    dx_to_nagg[dxs[0]]])
+
+        # Compute residuals
+        rvecs = flat_vecs[xs] - word
+        vt.normalize(rvecs, axis=1, out=rvecs)
+        rvecs[np.all(np.isnan(rvecs), axis=1)] = 0
+        # Aggregate across same images
+        grouped_rvecs = vt.apply_grouping(rvecs, dx_groupxs, axis=0)
+        agg_rvecs_ = [rvec_group.sum(axis=0)
+                      for rvec_group in grouped_rvecs]
+        # agg_rvecs = np.vstack(agg_rvecs_)
+        all_agg_vecs[offsets, :] = agg_rvecs_
+
+    assert not np.any(np.isnan(all_agg_vecs))
+    print('Apply normalization')
+    vt.normalize(all_agg_vecs, axis=1, out=all_agg_vecs)
+    all_error_flags = np.all(np.isnan(all_agg_vecs), axis=1)
+    all_agg_vecs[all_error_flags, :] = 0
+
+    # ndocs_per_word1 = np.array(ut.lmap(len, wx_to_unique_dxs))
+    # ndocs_total1 = len(flat_offsets) - 1
+    # idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)
+
+    agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
+    agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
+    return agg_rvecs_list, agg_flags_list
 
 
 def compute_rvec(vecs, word):
@@ -877,12 +993,18 @@ def selectivity(u, alpha=3.0, thresh=0.0, out=None):
     return score
 
 
-def testdata_rvecs(dim=2):
+def testdata_rvecs(dim=2, nvecs=13, nwords=5, nannots=4):
     """
     two dimensional test data
 
     CommandLine:
         python -m ibeis.algo.smk.smk_funcs testdata_rvecs --show
+
+    Ignore:
+        dim = 2
+        nvecs = 13
+        nwords = 5
+        nannots = 5
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -914,8 +1036,8 @@ def testdata_rvecs(dim=2):
     from sklearn.metrics.pairwise import euclidean_distances
     rng = np.random.RandomState(42)
     #dim = dim
-    nvecs = 13
-    nwords = 5
+    # nvecs = 13
+    # nwords = 5
     words = rng.rand(nwords, dim)
     vecs = rng.rand(nvecs, dim)
     # Create vector = word special case
@@ -938,6 +1060,10 @@ def testdata_rvecs(dim=2):
     idx_to_wx = sortx2d[:, :nAssign]
     rvecs, flags = compute_rvec(vecs, words[idx_to_wx.T[0]])
 
+    if nannots is None:
+        nannots = rng.randint(nvecs)
+    offset_list = [0] + sorted(rng.choice(nvecs, nannots - 1)) + [nvecs]
+    # nfeat_list = np.diff(offset_list)
     data = {
         'idx_to_dist': idx_to_dist,
         'idx_to_wx': idx_to_wx,
@@ -945,7 +1071,9 @@ def testdata_rvecs(dim=2):
         'vecs': vecs,
         'words': words,
         'flags': flags,
+        'offset_list': offset_list,
     }
+
     return data
 
 

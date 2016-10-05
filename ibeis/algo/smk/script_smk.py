@@ -118,20 +118,6 @@ class SparseVector(ut.NiceRepr):
         return np.multiply(vals1, vals2).sum()
 
 
-def load_internal_data():
-    from ibeis.algo.smk.smk_pipeline import *  # NOQA
-    import ibeis
-    qreq_ = ibeis.testdata_qreq_(
-        defaultdb='Oxford', a='oxford',
-        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
-    cm_list = qreq_.execute()
-    ave_precisions = [cm.get_annot_ave_precision() for cm in cm_list]
-    mAP = np.mean(ave_precisions)
-    print('mAP = %.3f' % (mAP,))
-    cm = cm_list[-1]
-    return qreq_, cm
-
-
 def load_oxford_2007(config):
     """
     Loads data from
@@ -310,48 +296,6 @@ def load_oxford_2013():
     return data
 
 
-def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
-    """
-    i = 12
-    """
-    import vtool as vt
-    from os.path import join
-    imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
-    gpath = join(imgdir,  data_uri_order[i] + '.jpg')
-    image = vt.imread(gpath)
-    import plottool as pt
-    pt.qt4ensure()
-    # pt.imshow(image)
-    l = offset_list[i]
-    r = offset_list[i + 1]
-    kpts = all_kpts[l:r]
-    vecs = all_vecs[l:r]
-    pt.interact_keypoints.ishow_keypoints(image, kpts, vecs,
-                                          ori=False, ell_alpha=.4,
-                                          color='distinct')
-
-
-def check_image_sizes(data_uri_order, all_kpts, offset_list):
-    """
-    Check if any keypoints go out of bounds wrt their associated images
-    """
-    import vtool as vt
-    from os.path import join
-    imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
-    gpath_list = [join(imgdir, imgid + '.jpg') for imgid in data_uri_order]
-    imgsize_list = [vt.open_image_size(gpath) for gpath in gpath_list]
-    kpts_list = [all_kpts[l:r] for l, r in ut.itertwo(offset_list)]
-
-    kpts_extent = [vt.get_kpts_image_extent(kpts, outer=False, only_xy=False)
-                   for kpts in ut.ProgIter(kpts_list, 'kpts extent')]
-
-    for i, (size, extent) in enumerate(zip(imgsize_list, kpts_extent)):
-        w, h = size
-        _, maxx, _, maxy = extent
-        assert np.isnan(maxx) or maxx < w
-        assert np.isnan(maxy) or maxy < h
-
-
 def load_ordered_annots(data_uri_order, query_uri_order):
     # Open the ibeis version of oxford
     from os.path import basename, splitext
@@ -383,7 +327,7 @@ def load_ordered_annots(data_uri_order, query_uri_order):
 
 def run_asmk_script():
    """   # NOQA
-   >>> from ibeis.algo.smk.script_smk import *  # NOQA
+       >>> from ibeis.algo.smk.script_smk import *  # NOQA
    """  # NOQA
    # FIXME: new_external_annot was not populated in namespace for with embed   # NOQA
    with ut.embed_on_exception_context:  # NOQA
@@ -399,15 +343,16 @@ def run_asmk_script():
         #'num_words': 1E6
         #'num_words': 8000,
         'checks': 1024,
-        'docluster': False,
-        'doassign': False,
+
+        'extern_words': False,
+        'extern_assign': False,
         'data_year': 2013,
     }
     # Define which params are relevant for which operations
     relevance = {}
-    relevance['all_vecs'] = ['dtype', 'root_sift', 'centering']
-    relevance['words'] = relevance['all_vecs'] + ['num_words']
-    relevance['assign'] = relevance['words'] + ['checks']
+    relevance['feats'] = ['dtype', 'root_sift', 'centering', 'data_year']
+    relevance['words'] = relevance['feats'] + ['num_words', 'extern_words']
+    relevance['assign'] = relevance['words'] + ['checks', 'extern_assign']
     relevance['ydata'] = relevance['assign']
     relevance['xdata'] = relevance['assign']
 
@@ -463,12 +408,14 @@ def run_asmk_script():
             vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
     if config['centering']:
-        # Apply Centering
         with ut.Timer('Apply centering'):
             mean_vec = np.mean(proc_vecs, axis=0)
             # Center and then re-normalize
             np.subtract(proc_vecs, mean_vec[None, :], out=proc_vecs)
             vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
+
+    if config['dtype'] == 'int8':
+        pass
 
     all_vecs = proc_vecs
     del proc_vecs
@@ -476,7 +423,10 @@ def run_asmk_script():
     # =====================================
     # BUILD VISUAL VOCABULARY
     # =====================================
-    if config['docluster']:
+    if config['extern_words']:
+        words = data['words']
+        assert config['num_words'] is None or len(words) == config['num_words']
+    else:
         word_cacher = SMKCacher('words')
         words = word_cacher.tryload()
         if words is None:
@@ -486,32 +436,22 @@ def run_asmk_script():
                 rng = np.random.RandomState(13421421)
                 clusterer = sklearn.cluster.MiniBatchKMeans(
                     config['num_words'], init_size=init_size,
-                    batch_size=5000, compute_labels=False, random_state=rng,
+                    batch_size=1000, compute_labels=False, random_state=rng,
                     n_init=3, verbose=5)
                 clusterer.fit(all_vecs)
                 words = clusterer.cluster_centers_
                 word_cacher.save(words)
-        # if False:
-        #     # Refine visual words
-        #     with ut.embed_on_exception_context:
-        #         import sklearn.cluster
-        #         rng = np.random.RandomState(194932)
-        #         clusterer = sklearn.cluster.MiniBatchKMeans(
-        #             config['num_words'], init=words,
-        #             init_size=init_size,
-        #             batch_size=1000, compute_labels=False, random_state=rng,
-        #             n_init=1, verbose=5)
-        #         clusterer.fit(all_vecs)
-        #         words = clusterer.cluster_centers_
-        #     word_cacher.save(words)
-    else:
-        words = data['words']
-        assert config['num_words'] is None or len(words) == config['num_words']
 
-    if config['doassign']:
-        # =====================================
-        # ASSIGN EACH VECTOR TO ITS NEAREST WORD
-        # =====================================
+    # =====================================
+    # ASSIGN EACH VECTOR TO ITS NEAREST WORD
+    # =====================================
+    if config['extern_assign']:
+        assert config['extern_words'], 'need extern cluster to extern assign'
+        idx_to_wxs = vt.atleast_nd(data['idx_to_wx'], 2)
+        idx_to_maws = np.ones(idx_to_wxs.shape, dtype=np.float32)
+        idx_to_wxs = np.ma.array(idx_to_wxs)
+        idx_to_maws = np.ma.array(idx_to_maws)
+    else:
         from ibeis.algo.smk import vocab_indexer
         vocab = vocab_indexer.VisualVocab(words)
         # vocab.flann_params['algorithm'] = 'linear'
@@ -532,11 +472,6 @@ def run_asmk_script():
                                              dtype=np.float32)
                     idx_to_maws.mask = idx_to_wxs.mask
             dassign_cacher.save((idx_to_wxs, idx_to_maws))
-    else:
-        idx_to_wxs = vt.atleast_nd(data['idx_to_wx'], 2)
-        idx_to_maws = np.ones(idx_to_wxs.shape, dtype=np.float32)
-        idx_to_wxs = np.ma.array(idx_to_wxs)
-        idx_to_maws = np.ma.array(idx_to_maws)
 
     # Breakup vectors, keypoints, and word assignments by annotation
     wx_lists = [idx_to_wxs[l:r] for l, r in ut.itertwo(offset_list)]
@@ -588,100 +523,12 @@ def run_asmk_script():
     # Y_list = ydata_cacher.tryload()
     # if Y_list is None:
     Y_list = []
-    _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
+    _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True,
+                           adjust=True)
     for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
         Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
         Y_list.append(Y)
     # ydata_cacher.save(Y_list)
-
-    def jegou_redone_agg_all(flat_wxs_assign, flat_offsets, flat_vecs):
-        # flat_wxs_assign = idx_to_wxs
-        # flat_offsets = offset_list
-        # flat_vecs = all_vecs
-        grouped_wxs = [flat_wxs_assign[l:r]
-                       for l, r in ut.itertwo(flat_offsets)]
-
-        # Assume single assignment, aggregate everything
-        # across the entire database
-        flat_offsets = np.array(flat_offsets)
-
-        idx_to_dx = (
-            np.searchsorted(
-                flat_offsets,
-                np.arange(len(flat_wxs_assign)),
-                side='right'
-            ) - 1
-        ).astype(np.int32)
-        wx_list = flat_wxs_assign.T[0].compressed()
-        unique_wx, groupxs = vt.group_indices(wx_list)
-
-        dim = flat_vecs.shape[1]
-        dx_to_wxs = [np.unique(wxs.compressed())
-                     for wxs in grouped_wxs]
-        dx_to_nagg = [len(wxs) for wxs in dx_to_wxs]
-        num_agg_vecs = sum(dx_to_nagg)
-        # all_agg_wxs = np.hstack(dx_to_wxs)
-        agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
-        # Preallocate agg residuals for all dxs
-        all_agg_vecs = np.empty((num_agg_vecs, dim),
-                                dtype=np.float32)
-        all_agg_vecs[:, :] = np.nan
-
-        # precompute agg residual stack
-        i_to_dxs = vt.apply_grouping(idx_to_dx, groupxs)
-        subgroup = [vt.group_indices(dxs)
-                    for dxs in ut.ProgIter(i_to_dxs)]
-        i_to_unique_dxs = ut.take_column(subgroup, 0)
-        i_to_dx_groupxs = ut.take_column(subgroup, 1)
-        num_words = len(unique_wx)
-
-        # Overall this takes 5 minutes and 21 seconds
-        # I think the other method takes about 12 minutes
-        for i in ut.ProgIter(range(num_words), 'agg'):
-            wx = unique_wx[i]
-            xs = groupxs[i]
-            dxs = i_to_unique_dxs[i]
-            dx_groupxs = i_to_dx_groupxs[i]
-            word = words[wx:wx + 1]
-
-            offsets1 = agg_offset_list.take(dxs)
-            offsets2 = [np.where(dx_to_wxs[dx] == wx)[0][0]
-                        for dx in dxs]
-            offsets = np.add(offsets1, offsets2, out=offsets1)
-
-            # if __debug__:
-            #     assert np.bincount(dxs).max() < 2
-            #     offset = agg_offset_list[dxs[0]]
-            #     assert np.all(dx_to_wxs[dxs[0]] == all_agg_wxs[offset:offset +
-            #                                                    dx_to_nagg[dxs[0]]])
-
-            # Compute residuals
-            rvecs = flat_vecs[xs] - word
-            vt.normalize(rvecs, axis=1, out=rvecs)
-            rvecs[np.all(np.isnan(rvecs), axis=1)] = 0
-            # Aggregate across same images
-            grouped_rvecs = vt.apply_grouping(rvecs, dx_groupxs, axis=0)
-            agg_rvecs_ = [rvec_group.sum(axis=0)
-                          for rvec_group in grouped_rvecs]
-            # agg_rvecs = np.vstack(agg_rvecs_)
-            all_agg_vecs[offsets, :] = agg_rvecs_
-
-        assert not np.any(np.isnan(all_agg_vecs))
-        print('Apply normalization')
-        vt.normalize(all_agg_vecs, axis=1, out=all_agg_vecs)
-        all_error_flags = np.all(np.isnan(all_agg_vecs), axis=1)
-        all_agg_vecs[all_error_flags, :] = 0
-
-        # ndocs_per_word1 = np.array(ut.lmap(len, wx_to_unique_dxs))
-        # ndocs_total1 = len(flat_offsets) - 1
-        # idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)
-
-        agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
-        agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
-        return agg_rvecs_list, agg_flags_list
-
-        #     # Y.vecs = vecs
-        # Y.kpts = kpts
 
     if False:
         flat_query_vecs = np.vstack(query_vecs)
@@ -691,8 +538,8 @@ def run_asmk_script():
         flat_wxs_assign = flat_query_wxs
         flat_offsets =  flat_query_offsets
         flat_vecs = flat_query_vecs
-        agg_rvecs_list, agg_flags_list = jegou_redone_agg_all(
-            flat_wxs_assign, flat_offsets, flat_vecs)
+        agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
+            words, flat_wxs_assign, flat_vecs, flat_offsets)
 
         for X, agg_rvecs, agg_flags in zip(X_list, agg_rvecs_list, agg_flags_list):
             X.agg_rvecs = agg_rvecs
@@ -701,8 +548,8 @@ def run_asmk_script():
         flat_wxs_assign = idx_to_wxs
         flat_offsets = offset_list
         flat_vecs = all_vecs
-        agg_rvecs_list, agg_flags_list = jegou_redone_agg_all(
-            flat_wxs_assign, flat_offsets, flat_vecs)
+        agg_rvecs_list, agg_flags_list = smk_funcs.compute_stacked_agg_rvecs(
+            words, flat_wxs_assign, flat_vecs, flat_offsets)
 
         for Y, agg_rvecs, agg_flags in zip(Y_list, agg_rvecs_list, agg_flags_list):
             Y.agg_rvecs = agg_rvecs
@@ -725,6 +572,11 @@ def run_asmk_script():
     for Y, vecs, kpts in zip(Y_list, vecs_list, kpts_list):
         Y.vecs = vecs
         Y.kpts = kpts
+
+    imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
+    for Y, imgid in zip(Y_list, data_uri_order):
+        gpath = ut.unixjoin(imgdir,  imgid + '.jpg')
+        Y.gpath = gpath
 
     for X, vecs, kpts in zip(X_list, query_vecs, query_kpts):
         X.kpts = kpts
@@ -757,28 +609,7 @@ def run_asmk_script():
     test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight)
 
 
-def sanity_checks(offset_list, Y_list, query_annots, ibs):
-    nfeat_list = np.diff(offset_list)
-    for Y, nfeat in ut.ProgIter(zip(Y_list, nfeat_list), 'checking'):
-        assert nfeat == sum(ut.lmap(len, Y.fxs_list))
-
-    if False:
-        # Visualize queries
-        # Look at the standard query images here
-        # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
-        from ibeis.viz import viz_chip
-        import plottool as pt
-        pt.qt4ensure()
-        fnum = 1
-        pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
-        for aid in ut.ProgIter(query_annots.aids):
-            pnum = pnum_()
-            viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
-                               notitle=True, draw_lbls=False,
-                               fnum=fnum, pnum=pnum)
-
-
-def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
+def test_kernel(ibs, X_list, Y_list_, words, wx_to_weight):
     #======================
     # Choose Query Kernel
     params = {
@@ -786,7 +617,7 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
         'bow': dict(),
         'bow2': dict(),
     }
-    method = 'bow'
+    # method = 'bow'
     method = 'bow2'
     method = 'asmk'
     smk = SMK(wx_to_weight, method=method, **params[method])
@@ -796,15 +627,14 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
         # Make residual vectors:
         _prog = ut.ProgPartial(lbl='agg Y rvecs', bs=True, adjust=True)
         for Y in _prog(Y_list_):
-            make_agg_vecs(Y, vocab, Y.vecs)
+            make_agg_vecs(Y, words, Y.vecs)
 
         _prog = ut.ProgPartial(lbl='agg X rvecs', bs=True, adjust=True)
         for X in _prog(X_list):
-            make_agg_vecs(X, vocab, X.vecs)
-
-    if method == 'bow2':
+            make_agg_vecs(X, words, X.vecs)
+    elif method == 'bow2':
         # Hack for orig tf-idf bow vector
-        nwords = len(vocab)
+        nwords = len(words)
         for X in ut.ProgIter(X_list, lbl='make bow vector'):
             ensure_tf(X)
             bow_vector(X, wx_to_weight, nwords)
@@ -812,7 +642,8 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
         for Y in ut.ProgIter(Y_list_, lbl='make bow vector'):
             ensure_tf(Y)
             bow_vector(Y, wx_to_weight, nwords)
-    else:
+
+    if method != 'bow2':
         for X in ut.ProgIter(X_list, 'compute X gamma'):
             X.gamma = smk.gamma(X)
         for Y in ut.ProgIter(Y_list_, 'compute Y gamma'):
@@ -822,6 +653,8 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
     scores_list = []
     for X in ut.ProgIter(X_list, lbl='query %s' % (smk,)):
         scores = [smk.kernel(X, Y) for Y in Y_list_]
+        scores = np.array(scores)
+        scores = np.nan_to_num(scores)
         scores_list.append(scores)
 
     import sklearn.metrics
@@ -830,6 +663,12 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
     _iter = ut.ProgIter(_iter, lbl='evaluate %s' % (smk,))
     for scores, X in _iter:
         truth = [X.nid == Y.nid for Y in Y_list_]
+
+        if False:
+            idx = np.where(np.isnan(scores))[0][0]
+            Y = Y_list_[idx]
+            scores[idx]
+
         avep = sklearn.metrics.average_precision_score(truth, scores)
         avep_list.append(avep)
 
@@ -844,9 +683,6 @@ def test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight):
             Y = Y_gts[-1]
             ibs.show_annot(Y_gts[-1].aid, annote=False)
             ibs.show_annot(Y_gts[-1].aid, annote=False)
-            #yx[truth]
-            #gt_yxs = yx.take(sortx)[truth]
-            #Y = Y_list_[gt_yxs[-1]]
 
     avep_list = np.array(avep_list)
     mAP = np.mean(avep_list)
@@ -868,8 +704,8 @@ def new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec):
     return X
 
 
-def make_agg_vecs(X, vocab, fx_to_vecs):
-    word_list = ut.take(vocab.wx_to_word, X.wx_list)
+def make_agg_vecs(X, words, fx_to_vecs):
+    word_list = ut.take(words, X.wx_list)
     dtype = np.int8 if X.int_rvec else np.float32
     dim = fx_to_vecs.shape[1]
     X.agg_rvecs = np.empty((len(X.wx_list), dim), dtype=dtype)
@@ -1012,6 +848,27 @@ def kpts_inside_bbox(kpts, bbox, only_xy=False):
     return flags
 
 
+def sanity_checks(offset_list, Y_list, query_annots, ibs):
+    nfeat_list = np.diff(offset_list)
+    for Y, nfeat in ut.ProgIter(zip(Y_list, nfeat_list), 'checking'):
+        assert nfeat == sum(ut.lmap(len, Y.fxs_list))
+
+    if False:
+        # Visualize queries
+        # Look at the standard query images here
+        # http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
+        from ibeis.viz import viz_chip
+        import plottool as pt
+        pt.qt4ensure()
+        fnum = 1
+        pnum_ = pt.make_pnum_nextgen(len(query_annots.aids) // 5, 5)
+        for aid in ut.ProgIter(query_annots.aids):
+            pnum = pnum_()
+            viz_chip.show_chip(ibs, aid, in_image=True, annote=False,
+                               notitle=True, draw_lbls=False,
+                               fnum=fnum, pnum=pnum)
+
+
 def oxford_conic_test():
     # Test that these are what the readme says
     A, B, C = [0.016682, 0.001693, 0.014927]
@@ -1022,6 +879,62 @@ def oxford_conic_test():
     invV = vt.decompose_Z_to_invV_mats2x2(np.array([Z]))  # NOQA
     # seems ok
     #invV = np.linalg.inv(V)
+
+
+def load_internal_data():
+    from ibeis.algo.smk.smk_pipeline import *  # NOQA
+    import ibeis
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='Oxford', a='oxford',
+        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
+    cm_list = qreq_.execute()
+    ave_precisions = [cm.get_annot_ave_precision() for cm in cm_list]
+    mAP = np.mean(ave_precisions)
+    print('mAP = %.3f' % (mAP,))
+    cm = cm_list[-1]
+    return qreq_, cm
+
+
+def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):
+    """
+    i = 12
+    """
+    import vtool as vt
+    from os.path import join
+    imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
+    gpath = join(imgdir,  data_uri_order[i] + '.jpg')
+    image = vt.imread(gpath)
+    import plottool as pt
+    pt.qt4ensure()
+    # pt.imshow(image)
+    l = offset_list[i]
+    r = offset_list[i + 1]
+    kpts = all_kpts[l:r]
+    vecs = all_vecs[l:r]
+    pt.interact_keypoints.ishow_keypoints(image, kpts, vecs,
+                                          ori=False, ell_alpha=.4,
+                                          color='distinct')
+
+
+def check_image_sizes(data_uri_order, all_kpts, offset_list):
+    """
+    Check if any keypoints go out of bounds wrt their associated images
+    """
+    import vtool as vt
+    from os.path import join
+    imgdir = ut.truepath('/raid/work/Oxford/oxbuild_images')
+    gpath_list = [join(imgdir, imgid + '.jpg') for imgid in data_uri_order]
+    imgsize_list = [vt.open_image_size(gpath) for gpath in gpath_list]
+    kpts_list = [all_kpts[l:r] for l, r in ut.itertwo(offset_list)]
+
+    kpts_extent = [vt.get_kpts_image_extent(kpts, outer=False, only_xy=False)
+                   for kpts in ut.ProgIter(kpts_list, 'kpts extent')]
+
+    for i, (size, extent) in enumerate(zip(imgsize_list, kpts_extent)):
+        w, h = size
+        _, maxx, _, maxy = extent
+        assert np.isnan(maxx) or maxx < w
+        assert np.isnan(maxy) or maxy < h
 
 if __name__ == '__main__':
     r"""
