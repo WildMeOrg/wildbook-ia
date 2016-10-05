@@ -1922,7 +1922,7 @@ def get_kpts_wh(kpts, outer=True):
     return wh_list
 
 
-def get_kpts_image_extent(kpts, outer=False):
+def get_kpts_image_extent(kpts, outer=False, only_xy=False):
     """
     returns the width and height of keypoint bounding box
     This combines xy and shape information
@@ -1956,13 +1956,19 @@ def get_kpts_image_extent(kpts, outer=False):
         np.array([ 14.78,  48.05,   0.32,  51.58])
     """
     xs, ys = get_xys(kpts)
-    wh_list = get_kpts_wh(kpts, outer=outer)
-    radii = wh_list / 2
-    minx = (xs - radii.T[0]).min()
-    maxx = (xs + radii.T[0]).max()
-    miny = (ys - radii.T[1]).min()
-    maxy = (ys + radii.T[1]).max()
-    extent = (minx, maxx, miny, maxy)
+    if only_xy:
+        minx = xs.min()
+        maxx = xs.max()
+        miny = ys.min()
+        maxy = ys.max()
+    else:
+        wh_list = get_kpts_wh(kpts, outer=outer)
+        radii = wh_list / 2
+        minx = (xs - radii.T[0]).min()
+        maxx = (xs + radii.T[0]).max()
+        miny = (ys - radii.T[1]).min()
+        maxy = (ys + radii.T[1]).max()
+        extent = (minx, maxx, miny, maxy)
     return extent
 
 
