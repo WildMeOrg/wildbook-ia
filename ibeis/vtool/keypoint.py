@@ -1955,6 +1955,8 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
         >>> ut.show_if_requested()
         np.array([ 14.78,  48.05,   0.32,  51.58])
     """
+    if len(kpts) == 0:
+        return (np.nan, np.nan, np.nan, np.nan)
     xs, ys = get_xys(kpts)
     if only_xy:
         minx = xs.min()
@@ -1963,7 +1965,7 @@ def get_kpts_image_extent(kpts, outer=False, only_xy=False):
         maxy = ys.max()
     else:
         wh_list = get_kpts_wh(kpts, outer=outer)
-        radii = wh_list / 2
+        radii = np.divide(wh_list, 2, out=wh_list)
         minx = (xs - radii.T[0]).min()
         maxx = (xs + radii.T[0]).max()
         miny = (ys - radii.T[1]).min()
