@@ -512,6 +512,27 @@ def load_external_data2():
     query_wxs = vt.zipcompress(query_super_wxs, query_flags_list, axis=0)
     query_maws = vt.zipcompress(query_super_maws, query_flags_list, axis=0)
 
+    # =======================
+    # CONSTRUCT QUERY / DATABASE REPR
+    # =======================
+    int_rvec = not config['dtype'].startswith('float')
+
+    X_list = []
+    _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
+    for aid, fx_to_wxs, fx_to_maws in _prog(zip(qaids, query_wxs, query_maws)):
+        X = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
+        X_list.append(X)
+
+    # ydata_cacher = SMKCacher('ydata')
+    # Y_list = ydata_cacher.tryload()
+    # if Y_list is None:
+    Y_list = []
+    _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
+    for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
+        Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
+        Y_list.append(Y)
+    # ydata_cacher.save(Y_list)
+
     def jegou_redone_agg_all(flat_wxs_assign, flat_offsets, flat_vecs):
         # flat_wxs_assign = idx_to_wxs
         # flat_offsets = offset_list
@@ -531,7 +552,7 @@ def load_external_data2():
         dx_to_wxs = [np.unique(wxs.compressed()) for wxs in grouped_wxs]
         dx_to_nagg = [len(wxs) for wxs in dx_to_wxs]
         num_agg_vecs = sum(dx_to_nagg)
-        all_agg_wxs = np.hstack(dx_to_wxs)
+        # all_agg_wxs = np.hstack(dx_to_wxs)
         agg_offset_list = np.array([0] + ut.cumsum(dx_to_nagg))
         # Preallocate agg residuals for all dxs
         all_agg_vecs = np.empty((num_agg_vecs, dim), dtype=np.float32)
@@ -615,79 +636,6 @@ def load_external_data2():
             Y.agg_rvecs = agg_rvecs
             Y.agg_flags = agg_flags[:, None]
 
-
-    # def jegou_port_agg_all():
-    #     """
-    #     ...This really only works with the HE scheme
-
-    #     %  d  input matrix with descriptors (concatenated for all images)
-    #     %  v  input vector with visual words (concatenated for all images)
-    #     %  n  input vector with number of feature per image
-    #     %  da aggregated descriptors (concatenated for all images)
-    #     %  va unique visual words for each image (concatenated for all images)
-    #     %  na number of features per image after aggregation
-    #     """
-
-    #     def aggregate_port(v, d):
-    #         # % aggregate descriptors per visual word for a single image
-    #         # %  d   descriptors
-    #         # %  v   visual words
-    #         # %  da  aggregated descriptors
-    #         # %  va  unique visual words
-    #         va = np.unique(v);
-    #         n = len(va);
-    #         da = np.zeros((n, d.shape[1]), 'single');
-
-    #         for i in range(n):
-    #             f = np.where(v == va[i])[0]
-    #             if len(f) == 1:
-    #                 da[i, :] = d[f, :];
-    #             else:
-    #                 # compute mean descriptor here, median will be subtracted
-    #                 # before binarizing that would be equal to the mean
-    #                 # residual instead of aggregated residual but binarization
-    #                 # of each produces the same binary vector
-    #                 da[i, :] = np.mean(d[f, :], axis=0)
-    #         return va, da
-
-    #     n_ = np.diff(offset_list)
-    #     d_ = all_vecs
-    #     v_ = idx_to_wxs
-
-    #     da = {} # agg descriptors per image
-    #     va = {} # agg words per image
-    #     na = {} # num agg
-
-    #     cs = offset_list
-
-    #     for i in ut.ProgIter(range(len(n_))):
-    #         sl = slice(cs[i], cs[i + 1])
-    #         v = v_[sl]
-    #         d = d_[sl]
-    #         va[i], da[i] = aggregate_port(v, d)
-    #         na[i] = len(va[i])
-
-    # =======================
-    # CONSTRUCT QUERY / DATABASE REPR
-    # =======================
-    int_rvec = not config['dtype'].startswith('float')
-
-    X_list = []
-    _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True, adjust=True)
-    for aid, fx_to_wxs, fx_to_maws in _prog(zip(qaids, query_wxs, query_maws)):
-        X = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
-        X_list.append(X)
-
-    # ydata_cacher = SMKCacher('ydata')
-    # Y_list = ydata_cacher.tryload()
-    # if Y_list is None:
-    Y_list = []
-    _prog = ut.ProgPartial(nTotal=len(daids), lbl='new Y', bs=True, adjust=True)
-    for aid, fx_to_wxs, fx_to_maws in _prog(zip(daids, wx_lists, maw_lists)):
-        Y = new_external_annot(aid, fx_to_wxs, fx_to_maws, int_rvec)
-        Y_list.append(Y)
-    # ydata_cacher.save(Y_list)
-
     #======================
     # Add in some groundtruth
     print('Add in some groundtruth')
@@ -720,7 +668,7 @@ def load_external_data2():
     assert len(wx_list) <= config['num_words']
 
     wx_to_aids = smk_funcs.invert_lists(
-       daids, [Y.wx_list for Y in Y_list], all_wxs=wx_list)
+        daids, [Y.wx_list for Y in Y_list], all_wxs=wx_list)
 
     # Compute IDF weights
     print('Compute IDF weights')
@@ -737,7 +685,7 @@ def load_external_data2():
     test_kernel(ibs, X_list, Y_list_, vocab, wx_to_weight)
 
 
-def sanity_checks():
+def sanity_checks(offset_list, Y_list, query_annots, ibs):
     nfeat_list = np.diff(offset_list)
     for Y, nfeat in ut.ProgIter(zip(Y_list, nfeat_list), 'checking'):
         assert nfeat == sum(ut.lmap(len, Y.fxs_list))
