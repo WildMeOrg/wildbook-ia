@@ -533,6 +533,7 @@ def normalize(arr, ord=None, axis=None, out=None):
     Args:
         arr (ndarray): row vectors to normalize
         ord (int): type of norm to use (defaults to 2-norm)
+            {non-zero int, inf, -inf}
         axis (int): axis to normalize
         out (ndarray): preallocated output
 
@@ -558,6 +559,22 @@ def normalize(arr, ord=None, axis=None, out=None):
         >>> result = ut.hz_str('arr_normed = ', ut.numpy_str(arr_normed, precision=2))
         >>> assert np.allclose((arr_normed ** 2).sum(), [1])
         >>> print(result)
+
+    Example:
+        >>> from vtool.linalg import *  # NOQA
+        >>> ord_list = [0, 1, 2, np.inf, -np.inf]
+        >>> arr = np.array([ 0.6,  0.1, -0.5])
+        >>> normed = [(ord, normalize(arr, ord=ord)) for ord in ord_list]
+        >>> result = ut.repr4(normed, precision=2)
+        >>> print(result)
+        [
+            (0, np.array([ 0.2 ,  0.03, -0.17], dtype=np.float64)),
+            (1, np.array([ 0.5 ,  0.08, -0.42], dtype=np.float64)),
+            (2, np.array([ 0.76,  0.13, -0.64], dtype=np.float64)),
+            (inf, np.array([ 1.  ,  0.17, -0.83], dtype=np.float64)),
+            (-inf, np.array([ 6.,  1., -5.], dtype=np.float64)),
+        ]
+
     """
     norm_ = np.linalg.norm(arr, ord=ord, axis=axis, keepdims=True)
     arr_normed = np.divide(arr, norm_, out=out)
