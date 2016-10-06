@@ -240,7 +240,8 @@ def compute_stacked_agg_rvecs(words, flat_wxs_assign, flat_vecs, flat_offsets):
     # ndocs_total1 = len(flat_offsets) - 1
     # idf1 = smk_funcs.inv_doc_freq(ndocs_total1, ndocs_per_word1)
 
-    return all_agg_vecs, all_error_flags, agg_offset_list
+    tup = all_agg_vecs, all_error_flags, agg_offset_list
+    return tup
 
 
 def compute_rvec(vecs, word):
