@@ -430,6 +430,7 @@ def run_asmk_script():
         'num_words': 2 ** 16,
         #'num_words': 1E6
         #'num_words': 8000,
+        # 'vocab_algo': 'yael_kmeans',
 
         'extern_words': False,
         'extern_assign': False,
@@ -483,30 +484,33 @@ def run_asmk_script():
     proc_vecs = raw_vecs
     del raw_vecs
 
-    if config['dtype'] == 'float32':
-        print('Converting vecs to float32')
-        proc_vecs = proc_vecs.astype(np.float32)
-    else:
-        proc_vecs = proc_vecs
-        raise NotImplementedError('other dtype')
+    feats_cacher = SMKCacher('feats')
+    all_vecs = feats_cacher.tryload()
+    if all_vecs is None:
+        if config['dtype'] == 'float32':
+            print('Converting vecs to float32')
+            proc_vecs = proc_vecs.astype(np.float32)
+        else:
+            proc_vecs = proc_vecs
+            raise NotImplementedError('other dtype')
 
-    if config['root_sift']:
-        with ut.Timer('Apply root sift'):
-            np.sqrt(proc_vecs, out=proc_vecs)
-            vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
+        if config['root_sift']:
+            with ut.Timer('Apply root sift'):
+                np.sqrt(proc_vecs, out=proc_vecs)
+                vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
-    if config['centering']:
-        with ut.Timer('Apply centering'):
-            mean_vec = np.mean(proc_vecs, axis=0)
-            # Center and then re-normalize
-            np.subtract(proc_vecs, mean_vec[None, :], out=proc_vecs)
-            vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
+        if config['centering']:
+            with ut.Timer('Apply centering'):
+                mean_vec = np.mean(proc_vecs, axis=0)
+                # Center and then re-normalize
+                np.subtract(proc_vecs, mean_vec[None, :], out=proc_vecs)
+                vt.normalize(proc_vecs, ord=2, axis=1, out=proc_vecs)
 
-    if config['dtype'] == 'int8':
-        smk_funcs
-        pass
+        if config['dtype'] == 'int8':
+            smk_funcs
 
-    all_vecs = proc_vecs
+        all_vecs = proc_vecs
+        # feats_cacher.save(all_vecs)
     del proc_vecs
 
     # =====================================
@@ -519,17 +523,26 @@ def run_asmk_script():
         word_cacher = SMKCacher('words')
         words = word_cacher.tryload()
         if words is None:
-            init_size = int(config['num_words'] * 2.5)
             with ut.embed_on_exception_context:
-                import sklearn.cluster
-                rng = np.random.RandomState(13421421)
-                clusterer = sklearn.cluster.MiniBatchKMeans(
-                    config['num_words'], init_size=init_size,
-                    batch_size=1000, compute_labels=False, random_state=rng,
-                    n_init=3, verbose=5)
-                clusterer.fit(all_vecs)
-                words = clusterer.cluster_centers_
-                word_cacher.save(words)
+                kmeans_impl = 'sklearn'
+                if kmeans_impl == 'yael':
+                    from yael import ynumpy
+                    centroids, qerr, dis, assign, nassign = ynumpy.kmeans(
+                        all_vecs, config['num_words'], init='kmeans++',
+                        verbose=True, output='all')
+                    words = centroids
+
+                elif kmeans_impl == 'sklearn':
+                    import sklearn.cluster
+                    rng = np.random.RandomState(13421421)
+                    init_size = int(config['num_words'] * 8)
+                    clusterer = sklearn.cluster.MiniBatchKMeans(
+                        config['num_words'], init_size=init_size,
+                        batch_size=1000, compute_labels=False, random_state=rng,
+                        n_init=1, verbose=5)
+                    clusterer.fit(all_vecs)
+                    words = clusterer.cluster_centers_
+                    word_cacher.save(words)
 
     # =====================================
     # ASSIGN EACH VECTOR TO ITS NEAREST WORD
