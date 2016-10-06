@@ -431,7 +431,7 @@ def run_asmk_script():
         #'num_words': 1E6
         #'num_words': 8000,
 
-        'extern_words': True,
+        'extern_words': False,
         'extern_assign': False,
         'assign_algo': 'kdtree',
         'checks': 1024,
