@@ -742,6 +742,164 @@ def devmain():
     print('exiting dev')
 
 
+def ggr_random_name_splits():
+    """
+    CommandLine:
+        python -m ibeis.viz.viz_graph2 ggr_random_name_splits --show
+
+    Ignore:
+        sshfs -o idmap=user lev:/ ~/lev
+
+    Example:
+        >>> # DISABLE_DOCTEST GGR
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> ggr_random_name_splits()
+    """
+    import guitool as gt
+    gt.ensure_qtapp()
+    #nid_list = ibs.get_valid_nids(filter_empty=True)
+    import ibeis
+    dbdir = '/media/danger/GGR/GGR-IBEIS'
+    dbdir = dbdir if ut.checkpath(dbdir) else ut.truepath('~/lev/media/danger/GGR/GGR-IBEIS')
+    ibs = ibeis.opendb(dbdir=dbdir, allow_newdir=False)
+
+    import datetime
+    day1 = datetime.date(2016, 1, 30)
+    day2 = datetime.date(2016, 1, 31)
+
+    orig_filter_kw = {
+        'multiple': None,
+        #'view': ['right'],
+        #'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+    }
+    orig_aids = ibs.filter_annots_general(filter_kw=ut.dict_union(
+        orig_filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    )
+    orig_all_annots = ibs.annots(orig_aids)
+    orig_unique_nids, orig_grouped_annots_ = orig_all_annots.group(orig_all_annots.nids)
+    # Ensure we get everything
+    orig_grouped_annots = [ibs.annots(aids_)
+                           for aids_ in ibs.get_name_aids(orig_unique_nids)]
+
+    # pip install quantumrandom
+    if False:
+        import quantumrandom
+        data = quantumrandom.uint16()
+        seed = data.sum()
+        print('seed = %r' % (seed,))
+        #import Crypto.Random
+        #from Crypto import Random
+        #quantumrandom.get_data()
+        #StrongRandom = Crypto.Random.random.StrongRandom
+        #aes.reseed(3340258)
+        #chars = [str(chr(x)) for x in data.view(np.uint8)]
+        #aes_seed = str('').join(chars)
+        #aes = Crypto.Random.Fortuna.FortunaGenerator.AESGenerator()
+        #aes.reseed(aes_seed)
+        #aes.pseudo_random_data(10)
+
+    orig_rand_idxs = ut.random_indexes(len(orig_grouped_annots), seed=3340258)
+    orig_sample_size = 75
+    random_annot_groups = ut.take(orig_grouped_annots, orig_rand_idxs)
+    orig_annot_sample = random_annot_groups[:orig_sample_size]
+
+    # OOOPS MADE ERROR REDO ----
+
+    filter_kw = {
+        'multiple': None,
+        'view': ['right'],
+        'minqual': 'good',
+        'is_known': True,
+        'min_pername': 2,
+    }
+    filter_kw_ = ut.dict_union(
+        filter_kw, {
+            'min_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day1, 0.0)),
+            'max_unixtime': ut.datetime_to_posixtime(ut.date_to_datetime(day2, 1.0)),
+        })
+    refiltered_sample = [ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_)
+                         for annot in orig_annot_sample]
+    is_ok = (np.array(ut.lmap(len, refiltered_sample)) >= 2)
+    ok_part_orig_sample = ut.compress(orig_annot_sample, is_ok)
+    ok_part_orig_nids = [x.nids[0] for x in ok_part_orig_sample]
+
+    # Now compute real sample
+    aids = ibs.filter_annots_general(filter_kw=filter_kw_)
+    all_annots = ibs.annots(aids)
+    unique_nids, grouped_annots_ = all_annots.group(all_annots.nids)
+    grouped_annots = grouped_annots_
+    # Ensure we get everything
+    #grouped_annots = [ibs.annots(aids_) for aids_ in ibs.get_name_aids(unique_nids)]
+
+    pop = len(grouped_annots)
+    pername_list = ut.lmap(len, grouped_annots)
+    groups = ibeis.annots.AnnotGroups(grouped_annots, ibs)
+    match_tags = [ut.unique(ut.flatten(t)) for t in groups.match_tags]
+    tag_case_hist = ut.dict_hist(ut.flatten(match_tags))
+    print('name_pop = %r' % (pop,))
+    print('Annots per Multiton Name' + ut.repr3(
+        ut.get_stats(pername_list, use_median=True)))
+    print('Name Tag Hist ' + ut.repr3(tag_case_hist))
+    print('Percent Photobomb: %.2f%%' % (tag_case_hist['photobomb'] / pop * 100))
+    print('Percent Split: %.2f%%' % (tag_case_hist['splitcase'] / pop * 100))
+
+    # Remove the ok part from this sample
+    remain_unique_nids = ut.setdiff(unique_nids, ok_part_orig_nids)
+    remain_grouped_annots = [ibs.annots(aids_) for aids_ in
+                             ibs.get_name_aids(remain_unique_nids)]
+
+    sample_size = 75
+    import vtool as vt
+    vt.calc_sample_from_error_bars(.05, pop, conf_level=.95, prior=.05)
+
+    remain_rand_idxs = ut.random_indexes(len(remain_grouped_annots), seed=3340258)
+    remain_sample_size = sample_size - len(ok_part_orig_nids)
+    remain_random_annot_groups = ut.take(remain_grouped_annots, remain_rand_idxs)
+    remain_annot_sample = remain_random_annot_groups[:remain_sample_size]
+
+    annot_sample_nofilter = ok_part_orig_sample + remain_annot_sample
+    # Filter out all bad parts
+    annot_sample_filter = [
+        ibs.annots(ibs.filter_annots_general(annot.aids, filter_kw=filter_kw_))
+        for annot in annot_sample_nofilter
+    ]
+    annot_sample = annot_sample_filter
+
+    win = None
+    from ibeis.viz import viz_graph2
+    for annots in ut.InteractiveIter(annot_sample):
+        if win is not None:
+            win.close()
+        win = viz_graph2.make_qt_graph_interface(ibs, aids=annots.aids,
+                                                 init_mode='rereview')
+        print(win)
+
+    sample_groups = ibeis.annots.AnnotGroups(annot_sample, ibs)
+
+    flat_tags = [ut.unique(ut.flatten(t)) for t in sample_groups.match_tags]
+
+    print('Using Split and Photobomb')
+    is_positive = ['photobomb' in t or 'splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only Photobomb')
+    is_positive = ['photobomb' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+
+    print('Only SplitCase')
+    is_positive = ['splitcase' in t for t in flat_tags]
+    num_positive = sum(is_positive)
+    vt.calc_error_bars_from_sample(sample_size, num_positive, pop, conf_level=.95)
+    #gt.qtapp_loop(qwin=win)
+
+
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # for win32
     # HACK to run tests without specifing ibs first

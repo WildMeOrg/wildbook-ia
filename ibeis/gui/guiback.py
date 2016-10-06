@@ -2374,16 +2374,13 @@ class MainWindowBackend(GUIBACK_BASE):
                             query_title='Annot Splits',
                             review_cfg=review_cfg)
 
-        #if False:
-        #    from ibeis.viz import viz_graph
-        #    import imp
-        #    imp.reload(viz_graph)
-        #    self = viz_graph.make_name_graph_interaction(ibs, aids=aid_list,
-        #                                                 with_all=False,
-        #                                                 split_check=True,
-        #                                                 with_images=True,
-        #                                                 prog='neato',
-        #                                                 augment_graph=False)
+        if False:
+            from ibeis.viz import viz_graph2
+            import imp
+            imp.reload(viz_graph2)
+            win = viz_graph2.make_qt_graph_review(qreq_, cm_list,
+                                                  review_cfg=review_cfg)
+            win.show()
 
     def run_merge_checks(back):
         r"""

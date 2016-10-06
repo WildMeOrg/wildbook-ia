@@ -753,7 +753,6 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
     with_review_options = True
 
-    from ibeis.viz import viz_graph
     from ibeis.viz import viz_graph2
     if with_review_options:
         aid_list2 = [aid1, aid2]
@@ -774,9 +773,6 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
             ('Inspect Match Candidates',
              lambda: review_match(
                  ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)),
-            ('Interact Name Graph',
-             partial(viz_graph.make_name_graph_interaction,
-                     ibs, aids=aid_list2, selected_aids=aid_list2)),
             # FIXME, more than 2 aids
             ('New Split Case Pair Interaction',
              partial(viz_graph2.make_qt_graph_interface,

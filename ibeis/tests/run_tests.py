@@ -50,7 +50,7 @@ def static_doctest_modnames():
         'ibeis.annots', 'ibeis.core_annots', 'ibeis.main_module',
         'ibeis.new_annots', 'ibeis.tag_funcs', 'ibeis.core_images',
         'ibeis.annotmatch_funcs', 'ibeis.images',
-        'ibeis.viz.viz_graph', 'ibeis.viz.viz_helpers', 'ibeis.viz.viz_hough',
+        'ibeis.viz.viz_graph2', 'ibeis.viz.viz_helpers', 'ibeis.viz.viz_hough',
         'ibeis.viz.viz_chip', 'ibeis.viz.viz_image', 'ibeis.viz.viz_name',
         'ibeis.viz.viz_matches', 'ibeis.viz.viz_graph2', 'ibeis.viz.viz_sver',
         'ibeis.viz.viz_other', 'ibeis.viz.viz_nearest_descriptors',

@@ -327,6 +327,7 @@ example_names = (
         r'''
         # STARTBLOCK
         from ibeis.viz import viz_graph
+        # TODO: use viz_graph2 instead
         acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
                     ibs, acfg_name_list=a, qaid_override=qaid_override,
                     daid_override=daid_override, verbose=0)

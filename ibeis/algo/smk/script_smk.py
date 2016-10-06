@@ -430,7 +430,7 @@ def run_asmk_script():
         'num_words': 2 ** 16,
         #'num_words': 1E6
         #'num_words': 8000,
-        # 'vocab_algo': 'yael_kmeans',
+        'kmeans_impl': 'sklearn.mini',
 
         'extern_words': False,
         'extern_assign': False,
@@ -440,7 +440,7 @@ def run_asmk_script():
     # Define which params are relevant for which operations
     relevance = {}
     relevance['feats'] = ['dtype', 'root_sift', 'centering', 'data_year']
-    relevance['words'] = relevance['feats'] + ['num_words', 'extern_words']
+    relevance['words'] = relevance['feats'] + ['num_words', 'extern_words', 'kmeans_impl']
     relevance['assign'] = relevance['words'] + ['checks', 'extern_assign', 'assign_algo']
     # relevance['ydata'] = relevance['assign']
     # relevance['xdata'] = relevance['assign']
@@ -448,12 +448,13 @@ def run_asmk_script():
     nAssign = 1
 
     class SMKCacher(ut.Cacher):
-        def __init__(self, fname):
+        def __init__(self, fname, ext='.cPkl'):
             relevant_params = relevance[fname]
             relevant_cfg = ut.dict_subset(config, relevant_params)
             cfgstr = ut.get_cfg_lbl(relevant_cfg)
             dbdir = ut.truepath('/raid/work/Oxford/')
-            super(SMKCacher, self).__init__(fname, cfgstr, cache_dir=dbdir)
+            super(SMKCacher, self).__init__(fname, cfgstr, cache_dir=dbdir,
+                                            ext=ext)
 
     # ==============================================
     # LOAD DATASET, EXTRACT AND POSTPROCESS FEATURES
@@ -470,11 +471,6 @@ def run_asmk_script():
     data_uri_order = data['data_uri_order']
     # del data
 
-    ibs, query_annots, data_annots, qx_to_dx = load_ordered_annots(
-        data_uri_order, query_uri_order)
-    daids = data_annots.aids
-    qaids = query_annots.aids
-
     # ================
     # PRE-PROCESS
     # ================
@@ -484,7 +480,7 @@ def run_asmk_script():
     proc_vecs = raw_vecs
     del raw_vecs
 
-    feats_cacher = SMKCacher('feats')
+    feats_cacher = SMKCacher('feats', ext='.npy')
     all_vecs = feats_cacher.tryload()
     if all_vecs is None:
         if config['dtype'] == 'float32':
@@ -510,7 +506,7 @@ def run_asmk_script():
             smk_funcs
 
         all_vecs = proc_vecs
-        # feats_cacher.save(all_vecs)
+        feats_cacher.save(all_vecs)
     del proc_vecs
 
     # =====================================
@@ -525,14 +521,7 @@ def run_asmk_script():
         if words is None:
             with ut.embed_on_exception_context:
                 kmeans_impl = 'sklearn'
-                if kmeans_impl == 'yael':
-                    from yael import ynumpy
-                    centroids, qerr, dis, assign, nassign = ynumpy.kmeans(
-                        all_vecs, config['num_words'], init='kmeans++',
-                        verbose=True, output='all')
-                    words = centroids
-
-                elif kmeans_impl == 'sklearn':
+                if kmeans_impl == 'sklearn':
                     import sklearn.cluster
                     rng = np.random.RandomState(13421421)
                     init_size = int(config['num_words'] * 8)
@@ -542,7 +531,13 @@ def run_asmk_script():
                         n_init=1, verbose=5)
                     clusterer.fit(all_vecs)
                     words = clusterer.cluster_centers_
-                    word_cacher.save(words)
+                elif kmeans_impl == 'yael':
+                    from yael import ynumpy
+                    centroids, qerr, dis, assign, nassign = ynumpy.kmeans(
+                        all_vecs, config['num_words'], init='kmeans++',
+                        verbose=True, output='all')
+                    words = centroids
+                word_cacher.save(words)
 
     # =====================================
     # ASSIGN EACH VECTOR TO ITS NEAREST WORD
@@ -589,6 +584,11 @@ def run_asmk_script():
     # FIND QUERY SUBREGIONS
     # =======================
 
+    ibs, query_annots, data_annots, qx_to_dx = load_ordered_annots(
+        data_uri_order, query_uri_order)
+    daids = data_annots.aids
+    qaids = query_annots.aids
+
     query_super_kpts = ut.take(kpts_list, qx_to_dx)
     query_super_vecs = ut.take(vecs_list, qx_to_dx)
     query_super_wxs  = ut.take(wx_lists, qx_to_dx)
@@ -615,6 +615,7 @@ def run_asmk_script():
     # =======================
     # CONSTRUCT QUERY / DATABASE REPR
     # =======================
+
     int_rvec = not config['dtype'].startswith('float')
 
     X_list = []
@@ -638,6 +639,7 @@ def run_asmk_script():
 
     #======================
     # Add in some groundtruth
+
     print('Add in some groundtruth')
     for Y, nid in zip(Y_list, ibs.get_annot_nids(daids)):
         Y.nid = nid

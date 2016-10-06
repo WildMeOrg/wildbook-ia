@@ -544,16 +544,93 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         * Accept external feedback
         * Return filtered edges
 
+    Notes:
+        General workflow goes
+        * Initialize Step
+            * Add annots/names/configs/matches to AnnotInference Object
+            * Apply Edges (mst/matches/feedback)
+            * Apply Scores
+            * Apply Weights
+            * Apply Inference
+        * Review Step
+            * TODO: Get shortlist of results
+            * Present results to user
+            * Apply user feedback
+            * Apply Inference
+            * Record results
+            * Repeat
+
+    Terminology and Concepts:
+
+        Each node contains:
+            * annotation id
+            * original name label
+            * current name label
+            * feature vector(s)
+
+        Each edge contains:
+            * raw matching scores
+            * pairwise features for learning
+            * probability match/notmatch/notcomp
+            * probability same/diff | features
+            * User feedback:
+                match - confidence / trust
+                notmatch - confidence / trust
+                notcomp - confidence / trust
+            * probability same/diff | feedback
+
+        * MST Edge - connects two nodes that with the same name label
+                     that would otherwise have been separated in the graph.
+                     This essentially corresponds to a low-trust feedback edge
+                     because somebody marked these two as the same at one
+                     point.
+
     CommandLine:
-        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
+        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
+        ibeis AnnotInference:0 --show
+        ibeis AnnotInference:1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-        >>> infr = testdata_infr()
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids = [1, 2, 3, 4, 5, 6]
+        >>> infr = AnnotInference(ibs, aids, autoinit=True)
         >>> result = ('infr = %s' % (infr,))
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> use_image = True
+        >>> infr.initialize_visual_node_attrs()
+        >>> # Note that there are initially no edges
+        >>> infr.show_graph(use_image=use_image)
+        >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
+        >>> infr = AnnotInference(ibs, aids, autoinit=True)
+        >>> result = ('infr = %s' % (infr,))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> use_image = False
+        >>> infr.initialize_visual_node_attrs()
+        >>> # Note that there are initially no edges
+        >>> infr.show_graph(use_image=use_image)
+        >>> # But we can add nodes between the same names
+        >>> infr.apply_mst()
+        >>> infr.show_graph(use_image=use_image)
+        >>> # Add some feedback
+        >>> infr.add_feedback(1, 4, 'nomatch')
+        >>> infr.apply_feedback_edges()
+        >>> infr.show_graph(use_image=use_image)
+        >>> ut.show_if_requested()
+        infr = <AnnotInference(nAids=6, nEdges=0)>
+
     """
 
     truth_texts = {
@@ -600,45 +677,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         infr.qreq_ = qreq_
         return infr
 
-    def augment_name_nodes(infr):
-        raise NotImplementedError('do not use')
-        # If we want to represent name nodes in the graph
-        name_graph = infr.graph.copy()
-        #infr.qreq_.dnid_list
-        #infr.qreq_.daid_list
-        daids = infr.qreq_.daids
-        dnids = infr.qreq_.get_qreq_annot_nids(daids)
-        unique_dnids = ut.unique(dnids)
-        dname_nodes = [('nid', nid) for nid in unique_dnids]
-        name_graph.add_nodes_from(dname_nodes)
-        nx.set_node_attributes(name_graph, 'nid', _dz(dname_nodes, unique_dnids))
-
-        node_to_nid = nx.get_node_attrs(name_graph, 'nid')
-        nid_to_node = ut.invert_dict(node_to_nid)
-
-        dannot_nodes = ut.take(infr.aid_to_node, daids)
-        dname_nodes = ut.take(nid_to_node, dnids)
-        name_graph.add_edges_from(zip(dannot_nodes, dname_nodes))
-
-        #graph = infr.graph
-        graph = name_graph
-        nx.set_node_attrs(name_graph, 'name_label', node_to_nid)
-        infr.initialize_visual_node_attrs(graph)
-        nx.set_node_attrs(graph, 'shape', _dz(dname_nodes, ['circle']))
-        infr.update_visual_attrs(graph=name_graph, show_cuts=False)
-        namenode_to_label = {
-            node: 'nid=%r' % (nid,)
-            for node, nid in node_to_nid.items()
-        }
-        nx.set_node_attributes(name_graph, 'label', namenode_to_label)
-        pt.show_nx(graph, layout='custom', as_directed=False, modify_ax=False,
-                   use_image=False, verbose=0)
-        pt.zoom_factory()
-        pt.pan_factory(pt.gca())
-
-        #dannot_nodes = ut.take(infr.aid_to_node, dnids)
-        pass
-
     def __nice__(infr):
         if infr.graph is None:
             return 'nAids=%r, G=None' % (len(infr.aids))
@@ -646,16 +684,23 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             return 'nAids=%r, nEdges=%r' % (len(infr.aids),
                                               infr.graph.number_of_edges())
 
-    def reset_feedback(infr):
-        """ Resets feedback edges to state of the SQL annotmatch table """
+    def initialize_graph(infr):
         if infr.verbose:
-            print('[infr] reset_feedback')
-        infr.user_feedback = infr.read_user_feedback()
+            print('[infr] initialize_graph')
+        #infr.graph = graph = nx.DiGraph()
+        infr.graph = graph = nx.Graph()
+        graph.add_nodes_from(infr.aids)
 
-    def remove_feedback(infr):
-        if infr.verbose:
-            print('[infr] remove_feedback')
-        infr.user_feedback = ut.ddict(list)
+        node_to_aid = {aid: aid for aid in infr.aids}
+        infr.node_to_aid = node_to_aid
+        node_to_nid = {aid: nid for aid, nid in
+                       zip(infr.aids, infr.orig_name_labels)}
+        assert len(node_to_nid) == len(node_to_aid), '%r - %r' % (
+            len(node_to_nid), len(node_to_aid))
+        nx.set_node_attrs(graph, 'aid', node_to_aid)
+        nx.set_node_attrs(graph, 'name_label', node_to_nid)
+        nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
+        infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
 
     def connected_compoment_reviewed_subgraphs(infr):
         """
@@ -724,95 +769,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                     ccx1, ccx2 = ccx2, ccx1
                 separated_ccxs.add((ccx1, ccx2))
 
-        def approx_min_num_components(nodes, negative_edges):
-            """
-            Find minimum number of connected compoments possible
-            Each edge represents that two nodes must be separated
-
-            This code doesn't solve the problem. The problem is NP-complete and
-            reduces to minimum clique cover (MCC). This might be an
-            approximation though.
-
-            >>> import networkx as nx
-            >>> nodes = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-            >>> edges = [(1, 2), (2, 3), (3, 1),
-            >>>          (4, 5), (5, 6), (6, 4),
-            >>>          (7, 8), (8, 9), (9, 7),
-            >>>          (1, 4), (4, 7), (7, 1),
-            >>>         ]
-            >>> g_pos = nx.Graph()
-            >>> g_pos.add_edges_from(edges)
-            >>> import plottool as pt
-            >>> pt.qt4ensure()
-            >>> g_neg = nx.complement(g_pos)
-            >>> pt.show_nx(g_neg)
-            >>> negative_edges = g_neg.edges()
-
-            >>> nodes = [1, 2, 3, 4, 5, 6, 7]
-            >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
-            >>> minimum_number_compoments_possible(nodes, negative_edges)
-            2
-            """
-            num = 0
-            g_neg = nx.Graph()
-            g_neg.add_nodes_from(nodes)
-            g_neg.add_edges_from(negative_edges)
-
-            # Collapse all nodes with degree 0
-            deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
-            for u, v in ut.itertwo(deg0_nodes):
-                g_neg = nx.contracted_nodes(g_neg, v, u)
-
-            # Initialize unused nodes to be everything
-            unused = list(g_neg.nodes())
-            # complement of the graph contains all possible positive edges
-            g_pos = nx.complement(g_neg)
-
-            if False:
-                from networkx.algorithms.approximation import clique
-                maxiset, cliques = clique.clique_removal(g_pos)
-                num = len(cliques)
-                return num
-
-            # Iterate until we have used all nodes
-            while len(unused) > 0:
-                # Seed a new "minimum compoment"
-                num += 1
-                # Grab a random unused node n1
-                #idx1 = np.random.randint(0, len(unused))
-                idx1 = 0
-                n1 = unused[idx1]
-                unused.remove(n1)
-                neigbs = list(g_pos.neighbors(n1))
-                neigbs = ut.isect(neigbs, unused)
-                while len(neigbs) > 0:
-                    # Find node n2, that n1 could be connected to
-                    #idx2 = np.random.randint(0, len(neigbs))
-                    idx2 = 0
-                    n2 = neigbs[idx2]
-                    unused.remove(n2)
-                    # Collapse negative information of n1 and n2
-                    g_neg = nx.contracted_nodes(g_neg, n1, n2)
-                    # Compute new possible positive edges
-                    g_pos = nx.complement(g_neg)
-                    # Iterate until n1 has no more possible connections
-                    neigbs = list(g_pos.neighbors(n1))
-                    neigbs = ut.isect(neigbs, unused)
-            print('num = %r' % (num,))
-            return num
-
         num_names_min = approx_min_num_components(infr.aids, separated_ccxs)
-        # pass
-
-        #for count, subgraph in enumerate(cc_subgraphs):
-        #    sub_reviewed_states = nx.get_edge_attrs(subgraph, 'reviewed_state')
-        #    inconsistent_edges = [
-        #        edge for edge, val in sub_reviewed_states.items()
-        #        if val == 'nomatch'
-        #    ]
-        #    if len(inconsistent_edges) > 0:
-        #        #print('Inconsistent')
-        #        num_inconsistent += 1
 
         status = dict(
             num_names_max=num_names_max,
@@ -926,24 +883,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         #df.index = pd.Index(aid_pairs, name=('aid1', 'aid2'))
         return df
 
-    def initialize_graph(infr):
-        if infr.verbose:
-            print('[infr] initialize_graph')
-        #infr.graph = graph = nx.DiGraph()
-        infr.graph = graph = nx.Graph()
-        graph.add_nodes_from(infr.aids)
-
-        node_to_aid = {aid: aid for aid in infr.aids}
-        infr.node_to_aid = node_to_aid
-        node_to_nid = {aid: nid for aid, nid in
-                       zip(infr.aids, infr.orig_name_labels)}
-        assert len(node_to_nid) == len(node_to_aid), '%r - %r' % (
-            len(node_to_nid), len(node_to_aid))
-        nx.set_node_attrs(graph, 'aid', node_to_aid)
-        nx.set_node_attrs(graph, 'name_label', node_to_nid)
-        nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
-        infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
-
     def match_state_delta(infr):
         """ Returns information about state change of annotmatches """
         old_feedback = infr._pandas_feedback_format(infr.read_user_feedback())
@@ -1006,13 +945,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
     #    graph = infr.graph
     #    graph.add_edges_from(aid_pairs)
 
-    def reset_name_labels(infr):
-        if infr.verbose:
-            print('[infr] reset_name_labels')
-        graph = infr.graph
-        orig_names = nx.get_node_attrs(graph, 'orig_name_label')
-        nx.set_node_attrs(graph, 'name_label', orig_names)
-
     def lookup_cm(infr, aid1, aid2):
         if infr.cm_list is None:
             return None, aid1, aid2
@@ -1027,6 +959,49 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
         return cm, aid1, aid2
+
+    def get_feedback_probs(infr):
+        """ Helper """
+        unique_pairs = list(infr.user_feedback.keys())
+        # Take most recent review
+        review_list = [infr.user_feedback[edge][-1] for edge in unique_pairs]
+        p_nomatch = np.array(ut.dict_take_column(review_list, 'p_nomatch'))
+        p_match = np.array(ut.dict_take_column(review_list, 'p_match'))
+        p_notcomp = np.array(ut.dict_take_column(review_list, 'p_notcomp'))
+        state_probs = np.vstack([p_nomatch, p_match, p_notcomp])
+        review_stateid = state_probs.argmax(axis=0)
+        review_state = ut.take(infr.truth_texts, review_stateid)
+        p_bg = 0.5  # Needs to be thresh value
+        part1 = p_match * (1 - p_notcomp)
+        part2 = p_bg * p_notcomp
+        p_same_list = part1 + part2
+        return p_same_list, unique_pairs, review_state
+
+    def get_edge_attr(infr, key):
+        return nx.get_edge_attributes(infr.graph, key)
+
+    def get_node_attr(infr, key):
+        return nx.get_node_attributes(infr.graph, key)
+
+    def reset_name_labels(infr):
+        """ Changes annotation names labels back to their initial values """
+        if infr.verbose:
+            print('[infr] reset_name_labels')
+        graph = infr.graph
+        orig_names = nx.get_node_attrs(graph, 'orig_name_label')
+        nx.set_node_attrs(graph, 'name_label', orig_names)
+
+    def reset_feedback(infr):
+        """ Resets feedback edges to state of the SQL annotmatch table """
+        if infr.verbose:
+            print('[infr] reset_feedback')
+        infr.user_feedback = infr.read_user_feedback()
+
+    def remove_feedback(infr):
+        """ Deletes all feedback """
+        if infr.verbose:
+            print('[infr] remove_feedback')
+        infr.user_feedback = ut.ddict(list)
 
     def remove_name_labels(infr):
         if infr.verbose:
@@ -1114,24 +1089,11 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                 assert state in infr.truth_texts.values(), msg
             infr.user_feedback[edge].append(review)
 
-    def get_feedback_probs(infr):
-        """ Helper """
-        unique_pairs = list(infr.user_feedback.keys())
-        # Take most recent review
-        review_list = [infr.user_feedback[edge][-1] for edge in unique_pairs]
-        p_nomatch = np.array(ut.dict_take_column(review_list, 'p_nomatch'))
-        p_match = np.array(ut.dict_take_column(review_list, 'p_match'))
-        p_notcomp = np.array(ut.dict_take_column(review_list, 'p_notcomp'))
-        state_probs = np.vstack([p_nomatch, p_match, p_notcomp])
-        review_stateid = state_probs.argmax(axis=0)
-        review_state = ut.take(infr.truth_texts, review_stateid)
-        p_bg = 0.5  # Needs to be thresh value
-        part1 = p_match * (1 - p_notcomp)
-        part2 = p_bg * p_notcomp
-        p_same_list = part1 + part2
-        return p_same_list, unique_pairs, review_state
-
     def apply_mst(infr):
+        """
+        MST edges connect nodes labeled with the same name.
+        This is done in case an explicit feedback or score edge does not exist.
+        """
         if infr.verbose:
             print('[infr] apply_mst')
         # Remove old MST edges
@@ -1193,94 +1155,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         infr.graph.add_edges_from(new_mst_edges)
         nx.set_edge_attrs(infr.graph, '_mst_edge', _dz(new_mst_edges, [True]))
 
-    def mst_review(infr):
-        """
-        Adds implicit reviews to connect all ndoes with the same name label
-        """
-        if infr.verbose:
-            print('[infr] ensure_mst')
-        import networkx as nx
-        # Find clusters by labels
-        node2_label = nx.get_node_attrs(infr.graph, 'name_label')
-        label2_nodes = ut.group_items(node2_label.keys(), node2_label.values())
-
-        aug_graph = infr.graph.copy().to_undirected()
-
-        # remove cut edges
-        edge_to_iscut = nx.get_edge_attrs(aug_graph, 'is_cut')
-        cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
-        aug_graph.remove_edges_from(cut_edges)
-
-        # Enumerate chains inside labels
-        unflat_edges = [list(ut.itertwo(nodes)) for nodes in label2_nodes.values()]
-        node_pairs = [tup for tup in ut.iflatten(unflat_edges) if tup[0] != tup[1]]
-
-        # Remove candidate MST edges that exist in the original graph
-        orig_edges = list(aug_graph.edges())
-        candidate_mst_edges = [edge for edge in node_pairs if not aug_graph.has_edge(*edge)]
-
-        aug_graph.add_edges_from(candidate_mst_edges)
-        # Weight edges in aug_graph such that existing edges are chosen
-        # to be part of the MST first before suplementary edges.
-
-        def get_edge_mst_weights(edge):
-            state = aug_graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
-            is_mst = aug_graph.get_edge_data(*edge).get('_mst_edge', False)
-            normscore = aug_graph.get_edge_data(*edge).get('normscore', 0)
-
-            if state == 'match':
-                # favor reviewed edges
-                weight = .01
-            else:
-                # faveor states with high scores
-                weight = 1 + (1 - normscore)
-            if is_mst:
-                # try to not use mst edges
-                weight += 3.0
-            return weight
-
-        rng = np.random.RandomState(42)
-
-        nx.set_edge_attributes(aug_graph, 'weight',
-                               {edge: get_edge_mst_weights(edge) for edge in orig_edges})
-        nx.set_edge_attributes(aug_graph, 'weight',
-                               {edge: 10.0 + rng.randint(1, 100)
-                                for edge in candidate_mst_edges})
-        new_mst_edges = []
-        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
-            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
-            for edge in mst_sub_graph.edges():
-                data = aug_graph.get_edge_data(*edge)
-                state = data.get('reviewed_state', 'unreviewed')
-                # Append only if this edge needs a review flag
-                if state != 'match':
-                    new_mst_edges.append(edge)
-
-        if infr.verbose:
-            print('[infr] reviewing %d MST edges' % (len(new_mst_edges)))
-
-        # Apply data / add edges if needed
-        graph = infr.graph
-        for edge in new_mst_edges:
-            redge = edge[::-1]
-            # Only add if this edge is not in the original graph
-            if graph.has_edge(*edge):
-                nx.set_edge_attrs(graph, 'reviewed_state', {edge: 'match'})
-                infr.add_feedback(edge[0], edge[1], 'match')
-            elif graph.has_edge(*redge):
-                nx.set_edge_attrs(graph, 'reviewed_state', {redge: 'match'})
-                infr.add_feedback(edge[0], edge[1], 'match')
-            else:
-                graph.add_edge(*edge, attr_dict={
-                    '_mst_edge': True, 'reviewed_state': 'match'})
-                infr.add_feedback(edge[0], edge[1], 'match')
-
-    def get_edge_attr(infr, key):
-        return nx.get_edge_attributes(infr.graph, key)
-
-    def get_node_attr(infr, key):
-        return nx.get_node_attributes(infr.graph, key)
-
     def apply_match_scores(infr):
         """
         CommandLine:
@@ -1339,7 +1213,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         edge_scores = ut.replace_nones(edge_scores, np.nan)
         edge_scores = np.array(edge_scores)
         edge_ranks = np.array(list(ut.take_column(edge_to_data.values(), 'rank')))
-        normscores = edge_scores / np.nanmax(edge_scores)
+        normscores = edge_scores / np.nanmax(edge_scores)  # inf norm
 
         # Add new attrs
         nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
@@ -1456,16 +1330,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         scalars[CUT_WEIGHT_KEY] = nx.get_edge_attrs(infr.graph, CUT_WEIGHT_KEY).values()
         return scalars
 
-    #def remove_cuts(infr):
-    #    """
-    #    Undo all cuts HACK
-    #    """
-    #    if infr.verbose:
-    #        print('[infr] apply_cuts')
-    #    graph = infr.graph
-    #    infr.ensure_mst()
-    #    ut.nx_delete_edge_attr(graph, 'is_cut')
-
     def apply_cuts(infr):
         """
         Cuts edges with different names and uncuts edges with the same name.
@@ -1515,8 +1379,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         infr.infer_cut()
 
     def find_possible_binary_splits(infr):
-        #s = infr.simplify_graph(infr.graph)
-
         flagged_edges = []
 
         for subgraph in infr.connected_compoment_reviewed_subgraphs():
@@ -1540,6 +1402,9 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         """
         Returns a list of edges (typically for user review) based on a specific
         filter configuration.
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden get_filtered_edges --show
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1636,7 +1501,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         if review_cfg['filter_photobombs']:
             am_list = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
             ispb_flags = ibs.get_annotmatch_prop('Photobomb', am_list)
-            #isneg_flags = ispb_flags
             valid_flags = filter_between_ccs_neg(aids1, aids2, ispb_flags)
             num_filtered += len(valid_flags) - sum(valid_flags)
             aids1 = ut.compress(aids1, valid_flags)
@@ -1683,14 +1547,13 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
                                    for state in review_states], dtype=np.bool)
             # Notcomps should not be considered in this filtering
             scores[is_notcomp] = -2
-            #
-            namepair_id_list = np.array(vt.compute_unique_data_ids_(
-                list(zip(nids1, nids2))), dtype=np.int)
-            unique_namepair_ids, namepair_groupxs = vt.group_indices(namepair_id_list)
-            score_namepair_groups = vt.apply_grouping(scores, namepair_groupxs)
+            namepair_id_list = vt.compute_unique_data_ids_(ut.lzip(nids1, nids2))
+            namepair_id_list = np.array(namepair_id_list, dtype=np.int)
+            unique_np_ids, np_groupxs = vt.group_indices(namepair_id_list)
+            score_np_groups = vt.apply_grouping(scores, np_groupxs)
             unique_rowx2 = sorted([
                 groupx[score_group.argmax()]
-                for groupx, score_group in zip(namepair_groupxs, score_namepair_groups)
+                for groupx, score_group in zip(np_groupxs, score_np_groups)
             ])
             aids1 = ut.take(aids1, unique_rowx2)
             aids2 = ut.take(aids2, unique_rowx2)
@@ -1748,6 +1611,83 @@ def piecewise_weighting(infr, normscores, edges):
     #b = 2
     #p_same = scipy.special.expit(b * edge_scores - a)
     #confidence = (2 * np.abs(0.5 - p_same)) ** 2
+
+
+def approx_min_num_components(nodes, negative_edges):
+    """
+    Find approximate minimum number of connected compoments possible
+    Each edge represents that two nodes must be separated
+
+    This code doesn't solve the problem. The problem is NP-complete and
+    reduces to minimum clique cover (MCC). This is only an approximate
+    solution.
+
+    >>> import networkx as nx
+    >>> nodes = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    >>> edges = [(1, 2), (2, 3), (3, 1),
+    >>>          (4, 5), (5, 6), (6, 4),
+    >>>          (7, 8), (8, 9), (9, 7),
+    >>>          (1, 4), (4, 7), (7, 1),
+    >>>         ]
+    >>> g_pos = nx.Graph()
+    >>> g_pos.add_edges_from(edges)
+    >>> import plottool as pt
+    >>> pt.qt4ensure()
+    >>> g_neg = nx.complement(g_pos)
+    >>> pt.show_nx(g_neg)
+    >>> negative_edges = g_neg.edges()
+    >>> nodes = [1, 2, 3, 4, 5, 6, 7]
+    >>> negative_edges = [(1, 2), (2, 3), (4, 5)]
+    >>> approx_min_num_components(nodes, negative_edges)
+    2
+    """
+    num = 0
+    g_neg = nx.Graph()
+    g_neg.add_nodes_from(nodes)
+    g_neg.add_edges_from(negative_edges)
+
+    # Collapse all nodes with degree 0
+    deg0_nodes = [n for n, d in g_neg.degree_iter() if d == 0]
+    for u, v in ut.itertwo(deg0_nodes):
+        g_neg = nx.contracted_nodes(g_neg, v, u)
+
+    # Initialize unused nodes to be everything
+    unused = list(g_neg.nodes())
+    # complement of the graph contains all possible positive edges
+    g_pos = nx.complement(g_neg)
+
+    if False:
+        from networkx.algorithms.approximation import clique
+        maxiset, cliques = clique.clique_removal(g_pos)
+        num = len(cliques)
+        return num
+
+    # Iterate until we have used all nodes
+    while len(unused) > 0:
+        # Seed a new "minimum compoment"
+        num += 1
+        # Grab a random unused node n1
+        #idx1 = np.random.randint(0, len(unused))
+        idx1 = 0
+        n1 = unused[idx1]
+        unused.remove(n1)
+        neigbs = list(g_pos.neighbors(n1))
+        neigbs = ut.isect(neigbs, unused)
+        while len(neigbs) > 0:
+            # Find node n2, that n1 could be connected to
+            #idx2 = np.random.randint(0, len(neigbs))
+            idx2 = 0
+            n2 = neigbs[idx2]
+            unused.remove(n2)
+            # Collapse negative information of n1 and n2
+            g_neg = nx.contracted_nodes(g_neg, n1, n2)
+            # Compute new possible positive edges
+            g_pos = nx.complement(g_neg)
+            # Iterate until n1 has no more possible connections
+            neigbs = list(g_pos.neighbors(n1))
+            neigbs = ut.isect(neigbs, unused)
+    print('num = %r' % (num,))
+    return num
 
 
 def testdata_infr(defaultdb='PZ_MTEST'):

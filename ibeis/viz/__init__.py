@@ -16,7 +16,7 @@ from ibeis.viz import viz_name
 from ibeis.viz import viz_nearest_descriptors
 from ibeis.viz import viz_qres
 from ibeis.viz import viz_sver
-from ibeis.viz import viz_graph
+from ibeis.viz import viz_graph2
 from ibeis.viz import viz_other
 
 from ibeis.viz import viz_helpers as vh
