@@ -586,6 +586,20 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         if autoinit:
             infr.initialize_graph()
 
+    @classmethod
+    def from_qreq_(cls, qreq_, cm_list):
+        """
+        Create a AnnotInference object using a precomputed query / results
+        """
+        # raise NotImplementedError('do not use')
+        aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
+        nids = qreq_.get_qreq_annot_nids(aids)
+        ibs = qreq_.ibs
+        infr = cls(ibs, aids, nids, verbose=False)
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
+        return infr
+
     def augment_name_nodes(infr):
         raise NotImplementedError('do not use')
         # If we want to represent name nodes in the graph
@@ -624,17 +638,6 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
         #dannot_nodes = ut.take(infr.aid_to_node, dnids)
         pass
-
-    @classmethod
-    def from_qreq_(cls, qreq_, cm_list):
-        raise NotImplementedError('do not use')
-        aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
-        nids = qreq_.get_qreq_annot_nids(aids)
-        ibs = qreq_.ibs
-        infr = cls(ibs, aids, nids, verbose=False)
-        infr.cm_list = cm_list
-        infr.qreq_ = qreq_
-        return infr
 
     def __nice__(infr):
         if infr.graph is None:
@@ -1288,9 +1291,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching()
-            >>> infr.apply_match_edges()
             >>> infr.apply_match_scores()
-            >>> result = infr.apply_match_scores()
             >>> infr.get_edge_attr('score')
         """
         if infr.verbose:
@@ -1539,6 +1540,18 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         """
         Returns a list of edges (typically for user review) based on a specific
         filter configuration.
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.exec_matching()
+            >>> infr.apply_match_edges()
+            >>> infr.apply_match_scores()
+            >>> infr.apply_feedback_edges()
+            >>> review_cfg = {'max_num': 3}
+            >>> aids1, aids2 = infr.get_filtered_edges(review_cfg)
+            >>> assert len(aids1) == 3
         """
         review_cfg_defaults = {
             'ranks_top': 3,
@@ -1681,6 +1694,16 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             ])
             aids1 = ut.take(aids1, unique_rowx2)
             aids2 = ut.take(aids2, unique_rowx2)
+
+        if review_cfg['max_num'] is not None:
+            scores = np.array([
+                # hack
+                max(graph.get_edge_data(*edge).get('score', -1), -1)
+                for edge in zip(aids1, aids2)])
+            sortx = scores.argsort()[::-1]
+            top_idx = sortx[:review_cfg['max_num']]
+            aids1 = ut.take(aids1, top_idx)
+            aids2 = ut.take(aids2, top_idx)
 
         print('[infr] num_filtered = %r' % (num_filtered,))
         return aids1, aids2

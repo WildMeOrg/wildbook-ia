@@ -62,6 +62,16 @@ Note:
     bot2 got .551
 
 
+    vecs07, root_sift, approx assign, (either jegou or my words)
+    mAP=.673
+
+    Weird:
+    vecs07, root_sift, exact assign,
+    Maybe jegou words or maybe my words. Can't quite tell.
+    Might have messed with a config.
+    mAP=0.68487357885738664
+
+
 Differences Between this and SMK:
    * No RootSIFT
    * No SIFT Centering
@@ -413,18 +423,18 @@ def run_asmk_script():
     # PREPROCESSING CONFIGURATION
     # ==============================================
     config = {
+        'data_year': 2013,
         'dtype': 'float32',
         'root_sift': True,
         'centering': True,
         'num_words': 2 ** 16,
         #'num_words': 1E6
         #'num_words': 8000,
-        'checks': 1024,
 
-        'extern_words': False,
+        'extern_words': True,
         'extern_assign': False,
-        'assign_algo': 'linear',
-        'data_year': 2013,
+        'assign_algo': 'kdtree',
+        'checks': 1024,
     }
     # Define which params are relevant for which operations
     relevance = {}
