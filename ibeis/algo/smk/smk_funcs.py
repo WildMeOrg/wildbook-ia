@@ -366,8 +366,9 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> print('idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),))
-        >>> print('idx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),))
+        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
+        >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
+        >>> print(result)
         idx_to_wxs = MaskedArray([[0, 1],
                         [2, --],
                         [4, --],
@@ -390,8 +391,9 @@ def weight_multi_assigns(_idx_to_wx, _idx_to_wdist, massign_alpha=1.2,
         >>> idx_to_wxs, idx_to_maws = weight_multi_assigns(
         >>>     _idx_to_wx, _idx_to_wdist, massign_alpha, massign_sigma,
         >>>     massign_equal_weights)
-        >>> print('idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),))
-        >>> print('idx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),))
+        >>> result = 'idx_to_wxs = %s' % (ut.repr2(idx_to_wxs),)
+        >>> result += '\nidx_to_maws = %s' % (ut.repr2(idx_to_maws, precision=2),)
+        >>> print(result)
         idx_to_wxs = MaskedArray([[0, 1],
                         [2, --],
                         [4, --],
@@ -521,7 +523,7 @@ def assign_to_words(vocab, idx_to_vec, nAssign, massign_alpha=1.2,
 
 
 def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
-    """
+    r"""
     Inverts assignment of vectors to words into words to vectors.
 
     Example:
@@ -538,8 +540,9 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
         >>>     np.array([ 0.5,  0.5], dtype=np.float32),
         >>> ]
         >>> wx_to_idxs, wx_to_maws = invert_assigns_old(idx_to_wxs, idx_to_maws)
-        >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
-        >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
+        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),)
+        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws),)
+        >>> print(result)
         wx_to_idxs = {
             0: np.array([0, 2], dtype=np.int32),
             2: np.array([1, 2], dtype=np.int32),
@@ -567,7 +570,7 @@ def invert_assigns_old(idx_to_wxs, idx_to_maws, verbose=False):
 
 
 def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
-    """
+    r"""
     Inverts assignment of
     vectors->to->words into words->to->vectors.
     Invert mapping -- Group by word indexes
@@ -587,8 +590,9 @@ def invert_assigns(idx_to_wxs, idx_to_maws, verbose=False):
         >>> idx_to_maws[1, 1] = np.ma.masked
         >>> tup = invert_assigns(idx_to_wxs, idx_to_maws)
         >>> wx_to_idxs, wx_to_maws = tup
-        >>> print('wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),))
-        >>> print('wx_to_maws = %s' % (ut.repr4(wx_to_maws),))
+        >>> result = 'wx_to_idxs = %s' % (ut.repr4(wx_to_idxs),)
+        >>> result += '\nwx_to_maws = %s' % (ut.repr4(wx_to_maws),)
+        >>> print(result)
         wx_to_idxs = {
             0: np.array([0, 2], dtype=np.int32),
             2: np.array([1, 2], dtype=np.int32),
@@ -672,7 +676,8 @@ def inv_doc_freq(ndocs_total, ndocs_per_word):
         >>> ndocs_total = 21
         >>> ndocs_per_word = [0, 21, 20, 2, 15, 8, 12, 1, 2]
         >>> idf_per_word = inv_doc_freq(ndocs_total, ndocs_per_word)
-        >>> print('%s' % (ut.repr2(idf_per_word, precision=2),))
+        >>> result = '%s' % (ut.repr2(idf_per_word, precision=2),)
+        >>> print(result)
         np.array([ 0.  ,  0.  ,  0.05,  2.35,  0.34,  0.97,  0.56,  3.04,  2.35])
     """
     # We add epsilon to numer and denom to ensure recep is a probability
@@ -720,8 +725,9 @@ def match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh):
         >>> alpha = 3.0
         >>> thresh = 0.0
         >>> score_list = match_scores_agg(PhisX, PhisY, flagsX, flagsY, alpha, thresh)
-        >>> print('score_list = ' + ut.repr2(score_list, precision=4))
-        score_list = np.array([ 1.    ,  0.0018,  0.    ,  1.0,  0.868 ])
+        >>> result = 'score_list = ' + ut.repr2(score_list, precision=4)
+        >>> print(result)
+        score_list = np.array([ 1.    ,  0.0018,  0.    ,  1.    ,  0.868 ])
     """
     # Can speedup aggregate with one vector per word assumption.
     # Take dot product between correponding VLAD vectors

@@ -2338,7 +2338,7 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         num_ = 1
     else:
         num_ = num
-    if ut.get_computer_names() == 'ibeis.cs.uic.edu':
+    if ut.get_computer_name() == 'ibeis.cs.uic.edu':
         location_text = 'LWC'
     nid_list = ibs._get_all_known_name_rowids()
     names_used_list = set(ibs.get_name_texts(nid_list))

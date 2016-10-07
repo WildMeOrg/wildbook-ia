@@ -551,6 +551,8 @@ def execute_commands(tpl_rman, ibeis_rman):
     # Execute Commands on Core Repos
     #-----------
 
+    CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo()
+
     print('ibeis_rman = %r' % (ibeis_rman,))
 
     wildme_ssh_flags = GET_ARGFLAG('--move-wildme') or GET_ARGFLAG('--move-wildme-ssh')
@@ -667,22 +669,22 @@ def execute_commands(tpl_rman, ibeis_rman):
         ibeis_rman.custom_build()
         # Build only IBEIS repos with setup.py
         _rman = ibeis_rman.only_with_pysetup()
-        _rman.issue('{pythoncmd} setup.py build'.format(**locals()))
+        _rman.issue('{pythoncmd} setup.py build'.format(pythoncmd=pythoncmd))
 
     # Like install, but better if you are developing
     if GET_ARGFLAG('--develop'):
         _rman = ibeis_rman.only_with_pysetup()
-        _rman.issue('{pythoncmd} setup.py develop'.format(**locals()),
+        _rman.issue('{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd),
                     sudo=not ut.in_virtual_env())
 
     if GET_ARGFLAG('--clean'):
         _rman = ibeis_rman.only_with_pysetup()
-        _rman.issue('{pythoncmd} setup.py clean'.format(**locals()))
+        _rman.issue('{pythoncmd} setup.py clean'.format(pythoncmd=pythoncmd))
 
     if GET_ARGFLAG('--install'):
         print('WARNING: Dont use install if you are a developer. Use develop instead.')
         _rman = ibeis_rman.only_with_pysetup()
-        _rman.issue('python setup.py install'.format(**locals()))
+        _rman.issue('python setup.py install'.format(pythoncmd=pythoncmd))
 
     if GET_ARGFLAG('--push'):
         ibeis_rman.issue('git push')
@@ -701,7 +703,7 @@ def execute_commands(tpl_rman, ibeis_rman):
         ibeis_rman.issue('git push --tags')
 
     if GET_ARGFLAG('--bext'):
-        ibeis_rman.issue('{pythoncmd} setup.py build_ext --inplace'.format(**locals()))
+        ibeis_rman.issue('{pythoncmd} setup.py build_ext --inplace'.format(pythoncmd=pythoncmd))
 
     commit_msg = GET_ARGVAL('--commit', type_=str, default=None)
     if commit_msg is not None:
