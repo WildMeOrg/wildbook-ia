@@ -626,12 +626,10 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         acfg_cacheinfo = get_acfg_cacheinfo(ibs, aidcfg)
         acfg_cachedir, acfg_cachename, aid_cachestr = acfg_cacheinfo
     if use_cache:
-        try:
-            (qaid_list, daid_list) = ut.load_cache(
-                acfg_cachedir, acfg_cachename, aid_cachestr)
-        except IOError:
-            pass
-        else:
+        aids_tup = ut.tryload_cache(
+            acfg_cachedir, acfg_cachename, aid_cachestr)
+        if aids_tup is not None:
+            (qaid_list, daid_list) = aids_tup
             return qaid_list, daid_list
 
     comp_acfg = annotation_configs.compress_aidcfg(aidcfg)
