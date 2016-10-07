@@ -1287,7 +1287,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
     for annot1 in annot1_list:
         if 'flann' not in annot1:
             annot1['flann'] = lambda: vt.flann_cache(
-                annot1['vecs'], flann_params=flann_params, quiet=True,
+                annot1['vecs'], flann_params=flann_params,
                 verbose=False)
 
     qaid_to_annot = dict(zip(unique_qaids, annot1_list))
