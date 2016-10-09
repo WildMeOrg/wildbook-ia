@@ -76,6 +76,12 @@ Note:
     Still using the same descriptors, but my own vocab with approx assign
     mAP  = 0.78032│
 
+    my own vocab approx assign, no center
+    map = .793
+
+    The problem was minibatch params. Need higher batch size and init size.
+    Needed to modify sklearn to handle this requirement.
+
 
 
 Differences Between this and SMK:
@@ -389,16 +395,51 @@ def load_oxford_2013():
     return data
 
 
+def load_oxford_ibeis():
+    import ibeis
+    ibs = ibeis.opendb('Oxford')
+    _dannots = ibs.annots(ibs.filter_annots_general(has_none='query'),
+                          config=dict(dim_size=None))
+    _qannots = ibs.annots(ibs.filter_annots_general(has_any='query'))
+
+    with ut.Timer('reading info'):
+        vecs_list = _dannots.vecs
+        kpts_list = _dannots.kpts
+        nfeats_list = np.array(_dannots.num_feats)
+
+    with ut.Timer('stacking info'):
+        all_vecs = np.vstack(vecs_list)
+        all_kpts = np.vstack(kpts_list)
+        offset_list = np.hstack(([0], nfeats_list.cumsum())).astype(np.int64)
+        # data_annots = reorder_annots(_dannots, data_uri_order)
+
+    data_uri_order = get_annots_imgid(_dannots)
+    query_uri_order = get_annots_imgid(_qannots)
+    data = {
+        'offset_list': offset_list,
+        'all_kpts': all_kpts,
+        'all_vecs': all_vecs,
+        'data_uri_order': data_uri_order,
+        'query_uri_order': query_uri_order,
+    }
+    return data
+
+
+def get_annots_imgid(_annots):
+    from os.path import basename, splitext
+    _images = _annots._ibs.images(_annots.gids)
+    intern_uris = [splitext(basename(uri))[0]
+                   for uri in _images.uris_original]
+    return intern_uris
+
+
 def load_ordered_annots(data_uri_order, query_uri_order):
     # Open the ibeis version of oxford
-    from os.path import basename, splitext
     import ibeis
     ibs = ibeis.opendb('Oxford')
 
     def reorder_annots(_annots, uri_order):
-        _images = ibs.images(_annots.gids)
-        intern_uris = [splitext(basename(uri))[0]
-                       for uri in _images.uris_original]
+        intern_uris = get_annots_imgid(_annots)
         lookup = ut.make_index_lookup(intern_uris)
         _reordered = _annots.take(ut.take(lookup, uri_order))
         return _reordered
@@ -416,6 +457,57 @@ def load_ordered_annots(data_uri_order, query_uri_order):
     qx_to_dx = ut.take(dgid_to_dx, query_annots.gids)
 
     return ibs, query_annots, data_annots, qx_to_dx
+
+
+"""
+
+
+Feat Info
+==========
+name     | num_vecs   |
+=======================
+Oxford13 | 12,534,635 |
+Oxford07 | 16,334,970 |
+mine1    |      ?     |
+
+
+Cluster Algo Config
+===================
+name       | algo             | init      | init_size      |  batch size  |
+==========================================================================|
+minibatch1 | minibatch kmeans | kmeans++  | num_words * 4  | 100          |
+minibatch2 | minibatch kmeans | kmeans++  | num_words * 4  | 1000         |
+given13    | Lloyd?           | kmeans++? | num_words * 8? | nan?         |
+
+
+Assign Algo Config
+==================
+name   | algo   | trees | checks     |
+======================================
+approx | kdtree |  8    | 1024       |
+exact  | linear |  nan  | nan        |
+exact  | linear |  nan  | nan        |
+
+
+SMK Results
+===========
+  tagid    | mAP    | train_feats | test_feats | center | rootSIFT | assign  | num_words | cluster methods |
+           |================================================================================================
+           | 0.38   |  mine1      |   mine1    |        |          | approx  |  2 ** 16  | minibatch1      |
+           | 0.541  |  oxford07   |   oxford07 |        |    X     | approx  |  2 ** 16  | minibatch1      |
+           | 0.673  |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch1      |
+           | 0.6848 |  oxford13   |   oxford13 |   X    |    X     | exact   |  2 ** 16  | minibatch1      |
+           -------------------------------------------------------------------------------------------------
+ mybest    | 0.793  |  oxford13   |   oxford13 |        |    X     | approx  |  2 ** 16  | minibatch2      |
+           | 0.780  |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch2      |
+           | 0.7883 |  paras13    |   oxford13 |   X    |    X     | approx  |  2 ** 16  | given13         |
+  allgiven | 0.784  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
+reported13 | 0.781  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
+
+In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing
+the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
+
+"""
 
 
 def run_asmk_script():
@@ -470,6 +562,8 @@ def run_asmk_script():
         data = load_oxford_2007()
     elif config['data_year'] == 2013:
         data = load_oxford_2013()
+    elif config['data_year'] is None:
+        data = load_oxford_ibeis()
 
     offset_list = data['offset_list']
     all_kpts = data['all_kpts']

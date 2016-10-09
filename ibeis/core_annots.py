@@ -249,7 +249,8 @@ def compute_chip(depc, aid_list, config=None):
         #cfpath, gid, new_size, M = tup
         gid, new_size, M = tup
         # Read parent image # TODO: buffer this
-        if gid != last_gid:  # We assume the gids are nicely ordered, no need to load the image more than once, if so
+        # We assume the gids are nicely ordered, no need to load the image more than once, if so
+        if gid != last_gid:
             imgBGR = ibs.get_image_imgdata(gid)
             last_gid = gid
         # Warp chip
@@ -258,9 +259,6 @@ def compute_chip(depc, aid_list, config=None):
             chipBGR = filtfn(chipBGR)
         width, height = vt.get_size(chipBGR)
         yield (chipBGR, width, height, M)
-        # Write chip to disk
-        #vt.imwrite(cfpath, chipBGR)
-        #yield (cfpath, width, height, M)
 
 
 @register_subprop('chips', 'dlen_sqrd')
