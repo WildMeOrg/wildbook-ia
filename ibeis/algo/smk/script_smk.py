@@ -536,7 +536,7 @@ def run_asmk_script():
                     clusterer = sklearn.cluster.MiniBatchKMeans(
                         config['num_words'], init_size=init_size,
                         batch_size=1000, compute_labels=False, random_state=rng,
-                        n_init=1, verbose=5)
+                        n_init=1, verbose=2)
                     clusterer.fit(all_vecs)
                     words = clusterer.cluster_centers_
                 elif config['kmeans_impl'] == 'yael':
