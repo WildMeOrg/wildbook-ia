@@ -72,6 +72,12 @@ Note:
     mAP=0.68487357885738664
 
 
+    October 8
+    Still using the same descriptors, but my own vocab with approx assign
+    mAP  = 0.78032│
+
+
+
 Differences Between this and SMK:
    * No RootSIFT
    * No SIFT Centering
@@ -205,7 +211,7 @@ class SparseVector(ut.NiceRepr):
 #     vecs_list = stacked_vecs.split()
 
 
-def load_oxford_2007(config):
+def load_oxford_2007():
     """
     Loads data from
     http://www.robots.ox.ac.uk:5000/~vgg/publications/2007/Philbin07/philbin07.pdf
@@ -426,7 +432,8 @@ def run_asmk_script():
         'data_year': 2013,
         'dtype': 'float32',
         'root_sift': True,
-        'centering': True,
+        # 'centering': True,
+        'centering': False,
         'num_words': 2 ** 16,
         #'num_words': 1E6
         #'num_words': 8000,
@@ -520,18 +527,19 @@ def run_asmk_script():
         words = word_cacher.tryload()
         if words is None:
             with ut.embed_on_exception_context:
-                kmeans_impl = 'sklearn'
-                if kmeans_impl == 'sklearn':
+                if config['kmeans_impl'] == 'sklearn.mini':
                     import sklearn.cluster
                     rng = np.random.RandomState(13421421)
-                    init_size = int(config['num_words'] * 8)
+                    # init_size = int(config['num_words'] * 8)
+                    init_size = int(config['num_words'] * 4)
+                    # converged after 26043 iterations
                     clusterer = sklearn.cluster.MiniBatchKMeans(
                         config['num_words'], init_size=init_size,
                         batch_size=1000, compute_labels=False, random_state=rng,
                         n_init=1, verbose=5)
                     clusterer.fit(all_vecs)
                     words = clusterer.cluster_centers_
-                elif kmeans_impl == 'yael':
+                elif config['kmeans_impl'] == 'yael':
                     from yael import ynumpy
                     centroids, qerr, dis, assign, nassign = ynumpy.kmeans(
                         all_vecs, config['num_words'], init='kmeans++',
