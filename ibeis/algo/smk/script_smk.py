@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Results so far without SV / fancyness
 Using standard descriptors / vocabulary
@@ -74,7 +75,7 @@ Note:
 
     October 8
     Still using the same descriptors, but my own vocab with approx assign
-    mAP  = 0.78032│
+    mAP  = 0.78032
 
     my own vocab approx assign, no center
     map = .793
