@@ -521,7 +521,9 @@ def run_asmk_script():
     # PREPROCESSING CONFIGURATION
     # ==============================================
     config = {
-        'data_year': 2013,
+        # 'data_year': 2013,
+        'data_year': None,
+
         'dtype': 'float32',
         'root_sift': True,
         # 'centering': True,
