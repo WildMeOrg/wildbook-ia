@@ -83,6 +83,8 @@ Note:
     The problem was minibatch params. Need higher batch size and init size.
     Needed to modify sklearn to handle this requirement.
 
+    Using my own descriptors I got 0.7460. Seems good.
+
 
 
 Differences Between this and SMK:
