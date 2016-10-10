@@ -225,7 +225,7 @@ def compute_vocab(depc, fid_list, config):
     """
     print('[IBEIS] COMPUTE_VOCAB:')
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
-    train_vecs = np.vstack(vecs_list)
+    train_vecs = np.vstack(vecs_list).astype(np.float32)
     num_words = config['num_words']
     max_iter = 100
     print('[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
@@ -263,14 +263,14 @@ def compute_vocab(depc, fid_list, config):
             clusterer.fit(train_vecs)
         words = clusterer.cluster_centers_
         print('Finished clustering')
-    if False:
-        flann_params['checks'] = 64
-        flann_params['trees'] = 4
-        num_words = 128
-        centroids = vt.initialize_centroids(num_words, train_vecs, 'akmeans++')
-        words, hist = vt.akmeans_iterations(
-            train_vecs, centroids, max_iters=1000, monitor=True,
-            flann_params=flann_params)
+    # if False:
+    #     flann_params['checks'] = 64
+    #     flann_params['trees'] = 4
+    #     num_words = 128
+    #     centroids = vt.initialize_centroids(num_words, train_vecs, 'akmeans++')
+    #     words, hist = vt.akmeans_iterations(
+    #         train_vecs, centroids, max_iters=1000, monitor=True,
+    #         flann_params=flann_params)
 
     print('Constructing vocab')
     vocab = VisualVocab(words)

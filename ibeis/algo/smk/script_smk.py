@@ -1115,7 +1115,7 @@ def load_internal_data():
     import ibeis
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='Oxford', a='oxford',
-        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True')
+        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None')
     cm_list = qreq_.execute()
     ave_precisions = [cm.get_annot_ave_precision() for cm in cm_list]
     mAP = np.mean(ave_precisions)
@@ -1189,8 +1189,8 @@ def hyrule_vocab_test():
         # converged after 26043 iterations
         minibatch_params = dict(
             n_clusters=num_words,
-            # init='k-means++',
-            init='random',
+            init='k-means++',
+            # init='random',
             init_size=init_size,
             n_init=1,
             max_iter=100,
