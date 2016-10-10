@@ -185,7 +185,6 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
 
     TODO: look into DraggableAnnotation
     """
-    #print('[viz_graph] drawing %d images' % len(img_list))
     # Thumb stackartist
     import vtool as vt
     import plottool as pt
