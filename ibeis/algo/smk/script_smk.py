@@ -312,8 +312,14 @@ def load_oxford_2013():
     Found this data in README of SMK publication
     https://hal.inria.fr/hal-00864684/document
     http://people.rennes.inria.fr/Herve.Jegou/publications.html
-    with download link
-    wget -nH --cut-dirs=4 -r -Pdata/ ftp://ftp.irisa.fr/local/texmex/corpus/iccv2013/
+    with download script
+
+    CommandLine:
+        # Download oxford13 data
+        cd ~/work/Oxford
+        mkdir -p smk_data_iccv_2013
+        cd smk_data_iccv_2013
+        wget -nH --cut-dirs=4 -r -Pdata/ ftp://ftp.irisa.fr/local/texmex/corpus/iccv2013/
 
     This dataset has 5063 images wheras 07 has 5062
     This dataset seems to contain an extra junk image:
@@ -495,7 +501,7 @@ exact  | linear |  nan  | nan        |
 SMK Results
 ===========
   tagid    | mAP    | train_feats | test_feats | center | rootSIFT | assign  | num_words | cluster methods |
-           |================================================================================================
+           =================================================================================================
            | 0.38   |  mine1      |   mine1    |        |          | approx  |  2 ** 16  | minibatch1      |
            | 0.541  |  oxford07   |   oxford07 |        |    X     | approx  |  2 ** 16  | minibatch1      |
            | 0.673  |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch1      |
@@ -506,6 +512,8 @@ SMK Results
            | 0.7883 |  paras13    |   oxford13 |   X    |    X     | approx  |  2 ** 16  | given13         |
   allgiven | 0.784  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
 reported13 | 0.781  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
+           -------------------------------------------------------------------------------------------------
+   allmine | 0.746  |  oxfordme   |   oxfordme |        |    X     | approx  |  2 ** 16  | minibatch2      |
 
 In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing
 the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
@@ -634,8 +642,8 @@ def run_asmk_script():
                     # converged after 26043 iterations
                     clusterer = sklearn.cluster.MiniBatchKMeans(
                         config['num_words'], init_size=init_size,
-                        batch_size=1000, compute_labels=False, random_state=rng,
-                        n_init=1, verbose=2)
+                        batch_size=1000, compute_labels=False,
+                        random_state=rng, n_init=1, verbose=1)
                     clusterer.fit(all_vecs)
                     words = clusterer.cluster_centers_
                 elif config['kmeans_impl'] == 'yael':
@@ -1156,6 +1164,48 @@ def check_image_sizes(data_uri_order, all_kpts, offset_list):
         _, maxx, _, maxy = extent
         assert np.isnan(maxx) or maxx < w
         assert np.isnan(maxy) or maxy < h
+
+
+def hyrule_vocab_test():
+    from yael.yutils import load_ext
+    from os.path import join
+    import sklearn.cluster
+
+    dbdir = ut.truepath('/raid/work/Oxford/')
+    datadir = dbdir + '/smk_data_iccv_2013/data/'
+
+    # Files storing descriptors/geometry for Oxford5k dataset
+    test_sift_fname = join(datadir, 'oxford_sift.uint8')
+    # test_nf_fname = join(datadir, 'oxford_nsift.uint32')
+    all_vecs = load_ext(test_sift_fname, ndims=128, verbose=True).astype(np.float32)
+    print(ut.print_object_size(all_vecs))
+    # nfeats_list = load_ext(test_nf_fname, verbose=True)
+
+    with ut.embed_on_exception_context:
+        rng = np.random.RandomState(13421421)
+        # init_size = int(config['num_words'] * 8)
+        num_words = int(2 ** 16)
+        init_size = num_words * 4
+        # converged after 26043 iterations
+        minibatch_params = dict(
+            n_clusters=num_words,
+            # init='k-means++',
+            init='random',
+            init_size=init_size,
+            n_init=1,
+            max_iter=100,
+            batch_size=1000,
+            tol=0.0,
+            max_no_improvement=10,
+            reassignment_ratio=0.01,
+        )
+        clusterer = sklearn.cluster.MiniBatchKMeans(
+            compute_labels=False, random_state=rng, verbose=1,
+            **minibatch_params)
+        clusterer.fit(all_vecs)
+        words = clusterer.cluster_centers_
+        print(words.shape)
+
 
 if __name__ == '__main__':
     r"""

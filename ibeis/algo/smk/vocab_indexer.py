@@ -19,8 +19,8 @@ class VocabConfig(dtool.Config):
         ut.ParamInfo('algorithm', 'minibatch', 'alg'),
         ut.ParamInfo('random_seed', 42, 'seed'),
         ut.ParamInfo('num_words', 1000, 'n'),
-        ut.ParamInfo('version', 1),
-        ut.ParamInfo('n_init', 3, hideif=lambda cfg: cfg['algorithm'] != 'minibatch' or cfg['n_init'] == 3),
+        ut.ParamInfo('version', 2),
+        ut.ParamInfo('n_init', 3),
     ]
 
 
@@ -227,13 +227,13 @@ def compute_vocab(depc, fid_list, config):
     vecs_list = depc.get_native('feat', fid_list, 'vecs')
     train_vecs = np.vstack(vecs_list)
     num_words = config['num_words']
-    max_iters = 100
+    max_iter = 100
     print('[smk_index] Train Vocab(nWords=%d) using %d annots and %d descriptors' %
           (num_words, len(fid_list), len(train_vecs)))
     if config['algorithm'] == 'kdtree':
         flann_params = vt.get_flann_params(random_seed=42)
         kwds = dict(
-            max_iters=max_iters,
+            max_iters=max_iter,
             flann_params=flann_params
         )
         words = vt.akmeans(train_vecs, num_words, **kwds)
@@ -244,9 +244,22 @@ def compute_vocab(depc, fid_list, config):
         n_init = config['n_init']
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            init_size = int(num_words * 4)
+            batch_size = 1000
+            minibatch_params = dict(
+                n_clusters=num_words,
+                init='k-means++',
+                init_size=init_size,
+                n_init=n_init,
+                max_iter=max_iter,
+                batch_size=batch_size,
+                tol=0.0,
+                max_no_improvement=10,
+                reassignment_ratio=0.01,
+            )
             clusterer = sklearn.cluster.MiniBatchKMeans(
-                num_words, random_state=rng,
-                n_init=n_init, verbose=5)
+                compute_labels=False, random_state=rng, verbose=1,
+                **minibatch_params)
             clusterer.fit(train_vecs)
         words = clusterer.cluster_centers_
         print('Finished clustering')
