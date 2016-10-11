@@ -239,7 +239,7 @@ def execute_singles(qreq_):
 
 def execute_and_save(qreq_miss):
     # Iterate over vsone queries in chunks.
-    total_chunks = ut.get_nTotalChunks(len(qreq_miss.qaids), qreq_miss.chunksize)
+    total_chunks = ut.get_num_chunks(len(qreq_miss.qaids), qreq_miss.chunksize)
     qaid_chunk_iter = ut.ichunks(qreq_miss.qaids, qreq_miss.chunksize)
     _prog = ut.ProgPartial(nTotal=total_chunks, freq=1,
                            lbl='[mc5] query chunk: ',

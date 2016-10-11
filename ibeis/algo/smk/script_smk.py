@@ -407,9 +407,11 @@ def load_oxford_2013():
 def load_oxford_ibeis():
     import ibeis
     ibs = ibeis.opendb('Oxford')
+    dim_size = None
     _dannots = ibs.annots(ibs.filter_annots_general(has_none='query'),
-                          config=dict(dim_size=None))
-    _qannots = ibs.annots(ibs.filter_annots_general(has_any='query'))
+                          config=dict(dim_size=dim_size))
+    _qannots = ibs.annots(ibs.filter_annots_general(has_any='query'),
+                          config=dict(dim_size=dim_size))
 
     with ut.Timer('reading info'):
         vecs_list = _dannots.vecs
@@ -477,7 +479,8 @@ name     | num_vecs   |
 =======================
 Oxford13 | 12,534,635 |
 Oxford07 | 16,334,970 |
-mine1    |      ?     |
+mine1    |  8,997,955 |
+mine2    | 13,516,721 |
 
 
 Cluster Algo Config
@@ -513,7 +516,8 @@ SMK Results
   allgiven | 0.784  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
 reported13 | 0.781  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
            -------------------------------------------------------------------------------------------------
-   allmine | 0.746  |  oxfordme   |   oxfordme |        |    X     | approx  |  2 ** 16  | minibatch2      |
+  inhouse1 | 0.746  |     mine2   |      mine2 |        |    X     | approx  |  2 ** 16  | minibatch2      |
+  inhouse2 |        |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |
 
 In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing
 the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
@@ -642,7 +646,7 @@ def run_asmk_script():
                     # converged after 26043 iterations
                     clusterer = sklearn.cluster.MiniBatchKMeans(
                         config['num_words'], init_size=init_size,
-                        batch_size=1000, compute_labels=False,
+                        batch_size=1000, compute_labels=False, max_iter=20,
                         random_state=rng, n_init=1, verbose=1)
                     clusterer.fit(all_vecs)
                     words = clusterer.cluster_centers_

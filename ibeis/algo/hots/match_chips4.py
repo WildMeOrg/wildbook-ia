@@ -291,7 +291,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
         chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
 
         # Iterate over vsone queries in chunks.
-        nTotalChunks    = ut.get_nTotalChunks(len(all_qaids), chunksize)
+        nTotalChunks    = ut.get_num_chunks(len(all_qaids), chunksize)
         qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
         _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
         sub_qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
