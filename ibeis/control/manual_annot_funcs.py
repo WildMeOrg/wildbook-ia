@@ -2063,6 +2063,19 @@ def get_annot_image_gps(ibs, aid_list):
 
 
 @register_ibs_method
+@ut.accepts_numpy
+@accessor_decors.getter_1to1
+@register_api('/api/annot/image/gps2/', methods=['GET'], __api_plural_check__=False)
+def get_annot_image_gps2(ibs, aid_list):
+    r"""
+    fixes the (-1, -1) issue. returns nan instead.
+    """
+    gid_list = ibs.get_annot_gids(aid_list)
+    gps_list = ibs.get_image_gps2(gid_list)
+    return gps_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot/image/file/path/', methods=['GET'])
 def get_annot_image_paths(ibs, aid_list):

@@ -239,6 +239,8 @@ class SMKRequest(mc5.EstimatorRequest):
         print('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
         memtrack.report()
+        import utool
+        utool.embed()
 
     def execute_pipeline(qreq_):
         """
@@ -334,6 +336,8 @@ class SMK(ut.NiceRepr):
             shortsize = None
 
         X = qreq_.qinva.get_annot(qaid)
+        import utool
+        utool.embed()
 
         # Determine which database annotations need to be checked
         #with ut.Timer('searching qaid=%r' % (qaid,), verbose=verbose):

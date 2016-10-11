@@ -47,7 +47,7 @@ TestFuncs:
     --print-scorediff-mat-stats --print-confusion-stats
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import six  # NOQA
 import numpy as np
 import vtool as vt
@@ -62,6 +62,505 @@ from six.moves import zip, range, reduce  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 #from collections import namedtuple
+
+
+def get_training_pairs():
+    """
+    Notes:
+        Meausres are:
+
+          Local:
+            * LNBNN score
+            * Foregroundness score
+            * SIFT correspondence distance
+            * SIFT normalizer distance
+            * Correspondence neighbor rank
+            * Nearest unique name distances
+            * SVER Error
+
+          Global:
+            * Viewpoint labels
+            * Quality Labels
+            * Database Size
+            * Number of correspondences
+            % Total LNBNN Score
+
+        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> from vtool.matching import *  # NOQA
+    """
+    import ibeis
+    qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default')
+    cm_list = qreq_.execute()
+    num_gt = 3
+    num_hard_gf = 2
+    num_rand_gf = 1
+    aid_pairs = []
+
+    # Extract pairs of annotation ids
+    for cm in cm_list:
+        cm.score_csum(qreq_)
+        gt_aids = cm.get_top_gt_aids(qreq_.ibs)[0:num_gt].tolist()
+        hard_gf_aids = cm.get_top_gf_aids(qreq_.ibs)[0:num_hard_gf].tolist()
+        gf_aids = qreq_.ibs.get_annot_groundfalse(cm.qaid,
+                                                  daid_list=qreq_.daids)
+        rand_gf_aids = ut.random_sample(gf_aids, num_rand_gf)
+        aid_pairs.extend([(cm.qaid, aid)
+                          for aid in gt_aids + hard_gf_aids + rand_gf_aids])
+    aid_pairs = vt.unique_rows(np.array(aid_pairs), directed=False).tolist()
+    query_aids = ut.take_column(aid_pairs, 0)
+    data_aids = ut.take_column(aid_pairs, 1)
+
+    # Prepare lazy attributes for annotations
+    ibs = qreq_.ibs
+    qconfig2_ = qreq_.extern_query_config2
+    dconfig2_ = qreq_.extern_data_config2
+    qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
+    dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
+    configured_annot_dict = ut.ddict(dict)
+    config_aids_pairs = [(qannot_cfg, query_aids), (dannot_cfg, data_aids)]
+    for config, aids in ut.ProgIter(config_aids_pairs, lbl='prepare annots'):
+        annot_dict = configured_annot_dict[config]
+        for aid in ut.unique(aids):
+            if aid not in annot_dict:
+                annot = ibs.get_annot_lazy_dict(aid, config)
+                flann_params = {'algorithm': 'kdtree', 'trees': 4}
+                vt.matching.ensure_metadata_flann(annot, flann_params)
+                annot_dict[aid] = annot
+                annot['yaw'] = ibs.get_annot_yaw_texts(aid)
+                annot['qual'] = ibs.get_annot_qualities(aid)
+                annot['gps'] = ibs.get_annot_image_gps2(aid)
+                annot['time'] = ibs.get_annot_image_unixtimes_asfloat(aid)
+                del annot['annot_context_options']
+
+    # Extract pairs of annot objects (with shared caches)
+    annot1_list = ut.take(configured_annot_dict[qannot_cfg], query_aids)
+    annot2_list = ut.take(configured_annot_dict[dannot_cfg], data_aids)
+    truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
+
+    verbose = True  # NOQA
+
+    match_list = [vt.PairwiseMatch(annot1, annot2)
+                  for annot1, annot2 in zip(annot1_list, annot2_list)]
+
+    # Preload needed attributes
+    for match in ut.ProgIter(match_list, lbl='preload'):
+        match.annot1['flann']
+        match.annot2['vecs']
+
+    cfgdict = {'checks': 20}
+
+    for match in ut.ProgIter(match_list, lbl='assign vsone'):
+        match.assign(cfgdict)
+
+    global_keys = ['yaw', 'qual', 'gps', 'time']
+    for match in ut.ProgIter(match_list, lbl='setup globals'):
+        match.global_measures = {}
+        for key in global_keys:
+            match.global_measures[key] = (match.annot1[key], match.annot2[key])
+
+    import sklearn
+    import sklearn.metrics
+    if False:
+        # Param search for vsone
+        import plottool as pt
+        pt.qt4ensure()
+
+        import sklearn
+        import sklearn.metrics
+        skf = sklearn.model_selection.StratifiedKFold(n_splits=10,
+                                                      random_state=119372)
+
+        basis = {'ratio_thresh': np.linspace(.6, .7, 50).tolist()}
+        grid = ut.all_dict_combinations(basis)
+        xdata = np.array(ut.take_column(grid, 'ratio_thresh'))
+
+        def _ratio_thresh(y_true, match_list):
+            # Try and find optional ratio threshold
+            auc_list = []
+            for cfgdict in ut.ProgIter(grid, lbl='gridsearch'):
+                y_score = [
+                    match.fs.compress(match.ratio_test_flags(cfgdict)).sum()
+                    for match in match_list
+                ]
+                auc = sklearn.metrics.roc_auc_score(y_true, y_score)
+                auc_list.append(auc)
+            auc_list = np.array(auc_list)
+            return auc_list
+
+        auc_list = _ratio_thresh(truth_list, match_list)
+        pt.plot(xdata, auc_list)
+        subx, suby = vt.argsubmaxima(auc_list, xdata)
+        best_ratio_thresh = subx[suby.argmax()]
+
+        skf_results = []
+        y_true = truth_list
+        for train_idx, test_idx in skf.split(match_list, truth_list):
+            match_list_ = ut.take(match_list, train_idx)
+            y_true = truth_list.take(train_idx)
+            auc_list = _ratio_thresh(y_true, match_list_)
+            subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
+            best_ratio_thresh = subx[suby.argmax()]
+            skf_results.append(best_ratio_thresh)
+        print('skf_results.append = %r' % (np.mean(skf_results),))
+
+    for match in ut.ProgIter(match_list, lbl='assign vsone'):
+        match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+
+    score_list = np.array([m.fs.sum() for m in match_list])
+    encoder = vt.ScoreNormalizer()
+    encoder.fit(score_list, truth_list, verbose=True)
+    encoder.visualize()
+
+    def matches_auc(match_list):
+        score_list = np.array([m.fs.sum() for m in match_list])
+        auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
+        print('auc = %r' % (auc,))
+        return auc
+
+    matchesORIG = match_list
+    matches_auc(matchesORIG)
+
+    matches_SV = [match.apply_sver(inplace=False)
+                  for match in ut.ProgIter(matchesORIG, lbl='sver')]
+    matches_auc(matches_SV)
+
+    matches_RAT = [match.apply_ratio_test(inplace=False)
+                   for match in ut.ProgIter(matchesORIG, lbl='ratio')]
+    matches_auc(matches_RAT)
+
+    matches_RAT_SV = [match.apply_sver(inplace=False)
+                      for match in ut.ProgIter(matches_RAT, lbl='sver')]
+    matches_auc(matches_RAT_SV)
+
+    # from sklearn.ensemble import RandomForestClassifier
+    # from sklearn.calibration import CalibratedClassifierCV
+    # from sklearn.metrics import log_loss
+    # if False:
+    #     import pandas as pd
+    #     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
+    #                                    for m in matches_RAT_SV])
+
+    #     # Train uncalibrated random forest classifier on whole train and validation
+    #     # data and evaluate on test data
+    #     clf = RandomForestClassifier(n_estimators=25)
+    #     clf.fit(X_train_valid, y_train_valid)
+    #     clf_probs = clf.predict_proba(X_test)
+    #     score = log_loss(y_test, clf_probs)
+    #     print('score = %r' % (score,))
+
+    #     # Train random forest classifier, calibrate on validation data and evaluate
+    #     # on test data
+    #     clf = RandomForestClassifier(n_estimators=25)
+    #     clf.fit(X_train, y_train)
+    #     clf_probs = clf.predict_proba(X_test)
+    #     sig_clf = CalibratedClassifierCV(clf, method="sigmoid", cv="prefit")
+    #     sig_clf.fit(X_valid, y_valid)
+    #     sig_clf_probs = sig_clf.predict_proba(X_test)
+    #     sig_score = log_loss(y_test, sig_clf_probs)
+    #     print('sig_score = %r' % (sig_score,))
+
+
+def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):
+    r"""
+    Args:
+        qaid (int):  query annotation id
+        daid (?):
+        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
+        use_ibscache (bool): (default = True)
+
+    Returns:
+        tuple: (metadata, cfgdict)
+
+    CommandLine:
+        python -m ibeis.algo.hots.vsone_pipeline build_vsone_metadata --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> import guitool as gt
+        >>> import ibeis
+        >>> cfgdict = {}
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> qaid, daid = ibs.get_name_aids([ibs.get_valid_nids()[3]])[0][0:2]
+        >>> qaid, daid = 1, 10
+        >>> qreq_ = ibs.new_query_request([qaid], [daid], cfgdict=cfgdict)
+        >>> use_ibscache = not ut.get_argflag('--noibscache')
+        >>> metadata, cfgdict = build_vsone_metadata(qaid, daid, qreq_, use_ibscache)
+        >>> from vtool import inspect_matches
+        >>> gt.ensure_qapp()
+        >>> ut.qt4ensure()
+        >>> self = inspect_matches.MatchInspector(metadata=metadata)
+        >>> self.show()
+        >>> ut.quit_if_noshow()
+        >>> self.update()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
+    """
+    ibs = qreq_.ibs
+    qconfig2_ = qreq_.extern_query_config2
+    dconfig2_ = qreq_.extern_query_config2
+
+    metadata = ut.LazyDict()
+    annot1 = metadata['annot1'] = ut.LazyDict()
+    annot2 = metadata['annot2'] = ut.LazyDict()
+    annot1['rchip_fpath'] = ibs.get_annot_chip_fpath([qaid], config2_=qconfig2_)[0]
+    annot2['rchip_fpath'] = ibs.get_annot_chip_fpath([daid], config2_=qconfig2_)[0]
+    cfgdict = {}
+
+    if use_ibscache:
+        hack_multi_config = False
+        if hack_multi_config:
+            cfgdict = {'refine_method': 'affine'}
+            data_config_list = query_config_list = [
+                dict(affine_invariance=True),
+                dict(affine_invariance=False),
+            ]
+            kpts1 = np.vstack([ibs.get_annot_kpts(qaid, config2_=config2_)
+                               for config2_ in query_config_list])
+            vecs1 = np.vstack([ibs.get_annot_vecs(qaid, config2_=config2_)
+                               for config2_ in query_config_list])
+
+            kpts2 = np.vstack([ibs.get_annot_kpts(daid, config2_=config2_)
+                               for config2_ in data_config_list])
+            vecs2 = np.vstack([ibs.get_annot_vecs(daid, config2_=config2_)
+                               for config2_ in data_config_list])
+            dlen_sqrd2 = ibs.get_annot_chip_dlensqrd([daid],
+                                                     config2_=dconfig2_)[0]
+            annot1['kpts'] = kpts1
+            annot1['vecs'] = vecs1
+            annot2['kpts'] = kpts2
+            annot2['vecs'] = vecs2
+            annot2['dlen_sqrd'] = dlen_sqrd2
+        else:
+            annot1['kpts'] = ibs.get_annot_kpts(qaid, config2_=qconfig2_)
+            annot1['vecs'] = ibs.get_annot_vecs(qaid, config2_=qconfig2_)
+            annot2['kpts'] = ibs.get_annot_kpts(daid, config2_=dconfig2_)
+            annot2['vecs'] = ibs.get_annot_vecs(daid, config2_=dconfig2_)
+            annot2['dlen_sqrd'] = ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0]
+    return metadata, cfgdict
+
+
+def vsone_single(qaid, daid, qreq_, use_ibscache=True, verbose=None):
+    r"""
+    Uses vtools internal method
+
+    Args:
+        qaid (int):  query annotation id
+        daid (?):
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+
+    CommandLine:
+        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_single --show
+
+        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single
+        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single --nocache
+        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single --nocache --show
+        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single --show -t default:AI=False
+
+    SeeAlso:
+        python -m ibeis.algo.hots.vsone_pipeline --exec-extract_aligned_parts:1 --show  -t default:AI=False  # see x 11
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> import ibeis
+        >>> cfgdict = {}
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> qaid, daid = ibs.get_name_aids([ibs.get_valid_nids()[3]])[0][0:2]
+        >>> qreq_ = ibs.new_query_request([qaid], [daid], cfgdict=cfgdict)
+        >>> use_ibscache = not ut.get_argflag('--noibscache')
+        >>> match = vsone_single(qaid, daid, qreq_, use_ibscache)
+        >>> H1 = match.metadata['H_RAT']
+        >>> ut.quit_if_noshow()
+        >>> match.show(mode=1)
+        >>> ut.show_if_requested()
+    """
+    metadata, cfgdict = build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True)
+    match = vt.vsone_matching(metadata, cfgdict=cfgdict, verbose=verbose)
+    assert match.metadata is metadata
+    return match
+
+
+def vsone_name_independant_hack(ibs, nids, qreq_=None):
+    r"""
+    show grid of aids with matches inside and between names
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        nid (?):
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    CommandLine:
+        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_MTEST --show
+        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_Master1 --show --nids=5099,5181
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> import ibeis
+        >>> # TODO: testdata_qparams?
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
+        >>> nids = ut.get_argval('--nids', type_=list, default=[1])
+        >>> ibs = qreq_.ibs
+        >>> result = vsone_name_independant_hack(qreq_.ibs, nids, qreq_)
+        >>> print(result)
+        >>> ut.show_if_requested()
+    """
+    from plottool.interactions import ExpandableInteraction
+    import plottool as pt
+    import ibeis.viz
+    fnum = pt.ensure_fnum(None)
+    inter = ExpandableInteraction(fnum)
+
+    aids = ut.flatten(ibs.get_name_aids(nids))
+    print('len(aids) = %r' % (len(aids),))
+    idxs = range(len(aids))
+
+    def wrap_show_func(func, *args, **kwargs):
+        def _show_func_wrap(fnum=None, pnum=None):
+            return func(*args, fnum=fnum, pnum=pnum, **kwargs)
+        return _show_func_wrap
+
+    # TODO: append an optional alternate ishow function
+
+    #for idx1, idx2 in ut.upper_diag_self_prodx(idxs):
+    for idx1, idx2 in ut.self_prodx(idxs):
+        aid1 = aids[idx1]
+        aid2 = aids[idx2]
+        #vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
+        cfgdict = dict(codename='vsone', fg_on=False)
+        cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
+        vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
+        cm_vsone = vsone_qreq_.execute()[0]
+        cm_vsone = cm_vsone.extend_results(vsone_qreq_)
+        #cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
+        #cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
+        pnum = (len(aids), len(aids), (idx1 * len(aids) + idx2) + 1)
+        show_func = wrap_show_func(cm_vsone.show_single_annotmatch, vsone_qreq_, aid2=aid2, draw_lbl=False, show_name_score=True)
+        ishow_func = wrap_show_func(cm_vsone.ishow_single_annotmatch, vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True)
+        inter.append_plot(show_func, pnum=pnum, ishow_func=ishow_func)
+        #inter.append_plot(cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True), pnum=pnum)
+        #,  pnum=pnum)
+        #cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,
+        #                                fnum=fnum, pnum=pnum)
+
+    for idx in idxs:
+        aid = aids[idx]
+        pnum = (len(aids), len(aids), (idx * len(aids) + idx) + 1)
+        inter.append_plot(wrap_show_func(ibeis.viz.show_chip, ibs, aid, qreq_=qreq_, draw_lbl=False, nokpts=True), pnum=pnum)
+        #ibeis.viz.show_chip(ibs, aid, qreq_=qreq_,
+        #                    draw_lbl=False, nokpts=True,
+        #                    fnum=fnum, pnum=pnum)
+    inter.show_page()
+
+
+def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
+    r""" simple hack convinience func
+    Uses vsmany qreq to build a "similar" vsone qreq
+
+    TODO:
+        in the context menu let me change preferences for running vsone
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid1 (int):  annotation id
+        aid2 (int):  annotation id
+        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
+
+    CommandLine:
+        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --db PZ_MTEST
+        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --qaid=1 --daid=4
+        --cmd
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
+        >>> aid1 = ut.get_argval('--qaid', default=1)
+        >>> aid2 = ut.get_argval('--daid', default=2)
+        >>> result = vsone_independant_pair_hack(qreq_.ibs, aid1, aid2, qreq_)
+        >>> print(result)
+        >>> ibs = qreq_.ibs
+        >>> ut.show_if_requested()
+    """
+    cfgdict = dict(codename='vsone', fg_on=False)
+    # FIXME: update this cfgdict a little better
+    if qreq_ is not None:
+        cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
+    vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
+    cm_vsone = vsone_qreq_.execute()[0]
+    cm_vsone = cm_vsone.extend_results(vsone_qreq_)
+    #cm_vsone = chip_match.ChipMatch.from_qres(vsone_qres)
+    #cm_vsone.ishow_analysis(vsone_qreq_)
+    cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2)
+    #qres_vsone.ishow_analysis(ibs=ibs)
+    #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
+    #matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
+    #vt.matching.show_matching_dict(matches, metadata)
+
+
+def vsone_independant(qreq_):
+    r"""
+    Args:
+        qreq_ (QueryRequest):  query request object with hyper-parameters
+
+    CommandLine:
+        ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
+
+        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_independant --show
+
+        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=117 --exec-mode  # NOQA
+
+        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains
+        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=118,117
+
+        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show --db PZ_Master0 --qaid_list=97 --daid-list=4813,4815
+        --daid_list=all
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots import _pipeline_helpers as plh
+        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone', fg_on=False)
+        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
+        >>> ibs, qreq_ = ibeis.testdata_qreq_(p=p, qaid_override=[1], qaid_override=[2, 5])
+        >>> result = vsone_independant(qreq_)
+        >>> print(result)
+    """
+    # test script
+    ibs = qreq_.ibs
+    # ./dev.py --db lewa_grevys --cmd
+    # Get matches that have some property (scenerymatch)
+    # HACK TEST SCRIPT
+
+    #def get_scenery_match_aid_pairs(ibs):
+    #    import utool as ut
+    #    annotmatch_rowids = ibs._get_all_annotmatch_rowids()
+    #    flags = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowids)
+    #    annotmatch_rowids_ = ut.compress(annotmatch_rowids, flags)
+    #    aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowids_)
+    #    aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowids_)
+    #    aid_pair_list = list(zip(aid1_list, aid2_list))
+    #    return aid_pair_list
+
+    #aid_pair_list = get_scenery_match_aid_pairs(ibs)
+    #aid1, aid2 = aid_pair_list[0]
+
+    qaids = qreq_.get_internal_qaids()
+    daids = qreq_.get_internal_daids()
+    import vtool as vt
+
+    info_list = []
+    #for aid1, aid2 in ut.ProgressIter(aid_pair_list):
+    for aid1 in qaids:
+        for aid2 in daids:
+            rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
+            matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
+            info_list.append((matches, metadata))
+            print('So Far')
+            print(sum([matches['RAT+SV'][0].shape[0] for (matches, metadata) in info_list]))  # NOQA
+    # nnp_master had 15621 background examples
+
+    for matches, metadata in info_list:
+        vt.matching.show_matching_dict(matches, metadata)
 
 
 def show_post_vsmany_vser():
@@ -415,438 +914,6 @@ def unsupervised_similarity(ibs, aids):
     #for qx, dx in ut.ProgressIter(idx_list):
     #    match = pair_dict[(qx, dx)]
     #    match.show()
-
-
-def get_training_pairs():
-    """
-        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> from vtool.matching import *  # NOQA
-    """
-    import ibeis
-    qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', a='default')
-    cm_list = qreq_.execute()
-    num_gt = 3
-    num_hard_gf = 2
-    num_rand_gf = 1
-    aid_pairs = []
-
-    # Extract pairs of annotation ids
-    for cm in cm_list:
-        cm.score_csum(qreq_)
-        gt_aids = cm.get_top_gt_aids(qreq_.ibs)[0:num_gt].tolist()
-        hard_gf_aids = cm.get_top_gf_aids(qreq_.ibs)[0:num_hard_gf].tolist()
-        gf_aids = qreq_.ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
-        rand_gf_aids = ut.random_sample(gf_aids, num_rand_gf)
-        aid_pairs.extend([(cm.qaid, aid) for aid in gt_aids + hard_gf_aids + rand_gf_aids])
-    aid_pairs = vt.unique_rows(np.array(aid_pairs), directed=False).tolist()
-    query_aids = ut.take_column(aid_pairs, 0)
-    data_aids = ut.take_column(aid_pairs, 1)
-
-    # Prepare lazy attributes for annotations
-    ibs = qreq_.ibs
-    qconfig2_ = qreq_.extern_query_config2
-    dconfig2_ = qreq_.extern_data_config2
-    qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
-    dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
-    configured_annot_dict = ut.ddict(dict)
-    config_aids_pairs = [(qannot_cfg, query_aids), (dannot_cfg, data_aids)]
-    for config, aids in ut.ProgIter(config_aids_pairs, lbl='prepare annots'):
-        annot_dict = configured_annot_dict[config]
-        for aid in ut.unique(aids):
-            if aid not in annot_dict:
-                annot = ibs.get_annot_lazy_dict(aid, config)
-                flann_params = {'algorithm': 'kdtree', 'trees': 4}
-                vt.matching.ensure_metadata_flann(annot, flann_params)
-                annot_dict[aid] = annot
-                del annot['annot_context_options']
-
-    # Extract pairs of annot objects (with shared caches)
-    annot1_list = ut.take(configured_annot_dict[qannot_cfg], query_aids)
-    annot2_list = ut.take(configured_annot_dict[dannot_cfg], data_aids)
-    truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
-
-    verbose = True  # NOQA
-
-    match_list = [vt.PairwiseMatch(annot1, annot2)
-                  for annot1, annot2 in zip(annot1_list, annot2_list)]
-
-    # Preload needed attributes
-    for match in ut.ProgIter(match_list, lbl='preload'):
-        match.annot1['flann']
-        match.annot2['vecs']
-
-    cfgdict = {'checks': 20}
-    for match in ut.ProgIter(match_list, lbl='assign vsone'):
-        match.assign(cfgdict)
-
-    if False:
-        import plottool as pt
-        pt.qt4ensure()
-
-        import sklearn
-        import sklearn.metrics
-        skf = sklearn.model_selection.StratifiedKFold(n_splits=10,
-                                                      random_state=119372)
-
-        basis = {'ratio_thresh': np.linspace(.6, .7, 50).tolist()}
-        grid = ut.all_dict_combinations(basis)
-        xdata = np.array(ut.take_column(grid, 'ratio_thresh'))
-
-        def _ratio_thresh(y_true, match_list):
-            # Try and find optional ratio threshold
-            auc_list = []
-            for cfgdict in ut.ProgIter(grid, lbl='gridsearch'):
-                y_score = [match.fs.compress(match.ratio_test_flags(cfgdict)).sum()
-                           for match in match_list]
-                auc = sklearn.metrics.roc_auc_score(y_true, y_score)
-                auc_list.append(auc)
-            auc_list = np.array(auc_list)
-            return auc_list
-
-        auc_list = _ratio_thresh(truth_list, match_list)
-        pt.plot(xdata, auc_list)
-        subx, suby = vt.argsubmaxima(auc_list, xdata)
-        best_ratio_thresh = subx[suby.argmax()]
-
-        skf_results = []
-        y_true = truth_list
-        for train_idx, test_idx in skf.split(match_list, truth_list):
-            match_list_ = ut.take(match_list, train_idx)
-            y_true = truth_list.take(train_idx)
-            auc_list = _ratio_thresh(y_true, match_list_)
-            subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
-            best_ratio_thresh = subx[suby.argmax()]
-            skf_results.append(best_ratio_thresh)
-        print('skf_results.append = %r' % (np.mean(skf_results),))
-
-    for match in ut.ProgIter(match_list, lbl='assign vsone'):
-        match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
-
-    score_list = np.array([m.fs.sum() for m in match_list])
-    encoder = vt.ScoreNormalizer()
-    encoder.fit(score_list, truth_list, verbose=True)
-    encoder.visualize()
-
-    def matches_auc(match_list):
-        score_list = np.array([m.fs.sum() for m in match_list])
-        auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
-        print('auc = %r' % (auc,))
-        return auc
-
-    matchesORIG = match_list
-    matches_auc(matchesORIG)
-
-    matches_SV = [match.apply_sver(inplace=False) for match in ut.ProgIter(matchesORIG, lbl='sver')]
-    matches_auc(matches_SV)
-
-    matches_RAT = [match.apply_ratio_test(inplace=False) for match in ut.ProgIter(matchesORIG, lbl='ratio')]
-    matches_auc(matches_RAT)
-
-    matches_RAT_SV = [match.apply_sver(inplace=False) for match in ut.ProgIter(matches_RAT, lbl='ratio')]
-    matches_auc(matches_RAT_SV)
-
-
-def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):
-    r"""
-    Args:
-        qaid (int):  query annotation id
-        daid (?):
-        qreq_ (ibeis.QueryRequest):  query request object with hyper-parameters
-        use_ibscache (bool): (default = True)
-
-    Returns:
-        tuple: (metadata, cfgdict)
-
-    CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline build_vsone_metadata --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import guitool as gt
-        >>> import ibeis
-        >>> cfgdict = {}
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> qaid, daid = ibs.get_name_aids([ibs.get_valid_nids()[3]])[0][0:2]
-        >>> qaid, daid = 1, 10
-        >>> qreq_ = ibs.new_query_request([qaid], [daid], cfgdict=cfgdict)
-        >>> use_ibscache = not ut.get_argflag('--noibscache')
-        >>> metadata, cfgdict = build_vsone_metadata(qaid, daid, qreq_, use_ibscache)
-        >>> from vtool import inspect_matches
-        >>> gt.ensure_qapp()
-        >>> ut.qt4ensure()
-        >>> self = inspect_matches.MatchInspector(metadata=metadata)
-        >>> self.show()
-        >>> ut.quit_if_noshow()
-        >>> self.update()
-        >>> gt.qtapp_loop(qwin=self, freq=10)
-    """
-    ibs = qreq_.ibs
-    qconfig2_ = qreq_.extern_query_config2
-    dconfig2_ = qreq_.extern_query_config2
-
-    metadata = ut.LazyDict()
-    annot1 = metadata['annot1'] = ut.LazyDict()
-    annot2 = metadata['annot2'] = ut.LazyDict()
-    annot1['rchip_fpath'] = ibs.get_annot_chip_fpath([qaid], config2_=qconfig2_)[0]
-    annot2['rchip_fpath'] = ibs.get_annot_chip_fpath([daid], config2_=qconfig2_)[0]
-    cfgdict = {}
-
-    if use_ibscache:
-        hack_multi_config = False
-        if hack_multi_config:
-            cfgdict = {'refine_method': 'affine'}
-            data_config_list = query_config_list = [
-                dict(affine_invariance=True),
-                dict(affine_invariance=False),
-            ]
-            kpts1 = np.vstack([ibs.get_annot_kpts(qaid, config2_=config2_)
-                               for config2_ in query_config_list])
-            vecs1 = np.vstack([ibs.get_annot_vecs(qaid, config2_=config2_)
-                               for config2_ in query_config_list])
-
-            kpts2 = np.vstack([ibs.get_annot_kpts(daid, config2_=config2_)
-                               for config2_ in data_config_list])
-            vecs2 = np.vstack([ibs.get_annot_vecs(daid, config2_=config2_)
-                               for config2_ in data_config_list])
-            dlen_sqrd2 = ibs.get_annot_chip_dlensqrd([daid],
-                                                     config2_=dconfig2_)[0]
-            annot1['kpts'] = kpts1
-            annot1['vecs'] = vecs1
-            annot2['kpts'] = kpts2
-            annot2['vecs'] = vecs2
-            annot2['dlen_sqrd'] = dlen_sqrd2
-        else:
-            annot1['kpts'] = ibs.get_annot_kpts(qaid, config2_=qconfig2_)
-            annot1['vecs'] = ibs.get_annot_vecs(qaid, config2_=qconfig2_)
-            annot2['kpts'] = ibs.get_annot_kpts(daid, config2_=dconfig2_)
-            annot2['vecs'] = ibs.get_annot_vecs(daid, config2_=dconfig2_)
-            annot2['dlen_sqrd'] = ibs.get_annot_chip_dlensqrd([daid], config2_=dconfig2_)[0]
-    return metadata, cfgdict
-
-
-def vsone_single(qaid, daid, qreq_, use_ibscache=True, verbose=None):
-    r"""
-    Uses vtools internal method
-
-    Args:
-        qaid (int):  query annotation id
-        daid (?):
-        qreq_ (QueryRequest):  query request object with hyper-parameters
-
-    CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_single --show
-
-        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single
-        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single --nocache
-        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single --nocache --show
-        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_single --show -t default:AI=False
-
-    SeeAlso:
-        python -m ibeis.algo.hots.vsone_pipeline --exec-extract_aligned_parts:1 --show  -t default:AI=False  # see x 11
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import ibeis
-        >>> cfgdict = {}
-        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> qaid, daid = ibs.get_name_aids([ibs.get_valid_nids()[3]])[0][0:2]
-        >>> qreq_ = ibs.new_query_request([qaid], [daid], cfgdict=cfgdict)
-        >>> use_ibscache = not ut.get_argflag('--noibscache')
-        >>> match = vsone_single(qaid, daid, qreq_, use_ibscache)
-        >>> H1 = match.metadata['H_RAT']
-        >>> ut.quit_if_noshow()
-        >>> match.show(mode=1)
-        >>> ut.show_if_requested()
-    """
-    metadata, cfgdict = build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True)
-    match = vt.vsone_matching(metadata, cfgdict=cfgdict, verbose=verbose)
-    assert match.metadata is metadata
-    return match
-
-
-def vsone_name_independant_hack(ibs, nids, qreq_=None):
-    r"""
-    show grid of aids with matches inside and between names
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        nid (?):
-        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
-
-    CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_MTEST --show
-        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_name_independant_hack --db PZ_Master1 --show --nids=5099,5181
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import ibeis
-        >>> # TODO: testdata_qparams?
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
-        >>> nids = ut.get_argval('--nids', type_=list, default=[1])
-        >>> ibs = qreq_.ibs
-        >>> result = vsone_name_independant_hack(qreq_.ibs, nids, qreq_)
-        >>> print(result)
-        >>> ut.show_if_requested()
-    """
-    from plottool.interactions import ExpandableInteraction
-    import plottool as pt
-    import ibeis.viz
-    fnum = pt.ensure_fnum(None)
-    inter = ExpandableInteraction(fnum)
-
-    aids = ut.flatten(ibs.get_name_aids(nids))
-    print('len(aids) = %r' % (len(aids),))
-    idxs = range(len(aids))
-
-    def wrap_show_func(func, *args, **kwargs):
-        def _show_func_wrap(fnum=None, pnum=None):
-            return func(*args, fnum=fnum, pnum=pnum, **kwargs)
-        return _show_func_wrap
-
-    # TODO: append an optional alternate ishow function
-
-    #for idx1, idx2 in ut.upper_diag_self_prodx(idxs):
-    for idx1, idx2 in ut.self_prodx(idxs):
-        aid1 = aids[idx1]
-        aid2 = aids[idx2]
-        #vsone_independant_pair_hack(ibs, aid1, aid2, qreq_)
-        cfgdict = dict(codename='vsone', fg_on=False)
-        cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
-        vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
-        cm_vsone = vsone_qreq_.execute()[0]
-        cm_vsone = cm_vsone.extend_results(vsone_qreq_)
-        #cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
-        #cm_vsone.show_single_annotmatch(vsone_qreq_, aid2=aid2, fnum=fnum, pnum=(len(aids), len(aids), (idx1 * len(aids) + idx2) + 1))
-        pnum = (len(aids), len(aids), (idx1 * len(aids) + idx2) + 1)
-        show_func = wrap_show_func(cm_vsone.show_single_annotmatch, vsone_qreq_, aid2=aid2, draw_lbl=False, show_name_score=True)
-        ishow_func = wrap_show_func(cm_vsone.ishow_single_annotmatch, vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True)
-        inter.append_plot(show_func, pnum=pnum, ishow_func=ishow_func)
-        #inter.append_plot(cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2, draw_lbl=False, noupdate=True), pnum=pnum)
-        #,  pnum=pnum)
-        #cm_vsone.show_single_annotmatch(vsone_qreq_, daid=aid2, draw_lbl=False,
-        #                                fnum=fnum, pnum=pnum)
-
-    for idx in idxs:
-        aid = aids[idx]
-        pnum = (len(aids), len(aids), (idx * len(aids) + idx) + 1)
-        inter.append_plot(wrap_show_func(ibeis.viz.show_chip, ibs, aid, qreq_=qreq_, draw_lbl=False, nokpts=True), pnum=pnum)
-        #ibeis.viz.show_chip(ibs, aid, qreq_=qreq_,
-        #                    draw_lbl=False, nokpts=True,
-        #                    fnum=fnum, pnum=pnum)
-    inter.show_page()
-
-
-def vsone_independant_pair_hack(ibs, aid1, aid2, qreq_=None):
-    r""" simple hack convinience func
-    Uses vsmany qreq to build a "similar" vsone qreq
-
-    TODO:
-        in the context menu let me change preferences for running vsone
-
-    Args:
-        ibs (IBEISController):  ibeis controller object
-        aid1 (int):  annotation id
-        aid2 (int):  annotation id
-        qreq_ (QueryRequest):  query request object with hyper-parameters(default = None)
-
-    CommandLine:
-        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --db PZ_MTEST
-        python -m ibeis.algo.hots.vsone_pipeline --exec-vsone_independant_pair_hack --show --qaid=1 --daid=4
-        --cmd
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.vsone_pipeline import *  # NOQA
-        >>> import ibeis
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1')
-        >>> aid1 = ut.get_argval('--qaid', default=1)
-        >>> aid2 = ut.get_argval('--daid', default=2)
-        >>> result = vsone_independant_pair_hack(qreq_.ibs, aid1, aid2, qreq_)
-        >>> print(result)
-        >>> ibs = qreq_.ibs
-        >>> ut.show_if_requested()
-    """
-    cfgdict = dict(codename='vsone', fg_on=False)
-    # FIXME: update this cfgdict a little better
-    if qreq_ is not None:
-        cfgdict.update(**qreq_.extern_data_config2.hesaff_params)
-    vsone_qreq_ = ibs.new_query_request([aid1], [aid2], cfgdict=cfgdict)
-    cm_vsone = vsone_qreq_.execute()[0]
-    cm_vsone = cm_vsone.extend_results(vsone_qreq_)
-    #cm_vsone = chip_match.ChipMatch.from_qres(vsone_qres)
-    #cm_vsone.ishow_analysis(vsone_qreq_)
-    cm_vsone.ishow_single_annotmatch(vsone_qreq_, aid2=aid2)
-    #qres_vsone.ishow_analysis(ibs=ibs)
-    #rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
-    #matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
-    #vt.matching.show_matching_dict(matches, metadata)
-
-
-def vsone_independant(qreq_):
-    r"""
-    Args:
-        qreq_ (QueryRequest):  query request object with hyper-parameters
-
-    CommandLine:
-        ./dev.py -t custom --db PZ_Master0 --allgt --species=zebra_plains
-
-        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_independant --show
-
-        python -m ibeis.control.manual_annot_funcs --test-get_annot_groundtruth:0 --db=PZ_Master0 --aids=117 --exec-mode  # NOQA
-
-        python -m ibeis.algo.hots.vsone_pipeline --test-vsone_independant --qaid_list=97 --daid_list=all --db PZ_Master0 --species=zebra_plains
-        python -m ibeis.viz.viz_name --test-show_multiple_chips --show --db PZ_Master0 --aids=118,117
-
-        python -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --show --db PZ_Master0 --qaid_list=97 --daid-list=4813,4815
-        --daid_list=all
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots import _pipeline_helpers as plh
-        >>> cfgdict = dict(pipeline_root='vsone', codename='vsone', fg_on=False)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
-        >>> ibs, qreq_ = ibeis.testdata_qreq_(p=p, qaid_override=[1], qaid_override=[2, 5])
-        >>> result = vsone_independant(qreq_)
-        >>> print(result)
-    """
-    # test script
-    ibs = qreq_.ibs
-    # ./dev.py --db lewa_grevys --cmd
-    # Get matches that have some property (scenerymatch)
-    # HACK TEST SCRIPT
-
-    #def get_scenery_match_aid_pairs(ibs):
-    #    import utool as ut
-    #    annotmatch_rowids = ibs._get_all_annotmatch_rowids()
-    #    flags = ibs.get_annotmatch_is_scenerymatch(annotmatch_rowids)
-    #    annotmatch_rowids_ = ut.compress(annotmatch_rowids, flags)
-    #    aid1_list = ibs.get_annotmatch_aid1(annotmatch_rowids_)
-    #    aid2_list = ibs.get_annotmatch_aid2(annotmatch_rowids_)
-    #    aid_pair_list = list(zip(aid1_list, aid2_list))
-    #    return aid_pair_list
-
-    #aid_pair_list = get_scenery_match_aid_pairs(ibs)
-    #aid1, aid2 = aid_pair_list[0]
-
-    qaids = qreq_.get_internal_qaids()
-    daids = qreq_.get_internal_daids()
-    import vtool as vt
-
-    info_list = []
-    #for aid1, aid2 in ut.ProgressIter(aid_pair_list):
-    for aid1 in qaids:
-        for aid2 in daids:
-            rchip_fpath1, rchip_fpath2 = ibs.get_annot_chip_fpath([aid1, aid2])
-            matches, metadata = vt.matching.vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2)
-            info_list.append((matches, metadata))
-            print('So Far')
-            print(sum([matches['RAT+SV'][0].shape[0] for (matches, metadata) in info_list]))  # NOQA
-    # nnp_master had 15621 background examples
-
-    for matches, metadata in info_list:
-        vt.matching.show_matching_dict(matches, metadata)
 
 
 def marge_matches_lists(fmfs_A, fmfs_B):

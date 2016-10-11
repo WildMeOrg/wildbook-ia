@@ -1116,7 +1116,15 @@ def oxford_conic_test():
 
 def load_internal_data():
     """
-    ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None -a oxford
+    ibeis TestResult --db Oxford \
+        -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None \
+        -a oxford \
+        --dev-mode
+
+    ibeis TestResult --db GZ_Master1 \
+        -p smk:nWords=[64000],nAssign=[1],SV=[False],fg_on=False \
+        -a ctrl:qmingt=2 \
+        --dev-mode
     """
     # from ibeis.algo.smk.smk_pipeline import *  # NOQA
     import ibeis
