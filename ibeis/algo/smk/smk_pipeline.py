@@ -417,7 +417,7 @@ def word_isect(X, Y, wx_to_weight):
     isect_words = sorted(X.words.intersection(Y.words))
     X_idx = ut.take(X.wx_to_idx, isect_words)
     Y_idx = ut.take(Y.wx_to_idx, isect_words)
-    weights = ut.take(wx_to_weight, isect_words)
+    weights = np.array(ut.take(wx_to_weight, isect_words))
     return X_idx, Y_idx, weights
 
 
