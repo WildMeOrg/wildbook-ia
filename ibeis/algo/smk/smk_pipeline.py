@@ -422,19 +422,21 @@ def word_isect(X, Y, wx_to_weight):
 
 
 def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
-    gammaXY = X.gamma * Y.gamma
-    # Words in common define matches
-    X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
+    import utool
+    with utool.embed_on_exception_context:
+        gammaXY = X.gamma * Y.gamma
+        # Words in common define matches
+        X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
 
-    PhisX, flagsX = X.Phis_flags(X_idx)
-    PhisY, flagsY = Y.Phis_flags(Y_idx)
-    score_list = smk_funcs.match_scores_agg(
-        PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+        PhisX, flagsX = X.Phis_flags(X_idx)
+        PhisY, flagsY = Y.Phis_flags(Y_idx)
+        score_list = smk_funcs.match_scores_agg(
+            PhisX, PhisY, flagsX, flagsY, alpha, thresh)
 
-    norm_weights = (weights * gammaXY)
-    score_list *= norm_weights
-    score = score_list.sum()
-    item = (score, score_list, Y, X_idx, Y_idx)
+        norm_weights = (weights * gammaXY)
+        score_list *= norm_weights
+        score = score_list.sum()
+        item = (score, score_list, Y, X_idx, Y_idx)
     return item
 
 
