@@ -466,6 +466,7 @@ class SingleAnnot(ut.NiceRepr):
         X.wx_to_idx = ut.make_index_lookup(X.wx_list)
         X.int_rvec = inva.int_rvec
         X.wx_set = set(X.wx_list)
+        return X
 
     @property
     def words(X):
