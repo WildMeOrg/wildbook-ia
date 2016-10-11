@@ -1135,6 +1135,7 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
     valid_x     = np.floor_divide(flat_validx, K, dtype=hstypes.INDEX_TYPE)
     valid_qfx   = qfx_list.take(valid_x)
     valid_rank  = np.mod(flat_validx, K, dtype=hstypes.FK_DTYPE)
+    # TODO: valid_qfx, valid_rank = np.unravel_index(flat_validx, (neighb_nnidx.shape[0], K))?
     # Then take the valid indices from internal database
     # annot_rowids, feature indexes, and all scores
     valid_daid  = neighb_daid.take(flat_validx, axis=None)

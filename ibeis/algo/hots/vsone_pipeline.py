@@ -232,32 +232,277 @@ def get_training_pairs():
                       for match in ut.ProgIter(matches_RAT, lbl='sver')]
     matches_auc(matches_RAT_SV)
 
-    # from sklearn.ensemble import RandomForestClassifier
-    # from sklearn.calibration import CalibratedClassifierCV
-    # from sklearn.metrics import log_loss
-    # if False:
-    #     import pandas as pd
-    #     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
-    #                                    for m in matches_RAT_SV])
+    # =====================================
+    # Attempt to train a simple classsifier
+    # =====================================
 
-    #     # Train uncalibrated random forest classifier on whole train and validation
-    #     # data and evaluate on test data
-    #     clf = RandomForestClassifier(n_estimators=25)
-    #     clf.fit(X_train_valid, y_train_valid)
-    #     clf_probs = clf.predict_proba(X_test)
-    #     score = log_loss(y_test, clf_probs)
-    #     print('score = %r' % (score,))
+    import pandas as pd
+    import sklearn.model_selection
+    from sklearn.ensemble import RandomForestClassifier
 
-    #     # Train random forest classifier, calibrate on validation data and evaluate
-    #     # on test data
-    #     clf = RandomForestClassifier(n_estimators=25)
-    #     clf.fit(X_train, y_train)
-    #     clf_probs = clf.predict_proba(X_test)
-    #     sig_clf = CalibratedClassifierCV(clf, method="sigmoid", cv="prefit")
-    #     sig_clf.fit(X_valid, y_valid)
-    #     sig_clf_probs = sig_clf.predict_proba(X_test)
-    #     sig_score = log_loss(y_test, sig_clf_probs)
-    #     print('sig_score = %r' % (sig_score,))
+    pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
+                                   for m in matches_RAT_SV])
+    valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
+    valid_cols = pairwise_feats.columns[valid_colx]
+
+    X = pairwise_feats[valid_cols].values
+    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches_RAT_SV])
+
+    rng = np.random.RandomState(42)
+    xvalkw = dict(n_splits=5, shuffle=True, random_state=rng)
+    skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+    skf_iter = skf.split(X=X, y=y)
+    df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn'])
+    for count, (train_idx, test_idx) in enumerate(skf_iter):
+        print('\n========')
+        X_train, y_train = X[train_idx], y[train_idx]
+        X_test, y_test = X[test_idx], y[test_idx]
+
+        # Train uncalibrated random forest classifier on train data
+        clf = RandomForestClassifier(n_estimators=25, verbose=0)
+        clf.fit(X_train, y_train)
+        # print(ut.repr4(dict(zip(valid_cols, clf.feature_importances_))))
+
+        # evaluate on test data
+        clf_probs = clf.predict_proba(X_test)
+        # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
+        auc_learn = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+
+        score_list = np.array([m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
+        auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
+        newrow = pd.DataFrame([[auc_naive, auc_learn]], columns=df_results.columns)
+        df_results = df_results.append([newrow], ignore_index=True)
+
+    def monkey_to_str_columns(self):
+        frame = self.tr_frame
+        highlight_func = 'max'
+        highlight_func = ut.partial(np.argmax, axis=1)
+        highlight_cols = [0, 1]
+
+        perrow_colxs = highlight_func(frame[highlight_cols].values)
+        n_rows = len(perrow_colxs)
+        n_cols = len(highlight_cols)
+        shape = (n_rows, n_cols)
+        flat_idxs = np.ravel_multi_index((np.arange(n_rows), perrow_colxs), shape)
+        flags2d = np.zeros(shape, dtype=np.int32)
+        flags2d.ravel()[flat_idxs] = 1
+        # np.unravel_index(flat_idxs, shape)
+
+        def color_func(val, level):
+            if level:
+                return ut.color_text(val, 'red')
+            else:
+                return val
+
+        _make_fixed_width = pd.formats.format._make_fixed_width
+        frame = self.tr_frame
+        str_index = self._get_formatted_index(frame)
+        str_columns = self._get_formatted_column_labels(frame)
+        if self.header:
+            stringified = []
+            for i, c in enumerate(frame):
+                cheader = str_columns[i]
+                max_colwidth = max(self.col_space or 0, *(self.adj.len(x)
+                                                          for x in cheader))
+                fmt_values = self._format_col(i)
+                fmt_values = _make_fixed_width(fmt_values, self.justify,
+                                               minimum=max_colwidth,
+                                               adj=self.adj)
+                max_len = max(np.max([self.adj.len(x) for x in fmt_values]),
+                              max_colwidth)
+                cheader = self.adj.justify(cheader, max_len, mode=self.justify)
+
+                # Apply custom coloring
+                # cflags = flags2d.T[i]
+                # fmt_values = [color_func(val, level) for val, level in zip(fmt_values, cflags)]
+
+                stringified.append(cheader + fmt_values)
+        else:
+            stringified = []
+            for i, c in enumerate(frame):
+                fmt_values = self._format_col(i)
+                fmt_values = _make_fixed_width(fmt_values, self.justify,
+                                               minimum=(self.col_space or 0),
+                                               adj=self.adj)
+
+                stringified.append(fmt_values)
+
+        strcols = stringified
+        if self.index:
+            strcols.insert(0, str_index)
+
+        # Add ... to signal truncated
+        truncate_h = self.truncate_h
+        truncate_v = self.truncate_v
+
+        if truncate_h:
+            col_num = self.tr_col_num
+            # infer from column header
+            col_width = self.adj.len(strcols[self.tr_size_col][0])
+            strcols.insert(self.tr_col_num + 1, ['...'.center(col_width)] *
+                           (len(str_index)))
+        if truncate_v:
+            n_header_rows = len(str_index) - len(frame)
+            row_num = self.tr_row_num
+            for ix, col in enumerate(strcols):
+                # infer from above row
+                cwidth = self.adj.len(strcols[ix][row_num])
+                is_dot_col = False
+                if truncate_h:
+                    is_dot_col = ix == col_num + 1
+                if cwidth > 3 or is_dot_col:
+                    my_str = '...'
+                else:
+                    my_str = '..'
+
+                if ix == 0:
+                    dot_mode = 'left'
+                elif is_dot_col:
+                    cwidth = self.adj.len(strcols[self.tr_size_col][0])
+                    dot_mode = 'center'
+                else:
+                    dot_mode = 'right'
+                dot_str = self.adj.justify([my_str], cwidth, mode=dot_mode)[0]
+                strcols[ix].insert(row_num + n_header_rows, dot_str)
+
+        for cx, col in enumerate(strcols[1:], start=1):
+            for rx, val in enumerate(col[1:], start=1):
+                strcols[cx][rx] = color_func(val, flags2d[rx - 1, cx - 1])
+
+        return strcols
+
+    def adjoin(space, *lists, **kwargs):
+        """
+        Glues together two sets of strings using the amount of space requested.
+        The idea is to prettify.
+
+        ----------
+        space : int
+            number of spaces for padding
+        lists : str
+            list of str which being joined
+        strlen : callable
+            function used to calculate the length of each str. Needed for unicode
+            handling.
+        justfunc : callable
+            function used to justify str. Needed for unicode handling.
+        """
+        justify = pd.formats.printing.justify
+        _join_unicode = pd.formats.printing._join_unicode
+        def strlen_ansii(x):
+            return len(ut.strip_ansi(x))
+        strlen = kwargs.pop('strlen', strlen_ansii)
+        justfunc = kwargs.pop('justfunc', justify)
+        strlen = strlen_ansii
+
+        out_lines = []
+        newLists = []
+        lengths = [max(map(strlen, x)) + space for x in lists[:-1]]
+        # not the last one
+        lengths.append(max(map(len, lists[-1])))
+        maxLen = max(map(len, lists))
+        for i, lst in enumerate(lists):
+            nl = justfunc(lst, lengths[i], mode='left')
+            nl.extend([' ' * lengths[i]] * (maxLen - len(lst)))
+            newLists.append(nl)
+        toJoin = zip(*newLists)
+        for lines in toJoin:
+            out_lines.append(_join_unicode(lines))
+        return _join_unicode(out_lines, sep='\n')
+
+    pd.formats.printing.adjoin = adjoin
+    pd.formats.format.adjoin = adjoin
+
+    # def to_string(self):
+    #     """
+    #     Render a DataFrame to a console-friendly tabular output.
+    #     """
+    #     from pandas import Series
+
+    #     frame = self.frame
+    #     pprint_thing = pd.formats.format.pprint_thing
+    #     u = pd.formats.format.u
+
+    #     if len(frame.columns) == 0 or len(frame.index) == 0:
+    #         info_line = (u('Empty %s\nColumns: %s\nIndex: %s') %
+    #                      (type(self.frame).__name__,
+    #                       pprint_thing(frame.columns),
+    #                       pprint_thing(frame.index)))
+    #         text = info_line
+    #     else:
+    #         strcols = self._to_str_columns()
+    #         if self.line_width is None:  # no need to wrap around just print
+    #             # the whole frame
+    #             lists = strcols
+    #             kwargs = {}
+    #             space = 1
+    #             text = self.adj.adjoin(1, *strcols)
+    #         elif (not isinstance(self.max_cols, int) or
+    #                 self.max_cols > 0):  # need to wrap around
+    #             text = self._join_multiline(*strcols)
+    #         else:  # max_cols == 0. Try to fit frame to terminal
+    #             text = self.adj.adjoin(1, *strcols).split('\n')
+    #             row_lens = Series(text).apply(len)
+    #             max_len_col_ix = np.argmax(row_lens)
+    #             max_len = row_lens[max_len_col_ix]
+    #             headers = [ele[0] for ele in strcols]
+    #             # Size of last col determines dot col size. See
+    #             # `self._to_str_columns
+    #             size_tr_col = len(headers[self.tr_size_col])
+    #             max_len += size_tr_col  # Need to make space for largest row
+    #             # plus truncate dot col
+    #             dif = max_len - self.w
+    #             adj_dif = dif
+    #             col_lens = Series([Series(ele).apply(len).max()
+    #                                for ele in strcols])
+    #             n_cols = len(col_lens)
+    #             counter = 0
+    #             while adj_dif > 0 and n_cols > 1:
+    #                 counter += 1
+    #                 mid = int(round(n_cols / 2.))
+    #                 mid_ix = col_lens.index[mid]
+    #                 col_len = col_lens[mid_ix]
+    #                 adj_dif -= (col_len + 1)  # adjoin adds one
+    #                 col_lens = col_lens.drop(mid_ix)
+    #                 n_cols = len(col_lens)
+    #             max_cols_adj = n_cols - self.index  # subtract index column
+    #             self.max_cols_adj = max_cols_adj
+
+    #             # Call again _chk_truncate to cut frame appropriately
+    #             # and then generate string representation
+    #             self._chk_truncate()
+    #             strcols = self._to_str_columns()
+    #             text = self.adj.adjoin(1, *strcols)
+    #     if not self.index:
+    #         text = text.replace('\n ', '\n').strip()
+    #     self.buf.writelines(text)
+
+    #     if self.should_show_dimensions:
+    #         self.buf.write("\n\n[%d rows x %d columns]" %
+    #                        (len(frame), len(frame.columns)))
+
+    def to_string_monkey(df):
+        kwds = dict(buf=None, columns=None, col_space=None, header=True,
+                    index=True, na_rep='NaN', formatters=None,
+                    float_format=None, sparsify=None, index_names=True,
+                    justify=None, line_width=None, max_rows=None,
+                    max_cols=None, show_dimensions=False)
+        self = pd.formats.format.DataFrameFormatter(df, **kwds)
+        ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
+        self.to_string()
+        result = self.buf.getvalue()
+        print(result)
+
+    df = df_results
+    print(df.to_string())
+        # df_results = pd.concat([df_results, newrow])
+        # csv = ut.CSV(
+            # col_headers=['auc_naive', 'auc_learn'],
+            # row_data=[[auc_naive, auc_learn]],
+        # )
+        # print(csv.nice_table2())
+        # print('auc_naive = %r' % (auc_naive,))
+        # print('auc_learn = %r' % (auc_learn,))
 
 
 def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):

@@ -85,6 +85,9 @@ Note:
 
     Using my own descriptors I got 0.7460. Seems good.
 
+    Now, back to the HS pipeline.
+    Getting a 0.638, so there is an inconsistency.
+    Should be getting .7460. Maybe I gotta root_sift it up?
 
 
 Differences Between this and SMK:
@@ -517,7 +520,8 @@ SMK Results
 reported13 | 0.781  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
            -------------------------------------------------------------------------------------------------
   inhouse1 | 0.746  |     mine2   |      mine2 |        |    X     | approx  |  2 ** 16  | minibatch2      |
-  inhouse2 |        |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |
+  inhouse2 |   ?    |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |
+sysharness | .6387  |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |
 
 In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing
 the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
@@ -540,7 +544,8 @@ def run_asmk_script():
         'data_year': None,
 
         'dtype': 'float32',
-        'root_sift': True,
+        # 'root_sift': True,
+        'root_sift': False,
         # 'centering': True,
         'centering': False,
         'num_words': 2 ** 16,
