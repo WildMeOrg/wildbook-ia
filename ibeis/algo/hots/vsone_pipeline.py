@@ -244,7 +244,7 @@ def get_training_pairs():
     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
                                    for m in matches_RAT_SV])
 
-    if allow_nan:
+    # if allow_nan:
     valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
     valid_cols = pairwise_feats.columns[valid_colx]
 
