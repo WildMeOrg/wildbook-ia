@@ -12,9 +12,10 @@ import re
 import parse
 import utool as ut
 import collections
+from functools import partial
 from six.moves import map, zip, cStringIO
 from os.path import join, exists, dirname, basename
-from dtool import __SQLITE__ as lite
+from dtool import __SQLITE__ as lite  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -32,12 +33,17 @@ SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 
-def _unpacker(results_):
+def _unpacker(results_, __reject_multiple_records__=True):
     """ HELPER: Unpacks results if unpack_scalars is True.
     FIXME: hacky function
     """
-    results = None if len(results_) == 0 else results_[0]
-    assert len(results_) < 2, 'throwing away results! { %r }' % (results_,)
+    if len(results_) == 0:
+        results = None
+    elif __reject_multiple_records__:
+        assert len(results_) <= 1, 'throwing away results! { %r }' % (results_,)
+        results = results_[0]
+    else:
+        results = results_
     return results
 
 # =======================
@@ -580,7 +586,8 @@ class SQLDatabaseController(object):
         return rowid_list
 
     def add_cleanly(db, tblname, colnames, params_iter,
-                    get_rowid_from_superkey, superkey_paramx=(0,)):
+                    get_rowid_from_superkey, superkey_paramx=(0,),
+                    **kwargs):
         """
         ADDER Extra input:
         the first item of params_iter must be a superkey (like a uuid),
@@ -647,7 +654,7 @@ class SQLDatabaseController(object):
             print('[sql] adding %r/%r new %s' % (len(dirty_params), len(params_list), tblname))
         # Add any unadded parameters to the database
         try:
-            db._add(tblname, colnames, dirty_params)
+            db._add(tblname, colnames, dirty_params, **kwargs)
         except Exception as ex:
             nInput = len(params_list)  # NOQA
             ut.printex(ex, key_list=[
@@ -992,7 +999,7 @@ class SQLDatabaseController(object):
     #@profile
     def executemany(db, operation, params_iter,
                     verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
-                    eager=True, keepwrap=False, showprog=False):
+                    eager=True, keepwrap=False, showprog=False, __reject_multiple_records__=True):
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the nInput is not given
         if nInput is None:
@@ -1033,7 +1040,8 @@ class SQLDatabaseController(object):
                                 for params in params_iter]
                 if unpack_scalars:
                     # list of iterators
-                    results_iter = list(map(_unpacker, results_iter))
+                    _unpacker_ = partial(_unpacker, __reject_multiple_records__=__reject_multiple_records__)
+                    results_iter = list(map(_unpacker_, results_iter))
                 # Eager evaluation
                 results_list = list(results_iter)
             else:
@@ -1043,7 +1051,7 @@ class SQLDatabaseController(object):
                         # Eval results per query yeild per iter
                         results = list(context.execute_and_generate_results(params))
                         if unpack_scalars:
-                            yield _unpacker(results)
+                            yield _unpacker(results, __reject_multiple_records__=__reject_multiple_records__)
                         else:
                             yield results
                 results_list = _tmpgen(context)
