@@ -85,6 +85,15 @@ Note:
 
     Using my own descriptors I got 0.7460. Seems good.
 
+    Now, back to the HS pipeline.
+    Getting a 0.638, so there is an inconsistency.
+    Should be getting .7460. Maybe I gotta root_sift it up?
+
+
+    Turned off root_sift in script
+    got .769, so there is a problem in system script
+    minibatch  29566/270340... rate=0.86 Hz, eta=0:00:00, total=9:44:35, wall=05:24 EST inertia: mean batch=53730.923812, ewa=53853.439903
+    now need to try turning off float32
 
 
 Differences Between this and SMK:
@@ -96,27 +105,76 @@ Differences Between this and SMK:
 Differences between this and VLAD
    * residual vectors are normalized
    * larger default vocabulary size
+
+
+Feat Info
+==========
+name     | num_vecs   | n_annots |
+=================================
+Oxford13 | 12,534,635 |          |
+Oxford07 | 16,334,970 |          |
+mine1    |  8,997,955 |          |
+mine2    | 13,516,721 |   5063   |
+mine3    |  8,371,196 |   4728   |
+mine4    |  8,482,137 |   4783   |
+
+
+Cluster Algo Config
+===================
+name       | algo             | init      | init_size      |  batch size  |
+==========================================================================|
+minibatch1 | minibatch kmeans | kmeans++  | num_words * 4  | 100          |
+minibatch2 | minibatch kmeans | kmeans++  | num_words * 4  | 1000         |
+given13    | Lloyd?           | kmeans++? | num_words * 8? | nan?         |
+
+
+Assign Algo Config
+==================
+name   | algo   | trees | checks     |
+======================================
+approx | kdtree |  8    | 1024       |
+exact  | linear |  nan  | nan        |
+exact  | linear |  nan  | nan        |
+
+
+SMK Results
+===========
+  tagid    | mAP   | train_feats | test_feats | center | rootSIFT | assign  | num_words | cluster methods | int | only_xy |
+           =================================================================================================================
+           | 0.38  |  mine1      |   mine1    |        |          | approx  |  64000    | minibatch1      |     |         |
+           | 0.541 |  oxford07   |   oxford07 |        |    X     | approx  |  2 ** 16  | minibatch1      |     |    X    |
+           | 0.673 |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch1      |     |    X    |
+           | 0.684 |  oxford13   |   oxford13 |   X    |    X     | exact   |  2 ** 16  | minibatch1      |     |    X    |
+           ----------------------------------------------------------------------------------------------------------------
+ mybest    | 0.793 |  oxford13   |   oxford13 |        |    X     | approx  |  2 ** 16  | minibatch2      |     |    X    |
+           | 0.780 |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch2      |     |    X    |
+           | 0.788 |  paras13    |   oxford13 |   X    |    X     | approx  |  2 ** 16  | given13         |     |    X    |
+  allgiven | 0.784 |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |     |    X    |
+reported13 | 0.781 |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |     |    X    |
+           -----------------------------------------------------------------------------------------------------------------
+  inhouse1 | 0.746 |     mine2   |      mine2 |        |    X     | approx  |  2 ** 16  | minibatch2      |     |    X    |
+  inhouse2 | 0.769 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |     |    X    |
+  inhouse3 | 0.769 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      | X   |    X    |
+  inhouse4 | 0.751 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      | X   |         |
+sysharn1   | 0.638 |     mine3   |      mine3 |        |          | approx  |  64000    | minibatch2      | X   |         |
+sysharn2   | 0.713 |     mine3   |      mine4 |        |          | approx  |  64000    | minibatch2      | X   |         |
+
+
+In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing
+the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
-#from ibeis.algo.smk import match_chips5 as mc5
 from ibeis.algo.smk import inverted_index
 from ibeis.algo.smk import smk_funcs
 from ibeis.algo.smk import smk_pipeline
 from six.moves import zip, map
-#from ibeis.algo.smk import smk_funcs
-#from ibeis.algo.smk import inverted_index
-#from ibeis import core_annots
-#from ibeis.algo import Config as old_config
 (print, rrr, profile) = ut.inject2(__name__)
 
 
 class SMK(ut.NiceRepr):
-    """
-    smk = SMK(wx_to_weight, method='bow')
-    smk.match_score(X, X)
-    """
     def __nice__(smk):
         return smk.method
 
@@ -470,67 +528,11 @@ def load_ordered_annots(data_uri_order, query_uri_order):
     return ibs, query_annots, data_annots, qx_to_dx
 
 
-"""
-
-
-Feat Info
-==========
-name     | num_vecs   |
-=======================
-Oxford13 | 12,534,635 |
-Oxford07 | 16,334,970 |
-mine1    |  8,997,955 |
-mine2    | 13,516,721 |
-
-
-Cluster Algo Config
-===================
-name       | algo             | init      | init_size      |  batch size  |
-==========================================================================|
-minibatch1 | minibatch kmeans | kmeans++  | num_words * 4  | 100          |
-minibatch2 | minibatch kmeans | kmeans++  | num_words * 4  | 1000         |
-given13    | Lloyd?           | kmeans++? | num_words * 8? | nan?         |
-
-
-Assign Algo Config
-==================
-name   | algo   | trees | checks     |
-======================================
-approx | kdtree |  8    | 1024       |
-exact  | linear |  nan  | nan        |
-exact  | linear |  nan  | nan        |
-
-
-SMK Results
-===========
-  tagid    | mAP    | train_feats | test_feats | center | rootSIFT | assign  | num_words | cluster methods |
-           =================================================================================================
-           | 0.38   |  mine1      |   mine1    |        |          | approx  |  2 ** 16  | minibatch1      |
-           | 0.541  |  oxford07   |   oxford07 |        |    X     | approx  |  2 ** 16  | minibatch1      |
-           | 0.673  |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch1      |
-           | 0.6848 |  oxford13   |   oxford13 |   X    |    X     | exact   |  2 ** 16  | minibatch1      |
-           -------------------------------------------------------------------------------------------------
- mybest    | 0.793  |  oxford13   |   oxford13 |        |    X     | approx  |  2 ** 16  | minibatch2      |
-           | 0.780  |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch2      |
-           | 0.7883 |  paras13    |   oxford13 |   X    |    X     | approx  |  2 ** 16  | given13         |
-  allgiven | 0.784  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
-reported13 | 0.781  |  paras13    |   oxford13 |   X    |    X     | given13 |  2 ** 16  | given13         |
-           -------------------------------------------------------------------------------------------------
-  inhouse1 | 0.746  |     mine2   |      mine2 |        |    X     | approx  |  2 ** 16  | minibatch2      |
-  inhouse2 |        |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |
-
-In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing
-the number of features to from 12.5M to 19.2M by lowering feature detection thresholds.
-
-"""
-
-
 def run_asmk_script():
-   """   # NOQA
-       >>> from ibeis.algo.smk.script_smk import *  # NOQA
-   """  # NOQA
-   # FIXME: new_external_annot was not populated in namespace for with embed   # NOQA
    with ut.embed_on_exception_context:  # NOQA
+    """
+    >>> from ibeis.algo.smk.script_smk import *
+    """  # NOQA
 
     # ==============================================
     # PREPROCESSING CONFIGURATION
@@ -540,7 +542,8 @@ def run_asmk_script():
         'data_year': None,
 
         'dtype': 'float32',
-        'root_sift': True,
+        # 'root_sift': True,
+        'root_sift': False,
         # 'centering': True,
         'centering': False,
         'num_words': 2 ** 16,
@@ -552,14 +555,17 @@ def run_asmk_script():
         'extern_assign': False,
         'assign_algo': 'kdtree',
         'checks': 1024,
+
+        'int_rvec': True,
+        'only_xy': False,
     }
     # Define which params are relevant for which operations
     relevance = {}
     relevance['feats'] = ['dtype', 'root_sift', 'centering', 'data_year']
     relevance['words'] = relevance['feats'] + ['num_words', 'extern_words', 'kmeans_impl']
     relevance['assign'] = relevance['words'] + ['checks', 'extern_assign', 'assign_algo']
-    # relevance['ydata'] = relevance['assign']
-    # relevance['xdata'] = relevance['assign']
+    # relevance['ydata'] = relevance['assign'] + ['int_rvec']
+    # relevance['xdata'] = relevance['assign'] + ['only_xy', 'int_rvec']
 
     nAssign = 1
 
@@ -714,8 +720,9 @@ def run_asmk_script():
     query_super_maws = ut.take(maw_lists, qx_to_dx)
     # Mark which keypoints are within the bbox of the query
     query_flags_list = []
+    only_xy = config['only_xy']
     for kpts_, bbox in zip(query_super_kpts, query_annots.bboxes):
-        flags = kpts_inside_bbox(kpts_, bbox, only_xy=True)
+        flags = kpts_inside_bbox(kpts_, bbox, only_xy=only_xy)
         query_flags_list.append(flags)
 
     print('Queries are crops of existing database images.')
@@ -735,7 +742,8 @@ def run_asmk_script():
     # CONSTRUCT QUERY / DATABASE REPR
     # =======================
 
-    int_rvec = not config['dtype'].startswith('float')
+    # int_rvec = not config['dtype'].startswith('float')
+    int_rvec = config['int_rvec']
 
     X_list = []
     _prog = ut.ProgPartial(nTotal=len(qaids), lbl='new X', bs=True,
@@ -837,6 +845,8 @@ def run_asmk_script():
             tup = smk_funcs.compute_stacked_agg_rvecs(
                 words, flat_wxs_assign, flat_vecs, flat_offsets)
             all_agg_vecs, all_error_flags, agg_offset_list = tup
+            if int_rvec:
+                all_agg_vecs = smk_funcs.cast_residual_integer(all_agg_vecs)
             agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
             agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
 
@@ -850,6 +860,9 @@ def run_asmk_script():
             tup = smk_funcs.compute_stacked_agg_rvecs(
                 words, flat_wxs_assign, flat_vecs, flat_offsets)
             all_agg_vecs, all_error_flags, agg_offset_list = tup
+            if int_rvec:
+                all_agg_vecs = smk_funcs.cast_residual_integer(all_agg_vecs)
+
             agg_rvecs_list = [all_agg_vecs[l:r] for l, r in ut.itertwo(agg_offset_list)]
             agg_flags_list = [all_error_flags[l:r] for l, r in ut.itertwo(agg_offset_list)]
 
@@ -896,27 +909,8 @@ def run_asmk_script():
     _iter = ut.ProgIter(_iter, lbl='evaluate %s' % (smk,))
     for scores, X in _iter:
         truth = [X.nid == Y.nid for Y in Y_list_]
-
-        if False:
-            idx = np.where(np.isnan(scores))[0][0]
-            Y = Y_list_[idx]
-            scores[idx]
-
         avep = sklearn.metrics.average_precision_score(truth, scores)
         avep_list.append(avep)
-
-        if False:
-            sortx = np.argsort(scores)[::-1]
-            # yx = np.arange(len(Y_list_))
-            truth_ranked = np.array(truth).take(sortx)
-            # scores_ranked = np.array(scores).take(sortx)
-            Y_ranked = ut.take(Y_list_, sortx)
-            Y_gts = ut.compress(Y_ranked, truth_ranked)
-
-            Y = Y_gts[-1]
-            ibs.show_annot(Y_gts[-1].aid, annote=False)
-            ibs.show_annot(Y_gts[-1].aid, annote=False)
-
     avep_list = np.array(avep_list)
     mAP = np.mean(avep_list)
     print('mAP  = %r' % (mAP,))
@@ -1116,7 +1110,15 @@ def oxford_conic_test():
 
 def load_internal_data():
     """
-    ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None -a oxford
+    ibeis TestResult --db Oxford \
+        -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None \
+        -a oxford \
+        --dev-mode
+
+    ibeis TestResult --db GZ_Master1 \
+        -p smk:nWords=[64000],nAssign=[1],SV=[False],fg_on=False \
+        -a ctrl:qmingt=2 \
+        --dev-mode
     """
     # from ibeis.algo.smk.smk_pipeline import *  # NOQA
     import ibeis
@@ -1129,6 +1131,47 @@ def load_internal_data():
     print('mAP = %.3f' % (mAP,))
     cm = cm_list[-1]
     return qreq_, cm
+
+
+def compare_data(Y_list_):
+    import ibeis
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='Oxford', a='oxford',
+        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None')
+    qreq_.ensure_data()
+
+    gamma1s = []
+    gamma2s = []
+
+    print(len(Y_list_))
+    print(len(qreq_.daids))
+
+    dinva = qreq_.dinva
+    bady = []
+    for Y in Y_list_:
+        aid = Y.aid
+        gamma1 = Y.gamma
+        if aid in dinva.aid_to_idx:
+            idx = dinva.aid_to_idx[aid]
+            gamma2 = dinva.gamma_list[idx]
+            gamma1s.append(gamma1)
+            gamma2s.append(gamma2)
+        else:
+            bady += [Y]
+            print(Y.nid)
+            # print(Y.qual)
+
+    # ibs = qreq_.ibs
+    # z = ibs.annots([a.aid for a in bady])
+
+    import plottool as pt
+    ut.qt4ensure()
+    gamma1s = np.array(gamma1s)
+    gamma2s = np.array(gamma2s)
+    sortx = gamma1s.argsort()
+    pt.plot(gamma1s[sortx], label='script')
+    pt.plot(gamma2s[sortx], label='pipe')
+    pt.legend()
 
 
 def show_data_image(data_uri_order, i, offset_list, all_kpts, all_vecs):

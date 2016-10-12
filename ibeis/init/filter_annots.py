@@ -13,7 +13,7 @@ import six
 from ibeis.control import controller_inject
 (print, rrr, profile) = ut.inject2(__name__)
 
-VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')
+VERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')[0]
 
 SEED1 = 0
 SEED2 = 42
@@ -1194,6 +1194,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
     sample_rule_ref     = aidcfg.get('sample_rule_ref')
     sample_rule         = aidcfg.get('sample_rule')
     sample_occur        = aidcfg.get('sample_occur')
+    exclude_ref_contact = aidcfg.get('exclude_ref_contact')
 
     avail_aids = sorted(avail_aids)
     ref_aids = sorted(ref_aids)
@@ -1214,34 +1215,31 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
         # VerbosityContext.report_annot_stats(ibs, ref_aids, prefix, '')
         with VerbosityContext('exclude_reference',
                               num_ref_aids=len(ref_aids)):
-            import utool
-            with utool.embed_on_exception_context:
-                avail_aids = ut.setdiff_ordered(avail_aids, ref_aids)
-                avail_aids = sorted(avail_aids)
-                # HACK:
-                #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
-                also_exclude_overlaps = True
-                if also_exclude_overlaps:
-                    contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids, assume_unique=True)
-                    # Disallow the same name in the same image
-                    x = ibs.unflat_map(ibs.get_annot_nids, contact_aids_list)
-                    y = ibs.get_annot_nids(ref_aids)
-                    sameimg_samename_aids = ut.flatten(
-                        [ut.compress(aids, np.array(x0) == y0)
-                         for aids, x0, y0 in zip(contact_aids_list, x, y)])
+            avail_aids = ut.setdiff_ordered(avail_aids, ref_aids)
+            avail_aids = sorted(avail_aids)
 
-                #contact_aids = ut.flatten(contact_aids_list)
-                avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
+    if exclude_ref_contact:
+        with VerbosityContext('exclude_ref_contact',
+                              num_ref_aids=len(ref_aids)):
+            #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
+            contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids, assume_unique=True)
+            # Disallow the same name in the same image
+            x = ibs.unflat_map(ibs.get_annot_nids, contact_aids_list)
+            y = ibs.get_annot_nids(ref_aids)
+            sameimg_samename_aids = ut.flatten(
+                [ut.compress(aids, np.array(x0) == y0)
+                 for aids, x0, y0 in zip(contact_aids_list, x, y)])
+            #contact_aids = ut.flatten(contact_aids_list)
+            avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
 
+    if sample_occur is True:
         with VerbosityContext('sample_occurr',
                               num_ref_aids=len(ref_aids)):
-            also_exclude_ref_encounters = sample_occur is True
-            if also_exclude_ref_encounters:
-                # Get other aids from the references' encounters
-                ref_enc_texts = ibs.get_annot_encounter_text(ref_aids)
-                avail_enc_texts = ibs.get_annot_encounter_text(avail_aids)
-                flags = ut.setdiff_flags(avail_enc_texts, ref_enc_texts)
-                avail_aids = ut.compress(avail_aids, flags)
+            # Get other aids from the references' encounters
+            ref_enc_texts = ibs.get_annot_encounter_text(ref_aids)
+            avail_enc_texts = ibs.get_annot_encounter_text(avail_aids)
+            flags = ut.setdiff_flags(avail_enc_texts, ref_enc_texts)
+            avail_aids = ut.compress(avail_aids, flags)
 
     if not (sample_per_ref_name is not None or sample_size is not None):
         VerbosityContext.endfilter()

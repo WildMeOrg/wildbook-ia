@@ -2,6 +2,13 @@
 """
 Oxford Experiment:
     ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford
+
+
+Zebra Experiment:
+    python -m ibeis draw_rank_cdf --db GZ_Master1 --show \
+        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],sv_on=[False] \
+        -a ctrl:qmingt=2
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool
@@ -34,7 +41,7 @@ class SMKRequestConfig(dtool.Config):
         #ut.ParamInfo('smk_thresh', -1.0),
         ut.ParamInfo('agg', True),
         ut.ParamInfo('data_ma', False),  # hack for query only multiple assignment
-        ut.ParamInfo('word_weight_method', 'idf', 'wwm'),  # hack for query only multiple assignment
+        ut.ParamInfo('word_weight_method', 'idf', shortprefix='wwm'),  # hack for query only multiple assignment
         ut.ParamInfo('smk_version', 3),
     ]
     _sub_config_list = [
@@ -129,12 +136,12 @@ class SMKRequest(mc5.EstimatorRequest):
     def ensure_data(qreq_):
         """
             >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford',
-            >>>                              p='default:proot=smk,nAssign=1,num_words=64000,sv_on=False')
+            qreq_ = ibeis.testdata_qreq_(
+                defaultdb='Oxford', a='oxford',
+                p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
         print('Ensure data for %s' % (qreq_,))
 
-        memtrack = ut.MemoryTracker(disable=True)
         #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
@@ -160,9 +167,20 @@ class SMKRequest(mc5.EstimatorRequest):
         if qreq_.qparams['data_ma']:
             # Disable database-dise multi-assignment
             dconfig['nAssign'] = 1
+        wwm = qreq_.qparams['word_weight_method']
 
         depc = qreq_.ibs.depc
         vocab_aids = qreq_.daids
+
+        cheat = False
+        if cheat:
+            import ibeis
+            ut.cprint('CHEATING', 'red')
+            vocab_aids = ibeis.init.filter_annots.sample_annots_wrt_ref(
+                qreq_.ibs, qreq_.daids, {'exclude_ref_contact': True},
+                qreq_.qaids, verbose=1)
+            vocab_rowid = depc.get_rowids('vocab', (vocab_aids,), config=dconfig, ensure=False)[0]
+            assert vocab_rowid is not None
 
         depc = qreq_.ibs.depc
         dinva_pcfgstr = depc.stacked_config(
@@ -180,8 +198,6 @@ class SMKRequest(mc5.EstimatorRequest):
         dinva_cfgstr = '_'.join([dannot_vuuid, dinva_phashid])
         qinva_cfgstr = '_'.join([qannot_vuuid, qinva_phashid])
 
-        wwm = qreq_.qparams['word_weight_method']
-
         #vocab = inverted_index.new_load_vocab(ibs, qreq_.daids, config)
         dinva_cacher = make_cacher('inva', dinva_cfgstr)
         qinva_cacher = make_cacher('inva', qinva_cfgstr)
@@ -193,39 +209,29 @@ class SMKRequest(mc5.EstimatorRequest):
         dgamma_cacher = make_cacher('dgamma', cfgstr=dgamma_cfgstr)
         qgamma_cacher = make_cacher('qgamma', cfgstr=qgamma_cfgstr)
 
-        memtrack.report()
-
         dinva = dinva_cacher.ensure(
             lambda: inverted_index.InvertedAnnots.from_depc(
                 depc, qreq_.daids, vocab_aids, dconfig))
-
-        memtrack.report()
 
         qinva = qinva_cacher.ensure(
             lambda: inverted_index.InvertedAnnots.from_depc(
                 depc, qreq_.qaids, vocab_aids, qconfig))
 
-        memtrack.report()
-
         dinva.wx_to_aids = dinva.compute_inverted_list()
-        memtrack.report()
 
         wx_to_weight = dwwm_cacher.ensure(
             lambda: dinva.compute_word_weights(wwm))
         dinva.wx_to_weight = wx_to_weight
         qinva.wx_to_weight = wx_to_weight
-        memtrack.report()
 
         thresh = qreq_.qparams['smk_thresh']
         alpha = qreq_.qparams['smk_alpha']
 
         dinva.gamma_list = dgamma_cacher.ensure(
             lambda: dinva.compute_gammas(alpha, thresh))
-        memtrack.report()
 
         qinva.gamma_list = qgamma_cacher.ensure(
             lambda: qinva.compute_gammas(alpha, thresh))
-        memtrack.report()
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
@@ -234,11 +240,9 @@ class SMKRequest(mc5.EstimatorRequest):
         if qreq_.qparams.sv_on:
             qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
                 qreq_.daids, config2_=qreq_.extern_data_config2)
-        memtrack.report()
 
         print('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
-        memtrack.report()
 
     def execute_pipeline(qreq_):
         """
@@ -417,24 +421,26 @@ def word_isect(X, Y, wx_to_weight):
     isect_words = sorted(X.words.intersection(Y.words))
     X_idx = ut.take(X.wx_to_idx, isect_words)
     Y_idx = ut.take(Y.wx_to_idx, isect_words)
-    weights = ut.take(wx_to_weight, isect_words)
+    weights = np.array(ut.take(wx_to_weight, isect_words))
     return X_idx, Y_idx, weights
 
 
 def match_kernel_agg(X, Y, wx_to_weight, alpha, thresh):
-    gammaXY = X.gamma * Y.gamma
-    # Words in common define matches
-    X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
+    import utool
+    with utool.embed_on_exception_context:
+        gammaXY = X.gamma * Y.gamma
+        # Words in common define matches
+        X_idx, Y_idx, weights = word_isect(X, Y, wx_to_weight)
 
-    PhisX, flagsX = X.Phis_flags(X_idx)
-    PhisY, flagsY = Y.Phis_flags(Y_idx)
-    score_list = smk_funcs.match_scores_agg(
-        PhisX, PhisY, flagsX, flagsY, alpha, thresh)
+        PhisX, flagsX = X.Phis_flags(X_idx)
+        PhisY, flagsY = Y.Phis_flags(Y_idx)
+        score_list = smk_funcs.match_scores_agg(
+            PhisX, PhisY, flagsX, flagsY, alpha, thresh)
 
-    norm_weights = (weights * gammaXY)
-    score_list *= norm_weights
-    score = score_list.sum()
-    item = (score, score_list, Y, X_idx, Y_idx)
+        norm_weights = (weights * gammaXY)
+        score_list *= norm_weights
+        score = score_list.sum()
+        item = (score, score_list, Y, X_idx, Y_idx)
     return item
 
 
