@@ -38,6 +38,10 @@ VSONE_DEFAULT_CONFIG = [
 class PairwiseMatch(ut.NiceRepr):
     """
     Newest (Sept-16) object oriented one-vs-one matching interface
+
+    Creates an object holding two annotations
+    Then a pipeline of operations can be applied to
+    generate score and refine the matches
     """
     def __init__(match, annot1=None, annot2=None):
         match.annot1 = annot1
@@ -48,6 +52,7 @@ class PairwiseMatch(ut.NiceRepr):
         match.H_21 = None
         match.H_12 = None
 
+        match.global_measures = None
         match._inplace_default = False
 
     def __nice__(match):
@@ -57,7 +62,7 @@ class PairwiseMatch(ut.NiceRepr):
             aid2 = match.annot2['aid']
             vsstr = '%s-vs-%s' % (aid1, aid2)
             parts.append(vsstr)
-        parts.append('None' if match.fm is None else len(match.fm))
+        parts.append('None' if match.fm is None else str(len(match.fm)))
         return ' '.join(parts)
 
     def __len__(match):
@@ -67,6 +72,10 @@ class PairwiseMatch(ut.NiceRepr):
             return 0
 
     def _next_instance(match, inplace=None):
+        """
+        Returns either the same or a new instance of a match object with the
+        same global attributes.
+        """
         if inplace is None:
             inplace = match._inplace_default
         if inplace:
@@ -76,6 +85,7 @@ class PairwiseMatch(ut.NiceRepr):
             match_.H_21 = match.H_21
             match_.H_12 = match.H_12
             match_._inplace_default = match._inplace_default
+            match_.global_measures = match.global_measures.copy()
         return match_
 
     def compress(match, flags, inplace=None):
@@ -163,7 +173,9 @@ class PairwiseMatch(ut.NiceRepr):
             kpts1, kpts2, fm, sver_xy_thresh, dlen_sqrd2,
             match_weights=match_weights, refine_method=refine_method)
         if svtup is None:
-            inliers, errors, H_12 = [], [], np.eye(3)
+            errors = [np.empty(0), np.empty(0), np.empty(0)]
+            inliers = []
+            H_12 =  np.eye(3)
         else:
             (inliers, errors, H_12) = svtup[0:3]
 
@@ -190,6 +202,10 @@ class PairwiseMatch(ut.NiceRepr):
     def apply_sver(match, cfgdict={}, inplace=None):
         flags, errors, H_12 = match.sver_flags(cfgdict, return_extra=True)
         match_ = match.compress(flags, inplace=inplace)
+        errors_ = [e.compress(flags) for e in errors]
+        match_.measures['sver_err_xy'] = errors_[0]
+        match_.measures['sver_err_scale'] = errors_[1]
+        match_.measures['sver_err_ori'] = errors_[2]
         match_.H_12 = H_12
         return match_
 
@@ -209,6 +225,41 @@ class PairwiseMatch(ut.NiceRepr):
             rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False, H1=H1, ax=ax
         )
         return ax, xywh1, xywh2
+
+    def make_pairwise_constlen_feature(match, main_key):
+        main_key = 'ratio'
+        import pandas as pd
+        local_feats = pd.DataFrame(match.measures)
+        sortx = local_feats[main_key].argsort()[::-1]
+        local_feats = local_feats.loc[sortx]
+
+        feat = ut.odict([])
+
+        if match.global_measures:
+            for k, v in match.global_measures.items():
+                v1 = v[0]
+                v2 = v[1]
+                if ut.isiterable(v1):
+                    for i in range(len(v1)):
+                        feat[k + str(i) + '_1'] = v1[i]
+                        feat[k + str(i) + '_2'] = v2[i]
+                else:
+                    feat[k + '_1'] = v1
+                    feat[k + '_2'] = v2
+
+        ntop = 10
+        topn = local_feats[:ntop]
+        for k, vs in topn.iteritems():
+            for count, v in enumerate(vs):
+                feat[k + str(count)] = v
+        for k, v in local_feats.sum().iteritems():
+            feat['sum_' + k] = v
+        for k, v in local_feats.mean().iteritems():
+            feat['mean_' + k] = v
+        for k, v in local_feats.std().iteritems():
+            feat['std_' + k] = v
+        feat['n_total'] = len(local_feats)
+        return feat
 
 
 class SingleMatch(ut.NiceRepr):
