@@ -34,7 +34,7 @@ class SMKRequestConfig(dtool.Config):
         #ut.ParamInfo('smk_thresh', -1.0),
         ut.ParamInfo('agg', True),
         ut.ParamInfo('data_ma', False),  # hack for query only multiple assignment
-        ut.ParamInfo('word_weight_method', 'idf', 'wwm'),  # hack for query only multiple assignment
+        ut.ParamInfo('word_weight_method', 'idf', shortprefix='wwm'),  # hack for query only multiple assignment
         ut.ParamInfo('smk_version', 3),
     ]
     _sub_config_list = [
@@ -134,7 +134,6 @@ class SMKRequest(mc5.EstimatorRequest):
         """
         print('Ensure data for %s' % (qreq_,))
 
-        memtrack = ut.MemoryTracker(disable=True)
         #qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
         qreq_.ensure_nids()
 
@@ -160,6 +159,7 @@ class SMKRequest(mc5.EstimatorRequest):
         if qreq_.qparams['data_ma']:
             # Disable database-dise multi-assignment
             dconfig['nAssign'] = 1
+        wwm = qreq_.qparams['word_weight_method']
 
         depc = qreq_.ibs.depc
         vocab_aids = qreq_.daids
@@ -180,8 +180,6 @@ class SMKRequest(mc5.EstimatorRequest):
         dinva_cfgstr = '_'.join([dannot_vuuid, dinva_phashid])
         qinva_cfgstr = '_'.join([qannot_vuuid, qinva_phashid])
 
-        wwm = qreq_.qparams['word_weight_method']
-
         #vocab = inverted_index.new_load_vocab(ibs, qreq_.daids, config)
         dinva_cacher = make_cacher('inva', dinva_cfgstr)
         qinva_cacher = make_cacher('inva', qinva_cfgstr)
@@ -193,39 +191,29 @@ class SMKRequest(mc5.EstimatorRequest):
         dgamma_cacher = make_cacher('dgamma', cfgstr=dgamma_cfgstr)
         qgamma_cacher = make_cacher('qgamma', cfgstr=qgamma_cfgstr)
 
-        memtrack.report()
-
         dinva = dinva_cacher.ensure(
             lambda: inverted_index.InvertedAnnots.from_depc(
                 depc, qreq_.daids, vocab_aids, dconfig))
-
-        memtrack.report()
 
         qinva = qinva_cacher.ensure(
             lambda: inverted_index.InvertedAnnots.from_depc(
                 depc, qreq_.qaids, vocab_aids, qconfig))
 
-        memtrack.report()
-
         dinva.wx_to_aids = dinva.compute_inverted_list()
-        memtrack.report()
 
         wx_to_weight = dwwm_cacher.ensure(
             lambda: dinva.compute_word_weights(wwm))
         dinva.wx_to_weight = wx_to_weight
         qinva.wx_to_weight = wx_to_weight
-        memtrack.report()
 
         thresh = qreq_.qparams['smk_thresh']
         alpha = qreq_.qparams['smk_alpha']
 
         dinva.gamma_list = dgamma_cacher.ensure(
             lambda: dinva.compute_gammas(alpha, thresh))
-        memtrack.report()
 
         qinva.gamma_list = qgamma_cacher.ensure(
             lambda: qinva.compute_gammas(alpha, thresh))
-        memtrack.report()
 
         qreq_.qinva = qinva
         qreq_.dinva = dinva
@@ -234,11 +222,9 @@ class SMKRequest(mc5.EstimatorRequest):
         if qreq_.qparams.sv_on:
             qreq_.data_kpts = qreq_.ibs.get_annot_kpts(
                 qreq_.daids, config2_=qreq_.extern_data_config2)
-        memtrack.report()
 
         print('building aid index')
         qreq_.daid_to_didx = ut.make_index_lookup(qreq_.daids)
-        memtrack.report()
 
     def execute_pipeline(qreq_):
         """

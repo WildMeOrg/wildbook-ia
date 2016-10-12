@@ -4990,7 +4990,7 @@ def parse_annot_config_stats_filter_kws(ibs):
 
 @register_ibs_method
 def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
-                          combo_gt_info=True, combo_enc_info=True,
+                          combo_gt_info=True, combo_enc_info=False,
                           combo_dists=True,
                           **kwargs):
     r"""
@@ -5048,14 +5048,14 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
         matchable_queries = ut.compress(qaids, hasgt_list)
 
         # Find the daids that are in the same occurrence as the qaids
-        # if False:
-        query_encs = set(ibs.get_annot_encounter_text(qaids))
-        data_encs = set(ibs.get_annot_encounter_text(daids))
-        enc_intersect = query_encs.intersection(data_encs)
-        enc_intersect.difference_update({None})
-        # import operator as op
-        # compare_nested_props(
-        #     ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_encounter_text, op.eq)
+        if combo_enc_info:
+            query_encs = set(ibs.get_annot_encounter_text(qaids))
+            data_encs = set(ibs.get_annot_encounter_text(daids))
+            enc_intersect = query_encs.intersection(data_encs)
+            enc_intersect.difference_update({None})
+            # import operator as op
+            # compare_nested_props(
+            #     ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_encounter_text, op.eq)
 
         # Intersection on a per name basis
         imposter_daid_per_name_stats = ibs.get_annot_per_name_stats(nonquery_daids)

@@ -259,7 +259,7 @@ def get_training_pairs():
         X_test, y_test = X[test_idx], y[test_idx]
 
         # Train uncalibrated random forest classifier on train data
-        clf = RandomForestClassifier(n_estimators=25, verbose=0)
+        clf = RandomForestClassifier(n_estimators=250, verbose=0)
         clf.fit(X_train, y_train)
         # print(ut.repr4(dict(zip(valid_cols, clf.feature_importances_))))
 
@@ -365,123 +365,17 @@ def get_training_pairs():
                 dot_str = self.adj.justify([my_str], cwidth, mode=dot_mode)[0]
                 strcols[ix].insert(row_num + n_header_rows, dot_str)
 
-        for cx, col in enumerate(strcols[1:], start=1):
+        for cx_ in highlight_cols:
+            cx = cx_ + bool(self.header)
+            col = strcols[cx]
             for rx, val in enumerate(col[1:], start=1):
                 strcols[cx][rx] = color_func(val, flags2d[rx - 1, cx - 1])
 
         return strcols
 
-    def adjoin(space, *lists, **kwargs):
-        """
-        Glues together two sets of strings using the amount of space requested.
-        The idea is to prettify.
-
-        ----------
-        space : int
-            number of spaces for padding
-        lists : str
-            list of str which being joined
-        strlen : callable
-            function used to calculate the length of each str. Needed for unicode
-            handling.
-        justfunc : callable
-            function used to justify str. Needed for unicode handling.
-        """
-        justify = pd.formats.printing.justify
-        _join_unicode = pd.formats.printing._join_unicode
-        def strlen_ansii(x):
-            return len(ut.strip_ansi(x))
-        strlen = kwargs.pop('strlen', strlen_ansii)
-        justfunc = kwargs.pop('justfunc', justify)
-        strlen = strlen_ansii
-
-        out_lines = []
-        newLists = []
-        lengths = [max(map(strlen, x)) + space for x in lists[:-1]]
-        # not the last one
-        lengths.append(max(map(len, lists[-1])))
-        maxLen = max(map(len, lists))
-        for i, lst in enumerate(lists):
-            nl = justfunc(lst, lengths[i], mode='left')
-            nl.extend([' ' * lengths[i]] * (maxLen - len(lst)))
-            newLists.append(nl)
-        toJoin = zip(*newLists)
-        for lines in toJoin:
-            out_lines.append(_join_unicode(lines))
-        return _join_unicode(out_lines, sep='\n')
-
-    pd.formats.printing.adjoin = adjoin
-    pd.formats.format.adjoin = adjoin
-
-    # def to_string(self):
-    #     """
-    #     Render a DataFrame to a console-friendly tabular output.
-    #     """
-    #     from pandas import Series
-
-    #     frame = self.frame
-    #     pprint_thing = pd.formats.format.pprint_thing
-    #     u = pd.formats.format.u
-
-    #     if len(frame.columns) == 0 or len(frame.index) == 0:
-    #         info_line = (u('Empty %s\nColumns: %s\nIndex: %s') %
-    #                      (type(self.frame).__name__,
-    #                       pprint_thing(frame.columns),
-    #                       pprint_thing(frame.index)))
-    #         text = info_line
-    #     else:
-    #         strcols = self._to_str_columns()
-    #         if self.line_width is None:  # no need to wrap around just print
-    #             # the whole frame
-    #             lists = strcols
-    #             kwargs = {}
-    #             space = 1
-    #             text = self.adj.adjoin(1, *strcols)
-    #         elif (not isinstance(self.max_cols, int) or
-    #                 self.max_cols > 0):  # need to wrap around
-    #             text = self._join_multiline(*strcols)
-    #         else:  # max_cols == 0. Try to fit frame to terminal
-    #             text = self.adj.adjoin(1, *strcols).split('\n')
-    #             row_lens = Series(text).apply(len)
-    #             max_len_col_ix = np.argmax(row_lens)
-    #             max_len = row_lens[max_len_col_ix]
-    #             headers = [ele[0] for ele in strcols]
-    #             # Size of last col determines dot col size. See
-    #             # `self._to_str_columns
-    #             size_tr_col = len(headers[self.tr_size_col])
-    #             max_len += size_tr_col  # Need to make space for largest row
-    #             # plus truncate dot col
-    #             dif = max_len - self.w
-    #             adj_dif = dif
-    #             col_lens = Series([Series(ele).apply(len).max()
-    #                                for ele in strcols])
-    #             n_cols = len(col_lens)
-    #             counter = 0
-    #             while adj_dif > 0 and n_cols > 1:
-    #                 counter += 1
-    #                 mid = int(round(n_cols / 2.))
-    #                 mid_ix = col_lens.index[mid]
-    #                 col_len = col_lens[mid_ix]
-    #                 adj_dif -= (col_len + 1)  # adjoin adds one
-    #                 col_lens = col_lens.drop(mid_ix)
-    #                 n_cols = len(col_lens)
-    #             max_cols_adj = n_cols - self.index  # subtract index column
-    #             self.max_cols_adj = max_cols_adj
-
-    #             # Call again _chk_truncate to cut frame appropriately
-    #             # and then generate string representation
-    #             self._chk_truncate()
-    #             strcols = self._to_str_columns()
-    #             text = self.adj.adjoin(1, *strcols)
-    #     if not self.index:
-    #         text = text.replace('\n ', '\n').strip()
-    #     self.buf.writelines(text)
-
-    #     if self.should_show_dimensions:
-    #         self.buf.write("\n\n[%d rows x %d columns]" %
-    #                        (len(frame), len(frame.columns)))
-
     def to_string_monkey(df):
+        """  monkey patch to pandas to highlight the maximum value in specified
+        cols of a row """
         kwds = dict(buf=None, columns=None, col_space=None, header=True,
                     index=True, na_rep='NaN', formatters=None,
                     float_format=None, sparsify=None, index_names=True,
@@ -489,20 +383,38 @@ def get_training_pairs():
                     max_cols=None, show_dimensions=False)
         self = pd.formats.format.DataFrameFormatter(df, **kwds)
         ut.inject_func_as_method(self, monkey_to_str_columns, '_to_str_columns', override=True, force=True)
+        def strip_ansi(text):
+            import re
+            ansi_escape = re.compile(r'\x1b[^m]*m')
+            return ansi_escape.sub('', text)
+        def justify_ansi(self, texts, max_len, mode='right'):
+            if mode == 'left':
+                return [x.ljust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+            elif mode == 'center':
+                return [x.center(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+            else:
+                return [x.rjust(max_len + (len(x) - len(strip_ansi(x)))) for x in texts]
+        def strlen_ansii(self, text):
+            return pd.compat.strlen(strip_ansi(text), encoding=self.encoding)
+        ut.inject_func_as_method(self.adj, strlen_ansii, 'len', override=True, force=True)
+        ut.inject_func_as_method(self.adj, justify_ansi, 'justify', override=True, force=True)
+        # strcols = monkey_to_str_columns(self)
+        # texts = strcols[2]
+        # str_ = self.adj.adjoin(1, *strcols)
+        # print(str_)
+        # print(strip_ansi(str_))
         self.to_string()
         result = self.buf.getvalue()
-        print(result)
+        return result
 
     df = df_results
+    change = df[df.columns[1]] - df[df.columns[0]]
+    percent_change = change / df[df.columns[0]] * 100
+    df = df.assign(change=change)
+    df = df.assign(percent_change=percent_change)
+
+    print(to_string_monkey(df))
     print(df.to_string())
-        # df_results = pd.concat([df_results, newrow])
-        # csv = ut.CSV(
-            # col_headers=['auc_naive', 'auc_learn'],
-            # row_data=[[auc_naive, auc_learn]],
-        # )
-        # print(csv.nice_table2())
-        # print('auc_naive = %r' % (auc_naive,))
-        # print('auc_learn = %r' % (auc_learn,))
 
 
 def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):

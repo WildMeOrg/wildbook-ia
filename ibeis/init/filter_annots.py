@@ -13,7 +13,7 @@ import six
 from ibeis.control import controller_inject
 (print, rrr, profile) = ut.inject2(__name__)
 
-VERB_TESTDATA, VERYVERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')
+VERB_TESTDATA = ut.get_verbflag('testdata', 'td', 'acfg')[0]
 
 SEED1 = 0
 SEED2 = 42
@@ -1220,7 +1220,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
                 avail_aids = sorted(avail_aids)
                 # HACK:
                 #also_exclude_overlaps = ibs.get_dbname() == 'Oxford'
-                also_exclude_overlaps = True
+                also_exclude_overlaps = False
                 if also_exclude_overlaps:
                     contact_aids_list = ibs.get_annot_contact_aids(ref_aids, daid_list=avail_aids, assume_unique=True)
                     # Disallow the same name in the same image
@@ -1230,8 +1230,8 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
                         [ut.compress(aids, np.array(x0) == y0)
                          for aids, x0, y0 in zip(contact_aids_list, x, y)])
 
-                #contact_aids = ut.flatten(contact_aids_list)
-                avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
+                    #contact_aids = ut.flatten(contact_aids_list)
+                    avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
 
         with VerbosityContext('sample_occurr',
                               num_ref_aids=len(ref_aids)):

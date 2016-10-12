@@ -380,31 +380,27 @@ class InvertedAnnots(InvertedAnnotsExtras):
             >>> print('wx_to_weight = %r' % (wx_to_weight,))
         """
         wx_list = sorted(inva.wx_to_aids.keys())
-        if method == 'idf':
-            with ut.Timer('Computing idf'):
+        with ut.Timer('Computing %s weights' % (method,)):
+            if method == 'idf':
                 ndocs_total = len(inva.aids)
-
-                if True:
-                    # Unweighted documents
-                    wx_to_ndocs = {
-                        wx: len(set(aids))
-                        for wx, aids in inva.wx_to_aids.items()
-                    }
-                else:
-                    # idf denominator (the num of docs containing a word for each word)
-                    # The max(maws) to denote the probab that this word indexes an annot
-                    # Weighted documents
-                    wx_to_ndocs = {wx: 0.0 for wx in wx_list}
-                    for wx, maws in zip(ut.iflatten(inva.wx_lists), ut.iflatten(inva.maws_lists)):
-                        # Determine how many documents use each word
-                        wx_to_ndocs[wx] += min(1.0, sum(maws))
-
+                # Unweighted documents
+                ndocs_per_word = np.array(
+                    [len(set(inva.wx_to_aids[wx])) for wx in wx_list])
+                weight_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
+            elif method == 'idf-maw':
+                # idf denom (the num of docs containing a word for each word)
+                # The max(maws) denote the prob that this word indexes an annot
+                ndocs_total = len(inva.aids)
+                # Weighted documents
+                wx_to_ndocs = {wx: 0.0 for wx in wx_list}
+                for wx, maws in zip(ut.iflatten(inva.wx_lists), ut.iflatten(inva.maws_lists)):
+                    wx_to_ndocs[wx] += min(1.0, max(maws))
                 ndocs_per_word = ut.take(wx_to_ndocs, wx_list)
-                idf_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
-                wx_to_weight = dict(zip(wx_list, idf_per_word))
-                wx_to_weight = ut.DefaultValueDict(0, wx_to_weight)
-        elif method == 'uniform':
-            wx_to_weight = {wx: 1.0 for wx in wx_list}
+                weight_per_word = smk_funcs.inv_doc_freq(ndocs_total, ndocs_per_word)
+            elif method == 'uniform':
+                weight_per_word = np.ones(len(wx_list))
+            wx_to_weight = dict(zip(wx_list, weight_per_word))
+            wx_to_weight = ut.DefaultValueDict(0, wx_to_weight)
         return wx_to_weight
 
     @profile
