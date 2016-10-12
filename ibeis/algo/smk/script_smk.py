@@ -1134,11 +1134,14 @@ def compare_data(Y_list_):
     import ibeis
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='Oxford', a='oxford',
-        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None', verbose=2)
+        p='smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True,dim_size=None')
     qreq_.ensure_data()
 
     gamma1s = []
     gamma2s = []
+
+    print(len(Y_list_))
+    print(len(qreq_.daids))
 
     dinva = qreq_.dinva
     bady = []

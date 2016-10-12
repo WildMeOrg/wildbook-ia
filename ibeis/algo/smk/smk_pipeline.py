@@ -129,8 +129,9 @@ class SMKRequest(mc5.EstimatorRequest):
     def ensure_data(qreq_):
         """
             >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='Oxford', a='oxford',
-            >>>                              p='default:proot=smk,nAssign=1,num_words=64000,sv_on=False')
+            qreq_ = ibeis.testdata_qreq_(
+                defaultdb='Oxford', a='oxford',
+                p='default:proot=smk,nAssign=1,num_words=64000,SV=False,can_match_sameimg=True,dim_size=None')
         """
         print('Ensure data for %s' % (qreq_,))
 
@@ -163,6 +164,10 @@ class SMKRequest(mc5.EstimatorRequest):
 
         depc = qreq_.ibs.depc
         vocab_aids = qreq_.daids
+
+        cheat = True
+        if cheat:
+            pass
 
         depc = qreq_.ibs.depc
         dinva_pcfgstr = depc.stacked_config(

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -* coding: utf-8 -*-
 """
 Definitions for common aid configurations
 
@@ -158,6 +158,7 @@ for pi in SAMPLE_DEFAULTS_PARAM_INFO:
 SAMPLE_REF_DEFAULTS = {
     # excludes any aids specified in a reference set (ie qaids)
     'exclude_reference'   : None,
+    'exclude_ref_contact' : None,
     'sample_rule_ref'     : 'random',
     # when sampling daids, choose this many correct matches per query
     'sample_per_ref_name' : None,
