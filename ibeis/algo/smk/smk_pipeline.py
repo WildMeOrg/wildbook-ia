@@ -2,6 +2,13 @@
 """
 Oxford Experiment:
     ibeis TestResult --db Oxford -p smk:nWords=[64000],nAssign=[1],SV=[False],can_match_sameimg=True -a oxford
+
+
+Zebra Experiment:
+    python -m ibeis draw_rank_cdf --db GZ_Master1 --show \
+        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],sv_on=[False] \
+        -a ctrl:qmingt=2
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool
@@ -165,7 +172,7 @@ class SMKRequest(mc5.EstimatorRequest):
         depc = qreq_.ibs.depc
         vocab_aids = qreq_.daids
 
-        cheat = True
+        cheat = False
         if cheat:
             import ibeis
             ut.cprint('CHEATING', 'red')

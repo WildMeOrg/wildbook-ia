@@ -109,12 +109,14 @@ Differences between this and VLAD
 
 Feat Info
 ==========
-name     | num_vecs   |
-=======================
-Oxford13 | 12,534,635 |
-Oxford07 | 16,334,970 |
-mine1    |  8,997,955 |
-mine2    | 13,516,721 |
+name     | num_vecs   | n_annots |
+=================================
+Oxford13 | 12,534,635 |          |
+Oxford07 | 16,334,970 |          |
+mine1    |  8,997,955 |          |
+mine2    | 13,516,721 |   5063   |
+mine3    |  8,371,196 |   4728   |
+mine4    |  8,482,137 |   4783   |
 
 
 Cluster Algo Config
@@ -139,7 +141,7 @@ SMK Results
 ===========
   tagid    | mAP   | train_feats | test_feats | center | rootSIFT | assign  | num_words | cluster methods | int | only_xy |
            =================================================================================================================
-           | 0.38  |  mine1      |   mine1    |        |          | approx  |  2 ** 16  | minibatch1      |     |         |
+           | 0.38  |  mine1      |   mine1    |        |          | approx  |  64000    | minibatch1      |     |         |
            | 0.541 |  oxford07   |   oxford07 |        |    X     | approx  |  2 ** 16  | minibatch1      |     |    X    |
            | 0.673 |  oxford13   |   oxford13 |   X    |    X     | approx  |  2 ** 16  | minibatch1      |     |    X    |
            | 0.684 |  oxford13   |   oxford13 |   X    |    X     | exact   |  2 ** 16  | minibatch1      |     |    X    |
@@ -154,7 +156,8 @@ reported13 | 0.781 |  paras13    |   oxford13 |   X    |    X     | given13 |  2
   inhouse2 | 0.769 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      |     |    X    |
   inhouse3 | 0.769 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      | X   |    X    |
   inhouse4 | 0.751 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      | X   |         |
-sysharness | 0.638 |     mine2   |      mine2 |        |          | approx  |  2 ** 16  | minibatch2      | X   |         |
+sysharn1   | 0.638 |     mine3   |      mine3 |        |          | approx  |  64000    | minibatch2      | X   |         |
+sysharn2   | 0.713 |     mine3   |      mine4 |        |          | approx  |  64000    | minibatch2      | X   |         |
 
 
 In the SMK paper they report 0.781 as shown in the table, but they also report a score of 0.820 when increasing

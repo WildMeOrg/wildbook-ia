@@ -240,8 +240,11 @@ def get_training_pairs():
     import sklearn.model_selection
     from sklearn.ensemble import RandomForestClassifier
 
+    allow_nan = False
     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
                                    for m in matches_RAT_SV])
+
+    if allow_nan:
     valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
     valid_cols = pairwise_feats.columns[valid_colx]
 
