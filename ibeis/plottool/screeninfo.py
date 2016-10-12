@@ -55,13 +55,25 @@ def ensure_app_is_running():
 
 def infer_monitor_specs(res_w, res_h, inches_diag):
     """
-    inches_diag = 27
-    res_w = 1920
-    res_h = 1080
-    inches_w = inches_diag * res_w / np.sqrt(res_h**2 + res_w**2)
-    inches_h = inches_diag * res_h / np.sqrt(res_h**2 + res_w**2)
-    print('inches_w = %r' % (inches_w,))
-    print('inches_h = %r' % (inches_h,))
+    monitors = [
+        dict(name='work1', inches_diag=23, res_w=1920, res_h=1080),
+        dict(name='work2', inches_diag=24, res_w=1920, res_h=1200),
+
+        dict(name='hp-129', inches_diag=25, res_w=1920, res_h=1080),
+        dict(name='?-26', inches_diag=26, res_w=1920, res_h=1080),
+        dict(name='?-27', inches_diag=27, res_w=1920, res_h=1080),
+    ]
+    for info in monitors:
+        name = info['name']
+        inches_diag = info['inches_diag']
+        res_h = info['res_h']
+        res_w = info['res_w']
+        print('---')
+        print(name)
+        inches_w = inches_diag * res_w / np.sqrt(res_h**2 + res_w**2)
+        inches_h = inches_diag * res_h / np.sqrt(res_h**2 + res_w**2)
+        print('inches diag = %.2f' % (inches_diag))
+        print('inches WxH = %.2f x %.2f' % (inches_w, inches_h))
 
     #inches_w = inches_diag * res_w/sqrt(res_h**2 + res_w**2)
     """
