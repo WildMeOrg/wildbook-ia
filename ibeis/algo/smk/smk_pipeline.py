@@ -167,7 +167,13 @@ class SMKRequest(mc5.EstimatorRequest):
 
         cheat = True
         if cheat:
-            pass
+            import ibeis
+            ut.cprint('CHEATING', 'red')
+            vocab_aids = ibeis.init.filter_annots.sample_annots_wrt_ref(
+                qreq_.ibs, qreq_.daids, {'exclude_ref_contact': True},
+                qreq_.qaids, verbose=1)
+            vocab_rowid = depc.get_rowids('vocab', (vocab_aids,), config=dconfig, ensure=False)[0]
+            assert vocab_rowid is not None
 
         depc = qreq_.ibs.depc
         dinva_pcfgstr = depc.stacked_config(

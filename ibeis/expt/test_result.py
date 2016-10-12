@@ -105,6 +105,7 @@ class TestResult(ut.NiceRepr):
         >>> ibs, testres = main_helpers.testdata_expts()
         >>> testres.help()
         >>> actions = testres.get_actions()
+        >>> testres.map_score()
         >>> ut.qt4ensure()
         >>> prompt = ut.InteractivePrompt(actions)
         >>> prompt.loop()
