@@ -82,20 +82,21 @@ SEX_TEXT_TO_INT = ut.invert_dict(SEX_INT_TO_TEXT)
 
 class PATH_NAMES(object):
     """ Path names for internal IBEIS database """
-    sqldb      = '_ibeis_database.sqlite3'
-    _ibsdb     = '_ibsdb'
-    cache      = '_ibeis_cache'
-    backups    = '_ibeis_backups'
-    chips      = 'chips'
-    figures    = 'figures'
-    flann      = 'flann'
-    images     = 'images'
-    trees      = 'trees'
-    nets       = 'nets'
-    uploads    = 'uploads'
-    detectimg  = 'detectimg'
-    thumbs     = 'thumbs'
-    trashdir   = 'trashed_images'
+    sqldb       = '_ibeis_database.sqlite3'
+    sqlstaging  = '_ibeis_staging.sqlite3'
+    _ibsdb      = '_ibsdb'
+    cache       = '_ibeis_cache'
+    backups     = '_ibeis_backups'
+    chips       = 'chips'
+    figures     = 'figures'
+    flann       = 'flann'
+    images      = 'images'
+    trees       = 'trees'
+    nets        = 'nets'
+    uploads     = 'uploads'
+    detectimg   = 'detectimg'
+    thumbs      = 'thumbs'
+    trashdir    = 'trashed_images'
     distinctdir = 'distinctiveness_model'
     scorenormdir = 'scorenorm'
     smartpatrol = 'smart_patrol'
@@ -106,22 +107,22 @@ class PATH_NAMES(object):
 
 class REL_PATHS(object):
     """ all paths are relative to ibs.dbdir """
-    _ibsdb   = PATH_NAMES._ibsdb
-    trashdir = PATH_NAMES.trashdir
-    figures  = join(_ibsdb, PATH_NAMES.figures)
-    cache    = join(_ibsdb, PATH_NAMES.cache)
-    backups  = join(_ibsdb, PATH_NAMES.backups)
-    #chips    = join(_ibsdb, PATH_NAMES.chips)
-    images   = join(_ibsdb, PATH_NAMES.images)
-    trees    = join(_ibsdb, PATH_NAMES.trees)
-    nets     = join(_ibsdb, PATH_NAMES.nets)
-    uploads  = join(_ibsdb, PATH_NAMES.uploads)
+    _ibsdb      = PATH_NAMES._ibsdb
+    trashdir    = PATH_NAMES.trashdir
+    figures     = join(_ibsdb, PATH_NAMES.figures)
+    cache       = join(_ibsdb, PATH_NAMES.cache)
+    backups     = join(_ibsdb, PATH_NAMES.backups)
+    #chips       = join(_ibsdb, PATH_NAMES.chips)
+    images      = join(_ibsdb, PATH_NAMES.images)
+    trees       = join(_ibsdb, PATH_NAMES.trees)
+    nets        = join(_ibsdb, PATH_NAMES.nets)
+    uploads     = join(_ibsdb, PATH_NAMES.uploads)
     # All computed dirs live in <dbdir>/_ibsdb/_ibeis_cache
-    chips    = join(cache, PATH_NAMES.chips)
-    thumbs   = join(cache, PATH_NAMES.thumbs)
-    flann    = join(cache, PATH_NAMES.flann)
-    qres     = join(cache, PATH_NAMES.qres)
-    bigcache = join(cache, PATH_NAMES.bigcache)
+    chips       = join(cache, PATH_NAMES.chips)
+    thumbs      = join(cache, PATH_NAMES.thumbs)
+    flann       = join(cache, PATH_NAMES.flann)
+    qres        = join(cache, PATH_NAMES.qres)
+    bigcache    = join(cache, PATH_NAMES.bigcache)
     distinctdir = join(cache, PATH_NAMES.distinctdir)
 
 
@@ -188,6 +189,7 @@ BASE_DATABASE_VERSION = '0.0.0'
 # What should happen is when they are depricated they should go into a
 # depricated tablename structure with the relevant versions suffixed
 #################################################################
+# CORE DATABASE
 AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
 GA_RELATION_TABLE    = 'annotgroup_annotation_relationship'
 ANNOTGROUP_TABLE     = 'annotgroups'
@@ -216,6 +218,9 @@ VERSIONS_TABLE       = 'versions'
 #
 PARTY_CONTRIB_RELATION_TABLE = 'party_contrib_relation'
 PARTY_TABLE                  = 'party'
+#################################################################
+# STAGING DATABASE
+REVIEW_TABLE         = 'reviews'
 #################################################################
 
 
@@ -331,3 +336,14 @@ SPECIES_WITH_DETECTORS = (
     TEST_SPECIES.WHALE_FLUKE,
     TEST_SPECIES.WHALE_HUMPBACK,
 )
+
+
+REVIEW_MATCH = 0
+REVIEW_NON_MATCH = 1
+REVIEW_NOT_COMPARABLE = 2
+
+REVIEW_INT_TO_TEXT = {
+    REVIEW_MATCH          : 'Match',
+    REVIEW_NON_MATCH      : 'Non Match',
+    REVIEW_NOT_COMPARABLE : 'Not Comparable',
+}

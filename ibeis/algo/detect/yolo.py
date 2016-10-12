@@ -43,7 +43,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
                 sizes should be used; defaults to True
 
     Kwargs:
-        detector, config_filepath, weight_filepath, verbose
+        detector, config_filepath, weights_filepath, verbose
 
     Yields:
         tuple: (gid, gpath, result_list)
@@ -59,7 +59,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>> ibs = ibeis.opendb(defaultdb='WS_ALL')
         >>> gid_list = ibs.images()._rowids[0:1]
         >>> kwargs = config = LocalizerConfig(**{
-        >>>     'weight_filepath': '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights',
+        >>>     'weights_filepath': '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.39000.weights',
         >>>     'config_filepath': '/media/raid/work/WS_ALL/localizer_backup/detect.yolo.2.cfg',
         >>> })
         >>> exec(ut.execstr_dict(config), globals())
@@ -104,7 +104,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, detector=None, config_filepath=None, weight_filepath=None,
+def detect(gpath_list, detector=None, config_filepath=None, weights_filepath=None,
            **kwargs):
     """
     Args:
@@ -124,23 +124,23 @@ def detect(gpath_list, detector=None, config_filepath=None, weight_filepath=None
         >>> gid_list = ibs.images()._rowids[0:1]
         >>> gpath_list = ibs.get_image_paths(gid_list)
         >>> dpath = '/media/raid/work/WS_ALL/localizer_backup/'
-        >>> weight_filepath = join(dpath, 'detect.yolo.2.39000.weights')
+        >>> weights_filepath = join(dpath, 'detect.yolo.2.39000.weights')
         >>> config_filepath = join(dpath, 'detect.yolo.2.cfg')
         >>> config = LocalizerConfig(
-        >>>     weight_filepath=weight_filepath,
+        >>>     weights_filepath=weights_filepath,
         >>>     config_filepath=config_filepath,
         >>> )
         >>> kwargs = config.asdict()
-        >>> ut.delete_dict_keys(kwargs, ['weight_filepath', 'config_filepath'])
+        >>> ut.delete_dict_keys(kwargs, ['weights_filepath', 'config_filepath'])
         >>> ut.delete_dict_keys(kwargs, ['thumbnail_cfg', 'species', 'algo'])
     """
     # Run detection
     if detector is None:
-        class_filepath = kwargs.pop('class_filepath', None)
+        classes_filepath = kwargs.pop('classes_filepath', None)
         verbose = kwargs.get('verbose', False)
         detector = pydarknet.Darknet_YOLO_Detector(config_filepath=config_filepath,
-                                                   weight_filepath=weight_filepath,
-                                                   class_filepath=class_filepath,
+                                                   weights_filepath=weights_filepath,
+                                                   classes_filepath=classes_filepath,
                                                    verbose=verbose)
     #dark = detector
     #input_gpath_list = gpath_list

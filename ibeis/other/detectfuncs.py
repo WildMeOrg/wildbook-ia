@@ -31,21 +31,16 @@ CLASS_INJECT_KEY, register_ibs_method = (
 
 
 @register_ibs_method
-def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=False,
-                  use_maximum_linear_dimension=True):
+def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=False,
+                  use_maximum_linear_dimension=True, use_existing_train_test=True, **kwargs):
     """
     Creates training XML for training models
     """
     import random
     from datetime import date
-    # try:
     from detecttools.pypascalmarkup import PascalVOC_Markup_Annotation
-    # except ImportError as:
-    #     ut.printex('COMMIT TO DETECTTOOLS')
-    #     pass
 
     current_year = int(date.today().year)
-    # target_size = 900
     information = {
         'database_name' : ibs.get_dbname()
     }
@@ -54,6 +49,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
     annotdir = datadir + 'Annotations/'
     setsdir = datadir + 'ImageSets/'
     mainsetsdir = setsdir + 'Main/'
+
     if purge:
         ut.delete(datadir)
     ut.ensuredir(datadir)
@@ -61,6 +57,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
     ut.ensuredir(annotdir)
     ut.ensuredir(setsdir)
     ut.ensuredir(mainsetsdir)
+
+    # Get all gids and process them
     gid_list = ibs.get_valid_gids()
     sets_dict = {
         'test'     : [],
@@ -69,12 +67,13 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
         'val'      : [],
     }
     index = 1 if offset == 'auto' else offset
-    try:
-        train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
-        test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-    except:
-        train_gid_set = set([])
-        test_gid_set = set([])
+
+    # Make a preliminary train / test split as imagesets or use the existing ones
+    if not use_existing_train_test:
+        ibs.imageset_train_test_split(**kwargs)
+
+    train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
@@ -134,16 +133,9 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
                 ymin = max(ymin, 0)
                 xmax = min(xmax, width - 1)
                 ymax = min(ymax, height - 1)
-                #TODO: Change species_name to getter in IBEISControl once
-                #implemented
-                #species_name = 'grevys_zebra'
+                # Get info
                 info = {}
                 species_name = ibs.get_annot_species_texts(aid)
-                # if species_name not in ['zebra_plains', 'zebra_grevys']:
-                #     species_name = 'unspecified'
-                # yaw = ibs.get_annot_yaw_texts(aid)
-                # if yaw != '' and yaw is not None:
-                #     info['pose'] = yaw
                 yaw = ibs.get_annot_yaws(aid)
                 if yaw != -1 and yaw is not None:
                     info['pose'] = '%0.06f' % (yaw, )
@@ -154,20 +146,9 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
                     species_name, (xmax, xmin, ymax, ymin), **info)
             dst_annot = annotdir + out_name  + '.xml'
 
-            # # Update sets
-            # state = random.uniform(0.0, 1.0)
-            # if state <= 0.50:
-            #     sets_dict['test'].append(out_name)
-            # elif state <= 0.75:
-            #     sets_dict['train'].append(out_name)
-            #     sets_dict['trainval'].append(out_name)
-            # else:
-            #     sets_dict['val'].append(out_name)
-            #     sets_dict['trainval'].append(out_name)
-
             if gid in test_gid_set:
                 sets_dict['test'].append(out_name)
-            elif True or gid in train_gid_set:
+            elif gid in train_gid_set:
                 state = random.uniform(0.0, 1.0)
                 if state <= 0.75:
                     sets_dict['train'].append(out_name)
@@ -176,7 +157,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
                     sets_dict['val'].append(out_name)
                     sets_dict['trainval'].append(out_name)
             else:
-                raise NotImplementedError()
+                raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
 
             # Write XML
             if True or not enforce_yaw or yawed:
@@ -206,7 +187,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=500, purge=
 
 
 @register_ibs_method
-def imageset_train_test_split(ibs, train_split=0.8):
+def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
     from random import shuffle
     gid_list = ibs.get_valid_gids()
     aids_list = ibs.get_image_aids(gid_list)
@@ -276,8 +257,8 @@ def localizer_distributions(ibs):
         distro_dict[total] += 1
         for aid in aid_list:
             species = ibs.get_annot_species_texts(aid)
-            if species not in ['zebra_plains', 'zebra_grevys']:
-                species = 'unspecified'
+            # if species not in ['zebra_plains', 'zebra_grevys']:
+            #     species = 'unspecified'
             viewpoint = ibs.get_annot_yaw_texts(aid)
             if species not in species_dict:
                 species_dict[species] = {}
@@ -609,8 +590,8 @@ def localizer_parse_pred(ibs, test_gid_set=None, **kwargs):
 
 
 def localizer_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs):
-    # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    test_gid_set = ibs.get_valid_gids()
+    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+    # test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
@@ -673,8 +654,8 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
 def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
-    # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    test_gid_set = ibs.get_valid_gids()
+    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+    # test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
@@ -1033,16 +1014,44 @@ def labeler_confusion_matrix_algo_plot(ibs, label, color, **kwargs):
     def simpler(label):
         if label == 'ignore':
             return 'IGNORE'
-        label = label.replace('zebra_plains', 'PZ')
-        label = label.replace('zebra_grevys', 'GZ')
-        label = label.replace('frontleft',    'FL')
-        label = label.replace('frontright',   'FR')
-        label = label.replace('backleft',     'BL')
-        label = label.replace('backright',    'BR')
-        label = label.replace('front',        'F')
-        label = label.replace('back',         'B')
-        label = label.replace('left',         'L')
-        label = label.replace('right',        'R')
+        label = label.replace('lion',                'LN')
+        label = label.replace('zebra_plains',        'PZ')
+        label = label.replace('hippopotamus',        'HIPPO')
+        label = label.replace('antelope',            'ANTEL')
+        label = label.replace('elephant_savannah',   'ELEPH')
+        label = label.replace('person',              'PERSON')
+        label = label.replace('giraffe_reticulated', 'GIR')
+        label = label.replace('zebra_grevys',        'GZ')
+        label = label.replace('giraffe_masai',       'GIRM')
+        label = label.replace('unspecified_animal',  'UNSPEC')
+        label = label.replace('car',                 'CAR')
+        label = label.replace('bird',                'B')
+        label = label.replace('whale_shark',         'WS')
+        label = label.replace('whale_fluke',         'WF')
+        label = label.replace('lionfish',            'LF')
+        label = label.replace('turtle_sea',          'ST')
+        label = label.replace('dog_wild',            'WD')
+        label = label.replace('cow_domestic',        'DOMW')
+        label = label.replace('sheep_domestic',      'DOMS')
+        label = label.replace('dog_domestic',        'DOMD')
+        label = label.replace('bicycle',             'CYCLE')
+        label = label.replace('motorcycle',          'MCYCLE')
+        label = label.replace('bus',                 'BUS')
+        label = label.replace('truck',               'TRUCK')
+        label = label.replace('horse_domestic',      'DOMH')
+        label = label.replace('boat',                'BOAT')
+        label = label.replace('train',               'TRAIN')
+        label = label.replace('cat_domestic',        'DOCM')
+        label = label.replace('airplane',            'PLANE')
+
+        label = label.replace('frontleft',           'FL')
+        label = label.replace('frontright',          'FR')
+        label = label.replace('backleft',            'BL')
+        label = label.replace('backright',           'BR')
+        label = label.replace('front',               'F')
+        label = label.replace('back',                'B')
+        label = label.replace('left',                'L')
+        label = label.replace('right',               'R')
         return label
 
     from ibeis.algo.detect.labeler.model import label_list as category_list
@@ -1232,8 +1241,8 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
 
 
 def detector_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs):
-    # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    test_gid_set = ibs.get_valid_gids()
+    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+    # test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
@@ -1296,8 +1305,8 @@ def detector_precision_recall_algo_plot(ibs, **kwargs):
 def detector_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
-    # test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    test_gid_set = ibs.get_valid_gids()
+    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
+    # test_gid_set = ibs.get_valid_gids()
     uuid_list = ibs.get_image_uuids(test_gid_set)
 
     print('\tGather Ground-Truth')
