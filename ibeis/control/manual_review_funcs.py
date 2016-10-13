@@ -206,6 +206,28 @@ def get_review_decision_str(ibs, review_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/review/decisions/single/', methods=['GET'], __api_plural_check__=False)
+def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
+    r"""
+    Returns:
+        list_ (list): review_decisions_list - review decisions
+
+    RESTful:
+        Method: GET
+        URL:    /api/review/identities/single/
+    """
+    colnames = (REVIEW_DECISION,)
+    # FIXME: col_rowid is not correct
+    params_iter = zip(aid_list, )
+    andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
+    review_decisions_list = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
+        eager=eager, nInput=nInput, op='OR', __reject_multiple_records__=False)
+    return review_decisions_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/review/decisions/tuple/', methods=['GET'], __api_plural_check__=False)
 def get_review_decisions_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):
     r"""

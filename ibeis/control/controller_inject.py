@@ -119,6 +119,7 @@ def get_flask_app():
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME,
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
+        GLOBAL_APP.QUERY_OBJECT = None
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
         if HAS_FLASK_CAS:

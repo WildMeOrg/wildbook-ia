@@ -13,7 +13,6 @@ TODO: need to split up into sub modules:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
 from os.path import exists, expanduser, join, abspath
-import ibeis.constants as const
 import numpy as np
 import vtool as vt
 import utool as ut
@@ -242,7 +241,7 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
 
 
 @register_ibs_method
-def localizer_distributions(ibs):
+def localizer_distributions(ibs, threshold=10):
     # Process distributions of densities
     gid_list = ibs.get_valid_gids()
     aids_list = ibs.get_image_aids(gid_list)
@@ -250,15 +249,13 @@ def localizer_distributions(ibs):
     species_dict = {}
     for gid, aid_list in zip(gid_list, aids_list):
         total = len(aid_list)
-        if total >= 7:
-            total = 7
+        if total >= threshold:
+            total = threshold
         if total not in distro_dict:
             distro_dict[total] = 0
         distro_dict[total] += 1
         for aid in aid_list:
             species = ibs.get_annot_species_texts(aid)
-            # if species not in ['zebra_plains', 'zebra_grevys']:
-            #     species = 'unspecified'
             viewpoint = ibs.get_annot_yaw_texts(aid)
             if species not in species_dict:
                 species_dict[species] = {}
@@ -280,13 +277,17 @@ def localizer_distributions(ibs):
             total += viewpoint_dict[viewpoint]
         print('Total: %d\n' % (total, ))
 
-    plot_distrobutions(distro_dict)
+    plot_distrobutions(distro_dict, threshold=threshold)
 
 
-def plot_distrobutions(distro_dict):
+def plot_distrobutions(distro_dict, threshold=10):
     import matplotlib.pyplot as plt
     key_list = sorted(distro_dict.keys())
-    label_list = [ '7+' if key == 7 else str(key) for key in key_list ]
+    threshold_str = '%d+' % (threshold, )
+    label_list = [
+        threshold_str if key == threshold else str(key)
+        for key in key_list
+    ]
     size_list = [ distro_dict[key] for key in key_list ]
     color_list = ['yellowgreen', 'gold', 'lightskyblue', 'lightcoral']
     explode = [0.0] + [0.0] * (len(size_list) - 1)
@@ -708,32 +709,45 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : False},
-        {'min_overlap' : min_overlap, 'grid' : True},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
     ]
     name_list = [
-        'Retrained',
-        'Retrained (GRID)',
-        'Original',
-        'Original (GRID)',
+        'V1',
+        'V1 (GRID)',
+        'V2',
+        'V2 (GRID)',
+        'V3',
+        'V3 (GRID)',
+    ]
+    color_list = [
+        'y',
+        'c',
+        'k',
+        'g',
+        'r',
+        'b',
     ]
     ret_list = []
-    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[0], color='r', **kwargs_list[0]))
-    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[1], color='b', **kwargs_list[1]))
-    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[2], color='k', **kwargs_list[2]))
-    ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[3], color='g', **kwargs_list[3]))
+    for index, color in enumerate(color_list):
+        ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[index],
+                        color=color, **kwargs_list[index]))
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     index = np.argmax(area_list)
     best_name = name_list[index]
+    best_color = color_list[index]
     best_kwargs = kwargs_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
     plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_name, best_area, ), y=1.13)
-    # Display graph
+
+    # Display graph of the overall highest area
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
@@ -741,11 +755,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_name, best_color,
+                                                           conf=best_conf, fig_=fig_,
+                                                           axes_=axes_, **best_kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_name, best_conf, ), y=1.26)
 
+    # Show best that is greater than the best_pr
     best_index = None
     best_conf = None
     best_pr = 0.0
@@ -764,13 +781,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         plt.plot([best_re], [best_pr], 'yo')
 
         best_name = name_list[best_index]
+        best_color = color_list[index]
         best_kwargs = kwargs_list[best_index]
 
         axes_ = plt.subplot(133)
         axes_.set_aspect(1)
         gca_ = plt.gca()
         gca_.grid(False)
-        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf, fig_=fig_, axes_=axes_, **best_kwargs)
+        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_name, best_color,
+                                                               conf=best_conf, fig_=fig_,
+                                                               axes_=axes_, **best_kwargs)
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
         plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_name, best_conf, ), y=1.26)
@@ -1195,9 +1215,6 @@ def detector_parse_gt(ibs, test_gid_set=None):
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
-            if temp['species'] not in ['zebra_grevys', 'zebra_plains']:
-                temp['species'] = const.UNKNOWN
-                temp['viewpoint'] = None
             temp_list.append(temp)
         gt_dict[uuid] = temp_list
     return gt_dict

@@ -888,7 +888,7 @@ def turk_detection_dynamic():
 def turk_annotation():
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
+        python -m ibeis.web.app --exec-turk_annotation --db PZ_Master1
 
     Example:
         >>> # SCRIPT
@@ -1089,6 +1089,41 @@ def turk_viewpoint():
                          finished=finished,
                          display_instructions=display_instructions,
                          review=review)
+
+
+def load_identification_query_object():
+    if current_app.QUERY_OBJECT is None:
+        from ibeis.algo.hots.graph_iden import AnnotInference
+        ibs = current_app.ibs
+        aid_list = ibs.get_valid_aids()
+        infr = AnnotInference(ibs, aid_list, autoinit=True)
+        print('infr = %s' % (infr,))
+        # Add some feedback
+        infr.add_feedback(1, 4, 'nomatch')
+        infr.apply_feedback_edges()
+
+        current_app.QUERY_OBJECT = []
+    return current_app.QUERY_OBJECT
+
+
+@register_route('/turk/identification/', methods=['GET'])
+def turk_identification():
+    """
+    CommandLine:
+        python -m ibeis.web.app --exec-turk_identification --db PZ_Master1
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.other.ibsfuncs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
+        >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
+        >>> ibs.start_web_annot_groupreview(aid_list)
+    """
+    ibs = current_app.ibs
+    query_object = load_identification_query_object()
+    return 'true'
 
 
 @register_route('/turk/quality/', methods=['GET'])
