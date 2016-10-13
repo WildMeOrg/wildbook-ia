@@ -9,10 +9,8 @@ from __future__ import absolute_import, division, print_function
 import utool as ut
 import six
 import numpy as np
-#raise ImportError('FOOO')
-import sklearn.metrics
 import scipy.interpolate
-(print, rrr, profile) = ut.inject2(__name__, '[confusion]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def testdata_scores_labels():
@@ -291,6 +289,7 @@ class ConfusionMetrics(object):
         References:
             https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
         """
+        import sklearn.metrics
         return sklearn.metrics.auc(self.fpr, self.tpr)
 
 
@@ -553,6 +552,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
         >>> ut.show_if_requested()
     """
     import plottool as pt
+    import sklearn.metrics
     if fnum is None:
         fnum = pt.next_fnum()
 
