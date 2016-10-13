@@ -210,20 +210,20 @@ def get_review_decision_str(ibs, review_rowid_list):
 def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
     r"""
     Returns:
-        list_ (list): review_decisions_list - review decisions
+        list_ (list): review_tuple_decisions_list - review decisions
 
     RESTful:
         Method: GET
         URL:    /api/review/identities/single/
     """
-    colnames = (REVIEW_DECISION,)
+    colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_DECISION,)
     # FIXME: col_rowid is not correct
-    params_iter = zip(aid_list, )
+    params_iter = zip(aid_list, aid_list, )
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
-    review_decisions_list = ibs.staging.get_where_eq(
+    review_tuple_decisions_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
         eager=eager, nInput=nInput, op='OR', __reject_multiple_records__=False)
-    return review_decisions_list
+    return review_tuple_decisions_list
 
 
 @register_ibs_method

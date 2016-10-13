@@ -589,6 +589,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
         ibeis AnnotInference:0 --show
         ibeis AnnotInference:1 --show
+        ibeis AnnotInference:2 --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -631,6 +632,34 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
 
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
+        >>> infr = AnnotInference(ibs, aids, autoinit=True)
+        >>> result = ('infr = %s' % (infr,))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> use_image = False
+        >>> infr.initialize_visual_node_attrs()
+        >>> infr.apply_mst()
+        >>> # Add some feedback
+        >>> infr.add_feedback(1, 4, 'nomatch')
+        >>> try:
+        >>>     infr.add_feedback(1, 10, 'nomatch')
+        >>> except ValueError:
+        >>>     pass
+        >>> try:
+        >>>     infr.add_feedback(11, 12, 'nomatch')
+        >>> except ValueError:
+        >>>     pass
+        >>> infr.apply_feedback_edges()
+        >>> infr.show_graph(use_image=use_image)
+        >>> ut.show_if_requested()
+        infr = <AnnotInference(nAids=6, nEdges=0)>
+
     """
 
     truth_texts = {
@@ -646,6 +675,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             print('[infr] __init__')
         infr.ibs = ibs
         infr.aids = aids
+        infr.aids_set = set(infr.aids)
         if nids is None:
             nids = ibs.get_annot_nids(aids)
         if ut.isscalar(nids):
@@ -1058,9 +1088,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
     def add_feedback(infr, aid1, aid2, state):
         """ External helper """
+        if not (aid1 in infr.aids_set and aid2  in infr.aids_set):
+            raise ValueError('One or both of the aids specified is not apart of the graph')
         if infr.verbose:
             print('[infr] add_feedback(%r, %r, %r)' % (aid1, aid2, state))
-
         edge = tuple(sorted([aid1, aid2]))
         if isinstance(state, dict):
             assert 'p_match' in state

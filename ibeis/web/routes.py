@@ -1096,13 +1096,16 @@ def load_identification_query_object():
         from ibeis.algo.hots.graph_iden import AnnotInference
         ibs = current_app.ibs
         aid_list = ibs.get_valid_aids()
-        infr = AnnotInference(ibs, aid_list, autoinit=True)
-        print('infr = %s' % (infr,))
-        # Add some feedback
-        infr.add_feedback(1, 4, 'nomatch')
-        infr.apply_feedback_edges()
+        query_object = AnnotInference(ibs, aid_list, autoinit=True)
 
-        current_app.QUERY_OBJECT = []
+        # Add some feedback
+        review_tuple_decisions_list = ibs.get_review_decisions_from_single(aid_list)
+        print(review_tuple_decisions_list)
+        # infr.add_feedback(1, 4, 'nomatch')
+        query_object.apply_feedback_edges()
+
+        # Assign to current_app's QUERY_OBJECT attribute
+        current_app.QUERY_OBJECT = query_object
     return current_app.QUERY_OBJECT
 
 
@@ -1121,9 +1124,8 @@ def turk_identification():
         >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
-    ibs = current_app.ibs
     query_object = load_identification_query_object()
-    return 'true'
+    return 'true %s' % (query_object, )
 
 
 @register_route('/turk/quality/', methods=['GET'])
