@@ -1324,11 +1324,10 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                 params_iter = list(zip(rowid_dict[parent]))
 
                 for parent_colname in parent_colnames:
-                    child_rowids = child_table.db.get_where_eq(child_table.tablename,
-                                                             (child_table.rowid_colname,),
-                                                             params_iter,
-                                                             unpack_scalars=False,
-                                                             andwhere_colnames=[parent_colname])
+                    child_rowids = child_table.db.get_where_eq(
+                        child_table.tablename, (child_table.rowid_colname,),
+                        params_iter, unpack_scalars=False,
+                        where_colnames=[parent_colname], op='AND')
                     child_rowids = ut.flatten(child_rowids)
                     if table_config_filter is not None:
                         config_filter = table_config_filter.get(child_table.tablename, None)
