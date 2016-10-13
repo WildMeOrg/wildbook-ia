@@ -240,15 +240,17 @@ def get_training_pairs():
     import sklearn.model_selection
     from sklearn.ensemble import RandomForestClassifier
 
-    allow_nan = False
+    allow_nan = True
     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
                                    for m in matches_RAT_SV])
 
-    # if allow_nan:
-    valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
-    valid_cols = pairwise_feats.columns[valid_colx]
+    if allow_nan:
+        valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
+        valid_cols = pairwise_feats.columns[valid_colx]
+        X = pairwise_feats[valid_cols].values
+    else:
+        X = pairwise_feats.values
 
-    X = pairwise_feats[valid_cols].values
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches_RAT_SV])
 
     rng = np.random.RandomState(42)
@@ -262,7 +264,7 @@ def get_training_pairs():
         X_test, y_test = X[test_idx], y[test_idx]
 
         # Train uncalibrated random forest classifier on train data
-        clf = RandomForestClassifier(n_estimators=250, verbose=0)
+        clf = RandomForestClassifier(n_estimators=250, verbose=0, missing_values=True)
         clf.fit(X_train, y_train)
         # print(ut.repr4(dict(zip(valid_cols, clf.feature_importances_))))
 
@@ -274,6 +276,7 @@ def get_training_pairs():
         score_list = np.array([m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
         auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
         newrow = pd.DataFrame([[auc_naive, auc_learn]], columns=df_results.columns)
+        print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
 
     def monkey_to_str_columns(self):

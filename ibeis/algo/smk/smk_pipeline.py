@@ -6,9 +6,14 @@ Oxford Experiment:
 
 Zebra Experiment:
     python -m ibeis draw_rank_cdf --db GZ_Master1 --show \
-        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],sv_on=[False] \
+        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \
+           :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 
+    python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+        -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \
+           :proot=vsmany,fg_on=False,SV=[False] \
+        -a ctrl:qmingt=2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import dtool

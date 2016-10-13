@@ -54,6 +54,9 @@ References:
 
     Fisher Kernel For Large Scale Classification
     https://www.robots.ox.ac.uk/~vgg/rg/papers/peronnin_etal_ECCV10.pdf
+
+    Orientation covariant aggregation of local descriptors with embeddings
+    https://arxiv.org/pdf/1407.2170.pdf
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip
