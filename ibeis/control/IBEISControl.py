@@ -76,6 +76,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_garelate_funcs',
     'ibeis.control.manual_annot_funcs',
     'ibeis.control.manual_name_funcs',
+    'ibeis.control.manual_review_funcs',
     'ibeis.control.manual_species_funcs',
     'ibeis.control.manual_annotgroup_funcs',
     #'ibeis.control.manual_dependant_funcs',
@@ -149,7 +150,8 @@ __IBEIS_CONTROLLER_CACHE__ = {}
 
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
-        use_cache=True, request_dbversion=None, asproxy=None):
+        use_cache=True, request_dbversion=None, request_stagingversion=None,
+        asproxy=None):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -162,6 +164,7 @@ def request_IBEISController(
         use_cache (bool): use the global ibeis controller cache.
             Make sure this is false if calling from a Thread. (default=True)
         request_dbversion (str): developer flag. Do not use.
+        request_stagingversion (str): developer flag. Do not use.
 
     Returns:
         IBEISController: ibs
@@ -193,7 +196,7 @@ def request_IBEISController(
         manager.start()
         ibs = manager.IBEISController(
             dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-            request_dbversion=request_dbversion)
+            request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
         return ibs
 
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
@@ -210,7 +213,7 @@ def request_IBEISController(
         else:
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-                request_dbversion=request_dbversion)
+                request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
@@ -256,7 +259,7 @@ class IBEISController(BASE_CLASS):
 
     @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
-                 request_dbversion=None, force_serial=None):
+                 request_dbversion=None, request_stagingversion=None, force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
@@ -290,7 +293,7 @@ class IBEISController(BASE_CLASS):
         # _send_wildbook_request will do nothing if no wildbook address is
         # specified
         ibs._send_wildbook_request(wbaddr)
-        ibs._init_sql(request_dbversion=request_dbversion)
+        ibs._init_sql(request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
         ibs._init_config()
         if not ut.get_argflag('--noclean') and not ibs.readonly:
             # ibs._init_burned_in_species()
@@ -491,7 +494,7 @@ class IBEISController(BASE_CLASS):
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
     @accessor_decors.default_decorator
-    def _init_sql(ibs, request_dbversion=None):
+    def _init_sql(ibs, request_dbversion=None, request_stagingversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
         # LOAD THE DEPENDENCY CACHE BEFORE THE MAIN DATABASE SO THAT ANY UPDATE
@@ -503,6 +506,7 @@ class IBEISController(BASE_CLASS):
         # RELEVANT CACHE DATABASE
         ibs._init_depcache()
         ibs._init_sqldbcore(request_dbversion=request_dbversion)
+        ibs._init_sqldbstaging(request_stagingversion=request_stagingversion)
         # ibs.db.dump_schema()
         # ibs.db.dump()
         ibs._init_rowid_constants()
@@ -582,6 +586,85 @@ class IBEISController(BASE_CLASS):
                 ibs.db,
                 ibs.db_version_expected,
                 DB_SCHEMA,
+                verbose=ut.VERBOSE,
+            )
+        #import sys
+        #sys.exit(1)
+
+    @profile
+    def _init_sqldbstaging(ibs, request_stagingversion=None):
+        """
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.control.IBEISControl import *  # NOQA
+            >>> import ibeis  # NOQA
+            >>> #ibs = ibeis.opendb('PZ_MTEST')
+            >>> #ibs = ibeis.opendb('PZ_Master0')
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> #ibs = ibeis.opendb('PZ_Master0')
+
+        Ignore:
+            aid_list = ibs.get_valid_aids()
+            #ibs.update_annot_visual_uuids(aid_list)
+            vuuid_list = ibs.get_annot_visual_uuids(aid_list)
+            aid_list2 =  ibs.get_annot_aids_from_visual_uuid(vuuid_list)
+            assert aid_list2 == aid_list
+            # v1.3.0 testdb1:264us, PZ_MTEST:3.93ms, PZ_Master0:11.6s
+            %timeit ibs.get_annot_aids_from_visual_uuid(vuuid_list)
+            # v1.3.1 testdb1:236us, PZ_MTEST:1.83ms, PZ_Master0:140ms
+
+            ibs.print_imageset_table(exclude_columns=['imageset_uuid'])
+        """
+        from ibeis.control import _sql_helpers
+        from ibeis.control import STAGING_SCHEMA
+        # Before load, ensure database has been backed up for the day
+        backup_idx = ut.get_argval('--loadbackup-staging', type_=int, default=None)
+        sqlstaging_fpath = None
+        if backup_idx is not None:
+            backups = _sql_helpers.get_backup_fpaths(ibs)
+            print('backups = %r' % (backups,))
+            sqlstaging_fpath = backups[backup_idx]
+            print('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
+        if backup_idx is None and not ut.get_argflag('--nobackup-staging'):
+            try:
+                _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
+                                                          ibs.sqlstaging_fname,
+                                                          ibs.backupdir)
+            except IOError as ex:
+                ut.printex(ex, (
+                    'Failed making daily backup. '
+                    'Run with --nobackup to disable'))
+                raise
+        # IBEIS SQL State Database
+        if request_stagingversion is None:
+            ibs.staging_version_expected = '1.0.0'
+        else:
+            ibs.staging_version_expected = request_stagingversion
+        # TODO: add this functionality to SQLController
+        if backup_idx is None:
+            new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
+                ibs.get_dbname(), ibs.get_ibsdir(),
+                ibs.sqlstaging_fname, ibs.staging_version_expected, version_next='1.0.0')
+            ibs.staging_version_expected = new_version
+            ibs.sqlstaging_fname = new_fname
+        if sqlstaging_fpath is None:
+            assert backup_idx is None
+            sqlstaging_fpath = join(ibs.get_ibsdir(), ibs.sqlstaging_fname)
+            readonly = None
+        else:
+            readonly = True
+        ibs.staging = dtool.SQLDatabaseController(
+            fpath=sqlstaging_fpath, text_factory=const.__STR__,
+            inmemory=False, readonly=readonly)
+        ibs.readonly = ibs.staging.readonly
+
+        if backup_idx is None:
+            # Ensure correct schema versions
+            _sql_helpers.ensure_correct_version(
+                ibs,
+                ibs.staging,
+                ibs.staging_version_expected,
+                STAGING_SCHEMA,
                 verbose=ut.VERBOSE,
             )
         #import sys
@@ -691,13 +774,14 @@ class IBEISController(BASE_CLASS):
         ibs.workdir  = ut.truepath(workdir)
         ibs.dbname = dbname
         ibs.sqldb_fname = PATH_NAMES.sqldb
+        ibs.sqlstaging_fname = PATH_NAMES.sqlstaging
 
         # Make sure you are not nesting databases
         assert PATH_NAMES._ibsdb != ut.dirsplit(ibs.workdir), \
             'cannot work in _ibsdb internals'
         assert PATH_NAMES._ibsdb != dbname,\
             'cannot create db in _ibsdb internals'
-        ibs.dbdir    = join(ibs.workdir, ibs.dbname)
+        ibs.dbdir      = join(ibs.workdir, ibs.dbname)
         # All internal paths live in <dbdir>/_ibsdb
         # TODO: constantify these
         # so non controller objects (like in score normalization) have access
