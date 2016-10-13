@@ -220,7 +220,7 @@ def get_gar_rowid_from_superkey(ibs, annotgroup_rowid_list, aid_list, eager=True
     # FIXME: col_rowid is not correct
     params_iter = zip(annotgroup_rowid_list, aid_list)
     andwhere_colnames = [ANNOTGROUP_ROWID, ANNOT_ROWID]
-    gar_rowid_list = ibs.db.get_where2(
+    gar_rowid_list = ibs.db.get_where_eq(
         const.GA_RELATION_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return gar_rowid_list
 

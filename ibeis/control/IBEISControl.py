@@ -112,7 +112,7 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
     try:
         ut.import_modname(modname)
     except ImportError as ex:
-        ut.printex(ex, iswarning=True)
+        ut.printex(ex, 'Unable to load plugin: %r' % (modname,), iswarning=True)
 
 
 # NOTE: new plugin code needs to be hacked in here currently
@@ -903,64 +903,6 @@ class IBEISController(BASE_CLASS):
         """ returns the global resource dir in .config or AppData or whatever """
         resource_dir = sysres.get_ibeis_resource_dir()
         return resource_dir
-
-    def get_global_species_scorenorm_cachedir(ibs, species_text, ensure=True):
-        """
-        Args:
-            species_text (str):
-            ensure       (bool):
-
-        Returns:
-            str: species_cachedir
-
-        CommandLine:
-            python -m ibeis.control.IBEISControl --test-get_global_species_scorenorm_cachedir
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.control.IBEISControl import *  # NOQA
-            >>> import ibeis  # NOQA
-            >>> ibs = ibeis.opendb('testdb1')
-            >>> species_text = ibeis.const.TEST_SPECIES.ZEB_GREVY
-            >>> ensure = True
-            >>> species_cachedir = ibs.get_global_species_scorenorm_cachedir(species_text, ensure)
-            >>> resourcedir = ibs.get_ibeis_resource_dir()
-            >>> result = ut.relpath_unix(species_cachedir, resourcedir)
-            >>> print(result)
-            scorenorm/zebra_grevys
-        """
-        scorenorm_cachedir = join(ibs.get_ibeis_resource_dir(),
-                                  const.PATH_NAMES.scorenormdir)
-        species_cachedir = join(scorenorm_cachedir, species_text)
-        if ensure:
-            ut.ensurepath(scorenorm_cachedir)
-            ut.ensuredir(species_cachedir)
-        return species_cachedir
-
-    def get_local_species_scorenorm_cachedir(ibs, species_text, ensure=True):
-        """
-        """
-        scorenorm_cachedir = join(ibs.get_cachedir(),
-                                  const.PATH_NAMES.scorenormdir)
-        species_cachedir = join(scorenorm_cachedir, species_text)
-        if ensure:
-            ut.ensuredir(scorenorm_cachedir)
-            ut.ensuredir(species_cachedir)
-        return species_cachedir
-
-    def get_global_distinctiveness_modeldir(ibs, ensure=True):
-        """
-        Returns:
-            global_distinctdir (str): ibs internal directory
-        """
-        global_distinctdir = sysres.get_global_distinctiveness_modeldir(ensure=ensure)
-        return global_distinctdir
-
-    def get_local_distinctiveness_modeldir(ibs):
-        """
-        Returns:
-            distinctdir (str): ibs internal directory """
-        return ibs.distinctdir
 
     def get_detect_modeldir(ibs):
         return join(sysres.get_ibeis_resource_dir(), 'detectmodels')

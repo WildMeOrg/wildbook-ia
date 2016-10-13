@@ -13,7 +13,7 @@ from vtool import coverage_kpts
 from vtool import coverage_grid
 from ibeis.algo.hots import hstypes
 #from ibeis.algo.hots import name_scoring
-from ibeis.algo.hots import distinctiveness_normalizer
+# from ibeis.algo.hots import distinctiveness_normalizer
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 import scipy.stats.mstats as spmstat
 from six.moves import zip, range, map  # NOQA
@@ -102,18 +102,15 @@ def get_name_shortlist_aids(daid_list, dnid_list, annot_score_list,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.scoring import *  # NOQA
-        >>> # build test data
         >>> daid_list        = np.array([11, 12, 13, 14, 15, 16, 17])
         >>> dnid_list        = np.array([21, 21, 21, 22, 22, 23, 24])
         >>> annot_score_list = np.array([ 6,  2,  3,  5,  6,  3,  2])
         >>> name_score_list  = np.array([ 8,  9,  5,  4])
         >>> nid2_nidx        = {21:0, 22:1, 23:2, 24:3}
         >>> nNameShortList, nAnnotPerName = 3, 2
-        >>> # execute function
         >>> args = (daid_list, dnid_list, annot_score_list, name_score_list,
         ...         nid2_nidx, nNameShortList, nAnnotPerName)
         >>> top_daids = get_name_shortlist_aids(*args)
-        >>> # verify results
         >>> result = str(top_daids)
         >>> print(result)
         [15, 14, 11, 13, 16]
@@ -157,7 +154,6 @@ def make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName, sco
         >>> score_chipmatch_list(qreq_, cm_list, score_method)
         >>> cm_input = cm_list[0]
         >>> #assert cm_input.dnid_list.take(cm_input.argsort())[0] == cm_input.qnid
-        >>> # execute function
         >>> cm_shortlist = make_chipmatch_shortlists(qreq_, cm_list, nNameShortList, nAnnotPerName)
         >>> cm_input.print_rawinfostr()
         >>> cm = cm_shortlist[0]
@@ -217,13 +213,13 @@ def sift_selectivity_score(vecs1_m, vecs2_m, cos_power=3.0, dtype=np.float):
     return selectivity_score
 
 
-def get_kpts_distinctiveness(ibs, aid_list, config2_=None, config={}):
-    """
-    per-species disinctivness wrapper around ibeis cached function
-    """
-    dcvs_kw = distinctiveness_normalizer.DCVS_DEFAULT.updated_cfgdict(config)
-    dstncvs_list = ibs.get_annot_kpts_distinctiveness(aid_list, config2_=config2_, **dcvs_kw)
-    return dstncvs_list
+# def get_kpts_distinctiveness(ibs, aid_list, config2_=None, config={}):
+#     """
+#     per-species disinctivness wrapper around ibeis cached function
+#     """
+#     dcvs_kw = distinctiveness_normalizer.DCVS_DEFAULT.updated_cfgdict(config)
+#     dstncvs_list = ibs.get_annot_kpts_distinctiveness(aid_list, config2_=config2_, **dcvs_kw)
+#     return dstncvs_list
 
 
 def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
@@ -247,11 +243,9 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
         >>> qreq_, cm = plh.testdata_scoring('testdb1')
         >>> aid_list = cm.daid_list
         >>> config = qreq_.qparams
-        >>> # execute function
         >>> config2_ = qreq_.qparams
         >>> kpts_list = qreq_.ibs.get_annot_kpts(aid_list, config2_=config2_)
         >>> weights_list = get_annot_kpts_baseline_weights(qreq_.ibs, aid_list, config2_, config)
-        >>> # verify results
         >>> depth1 = ut.get_list_column(ut.depth_profile(kpts_list), 0)
         >>> depth2 = ut.depth_profile(weights_list)
         >>> assert depth1 == depth2
@@ -265,8 +259,9 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     fg_on = config.get('fg_on')
     weight_lists = []
     if dcvs_on:
-        qdstncvs_list = get_kpts_distinctiveness(ibs, aid_list, config2_, config)
-        weight_lists.append(qdstncvs_list)
+        raise NotImplementedError('dcvs')
+        # qdstncvs_list = get_kpts_distinctiveness(ibs, aid_list, config2_, config)
+        # weight_lists.append(qdstncvs_list)
     if fg_on:
         qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
@@ -490,10 +485,8 @@ def get_masks(qreq_, cm, config={}):
         >>> # (IMPORTANT)
         >>> from ibeis.algo.hots.scoring import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> qreq_, cm = plh.testdata_scoring('PZ_MTEST', qaid_list=[18])
         >>> config = qreq_.qparams
-        >>> # execute function
         >>> id_list, score_list, masks_list = get_masks(qreq_, cm, config)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt

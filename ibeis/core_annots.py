@@ -1164,6 +1164,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
     r"""
     CommandLine:
         python -m ibeis.core_annots --test-compute_one_vs_one --show
+        python -m ibeis.core_annots --test-compute_one_vs_one
         python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
         python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
 
