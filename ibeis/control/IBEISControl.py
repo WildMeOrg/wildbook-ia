@@ -36,18 +36,16 @@ Note:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import dtool
-#import sys
 import atexit
 import weakref
+import utool as ut
 from six.moves import zip
 from os.path import join, split
-import utool as ut
-#import ibeis  # NOQA
 from ibeis.init import sysres
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 # Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[ibs]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 # Import modules which define injectable functions
 
