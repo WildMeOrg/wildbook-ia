@@ -19,8 +19,6 @@ from ibeis.algo.hots import pipeline
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import query_request
 from ibeis.algo.hots import scoring
-from ibeis.algo.hots import script_vsone
-from ibeis.algo.hots import tmp_cluster
 from ibeis.algo.hots import vsone_pipeline
 import utool
 print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.hots]')
@@ -92,8 +90,6 @@ def reload_subs(verbose=True):
     get_rrr(query_params)(verbose=verbose)
     get_rrr(query_request)(verbose=verbose)
     get_rrr(scoring)(verbose=verbose)
-    get_rrr(script_vsone)(verbose=verbose)
-    get_rrr(tmp_cluster)(verbose=verbose)
     get_rrr(vsone_pipeline)(verbose=verbose)
     rrr(verbose=verbose)
     try:
@@ -121,8 +117,6 @@ IMPORT_TUPLES = [
     ('query_params', None),
     ('query_request', None),
     ('scoring', None),
-    ('script_vsone', None),
-    ('tmp_cluster', None),
     ('vsone_pipeline', None),
 ]
 """
