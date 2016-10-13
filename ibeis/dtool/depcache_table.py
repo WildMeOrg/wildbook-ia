@@ -1333,7 +1333,7 @@ class _TableComputeHelper(object):
         colnames = (table.rowid_colname,)
         andwhere_colnames = (table.model_uuid_colname,)
         params_iter = list(zip(model_uuid_list))
-        rowid_list = table.db.get_where2(table.tablename, colnames,
+        rowid_list = table.db.get_where_eq(table.tablename, colnames,
                                          params_iter, andwhere_colnames,
                                          eager=True, nInput=len(model_uuid_list))
         return rowid_list
@@ -2065,7 +2065,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         # Then remove this next line
         params_iter = list(params_iter)
         #print('**params_iter = %r' % (params_iter,))
-        rowid_list = table.db.get_where2(table.tablename, colnames,
+        rowid_list = table.db.get_where_eq(table.tablename, colnames,
                                          params_iter, andwhere_colnames,
                                          eager=eager, nInput=nInput)
         if _debug:
@@ -2164,7 +2164,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 params_iter = ((rowid,) for rowid in rowid_list)
                 params_iter = list(params_iter)
                 child_db = depc[child_table.tablename].db
-                child_unflat_rowids = child_db.get_where2(
+                child_unflat_rowids = child_db.get_where_eq(
                     child_table.tablename, colnames, params_iter,
                     andwhere_colnames, unpack_scalars=False, keepwrap=False)
                 child_rowids = ut.flatten(child_unflat_rowids)

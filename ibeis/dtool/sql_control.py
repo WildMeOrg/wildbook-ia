@@ -672,18 +672,17 @@ class SQLDatabaseController(object):
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
-    def get_where2(db, tblname, colnames, params_iter, andwhere_colnames,
-                   orwhere_colnames=[],
-                   unpack_scalars=True, eager=True, **kwargs):
-        """ hacked in function for nicer templates """
-        andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
-        where_clause = ' AND '.join(andwhere_clauses)
-        return db.get_where(tblname, colnames, params_iter, where_clause,
-                            unpack_scalars=unpack_scalars, eager=eager,
-                            **kwargs)
+    # def get_where_eq(db, tblname, colnames, params_iter, where_colnames,
+    #                unpack_scalars=True, eager=True, **kwargs):
+    #     """ hacked in function for nicer templates """
+    #     andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
+    #     where_clause = ' AND '.join(andwhere_clauses)
+    #     return db.get_where(tblname, colnames, params_iter, where_clause,
+    #                         unpack_scalars=unpack_scalars, eager=eager,
+    #                         **kwargs)
 
-    def get_where3(db, tblname, colnames, params_iter, where_colnames,
-                   unpack_scalars=True, eager=True, logicop='AND', **kwargs):
+    def get_where_eq(db, tblname, colnames, params_iter, where_colnames,
+                     unpack_scalars=True, eager=True, op='AND', **kwargs):
         """ hacked in function for nicer templates
 
         unpack_scalars = True
@@ -693,7 +692,7 @@ class SQLDatabaseController(object):
             verbose:
         """
         andwhere_clauses = [colname + '=?' for colname in where_colnames]
-        logicop_ = ' %s ' % (logicop,)
+        logicop_ = ' %s ' % (op,)
         where_clause = logicop_.join(andwhere_clauses)
         return db.get_where(tblname, colnames, params_iter, where_clause,
                             unpack_scalars=unpack_scalars, eager=eager, **kwargs)
@@ -729,14 +728,13 @@ class SQLDatabaseController(object):
                 unpack_scalars=unpack_scalars, eager=eager, **kwargs)
         return val_list
 
-    def exists_where2(db, tblname, params_iter, andwhere_colnames,
-                      orwhere_colnames=[], unpack_scalars=True, eager=True,
-                      **kwargs):
+    def exists_where_eq(db, tblname, params_iter, where_colnames,
+                        op='AND', unpack_scalars=True, eager=True, **kwargs):
         """ hacked in function for nicer templates
 
         """
-        andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
-        where_clause = ' AND '.join(andwhere_clauses)
+        andwhere_clauses = [colname + '=?' for colname in where_colnames]
+        where_clause = (' %s ' % (op,)).join(andwhere_clauses)
         fmtdict = { 'tblname'     : tblname,
                     'where_clauses' :  where_clause, }
         operation_fmt = ut.codeblock(
@@ -2047,7 +2045,7 @@ class SQLDatabaseController(object):
         isvalid_list = [name not in exclude_columns for name in all_column_names]
         column_names = ut.compress(all_column_names, isvalid_list)
         if params_iter is not None:
-            rowids = ut.flatten(db.get_where2(tablename, ('rowid',), params_iter,
+            rowids = ut.flatten(db.get_where_eq(tablename, ('rowid',), params_iter,
                                               andwhere_colnames, unpack_scalars=False))
             column_list = [
                 db.get(tablename, (name,), rowids, unpack_scalars=True)

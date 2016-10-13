@@ -1324,7 +1324,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
                 params_iter = list(zip(rowid_dict[parent]))
 
                 for parent_colname in parent_colnames:
-                    child_rowids = child_table.db.get_where2(child_table.tablename,
+                    child_rowids = child_table.db.get_where_eq(child_table.tablename,
                                                              (child_table.rowid_colname,),
                                                              params_iter,
                                                              unpack_scalars=False,
