@@ -112,7 +112,7 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
     try:
         ut.import_modname(modname)
     except ImportError as ex:
-        ut.printex(ex, iswarning=True)
+        ut.printex(ex, 'Unable to load plugin', iswarning=True)
 
 
 # NOTE: new plugin code needs to be hacked in here currently
