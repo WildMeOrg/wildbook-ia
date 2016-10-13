@@ -571,9 +571,9 @@ def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
         }
         output_metdata = {}
         if ratio_on:
-            matches['RAT'] = MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT),
+            matches['RAT'] = MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT)
         if sv_on:
-            matches['RAT+SV'] = MatchTup3(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV),
+            matches['RAT+SV'] = MatchTup3(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV)
             output_metdata['H_RAT'] = H_RAT
             #output_metdata['H_TOP'] = H_TOP
             #'TOP'    : MatchTup2(fm_TOP, fs_TOP),
