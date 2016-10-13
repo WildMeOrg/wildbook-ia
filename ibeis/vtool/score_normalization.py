@@ -451,8 +451,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             #print('lr_neg = %r' % (lr_neg,))
             #print('lr_pos = %r' % (lr_pos,))
             # Normalize likelihood into range 0 to 1
-            pos_norm = max(1, vt.safe_extreme(lr_pos_, op=np.nanmax, fill=1, finite=True))
-            neg_norm = max(1, vt.safe_extreme(lr_neg_, op=np.nanmax, fill=1, finite=True))
+            pos_norm = max(1, vt.safe_max(lr_pos_, fill=1, finite=True, nans=False))
+            neg_norm = max(1, vt.safe_max(lr_neg_, fill=1, finite=True, nans=False))
             lr_pos = lr_pos_ / pos_norm  # NOQA
             lr_neg = lr_neg_ / neg_norm  # NOQA
 

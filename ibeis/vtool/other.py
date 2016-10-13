@@ -1689,11 +1689,15 @@ def ensure_rng(seed=None):
     return rng
 
 
-def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False, nans=True):
+def safe_extreme(arr, op, fill=np.nan, finite=False, nans=True):
     """
+    Applies an exterme operation to an 1d array (typically max/min) but ensures
+    a value is always returned even in operations without identities. The
+    default identity must be specified using the `fill` argument.
+
     Args:
         arr (ndarray): 1d array to take extreme of
-        op (func): vectorized operation to apply to array
+        op (func): vectorized operation like np.max to apply to array
         fill (float): return type if arr has no elements (default = nan)
         finite (bool): if True ignores non-finite values (default = False)
         nans (bool): if False ignores nans (default = True)
@@ -1701,6 +1705,7 @@ def safe_extreme(arr, op=np.nanmax, fill=np.nan, finite=False, nans=True):
     if arr is None:
         extreme = fill
     else:
+        arr = np.asarray(arr)
         if finite:
             arr = arr.compress(np.isfinite(arr))
         if not nans:
@@ -1743,14 +1748,7 @@ def safe_max(arr, fill=np.nan, finite=False, nans=True):
             [nan, nan, inf, inf, inf, 1],
         ]
     """
-    #if nans:
     return safe_extreme(arr, np.max, fill, finite, nans)
-    #else:
-    #    return safe_extreme(arr, np.nanmax, fill, finite)
-
-
-def safe_div(a, b):
-    return None if a is None or b is None else a / b
 
 
 def safe_min(arr, fill=np.nan, finite=False, nans=True):
@@ -1775,11 +1773,11 @@ def safe_min(arr, fill=np.nan, finite=False, nans=True):
             [nan, nan, -inf, inf, 1.0, 0],
         ]
     """
-    #return fill if arr is None or len(arr) == 0 else arr.min()
-    #if nans:
     return safe_extreme(arr, np.min, fill, finite, nans)
-    #else:
-    #    return safe_extreme(arr, np.nanmin, fill, finite)
+
+
+def safe_div(a, b):
+    return None if a is None or b is None else a / b
 
 
 @profile
