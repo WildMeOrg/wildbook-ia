@@ -1157,6 +1157,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
     def apply_match_scores(infr):
         """
+        Applies precomputed matching scores to edges that already exist in the
+        graph. Typically you should run infr.apply_match_edges() before running
+        this.
+
         CommandLine:
             python -m ibeis.algo.hots.graph_iden apply_match_scores --show
 
@@ -1165,6 +1169,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching()
+            >>> infr.apply_match_edges()
             >>> infr.apply_match_scores()
             >>> infr.get_edge_attr('score')
         """
@@ -1174,19 +1179,23 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         if infr.cm_list is None:
             print('[infr] no scores to apply!')
             return
-        # Build up scores
-        edges = list(infr.graph.edges())
-        qaid2_cm = {cm.qaid: cm for cm in infr.cm_list}
+
+        symmetric = True
+
+        # Find scores for the edges that exist in the graph
         edge_to_data = ut.ddict(dict)
+        edges = list(infr.graph.edges())
+        node_to_cm = {infr.aid_to_node[cm.qaid]: cm for cm in infr.cm_list}
         for u, v in edges:
-            if u > v:
+            if symmetric and u > v:
                 u, v = v, u
-            cm1 = qaid2_cm.get(u, None)
-            cm2 = qaid2_cm.get(v, None)
+            cm1 = node_to_cm.get(u, None)
+            cm2 = node_to_cm.get(v, None)
             scores = []
             ranks = []
             for cm in ut.filter_Nones([cm1, cm2]):
-                for aid in [u, v]:
+                for node in [u, v]:
+                    aid = infr.node_to_aid[node]
                     idx = cm.daid2_idx.get(aid, None)
                     if idx is None:
                         continue
@@ -1213,14 +1222,13 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         edge_scores = ut.replace_nones(edge_scores, np.nan)
         edge_scores = np.array(edge_scores)
         edge_ranks = np.array(list(ut.take_column(edge_to_data.values(), 'rank')))
-        normscores = edge_scores / np.nanmax(edge_scores)  # inf norm
+        # take the inf-norm
+        normscores = edge_scores / vt.safe_max(edge_scores, nans=False)
 
         # Add new attrs
         nx.set_edge_attrs(infr.graph, 'score', dict(zip(edges, edge_scores)))
         nx.set_edge_attrs(infr.graph, 'rank', dict(zip(edges, edge_ranks)))
         nx.set_edge_attrs(infr.graph, 'normscore', dict(zip(edges, normscores)))
-
-        #return edge_data
 
     def apply_match_edges(infr, review_cfg={}):
         if infr.verbose:
