@@ -32,12 +32,13 @@ def parse_config_items(cfg):
         >>> cfg = ibs.cfg.query_cfg
         >>> param_list = parse_config_items(cfg)
     """
-    import ibeis
+    # import ibeis
     param_list = []
     seen = set([])
     for item in cfg.items():
         key, val = item
-        if isinstance(val, ibeis.algo.Config.ConfigBase):
+        # if isinstance(val, ibeis.algo.Config.ConfigBase):
+        if isinstance(val, ConfigBase):
             child_cfg = val
             param_list.extend(parse_config_items(child_cfg))
             #print(key)
@@ -512,7 +513,7 @@ class RerankVsOneConfig(ConfigBase):
         return 'RRVsOne'
 
     def get_param_info_list(rrvsone_cfg):
-        from ibeis.algo.hots import distinctiveness_normalizer
+        # from ibeis.algo.hots import distinctiveness_normalizer
         from ibeis.algo.hots import vsone_pipeline
         # new way to try and specify config options.
         # not sure if i like it yet
@@ -529,8 +530,8 @@ class RerankVsOneConfig(ConfigBase):
                 hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
             vsone_pipeline.COVGRID_DEFAULT.aslist(
                 hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
-            distinctiveness_normalizer.DCVS_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['dcvs_on']),
+            # distinctiveness_normalizer.DCVS_DEFAULT.aslist(
+            #     hideif=lambda cfg: not cfg['dcvs_on']),
         ])
         return param_info_list
 
@@ -589,7 +590,7 @@ class QueryConfig(ConfigBase):
         # for hacky distinctivness
         query_cfg.return_expanded_nns = False
         # for distinctivness model
-        query_cfg.use_external_distinctiveness = False
+        # query_cfg.use_external_distinctiveness = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         # Depends on feature config
@@ -700,8 +701,8 @@ class QueryConfig(ConfigBase):
                 nnweight_cfg.ratio_thresh = .625
             if '_ratio' in codename:
                 nnweight_cfg.ratio_thresh = .625
-            if '_extern_distinctiveness' in codename:
-                query_cfg.use_external_distinctiveness = True
+            # if '_extern_distinctiveness' in codename:
+            #     query_cfg.use_external_distinctiveness = True
             if codename.startswith('vsone_unnorm'):
                 agg_cfg.score_normalization = None
             elif codename.startswith('vsone_norm'):

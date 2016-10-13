@@ -200,7 +200,7 @@ def get_annotgroup_rowid_from_superkey(ibs, annotgroup_text_list, eager=True, nI
     # FIXME: col_rowid is not correct
     params_iter = zip(annotgroup_text_list)
     andwhere_colnames = [ANNOTGROUP_TEXT]
-    annotgroup_rowid_list = ibs.db.get_where2(
+    annotgroup_rowid_list = ibs.db.get_where_eq(
         const.ANNOTGROUP_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return annotgroup_rowid_list
 

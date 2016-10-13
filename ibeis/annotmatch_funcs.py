@@ -41,7 +41,7 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
             '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
                        annot_rowid1=_autogen_annotmatch_funcs.ANNOT_ROWID1)).fetchall()
     andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1]
-    annotmatch_rowid_list = ibs.db.get_where2(
+    annotmatch_rowid_list = ibs.db.get_where_eq(
         ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
@@ -70,7 +70,7 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
     # FIXME: col_rowid is not correct
     params_iter = zip(aid2_list)
     andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID2]
-    annotmatch_rowid_list = ibs.db.get_where2(
+    annotmatch_rowid_list = ibs.db.get_where_eq(
         ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
@@ -268,7 +268,7 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     params_iter = [(aid,) for aid in aid_list]
     colnames = (ANNOT_ROWID2,)
     andwhere_colnames = (ANNOT_ROWID1,)
-    aids_list = ibs.db.get_where2(ibs.const.ANNOTMATCH_TABLE, colnames,
+    aids_list = ibs.db.get_where_eq(ibs.const.ANNOTMATCH_TABLE, colnames,
                                   params_iter,
                                   andwhere_colnames=andwhere_colnames,
                                   eager=eager, unpack_scalars=False,

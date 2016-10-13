@@ -478,7 +478,7 @@ def get_annotmatch_rowid_from_superkey(ibs, aid1_list, aid2_list, eager=True, nI
     # FIXME: col_rowid is not correct
     params_iter = zip(aid1_list, aid2_list)
     andwhere_colnames = [ANNOT_ROWID1, ANNOT_ROWID2]
-    annotmatch_rowid_list = ibs.db.get_where2(
+    annotmatch_rowid_list = ibs.db.get_where_eq(
         const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput)
     return annotmatch_rowid_list
 

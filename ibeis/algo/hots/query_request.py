@@ -14,8 +14,8 @@ import utool as ut
 import numpy as np
 from ibeis.algo.hots import neighbor_index_cache
 #from ibeis.algo.hots import multi_index
-from ibeis.algo.hots import scorenorm
-from ibeis.algo.hots import distinctiveness_normalizer
+# from ibeis.algo.hots import scorenorm
+# from ibeis.algo.hots import distinctiveness_normalizer
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
@@ -893,8 +893,8 @@ class QueryRequest(ut.NiceRepr):
         if qreq_.qparams.score_normalization is True:
             qreq_.load_score_normalizer(verbose=verbose)
 
-        if qreq_.qparams.use_external_distinctiveness:
-            qreq_.load_distinctiveness_normalizer(verbose=verbose)
+        # if qreq_.qparams.use_external_distinctiveness:
+        #     qreq_.load_distinctiveness_normalizer(verbose=verbose)
 
         subhook = None if prog_hook is None else prog_hook.next_subhook()
         if subhook is not None:
@@ -1096,34 +1096,34 @@ class QueryRequest(ut.NiceRepr):
             qreq_.indexer = indexer
             return True
 
-    @profile
-    def load_score_normalizer(qreq_, verbose=ut.NOT_QUIET):
-        if qreq_.normalizer is not None:
-            return False
-        if verbose:
-            print('[qreq] loading score normalizer')
-        # TODO: SYSTEM updatable normalizer
-        normalizer = scorenorm.request_annoscore_normer(
-            qreq_, verbose=verbose)
-        qreq_.normalizer = normalizer
+    # @profile
+    # def load_score_normalizer(qreq_, verbose=ut.NOT_QUIET):
+    #     if qreq_.normalizer is not None:
+    #         return False
+    #     if verbose:
+    #         print('[qreq] loading score normalizer')
+    #     # TODO: SYSTEM updatable normalizer
+    #     normalizer = scorenorm.request_annoscore_normer(
+    #         qreq_, verbose=verbose)
+    #     qreq_.normalizer = normalizer
 
-    def load_distinctiveness_normalizer(qreq_, verbose=ut.NOT_QUIET):
-        """
-        Example:
-            >>> from ibeis.algo.hots import distinctiveness_normalizer
-            >>> verbose = True
-        """
-        if qreq_.dstcnvs_normer is not None:
-            return False
-        if verbose:
-            print('[qreq] loading external distinctiveness normalizer')
-        # TODO: SYSTEM updatable dstcnvs_normer
-        _ = distinctiveness_normalizer
-        request_dcvs_normer = _.request_ibeis_distinctiveness_normalizer
-        dstcnvs_normer = request_dcvs_normer(qreq_, verbose=verbose)
-        qreq_.dstcnvs_normer = dstcnvs_normer
-        if verbose:
-            print('qreq_.dstcnvs_normer = %r' % (qreq_.dstcnvs_normer,))
+    # def load_distinctiveness_normalizer(qreq_, verbose=ut.NOT_QUIET):
+    #     """
+    #     Example:
+    #         >>> from ibeis.algo.hots import distinctiveness_normalizer
+    #         >>> verbose = True
+    #     """
+    #     if qreq_.dstcnvs_normer is not None:
+    #         return False
+    #     if verbose:
+    #         print('[qreq] loading external distinctiveness normalizer')
+    #     # TODO: SYSTEM updatable dstcnvs_normer
+    #     # _ = distinctiveness_normalizer
+    #     # request_dcvs_normer = _.request_ibeis_distinctiveness_normalizer
+    #     dstcnvs_normer = request_dcvs_normer(qreq_, verbose=verbose)
+    #     qreq_.dstcnvs_normer = dstcnvs_normer
+    #     if verbose:
+    #         print('qreq_.dstcnvs_normer = %r' % (qreq_.dstcnvs_normer,))
 
     def get_infostr(qreq_):
         infostr_list = []
