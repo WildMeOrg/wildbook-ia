@@ -90,123 +90,124 @@ def toy_classify_nans():
 def show_nan_decision_function_2d(X, y, X_true, clf):
     import numpy as np
     import plottool as pt
-    pt.qt4ensure()
-
-    pnum1 = (4, 4, (slice(0, 3), slice(0, 3)))
-    pnum2 = (4, 4, (slice(3, 4), slice(0, 3)))
-    pnum3 = (4, 4, (slice(0, 3), slice(3, 4)))
-
-    fig = pt.figure(doclf=True, fnum=1, pnum=pnum1)
-
-    cmap = pt.plt.cm.RdYlBu
-
-    plot_step = 0.1  # fine step width for decision surface contours
-    plot_step_coarser = 0.5  # step widths for coarse classifier guesses
-
-    SHOW_COARSE = 0
-    SHOW_FINE = 1
 
     # Now plot the decision boundary using a fine mesh as input to a
     # filled contour plot
+    plot_step = 0.1
     x_min, x_max = X_true[:, 0].min() - 1, X_true[:, 0].max() + 1
     y_min, y_max = X_true[:, 1].min() - 1, X_true[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
                          np.arange(y_min, y_max, plot_step))
+    yynan = np.full(yy.shape, fill_value=np.nan)
+    xxnan = np.full(yy.shape, fill_value=np.nan)
 
-    if SHOW_FINE:
-        Z_maps = []
-        for tree in clf.estimators_:
-            Z = tree.predict(np.c_[xx.ravel(), yy.ravel()])
-            Z = Z.reshape(xx.shape)
-            Z_maps.append(Z)
-        # import vtool as vt
-        Z_combo = np.sum(Z_maps, axis=0) / len(Z_maps)
-        # Z_combo = vt.blend.blend_images_average_stack(Z_maps)
+    # Get prediction surface in the non-nan-zone
+    Z_nonnan = np.sum([
+        tree.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+        for tree in clf.estimators_
+    ], axis=0) / len(clf.estimators_)
 
-        pt.plt.contourf(xx, yy, Z_combo, cmap=cmap, alpha=.5)
+    # Get prediction surface in the xnan-zone
+    Z_xnan = np.sum([
+        tree.predict(np.c_[xxnan.ravel(), yy.ravel()]).reshape(xx.shape)
+        for tree in clf.estimators_
+    ], axis=0) / len(clf.estimators_)
 
-    # Build a coarser grid to plot a set of ensemble classifications
-    # to show how these are different to what we see in the decision
-    # surfaces. These points are regularly space and do not have a black outline
-    if SHOW_COARSE:
-        xx_coarser, yy_coarser = np.meshgrid(
-            np.arange(x_min, x_max, plot_step_coarser),
-            np.arange(y_min, y_max, plot_step_coarser))
-        Z_points_coarser = clf.predict(np.c_[xx_coarser.ravel(),
-                                             yy_coarser.ravel()]).reshape(xx_coarser.shape)
-        pt.plt.scatter(xx_coarser, yy_coarser, s=15, c=Z_points_coarser, cmap=cmap,
-                       edgecolors="none")
+    # Get prediction surface in the ynan-zone
+    Z_ynan = np.sum([
+        tree.predict(np.c_[xx.ravel(), yynan.ravel()]).reshape(xx.shape)
+        for tree in clf.estimators_
+    ], axis=0) / len(clf.estimators_)
 
-    pt.plot(X.T[0][y == 0], X.T[1][y == 0], 'r.')
-    pt.plot(X.T[0][y == 1], X.T[1][y == 1], 'g.')
+    # Get prediction surface for all-nan-zone
+    Z_fullnan = np.sum([
+        tree.predict(np.c_[xxnan.ravel(), yynan.ravel()]).reshape(xx.shape)
+        for tree in clf.estimators_
+    ], axis=0) / len(clf.estimators_)
 
-    row_has_nan = np.where(np.any(np.isnan(X), axis=1))[0]
-    # for i in row_has_nan:
-    #     row = X[i]
-    #     lbl = y[i]
-    #     if not np.isnan(row)[0]:
-    #         dim1 = [row[0], row[0]]
-    #         dim2 = [np.nanmin(X_true.T[1]), np.nanmax(X_true.T[1])]
-    #         m = 'g-' if lbl else 'r-'
-    #         pt.plot(dim1, dim2, m)
-    #         pt.plot(X_true[i][0], X_true[i][1], 'o' + m)
-    #     if not np.isnan(row)[1]:
-    #         dim1 = [np.nanmin(X_true.T[0]), np.nanmax(X_true.T[0])]
-    #         dim2 = [row[1], row[1]]
-    #         m = 'g-' if lbl else 'r-'
-    #         pt.plot(dim1, dim2, m)
-    #         pt.plot(X_true[i][0], X_true[i][1], 'o' + m)
+    is_nonnan = np.logical_and(~np.isnan(X.T[0]), ~np.isnan(X.T[1]))
+    is_xnan = np.logical_and(np.isnan(X.T[0]), ~np.isnan(X.T[1]))
+    is_ynan = np.logical_and(~np.isnan(X.T[0]), np.isnan(X.T[1]))
+    is_fullnan = np.logical_and(np.isnan(X.T[0]), np.isnan(X.T[1]))
 
-    # DO NAN PLOTS
-    SHOW_FINE = 1
-    if SHOW_FINE:
-        fig = pt.figure(fnum=1, pnum=pnum2)
-        Z_maps = []
-        yynan = yy.copy()
-        yynan[:] = np.nan
-        for tree in clf.estimators_:
-            Z = tree.predict(np.c_[xx.ravel(), yynan.ravel()])
-            Z = Z.reshape(xx.shape)
-            Z_maps.append(Z)
-        # import vtool as vt
-        Z_combo = np.sum(Z_maps, axis=0) / len(Z_maps)
-        pt.plt.contourf(xx, yy, Z_combo, cmap=cmap, alpha=.5)
+    # Draw surfaces and support points in different axes
+    # pnum1 = (4, 4, (slice(0, 3), slice(0, 3)))
+    # pnum2 = (4, 4, (slice(0, 3), slice(3, 4)))
+    # pnum3 = (4, 4, (slice(3, 4), slice(0, 3)))
+    # pnum4 = (4, 4, (slice(3, 4), slice(3, 4)))
+    pnum1 = (2, 2, 1)
+    pnum2 = (2, 2, 2)
+    pnum3 = (2, 2, 3)
+    pnum4 = (2, 2, 4)
 
-        for i in row_has_nan:
-            row = X[i]
-            lbl = y[i]
-            if not np.isnan(row)[0]:
-                dim1 = [row[0], row[0]]
-                dim2 = [np.nanmin(X_true.T[1]), np.nanmax(X_true.T[1])]
-                m = 'g-' if lbl else 'r-'
-                pt.plot(dim1, dim2, m)
-                pt.plot(X_true[i][0], X_true[i][1], 'o' + m)
+    def draw_single_nan_lines(X_true, y, flags, nan_dim):
+        nandim_min = np.nanmin(X_true.T[nan_dim][flags])
+        nandim_max = np.nanmax(X_true.T[nan_dim][flags])
 
-        # fig = pt.figure(fnum=1, pnum=(2, 2, 4))
-        fig = pt.figure(fnum=1, pnum=pnum3)
-        Z_maps = []
-        xxnan = xx.copy()
-        xxnan[:] = np.nan
-        for tree in clf.estimators_:
-            Z = tree.predict(np.c_[xxnan.ravel(), yy.ravel()])
-            Z = Z.reshape(xx.shape)
-            Z_maps.append(Z)
-        # import vtool as vt
-        Z_combo = np.sum(Z_maps, axis=0) / len(Z_maps)
-        pt.plt.contourf(xx, yy, Z_combo, cmap=cmap, alpha=.5)
+        num_dim = 1 - nan_dim  # 2d only
+        numdim_pts = X[flags].T[num_dim]
 
-        for i in row_has_nan:
-            row = X[i]
-            lbl = y[i]
-            if not np.isnan(row)[1]:
-                dim1 = [np.nanmin(X_true.T[0]), np.nanmax(X_true.T[0])]
-                dim2 = [row[1], row[1]]
-                m = 'g-' if lbl else 'r-'
-                pt.plot(dim1, dim2, m)
-                pt.plot(X_true[i][0], X_true[i][1], 'o' + m)
+        pts1 = np.empty((flags.sum(), 2))
+        pts2 = np.empty((flags.sum(), 2))
+        pts1[:, nan_dim] = nandim_min
+        pts2[:, nan_dim] = nandim_max
+        pts1[:, num_dim] = numdim_pts
+        pts2[:, num_dim] = numdim_pts
+        y_ = y[flags]
+        pt.draw_line_segments2(pts1[y_ == 0], pts2[y_ == 0], color='r', linestyle='--', alpha=.8)
+        pt.draw_line_segments2(pts1[y_ == 1], pts2[y_ == 1], color='b', linestyle='--', alpha=.8)
+
+    cmap = pt.plt.cm.RdYlBu
+
+    pt.qt4ensure()
+    fig = pt.figure(doclf=True, fnum=1, pnum=pnum1)
+    pt.plt.contourf(xx, yy, Z_nonnan, cmap=cmap, alpha=.5)
+    flags = is_nonnan
+    pt.plot(X[flags].T[0][y[flags] == 0], X[flags].T[1][y[flags] == 0], 'ro')
+    pt.plot(X[flags].T[0][y[flags] == 1], X[flags].T[1][y[flags] == 1], 'bo')
+    pt.plt.title('non-nan decision line')
+    pt.plt.gca().set_aspect('equal')
+
+    fig = pt.figure(fnum=1, pnum=pnum2)
+    pt.plt.contourf(xx, yy, Z_xnan, cmap=cmap, alpha=.5)
+    flags = is_xnan
+    pt.plot(X_true[flags].T[0][y[flags] == 0], X_true[flags].T[1][y[flags] == 0], 'ro')
+    pt.plot(X_true[flags].T[0][y[flags] == 1], X_true[flags].T[1][y[flags] == 1], 'bo')
+    # make nan-lines
+    draw_single_nan_lines(X_true, y, flags, 0)
+    pt.gca().set_xticks([])
+    pt.gca().set_xlabel('nan')
+
+    pt.plt.title('x-nan decision line')
+    pt.plt.gca().set_aspect('equal')
+
+    fig = pt.figure(fnum=1, pnum=pnum3)
+    pt.plt.contourf(xx, yy, Z_ynan, cmap=cmap, alpha=.5)
+    flags = is_ynan
+    pt.plot(X_true[flags].T[0][y[flags] == 0], X_true[flags].T[1][y[flags] == 0], 'ro')
+    pt.plot(X_true[flags].T[0][y[flags] == 1], X_true[flags].T[1][y[flags] == 1], 'bo')
+    # make nan-lines
+    draw_single_nan_lines(X_true, y, flags, 1)
+    pt.plt.title('y-nan decision point')
+    pt.plt.gca().set_aspect('equal')
+    pt.gca().set_yticks([])
+    pt.gca().set_ylabel('nan')
+
+    fig = pt.figure(fnum=1, pnum=pnum4)
+    pt.plt.contourf(xx, yy, Z_fullnan, cmap=cmap, alpha=.5)
+    flags = is_fullnan
+    pt.plot(X_true[flags].T[0][y[flags] == 0], X_true[flags].T[1][y[flags] == 0], 'ro')
+    pt.plot(X_true[flags].T[0][y[flags] == 1], X_true[flags].T[1][y[flags] == 1], 'bo')
+    pt.plt.title('full-nan decision surface')
+    pt.plt.gca().set_aspect('equal')
+    pt.gca().set_xticks([])
+    pt.gca().set_yticks([])
+    pt.gca().set_xlabel('nan')
+    pt.gca().set_ylabel('nan')
+
+    pt.set_figtitle('Random Forest With NaN decision criteria')
 
     # Need to show horizontal and vertical nan bar
-
     pt.bring_to_front(fig)
 
 
