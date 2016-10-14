@@ -1704,8 +1704,8 @@ def show_time_distributions(ibs, unixtime_list):
             #ax.add_artist(ab)
 
     if ut.get_argflag('--contextadjust'):
-        #pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
-        pt.adjust_subplots2(use_argv=True)
+        #pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+        pt.adjust_subplots(use_argv=True)
 
 
 def latex_dbstats(ibs_list, **kwargs):

@@ -386,9 +386,16 @@ class MatchVerificationInteraction(AbstractInteraction):
 
         if fulldraw:
             self.show_hud()
-            #pt.adjust_subplots_safe(top=0.85, hspace=0.03)
             hspace = .05 if (self.nCols) > 1 else .1
-            pt.adjust_subplots_safe(top=0.85, hspace=hspace)
+            subplotspar = {
+                'left': .1,
+                'right': .9,
+                'top': .85,
+                'bottom': .1,
+                'wspace': .3,
+                'hspace': hspace,
+            }
+            pt.adjust_subplots(**subplotspar)
         self.draw()
         self.show()
         if bring_to_front:
