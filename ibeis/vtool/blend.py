@@ -106,6 +106,50 @@ def blend_images_average(img1, img2, alpha=.5):
     return imgB
 
 
+def blend_images_average_stack(images, alpha=None):
+    r"""
+    Args:
+        img1 (ndarray[uint8_t, ndim=2]):  image data
+        img2 (ndarray[uint8_t, ndim=2]):  image data
+        alpha (float): (default = 0.5)
+
+    Returns:
+        ndarray: imgB
+
+    References:
+        https://en.wikipedia.org/wiki/Blend_modes
+
+    CommandLine:
+        python -m vtool.blend --test-blend_images_average:0 --show
+        python -m vtool.blend --test-blend_images_average:1 --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.blend import *  # NOQA
+        >>> alpha = 0.8
+        >>> img1, img2 = testdata_blend()
+        >>> imgB = blend_images_average(img1, img2, alpha)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.imshow(imgB)
+        >>> ut.show_if_requested()
+    """
+    if alpha is None:
+        alpha = [1 / len(images)] * len(images)
+
+    assert np.isclose(sum(alpha), 1.0)
+
+    # Make all images comparable
+    imgT = images[0]
+    import vtool as vt
+    for img in images[1:]:
+        imgT, _ = vt.make_channels_comparable(imgT, img)
+    images = [vt.make_channels_comparable(img, imgT)[0] for img in images]
+    imgB = np.sum([img * a for img, a in zip(images, alpha)], axis=0)
+    #assert imgB.min() >= 0 and imgB.max() <= 1
+    return imgB
+
+
 def blend_images_mult_average(img1, img2, alpha=.5):
     r"""
     Args:
