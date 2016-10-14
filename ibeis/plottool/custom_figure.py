@@ -96,7 +96,6 @@ def _convert_pnum_int_to_tup(int_pnum):
 def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
            doclf=False, projection=None, **kwargs):
     """
-    TODO: gridspec
     http://matplotlib.org/users/gridspec.html
 
     Args:
