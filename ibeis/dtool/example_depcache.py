@@ -130,7 +130,7 @@ class ProbchipConfig(dtool.Config):
 
 
 class DummyVsManyConfig(dtool.Config):
-    # Different pipeline compoments can go here as well as dependencies
+    # Different pipeline components can go here as well as dependencies
     # that were not explicitly enumerated in the tree structure
     _param_info_list = [
         #ut.ParamInfo('score_method', 'csum'),
@@ -151,7 +151,7 @@ class DummyVsManyConfig(dtool.Config):
 
 class DummyVsOneConfig(dtool.Config):
     def get_sub_config_list(self):
-        # Different pipeline compoments can go here
+        # Different pipeline components can go here
         # as well as dependencies that were not
         # explicitly enumerated in the tree structure
         return [
