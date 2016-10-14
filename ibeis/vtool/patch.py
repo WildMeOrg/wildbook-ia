@@ -973,7 +973,7 @@ def GaussianBlurInplace(img, sigma, size=None):
         >>> sigma2 = .9
         >>> sigma3 = sigma1 + sigma2
         >>> size = 7
-        >>> # compoments
+        >>> # components
         >>> GaussianBlurInplace(img1, sigma1, size)
         >>> GaussianBlurInplace(img2, sigma2, size)
         >>> # all in one shot

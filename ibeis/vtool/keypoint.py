@@ -1220,7 +1220,7 @@ def get_invVR_mats_oris(invVR_mats):
         >>> print('\n')
         >>> print('Given an arbitrary invVRT shape matrix')
         >>> vt.evalprint('invVR_arb')
-        >>> print('The keypoint compoments can be extracte as such')
+        >>> print('The keypoint components can be extracte as such')
         >>> print('The position is easy')
         >>> print('Scale is not found through symbolic manipulation but can be taken through linear algebra properites')
         >>> print('Orientation is a bit more involved')
