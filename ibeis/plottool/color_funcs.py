@@ -465,6 +465,7 @@ def show_all_colormaps():
     CommandLine:
         python -m plottool.color_funcs --test-show_all_colormaps --show
         python -m plottool.color_funcs --test-show_all_colormaps --show --type=Miscellaneous
+        python -m plottool.color_funcs --test-show_all_colormaps --show --cmap=RdYlBu
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -496,6 +497,10 @@ def show_all_colormaps():
     else:
         maps = CMAP_DICT[type_]
         print('CMAP_DICT = %s' % (ut.repr3(CMAP_DICT),))
+
+    cmap_ = ut.get_argval('--cmap', default=None)
+    if cmap_ is not None:
+        maps = [getattr(plt.cm, cmap_)]
 
     l = len(maps) + 1
     for i, m in enumerate(maps):

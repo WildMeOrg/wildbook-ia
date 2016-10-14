@@ -480,6 +480,65 @@ class RenderingContext(object):
 
 
 def extract_axes_extents(fig, combine=False, pad=0.0):
+    """
+
+    CommandLine:
+        python -m plottool.draw_func2 extract_axes_extents
+        python -m plottool.draw_func2 extract_axes_extents --save foo.jpg
+
+     Notes:
+          contour does something weird to axes
+          with contour:
+            axes_extents = Bbox([[-0.839827203337, -0.00555555555556], [7.77743055556, 6.97227277762]])
+
+          without contour
+            axes_extents = Bbox([[0.0290607810781, -0.00555555555556], [7.77743055556, 5.88]])
+
+
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> pt.qt4ensure()
+        >>> import matplotlib.gridspec as gridspec
+        >>> import matplotlib.pyplot as plt
+        >>> fig = plt.figure()
+        >>> gs = gridspec.GridSpec(17, 17)
+        >>> specs = [
+        >>>     gs[0:8,  0:8], gs[0:8,  8:16],
+        >>>     gs[9:17, 0:8], gs[9:17, 8:16],
+        >>> ]
+        >>> rng = np.random.RandomState(0)
+        >>> X = (rng.rand(100, 2) * [[8, 8]]) + [[6, -14]]
+        >>> plot_step = 1.0
+        >>> x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+        >>> y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+        >>> xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
+        >>>                      np.arange(y_min, y_max, plot_step))
+        >>> yynan = np.full(yy.shape, fill_value=np.nan)
+        >>> xxnan = np.full(yy.shape, fill_value=np.nan)
+        >>> cmap = plt.cm.RdYlBu
+        >>> norm = plt.Normalize(vmin=0, vmax=1)
+        >>> for count, spec in enumerate(specs):
+        >>>     fig.add_subplot(spec)
+        >>>     plt.plot(X.T[0], X.T[1], 'o', color='r', markeredgecolor='w')
+        >>>     Z = rng.rand(*xx.shape)
+        >>>     plt.contourf(xx, yy, Z, cmap=cmap, norm=norm, alpha=1.0)
+        >>>     plt.title('full-nan decision point')
+        >>>     plt.gca().set_aspect('equal')
+        >>> gs = gridspec.GridSpec(1, 16)
+        >>> subspec = gs[:, -1:]
+        >>> cax = plt.subplot(subspec)
+        >>> sm = plt.cm.ScalarMappable(cmap=cmap)
+        >>> sm.set_array(np.linspace(0, 1))
+        >>> plt.colorbar(sm, cax)
+        >>> cax.set_ylabel('ColorBar')
+        >>> fig.suptitle('SupTitle')
+        >>> new_subplotpars = dict(left=.001, right=.9, top=.9, bottom=.05, hspace=.2, wspace=.1)
+        >>> plt.subplots_adjust(**new_subplotpars)
+        >>> ut.show_if_requested()
+    """
     import plottool as pt
 
     # Make sure we draw the axes first so we can
@@ -494,14 +553,16 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         items = []
         for ax in axs:
             #ax.figure.canvas.draw()  # FIXME; is this necessary?
-            items += ax.get_xticklabels() + ax.get_yticklabels()
-            items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
-            items += [ax, ax.title]
+            text_items = ax.get_xticklabels() + ax.get_yticklabels()
+            text_items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
+            text_items += [ax.title]
+            # only use text items with text in them!
+            items += [t for t in text_items if t.get_text()]
+            items += [ax]
             #items += ax.lines
             #items += ax.patches
-        bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
-        #mpl.transforms.Affine2D().scale(1.1)
-        #pad = .05
+        item_bboxes = [item.get_window_extent() for item in items]
+        bbox = mpl.transforms.Bbox.union(item_bboxes)
         extent = bbox.expanded(1.0 + pad, 1.0 + pad)
         return extent
 
@@ -535,9 +596,29 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
         # save all rows of each column
 
+    # if False:
+    #     axes = fig.axes
+    #     b = mpl.transforms.Bbox.union([ax.get_window_extent() for ax in axes]).transformed(fig.dpi_scale_trans.inverted())
+
+    #     def _winextents(items):
+    #         return [item.get_window_extent().transformed(fig.dpi_scale_trans.inverted()) for item in ut.ensure_iterable(items)]
+
+    #     for ax in axes:
+    #         break
+    #         _winextents(ax.get_xticklabels())
+    #         _winextents(ax.get_yticklabels())
+    #         _winextents(ax.get_xaxis().get_label())
+    #         _winextents(ax.get_yaxis().get_label())
+
+    #     extents = {}
+    #     extents['axes'] = b
+    #     extents['xticks'] = _bboxes(ut.flatten([ax.get_xticklabels() for ax in axes])).transformed(fig.dpi_scale_trans.inverted())
+    #     extents['yticks'] = mpl.transforms.Bbox.union([ax.get_xticklabels().get_window_extent() for ax in axes]).transformed(fig.dpi_scale_trans.inverted())
+
     dpi_scale_trans_inv = fig.dpi_scale_trans.inverted()
-    axes_extents = [full_extent(axs, pad).transformed(dpi_scale_trans_inv)
-                    for axs in atomic_axes]
+    axes_bboxes_ = [full_extent(axs, pad) for axs in atomic_axes]
+    axes_extents_ = [extent.transformed(dpi_scale_trans_inv) for extent in axes_bboxes_]
+    # axes_extents_ = axes_bboxes_
     if combine:
         if True:
             # Grab include extents of figure text as well
@@ -546,10 +627,17 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
             renderer = fig.canvas.get_renderer()
             for mpl_text in fig.texts:
                 bbox = mpl_text.get_window_extent(renderer=renderer)
-                extent = bbox.expanded(1.0 + pad, 1.0 + pad)
-                full_extent = extent.transformed(dpi_scale_trans_inv)
-                axes_extents.append(full_extent)
-        axes_extents = mpl.transforms.Bbox.union(axes_extents)
+                extent_ = bbox.expanded(1.0 + pad, 1.0 + pad)
+                extent = extent_.transformed(dpi_scale_trans_inv)
+                # extent = extent_
+                axes_extents_.append(extent)
+        axes_extents = mpl.transforms.Bbox.union(axes_extents_)
+    else:
+        axes_extents = axes_extents_
+    # if True:
+    #     axes_extents.x0 = 0
+    #     # axes_extents.y1 = 0
+    print('axes_extents = %r' % (axes_extents,))
     return axes_extents
 
 
@@ -1445,52 +1533,34 @@ def postsetup_axes(use_legend=True, bg=None):
         legend()
 
 
-SAFE_POS = {
-    'left': .1,
-    'right': .9,
-    'top': .9,
-    'bottom': .1,
-    'wspace': .3,
-    'hspace': .5,
-}
-
-
-def adjust_subplots_safe(**kwargs):
-    for key in six.iterkeys(SAFE_POS):
-        if key not in kwargs:
-            kwargs[key] = SAFE_POS[key]
-    adjust_subplots(**kwargs)
-
-
-def adjust_subplots(left=0.02,  bottom=0.02,
-                    right=None,   top=None,
-                    wspace=0.1,   hspace=None):
+def adjust_subplots(left=None, right=None, bottom=None, top=None, wspace=None,
+                    hspace=None, use_argv=False):
     """
-    left  = 0.125  # the left side of the subplots of the figure
-    right = 0.9    # the right side of the subplots of the figure
-    bottom = 0.1   # the bottom of the subplots of the figure
-    top = 0.9      # the top of the subplots of the figure
-    wspace = 0.2   # the amount of width reserved for blank space between subplots
-    hspace = 0.2
+    Kwargs:
+        left (float): left side of the subplots of the figure
+        right (float): right side of the subplots of the figure
+        bottom (float): bottom of the subplots of the figure
+        top (float): top of the subplots of the figure
+        wspace (float): width reserved for blank space between subplots
+        hspace (float): height reserved for blank space between subplots
     """
-    if right is None:
-        right = 1 - left
-    if top is None:
-        top = 1 - bottom
-    if hspace is None:
-        hspace = wspace
-    #print('[df2] adjust_subplots(**%s)' % ut.dict_str(locals()))
-    plt.subplots_adjust(left, bottom, right, top, wspace, hspace)
-
-
-def adjust_subplots2(**kwargs):
+    kwargs = dict(left=left, right=right, bottom=bottom, top=top,
+                  wspace=wspace, hspace=hspace)
+    kwargs = {k: v for k, v in kwargs.items() if v is not None}
     subplotpars = gcf().subplotpars
-    adjust_dict = {}
-    valid_kw = ['left', 'right', 'top', 'bottom', 'wspace', 'hspace']
-    for key in valid_kw:
-        adjust_dict[key] = kwargs.get(key, subplotpars.__dict__[key])
-    if kwargs.get('use_argv', False):
+    adjust_dict = subplotpars.__dict__.copy()
+    del adjust_dict['validate']
+    adjust_dict.update(kwargs)
+    if use_argv:
+        # hack to take args from commandline
         adjust_dict = ut.parse_dict_from_argv(adjust_dict)
+    # valid_kw = ['left', 'right', 'bottom', 'top', 'wspace', 'hspace']
+    # adjust_dict = {}
+    # for key in valid_kw:
+    #     adjust_dict[key] = kwargs.get(key, subplotpars.__dict__[key])
+    # if kwargs.get('use_argv', False):
+    #     # hack to take args from commandline
+    #     adjust_dict = ut.parse_dict_from_argv(adjust_dict)
     plt.subplots_adjust(**adjust_dict)
 
 
@@ -2657,9 +2727,14 @@ def draw_line_segments2(pts1, pts2, ax=None, **kwargs):
     """
     if ax is None:
         ax = gca()
+    assert len(pts1) == len(pts2), 'unaligned'
+    # if len(pts1) == 0:
+    #     return
     segments = [(xy1, xy2) for xy1, xy2 in zip(pts1, pts2)]
     linewidth = kwargs.pop('lw', kwargs.pop('linewidth', 1.0))
     alpha = kwargs.pop('alpha', 1.0)
+    # if 'color' in kwargs:
+    #     kwargs['color'] = mpl.colors.ColorConverter().to_rgb(kwargs['color'])
     line_group = mpl.collections.LineCollection(segments, linewidth,
                                                 alpha=alpha, **kwargs)
     ax.add_collection(line_group)

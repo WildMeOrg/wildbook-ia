@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
-import plottool.draw_func2 as df2
+# import plottool.draw_func2 as df2
 from plottool import fig_presenter
 #from plottool import custom_figure
 #from plottool import custom_constants
@@ -14,7 +14,6 @@ SIFT_OR_VECFIELD = ut.get_argval('--vecfield', type_=bool)
 
 
 def draw():
-    df2.adjust_subplots_safe()
     fig_presenter.draw()
 
 
