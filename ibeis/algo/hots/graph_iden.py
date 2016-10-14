@@ -732,9 +732,9 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         nx.set_node_attrs(graph, 'orig_name_label', node_to_nid)
         infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
 
-    def connected_compoment_reviewed_subgraphs(infr):
+    def connected_component_reviewed_subgraphs(infr):
         """
-        Two kinds of edges are considered in connected compoment analysis: user
+        Two kinds of edges are considered in connected component analysis: user
         reviewed edges, and algorithmally inferred edges.  If an inference
         algorithm is not run, then user review is all that matters.
         """
@@ -754,13 +754,13 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
         cc_subgraphs = [graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
 
-    def connected_compoment_status(infr):
+    def connected_component_status(infr):
         r"""
         Returns:
             tuple: (num_names, num_inconsistent)
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden connected_compoment_status --show
+            python -m ibeis.algo.hots.graph_iden connected_component_status --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -770,10 +770,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> infr.add_feedback(5, 6, 'nomatch')
             >>> infr.add_feedback(1, 2, 'match')
             >>> infr.apply_feedback_edges()
-            >>> status = infr.connected_compoment_status()
+            >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
-        cc_subgraphs = infr.connected_compoment_reviewed_subgraphs()
+        cc_subgraphs = infr.connected_component_reviewed_subgraphs()
         num_names_max = len(cc_subgraphs)
 
         ccx_to_aids = {
@@ -791,10 +791,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             if state == 'nomatch':
                 ccx1 = aid_to_ccx[edge[0]]
                 ccx2 = aid_to_ccx[edge[1]]
-                # Determine number of negative matches within a compoment
+                # Determine number of negative matches within a component
                 if ccx1 == ccx2:
                     inconsistent_ccxs.add(ccx1)
-                # Determine the number of compoments that should not be joined
+                # Determine the number of components that should not be joined
                 if ccx1 > ccx2:
                     ccx1, ccx2 = ccx2, ccx1
                 separated_ccxs.add((ccx1, ccx2))
@@ -809,10 +809,10 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
         return status
 
-    def connected_compoment_reviewed_relabel(infr):
+    def connected_component_reviewed_relabel(infr):
         if infr.verbose:
-            print('[infr] connected_compoment_reviewed_relabel')
-        cc_subgraphs = infr.connected_compoment_reviewed_subgraphs()
+            print('[infr] connected_component_reviewed_relabel')
+        cc_subgraphs = infr.connected_component_reviewed_subgraphs()
         num_inconsistent = 0
         num_names = len(cc_subgraphs)
 
@@ -1420,7 +1420,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
     def find_possible_binary_splits(infr):
         flagged_edges = []
 
-        for subgraph in infr.connected_compoment_reviewed_subgraphs():
+        for subgraph in infr.connected_component_reviewed_subgraphs():
             inconsistent_edges = [
                 edge
                 for edge, state in nx.get_edge_attrs(subgraph, 'reviewed_state').items()
@@ -1572,7 +1572,7 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
 
         if review_cfg['filter_dup_namepairs']:
             # Only look at a maximum of one review between the current set of
-            # connected compoments
+            # connected components
             nids1 = ut.take(aid_to_nid, aids1)
             nids2 = ut.take(aid_to_nid, aids2)
             scores = np.array([
@@ -1654,7 +1654,7 @@ def piecewise_weighting(infr, normscores, edges):
 
 def approx_min_num_components(nodes, negative_edges):
     """
-    Find approximate minimum number of connected compoments possible
+    Find approximate minimum number of connected components possible
     Each edge represents that two nodes must be separated
 
     This code doesn't solve the problem. The problem is NP-complete and
@@ -1703,7 +1703,7 @@ def approx_min_num_components(nodes, negative_edges):
 
     # Iterate until we have used all nodes
     while len(unused) > 0:
-        # Seed a new "minimum compoment"
+        # Seed a new "minimum component"
         num += 1
         # Grab a random unused node n1
         #idx1 = np.random.randint(0, len(unused))

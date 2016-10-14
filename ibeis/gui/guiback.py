@@ -17,7 +17,7 @@ Notes:
         Spacing
            - space between widges in the layout
         Stretch
-           - relative size ratio vector (1 compoment for each widget)
+           - relative size ratio vector (1 component for each widget)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA

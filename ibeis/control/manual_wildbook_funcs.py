@@ -6,7 +6,7 @@ CommandLine;
     python -m ibeis --tf reset_mtest
 
 Notes:
-    Moving compoments: java, tomcat, wildbook.war.
+    Moving components: java, tomcat, wildbook.war.
 
     python -m utool.util_inspect check_module_usage --pat="manual_wildbook_funcs.py"
 

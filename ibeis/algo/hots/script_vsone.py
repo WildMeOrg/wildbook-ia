@@ -91,7 +91,12 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
     import numpy as np
     import plottool as pt
     pt.qt4ensure()
-    fig = pt.figure(doclf=True, fnum=1, pnum=(2, 2, 3))
+
+    pnum1 = (4, 4, (slice(0, 3), slice(0, 3)))
+    pnum2 = (4, 4, (slice(3, 4), slice(0, 3)))
+    pnum3 = (4, 4, (slice(0, 3), slice(3, 4)))
+
+    fig = pt.figure(doclf=True, fnum=1, pnum=pnum1)
 
     cmap = pt.plt.cm.RdYlBu
 
@@ -109,11 +114,6 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
                          np.arange(y_min, y_max, plot_step))
 
     if SHOW_FINE:
-        # Plot alpha blend the decision surfaces of the ensemble of classifiers
-        # Choose alpha blend level with respect to the number of estimators
-        # that are in use (noting that AdaBoost can use fewer estimators
-        # than its maximum if it achieves a good enough fit early on)
-        # estimator_alpha = 1.0 / len(clf.estimators_)
         Z_maps = []
         for tree in clf.estimators_:
             Z = tree.predict(np.c_[xx.ravel(), yy.ravel()])
@@ -158,8 +158,9 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
     #         pt.plot(X_true[i][0], X_true[i][1], 'o' + m)
 
     # DO NAN PLOTS
+    SHOW_FINE = 1
     if SHOW_FINE:
-        fig = pt.figure(fnum=1, pnum=(2, 2, 1))
+        fig = pt.figure(fnum=1, pnum=pnum2)
         Z_maps = []
         yynan = yy.copy()
         yynan[:] = np.nan
@@ -181,7 +182,8 @@ def show_nan_decision_function_2d(X, y, X_true, clf):
                 pt.plot(dim1, dim2, m)
                 pt.plot(X_true[i][0], X_true[i][1], 'o' + m)
 
-        fig = pt.figure(fnum=1, pnum=(2, 2, 4))
+        # fig = pt.figure(fnum=1, pnum=(2, 2, 4))
+        fig = pt.figure(fnum=1, pnum=pnum3)
         Z_maps = []
         xxnan = xx.copy()
         xxnan[:] = np.nan
