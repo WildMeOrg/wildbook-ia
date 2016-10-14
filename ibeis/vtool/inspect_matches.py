@@ -214,7 +214,7 @@ class MatplotlibWidget(INSPECT_BASE):
         # from plottool.interactions import zoom_factory, pan_factory
         self.ax = self.fig.add_subplot(1, 1, 1)
         import plottool as pt
-        pt.adjust_subplots2(left=0, right=1, top=1, bottom=0)
+        pt.adjust_subplots(left=0, right=1, top=1, bottom=0)
         # self.pan_events = pan_factory(self.ax)
         # self.zoon_events = zoom_factory(self.ax)
         return self.ax

@@ -374,7 +374,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> #encoder._plot_prebayes(fnum=fnum, pnum=pnum_())
             >>> encoder._plot_postbayes(fnum=fnum, pnum=pnum_())
             >>> encoder._plot_roc(fnum=fnum, pnum=pnum_())
-            >>> pt.adjust_subplots2(hspace=.5, top=.95, bottom=.08)
+            >>> pt.adjust_subplots(hspace=.5, top=.95, bottom=.08)
             >>> pt.show_if_requested()
         """
         import vtool as vt
