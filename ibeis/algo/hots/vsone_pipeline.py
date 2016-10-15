@@ -243,41 +243,59 @@ def get_training_pairs():
     allow_nan = True
     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
                                    for m in matches_RAT_SV])
+    pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
     if allow_nan:
-        valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
-        valid_cols = pairwise_feats.columns[valid_colx]
-        X = pairwise_feats[valid_cols].values
-    else:
-        X = pairwise_feats.values
+        X_withnan = pairwise_feats.values.copy()
+    valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
+    valid_cols = pairwise_feats.columns[valid_colx]
+    X_nonan = pairwise_feats[valid_cols].values.copy()
 
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches_RAT_SV])
 
     rng = np.random.RandomState(42)
     xvalkw = dict(n_splits=5, shuffle=True, random_state=rng)
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    skf_iter = skf.split(X=X, y=y)
-    df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn'])
+    skf_iter = skf.split(X=X_nonan, y=y)
+    df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn_nonan', 'auc_learn_withnan'])
+
+    rf_params = dict(n_estimators=20, bootstrap=True, verbose=1)
     for count, (train_idx, test_idx) in enumerate(skf_iter):
         print('\n========')
-        X_train, y_train = X[train_idx], y[train_idx]
-        X_test, y_test = X[test_idx], y[test_idx]
+        y_test = y[test_idx]
+        y_train = y[train_idx]
+        if True:
+            score_list = np.array([m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
+            auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
 
-        # Train uncalibrated random forest classifier on train data
-        clf = RandomForestClassifier(n_estimators=250, verbose=0, missing_values=True)
-        clf.fit(X_train, y_train)
-        # print(ut.repr4(dict(zip(valid_cols, clf.feature_importances_))))
+        if True:
+            X_train = X_nonan[train_idx]
+            X_test = X_nonan[test_idx]
+            # Train uncalibrated random forest classifier on train data
+            clf = RandomForestClassifier(**rf_params)
+            clf.fit(X_train, y_train)
 
-        # evaluate on test data
-        clf_probs = clf.predict_proba(X_test)
-        # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
-        auc_learn = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+            # evaluate on test data
+            clf_probs = clf.predict_proba(X_test)
+            auc_learn_nonan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
 
-        score_list = np.array([m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
-        auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
-        newrow = pd.DataFrame([[auc_naive, auc_learn]], columns=df_results.columns)
+        if allow_nan:
+            X_train = X_withnan[train_idx]
+            X_test = X_withnan[test_idx]
+            # Train uncalibrated random forest classifier on train data
+            clf = RandomForestClassifier(missing_values=np.nan, **rf_params)
+            clf.fit(X_train, y_train)
+
+            # evaluate on test data
+            clf_probs = clf.predict_proba(X_test)
+            # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
+            auc_learn_withnan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+
+        newrow = pd.DataFrame([[auc_naive, auc_learn_nonan, auc_learn_withnan]], columns=df_results.columns)
         print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
+
+    print(df_results)
 
     def monkey_to_str_columns(self):
         frame = self.tr_frame
