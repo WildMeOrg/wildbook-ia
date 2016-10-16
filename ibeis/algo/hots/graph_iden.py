@@ -1142,7 +1142,7 @@ def demo_graph_iden():
     import ibeis
     ibs = ibeis.opendb('PZ_MTEST')
     # Initially the entire population is unnamed
-    aids = ibs.get_valid_aids()[:50]
+    aids = ibs.get_valid_aids()[:20]
     nids = [-aid for aid in aids]
     infr = graph_iden.AnnotInference(ibs, aids, nids=nids, autoinit=True)
 
