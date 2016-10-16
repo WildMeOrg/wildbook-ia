@@ -108,7 +108,8 @@ class AnnotInferenceVisualization(object):
         return s
 
     def update_visual_attrs(infr, graph=None, show_cuts=False,
-                            show_reviewed_cuts=True, only_reviewed=False):
+                            show_reviewed_cuts=True, only_reviewed=False,
+                            mode=None):
         if infr.verbose:
             print('[infr] update_visual_attrs')
         #edge2_weight = nx.get_edge_attributes(infr.graph, 'score')
@@ -139,7 +140,7 @@ class AnnotInferenceVisualization(object):
 
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
 
-        SPLIT_MODE = True
+        SPLIT_MODE = mode == 'split'
         if not SPLIT_MODE:
             # Update color and linewidth based on scores/weight
             edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
@@ -156,7 +157,7 @@ class AnnotInferenceVisualization(object):
             }
             nx.set_edge_attrs(graph, 'stroke', edge_to_stroke)
         else:
-            # Mark reviewed edges witha color
+            # Mark reviewed edges with a color
             edge_to_color = {
                 edge: infr.truth_colors[state]
                 for edge, state in reviewed_states.items()
@@ -218,9 +219,10 @@ class AnnotInferenceVisualization(object):
         )
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
-    def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False):
+    def show_graph(infr, use_image=False, only_reviewed=False,
+                   show_cuts=False, mode=None):
         infr.update_visual_attrs(only_reviewed=only_reviewed,
-                                 show_cuts=show_cuts)
+                                 show_cuts=show_cuts, mode=mode)
         graph = infr.graph
         plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                               modify_ax=False, use_image=use_image, verbose=0)

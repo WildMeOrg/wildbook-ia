@@ -963,7 +963,7 @@ class AnnotInference(ut.NiceRepr, viz_graph_iden.AnnotInferenceVisualization):
         aids = ut.take(node_to_aids, nodes)
         nids = ut.take(node_to_nids, nodes)
         aid_to_nid = dict(zip(aids, nids))
-        nid2_aids = ut.group_items(aids, nids)
+        nid_to_aids = ut.group_items(aids, nids)
 
         # Initial set of edges
         aids1 = ut.take_column(uv_list, 0)
@@ -991,9 +991,9 @@ class AnnotInference(ut.NiceRepr, viz_graph_iden.AnnotInferenceVisualization):
 
             impossible_aid_map = ut.ddict(set)
             for nid1, other_nids in invalid_nid_map.items():
-                for aid1 in nid2_aids[nid1]:
+                for aid1 in nid_to_aids[nid1]:
                     for nid2 in other_nids:
-                        for aid2 in nid2_aids[nid2]:
+                        for aid2 in nid_to_aids[nid2]:
                             impossible_aid_map[aid1].add(aid2)
                             impossible_aid_map[aid2].add(aid1)
 
@@ -1073,6 +1073,14 @@ class AnnotInference(ut.NiceRepr, viz_graph_iden.AnnotInferenceVisualization):
             aids1 = ut.take(aids1, unique_rowx2)
             aids2 = ut.take(aids2, unique_rowx2)
 
+        # Hack, sort by scores
+        scores = np.array([
+            max(graph.get_edge_data(*edge).get('score', -1), -1)
+            for edge in zip(aids1, aids2)])
+        sortx = scores.argsort()[::-1]
+        aids1 = ut.take(aids1, sortx)
+        aids2 = ut.take(aids2, sortx)
+
         if review_cfg['max_num'] is not None:
             scores = np.array([
                 # hack
@@ -1127,12 +1135,14 @@ class AnnotInference(ut.NiceRepr, viz_graph_iden.AnnotInferenceVisualization):
 
 def demo_graph_iden():
     """
+    CommandLine:
+        python -m ibeis.algo.hots.graph_iden demo_graph_iden --show
     """
     from ibeis.algo.hots import graph_iden
     import ibeis
     ibs = ibeis.opendb('PZ_MTEST')
     # Initially the entire population is unnamed
-    aids = ibs.get_valid_aids()[:20]
+    aids = ibs.get_valid_aids()[:50]
     nids = [-aid for aid in aids]
     infr = graph_iden.AnnotInference(ibs, aids, nids=nids, autoinit=True)
 
@@ -1152,9 +1162,15 @@ def demo_graph_iden():
 
     # Now either a manual or automatic reviewer must
     # determine which matches are correct
-    aids1, aids2 = infr.get_filtered_edges({})
+
+    def get_next():
+        aids1, aids2 = infr.get_filtered_edges({})
+        return aids1[0], aids2[0]
+
     count = 0
-    for aid1, aid2 in ut.ProgIter(list(zip(aids1, aids2)), 'review'):
+    for count in ut.ProgIter(range(10), 'review'):
+        # Re-filter every time
+        aid1, aid2 = get_next()
         if oracle_mode:
             # Assume perfect reviewer
             nid1, nid2 = ibs.get_annot_nids([aid1, aid2])
@@ -1163,9 +1179,10 @@ def demo_graph_iden():
                 infr.add_feedback(aid1, aid2, 'match')
             else:
                 infr.add_feedback(aid1, aid2, 'nomatch')
-        count += 1
-        if count > 100:
-            break
+            infr.apply_feedback_edges()
+            infr.apply_weights()
+            infr.connected_component_reviewed_relabel()
+            infr.apply_cuts()
 
     infr.apply_feedback_edges()
     infr.apply_weights()
@@ -1175,6 +1192,9 @@ def demo_graph_iden():
     infr.connected_component_reviewed_relabel()
     infr.show_graph()
     pt.set_title('post-inference')
+
+    pt.present()
+    ut.show_if_requested()
 
 
 def testdata_infr(defaultdb='PZ_MTEST'):
