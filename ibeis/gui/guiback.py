@@ -500,6 +500,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             ctx.set_progress(5)
 
     def log_query(self, qreq_=None, test=True):
+        """ DEPRICATE """
         expt_query_dir = self.expt_query_dir()
         # ut.vd(expt_query_dir)
         ibs = self.ibs

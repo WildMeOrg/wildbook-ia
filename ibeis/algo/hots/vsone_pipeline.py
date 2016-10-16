@@ -297,6 +297,20 @@ def get_training_pairs():
 
     print(df_results)
 
+    # TODO: TSNE?
+    # http://scikit-learn.org/stable/auto_examples/manifold/plot_manifold_sphere.html#sphx-glr-auto-examples-manifold-plot-manifold-sphere-py
+    # Perform t-distributed stochastic neighbor embedding.
+    from sklearn import manifold
+    import matplotlib.pyplot as plt
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    trans_data = tsne.fit_transform(feats).T
+    ax = fig.add_subplot(2, 5, 10)
+    plt.scatter(trans_data[0], trans_data[1], c=colors, cmap=plt.cm.rainbow)
+    plt.title("t-SNE (%.2g sec)" % (t1 - t0))
+    ax.xaxis.set_major_formatter(NullFormatter())
+    ax.yaxis.set_major_formatter(NullFormatter())
+    plt.axis('tight')
+
     def monkey_to_str_columns(self):
         frame = self.tr_frame
         highlight_func = 'max'
