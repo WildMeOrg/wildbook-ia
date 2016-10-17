@@ -132,6 +132,9 @@ class _IBEIS_AnnotInference(object):
         Reads feedback from annotmatch table.
         TODO: DEPRICATE (make an external helper function?)
 
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden read_ibeis_annotmatch_feedback
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
@@ -140,8 +143,8 @@ class _IBEIS_AnnotInference(object):
             >>> result =('user_feedback = %s' % (ut.repr2(user_feedback, nl=1),))
             >>> print(result)
             user_feedback = {
-                (2, 3): [{'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}],
-                (5, 6): [{'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}],
+                (2, 3): [({'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}, ['photobomb'])],
+                (5, 6): [({'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}, ['photobomb'])],
             }
         """
         if infr.verbose:
@@ -162,6 +165,7 @@ class _IBEIS_AnnotInference(object):
 
         # Use explicit truth state to mark truth
         truth = np.array(ibs.get_annotmatch_truth(am_rowids))
+        tags_list = ibs.get_annotmatch_case_tags(am_rowids)
         # Hack, if we didnt set it, it probably means it matched
         need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
         need_aids1 = ut.compress(aids1, need_truth)
@@ -183,12 +187,13 @@ class _IBEIS_AnnotInference(object):
         user_feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
             edge = tuple(sorted([aid1, aid2]))
-            review = {
+            review_dict = {
                 'p_match': p_match[count],
                 'p_nomatch': p_nomatch[count],
                 'p_notcomp': p_notcomp[count],
             }
-            user_feedback[edge].append(review)
+            tags = tags_list[count]
+            user_feedback[edge].append((review_dict, tags))
         return user_feedback
 
     #@staticmethod
@@ -516,7 +521,6 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
         """
         cc_subgraphs = infr.connected_component_reviewed_subgraphs()
         num_names_max = len(cc_subgraphs)
-
         ccx_to_aids = {
             ccx: list(nx.get_node_attributes(cc, 'aid').values())
             for ccx, cc in enumerate(cc_subgraphs)
@@ -524,7 +528,6 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
         aid_to_ccx = {
             aid: ccx for ccx, aids in ccx_to_aids.items() for aid in aids
         }
-
         all_reviewed_states = infr.get_edge_attrs('reviewed_state')
         separated_ccxs = set([])
         inconsistent_ccxs = set([])
@@ -547,7 +550,6 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
             num_inconsistent=len(inconsistent_ccxs),
             num_names_min=num_names_min,
         )
-
         return status
 
     def connected_component_reviewed_relabel(infr):
@@ -756,7 +758,7 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
         infr.graph.add_edges_from(edges)
         infr.ensure_mst()
 
-    def add_feedback(infr, aid1, aid2, state, tags=None):
+    def add_feedback(infr, aid1, aid2, state, tags=[]):
         """ Public interface to add feedback for a single edge
 
         Args:
@@ -777,8 +779,23 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
             >>> infr.add_feedback(5, 6, 'nomatch', ['Photobomb'])
             >>> infr.add_feedback(1, 2, 'match')
             >>> infr.add_feedback(4, 2, 'notcomp')
-            >>> result = ut.repr4(infr.user_feedback)
+            >>> result = ut.repr2(infr.user_feedback, nl=2)
             >>> print(result)
+            {
+                (1, 2): [
+                    ({'p_match': 1.0, 'p_nomatch': 0.0, 'p_notcomp': 0.0}, []),
+                ],
+                (2, 3): [
+                    ({'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}, []),
+                ],
+                (2, 4): [
+                    ({'p_match': 0.0, 'p_nomatch': 0.0, 'p_notcomp': 1.0}, []),
+                ],
+                (5, 6): [
+                    ({'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}, None),
+                    ({'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}, ['Photobomb']),
+                ],
+            }
         """
         if infr.verbose:
             print('[infr] add_feedback(%r, %r, state=%r, tags=%r)' % (
@@ -818,7 +835,9 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
         """ Helper. Transforms dictionary feedback into numpy arrays """
         unique_pairs = list(infr.user_feedback.keys())
         # Take most recent review
-        review_list = [infr.user_feedback[edge][-1] for edge in unique_pairs]
+        review_tag_list = [infr.user_feedback[edge][-1] for edge in unique_pairs]
+        review_list = ut.take_column(review_tag_list, 0)
+        tags_list = ut.take_column(review_tag_list, 1)
         p_nomatch = np.array(ut.dict_take_column(review_list, 'p_nomatch'))
         p_match = np.array(ut.dict_take_column(review_list, 'p_match'))
         p_notcomp = np.array(ut.dict_take_column(review_list, 'p_notcomp'))
@@ -829,11 +848,14 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
         part1 = p_match * (1 - p_notcomp)
         part2 = p_bg * p_notcomp
         p_same_list = part1 + part2
-        return p_same_list, unique_pairs, review_state
+        return p_same_list, unique_pairs, review_state, tags_list
 
     def apply_feedback_edges(infr):
         """
         Updates nx graph edge attributes for feedback
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_feedback_edges
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -841,6 +863,7 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
             >>> infr.apply_feedback_edges()
+            >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
             >>> print(result)
             <AnnotInference(nAids=6, nEdges=2)>
@@ -851,18 +874,16 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
 
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight')
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_state')
-        p_same_list, unique_pairs_, review_state = infr._get_feedback_probs()
+        p_same_list, unique_pairs_, review_state, tags_list = infr._get_feedback_probs()
         # Put pair orders in context of the graph
         unique_pairs = [(aid2, aid1) if infr.graph.has_edge(aid2, aid1) else
                         (aid1, aid2) for (aid1, aid2) in unique_pairs_]
         # Ensure edges exist
         for edge in unique_pairs:
             if not infr.graph.has_edge(*edge):
-                #print('add review edge = %r' % (edge,))
                 infr.graph.add_edge(*edge)
-            #else:
-            #    #print('have edge edge = %r' % (edge,))
         infr.set_edge_attrs('reviewed_state', _dz(unique_pairs, review_state))
+        infr.set_edge_attrs('reviewed_tags', _dz(unique_pairs, tags_list))
         infr.set_edge_attrs('reviewed_weight', _dz(unique_pairs, p_same_list))
         infr.ensure_mst()
 
