@@ -160,7 +160,7 @@ def get_review_rowids_from_aid_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_rowids_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, unpack_scalars=False)
     return review_rowids_list
 
 
@@ -190,7 +190,7 @@ def get_review_counts_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_counts_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, unpack_scalars=False)
     return review_counts_list
 
 
@@ -231,7 +231,7 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
     where_clause = '%s=?' % (REVIEW_AID1)
     review_tuple_decisions_list = ibs.staging.get_where(const.REVIEW_TABLE, colnames,
                                                         params_iter, where_clause,
-                                                        __reject_multiple_records__=False)
+                                                        unpack_scalars=False)
     return review_tuple_decisions_list
 
 
@@ -253,7 +253,7 @@ def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_tuple_decisions_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, op='OR', __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, op='OR', unpack_scalars=False)
     return review_tuple_decisions_list
 
 
@@ -275,7 +275,7 @@ def get_review_decisions_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nIn
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_decisions_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, unpack_scalars=False)
     return review_decisions_list
 
 
@@ -328,7 +328,7 @@ def get_review_identities_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_identities_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, unpack_scalars=False)
     return review_identities_list
 
 
@@ -358,7 +358,7 @@ def get_review_posix_times_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, n
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_posix_times_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, unpack_scalars=False)
     return review_posix_times_list
 
 
@@ -392,7 +392,7 @@ def get_review_tags_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=N
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_tag_strs_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, __reject_multiple_records__=False)
+        eager=eager, nInput=nInput, unpack_scalars=False)
     review_tags_list = [
         []
         if review_tag_str_list is None else

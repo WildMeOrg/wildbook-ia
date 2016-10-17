@@ -276,7 +276,7 @@ class InfrModel(ut.NiceRepr):
 
 #     nx.set_edge_attrs(infr.graph, CUT_WEIGHT_KEY, _dz(edges, edge_weights))
 
-#     p_same, unique_pairs = infr.get_feedback_probs()
+#     p_same, unique_pairs = infr._get_feedback_probs()
 #     unique_pairs = [tuple(x.tolist()) for x in unique_pairs]
 #     for aid1, aid2 in unique_pairs:
 #         if not infr.graph.has_edge(aid1, aid2):

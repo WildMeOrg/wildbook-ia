@@ -46,10 +46,10 @@ class AnnotInferenceVisualization(object):
         imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
                                                config=dict(dim_size=chip_width),
                                                read_extern=False)
-        nx.set_node_attrs(graph, 'framewidth', 3.0)
-        #nx.set_node_attrs(graph, 'framecolor', pt.DARK_BLUE)
-        nx.set_node_attrs(graph, 'shape', _dz(annot_nodes, ['rect']))
-        nx.set_node_attrs(graph, 'image', _dz(annot_nodes, imgpath_list))
+        nx.set_node_attributes(graph, 'framewidth', 3.0)
+        #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)
+        nx.set_node_attributes(graph, 'shape', _dz(annot_nodes, ['rect']))
+        nx.set_node_attributes(graph, 'image', _dz(annot_nodes, imgpath_list))
 
     def get_colored_edge_weights(infr, graph=None):
         # Update color and linewidth based on scores/weight
@@ -144,25 +144,25 @@ class AnnotInferenceVisualization(object):
         if not SPLIT_MODE:
             # Update color and linewidth based on scores/weight
             edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
-            #nx.set_edge_attrs(graph, 'len', _dz(edges, [10]))
-            nx.set_edge_attrs(graph, 'color', _dz(edges, edge_colors))
+            #nx.set_edge_attributes(graph, 'len', _dz(edges, [10]))
+            nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
             minlw, maxlw = .5, 4
             lw = ((maxlw - minlw) * edge_weights + minlw)
-            nx.set_edge_attrs(graph, 'lw', _dz(edges, lw))
+            nx.set_edge_attributes(graph, 'lw', _dz(edges, lw))
 
             # Mark reviewed edges witha stroke
             edge_to_stroke = {
                 edge: {'linewidth': 3, 'foreground': infr.truth_colors[state]}
                 for edge, state in reviewed_states.items()
             }
-            nx.set_edge_attrs(graph, 'stroke', edge_to_stroke)
+            nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
         else:
             # Mark reviewed edges with a color
             edge_to_color = {
                 edge: infr.truth_colors[state]
                 for edge, state in reviewed_states.items()
             }
-            nx.set_edge_attrs(graph, 'color', edge_to_color)
+            nx.set_edge_attributes(graph, 'color', edge_to_color)
 
             # Mark edges that might be splits with strokes
             possible_split_edges = infr.find_possible_binary_splits()
@@ -170,40 +170,40 @@ class AnnotInferenceVisualization(object):
                 edge: {'linewidth': 3, 'foreground': pt.ORANGE}
                 for edge in ut.unique(possible_split_edges)
             }
-            nx.set_edge_attrs(graph, 'stroke', edge_to_stroke)
+            nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
 
         # Are cuts visible or invisible?
         edge2_cut = nx.get_edge_attributes(graph, 'is_cut')
         cut_edges = [edge for edge, cut in edge2_cut.items() if cut]
-        nx.set_edge_attrs(graph, 'implicit', _dz(cut_edges, [True]))
+        nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
         if infr.verbose:
             print('show_cuts = %r' % (show_cuts,))
             print('show_reviewed_cuts = %r' % (show_reviewed_cuts,))
-        nx.set_edge_attrs(graph, 'linestyle', _dz(cut_edges, ['dashed']))
+        nx.set_edge_attributes(graph, 'linestyle', _dz(cut_edges, ['dashed']))
 
         # Non-matching edges should not impose a constraint on the graph layout
         nonmatch_edges = {edge: state for edge, state in reviewed_states.items()
                           if state == 'nomatch'}
-        nx.set_edge_attrs(graph, 'implicit', _dz(nonmatch_edges, [True]))
+        nx.set_edge_attributes(graph, 'implicit', _dz(nonmatch_edges, [True]))
 
         edges = list(graph.edges())
         if only_reviewed:
             # only reviewed edges contribute
             unreviewed_edges = ut.setdiff(edges, reviewed_states.keys())
-            nx.set_edge_attrs(graph, 'implicit', _dz(unreviewed_edges, [True]))
-            nx.set_edge_attrs(graph, 'style', _dz(unreviewed_edges, ['invis']))
+            nx.set_edge_attributes(graph, 'implicit', _dz(unreviewed_edges, [True]))
+            nx.set_edge_attributes(graph, 'style', _dz(unreviewed_edges, ['invis']))
 
         if show_cuts or show_reviewed_cuts:
             if not show_cuts:
                 nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_states.keys())
-                nx.set_edge_attrs(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
+                nx.set_edge_attributes(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
         else:
-            nx.set_edge_attrs(graph, 'style', _dz(cut_edges, ['invis']))
+            nx.set_edge_attributes(graph, 'style', _dz(cut_edges, ['invis']))
 
         # Make MST edge have more alpha
         edge_to_ismst = nx.get_edge_attributes(graph, '_mst_edge')
         mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
-        nx.set_edge_attrs(graph, 'alpha', _dz(mst_edges, [.5]))
+        nx.set_edge_attributes(graph, 'alpha', _dz(mst_edges, [.5]))
 
         nodes = list(graph.nodes())
         nx.set_node_attributes(graph, 'zorder', _dz(nodes, [10]))
