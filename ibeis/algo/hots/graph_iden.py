@@ -864,6 +864,7 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
             >>> infr.reset_feedback()
             >>> infr.apply_feedback_edges()
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
+            >>> # assert infr.graph.edge[6][5] is infr.graph.edge[5][6], 'digraph'
             >>> result = str(infr)
             >>> print(result)
             <AnnotInference(nAids=6, nEdges=2)>
