@@ -22,7 +22,7 @@ def _dz(a, b):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class AnnotInferenceVisualization(object):
+class _AnnotInfrViz(object):
     """ contains plotting related code """
 
     truth_colors = {
@@ -173,8 +173,8 @@ class AnnotInferenceVisualization(object):
             nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
 
         # Are cuts visible or invisible?
-        edge2_cut = nx.get_edge_attributes(graph, 'is_cut')
-        cut_edges = [edge for edge, cut in edge2_cut.items() if cut]
+        edge_to_cut = nx.get_edge_attributes(graph, 'is_cut')
+        cut_edges = [edge for edge, cut in edge_to_cut.items() if cut]
         nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
         if infr.verbose:
             print('show_cuts = %r' % (show_cuts,))
@@ -220,14 +220,19 @@ class AnnotInferenceVisualization(object):
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     def show_graph(infr, use_image=False, only_reviewed=False,
-                   show_cuts=False, mode=None):
-        infr.update_visual_attrs(only_reviewed=only_reviewed,
-                                 show_cuts=show_cuts, mode=mode)
-        graph = infr.graph
-        plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
-                              modify_ax=False, use_image=use_image, verbose=0)
-        pt.zoom_factory()
-        pt.pan_factory(pt.gca())
+                   show_cuts=False, mode=None, **kwargs):
+
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            infr.update_visual_attrs(only_reviewed=only_reviewed,
+                                     show_cuts=show_cuts, mode=mode)
+            graph = infr.graph
+            plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
+                                  modify_ax=False, use_image=use_image, verbose=0,
+                                  **kwargs)
+            pt.zoom_factory()
+            pt.pan_factory(pt.gca())
 
         with_colorbar = False
         if with_colorbar:

@@ -554,8 +554,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.remove_feedback()
             ctx.set_progress(2, 3)
             infr.remove_name_labels()
-            # if ut.get_argflag('--cut'):
-            #     infr.apply_all()
             infr.initialize_visual_node_attrs()
             ctx.set_progress(3, 3)
         pass
