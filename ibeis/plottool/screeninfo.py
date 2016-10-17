@@ -241,19 +241,21 @@ def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
 
 
 def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
-                            monitor_num=None, adaptive=False):
-    """ Computes which figure positions are valid given args """
+                            monitor_num=None, adaptive=False, percent_w=1.0,
+                            percent_h=1.0):
+    """
+    Returns a list of bounding boxes where figures can be placed on the screen
+    """
+    if percent_h is None:
+        percent_h = 1.0
+    if percent_w is None:
+        percent_w = 1.0
     if max_rows is None:
         max_rows = DEFAULT_MAX_ROWS
 
-    percent_w = 1.0
-    percent_h = 1.0
-
     if adaptive:
         if num_wins <= DEFAULT_MAX_ROWS:
-            percent_w = .5
-        else:
-            percent_w = 1.0
+            percent_w *= .5
 
     available_geom = get_avail_geom(monitor_num, percent_w=percent_w, percent_h=percent_h)
     startx, starty, avail_width, avail_height = available_geom
