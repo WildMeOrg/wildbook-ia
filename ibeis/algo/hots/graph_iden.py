@@ -262,12 +262,12 @@ class _IBEIS_AnnotInference(object):
             >>> new_df.set_index('am_rowid', drop=False, inplace=True)
         """
         import pandas as pd
-        existing_ams = new_feedback['am_rowid'][~np.isnull(new_feedback['am_rowid'])]
+        existing_ams = new_feedback['am_rowid'][~pd.isnull(new_feedback['am_rowid'])]
         both_ams = np.intersect1d(old_feedback['am_rowid'], existing_ams).astype(np.int)
 
         all_new_df = new_feedback.loc[both_ams]
         all_old_df = old_feedback.loc[both_ams]
-        add_df = new_feedback.loc[np.isnull(new_feedback['am_rowid'])].copy()
+        add_df = new_feedback.loc[pd.isnull(new_feedback['am_rowid'])].copy()
 
         if len(both_ams) > 0:
             is_changed = ~np.all(all_new_df.values == all_old_df.values, axis=1)
