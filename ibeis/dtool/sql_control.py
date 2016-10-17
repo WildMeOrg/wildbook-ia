@@ -33,17 +33,13 @@ SQLColumnRichInfo = collections.namedtuple(
     'SQLColumnRichInfo', ('column_id', 'name', 'type_', 'notnull', 'dflt_value', 'pk'))
 
 
-def _unpacker(results_, __reject_multiple_records__=True):
-    """ HELPER: Unpacks results if unpack_scalars is True.
-    FIXME: hacky function
-    """
+def _unpacker(results_):
+    """ HELPER: Unpacks results if unpack_scalars is True. """
     if len(results_) == 0:
         results = None
-    elif __reject_multiple_records__:
+    else:
         assert len(results_) <= 1, 'throwing away results! { %r }' % (results_,)
         results = results_[0]
-    else:
-        results = results_
     return results
 
 # =======================
@@ -995,9 +991,12 @@ class SQLDatabaseController(object):
 
     #@ut.memprof
     #@profile
-    def executemany(db, operation, params_iter,
-                    verbose=VERBOSE_SQL, unpack_scalars=True, nInput=None,
-                    eager=True, keepwrap=False, showprog=False, __reject_multiple_records__=True):
+    def executemany(db, operation, params_iter, verbose=VERBOSE_SQL,
+                    unpack_scalars=True, nInput=None, eager=True,
+                    keepwrap=False, showprog=False):
+        """
+        if unpack_scalars is True only a single result must be returned for each query.
+        """
         # --- ARGS PREPROC ---
         # Aggresively compute iterator if the nInput is not given
         if nInput is None:
@@ -1038,7 +1037,7 @@ class SQLDatabaseController(object):
                                 for params in params_iter]
                 if unpack_scalars:
                     # list of iterators
-                    _unpacker_ = partial(_unpacker, __reject_multiple_records__=__reject_multiple_records__)
+                    _unpacker_ = partial(_unpacker)
                     results_iter = list(map(_unpacker_, results_iter))
                 # Eager evaluation
                 results_list = list(results_iter)
@@ -1049,7 +1048,7 @@ class SQLDatabaseController(object):
                         # Eval results per query yeild per iter
                         results = list(context.execute_and_generate_results(params))
                         if unpack_scalars:
-                            yield _unpacker(results, __reject_multiple_records__=__reject_multiple_records__)
+                            yield _unpacker(results)
                         else:
                             yield results
                 results_list = _tmpgen(context)
