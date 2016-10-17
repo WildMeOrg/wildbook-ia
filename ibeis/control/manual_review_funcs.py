@@ -234,7 +234,7 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-@register_api('/api/review/decisions/only/', methods=['GET'], __api_plural_check__=False)
+@register_api('/api/review/rowids/only/', methods=['GET'], __api_plural_check__=False)
 def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
     r"""
     Returns:
@@ -242,7 +242,7 @@ def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
 
     RESTful:
         Method: GET
-        URL:    /api/review/identities/only/
+        URL:    /api/review/rowids/only/
     """
     colnames = (REVIEW_ROWID,)
     params_iter = [ (aid, ) for aid in aid_list ]
