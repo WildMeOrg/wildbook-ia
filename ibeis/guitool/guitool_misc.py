@@ -1,15 +1,13 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__ import QtWidgets  # NOQA
-# Python
 import six
-from six.moves import range
 import utool
 import sys
 import logging
+from six.moves import range
 from guitool.guitool_decorators import slot_
 from guitool import guitool_main
-#print, rrr, profile = utool.inject2(__name__)
 import utool as ut
 ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
 
