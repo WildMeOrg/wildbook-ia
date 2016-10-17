@@ -1,13 +1,8 @@
 from __future__ import absolute_import, division, print_function
 import sys
-import textwrap
 import time
-#import warnings
 import utool as ut
-# maptlotlib
 import matplotlib as mpl
-#import matplotlib.pyplot as plt
-# Science
 from plottool.custom_figure import get_fig
 
 #from .custom_constants import golden_wh
@@ -278,8 +273,6 @@ iup = iupdate
 
 def present(*args, **kwargs):
     """
-    execing present should cause IPython magic
-
     basically calls show if not embeded.
     """
     if VERBOSE:
@@ -291,16 +284,3 @@ def present(*args, **kwargs):
         all_figures_tile(*args, **kwargs)
         all_figures_show()
         all_figures_bring_to_front()
-        # Return an exec string
-    execstr = ut.ipython_execstr()
-    execstr += textwrap.dedent('''
-    if not embedded:
-        if '--quiet' not in sys.argv:
-            print('[fig_presenter] Presenting in normal shell.')
-            print('[fig_presenter] ... plt.show()')
-        import matplotlib.pyplot as plt
-        if '--noshow' not in sys.argv:
-            print('WARNING USING plt.show')
-            plt.show()
-    ''')
-    return execstr
