@@ -356,7 +356,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-            pt.adjust_subplots2(use_argv=True)
+            pt.adjust_subplots(use_argv=True)
         pt.set_figsize(w=30, h=10, dpi=256)
         pt.set_figtitle(lbl)
 
@@ -482,7 +482,7 @@ def draw_casetag_hist(ibs, testres, f=None, with_wordcloud=not
     if ut.get_argflag('--contextadjust'):
         #pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
         #pt.adjust_subplots(wspace=.01)
-        pt.adjust_subplots2(use_argv=True, wspace=.01, bottom=.3)
+        pt.adjust_subplots(use_argv=True, wspace=.01, bottom=.3)
 
 
 def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
@@ -697,7 +697,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     pt.adjust_subplots(left=.05, bottom=.08, top=.80, right=.95, wspace=.2, hspace=.3)
     if ut.get_argflag('--contextadjust'):
         pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-        pt.adjust_subplots2(use_argv=True)
+        pt.adjust_subplots(use_argv=True)
 
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
@@ -887,7 +887,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     #fig.set_size_inches(15, 7)
     if ut.get_argflag('--contextadjust') or True:
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
-        pt.adjust_subplots2(use_argv=True)
+        pt.adjust_subplots(use_argv=True)
     #pt.set_figtitle(figtitle, size=10)
 
 
@@ -1033,8 +1033,8 @@ def draw_case_timedeltas(ibs, testres, falsepos=None, truepos=None,
         ax.set_aspect('equal')
 
     if ut.get_argflag('--contextadjust'):
-        pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
-        pt.adjust_subplots2(use_argv=True)
+        pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+        pt.adjust_subplots(use_argv=True)
 
 
 @profile

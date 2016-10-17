@@ -40,9 +40,9 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
             CREATE INDEX IF NOT EXISTS aid1_to_am ON {ANNOTMATCH_TABLE} (annot_rowid1);
             '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
                        annot_rowid1=_autogen_annotmatch_funcs.ANNOT_ROWID1)).fetchall()
-    andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1]
+    where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1]
     annotmatch_rowid_list = ibs.db.get_where_eq(
-        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
+        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
@@ -69,9 +69,9 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
     colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid2_list)
-    andwhere_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID2]
+    where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID2]
     annotmatch_rowid_list = ibs.db.get_where_eq(
-        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, andwhere_colnames,
+        ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
     annotmatch_rowid_list = list(map(sorted, annotmatch_rowid_list))
     return annotmatch_rowid_list
@@ -267,12 +267,10 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
     ANNOT_ROWID2 = 'annot_rowid2'
     params_iter = [(aid,) for aid in aid_list]
     colnames = (ANNOT_ROWID2,)
-    andwhere_colnames = (ANNOT_ROWID1,)
+    where_colnames = (ANNOT_ROWID1,)
     aids_list = ibs.db.get_where_eq(ibs.const.ANNOTMATCH_TABLE, colnames,
-                                  params_iter,
-                                  andwhere_colnames=andwhere_colnames,
-                                  eager=eager, unpack_scalars=False,
-                                  nInput=nInput)
+                                    params_iter, where_colnames, eager=eager,
+                                    unpack_scalars=False, nInput=nInput)
     return aids_list
 
 

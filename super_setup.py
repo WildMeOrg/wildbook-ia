@@ -145,7 +145,7 @@ the pull command will update the packages as well.
     python super_setup.py pull
 
 ****
-# Step 4 - Build C++ compoments.
+# Step 4 - Build C++ components.
 
 Some submodles require C++ libraries. Build them using the following Command.
 

@@ -248,7 +248,7 @@ def make_table_declarations(ibs):
 
     # Define the valid columns a table could have
     COL_DEF = dict([
-        ('annot_semantic_uuid',             (str,      'Annot Semantic UUID')),
+        # ('annot_semantic_uuid',             (str,      'Annot Semantic UUID')),
         ('annot_visual_uuid',               (str,      'Annot Visual UUID')),
         ('image_uuid',                      (str,      'Image UUID')),
         ('gid',                             (int,      'Image ID')),
@@ -432,7 +432,6 @@ def make_ibeis_headers_dict(ibs):
         'thumb'               : ibs.get_annot_chip_thumbtup,
         'exemplar'            : ibs.get_annot_exemplar_flags,
         'annot_visual_uuid'   : ibs.get_annot_visual_uuids,
-        'annot_semantic_uuid' : ibs.get_annot_semantic_uuids,
         'datetime'            : ibs.get_annot_image_datetime_str,
     }
     infer_unspecified_getters(ANNOTATION_TABLE, 'annot')

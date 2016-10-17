@@ -94,7 +94,7 @@ def cast_residual_integer(rvecs):
         >>> fidelity = 255.0
         >>> theory_error_in = 1 / fidelity
         >>> theory_error_out = (fidelity - cutoff) / fidelity
-        >>> # Determine if any compoment values exceed the cutoff
+        >>> # Determine if any component values exceed the cutoff
         >>> is_inside = (np.abs(rvecs * fidelity) < cutoff)
         >>> # Check theoretical maximum for values inside and outside cutoff
         >>> error_stats_in = ut.get_stats(measured_error[is_inside])

@@ -545,13 +545,13 @@ def split_analysis(ibs):
     def inference_stats(infr_list_):
         relabel_stats = []
         for infr in infr_list_:
-            num_ccs, num_inconsistent = infr.connected_compoment_reviewed_relabel()
+            num_ccs, num_inconsistent = infr.connected_component_reviewed_relabel()
             state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'reviewed_state').values())
             if 'match' not in state_hist:
                 state_hist['match'] = 0
             hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())
 
-            subgraphs = infr.connected_compoment_reviewed_subgraphs()
+            subgraphs = infr.connected_component_reviewed_subgraphs()
             subgraph_sizes = [len(g) for g in subgraphs]
 
             info = ut.odict([
@@ -933,7 +933,7 @@ def draw_twoday_count(ibs, visit_info_list_):
             # Layout in neato
             _ = pt.nx_agraph_layout(graph, inplace=True, **layoutkw)  # NOQA
 
-            # Extract compoments and then flatten in nid ordering
+            # Extract components and then flatten in nid ordering
             ccs = list(nx.connected_components(graph))
             root_aids = []
             cc_graphs = []
@@ -1704,8 +1704,8 @@ def show_time_distributions(ibs, unixtime_list):
             #ax.add_artist(ab)
 
     if ut.get_argflag('--contextadjust'):
-        #pt.adjust_subplots2(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
-        pt.adjust_subplots2(use_argv=True)
+        #pt.adjust_subplots(left=.08, bottom=.1, top=.9, wspace=.3, hspace=.1)
+        pt.adjust_subplots(use_argv=True)
 
 
 def latex_dbstats(ibs_list, **kwargs):

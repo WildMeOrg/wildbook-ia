@@ -39,7 +39,8 @@ def testdata_newqreq(defaultdb='testdb1'):
 
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                             verbose=ut.NOT_QUIET, unique_species=None,
-                            use_memcache=True, query_cfg=None):
+                            use_memcache=True,
+                            query_cfg=None, custom_nid_lookup=None):
     """
     ibeis entry point to create a new query request object
 
@@ -150,6 +151,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             config = dict(query_cfg.parse_items())
             config.update(**cfgdict)
 
+        assert custom_nid_lookup is None, 'unsupported'
         qreq_ = smk_pipeline.SMKRequest(ibs, qaid_list, daid_list, config)
     # HACK FOR DEPC REQUESTS including flukes
     elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
@@ -158,6 +160,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         tablename = query_cfg.get_config_name()
         cfgdict = dict(query_cfg.parse_items())
         requestclass = ibs.depc_annot.requestclass_dict[tablename]
+        assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
@@ -165,6 +168,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         if VERBOSE_QREQ:
             print('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
+        assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot)
     else:
@@ -204,7 +208,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         qreq_ = QueryRequest.new_query_request(
             qaid_list, daid_list, qparams, qresdir, ibs,
             query_config2_, data_config2_,
-            _indexer_request_params)
+            _indexer_request_params, custom_nid_lookup=custom_nid_lookup)
         #qreq_.query_config2_ = query_config2_
         #qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
@@ -260,45 +264,7 @@ class QueryRequest(ut.NiceRepr):
     """
     _isnewreq = False
 
-    @classmethod
-    def new_query_request(cls, qaid_list, daid_list, qparams, qresdir, ibs,
-                          query_config2_, data_config2_,
-                          _indexer_request_params):
-        """
-        old way of calling new
-
-        Args:
-            qaid_list (list):
-            daid_list (list):
-            qparams (QueryParams):  query hyper-parameters
-            qresdir (str):
-            ibs (ibeis.IBEISController):  image analysis api
-            _indexer_request_params (dict):
-
-        Returns:
-            ibeis.QueryRequest
-        """
-        qreq_ = cls()
-        qreq_.ibs = ibs
-        qreq_.qparams = qparams   # Parameters relating to pipeline execution
-        qreq_.query_config2_ = query_config2_
-        qreq_.data_config2_ = data_config2_
-        qreq_.qresdir = qresdir
-        qreq_._indexer_request_params = _indexer_request_params
-        qreq_.set_external_daids(daid_list)
-        qreq_.set_external_qaids(qaid_list)
-
-        # Load name information so it can change in the database and that's ok.
-        # I'm not 100% into how this works.
-        qreq_.unique_aids = np.union1d(qreq_.qaids, qreq_.daids)
-        qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
-        qreq_.aid_to_idx = ut.make_index_lookup(qreq_.unique_aids)
-        return qreq_
-
     def __init__(qreq_):
-        # Reminder:
-        # lists and other objects are functionally equivalent to pointers
-        #
         # Conceptually immutable State
         qreq_.unique_species = None  # num categories
         qreq_.internal_qspeciesid_list = None  # category species id label list
@@ -336,6 +302,79 @@ class QueryRequest(ut.NiceRepr):
         qreq_.unique_aids = None
         qreq_.unique_nids = None
         qreq_.aid_to_idx = None
+        qreq_.nid_to_groupuuid = None
+
+    @classmethod
+    def new_query_request(cls, qaid_list, daid_list, qparams, qresdir, ibs,
+                          query_config2_, data_config2_,
+                          _indexer_request_params, custom_nid_lookup=None):
+        """
+        old way of calling new
+
+        Args:
+            qaid_list (list):
+            daid_list (list):
+            qparams (QueryParams):  query hyper-parameters
+            qresdir (str):
+            ibs (ibeis.IBEISController):  image analysis api
+            _indexer_request_params (dict):
+
+        Returns:
+            ibeis.QueryRequest
+        """
+        qreq_ = cls()
+        qreq_.ibs = ibs
+        qreq_.qparams = qparams   # Parameters relating to pipeline execution
+        qreq_.query_config2_ = query_config2_
+        qreq_.data_config2_ = data_config2_
+        qreq_.qresdir = qresdir
+        qreq_._indexer_request_params = _indexer_request_params
+        qreq_.set_external_daids(daid_list)
+        qreq_.set_external_qaids(qaid_list)
+
+        # Load name information so it can change in the database and that's ok.
+        # I'm not 100% liking how this works.
+        qreq_.unique_aids = np.union1d(qreq_.qaids, qreq_.daids)
+        qreq_.aid_to_idx = ut.make_index_lookup(qreq_.unique_aids)
+        if custom_nid_lookup is None:
+            qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
+        else:
+            qreq_.unique_nids = ut.dict_take(custom_nid_lookup,
+                                             qreq_.unique_aids)
+        qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()
+        return qreq_
+
+    def _make_namegroup_uuids(qreq_):
+        """
+        Replaces semantic uuids with dynamically created uuid groups
+
+            >>> import ibeis
+            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST')
+        """
+        annots = qreq_.ibs.annots(qreq_.unique_aids)
+        visual_uuids = annots.visual_uuids
+        unique_nids, groupxs = annots.group_indicies(qreq_.unique_nids)
+        grouped_visual_uuids = ut.apply_grouping(visual_uuids, groupxs)
+        group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
+                       for uuids in grouped_visual_uuids]
+        nid_to_groupuuid = dict(zip(unique_nids, group_uuids))
+        return nid_to_groupuuid
+
+    def get_qreq_annot_semantic_hashid(qreq_, aids, prefix=''):
+        # qreq_.ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix)
+        annot_semantic_uuids = qreq_.get_qreq_annot_semantic_uuids(aids)
+        label = ''.join(('_', prefix, 'SUUIDS'))
+        semantic_hashid  = ut.hashstr_arr27(annot_semantic_uuids, label, pathsafe=True)
+        return semantic_hashid
+
+    def get_qreq_annot_semantic_uuids(qreq_, aids):
+        nids = qreq_.get_qreq_annot_nids(aids)
+        annot_name_uuids = ut.take(qreq_.nid_to_groupuuid, nids)
+        annot_visual_uuids = qreq_.ibs.get_annot_visual_uuids(aids)
+        # Dynamically create semantic uuids
+        annot_semantic_uuids = [ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
+                                for vuuid, nuuid in zip(annot_visual_uuids, annot_name_uuids)]
+        return annot_semantic_uuids
 
     def __getstate__(qreq_):
         """
@@ -760,14 +799,9 @@ class QueryRequest(ut.NiceRepr):
     # External id-hashes
 
     def get_data_hashid(qreq_):
-        daids = qreq_.daids
-        #try:
-        #    assert len(daids) > 0, 'QRequest not populated. len(daids)=0'
-        #except AssertionError as ex:
-        #    ut.printex(ex, iswarning=True)
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        data_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
-            daids, prefix='D')
+        data_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.daids,
+                                                           prefix='D')
         return data_hashid
 
     def get_query_hashid(qreq_):
@@ -784,11 +818,9 @@ class QueryRequest(ut.NiceRepr):
             >>> result = ('query_hashid = %s' % (ut.repr2(query_hashid),))
             >>> print(result)
         """
-        qaids = qreq_.qaids
-        #assert len(qaids) > 0, 'QRequest not populated. len(qaids)=0'
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        query_hashid = qreq_.ibs.get_annot_hashid_semantic_uuid(
-            qaids, prefix='Q')
+        query_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.qaids,
+                                                            prefix='Q')
         return query_hashid
 
     def get_pipe_cfgstr(qreq_):

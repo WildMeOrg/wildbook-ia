@@ -137,7 +137,8 @@ class QueryVerificationInteraction(AbstractInteraction):
             self.plot_chip(self.query_aid, nRows, 1, 1, title_suffix=query_title)
 
         self.show_hud()
-        pt.adjust_subplots_safe(top=0.88, hspace=0.12)
+        pt.adjust_subplots(top=0.88, hspace=0.12, left=.1, right=.9, bottom=.1,
+                           wspace=.3)
         self.draw()
         self.show()
         if bring_to_front:

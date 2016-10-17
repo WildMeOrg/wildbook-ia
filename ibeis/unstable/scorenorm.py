@@ -231,7 +231,7 @@ def draw_feat_scoresep(testres, f=None, disttype=None):
 
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
-            pt.adjust_subplots2(use_argv=True)
+            pt.adjust_subplots(use_argv=True)
     return encoder
 
 

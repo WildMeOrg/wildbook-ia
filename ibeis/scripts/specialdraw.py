@@ -422,7 +422,7 @@ def graphcut_flow():
 
     matchgraph = ut.nx_makenode(graph, 'Graph of\npotential matches', color=lighten_hex(s2_shade2, .1))
     cutalgo = ut.nx_makenode(graph, 'Graph cut algorithm', color=lighten_hex(s2_shade2, .2), shape='ellipse')
-    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected compoments', color=lighten_hex(s2_shade2, .3))
+    cc_names = ut.nx_makenode(graph, 'Identifications,\n splits, and merges are\nconnected components', color=lighten_hex(s2_shade2, .3))
 
     graph.add_edge(occurprob, matchgraph)
     graph.add_edge(sparseprob, matchgraph)

@@ -468,8 +468,10 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     print('nn_mid_cacheid = %r' % (nn_mid_cacheid,))
 
     if single_name_condition:
-        query_hashid_list = qreq_.ibs.get_annot_semantic_uuids(internal_qaids)
+        # query_hashid_list = qreq_.ibs.get_annot_semantic_uuids(internal_qaids)
+        pass
     else:
+        # TODO: get attribute from qreq_, not ibeis
         query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
 
     if HACK_KCFG:

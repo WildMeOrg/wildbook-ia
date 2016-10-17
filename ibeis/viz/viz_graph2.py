@@ -449,24 +449,24 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 # This should happen in split mode, but not None mode
                 self.apply_scores()
             self.infr.apply_weights()
-            self.infr.connected_compoment_reviewed_relabel()
+            self.infr.connected_component_reviewed_relabel()
             self.infr.apply_cuts()
         elif self.init_mode == 'rereview':
             self.infr.apply_feedback_edges()
             self.infr.apply_match_scores()
             self.infr.apply_weights()
-            self.infr.connected_compoment_reviewed_relabel()
+            self.infr.connected_component_reviewed_relabel()
             self.infr.apply_cuts()
         elif self.init_mode == 'review':
             self.infr.apply_match_edges()
             self.infr.apply_feedback_edges()
             self.infr.apply_match_scores()
             self.infr.apply_weights()
-            # self.infr.connected_compoment_reviewed_relabel()
+            # self.infr.connected_component_reviewed_relabel()
             # self.infr.apply_cuts()
 
         # Set gui status indicators
-        status = self.infr.connected_compoment_status()
+        status = self.infr.connected_component_status()
         if status['num_inconsistent']:
             self.state_lbl.setText('Inconsistent Names: %d' % (status['num_inconsistent'],))
             self.state_lbl.setColor('black', self.infr.truth_colors['nomatch'][0:3] * 255)
@@ -725,7 +725,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('[graph] Not done yet')
         infr = self.infr
         graph = infr.graph
-        num_names, num_inconsistent = self.infr.connected_compoment_reviewed_relabel()
+        num_names, num_inconsistent = self.infr.connected_component_reviewed_relabel()
         msg = ut.codeblock(
             '''
             Are you sure this is correct?

@@ -601,7 +601,7 @@ def ensure_pz_mtest_batchworkflow_test():
             #components = ut.sortedby(components, list(map(len, components)), reverse=True)
             #print(components)
             #imageset_aids_list[0].extend(components[0])
-            #for compoment in components:
+            #for component in components:
 
             # TODO do max-nway cut
         #day_diffs = spdist.squareform(hourdiffs) / 24.0

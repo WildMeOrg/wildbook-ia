@@ -2770,7 +2770,7 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
     """
     if qauuid is None:
         print('[chipmatch] Warning qasuuid should be given')
-        qauuid = qreq_.ibs.get_annot_semantic_uuids(qaid)
+        qauuid = qreq_.get_qreq_annot_semantic_uuids([qaid])[0]
     if cfgstr is None:
         print('[chipmatch] Warning cfgstr should be passed given')
         cfgstr = qreq_.get_cfgstr(with_input=True)

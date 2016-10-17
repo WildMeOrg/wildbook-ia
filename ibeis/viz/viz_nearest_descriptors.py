@@ -309,7 +309,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
             if prevsift is None or consecutive_distance_compare:
                 prevsift = sift
 
-        df2.adjust_subplots_safe(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
+        df2.adjust_subplots(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
 
     except Exception as ex:
         print('[viz] Error in show nearest descriptors')

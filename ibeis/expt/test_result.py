@@ -1918,7 +1918,7 @@ class TestResult(ut.NiceRepr):
             pt.multi_plot(xdata, ydata_list, spread_list=spread_list,
                           fnum=fnum, pnum=pnum_(), **plotkw2)
 
-        #pt.adjust_subplots2(hspace=.3)
+        #pt.adjust_subplots(hspace=.3)
         figtitle = 'Score vs DBSize: %s' % (testres.get_title_aug())
         pt.set_figtitle(figtitle)
 

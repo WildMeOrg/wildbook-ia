@@ -17,7 +17,7 @@ Notes:
         Spacing
            - space between widges in the layout
         Stretch
-           - relative size ratio vector (1 compoment for each widget)
+           - relative size ratio vector (1 component for each widget)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
@@ -500,6 +500,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
             ctx.set_progress(5)
 
     def log_query(self, qreq_=None, test=True):
+        """ DEPRICATE """
         expt_query_dir = self.expt_query_dir()
         # ut.vd(expt_query_dir)
         ibs = self.ibs

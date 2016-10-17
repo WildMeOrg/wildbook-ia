@@ -1,17 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-The goal of this module is to offload annotation work from the controller into a
-single place.
-
-CommandLine Help for manual controller functions
-
-# Cross platform alias helper
-python -c "import utool as ut; ut.write_to('Tgen.sh', 'python -m ibeis.control.template_generator $@')"  # NOQA
-
-Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
-Tgen.sh --tbls annotations --Tcfg with_getters:True with_native:True strip_docstr:True
-Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:True with_columns:False --quiet
-Tgen.sh --tbls annotations --Tcfg with_getters:True strip_docstr:False with_columns:False
+helpers for controller manual_annot_funcs
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter, map  # NOQA
@@ -114,58 +103,11 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     # Define arguments to insert
 
 
-#def make_annot_semantic_uuid(semantic_infotup):
-#    """
-
-#    Args:
-#        semantic_infotup (tuple): (image_uuid_list, verts_list, theta_list, view_list, name_list, species_list)
-
-#    Returns:
-#        list: annot_semantic_uuid_list
-
-#    CommandLine:
-#        python -m ibeis.algo.preproc.preproc_annot --test-make_annot_semantic_uuid
-
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from ibeis.algo.preproc.preproc_annot import *  # NOQA
-#        >>> ibs, aid_list = testdata_preproc_annot()
-#        >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
-#        >>> annot_semantic_uuid_list = make_annot_semantic_uuid(semantic_infotup)
-#        >>> result = str(annot_semantic_uuid_list[0])
-#        >>> print(result)
-#        0a41bee7-1760-0995-c220-f4b5ddf189ba
-#    """
-#    assert len(semantic_infotup) == 6, 'len=%r' % (len(semantic_infotup),)
-#    annot_semantic_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*semantic_infotup)]
-#    return annot_semantic_uuid_list
-
-
 def testdata_preproc_annot():
     import ibeis
     ibs = ibeis.opendb('testdb1')
     aid_list = ibs.get_valid_aids()
     return ibs, aid_list
-
-
-# def test_annotation_uuid(ibs):
-#     """ Consistency test """
-#     # DEPRICATE
-#     aid_list        = ibs.get_valid_aids()
-#     bbox_list       = ibs.get_annot_bboxes(aid_list)
-#     theta_list      = ibs.get_annot_thetas(aid_list)
-#     image_uuid_list = ibs.get_annot_image_uuids(aid_list)
-
-#     annotation_uuid_list1 = ibs.get_annot_uuids(aid_list)
-#     annotation_uuid_list2 = make_annotation_uuids(image_uuid_list, bbox_list, theta_list)
-
-#     assert annotation_uuid_list1 == annotation_uuid_list2
-
-
-#def distinguish_unknown_nids(ibs, aid_list, nid_list_):
-#    nid_list = [-aid if nid == const.UNKNOWN_LBLANNOT_ROWID or nid is None else nid
-#                for nid, aid in zip(nid_list_, aid_list)]
-#    return nid_list
 
 
 def postget_annot_verts(vertstr_list):
