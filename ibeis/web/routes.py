@@ -1142,6 +1142,7 @@ def commit_current_query_object_names(query_object, ibs):
         ibs.set_annotmatch_truth(am_rowids, new_truth)
 
         # Set tags from staging
+        # TODO: set tags from annotmatch
         aid_1_list = ibs.get_annotmatch_aid1(am_rowids)
         aid_2_list = ibs.get_annotmatch_aid2(am_rowids)
         tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
@@ -1177,17 +1178,29 @@ def load_identification_query_object(autoinit=False,
 
         # Add some feedback
         # query_object.reset_feedback()
-        review_tuple_decisions_list = ibs.get_review_decisions_from_only(aid_list)
-        for review_tuple_decision in review_tuple_decisions_list:
-            if review_tuple_decision is None:
-                continue
-            for aid1, aid2, decision in review_tuple_decision:
-                # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
-                try:
-                    state = const.REVIEW_INT_TO_CODE[decision]
-                    query_object.add_feedback(aid1, aid2, state)
-                except ValueError:
-                    pass
+        # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+
+        review_rowids_list = ibs.get_review_rowids_from_only()
+        flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
+        # Lookup data based on flattened rowids
+        flat_decisions = ibs.get_review_decision(flat_rowids)
+        flat_tags = ibs.get_review_tags(flat_rowids)
+        flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
+        # # Reshape to original grouping (Actually, no need)
+        # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
+        # decision_groups = ut.unflatten2(flat_decisions, offsets)
+        # tags_groups = ut.unflatten2(flat_tags, offsets)
+
+        # for tup in zip(aids_groups, decision_groups, tags_groups):
+        # for (aid1, aid2), decision, tags in zip(*tup):
+        for (aid1, aid2), decision, tags in zip(flat_aid_tuples,
+                                                flat_decisions, flat_tags):
+            # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
+            try:
+                state = const.REVIEW_INT_TO_CODE[decision]
+                query_object.add_feedback(aid1, aid2, state, tags)
+            except ValueError:
+                pass
         query_object.apply_feedback_edges()
 
         # Exec matching

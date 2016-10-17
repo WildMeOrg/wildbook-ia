@@ -60,7 +60,6 @@ def get_review_rowid_from_superkey(ibs, aid_1_list, aid_2_list, count_list, eage
         review_rowid_list
     """
     colnames = (REVIEW_ROWID,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list, count_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT]
     review_rowid_list = list(ibs.staging.get_where_eq(
@@ -155,7 +154,6 @@ def get_review_rowids_from_aid_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
         URL:    /api/review/rowid/tuple/
     """
     colnames = (REVIEW_ROWID,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_rowids_list = ibs.staging.get_where_eq(
@@ -185,7 +183,6 @@ def get_review_counts_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput
         URL:    /api/review/counts/tuple/
     """
     colnames = (REVIEW_COUNT,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_counts_list = ibs.staging.get_where_eq(
@@ -237,6 +234,27 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/review/decisions/only/', methods=['GET'], __api_plural_check__=False)
+def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
+    r"""
+    Returns:
+        list_ (list): review_tuple_decisions_list - review decisions
+
+    RESTful:
+        Method: GET
+        URL:    /api/review/identities/only/
+    """
+    colnames = (REVIEW_ROWID,)
+    params_iter = [ (aid, ) for aid in aid_list ]
+    where_clause = '%s=?' % (REVIEW_AID1)
+    review_tuple_decisions_list = ibs.staging.get_where(const.REVIEW_TABLE, colnames,
+                                                        params_iter, where_clause,
+                                                        unpack_scalars=False)
+    return review_tuple_decisions_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/review/decisions/single/', methods=['GET'], __api_plural_check__=False)
 def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -248,7 +266,6 @@ def get_review_decisions_from_single(ibs, aid_list, eager=True, nInput=None):
         URL:    /api/review/identities/single/
     """
     colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_DECISION,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_list, aid_list, )
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_tuple_decisions_list = ibs.staging.get_where_eq(
@@ -270,7 +287,6 @@ def get_review_decisions_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nIn
         URL:    /api/review/identities/tuple/
     """
     colnames = (REVIEW_DECISION,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_decisions_list = ibs.staging.get_where_eq(
@@ -323,7 +339,6 @@ def get_review_identities_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
         URL:    /api/review/identities/tuple/
     """
     colnames = (REVIEW_IDENTITY,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_identities_list = ibs.staging.get_where_eq(
@@ -342,6 +357,18 @@ def get_review_posix_time(ibs, review_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+def get_review_aid_tuple(ibs, review_rowid_list, eager=True, nInput=None):
+    colnames = (REVIEW_AID1, REVIEW_AID2,)
+    params_iter = zip(review_rowid_list)
+    andwhere_colnames = [REVIEW_ROWID]
+    aid_tuple_list = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
+        eager=eager, nInput=nInput, unpack_scalars=False)
+    return aid_tuple_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/review/times/posix/tuple/', methods=['GET'], __api_plural_check__=False)
 def get_review_posix_times_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):
     r"""
@@ -353,7 +380,6 @@ def get_review_posix_times_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, n
         URL:    /api/review/time/posix/tuple/
     """
     colnames = (REVIEW_TIMESTAMP,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_posix_times_list = ibs.staging.get_where_eq(
@@ -387,7 +413,6 @@ def get_review_tags_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=N
         URL:    /api/review/tags/tuple/
     """
     colnames = (REVIEW_TAGS,)
-    # FIXME: col_rowid is not correct
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_tag_strs_list = ibs.staging.get_where_eq(
