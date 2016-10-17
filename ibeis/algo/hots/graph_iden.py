@@ -1142,7 +1142,9 @@ def demo_graph_iden():
     import ibeis
     ibs = ibeis.opendb('PZ_MTEST')
     # Initially the entire population is unnamed
-    aids = ibs.get_valid_aids()[:20]
+    graph_freq = 5
+    n_reviews = 20
+    aids = ibs.get_valid_aids()[:40]
     nids = [-aid for aid in aids]
     infr = graph_iden.AnnotInference(ibs, aids, nids=nids, autoinit=True)
 
@@ -1168,7 +1170,7 @@ def demo_graph_iden():
         return aids1[0], aids2[0]
 
     count = 0
-    for count in ut.ProgIter(range(10), 'review'):
+    for count in ut.ProgIter(range(1, n_reviews + 1), 'review'):
         # Re-filter every time
         aid1, aid2 = get_next()
         if oracle_mode:
@@ -1183,15 +1185,12 @@ def demo_graph_iden():
             infr.apply_weights()
             infr.connected_component_reviewed_relabel()
             infr.apply_cuts()
+        if (count) % graph_freq == 0:
+            infr.show_graph()
+            pt.set_title('review #%d' % (count,))
 
-    infr.apply_feedback_edges()
-    infr.apply_weights()
-    infr.show_graph()
-    pt.set_title('post-review')
-
-    infr.connected_component_reviewed_relabel()
-    infr.show_graph()
-    pt.set_title('post-inference')
+    # infr.show_graph()
+    # pt.set_title('post-review')
 
     pt.present()
     ut.show_if_requested()
