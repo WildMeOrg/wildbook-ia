@@ -812,7 +812,7 @@ class AnnotInference(ut.NiceRepr, _Helpers_AnnotInference,
                     review_dict['p_notcomp'] = 1.0
                 else:
                     raise ValueError('state=%r is unknown' % (state,))
-                infr.user_feedback[edge].append(review_dict)
+                infr.user_feedback[edge].append((review_dict, tags))
 
     def _get_feedback_probs(infr):
         """ Helper. Transforms dictionary feedback into numpy arrays """
