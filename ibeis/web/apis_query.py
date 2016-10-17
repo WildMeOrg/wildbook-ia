@@ -128,17 +128,18 @@ def process_graph_match_html(ibs, **kwargs):
         return state
     import uuid
     map_dict = {
-        'visuallysame'               : 'matched',
-        'visuallydifferent'          : 'notmatched',
-        'cannottell'                 : 'notcomparable',
-        'backgroundmatch(photobomb)' : 'photobomb',
+        'visuallysame'      : 'matched',
+        'visuallydifferent' : 'notmatched',
+        'cannottell'        : 'notcomparable',
+        'photobomb'         : 'photobomb',
+        'scenerymatch'      : 'scenerymatch',
     }
-    annot_uuid_1 = uuid.UUID(request.form['query-match-annot-uuid-1'])
-    annot_uuid_2 = uuid.UUID(request.form['query-match-annot-uuid-2'])
-    state = request.form.get('query-match-submit', '')
+    annot_uuid_1 = uuid.UUID(request.form['identification-annot-uuid-1'])
+    annot_uuid_2 = uuid.UUID(request.form['identification-annot-uuid-2'])
+    state = request.form.get('identification-submit', '')
     state = sanitize(state)
     state = map_dict[state]
-    assert state in ['matched', 'notmatched', 'notcomparable', 'photobomb'], 'matching_state_list has unrecognized states'
+    assert state in map_dict.values(), 'matching state is unrecognized'
     return (annot_uuid_1, annot_uuid_2, state, )
 
 
@@ -397,7 +398,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         with open(join(*json_filepath_list)) as json_file:
             EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
 
-    return appf.template('turk', 'query_match_insert',
+    return appf.template('turk', 'identification_insert',
                          match_score=match_score,
                          image_clean_src=image_clean_src,
                          image_matches_src=image_matches_src,

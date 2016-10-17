@@ -955,17 +955,23 @@ class AnnotInference(ut.NiceRepr, AnnotInferenceVisualization):
             >>> new_df.set_index('am_rowid', drop=False, inplace=True)
         """
         import pandas as pd
-        existing_ams = new_feedback['am_rowid'][~np.isnan(new_feedback['am_rowid'])]
+        # is_notnone_list = ~np.isnan(new_feedback['am_rowid'])
+        is_none_list = np.array(pd.isnull(new_feedback['am_rowid']))
+
+        existing_ams = new_feedback['am_rowid'][~is_none_list]
         both_ams = np.intersect1d(old_feedback['am_rowid'], existing_ams).astype(np.int)
 
         all_new_df = new_feedback.loc[both_ams]
         all_old_df = old_feedback.loc[both_ams]
-        is_changed = ~np.all(all_new_df.values == all_old_df.values, axis=1)
+        add_df = new_feedback.loc[is_none_list].copy()
 
-        new_df_ = all_new_df[is_changed]
-        add_df = new_feedback.loc[np.isnan(new_feedback['am_rowid'])].copy()
-
-        old_df = all_old_df[is_changed]
+        if len(both_ams) > 0:
+            is_changed = ~np.all(all_new_df.values == all_old_df.values, axis=1)
+            new_df_ = all_new_df[is_changed]
+            old_df = all_old_df[is_changed]
+        else:
+            new_df_ = all_new_df
+            old_df = all_old_df
         new_df = pd.concat([new_df_, add_df])
         return new_df, old_df
 

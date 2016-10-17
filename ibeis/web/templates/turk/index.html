@@ -9,28 +9,34 @@
 
     <div class="col-lg-4">
       <h4>Viewpoint Turking</h4>
-      <p>Online turking for viewpointing annotations.</p>
-      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Viewpoint Annotation</a></p>
+      <p>Online turking for viewpointing annotations</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_viewpoint') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Annotation Viewpoints</a></p>
     </div>
 
     <div class="col-lg-4">
       <h4>Quality Turking</h4>
-      <p>Online turking for qualitizing annotations.</p>
-      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Quality Annotation</a></p>
+      <p>Online turking for qualitizing annotations</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_quality') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Annotation Qualities</a></p>
     </div>
   </div>
 
   <div class="row marketing">
     <div class="col-lg-4">
+      <h4>Annotation Turking</h4>
+      <p>Online turking of all metadata for annotations</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_annotation') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Annotations</a></p>
+    </div>
+
+    <div class="col-lg-4">
+      <h4>Identification Turking</h4>
+      <p>Online turking for identification matches</p>
+      <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_identification') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Identification Review</a></p>
+    </div>
+
+    <div class="col-lg-4">
       <h4>Additional Review Turking</h4>
       <p>Online turking of additional information for annotations</p>
       <p><a class="btn btn-lg btn-success" href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}" role="button">Start Turking Additional Review</a></p>
-    </div>
-
-    <div class="col-lg-4">
-    </div>
-
-    <div class="col-lg-4">
     </div>
   </div>
 

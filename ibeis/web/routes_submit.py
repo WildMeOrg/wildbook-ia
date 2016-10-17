@@ -368,6 +368,66 @@ def submit_additional():
         return redirect(url_for('turk_additional', imgsetid=imgsetid, previous=aid))
 
 
+@register_route('/submit/identification/', methods=['POST'])
+def submit_identification():
+    from ibeis.web.apis_query import process_graph_match_html
+    from ibeis.web.routes import load_identification_query_object
+    ibs = current_app.ibs
+
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+    aid1 = int(request.form['identification-aid1'])
+    aid2 = int(request.form['identification-aid2'])
+    replace_review_rowid = int(request.form.get('identification-replace-review-rowid', -1))
+
+    # Process form data
+    annot_uuid_1, annot_uuid_2, state = process_graph_match_html(ibs)
+
+    # Add state to staging database
+    tags_list = None
+    if state == 'matched':
+        decision = const.REVIEW_MATCH
+    elif state == 'notmatched':
+        decision = const.REVIEW_NON_MATCH
+    elif state == 'notcomparable':
+        decision = const.REVIEW_NOT_COMPARABLE
+    elif state == 'photobomb':
+        decision = const.REVIEW_NON_MATCH
+        tags_list = [['photobomb']]
+    elif state == 'scenerymatch':
+        decision = const.REVIEW_NON_MATCH
+        tags_list = [['scenerymatch']]
+    else:
+        raise ValueError()
+
+    # Replace a previous decision
+    if replace_review_rowid > 0:
+        print('REPLACING OLD REVIEW ID = %r' % (replace_review_rowid, ))
+        ibs.delete_review([replace_review_rowid])
+
+    # Add a new review row for the new decision (possibly replacing the old one)
+    review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
+    review_rowid = review_rowid[0]
+    previous = '%s;%s;%s' % (aid1, aid2, review_rowid, )
+
+    # Notify any attached web QUERY_OBJECT
+    try:
+        query_object = load_identification_query_object()
+        state = const.REVIEW_INT_TO_CODE[decision]
+        query_object.add_feedback(aid1, aid2, state)
+        query_object.apply_feedback_edges()
+        query_object.GLOBAL_FEEDBACK_COUNTER += 1
+    except ValueError:
+        pass
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_identification', imgsetid=imgsetid, previous=previous))
+
+
 @register_route('/submit/group_review/', methods=['POST'])
 def group_review_submit():
     """

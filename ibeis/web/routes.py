@@ -15,7 +15,11 @@ import utool as ut
 import vtool as vt
 import numpy as np
 
+
 register_route = controller_inject.get_ibeis_flask_route(__name__)
+
+
+GLOBAL_FEEDBACK_LIMIT = 10
 
 
 @register_route('/', methods=['GET'])
@@ -1091,26 +1095,120 @@ def turk_viewpoint():
                          review=review)
 
 
-def load_identification_query_object():
+def commit_current_query_object_names(query_object, ibs):
+    import networkx as nx
+    import pandas as pd
+
+    # Get the graph and the current reviewed connected components
+    graph = query_object.graph
+    num_names, num_inconsistent = query_object.connected_compoment_reviewed_relabel()
+
+    # Extract names out of the networkx graph
+    node_to_label = nx.get_node_attrs(graph, 'name_label')
+    unique_labels = set(node_to_label.values())
+    new_names = query_object.ibs.make_next_name(num_names)
+    to_newname = dict(zip(unique_labels, new_names))
+    node_to_newname = {node: to_newname[name_label]
+                       for node, name_label in node_to_label.items()}
+    aid_list = list(node_to_newname.keys())
+    name_list = list(node_to_newname.values())
+    #print('aid_list = %r' % (aid_list,))
+    #print('name_list = %r' % (name_list,))
+
+    # keep track of residual data
+    new_df, old_df = query_object.match_state_delta()
+
+    # Set names
+    ibs.set_annot_names(aid_list, name_list)
+
+    # Add am rowids for nonexisting rows
+    if len(new_df) > 0:
+        is_add = np.array(pd.isnull(new_df['am_rowid'].values))
+        add_df = new_df.loc[is_add]
+        add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
+                                                add_df['aid2'].values)
+        new_df.loc[is_add, 'am_rowid'] = add_ams
+        new_df.set_index('am_rowid', drop=False, inplace=True)
+
+        # Set residual matching data
+        truth_options = [ibs.const.TRUTH_MATCH,
+                         ibs.const.TRUTH_NOT_MATCH,
+                         ibs.const.TRUTH_UNKNOWN]
+        truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
+        truth_idxs = new_df[truth_keys].values.argmax(axis=1)
+        new_truth = ut.take(truth_options, truth_idxs)
+        am_rowids = new_df['am_rowid'].values
+
+        ibs.set_annotmatch_truth(am_rowids, new_truth)
+
+        # Set tags from staging
+        aid_1_list = ibs.get_annotmatch_aid1(am_rowids)
+        aid_2_list = ibs.get_annotmatch_aid2(am_rowids)
+        tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+        tags_list = list(map(ut.flatten, tags_list))
+        tag_str_list = [
+            ';'.join(map(str, tag_list))
+            for tag_list in tags_list
+        ]
+        ibs.set_annotmatch_tag_text(am_rowids, tag_str_list)
+
+
+def load_identification_query_object(autoinit=False,
+                                     global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+                                     debug_ignore_name_gt=False):
+    from ibeis.algo.hots.graph_iden import AnnotInference
+    ibs = current_app.ibs
+
     if current_app.QUERY_OBJECT is None:
-        from ibeis.algo.hots.graph_iden import AnnotInference
-        ibs = current_app.ibs
+        autoinit = True
+    else:
+        if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER >= global_feedback_limit:
+            # Apply current names that have been made to database
+            commit_current_query_object_names(current_app.QUERY_OBJECT, ibs)
+
+            # Rebuild the AnnotInference object
+            autoinit = True
+
+    if autoinit:
         aid_list = ibs.get_valid_aids()
-        query_object = AnnotInference(ibs, aid_list, autoinit=True)
+
+        nids = aid_list if debug_ignore_name_gt else None
+        query_object = AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
 
         # Add some feedback
-        review_tuple_decisions_list = ibs.get_review_decisions_from_single(aid_list)
-        print(review_tuple_decisions_list)
-        # infr.add_feedback(1, 4, 'nomatch')
+        # query_object.reset_feedback()
+        review_tuple_decisions_list = ibs.get_review_decisions_from_only(aid_list)
+        for review_tuple_decision in review_tuple_decisions_list:
+            if review_tuple_decision is None:
+                continue
+            for aid1, aid2, decision in review_tuple_decision:
+                # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
+                try:
+                    state = const.REVIEW_INT_TO_CODE[decision]
+                    query_object.add_feedback(aid1, aid2, state)
+                except ValueError:
+                    pass
         query_object.apply_feedback_edges()
 
+        # Exec matching
+        query_object.exec_matching()
+        query_object.apply_match_edges()
+        query_object.apply_match_scores()
+
+        # # Show query objec graph
+        # query_object.show_graph(use_image=False)
+        # import plottool
+        # fig = plottool.gcf()
+        # fig.savefig('/Users/bluemellophone/Desktop/temp.png')
+
         # Assign to current_app's QUERY_OBJECT attribute
+        query_object.GLOBAL_FEEDBACK_COUNTER = 0
         current_app.QUERY_OBJECT = query_object
     return current_app.QUERY_OBJECT
 
 
 @register_route('/turk/identification/', methods=['GET'])
-def turk_identification():
+def turk_identification(global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
     """
     CommandLine:
         python -m ibeis.web.app --exec-turk_identification --db PZ_Master1
@@ -1124,8 +1222,137 @@ def turk_identification():
         >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
         >>> ibs.start_web_annot_groupreview(aid_list)
     """
-    query_object = load_identification_query_object()
-    return 'true %s' % (query_object, )
+    from ibeis.web.apis_query import make_review_image
+
+    with ut.Timer('[web.routes.turk_identification] Load query_object'):
+        ibs = current_app.ibs
+        query_object = load_identification_query_object(global_feedback_limit=global_feedback_limit)
+
+    with ut.Timer('[web.routes.turk_identification] Get matches'):
+        review_cfg = {
+            'ranks_top': 3,
+            'ranks_bot': 2,
+
+            'score_thresh': None,
+            'max_num': None,
+
+            'filter_reviewed': True,
+            'filter_photobombs': False,
+
+            'filter_true_matches': True,
+            'filter_false_matches': False,
+
+            'filter_nonmatch_between_ccs': True,
+            'filter_dup_namepairs': True,
+        }
+        # Get raw list of reviews
+        raw_review_list, _ = query_object.get_filtered_edges(review_cfg)
+
+        # Get actual
+        review_cfg['max_num'] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
+        review_aid1_list, review_aid2_list = query_object.get_filtered_edges(review_cfg)
+
+    with ut.Timer('[web.routes.turk_identification] Get status'):
+        # Get status
+        status_dict = query_object.connected_compoment_status()
+        status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
+        print('Feedback counter    = %r / %r' % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT, ))
+        print('Status dict         = %r' % (status_dict, ))
+        print('Raw list len        = %r' % (len(raw_review_list), ))
+        print('len(query_aid_list) = %r' % (len(query_object.aids), ))
+        print('Estimated remaining = %r' % (status_remaining, ))
+        print('Reviews list len    = %r' % (len(review_aid1_list), ))
+        progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
+
+        aid1 = request.args.get('aid1', None)
+        aid2 = request.args.get('aid2', None)
+        replace_review_rowid = int(request.args.get('replace_review_rowid', -1))
+        choice = aid1 is not None and aid2 is not None
+
+    with ut.Timer('[web.routes.turk_identification] Process choice'):
+        if choice or (len(review_aid1_list) > 0 and len(review_aid2_list) > 0):
+
+            with ut.Timer('[web.routes.turk_identification] ... Pick choice'):
+                finished = False
+                if not choice:
+                    index = random.randint(0, len(review_aid1_list) - 1)
+                    print('Picked random index = %r' % (index, ))
+                    aid1 = review_aid1_list[index]
+                    aid2 = review_aid2_list[index]
+
+                aid1 = int(aid1)
+                aid2 = int(aid2)
+                annot_uuid_1 = ibs.get_annot_uuids(aid1)
+                annot_uuid_2 = ibs.get_annot_uuids(aid2)
+
+            with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
+                # lookup ChipMatch object
+                cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
+                qreq_ = query_object.qreq_
+
+            with ut.Timer('[web.routes.turk_identification] ... Get scores'):
+                # Get score
+                # idx = cm.daid2_idx[aid2]
+                # match_score = cm.name_score_list[idx]
+                # match_score = cm.aid2_score[aid2]
+                graph_dict = query_object.graph.get_edge_data(aid1, aid2)
+                match_score = graph_dict.get('score', -1.0)
+
+            with ut.Timer('[web.routes.turk_identification] ... Make images'):
+                with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
+                    # Make images
+                    view_orientation = request.args.get('view_orientation', 'vertical')
+                    image_matches = make_review_image(aid2, cm, qreq_,
+                                                      view_orientation=view_orientation)
+                    image_clean = make_review_image(aid2, cm, qreq_,
+                                                    view_orientation=view_orientation,
+                                                    draw_matches=False)
+
+                with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
+                    image_matches_src = appf.embed_image_html(image_matches)
+                    image_clean_src = appf.embed_image_html(image_clean)
+
+            with ut.Timer('[web.routes.turk_identification] ... Process previous'):
+                # Get previous
+                previous = request.args.get('previous', None)
+                if previous is not None and ';' in previous:
+                    previous = tuple(map(int, previous.split(';')))
+                    assert len(previous) == 3
+
+                print('Previous = %r' % (previous, ))
+                print('replace_review_rowid  = %r' % (replace_review_rowid, ))
+        else:
+            finished = True
+            progress = 100.0
+            aid1 = None
+            aid2 = None
+            annot_uuid_1 = None
+            annot_uuid_2 = None
+            image_clean_src = None
+            image_matches_src = None
+            previous = None
+            replace_review_rowid = None
+            view_orientation = None
+            match_score = None
+
+    callback_url = url_for('submit_identification')
+    return appf.template('turk', 'identification',
+                         match_score=match_score,
+                         image_clean_src=image_clean_src,
+                         image_matches_src=image_matches_src,
+                         aid1=aid1,
+                         aid2=aid2,
+                         progress=progress,
+                         finished=finished,
+                         annot_uuid_1=str(annot_uuid_1),
+                         annot_uuid_2=str(annot_uuid_2),
+                         previous=previous,
+                         replace_review_rowid=replace_review_rowid,
+                         view_orientation=view_orientation,
+                         callback_url=callback_url,
+                         callback_method='POST',
+                         EMBEDDED_CSS=None,
+                         EMBEDDED_JAVASCRIPT=None)
 
 
 @register_route('/turk/quality/', methods=['GET'])

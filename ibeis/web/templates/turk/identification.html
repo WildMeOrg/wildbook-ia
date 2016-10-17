@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if finished %}
+  <div class="alert alert-info text-center" role="alert">
+    Congratulations, identification turking is completed.  Thank you!
+    <br/>
+    <a href="{{ url_for('view_annotations') }}?imgsetid={{ imgsetid }}">View annotations</a>
+  </div>
+  {% else %}
+    <div class="row">
+      <div class="col-lg-1"></div>
+
+      <div class="col-lg-10">
+        {% if imgsetid %}
+          <div class="alert alert-info" role="alert">
+            Filtering for imgsetid: <a href="{{ url_for('view_imagesets') }}?imgsetid={{ imgsetid }}">{{ imagesettext }} ({{ imgsetid }})</a>
+            <a href="{{ url_for('root') }}" class="close"><span aria-hidden="true">&times;</span></a>
+          </div>
+        {% endif %}
+
+        {% if not REFER_DST_ENCODED %}
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;">
+              {{ progress }}% (approximate)
+            </div>
+          </div>
+        {% endif %}
+
+        Match Aids: ({{ aid1 }}, {{ aid2 }})
+        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
+        <br/>
+      {% include 'turk/identification_insert.html' %}
+    </div>
+
+    <div class="col-lg-1"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="turk-instructions" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Identification Review Turking Instructions</h4>
+        </div>
+        <div class="modal-body">
+          TODO
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-identification_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block content_custom_css %}
+  {% if review %}
+  <style>
+    body
+    {
+      border-top: red 10px solid;
+    }
+  </style>
+  {% endif %}
+
+  <style>
+    .container
+    {
+      /*width: 1500px !important;*/
+    }
+
+    .label-text-box
+    {
+      visibility: hidden !important;
+    }
+  </style>
+{% endblock %}
+{% block content_custom_javascript %}
+{% endblock %}

@@ -284,16 +284,22 @@
   margin:0px auto;
 }
 
-#query-match-image-container
+#identification-score-container
+{
+  text-align: center;
+  margin-top: -15px;
+}
+
+#identification-image-container
 {
   position: relative;
   text-align: center;
 }
 
-.query-match-image
+.identification-image
 {
   max-width: 100%;
-  max-height: 1200px;
+  max-height: 600px;
   margin-bottom: 20px;
   position: absolute;
   top: 0;
@@ -303,15 +309,20 @@
   right: 0;
 }
 
-#query-match-image-clean:hover
+#identification-image-matches:hover
 {
   opacity: 0.01;
   filter: alpha(opacity=1);
 }
 
-#query-match-score
+#identification-score
 {
    font-size: 15px;
+}
+
+#identification-buttons .btn
+{
+  margin-bottom: 10px;
 }
 
 /*.ui-rotatable-handle, .ui-resizable-handle, .ia-label-text-box

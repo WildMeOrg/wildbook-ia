@@ -10,6 +10,7 @@ import six  # NOQA
 from six.moves import range, zip, map  # NOQA
 #import numpy as np
 #import vtool as vt
+import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
@@ -86,6 +87,15 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, identity_list=None,
         python -m ibeis.control.manual_review_funcs --test-add_review
     """
     # Get current review counts from database
+    diff_list =  - np.array(aid_2_list)
+    assert np.all(diff_list != 0), 'Cannot add a review state between an aid and itself'
+
+    # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
+    pairs_list = zip(aid_1_list, aid_2_list)
+    sorted_pairs_list = list(map(sorted, pairs_list))
+    aid_1_list = [ pair[0] for pair in sorted_pairs_list ]
+    aid_2_list = [ pair[1] for pair in sorted_pairs_list ]
+
     current_counts_list = ibs.get_review_counts_from_tuple(aid_1_list, aid_2_list)
     current_counts_dict = {
         (aid1, aid2) : 0 if count_list_ is None else max(max(count_list_), len(count_list_))
@@ -202,6 +212,27 @@ def get_review_decision_str(ibs, review_rowid_list):
         for review_decision in review_decision_list
     ]
     return review_decision_str_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/decisions/only/', methods=['GET'], __api_plural_check__=False)
+def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
+    r"""
+    Returns:
+        list_ (list): review_tuple_decisions_list - review decisions
+
+    RESTful:
+        Method: GET
+        URL:    /api/review/identities/only/
+    """
+    colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_DECISION,)
+    params_iter = [ (aid, ) for aid in aid_list ]
+    where_clause = '%s=?' % (REVIEW_AID1)
+    review_tuple_decisions_list = ibs.staging.get_where(const.REVIEW_TABLE, colnames,
+                                                        params_iter, where_clause,
+                                                        __reject_multiple_records__=False)
+    return review_tuple_decisions_list
 
 
 @register_ibs_method
@@ -363,6 +394,8 @@ def get_review_tags_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=N
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
         eager=eager, nInput=nInput, __reject_multiple_records__=False)
     review_tags_list = [
+        []
+        if review_tag_str_list is None else
         [
             None if review_tag_str is None or len(review_tag_str) == 0 else review_tag_str.split(';')
             for review_tag_str in review_tag_str_list
