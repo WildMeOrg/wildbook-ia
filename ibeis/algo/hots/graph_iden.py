@@ -206,8 +206,9 @@ class _IBEIS_AnnotInference(object):
 
         am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
-        probs_ = list(user_feedback.values())
-        probs = ut.take_column(probs_, -1)
+        probtags_ = list(user_feedback.values())
+        probtags = ut.take_column(probtags_, -1)
+        probs = ut.take_column(probtags, 0)
         df = pd.DataFrame.from_dict(probs)
         df['aid1'] = aids1
         df['aid2'] = aids2
