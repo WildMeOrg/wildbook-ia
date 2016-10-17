@@ -62,9 +62,20 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
     Args:
         graph (networkx.Graph):
         with_labels (bool): (default = True)
-        node_size (int): (default = 1100)
-        fnum (int):  figure number(default = None)
-        pnum (tuple):  plot number(default = None)
+        fnum (int): figure number(default = None)
+        pnum (tuple): plot number(default = None)
+        layout (str): (default = 'agraph')
+        ax (None): (default = None)
+        pos (None): (default = None)
+        img_dict (dict): (default = None)
+        title (str):  (default = None)
+        layoutkw (None): (default = None)
+        verbose (bool):  verbosity flag(default = None)
+
+    Kwargs:
+        use_image, framewidth, modify_ax, as_directed, hacknoedge, hacknode,
+        arrow_width, fontsize, fontweight, fontname, fontfamilty,
+        fontproperties
 
     CommandLine:
         python -m plottool.nx_helpers --exec-show_nx --show
@@ -827,6 +838,10 @@ def _get_node_size(graph, node, node_size):
 def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                   hacknode=False, verbose=None, **kwargs):
     """
+    Kwargs:
+        use_image, arrow_width, fontsize, fontweight, fontname, fontfamilty,
+        fontproperties
+
     fancy way to draw networkx graphs without directly using networkx
 
     # python -m ibeis.annotmatch_funcs review_tagged_joins --dpath ~/latex/crall-candidacy-2015/ --save figures4/mergecase.png --figsize=15,15 --clipwhite --diskshow
