@@ -1191,6 +1191,9 @@ def demo_graph_iden():
             infr.apply_weights()
             infr.connected_component_reviewed_relabel()
             infr.apply_cuts()
+        else:
+            raise NotImplementedError('review based on thresholded graph cuts')
+
         if (count) % graph_freq == 0:
             infr.show_graph()
             pt.set_title('review #%d' % (count,))

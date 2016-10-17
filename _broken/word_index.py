@@ -7,17 +7,12 @@ python -m doctest -v ibeis/algo/hots/word_index.py
 python -m doctest ibeis/algo/hots/word_index.py
 """
 from __future__ import absolute_import, division, print_function
-# Standard
 import six
-#from itertools import chain
-# Science
 import numpy as np
-# UTool
 import vtool
 import utool
-# VTool
 import vtool.nearest_neighbors as nntool
-(print, print_, printDBG, rrr_, profile) = utool.inject(__name__, '[entroid_index]')
+print, rrr_, profile = utool.inject2(__name__)
 
 
 NOCACHE_WORD = utool.get_argflag('--nocache-word')
