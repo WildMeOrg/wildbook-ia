@@ -1,9 +1,7 @@
 # LICENCE
 from __future__ import absolute_import, division, print_function
-# Science
 import numpy as np
 import numpy.linalg as npl
-# VTool
 from vtool import linalg as ltool
 from vtool import image as gtool
 import utool as ut
@@ -13,7 +11,7 @@ except ImportError as ex:
     print('ERROR: import cv2 is failing!')
     cv2 = ut.DynStruct()
     cv2.INTER_LANCZOS4 = None
-(print, rrr, profile) = ut.inject2(__name__, '[chip]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 @profile
@@ -465,11 +463,10 @@ def testshow_extramargin_info(gfpath, bbox_gs, theta, new_size, halfoffset_ms, m
 
 
 if __name__ == '__main__':
-    """
+    r"""
     CommandLine:
         python -m vtool.chip
         python -m vtool.chip --allexamples
-        python -m vtool.chip --allexamples --noface --nosrc
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
