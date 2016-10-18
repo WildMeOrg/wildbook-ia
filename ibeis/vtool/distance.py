@@ -194,6 +194,20 @@ def ori_distance(ori1, ori2, out=None):
     return ori_dist
 
 
+def cyclic_distance(arr1, arr2, modulo, out=None):
+    r"""
+    returns an unsigned distance
+    """
+    arr_diff  = np.subtract(arr1, arr2)
+    abs_diff  = np.abs(arr_diff)
+    mod_diff1 = np.mod(abs_diff, modulo)
+    mod_diff2 = np.subtract(modulo, mod_diff1)
+    arr_dist  = np.minimum(mod_diff1, mod_diff2)
+    if out is not None:
+        out[:] = arr_dist
+    return arr_dist
+
+
 #@profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
