@@ -2520,7 +2520,7 @@ def interpolated_colormap(color_frac_list, resolution=64):
     colors = ut.take_column(color_frac_list, 0)
     fracs = ut.take_column(color_frac_list, 1)
 
-    resolution = 17
+    # resolution = 17
     basis = np.linspace(0, 1, resolution)
     fracs = np.array(fracs)
     indices = np.searchsorted(fracs, basis)
@@ -2609,7 +2609,7 @@ def interpolated_colormap(color_frac_list, resolution=64):
         cpool.append(new_c)
 
     cpool = np.array(cpool)
-    # print('cpool = %r' % (cpool,))
+    print('cpool = %r' % (cpool,))
     cmap = mpl.colors.ListedColormap(cpool, 'indexed')
     return cmap
 
