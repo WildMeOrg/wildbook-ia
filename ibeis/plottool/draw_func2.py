@@ -2046,8 +2046,8 @@ def dark_background(ax=None, doubleit=False, force=False):
     #is_using_style('classic')
     #is_using_style('ggplot')
     #HARD_DISABLE = force is not True
-    HARD_DISABLE = True
-    if not HARD_DISABLE:
+    HARD_DISABLE = False
+    if not HARD_DISABLE and force:
         # Should use mpl style dark background instead
         bgcolor = BLACK * .9
         if ax is None:
@@ -2068,6 +2068,7 @@ def dark_background(ax=None, doubleit=False, force=False):
         rect.set_clip_on(True)
         rect.set_fill(True)
         rect.set_color(bgcolor)
+        rect.set_zorder(-99999999999)
         rect = ax.add_patch(rect)
 
 
@@ -2486,6 +2487,134 @@ def reverse_colormap(cmap):
         cmap_reversed = mpl.colors.LinearSegmentedColormap(
             cmap.name + '_reversed', dict(zip(k, reverse)))
         return cmap_reversed
+
+
+def interpolated_colormap(color_frac_list, resolution=64):
+    """
+    http://stackoverflow.com/questions/12073306/customize-colorbar-in-matplotlib
+
+    CommandLine:
+        python -m plottool.draw_func2 interpolated_colormap --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> color_frac_list = [
+        >>>     (pt.TRUE_BLUE, 0),
+        >>>     #(pt.WHITE, .5),
+        >>>     (pt.YELLOW, .5),
+        >>>     (pt.FALSE_RED, 1.0),
+        >>> ]
+        >>> resolution = 16 + 1
+        >>> cmap = interpolated_colormap(color_frac_list, resolution)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> a = np.linspace(0, 1, resolution).reshape(1, -1)
+        >>> pylab.imshow(a, aspect='auto', cmap=cmap, interpolation='nearest')  # , origin="lower")
+        >>> plt.grid(False)
+        >>> ut.show_if_requested()
+    """
+    import colorsys
+
+    colors = ut.take_column(color_frac_list, 0)
+    fracs = ut.take_column(color_frac_list, 1)
+
+    resolution = 17
+    basis = np.linspace(0, 1, resolution)
+    fracs = np.array(fracs)
+    indices = np.searchsorted(fracs, basis)
+    indices = np.maximum(indices, 1)
+    cpool = []
+
+    # vt.convert_colorspace((c[None, None, 0:3] * 255).astype(np.uint8), 'RGB', 'HSV') / 255
+
+    # import colorspacious
+    # import colormath
+    from colormath import color_objects
+    from colormath import color_conversions
+
+    def new_convertor(target_obj):
+        source_obj = color_objects.sRGBColor
+        def to_target(src_tup):
+            src_tup = src_tup[0:3]
+            src_co = source_obj(*src_tup)
+            target_co = color_conversions.convert_color(src_co, target_obj)
+            target_tup = target_co.get_value_tuple()
+            return target_tup
+
+        def from_target(target_tup):
+            target_co = target_obj(*target_tup)
+            src_co = color_conversions.convert_color(target_co, source_obj)
+            src_tup = src_co.get_value_tuple()
+            return src_tup
+        return to_target, from_target
+        # colorspacious.cspace_convert(rgb, "sRGB255", "CIELCh")
+
+    def from_hsv(rgb):
+        return colorsys.rgb_to_hsv(*rgb[0:3])
+
+    def to_hsv(hsv):
+        return colorsys.hsv_to_rgb(*hsv[0:3].tolist())
+
+    classnames = {
+        # 'AdobeRGBColor',
+        # 'BaseRGBColor',
+        'cmk': 'CMYColor',
+        'cmyk': 'CMYKColor',
+        'hsl': 'HSLColor',
+        'hsv': 'HSVColor',
+        'ipt': 'IPTColor',
+        'lch-ab': 'LCHabColor',
+        'lch-uv': 'LCHuvColor',
+        'lab': 'LabColor',
+        'luv': 'LuvColor',
+        # 'SpectralColor',
+        'xyz':  'XYZColor',
+        # 'sRGBColor',
+        'xyy': 'xyYColor'
+    }
+
+    conversions = {k: new_convertor(getattr(color_objects, v)) for k, v in classnames.items()}
+
+    # conversions = {
+    #     'lch': new_convertor(color_objects.LCHabColor),
+    #     'lch-uv': new_convertor(color_objects.LCHuvColor),
+    #     'lab': new_convertor(color_objects.LabColor),
+    #     'hsv': new_convertor(color_objects.HSVColor),
+    #     'xyz': new_convertor(color_objects.XYZColor)
+    # }
+    from_rgb, to_rgb = conversions['hsv']
+    from_rgb, to_rgb = conversions['xyz']
+    from_rgb, to_rgb = conversions['lch-uv']
+    from_rgb, to_rgb = conversions['lch-ab']
+    # from_rgb, to_rgb = conversions['lch']
+    # from_rgb, to_rgb = conversions['lab']
+    # from_rgb, to_rgb = conversions['lch-uv']
+
+    for idx2, b in zip(indices, basis):
+        idx1 = idx2 - 1
+        f1 = fracs[idx1]
+        f2 = fracs[idx2]
+
+        c1 = colors[idx1]
+        c2 = colors[idx2]
+        # from_rgb, to_rgb = conversions['lch']
+        h1 = np.array(from_rgb(c1))
+        h2 = np.array(from_rgb(c2))
+        alpha = (b - f1) / (f2 - f1)
+        new_h = h1 * (1 - alpha) + h2 * (alpha)
+        new_c = np.clip(to_rgb(new_h), 0, 1)
+        # print('new_c = %r' % (new_c,))
+        cpool.append(new_c)
+
+    cpool = np.array(cpool)
+    # print('cpool = %r' % (cpool,))
+    cmap = mpl.colors.ListedColormap(cpool, 'indexed')
+    return cmap
+
+    # cm.register_cmap(cmap=cmap3)
+    # pass
 
 
 def print_valid_cmaps():
