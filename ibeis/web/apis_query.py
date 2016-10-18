@@ -6,7 +6,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.control import accessor_decors, controller_inject
 from ibeis.algo.hots import pipeline
 from flask import url_for, request, current_app  # NOQA
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, exists
+import cv2
 import numpy as np   # NOQA
 import utool as ut
 from ibeis.web import appfuncs as appf
@@ -128,11 +129,11 @@ def process_graph_match_html(ibs, **kwargs):
         return state
     import uuid
     map_dict = {
-        'visuallysame'      : 'matched',
-        'visuallydifferent' : 'notmatched',
-        'cannottell'        : 'notcomparable',
-        'photobomb'         : 'photobomb',
-        'scenerymatch'      : 'scenerymatch',
+        'sameanimal'       : 'matched',
+        'differentanimals' : 'notmatched',
+        'cannottell'       : 'notcomparable',
+        'photobomb'        : 'photobomb',
+        'scenerymatch'     : 'scenerymatch',
     }
     annot_uuid_1 = uuid.UUID(request.form['identification-annot-uuid-1'])
     annot_uuid_2 = uuid.UUID(request.form['identification-annot-uuid-2'])
@@ -143,7 +144,8 @@ def process_graph_match_html(ibs, **kwargs):
     return (annot_uuid_1, annot_uuid_2, state, )
 
 
-def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=True):
+def make_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
+                      draw_matches=True, verbose=False):
     """"
     Create the review image for a pair of annotations
 
@@ -155,9 +157,10 @@ def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=
         >>> from ibeis.web.apis_query import *  # NOQA
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', a='default:dindex=0:10,qindex=0:1')
+        >>> ibs = qreq_.ibs
         >>> aid = cm.get_top_aids()[0]
         >>> tt = ut.tic('make image')
-        >>> image = make_review_image(aid, cm, qreq_)
+        >>> image = make_review_image(ibs, aid, cm, qreq_)
         >>> ut.toc(tt)
         >>> ut.quit_if_noshow()
         >>> print('image.shape = %r' % (image.shape,))
@@ -167,29 +170,42 @@ def make_review_image(aid, cm, qreq_, view_orientation='vertical', draw_matches=
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
     """
+    from ibeis.gui.id_review_api import get_match_thumb_fname
+    # Get thumb path
+    match_thumb_path = ibs.get_match_thumbdir()
+    match_thumb_filename = get_match_thumb_fname(cm, aid, qreq_,
+                                                 view_orientation=view_orientation,
+                                                 draw_matches=draw_matches)
+    match_thumb_filepath = join(match_thumb_path, match_thumb_filename)
+    if verbose:
+        print('Checking: %r' % (match_thumb_filepath, ))
 
-    render_config = {
-        'dpi'              : 150,
-        'draw_fmatches'    : draw_matches,
-        'vert'             : view_orientation == 'vertical',
-        'show_aidstr'      : False,
-        'show_name'        : False,
-        'show_exemplar'    : False,
-        'show_num_gt'      : False,
-        'show_timedelta'   : False,
-        'show_name_rank'   : False,
-        'show_score'       : False,
-        'show_annot_score' : False,
-        'show_name_score'  : False,
-        'draw_lbl'         : False,
-        'draw_border'      : False,
-    }
-
-    if hasattr(qreq_, 'render_single_result'):
-        image = qreq_.render_single_result(cm, aid, **render_config)
+    if exists(match_thumb_filepath):
+        image = cv2.imread(match_thumb_filepath)
     else:
-        image = cm.render_single_annotmatch(qreq_, aid, **render_config)
-    #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
+        render_config = {
+            'dpi'              : 150,
+            'draw_fmatches'    : draw_matches,
+            'vert'             : view_orientation == 'vertical',
+            'show_aidstr'      : False,
+            'show_name'        : False,
+            'show_exemplar'    : False,
+            'show_num_gt'      : False,
+            'show_timedelta'   : False,
+            'show_name_rank'   : False,
+            'show_score'       : False,
+            'show_annot_score' : False,
+            'show_name_score'  : False,
+            'draw_lbl'         : False,
+            'draw_border'      : False,
+        }
+
+        if hasattr(qreq_, 'render_single_result'):
+            image = qreq_.render_single_result(cm, aid, **render_config)
+        else:
+            image = cm.render_single_annotmatch(qreq_, aid, **render_config)
+        #image = vt.crop_out_imgfill(image, fillval=(255, 255, 255), thresh=64)
+        cv2.imwrite(match_thumb_filepath, image)
     return image
 
 
@@ -355,11 +371,11 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     match_score = cm.name_score_list[idx]
     #match_score = cm.aid2_score[aid_2]
 
-    image_matches = make_review_image(aid_2, cm, qreq_,
+    image_matches = make_review_image(ibs, aid_2, cm, qreq_,
                                       view_orientation=view_orientation)
     image_matches_src = appf.embed_image_html(image_matches)
 
-    image_clean = make_review_image(aid_2, cm, qreq_,
+    image_clean = make_review_image(ibs, aid_2, cm, qreq_,
                                     view_orientation=view_orientation,
                                     draw_matches=False)
     image_clean_src = appf.embed_image_html(image_clean)
