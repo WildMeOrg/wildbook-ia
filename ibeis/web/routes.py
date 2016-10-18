@@ -16,10 +16,29 @@ import vtool as vt
 import numpy as np
 
 
+CLASS_INJECT_KEY, register_ibs_method = (
+    controller_inject.make_ibs_register_decorator(__name__))
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 GLOBAL_FEEDBACK_LIMIT = 10
+GLOBAL_FEEDBACK_BUFFER = []
+GLOBAL_FEEDBACK_CONFIG_DICT = {
+    'ranks_top': 3,
+    'ranks_bot': 2,
+
+    'score_thresh': None,
+    'max_num': None,
+
+    'filter_reviewed': True,
+    'filter_photobombs': False,
+
+    'filter_true_matches': True,
+    'filter_false_matches': False,
+
+    'filter_nonmatch_between_ccs': True,
+    'filter_dup_namepairs': True,
+}
 
 
 @register_route('/', methods=['GET'])
@@ -1095,16 +1114,16 @@ def turk_viewpoint():
                          review=review)
 
 
-def commit_current_query_object_names(query_object, ibs):
+def commit_current_query_object_names(ibs, query_object):
     import networkx as nx
     import pandas as pd
 
     # Get the graph and the current reviewed connected components
     graph = query_object.graph
-    num_names, num_inconsistent = query_object.connected_compoment_reviewed_relabel()
+    num_names, num_inconsistent = query_object.connected_component_reviewed_relabel()
 
     # Extract names out of the networkx graph
-    node_to_label = nx.get_node_attrs(graph, 'name_label')
+    node_to_label = nx.get_node_attributes(graph, 'name_label')
     unique_labels = set(node_to_label.values())
     new_names = query_object.ibs.make_next_name(num_names)
     to_newname = dict(zip(unique_labels, new_names))
@@ -1123,6 +1142,7 @@ def commit_current_query_object_names(query_object, ibs):
 
     # Add am rowids for nonexisting rows
     if len(new_df) > 0:
+        # ut.embed()
         is_add = np.array(pd.isnull(new_df['am_rowid'].values))
         add_df = new_df.loc[is_add]
         add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
@@ -1154,74 +1174,172 @@ def commit_current_query_object_names(query_object, ibs):
         ibs.set_annotmatch_tag_text(am_rowids, tag_str_list)
 
 
+def precompute_current_review_match_images(ibs, query_object,
+                                           global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+                                           view_orientation='vertical'):
+    from ibeis.web.apis_query import make_review_image
+
+    review_aid1_list, review_aid2_list = query_object.get_filtered_edges(GLOBAL_FEEDBACK_CONFIG_DICT)
+
+    # Precompute
+    zipped = zip(review_aid1_list, review_aid2_list)
+    for index, (aid1, aid2) in enumerate(zipped):
+        if index > global_feedback_limit * 2:
+            break
+        cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
+        qreq_ = query_object.qreq_
+        try:
+            make_review_image(ibs, aid2, cm, qreq_,
+                              view_orientation=view_orientation)
+        except KeyError:
+            pass
+        try:
+            make_review_image(ibs, aid2, cm, qreq_,
+                              view_orientation=view_orientation,
+                              draw_matches=False)
+        except KeyError:
+            pass
+
+
+@register_ibs_method
+def load_identification_query_object_worker(ibs, **kwargs):
+    _init_identification_query_object(ibs, **kwargs)
+    return 'precomputed'
+
+
+def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
+                                      global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+                                      **kwargs):
+    from ibeis.algo.hots.graph_iden import AnnotInference
+    aid_list = ibs.get_valid_aids()
+    nids = aid_list if debug_ignore_name_gt else None
+    query_object = AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
+
+    # Add some feedback
+    # query_object.reset_feedback()
+    # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+
+    review_rowids_list = ibs.get_review_rowids_from_only(aid_list)
+    flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
+    # Lookup data based on flattened rowids
+    flat_decisions = ibs.get_review_decision(flat_rowids)
+    flat_tags = ibs.get_review_tags(flat_rowids)
+    flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
+    # # Reshape to original grouping (Actually, no need)
+    # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
+    # decision_groups = ut.unflatten2(flat_decisions, offsets)
+    # tags_groups = ut.unflatten2(flat_tags, offsets)
+
+    # for tup in zip(aids_groups, decision_groups, tags_groups):
+    # for (aid1, aid2), decision, tags in zip(*tup):
+    zipped = zip(flat_aid_tuples, flat_decisions, flat_tags)
+    for (aid1, aid2), decision, tags in zipped:
+        # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
+        try:
+            state = const.REVIEW_INT_TO_CODE[decision]
+            query_object.add_feedback(aid1, aid2, state, tags)
+        except ValueError:
+            pass
+    query_object.apply_feedback_edges()
+
+    # Exec matching
+    query_object.exec_matching()
+    query_object.apply_match_edges()
+    query_object.apply_match_scores()
+
+    # # Show query objec graph
+    # query_object.show_graph(use_image=False)
+    # import plottool
+    # fig = plottool.gcf()
+    # fig.savefig('/Users/bluemellophone/Desktop/temp.png')
+
+    print('Precomputing match images')
+    precompute_current_review_match_images(ibs, query_object,
+                                           global_feedback_limit=global_feedback_limit,
+                                           view_orientation='vertical')
+    # precompute_current_review_match_images(ibs, query_object,
+    #                                        global_feedback_limit=global_feedback_limit,
+    #                                        view_orientation='horizontal')
+    return query_object
+
+
 def load_identification_query_object(autoinit=False,
                                      global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
-                                     debug_ignore_name_gt=False):
-    from ibeis.algo.hots.graph_iden import AnnotInference
+                                     **kwargs):
     ibs = current_app.ibs
 
     if current_app.QUERY_OBJECT is None:
         autoinit = True
     else:
-        if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER >= global_feedback_limit:
+        if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1 >= global_feedback_limit:
             # Apply current names that have been made to database
-            commit_current_query_object_names(current_app.QUERY_OBJECT, ibs)
+            commit_current_query_object_names(ibs, current_app.QUERY_OBJECT)
 
-            # Rebuild the AnnotInference object
+            # Rebuild the AnnotInference object via the engine
             autoinit = True
 
     if autoinit:
-        aid_list = ibs.get_valid_aids()
-
-        nids = aid_list if debug_ignore_name_gt else None
-        query_object = AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
-
-        # Add some feedback
-        # query_object.reset_feedback()
-        # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
-
-        review_rowids_list = ibs.get_review_rowids_from_only()
-        flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
-        # Lookup data based on flattened rowids
-        flat_decisions = ibs.get_review_decision(flat_rowids)
-        flat_tags = ibs.get_review_tags(flat_rowids)
-        flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
-        # # Reshape to original grouping (Actually, no need)
-        # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
-        # decision_groups = ut.unflatten2(flat_decisions, offsets)
-        # tags_groups = ut.unflatten2(flat_tags, offsets)
-
-        # for tup in zip(aids_groups, decision_groups, tags_groups):
-        # for (aid1, aid2), decision, tags in zip(*tup):
-        for (aid1, aid2), decision, tags in zip(flat_aid_tuples,
-                                                flat_decisions, flat_tags):
-            # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
-            try:
-                state = const.REVIEW_INT_TO_CODE[decision]
-                query_object.add_feedback(aid1, aid2, state, tags)
-            except ValueError:
-                pass
-        query_object.apply_feedback_edges()
-
-        # Exec matching
-        query_object.exec_matching()
-        query_object.apply_match_edges()
-        query_object.apply_match_scores()
-
-        # # Show query objec graph
-        # query_object.show_graph(use_image=False)
-        # import plottool
-        # fig = plottool.gcf()
-        # fig.savefig('/Users/bluemellophone/Desktop/temp.png')
+        query_object = _init_identification_query_object(ibs, **kwargs)
 
         # Assign to current_app's QUERY_OBJECT attribute
         query_object.GLOBAL_FEEDBACK_COUNTER = 0
         current_app.QUERY_OBJECT = query_object
-    return current_app.QUERY_OBJECT
+
+    # Load query object and apply and buffered feedback before returning object
+    query_object = current_app.QUERY_OBJECT
+    while len(current_app.QUERY_OBJECT_FEEDBACK_BUFFER) > 0:
+        feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
+        print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
+        aid1, aid2, state = feedback
+        query_object.add_feedback(aid1, aid2, state)
+        query_object.apply_feedback_edges()
+        query_object.GLOBAL_FEEDBACK_COUNTER += 1
+
+    return query_object
+
+
+@register_ibs_method
+def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
+    ibs = current_app.ibs
+
+    # We need to precompute the chips in this process for OpenCV, as warp-affine
+    # segfaults in the web engine process
+    ibs.depc.get_rowids('chips', ibs.get_valid_aids())
+    ibs.depc.get_rowids('probchip', ibs.get_valid_aids())
+
+    if current_app.QUERY_OBJECT is not None:
+        if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1 >= global_feedback_limit:
+            # Apply current names that have been made to database
+            commit_current_query_object_names(ibs, current_app.QUERY_OBJECT)
+
+            # Rebuild the AnnotInference object via the engine
+            current_app.QUERY_OBJECT_JOBID = None
+
+    if current_app.QUERY_OBJECT_JOBID is None:
+        current_app.QUERY_OBJECT = None
+        current_app.QUERY_OBJECT_JOBID = ibs.start_web_query_all()
+        # import ibeis
+        # web_ibs = ibeis.opendb_bg_web(dbdir=ibs.dbdir, port=6000)
+        # query_object_jobid = web_ibs.send_ibeis_request('/api/engine/query/graph/')
+        # print('query_object_jobid = %r' % (query_object_jobid, ))
+        # current_app.QUERY_OBJECT_JOBID = query_object_jobid
+
+    query_object_status_dict = ibs.get_job_status(current_app.QUERY_OBJECT_JOBID)
+    args = (current_app.QUERY_OBJECT_JOBID, query_object_status_dict, )
+    print('job id %r: %r' % args)
+
+    if query_object_status_dict['jobstatus'] == 'completed':
+        query_object_result = ibs.get_job_result(current_app.QUERY_OBJECT_JOBID)
+        args = (current_app.QUERY_OBJECT_JOBID, query_object_result, )
+        print('job id %r: %r' % args)
+        assert query_object_result['json_result'] == 'precomputed'
+        return True
+
+    return False
 
 
 @register_route('/turk/identification/', methods=['GET'])
-def turk_identification(global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
+def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
     """
     CommandLine:
         python -m ibeis.web.app --exec-turk_identification --db PZ_Master1
@@ -1239,103 +1357,123 @@ def turk_identification(global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
 
     with ut.Timer('[web.routes.turk_identification] Load query_object'):
         ibs = current_app.ibs
-        query_object = load_identification_query_object(global_feedback_limit=global_feedback_limit)
 
-    with ut.Timer('[web.routes.turk_identification] Get matches'):
-        review_cfg = {
-            'ranks_top': 3,
-            'ranks_bot': 2,
-
-            'score_thresh': None,
-            'max_num': None,
-
-            'filter_reviewed': True,
-            'filter_photobombs': False,
-
-            'filter_true_matches': True,
-            'filter_false_matches': False,
-
-            'filter_nonmatch_between_ccs': True,
-            'filter_dup_namepairs': True,
-        }
-        # Get raw list of reviews
-        raw_review_list, _ = query_object.get_filtered_edges(review_cfg)
-
-        # Get actual
-        review_cfg['max_num'] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
-        review_aid1_list, review_aid2_list = query_object.get_filtered_edges(review_cfg)
-
-    with ut.Timer('[web.routes.turk_identification] Get status'):
-        # Get status
-        status_dict = query_object.connected_compoment_status()
-        status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
-        print('Feedback counter    = %r / %r' % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT, ))
-        print('Status dict         = %r' % (status_dict, ))
-        print('Raw list len        = %r' % (len(raw_review_list), ))
-        print('len(query_aid_list) = %r' % (len(query_object.aids), ))
-        print('Estimated remaining = %r' % (status_remaining, ))
-        print('Reviews list len    = %r' % (len(review_aid1_list), ))
-        progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
-
-        aid1 = request.args.get('aid1', None)
-        aid2 = request.args.get('aid2', None)
-        replace_review_rowid = int(request.args.get('replace_review_rowid', -1))
-        choice = aid1 is not None and aid2 is not None
-
-    with ut.Timer('[web.routes.turk_identification] Process choice'):
-        if choice or (len(review_aid1_list) > 0 and len(review_aid2_list) > 0):
-
-            with ut.Timer('[web.routes.turk_identification] ... Pick choice'):
-                finished = False
-                if not choice:
-                    index = random.randint(0, len(review_aid1_list) - 1)
-                    print('Picked random index = %r' % (index, ))
-                    aid1 = review_aid1_list[index]
-                    aid2 = review_aid2_list[index]
-
-                aid1 = int(aid1)
-                aid2 = int(aid2)
-                annot_uuid_1 = ibs.get_annot_uuids(aid1)
-                annot_uuid_2 = ibs.get_annot_uuids(aid2)
-
-            with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
-                # lookup ChipMatch object
-                cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
-                qreq_ = query_object.qreq_
-
-            with ut.Timer('[web.routes.turk_identification] ... Get scores'):
-                # Get score
-                # idx = cm.daid2_idx[aid2]
-                # match_score = cm.name_score_list[idx]
-                # match_score = cm.aid2_score[aid2]
-                graph_dict = query_object.graph.get_edge_data(aid1, aid2)
-                match_score = graph_dict.get('score', -1.0)
-
-            with ut.Timer('[web.routes.turk_identification] ... Make images'):
-                with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
-                    # Make images
-                    view_orientation = request.args.get('view_orientation', 'vertical')
-                    image_matches = make_review_image(aid2, cm, qreq_,
-                                                      view_orientation=view_orientation)
-                    image_clean = make_review_image(aid2, cm, qreq_,
-                                                    view_orientation=view_orientation,
-                                                    draw_matches=False)
-
-                with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
-                    image_matches_src = appf.embed_image_html(image_matches)
-                    image_clean_src = appf.embed_image_html(image_clean)
-
-            with ut.Timer('[web.routes.turk_identification] ... Process previous'):
-                # Get previous
-                previous = request.args.get('previous', None)
-                if previous is not None and ';' in previous:
-                    previous = tuple(map(int, previous.split(';')))
-                    assert len(previous) == 3
-
-                print('Previous = %r' % (previous, ))
-                print('replace_review_rowid  = %r' % (replace_review_rowid, ))
+        if use_engine:
+            engine_computed = check_engine_identification_query_object(
+                global_feedback_limit=global_feedback_limit
+            )
         else:
-            finished = True
+            engine_computed = True
+
+        if engine_computed:
+
+            ibs.depc_annot.get_rowids('chips', ibs.get_valid_aids())
+            ibs.depc_annot.get_rowids('probchip', ibs.get_valid_aids())
+
+            query_object = load_identification_query_object(
+                global_feedback_limit=global_feedback_limit
+            )
+
+            with ut.Timer('[web.routes.turk_identification] Get matches'):
+                # Get raw list of reviews
+                review_cfg = GLOBAL_FEEDBACK_CONFIG_DICT.copy()
+                raw_review_list, _ = query_object.get_filtered_edges(review_cfg)
+
+                # Get actual
+                review_cfg['max_num'] = global_feedback_limit  # Controls the top X to be randomly sampled and displayed to all concurrent users
+                review_aid1_list, review_aid2_list = query_object.get_filtered_edges(review_cfg)
+
+            with ut.Timer('[web.routes.turk_identification] Get status'):
+                # Get status
+                status_dict = query_object.connected_component_status()
+                status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
+                print('Feedback counter    = %r / %r' % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT, ))
+                print('Status dict         = %r' % (status_dict, ))
+                print('Raw list len        = %r' % (len(raw_review_list), ))
+                print('len(query_aid_list) = %r' % (len(query_object.aids), ))
+                print('Estimated remaining = %r' % (status_remaining, ))
+                print('Reviews list len    = %r' % (len(review_aid1_list), ))
+                progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
+
+                aid1 = request.args.get('aid1', None)
+                aid2 = request.args.get('aid2', None)
+                replace_review_rowid = int(request.args.get('replace_review_rowid', -1))
+                choice = aid1 is not None and aid2 is not None
+
+            with ut.Timer('[web.routes.turk_identification] Process choice'):
+                if choice or (len(review_aid1_list) > 0 and len(review_aid2_list) > 0):
+
+                    with ut.Timer('[web.routes.turk_identification] ... Pick choice'):
+                        finished = False
+                        if not choice:
+                            index = random.randint(0, len(review_aid1_list) - 1)
+                            print('Picked random index = %r' % (index, ))
+                            aid1 = review_aid1_list[index]
+                            aid2 = review_aid2_list[index]
+
+                        aid1 = int(aid1)
+                        aid2 = int(aid2)
+                        annot_uuid_1 = ibs.get_annot_uuids(aid1)
+                        annot_uuid_2 = ibs.get_annot_uuids(aid2)
+
+                    with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
+                        # lookup ChipMatch object
+                        cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
+                        qreq_ = query_object.qreq_
+
+                    with ut.Timer('[web.routes.turk_identification] ... Get scores'):
+                        # Get score
+                        # idx = cm.daid2_idx[aid2]
+                        # match_score = cm.name_score_list[idx]
+                        # match_score = cm.aid2_score[aid2]
+                        graph_dict = query_object.graph.get_edge_data(aid1, aid2)
+                        match_score = graph_dict.get('score', -1.0)
+
+                    with ut.Timer('[web.routes.turk_identification] ... Make images'):
+                        with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
+                            # Make images
+                            view_orientation = request.args.get('view_orientation', 'vertical')
+                            try:
+                                image_matches = make_review_image(ibs, aid2, cm, qreq_,
+                                                                  view_orientation=view_orientation)
+                            except KeyError:
+                                image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
+
+                            try:
+                                image_clean = make_review_image(ibs, aid2, cm, qreq_,
+                                                                view_orientation=view_orientation,
+                                                                draw_matches=False)
+                            except KeyError:
+                                image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+
+                        with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
+                            image_matches_src = appf.embed_image_html(image_matches)
+                            image_clean_src = appf.embed_image_html(image_clean)
+
+                    with ut.Timer('[web.routes.turk_identification] ... Process previous'):
+                        # Get previous
+                        previous = request.args.get('previous', None)
+                        if previous is not None and ';' in previous:
+                            previous = tuple(map(int, previous.split(';')))
+                            assert len(previous) == 3
+
+                        print('Previous = %r' % (previous, ))
+                        print('replace_review_rowid  = %r' % (replace_review_rowid, ))
+                else:
+                    finished = True
+                    progress = 100.0
+                    aid1 = None
+                    aid2 = None
+                    annot_uuid_1 = None
+                    annot_uuid_2 = None
+                    image_clean_src = None
+                    image_matches_src = None
+                    previous = None
+                    replace_review_rowid = None
+                    view_orientation = None
+                    match_score = None
+        else:
+            finished = 'engine'
             progress = 100.0
             aid1 = None
             aid2 = None

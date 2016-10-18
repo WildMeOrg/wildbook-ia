@@ -1,6 +1,27 @@
 {% extends "layout.html" %}
 {% block content %}
-  {% if finished %}
+  {% if finished == 'engine' %}
+  <div class="alert alert-info text-center" role="alert">
+    Please wait, the identification computation are being computed for the first time or are being refreshed.  This page will automatically refresh to check for status updates in <span id="ia-identification-engine-refresh-timer"></span> seconds.  You may safely navigate to other pages and return here when identification turking is ready.
+  </div>
+
+  <script type="text/javascript">
+      var timer = 10;
+
+      function start_timer() {
+        if(timer == 0) {
+          location.reload();
+        }
+        else {
+          document.getElementById("ia-identification-engine-refresh-timer").innerHTML = timer;
+          timer -= 1;
+          setTimeout(start_timer, 1000);
+        }
+      }
+
+      start_timer();
+  </script>
+  {% elif finished %}
   <div class="alert alert-info text-center" role="alert">
     Congratulations, identification turking is completed.  Thank you!
     <br/>

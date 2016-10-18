@@ -426,6 +426,19 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=
     return jobid
 
 
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/query/web/', methods=['GET'])
+def start_web_query_all(ibs):
+    """
+    REST:
+        Method: GET
+        URL: /api/engine/query/web/
+    """
+    jobid = ibs.job_manager.jobiface.queue_job('load_identification_query_object_worker')
+    return jobid
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

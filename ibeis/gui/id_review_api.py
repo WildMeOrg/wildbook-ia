@@ -515,7 +515,8 @@ def get_reviewed_status_bgrole(ibs, aid_pair):
     return truth_color
 
 
-def get_match_thumb_fname(cm, daid, qreq_):
+def get_match_thumb_fname(cm, daid, qreq_, view_orientation='vertical',
+                          draw_matches=True):
     """
     CommandLine:
         python -m ibeis.gui.id_review_api --exec-get_match_thumb_fname
@@ -535,8 +536,8 @@ def get_match_thumb_fname(cm, daid, qreq_):
     # Make thumbnail name
     config_hash = ut.hashstr27(qreq_.get_cfgstr())
     qaid = cm.qaid
-    match_thumb_fname = 'match_aids=%d,%d_cfgstr=%s.jpg' % ((qaid, daid,
-                                                             config_hash))
+    args = (qaid, daid, config_hash, draw_matches, view_orientation, )
+    match_thumb_fname = 'match_aids=%d,%d_cfgstr=%s_draw=%s_orientation=%s.jpg' % args
     return match_thumb_fname
 
 

@@ -234,8 +234,10 @@ def movegroup_aid(ibs, aid, src_ag, dst_ag):
 def default_species(ibs):
     # hack function
     dbname = ibs.get_dbname()
-    if dbname == 'CHTA_Master':
+    if dbname == 'CHTA_Master' or dbname == 'EWT_Cheetahs':
         default_species = 'cheetah'
+    elif dbname == 'EWT_Lynx':
+        default_species = 'lynx'
     elif dbname == 'ELPH_Master':
         default_species = 'elephant_savanna'
     elif dbname == 'GIR_Master':

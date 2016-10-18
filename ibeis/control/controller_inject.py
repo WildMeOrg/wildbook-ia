@@ -120,6 +120,8 @@ def get_flask_app():
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
         GLOBAL_APP.QUERY_OBJECT = None
+        GLOBAL_APP.QUERY_OBJECT_JOBID = None
+        GLOBAL_APP.QUERY_OBJECT_FEEDBACK_BUFFER = []
         if HAS_FLASK_CORS:
             GLOBAL_CORS = CORS(GLOBAL_APP, resources={r"/api/*": {"origins": "*"}})  # NOQA
         if HAS_FLASK_CAS:

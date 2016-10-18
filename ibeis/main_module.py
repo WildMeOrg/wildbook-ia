@@ -351,7 +351,7 @@ def opendb_bg_web(*args, **kwargs):
     import utool as ut
     kwargs = kwargs.copy()
     domain = kwargs.pop('domain', ut.get_argval('--domain', type_=str, default=None))
-    port = kwargs.pop('port', 5000)
+    port = kwargs.pop('port', 6000)
 
     if 'wait' in kwargs:
         print('NOTE: No need to specify wait param anymore. '

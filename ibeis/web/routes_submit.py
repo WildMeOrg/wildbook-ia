@@ -371,7 +371,6 @@ def submit_additional():
 @register_route('/submit/identification/', methods=['POST'])
 def submit_identification():
     from ibeis.web.apis_query import process_graph_match_html
-    from ibeis.web.routes import load_identification_query_object
     ibs = current_app.ibs
 
     imgsetid = request.args.get('imgsetid', '')
@@ -412,11 +411,10 @@ def submit_identification():
 
     # Notify any attached web QUERY_OBJECT
     try:
-        query_object = load_identification_query_object()
         state = const.REVIEW_INT_TO_CODE[decision]
-        query_object.add_feedback(aid1, aid2, state)
-        query_object.apply_feedback_edges()
-        query_object.GLOBAL_FEEDBACK_COUNTER += 1
+        feedback = (aid1, aid2, state, )
+        print('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
+        current_app.QUERY_OBJECT_FEEDBACK_BUFFER.append(feedback)
     except ValueError:
         pass
 

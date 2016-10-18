@@ -96,8 +96,11 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, identity_list=None,
     aid_2_list = [ pair[1] for pair in sorted_pairs_list ]
 
     current_counts_list = ibs.get_review_counts_from_tuple(aid_1_list, aid_2_list)
+    print(current_counts_list)
     current_counts_dict = {
-        (aid1, aid2) : 0 if count_list_ is None else max(max(count_list_), len(count_list_))
+        (aid1, aid2) : 0
+        if count_list_ is None or len(count_list_) == 0 else
+        max(max(count_list_), len(count_list_))
         for aid1, aid2, count_list_ in zip(aid_1_list, aid_2_list, current_counts_list)
     }
     count_list = []
@@ -363,7 +366,7 @@ def get_review_aid_tuple(ibs, review_rowid_list, eager=True, nInput=None):
     andwhere_colnames = [REVIEW_ROWID]
     aid_tuple_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
-        eager=eager, nInput=nInput, unpack_scalars=False)
+        eager=eager, nInput=nInput)
     return aid_tuple_list
 
 
