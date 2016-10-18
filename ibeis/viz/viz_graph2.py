@@ -449,20 +449,20 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 # This should happen in split mode, but not None mode
                 self.apply_scores()
             self.infr.apply_weights()
-            self.infr.connected_component_reviewed_relabel()
+            self.infr.relabel_using_reviews()
             self.infr.apply_cuts()
         elif self.init_mode == 'rereview':
             self.infr.apply_feedback_edges()
             self.infr.apply_match_scores()
             self.infr.apply_weights()
-            self.infr.connected_component_reviewed_relabel()
+            self.infr.relabel_using_reviews()
             self.infr.apply_cuts()
         elif self.init_mode == 'review':
             self.infr.apply_match_edges()
             self.infr.apply_feedback_edges()
             self.infr.apply_match_scores()
             self.infr.apply_weights()
-            # self.infr.connected_component_reviewed_relabel()
+            # self.infr.relabel_using_reviews()
             # self.infr.apply_cuts()
 
         # Set gui status indicators
@@ -723,7 +723,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('[graph] Not done yet')
         infr = self.infr
         graph = infr.graph
-        num_names, num_inconsistent = self.infr.connected_component_reviewed_relabel()
+        num_names, num_inconsistent = self.infr.relabel_using_reviews()
         msg = ut.codeblock(
             '''
             Are you sure this is correct?

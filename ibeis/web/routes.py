@@ -1096,12 +1096,18 @@ def turk_viewpoint():
 
 
 def commit_current_query_object_names(query_object, ibs):
+    r"""
+    Args:
+        query_object (ibeis.AnnotInference):
+        ibs (ibeis.IBEISController):  image analysis api
+
+    """
     import networkx as nx
     import pandas as pd
 
     # Get the graph and the current reviewed connected components
     graph = query_object.graph
-    num_names, num_inconsistent = query_object.connected_compoment_reviewed_relabel()
+    num_names, num_inconsistent = query_object.relabel_using_reviews()
 
     # Extract names out of the networkx graph
     node_to_label = nx.get_node_attrs(graph, 'name_label')

@@ -545,7 +545,7 @@ def split_analysis(ibs):
     def inference_stats(infr_list_):
         relabel_stats = []
         for infr in infr_list_:
-            num_ccs, num_inconsistent = infr.connected_component_reviewed_relabel()
+            num_ccs, num_inconsistent = infr.relabel_using_reviews()
             state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'reviewed_state').values())
             if 'match' not in state_hist:
                 state_hist['match'] = 0

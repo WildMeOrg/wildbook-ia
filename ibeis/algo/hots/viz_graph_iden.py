@@ -25,16 +25,49 @@ def _dz(a, b):
 class _AnnotInfrViz(object):
     """ contains plotting related code """
 
-    truth_colors = {
-        'match': pt.TRUE_GREEN,
-        #'match': pt.TRUE_BLUE,
-        'nomatch': pt.FALSE_RED,
-        'notcomp': pt.YELLOW,
-        'unreviewed': pt.UNKNOWN_PURP
-    }
+    def _get_truth_colors(infr):
+        truth_colors = {
+            # 'match': pt.TRUE_GREEN,
+            'match': pt.TRUE_BLUE,
+            'nomatch': pt.FALSE_RED,
+            'notcomp': pt.YELLOW,
+            'unreviewed': pt.UNKNOWN_PURP
+        }
+        return truth_colors
+
+    def _get_cmap(infr):
+        if hasattr(infr, '_cmap'):
+            return infr._cmap
+        else:
+            cpool = np.array([[ 0.98135718,  0.19697982,  0.02117342],
+                              [ 1.        ,  0.33971852,  0.        ],
+                              [ 1.        ,  0.45278535,  0.        ],
+                              [ 1.        ,  0.55483746,  0.        ],
+                              [ 1.        ,  0.65106306,  0.        ],
+                              [ 1.        ,  0.74359729,  0.        ],
+                              [ 1.        ,  0.83348477,  0.        ],
+                              [ 0.98052302,  0.92128928,  0.        ],
+                              [ 0.95300175,  1.        ,  0.        ],
+                              [ 0.59886986,  0.99652954,  0.23932718],
+                              [ 0.        ,  0.95791134,  0.44764457],
+                              [ 0.        ,  0.89937643,  0.63308702],
+                              [ 0.        ,  0.82686023,  0.7895433 ],
+                              [ 0.        ,  0.74361034,  0.89742738],
+                              [ 0.        ,  0.65085832,  0.93960823],
+                              [ 0.        ,  0.54946918,  0.90949295],
+                              [ 0.25697101,  0.44185497,  0.8138502 ]])
+            print('cpool = %r' % (cpool,))
+            cmap = pt.mpl.colors.ListedColormap(cpool, 'indexed')
+            # cmap = pt.interpolated_colormap([
+            #     (pt.FALSE_RED, 0.0),
+            #     (pt.YELLOW, 0.5),
+            #     (pt.TRUE_BLUE, 1.0),
+            # ], resolution=128)
+            infr._cmap = cmap
+            return infr._cmap
 
     def initialize_visual_node_attrs(infr, graph=None):
-        if infr.verbose:
+        if infr.verbose >= 3:
             print('[infr] initialize_visual_node_attrs')
         import networkx as nx
         if graph is None:
@@ -79,20 +112,34 @@ class _AnnotInfrViz(object):
     def get_colored_weights(infr, weights):
         import plottool as pt
         #pt.rrrr()
-        cmap_ = 'viridis'
-        cmap_ = 'plasma'
+        # cmap_ = 'viridis'
+        # cmap_ = 'plasma'
+        # cmap_ = pt.plt.cm.RdYlBu
+        cmap_ = infr._get_cmap()
+        # cmap_ = pt.plt.cm.RdYlBu
         #cmap_ = pt.plt.get_cmap(cmap_)
         weights[np.isnan(weights)] = infr.thresh
         #colors = pt.scores_to_color(weights, cmap_=cmap_, logscale=True)
         colors = pt.scores_to_color(weights, cmap_=cmap_, score_range=(0, 1),
-                                    logscale=False)
+                                    logscale=False, cmap_range=None)
         return colors
 
     @property
     def visual_edge_attrs(infr):
-        return ['implicit', 'style', 'tail_lp', 'taillabel', 'label', 'lp',
-                'headlabel', 'linestyle', 'color', 'stroke', 'lw', 'end_pt',
-                'start_pt', 'head_lp', 'alpha', 'ctrl_pts', 'pos', 'zorder']
+        """ all edge visual attrs """
+        return infr.visual_edge_attrs_appearance + infr.visual_edge_attrs_space
+
+    @property
+    def visual_edge_attrs_appearance(infr):
+        """ attrs that pertain to edge color and style """
+        return ['alpha', 'color', 'implicit', 'label', 'linestyle', 'lw',
+                'pos', 'stroke', 'style']
+
+    @property
+    def visual_edge_attrs_space(infr):
+        """ attrs that pertain to edge positioning in a plot """
+        return ['ctrl_pts', 'end_pt', 'head_lp', 'headlabel', 'lp', 'start_pt',
+                'tail_lp', 'taillabel', 'zorder']
 
     @property
     def visual_node_attrs(infr):
@@ -110,20 +157,16 @@ class _AnnotInfrViz(object):
     def update_visual_attrs(infr, graph=None, show_cuts=False,
                             show_reviewed_cuts=True, only_reviewed=False,
                             mode=None):
-        if infr.verbose:
+        if infr.verbose >= 3:
             print('[infr] update_visual_attrs')
+            print(' * show_cuts = %r' % (show_cuts,))
+            print(' * show_reviewed_cuts = %r' % (show_reviewed_cuts,))
         #edge2_weight = nx.get_edge_attributes(infr.graph, 'score')
         if graph is None:
             # Hack for name_graph
             graph = infr.graph
-        ut.nx_delete_edge_attr(graph, 'style')
-        ut.nx_delete_edge_attr(graph, 'implicit')
-        ut.nx_delete_edge_attr(graph, 'color')
-        ut.nx_delete_edge_attr(graph, 'lw')
-        ut.nx_delete_edge_attr(graph, 'stroke')
-        ut.nx_delete_edge_attr(graph, 'alpha')
-        ut.nx_delete_edge_attr(graph, 'linestyle')
-        ut.nx_delete_edge_attr(graph, 'label')
+
+        ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
 
         # Set annotation node labels
         node_to_aid = nx.get_node_attributes(graph, 'aid')
@@ -136,30 +179,50 @@ class _AnnotInfrViz(object):
         nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # Color nodes by name label
-        ut.color_nodes(graph, labelattr='name_label')
+        ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.8)
 
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
 
         SPLIT_MODE = mode == 'split'
         if not SPLIT_MODE:
-            # Update color and linewidth based on scores/weight
+            # Base color on edge weights
             edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
             #nx.set_edge_attributes(graph, 'len', _dz(edges, [10]))
             nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
-            minlw, maxlw = .5, 4
-            lw = ((maxlw - minlw) * edge_weights + minlw)
-            nx.set_edge_attributes(graph, 'lw', _dz(edges, lw))
+            # minlw, maxlw = 1.5, 4
+            # lw = ((maxlw - minlw) * edge_weights + minlw)
+            # nx.set_edge_attributes(graph, 'lw', _dz(edges, lw))
+            # nx.set_edge_attributes(graph, 'lw', _dz(edges, [1.5]))
+
+            # Base line width on if reviewed
+            edge_to_lw = {
+                edge: 2.0 if state == 'unreviewed' else 4.0
+                for edge, state in infr.get_edge_attrs('reviewed_state', default='unreviewed').items()
+            }
+            nx.set_edge_attributes(graph, 'lw', edge_to_lw)
 
             # Mark reviewed edges witha stroke
+            # truth_colors = infr._get_truth_colors()
             edge_to_stroke = {
-                edge: {'linewidth': 3, 'foreground': infr.truth_colors[state]}
+                # edge: {'linewidth': 3, 'foreground': truth_colors[state]}
+                # edge: {'linewidth': 3, 'foreground': pt.WHITE}
+                edge: {'linewidth': 3, 'foreground': pt.BLACK}
                 for edge, state in reviewed_states.items()
             }
             nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
+
+            # Mark edges that might be splits with strokes
+            # possible_split_edges = infr.find_possible_binary_splits()
+            # edge_to_stroke = {
+            #     edge: {'linewidth': 3, 'foreground': pt.ORANGE}
+            #     for edge in ut.unique(possible_split_edges)
+            # }
+            # nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
         else:
             # Mark reviewed edges with a color
+            truth_colors = infr._get_truth_colors()
             edge_to_color = {
-                edge: infr.truth_colors[state]
+                edge: truth_colors[state]
                 for edge, state in reviewed_states.items()
             }
             nx.set_edge_attributes(graph, 'color', edge_to_color)
@@ -176,9 +239,6 @@ class _AnnotInfrViz(object):
         edge_to_cut = nx.get_edge_attributes(graph, 'is_cut')
         cut_edges = [edge for edge, cut in edge_to_cut.items() if cut]
         nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
-        if infr.verbose:
-            print('show_cuts = %r' % (show_cuts,))
-            print('show_reviewed_cuts = %r' % (show_reviewed_cuts,))
         nx.set_edge_attributes(graph, 'linestyle', _dz(cut_edges, ['dashed']))
 
         # Non-matching edges should not impose a constraint on the graph layout
@@ -187,23 +247,26 @@ class _AnnotInfrViz(object):
         nx.set_edge_attributes(graph, 'implicit', _dz(nonmatch_edges, [True]))
 
         edges = list(graph.edges())
+        reviewed_edges = list(reviewed_states.keys())
+        nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges, [1.0]))
+
         if only_reviewed:
             # only reviewed edges contribute
-            unreviewed_edges = ut.setdiff(edges, reviewed_states.keys())
+            unreviewed_edges = ut.setdiff(edges, reviewed_edges)
             nx.set_edge_attributes(graph, 'implicit', _dz(unreviewed_edges, [True]))
             nx.set_edge_attributes(graph, 'style', _dz(unreviewed_edges, ['invis']))
 
         if show_cuts or show_reviewed_cuts:
             if not show_cuts:
-                nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_states.keys())
+                nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_edges)
                 nx.set_edge_attributes(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
         else:
             nx.set_edge_attributes(graph, 'style', _dz(cut_edges, ['invis']))
 
-        # Make MST edge have more alpha
-        edge_to_ismst = nx.get_edge_attributes(graph, '_mst_edge')
-        mst_edges = [edge for edge, flag in edge_to_ismst.items() if flag]
-        nx.set_edge_attributes(graph, 'alpha', _dz(mst_edges, [.5]))
+        # Make dummy (MST) edges have less alpha
+        edge_to_isdummy = nx.get_edge_attributes(graph, '_dummy_edge')
+        dummy_edges = [edge for edge, flag in edge_to_isdummy.items() if flag]
+        nx.set_edge_attributes(graph, 'alpha', _dz(dummy_edges, [.5]))
 
         nodes = list(graph.nodes())
         nx.set_node_attributes(graph, 'zorder', _dz(nodes, [10]))
@@ -219,9 +282,8 @@ class _AnnotInfrViz(object):
         )
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
-    def show_graph(infr, use_image=False, only_reviewed=False,
-                   show_cuts=False, mode=None, **kwargs):
-
+    def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False,
+                   mode=None, with_colorbar=False, **kwargs):
         import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -231,24 +293,24 @@ class _AnnotInfrViz(object):
             plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                                   modify_ax=False, use_image=use_image, verbose=0,
                                   **kwargs)
+            plotinfo  # NOQA
             pt.zoom_factory()
             pt.pan_factory(pt.gca())
 
-        with_colorbar = False
         if with_colorbar:
             # Draw a colorbar
-            xy = (1, infr.thresh)
-            xytext = (2.5, .3 if infr.thresh < .5 else .7)
-
             _normal_ticks = np.linspace(0, 1, num=11)
             _normal_scores = np.linspace(0, 1, num=500)
             _normal_colors = infr.get_colored_weights(_normal_scores)
             cb = pt.colorbar(_normal_scores, _normal_colors, lbl='weights',
                              ticklabels=_normal_ticks)
-            ta = cb.ax.annotate('threshold', xy=xy, xytext=xytext,
-                                arrowprops=dict(
-                                    alpha=.5, fc="0.6",
-                                    connectionstyle="angle3,angleA=90,angleB=0"),)
-            #return cb, ta
-            plotinfo, ta, cb
-            #return plotinfo
+
+            # point to threshold location
+            if infr.thresh is not None:
+                xy = (1, infr.thresh)
+                xytext = (2.5, .3 if infr.thresh < .5 else .7)
+                ta = cb.ax.annotate('threshold', xy=xy, xytext=xytext,
+                                    arrowprops=dict(
+                                        alpha=.5, fc="0.6",
+                                        connectionstyle="angle3,angleA=90,angleB=0"),)
+                ta  # NOQA

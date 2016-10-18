@@ -503,7 +503,7 @@ class AnnotGraphInteraction(AbstractInteraction):
     def cut(self, event):
         keys = ['min_labels', 'max_labels']
         infrkw = ut.dict_subset(self.config, keys)
-        self.infr.infer_cut(**infrkw)
+        self.infr.relabel_using_inference(**infrkw)
         self.show_page()
 
     def reset(self, event):
