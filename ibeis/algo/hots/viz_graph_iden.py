@@ -146,12 +146,12 @@ class _AnnotInfrViz(object):
         return ['color', 'framewidth', 'image', 'label',
                 'pos', 'shape', 'size', 'height', 'width', 'zorder']
 
-    def simplify_graph(infr, graph):
+    def simplify_graph(infr, graph=None):
+        if graph is None:
+            graph = infr.graph
         s = graph.copy()
-        for attr in infr.visual_edge_attrs:
-            ut.nx_delete_edge_attr(s, attr)
-        for attr in infr.visual_node_attrs:
-            ut.nx_delete_node_attr(s, attr)
+        ut.nx_delete_edge_attr(s, infr.visual_edge_attrs)
+        ut.nx_delete_node_attr(s, infr.visual_node_attrs + ['pin'])
         return s
 
     def update_visual_attrs(infr, graph=None, show_cuts=False,

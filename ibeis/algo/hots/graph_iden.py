@@ -200,7 +200,7 @@ class _AnnotInfrDummy(object):
 
         aug_graph = infr.graph.copy().to_undirected()
 
-        # remove cut edges
+        # remove cut edges from augmented graph
         edge_to_iscut = nx.get_edge_attributes(aug_graph, 'is_cut')
         cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
         aug_graph.remove_edges_from(cut_edges)
@@ -505,22 +505,77 @@ class _AnnotInfrFeedback(object):
             infr._dynamically_apply_feedback(edge, review_dict, tags)
 
     def _dynamically_apply_feedback(infr, edge, review_dict, tags):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.relabel_using_reviews()
+            >>> infr.add_feedback(1, 2, 'match', apply=True)
+            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
+            >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
+            >>> infr._del_feedback_edges()
+            >>> infr.apply_feedback_edges()
+            >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
+            >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
+        """
         if review_dict is None:
             if infr.verbose >= 2:
                 print('[infr] _dynamically_apply_feedback (removing edge)')
             infr._del_feedback_edges([edge])
-            edge_to_normscore = infr.get_edge_attrs('normscore', [edge], np.nan)
-            infr.set_edge_attrs('cut_weight', edge_to_normscore)
+            infr.set_edge_attrs('cut_weight', infr.get_edge_attrs('normscore', [edge], np.nan))
+            # infr.set_edge_attrs('is_reviewed', {edge: False})
         else:
             review_stateid = ut.argmax(ut.take(review_dict, infr.prob_keys))
             state = infr.truth_texts[review_stateid]
             p_same = infr._compute_p_same(review_dict['p_match'],
                                           review_dict['p_notcomp'])
             infr._set_feedback_edges([edge], [state], [p_same], [tags])
+            num_reviews = infr.get_edge_attrs('num_reviews', [edge], default=0)[edge]
+            infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
             # Also dynamically apply weights
             infr.set_edge_attrs('cut_weight', {edge: p_same})
+            # Dynamically update names
+            if state == 'match':
+                subgraph = infr._get_influenced_subgraph(edge)
+                # TODO: just do a relabel on this graph
+                # with labels, is_cut, all that stuff
+                nid1 = infr.graph.node[edge[0]]['name_label']
+                matching_nodes = list(subgraph.nodes())
+                print('matching_nodes = %r' % (matching_nodes,))
+                infr.set_node_attrs('name_label', _dz(matching_nodes, [nid1]))
+            elif state == 'nomatch':
+                # TODO: separate trivial split cases otherwise mark them as
+                # inconsistent
+                pass
             if infr.verbose >= 2:
                 print('[infr] _dynamically_apply_feedback (state=%r)' % (state,))
+
+    def _get_influenced_subgraph(infr, edge):
+        """
+        edge = (4, 6)
+        infr.add_feedback(1, 2, 'match', apply=True)
+        infr.add_feedback(2, 5, 'match', apply=True)
+        edge = (6, 1)
+        infr.relabel_using_reviews()
+        """
+        def continue_condition(G, child, edge):
+            u, v = edge
+            nid1 = G.node[u]['name_label']
+            nid2 = G.node[v]['name_label']
+            return nid1 == nid2
+        n1, n2 = edge
+        con1 = list(ut.util_graph.bfs_conditional(infr.graph, n1,
+                                                  yield_condition=continue_condition,
+                                                  continue_condition=continue_condition))
+        con2 = list(ut.util_graph.bfs_conditional(infr.graph, n2,
+                                                  yield_condition=continue_condition,
+                                                  continue_condition=continue_condition))
+        relevant_nodes = list(set(con1).union(set(con2)).union({n1, n2}))
+        subgraph = infr.graph.subgraph(relevant_nodes)
+        return subgraph
 
     def _compute_p_same(infr, p_match, p_notcomp):
         p_bg = 0.5  # Needs to be thresh value
@@ -529,26 +584,12 @@ class _AnnotInfrFeedback(object):
         p_same = part1 + part2
         return p_same
 
-    def _get_feedback_probs(infr):
-        """ Helper. Transforms dictionary feedback into numpy arrays """
-        unique_pairs = list(infr.user_feedback.keys())
-        # Take most recent review
-        review_tag_list = [infr.user_feedback[edge][-1] for edge in unique_pairs]
-        review_list = ut.take_column(review_tag_list, 0)
-        tags_list = ut.take_column(review_tag_list, 1)
-        p_nomatch = np.array(ut.dict_take_column(review_list, 'p_nomatch'))
-        p_match = np.array(ut.dict_take_column(review_list, 'p_match'))
-        p_notcomp = np.array(ut.dict_take_column(review_list, 'p_notcomp'))
-        state_probs = np.vstack([p_nomatch, p_match, p_notcomp])
-        review_stateid = state_probs.argmax(axis=0)
-        review_state = ut.take(infr.truth_texts, review_stateid)
-        p_same_list = infr._compute_p_same(p_match, p_notcomp)
-        return p_same_list, unique_pairs, review_state, tags_list
-
     def _del_feedback_edges(infr, edges=None):
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_state', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_tags', edges)
+        ut.nx_delete_edge_attr(infr.graph, 'num_reviews', edges)
+        # ut.nx_delete_edge_attr(infr.graph, 'is_reviewed', edges)
 
     def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list):
         # Ensure edges exist
@@ -558,6 +599,8 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('reviewed_state', _dz(edges, review_state))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
+        # infr.set_edge_attrs('num_reviews', _dz(edges, tags_list))
+        # infr.set_edge_attrs('is_reviewed', _dz(edges, [True]))
 
     @profile
     def apply_feedback_edges(infr):
@@ -583,11 +626,26 @@ class _AnnotInfrFeedback(object):
             print('[infr] apply_feedback_edges')
         infr.remove_dummy_edges()
         infr._del_feedback_edges()
-        p_same_list, unique_pairs_, review_state, tags_list = infr._get_feedback_probs()
+        # Transforms dictionary feedback into numpy array
+        feedback_edges = list(infr.user_feedback.keys())
+        # Take most recent review
+        num_review_list = [len(infr.user_feedback[edge]) for edge in feedback_edges]
+        review_tag_list = [infr.user_feedback[edge][-1] for edge in feedback_edges]
+        review_list = ut.take_column(review_tag_list, 0)
+        tags_list = ut.take_column(review_tag_list, 1)
+        p_nomatch = np.array(ut.dict_take_column(review_list, 'p_nomatch'))
+        p_match = np.array(ut.dict_take_column(review_list, 'p_match'))
+        p_notcomp = np.array(ut.dict_take_column(review_list, 'p_notcomp'))
+        state_probs = np.vstack([p_nomatch, p_match, p_notcomp])
+        review_stateid = state_probs.argmax(axis=0)
+        review_state = ut.take(infr.truth_texts, review_stateid)
+        p_same_list = infr._compute_p_same(p_match, p_notcomp)
+
         # Put pair orders in context of the graph
         unique_pairs = [(aid2, aid1) if infr.graph.has_edge(aid2, aid1) else
-                        (aid1, aid2) for (aid1, aid2) in unique_pairs_]
+                        (aid1, aid2) for (aid1, aid2) in feedback_edges]
         infr._set_feedback_edges(unique_pairs, review_state, p_same_list, tags_list)
+        infr.set_edge_attrs('num_reviews', _dz(unique_pairs, num_review_list))
         infr.ensure_mst()
 
     def reset_feedback(infr):
@@ -891,6 +949,8 @@ class AnnotInference(ut.NiceRepr,
     """
 
     CUT_WEIGHT_KEY = 'cut_weight'
+    graph_cls = nx.Graph
+    # graph_cls = nx.DiGraph
 
     def __init__(infr, ibs, aids, nids=None, autoinit=False, verbose=False):
         infr.verbose = verbose
@@ -940,8 +1000,7 @@ class AnnotInference(ut.NiceRepr,
     def initialize_graph(infr):
         if infr.verbose >= 1:
             print('[infr] initialize_graph')
-        infr.graph = nx.Graph()
-        # infr.graph = nx.DiGraph()
+        infr.graph = infr.graph_cls()
         infr.graph.add_nodes_from(infr.aids)
 
         node_to_aid = {aid: aid for aid in infr.aids}
@@ -1018,16 +1077,21 @@ class AnnotInference(ut.NiceRepr,
         reviewed edges, and algorithmally inferred edges.  If an inference
         algorithm is not run, then user review is all that matters.
         """
-        graph = infr.graph
         # Make a graph where connections do indicate same names
         reviewed_states = infr.get_edge_attrs('reviewed_state')
+        graph2 = infr.graph_cls()
         keep_edges = [key for key, val in reviewed_states.items()
                       if val == 'match']
-        graph2 = graph.copy()
-        graph2.remove_edges_from(list(graph2.edges()))
+        graph2.add_nodes_from(infr.graph.nodes())
         graph2.add_edges_from(keep_edges)
+        # remove_edges = [key for key, val in reviewed_states.items()
+        #                 if val == 'match']
+        # graph2 = infr.graph.copy()
+        # graph2.remove_edges_from(remove_edges)
+        # graph2.remove_edges_from(list(graph2.edges()))
+        # graph2.add_edges_from(keep_edges)
         ccs = list(nx.connected_components(graph2))
-        cc_subgraphs = [graph.subgraph(cc) for cc in ccs]
+        cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
 
     def connected_component_status(infr):
@@ -1121,23 +1185,6 @@ class AnnotInference(ut.NiceRepr,
         infr.set_node_attrs('name_label', model.node_to_label)
         infr.apply_cuts()
         infr.ensure_mst()
-
-    def find_possible_binary_splits(infr):
-        flagged_edges = []
-
-        for subgraph in infr.connected_component_reviewed_subgraphs():
-            inconsistent_edges = [
-                edge
-                for edge, state in nx.get_edge_attributes(subgraph, 'reviewed_state').items()
-                if state == 'nomatch']
-            subgraph.remove_edges_from(inconsistent_edges)
-            subgraph = infr.simplify_graph(subgraph)
-            for s, t in inconsistent_edges:
-                edgeset = nx.minimum_edge_cut(subgraph, s, t)
-                edgeset = set([tuple(sorted(edge)) for edge in edgeset])
-                flagged_edges.append(edgeset)
-        edges = ut.flatten(flagged_edges)
-        return edges
 
     @profile
     def get_filtered_edges(infr, review_cfg):
@@ -1289,18 +1336,141 @@ class AnnotInference(ut.NiceRepr,
             aids1 = ut.take(aids1, top_idx)
             aids2 = ut.take(aids2, top_idx)
 
-        print('[infr] num_filtered = %r' % (num_filtered,))
+        # print('[infr] num_filtered = %r' % (num_filtered,))
         return aids1, aids2
+
+    @profile
+    def get_edges_for_review(infr):
+        """
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr()
+            >>> infr.exec_matching()
+            >>> infr.relabel_using_reviews()
+            >>> infr.apply_match_edges(dict(ranks_top=3, ranks_bot=1))
+            >>> infr.apply_match_scores()
+            >>> infr.apply_weights()
+            >>> infr.add_feedback(1, 2, 'match', apply=True)
+            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> infr.add_feedback(3, 1, 'nomatch', apply=True)
+            >>> infr.add_feedback(3, 5, 'notcomp', apply=True)
+            >>> infr.add_feedback(5, 6, 'match', apply=True)
+            >>> infr.add_feedback(4, 5, 'nomatch', apply=True)
+            >>> #infr.relabel_using_reviews()
+            >>> infr.apply_cuts()
+            >>> edges = infr.get_edges_for_review()
+            >>> filtered_edges = zip(*infr.get_filtered_edges({}))
+            >>> print('edges = %r' % (edges,))
+
+        Example2:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr()
+            >>> infr.exec_matching()
+            >>> infr.relabel_using_reviews()
+            >>> infr.apply_match_edges(dict(ranks_top=3, ranks_bot=1))
+            >>> infr.apply_match_scores()
+            >>> infr.apply_weights()
+            >>> edges1 = infr.get_edges_for_review()
+            >>> print('edges1 = %s' % (ut.repr4(edges1),))
+            >>> uv, why = edges[0]
+            >>> infr.add_feedback(uv[0], uv[1], 'match', apply=True)
+            >>> infr.relabel_using_reviews()
+            >>> edges2 = infr.get_edges_for_review()
+            >>> print('edges2 = %s' % (ut.repr4(edges2),))
+        """
+        graph = infr.graph
+        relevant_edges = list(graph.edges())
+        relevant_nodes = ut.unique(ut.flatten(relevant_edges))
+        # edge_to_state = infr.get_edge_attrs('reviewed_state', relevant_edges, default='unreviewed')
+        node_to_nid = infr.get_node_attrs('name_label', relevant_nodes)
+        uvedges = list(relevant_edges)
+        ccedges = [(node_to_nid[u], node_to_nid[v]) for u, v in uvedges]
+
+        needs_review_edges = []
+        noneed_ccedges = []
+
+        rng = np.random.RandomState(0)
+
+        # TODO: more intelligent mechanism for choosing which to review
+        # TODO: assume the user isn't always right
+
+        ccedge_to_uvedges = ut.group_items(uvedges, ccedges)
+        for ccedge, uvs in ccedge_to_uvedges.items():
+            datas = [graph.get_edge_data(*uv) for uv in uvs]
+            states = ut.dict_take_column(datas, 'reviewed_state', default='unreviewed')
+            state_set = set(states)
+
+            if ccedge[0] == ccedge[1]:
+                # Within compoment case
+                if 'nomatch' in state_set:
+                    # Inconsistent case!
+                    # mark one of these for review
+                    subgraph = infr.graph.subgraph(set(ut.flatten(uvs)))
+                    flagged_edges = infr._flag_possible_split_edges(subgraph)
+                    chosen = flagged_edges[rng.randint(len(flagged_edges))]
+                    why = 'split'
+                    needs_review_edges.append((chosen, why))
+                else:
+                    noneed_ccedges.append(ccedge)
+            elif ccedge[0] != ccedge[1]:
+                validxs = ut.where([s != 'notcomp' for s in states])
+                if len(validxs) > 0:
+                    # Choose an edge that isn't noncmop
+                    chosen_idx = validxs[rng.randint(len(validxs))]
+                    chosen = uvs[chosen_idx]
+                    why = 'unreviewed'
+                    needs_review_edges.append((chosen, why))
+                else:
+                    noneed_ccedges.append(ccedge)
+        # Hack, sort by scores
+        scores = np.array([
+            max(infr.graph.get_edge_data(*edge).get('score', -1), -1)
+            for edge in ut.take_column(needs_review_edges, 0)])
+        sortx = scores.argsort()[::-1]
+        needs_review_edges = ut.take(needs_review_edges, sortx)
+        return needs_review_edges
+
+    def _flag_possible_split_edges(infr, subgraph):
+        inconsistent_edges = [
+            edge
+            for edge, state in nx.get_edge_attributes(subgraph, 'reviewed_state').items()
+            if state == 'nomatch']
+        check_edges = set([])
+        subgraph.remove_edges_from(inconsistent_edges)
+        subgraph = infr.simplify_graph(subgraph)
+        ut.util_graph.nx_set_default_edge_attributes(subgraph, 'num_reviews', 1)
+        for s, t in inconsistent_edges:
+            # TODO: use num_reviews on the edge as the weight
+            # edgeset = nx.minimum_edge_cut(subgraph, s, t)
+            edgeset = ut.nx_mincut_edges_weighted(subgraph, s, t, capacity='num_reviews')
+            edgeset = set([tuple(sorted(edge)) for edge in edgeset])
+            check_edges.update(edgeset)
+        return list(check_edges)
+
+    def find_possible_binary_splits(infr):
+        flagged_edges = []
+        for subgraph in infr.connected_component_reviewed_subgraphs():
+            flagged_edges.extend(infr._flag_possible_split_edges(subgraph))
+        edges = ut.flatten(flagged_edges)
+        return edges
 
     def generate_reviews(infr):
         # TODO: make this an efficient priority queue
-        def get_next():
-            aids1, aids2 = infr.get_filtered_edges({})
-            if len(aids1) == 0:
+        def get_next(idx=0):
+            edges = infr.get_edges_for_review()
+            if len(edges) == 0:
                 raise StopIteration('no more to review!')
-            return aids1[0], aids2[0]
-        while True:
-            yield get_next()
+            (aid1, aid2), why = edges[idx]
+            return aid1, aid2
+
+        import itertools
+        for index in itertools.count():
+            if index % 2 == 0:
+                yield get_next(idx=0)
+            else:
+                yield get_next(idx=-1)
 
 
 @profile
@@ -1314,8 +1484,8 @@ def demo_graph_iden():
     ibs = ibeis.opendb('PZ_MTEST')
     # Initially the entire population is unnamed
     graph_freq = 1
-    n_reviews = 3
-    n_queries = 2
+    n_reviews = 5
+    n_queries = 1
     # n_reviews = 4
     # n_queries = 1
     # n_reviews = 3
@@ -1342,11 +1512,10 @@ def demo_graph_iden():
         infr.exec_matching()
         infr.apply_match_edges(dict(ranks_top=3, ranks_bot=1))
         infr.apply_match_scores()
-
         infr.apply_feedback_edges()
         infr.apply_weights()
-        infr.relabel_using_reviews()
-        infr.apply_cuts()
+        # infr.relabel_using_reviews()
+        # infr.apply_cuts()
 
         # showkw = dict(fontsize=8, show_cuts=True, with_colorbar=True)
         # infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
@@ -1364,25 +1533,28 @@ def demo_graph_iden():
         # Now either a manual or automatic reviewer must
         # determine which matches are correct
 
+        def oracle_decision(aid1, aid2):
+            # Assume perfect reviewer
+            nid1, nid2 = ibs.get_annot_nids([aid1, aid2])
+            truth = nid1 == nid2
+            status = infr.truth_texts[truth]
+            tags = []
+            # TODO:
+            # if view1 != view1: infr.add_feedback(aid1, aid2, 'notcomp', apply=True)
+            return status, tags
+
         # for count in ut.ProgIter(range(1, n_reviews + 1), 'review'):
         for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
             if oracle_mode:
-                # Assume perfect reviewer
-                nid1, nid2 = ibs.get_annot_nids([aid1, aid2])
-                truth = nid1 == nid2
-                if total == 6:
-                    infr.add_feedback(8, 7, 'nomatch', apply=True)
-                else:
-                    if truth:
-                        infr.add_feedback(aid1, aid2, 'match', apply=True)
-                    else:
-                        infr.add_feedback(aid1, aid2, 'nomatch', apply=True)
-                # TODO:
-                # if view1 != view1: infr.add_feedback(aid1, aid2, 'notcomp', apply=True)
+                status, tags = oracle_decision(aid1, aid2)
+                # if total == 6:
+                #     infr.add_feedback(8, 7, 'nomatch', apply=True)
+                # else:
+                infr.add_feedback(aid1, aid2, status, tags, apply=True)
                 # infr.apply_feedback_edges()
-                infr.apply_weights()
-                infr.relabel_using_reviews()
-                infr.apply_cuts()
+                # infr.apply_weights()
+                # infr.relabel_using_reviews()
+                # infr.apply_cuts()
             else:
                 raise NotImplementedError('review based on thresholded graph cuts')
 
@@ -1395,10 +1567,26 @@ def demo_graph_iden():
                     _info = ut.graph_info(infr.graph, stats=True,
                                           ignore=(infr.visual_edge_attrs +
                                                   infr.visual_node_attrs))
+                    _info = ut.graph_info(infr.graph, stats=False,
+                                          ignore=(infr.visual_edge_attrs +
+                                                  infr.visual_node_attrs))
                     print(ut.repr3(_info, precision=2))
-            total += 1
             if count >= n_reviews:
                 break
+            total += 1
+
+    import utool
+    utool.embed()
+    if (total) % graph_freq != 0:
+        infr.show_graph(**showkw)
+        # pt.dark_background(force=True)
+        pt.set_title('review #%d-%d' % (total, query_num))
+        # print(ut.repr3(ut.graph_info(infr.graph)))
+        if 0:
+            _info = ut.graph_info(infr.graph, stats=True,
+                                  ignore=(infr.visual_edge_attrs +
+                                          infr.visual_node_attrs))
+            print(ut.repr3(_info, precision=2))
 
     # print(ut.repr3(ut.graph_info(infr.graph)))
     # infr.show_graph()
