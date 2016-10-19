@@ -260,9 +260,8 @@ def get_training_pairs():
     # import utool
     # utool.embed()
     rng = np.random.RandomState(42)
-    import sys
 
-    for seed in (rng.rand(5) * sys.maxint).astype(np.int):
+    for seed in (rng.rand(5) * 4294967295).astype(np.int):
         print('seed = %r' % (seed,))
         rng = np.random.RandomState(42)
         xvalkw = dict(n_splits=10, shuffle=True, random_state=rng)
@@ -332,6 +331,7 @@ def get_training_pairs():
 
         import sandbox_utools as sbut
         print(sbut.to_string_monkey(df, highlight_cols=[0, 1, 2]))
+        print(df.mean())
     # print(df.to_string())
 
 
