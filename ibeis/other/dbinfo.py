@@ -1081,7 +1081,7 @@ def get_dbinfo(ibs, verbose=True,
         >>> #ibs = ibeis.opendb(db='PZ_Master0')
         >>> ibs = ibeis.opendb('testdb1')
         >>> assert ibs.get_dbname() == 'testdb1', 'DO NOT DELETE CONTRIBUTORS OF OTHER DBS'
-        >>> ibs.delete_contributors(ibs.get_valid_contrib_rowids())
+        >>> ibs.delete_contributors(ibs.get_valid_contributor_rowids())
         >>> ibs.delete_empty_nids()
         >>> #ibs = ibeis.opendb(db='PZ_MTEST')
         >>> output = get_dbinfo(ibs, with_contrib=False, verbose=False, short=True)
@@ -1368,16 +1368,16 @@ def get_dbinfo(ibs, verbose=True,
     # hack remove colon for image alignment
     def fix_tag_list(tag_list):
         return [None if tag is None else tag.replace(':', ';') for tag in tag_list]
-    image_contrib_tags = fix_tag_list(ibs.get_image_contributor_tag(valid_gids))
-    annot_contrib_tags = fix_tag_list(ibs.get_annot_image_contributor_tag(valid_aids))
-    contrib_tag_to_gids = ut.group_items(valid_gids, image_contrib_tags)
-    contrib_tag_to_aids = ut.group_items(valid_aids, annot_contrib_tags)
+    image_contributor_tags = fix_tag_list(ibs.get_image_contributor_tag(valid_gids))
+    annot_contributor_tags = fix_tag_list(ibs.get_annot_image_contributor_tag(valid_aids))
+    contributor_tag_to_gids = ut.group_items(valid_gids, image_contributor_tags)
+    contributor_tag_to_aids = ut.group_items(valid_aids, annot_contributor_tags)
 
-    contrib_tag_to_qualstats = {key: ibs.get_annot_qual_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
-    contrib_tag_to_viewstats = {key: ibs.get_annot_yaw_stats(aids) for key, aids in six.iteritems(contrib_tag_to_aids)}
+    contributor_tag_to_qualstats = {key: ibs.get_annot_qual_stats(aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_viewstats = {key: ibs.get_annot_yaw_stats(aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
 
-    contrib_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contrib_tag_to_gids)}
-    contrib_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contrib_tag_to_aids)}
+    contributor_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)}
+    contributor_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)}
 
     if verbose:
         print('Summarizing')
@@ -1428,8 +1428,8 @@ def get_dbinfo(ibs, verbose=True,
             raise
 
     # Get contributor statistics
-    contrib_rowids = ibs.get_valid_contrib_rowids()
-    num_contributors = len(contrib_rowids)
+    contributor_rowids = ibs.get_valid_contributor_rowids()
+    num_contributors = len(contributor_rowids)
 
     # print
     num_tabs = 5
@@ -1508,11 +1508,11 @@ def get_dbinfo(ibs, verbose=True,
         '# Annots per Sex = %s' % align_dict2(sextext2_nAnnots),
     ] if not short  and with_agesex else []
 
-    contrib_block_lines = [
-        '# Images per contributor       = ' + align_dict2(contrib_tag_to_nImages),
-        '# Annots per contributor       = ' + align_dict2(contrib_tag_to_nAnnots),
-        '# Quality per contributor      = ' + ut.dict_str(contrib_tag_to_qualstats, sorted_=True),
-        '# Viewpoint per contributor    = ' + ut.dict_str(contrib_tag_to_viewstats, sorted_=True),
+    contributor_block_lines = [
+        '# Images per contributor       = ' + align_dict2(contributor_tag_to_nImages),
+        '# Annots per contributor       = ' + align_dict2(contributor_tag_to_nAnnots),
+        '# Quality per contributor      = ' + ut.dict_str(contributor_tag_to_qualstats, sorted_=True),
+        '# Viewpoint per contributor    = ' + ut.dict_str(contributor_tag_to_viewstats, sorted_=True),
     ] if with_contrib else []
 
     img_block_lines = [
@@ -1535,7 +1535,7 @@ def get_dbinfo(ibs, verbose=True,
         annot_per_qualview_block_lines +
         annot_per_agesex_block_lines +
         img_block_lines +
-        contrib_block_lines +
+        contributor_block_lines +
         imgsize_stat_lines +
         [('L============================'), ]
     )

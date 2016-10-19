@@ -256,13 +256,13 @@ def view():
     aid_list = filter_annots_imageset(aid_list)
     nid_list = ibs.get_valid_nids()
     nid_list = filter_names_imageset(nid_list)
-    # contrib_list = ibs.get_valid_contrib_rowids()
+    # contributor_list = ibs.get_valid_contributor_rowids()
     note_list = ibs.get_image_notes(gid_list)
     note_list = [
         ','.join(note.split(',')[:-1])
         for note in note_list
     ]
-    contrib_list = set(note_list)
+    contributor_list = set(note_list)
     # nid_list = ibs.get_valid_nids()
     aid_list_count = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
     aid_list_count = filter_annots_imageset(aid_list_count)
@@ -317,13 +317,13 @@ def view():
     valid_aids = ibs.get_valid_aids()
     valid_aids = filter_annots_imageset(valid_aids)
     used_gids = list(set( ibs.get_annot_gids(valid_aids) ))
-    # used_contrib_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
+    # used_contributor_tags = list(set( ibs.get_image_contributor_tag(used_gids) ))
     note_list = ibs.get_image_notes(used_gids)
     note_list = [
         ','.join(note.split(',')[:-1])
         for note in note_list
     ]
-    used_contrib_tags = set(note_list)
+    used_contributor_tags = set(note_list)
 
     # Get Age and sex (By Annot)
     # annot_sex_list = ibs.get_annot_sex(valid_aids_)
@@ -428,9 +428,9 @@ def view():
                          gid_list=gid_list,
                          gid_list_str=','.join(map(str, gid_list)),
                          num_gids=len(gid_list),
-                         contrib_list=contrib_list,
-                         contrib_list_str=','.join(map(str, contrib_list)),
-                         num_contribs=len(contrib_list),
+                         contributor_list=contributor_list,
+                         contributor_list_str=','.join(map(str, contributor_list)),
+                         num_contribs=len(contributor_list),
                          gid_list_count=gid_list_count,
                          gid_list_count_str=','.join(map(str, gid_list_count)),
                          num_gids_count=len(gid_list_count),
@@ -448,8 +448,8 @@ def view():
                          num_nids_count=len(nid_list_count),
                          used_gids=used_gids,
                          num_used_gids=len(used_gids),
-                         used_contribs=used_contrib_tags,
-                         num_used_contribs=len(used_contrib_tags),
+                         used_contribs=used_contributor_tags,
+                         num_used_contribs=len(used_contributor_tags),
                          __wrapper_header__=False)
 
 

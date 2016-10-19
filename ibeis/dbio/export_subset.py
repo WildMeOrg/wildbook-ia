@@ -227,14 +227,14 @@ def export_transfer_data(ibs_src, gid_list=None):
                ) == 0, 'images are still uncontributed'
     # with ut.EmbedOnException():
     if gid_list is not None:
-        contrib_rowid_list = list(
+        contributor_rowid_list = list(
             set(ibs_src.get_image_contributor_rowid(gid_list)))
     assert len(
-        contrib_rowid_list) > 0, 'There must be at least one contributor to merge'
+        contributor_rowid_list) > 0, 'There must be at least one contributor to merge'
     contributor_td_list = [
-        export_contributor_transfer_data(ibs_src, contrib_rowid, nid_list,
+        export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
                                          species_rowid_list, valid_gid_list=gid_list)
-        for contrib_rowid in contrib_rowid_list
+        for contributor_rowid in contributor_rowid_list
     ]
     # Geolocate and create database's TransferData object
     success, location_city, location_state, location_country, location_zip = ut.geo_locate()
@@ -275,10 +275,10 @@ def export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list,
         >>> user_prompt = False
         >>> nid_list = list(set(ut.flatten(ibs_src.get_image_nids(gid_list))))
         >>> species_rowid_list = ibs_src._get_all_species_rowids()
-        >>> contrib_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
+        >>> contributor_rowid_list = list(set(ibs_src.get_image_contributor_rowid(gid_list)))
         >>> valid_gid_list = gid_list
-        >>> contributor_rowid = contrib_rowid_list[0]
-        >>> contrib_td = export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, species_rowid_list, valid_gid_list=valid_gid_list)
+        >>> contributor_rowid = contributor_rowid_list[0]
+        >>> contributor_td = export_contributor_transfer_data(ibs_src, contributor_rowid, nid_list, species_rowid_list, valid_gid_list=valid_gid_list)
 
     Dev::
         ibs = ibs_src
@@ -550,7 +550,7 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
     added = []
     rejected = []
     for contributor_td in td.contributor_td_list:
-        contrib_uuid = contributor_td.contributor_uuid
+        contributor_uuid = contributor_td.contributor_uuid
         success = import_contributor_transfer_data(
             ibs_dst,
             contributor_td,
@@ -559,9 +559,9 @@ def import_transfer_data(ibs_dst, td, bulk_conflict_resolution='merge'):
             bulk_conflict_resolution=bulk_conflict_resolution
         )
         if success:
-            added.append(contrib_uuid)
+            added.append(contributor_uuid)
         else:
-            rejected.append(contrib_uuid)
+            rejected.append(contributor_uuid)
     print('[import_transfer_data] ----------------------')
     print('[import_transfer_data] Database %r imported' %
           (td.transfer_database_name,))
@@ -736,7 +736,7 @@ def import_config_transfer_data(ibs_dst, config_td, contributor_rowid,
     # Add configs
     config_rowid_list = ibs_dst.add_config(
         config_suffixes_list,
-        contrib_rowid_list=[contributor_rowid] * len(config_suffixes_list)
+        contributor_rowid_list=[contributor_rowid] * len(config_suffixes_list)
     )
     return config_rowid_list
 
@@ -905,8 +905,8 @@ def import_image_transfer_data(ibs_dst, image_td, contributor_rowid,
     print(
         '[import_transfer_data]     '
         'Associating images with contributors and setting reviewed and enabled bits...')
-    contrib_rowid_list = [contributor_rowid] * len(gid_list)
-    ibs_dst.set_image_contributor_rowid(gid_list, contrib_rowid_list)
+    contributor_rowid_list = [contributor_rowid] * len(gid_list)
+    ibs_dst.set_image_contributor_rowid(gid_list, contributor_rowid_list)
     ibs_dst.set_image_reviewed(gid_list, image_toggle_reviewed_list)
     ibs_dst.set_image_enabled(gid_list, image_toggle_enabled_list)
     # Add images to appropriate imagesets

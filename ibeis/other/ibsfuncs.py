@@ -3339,14 +3339,14 @@ def detect_join_cases(ibs):
     #return qres_list
 
 
-def _split_car_contrib_tag(contrib_tag, distinguish_invalids=True):
-        if contrib_tag is not None and 'NNP GZC Car' in contrib_tag:
-            contrib_tag_split = contrib_tag.strip().split(',')
-            if len(contrib_tag_split) == 2:
-                contrib_tag = contrib_tag_split[0].strip()
+def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
+        if contributor_tag is not None and 'NNP GZC Car' in contributor_tag:
+            contributor_tag_split = contributor_tag.strip().split(',')
+            if len(contributor_tag_split) == 2:
+                contributor_tag = contributor_tag_split[0].strip()
         elif distinguish_invalids:
-            contrib_tag = None
-        return contrib_tag
+            contributor_tag = None
+        return contributor_tag
 
 
 @register_ibs_method
@@ -3378,7 +3378,7 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
                 ('annotation_age_max',   age_max_list),
                 ('annotation_name',      name_list),
                 ('image_id',             gid_list),
-                ('image_contributor',    contrib_list),
+                ('image_contributor',    contributor_list),
                 ('image_car',            car_list),
                 ('image_filename',       uri_list),
                 ('image_unixtime',       unixtime_list),
@@ -3421,8 +3421,8 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
     species_list   = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
     quality_list   = ibs.get_annot_quality_texts(aid_list)
-    contrib_list   = ibs.get_image_contributor_tag(gid_list)
-    car_list       = [ _split_car_contrib_tag(contrib_tag) for contrib_tag in contrib_list ]
+    contributor_list   = ibs.get_image_contributor_tag(gid_list)
+    car_list       = [ _split_car_contributor_tag(contributor_tag) for contributor_tag in contributor_list ]
     uri_list       = ibs.get_image_uris(gid_list)
     sex_list       = ibs.get_annot_sex_texts(aid_list)
     age_min_list   = ibs.get_annot_age_months_est_min(aid_list)
@@ -3472,8 +3472,8 @@ def report_sightings(ibs, complete=True, include_images=False, **kwargs):
         age_max_list   = filler
         name_list      = filler
         gid_list       = missing_gid_list
-        contrib_list   = ibs.get_image_contributor_tag(missing_gid_list)
-        car_list       = [ _split_car_contrib_tag(contrib_tag) for contrib_tag in contrib_list ]
+        contributor_list   = ibs.get_image_contributor_tag(missing_gid_list)
+        car_list       = [ _split_car_contributor_tag(contributor_tag) for contributor_tag in contributor_list ]
         uri_list       = ibs.get_image_uris(missing_gid_list)
         unixtime_list  = ibs.get_image_unixtime(missing_gid_list)
         datetime_list = [
@@ -3649,7 +3649,7 @@ def flag_aids_count(ibs, aid_list):
     aid_list       = ut.sortedby(aid_list, unixtime_list)
     gid_list       = ibs.get_annot_gids(aid_list)
     nid_list       = ibs.get_annot_name_rowids(aid_list)
-    contrib_list   = ibs.get_image_contributor_tag(gid_list)
+    contributor_list   = ibs.get_image_contributor_tag(gid_list)
     # Get filter flags for aids
     isunknown_list = ibs.is_aid_unknown(aid_list)
     flag_list      = [not unknown  for unknown in isunknown_list]
@@ -3657,12 +3657,12 @@ def flag_aids_count(ibs, aid_list):
     flag_list_     = []
     seen_dict      = ut.ddict(set)
     # Mark the first annotation (for each name) seen per car
-    values_list    = zip(aid_list, gid_list, nid_list, flag_list, contrib_list)
+    values_list    = zip(aid_list, gid_list, nid_list, flag_list, contributor_list)
     for aid, gid, nid, flag, contrib in values_list:
         if flag:
-            contrib_ = _split_car_contrib_tag(contrib, distinguish_invalids=False)
-            if nid not in seen_dict[contrib_]:
-                seen_dict[contrib_].add(nid)
+            contributor_ = _split_car_contributor_tag(contrib, distinguish_invalids=False)
+            if nid not in seen_dict[contributor_]:
+                seen_dict[contributor_].add(nid)
                 flag_list_.append(True)
                 continue
         flag_list_.append(False)

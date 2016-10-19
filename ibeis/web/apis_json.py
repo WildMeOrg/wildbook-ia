@@ -901,10 +901,10 @@ def get_annot_multiple_json(ibs, annot_uuid_list, **kwargs):
     return ibs.get_annot_multiple(aid_list, **kwargs)
 
 
-# @register_api('/api/annot/image/contributor/tag/json/', methods=['GET'])
-# def get_annot_image_contributor_tag_json(ibs, annot_uuid_list):
-#     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
-#     return ibs.get_annot_image_contributor_tag(aid_list)
+@register_api('/api/annot/image/contributor/tag/json/', methods=['GET'])
+def get_annot_image_contributor_tag_json(ibs, annot_uuid_list):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_image_contributor_tag(aid_list)
 
 
 @register_api('/api/annot/age/months/json/', methods=['GET'], __api_plural_check__=False)
@@ -1121,6 +1121,11 @@ def get_species_codes_json(ibs, species_uuid_list):
 def get_species_notes_json(ibs, species_uuid_list):
     species_rowid_list = ibs.get_species_rowids_from_uuids(species_uuid_list)
     return ibs.get_species_notes(species_rowid_list)
+
+
+@register_api('/api/contributor/rowid/uuid/json/', methods=['GET'])
+def get_contributor_rowids_from_uuid_json(ibs, contributor_uuid_list):
+    return ibs.get_contributor_rowid_from_uuid(contributor_uuid_list)
 
 
 @register_api('/chaos/imageset/', methods=['GET', 'POST'], __api_plural_check__=False)

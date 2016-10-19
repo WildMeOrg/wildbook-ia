@@ -83,7 +83,7 @@ INDEPENDENT_DEFAULTS = {
     #'species'             : None,
     # Timedelta Params
     'require_timestamp'   : None,
-    'contrib_contains'    : None,
+    'contributor_contains'    : None,
     # Quality Params
     #'require_quality'     : None,  # if True unknown qualities are removed
     #'minqual'             : 'poor',

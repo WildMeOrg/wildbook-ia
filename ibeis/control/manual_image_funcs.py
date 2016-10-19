@@ -518,13 +518,13 @@ def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
 
 @register_ibs_method
 @accessor_decors.setter
-# @register_api('/api/image/contributor/rowid/', methods=['PUT'])
+@register_api('/api/image/contributor/rowid/', methods=['PUT'])
 def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs):
     r"""
     Sets the image contributor rowid
     """
     id_iter = ((gid,) for gid in gid_list)
-    val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
+    val_list = ((contributor_rowid,) for contributor_rowid in contributor_rowid_list)
     ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter, **kwargs)
 
 
@@ -919,7 +919,7 @@ def get_valid_image_uuids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-# @register_api('/api/image/contributor/rowid/', methods=['GET'])
+@register_api('/api/image/contributor/rowid/', methods=['GET'])
 def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
     r"""
     contributor_rowid_list <- image.contributor_rowid[image_rowid_list]
@@ -2182,7 +2182,7 @@ def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_be
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-# @register_api('/api/image/contributor/tag/', methods=['GET'])
+@register_api('/api/image/contributor/tag/', methods=['GET'])
 def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
     r"""
     contributor_tag_list <- image.contributor_tag[image_rowid_list]
