@@ -284,6 +284,7 @@ class _AnnotInfrViz(object):
 
     def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False,
                    mode=None, with_colorbar=False, **kwargs):
+        kwargs['fontsize'] = kwargs.get('fontsize', 8)
         import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")

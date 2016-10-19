@@ -506,6 +506,9 @@ class _AnnotInfrFeedback(object):
 
     def _dynamically_apply_feedback(infr, edge, review_dict, tags):
         """
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden _dynamically_apply_feedback:1 --show
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
@@ -520,6 +523,26 @@ class _AnnotInfrFeedback(object):
             >>> infr.apply_feedback_edges()
             >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
             >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.relabel_using_reviews()
+            >>> infr.verbose = 2
+            >>> ut.qt4ensure()
+            >>> infr.show_graph(show_cuts=True)
+            >>> infr.add_feedback(6, 2, 'match', apply=True)
+            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> infr.add_feedback(3, 4, 'match', apply=True)
+            >>> infr.show_graph(show_cuts=True)
+            >>> infr.add_feedback(2, 3, 'nomatch', apply=True)
+            >>> infr.show_graph(show_cuts=True)
+            >>> infr.add_feedback(6, 4, 'match', apply=True)
+            >>> infr.show_graph(show_cuts=True)
+            >>> import plottool as pt
+            >>> pt.present()
+            >>> ut.show_if_requested()
         """
         if review_dict is None:
             if infr.verbose >= 2:
@@ -530,6 +553,8 @@ class _AnnotInfrFeedback(object):
         else:
             review_stateid = ut.argmax(ut.take(review_dict, infr.prob_keys))
             state = infr.truth_texts[review_stateid]
+            if infr.verbose >= 2:
+                print('[infr] _dynamically_apply_feedback (state=%r)' % (state,))
             p_same = infr._compute_p_same(review_dict['p_match'],
                                           review_dict['p_notcomp'])
             infr._set_feedback_edges([edge], [state], [p_same], [tags])
@@ -537,21 +562,22 @@ class _AnnotInfrFeedback(object):
             infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
             # Also dynamically apply weights
             infr.set_edge_attrs('cut_weight', {edge: p_same})
-            # Dynamically update names
-            if state == 'match':
-                subgraph = infr._get_influenced_subgraph(edge)
-                # TODO: just do a relabel on this graph
-                # with labels, is_cut, all that stuff
-                nid1 = infr.graph.node[edge[0]]['name_label']
-                matching_nodes = list(subgraph.nodes())
-                print('matching_nodes = %r' % (matching_nodes,))
-                infr.set_node_attrs('name_label', _dz(matching_nodes, [nid1]))
-            elif state == 'nomatch':
-                # TODO: separate trivial split cases otherwise mark them as
-                # inconsistent
-                pass
-            if infr.verbose >= 2:
-                print('[infr] _dynamically_apply_feedback (state=%r)' % (state,))
+        # Dynamically update names
+        subgraph = infr._get_influenced_subgraph(edge)
+        print('Relabeling')
+        infr.relabel_using_reviews(graph=subgraph)
+        infr.apply_cuts(graph=subgraph)
+        # if state == 'match':
+        #     # # TODO: just do a relabel on this graph
+        #     # # with labels, is_cut, all that stuff
+        #     # nid1 = infr.graph.node[edge[0]]['name_label']
+        #     # matching_nodes = list(subgraph.nodes())
+        #     # print('matching_nodes = %r' % (matching_nodes,))
+        #     # infr.set_node_attrs('name_label', _dz(matching_nodes, [nid1]))
+        # elif state == 'nomatch':
+        #     # TODO: separate trivial split cases otherwise mark them as
+        #     # inconsistent
+        #     pass
 
     def _get_influenced_subgraph(infr, edge):
         """
@@ -575,6 +601,8 @@ class _AnnotInfrFeedback(object):
                                                   continue_condition=continue_condition))
         relevant_nodes = list(set(con1).union(set(con2)).union({n1, n2}))
         subgraph = infr.graph.subgraph(relevant_nodes)
+        if infr.verbose >= 2:
+            print('relevant_nodes = %r' % (relevant_nodes,))
         return subgraph
 
     def _compute_p_same(infr, p_match, p_notcomp):
@@ -1043,17 +1071,20 @@ class AnnotInference(ut.NiceRepr,
         infr.set_edge_attrs('cut_weight', _dz(edges, weights))
 
     @profile
-    def apply_cuts(infr):
+    def apply_cuts(infr, graph=None):
         """
         Cuts edges with different names and uncuts edges with the same name.
         """
         if infr.verbose >= 1:
             print('[infr] apply_cuts')
-        infr.ensure_mst()
-        ut.nx_delete_edge_attr(infr.graph, 'is_cut')
+        # infr.ensure_mst()
+        if graph is None:
+            graph = infr.graph
+        # ut.nx_delete_edge_attr(graph, 'is_cut')
         node_to_label = infr.get_node_attrs('name_label')
         edge_to_cut = {(u, v): node_to_label[u] != node_to_label[v]
-                       for (u, v) in infr.graph.edges()}
+                       for (u, v) in graph.edges()}
+        print('cut %d edges' % (sum(edge_to_cut.values())),)
         infr.set_edge_attrs('is_cut', edge_to_cut)
 
     def get_threshold(infr):
@@ -1071,25 +1102,21 @@ class AnnotInference(ut.NiceRepr,
         infr.thresh = thresh
         return thresh
 
-    def connected_component_reviewed_subgraphs(infr):
+    def connected_component_reviewed_subgraphs(infr, graph=None):
         """
         Two kinds of edges are considered in connected component analysis: user
         reviewed edges, and algorithmally inferred edges.  If an inference
         algorithm is not run, then user review is all that matters.
         """
+        if graph is None:
+            graph = infr.graph
         # Make a graph where connections do indicate same names
-        reviewed_states = infr.get_edge_attrs('reviewed_state')
+        reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
         graph2 = infr.graph_cls()
         keep_edges = [key for key, val in reviewed_states.items()
                       if val == 'match']
-        graph2.add_nodes_from(infr.graph.nodes())
+        graph2.add_nodes_from(graph.nodes())
         graph2.add_edges_from(keep_edges)
-        # remove_edges = [key for key, val in reviewed_states.items()
-        #                 if val == 'match']
-        # graph2 = infr.graph.copy()
-        # graph2.remove_edges_from(remove_edges)
-        # graph2.remove_edges_from(list(graph2.edges()))
-        # graph2.add_edges_from(keep_edges)
         ccs = list(nx.connected_components(graph2))
         cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
@@ -1147,12 +1174,15 @@ class AnnotInference(ut.NiceRepr,
         return status
 
     @profile
-    def relabel_using_reviews(infr):
+    def relabel_using_reviews(infr, graph=None):
         if infr.verbose > 1:
             print('[infr] relabel_using_reviews')
-        cc_subgraphs = infr.connected_component_reviewed_subgraphs()
+        cc_subgraphs = infr.connected_component_reviewed_subgraphs(graph=graph)
         num_inconsistent = 0
         num_names = len(cc_subgraphs)
+
+        if graph is not None:
+            available_nids = ut.unique(nx.get_node_attributes(graph, 'name_label'))
 
         for count, subgraph in enumerate(cc_subgraphs):
             reviewed_states = nx.get_edge_attributes(subgraph, 'reviewed_state')
@@ -1162,10 +1192,25 @@ class AnnotInference(ut.NiceRepr,
                 #print('Inconsistent')
                 num_inconsistent += 1
 
+            if graph is None:
+                new_nid = count
+            else:
+                if count >= len(available_nids):
+                    new_nid = available_nids[count]
+                else:
+                    new_nid = infr._next_nid()
+
             infr.set_node_attrs('name_label',
-                                _dz(list(subgraph.nodes()), [count]))
+                                _dz(list(subgraph.nodes()), [new_nid]))
             # Check for consistency
         return num_names, num_inconsistent
+
+    def _next_nid(infr):
+        if not hasattr(infr, 'nid_counter'):
+            infr.nid_counter = max(ut.unique(nx.get_node_attributes(infr.graph, 'name_label')))
+        infr.nid_counter += 1
+        new_nid = infr.nid_counter
+        return new_nid
 
     def relabel_using_inference(infr, **kwargs):
         """
