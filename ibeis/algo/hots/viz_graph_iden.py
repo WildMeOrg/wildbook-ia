@@ -315,3 +315,5 @@ class _AnnotInfrViz(object):
                                         alpha=.5, fc="0.6",
                                         connectionstyle="angle3,angleA=90,angleB=0"),)
                 ta  # NOQA
+
+    show = show_graph
