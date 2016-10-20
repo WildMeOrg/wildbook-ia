@@ -37,9 +37,9 @@ def sympy_mat(arr):
 def evalprint(str_, globals_=None, locals_=None, simplify=False):
     import sympy
     if globals_ is None:
-        globals_ = ut.get_parent_globals()
+        globals_ = ut.get_parent_frame().f_globals
     if locals_ is None:
-        locals_ = ut.get_parent_locals()
+        locals_ = ut.get_parent_frame().f_locals
     if isinstance(str_, six.string_types):
         var = eval(str_, globals_, locals_)
     else:
