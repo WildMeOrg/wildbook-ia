@@ -3118,8 +3118,8 @@ def get_annot_image_contributor_tag(ibs, aid_list):
     Auto-docstr for 'get_annot_image_contributor_tag'
     """
     gid_list = ibs.get_annot_gids(aid_list)
-    contrib_tag_list = ibs.get_image_contributor_tag(gid_list)
-    return contrib_tag_list
+    contributor_tag_list = ibs.get_image_contributor_tag(gid_list)
+    return contributor_tag_list
 
 
 @register_ibs_method

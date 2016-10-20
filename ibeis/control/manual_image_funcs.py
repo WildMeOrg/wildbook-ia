@@ -518,13 +518,13 @@ def set_image_uris_original(ibs, gid_list, new_gpath_list, overwrite=False):
 
 @register_ibs_method
 @accessor_decors.setter
-# @register_api('/api/image/contributor/rowid/', methods=['PUT'])
+@register_api('/api/image/contributor/rowid/', methods=['PUT'])
 def set_image_contributor_rowid(ibs, gid_list, contributor_rowid_list, **kwargs):
     r"""
     Sets the image contributor rowid
     """
     id_iter = ((gid,) for gid in gid_list)
-    val_list = ((contrib_rowid,) for contrib_rowid in contributor_rowid_list)
+    val_list = ((contributor_rowid,) for contributor_rowid in contributor_rowid_list)
     ibs.db.set(const.IMAGE_TABLE, ('contributor_rowid',), val_list, id_iter, **kwargs)
 
 
@@ -593,15 +593,15 @@ def set_image_unixtime(ibs, gid_list, unixtime_list, duplicate_behavior='error')
 
 @register_ibs_method
 @register_api('/api/image/time/posix/', methods=['PUT'])
-def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate_behavior='error'):
+def set_image_time_posix(ibs, gid_list, image_time_posix_list, duplicate_behavior='error'):
     r"""
-    image_time_posix_list -> image.image_time_posix[image_rowid_list]
+    image_time_posix_list -> image.image_time_posix[gid_list]
 
     SeeAlso:
         set_image_unixtime
 
     Args:
-        image_rowid_list
+        gid_list
         image_time_posix_list
 
     TemplateInfo:
@@ -613,7 +613,7 @@ def set_image_time_posix(ibs, image_rowid_list, image_time_posix_list, duplicate
         Method: PUT
         URL:    /api/image/time/posix/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_TIME_POSIX,)
     ibs.db.set(const.IMAGE_TABLE, colnames, image_time_posix_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -919,15 +919,15 @@ def get_valid_image_uuids(ibs):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-# @register_api('/api/image/contributor/rowid/', methods=['GET'])
-def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
+@register_api('/api/image/contributor/rowid/', methods=['GET'])
+def get_image_contributor_rowid(ibs, gid_list, eager=True, nInput=None):
     r"""
-    contributor_rowid_list <- image.contributor_rowid[image_rowid_list]
+    contributor_rowid_list <- image.contributor_rowid[gid_list]
 
     gets data from the "native" column "contributor_rowid" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: contributor_rowid_list - list of image contributor rowids by gid
@@ -941,12 +941,12 @@ def get_image_contributor_rowid(ibs, image_rowid_list, eager=True, nInput=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> contributor_rowid_list = ibs.get_image_contributor_rowid(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(contributor_rowid_list)
+        >>> contributor_rowid_list = ibs.get_image_contributor_rowid(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(contributor_rowid_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (CONTRIBUTOR_ROWID,)
     contributor_rowid_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
@@ -1955,16 +1955,16 @@ def delete_image_thumbs(ibs, gid_list, **config2_):
 @register_ibs_method
 #@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_TIMEDELTA_POSIX)
 @register_api('/api/image/timedelta/posix/', methods=['GET'])
-def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
+def get_image_timedelta_posix(ibs, gid_list, eager=True):
     r"""
-    image_timedelta_posix_list <- image.image_timedelta_posix[image_rowid_list]
+    image_timedelta_posix_list <- image.image_timedelta_posix[gid_list]
 
     # TODO: INTEGRATE THIS FUNCTION. CURRENTLY OFFSETS ARE ENCODIED DIRECTLY IN UNIXTIME
 
     gets data from the "native" column "image_timedelta_posix" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: image_timedelta_posix_list
@@ -1982,12 +1982,12 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(image_timedelta_posix_list)
+        >>> image_timedelta_posix_list = ibs.get_image_timedelta_posix(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(image_timedelta_posix_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_TIMEDELTA_POSIX,)
     image_timedelta_posix_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
@@ -1996,14 +1996,14 @@ def get_image_timedelta_posix(ibs, image_rowid_list, eager=True):
 
 @register_ibs_method
 @register_api('/api/image/timedelta/posix/', methods=['PUT'])
-def set_image_timedelta_posix(ibs, image_rowid_list,
+def set_image_timedelta_posix(ibs, gid_list,
                               image_timedelta_posix_list,
                               duplicate_behavior='error'):
     r"""
-    image_timedelta_posix_list -> image.image_timedelta_posix[image_rowid_list]
+    image_timedelta_posix_list -> image.image_timedelta_posix[gid_list]
 
     Args:
-        image_rowid_list
+        gid_list
         image_timedelta_posix_list
 
     TemplateInfo:
@@ -2015,7 +2015,7 @@ def set_image_timedelta_posix(ibs, image_rowid_list,
         Method: PUT
         URL:    /api/image/timedelta/posix/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_TIMEDELTA_POSIX,)
     ibs.db.set(const.IMAGE_TABLE, colnames, image_timedelta_posix_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -2024,14 +2024,14 @@ def set_image_timedelta_posix(ibs, image_rowid_list,
 @register_ibs_method
 #@accessor_decors.cache_getter(const.IMAGE_TABLE, IMAGE_LOCATION_CODE)
 @register_api('/api/image/location/code/', methods=['GET'])
-def get_image_location_codes(ibs, image_rowid_list, eager=True):
+def get_image_location_codes(ibs, gid_list, eager=True):
     r"""
-    image_location_code_list <- image.image_location_code[image_rowid_list]
+    image_location_code_list <- image.image_location_code[gid_list]
 
     gets data from the "native" column "image_location_code" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: image_location_code_list
@@ -2049,12 +2049,12 @@ def get_image_location_codes(ibs, image_rowid_list, eager=True):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> image_location_code_list = ibs.get_image_location_codes(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(image_location_code_list)
+        >>> image_location_code_list = ibs.get_image_location_codes(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(image_location_code_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_LOCATION_CODE,)
     image_location_code_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager)
@@ -2063,13 +2063,13 @@ def get_image_location_codes(ibs, image_rowid_list, eager=True):
 
 @register_ibs_method
 @register_api('/api/image/location/code/', methods=['PUT'])
-def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
+def set_image_location_codes(ibs, gid_list, image_location_code_list,
                              duplicate_behavior='error'):
     r"""
-    image_location_code_list -> image.image_location_code[image_rowid_list]
+    image_location_code_list -> image.image_location_code[gid_list]
 
     Args:
-        image_rowid_list
+        gid_list
         image_location_code_list
 
     TemplateInfo:
@@ -2081,7 +2081,7 @@ def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
         Method: PUT
         URL:    /api/image/location/code/
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (IMAGE_LOCATION_CODE,)
     ibs.db.set(const.IMAGE_TABLE, colnames, image_location_code_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -2090,14 +2090,14 @@ def set_image_location_codes(ibs, image_rowid_list, image_location_code_list,
 @register_ibs_method
 @accessor_decors.getter_1to1
 # @register_api('/api/image/party/rowid/', methods=['GET'])
-def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
+def get_image_party_rowids(ibs, gid_list, eager=True, nInput=None):
     r"""
-    party_rowid_list <- image.party_rowid[image_rowid_list]
+    party_rowid_list <- image.party_rowid[gid_list]
 
     gets data from the "native" column "party_rowid" in the "image" table
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: party_rowid_list
@@ -2111,12 +2111,12 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> party_rowid_list = ibs.get_image_party_rowids(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(party_rowid_list)
+        >>> party_rowid_list = ibs.get_image_party_rowids(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(party_rowid_list)
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (PARTY_ROWID,)
     party_rowid_list = ibs.db.get(
         const.IMAGE_TABLE, colnames, id_iter, id_colname='rowid', eager=eager, nInput=nInput)
@@ -2126,12 +2126,12 @@ def get_image_party_rowids(ibs, image_rowid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.getter_1to1
 # @register_api('/api/image/party/tag/', methods=['GET'])
-def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
+def get_image_party_tag(ibs, gid_list, eager=True, nInput=None):
     r"""
-    party_tag_list <- image.party_tag[image_rowid_list]
+    party_tag_list <- image.party_tag[gid_list]
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: party_tag_list
@@ -2146,13 +2146,13 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> party_tag_list = ibs.get_image_party_tag(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(party_tag_list)
+        >>> party_tag_list = ibs.get_image_party_tag(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(party_tag_list)
     """
     party_rowid_list = ibs.get_image_party_rowids(
-        image_rowid_list, eager=eager, nInput=nInput)
+        gid_list, eager=eager, nInput=nInput)
     party_tag_list = ibs.get_party_tag(
         party_rowid_list, eager=eager, nInput=nInput)
     return party_tag_list
@@ -2161,12 +2161,12 @@ def get_image_party_tag(ibs, image_rowid_list, eager=True, nInput=None):
 @register_ibs_method
 @accessor_decors.setter
 # @register_api('/api/image/party/rowid/', methods=['PUT'])
-def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_behavior='error'):
+def set_image_party_rowids(ibs, gid_list, party_rowid_list, duplicate_behavior='error'):
     r"""
-    party_rowid_list -> image.party_rowid[image_rowid_list]
+    party_rowid_list -> image.party_rowid[gid_list]
 
     Args:
-        image_rowid_list
+        gid_list
         party_rowid_list
 
     TemplateInfo:
@@ -2174,7 +2174,7 @@ def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_be
         tbl = image
         col = party_rowid
     """
-    id_iter = image_rowid_list
+    id_iter = gid_list
     colnames = (PARTY_ROWID,)
     ibs.db.set(const.IMAGE_TABLE, colnames, party_rowid_list,
                id_iter, duplicate_behavior=duplicate_behavior)
@@ -2182,13 +2182,13 @@ def set_image_party_rowids(ibs, image_rowid_list, party_rowid_list, duplicate_be
 
 @register_ibs_method
 @accessor_decors.getter_1to1
-# @register_api('/api/image/contributor/tag/', methods=['GET'])
-def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
+@register_api('/api/image/contributor/tag/', methods=['GET'])
+def get_image_contributor_tag(ibs, gid_list, eager=True, nInput=None):
     r"""
-    contributor_tag_list <- image.contributor_tag[image_rowid_list]
+    contributor_tag_list <- image.contributor_tag[gid_list]
 
     Args:
-        image_rowid_list (list):
+        gid_list (list):
 
     Returns:
         list: contributor_tag_list
@@ -2203,13 +2203,13 @@ def get_image_contributor_tag(ibs, image_rowid_list, eager=True, nInput=None):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control.manual_image_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_ibs()
-        >>> image_rowid_list = ibs._get_all_image_rowids()
+        >>> gid_list = ibs._get_all_image_rowids()
         >>> eager = True
-        >>> contributor_tag_list = ibs.get_image_contributor_tag(image_rowid_list, eager=eager)
-        >>> assert len(image_rowid_list) == len(contributor_tag_list)
+        >>> contributor_tag_list = ibs.get_image_contributor_tag(gid_list, eager=eager)
+        >>> assert len(gid_list) == len(contributor_tag_list)
     """
     contributor_rowid_list = ibs.get_image_contributor_rowid(
-        image_rowid_list, eager=eager, nInput=nInput)
+        gid_list, eager=eager, nInput=nInput)
     contributor_tag_list = ibs.get_contributor_tag(
         contributor_rowid_list, eager=eager, nInput=nInput)
     return contributor_tag_list

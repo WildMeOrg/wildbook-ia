@@ -61,7 +61,7 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
         require_viewpoint, logic, has_any_annot, min_num_annotmatch, min_num,
         min_num_annot, has_all_annot, has_none, min_pername,
         any_endswith_annotmatch, any_endswith, require_timestamp, none_match,
-        contrib_contains, has_all_annotmatch, logic_annotmatch, min_numfeat,
+        contributor_contains, has_all_annotmatch, logic_annotmatch, min_numfeat,
         none_match_annot, view_ext1, view_ext2, max_num, has_none_annot,
         minqual, view
 
@@ -878,12 +878,12 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
         with VerbosityContext('been_adjusted'):
             avail_aids = ut.compress(avail_aids, flag_list)
 
-    if aidcfg.get('contrib_contains', None):
-        contrib_contains = aidcfg['contrib_contains']
+    if aidcfg.get('contributor_contains', None):
+        contributor_contains = aidcfg['contributor_contains']
         gid_list = ibs.get_annot_gids(avail_aids)
         tag_list = ibs.get_image_contributor_tag(gid_list)
-        flag_list = [contrib_contains in tag for tag in tag_list]
-        with VerbosityContext('contrib_contains'):
+        flag_list = [contributor_contains in tag for tag in tag_list]
+        with VerbosityContext('contributor_contains'):
             avail_aids = ut.compress(avail_aids, flag_list)
 
     if aidcfg.get('minqual') is not None or aidcfg.get('require_quality'):
