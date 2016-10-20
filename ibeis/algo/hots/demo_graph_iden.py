@@ -46,6 +46,37 @@ Consistent Compoment (with not-comparable)
     O  ?
     |/
     C
+
+
+Probability calculations:
+    # The probability A matches B is maximum of the product of the
+    # probabilities u matches v along every path between A and B.
+
+    P(A matches B) = max(
+        prod([data['p_match'] for u, v, data in path])
+        for path in all_simple_paths(A, B)
+        )
+    # Given a linear chain of independant probabilities the joint probability
+    # is easy to compute. This minimum of these probabilities over all paths
+    # is the most probable way to argue that A matches B.
+    # Note not-comparable edges severly undercut the probability of the most
+    # probable path.
+
+    Well... what if
+
+    A -O- B -O- C
+    |           |
+    |_____X_____|
+
+    The most probable path is A-B-C, but A-X-C directly contradicts it.
+
+    Maybe if we find the most probable path and then consider all paths of
+    smaller length? And take the min over that?
+
+
+    p(A is B | AB) = .8
+    p(B is C | BC) = .8
+    p(A is C | AC) = .01
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -161,7 +192,86 @@ def demo_graph_iden():
     # infr.show_graph()
     # pt.set_title('post-review')
 
-    if ut.get_computer_name() in ['hyrule', 'ooo']:
+    if ut.get_computer_name() in ['hyrule']:
+        pt.all_figures_tile(monitor_num=0, percent_w=.5)
+    elif ut.get_computer_name() in ['ooo']:
+        pt.all_figures_tile(monitor_num=1, percent_w=.5)
+    else:
+        pt.all_figures_tile()
+    ut.show_if_requested()
+
+
+@profile
+def demo_graph_iden2():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2 --show
+    """
+    from ibeis.algo.hots import graph_iden
+    import plottool as pt
+    # Create dummy data
+    nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
+    aids = range(len(nids))
+    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True, verbose=1)
+    infr.ensure_cliques()
+
+    showkw = dict(fontsize=8, show_cuts=False, with_colorbar=True)
+
+    # Pin Nodes into groundtruth position
+    infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
+    pt.set_title('target-gt')
+    infr.set_node_attrs('pin', 'true')
+    infr.remove_name_labels()
+    infr.remove_dummy_edges()
+
+    def get_truth(n1, n2):
+        return G.node[n1]['orig_name_label'] == G.node[n2]['orig_name_label']
+
+    def oracle_decision(n1, n2):
+        # Assume perfect reviewer
+        truth = get_truth(n1, n2)
+        status = infr.truth_texts[truth]
+        tags = []
+        return status, tags
+
+    # Dummy scoring
+    infr.ensure_full()
+    G = infr.graph
+    edge_to_truth = {
+        (n1, n2): get_truth(n1, n2)
+        for n1, n2 in infr.graph.edges()
+    }
+    import numpy as np
+    rng = np.random.RandomState(0)
+    dummy_params = {
+        True: {'mu': .8, 'sigma': .2},
+        False: {'mu': .2, 'sigma': .2},
+    }
+    def randpn(mu, sigma):
+        return np.clip((rng.randn() * sigma) + mu, 0, 1)
+    edge_to_normscore = {
+        (n1, n2): randpn(**dummy_params[get_truth(n1, n2)])
+        for (n1, n2), truth in edge_to_truth.items()
+    }
+    print('edge_to_normscore = %r' % (edge_to_normscore,))
+    infr.set_edge_attrs('normscore', edge_to_normscore)
+    ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
+    infr.apply_weights()
+
+    infr.show_graph(**showkw)
+    pt.set_title('target-gt')
+
+    for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
+        status, tags = oracle_decision(aid1, aid2)
+        infr.add_feedback(aid1, aid2, status, tags, apply=True)
+
+        infr.show_graph(**showkw)
+        pt.set_title('review #%d' % (count))
+
+        if count > 15:
+            break
+
+    if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
         pt.all_figures_tile(monitor_num=0, percent_w=.5)
     else:
         pt.all_figures_tile()

@@ -38,6 +38,7 @@ def train_pairwise_rf():
     import ibeis
     # ibs = ibeis.opendb('PZ_MTEST')
     ibs = ibeis.opendb('PZ_Master1')
+    # ibs = ibeis.opendb('GZ_Master1')
     aids = ibeis.testdata_aids(a=':mingt=2', ibs=ibs)
 
     # ===========================
@@ -137,6 +138,15 @@ def train_pairwise_rf():
         auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
         print('auc = %r' % (auc,))
         return auc
+
+    if False:
+        infr.apply_match_edges()
+        infr.apply_match_scores()
+        edge_to_score = infr.get_edge_attrs('score')
+
+        lnbnn_score_list = [edge_to_score.get(tup) if tup in edge_to_score else edge_to_score.get(tup[::-1], 0) for tup in ut.lmap(tuple, aid_pairs)]
+        auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
+        print('auc = %r' % (auc,))
 
     if False:
         matchesORIG = match_list

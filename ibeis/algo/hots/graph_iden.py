@@ -729,6 +729,7 @@ class _AnnotInfrFeedback(object):
         if review_dict is None:
             if infr.verbose >= 2:
                 print('[infr] _dynamically_apply_feedback (removing edge)')
+            state = 'unreviewed'
             infr._del_feedback_edges([edge])
             infr.set_edge_attrs('cut_weight', infr.get_edge_attrs('normscore', [edge], np.nan))
             # infr.set_edge_attrs('is_reviewed', {edge: False})
@@ -745,10 +746,20 @@ class _AnnotInfrFeedback(object):
             # Also dynamically apply weights
             infr.set_edge_attrs('cut_weight', {edge: p_same})
         # Dynamically update names
-        subgraph = infr._get_influenced_subgraph(edge)
+        subgraph = infr._get_name_influenced_subgraph(edge)
         print('Relabeling')
         infr.relabel_using_reviews(graph=subgraph)
-        infr.apply_cuts(graph=subgraph)
+        subgraph = infr._get_cut_influenced_subgraph(edge)
+        # FIXME
+        # This isnt quite right because if you say A -X- B but A is connected
+        # to a cc D and B is connected to a cc E then D and E will also have
+        # their edges cut.
+        infr.apply_cuts(graph=subgraph, edge=edge)
+        if state == 'nomatch':
+            # A -X- B: Grab any other no-match edges out of A and B
+            # if any of those compoments connected to those non matching nodes
+            # would match either A or B, those edges should be implicitly cut.
+            pass
         # if state == 'match':
         #     # # TODO: just do a relabel on this graph
         #     # # with labels, is_cut, all that stuff
@@ -761,7 +772,29 @@ class _AnnotInfrFeedback(object):
         #     # inconsistent
         #     pass
 
-    def _get_influenced_subgraph(infr, edge):
+    def _get_cut_influenced_subgraph(infr, edge):
+
+        def condition(G, child, edge):
+            u, v = edge
+            flag1 = G.get_edge_data(u, v).get('reviewed_state', 'unreviewed') == 'nomatch'
+            nid1 = G.node[u]['name_label']
+            nid2 = G.node[v]['name_label']
+            flag2 = nid1 == nid2
+            return flag1 or flag2
+        n1, n2 = edge
+        con1 = list(ut.util_graph.bfs_conditional(infr.graph, n1,
+                                                  yield_condition=condition,
+                                                  continue_condition=condition))
+        con2 = list(ut.util_graph.bfs_conditional(infr.graph, n2,
+                                                  yield_condition=condition,
+                                                  continue_condition=condition))
+        relevant_nodes = list(set(con1).union(set(con2)).union({n1, n2}))
+        subgraph = infr.graph.subgraph(relevant_nodes)
+        if infr.verbose >= 2:
+            print('relevant_nodes = %r' % (relevant_nodes,))
+        return subgraph
+
+    def _get_name_influenced_subgraph(infr, edge):
         """
         edge = (4, 6)
         infr.add_feedback(1, 2, 'match', apply=True)
@@ -770,7 +803,7 @@ class _AnnotInfrFeedback(object):
         infr.relabel_using_reviews()
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden _get_influenced_subgraph --show
+            python -m ibeis.algo.hots.graph_iden _get_name_influenced_subgraph --show
 
         Example:
             >>> # DISABLE_DOCTEST
@@ -1269,7 +1302,7 @@ class AnnotInference(ut.NiceRepr,
         infr.set_edge_attrs('cut_weight', _dz(edges, weights))
 
     @profile
-    def apply_cuts(infr, graph=None):
+    def apply_cuts(infr, graph=None, edge=None):
         """
         Cuts edges with different names and uncuts edges with the same name.
         """
@@ -1279,7 +1312,7 @@ class AnnotInference(ut.NiceRepr,
         if graph is None:
             graph = infr.graph
         # ut.nx_delete_edge_attr(graph, 'is_cut')
-        node_to_label = infr.get_node_attrs('name_label')
+        node_to_label = nx.get_node_attributes(graph, 'name_label')
         edge_to_cut = {(u, v): node_to_label[u] != node_to_label[v]
                        for (u, v) in graph.edges()}
         print('cut %d edges' % (sum(edge_to_cut.values())),)
@@ -1517,7 +1550,11 @@ class AnnotInference(ut.NiceRepr,
                     noneed_ccedges.append(ccedge)
             elif ccedge[0] != ccedge[1]:
                 validxs = ut.where([s != 'notcomp' for s in states])
-                if len(validxs) > 0:
+                # print('states = %r' % (states,))
+                if 'nomatch' in state_set and 'match' not in state_set:
+                    # We've already reviewed this
+                    noneed_ccedges.append(ccedge)
+                elif len(validxs) > 0:
                     # Choose an edge that isn't noncmop
                     chosen_idx = validxs[rng.randint(len(validxs))]
                     chosen = uvs[chosen_idx]
@@ -1527,7 +1564,7 @@ class AnnotInference(ut.NiceRepr,
                     noneed_ccedges.append(ccedge)
         # Hack, sort by scores
         scores = np.array([
-            max(infr.graph.get_edge_data(*edge).get('score', -1), -1)
+            max(infr.graph.get_edge_data(*edge).get('normscore', -1), -1)
             for edge in ut.take_column(needs_review_edges, 0)])
         sortx = scores.argsort()[::-1]
         needs_review_edges = ut.take(needs_review_edges, sortx)
@@ -1562,16 +1599,19 @@ class AnnotInference(ut.NiceRepr,
         def get_next(idx=0):
             edges = infr.get_edges_for_review()
             if len(edges) == 0:
+                print('no more edges to reveiw')
                 raise StopIteration('no more to review!')
-            (aid1, aid2), why = edges[idx]
+            chosen = edges[idx]
+            print('chosen = %r' % (chosen,))
+            aid1, aid2 = chosen[0]
             return aid1, aid2
 
         import itertools
         for index in itertools.count():
-            if index % 2 == 0:
-                yield get_next(idx=0)
-            else:
-                yield get_next(idx=-1)
+            # if index % 2 == 0:
+            yield get_next(idx=0)
+            # else:
+            #     yield get_next(idx=-1)
 
 
 def testdata_infr(defaultdb='PZ_MTEST'):
