@@ -24,7 +24,7 @@ def _dz(a, b):
 
 def filter_between_ccs_neg(aids1, aids2, aid_to_nid, nid_to_aids, isneg_flags):
     """
-    If two cc's have at least 1 negativ review between them, then
+    If two cc's have at least 1 negative review between them, then
     remove all other potential reviews between those cc's
 
     CommandLine:

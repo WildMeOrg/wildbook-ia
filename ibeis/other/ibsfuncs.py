@@ -268,7 +268,7 @@ def assert_singleton_relationship(ibs, alrids_list):
         assert all([len(alrids) == 1 for alrids in alrids_list]), (
             'must only have one relationship of a type')
     except AssertionError as ex:
-        parent_locals = ut.get_parent_locals()
+        parent_locals = ut.get_parent_frame().f_locals
         ut.printex(ex, 'parent_locals=' + ut.dict_str(parent_locals),
                    key_list=['alrids_list', ])
         raise

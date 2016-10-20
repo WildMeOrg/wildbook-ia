@@ -29,10 +29,10 @@ def get_injured_sharks():
         keyed_images[key] = key_imgs
 
     key_hist = {key: len(imgs) for key, imgs in keyed_images.items()}
-    key_hist = ut.sort_dict(key_hist, ut.identity)
+    key_hist = ut.sort_dict(key_hist, 'vals')
     print(ut.repr3(key_hist))
     nice_key_hist = ut.map_dict_keys(lambda k: key_to_nice[k], key_hist)
-    nice_key_hist = ut.sort_dict(nice_key_hist, ut.identity)
+    nice_key_hist = ut.sort_dict(nice_key_hist, 'vals')
     print(ut.repr3(nice_key_hist))
 
     key_to_urls = {key: ut.take_column(vals, 'url') for key, vals in keyed_images.items()}

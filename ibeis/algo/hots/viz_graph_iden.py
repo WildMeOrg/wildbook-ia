@@ -56,7 +56,6 @@ class _AnnotInfrViz(object):
                               [ 0.        ,  0.65085832,  0.93960823],
                               [ 0.        ,  0.54946918,  0.90949295],
                               [ 0.25697101,  0.44185497,  0.8138502 ]])
-            print('cpool = %r' % (cpool,))
             cmap = pt.mpl.colors.ListedColormap(cpool, 'indexed')
             # cmap = pt.interpolated_colormap([
             #     (pt.FALSE_RED, 0.0),
@@ -161,11 +160,10 @@ class _AnnotInfrViz(object):
             print('[infr] update_visual_attrs')
             print(' * show_cuts = %r' % (show_cuts,))
             print(' * show_reviewed_cuts = %r' % (show_reviewed_cuts,))
-        #edge2_weight = nx.get_edge_attributes(infr.graph, 'score')
         if graph is None:
-            # Hack for name_graph
             graph = infr.graph
 
+        # Ensure we are starting from a clean slate
         ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
 
         # Set annotation node labels
@@ -195,9 +193,11 @@ class _AnnotInfrViz(object):
             # nx.set_edge_attributes(graph, 'lw', _dz(edges, [1.5]))
 
             # Base line width on if reviewed
+            reviewed_states_full = infr.get_edge_attrs('reviewed_state',
+                                                       default='unreviewed')
             edge_to_lw = {
                 edge: 2.0 if state == 'unreviewed' else 4.0
-                for edge, state in infr.get_edge_attrs('reviewed_state', default='unreviewed').items()
+                for edge, state in reviewed_states_full.items()
             }
             nx.set_edge_attributes(graph, 'lw', edge_to_lw)
 
@@ -263,7 +263,7 @@ class _AnnotInfrViz(object):
         else:
             nx.set_edge_attributes(graph, 'style', _dz(cut_edges, ['invis']))
 
-        # Make dummy (MST) edges have less alpha
+        # Make dummy edges more transparent
         edge_to_isdummy = nx.get_edge_attributes(graph, '_dummy_edge')
         dummy_edges = [edge for edge, flag in edge_to_isdummy.items() if flag]
         nx.set_edge_attributes(graph, 'alpha', _dz(dummy_edges, [.5]))
@@ -273,13 +273,7 @@ class _AnnotInfrViz(object):
         nx.set_edge_attributes(graph, 'zorder', _dz(edges, [0]))
 
         # update the positioning layout
-        layoutkw = dict(
-            prog='neato',
-            #defaultdist=100,
-            splines='spline',
-            sep=10 / 72,
-            #esep=10 / 72
-        )
+        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False,

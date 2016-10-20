@@ -9,7 +9,7 @@ print, rrr, profile = ut.inject2(__name__)
 def train_pairwise_rf():
     """
     Notes:
-        Meausres are:
+        Measures are:
 
           Local:
             * LNBNN score
@@ -69,20 +69,31 @@ def train_pairwise_rf():
     qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
     dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
     configured_annot_dict = ut.ddict(dict)
+    bad_aids = []
     config_aids_pairs = [(qannot_cfg, query_aids), (dannot_cfg, data_aids)]
     for config, aids in ut.ProgIter(config_aids_pairs, lbl='prepare annots'):
+
+        annots = ibs.annots(aids, config=config)
+        hasfeats = np.array(annots.num_feats) > 0
+        aids = annots.compress(hasfeats).aids
+        bad_aids.extend(annots.compress(~hasfeats).aids)
         annot_dict = configured_annot_dict[config]
-        for aid in ut.unique(aids):
+        for aid in ut.ProgIter(ut.unique(aids)):
             if aid not in annot_dict:
                 annot = ibs.get_annot_lazy_dict(aid, config)
                 flann_params = {'algorithm': 'kdtree', 'trees': 4}
                 vt.matching.ensure_metadata_flann(annot, flann_params)
                 annot_dict[aid] = annot
-                annot['yaw'] = ibs.get_annot_yaw_texts(aid)
+                annot['yaw'] = ibs.get_annot_yaws_asfloat(aid)
                 annot['qual'] = ibs.get_annot_qualities(aid)
                 annot['gps'] = ibs.get_annot_image_gps2(aid)
                 annot['time'] = ibs.get_annot_image_unixtimes_asfloat(aid)
                 del annot['annot_context_options']
+
+    isgood = [not (a1 in bad_aids or a2 in bad_aids) for a1, a2 in aid_pairs]
+    query_aids = ut.compress(query_aids, isgood)
+    data_aids = ut.compress(data_aids, isgood)
+    aid_pairs = ut.compress(aid_pairs, isgood)
 
     # Extract pairs of annot objects (with shared caches)
     annot1_list = ut.take(configured_annot_dict[qannot_cfg], query_aids)
@@ -117,37 +128,57 @@ def train_pairwise_rf():
     # =====================================
     # Use scores as a baseline classifier
     # =====================================
-
-    # Visualize scores
-    score_list = np.array([m.fs.sum() for m in match_list])
-    encoder = vt.ScoreNormalizer()
-    encoder.fit(score_list, truth_list, verbose=True)
-    encoder.visualize()
-
     import sklearn
     import sklearn.metrics
     # gridsearch_ratio_thresh()
 
-    def matches_auc(match_list):
+    def matches_auc(truth_list, match_list):
         score_list = np.array([m.fs.sum() for m in match_list])
         auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
         print('auc = %r' % (auc,))
         return auc
 
-    matchesORIG = match_list
-    matches_auc(matchesORIG)
+    if False:
+        matchesORIG = match_list
+        matches_auc(truth_list, matchesORIG)
 
-    matches_SV = [match.apply_sver(inplace=False)
-                  for match in ut.ProgIter(matchesORIG, lbl='sver')]
-    matches_auc(matches_SV)
+        matches_SV = [match.apply_sver(inplace=False)
+                      for match in ut.ProgIter(matchesORIG, lbl='sver')]
+        matches_auc(truth_list, matches_SV)
 
-    matches_RAT = [match.apply_ratio_test(inplace=False)
-                   for match in ut.ProgIter(matchesORIG, lbl='ratio')]
-    matches_auc(matches_RAT)
+        matches_RAT = [match.apply_ratio_test(inplace=False)
+                       for match in ut.ProgIter(matchesORIG, lbl='ratio')]
+        matches_auc(truth_list, matches_RAT)
 
-    matches_RAT_SV = [match.apply_sver(inplace=False)
-                      for match in ut.ProgIter(matches_RAT, lbl='sver')]
-    matches_auc(matches_RAT_SV)
+        matches_RAT_SV = [match.apply_sver(inplace=False)
+                          for match in ut.ProgIter(matches_RAT, lbl='sver')]
+        matches_auc(truth_list, matches_RAT_SV)
+
+    if True:
+        matches_RAT = match_list
+        matches_auc(truth_list, matches_RAT)
+
+        matches_RAT_SV = [match.apply_sver(inplace=False)
+                          for match in ut.ProgIter(matches_RAT, lbl='sver')]
+        matches_auc(truth_list, matches_RAT_SV)
+
+    if False:
+        # Visualize scores
+        score_list = np.array([m.fs.sum() for m in matches_RAT_SV])
+        encoder = vt.ScoreNormalizer()
+        encoder.fit(score_list, truth_list, verbose=True)
+        encoder.visualize()
+
+    # Fix issue
+    # for match in ut.ProgIter(matches_RAT_SV):
+    #     match.annot1['yaw'] = ibs.get_annot_yaws_asfloat(match.annot1['aid'])
+    #     match.annot2['yaw'] = ibs.get_annot_yaws_asfloat(match.annot2['aid'])
+    # # Construct global measurements
+    # global_keys = ['yaw', 'qual', 'gps', 'time']
+    # for match in ut.ProgIter(match_list, lbl='setup globals'):
+    #     match.global_measures = {}
+    #     for key in global_keys:
+    #         match.global_measures[key] = (match.annot1[key], match.annot2[key])
 
     # =====================================
     # Attempt to train a simple classsifier
@@ -157,13 +188,16 @@ def train_pairwise_rf():
     import sklearn.model_selection
     from sklearn.ensemble import RandomForestClassifier
 
+    print('Building pairwise features')
     allow_nan = True
     pairwise_feats = pd.DataFrame([m.make_pairwise_constlen_feature('ratio')
-                                   for m in matches_RAT_SV])
+                                   for m in ut.ProgIter(matches_RAT_SV)])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
     if allow_nan:
         X_withnan = pairwise_feats.values.copy()
+        withnan_cols = pairwise_feats.columns
+
     valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
     valid_cols = pairwise_feats.columns[valid_colx]
     X_nonan = pairwise_feats[valid_cols].values.copy()
@@ -172,6 +206,11 @@ def train_pairwise_rf():
     # import utool
     # utool.embed()
     rng = np.random.RandomState(42)
+
+    grid_basis = dict(
+        class_weight=['balanced', None],
+        criterion=['gini', 'entropy'],
+    )
 
     for seed in (rng.rand(5) * 4294967295).astype(np.int):
         print('seed = %r' % (seed,))
@@ -184,7 +223,9 @@ def train_pairwise_rf():
 
         rng2 = np.random.RandomState(seed)
         # rf_params = dict(n_estimators=256, bootstrap=True, verbose=0, random_state=rng2)
-        rf_params = dict(n_estimators=256, bootstrap=False, verbose=0, random_state=rng2)
+        rf_params = dict(n_estimators=256, bootstrap=False, verbose=1, random_state=rng2)
+
+        # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
         for count, (train_idx, test_idx) in enumerate(skf_iter):
             y_test = y[test_idx]
             y_train = y[train_idx]
@@ -210,6 +251,7 @@ def train_pairwise_rf():
                 # Train uncalibrated random forest classifier on train data
                 clf = RandomForestClassifier(missing_values=np.nan, **rf_params)
                 clf.fit(X_train, y_train)
+                print(ut.sort_dict(dict(zip(withnan_cols, clf.feature_importances_))))
 
                 # evaluate on test data
                 clf_probs = clf.predict_proba(X_test)

@@ -90,7 +90,7 @@ class InvertedAnnotsExtras(object):
 
     def print_size_info(inva):
         sizes = inva.get_size_info()
-        sizes = ut.sort_dict(sizes, value_key=ut.identity)
+        sizes = ut.sort_dict(sizes, 'vals', ut.identity)
         total_nbytes =  sum(sizes.values())
         print(ut.align(ut.repr3(ut.map_dict_vals(ut.byte_str2, sizes), strvals=True), ':'))
         print('total_nbytes = %r' % (ut.byte_str2(total_nbytes),))
