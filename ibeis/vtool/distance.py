@@ -793,7 +793,7 @@ def haversine(latlon1, latlon2):
         c = locals_['c']
         print(vt.sympy_latex_repr(c))
 
-2 \operatorname{asin}{(\sqrt{\sin^{2}{(\frac{\lat_i}{2} - \frac{\lat_j}{2} )} + \sin^{2}{(\frac{\lon_i}{2} - \frac{\lon_j}{2} )} \cos{(\lat_i )} \cos{(\lat_j )}} )}
+        2 \operatorname{asin}{(\sqrt{\sin^{2}{(\frac{\lat_i}{2} - \frac{\lat_j}{2} )} + \sin^{2}{(\frac{\lon_i}{2} - \frac{\lon_j}{2} )} \cos{(\lat_i )} \cos{(\lat_j )}} )}
 
 
     Example:

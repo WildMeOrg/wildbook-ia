@@ -233,7 +233,7 @@ def gridsearch_chipextract():
 
 
 def get_scaled_size_with_width(target_width, w, h, tol=0):
-    """
+    r"""
     returns new_size which scales (w, h) as close to target_width as possible
     and maintains aspect ratio
 
@@ -270,7 +270,7 @@ def get_scaled_size_with_width(target_width, w, h, tol=0):
 
 
 def get_scaled_size_with_area(target_area, w, h, tol=0):
-    """
+    r"""
     returns new_size which scales (w, h) as close to target_area as possible and
     maintains aspect ratio
 
@@ -310,7 +310,7 @@ def get_scaled_size_with_area(target_area, w, h, tol=0):
 
 
 def get_scaled_size_with_dlen(target_dlen, w, h):
-    """
+    r"""
     returns new_size which scales (w, h) as close to target_dlen as possible
     and maintains aspect ratio
     """
@@ -328,7 +328,7 @@ def get_scaled_sizes_with_area(target_area, size_list):
 #@profile
 def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
                  interpolation=cv2.INTER_LANCZOS4):
-    """ Extracts a chip and applies filters
+    r""" Extracts a chip and applies filters
 
     Args:
         gfpath (str):  image file path string
