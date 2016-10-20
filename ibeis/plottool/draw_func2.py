@@ -942,6 +942,9 @@ def show_if_requested(N=1):
     #     import plottool as pt
     #     pt.draw()
     #     ut.embed(N=N)
+    elif ut.get_argflag('--cmd'):
+        # cmd must handle show I think
+        pass
     elif ut.get_argflag('--show'):
         if ut.get_argflag('--present'):
             fig_presenter.present()
