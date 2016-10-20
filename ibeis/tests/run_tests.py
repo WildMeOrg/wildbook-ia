@@ -131,7 +131,8 @@ def run_tests():
     ibeis._preload()
     # Build module list and run tests
     import sys
-    ensure_testing_data()
+    if True:
+        ensure_testing_data()
 
     if ut.in_pyinstaller_package():
         # Run tests for installer

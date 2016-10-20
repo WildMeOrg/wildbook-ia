@@ -321,7 +321,7 @@ class _AnnotInfrIBEIS(object):
         return df
 
     def match_state_delta(infr):
-        """
+        r"""
         Returns information about state change of annotmatches
 
         Returns:

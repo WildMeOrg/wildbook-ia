@@ -251,7 +251,10 @@ def train_pairwise_rf():
                 # Train uncalibrated random forest classifier on train data
                 clf = RandomForestClassifier(missing_values=np.nan, **rf_params)
                 clf.fit(X_train, y_train)
-                print(ut.sort_dict(dict(zip(withnan_cols, clf.feature_importances_))))
+
+                importances = dict(zip(withnan_cols, clf.feature_importances_))
+                importances = ut.sort_dict(importances, 'vals', reverse=True)
+                print(ut.align(ut.repr4(importances, precision=4), ':'))
 
                 # evaluate on test data
                 clf_probs = clf.predict_proba(X_test)

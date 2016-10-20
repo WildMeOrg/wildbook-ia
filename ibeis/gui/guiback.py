@@ -3017,7 +3017,7 @@ class MainWindowBackend(GUIBACK_BASE):
         File -> Import Images From File
 
         Example
-            # GUI_DOCTEST
+            >>> # GUI_DOCTEST
             >>> print('[TEST] GET_TEST_IMAGE_PATHS')
             >>> # The test api returns a list of interesting chip indexes
             >>> mode = 'FILE'
@@ -3040,7 +3040,6 @@ class MainWindowBackend(GUIBACK_BASE):
             >>>     gid_list = back.import_images(dir_=dir_)
             >>> else:
             >>>     raise AssertionError('unknown mode=%r' % mode)
-            >>> #
             >>> print('[TEST] * len(gid_list)=%r' % len(gid_list))
         """
         print('[back] import_images_from_file')
