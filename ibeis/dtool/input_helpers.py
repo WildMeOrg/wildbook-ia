@@ -606,7 +606,7 @@ class TableInput(ut.NiceRepr):
 
 
 def get_rootmost_inputs(exi_graph, table):
-    """
+    r"""
     CommandLine:
         python -m dtool.input_helpers get_rootmost_inputs --show
 
