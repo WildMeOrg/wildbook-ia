@@ -1055,12 +1055,14 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             -t default --filt :fail=True,min_gtrank=5,gtrank_lt=20 --render
 
         # Shows the best results
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
-            -t invarbest --filt :sortasc=gtscore,success=True,index=200:201 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 \
+            -a timectrl -t invarbest
+            --filt :sortasc=gtscore,success=True,index=200:201 --show
 
         # Shows failures sorted by gt score
-        python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
-            -t invarbest --filt :sortdsc=gfscore,min_gtrank=1 --show
+        python -m ibeis.dev -e cases --db PZ_Master1 \
+            -a timectrl -t invarbest \
+            --filt :sortdsc=gfscore,min_gtrank=1 --show
 
         # Find the untagged photobomb and scenery cases
         python -m ibeis.dev -e cases --db PZ_Master1 -a timectrl \
