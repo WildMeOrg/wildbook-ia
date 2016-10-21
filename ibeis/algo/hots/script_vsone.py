@@ -140,15 +140,6 @@ def train_pairwise_rf():
         return auc
 
     if False:
-        infr.apply_match_edges()
-        infr.apply_match_scores()
-        edge_to_score = infr.get_edge_attrs('score')
-
-        lnbnn_score_list = [edge_to_score.get(tup) if tup in edge_to_score else edge_to_score.get(tup[::-1], 0) for tup in ut.lmap(tuple, aid_pairs)]
-        auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
-        print('auc = %r' % (auc,))
-
-    if False:
         matchesORIG = match_list
         matches_auc(truth_list, matchesORIG)
 
@@ -217,13 +208,8 @@ def train_pairwise_rf():
     # utool.embed()
     rng = np.random.RandomState(42)
 
-    grid_basis = dict(
-        class_weight=['balanced', None],
-        criterion=['gini', 'entropy'],
-    )
-
     rng = np.random.RandomState(42)
-    xvalkw = dict(n_folds=10, shuffle=True, random_state=rng)
+    xvalkw = dict(n_splits=10, shuffle=True, random_state=rng)
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
     skf_iter = skf.split(X=X_nonan, y=y)
     df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn_nonan',
@@ -231,7 +217,18 @@ def train_pairwise_rf():
 
     rng2 = np.random.RandomState(3915904814)
     # rf_params = dict(n_estimators=256, bootstrap=True, verbose=0, random_state=rng2)
-    rf_params = dict(n_estimators=256, bootstrap=False, verbose=1, random_state=rng2)
+    rf_params = {
+        'max_depth': 4,
+        'bootstrap': True,
+        'class_weight': None,
+        'max_features': 'sqrt',
+        'missing_values': np.nan,
+        'min_samples_leaf': 5,
+        'min_samples_split': 2,
+        'n_estimators': 256,
+        'criterion': 'entropy',
+    }
+    rf_params.update(verbose=1, random_state=rng2)
 
     # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
     for count, (train_idx, test_idx) in enumerate(skf_iter):
@@ -275,33 +272,146 @@ def train_pairwise_rf():
         # print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
 
-        # print(df_results)
-
-        # TODO: TSNE?
-        # http://scikit-learn.org/stable/auto_examples/manifold/plot_manifold_sphere.html#sphx-glr-auto-examples-manifold-plot-manifold-sphere-py
-        # Perform t-distributed stochastic neighbor embedding.
-        # from sklearn import manifold
-        # import matplotlib.pyplot as plt
-        # tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
-        # trans_data = tsne.fit_transform(feats).T
-        # ax = fig.add_subplot(2, 5, 10)
-        # plt.scatter(trans_data[0], trans_data[1], c=colors, cmap=plt.cm.rainbow)
-        # plt.title("t-SNE (%.2g sec)" % (t1 - t0))
-        # ax.xaxis.set_major_formatter(NullFormatter())
-        # ax.yaxis.set_major_formatter(NullFormatter())
-        # plt.axis('tight')
-        print('--------')
-
         df = df_results
         change = df[df.columns[2]] - df[df.columns[0]]
         percent_change = change / df[df.columns[0]] * 100
         df = df.assign(change=change)
         df = df.assign(percent_change=percent_change)
 
-        import sandbox_utools as sbut
-        print(sbut.to_string_monkey(df, highlight_cols=[0, 1, 2]))
-        print(df.mean())
+    import sandbox_utools as sbut
+    print(sbut.to_string_monkey(df, highlight_cols=[0, 1, 2]))
+    print(df.mean())
+
+    if False:
+        # TEST LNBNN SCORE SEP
+        infr.apply_match_edges()
+        infr.apply_match_scores()
+        edge_to_score = infr.get_edge_attrs('score')
+
+        lnbnn_score_list = [edge_to_score.get(tup) if tup in edge_to_score else edge_to_score.get(tup[::-1], 0) for tup in ut.lmap(tuple, aid_pairs)]
+        auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
+        print('auc = %r' % (auc,))
+
+    if False:
+        nfeats = len(withnan_cols)  # NOQA
+        param_grid = {
+            'bootstrap': [True, False],
+            # 'class_weight': ['balanced', None],
+            # 'criterion': ['gini', 'entropy'],
+            # 'max_depth': [2, 4],
+            'max_features': [int(np.log2(nfeats)), int(np.sqrt(nfeats)), int(np.sqrt(nfeats)) * 2, nfeats],
+            # 'max_features': [1, 3, 10],
+            # 'min_samples_split': [2, 3, 5, 10],
+            # 'min_samples_leaf': [1, 3, 5, 10, 20],
+            # 'n_estimators': [128, 256],
+        }
+        static_params = {
+            'max_depth': 4,
+            # 'bootstrap': False,
+            'class_weight': None,
+            'max_features': 'sqrt',
+            'missing_values': np.nan,
+            'min_samples_leaf': 5,
+            'min_samples_split': 2,
+            'n_estimators': 256,
+            'criterion': 'entropy',
+        }
+
+        from sklearn.model_selection import GridSearchCV
+        clf = RandomForestClassifier(**static_params)
+        search = GridSearchCV(clf, param_grid=param_grid, n_jobs=4, cv=3,
+                              refit=False, verbose=5)
+
+        with ut.Timer('GridSearch'):
+            search.fit(X_withnan, y)
+
+        def report(results, n_top=3):
+            for i in range(1, n_top + 1):
+                candidates = np.flatnonzero(results['rank_test_score'] == i)
+                for candidate in candidates:
+                    print('Model with rank: {0}'.format(i))
+                    print('Mean validation score: {0:.3f} (std: {1:.3f})'.format(
+                          results['mean_test_score'][candidate],
+                          results['std_test_score'][candidate]))
+                    print('Parameters: {0}'.format(results['params'][candidate]))
+                    print('')
+
+        results = search.cv_results_
+        report(results, n_top=10)
+
+        print(ut.sort_dict(search.cv_results_).keys())
+
+        params = results['params']
+        cols = sorted(param_grid.keys())
+        zX_df = pd.DataFrame([ut.take(p, cols)  for p in params], columns=cols)
+        # zX_df['class_weight'][pd.isnull(zX_df['class_weight'])] = 'none'
+        if 'max_depth' in zX_df.columns:
+            zX_df['max_depth'][pd.isnull(zX_df['max_depth'])] = 10
+        if 'criterion' in zX_df.columns:
+            zX_df['criterion'][zX_df['criterion'] == 'entropy'] = 0
+            zX_df['criterion'][zX_df['criterion'] == 'gini'] = 1
+        if 'class_weight' in zX_df.columns:
+            zX_df['class_weight'][pd.isnull(zX_df['class_weight'])] = 0
+            zX_df['class_weight'][zX_df['class_weight'] == 'balanced'] = 1
+        [(c, zX_df[c].dtype) for c in cols]
+
+        # zX = pd.get_dummies(zX_df).values.astype(np.float32)
+        zX = zX_df.values.astype(np.float32)
+        zY = mean_test_score = results['mean_test_score']
+
+        from scipy.stats import mode
+
+        # from pgmpy.factors.discrete import TabularCPD
+        # TabularCPD('feat', top_feats.shape[0])
+
+        num_top = 5
+        top_feats = zX.take(zY.argsort()[::-1], axis=0)[0:num_top]
+        print('num_top = %r' % (num_top,))
+
+        print('Marginalized probabilities over top feature values')
+        uvals = [np.unique(f) for f in top_feats.T]
+        marginal_probs = [[np.sum(f == u) / len(f) for u in us] for us, f in zip(uvals , top_feats.T)]
+        for c, us, mprobs in zip(cols, uvals, marginal_probs):
+            print(c + ' = ' + ut.repr3(ut.dzip(us, mprobs), precision=2))
+
+        mode_top_zX_ = mode(top_feats, axis=0)
+        mode_top_zX = mode_top_zX_.mode[0]
+        flags = (mode_top_zX_.count == 1)[0]
+        mode_top_zX[flags] = top_feats[0][flags]
+        print('mode')
+        print(ut.repr4(ut.dzip(cols, mode_top_zX)))
+        mean_top_zX = np.mean(top_feats, axis=0)
+        print('mean')
+        print(ut.repr4(ut.dzip(cols, mean_top_zX)))
+
+        import sklearn.ensemble
+        clf = sklearn.ensemble.RandomForestRegressor(bootstrap=True, oob_score=True)
+        clf.fit(zX, zY)
+
+        importances = dict(zip(cols, clf.feature_importances_))
+        importances = ut.sort_dict(importances, 'vals', reverse=True)
+        print(ut.align(ut.repr4(importances, precision=4), ':'))
+
+        mean_test_score
+
     # print(df.to_string())
+
+    # print(df_results)
+
+    # TODO: TSNE?
+    # http://scikit-learn.org/stable/auto_examples/manifold/plot_manifold_sphere.html#sphx-glr-auto-examples-manifold-plot-manifold-sphere-py
+    # Perform t-distributed stochastic neighbor embedding.
+    # from sklearn import manifold
+    # import matplotlib.pyplot as plt
+    # tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    # trans_data = tsne.fit_transform(feats).T
+    # ax = fig.add_subplot(2, 5, 10)
+    # plt.scatter(trans_data[0], trans_data[1], c=colors, cmap=plt.cm.rainbow)
+    # plt.title("t-SNE (%.2g sec)" % (t1 - t0))
+    # ax.xaxis.set_major_formatter(NullFormatter())
+    # ax.yaxis.set_major_formatter(NullFormatter())
+    # plt.axis('tight')
+    print('--------')
 
 
 def gridsearch_ratio_thresh(match_list, truth_list):

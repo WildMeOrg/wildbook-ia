@@ -254,8 +254,19 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     #-----------
     # IBEIS project repos
     #-----------
+    # if True:
+    #     jon_repo_base = 'https://github.com/Erotemic'
+    #     jason_repo_base = 'https://github.com/bluemellophone'
+    # else:
+    #     jon_repo_base = 'https://github.com/wildme'
+    #     jason_repo_base = 'https://github.com/wildme'
+    # else:
+    #     jon_repo_base = 'git@hyrule.cs.rpi.edu
+    #     jason_repo_base = 'git@hyrule.cs.rpi.edu
+
     ibeis_rman = ut.RepoManager([
         'https://github.com/Erotemic/utool.git',
+        # 'https://github.com/Erotemic/sandbox_utools.git',
         'https://github.com/Erotemic/vtool.git',
         'https://github.com/Erotemic/dtool.git',
         'https://github.com/bluemellophone/detecttools.git',
@@ -563,25 +574,27 @@ def execute_commands(tpl_rman, ibeis_rman):
         for repo in ibeis_rman.repos:
             gitrepo = repo.as_gitpython()
             fmt = 'ssh' if wildme_ssh_flags else 'https'
-            wildme_url = repo._new_repo_url(user=wildme_user, fmt=fmt)
+            wildme_url = repo._new_remote_url(host='github.com', user=wildme_user, fmt=fmt)
             remotes = repo.remotes
             print('Checking %s for move to wildme' % (repo,))
 
-            incorrect_version = False
-            if wildme_remote in remotes:
-                # Check correct version (SSH or HTTPS)
-                wildme_remote_ = remotes[wildme_remote]
-                wildme_url_ = wildme_remote_['url']
-                is_ssh = '@' in wildme_url_
-                incorrect_version = (is_ssh and wildme_https_flags) or (not is_ssh and wildme_ssh_flags)
-                if incorrect_version:
-                    print('  * Deleting remote %r: %r' % (wildme_remote, wildme_url_))
-                    gitrepo.delete_remote(wildme_remote)
+            incorrect_version = repo._ensure_remote_exists(wildme_remote, wildme_url)
 
-            # Ensure there is a remote under the wildme name
-            if wildme_remote not in remotes or incorrect_version:
-                print('  * Create remote %r: %r' % (wildme_remote, wildme_url))
-                gitrepo.create_remote(wildme_remote, wildme_url)
+            # incorrect_version = False
+            # if wildme_remote in remotes:
+            #     # Check correct version (SSH or HTTPS)
+            #     wildme_remote_ = remotes[wildme_remote]
+            #     wildme_url_ = wildme_remote_['url']
+            #     is_ssh = '@' in wildme_url_
+            #     incorrect_version = (is_ssh and wildme_https_flags) or (not is_ssh and wildme_ssh_flags)
+            #     if incorrect_version:
+            #         print('  * Deleting remote %r: %r' % (wildme_remote, wildme_url_))
+            #         gitrepo.delete_remote(wildme_remote)
+
+            # # Ensure there is a remote under the wildme name
+            # if wildme_remote not in remotes or incorrect_version:
+            #     print('  * Create remote %r: %r' % (wildme_remote, wildme_url))
+            #     gitrepo.create_remote(wildme_remote, wildme_url)
 
             if 'origin' in remotes:
                 try:
