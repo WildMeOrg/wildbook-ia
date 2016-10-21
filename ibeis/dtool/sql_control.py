@@ -95,8 +95,6 @@ class SQLExecutionContext(object):
         #        context.tt = ut.tic(context.operation_lbl)
         return context
 
-    # --- with SQLExecutionContext: statment code happens here ---
-
     #@profile
     def execute_and_generate_results(context, params):
         """ helper for context statment """
@@ -360,37 +358,11 @@ class SQLDatabaseController(object):
             db.fname = basename(db.fpath)
 
         db.text_factory = text_factory
-        if db.fname != ':memory:':
-            assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
-            if not exists(db.fpath):
-                print('[sql] Initializing new database')
-                if db.readonly:
-                    raise AssertionError('Cannot open a new database in readonly mode')
-            # Open the SQL database connection with support for custom types
-            #lite.enable_callback_tracebacks(True)
-            #db.fpath = ':memory:'
 
-            if six.PY3:
-                # References:
-                # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
-                db.uri = 'file:' + db.fpath
-                if db.readonly:
-                    db.uri += '?mode=ro'
-                db.connection = lite.connect(db.uri, uri=True, detect_types=lite.PARSE_DECLTYPES)
-            else:
-                import os
-                if db.readonly:
-                    assert not ut.WIN32, 'cannot open readonly on windows.'
-                    flag = os.O_RDONLY  # if db.readonly else os.O_RDWR
-                    fd = os.open(db.fpath, flag)
-                    db.uri = '/dev/fd/%d' % fd
-                    db.connection = lite.connect(db.uri, detect_types=lite.PARSE_DECLTYPES)
-                    os.close(fd)
-                else:
-                    db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
-        else:
-            db.uri = None
-            db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
+        # Create connection
+        connection, uri = db._create_connection()
+        db.connection = connection
+        db.uri = uri
 
         db.connection.text_factory = db.text_factory
         # Get a cursor which will preform sql commands / queries / executions
@@ -405,6 +377,41 @@ class SQLDatabaseController(object):
         db.optimize()
         if not db.readonly:
             db._ensure_metadata_table()
+
+    def _create_connection(db):
+        if db.fname != ':memory:':
+            assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
+            if not exists(db.fpath):
+                print('[sql] Initializing new database')
+                if db.readonly:
+                    raise AssertionError('Cannot open a new database in readonly mode')
+            # Open the SQL database connection with support for custom types
+            #lite.enable_callback_tracebacks(True)
+            #db.fpath = ':memory:'
+
+            if six.PY3:
+                # References:
+                # http://stackoverflow.com/questions/10205744/opening-sqlite3-database-from-python-in-read-only-mode
+                uri = 'file:' + db.fpath
+                if db.readonly:
+                    uri += '?mode=ro'
+                connection = lite.connect(uri, uri=True, detect_types=lite.PARSE_DECLTYPES)
+            else:
+                import os
+                if db.readonly:
+                    assert not ut.WIN32, 'cannot open readonly on windows.'
+                    flag = os.O_RDONLY  # if db.readonly else os.O_RDWR
+                    fd = os.open(db.fpath, flag)
+                    uri = '/dev/fd/%d' % fd
+                    connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES)
+                    os.close(fd)
+                else:
+                    uri = db.fpath
+                    connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES)
+        else:
+            uri = None
+            connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
+        return connection, uri
 
     def get_fpath(db):
         return db.fpath
@@ -489,6 +496,22 @@ class SQLDatabaseController(object):
         db.connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
         db.connection.text_factory = db.text_factory
         db.cur = db.connection.cursor()
+
+    def backup(db, backup_filepath):
+        # Create a brand new conenction to lock out current thread and any others
+        connection, uri = db._create_connection()
+        # Start Exclusive transaction, lock out all other writers from making database changes
+        connection.isolation_level = 'EXCLUSIVE'
+        connection.execute('BEGIN EXCLUSIVE')
+        # Assert the database file exists, and copy to backup path
+        if exists(uri):
+            ut.copy(uri, backup_filepath)
+        else:
+            raise IOError('Could not backup the database as the URI does not exist: %r' % (uri, ))
+        # Commit the transaction, releasing the lock
+        connection.commit()
+        # Close the connection
+        connection.close()
 
     def optimize(db):
         # http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html#pragma-cache_size
@@ -2045,7 +2068,8 @@ class SQLDatabaseController(object):
         column_names = ut.compress(all_column_names, isvalid_list)
         if params_iter is not None:
             rowids = ut.flatten(db.get_where_eq(tablename, ('rowid',), params_iter,
-                                              andwhere_colnames, unpack_scalars=False))
+                                                andwhere_colnames,
+                                                unpack_scalars=False))
             column_list = [
                 db.get(tablename, (name,), rowids, unpack_scalars=True)
                 for name in column_names if name not in exclude_columns
