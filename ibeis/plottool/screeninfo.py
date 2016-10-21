@@ -224,10 +224,7 @@ def get_xywh_pads():
 def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
     stdpxls = get_stdpxls()
     if monitor_num is None:
-        if ut.get_computer_name() == 'Ooo':
-            monitor_num = 1
-        else:
-            monitor_num = 0
+        monitor_num = 0
     monitor_geometries = get_monitor_geometries()
     try:
         (startx, starty, availw, availh) = monitor_geometries[monitor_num]
@@ -241,7 +238,7 @@ def get_avail_geom(monitor_num=None, percent_w=1.0, percent_h=1.0):
 
 
 def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
-                            monitor_num=None, adaptive=False, percent_w=1.0,
+                            monitor_num=None, percent_w=1.0,
                             percent_h=1.0):
     """
     Returns a list of bounding boxes where figures can be placed on the screen
@@ -253,11 +250,8 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
     if max_rows is None:
         max_rows = DEFAULT_MAX_ROWS
 
-    if adaptive:
-        if num_wins <= DEFAULT_MAX_ROWS:
-            percent_w *= .5
-
     available_geom = get_avail_geom(monitor_num, percent_w=percent_w, percent_h=percent_h)
+    print('available_geom = %r' % (available_geom,))
     startx, starty, avail_width, avail_height = available_geom
 
     nRows = num_wins if num_wins < max_rows else max_rows
@@ -268,14 +262,10 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
 
     (x_pad, y_pad, w_pad, h_pad) = get_xywh_pads()
 
-    #printDBG('startx = %r' % startx)
-    #printDBG('starty = %r' % starty)
-    #printDBG('avail_width = %r' % avail_width)
-    #printDBG('avail_height = %r' % avail_height)
-    #printDBG('win_width = %r' % win_width)
-    #printDBG('win_height = %r' % win_height)
-    #printDBG('nRows = %r' % nRows)
-    #printDBG('nCols = %r' % nCols)
+    print('startx, startx = %r, %r' % (startx, starty))
+    print('avail_width, avail_height = %r, %r' % (avail_width, avail_height))
+    print('win_width, win_height = %r, %r' % (win_width, win_height))
+    print('nRows, nCols = %r, %r' % (nRows, nCols))
 
     def get_position_ix(ix):
         if row_first:

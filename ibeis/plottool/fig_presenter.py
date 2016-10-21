@@ -165,8 +165,7 @@ def all_figures_tile(max_rows=None, row_first=True, no_tile=False,
     valid_positions = screeninfo.get_valid_fig_positions(num_wins, max_rows,
                                                          row_first, monitor_num,
                                                          percent_w=percent_w,
-                                                         percent_h=percent_h,
-                                                         adaptive=True)
+                                                         percent_h=percent_h)
 
     QMainWin = get_main_win_base()
     for ix, win in enumerate(all_wins):
