@@ -123,7 +123,7 @@ def train_pairwise_rf():
     for match in ut.ProgIter(match_list, lbl='assign vsone'):
         match.assign(cfgdict)
 
-    for match in ut.ProgIter(match_list, lbl='assign vsone'):
+    for match in ut.ProgIter(match_list, lbl='apply ratio thresh'):
         match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
 
     # =====================================
@@ -222,60 +222,58 @@ def train_pairwise_rf():
         criterion=['gini', 'entropy'],
     )
 
-    for seed in (rng.rand(5) * 4294967295).astype(np.int):
-        print('seed = %r' % (seed,))
-        rng = np.random.RandomState(42)
-        xvalkw = dict(n_folds=10, shuffle=True, random_state=rng)
-        skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-        skf_iter = skf.split(X=X_nonan, y=y)
-        df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn_nonan',
-                                           'auc_learn_withnan'])
+    rng = np.random.RandomState(42)
+    xvalkw = dict(n_folds=10, shuffle=True, random_state=rng)
+    skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+    skf_iter = skf.split(X=X_nonan, y=y)
+    df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn_nonan',
+                                       'auc_learn_withnan'])
 
-        rng2 = np.random.RandomState(seed)
-        # rf_params = dict(n_estimators=256, bootstrap=True, verbose=0, random_state=rng2)
-        rf_params = dict(n_estimators=256, bootstrap=False, verbose=1, random_state=rng2)
+    rng2 = np.random.RandomState(3915904814)
+    # rf_params = dict(n_estimators=256, bootstrap=True, verbose=0, random_state=rng2)
+    rf_params = dict(n_estimators=256, bootstrap=False, verbose=1, random_state=rng2)
 
-        # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
-        for count, (train_idx, test_idx) in enumerate(skf_iter):
-            y_test = y[test_idx]
-            y_train = y[train_idx]
-            if True:
-                score_list = np.array(
-                    [m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
-                auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
+    # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
+    for count, (train_idx, test_idx) in enumerate(skf_iter):
+        y_test = y[test_idx]
+        y_train = y[train_idx]
+        if True:
+            score_list = np.array(
+                [m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
+            auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
 
-            if True:
-                X_train = X_nonan[train_idx]
-                X_test = X_nonan[test_idx]
-                # Train uncalibrated random forest classifier on train data
-                clf = RandomForestClassifier(**rf_params)
-                clf.fit(X_train, y_train)
+        if True:
+            X_train = X_nonan[train_idx]
+            X_test = X_nonan[test_idx]
+            # Train uncalibrated random forest classifier on train data
+            clf = RandomForestClassifier(**rf_params)
+            clf.fit(X_train, y_train)
 
-                # evaluate on test data
-                clf_probs = clf.predict_proba(X_test)
-                auc_learn_nonan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+            # evaluate on test data
+            clf_probs = clf.predict_proba(X_test)
+            auc_learn_nonan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
 
-            if allow_nan:
-                X_train = X_withnan[train_idx]
-                X_test = X_withnan[test_idx]
-                # Train uncalibrated random forest classifier on train data
-                clf = RandomForestClassifier(missing_values=np.nan, **rf_params)
-                clf.fit(X_train, y_train)
+        if allow_nan:
+            X_train = X_withnan[train_idx]
+            X_test = X_withnan[test_idx]
+            # Train uncalibrated random forest classifier on train data
+            clf = RandomForestClassifier(missing_values=np.nan, **rf_params)
+            clf.fit(X_train, y_train)
 
-                importances = dict(zip(withnan_cols, clf.feature_importances_))
-                importances = ut.sort_dict(importances, 'vals', reverse=True)
-                print(ut.align(ut.repr4(importances, precision=4), ':'))
+            importances = dict(zip(withnan_cols, clf.feature_importances_))
+            importances = ut.sort_dict(importances, 'vals', reverse=True)
+            print(ut.align(ut.repr4(importances, precision=4), ':'))
 
-                # evaluate on test data
-                clf_probs = clf.predict_proba(X_test)
-                # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
-                auc_learn_withnan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+            # evaluate on test data
+            clf_probs = clf.predict_proba(X_test)
+            # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
+            auc_learn_withnan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
 
-            newrow = pd.DataFrame([[auc_naive, auc_learn_nonan,
-                                    auc_learn_withnan]],
-                                  columns=df_results.columns)
-            # print(newrow)
-            df_results = df_results.append([newrow], ignore_index=True)
+        newrow = pd.DataFrame([[auc_naive, auc_learn_nonan,
+                                auc_learn_withnan]],
+                              columns=df_results.columns)
+        # print(newrow)
+        df_results = df_results.append([newrow], ignore_index=True)
 
         # print(df_results)
 

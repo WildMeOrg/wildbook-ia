@@ -12,13 +12,7 @@ print, rrr, profile = ut.inject2(__name__)
 def _dz(a, b):
     a = a.tolist() if isinstance(a, np.ndarray) else list(a)
     b = b.tolist() if isinstance(b, np.ndarray) else list(b)
-    if len(a) == 0 and len(b) == 1:
-        # This introduces a corner case
-        b = []
-    elif len(b) == 1 and len(a) > 1:
-        b = b * len(a)
-    assert len(a) == len(b), 'out of alignment a=%r, b=%r' % (a, b)
-    return dict(zip(a, b))
+    return ut.dzip(a, b)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
