@@ -125,7 +125,7 @@ def revert_to_backup(ibs):
     fname, ext = splitext(db_path)
     path_list = sorted(ut.glob(backup_dir, '*%s' % ext))
     previous_backup = path_list[-1]
-    ut.copy(previous_backup, db_path)
+    copy_database(previous_backup, db_path)
 
 
 def ensure_daily_database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP):
@@ -164,6 +164,20 @@ def get_backup_fpaths(ibs):
     pass
 
 
+def copy_database(src_fpath, dst_fpath):
+    import dtool
+    from ibeis import constants as const
+    OLD = False
+    if OLD:
+        ut.copy(src_fpath, dst_fpath)
+    else:
+        # Load database and ask it to copy itself, which enforces an exclusive
+        # blocked lock for all processes potentially writing to the database
+        db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=const.__STR__,
+                                         inmemory=False)
+        db.backup(dst_fpath)
+
+
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
@@ -178,7 +192,7 @@ def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True
     dst_fpath = join(backup_dir, dst_fname)
     if exists(src_fpath) and not exists(dst_fpath):
         print('[ensure_daily_database_backup] Daily backup of database: %r -> %r' % (src_fpath, dst_fpath, ))
-        ut.copy(src_fpath, dst_fpath)
+        copy_database(src_fpath, dst_fpath)
         # Clean-up old database backups
         remove_old_backups(backup_dir, ext, max_keep)
 
@@ -329,7 +343,7 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
                                        version, '_copy', str(count), ext))
             db_backup_fpath = join(db_dpath, db_backup_fname)
             count += 1
-        ut.copy(db_fpath, db_backup_fpath)
+        copy_database(db_fpath, db_backup_fpath)
 
     legacy_update_funcs = schema_spec.LEGACY_UPDATE_FUNCTIONS
     for legacy_version, func in legacy_update_funcs:
@@ -366,7 +380,7 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
             msg = 'The database update failed, rolled back to the original version.'
             ut.printex(ex, msg, iswarning=True)
             ut.remove_file(db_fpath)
-            ut.copy(db_backup_fpath, db_fpath)
+            copy_database(db_backup_fpath, db_fpath)
             if clearbackup:
                 ut.remove_file(db_backup_fpath)
             raise
