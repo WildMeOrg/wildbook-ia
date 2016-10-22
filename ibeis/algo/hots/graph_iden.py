@@ -33,7 +33,8 @@ def filter_between_ccs_neg(aids1, aids2, aid_to_nid, nid_to_aids, isneg_flags):
         >>> isneg_flags = [0, 0, 1, 0, 0]
         >>> aid_to_nid = {0: 0, 1: 0, 2: 0, 3: 1, 4: 1}
         >>> nid_to_aids = {0: [0, 1, 2], 1: [3, 4]}
-        >>> valid_flags = filter_between_ccs_neg(aids1, aids2, aid_to_nid, nid_to_aids, isneg_flags)
+        >>> valid_flags = filter_between_ccs_neg(aids1, aids2, aid_to_nid,
+        >>>                                      nid_to_aids, isneg_flags)
         >>> result = ('valid_flags = %s' % (ut.repr2(valid_flags),))
         >>> print(result)
         valid_flags = [True, True, False, True, False]
