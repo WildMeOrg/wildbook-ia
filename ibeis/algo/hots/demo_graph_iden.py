@@ -121,6 +121,7 @@ Probability calculations:
 
 
  >>> import networkx as nx
+ >>> import plottool as pt
  >>> edges = [(u, v, {'weight': w}) for (u, v, w) in [
  >>>     ('a', 'b', .8),
  >>>     ('a', 'c', .8),
@@ -147,7 +148,6 @@ Probability calculations:
  >>> print(G.edge['a']['c']['lp'])
  >>> print(L.node[('a', 'c')]['pos'])
  >>> pt.nx_agraph_layout(L, inplace=True, prog='neato')
- >>> import plottool as pt
  >>> pt.qt4ensure()
  >>> fnum = 1
  >>> _ = pt.show_nx(G, pnum=(1, 2, 1), fnum=fnum, layout='custom')
@@ -157,17 +157,17 @@ Probability calculations:
  >>> # FIRST IMPORT INTO OPENGM THEN MAKE FACTOR GRAPH THEN EXECUTE
  >>> # http://trgao10.github.io/bglbp.html
 
+import opengm
 index_type = opengm.index_type
-index_type = np.int32
 numVar = len(L.nodes())
 numLabels = 2
 beta = 0.75
 numberOfStates = np.ones(numVar, dtype=index_type) * numLabels
 
-nodex_lookup = ut.make_index_lookup(nodes)
+nodex_lookup = ut.make_index_lookup(L.nodes())
 nodes = np.array(ut.take(nodex_lookup, L.nodes()))
 edges = np.array([ut.take(nodex_lookup, e) for e in L.edges()])
-weights = np.array(ut.take(nx.get_node_attributes(L, 'weight'), nodes))
+weights = np.array(ut.take(nx.get_node_attributes(L, 'weight'), L.nodes()))
 # For each node write the probability of it takeing a certain state (same/diff)
 unaries = np.vstack([weights, 1 - weights]).T
 
@@ -178,15 +178,140 @@ for r in range(unaries.shape[0]):
 
 for c in range(edges.shape[0]):
     fid = gm.addFunction(np.array([[beta, 1 - beta], [1 - beta, beta]]))
-    gm.addFactor(fid, np.array(edges[c] - 1, dtype=index_type))
+    variableIndices = np.array(edges[c], dtype=index_type)
+    gm.addFactor(fid, variableIndices)
 
 opengm.visualizeGm(gm, show=False, layout="neato", plotUnaries=True,
                     iterations=1000, plotFunctions=False,
                     plotNonShared= False, relNodeSize=1.0)
 
-inferBipartite = opengm.inference.BeliefPropagation(gm,parameter=opengm.InfParam(damping=0.01,steps=100),
+lpb_parmas = opengm.InfParam(damping=0.01,steps=1000)
+infr = opengm.inference.BeliefPropagation(gm, parameter=lpb_parmas,
                                                     accumulator="integrator")
-inferBipartite.infer()
+infr.infer()
+
+marginals = infr.marginals(nodes)
+import pandas as pd
+print('new marginals are')
+print(pd.DataFrame(marginals, columns=['same', 'diff'], index=pd.Series(nodes)))
+
+
+# -------------
+
+import networkx as nx
+import plottool as pt
+edges = [(u, v, {'weight': w}) for (u, v, w) in [
+    ('a', 'b', .8),
+    ('a', 'c', .8),
+    ('a', 'd', .01),
+    ('b', 'c', .8),
+    ('b', 'd', .8),
+    ('c', 'd', .8),
+]]
+G = nx.Graph()
+G.add_edges_from(edges)
+node_to_label = {e: '%s,%s\n%s' % (e + (d,)) for e, d in nx.get_edge_attributes(G, 'weight').items()}
+nx.set_edge_attributes(G, 'label', node_to_label)
+G.remove_edge('a', 'c')
+
+
+import opengm
+index_type = opengm.index_type
+nodes = list(G.nodes())
+edges = list(G.edges())
+n_annots = len(nodes)
+n_edges = len(edges)
+n_names = n_annots
+n_edge_states = 2
+
+node_state_card = np.ones(n_annots, dtype=index_type) * n_names
+edge_state_card = np.ones(n_edges, dtype=index_type) * n_edge_states
+numberOfStates = node_state_card
+# numberOfStates = np.hstack([node_state_card, edge_state_card])
+gm = opengm.graphicalModel(numberOfStates, operator="multiplier")
+
+annot_idxs = list(range(n_annots))
+edge_idxs = list(range(n_annots, n_annots + n_edges))
+lookup_annot_idx = ut.dzip(nodes, annot_idxs)
+lookup_edge_idx = ut.dzip(edges, edge_idxs)
+
+unaries = np.ones((n_annots, n_names)) / n_names
+# unaries[0][0] = 1
+# unaries[0][1:] = 0
+for annot_idx in annot_idxs:
+    fid = gm.addFunction(unaries[annot_idx])
+    gm.addFactor(fid, annot_idx)
+
+# for edge_idx in edge_idxs:
+#     p_match = G.get_edge_data(aid1, aid2)['weight']
+#     fid = gm.addFunction(np.array([.5, .5]))
+#     gm.addFactor(fid, edge_idx)
+
+# Add Pots function for each edge
+pairwise_factor_idxs = []
+count = len(list(gm.factors()))
+for aid1, aid2 in edges:
+    varx1 = lookup_annot_idx[aid1]
+    varx2 = lookup_annot_idx[aid2]
+    pairwise_factor_idxs.append(count)
+    count += 1
+    p_match = G.get_edge_data(aid1, aid2)['weight']
+    p_noncomp = 0
+    B = 1 / n_names
+    prob_same = p_match + p_noncomp * B
+    prob_diff = 1 - prob_same
+
+    # edge_idx = lookup_edge_idx[(aid1, aid2)]
+    # var_indicies = np.array([varx1, varx2, edge_idx])
+    # expl_shape = (n_names, n_names, n_edge_states)
+    # values = np.zeros(expl_shape)
+    # for s in range(n_edge_states):
+    #     for i in range(n_names):
+    #         for j in range(n_names):
+    #             if s == 0 and i == j:
+    #                 values[i, j, s] = prob_same
+    #             if s == 1 and i == j:
+    #                 values[i, j, s] = 0
+    #             if s == 0 and i != j:
+    #                 values[i, j, s] = 0
+    #             if s == 1 and i != j:
+    #                 values[i, j, s] = prob_diff
+    # fid = gm.addFunction(values)
+    # gm.addFactor(fid, var_indicies)
+
+    potts_func = opengm.PottsFunction((n_names, n_names), valueEqual=prob_same, valueNotEqual=prob_diff)
+    potts_func_id = gm.addFunction(potts_func)
+    var_indicies = np.array([varx1, varx2])
+    gm.addFactor(potts_func_id, var_indicies)
+
+import networkx
+from networkx.drawing.nx_agraph import graphviz_layout
+networkx.graphviz_layout = graphviz_layout
+opengm.visualizeGm(gm, show=False, layout="neato", plotUnaries=True,
+                    iterations=1000, plotFunctions=False,
+                    plotNonShared= False, relNodeSize=1.0)
+pt.show_nx(G)
+
+lpb_parmas = opengm.InfParam(damping=0.01,steps=1000)
+infr = opengm.inference.BeliefPropagation(gm, parameter=lpb_parmas, accumulator="integrator")
+infr.infer()
+
+print(infr.arg())
+import pandas as pd
+
+factors = list(gm.factors())
+factor_marginals = infr.factorMarginals(pairwise_factor_idxs)
+edge_marginals_same_diff = [(np.diag(f).sum(), f[~np.eye(f.shape[0],dtype=bool)].sum()) for f in factor_marginals]
+print(pd.DataFrame(edge_marginals_same_diff, columns=['same', 'diff'], index=pd.Series(edges)))
+
+marginals = infr.marginals(annot_idxs)
+print('node marginals are')
+print(pd.DataFrame(marginals, index=pd.Series(nodes)))
+
+# marginals = infr.marginals(edge_idxs)
+# print('edge marginals are')
+# print(marginals)
+# print(pd.DataFrame(marginals, columns=['same', 'diff'], index=pd.Series(edges)))
 
 
  >>> import networkx as nx
@@ -215,6 +340,9 @@ inferBipartite.infer()
  # penalty for the labels being the same or different.
  # phi_{i,j}(s) = p['nomatch'] if a[i] == a[j] else p['match']
  # This seems to reduce to multicut pretty nicely
+
+
+
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
