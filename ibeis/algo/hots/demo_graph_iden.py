@@ -203,17 +203,16 @@ import plottool as pt
 edges = [(u, v, {'weight': w}) for (u, v, w) in [
     ('a', 'b', .8),
     ('a', 'c', .8),
-    ('a', 'd', .01),
+    ('a', 'd', .000001),
     ('b', 'c', .8),
-    ('b', 'd', .8),
+    ('b', 'd', .4),
     ('c', 'd', .8),
 ]]
 G = nx.Graph()
 G.add_edges_from(edges)
 node_to_label = {e: '%s,%s\n%s' % (e + (d,)) for e, d in nx.get_edge_attributes(G, 'weight').items()}
 nx.set_edge_attributes(G, 'label', node_to_label)
-G.remove_edge('a', 'c')
-
+# G.remove_edge('a', 'c')
 
 import opengm
 index_type = opengm.index_type
@@ -242,11 +241,6 @@ for annot_idx in annot_idxs:
     fid = gm.addFunction(unaries[annot_idx])
     gm.addFactor(fid, annot_idx)
 
-# for edge_idx in edge_idxs:
-#     p_match = G.get_edge_data(aid1, aid2)['weight']
-#     fid = gm.addFunction(np.array([.5, .5]))
-#     gm.addFactor(fid, edge_idx)
-
 # Add Pots function for each edge
 pairwise_factor_idxs = []
 count = len(list(gm.factors()))
@@ -261,42 +255,15 @@ for aid1, aid2 in edges:
     prob_same = p_match + p_noncomp * B
     prob_diff = 1 - prob_same
 
-    # edge_idx = lookup_edge_idx[(aid1, aid2)]
-    # var_indicies = np.array([varx1, varx2, edge_idx])
-    # expl_shape = (n_names, n_names, n_edge_states)
-    # values = np.zeros(expl_shape)
-    # for s in range(n_edge_states):
-    #     for i in range(n_names):
-    #         for j in range(n_names):
-    #             if s == 0 and i == j:
-    #                 values[i, j, s] = prob_same
-    #             if s == 1 and i == j:
-    #                 values[i, j, s] = 0
-    #             if s == 0 and i != j:
-    #                 values[i, j, s] = 0
-    #             if s == 1 and i != j:
-    #                 values[i, j, s] = prob_diff
-    # fid = gm.addFunction(values)
-    # gm.addFactor(fid, var_indicies)
-
     potts_func = opengm.PottsFunction((n_names, n_names), valueEqual=prob_same, valueNotEqual=prob_diff)
     potts_func_id = gm.addFunction(potts_func)
     var_indicies = np.array([varx1, varx2])
     gm.addFactor(potts_func_id, var_indicies)
 
-import networkx
-from networkx.drawing.nx_agraph import graphviz_layout
-networkx.graphviz_layout = graphviz_layout
-opengm.visualizeGm(gm, show=False, layout="neato", plotUnaries=True,
-                    iterations=1000, plotFunctions=False,
-                    plotNonShared= False, relNodeSize=1.0)
-pt.show_nx(G)
-
 lpb_parmas = opengm.InfParam(damping=0.01,steps=1000)
 infr = opengm.inference.BeliefPropagation(gm, parameter=lpb_parmas, accumulator="integrator")
 infr.infer()
 
-print(infr.arg())
 import pandas as pd
 
 factors = list(gm.factors())
@@ -308,10 +275,77 @@ marginals = infr.marginals(annot_idxs)
 print('node marginals are')
 print(pd.DataFrame(marginals, index=pd.Series(nodes)))
 
+
+import opengm
+index_type = opengm.index_type
+nodes = list(G.nodes())
+n_annots = len(nodes)
+n_names = n_annots
+lookup_annot_idx = ut.dzip(nodes, annot_idxs)
+
+# Create nodes in the graphical model.  In this case there are <num_vars>
+# nodes and each node can be assigned to one of <num_vars> possible labels
+space = np.full((n_annots,), fill_value=n_names, dtype=opengm.index_type)
+gm = opengm.gm(space, operator='adder')
+
+# Use one potts function for each edge
+# Add Pots function for each edge
+pairwise_factor_idxs = []
+count = len(list(gm.factors()))
+for (p_same, p_diff), (aid1, aid2) in zip(edge_marginals_same_diff, G.edges()):
+    varx1 = lookup_annot_idx[aid1]
+    varx2 = lookup_annot_idx[aid2]
+    valueEqual = 0
+    valueNotEqual = vt.logit(p_same)
+    potts_func = opengm.PottsFunction((n_names, n_names), valueEqual=valueEqual, valueNotEqual=valueNotEqual)
+    potts_func_id = gm.addFunction(potts_func)
+    var_indicies = np.array([varx1, varx2])
+    gm.addFactor(potts_func_id, var_indicies)
+
+parameter = opengm.InfParam()
+infr = opengm.inference.Multicut(gm, parameter=parameter)
+infr.infer()
+labels = infr.arg()
+print('labels = %r' % (labels,))
+
+
+#----
+
+import networkx
+from networkx.drawing.nx_agraph import graphviz_layout
+networkx.graphviz_layout = graphviz_layout
+opengm.visualizeGm(gm, show=False, layout="neato", plotUnaries=True,
+                    iterations=1000, plotFunctions=False,
+                    plotNonShared= False, relNodeSize=1.0)
+_ = pt.show_nx(G)
+
 # marginals = infr.marginals(edge_idxs)
 # print('edge marginals are')
 # print(marginals)
 # print(pd.DataFrame(marginals, columns=['same', 'diff'], index=pd.Series(edges)))
+
+# for edge_idx in edge_idxs:
+#     p_match = G.get_edge_data(aid1, aid2)['weight']
+#     fid = gm.addFunction(np.array([.5, .5]))
+#     gm.addFactor(fid, edge_idx)
+
+# edge_idx = lookup_edge_idx[(aid1, aid2)]
+# var_indicies = np.array([varx1, varx2, edge_idx])
+# expl_shape = (n_names, n_names, n_edge_states)
+# values = np.zeros(expl_shape)
+# for s in range(n_edge_states):
+#     for i in range(n_names):
+#         for j in range(n_names):
+#             if s == 0 and i == j:
+#                 values[i, j, s] = prob_same
+#             if s == 1 and i == j:
+#                 values[i, j, s] = 0
+#             if s == 0 and i != j:
+#                 values[i, j, s] = 0
+#             if s == 1 and i != j:
+#                 values[i, j, s] = prob_diff
+# fid = gm.addFunction(values)
+# gm.addFactor(fid, var_indicies)
 
 
  >>> import networkx as nx
