@@ -1548,7 +1548,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
     # Create nodes in the graphical model.  In this case there are <num_vars>
     # nodes and each node can be assigned to one of <num_vars> possible labels
     num_nodes = num_vars
-    space = np.full((num_nodes,), fill_value=num_vars, dtype=np.int)
+    space = np.full((num_nodes,), fill_value=num_vars, dtype=opengm.index_type)
     gm = opengm.gm(space)
 
     # Use one potts function for each edge
