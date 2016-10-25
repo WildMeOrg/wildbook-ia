@@ -292,6 +292,7 @@ class RootMostInput(ut.HashComparable):
             return G.node[child].get('root_specifiable')
         def continue_condition(G, child, edge):
             return not G.node[child].get('root_specifiable')
+        # TODO: testme to make sure I still work
         bfs_iter = ut.bfs_conditional(
             rmi.exi_graph, rmi.node, reverse=True, yield_nodes=True,
             yield_condition=yield_condition,
