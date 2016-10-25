@@ -30,7 +30,7 @@ class _AnnotInfrViz(object):
         return truth_colors
 
     def _get_cmap(infr):
-        return pt.plt.cm.RdYlBu
+        # return pt.plt.cm.RdYlBu
         if hasattr(infr, '_cmap'):
             return infr._cmap
         else:
@@ -127,7 +127,7 @@ class _AnnotInfrViz(object):
     def visual_edge_attrs_appearance(infr):
         """ attrs that pertain to edge color and style """
         return ['alpha', 'color', 'implicit', 'label', 'linestyle', 'lw',
-                'pos', 'stroke', 'style']
+                'pos', 'stroke', 'capstyle', 'hatch', 'style']
 
     @property
     def visual_edge_attrs_space(infr):
@@ -191,7 +191,7 @@ class _AnnotInfrViz(object):
             reviewed_states_full = infr.get_edge_attrs('reviewed_state',
                                                        default='unreviewed')
             edge_to_lw = {
-                edge: 2.0 if state == 'unreviewed' else 4.0
+                edge: 2.0 if state == 'unreviewed' else 5.0
                 for edge, state in reviewed_states_full.items()
             }
             nx.set_edge_attributes(graph, 'lw', edge_to_lw)
@@ -205,6 +205,14 @@ class _AnnotInfrViz(object):
                 for edge, state in reviewed_states.items()
             }
             nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
+
+            # nx.set_edge_attributes(graph, 'hatch', {
+            #     edge: 'O' for edge, state in
+            #     reviewed_states.items()})
+
+            nx.set_edge_attributes(graph, 'capstyle', {
+                edge: 'round' for edge, state in
+                reviewed_states.items()})
 
             # Mark edges that might be splits with strokes
             # possible_split_edges = infr.find_possible_binary_splits()
@@ -230,6 +238,14 @@ class _AnnotInfrViz(object):
             }
             nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
 
+        # Mark edges that might be splits with strokes
+        edge_to_split = nx.get_edge_attributes(infr.graph, 'splitcase')
+        edge_to_stroke = {
+            edge: {'linewidth': 5, 'foreground': pt.ORANGE}
+            for edge, split in edge_to_split.items() if split
+        }
+        nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
+
         # Are cuts visible or invisible?
         edge_to_cut = nx.get_edge_attributes(graph, 'is_cut')
         cut_edges = [edge for edge, cut in edge_to_cut.items() if cut]
@@ -244,6 +260,23 @@ class _AnnotInfrViz(object):
         edges = list(graph.edges())
         reviewed_edges = list(reviewed_states.keys())
         nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges, [1.0]))
+
+        edge_to_infered_review = nx.get_edge_attributes(graph, 'infered_review')
+        infered_edges = [edge for edge, state in edge_to_infered_review.items()
+                         if state in ['match', 'nomatch']]
+        # infered_edges = graph.edges()
+        # nx.set_edge_attributes(graph, 'shadow', _dz(infered_edges, [True]))
+        # nx.set_edge_attributes(graph, 'sketch', _dz(infered_edges, [True]))
+        nx.set_edge_attributes(
+            graph, 'sketch', _dz(infered_edges, [
+                dict(scale=10.0, length=64.0, randomness=None)]
+                # dict(scale=3.0, length=18.0, randomness=None)]
+            ))
+        hide_infered = True
+        if hide_infered:
+            # Infered edges are hidden
+            nx.set_edge_attributes(
+                graph, 'style', _dz(infered_edges, ['invis']))
 
         if only_reviewed:
             # only reviewed edges contribute
