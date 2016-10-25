@@ -199,6 +199,9 @@ def _init_mpl_rcparams():
     #    mpl.rcParams['toolbar'] = 'None'
     #    mpl.rcParams['interactive'] = True
 
+    # import matplotlib.pyplot as plt
+    # plt.xkcd()
+
 
 def _mpl_set_backend(target_backend):
     import matplotlib as mpl

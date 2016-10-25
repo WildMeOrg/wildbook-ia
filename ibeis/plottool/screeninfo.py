@@ -251,7 +251,7 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
         max_rows = DEFAULT_MAX_ROWS
 
     available_geom = get_avail_geom(monitor_num, percent_w=percent_w, percent_h=percent_h)
-    print('available_geom = %r' % (available_geom,))
+    # print('available_geom = %r' % (available_geom,))
     startx, starty, avail_width, avail_height = available_geom
 
     nRows = num_wins if num_wins < max_rows else max_rows
@@ -262,10 +262,10 @@ def get_valid_fig_positions(num_wins, max_rows=None, row_first=True,
 
     (x_pad, y_pad, w_pad, h_pad) = get_xywh_pads()
 
-    print('startx, startx = %r, %r' % (startx, starty))
-    print('avail_width, avail_height = %r, %r' % (avail_width, avail_height))
-    print('win_width, win_height = %r, %r' % (win_width, win_height))
-    print('nRows, nCols = %r, %r' % (nRows, nCols))
+    # print('startx, startx = %r, %r' % (startx, starty))
+    # print('avail_width, avail_height = %r, %r' % (avail_width, avail_height))
+    # print('win_width, win_height = %r, %r' % (win_width, win_height))
+    # print('nRows, nCols = %r, %r' % (nRows, nCols))
 
     def get_position_ix(ix):
         if row_first:

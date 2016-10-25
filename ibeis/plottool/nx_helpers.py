@@ -1169,9 +1169,22 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
             ## http://matplotlib.org/1.2.1/examples/api/clippath_demo.html
             if data.get('shadow', None):
-                # offset=(2, -2, shadow_rgbFace='g'))
                 shadowkw = data.get('shadow', None)
-                path_effects += [patheffects.withSimplePatchShadow(**shadowkw)]
+                if shadowkw is True:
+                    shadowkw = dict(offset=(2, -2), shadow_color='k', alpha=.3,
+                                    rho=.3)
+                path_effects += [patheffects.SimpleLineShadow(**shadowkw)]
+
+            sketch_params = data.get('sketch')
+            if sketch_params is not None:
+                if sketch_params is True:
+                    # scale, length, randomness
+                    # sketch_params = (10.0, 128.0, 16.0)
+                    sketch_params = dict(
+                        scale=10.0,
+                        length=128.0,
+                        randomness=16.0,
+                    )
 
             stroke_info = data.get('stroke', None)
             if stroke_info not in [None, False]:
@@ -1197,6 +1210,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             #    print('code = %r' % (code,))
             #    print('verts = %r' % (verts,))
             #    pass
+            path_effects += [patheffects.Normal()]
 
             picker = data.get('picker', 5)
             zorder = data.get('zorder', 5)
@@ -1209,7 +1223,11 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                                           alpha=alpha,
                                           joinstyle='bevel',
                                           hatch=hatch,
+                                          # sketch_params=sketch_params,
                                           zorder=zorder)
+            if sketch_params is not None:
+                patch.set_sketch_params(**sketch_params)
+
             pt.set_plotdat(patch, 'edge_data', data)
             pt.set_plotdat(patch, 'edge', edge)
 
