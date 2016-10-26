@@ -459,14 +459,24 @@ def view():
 
 @register_route('/view/advanced/', methods=['GET'])
 def view_advanced():
+    ibs = current_app.ibs
+
     # ut.embed()
 
-    pie_label_list = ['1', '2', '3', '4', '5', '6', '7', '8']
-    pie_value_list = [1, 2, 3, 4, 5, 6, 7, 8]
+    aid_list = ibs.get_valid_aids()
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    viewpoint_list_ = [
+        (const.YAWALIAS_NICE[viewpoint], viewpoint_list.count(viewpoint))
+        for viewpoint in const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    ]
+
+    pie_label_list = [ str(_[0]) for _ in viewpoint_list_ ]
+    pie_value_list = [ _[1] for _ in viewpoint_list_ ]
+
+    embedded = dict(globals(), **locals())
     return appf.template('view', 'advanced',
-                         pie_label_list=pie_label_list,
-                         pie_value_list=pie_value_list,
-                         __wrapper_header__=False)
+                         __wrapper_header__=False,
+                         **embedded)
 
 
 @register_route('/view/imagesets/', methods=['GET'])

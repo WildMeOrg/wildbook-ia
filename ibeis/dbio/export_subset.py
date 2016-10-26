@@ -1253,7 +1253,7 @@ def check_merge(ibs_src, ibs_dst):
     print('Merge seems ok...')
 
 
-def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
+def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     """
     New way of merging using the non-hacky sql table merge.
     However, its only workings due to major hacks.
@@ -1312,7 +1312,8 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None):
         gid_list = ibs_src.get_valid_gids()
     imgpath_list = ibs_src.get_image_paths(gid_list)
     dst_imgdir = ibs_dst.get_imgdir()
-    ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
+    if localize_images:
+        ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
     ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship',
                      'annotation_lblannot_relationship', 'keys']
     # TODO: Fix database merge to allow merging tables with more than one superkey

@@ -94,7 +94,7 @@ REMOTE_PROXY_PORT = 5001
 CONTROLLER_CLASSNAME = 'IBEISController'
 
 
-def get_flask_app():
+def get_flask_app(templates_auto_reload=True):
     # TODO this should be initialized explicity in main_module.py only if needed
     global GLOBAL_APP
     global GLOBAL_CORS
@@ -119,6 +119,8 @@ def get_flask_app():
         GLOBAL_APP = flask.Flask(GLOBAL_APP_NAME,
                                  template_folder=tempalte_dpath,
                                  static_folder=static_dpath)
+        if templates_auto_reload:
+            GLOBAL_APP.config['TEMPLATES_AUTO_RELOAD'] = True
         GLOBAL_APP.QUERY_OBJECT = None
         GLOBAL_APP.QUERY_OBJECT_JOBID = None
         GLOBAL_APP.QUERY_OBJECT_FEEDBACK_BUFFER = []

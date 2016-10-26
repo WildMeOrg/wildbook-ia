@@ -81,26 +81,29 @@
     <div class="col-lg-1"></div>
     <div class="col-lg-10">
         <canvas id="canvasBar"  height="150"></canvas>
-        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+        <div style="color: #999 !important; font-style: italic;">
           Sightings by day
           <br/>
           (Black - number of taken images, Red - number of used images, Yellow - number of used annotations, Blue - number of unique sightings, Green - number of (global) new unique sightings, Grey - number of shared unique sightings from previous day)
         </div>
+        <a id='linkBar' href="#" download='sightings-breakdown.png'>Download Chart</a>
 
-        <canvas id="canvasLine" height="300"></canvas>
-        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+        <canvas id="canvasLine" height="300" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
           Unique sightings over time
           <br/>
           <!-- (Blue - number of sightings cumulatively, Green - three predicted models of growth, Grey - upper-bound f(x) = x) -->
           (Blue - number of sightings cumulatively, Grey - upper-bound f(x) = x)
         </div>
+        <a id='linkLine' href="#" download='sightings-timeline.png'>Download Chart</a>
 
-        <canvas id="canvasAge" height="150"></canvas>
-        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+        <canvas id="canvasAge" height="150" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
           Named animal's ages by sex (Unreviewed: {{ age_unreviewed }}, Ambiguous: {{ age_ambiguous }})
           <br/>
           (Blue - Female, Green - Male, Grey - Unknown)
         </div>
+        <a id='linkAge' href="#" download='annotations-by-sex-age.png'>Download Chart</a>
 
         <div class="jumbotron" id="source" style="margin-top: 60px; text-align: left;">
 <pre>
@@ -139,6 +142,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Locations of named animals
     </div>
+    <!-- <a id='linkGPS1' href="#" download='gps-locations.png'>Download Map</a> -->
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -150,6 +154,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of named animals
     </div>
+    <!-- <a id='linkGPS2' href="#" download='gps-heatmap-named.png'>Download Map</a> -->
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -161,6 +166,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
         Locations of all taken images (including images with no animals)
     </div>
+    <!-- <a id='linkGPS3' href="#" download='gps-locations-all.png'>Download Map</a> -->
+
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -172,6 +179,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of all taken images (including images with no animals)
     </div>
+    <!-- <a id='linkGPS4' href="#" download='gps-heatmap-all.png'>Download Map</a> -->
+
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -183,6 +192,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Tracks for all named animals
     </div>
+    <!-- <a id='linkGPS5' href="#" download='gps-tracks-all.png'>Download Map</a> -->
 
 <!--   <div class="jumbotron" id="source" style="margin-top: 60px;">
       {% autoescape false %}
@@ -382,6 +392,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
 
   window.onload = function(){
     var ctxLine = document.getElementById("canvasLine").getContext("2d");
+    var linkLine = document.getElementById("linkLine");
     var chartLine = new Chart(ctxLine, {
       type: 'line',
       data: dataLine,
@@ -393,10 +404,17 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         // maintainAspectRatio: false,
         scaleShowVerticalLines: false,
         scaleShowHorizontalLines: false,
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkLine.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
       }
     });
 
     var ctxBar = document.getElementById("canvasBar").getContext("2d");
+    var linkBar = document.getElementById("linkBar");
     var chartBar = new Chart(ctxBar, {
       type: 'bar',
       data: dataBar,
@@ -404,29 +422,41 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         responsive: true,
         // animation: false,
         showTooltips: false,
-        onAnimationComplete: function () {
+        animation: {
+          onComplete: function(animationItem) {
 
-            var ctx = this.chart.ctx;
-            ctx.font = this.scale.font;
-            ctx.fillStyle = this.scale.textColor
-            ctx.textAlign = "center";
-            ctx.textBaseline = "bottom";
+            // var ctx = this.chart.ctx;
+            // ctx.font = this.scale.font;
+            // ctx.fillStyle = this.scale.textColor
+            // ctx.textAlign = "center";
+            // ctx.textBaseline = "bottom";
 
-            this.datasets.forEach(function (dataset) {
-                dataset.bars.forEach(function (bar) {
-                    ctx.fillText(bar.value, bar.x, bar.y - 5);
-                });
-            })
+            // this.datasets.forEach(function (dataset) {
+            //     dataset.bars.forEach(function (bar) {
+            //         ctx.fillText(bar.value, bar.x, bar.y - 5);
+            //     });
+            // })
+
+            ctx = animationItem.chartInstance
+            linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
         }
       }
     });
 
     var ctxAge = document.getElementById("canvasAge").getContext("2d");
+    var linkAge = document.getElementById("linkAge");
     var chartAge = new Chart(ctxAge, {
       type: 'line',
       data: dataAge,
       options: {
         responsive: true,
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkAge.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
       }
     });
 
@@ -454,7 +484,12 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
             stylers: [
                   { visibility: "off" }
             ]
-        }
+        },
+        {
+            featureType: "administrative.province",
+            elementType: "all",
+            stylers: [ { visibility: "off" } ]
+        },
     ];
 
     var modify = true;
@@ -473,6 +508,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS1 = document.getElementById("linkGPS1");
 
     var map2 = new google.maps.Map(document.getElementById('gps-map-canvas2'), {
         zoom: zoom,
@@ -486,6 +522,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS2 = document.getElementById("linkGPS2");
 
     var map3 = new google.maps.Map(document.getElementById('gps-map-canvas3'), {
         zoom: zoom,
@@ -499,6 +536,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS3 = document.getElementById("linkGPS3");
 
     var map4 = new google.maps.Map(document.getElementById('gps-map-canvas4'), {
         zoom: zoom,
@@ -512,6 +550,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS4 = document.getElementById("linkGPS4");
 
     var map5 = new google.maps.Map(document.getElementById('gps-map-canvas5'), {
         zoom: zoom,
@@ -525,7 +564,27 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS5 = document.getElementById("linkGPS5");
 
+    // google.maps.event.addListenerOnce(map1, 'idle', function(){
+    //   linksGPS1.href = document.getElementById('gps-map-canvas1').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map2, 'idle', function(){
+    //   linksGPS2.href = document.getElementById('gps-map-canvas2').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map3, 'idle', function(){
+    //   linksGPS3.href = document.getElementById('gps-map-canvas3').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map4, 'idle', function(){
+    //   linksGPS4.href = document.getElementById('gps-map-canvas4').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map5, 'idle', function(){
+    //   linksGPS5.href = document.getElementById('gps-map-canvas5').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -544,8 +603,10 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         ],
         {% if path in ['1', '2', '3', '4', '5', '6', '7'] %}
           borderColor: '#FF0000',
+          strokeColor: '#FF0000',
         {% else %}
           borderColor: '#0000FF',
+          strokeColor: '#0000FF',
         {% endif %}
         strokeOpacity: 0.3,
         strokeWeight: 2,
@@ -574,6 +635,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
             path: [gps, gps2],
             clickable: false,
             borderColor: color,
+            strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
             map: map1
@@ -592,6 +654,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
             path: [gps, gps2],
             clickable: false,
             borderColor: color,
+            strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
             map: map3
@@ -637,6 +700,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
                       path: [last, gps],
                       clickable: false,
                       borderColor: color,
+                      strokeColor: color,
                       strokeOpacity: 0.50,
                       strokeWeight: 1,
                       map: map5
@@ -658,6 +722,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
             path: [gps, gps2],
             clickable: false,
             borderColor: color,
+            strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
             map: map5
@@ -673,7 +738,6 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         map5.fitBounds(bounds);
     }
   }
-
 
 </script>
 {% endblock %}
