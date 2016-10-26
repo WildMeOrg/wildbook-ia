@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10">
+        <canvas id="canvasPie"  height="150"></canvas>
+        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+          Sightings by day
+          <br/>
+          (Black - number of taken images, Red - number of used images, Yellow - number of used annotations, Blue - number of unique sightings, Green - number of (global) new unique sightings, Grey - number of shared unique sightings from previous day)
+        </div>
+
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+
+{% endblock %}
+
+{% block content_custom_javascript %}
+<script type="text/javascript">
+
+  var dataPie = {
+    {% autoescape false %}
+    labels: {{ pie_label_list }},
+    {% endautoescape %}
+    datasets: [
+      {
+        backgroundColor: [
+          "rgba(77,83,96,0.5)",
+          "rgba(247,70,74,0.5)",
+          "rgba(253,180,92,0.5)",
+          "rgba(151,187,205,0.5)",
+          "rgba(92,184,92,0.5)",
+          "rgba(220,220,220,0.5)",
+          "rgba(249,125,190,0.5)",
+          "rgba(180,92,253,0.5)"
+        ],
+        borderColor: [
+          "rgba(77,83,96,0.8)",
+          "rgba(247,70,74,0.8)",
+          "rgba(253,180,92,0.8)",
+          "rgba(151,187,205,0.8)",
+          "rgba(92,184,92,0.8)",
+          "rgba(220,220,220,0.8)",
+          "rgba(249,125,190,0.8)",
+          "rgba(180,92,253,0.8)"
+        ],
+
+        hoverBackgroundColor: [
+          "rgba(77,83,96,0.75)",
+          "rgba(247,70,74,0.75)",
+          "rgba(253,180,92,0.75)",
+          "rgba(151,187,205,0.75)",
+          "rgba(92,184,92,0.75)",
+          "rgba(220,220,220,0.75)",
+          "rgba(249,125,190,0.75)",
+          "rgba(180,92,253,0.75)"
+        ],
+
+        hoverBorderColor: [
+          "rgba(77,83,96,1)",
+          "rgba(247,70,74,1)",
+          "rgba(253,180,92,1)",
+          "rgba(151,187,205,1)",
+          "rgba(92,184,92,1)",
+          "rgba(220,220,220,1)",
+          "rgba(249,125,190,1)",
+          "rgba(180,92,253,1)"
+        ],
+        data: {{ pie_value_list }},
+      }
+    ]
+  };
+
+  window.onload = function(){
+    var ctxPie = document.getElementById("canvasPie").getContext("2d");
+    var chartPie = new Chart(ctxPie,{
+      type: 'pie',
+      data: dataPie,
+      options: {}
+    });
+
+  };
+
+</script>
+{% endblock %}
