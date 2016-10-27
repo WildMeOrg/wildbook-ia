@@ -1355,7 +1355,8 @@ def inspect_pdfs(tn_support, tp_support,
                  with_roc=False, with_precision_recall=False, with_hist=False,
                  fnum=None, figtitle=None, interactive=None, use_stems=None,
                  part_attrs=None, thresh_kw=None, attr_callback=None,
-                 with_prebayes=True, with_postbayes=True, score_range=None, **kwargs):
+                 with_prebayes=True, with_postbayes=True, score_range=None,
+                 **kwargs):
     """
     Shows plots of learned thresholds
 
@@ -1415,8 +1416,8 @@ def inspect_pdfs(tn_support, tp_support,
         score_colors=(false_color, true_color),
     )
     support_sort_kw = dict(
-        # logscale=False,
-        logscale=True,
+        logscale=kwargs.get('logscale', False),
+        # logscale=True,
         score_markers=['^', 'v'],
         markersizes=[5, 5],
         use_stems=use_stems,
