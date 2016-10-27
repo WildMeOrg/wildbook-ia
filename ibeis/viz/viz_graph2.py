@@ -113,7 +113,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
             'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
         graph_widget.only_reviwed_cb =  bbar2.addNewCheckBox(
-            'Only Reviewed', changed=refresh_via_cb, checked=True)
+            'Only Reviewed', changed=refresh_via_cb, checked=False)
         graph_widget.use_image_cb = bbar2.addNewCheckBox(
             'Show Img', changed=refresh_via_cb, checked=use_image)
         graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
@@ -236,27 +236,27 @@ class DevGraphWidget(gt.GuitoolWidget):
     def mark_nonmatch(graph_widget):
         print('BREAK LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
         for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'nomatch')
+            graph_widget.infr.add_feedback(aid1, aid2, 'nomatch', apply=True)
         # TODO: just use signal / slot
         #graph_widget.infr.apply_feedback_edges()
-        graph_widget.self_parent.update_state()
+        graph_widget.self_parent.update_state(disable_global_update=True)
         #graph_widget.on_state_update()
 
     def mark_match(graph_widget):
         print('MAKE LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
         for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'match')
+            graph_widget.infr.add_feedback(aid1, aid2, 'match', apply=True)
         # TODO: just use signal / slot
-        graph_widget.self_parent.update_state()
+        graph_widget.self_parent.update_state(disable_global_update=True)
         #graph_widget.infr.apply_feedback_edges()
         #graph_widget.on_state_update()
 
     def mark_notcomp(graph_widget):
         print('MAKE LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
         for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'notcomp')
+            graph_widget.infr.add_feedback(aid1, aid2, 'notcomp', apply=True)
         # TODO: just use signal / slot
-        graph_widget.self_parent.update_state()
+        graph_widget.self_parent.update_state(disable_global_update=True)
         #graph_widget.infr.apply_feedback_edges()
         #graph_widget.on_state_update()
 
@@ -386,7 +386,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.num_names_lbl = self.status_bar.addNewLabel('NUM_NAMES_LBL')
         self.state_lbl = self.status_bar.addNewLabel('STATE_LBL')
 
-        self.status_bar.addNewButton('Score Edges', pressed=self.score_edges)
+        self.status_bar.addNewButton('Match and Score', pressed=self.match_and_score_edges)
         self.status_bar.addNewButton('Edit Filters', pressed=self.edit_filters)
         self.status_bar.addNewButton('Repopulate', pressed=self.repopulate)
         self.status_bar.addNewButton('Accept', pressed=self.accept)
@@ -439,40 +439,42 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         #self.apply_scores()
         self.update_state(structure_changed=True)
 
-    def update_state(self, structure_changed=False):
+    def update_state(self, structure_changed=False, disable_global_update=False):
         print('[graph] update_state mode=%s' % (self.init_mode,))
         #if self.init_mode in ['split', 'rereview']:
-        if self.init_mode == 'split':
-            self.infr.apply_feedback_edges()
-            if structure_changed:
-                # FIXME: when should score be reapplied?
-                # This should happen in split mode, but not None mode
-                self.apply_scores()
-            self.infr.apply_weights()
-            self.infr.relabel_using_reviews()
-            self.infr.apply_cuts()
-        elif self.init_mode == 'rereview':
-            self.infr.apply_feedback_edges()
-            self.infr.apply_match_scores()
-            self.infr.apply_weights()
-            self.infr.relabel_using_reviews()
-            self.infr.apply_cuts()
-        elif self.init_mode == 'review':
-            self.infr.apply_match_edges()
-            self.infr.apply_feedback_edges()
-            self.infr.apply_match_scores()
-            self.infr.apply_weights()
-            # self.infr.relabel_using_reviews()
-            # self.infr.apply_cuts()
+        if not disable_global_update:
+            if self.init_mode == 'split':
+                self.infr.apply_feedback_edges()
+                if structure_changed:
+                    # FIXME: when should score be reapplied?
+                    # This should happen in split mode, but not None mode
+                    self.apply_scores()
+                self.infr.apply_weights()
+                self.infr.relabel_using_reviews()
+                # self.infr.apply_cuts()
+            elif self.init_mode == 'rereview':
+                self.infr.apply_feedback_edges()
+                self.infr.apply_match_scores()
+                self.infr.apply_weights()
+                self.infr.relabel_using_reviews()
+                # self.infr.apply_cuts()
+            elif self.init_mode == 'review':
+                self.infr.apply_match_edges()
+                self.infr.apply_feedback_edges()
+                self.infr.apply_match_scores()
+                self.infr.apply_weights()
+                # self.infr.relabel_using_reviews()
+                # self.infr.apply_cuts()
 
         # Set gui status indicators
         status = self.infr.connected_component_status()
+        truth_colors = self.infr._get_truth_colors()
         if status['num_inconsistent']:
             self.state_lbl.setText('Inconsistent Names: %d' % (status['num_inconsistent'],))
-            self.state_lbl.setColor('black', self.infr.truth_colors['nomatch'][0:3] * 255)
+            self.state_lbl.setColor('black', truth_colors['nomatch'][0:3] * 255)
         else:
             self.state_lbl.setText('Consistent')
-            self.state_lbl.setColor('black', self.infr.truth_colors['match'][0:3] * 255)
+            self.state_lbl.setColor('black', truth_colors['match'][0:3] * 255)
 
         self.num_names_lbl.setText('Names: max=%r, ~min=%r' % (
             status['num_names_max'],
@@ -497,11 +499,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.infr.exec_matching(prog_hook=ctx.prog_hook)
             self.infr.apply_match_edges(self.review_cfg)
             self.infr.apply_match_scores()
+            self.infr.apply_weights()
 
-    def score_edges(self):
+    def match_and_score_edges(self):
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
             self.infr.exec_matching(prog_hook=ctx.prog_hook)
+            self.infr.apply_match_edges(self.review_cfg)
             self.infr.apply_match_scores()
+            self.infr.apply_weights()
         self.repopulate()
 
     def reset_review(self):
@@ -566,7 +571,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(0, 3)
             infr.remove_feedback()
             infr.remove_name_labels()
-            infr.apply_cuts()
+            # infr.apply_cuts()
             self.repopulate()
             ctx.set_progress(3, 3)
 
@@ -645,8 +650,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 model = qtindex.model()
                 aid1  = model.get_header_data('aid1', qtindex)
                 aid2  = model.get_header_data('aid2', qtindex)
-                self.infr.add_feedback(aid1, aid2, state)
-            self.update_state()
+                self.infr.add_feedback(aid1, aid2, state, apply=True)
+            self.update_state(disable_global_update=True)
 
         options = [
             ('Mark &True', lambda: _mark_pairs('match')),
@@ -945,7 +950,8 @@ def make_edge_api(infr, review_cfg={}):
         if state == 'unreviewed':
             lighten_amount = .7
 
-        color = infr.truth_colors['match' if nid1 == nid2 else 'nomatch']
+        truth_colors = infr._get_truth_colors()
+        color = truth_colors['match' if nid1 == nid2 else 'nomatch']
         #graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')]
         if lighten_amount is not None:
             color = pt.lighten_rgb(color, lighten_amount)
@@ -978,7 +984,8 @@ def make_edge_api(infr, review_cfg={}):
         """ Background role for status column """
         data = graph.get_edge_data(*edge)
         state = data.get('reviewed_state', 'unreviewed')
-        color = infr.truth_colors[state]
+        truth_colors = infr._get_truth_colors()
+        color = truth_colors[state]
         lighten_amount = .35
         if state == 'unreviewed':
             lighten_amount = .7

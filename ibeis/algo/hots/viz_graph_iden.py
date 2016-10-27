@@ -127,7 +127,7 @@ class _AnnotInfrViz(object):
     def visual_edge_attrs_appearance(infr):
         """ attrs that pertain to edge color and style """
         return ['alpha', 'color', 'implicit', 'label', 'linestyle', 'lw',
-                'pos', 'stroke', 'capstyle', 'hatch', 'style']
+                'pos', 'stroke', 'capstyle', 'hatch', 'style', 'sketch']
 
     @property
     def visual_edge_attrs_space(infr):
@@ -149,6 +149,7 @@ class _AnnotInfrViz(object):
         return s
 
     def update_visual_attrs(infr, graph=None, show_cuts=False,
+                            hide_infered=False,
                             show_reviewed_cuts=True, only_reviewed=False,
                             mode=None):
         if infr.verbose >= 3:
@@ -272,7 +273,6 @@ class _AnnotInfrViz(object):
                 dict(scale=10.0, length=64.0, randomness=None)]
                 # dict(scale=3.0, length=18.0, randomness=None)]
             ))
-        hide_infered = True
         if hide_infered:
             # Infered edges are hidden
             nx.set_edge_attributes(

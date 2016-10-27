@@ -146,12 +146,12 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
 
     CommandLine:
         ib
-        python -m ibeis --tf draw_annot_scoresep --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
-        python -m ibeis --tf draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
-        python -m ibeis --tf draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
-        python -m ibeis --tf draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
+        python -m ibeis draw_annot_scoresep --show
+        python -m ibeis draw_annot_scoresep --db PZ_MTEST --allgt -w --show --serial
+        python -m ibeis draw_annot_scoresep -t scores --db PZ_MTEST --allgt --show
+        python -m ibeis draw_annot_scoresep -t scores --db PZ_Master0 --allgt --show
+        python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
+        python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -291,7 +291,9 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     for score_group, lbl in zip(grouped_scores, cfgx2_shortlbl):
         tp_nscores = np.hstack(ut.take_column(score_group, 0))
         tn_nscores = np.hstack(ut.take_column(score_group, 1))
-        combine_attrs = ut.partial(ut.dict_union_combine, combine_op=ut.partial(ut.dict_union_combine, combine_op=np.append))
+        combine_attrs = ut.partial(ut.dict_union_combine,
+                                   combine_op=ut.partial(ut.dict_union_combine,
+                                                         combine_op=np.append))
         part_attrs = reduce(combine_attrs, ut.take_column(score_group, 2))
         # def context_combine(val1, val2):
         #     import operator as op

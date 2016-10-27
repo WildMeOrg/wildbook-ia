@@ -742,6 +742,7 @@ class _AnnotInfrFeedback(object):
             infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
             # Also dynamically apply weights
             infr.set_edge_attrs('cut_weight', {edge: p_same})
+            ut.nx_delete_edge_attr(infr.graph, 'infered_review', [edge])
         # Dynamically update names and infered attributes of relevant nodes
         # subgraph, subgraph_cuts = infr._get_influenced_subgraph(edge)
         print('Relabeling')
@@ -752,6 +753,27 @@ class _AnnotInfrFeedback(object):
         subgraph = infr.graph.subgraph(relevant_nodes)
         infr.relabel_using_reviews(graph=subgraph)
 
+        # First remove previous split cases
+        nx.set_edge_attributes(infr.graph, 'maybe_split',
+                               _dz(subgraph.edges(), [False]))
+        # Check for consistency
+        for cc in [cc1, cc2]:
+            inconsistent = {}
+            _subgraph = infr.graph.subgraph(cc)
+            for u, v, d in _subgraph.edges(data=True):
+                _state = d.get('reviewed_state', 'unreviewed')
+                if _state == 'nomatch':
+                    inconsistent[(u, v)] = True
+            if inconsistent:
+                edge_to_state = nx.get_edge_attributes(_subgraph, 'reviewed_state')
+                # only pass in reviewed edges in the subgraph
+                keep_edges = [e for e, s in edge_to_state.items() if s != 'unreviewed']
+                split_subgraph = nx.Graph([e + (_subgraph.get_edge_data(*e),)
+                                           for e in keep_edges])
+                # _subgraph.remove_edges_from(keep_edges)
+                split_edges = infr._flag_possible_split_edges(split_subgraph)
+                nx.set_edge_attributes(infr.graph, 'maybe_split', _dz(split_edges, [True]))
+
         # FIXME
         # This isnt quite right because if you say A -X- B but A is connected
         # to a cc D and B is connected to a cc E then D and E will also have
@@ -761,8 +783,6 @@ class _AnnotInfrFeedback(object):
             # A -X- B: Grab any other no-match edges out of A and B
             # if any of those compoments connected to those non matching nodes
             # would match either A or B, those edges should be implicitly cut.
-            cc1 = infr.get_annot_cc(n1)
-            cc2 = infr.get_annot_cc(n2)
             for cc in [cc1, cc2]:
                 nomatch_ccs = infr.get_nomatch_ccs(cc)
                 nomatch_nodes = set(ut.flatten(nomatch_ccs))
@@ -778,25 +798,13 @@ class _AnnotInfrFeedback(object):
                 print('infered_review = %r' % (infered_review,))
 
         elif state == 'match':
-            inconsistent = {}
-            # Check for consistency
-            for u, v, d in subgraph.edges(data=True):
-                _state = d.get('reviewed_state', 'unreviewed')
-                if _state == 'nomatch':
-                    inconsistent[(u, v)] = True
-            if inconsistent:
-                split_edges = infr._flag_possible_split_edges(subgraph)
-                nx.set_edge_attributes(infr.graph, 'splitcase', _dz(split_edges, [True]))
-                pass
             # Infer any unreviewed edge within a compoment as reviewed
-            is_cut = {}
             infered_review = {}
             for u, v, d in subgraph.edges(data=True):
                 _state = d.get('reviewed_state', 'unreviewed')
                 if _state == 'unreviewed':
-                    is_cut[(u, v)] = False
                     infered_review[(u, v)] = 'match'
-            nx.set_edge_attributes(infr.graph, 'is_cut', is_cut)
+            nx.set_edge_attributes(infr.graph, 'is_cut', _dz(subgraph.edges(), [False]))
             nx.set_edge_attributes(infr.graph, 'infered_review', infered_review)
             # Update the nomatches between the other compoment connected to
             cc = subgraph.nodes()
