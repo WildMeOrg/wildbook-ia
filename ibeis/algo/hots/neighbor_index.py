@@ -557,7 +557,7 @@ class NeighborIndex(object):
             flann_defaults = vt.get_flann_params(nnindexer.flann_params['algorithm'])
             #flann_params_clean = flann_defaults.copy()
             flann_params_clean = ut.sort_dict(flann_defaults)
-            ut.updateif_haskey(flann_params_clean, nnindexer.flann_params)
+            ut.update_existing(flann_params_clean, nnindexer.flann_params)
             if noquery:
                 ut.delete_dict_keys(flann_params_clean, ['checks'])
             shortnames = dict(algorithm='algo', checks='chks', random_seed='seed', trees='t')

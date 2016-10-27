@@ -153,6 +153,12 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show
         python -m ibeis draw_annot_scoresep --db PZ_Master1 -a timectrl -t best --show -f :without_tag=photobomb
 
+    Paper:
+        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GGR-IBEIS  -a timectrl --save gz_scoresep.png
+        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl:species=zebra_plains --save pz_scoresep.png
+        python -m ibeis draw_annot_scoresep --dbdir lev/media/hdd/golden/GZGC -a timectrl1h:species=giraffe_masai --save girm_scoresep.png
+
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
@@ -237,57 +243,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     fpr = ut.get_argval('--fpr', type_=float, default=None)
     tpr = ut.get_argval('--tpr', type_=float, default=None if fpr is not None else .85)
 
-    def find_auto_decision_thresh(encoder, label, part_attrs):
-        """
-        Uses the extreme of one type of label to get an automatic decision
-        threshold.  Ideally the threshold would be a little bigger than this.
-
-        label = True  # find auto accept accept thresh
-        """
-        import operator
-        other_attrs = part_attrs[not label]
-        op = operator.lt if label else operator.gt
-        if label:
-            other_support = tn_scores
-            decision_support = tp_scores
-            sortx = np.argsort(other_support)[::-1]
-        else:
-            other_support = tp_scores
-            decision_support = tn_scores
-            sortx = np.argsort(other_support)
-        sort_support = other_support[sortx]
-        sort_qaids = other_attrs['qaid'][sortx]
-        flags = np.isfinite(sort_support)
-        sort_support = sort_support[flags]
-        sort_qaids = sort_qaids[flags]
-        # ---
-        # HACK: Dont let photobombs contribute here
-        #from ibeis import tag_funcs
-        #other_tags = ibs.get_annot_all_tags(sort_qaids)
-        #flags2 = tag_funcs.filterflags_general_tags(other_tags, has_none=['photobomb'])
-        #sort_support = sort_support[flags2]
-        # ---
-        autodecide_thresh = sort_support[0]
-        can_auto_decide = op(autodecide_thresh, decision_support)
-
-        autodecide_scores = decision_support[can_auto_decide]
-
-        if len(autodecide_scores) == 0:
-            decision_extreme = np.nan
-        else:
-            if label:
-                decision_extreme = np.nanmin(autodecide_scores)
-            else:
-                decision_extreme = np.nanmax(autodecide_scores)
-
-        num_auto_decide = can_auto_decide.sum()
-        num_total = len(decision_support)
-        percent_auto_decide = 100 * num_auto_decide / num_total
-        print('Decision type: %r' % (label,))
-        print('Automatic decision threshold1 = %r' % (autodecide_thresh,))
-        print('Automatic decision threshold2 = %r' % (decision_extreme,))
-        print('Percent auto decide = %.3f%% = %d/%d' % (percent_auto_decide, num_auto_decide, num_total))
-
     for score_group, lbl in zip(grouped_scores, cfgx2_shortlbl):
         tp_nscores = np.hstack(ut.take_column(score_group, 0))
         tn_nscores = np.hstack(ut.take_column(score_group, 1))
@@ -295,19 +250,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
                                    combine_op=ut.partial(ut.dict_union_combine,
                                                          combine_op=np.append))
         part_attrs = reduce(combine_attrs, ut.take_column(score_group, 2))
-        # def context_combine(val1, val2):
-        #     import operator as op
-        #     if isinstance(val1, dict):
-        #         return ut.partial(ut.dict_union_combine, combine_op=context_combine)
-        #     elif isinstance(val1, list):
-        #         return ut.partial(ut.dict_union_combine, combine_op=op.add)
-        #     elif isinstance(val1, np.ndarray):
-        #         return ut.partial(ut.dict_union_combine, combine_op=np.append)
-        #     else:
-        #         raise TypeError()
-        # combine_func = ut.partial(ut.dict_union_combine, combine_op=context_combine)
-        # part_attrs = reduce(combine_func, ut.take_column(score_group, 2))
-        # for cfgx, qreq_ in enumerate(testres.cfgx2_qreq_):
         #encoder = vt.ScoreNormalizer(adjust=8, tpr=.85)
         encoder = vt.ScoreNormalizer(
             #adjust=8,
@@ -323,14 +265,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         #encoder.visualize(figtitle='Learned Name Score Normalizer\n' + qreq_.get_cfgstr(), fnum=cfgx)
         #pt.set_figsize(w=30, h=10, dpi=256)
 
-        # --- NEW ---
-        # Fit accept and reject thresholds
-
-        #find_auto_decision_thresh(encoder, True, part_attrs)
-        #find_auto_decision_thresh(encoder, False, part_attrs)
-
-        # --- /NEW ---
-
         plotname = ''
         figtitle = testres.make_figtitle(plotname, filt_cfg=filt_cfg)
 
@@ -341,19 +275,25 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             with_prebayes=False,
             with_postbayes=False,
             #
+            histnorm='percent',
+            histoverlay=False,
             with_hist=True,
             with_roc=False,
             attr_callback=attr_callback,
             #bin_width=.125,
             #bin_width=.05,
-            logscale=False,
-            score_range=(0, 14),
-            bin_width=.5,
+            # logscale=dict(linthreshx=1, linthreshy=1, basex=2, basey=0),
+            # score_range=(0, 14),
+            # score_range=(0, 10),
+            score_range=(0, 6),
+            # bin_width=.5,
+            bin_width=.125,
+            score_lbls=('incorrect', 'correct'),
             verbose=verbose
         )
 
         icon = ibs.get_database_icon()
-        if icon is not None:
+        if False and icon is not None:
             pt.overlay_icon(icon, coords=(1, 0), bbox_alignment=(1, 0),
                             as_artist=1, max_asize=(1000, 2000))
 
@@ -361,7 +301,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
             pt.adjust_subplots(use_argv=True)
         # pt.set_figsize(w=30, h=10, dpi=256)
-        pt.set_figtitle(lbl)
+        pt.set_figtitle(ibs.get_dbname() + ' ' + lbl)
 
     locals_ = locals()
     return locals_
