@@ -346,6 +346,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             attr_callback=attr_callback,
             #bin_width=.125,
             #bin_width=.05,
+            logscale=True,
             score_range=(0, 14),
             bin_width=.5,
             verbose=verbose
