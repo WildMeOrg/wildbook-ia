@@ -1000,7 +1000,7 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
     try:
         assert not np.any(np.isnan(p_score_given_tp)), ('Need more positive support')
         assert not np.any(np.isnan(p_score_given_tn)), ('Need more negative support')
-    except AssertionError as ex:
+    except AssertionError as ex:  # NOQA
         print('[sn.pre]stats:tpsupport = ' + ut.get_stats_str(score_tp_pdf.support, use_nan=True, precision=5))
         print('[sn.pre]stats:tnsupport = ' + ut.get_stats_str(score_tn_pdf.support, use_nan=True, precision=5))
 
@@ -1415,7 +1415,8 @@ def inspect_pdfs(tn_support, tp_support,
         score_colors=(false_color, true_color),
     )
     support_sort_kw = dict(
-        logscale=False,
+        # logscale=False,
+        logscale=True,
         score_markers=['^', 'v'],
         markersizes=[5, 5],
         use_stems=use_stems,
