@@ -133,13 +133,15 @@ def view():
     nid_list = ibs.get_annot_name_rowids(aid_list)
     date_list = _date_list(gid_list)
 
-    flagged_date_list = ['2016/01/29', '2016/01/30', '2016/01/31', '2016/02/01']
+    flagged_date_list = None
+    # flagged_date_list = ['2016/01/29', '2016/01/30', '2016/01/31', '2016/02/01']
+    # flagged_date_list = ['2015/02/28', '2015/03/01', '2015/03/02', '2015/03/03']
 
     gid_list_unique = list(set(gid_list))
     date_list_unique = _date_list(gid_list_unique)
     date_taken_dict = {}
     for gid, date in zip(gid_list_unique, date_list_unique):
-        if date not in flagged_date_list:
+        if flagged_date_list is not None and date not in flagged_date_list:
             continue
         if date not in date_taken_dict:
             date_taken_dict[date] = [0, 0]
@@ -149,7 +151,7 @@ def view():
     gid_list_all = filter_images_imageset(gid_list_all)
     date_list_all = _date_list(gid_list_all)
     for gid, date in zip(gid_list_all, date_list_all):
-        if date not in flagged_date_list:
+        if flagged_date_list is not None and date not in flagged_date_list:
             continue
         if date in date_taken_dict:
             date_taken_dict[date][0] += 1
@@ -164,7 +166,7 @@ def view():
     last_date = None
     date_seen_dict = {}
     for index, (unixtime, aid, nid, date) in enumerate(sorted(zip(unixtime_list, aid_list, nid_list, date_list))):
-        if date not in flagged_date_list:
+        if flagged_date_list is not None and date not in flagged_date_list:
             continue
 
         index_list.append(index + 1)
@@ -279,8 +281,10 @@ def view():
             nsight1, nsight2, resight, pl_index, pl_error = vals
             # pl_index = 'Undefined - Zero recaptured (k = 0)'
         except KeyError:
-            index1 = bar_label_list.index('2016/01/30')
-            index2 = bar_label_list.index('2016/01/31')
+            if flagged_date_list is None:
+                raise ValueError()
+            index1 = bar_label_list.index(flagged_date_list[-3])
+            index2 = bar_label_list.index(flagged_date_list[-2])
             c1 = bar_value_list4[index1]
             c2 = bar_value_list4[index2]
             c3 = bar_value_list6[index2]
@@ -451,6 +455,28 @@ def view():
                          used_contribs=used_contributor_tags,
                          num_used_contribs=len(used_contributor_tags),
                          __wrapper_header__=False)
+
+
+@register_route('/view/advanced/', methods=['GET'])
+def view_advanced():
+    ibs = current_app.ibs
+
+    # ut.embed()
+
+    aid_list = ibs.get_valid_aids()
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    viewpoint_list_ = [
+        (const.YAWALIAS_NICE[viewpoint], viewpoint_list.count(viewpoint))
+        for viewpoint in const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    ]
+
+    pie_label_list = [ str(_[0]) for _ in viewpoint_list_ ]
+    pie_value_list = [ _[1] for _ in viewpoint_list_ ]
+
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'advanced',
+                         __wrapper_header__=False,
+                         **embedded)
 
 
 @register_route('/view/imagesets/', methods=['GET'])

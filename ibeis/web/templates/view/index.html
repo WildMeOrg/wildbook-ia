@@ -81,26 +81,29 @@
     <div class="col-lg-1"></div>
     <div class="col-lg-10">
         <canvas id="canvasBar"  height="150"></canvas>
-        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+        <div style="color: #999 !important; font-style: italic;">
           Sightings by day
           <br/>
           (Black - number of taken images, Red - number of used images, Yellow - number of used annotations, Blue - number of unique sightings, Green - number of (global) new unique sightings, Grey - number of shared unique sightings from previous day)
         </div>
+        <a id='linkBar' href="#" download='sightings-breakdown.png'>Download Chart</a>
 
-        <canvas id="canvasLine" height="300"></canvas>
-        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+        <canvas id="canvasLine" height="300" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
           Unique sightings over time
           <br/>
           <!-- (Blue - number of sightings cumulatively, Green - three predicted models of growth, Grey - upper-bound f(x) = x) -->
           (Blue - number of sightings cumulatively, Grey - upper-bound f(x) = x)
         </div>
+        <a id='linkLine' href="#" download='sightings-timeline.png'>Download Chart</a>
 
-        <canvas id="canvasAge" height="150"></canvas>
-        <div style="color: #999 !important; font-style: italic; margin-bottom: 40px;">
+        <canvas id="canvasAge" height="150" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
           Named animal's ages by sex (Unreviewed: {{ age_unreviewed }}, Ambiguous: {{ age_ambiguous }})
           <br/>
           (Blue - Female, Green - Male, Grey - Unknown)
         </div>
+        <a id='linkAge' href="#" download='annotations-by-sex-age.png'>Download Chart</a>
 
         <div class="jumbotron" id="source" style="margin-top: 60px; text-align: left;">
 <pre>
@@ -139,6 +142,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Locations of named animals
     </div>
+    <!-- <a id='linkGPS1' href="#" download='gps-locations.png'>Download Map</a> -->
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -150,6 +154,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of named animals
     </div>
+    <!-- <a id='linkGPS2' href="#" download='gps-heatmap-named.png'>Download Map</a> -->
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -161,6 +166,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
         Locations of all taken images (including images with no animals)
     </div>
+    <!-- <a id='linkGPS3' href="#" download='gps-locations-all.png'>Download Map</a> -->
+
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -172,6 +179,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Heatmap of all taken images (including images with no animals)
     </div>
+    <!-- <a id='linkGPS4' href="#" download='gps-heatmap-all.png'>Download Map</a> -->
+
 
   <div class="row" style="margin-top: 750px; text-align: center; height: 800px;">
     <div class="col-lg-1"></div>
@@ -183,6 +192,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     <div style="color: #999 !important; font-style: italic; margin-bottom: 40px; text-align: center; width: 100%;">
       Tracks for all named animals
     </div>
+    <!-- <a id='linkGPS5' href="#" download='gps-tracks-all.png'>Download Map</a> -->
 
 <!--   <div class="jumbotron" id="source" style="margin-top: 60px;">
       {% autoescape false %}
@@ -243,38 +253,39 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
       {% for prediction in prediction_list %}
       {
         label: "Prediction",
-        fillColor : "rgba(92,184,92,0.0)",
-        strokeColor : "rgba(92,184,92,0.2)",
-        pointColor : "rgba(92,184,92,0.2)",
-        pointStrokeColor : "transparent",
-        pointHighlightFill : "transparent",
-        // pointStrokeColor : "#fff",
-        // pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        backgroundColor : "rgba(92,184,92,0.0)",
+        borderColor : "rgba(92,184,92,0.2)",
+        pointBackgroundColor : "rgba(92,184,92,0.2)",
+        pointBorderColorColor : "transparent",
+        pointHoverBackgroundColor : "transparent",
+        // pointBorderColorColor : "#fff",
+        // pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
         data : {{ prediction }}
       },
       {% endfor %}
       {
-        fillColor : "rgba(220,220,220,0.2)",
-        strokeColor : "rgba(220,220,220,1)",
-        pointColor : "rgba(220,220,220,0.5)",
-        pointStrokeColor : "transparent",
-        pointHighlightFill : "transparent",
-        // pointStrokeColor : "#fff",
-        // pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(220,220,220,1)",
+        label: "No Resights",
+        backgroundColor : "rgba(220,220,220,0.2)",
+        borderColor : "rgba(220,220,220,1)",
+        pointBackgroundColor : "rgba(220,220,220,0.5)",
+        pointBorderColorColor : "transparent",
+        pointHoverBackgroundColor : "transparent",
+        // pointBorderColorColor : "#fff",
+        // pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(220,220,220,1)",
         data : {{ line_index_list }}
       },
       {
         label: "Unique Sightings by Car",
-        fillColor : "rgba(151,187,205,0.2)",
-        strokeColor : "rgba(151,187,205,1)",
-        pointColor : "rgba(151,187,205,1)",
-        pointStrokeColor : "transparent",
-        pointHighlightFill : "transparent",
-        // pointStrokeColor : "#fff",
-        // pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        backgroundColor : "rgba(151,187,205,0.2)",
+        borderColor : "rgba(151,187,205,1)",
+        pointBackgroundColor : "rgba(151,187,205,1)",
+        pointBorderColorColor : "transparent",
+        pointHoverBackgroundColor : "transparent",
+        // pointBorderColorColor : "#fff",
+        // pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
         data : {{ line_value_list }}
       },
 
@@ -287,45 +298,51 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     {% endautoescape %}
     datasets: [
       {
-          fillColor: "rgba(77,83,96,0.5)",
-          strokeColor: "rgba(77,83,96,0.8)",
-          highlightFill: "rgba(77,83,96,0.75)",
-          highlightStroke: "rgba(77,83,96,1)",
+          label: "Images Captured",
+          backgroundColor: "rgba(77,83,96,0.5)",
+          borderColor: "rgba(77,83,96,0.8)",
+          hoverBackgroundColor: "rgba(77,83,96,0.75)",
+          hoverBorderColor: "rgba(77,83,96,1)",
           data: {{ bar_value_list1 }}
       },
       {
-          fillColor: "rgba(247,70,74,0.5)",
-          strokeColor: "rgba(247,70,74,0.8)",
-          highlightFill: "rgba(247,70,74,0.75)",
-          highlightStroke: "rgba(247,70,74,1)",
+          label: "Images Used",
+          backgroundColor: "rgba(247,70,74,0.5)",
+          borderColor: "rgba(247,70,74,0.8)",
+          hoverBackgroundColor: "rgba(247,70,74,0.75)",
+          hoverBorderColor: "rgba(247,70,74,1)",
           data: {{ bar_value_list2 }}
       },
       {
-          fillColor: "rgba(253,180,92,0.5)",
-          strokeColor: "rgba(253,180,92,0.8)",
-          highlightFill: "rgba(253,180,92,0.75)",
-          highlightStroke: "rgba(253,180,92,1)",
+          label: "Annotations Used",
+          backgroundColor: "rgba(253,180,92,0.5)",
+          borderColor: "rgba(253,180,92,0.8)",
+          hoverBackgroundColor: "rgba(253,180,92,0.75)",
+          hoverBorderColor: "rgba(253,180,92,1)",
           data: {{ bar_value_list3 }}
       },
       {
-          fillColor: "rgba(151,187,205,0.5)",
-          strokeColor: "rgba(151,187,205,0.8)",
-          highlightFill: "rgba(151,187,205,0.75)",
-          highlightStroke: "rgba(151,187,205,1)",
+          label: "Unique Sightings",
+          backgroundColor: "rgba(151,187,205,0.5)",
+          borderColor: "rgba(151,187,205,0.8)",
+          hoverBackgroundColor: "rgba(151,187,205,0.75)",
+          hoverBorderColor: "rgba(151,187,205,1)",
           data: {{ bar_value_list4 }}
       },
       {
-          fillColor: "rgba(92,184,92,0.5)",
-          strokeColor: "rgba(92,184,92,0.8)",
-          highlightFill: "rgba(92,184,92,0.75)",
-          highlightStroke: "rgba(92,184,92,1)",
+          label: "New Unique Sightings (Global)",
+          backgroundColor: "rgba(92,184,92,0.5)",
+          borderColor: "rgba(92,184,92,0.8)",
+          hoverBackgroundColor: "rgba(92,184,92,0.75)",
+          hoverBorderColor: "rgba(92,184,92,1)",
           data: {{ bar_value_list5 }}
       },
       {
-          fillColor: "rgba(220,220,220,0.5)",
-          strokeColor: "rgba(220,220,220,0.8)",
-          highlightFill: "rgba(220,220,220,0.75)",
-          highlightStroke: "rgba(220,220,220,1)",
+          label: "New Unique Sightings (Daily)",
+          backgroundColor: "rgba(220,220,220,0.5)",
+          borderColor: "rgba(220,220,220,0.8)",
+          hoverBackgroundColor: "rgba(220,220,220,0.75)",
+          hoverBorderColor: "rgba(220,220,220,1)",
           data: {{ bar_value_list6 }}
       },
     ]
@@ -338,32 +355,32 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
     datasets : [
       {
         label: "Female",
-        fillColor : "rgba(151,187,205,0.2)",
-        strokeColor : "rgba(151,187,205,1)",
-        pointColor : "rgba(151,187,205,1)",
-        pointStrokeColor : "#fff",
-        pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        backgroundColor : "rgba(151,187,205,0.2)",
+        borderColor : "rgba(151,187,205,1)",
+        pointBackgroundColor : "rgba(151,187,205,1)",
+        pointBorderColorColor : "#fff",
+        pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
         data : {{ age_list[0] }}
       },
       {
         label: "Male",
-        fillColor : "rgba(92,184,92,0.2)",
-        strokeColor : "rgba(92,184,92,1)",
-        pointColor : "rgba(92,184,92,1)",
-        pointStrokeColor : "#fff",
-        pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(240, 173, 78, 0.5)",
+        backgroundColor : "rgba(92,184,92,0.2)",
+        borderColor : "rgba(92,184,92,1)",
+        pointBackgroundColor : "rgba(92,184,92,1)",
+        pointBorderColorColor : "#fff",
+        pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(240, 173, 78, 0.5)",
         data : {{ age_list[1] }}
       },
       {
         label: "Unknown",
-        fillColor : "rgba(220,220,220,0.0)",
-        strokeColor : "rgba(220,220,220,1)",
-        pointColor : "rgba(220,220,220,1)",
-        pointStrokeColor : "#fff",
-        pointHighlightFill : "#fff",
-        pointHighlightStroke : "rgba(220,220,220,0.5)",
+        backgroundColor : "rgba(220,220,220,0.0)",
+        borderColor : "rgba(220,220,220,1)",
+        pointBackgroundColor : "rgba(220,220,220,1)",
+        pointBorderColorColor : "#fff",
+        pointHoverBackgroundColor : "#fff",
+        pointHoverBorderColor : "rgba(220,220,220,0.5)",
         data : {{ age_list[2] }}
       },
     ]
@@ -375,39 +392,72 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
 
   window.onload = function(){
     var ctxLine = document.getElementById("canvasLine").getContext("2d");
-    var chartLine = new Chart(ctxLine).Line(dataLine, {
-      responsive: true,
-      animation: false,
-      pointDotRadius: 2,
-      pointHitDetectionRadius : 1,
-      // maintainAspectRatio: false,
-      scaleShowVerticalLines: false,
-      scaleShowHorizontalLines: false,
+    var linkLine = document.getElementById("linkLine");
+    var chartLine = new Chart(ctxLine, {
+      type: 'line',
+      data: dataLine,
+      options: {
+        responsive: true,
+        animation: false,
+        pointDotRadius: 2,
+        pointHitDetectionRadius : 1,
+        // maintainAspectRatio: false,
+        scaleShowVerticalLines: false,
+        scaleShowHorizontalLines: false,
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkLine.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
+      }
     });
+
     var ctxBar = document.getElementById("canvasBar").getContext("2d");
-    var chartBar = new Chart(ctxBar).Bar(dataBar, {
-      responsive: true,
-      // animation: false,
-      showTooltips: false,
-      onAnimationComplete: function () {
+    var linkBar = document.getElementById("linkBar");
+    var chartBar = new Chart(ctxBar, {
+      type: 'bar',
+      data: dataBar,
+      options: {
+        responsive: true,
+        // animation: false,
+        showTooltips: false,
+        animation: {
+          onComplete: function(animationItem) {
 
-          var ctx = this.chart.ctx;
-          ctx.font = this.scale.font;
-          ctx.fillStyle = this.scale.textColor
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
+            // var ctx = this.chart.ctx;
+            // ctx.font = this.scale.font;
+            // ctx.fillStyle = this.scale.textColor
+            // ctx.textAlign = "center";
+            // ctx.textBaseline = "bottom";
 
-          this.datasets.forEach(function (dataset) {
-              dataset.bars.forEach(function (bar) {
-                  ctx.fillText(bar.value, bar.x, bar.y - 5);
-              });
-          })
+            // this.datasets.forEach(function (dataset) {
+            //     dataset.bars.forEach(function (bar) {
+            //         ctx.fillText(bar.value, bar.x, bar.y - 5);
+            //     });
+            // })
+
+            ctx = animationItem.chartInstance
+            linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
       }
     });
 
     var ctxAge = document.getElementById("canvasAge").getContext("2d");
-    var chartAge = new Chart(ctxAge).Line(dataAge, {
-      responsive: true,
+    var linkAge = document.getElementById("linkAge");
+    var chartAge = new Chart(ctxAge, {
+      type: 'line',
+      data: dataAge,
+      options: {
+        responsive: true,
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkAge.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
+      }
     });
 
     var center = undefined;
@@ -434,7 +484,12 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
             stylers: [
                   { visibility: "off" }
             ]
-        }
+        },
+        {
+            featureType: "administrative.province",
+            elementType: "all",
+            stylers: [ { visibility: "off" } ]
+        },
     ];
 
     var modify = true;
@@ -453,6 +508,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS1 = document.getElementById("linkGPS1");
 
     var map2 = new google.maps.Map(document.getElementById('gps-map-canvas2'), {
         zoom: zoom,
@@ -466,6 +522,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS2 = document.getElementById("linkGPS2");
 
     var map3 = new google.maps.Map(document.getElementById('gps-map-canvas3'), {
         zoom: zoom,
@@ -479,6 +536,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS3 = document.getElementById("linkGPS3");
 
     var map4 = new google.maps.Map(document.getElementById('gps-map-canvas4'), {
         zoom: zoom,
@@ -492,6 +550,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS4 = document.getElementById("linkGPS4");
 
     var map5 = new google.maps.Map(document.getElementById('gps-map-canvas5'), {
         zoom: zoom,
@@ -505,7 +564,27 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         draggable: modify,
         styles: styles,
     });
+    var linkGPS5 = document.getElementById("linkGPS5");
 
+    // google.maps.event.addListenerOnce(map1, 'idle', function(){
+    //   linksGPS1.href = document.getElementById('gps-map-canvas1').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map2, 'idle', function(){
+    //   linksGPS2.href = document.getElementById('gps-map-canvas2').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map3, 'idle', function(){
+    //   linksGPS3.href = document.getElementById('gps-map-canvas3').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map4, 'idle', function(){
+    //   linksGPS4.href = document.getElementById('gps-map-canvas4').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
+
+    // google.maps.event.addListenerOnce(map5, 'idle', function(){
+    //   linksGPS5.href = document.getElementById('gps-map-canvas5').toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+    // });
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -523,13 +602,15 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
           // ...
         ],
         {% if path in ['1', '2', '3', '4', '5', '6', '7'] %}
+          borderColor: '#FF0000',
           strokeColor: '#FF0000',
         {% else %}
+          borderColor: '#0000FF',
           strokeColor: '#0000FF',
         {% endif %}
         strokeOpacity: 0.3,
         strokeWeight: 2,
-        fillColor: '#FFFFFF',
+        backgroundColor: '#FFFFFF',
         fillOpacity: 0.0,
       });
 
@@ -553,6 +634,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         new google.maps.Polyline({
             path: [gps, gps2],
             clickable: false,
+            borderColor: color,
             strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
@@ -571,6 +653,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         new google.maps.Polyline({
             path: [gps, gps2],
             clickable: false,
+            borderColor: color,
             strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
@@ -616,6 +699,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
                   new google.maps.Polyline({
                       path: [last, gps],
                       clickable: false,
+                      borderColor: color,
                       strokeColor: color,
                       strokeOpacity: 0.50,
                       strokeWeight: 1,
@@ -637,6 +721,7 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         new google.maps.Polyline({
             path: [gps, gps2],
             clickable: false,
+            borderColor: color,
             strokeColor: color,
             strokeOpacity: 1.0,
             strokeWeight: 5,
@@ -653,7 +738,6 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         map5.fitBounds(bounds);
     }
   }
-
 
 </script>
 {% endblock %}

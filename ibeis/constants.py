@@ -44,6 +44,10 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
 YAWALIAS = {'frontleft': 'FL', 'frontright': 'FR', 'backleft': 'BL', 'backright': 'BR',
             'front': 'F', 'left': 'L', 'back': 'B', 'right': 'R', }
 
+YAWALIAS_NICE = {'frontleft': 'Front-Left', 'frontright': 'Front-Right',
+                 'backleft': 'Back-Left', 'backright': 'Back-Right',
+                 'front': 'Front', 'left': 'Left', 'back': 'Back', 'right': 'Right', }
+
 QUAL_EXCELLENT = 'excellent'
 QUAL_GOOD      = 'good'
 QUAL_OK        = 'ok'
