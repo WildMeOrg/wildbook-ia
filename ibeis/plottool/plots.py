@@ -829,10 +829,11 @@ def plot_score_histograms(scores_list,
                           score_thresh=None,
                           overlay_prob_given_list=None,
                           overlay_score_domain=None,
+                          logscale=False,
                           **kwargs):
-    """
+    r"""
     TODO:
-        rewrite using multiplog
+        rewrite using multiplot
 
     CommandLine:
         python -m plottool.plots --test-plot_score_histograms --show
@@ -840,20 +841,14 @@ def plot_score_histograms(scores_list,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
-        >>> randstate = np.random.RandomState(seed=0)
-        >>> # Get a training sample
-        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
-        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> rng = np.random.RandomState(seed=0)
+        >>> tp_support = rng.normal(loc=6.5, size=(256,))
+        >>> tn_support = rng.normal(loc=3.5, size=(256,))
         >>> scores_list = [tp_support, tn_support]
-        >>> scores_lbls = None
-        >>> score_markers = None
-        >>> score_colors = None
-        >>> markersizes = None
-        >>> fnum = None
-        >>> pnum = (1, 1, 1)
         >>> logscale = True
         >>> title = 'plot_scores_histogram'
-        >>> result = plot_score_histograms(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, title)
+        >>> result = plot_score_histograms(scores_list, title=title,
+        >>>                                logscale=logscale)
         >>> ut.show_if_requested()
         >>> print(result)
     """
@@ -974,9 +969,6 @@ def plot_score_histograms(scores_list,
 
     import matplotlib as mpl
     ax = df2.gca()
-    xlim = kwargs.get('xlim', None)
-    if xlim is not None:
-        ax.set_xlim(xlim)
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
@@ -985,6 +977,17 @@ def plot_score_histograms(scores_list,
     #df2.set_xlabel('sorted ' +  score_label + ' indices')
     ax.set_xlabel(score_label, **labelkw)
     ax.set_ylabel('frequency', **labelkw)
+
+    if logscale:
+        # ax.set_xscale('log')
+        ax.set_xscale('log', nonposx='clip')
+        ax.set_yscale('log', nonposy='clip')
+        # set_logyscale_from_data(sorted(ut.flatten(scores_list)))
+
+    xlim = kwargs.get('xlim', None)
+    if xlim is not None:
+        ax.set_xlim(xlim)
+
     #df2.dark_background()
     titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     titlekw = {
@@ -995,10 +998,6 @@ def plot_score_histograms(scores_list,
     df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
     #print('[df2] show_histogram()')
     #df2.dark_background()
-
-    if kwargs.get('logscale'):
-        ax.set_xscale('log')
-        ax.set_yscale('log')
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
@@ -1145,7 +1144,7 @@ def plot_sorted_scores(scores_list,
                        thresh=None,
                        use_stems=None,
                        **kwargs):
-    """
+    r"""
     Concatenates and sorts the scores
     Sorts and plots with different types of scores labeled
 
@@ -1166,10 +1165,9 @@ def plot_sorted_scores(scores_list,
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
-        >>> randstate = np.random.RandomState(seed=0)
-        >>> # Get a training sample
-        >>> tp_support = randstate.normal(loc=6.5, size=(256,))
-        >>> tn_support = randstate.normal(loc=3.5, size=(256,))
+        >>> rng = np.random.RandomState(seed=0)
+        >>> tp_support = rng.normal(loc=6.5, size=(256,))
+        >>> tn_support = rng.normal(loc=3.5, size=(256,))
         >>> scores_list = [tp_support, tn_support]
         >>> scores_lbls = None
         >>> score_markers = None
@@ -1179,7 +1177,9 @@ def plot_sorted_scores(scores_list,
         >>> pnum = (1, 1, 1)
         >>> logscale = True
         >>> figtitle = 'plot_sorted_scores'
-        >>> result = plot_sorted_scores(scores_list, scores_lbls, score_markers, score_colors, markersizes, fnum, pnum, logscale, figtitle)
+        >>> result = plot_sorted_scores(scores_list, scores_lbls, score_markers,
+        >>>                             score_colors, markersizes, fnum, pnum,
+        >>>                             logscale, figtitle)
         >>> ut.show_if_requested()
         >>> print(result)
     """
