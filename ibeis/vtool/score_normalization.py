@@ -74,7 +74,7 @@ class ScoreNormVisualizeClass(object):
         true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
         false_color = pt.FALSE_RED
         support_kw = dict(
-            scores_lbls=('trueneg', 'truepos'),
+            score_lbls=('trueneg', 'truepos'),
             score_colors=(false_color, true_color),
             titlesuf=kwargs.get('titlesuf', '')
         )
@@ -773,7 +773,9 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             logscale=False,
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
-        inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
+        # inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict=alias_dict)
+        inspect_kw = ut.update_dict(default_kw, kwargs, alias_dict=alias_dict)
+        print('inspect_kw = %r' % (inspect_kw,))
         other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
 
         score_thresh, prob_thresh = encoder._hack_vizlearn(**other_kw)
@@ -1379,7 +1381,10 @@ def inspect_pdfs(tn_support, tp_support,
     #with_postbayes = True
 
     nSubplots = (with_normscore + with_prebayes + with_postbayes +
-                 with_scores + with_roc + with_precision_recall + with_hist)
+                 with_scores + with_roc + with_precision_recall +
+                 with_hist)
+    if nSubplots == 0:
+        raise ValueError('Must choose at least one subplot')
     nRows, nCols = pt.get_square_row_cols(nSubplots)
     _pnumiter = pt.make_pnum_nextgen(nRows=nRows, nCols=nCols,
                                      nSubplots=nSubplots)
@@ -1410,7 +1415,7 @@ def inspect_pdfs(tn_support, tp_support,
     false_color = pt.FALSE_RED
 
     support_kw = dict(
-        scores_lbls=('trueneg', 'truepos'),
+        score_lbls=kwargs.get('score_lbls', ('trueneg', 'truepos')),
         score_colors=(false_color, true_color),
         logscale=kwargs.get('logscale', False),
     )
@@ -1494,17 +1499,26 @@ def inspect_pdfs(tn_support, tp_support,
                                              show_operating_point=True)
 
     def _score_support_hist(fnum, pnum):
+        overlay_score_domain = None
+        score_thresh_ = None
+        if kwargs.get('histoverlay', True):
+            overlay_score_domain = score_domain
+            score_thresh_ = score_thresh
+
+        print('support_kw = %r' % (support_kw,))
+
         pt.plot_score_histograms(
             (tn_support, tp_support),
-            score_thresh=score_thresh,
+            score_thresh=score_thresh_,
             score_label='score',
             fnum=fnum,
             pnum=pnum,
             bin_width=kwargs.get('bin_width', None),
             num_bins=kwargs.get('num_bins', None),
             overlay_prob_given_list=(p_score_given_tn, p_score_given_tp),
-            overlay_score_domain=score_domain,
+            overlay_score_domain=overlay_score_domain,
             xlim=score_range,
+            histnorm=kwargs.get('histnorm', False),
             **support_kw)
 
     def _prob_support_hist(fnum, pnum):

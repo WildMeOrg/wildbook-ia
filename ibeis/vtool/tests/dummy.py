@@ -696,7 +696,7 @@ def testdata_ratio_matches(fname1='easy1.png', fname2='easy2.png', **kwargs):
     ratio_thresh = kwargs.get('ratio_thresh', .625)
     print('ratio_thresh=%r' % (ratio_thresh,))
     featkw = vt.get_extract_features_default_params()
-    ut.updateif_haskey(featkw, kwargs)
+    ut.update_existing(featkw, kwargs)
     # Read Images
     fpath1 = ut.grab_test_imgpath(fname1)
     fpath2 = ut.grab_test_imgpath(fname2)
