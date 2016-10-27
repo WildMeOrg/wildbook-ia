@@ -946,6 +946,11 @@ def show_if_requested(N=1):
         # cmd must handle show I think
         pass
     elif ut.get_argflag('--show'):
+        if ut.get_argflag('--tile'):
+            if ut.get_computer_name().lower() in ['hyrule']:
+                fig_presenter.all_figures_tile(percent_w=.5, monitor_num=0)
+            else:
+                fig_presenter.all_figures_tile()
         if ut.get_argflag('--present'):
             fig_presenter.present()
         for fig in fig_presenter.get_all_figures():

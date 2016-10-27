@@ -5,6 +5,7 @@ from six.moves import zip, range, zip_longest
 from plottool import draw_func2 as df2
 import six
 import scipy.stats
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
@@ -21,7 +22,8 @@ print, rrr, profile = ut.inject2(__name__)
 def is_default_dark_bg():
     #return True
     #lightbg = not  ut.get_argflag('--darkbg')
-    lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
+    # lightbg = ut.get_argflag('--save') or ut.get_argflag('--lightbg')
+    lightbg = True
     return not lightbg
 
 
@@ -62,7 +64,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    import matplotlib as mpl
     import plottool as pt
 
     if isinstance(ydata_list, dict) and isinstance(xdata, six.string_types):
@@ -97,9 +98,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Parse out arguments to ax.plot
     plot_kw_keys = ['label', 'color', 'marker', 'markersize',
-                    'markeredgewidth', 'linewidth', 'linestyle']
+                    'markeredgewidth', 'linewidth', 'linestyle', 'alpha']
     # hackish / extra args that dont go to plot, but help
-    extra_plot_kw_keys = ['spread_alpha', 'autolabel']
+    extra_plot_kw_keys = ['spread_alpha', 'autolabel', 'edgecolor']
     plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
     plot_list_kw = dict([
@@ -120,7 +121,10 @@ def multi_plot(xdata, ydata_list, **kwargs):
         # Remove non-bar kwargs
         ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker',
                                       'markersize', 'linestyle'])
-        width = kwargs.get('width', .9) / num_lines
+        stacked = kwargs.get('stacked', False)
+        width = kwargs.get('width', .9)
+        if not stacked:
+            width /= num_lines
         if transpose:
             #plot_list_kw['orientation'] = ['horizontal'] * num_lines
             plot_list_kw['height'] = [width] * num_lines
@@ -144,7 +148,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
     # Setup figure
     # newfig = kwargs.get('newfig', True)
     # if newfig:
-    fig = pt.figure(fnum=fnum, pnum=pnum)
+    # fig = pt.figure(fnum=fnum, pnum=pnum)
+    fig = pt.figure(fnum=fnum, pnum=pnum, docla=False)
     # else:
     #     fig = pt.gcf()
 
@@ -176,12 +181,20 @@ def multi_plot(xdata, ydata_list, **kwargs):
         #print('xdata_ = %r' % (xdata_,))
         #ax.plot(xdata_, ydata_, **plot_kw)
         if kind == 'bar':
-            baseoffset = (width * num_lines) / 2
-            lineoffset = (width * count)
-            offset = baseoffset - lineoffset  # Fixeme for more histogram bars
-            xdata_ = xdata_ - offset
+            if not stacked:
+                # Plot bars side by side
+                baseoffset = (width * num_lines) / 2
+                lineoffset = (width * count)
+                offset = baseoffset - lineoffset  # Fixeme for more histogram bars
+                xdata_ = xdata_ - offset
+            else:
+                # Plot bars on top of each other
+                xdata_ = xdata_
         objs = plot_func(xdata_, ydata_, **plot_kw)
         if kind == 'bar':
+            if extra_kw is not None and 'edgecolor' in extra_kw:
+                for rect in objs:
+                    rect.set_edgecolor(extra_kw['edgecolor'])
             if extra_kw is not None and extra_kw.get('autolabel', False):
                 # FIXME: probably a more cannonical way to include bar
                 # autolabeling with tranpose support, but this is a hack that
@@ -267,9 +280,21 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # Setup axes limits
     if 'xlim' in kwargs:
-        raise AssertionError('use xmax xmin instead')
+        xlim = kwargs['xlim']
+        if xlim is not None:
+            if 'xmin' not in kwargs and 'xmax' not in kwargs:
+                kwargs['xmin'] = xlim[0]
+                kwargs['xmax'] = xlim[1]
+            else:
+                raise ValueError('use xmax, xmin instead of xlim')
     if 'ylim' in kwargs:
-        raise AssertionError('use ymax ymin instead')
+        ylim = kwargs['ylim']
+        if ylim is not None:
+            if 'ymin' not in kwargs and 'ymay' not in kwargs:
+                kwargs['ymin'] = ylim[0]
+                kwargs['ymay'] = ylim[1]
+            else:
+                raise ValueError('use ymay, ymin instead of ylim')
 
     xmin = kwargs.get('xmin', ax.get_xlim()[0])
     xmax = kwargs.get('xmax', ax.get_xlim()[1])
@@ -412,7 +437,6 @@ def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
         >>> print(result)
         >>> ut.show_if_requested()
     """
-    #import matplotlib as mpl
     assert(len(known_nd_data.T) == 2), 'cannot do more than 2 right now'
 
     # Put the data into a dense field grid
@@ -586,7 +610,6 @@ def draw_hist_subbin_maxima(hist, centers=None, bin_colors=None,
         plt.plot(centers, hist, linecolor + '-')
     else:
         # TODO use bin_color correctly
-        #import matplotlib as mpl
         # Create a colormap using exact specified colors
         #bin_cmap = mpl.colors.ListedColormap(bin_colors)
         bin_cmap = plt.get_cmap('hsv')  # HACK
@@ -818,7 +841,7 @@ def plot_stems(x_data, y_data, fnum=None, pnum=(1, 1, 1), **kwargs):
 
 
 def plot_score_histograms(scores_list,
-                          scores_lbls=None,
+                          score_lbls=None,
                           score_markers=None,
                           score_colors=None,
                           markersizes=None,
@@ -830,10 +853,11 @@ def plot_score_histograms(scores_list,
                           overlay_prob_given_list=None,
                           overlay_score_domain=None,
                           logscale=False,
+                          histnorm=False,
                           **kwargs):
     r"""
     TODO:
-        rewrite using multiplot
+        rewrite using multi_plot
 
     CommandLine:
         python -m plottool.plots --test-plot_score_histograms --show
@@ -862,8 +886,8 @@ def plot_score_histograms(scores_list,
         else:
             title = 'Histogram of ' + score_label + 's'
     title += kwargs.get('titlesuf', '')
-    if scores_lbls is None:
-        scores_lbls = [six.text_type(lblx) for lblx in range(len(scores_list))]
+    if score_lbls is None:
+        score_lbls = [six.text_type(lblx) for lblx in range(len(scores_list))]
     if score_markers is None:
         score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
@@ -874,7 +898,8 @@ def plot_score_histograms(scores_list,
     agg_scores  = np.hstack(scores_list)
 
     # append amount of support
-    scores_lbls = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in zip(scores_lbls, scores_list)]
+    score_lbls_ = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in
+                   zip(score_lbls, scores_list)]
 
     dmin = agg_scores.min()
     dmax = agg_scores.max()
@@ -914,9 +939,17 @@ def plot_score_histograms(scores_list,
     _n_max = 0
     _n_min = 0
     _bin_max = 0
+    freq_list = []
+    # ax  = df2.gca()
+
+    if histnorm and histnorm not in ['density', 'percent']:
+        histnorm = 'frequency'
+    elif histnorm and histnorm != 'density':
+        histnorm = 'percent'
+    else:
+        histnorm = 'density'
+
     for lblx in list(range(len(scores_list))):
-        label = scores_lbls[lblx]
-        color = score_colors[lblx]
         #marker = score_markers[lblx]
         data = scores_list[lblx]
 
@@ -925,15 +958,34 @@ def plot_score_histograms(scores_list,
         if bins is None:
             bins = dmax - dmin
             bins = 50
-        ax  = df2.gca()
 
         try:
-            _n, _bins, _patches = ax.hist(
-                data, bins=bins, label=str(label), color=color,
-                histtype='stepfilled', alpha=.7, stacked=True)
-            #range=(dmin, dmax),
-            #for _p in _patches:
-            #    _p.set_edgecolor(None)
+            # freq, _bins = np.histogram(data, bins, density=histnorm)
+            if histnorm == 'percent':
+                freq, _bins = np.histogram(data, bins)
+                freq = freq.astype(np.float)
+                freq = freq / freq.sum()
+            elif histnorm == 'density':
+                freq, _bins = np.histogram(data, bins, density=True)
+            elif histnorm == 'frequency':
+                freq, _bins = np.histogram(data, bins)
+            else:
+                raise ValueError('Unknown mode histnorm=%r' % (histnorm,))
+
+            freq_list.append(freq)
+
+            _n = freq
+            # if False:
+            #     # Old non-multiplot way
+            #     label = score_lbls_[lblx]
+            #     color = score_colors[lblx]
+            #     _n, _bins, _patches = ax.hist(
+            #         data, bins=bins, label=str(label), color=color,
+            #         rwidth=None, normed=True,
+            #         histtype='stepfilled', alpha=.7, stacked=True)
+            #     #range=(dmin, dmax),
+            #     #for _p in _patches:
+            #     #    _p.set_edgecolor(None)
             _n_min = min(_n_min, _n.min())
             _n_max = max(_n_max, _n.max())
             _bin_max = max(_bin_max, max(_bins))
@@ -947,7 +999,37 @@ def plot_score_histograms(scores_list,
             if ut.SUPER_STRICT:
                 raise
 
+    if True:
+        # New multiplot way
+        multi_plot(bins, freq_list, label_list=score_lbls_, fnum=fnum,
+                   color_list=score_colors, pnum=pnum, kind='bar',
+                   width=bin_width, alpha=.7, stacked=True, edgecolor='none',
+                   xlabel=score_label, ylabel=histnorm, title=title,
+                   xlim=kwargs.get('xlim', None))
+
+    ax = df2.gca()
+
+    if logscale:
+        if logscale is True:
+            symlogkw = {}
+        else:
+            symlogkw = logscale
+        # ax.set_xscale('log')
+        print(symlogkw)
+        if symlogkw.get('basex', 10) > 0:
+            print('XSCALE')
+            ax.set_xscale('symlog', **symlogkw)
+        if symlogkw.get('basey', 10) > 0:
+            print('YSCALE')
+            ax.set_yscale('symlog', **symlogkw)
+        # ax.set_xscale('symlog', nonposx='clip')
+        # ax.set_yscale('symlog', nonposy='clip')
+        # ax.set_xscale('log', nonposx='clip')
+        # ax.set_yscale('log', nonposy='clip')
+        # set_logyscale_from_data(sorted(ut.flatten(scores_list)))
+
     if overlay_score_domain is not None:
+        ax  = df2.gca()
         p_max = max([prob.max() for prob in overlay_prob_given_list])
         scale_factor = _n_max / p_max
         for lblx in list(range(len(scores_list))):
@@ -965,45 +1047,35 @@ def plot_score_histograms(scores_list,
     if score_thresh is not None:
         ydomain = np.linspace(_n_min, _n_max, 10)
         xvalues = [score_thresh] * len(ydomain)
-        df2.plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
+        plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
-    import matplotlib as mpl
-    ax = df2.gca()
+    # if False:
+    #     labelkw = {
+    #         'fontproperties': mpl.font_manager.FontProperties(
+    #             weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
+    #     }
+    #     #df2.set_xlabel('sorted ' +  score_label + ' indices')
+    #     ax.set_xlabel(score_label, **labelkw)
+    #     ax.set_ylabel(histnorm, **labelkw)
 
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
-    }
-    #df2.set_xlabel('sorted ' +  score_label + ' indices')
-    ax.set_xlabel(score_label, **labelkw)
-    ax.set_ylabel('frequency', **labelkw)
+    #     xlim = kwargs.get('xlim', None)
+    #     if xlim is not None:
+    #         ax.set_xlim(xlim)
 
-    if logscale:
-        # ax.set_xscale('log')
-        ax.set_xscale('log', nonposx='clip')
-        ax.set_yscale('log', nonposy='clip')
-        # set_logyscale_from_data(sorted(ut.flatten(scores_list)))
+    #     #df2.dark_background()
+    #     titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
+    #     titlekw = {
+    #         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+    #     }
+    #     ax.set_title(title, **titlekw)
 
-    xlim = kwargs.get('xlim', None)
-    if xlim is not None:
-        ax.set_xlim(xlim)
-
-    #df2.dark_background()
-    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
-    titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
-    }
-    ax.set_title(title, **titlekw)
-    #df2.legend(loc='upper left')
     df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
-    #print('[df2] show_histogram()')
-    #df2.dark_background()
 
-    use_darkbackground = kwargs.get('use_darkbackground', None)
-    if use_darkbackground is None:
-        use_darkbackground = is_default_dark_bg()
-    if use_darkbackground:
-        df2.dark_background()
+    # use_darkbackground = kwargs.get('use_darkbackground', None)
+    # if use_darkbackground is None:
+    #     use_darkbackground = is_default_dark_bg()
+    # if use_darkbackground:
+    #     df2.dark_background()
     #return fig
 
 
@@ -1095,7 +1167,6 @@ def plot_probabilities(prob_list,
         ydomain = np.linspace(ydata_min, ydata_max, 10)
         df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-',
                      label='score thresh=%.2f' % (score_thresh,))
-    import matplotlib as mpl
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
             weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
@@ -1132,7 +1203,7 @@ plot_densities = plot_probabilities
 
 
 def plot_sorted_scores(scores_list,
-                       scores_lbls=None,
+                       score_lbls=None,
                        score_markers=None,
                        score_colors=None,
                        markersizes=None,
@@ -1150,7 +1221,7 @@ def plot_sorted_scores(scores_list,
 
     Args:
         scores_list (list): a list of scores
-        scores_lbls (None):
+        score_lbls (None):
         score_markers (None):
         score_colors (None):
         markersizes (None):
@@ -1169,7 +1240,7 @@ def plot_sorted_scores(scores_list,
         >>> tp_support = rng.normal(loc=6.5, size=(256,))
         >>> tn_support = rng.normal(loc=3.5, size=(256,))
         >>> scores_list = [tp_support, tn_support]
-        >>> scores_lbls = None
+        >>> score_lbls = None
         >>> score_markers = None
         >>> score_colors = None
         >>> markersizes = None
@@ -1177,17 +1248,16 @@ def plot_sorted_scores(scores_list,
         >>> pnum = (1, 1, 1)
         >>> logscale = True
         >>> figtitle = 'plot_sorted_scores'
-        >>> result = plot_sorted_scores(scores_list, scores_lbls, score_markers,
+        >>> result = plot_sorted_scores(scores_list, score_lbls, score_markers,
         >>>                             score_colors, markersizes, fnum, pnum,
         >>>                             logscale, figtitle)
         >>> ut.show_if_requested()
         >>> print(result)
     """
-    import matplotlib as mpl
     if figtitle is None:
         figtitle = 'sorted ' + score_label
-    if scores_lbls is None:
-        scores_lbls = [lblx for lblx in range(len(scores_list))]
+    if score_lbls is None:
+        score_lbls = [lblx for lblx in range(len(scores_list))]
     if score_markers is None:
         score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
@@ -1225,7 +1295,7 @@ def plot_sorted_scores(scores_list,
 
     # Plot each datapoint on a line
     for lblx in range(len(scores_list)):
-        label = scores_lbls[lblx]
+        label = score_lbls[lblx]
         color = score_colors[lblx]
         marker = score_markers[lblx]
         markersize = markersizes[lblx]
@@ -1608,7 +1678,6 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
     else:
         unknown_nd_data, ug_shape = compute_interpolation_grid(known_nd_data, 0 * 5)
         interpolated_error = interpolate_error(known_nd_data, known_target_points, unknown_nd_data)
-        import matplotlib as mpl
 
         label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
         title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
