@@ -770,6 +770,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             with_postbayes=True,
             score_range=None,
             bin_width=None,
+            logscale=False,
         )
         alias_dict = {'with_pr': 'with_precision_recall'}
         inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict)
