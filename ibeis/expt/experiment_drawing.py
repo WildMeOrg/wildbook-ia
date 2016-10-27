@@ -338,7 +338,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             figtitle=figtitle,
             #
             with_scores=False,
-            with_prebayes=False,
+            with_prebayes=True,
             with_postbayes=False,
             #
             with_hist=True,
