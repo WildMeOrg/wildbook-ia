@@ -943,7 +943,8 @@ def plot_score_histograms(scores_list,
             _n_max = max(_n_max, _n.max())
             _bin_max = max(_bin_max, max(_bins))
         except Exception as ex:
-            ut.printex(ex, 'probably gave negative scores', keys=['bins', 'data', 'total_min'])
+            ut.printex(ex, 'probably gave negative scores', keys=[
+                'bins', 'data', 'total_min'])
             import utool
             utool.embed()
             raise
@@ -995,8 +996,9 @@ def plot_score_histograms(scores_list,
     #print('[df2] show_histogram()')
     #df2.dark_background()
 
-    #ax.set_xscale('log')
-    #ax.set_yscale('log')
+    if kwargs.get('logscale'):
+        ax.set_xscale('log')
+        ax.set_yscale('log')
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     if use_darkbackground is None:
