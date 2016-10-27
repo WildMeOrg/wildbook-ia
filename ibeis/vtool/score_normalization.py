@@ -1358,14 +1358,12 @@ def inspect_pdfs(tn_support, tp_support,
                  part_attrs=None, thresh_kw=None, attr_callback=None,
                  with_prebayes=True, with_postbayes=True, score_range=None,
                  **kwargs):
-    """
+    r"""
     Shows plots of learned thresholds
-
 
     CommandLine:
         python -m vtool.score_normalization --test-ScoreNormalizer --show
         python -m vtool.score_normalization --exec-ScoreNormalizer.visualize --show
-
     """
     import plottool as pt  # NOQA
     from plottool.interactions import ExpandableInteraction
@@ -1387,7 +1385,6 @@ def inspect_pdfs(tn_support, tp_support,
                                      nSubplots=nSubplots)
 
     #print('Always interactive even if: interactive = %r' % (interactive,))
-
     # Make a plottool interaction
     inter = ExpandableInteraction(fnum, _pnumiter)
 
@@ -1415,10 +1412,9 @@ def inspect_pdfs(tn_support, tp_support,
     support_kw = dict(
         scores_lbls=('trueneg', 'truepos'),
         score_colors=(false_color, true_color),
+        logscale=kwargs.get('logscale', False),
     )
     support_sort_kw = dict(
-        logscale=kwargs.get('logscale', False),
-        # logscale=True,
         score_markers=['^', 'v'],
         markersizes=[5, 5],
         use_stems=use_stems,
