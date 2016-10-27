@@ -338,15 +338,15 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
             figtitle=figtitle,
             #
             with_scores=False,
-            with_prebayes=True,
+            with_prebayes=False,
             with_postbayes=False,
             #
             with_hist=True,
-            with_roc=True,
+            with_roc=False,
             attr_callback=attr_callback,
             #bin_width=.125,
             #bin_width=.05,
-            logscale=True,
+            logscale=False,
             score_range=(0, 14),
             bin_width=.5,
             verbose=verbose
@@ -360,7 +360,7 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
         if ut.get_argflag('--contextadjust'):
             pt.adjust_subplots(left=.1, bottom=.25, wspace=.2, hspace=.2)
             pt.adjust_subplots(use_argv=True)
-        pt.set_figsize(w=30, h=10, dpi=256)
+        # pt.set_figsize(w=30, h=10, dpi=256)
         pt.set_figtitle(lbl)
 
     locals_ = locals()
