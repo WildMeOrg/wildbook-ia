@@ -90,10 +90,6 @@ def scorediff(ibs, testres, f=None, verbose=None):
         # xdata_list = [(bins[:-1] + bins[1:]) / 2 for bins in bins_list]
         xdata_list = [bins[:-1] for bins in bins_list]
         width_list = [np.diff(bins)[0] for bins in bins_list]
-        print('ydata_list = %r' % (ydata_list,))
-        print('bins_list = %r' % (bins_list,))
-        print('xdata_list = %r' % (xdata_list,))
-        print('width_list = %r' % (width_list,))
 
         # nbins = 8
         #bin_width = (score_diffs.mean() + score_diffs.std()) / nbins
