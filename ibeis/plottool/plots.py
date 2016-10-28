@@ -246,6 +246,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
     #max_y = max(np.max(y_data), max_y)
     #min_y = np.min(y_data) if min_y is None else min(np.min(y_data), min_y)
 
+    ydata = _ydata  # HACK
+    xdata = _xdata  # HACK
     if transpose:
         #xdata_list = ydata_list
         ydata = xdata
