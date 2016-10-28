@@ -709,19 +709,119 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
         pt.adjust_subplots(use_argv=True)
 
 
-def temp_multidb_cmc():
+def temp_num_exmaples_cmc():
     import ibeis
     ibs1, testres1 = ibeis.testdata_expts(
-        dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'), t='best:prescore_method=nsum', a='timectrl')
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
+        t='Ell:K=1',
+        # t='best:prescore_method=nsum',
+        # a='timectrl'
+        a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=[1,2],dsize=1939'
+    )
+
     ibs2, testres2 = ibeis.testdata_expts(
-        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'), t='best:prescore_method=nsum',
-        # a='timectrl:species=zebra_plains'
-        a='timectrl:species=zebra_plains,qmin_pername=2,dsample_per_name=2'
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
+        # t='best:prescore_method=nsum',
+        t='CircQRH:K=3',
+        a='timectrl:species=zebra_plains,qmin_pername=3,dsample_per_name=[1,2],dsize=1187'
+        # a='timectrl:species=zebra_plains,sample_per_name=3'
+    )
+
+    key = 'qx2_bestranks'
+    ydata_list = []
+    label_list = []
+    num_ranks = 5
+
+    testres_list = [testres1, testres2]
+    ibs_list = [ibs1, ibs2]
+
+    # ibs = ibs1
+    # testres = testres1
+    for ibs, testres in zip(ibs_list, testres_list):
+        cfgx2_cmc, edges = testres.get_rank_percentage_cumhist(
+            bins='dense', key=key, join_acfgs=True)
+
+        species = ibs.get_dominant_species(testres.qaids)
+        species_nice = ibs.get_species_nice(ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids)))
+        species_nice = {
+            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_plains': 'Plains Zebras',
+            'giraffe_masai': 'Masai Giraffes',
+        }.get(species, species_nice)
+
+        cmcs = cfgx2_cmc.T[:num_ranks].T
+        lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
+        # lbls = ['%6.2f%% @ rank #1' % (cmc[0],) + ' - ' + lbl + ' - ' + species_nice
+        #         for lbl, cmc in zip(lbls, cmcs)]
+        lbls = [species_nice + ' - ' + lbl.replace('dpername', 'exemplars')
+                for lbl, cmc in zip(lbls, cmcs)]
+
+        ydata_list.extend(cmcs)
+        label_list.extend(lbls)
+
+    sortx = np.argsort(ut.take_column(ydata_list, 0))[::-1]
+    ydata_list = ut.take(ydata_list, sortx)
+    label_list = ut.take(label_list, sortx)
+
+    xdata = list(range(1, num_ranks + 1))
+
+    import plottool as pt
+    ymin = 30
+    xpad = .9  # if kind == 'plot' else .5
+    num_yticks = 8 if ymin == 30 else 11
+    # ymin = 30 if cfgx2_cumhist_percent.min() > 30 and False else 0
+
+    fig = pt.multi_plot(
+        xdata, ydata_list,
+        marker_list=pt.distinct_markers(len(ydata_list)),
+        label_list=label_list,
+        num_xticks=num_ranks,
+        xlabel='rank', ylabel='recognition rate (%)',
+        legend_loc='lower right',
+        num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
+        xmin=xpad,
+        xmax=num_ranks + 1 - xpad,
+        use_legend=True,
+        title='Cumulative match characteristics',
+        legendsize=10,
+        titlesize=12,
+        labelsize=12,
+    )
+    fig.set_size_inches(*((1.0 * np.array([4, 3])).tolist()))
+    pt.adjust_subplots(bottom=.15, top=.9, left=.2)
+    fpath = 'cmc-dpername-combined.png'
+    fig.savefig(fpath, transparent=True, edgecolor='none')
+    import vtool as vt
+    vt.clipwhite_ondisk(fpath, fpath, verbose=True)
+    ut.startfile(fpath)
+
+
+def temp_multidb_cmc():
+    """
+    Plots multiple database CMC curves in the same plot for the AI for social
+    good paper
+    """
+    import ibeis
+    ibs1, testres1 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
+        t='Ell:K=1',
+        # t='best:prescore_method=nsum',
+        a='timectrl'
+        # a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=2'
+    )
+    ibs2, testres2 = ibeis.testdata_expts(
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
+        # t='best:prescore_method=nsum',
+        t='CircQRH:K=3',
+        a='timectrl:species=zebra_plains'
+        # a='timectrl:species=zebra_plains,qmin_pername=3,dsample_per_name=2'
         # a='timectrl:species=zebra_plains,sample_per_name=3'
     )
     ibs3, testres3 = ibeis.testdata_expts(
-        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'), t='best:prescore_method=nsum',
+        dbdir=ut.truepath('~/lev/media/hdd/golden/GZGC'),
+        t='Ell:K=2',
         a='timectrl1h:species=giraffe_masai'
+        # a='timectrl1h:species=giraffe_masai,qmin_pername=2,dsample_per_name=2'
     )
 
     testres_list = [testres1, testres2, testres3]
@@ -733,9 +833,8 @@ def temp_multidb_cmc():
     num_ranks = 5
 
     for ibs, testres in zip(ibs_list, testres_list):
-        join_acfgs = True
         cfgx2_cmc, edges = testres.get_rank_percentage_cumhist(
-            bins='dense', key=key, join_acfgs=join_acfgs)
+            bins='dense', key=key, join_acfgs=True)
         cmc = cfgx2_cmc[0][:num_ranks]
 
         species = ibs.get_dominant_species(testres.qaids)

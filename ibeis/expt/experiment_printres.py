@@ -101,7 +101,7 @@ def print_latexsum(ibs, testres, verbose=True):
 
 
 @profile
-def print_results(ibs, testres):
+def print_results(ibs, testres, **kwargs):
     """
     Prints results from an experiment harness run.
     Rows store different qaids (query annotation ids)
@@ -270,9 +270,9 @@ def print_results(ibs, testres):
         enum_cfgstr_list = ['%2d) %s' % (count, cfgstr)
                             for count, cfgstr in enumerate(cfgstr_list)]
         print('\n[harn] cfgstr:\n%s' % '\n'.join(enum_cfgstr_list))
-    print_cfgstr()
+    print_cfgstr(**kwargs)
 
-    @ut.argv_flag_dec
+    @ut.argv_flag_dec()
     def print_colscore():
         print('==================')
         print('[harn] Scores per Config: %s' % testnameid)
@@ -294,9 +294,9 @@ def print_results(ibs, testres):
                 nLessX_ = nLessX_dict[int(X)][cfgx]
                 rankstr = rankscore_str(X, nLessX_, cfgx2_nQuery[cfgx], withlbl=False)
                 print('[score] %s --- %s' % (rankstr, cfgx2_lbl[cfgx]))
-    print_colscore()
+    print_colscore(**kwargs)
 
-    ut.argv_flag_dec(testres.print_percent_identification_success)()
+    ut.argv_flag_dec(testres.print_percent_identification_success)(**kwargs)
 
     sumstrs = []
     sumstrs.append('++===========================')

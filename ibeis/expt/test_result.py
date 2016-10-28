@@ -1091,7 +1091,7 @@ class TestResult(ut.NiceRepr):
     def report(testres):
         testres.print_results()
 
-    def print_results(testres):
+    def print_results(testres, **kwargs):
         r"""
         CommandLine:
             python -m ibeis --tf TestResult.print_results
@@ -1106,7 +1106,7 @@ class TestResult(ut.NiceRepr):
         """
         from ibeis.expt import experiment_printres
         ibs = testres.ibs
-        experiment_printres.print_results(ibs, testres)
+        experiment_printres.print_results(ibs, testres, **kwargs)
 
     def get_common_qaids(testres):
         if not testres.has_constant_qaids():
