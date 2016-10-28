@@ -2952,7 +2952,7 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         python -m ibeis.other.ibsfuncs --test-get_aidpair_truths
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -2961,6 +2961,7 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         >>> truth = get_aidpair_truths(ibs, aid1_list, aid2_list)
         >>> result = str(truth)
         >>> print(result)
+        [2 1 2 2 1 0 0 2 2 2 2 0 2]
     """
     nid1_list = np.array(ibs.get_annot_name_rowids(aid1_list))
     nid2_list = np.array(ibs.get_annot_name_rowids(aid2_list))

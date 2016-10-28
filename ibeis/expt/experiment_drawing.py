@@ -22,13 +22,13 @@ def scorediff(ibs, testres, f=None, verbose=None):
 
     CommandLine:
         python -m ibeis.expt.experiment_drawing scorediff --db PZ_Master1 -a timectrl -t best --show
+        python -m ibeis.expt.experiment_drawing scorediff --db PZ_MTEST -a default -t best --show
 
         python -m ibeis.expt.experiment_drawing scorediff --db humpbacks_fb \
             -a default:has_any=hasnotch,mingt=2 \
             -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,use_te_scorer=False,manual_extract=True,ignore_notch=True,te_net=annot_simple --show
 
     Example:
-        >>> # DISABLE_DOCTEST
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.experiment_drawing import *  # NOQA
         >>> from ibeis.init import main_helpers
@@ -40,42 +40,113 @@ def scorediff(ibs, testres, f=None, verbose=None):
     """
     import plottool as pt
     for cfgx in range(testres.nConfig):
-        annot_matches = testres.cfgx2_qreq_[cfgx].execute()
-        aid_list = [cm.qaid for cm in annot_matches]
+        cm_list = testres.cfgx2_qreq_[cfgx].execute()
+        aid_list = [cm.qaid for cm in cm_list]
         score_diffs = []
         top_scores = []
-        for amatch in annot_matches:
-            annot_scores = sorted(amatch.annot_score_list, key=lambda x: -x)
-            diff = annot_scores[0] - annot_scores[1]
+        for cm in cm_list:
+            annot_scores = sorted(cm.annot_score_list, key=lambda x: -x)
+            if False:
+                # We want to measure just the top 2 regardless of what they are
+                diff = annot_scores[0] - annot_scores[1]
+            else:
+                try:
+                    # We want to measure just the top 2 wrt truth
+                    top_true_aid = cm.get_top_gt_aids(ibs)[0]
+                    top_false_aid = cm.get_top_gf_aids(ibs)[0]
+                    gt_score = cm.get_annot_scores([top_true_aid])[0]
+                    gf_score = cm.get_annot_scores([top_false_aid])[0]
+                    diff = gt_score - gf_score
+                except IndexError:
+                    continue
+                    # diff = 0  # np.nan
             top_scores.append(annot_scores[0])
             score_diffs.append(diff)
         score_diffs = np.array(score_diffs)
         top_scores = np.array(top_scores)
 
-        succ = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] == 0
-        fail = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] != 0
+        succ = score_diffs > 0
+        fail = score_diffs <= 0
+
+        # succ = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] == 0
+        # fail = testres.get_truth2_prop()[0]['gt']['rank'][:, 0] != 0
 
         #fail = np.where(testres.get_truth2_prop()[0]['gt']['score'][:, 0] != 0)
-        #succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=[0, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1])
-        #fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=[0, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1])
+        width = .25
+        succ_max = max(2, score_diffs[succ].max())
+        fail_max = max(2, -score_diffs[fail].min())
+        num_succ_bins = int(succ_max / width)
+        num_fail_bins = int(fail_max / width)
+        succ_bins = np.linspace(0, succ_max, num_succ_bins + 1)
+        fail_bins = np.linspace(-fail_max, 0, num_fail_bins + 1)
+        print('succ_bins = %r' % (succ_bins,))
+        print('fail_bins = %r' % (fail_bins,))
+        succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=succ_bins)
+        fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=fail_bins)
         #bin_max = (score_diffs.max() - score_diffs.min()) / 50
 
-        nbins = 8
+        ydata_list = [succ_hist, fail_hist]
+        bins_list  = [succ_bins, fail_bins]
+        # xdata_list = [(bins[:-1] + bins[1:]) / 2 for bins in bins_list]
+        xdata_list = [bins[:-1] for bins in bins_list]
+        width_list = [np.diff(bins)[0] for bins in bins_list]
+        print('ydata_list = %r' % (ydata_list,))
+        print('bins_list = %r' % (bins_list,))
+        print('xdata_list = %r' % (xdata_list,))
+        print('width_list = %r' % (width_list,))
+
+        # nbins = 8
         #bin_width = (score_diffs.mean() + score_diffs.std()) / nbins
         #bin_width = int(np.ceil((score_diffs.mean() + score_diffs.std() / 4) / nbins))
-        bin_width = 1
-        bins = np.arange(nbins) * bin_width
-        succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=bins)
-        fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=bins)
-        ymax = max(max(succ_hist), max(fail_hist)) * 1.1
+        # bin_width = 1
+        # bins = np.arange(nbins) * bin_width
+        # succ_hist, succ_edges = np.histogram(score_diffs[succ], bins=bins)
+        # fail_hist, fail_edges = np.histogram(score_diffs[fail], bins=bins)
+        # hist, edges = np.histogram(score_diffs)
+        # print('hist = %r' % (hist,))
+        # ymax = max(max(succ_hist), max(fail_hist)) * 1.1
 
-        fnum = pt.next_fnum()
-        pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score',
-                          autolabel=False, color='blue', title='Success Cases',
-                          ymax=ymax, pnum=(1, 2, 1), fnum=fnum)
-        pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score',
-                          autolabel=False, title='Failure Cases', ymax=ymax,
-                          pnum=(1, 2, 2), fnum=fnum)
+        species = ibs.get_dominant_species(testres.qaids)
+        species_nice = ibs.get_species_nice(ibs.get_species_rowids_from_text(ibs.get_dominant_species(testres.qaids)))
+
+        species_nice = {
+            'zebra_grevys': 'Grevy\'s Zebras',
+            'zebra_plains': 'Plains Zebras',
+            'giraffe_masai': 'Masai Giraffes',
+        }.get(species, species_nice)
+
+        pt.multi_plot(
+            xdata_list,
+            ydata_list,
+            label_list=['correct match at rank 1', 'correct match above rank 1'],
+            width_list=width_list,
+            fnum=pt.next_fnum(),
+            color_list=[pt.TRUE_BLUE, pt.FALSE_RED], kind='bar',
+            alpha=.7, stacked=True,
+            edgecolor='none', xlabel='difference between the best correct score and the best incorrect score',
+            ylabel='frequency (number of query annotations)',
+            title='Score differences for %s' % (species_nice,),
+            xmin=-10,
+            xmax=30,
+            use_legend=True
+        )
+
+        # fnum = pt.next_fnum()
+        # pt.plot_score_histograms(
+        #     [score_diffs[succ], score_diffs[fail]],
+        #     fnum=fnum,
+        #     score_colors=[pt.TRUE_BLUE, pt.FALSE_RED],
+        #     score_lbls=['correct', 'incorrect'],
+        #     bin_width=.5,
+        #     # histnorm='percent',
+        # )
+
+        # pt.draw_histogram(succ_edges, succ_hist, xlabel='1st - 2nd score',
+        #                   autolabel=False, color='blue', title='Success Cases',
+        #                   ymax=ymax, pnum=(1, 2, 1), fnum=fnum)
+        # pt.draw_histogram(fail_edges, fail_hist, xlabel='1st - 2nd score',
+        #                   autolabel=False, title='Failure Cases', ymax=ymax,
+        #                   pnum=(1, 2, 2), fnum=fnum)
 
         from plottool.abstract_interaction import AbstractInteraction
 
@@ -105,7 +176,7 @@ def scorediff(ibs, testres, f=None, verbose=None):
                 aid = aid_list[idx]
                 print('aid = %r' % (aid,))
                 if event.button == 3:   # right-click
-                    cm = annot_matches[idx]
+                    cm = cm_list[idx]
                     from ibeis.gui import inspect_gui
                     qaid = aid
                     qreq_ = testres.cfgx2_qreq_[cfgx]
@@ -131,9 +202,9 @@ def scorediff(ibs, testres, f=None, verbose=None):
                     #    testres.ibs, aid, refresh_func=self.show_page, config2_=.extern_query_config2)
                     self.show_popup_menu(options, event)
 
-        x = SortedScoreSupportInteraction()
-        x.start()
-        pt.interactions.zoom_factory()
+        # x = SortedScoreSupportInteraction()
+        # x.start()
+        # pt.interactions.zoom_factory()
 
 
 #@devcmd('scores', 'score', 'namescore_roc')
@@ -187,6 +258,8 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     test_qaids = testres.get_test_qaids()
 
     # TODO: option to group configs with same pcfg and different acfg
+    import utool
+    utool.embed()
 
     def load_annot_scores(testres, cfgx, filt_cfg):
         qaids = testres.cfgx2_qaids[cfgx]
@@ -655,7 +728,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     CommandLine:
         python -m ibeis draw_rank_cdf
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a :proot=smk,num_words=64000
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl
+        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
         python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
