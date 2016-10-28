@@ -37,8 +37,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
 
     Args:
-        xdata (ndarray):
-        ydata_list (list of ndarrays):
+        xdata (ndarray): can also be a list of arrays
+        ydata_list (list of ndarrays): can also be a single array
 
     Kwargs:
         fnum, pnum, title, xlabel, ylabel, num_xticks, use_legend, legend_loc,
@@ -74,8 +74,16 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ydata_list = ut.take(ydata_list, ykeys)
         kwargs['label_list'] = kwargs.get('label_list', ykeys)
 
-    xdata = np.array(xdata).copy()
     num_lines = len(ydata_list)
+
+    # Transform xdata into xdata_list
+    if isinstance(xdata, np.ndarray):
+        xdata_list = [np.array(xdata, copy=True)] * num_lines
+    elif isinstance(xdata, list):
+        if len(xdata) > 0 and isinstance(xdata[0], (list, np.ndarray)):
+            xdata_list = [np.array(xd, copy=True) for xd in xdata]
+        else:
+            xdata_list = [np.array(xdata, copy=True)] * num_lines
 
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
     pnum = kwargs.get('pnum', None)
@@ -122,15 +130,19 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ut.delete_keys(plot_list_kw, ['markeredgewidth', 'linewidth', 'marker',
                                       'markersize', 'linestyle'])
         stacked = kwargs.get('stacked', False)
-        width = kwargs.get('width', .9)
-        if not stacked:
-            width /= num_lines
-        if transpose:
-            #plot_list_kw['orientation'] = ['horizontal'] * num_lines
-            plot_list_kw['height'] = [width] * num_lines
+        width_key = 'height' if transpose else 'width'
+        if 'width_list' in kwargs:
+            plot_list_kw[width_key] = kwargs['width_list']
         else:
-            plot_list_kw['width'] = [width] * num_lines
-        #xdata - (width / 2)
+            width = kwargs.get('width', .9)
+            # if width is None:
+            #     # HACK: need variable width
+            #     # width = np.mean(np.diff(xdata_list[0]))
+            #     width = .9
+            if not stacked:
+                width /= num_lines
+            #plot_list_kw['orientation'] = ['horizontal'] * num_lines
+            plot_list_kw[width_key] = [width] * num_lines
 
     spread_list = kwargs.get('spread_list', None)
     if spread_list is None:
@@ -171,26 +183,29 @@ def multi_plot(xdata, ydata_list, **kwargs):
     #ut.embed()
     #assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
     #assert len(extra_kw_list) == len(ydata_list), 'bad length'
-    _iter = enumerate(zip_longest(ydata_list, plot_kw_list, extra_kw_list))
-    for count, (ydata, plot_kw, extra_kw) in _iter:
-        ymask = np.isfinite(ydata)
-        ydata_ = ydata.compress(ymask)
-        xdata_ = xdata.compress(ymask)
+    _iter = enumerate(zip_longest(xdata_list, ydata_list, plot_kw_list, extra_kw_list))
+    for count, (_xdata, _ydata, plot_kw, extra_kw) in _iter:
+        ymask = np.isfinite(_ydata)
+        ydata_ = _ydata.compress(ymask)
+        xdata_ = _xdata.compress(ymask)
         #print('count = %r' % (count,))
         #print('ydata_ = %r' % (ydata_,))
         #print('xdata_ = %r' % (xdata_,))
         #ax.plot(xdata_, ydata_, **plot_kw)
         if kind == 'bar':
-            if not stacked:
+            if stacked:
+                # Plot bars on top of each other
+                xdata_ = xdata_
+            else:
                 # Plot bars side by side
                 baseoffset = (width * num_lines) / 2
                 lineoffset = (width * count)
                 offset = baseoffset - lineoffset  # Fixeme for more histogram bars
-                xdata_ = xdata_ - offset
-            else:
-                # Plot bars on top of each other
-                xdata_ = xdata_
+                xdata_ -= offset
+            # width_key = 'height' if transpose else 'width'
+            # plot_kw[width_key] = np.diff(xdata)
         objs = plot_func(xdata_, ydata_, **plot_kw)
+
         if kind == 'bar':
             if extra_kw is not None and 'edgecolor' in extra_kw:
                 for rect in objs:
@@ -202,7 +217,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
                 for rect in objs:
                     if transpose:
                         numlbl = width = rect.get_width()
-                        xpos = width + ((xdata.max() - xdata.min()) * .005)
+                        xpos = width + ((_xdata.max() - _xdata.min()) * .005)
                         ypos = rect.get_y() + rect.get_height() / 2.
                         ha, va = 'left', 'center'
                     else:
@@ -216,7 +231,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         if spread_list is not None:
             # Plots a spread around plot lines usually indicating standard
             # deviation
-            xdata = np.array(xdata)
+            _xdata = np.array(_xdata)
             spread = spread_list[count]
             ydata_ave = np.array(ydata_)
             y_data_dev = np.array(spread)
@@ -224,7 +239,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
             y_data_min = ydata_ave - y_data_dev
             ax = df2.gca()
             spread_alpha = extra_kw['spread_alpha']
-            ax.fill_between(xdata, y_data_min, y_data_max, alpha=spread_alpha,
+            ax.fill_between(_xdata, y_data_min, y_data_max, alpha=spread_alpha,
                             color=plot_kw.get('color', None))  # , zorder=0)
     # L________________
 
@@ -304,9 +319,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
     text_type = six.text_type
 
     if text_type(xmax) == 'data':
-        xmax = xdata.max()
+        xmax = max([xd.max() for xd in xdata_list])
     if text_type(xmin) == 'data':
-        xmin = xdata.min()
+        xmin = min([xd.min() for xd in xdata_list])
 
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
@@ -856,11 +871,13 @@ def plot_score_histograms(scores_list,
                           histnorm=False,
                           **kwargs):
     r"""
-    TODO:
-        rewrite using multi_plot
+    Accumulates scores into histograms and plots them
 
     CommandLine:
         python -m plottool.plots --test-plot_score_histograms --show
+
+    Ignore:
+        >>> score_label = 'score'
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -876,6 +893,7 @@ def plot_score_histograms(scores_list,
         >>> ut.show_if_requested()
         >>> print(result)
     """
+    import plottool as pt
     if isinstance(scores_list, np.ndarray):
         if len(scores_list.shape) == 1:
             scores_list = [scores_list]
@@ -891,42 +909,70 @@ def plot_score_histograms(scores_list,
     if score_markers is None:
         score_markers = ['o' for lblx in range(len(scores_list))]
     if score_colors is None:
-        score_colors = df2.distinct_colors(len(scores_list))[::-1]
+        score_colors = pt.distinct_colors(len(scores_list))[::-1]
     if markersizes is None:
         markersizes = [12 / (1.0 + lblx) for lblx in range(len(scores_list))]
     #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(scores_list)]
-    agg_scores  = np.hstack(scores_list)
 
     # append amount of support
     score_lbls_ = ['%s %d' % (lbl, len(ydata),) for lbl, ydata in
                    zip(score_lbls, scores_list)]
-
-    dmin = agg_scores.min()
-    dmax = agg_scores.max()
 
     # References:
     # stats.stackexchange.com/questions/798/calculating-optimal-number-of-bins-in-a-histogram-for-n-where-n-ranges-from-30
     #bandwidth = diff(range(x)) / (2 * IQR(x) / length(x) ^ (1 / 3)))
 
     if fnum is None:
-        fnum = df2.next_fnum()
+        fnum = pt.next_fnum()
 
-    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+    pt.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+
+    # agg_scores  = np.hstack(scores_list)
+    # dmin = agg_scores.min()
+    # dmax = agg_scores.max()
 
     bins = None
     bin_width = kwargs.get('bin_width', None)
+    bin_list = [bins] * len(scores_list)
+
+    def make_bins(width, d_min, d_max, num_bins=None):
+        if num_bins is None:
+            num_bins = int((d_max - d_min) // width)
+        bins = [d_min + (width * count) for count in range(num_bins)]
+        return bins
+
+    def make_bins2(width, start, end):
+        num_bins = int((end - start) // width)
+        print('num_bins = %r' % (num_bins,))
+        return [start + (width * count) for count in range(num_bins)]
+
     if bin_width is not None:
         total_min = np.floor(min([min(scores) for scores in scores_list]))
         total_max = np.ceil(max([max(scores) for scores in scores_list]))
         #ave_diff = np.mean(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
         #std_diff = np.std(ut.flatten([np.diff(sorted(scores)) for scores in scores_list]))
         #(total_max - total_min) / bin_width
-        start = min(0, total_min)
         num_bins = kwargs.get('num_bins', None)
-        if num_bins is None:
-            num_bins = int((total_max - start) // bin_width)
-        #end = total_max
-        bins = [start + (bin_width * count) for count in range(num_bins)]
+        total_min = min(0, total_min)  # HACK
+        bins = make_bins(bin_width, total_min, total_max, num_bins)
+        bin_list = [bins] * len(scores_list)
+    else:
+        # _, agg_bins = np.histogram(agg_scores, 'auto')
+        bin_width = min([np.diff(np.histogram(scores)[1])[0] for scores in scores_list])
+        print('bin_width = %r' % (bin_width,))
+        # total_min = np.floor(min([min(scores) for scores in scores_list]))
+        # total_max = np.ceil(max([max(scores) for scores in scores_list]))
+        # start = total_min - bin_width / 2
+        # end = total_max + bin_width / 2
+        # if total_min > 0:
+        #     start = max(0, start)
+        # bin_width = np.mean(np.diff(agg_bins))
+        # num_bins = len(agg_bins)
+        # d_min, d_max = scores.min(), scores.max()
+        # width = bin_width
+        # import utool
+        # utool.embed()
+        bin_list = [make_bins2(bin_width, scores.min(), scores.max()) for scores in scores_list]
     # else:
     #     import scipy as sp
     #     sortscores = np.sort(np.hstack(scores_list))
@@ -942,22 +988,25 @@ def plot_score_histograms(scores_list,
     freq_list = []
     # ax  = df2.gca()
 
-    if histnorm and histnorm not in ['density', 'percent']:
-        histnorm = 'frequency'
-    elif histnorm and histnorm != 'density':
-        histnorm = 'percent'
+    if histnorm:
+        if histnorm not in ['density', 'frequency']:
+            histnorm = 'percent'
     else:
-        histnorm = 'density'
+        histnorm = 'frequency'
 
+    xdata_list = []
+    width_list = []
     for lblx in list(range(len(scores_list))):
         #marker = score_markers[lblx]
         data = scores_list[lblx]
+        bins = bin_list[lblx]
 
-        dmin = int(np.floor(data.min()))
-        dmax = int(np.ceil(data.max()))
+        # dmin = int(np.floor(data.min()))
+        # dmax = int(np.ceil(data.max()))
         if bins is None:
-            bins = dmax - dmin
-            bins = 50
+            bins = 'auto'
+        #     bins = dmax - dmin
+        #     bins = 50
 
         try:
             # freq, _bins = np.histogram(data, bins, density=histnorm)
@@ -972,7 +1021,15 @@ def plot_score_histograms(scores_list,
             else:
                 raise ValueError('Unknown mode histnorm=%r' % (histnorm,))
 
+            # Accumulate ydata
             freq_list.append(freq)
+
+            # accumulate a list of bins
+            # _xdata = (_bins[1:] + _bins[:-1]) / 2
+            _xdata = _bins[:-1]
+            _width = np.diff(_bins)
+            xdata_list += [_xdata]
+            width_list.append(_width)
 
             _n = freq
             # if False:
@@ -1000,12 +1057,17 @@ def plot_score_histograms(scores_list,
                 raise
 
     if True:
+        # TODO:
+        # Ensure that multiplot can take in a list of xdata as well as a list
+        # of ydata
         # New multiplot way
-        multi_plot(bins, freq_list, label_list=score_lbls_, fnum=fnum,
-                   color_list=score_colors, pnum=pnum, kind='bar',
-                   width=bin_width, alpha=.7, stacked=True, edgecolor='none',
-                   xlabel=score_label, ylabel=histnorm, title=title,
-                   xlim=kwargs.get('xlim', None))
+        # if bin_width is None:
+        #     bin_width = np.mean(np.diff(bins))  # FIXME: variable widths
+        pt.multi_plot(xdata_list, freq_list, label_list=score_lbls_, fnum=fnum,
+                      color_list=score_colors, pnum=pnum, kind='bar',
+                      width_list=width_list, alpha=.7, stacked=True,
+                      edgecolor='none', xlabel=score_label, ylabel=histnorm,
+                      title=title, xlim=kwargs.get('xlim', None))
 
     ax = df2.gca()
 
