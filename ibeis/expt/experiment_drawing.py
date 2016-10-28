@@ -254,8 +254,6 @@ def draw_annot_scoresep(ibs, testres, f=None, verbose=None):
     test_qaids = testres.get_test_qaids()
 
     # TODO: option to group configs with same pcfg and different acfg
-    import utool
-    utool.embed()
 
     def load_annot_scores(testres, cfgx, filt_cfg):
         qaids = testres.cfgx2_qaids[cfgx]
