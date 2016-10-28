@@ -35,7 +35,8 @@ def testdata_expts(defaultdb='testdb1',
                    default_acfgstr_name_list=['default:qindex=0:10:4,dindex=0:20'],
                    default_test_cfg_name_list=['default'], a=None, t=None,
                    p=None, qaid_override=None, daid_override=None,
-                   initial_aids=None, use_cache=None):
+                   initial_aids=None, use_cache=None,
+                   dbdir=None, ibs=None):
     r"""
     Use this if you want data from an experiment.
     Command line interface to quickly get testdata for test_results.
@@ -74,7 +75,10 @@ def testdata_expts(defaultdb='testdb1',
         default_test_cfg_name_list = [default_test_cfg_name_list]
 
     #from ibeis.expt import experiment_helpers
-    ibs = ibeis.opendb(defaultdb=defaultdb)
+    if dbdir is not None:
+        dbdir = ut.truepath(dbdir)
+    if ibs is None:
+        ibs = ibeis.opendb(defaultdb=defaultdb, dbdir=dbdir)
     acfg_name_list = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=list,
                                    default=default_acfgstr_name_list)
     test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=default_test_cfg_name_list)
