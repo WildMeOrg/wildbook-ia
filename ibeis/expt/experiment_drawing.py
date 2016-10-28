@@ -712,7 +712,7 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
 
 def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
                   do_per_annot=True, draw_icon=True,
-                  numranks=5, kind='cmc', cdfzoom=True):
+                  numranks=5, kind='cmc', cdfzoom=False):
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
@@ -818,9 +818,9 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     cfgx2_cumhist_short = cfgx2_cumhist_percent[:, 0:maxpos]
     edges_short = edges[0:min(len(edges), numranks + 1)]
 
-    if cdfzoom is None:
-        cdfzoom = ut.get_argflag('--cdfzoom')
-    pnum_ = pt.make_pnum_nextgen(nRows=cdfzoom + 1, nCols=1)
+    # twoplots = not ut.get_argflag('--cdfzoom')
+    twoplots = not cdfzoom
+    pnum_ = pt.make_pnum_nextgen(nRows=twoplots + 1, nCols=1)
 
     fnum = pt.ensure_fnum(None)
     #target_label = '% groundtrue matches ≤ rank'
@@ -862,15 +862,15 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         legend_alpha=.92,
         #legendsize=12,
         xmax=numranks + 1 - xpad,
-        use_legend=not cdfzoom,
+        use_legend=not twoplots,
         pnum=pnum_(), **cumhistkw)
 
-    if cdfzoom:
+    if twoplots:
         numranks2 = len(cfgx2_cumhist_percent.T)
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
             cfgx2_cumhist_percent, edges=edges, label_list=label_list,
-            num_xticks=numranks2, use_legend=cdfzoom, pnum=pnum_(),
+            num_xticks=numranks2, use_legend=twoplots, pnum=pnum_(),
             xmax=numranks2 + 1 - xpad,
             **cumhistkw)
         ax2 = pt.gca()
