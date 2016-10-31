@@ -432,7 +432,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         r_next = hl_next
         _add_button('Mark: Match', self.mark_match, r_next())
         _add_button('Mark: Match', self.mark_match, r_next())
-        _add_button('Mark: Non-Match', self.mark_nonmatch, r_next())
+        _add_button('Mark: Non-Match', self.mark_nomatch, r_next())
         _add_button('Mark: Not-Comp', self.mark_notcomp, r_next())
 
         r_next = hr_next
@@ -510,7 +510,7 @@ class AnnotGraphInteraction(AbstractInteraction):
         self.infr.initialize_graph()
         self.show_page()
 
-    def mark_nonmatch(self, event):
+    def mark_nomatch(self, event):
         print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):

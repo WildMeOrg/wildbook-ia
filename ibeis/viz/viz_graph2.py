@@ -10,15 +10,15 @@ import utool as ut
 import vtool as vt
 import numpy as np
 import networkx as nx
-import itertools
+import itertools as it
 from ibeis.algo.hots import graph_iden
 import guitool as gt
 import plottool as pt
 from plottool import abstract_interaction
 from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__ import QtCore, QtWidgets  # NOQA
+from guitool.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
 from plottool import interact_helpers as ih
-from matplotlib.backend_bases import MouseEvent
+from matplotlib.backend_bases import MouseEvent, KeyEvent, PickEvent
 
 from guitool import __PYQT__
 if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
@@ -47,28 +47,35 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 
 class MatplotlibWidget(gt.GuitoolWidget):
     click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
+    key_press_signal = QtCore.pyqtSignal(KeyEvent)
+    pick_event_signal = QtCore.pyqtSignal(PickEvent)
 
     def initialize(self):
         from plottool.interactions import zoom_factory, pan_factory
         self.fig = pt.plt.figure()
         self.fig._no_raise_plottool = True
+        # Add a figure canvas widget to this widget
         self.canvas = FigureCanvas(self.fig)
+        # Workaround key_press bug
+        # References: https://github.com/matplotlib/matplotlib/issues/707
+        self.canvas.setFocusPolicy(Qt.ClickFocus)
 
         self.ax = self.fig.add_subplot(1, 1, 1)
         self.addWidget(self.canvas)
 
         self.pan_events = pan_factory(self.ax)
         self.zoon_events = zoom_factory(self.ax)
-        ih.connect_callback(self.fig, 'button_press_event', self.on_click)
+        self.fig.canvas.mpl_connect('button_press_event', self._emit_button_press)
+        self.fig.canvas.mpl_connect('key_press_event', self.key_press_signal.emit)
+        self.fig.canvas.mpl_connect('pick_event', self.pick_event_signal.emit)
 
-        self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
+        # self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
         self.setMinimumHeight(20)
         self.setMinimumWidth(20)
 
-    def on_click(self, event):
+    def _emit_button_press(self, event):
         if ih.clicked_inside_axis(event):
-            ax = event.inaxes
-            self.click_inside_signal.emit(event, ax)
+            self.click_inside_signal.emit(event, event.inaxes)
 
 
 class DevGraphWidget(gt.GuitoolWidget):
@@ -99,7 +106,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
 
         bbar1.addNewButton('Mark: Match', pressed=graph_widget.mark_match)
-        bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_nonmatch)
+        bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_nomatch)
         bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_notcomp)
 
         bbar2.addNewButton('Deselect', pressed=graph_widget.deselect)
@@ -117,10 +124,12 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.use_image_cb = bbar2.addNewCheckBox(
             'Show Img', changed=refresh_via_cb, checked=use_image)
         graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
-            'Pin Positions', changed=graph_widget.set_pin_state, checked=False)
+            'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
 
         # Connect signals and slots
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
+        graph_widget.mpl_wgt.key_press_signal.connect(graph_widget.on_key_press)
+        graph_widget.mpl_wgt.pick_event_signal.connect(graph_widget.on_pick)
 
     def on_state_update(graph_widget):
         if graph_widget.mpl_wgt is None or graph_widget.mpl_wgt.visibleRegion().isEmpty():
@@ -132,7 +141,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def draw_graph(graph_widget):
         graph_widget.mpl_needs_update = False
-        print('[graph] Start draw page')
+        # print('[graph] Start draw page')
         graph_widget.mpl_wgt.ax.cla()
 
         graph_widget.infr.update_visual_attrs(
@@ -161,7 +170,43 @@ class DevGraphWidget(gt.GuitoolWidget):
         # fig.canvas.blit(ax.bbox)
         graph_widget.mpl_wgt.fig.subplots_adjust(left=.02, top=.98, bottom=.02,
                                                  right=.85)
-        print('[graph] End draw page')
+        # print('[graph] End draw page')
+
+    def on_key_press(graph_widget, event):
+        # called by matplotlib events
+        if event.key.upper() == 'T':
+            graph_widget.mark_match()
+        if event.key.upper() == 'F':
+            graph_widget.mark_nomatch()
+        if event.key.upper() == 'N':
+            graph_widget.mark_notcomp()
+        if event.key.upper() == 'D':
+            graph_widget.deselect()
+
+    def on_pick(self, event):
+        artist = event.artist
+        plotdat = pt.get_plotdat_dict(artist)
+        infr = self.self_parent.infr
+        if plotdat:
+            if 'node' in plotdat:
+                if False:
+                    all_node_data = ut.sort_dict(plotdat['node_data'].copy())
+                    visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
+                    node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
+                    print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
+                    print('node_data: ' + ut.repr2(node_data, nl=1))
+                    print('node: ' + ut.repr2(plotdat['node']))
+            elif 'edge' in plotdat:
+                all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
+                visual_edge_data = ut.dict_subset(all_edge_data, infr.visual_edge_attrs, None)
+                edge_data = ut.delete_dict_keys(all_edge_data, infr.visual_edge_attrs)
+                print('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1))
+                print('edge_data: ' + ut.repr2(edge_data, nl=1))
+                print('edge: ' + ut.repr2(plotdat['edge']))
+            else:
+                print('unknown artist ' + ut.repr2(plotdat))
+                print('artist = %r' % (artist,))
+                print('event = %r' % (event,))
 
     def on_click_inside(graph_widget, event, ax):
         pos = graph_widget.plotinfo['node']['pos']
@@ -233,36 +278,22 @@ class DevGraphWidget(gt.GuitoolWidget):
         else:
             ut.nx_delete_node_attr(graph_widget.infr.graph, 'pin')
 
-    def mark_nonmatch(graph_widget):
-        print('BREAK LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
-        for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'nomatch', apply=True)
-        # TODO: just use signal / slot
-        #graph_widget.infr.apply_feedback_edges()
-        graph_widget.self_parent.update_state(disable_global_update=True)
-        #graph_widget.on_state_update()
+    def mark_graph_state(graph_widget, state):
+        print('%s graph_widget.selected_aids = %r' % (state.upper(), graph_widget.selected_aids,))
+        graph_widget.self_parent.mark_pairs(it.combinations(graph_widget.selected_aids, 2), state)
+
+    def mark_nomatch(graph_widget):
+        graph_widget.mark_graph_state('nomatch')
 
     def mark_match(graph_widget):
-        print('MAKE LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
-        for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'match', apply=True)
-        # TODO: just use signal / slot
-        graph_widget.self_parent.update_state(disable_global_update=True)
-        #graph_widget.infr.apply_feedback_edges()
-        #graph_widget.on_state_update()
+        graph_widget.mark_graph_state('match')
 
     def mark_notcomp(graph_widget):
-        print('MAKE LINK graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
-        for aid1, aid2 in itertools.combinations(graph_widget.selected_aids, 2):
-            graph_widget.infr.add_feedback(aid1, aid2, 'notcomp', apply=True)
-        # TODO: just use signal / slot
-        graph_widget.self_parent.update_state(disable_global_update=True)
-        #graph_widget.infr.apply_feedback_edges()
-        #graph_widget.on_state_update()
+        graph_widget.mark_graph_state('notcomp')
 
     def show_selected(graph_widget):
         # TODO: move to mpl widget
-        print('[graph] show_selected')
+        print('[graph_widget] show_selected')
         from ibeis.viz import viz_chip
         fnum = pt.ensure_fnum(10)
         print('fnum = %r' % (fnum,))
@@ -300,10 +331,12 @@ class DevGraphWidget(gt.GuitoolWidget):
         frame.set_edgecolor(color)
 
     def deselect(graph_widget):
-        print('graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
+        print('[graph_widget] deselect')
+        # print('graph_widget.selected_aids = %r' % (graph_widget.selected_aids,))
         graph_widget.toggle_selected_aid(graph_widget.selected_aids[:])
 
     def toggle_selected_aid(graph_widget, aids):
+        print('[graph_widget] toggle_selected_aid')
         for aid in ut.ensure_iterable(aids):
             # TODO: move to mpl widget
             if aid in graph_widget.selected_aids:
@@ -364,6 +397,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.menuFile.newAction(triggered=self.embed)
 
         graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
+        self.graph_tables_widget = graph_tables_widget
 
         self.status_bar = self.addNewWidget(
             orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
@@ -394,17 +428,18 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.node_tab.addWidget(self.node_api_widget)
         self.edge_tab.addWidget(self.edge_api_widget)
 
-        if self.init_mode in ['split', 'rereview', 'review']:
+        _show_graph = self.init_mode in ['split', 'rereview', 'review']
+        if _show_graph:
             # TODO: separate graph view into its own class
             self.graph_tab = graph_tables_widget.addNewTab('Graph')
             # TODO: make this its own proper widget
             self.graph_widget = DevGraphWidget(parent=self, self_parent=self,
                                                use_image=use_image)
             self.graph_tab.addWidget(self.graph_widget)
+            # self.graph_widget.connect_kepress_to_slot
         else:
             self.graph_widget = None
             self.graph_tab = None
-
         #self.signal_state_update.connect(self.on_state_update)
 
     def preset_unfiltered_config(self):
@@ -438,6 +473,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             raise ValueError('Unknown init_mode=%r' % (self.init_mode,))
         #self.apply_scores()
         self.update_state(structure_changed=True)
+
+        if ut.get_argflag('--graph'):
+            self.graph_tables_widget.setCurrentIndex(2)
 
     def update_state(self, structure_changed=False, disable_global_update=False):
         print('[graph] update_state mode=%s' % (self.init_mode,))
@@ -515,6 +553,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
             infr.initialize_graph()
+            if self.graph_widget is not None:
+                self.graph_widget.set_pin_state(True)
             infr.apply_feedback_edges()
             infr.apply_match_edges()
             infr.apply_match_scores()
@@ -537,6 +577,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
             infr.initialize_graph()
+            if self.graph_widget is not None:
+                self.graph_widget.set_pin_state(True)
             #ctx.set_progress(1, 3)
             infr.reset_name_labels()
             infr.reset_feedback()
@@ -555,6 +597,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Initializing', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
             infr.initialize_graph()
+            if self.graph_widget is not None:
+                self.graph_widget.set_pin_state(True)
             ctx.set_progress(1, 3)
             infr.remove_feedback()
             ctx.set_progress(2, 3)
@@ -640,24 +684,28 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             #self.graph_widget.selected_aids = [aid1, aid2]
             self.graph_widget.show_selected()
 
+    def mark_pairs(self, pairs, state):
+        for aid1, aid2 in pairs:
+            self.infr.add_feedback(aid1, aid2, state, apply=True)
+        self.update_state(disable_global_update=True)
+
     def get_edge_options(self):
         view = self.edge_api_widget.view
         selected_qtindex_list = view.selectedRows()
 
-        def _mark_pairs(state):
+        def _pairs(state):
             #for aid1, aid2 in aid_pair_gen():
             for qtindex in selected_qtindex_list:
                 model = qtindex.model()
                 aid1  = model.get_header_data('aid1', qtindex)
                 aid2  = model.get_header_data('aid2', qtindex)
-                self.infr.add_feedback(aid1, aid2, state, apply=True)
-            self.update_state(disable_global_update=True)
+                yield aid1, aid2
 
         options = [
-            ('Mark &True', lambda: _mark_pairs('match')),
-            ('Mark &False', lambda: _mark_pairs('nomatch')),
-            ('Mark &Non-Comparable', lambda: _mark_pairs('notcomp')),
-            ('&Unreview', lambda: _mark_pairs('unreviewed')),
+            ('Mark &True', lambda: self.mark_pairs(_pairs(), 'match')),
+            ('Mark &False', lambda: self.mark_pairs(_pairs(), 'nomatch')),
+            ('Mark &Not-Comparable', lambda: self.mark_pairs(_pairs(), 'notcomp')),
+            ('&Unreview', lambda: self.mark_pairs(_pairs(), 'unreviewed')),
         ]
 
         if len(selected_qtindex_list) == 1:
@@ -1214,6 +1262,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.viz.viz_graph2
         python -m ibeis.viz.viz_graph2 --allexamples
+        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

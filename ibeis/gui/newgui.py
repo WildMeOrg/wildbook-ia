@@ -834,15 +834,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             ibswgt._tables_tab_widget.setCurrentIndex(index)
 
     def select_imageset_tab(ibswgt, imgsetid):
-        if False:
-            prefix = ut.get_caller_name(range(0, 10))
-            prefix = prefix.replace('[wrp_noexectb]', 'w')
-            prefix = prefix.replace('[slot_wrapper]', 's')
-            prefix = prefix.replace('[X]', 'x')
-        else:
-            prefix = ''
         if VERBOSE_GUI:
-            print(prefix + '[newgui] select_imageset_tab imgsetid=%r' % (imgsetid,))
+            print('[newgui] select_imageset_tab imgsetid=%r' % (imgsetid,))
         if isinstance(imgsetid, six.string_types):
             # Hack
             imagesettext = imgsetid

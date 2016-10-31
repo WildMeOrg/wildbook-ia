@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
+import warnings
 import utool as ut
 import vtool as vt  # NOQA
 import six
@@ -126,8 +127,10 @@ class _AnnotInfrViz(object):
     @property
     def visual_edge_attrs_appearance(infr):
         """ attrs that pertain to edge color and style """
+        # picker doesnt really belong here
         return ['alpha', 'color', 'implicit', 'label', 'linestyle', 'lw',
-                'pos', 'stroke', 'capstyle', 'hatch', 'style', 'sketch']
+                'pos', 'stroke', 'capstyle', 'hatch', 'style', 'sketch',
+                'shadow', 'picker']
 
     @property
     def visual_edge_attrs_space(infr):
@@ -173,9 +176,12 @@ class _AnnotInfrViz(object):
         nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # Color nodes by name label
-        ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.8)
+        # ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.8)
+        ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.4)
 
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
+
+        dark_background = infr.graph.graph.get('dark_background', None)
 
         SPLIT_MODE = mode == 'split'
         if not SPLIT_MODE:
@@ -202,7 +208,11 @@ class _AnnotInfrViz(object):
             edge_to_stroke = {
                 # edge: {'linewidth': 3, 'foreground': truth_colors[state]}
                 # edge: {'linewidth': 3, 'foreground': pt.WHITE}
-                edge: {'linewidth': 3, 'foreground': pt.BLACK}
+                edge: (
+                    {'linewidth': 3, 'foreground': pt.WHITE}
+                    if dark_background else
+                    {'linewidth': 3, 'foreground': pt.BLACK}
+                )
                 for edge, state in reviewed_states.items()
             }
             nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
@@ -240,31 +250,42 @@ class _AnnotInfrViz(object):
             nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
 
         # Mark edges that might be splits with strokes
-        edge_to_split = nx.get_edge_attributes(infr.graph, 'splitcase')
+        edge_to_split = nx.get_edge_attributes(infr.graph, 'maybe_split')
         edge_to_stroke = {
             edge: {'linewidth': 5, 'foreground': pt.ORANGE}
             for edge, split in edge_to_split.items() if split
         }
         nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
 
+        alpha_low = .5
+        alpha_med = .9
+        alpha_high = 1.0
+
         # Are cuts visible or invisible?
         edge_to_cut = nx.get_edge_attributes(graph, 'is_cut')
         cut_edges = [edge for edge, cut in edge_to_cut.items() if cut]
         nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
         nx.set_edge_attributes(graph, 'linestyle', _dz(cut_edges, ['dashed']))
+        nx.set_edge_attributes(graph, 'alpha', _dz(cut_edges, [alpha_med]))
+
+        edge_to_infered_state = nx.get_edge_attributes(graph, 'infered_state')
+        uninfered_edges = [edge for edge, state in edge_to_infered_state.items()
+                           if state not in ['same', 'diff']]
+        nx.set_edge_attributes(graph, 'implicit', _dz(uninfered_edges, [True]))
 
         # Non-matching edges should not impose a constraint on the graph layout
-        nonmatch_edges = {edge: state for edge, state in reviewed_states.items()
+        nomatch_edges = {edge: state for edge, state in reviewed_states.items()
                           if state == 'nomatch'}
-        nx.set_edge_attributes(graph, 'implicit', _dz(nonmatch_edges, [True]))
+        nx.set_edge_attributes(graph, 'implicit', _dz(nomatch_edges, [True]))
+        nx.set_edge_attributes(graph, 'alpha', _dz(nomatch_edges, [alpha_med]))
 
         edges = list(graph.edges())
         reviewed_edges = list(reviewed_states.keys())
-        nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges, [1.0]))
+        nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges, [alpha_high]))
 
-        edge_to_infered_review = nx.get_edge_attributes(graph, 'infered_review')
-        infered_edges = [edge for edge, state in edge_to_infered_review.items()
-                         if state in ['match', 'nomatch']]
+        edge_to_infered_state = nx.get_edge_attributes(graph, 'infered_state')
+        infered_edges = [edge for edge, state in edge_to_infered_state.items()
+                         if state in ['same', 'diff']]
         # infered_edges = graph.edges()
         # nx.set_edge_attributes(graph, 'shadow', _dz(infered_edges, [True]))
         # nx.set_edge_attributes(graph, 'sketch', _dz(infered_edges, [True]))
@@ -282,6 +303,7 @@ class _AnnotInfrViz(object):
             # only reviewed edges contribute
             unreviewed_edges = ut.setdiff(edges, reviewed_edges)
             nx.set_edge_attributes(graph, 'implicit', _dz(unreviewed_edges, [True]))
+            nx.set_edge_attributes(graph, 'alpha', _dz(unreviewed_edges, [alpha_med]))
             nx.set_edge_attributes(graph, 'style', _dz(unreviewed_edges, ['invis']))
 
         if show_cuts or show_reviewed_cuts:
@@ -294,11 +316,31 @@ class _AnnotInfrViz(object):
         # Make dummy edges more transparent
         edge_to_isdummy = nx.get_edge_attributes(graph, '_dummy_edge')
         dummy_edges = [edge for edge, flag in edge_to_isdummy.items() if flag]
-        nx.set_edge_attributes(graph, 'alpha', _dz(dummy_edges, [.5]))
+        nx.set_edge_attributes(graph, 'alpha', _dz(dummy_edges, [alpha_low]))
+
+        # Increase visibility of nodes with the most recently changed timestamp
+        edge_to_stamp = nx.get_edge_attributes(graph, 'review_timestamp')
+        if edge_to_stamp:
+            timestamps = list(edge_to_stamp.values())
+            recent_idxs = ut.where(ut.equal([max(timestamps)], timestamps))
+            recent_edges = ut.take(list(edge_to_stamp.keys()), recent_idxs)
+            # TODO: add photoshop-like parameters like
+            # spread and size. offset is the same as angle and distance.
+            nx.set_edge_attributes(graph, 'shadow', _dz(recent_edges, [{
+                'rho': .3,
+                'alpha': .3,
+                'shadow_color': 'w' if dark_background else 'k',
+                # 'offset': (2, -2),
+                'offset': (0, 0),
+                'scale': 2.0,
+                # 'offset': (4, -4)
+            }]))
 
         nodes = list(graph.nodes())
         nx.set_node_attributes(graph, 'zorder', _dz(nodes, [10]))
         nx.set_edge_attributes(graph, 'zorder', _dz(edges, [0]))
+
+        nx.set_edge_attributes(graph, 'picker', _dz(edges, [10]))
 
         # update the positioning layout
         layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
@@ -307,7 +349,6 @@ class _AnnotInfrViz(object):
     def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False,
                    mode=None, with_colorbar=False, **kwargs):
         kwargs['fontsize'] = kwargs.get('fontsize', 8)
-        import warnings
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             infr.update_visual_attrs(only_reviewed=only_reviewed,
@@ -332,10 +373,13 @@ class _AnnotInfrViz(object):
             if infr.thresh is not None:
                 xy = (1, infr.thresh)
                 xytext = (2.5, .3 if infr.thresh < .5 else .7)
-                ta = cb.ax.annotate('threshold', xy=xy, xytext=xytext,
-                                    arrowprops=dict(
-                                        alpha=.5, fc="0.6",
-                                        connectionstyle="angle3,angleA=90,angleB=0"),)
-                ta  # NOQA
+                cb.ax.annotate('threshold', xy=xy, xytext=xytext,
+                               arrowprops=dict(
+                                   alpha=.5, fc="0.6",
+                                   connectionstyle="angle3,angleA=90,angleB=0"),)
+
+        # infr.graph
+        if infr.graph.graph.get('dark_background', None):
+            pt.dark_background(force=True)
 
     show = show_graph
