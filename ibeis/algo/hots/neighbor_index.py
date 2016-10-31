@@ -774,9 +774,9 @@ class NeighborIndex(object):
             >>> (qfx2_nnidx, qfx2_dist) = nnindexer.knn(qfx2_vec, num_neighbors)
             >>> qfx2_aid = nnindexer.get_nn_aids(qfx2_nnidx)
             >>> assert qfx2_aid.shape[1] == num_neighbors
-            >>> result = ('qfx2_aid.shape = %r' % (qfx2_aid.shape,))
-            >>> print(result)
-            qfx2_aid.shape = (1258, 4)
+            >>> print('qfx2_aid.shape = %r' % (qfx2_aid.shape,))
+            >>> assert qfx2_aid.shape[1] == 4
+            >>> ut.assert_inbounds(qfx2_aid.shape[0], 1200, 1300)
         """
         try:
             qfx2_ax = nnindexer.idx2_ax.take(qfx2_nnidx)
