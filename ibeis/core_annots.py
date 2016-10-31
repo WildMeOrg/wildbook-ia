@@ -1201,7 +1201,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> #ibs, aid_list = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
         >>> ibs, aid_list = ibeis.testdata_aids('testdb2', 'default:')
         >>> groups = ut.group_items(aid_list, ibs.get_annot_occurrence_text(aid_list))
-        >>> _, aids = ut.sort_dict(groups, 'vals', key=len)[-1]
+        >>> aids = list(ut.sort_dict(groups, 'vals', key=len).values())[-1]
         >>> aid_list = aids[0:4]
         >>> depc = ibs.depc_annot
         >>> request = depc.new_request('vsone', aid_list, aid_list, {'resize_dim': 'width', 'dim_size': 450})

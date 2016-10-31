@@ -804,7 +804,7 @@ def temp_multidb_cmc():
     import ibeis
     ibs1, testres1 = ibeis.testdata_expts(
         dbdir=ut.truepath('~/lev/media/hdd/golden/GGR-IBEIS'),
-        t='Ell:K=1',
+        t='Ell:K=4',
         # t='best:prescore_method=nsum',
         a='timectrl'
         # a='timectrl:species=zebra_grevys,qmin_pername=3,dsample_per_name=2'
