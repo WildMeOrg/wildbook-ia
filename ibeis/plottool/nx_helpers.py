@@ -135,8 +135,8 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         ax.autoscale_view(True, True, True)
     #axes.facecolor
 
-    node_size = layout_info['node']['size']
-    node_pos = layout_info['node']['pos']
+    node_size = layout_info['node'].get('size')
+    node_pos = layout_info['node'].get('pos')
     if node_size is not None:
         size_arr = np.array(ut.take(node_size, graph.nodes()))
         half_size_arr = size_arr / 2.
@@ -864,9 +864,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     #print('font_prop = %r' % (font_prop,))
     #print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
 
-    # print('layout_info = %r' % (layout_info,))
-    node_pos = layout_info['node']['pos']
-    node_size = layout_info['node']['size']
+    node_pos = layout_info['node'].get('pos', {})
+    node_size = layout_info['node'].get('size', {})
     splines = layout_info['graph'].get('splines', 'line')
     # edge_startpoints = layout_info['edge']['start_pt']
 
@@ -1134,46 +1133,13 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             linestyle = data.get('linestyle', linestyle)
             hatch = data.get('hatch', '')
 
+            # keep track of the linewidth as path effects (like stroke) are
+            # added
+            full_lw = lw
+
             #effects = data.get('stroke', None)
             from matplotlib import patheffects
             path_effects = []
-
-            #effects_css = data.get('path_effects', None)
-            #if effects_css is not None:
-            #    print('effects_css = %r' % (effects_css,))
-            #    # Read data similar to Qt Style Sheets / CSS
-            #    from tinycss.css21 import CSS21Parser
-            #    css = effects_css
-            #    #css = 'stroke{ linewith: 3; foreground: r; } shadow{}'
-            #    stylesheet = CSS21Parser().parse_stylesheet(css)
-            #    if stylesheet.errors:
-            #        print('[pt.nx] css errors')
-            #        print(stylesheet.errors)
-            #    path_effects = []
-            #    for rule in stylesheet.rules:
-            #        if rule.selector.as_css() == 'stroke':
-            #            selector = patheffects.withStroke
-            #        elif rule.selector.as_css() == 'shadow':
-            #            selector = patheffects.withSimplePatchShadow
-            #        effectkw = {}
-            #        for decl in rule.declarations:
-            #            if len(decl.value) != 1:
-            #                raise AssertionError(
-            #                    'I dont know css %r' % (decl,))
-            #            strval = decl.value[0].as_css()
-            #            key = decl.name
-            #            val = ut.smart_cast2(strval)
-            #            effectkw[key] = val
-            #        effect = selector(**effectkw)
-            #        path_effects += [effect]
-
-            ## http://matplotlib.org/1.2.1/examples/api/clippath_demo.html
-            if data.get('shadow', None):
-                shadowkw = data.get('shadow', None)
-                if shadowkw is True:
-                    shadowkw = dict(offset=(2, -2), shadow_color='k', alpha=.3,
-                                    rho=.3)
-                path_effects += [patheffects.SimpleLineShadow(**shadowkw)]
 
             sketch_params = data.get('sketch')
             if sketch_params is not None:
@@ -1197,8 +1163,21 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     assert False
                 if strokekw is not None:
                     # Hack to increase lw
-                    strokekw['linewidth'] = lw + strokekw.get('linewidth', 3)
+                    full_lw = lw + strokekw.get('linewidth', 3)
+                    strokekw['linewidth'] = full_lw
                     path_effects += [patheffects.withStroke(**strokekw)]
+
+            ## http://matplotlib.org/1.2.1/examples/api/clippath_demo.html
+            if data.get('shadow', None) is not None:
+                shadowkw = data['shadow']
+                if shadowkw is not False:
+                    if shadowkw is True:
+                        shadowkw = {}
+                    scale = shadowkw.pop('scale', 1.0)
+                    shadowkw_ = dict(offset=(2, -2), shadow_color='k',
+                                     alpha=.3, rho=.3, linewidth=full_lw * scale)
+                    shadowkw_.update(shadowkw)
+                    path_effects += [patheffects.SimpleLineShadow(**shadowkw_)]
 
             #for vert, code in path.iter_segments():
             #    print('code = %r' % (code,))
