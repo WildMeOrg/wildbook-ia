@@ -41,8 +41,9 @@ def get_support_data(qreq_, daid_list):
         >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
         >>> result = ('depth_profile = %r' % (ut.depth_profile(tup),))
         >>> print(result)
-        depth_profile = [[(34, 128), (31, 128)], [34, 31], [34, 31]]
+        depth_profile = [[(35, 128), (24, 128)], [35, 24], [35, 24]]
 
+        depth_profile = [[(34, 128), (31, 128)], [34, 31], [34, 31]]
         depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
         depth_profile = [[(13, 128), (104, 128)], [13, 104], [13, 104]]
     """
