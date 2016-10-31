@@ -60,12 +60,15 @@ class APITableView(API_VIEW_BASE):
 
         CommandLine:
             python -m guitool.api_item_widget --test-simple_api_item_widget --show
+            python -m guitool.api_table_view --test-_init_header_behavior --show
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from guitool.api_table_view import *  # NOQA
+            >>> import guitool
+            >>> guitool.ensure_qapp()
             >>> view = APITableView()
-
+            >>> view._init_header_behavior()
         """
         # Row Headers
         verticalHeader = view.verticalHeader()
@@ -119,6 +122,20 @@ class APITableView(API_VIEW_BASE):
         api_item_view.setModel(view, model)
 
     def keyPressEvent(view, event):
+        """
+        CommandLine:
+            python -m guitool.api_item_widget --test-simple_api_item_widget --show
+            python -m guitool.api_table_view --test-keyPressEvent --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from guitool.api_table_view import *  # NOQA
+            >>> import guitool
+            >>> guitool.ensure_qapp()
+            >>> view = APITableView()
+            >>> view._init_header_behavior()
+        """
+        # TODO: can this be in api_item_view?
         assert isinstance(event, QtGui.QKeyEvent)
         API_VIEW_BASE.keyPressEvent(view, event)
         if event.matches(QtGui.QKeySequence.Copy):
