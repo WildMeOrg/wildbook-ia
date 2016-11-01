@@ -144,7 +144,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         fpr (float): target false positive rate (default None)
         gridsize=1024,
         adjust=8,
-        monotonize=False, if True ensures infered probability curves are monotonic
+        monotonize=False, if True ensures inferred probability curves are monotonic
         clip_factor=None,
         reverse (bool): True if lower scores are better, False if higher scores
             are better (default=None)
