@@ -399,12 +399,12 @@ class _TableDebugHelper(object):
         """
         print('----')
         print(table)
-        # Print the other infered attrs
+        # Print the other inferred attrs
         print('table.parent_col_attrs = %s' % (
                 ut.repr3(table.parent_col_attrs, nl=2),))
         print('table.data_col_attrs = %s' % (
                   ut.repr3(table.data_col_attrs, nl=2),))
-        # Print the infered allcol attrs
+        # Print the inferred allcol attrs
         ut.cprint('table.internal_col_attrs = %s' %
                   (ut.repr3(table.internal_col_attrs, nl=1,
                             sorted_=False)), 'python')
