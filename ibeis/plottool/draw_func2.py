@@ -1643,8 +1643,8 @@ def parse_fontkw(**kwargs):
                                                  fallback_to_default=False)
             font_prop = FontProperties(fname=fontpath, weight=weight, size=size)
         else:
-            familty = kwargs.get('fontfamilty', 'monospace')
-            font_prop = FontProperties(family=familty, weight=weight, size=size)
+            family = kwargs.get('fontfamilty', 'monospace')
+            font_prop = FontProperties(family=family, weight=weight, size=size)
     else:
         font_prop = kwargs['fontproperties']
     return font_prop

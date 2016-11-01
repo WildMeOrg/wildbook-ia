@@ -369,14 +369,11 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
     layout_info = {}
 
     if layout == 'custom':
-        edge_keys = list(reduce(set.union, [set(edge[-1].keys())
-                                            for edge in graph.edges(data=True)], set([])))
-        node_keys = list(reduce(set.union, [set(node[-1].keys())
-                                            for node in graph.nodes(data=True)], set([])))
+        edge_keys = list(reduce(set.union, [
+            set(edge[-1].keys()) for edge in graph.edges(data=True)], set([])))
+        node_keys = list(reduce(set.union, [
+            set(node[-1].keys()) for node in graph.nodes(data=True)], set([])))
         graph_keys = list(graph.graph.keys())
-        #graph_keys = [
-        #    'splines',
-        #]
         layout_info = {
             'graph': {k: graph.graph.get(k) for k in graph_keys},
             'node': {k: nx.get_node_attributes(graph, k) for k in node_keys},
@@ -428,7 +425,8 @@ def make_agraph(graph_):
     is_large = num_nodes > LARGE_GRAPH
 
     if is_large:
-        print('Making agraph for large graph %d nodes. May take time' % (num_nodes))
+        print('Making agraph for large graph %d nodes. '
+              'May take time' % (num_nodes))
 
     ut.nx_ensure_agraph_color(graph_)
     # Reduce size to be in inches not pixels
@@ -487,41 +485,28 @@ def make_agraph(graph_):
     for node in graph_.nodes():
         anode = pygraphviz.Node(agraph, node)
         # TODO: Generally fix node positions
-        # force pinning of node points if pin attribute is set
-        OLD = False
-        if OLD:
+        ptstr_ = anode.attr['pos']
+        if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
+            ptstr = ptstr_.strip('[]').strip(' ').strip('()')
+            ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
+            pt_list = list(map(float, ptstr_list))
+            pt_arr = np.array(pt_list) / 72.0
+            new_ptstr_list = list(map(str, pt_arr))
+            new_ptstr_ = ','.join(new_ptstr_list)
+            if anode.attr['pin'] is True:
+                anode.attr['pin'] = 'true'
             if anode.attr['pin'] == 'true':
-                ptstr_ = anode.attr['pos']
-                if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
-                    #print('ptstr_ = %r' % (ptstr_,))
-                    ptstr = ptstr_.strip('[]').strip(' ').strip('()')
-                    #print('ptstr = %r' % (ptstr,))
-                    ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
-                    #print('ptstr_list = %r' % (ptstr_list,))
-                    pt_list = list(map(float, ptstr_list))
-                    #print('pt_list = %r' % (pt_list,))
-                    pt_arr = np.array(pt_list) / 72.0
-                    #print('pt_arr = %r' % (pt_arr,))
-                    new_ptstr_list = list(map(str, pt_arr))
-                    new_ptstr = ','.join(new_ptstr_list) + '!'
-                    #print('new_ptstr = %r' % (new_ptstr,))
-                    anode.attr['pos'] = new_ptstr
-        else:
-            ptstr_ = anode.attr['pos']
-            if (ptstr_ is not None and len(ptstr_) > 0 and not ptstr_.endswith('!')):
-                ptstr = ptstr_.strip('[]').strip(' ').strip('()')
-                ptstr_list = [x.rstrip(',') for x in re.split(r'\s+', ptstr)]
-                pt_list = list(map(float, ptstr_list))
-                pt_arr = np.array(pt_list) / 72.0
-                new_ptstr_list = list(map(str, pt_arr))
-                new_ptstr_ = ','.join(new_ptstr_list)
-                if anode.attr['pin'] is True:
-                    anode.attr['pin'] = 'true'
-                if anode.attr['pin'] == 'true':
-                    new_ptstr = new_ptstr_ + '!'
-                else:
-                    new_ptstr = new_ptstr_
-                anode.attr['pos'] = new_ptstr
+                new_ptstr = new_ptstr_ + '!'
+            else:
+                new_ptstr = new_ptstr_
+            anode.attr['pos'] = new_ptstr
+
+    if graph_.graph.get('ignore_labels', False):
+        for node in graph_.nodes():
+            anode = pygraphviz.Node(agraph, node)
+            if 'label' in anode.attr:
+                del anode.attr['label']
+
     return agraph
 
 
@@ -591,7 +576,8 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         print('BEFORE LAYOUT\n' + str(agraph))
 
     if is_large:
-        print('Preforming agraph layout on graph with %d nodes. May take time' % (num_nodes))
+        print('Preforming agraph layout on graph with %d nodes.'
+              'May take time' % (num_nodes))
 
     #import warnings
     #warnings.filterwarnings("error")
@@ -680,12 +666,14 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
             args = ' '.join(argparts)
 
             if is_large:
-                print('[nx_agraph_layout] About to draw implicit layout for large graph.')
+                print('[nx_agraph_layout] About to draw implicit layout '
+                      'for large graph.')
 
             agraph.layout(prog='neato', args='-n ' + args)
 
             if is_large:
-                print('[nx_agraph_layout] done with implicit layout for large graph.')
+                print('[nx_agraph_layout] done with implicit layout for '
+                      'large graph.')
 
             if False:
                 agraph.draw(ut.truepath('~/implicit_test_graphviz_draw.png'))
@@ -860,6 +848,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
     text_pseudo_objects = []
 
+    # TODO: get font properties from nodes as well
     font_prop = pt.parse_fontkw(**kwargs)
     #print('font_prop = %r' % (font_prop,))
     #print('font_prop.get_name() = %r' % (font_prop.get_name() ,))
@@ -903,7 +892,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
         node_shape = nattrs.get('shape', 'ellipse')
         if node_shape == 'circle':
             # divide by 2 seems to work for agraph
-            radius = min(_get_node_size(graph, node, node_size)) / 2.0
+            radius = max(_get_node_size(graph, node, node_size)) / 2.0
             patch = mpl.patches.Circle(xy, radius=radius, **patch_kw)
         elif node_shape == 'ellipse':
             # divide by 2 seems to work for agraph
@@ -1128,7 +1117,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
             if not as_directed and end_pt is not None:
                 pass
 
-            lw = data.get('lw', lw)
+            lw = data.get('linewidth', data.get('lw', lw))
             linestyle = 'solid'
             linestyle = data.get('linestyle', linestyle)
             hatch = data.get('hatch', '')
@@ -1268,6 +1257,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                             color=labelcolor,
                             va=va, ha=ha, fontproperties=font_prop)
             patch_dict['edge_patch_dict'][edge] = patch
+
             #ax.add_patch(patch)
 
     if verbose:
