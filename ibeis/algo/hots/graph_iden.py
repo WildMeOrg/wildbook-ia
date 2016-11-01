@@ -122,7 +122,10 @@ class _AnnotInfrHelpers(object):
         return flag
 
     def get_edge_data(infr, u, v):
-        return infr.graph.get_edge_data(u, v)
+        data = infr.graph.get_edge_data(u, v)
+        if data is not None:
+            data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
+        return data
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -728,35 +731,37 @@ class _AnnotInfrFeedback(object):
         """
         if review_dict is None:
             if infr.verbose >= 2:
-                print('[infr] _dynamically_apply_feedback (removing edge)')
+                print('[infr] _dynamically_apply_feedback (removing edge=%r)'
+                      % (edge,))
             state = 'unreviewed'
             infr._del_feedback_edges([edge])
-            infr.set_edge_attrs('cut_weight',
-                                infr.get_edge_attrs('normscore', [edge], np.nan))
-            # infr.set_edge_attrs('is_reviewed', {edge: False})
+            infr.set_edge_attrs(
+                'cut_weight', infr.get_edge_attrs('normscore', [edge], np.nan))
         else:
             # Apply the review to the specified edge
             review_stateid = ut.argmax(ut.take(review_dict, infr.prob_keys))
             state = infr.truth_texts[review_stateid]
             if infr.verbose >= 2:
-                print('[infr] _dynamically_apply_feedback (state=%r)' % (state,))
+                print('[infr] _dynamically_apply_feedback edge=%r, state=%r'
+                      % (edge, state,))
             p_same = infr._compute_p_same(review_dict['p_match'],
                                           review_dict['p_notcomp'])
             infr._set_feedback_edges([edge], [state], [p_same], [tags])
-            # TODO: num_reviews should be num consistent reviews
-            num_reviews = infr.get_edge_attrs('num_reviews', [edge], default=0)[edge]
+            # TODO: change num_reviews to num_consistent_reviews
+            num_reviews = infr.get_edge_attrs('num_reviews', [edge],
+                                              default=0)[edge]
             infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
-            # Also dynamically apply weights
             infr.set_edge_attrs('cut_weight', {edge: p_same})
             if state != 'notcomp':
-                ut.nx_delete_edge_attr(infr.graph, 'infered_state', [edge])
-        # Dynamically update names and infered attributes of relevant nodes
+                ut.nx_delete_edge_attr(infr.graph, 'inferred_state', [edge])
+
+        # Dynamically update names and inferred attributes of relevant nodes
         # subgraph, subgraph_cuts = infr._get_influenced_subgraph(edge)
-        print('Relabeling based on edge=%r' % (edge,))
         n1, n2 = edge
         cc1 = infr.get_annot_cc(n1)
         cc2 = infr.get_annot_cc(n2)
         relevant_nodes = cc1.union(cc2)
+        # print('relevant_nodes = %r' % (relevant_nodes,))
         subgraph1 = infr.graph.subgraph(relevant_nodes)
 
         # Change names of nodes
@@ -765,6 +770,16 @@ class _AnnotInfrFeedback(object):
         # Most things we modify will belong to this subgraph
         # HOWEVER, we may also modify edges leaving the subgraph as well
         subgraph2 = infr.graph.subgraph(relevant_nodes)
+
+        # TODO: THIS MUST BE ABLE TO HANDLE OUT OF CC CHANGES
+        extended_nodes = ut.flatten(infr.get_nomatch_ccs(relevant_nodes))
+        extended_nodes += relevant_nodes
+        print('extended_nodes = %r' % (extended_nodes,))
+        subgraph3 = infr.graph.subgraph(extended_nodes)
+
+        infr.apply_review_inference(graph=subgraph3)
+
+        return
 
         if state == 'match':
             cc1 = infr.get_annot_cc(n1)
@@ -776,11 +791,9 @@ class _AnnotInfrFeedback(object):
             ccs = [cc1, cc2]
 
         # Check for consistency
-        # First remove previous split cases and infered states
+        # First remove previous split cases and inferred states
         nx.set_edge_attributes(infr.graph, 'maybe_split',
                                _dz(subgraph2.edges(), [False]))
-        nx.set_edge_attributes(infr.graph, 'infered_state',
-                               _dz(subgraph2.edges(), [None]))
         nx.set_edge_attributes(infr.graph, 'is_cut',
                                _dz(subgraph2.edges(), [False]))
         inconsistent = False
@@ -793,44 +806,172 @@ class _AnnotInfrFeedback(object):
                     cc_inconsistent = True
                     break
             if cc_inconsistent:
-                edge_to_state = nx.get_edge_attributes(_subgraph, 'reviewed_state')
+                edge_to_state = nx.get_edge_attributes(_subgraph,
+                                                       'reviewed_state')
                 # only pass in reviewed edges in the subgraph
-                keep_edges = [e for e, s in edge_to_state.items() if s != 'unreviewed']
+                keep_edges = [e for e, s in edge_to_state.items()
+                              if s != 'unreviewed']
                 split_subgraph = nx.Graph([e + (_subgraph.get_edge_data(*e),)
                                            for e in keep_edges])
                 # _subgraph.remove_edges_from(keep_edges)
                 split_edges = infr._flag_possible_split_edges(split_subgraph)
-                nx.set_edge_attributes(infr.graph, 'maybe_split', _dz(split_edges, [True]))
+                nx.set_edge_attributes(infr.graph, 'maybe_split',
+                                       _dz(split_edges, [True]))
             inconsistent |= cc_inconsistent
 
-        # Update any infered states
+        # First remove all inferences in the subgraph so we can locally
+        # reconstruct them based on the new information
+        if inconsistent:
+            nx.set_edge_attributes(infr.graph, 'inferred_state',
+                                   _dz(subgraph2.edges(), [None]))
+
+        # Update the match edges within each compoment?
+        # If there are two compoments, update the inferred states
+        # between them.
+        if len(ccs) == 2:
+            for u, v in infr.edges_between(*ccs):
+                pass
+
+        # Update any inferred states
         if state == 'match':
             # Infer any unreviewed edge within a compoment as reviewed
             if not inconsistent:
-                infered_state = {}
+                inferred_state = {}
                 for u, v, d in subgraph2.edges(data=True):
                     _state = d.get('reviewed_state', 'unreviewed')
                     if _state in ['unreviewed', 'notcomp']:
-                        infered_state[(u, v)] = 'same'
-                nx.set_edge_attributes(infr.graph, 'infered_state', infered_state)
-            nx.set_edge_attributes(infr.graph, 'is_cut', _dz(subgraph2.edges(), [False]))
+                        inferred_state[(u, v)] = 'same'
+                nx.set_edge_attributes(infr.graph, 'inferred_state',
+                                       inferred_state)
+            # Remove all cut states from a matched compoment
+            nx.set_edge_attributes(infr.graph, 'is_cut',
+                                   _dz(subgraph2.edges(), [False]))
 
         # A -X- B: Grab any other no-match edges out of A and B
         # if any of those compoments connected to those non matching nodes
         # would match either A or B, those edges should be implicitly cut.
         for cc in ccs:
             is_cut = {}
-            infered_state = {}
+            inferred_state = {}
             nomatch_nodes = set(ut.flatten(infr.get_nomatch_ccs(cc)))
             for u, v in infr.edges_between(cc, nomatch_nodes):
                 is_cut[(u, v)] = True
                 if not inconsistent:
                     d = infr.graph.get_edge_data(u, v)
-                    if d.get('reviewed_state', 'unreviewed') in ['notcomp', 'unreviewed']:
-                        infered_state[(u, v)] = 'diff'
+                    if d.get('reviewed_state', 'unreviewed') in {'notcomp',
+                                                                 'unreviewed'}:
+                        inferred_state[(u, v)] = 'diff'
             nx.set_edge_attributes(infr.graph, 'is_cut', is_cut)
             if not inconsistent:
-                nx.set_edge_attributes(infr.graph, 'infered_state', infered_state)
+                # print('inferred_state = %s' % (ut.repr4(inferred_state),))
+                nx.set_edge_attributes(infr.graph, 'inferred_state',
+                                       inferred_state)
+
+        # SLEDGE HAMMER METHOD
+        # infr.apply_review_inference()
+
+    def apply_review_inference(infr, graph=None):
+        if infr.verbose >= 1:
+            print('[infr] apply_review_inference')
+
+        if graph is None:
+            graph = infr.graph
+
+        # ut.nx_delete_edge_attr(infr.graph, 'inferred_state', graph.edges())
+        # print('[infr.apply_review_inference] graph.edges() = %r' % (
+        #     list(graph.edges()),))
+        nx.set_edge_attributes(infr.graph, 'inferred_state', _dz(
+            graph.edges(), [None]))
+        nx.set_edge_attributes(infr.graph, 'is_cut', _dz(
+            graph.edges(), [False]))
+
+        # get all negative review edges
+        # Then get the compoments for each of the endpoints
+        # Then only do the negative inference between those two ccs
+        # Then get each positive compoments and do
+        # positive inference only in those ccs
+
+        node_to_label = nx.get_node_attributes(graph, 'name_label')
+
+        edge_to_review = nx.get_edge_attributes(graph, 'reviewed_state')
+        neg_edges = [e for e, s in edge_to_review.items() if s == 'nomatch']
+        pos_edges = [e for e, s in edge_to_review.items() if s == 'match']
+
+        @ut.memoize
+        def node_to_cc(u):
+            return infr.get_annot_cc(u, graph=graph)
+
+        neg_inference = []
+        pos_inference = []
+        inconsistent_names = {}
+        seen_neg = set([])
+        for u, v in neg_edges:
+            nid1 = graph.node[u]['name_label']
+            nid2 = graph.node[v]['name_label']
+            name_edge = tuple(sorted([nid1, nid2]))
+            if name_edge not in seen_neg:
+                seen_neg.add(name_edge)
+                if nid1 != nid2:
+                    cc1 = node_to_cc(u)
+                    cc2 = node_to_cc(v)
+                    neg_inference.extend(ut.nx_edges_between(graph, cc1, cc2))
+                else:
+                    cc = node_to_cc(u)
+                    inconsistent_names[nid1] = cc
+        seen_pos = set([])
+        for u, v in pos_edges:
+            cc = node_to_cc(u)
+            nid = graph.node[u]['name_label']
+            if nid not in seen_pos:
+                seen_pos.add(nid)
+                if nid not in inconsistent_names:
+                    pos_inference.extend(ut.nx_edges_between(graph, cc))
+
+        # Remove inference from inconsistent compoments and then
+        # suggest split / merge edges
+        for nid, cc in inconsistent_names.items():
+            print('cc = %r' % (cc,))
+            inconsistent_edges = list(ut.nx_edges_between(graph, cc))
+            # only pass in reviewed edges in the subgraph
+            uvd_list = [e + (graph.get_edge_data(*e),)
+                        for e in inconsistent_edges]
+            keep_edges = [
+                (u, v, d) for u, v, d in uvd_list
+                if d.get('reviewed_state', 'unreviewed') != 'unreviewed'
+            ]
+            split_subgraph = nx.Graph(keep_edges)
+            # _subgraph.remove_edges_from(keep_edges)
+            split_edges = infr._flag_possible_split_edges(split_subgraph)
+            nx.set_edge_attributes(infr.graph, 'maybe_split',
+                                   _dz(split_edges, [True]))
+            print('inconsistent_edges = %r' % (inconsistent_edges,))
+            nx.set_edge_attributes(infr.graph, 'inferred_state', _dz(
+                inconsistent_edges, [None]))
+            nx.set_edge_attributes(infr.graph, 'is_cut', _dz(
+                inconsistent_edges, [False]))
+
+        cand_edges = pos_inference + neg_inference
+        cand_data = [graph.get_edge_data(u, v) for u, v in cand_edges]
+        is_nontrivial_infr = [
+            d.get('reviewed_state', 'unreviewed') in {'unreviewed', 'notcomp'}
+            for d in cand_data
+        ]
+
+        infr_edges = ut.compress(cand_edges, is_nontrivial_infr)
+        infr_cut = [node_to_label[u] != node_to_label[v]
+                    for u, v in infr_edges]
+        infr_state = ['diff' if is_cut  else 'same'
+                      for is_cut in infr_cut]
+
+        # TODO: inference should be done for all edges even trivial ones
+        trivial_edges = ut.compress(cand_edges, ut.not_list(is_nontrivial_infr))
+        trivial_cuts = [node_to_label[u] != node_to_label[v]
+                        for u, v in trivial_edges]
+        infr.set_edge_attrs('is_cut', _dz(trivial_edges, trivial_cuts))
+
+        infr.set_edge_attrs('is_cut', _dz(infr_edges, infr_cut))
+        print('infr_edges = %r' % (infr_edges,))
+        infr.set_edge_attrs('inferred_state', _dz(infr_edges, infr_state))
 
     def edges_between(infr, nodes1, nodes2=None):
         """
@@ -875,60 +1016,6 @@ class _AnnotInfrFeedback(object):
         cc.add(node)
         return cc
 
-    # def _get_influenced_subgraph(infr, edge):
-    #     """
-    #     edge = (4, 6)
-    #     infr.add_feedback(1, 2, 'match', apply=True)
-    #     infr.add_feedback(2, 5, 'match', apply=True)
-    #     edge = (6, 1)
-    #     infr.relabel_using_reviews()
-
-    #     CommandLine:
-    #         python -m ibeis.algo.hots.graph_iden _get_influenced_subgraph --show
-
-    #     Example:
-    #         >>> # DISABLE_DOCTEST
-    #         >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-    #         >>> infr = testdata_infr('testdb1')
-    #         >>> infr.relabel_using_reviews()
-    #         >>> infr.verbose = 2
-    #         >>> ut.qt4ensure()
-    #         >>> infr.show_graph(show_cuts=True)
-    #         >>> infr.add_feedback(6, 2, 'match', apply=True)
-    #         >>> infr.add_feedback(2, 3, 'match', apply=True)
-    #         >>> infr.add_feedback(3, 4, 'match', apply=True)
-    #         >>> infr.show_graph(show_cuts=True)
-    #         >>> infr.add_feedback(2, 3, 'nomatch', apply=True)
-    #         >>> infr.show_graph(show_cuts=True)
-    #         >>> infr.add_feedback(6, 4, 'match', apply=True)
-    #         >>> infr.show_graph(show_cuts=True)
-    #         >>> import plottool as pt
-    #         >>> pt.present()
-    #         >>> ut.show_if_requested()
-    #     """
-    #     # Also record any nodes in compoments that have been reviewed against
-    #     # the relevant compoments.
-    #     # Edges between these nodes and the relevant nodes may need to be adjusted.
-    #     extra_relevant_nodes = set([])
-    #     visited = relevant_nodes.copy()
-    #     for n1 in relevant_nodes:
-    #         for n2 in infr.graph.neighbors(n1):
-    #             if n2 not in visited:
-    #                 data = infr.graph.get_edge_data(n1, n2)
-    #                 _state = data.get('reviewed_state', 'unreviewed')
-    #                 if _state == 'nomatch':
-    #                     extra_relevant_nodes.update(infr.get_annot_cc(n2))
-
-    #     if infr.verbose >= 2:
-    #         print('relevant_nodes = %r' % (relevant_nodes,))
-    #     cut_relevant_nodes = relevant_nodes.union(extra_relevant_nodes)
-    #     subgraph_cuts = infr.graph.subgraph(cut_relevant_nodes)
-
-    #     if getattr(infr, 'EMBEDME', False):
-    #         import utool
-    #         utool.embed()
-    #     return subgraph, subgraph_cuts
-
     def _compute_p_same(infr, p_match, p_notcomp):
         p_bg = 0.5  # Needs to be thresh value
         part1 = p_match * (1 - p_notcomp)
@@ -937,6 +1024,8 @@ class _AnnotInfrFeedback(object):
         return p_same
 
     def _del_feedback_edges(infr, edges=None):
+        if infr.verbose >= 3:
+            print('[infr] _del_feedback_edges')
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_state', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_tags', edges)
@@ -944,6 +1033,8 @@ class _AnnotInfrFeedback(object):
         # ut.nx_delete_edge_attr(infr.graph, 'is_reviewed', edges)
 
     def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list):
+        if infr.verbose >= 3:
+            print('[infr] _set_feedback_edges')
         # Ensure edges exist
         for edge in edges:
             if not infr.graph.has_edge(*edge):
@@ -1438,73 +1529,6 @@ class AnnotInference(ut.NiceRepr,
         infr.set_edge_attrs('is_cut', edge_to_cut)
         # infr.apply_review_inference()
 
-    def apply_review_inference(infr, graph=None):
-        if infr.verbose >= 1:
-            print('[infr] apply_review_inference')
-
-        if graph is None:
-            graph = infr.graph
-
-        # ut.nx_delete_edge_attr(infr.graph, 'infered_state', graph.edges())
-        nx.set_edge_attributes(infr.graph, 'infered_state', _dz(graph.edges(), [None]))
-
-        # get all negative review edges
-        # Then get the compoments for each of the endpoints
-        # Then only do the negative inference between those two ccs
-        # Then get each positive compoments and do
-        # positive inference only in those ccs
-
-        node_to_label = nx.get_node_attributes(graph, 'name_label')
-
-        edge_to_review = nx.get_edge_attributes(graph, 'reviewed_state')
-        neg_edges = [e for e, s in edge_to_review.items() if s == 'nomatch']
-        pos_edges = [e for e, s in edge_to_review.items() if s == 'match']
-
-        @ut.memoize
-        def node_to_cc(u):
-            return infr.get_annot_cc(u, graph=graph)
-
-        neg_inference = []
-        pos_inference = []
-        inconsistent_names = set([])
-        seen_ = set([])
-        for u, v in neg_edges:
-            nid1 = graph.node[u]['name_label']
-            nid2 = graph.node[v]['name_label']
-            name_edge = tuple(sorted([nid1, nid2]))
-            if name_edge in seen_:
-                continue
-            seen_.add(name_edge)
-            if nid1 != nid2:
-                cc1 = node_to_cc(u)
-                cc2 = node_to_cc(v)
-                neg_inference.extend(ut.nx_edges_between(graph, cc1, cc2))
-            else:
-                inconsistent_names.add(nid1)
-        for u, v in pos_edges:
-            cc = node_to_cc(u)
-            nid = graph.node[u]['name_label']
-            if nid in seen_:
-                continue
-            seen_.add(nid)
-            if nid not in inconsistent_names:
-                pos_inference.extend(ut.nx_edges_between(graph, cc))
-
-        cand_edges = pos_inference + neg_inference
-        cand_data = [graph.get_edge_data(*e) for e in cand_edges]
-        inferable = [
-            d.get('reviewed_state', 'unreviewed') in {'unreviewed', 'notcomp'}
-            for d in cand_data
-        ]
-        infr_edges = ut.compress(cand_edges, inferable)
-        # infr_data = ut.compress(cand_data, inferable)
-        infr_cut = [node_to_label[u] != node_to_label[v]
-                    for u, v in infr_edges]
-        infr_state = ['diff' if is_cut  else 'same'
-                      for is_cut in infr_cut]
-        # infr.set_edge_attrs('is_cut', _dz(infr_edges, infr_cut))
-        infr.set_edge_attrs('infered_state', _dz(infr_edges, infr_state))
-
     @profile
     def get_filtered_edges(infr, review_cfg):
         """
@@ -1780,6 +1804,8 @@ class AnnotInference(ut.NiceRepr,
         return list(check_edges)
 
     def find_possible_binary_splits(infr):
+        if infr.verbose > 1:
+            print('[infr] find_possible_binary_splits')
         flagged_edges = []
         for subgraph in infr.connected_component_reviewed_subgraphs():
             flagged_edges.extend(infr._flag_possible_split_edges(subgraph))
@@ -1794,7 +1820,7 @@ class AnnotInference(ut.NiceRepr,
                 print('no more edges to reveiw')
                 raise StopIteration('no more to review!')
             chosen = edges[idx]
-            print('chosen = %r' % (chosen,))
+            # print('chosen = %r' % (chosen,))
             aid1, aid2 = chosen[0]
             return aid1, aid2
 

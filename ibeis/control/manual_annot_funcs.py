@@ -296,7 +296,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
 
     # TODO:
         remove annot_visual_uuid_list and annot_semantic_uuid_list
-        They are always infered
+        They are always inferred
 
     Args:
         gid_list                 (list): image rowids to add annotation to

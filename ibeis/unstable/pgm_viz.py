@@ -235,8 +235,8 @@ def get_node_viz_attrs(model, evidence, soft_evidence, factor_list,
     prior_tas = []
     node_color = []
 
-    has_infered = evidence or var2_post
-    if has_infered:
+    has_inferred = evidence or var2_post
+    if has_inferred:
         ignore_prior_with_ttype = ['score', 'match']
         show_prior = False
     else:
@@ -412,7 +412,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
     node_color, pos_list, pos_dict, takws = tup
 
     # draw graph
-    has_infered = evidence or 'factor_list' in kwargs
+    has_inferred = evidence or 'factor_list' in kwargs
 
     if False:
         fig = pt.figure(fnum=fnum, pnum=pnum, doclf=True)  # NOQA
@@ -483,7 +483,7 @@ def draw_bayesian_model(model, evidence={}, soft_evidence={}, fnum=None,
     for hack in hacks:
         hack()
 
-    if has_infered:
+    if has_inferred:
         # Hack in colorbars
         # if ut.list_type(basis) is int:
         #     pt.colorbar(scalars, colors, lbl='score', ticklabels=np.array(basis) + 1)

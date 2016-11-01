@@ -151,16 +151,22 @@ class _AnnotInfrViz(object):
         ut.nx_delete_node_attr(s, infr.visual_node_attrs + ['pin'])
         return s
 
-    def update_visual_attrs(infr, graph=None, show_cuts=False,
-                            hide_infered=False,
-                            show_reviewed_cuts=True, only_reviewed=False,
-                            mode=None):
+    def update_visual_attrs(infr, graph=None,
+                            show_recent_review=True,
+                            hide_reviewed_cuts=False,
+                            hide_unreviewed_cuts=True,
+                            # hide_unreviewed_inferred=True
+                            ):
         if infr.verbose >= 3:
             print('[infr] update_visual_attrs')
-            print(' * show_cuts = %r' % (show_cuts,))
-            print(' * show_reviewed_cuts = %r' % (show_reviewed_cuts,))
         if graph is None:
             graph = infr.graph
+
+        alpha_low = .5
+        alpha_med = .9
+        alpha_high = 1.0
+
+        dark_background = graph.graph.get('dark_background', None)
 
         # Ensure we are starting from a clean slate
         ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
@@ -168,162 +174,102 @@ class _AnnotInfrViz(object):
         # Set annotation node labels
         node_to_aid = nx.get_node_attributes(graph, 'aid')
         node_to_nid = nx.get_node_attributes(graph, 'name_label')
-        annotnode_to_label = {
-            #node: '%d:aid=%r' % (node, aid)
-            node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
-            for node, aid in node_to_aid.items()
-        }
+        node_to_view = nx.get_node_attributes(graph, 'viewpoint')
+        if node_to_view:
+            annotnode_to_label = {
+                node: 'aid=%r%s\nnid=%r' % (aid, node_to_view[node],
+                                            node_to_nid[node])
+                for node, aid in node_to_aid.items()
+            }
+        else:
+            annotnode_to_label = {
+                node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
+                for node, aid in node_to_aid.items()
+            }
         nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
-        # Color nodes by name label
-        # ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.8)
+        # NODE_COLOR: based on name_label
         ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.4)
 
+        # EDGES:
+        # Grab different types of edges
+        edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
+
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
+        nomatch_edges = [edge for edge, state in reviewed_states.items()
+                         if state in {'nomatch'}]
+        reviewed_edges = [edge for edge, state in reviewed_states.items()
+                          if state in {'match', 'nomatch', 'notcomp'}]
+        unreviewed_edges = ut.setdiff(edges, reviewed_edges)
+        # comp_reviewed_edges = [edge for edge, state in
+        #                        reviewed_states_full.items()
+        #                        if state in {'match', 'nomatch'}]
+        split_edges = [edge for edge, split in
+                       nx.get_edge_attributes(graph, 'maybe_split').items()
+                       if split]
+        cut_edges = [edge for edge, cut in
+                     nx.get_edge_attributes(graph, 'is_cut').items()
+                     if cut]
+        unreviewed_cut_edges = ut.setdiff(cut_edges, reviewed_edges)
+        reviewed_cut_edges = ut.setdiff(cut_edges, unreviewed_cut_edges)
+        edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
+        uninferred_edges = [edge for edge, state in edge_to_inferred_state.items()
+                            if state not in {'same', 'diff'}]
+        inferred_edges = [edge for edge, state in edge_to_inferred_state.items()
+                          if state in {'same', 'diff'}]
+        dummy_edges = [edge for edge, flag in
+                       nx.get_edge_attributes(graph, '_dummy_edge').items()
+                       if flag]
+        edge_to_timestamp = nx.get_edge_attributes(graph, 'review_timestamp')
 
-        dark_background = infr.graph.graph.get('dark_background', None)
+        # EDGE_COLOR: based on edge_weight
+        nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
 
-        SPLIT_MODE = mode == 'split'
-        if not SPLIT_MODE:
-            # Base color on edge weights
-            edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
-            #nx.set_edge_attributes(graph, 'len', _dz(edges, [10]))
-            nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
-            # minlw, maxlw = 1.5, 4
-            # lw = ((maxlw - minlw) * edge_weights + minlw)
-            # nx.set_edge_attributes(graph, 'lw', _dz(edges, lw))
-            # nx.set_edge_attributes(graph, 'lw', _dz(edges, [1.5]))
+        # LINE_WIDTH: based on review_state
+        nx.set_edge_attributes(graph, 'linewidth', _dz(
+            reviewed_edges, [5.0]))
+        nx.set_edge_attributes(graph, 'linewidth', _dz(
+            unreviewed_edges, [2.0]))
 
-            # Base line width on if reviewed
-            reviewed_states_full = infr.get_edge_attrs('reviewed_state',
-                                                       default='unreviewed')
-            edge_to_lw = {
-                edge: 2.0 if state == 'unreviewed' else 5.0
-                for edge, state in reviewed_states_full.items()
-            }
-            nx.set_edge_attributes(graph, 'lw', edge_to_lw)
-
-            # Mark reviewed edges witha stroke
-            # truth_colors = infr._get_truth_colors()
-            edge_to_stroke = {
-                # edge: {'linewidth': 3, 'foreground': truth_colors[state]}
-                # edge: {'linewidth': 3, 'foreground': pt.WHITE}
-                edge: (
-                    {'linewidth': 3, 'foreground': pt.WHITE}
-                    if dark_background else
-                    {'linewidth': 3, 'foreground': pt.BLACK}
-                )
-                for edge, state in reviewed_states.items()
-            }
-            nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
-
-            # nx.set_edge_attributes(graph, 'hatch', {
-            #     edge: 'O' for edge, state in
-            #     reviewed_states.items()})
-
-            nx.set_edge_attributes(graph, 'capstyle', {
-                edge: 'round' for edge, state in
-                reviewed_states.items()})
-
-            # Mark edges that might be splits with strokes
-            # possible_split_edges = infr.find_possible_binary_splits()
-            # edge_to_stroke = {
-            #     edge: {'linewidth': 3, 'foreground': pt.ORANGE}
-            #     for edge in ut.unique(possible_split_edges)
-            # }
-            # nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
-        else:
-            # Mark reviewed edges with a color
-            truth_colors = infr._get_truth_colors()
-            edge_to_color = {
-                edge: truth_colors[state]
-                for edge, state in reviewed_states.items()
-            }
-            nx.set_edge_attributes(graph, 'color', edge_to_color)
-
-            # Mark edges that might be splits with strokes
-            possible_split_edges = infr.find_possible_binary_splits()
-            edge_to_stroke = {
-                edge: {'linewidth': 3, 'foreground': pt.ORANGE}
-                for edge in ut.unique(possible_split_edges)
-            }
-            nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
-
-        # Mark edges that might be splits with strokes
-        edge_to_split = nx.get_edge_attributes(infr.graph, 'maybe_split')
-        edge_to_stroke = {
-            edge: {'linewidth': 5, 'foreground': pt.ORANGE}
-            for edge, split in edge_to_split.items() if split
-        }
-        nx.set_edge_attributes(graph, 'stroke', edge_to_stroke)
-
-        alpha_low = .5
-        alpha_med = .9
-        alpha_high = 1.0
+        # EDGE_STROKE: based on reviewed_state and maybe_split
+        fg = pt.WHITE if dark_background else pt.BLACK
+        nx.set_edge_attributes(graph, 'stroke', _dz(reviewed_edges, [
+            {'linewidth': 3, 'foreground': fg}]))
+        nx.set_edge_attributes(graph, 'stroke', _dz(split_edges, [
+            {'linewidth': 5, 'foreground': pt.ORANGE}]))
 
         # Are cuts visible or invisible?
-        edge_to_cut = nx.get_edge_attributes(graph, 'is_cut')
-        cut_edges = [edge for edge, cut in edge_to_cut.items() if cut]
         nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
         nx.set_edge_attributes(graph, 'linestyle', _dz(cut_edges, ['dashed']))
         nx.set_edge_attributes(graph, 'alpha', _dz(cut_edges, [alpha_med]))
 
-        edge_to_infered_state = nx.get_edge_attributes(graph, 'infered_state')
-        uninfered_edges = [edge for edge, state in edge_to_infered_state.items()
-                           if state not in ['same', 'diff']]
-        nx.set_edge_attributes(graph, 'implicit', _dz(uninfered_edges, [True]))
+        nx.set_edge_attributes(graph, 'implicit', _dz(uninferred_edges, [True]))
 
-        # Non-matching edges should not impose a constraint on the graph layout
-        nomatch_edges = {edge: state for edge, state in reviewed_states.items()
-                          if state == 'nomatch'}
+        # No-matching edges should not impose a constraint on the graph layout
         nx.set_edge_attributes(graph, 'implicit', _dz(nomatch_edges, [True]))
         nx.set_edge_attributes(graph, 'alpha', _dz(nomatch_edges, [alpha_med]))
 
-        edges = list(graph.edges())
-        reviewed_edges = list(reviewed_states.keys())
-        nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges, [alpha_high]))
+        # Ensure reviewed edges are visible
+        nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges,
+                                                   [alpha_high]))
 
-        edge_to_infered_state = nx.get_edge_attributes(graph, 'infered_state')
-        infered_edges = [edge for edge, state in edge_to_infered_state.items()
-                         if state in ['same', 'diff']]
-        # infered_edges = graph.edges()
-        # nx.set_edge_attributes(graph, 'shadow', _dz(infered_edges, [True]))
-        # nx.set_edge_attributes(graph, 'sketch', _dz(infered_edges, [True]))
+        # SKETCH: based on inferred_edges
+        # Make inferred edges wavy
         nx.set_edge_attributes(
-            graph, 'sketch', _dz(infered_edges, [
+            graph, 'sketch', _dz(inferred_edges, [
                 dict(scale=10.0, length=64.0, randomness=None)]
                 # dict(scale=3.0, length=18.0, randomness=None)]
             ))
-        if hide_infered:
-            # Infered edges are hidden
-            nx.set_edge_attributes(
-                graph, 'style', _dz(infered_edges, ['invis']))
-
-        if only_reviewed:
-            # only reviewed edges contribute
-            unreviewed_edges = ut.setdiff(edges, reviewed_edges)
-            nx.set_edge_attributes(graph, 'implicit', _dz(unreviewed_edges, [True]))
-            nx.set_edge_attributes(graph, 'alpha', _dz(unreviewed_edges, [alpha_med]))
-            nx.set_edge_attributes(graph, 'style', _dz(unreviewed_edges, ['invis']))
-
-        if show_cuts or show_reviewed_cuts:
-            if not show_cuts:
-                nonfeedback_cuts = ut.setdiff(cut_edges, reviewed_edges)
-                nx.set_edge_attributes(graph, 'style', _dz(nonfeedback_cuts, ['invis']))
-        else:
-            nx.set_edge_attributes(graph, 'style', _dz(cut_edges, ['invis']))
 
         # Make dummy edges more transparent
-        edge_to_isdummy = nx.get_edge_attributes(graph, '_dummy_edge')
-        dummy_edges = [edge for edge, flag in edge_to_isdummy.items() if flag]
         nx.set_edge_attributes(graph, 'alpha', _dz(dummy_edges, [alpha_low]))
 
+        # SHADOW: based on review_timestamp
         # Increase visibility of nodes with the most recently changed timestamp
-        edge_to_stamp = nx.get_edge_attributes(graph, 'review_timestamp')
-        if edge_to_stamp:
-            timestamps = list(edge_to_stamp.values())
+        if edge_to_timestamp:
+            timestamps = list(edge_to_timestamp.values())
             recent_idxs = ut.where(ut.equal([max(timestamps)], timestamps))
-            recent_edges = ut.take(list(edge_to_stamp.keys()), recent_idxs)
+            recent_edges = ut.take(list(edge_to_timestamp.keys()), recent_idxs)
             # TODO: add photoshop-like parameters like
             # spread and size. offset is the same as angle and distance.
             nx.set_edge_attributes(graph, 'shadow', _dz(recent_edges, [{
@@ -336,23 +282,50 @@ class _AnnotInfrViz(object):
                 # 'offset': (4, -4)
             }]))
 
+        # Z_ORDER: make sure nodes are on top
         nodes = list(graph.nodes())
         nx.set_node_attributes(graph, 'zorder', _dz(nodes, [10]))
         nx.set_edge_attributes(graph, 'zorder', _dz(edges, [0]))
-
         nx.set_edge_attributes(graph, 'picker', _dz(edges, [10]))
 
-        # update the positioning layout
+        # VISIBILITY: Set visibility of edges based on arguments
+        # if show_unreviewed_inferred:
+        #     # Infered edges are hidden
+        #     nx.set_edge_attributes(
+        #         graph, 'style', _dz(inferred_edges, ['invis']))
+
+        # if only_reviewed:
+        #     # only reviewed edges contribute
+        #     nx.set_edge_attributes(graph, 'implicit',
+        #                            _dz(unreviewed_edges, [True]))
+        #     nx.set_edge_attributes(graph, 'alpha',
+        #                            _dz(unreviewed_edges, [alpha_med]))
+        #     nx.set_edge_attributes(graph, 'style',
+        #                            _dz(unreviewed_edges, ['invis']))
+
+        if hide_unreviewed_cuts:
+            nx.set_edge_attributes(graph, 'style', _dz(
+                unreviewed_cut_edges, ['invis']))
+        if hide_reviewed_cuts:
+            nx.set_edge_attributes(graph, 'style', _dz(
+                reviewed_cut_edges, ['invis']))
+
+        if show_recent_review and edge_to_timestamp:
+            # Always show the most recent review (remove setting of invis)
+            nx.set_edge_attributes(graph, 'style',
+                                   _dz(recent_edges, ['']))
+
+        # LAYOUT: update the positioning layout
         layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
-    def show_graph(infr, use_image=False, only_reviewed=False, show_cuts=False,
-                   mode=None, with_colorbar=False, **kwargs):
+    def show_graph(infr, use_image=False, with_colorbar=False, **kwargs):
         kwargs['fontsize'] = kwargs.get('fontsize', 8)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            infr.update_visual_attrs(only_reviewed=only_reviewed,
-                                     show_cuts=show_cuts, mode=mode)
+            default_update_kw = ut.get_func_kwargs(infr.update_visual_attrs)
+            update_kw = ut.update_existing(default_update_kw, kwargs)
+            infr.update_visual_attrs(**update_kw)
             graph = infr.graph
             plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                                   modify_ax=False, use_image=use_image, verbose=0,

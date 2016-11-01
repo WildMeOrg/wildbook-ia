@@ -951,7 +951,7 @@ def update_1_3_6(db, ibs=None):
 
 
 def update_1_3_7(db, ibs=None):
-    # Part of the dependsmap property might be infered, but at least the keys and tables are needed.
+    # Part of the dependsmap property might be inferred, but at least the keys and tables are needed.
     db.modify_table(
         const.ANNOTATION_TABLE,
         extern_tables=[const.NAME_TABLE, const.SPECIES_TABLE, const.IMAGE_TABLE],

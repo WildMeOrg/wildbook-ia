@@ -2,13 +2,11 @@
 r"""
 Review Interactions
 
-
 Key:
     A --- B : A and B are potentially connected. No review.
     A -X- B : A and B have been reviewed as non matching.
     A -?- B : A and B have been reviewed as not comparable.
     A -O- B : A and B have been reviewed as matching.
-
 
 The Total Review Clique Compoment
 
@@ -19,7 +17,6 @@ The Total Review Clique Compoment
     C -O- D  |
     |________O
 
-
 A Minimal Review Compoment
 
     A -O- B -|     A -O- B
@@ -29,7 +26,6 @@ A Minimal Review Compoment
     C --- D  |     C     D
     |________|
 
-
 Inconsistent Compoment
 
     A -O- B
@@ -38,7 +34,6 @@ Inconsistent Compoment
     |/
     C
 
-
 Consistent Compoment (with not-comparable)
 
     A -O- B
@@ -46,8 +41,6 @@ Consistent Compoment (with not-comparable)
     O  ?
     |/
     C
-
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
@@ -61,17 +54,39 @@ def randn_clip(rng, mu, sigma, a_max, a_min):
     return a
 
 
+valid_views = ['L', 'F', 'R', 'B']
+adjacent_views = {
+    v: [valid_views[(count + i) % len(valid_views)] for i in [-1, 0, 1]]
+    for count, v in enumerate(valid_views)
+}
+
+
 def get_edge_truth(infr, n1, n2):
     nid1 = infr.graph.node[n1]['orig_name_label']
     nid2 = infr.graph.node[n2]['orig_name_label']
-    return nid1 == nid2
+    try:
+        view1 = infr.graph.node[n1]['viewpoint']
+        view2 = infr.graph.node[n2]['viewpoint']
+        comparable = view1 in adjacent_views[view2]
+    except KeyError:
+        comparable = True
+        raise
+    same = nid1 == nid2
+
+    if not comparable:
+        return 2
+    else:
+        return int(same)
 
 
 def apply_dummy_scores(infr):
     rng = np.random.RandomState(0)
-    dummy_params = {True: {'mu': .8, 'sigma': .2},
-                    False: {'mu': .2, 'sigma': .2}}
-    edges = infr.graph.edges()
+    dummy_params = {
+        0: {'mu': .2, 'sigma': .2},
+        1: {'mu': .8, 'sigma': .2},
+        2: {'mu': .2, 'sigma': .4},
+    }
+    edges = list(infr.graph.edges())
     truths = [get_edge_truth(infr, n1, n2) for n1, n2 in edges]
     normscores = [randn_clip(rng, a_max=0, a_min=1, **dummy_params[truth])
                   for truth in truths]
@@ -83,32 +98,96 @@ def apply_dummy_scores(infr):
 def demo_graph_iden2():
     """
     CommandLine:
-        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2 --show
+        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2
     """
     from ibeis.algo.hots import graph_iden
     import plottool as pt
     # Create dummy data
-    nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
+    # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
+    # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
+    annots_per_name = [4, 3, 2, 1]
+    nids = [val for val, num in enumerate(annots_per_name, start=1)
+            for _ in range(num)]
     aids = range(len(nids))
-    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True, verbose=1)
+    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True,
+                                     verbose=1)
     infr.set_node_attrs('shape', 'circle')
+
+    # Assign random viewpoints
+    if True:
+        valid_views = ['L', 'F', 'R', 'B']
+        rng = np.random.RandomState(42)
+        class MarkovView(object):
+            def __init__(self):
+                self.dir_ = +1
+                self.state = 0
+
+            def __call__(self):
+                return self.next_state()
+
+            def next_state(self):
+                if self.dir_ == -1 and self.state <= 0:
+                    self.dir_ = +1
+                if self.dir_ == +1 and self.state >= len(valid_views) - 1:
+                    self.dir_ = -1
+                # Transition with probability 1/2
+                if rng.rand() > .5:
+                    self.state += self.dir_
+                return valid_views[self.state]
+        mkv = MarkovView()
+        views = [mkv() for val, num in enumerate(annots_per_name, start=1)
+                 for _ in range(num)]
+        infr.set_node_attrs('viewpoint', ut.dzip(aids, views))
 
     dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
     ut.remove_files_in_dir(dpath)
 
+    fontsize = 12
+    # fontname = 'Ubuntu'
+    fontname = 'sans'
+
     def show_graph(infr, title):
-        # showkw = dict(fontsize=6, show_cuts=False, with_colorbar=True)
-        showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
-        infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
+        showkw = dict(fontsize=fontsize, fontname=fontname,
+                      hide_reviewed_cuts=True,
+                      hide_unreviewed_cuts=True,
+                      with_colorbar=True)
+        # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
+        infr_ = infr
+        verbose = infr_.verbose
+        infr_.verbose = 0
+        infr = infr_.copy()
+        infr_.verbose = verbose
+        infr.show_graph(**ut.update_existing(showkw.copy(),
+                                             dict(with_colorbar=True)))
         pt.set_title(title)
-        dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
         pt.gca().set_aspect('equal')
+        pt.gcf().canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
+        dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
         pt.save_figure(dpath=dpath)
 
-    # Pin Nodes into the target groundtruth position
+    SHOW_GT = True
+    QUIT_OR_EMEBED = 'embed'
+    TARGET_REVIEW = None
+    PRESHOW = True
+
+    # PRESHOW = False
+    # SHOW_GT = False
+    # QUIT_OR_EMEBED = 'quit'
+    # TARGET_REVIEW = 14
+
     infr.ensure_cliques()
-    show_graph(infr, 'target-gt')
+    infr.graph.graph['ignore_labels'] = True
+    infr.set_node_attrs('width', 20)
+    infr.set_node_attrs('height', 20)
+    infr.set_node_attrs('fontsize', fontsize)
+    infr.set_node_attrs('fontname', fontname)
+    infr.set_node_attrs('fixed_size', True)
+    infr.update_visual_attrs()
     infr.set_node_attrs('pin', 'true')
+    print(ut.repr4(infr.graph.node[1]))
+    if SHOW_GT:
+        # Pin Nodes into the target groundtruth position
+        show_graph(infr, 'target-gt')
 
     def oracle_decision(infr, n1, n2):
         """ The perfect reviewer """
@@ -123,27 +202,25 @@ def demo_graph_iden2():
     infr.remove_name_labels()
     infr.apply_weights()
 
-    TARGET_REVIEW = None
-    # TARGET_REVIEW = 9
-    # TARGET_REVIEW = 7
-    PRESHOW = True
-
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
         show_graph(infr, 'pre-reveiw')
 
     for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
+        msg = 'review #%d' % (count)
+        print('\n----------')
+        print(msg)
 
         # Make the next review decision
         state, tags = oracle_decision(infr, aid1, aid2)
 
         if count == TARGET_REVIEW:
-            infr.EMBEDME = True
+            infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
 
         infr.add_feedback(aid1, aid2, state, tags, apply=True)
 
         # Show the result
         if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
-            show_graph(infr, 'review #%d' % (count))
+            show_graph(infr, msg)
 
         if count == TARGET_REVIEW:
             break
@@ -157,10 +234,10 @@ def demo_graph_iden2():
 
 
 @profile
-def demo_graph_iden():
+def demo_ibeis_graph_iden():
     """
     CommandLine:
-        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden --show
+        python -m ibeis.algo.hots.demo_graph_iden demo_ibeis_graph_iden --show
     """
     from ibeis.algo.hots import graph_iden
     import ibeis
@@ -180,7 +257,7 @@ def demo_graph_iden():
     infr.ensure_cliques()
     # infr.initialize_visual_node_attrs()
     import plottool as pt
-    showkw = dict(fontsize=8, show_cuts=True, with_colorbar=True)
+    showkw = dict(fontsize=8, with_colorbar=True)
     infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
     pt.set_title('target-gt')
     infr.set_node_attrs('pin', 'true')
@@ -270,6 +347,41 @@ def demo_graph_iden():
     ut.show_if_requested()
 
 
+def repr_edge_data(infr, all_edge_data):
+    visual_edge_data = {k: v for k, v in all_edge_data.items()
+                        if k in infr.visual_edge_attrs}
+    edge_data = ut.delete_dict_keys(all_edge_data.copy(), infr.visual_edge_attrs)
+    lines = [
+        ('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1)),
+        ('edge_data: ' + ut.repr2(edge_data, nl=1)),
+    ]
+    return '\n'.join(lines)
+
+
+def on_pick(event, infr=None):
+    import plottool as pt
+    print('ON PICK: %r' % (event,))
+    artist = event.artist
+    plotdat = pt.get_plotdat_dict(artist)
+    if plotdat:
+        if 'node' in plotdat:
+            all_node_data = ut.sort_dict(plotdat['node_data'].copy())
+            visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
+            node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
+            print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
+            print('node_data: ' + ut.repr2(node_data, nl=1))
+            ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
+            print('artist = %r' % (artist,))
+        elif 'edge' in plotdat:
+            all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
+            print(repr_edge_data(infr, all_edge_data))
+            ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
+            print('artist = %r' % (artist,))
+        else:
+            print('???: ' + ut.repr2(plotdat))
+    print(ut.get_timestamp())
+
+
 def do_infr_test(ccs, edges, new_edges):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
@@ -281,8 +393,9 @@ def do_infr_test(ccs, edges, new_edges):
     for cc in ccs:
         if len(cc) == 1:
             G.add_nodes_from(cc)
-        G.add_path(cc, reviewed_state='match', reviewed_weight=1.0)
-    for u, v, d in edges:
+        nx.add_path(G, cc, reviewed_state='match', reviewed_weight=1.0)
+    for edge in edges:
+        u, v, d = edge if len(edge) == 3 else tuple(edge) + ({},)
         reviewed_state = d.get('reviewed_state')
         if reviewed_state:
             if reviewed_state == 'match':
@@ -297,48 +410,16 @@ def do_infr_test(ccs, edges, new_edges):
     G.add_edges_from(edges)
     infr = graph_iden.AnnotInference.from_netx(G)
     infr.relabel_using_reviews()
-    infr.apply_cuts()
+    # infr.apply_cuts()
     infr.apply_review_inference()
     infr.apply_weights()
     infr.graph.graph['dark_background'] = True
-
-    def repr_edge_data(infr, all_edge_data):
-        visual_edge_data = {k: v for k, v in all_edge_data.items()
-                            if k in infr.visual_edge_attrs}
-        edge_data = ut.delete_dict_keys(all_edge_data, infr.visual_edge_attrs)
-        lines = [
-            ('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1)),
-            ('edge_data: ' + ut.repr2(edge_data, nl=1)),
-        ]
-        return '\n'.join(lines)
-
-    def on_pick(event, infr=None):
-        print('ON PICK: %r' % (event,))
-        artist = event.artist
-        plotdat = pt.get_plotdat_dict(artist)
-        if plotdat:
-            if 'node' in plotdat:
-                all_node_data = ut.sort_dict(plotdat['node_data'].copy())
-                visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
-                node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
-                print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
-                print('node_data: ' + ut.repr2(node_data, nl=1))
-                ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
-                print('artist = %r' % (artist,))
-            elif 'edge' in plotdat:
-                all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
-                print(repr_edge_data(infr, all_edge_data))
-                ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
-                print('artist = %r' % (artist,))
-            else:
-                print('???: ' + ut.repr2(plotdat))
-        print(ut.get_timestamp())
 
     # Preshow
     fnum = 1
     if ut.show_was_requested():
         infr.set_node_attrs('shape', 'circle')
-        infr.show(show_cuts=True, pnum=(2, 1, 1), fnum=fnum)
+        infr.show(pnum=(2, 1, 1), fnum=fnum, hide_unreviewed_cuts=False)
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
@@ -354,7 +435,7 @@ def do_infr_test(ccs, edges, new_edges):
 
     # Postshow
     if ut.show_was_requested():
-        infr2.show(show_cuts=True, pnum=(2, 1, 2), fnum=fnum)
+        infr2.show(pnum=(2, 1, 2), fnum=fnum, hide_unreviewed_cuts=False)
         pt.gca().set_aspect('equal')
         pt.set_title('post-review')
         fig2 = pt.gcf()
@@ -364,8 +445,10 @@ def do_infr_test(ccs, edges, new_edges):
     _errors = []
     def check(infr, u, v, key, val, msg):
         data = infr.get_edge_data(u, v)
-        if data.get(key) != val:
-            _errors.append(msg + '\nedge=' + ut.repr2((u, v)) + '\n' +
+        got = data.get(key)
+        if got != val:
+            msg1 = 'key=%s %r!=%r, ' % (key, got, val)
+            _errors.append(msg1 + msg + '\nedge=' + ut.repr2((u, v)) + '\n' +
                            repr_edge_data(infr, data))
 
     def after(errors=[]):
@@ -398,17 +481,17 @@ def case_nomatch_infr():
     # Add in initial reviews
     edges = [
         (9, 7, {'reviewed_state': 'nomatch', 'is_cut': True}),
-        (1, 7, {'infered_state': None}),
-        (1, 9, {'infered_state': None}),
+        (1, 7, {'inferred_state': None}),
+        (1, 9, {'inferred_state': None}),
     ]
     # Add in scored, but unreviewed edges
     new_edges = [(3, 9, {'reviewed_state': 'nomatch'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
-    check(infr2, 1, 7, 'infered_state', None,
+    check(infr2, 1, 7, 'inferred_state', None,
           'negative review of an edge should not jump more than one compoment')
 
-    check(infr2, 1, 9, 'infered_state', 'diff',
+    check(infr2, 1, 9, 'inferred_state', 'diff',
           'negative review of an edge should cut within one jump')
 
     after()
@@ -433,17 +516,18 @@ def case_match_infr():
     ]
     # Add in scored, but unreviewed edges
     edges += [
-        (2, 8, {'infered_state': None}),
-        (2, 9, {'infered_state': None}),
+        (2, 8, {'inferred_state': None}),
+        (2, 9, {'inferred_state': None}),
     ]
     new_edges = [(2, 10, {'reviewed_state': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
-    check(infr2, 2, 9, 'infered_state', 'same', 'should infer a match')
-    check(infr2, 2, 8, 'infered_state', 'diff', 'should infer a nomatch')
-    check(infr1, 2, 7, 'infered_state', None, 'discon should have inference')
+    # Checks out of cc inferences
+    check(infr2, 2, 9, 'inferred_state', 'same', 'should infer a match')
+    check(infr2, 2, 8, 'inferred_state', 'diff', 'should infer a nomatch')
+    check(infr1, 2, 7, 'inferred_state', None, 'discon should have inference')
 
-    check(infr2, 2, 7, 'infered_state', None, 'discon should have inference')
+    check(infr2, 2, 7, 'inferred_state', None, 'discon should have inference')
     after()
 
 
@@ -462,14 +546,14 @@ def case_inconsistent():
         (2, 3, {'reviewed_state': 'nomatch', 'is_cut': True}),
     ]
     edges += [
-        (4, 1, {'infered_state': None}),
-        # (2, 7, {'infered_state': None}),
+        (4, 1, {'inferred_state': None}),
+        # (2, 7, {'inferred_state': None}),
     ]
     new_edges = [(1, 5, {'reviewed_state': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    # Make sure the previously infered edge is no longer infered
-    check(infr1, 4, 1, 'infered_state', 'diff', 'should initially be an infered diff')
-    check(infr2, 4, 1, 'infered_state', None, 'should not be infered after incon')
+    # Make sure the previously inferred edge is no longer inferred
+    check(infr1, 4, 1, 'inferred_state', 'diff', 'should initially be an inferred diff')
+    check(infr2, 4, 1, 'inferred_state', None, 'should not be inferred after incon')
     check(infr2, 4, 3, 'maybe_split', True, 'need to have a maybe split')
     after()
 
@@ -514,11 +598,11 @@ def case_override_inference():
     """
     ccs = [[1, 2, 3, 4, 5]]
     edges = [
-        (1, 3, {'infered_state': 'same'}),
-        (1, 4, {'infered_state': 'same'}),
-        # (1, 5, {'infered_state': 'same'}),
-        (2, 4, {'infered_state': 'same'}),
-        (2, 5, {'infered_state': 'same'}),
+        (1, 3, {'inferred_state': 'same'}),
+        (1, 4, {'inferred_state': 'same'}),
+        # (1, 5, {'inferred_state': 'same'}),
+        (2, 4, {'inferred_state': 'same'}),
+        (2, 5, {'inferred_state': 'same'}),
     ]
     edges += []
     new_edges = [
@@ -526,10 +610,10 @@ def case_override_inference():
         (5, 2, {'reviewed_state': 'nomatch'}),
     ]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    # Make sure that the infered edges are no longer infered when an
+    # Make sure that the inferred edges are no longer inferred when an
     # inconsistent case is introduced
-    check(infr2, 1, 4, 'maybe_split', False, 'should not split infered edge')
-    check(infr2, 5, 2, 'infered_state', None, 'inference should be overriden')
+    check(infr2, 1, 4, 'maybe_split', None, 'should not split inferred edge')
+    check(infr2, 5, 2, 'inferred_state', None, 'inference should be overriden')
     after()
 
 
@@ -592,14 +676,14 @@ def case_incon_removes_inference():
     new_edges = [(3, 4, {'reviewed_state': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
-    check(infr1, 2, 5, 'infered_state', 'diff', 'should be preinfered')
-    check(infr2, 2, 5, 'infered_state', None, 'should be uninfered on incon')
+    check(infr1, 2, 5, 'inferred_state', 'diff', 'should be preinferred')
+    check(infr2, 2, 5, 'inferred_state', None, 'should be uninferred on incon')
     after()
 
 
 def case_inferable_notcomp1():
     """
-    make sure notcomparable edges can be infered
+    make sure notcomparable edges can be inferred
 
     CommandLine:
         python -m ibeis.algo.hots.demo_graph_iden case_inferable_notcomp1 --show
@@ -615,7 +699,7 @@ def case_inferable_notcomp1():
     ]
     new_edges = [(1, 4, {'reviewed_state': 'notcomp'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr2, 1, 4, 'infered_state', 'diff', 'should be infered')
+    check(infr2, 1, 4, 'inferred_state', 'diff', 'should be inferred')
     after()
 
 
@@ -638,8 +722,8 @@ def case_inferable_update_notcomp():
     ]
     new_edges = [(2, 3, {'reviewed_state': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr1, 1, 4, 'infered_state', 'diff', 'should be infered diff')
-    check(infr2, 1, 4, 'infered_state', 'same', 'should be infered same')
+    check(infr1, 1, 4, 'inferred_state', 'diff', 'should be inferred diff')
+    check(infr2, 1, 4, 'inferred_state', 'same', 'should be inferred same')
     after()
 
 
@@ -662,9 +746,9 @@ def case_notcomp_remove_infr():
     ]
     new_edges = [(1, 4, {'reviewed_state': 'notcomp'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr2, 1, 4, 'infered_state', None, 'can not infer match here!')
-    check(infr2, 2, 5, 'infered_state', None, 'can not infer match here!')
-    check(infr2, 3, 6, 'infered_state', None, 'can not infer match here!')
+    check(infr2, 1, 4, 'inferred_state', None, 'can not infer match here!')
+    check(infr2, 2, 5, 'inferred_state', None, 'can not infer match here!')
+    check(infr2, 3, 6, 'inferred_state', None, 'can not infer match here!')
     after()
 
 
@@ -692,10 +776,85 @@ def case_notcomp_remove_cuts():
     check(infr2, 3, 6, 'is_cut', False, 'can not infer cut here!')
     after()
 
+
+def case_keep_in_cc_infr_post_nomatch():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden case_keep_in_cc_infr_post_nomatch --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> case_keep_in_cc_infr_post_notcomp()
+    """
+    ccs = [[1, 2, 3], [4]]
+    edges = [(1, 3), (1, 4), (2, 4), (3, 4)]
+    new_edges = [(4, 2, {'reviewed_state': 'nomatch'})]
+    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    check(infr1, 3, 4, 'inferred_state', None, 'should not be inferred')
+    check(infr1, 1, 3, 'inferred_state', 'same', 'should be inferred')
+    check(infr2, 1, 3, 'inferred_state', 'same', 'should remain inferred')
+    check(infr2, 3, 4, 'inferred_state', 'diff', 'should become inferred')
+    after()
+
+
+def case_keep_in_cc_infr_post_notcomp():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden case_keep_in_cc_infr_post_notcomp --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> case_keep_in_cc_infr_post_notcomp()
+    """
+    ccs = [[1, 2, 3], [4]]
+    edges = [(1, 3), (1, 4), (2, 4), (3, 4)]
+    new_edges = [(4, 2, {'reviewed_state': 'notcomp'})]
+    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    check(infr1, 3, 4, 'inferred_state', None, 'should not be inferred')
+    check(infr1, 1, 3, 'inferred_state', 'same', 'should be inferred')
+    check(infr2, 1, 3, 'inferred_state', 'same', 'should remain inferred')
+    check(infr2, 3, 4, 'inferred_state', None, 'should not become inferred')
+    after()
+
+
+def case_out_of_subgraph_modification():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden case_out_of_subgraph_modification --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> case_out_of_subgraph_modification()
+    """
+    # A case where a review between two ccs modifies state outside of
+    # the subgraph of ccs
+    ccs = [[1, 2], [3, 4], [5, 6]]
+    edges = [
+        (2, 6), (4, 5, {'reviewed_state': 'nomatch'})
+    ]
+    new_edges = [(2, 3, {'reviewed_state': 'match'})]
+    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    check(infr1, 2, 6, 'inferred_state', None, 'should not be inferred')
+    check(infr2, 2, 6, 'inferred_state', 'diff', 'should be inferred')
+    after()
+
+
+# TODO: inconsistent out of subgraph modification
+# should an inconsistent compoment (a compoment all of the same name
+# but with at least one non-match edge) still be allowed to have infered
+# reviews outside the compoment? ...
+# I think yes because in the case the compoment is split the inferred
+# reviews should go away, and in the case of the compoment is merged
+# then they are fine.
+
 if __name__ == '__main__':
     r"""
     CommandLine:
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph
+        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2
         python -m ibeis.algo.hots.demo_graph_iden
         python -m ibeis.algo.hots.demo_graph_iden --allexamples
         python -m ibeis.algo.hots.demo_graph_iden --allexamples --show

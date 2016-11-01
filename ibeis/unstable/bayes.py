@@ -877,8 +877,8 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     prior_tas = []
     node_color = []
 
-    has_infered = evidence or var2_post
-    if has_infered:
+    has_inferred = evidence or var2_post
+    if has_inferred:
         ignore_prior_with_ttype = [SCORE_TTYPE, MATCH_TTYPE]
         show_prior = False
     else:
@@ -997,7 +997,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
     takw2_ = trnps_(prior_tas)
 
     # Draw graph
-    if has_infered:
+    if has_inferred:
         pnum1 = (3, 1, (slice(0, 2), 0))
     else:
         pnum1 = None
@@ -1046,7 +1046,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
         hack()
 
     # Hack in colorbars
-    if has_infered:
+    if has_inferred:
         pt.colorbar(np.linspace(0, 1, len(name_colors)), name_colors, lbl=NAME_TTYPE,
                     ticklabels=model.ttype2_template[NAME_TTYPE].basis, ticklocation='left')
 
@@ -1064,7 +1064,7 @@ def show_model(model, evidence={}, soft_evidence={}, **kwargs):
             #print('basis = %r' % (basis,))
 
     # Draw probability hist
-    if has_infered and top_assignments is not None:
+    if has_inferred and top_assignments is not None:
         bin_labels = ut.get_list_column(top_assignments, 0)
         bin_vals =  ut.get_list_column(top_assignments, 1)
 

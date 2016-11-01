@@ -115,8 +115,8 @@ class DevGraphWidget(gt.GuitoolWidget):
         def refresh_via_cb(flag):
             graph_widget.on_state_update()
 
-        graph_widget.show_cuts_cb = bbar2.addNewCheckBox(
-            'Show Cuts', changed=refresh_via_cb, checked=False)
+        graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
+            'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
         graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
             'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
         graph_widget.only_reviwed_cb =  bbar2.addNewCheckBox(
@@ -145,9 +145,9 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.mpl_wgt.ax.cla()
 
         graph_widget.infr.update_visual_attrs(
-            show_cuts=graph_widget.show_cuts_cb.isChecked(),
-            show_reviewed_cuts=graph_widget.show_review_cuts_cb.isChecked(),
-            only_reviewed=graph_widget.only_reviwed_cb.isChecked(),
+            hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
+            hide_reviewed_cuts=not graph_widget.show_review_cuts_cb.isChecked(),
+            # only_reviewed=graph_widget.only_reviwed_cb.isChecked(),
         )
 
         try:
