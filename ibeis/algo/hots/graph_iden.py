@@ -887,6 +887,8 @@ class _AnnotInfrFeedback(object):
             graph.edges(), [None]))
         nx.set_edge_attributes(infr.graph, 'is_cut', _dz(
             graph.edges(), [False]))
+        nx.set_edge_attributes(infr.graph, 'maybe_error',
+                               _dz(graph.edges(), [False]))
 
         # get all negative review edges
         # Then get the compoments for each of the endpoints
@@ -1781,25 +1783,49 @@ class AnnotInference(ut.NiceRepr,
 
     def _find_possible_error_edges(infr, subgraph):
         inconsistent_edges = [
-            edge
-            for edge, state in nx.get_edge_attributes(subgraph, 'reviewed_state').items()
+            edge for edge, state in
+            nx.get_edge_attributes(subgraph, 'reviewed_state').items()
             if state == 'nomatch'
         ]
-        check_edges = set([])
-        subgraph.remove_edges_from(inconsistent_edges)
-        subgraph = infr.simplify_graph(subgraph)
+        maybe_error_edges = set([])
+
+        subgraph_ = subgraph.copy()
+        subgraph_.remove_edges_from(inconsistent_edges)
+        subgraph_ = infr.simplify_graph(subgraph_)
 
         # TODO: allow the negative edges themselves to take part in this
         # calculation and be flagged as a check edge
 
-        ut.util_graph.nx_set_default_edge_attributes(subgraph, 'num_reviews', 1)
+        ut.util_graph.nx_set_default_edge_attributes(subgraph_, 'num_reviews', 1)
         for s, t in inconsistent_edges:
             # TODO: use num_reviews on the edge as the weight
-            # edgeset = nx.minimum_edge_cut(subgraph, s, t)
-            edgeset = ut.nx_mincut_edges_weighted(subgraph, s, t, capacity='num_reviews')
-            edgeset = set([tuple(sorted(edge)) for edge in edgeset])
-            check_edges.update(edgeset)
-        return list(check_edges)
+            # edgeset = nx.minimum_edge_cut(subgraph_, s, t)
+            cut_edgeset = ut.nx_mincut_edges_weighted(subgraph_, s, t,
+                                                      capacity='num_reviews')
+            cut_edgeset = set([tuple(sorted(edge)) for edge in cut_edgeset])
+
+            join_edgeset = {(s, t)}
+
+            # Determine if this is more likely a split or a join
+            cut_edgeset_weight = sum([
+                subgraph_.get_edge_data(u, v).get('num_reviews', 1)
+                for u, v in cut_edgeset])
+
+            join_edgeset_weight = sum([
+                subgraph.get_edge_data(u, v).get('num_reviews', 1)
+                for u, v in join_edgeset])
+            print('cut_edgeset = %r' % (cut_edgeset,))
+            print('join_edgeset = %r' % (join_edgeset,))
+            print('cut_edgeset_weight = %r' % (cut_edgeset_weight,))
+            print('join_edgeset_weight = %r' % (join_edgeset_weight,))
+
+            if join_edgeset_weight < cut_edgeset_weight:
+                # more likely a join
+                maybe_error_edges.update(join_edgeset)
+            else:
+                # More likely a split
+                maybe_error_edges.update(cut_edgeset)
+        return list(maybe_error_edges)
 
     def find_possible_binary_splits(infr):
         if infr.verbose > 1:

@@ -605,10 +605,11 @@ def case_override_inference():
     ccs = [[1, 2, 3, 4, 5]]
     edges = [
         (1, 3, {'inferred_state': 'same'}),
-        (1, 4, {'inferred_state': 'same'}),
+        (1, 4, {'inferred_state': 'same', 'num_reviews': .001}),
         # (1, 5, {'inferred_state': 'same'}),
         (2, 4, {'inferred_state': 'same'}),
         (2, 5, {'inferred_state': 'same'}),
+        (4, 5, {'inferred_state': 'same', 'num_reviews': .1}),
     ]
     edges += []
     new_edges = [
@@ -618,7 +619,8 @@ def case_override_inference():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
     # Make sure that the inferred edges are no longer inferred when an
     # inconsistent case is introduced
-    check(infr2, 1, 4, 'maybe_error', None, 'should not split inferred edge')
+    check(infr2, 1, 4, 'maybe_error', False, 'should not split inferred edge')
+    check(infr2, 4, 5, 'maybe_error', True, 'split me')
     check(infr2, 5, 2, 'inferred_state', None, 'inference should be overriden')
     after()
 
@@ -845,6 +847,34 @@ def case_out_of_subgraph_modification():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 2, 6, 'inferred_state', None, 'should not be inferred')
     check(infr2, 2, 6, 'inferred_state', 'diff', 'should be inferred')
+    after()
+
+
+def case_flag_merge():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden case_flag_merge --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> case_flag_merge()
+    """
+    # A case where a review between two ccs modifies state outside of
+    # the subgraph of ccs
+    ccs = []
+    edges = [
+        (1, 2, {'reviewed_state': 'match', 'num_reviews': 2}),
+        (4, 1, {'reviewed_state': 'match', 'num_reviews': 1}),
+        (2, 4, {'reviewed_state': 'nomatch', 'num_reviews': 1}),
+    ]
+    # Ensure that the nomatch edge comes back as potentially in error
+    new_edges = [(1, 4, {'reviewed_state': 'match'})]
+    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    check(infr1, 2, 4, 'maybe_error', False, 'match edge should flag first')
+    check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first')
+    check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second')
+    check(infr2, 1, 4, 'maybe_error', False, 'nomatch edge should flag second')
     after()
 
 

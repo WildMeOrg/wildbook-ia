@@ -146,10 +146,10 @@ class _AnnotInfrViz(object):
     def simplify_graph(infr, graph=None):
         if graph is None:
             graph = infr.graph
-        s = graph.copy()
-        ut.nx_delete_edge_attr(s, infr.visual_edge_attrs)
-        ut.nx_delete_node_attr(s, infr.visual_node_attrs + ['pin'])
-        return s
+        simple = graph.copy()
+        ut.nx_delete_edge_attr(simple, infr.visual_edge_attrs)
+        ut.nx_delete_node_attr(simple, infr.visual_node_attrs + ['pin'])
+        return simple
 
     def update_visual_attrs(infr, graph=None,
                             show_recent_review=True,
@@ -202,7 +202,7 @@ class _AnnotInfrViz(object):
                        if flag]
         edge_to_timestamp = nx.get_edge_attributes(graph, 'review_timestamp')
         recheck_edges = [edge for edge, split in
-                         nx.get_edge_attributes(graph, 'maybe_split').items()
+                         nx.get_edge_attributes(graph, 'maybe_error').items()
                          if split]
         cut_edges = [edge for edge, cut in
                      nx.get_edge_attributes(graph, 'is_cut').items()
@@ -213,8 +213,11 @@ class _AnnotInfrViz(object):
                        if state == 'match']
         notcomp_edges = [edge for edge, state in reviewed_states.items()
                          if state == 'notcomp']
-        inferred_edges = [edge for edge, state in edge_to_inferred_state.items()
-                          if state in {'same', 'diff'}]
+        inferred_same = [edge for edge, state in edge_to_inferred_state.items()
+                         if state == 'same']
+        inferred_diff = [edge for edge, state in edge_to_inferred_state.items()
+                         if state == 'diff']
+        inferred_edges = inferred_same + inferred_diff
         reviewed_edges = notcomp_edges + match_edges + nomatch_edges
         unreviewed_edges = ut.setdiff(edges, reviewed_edges)
         unreviewed_cut_edges = ut.setdiff(cut_edges, reviewed_edges)
@@ -231,7 +234,7 @@ class _AnnotInfrViz(object):
         nx.set_edge_attributes(graph, 'linewidth', _dz(
             unreviewed_edges, [2.0]))
 
-        # EDGE_STROKE: based on reviewed_state and maybe_split
+        # EDGE_STROKE: based on reviewed_state and maybe_error
         # fg = pt.WHITE if dark_background else pt.BLACK
         # nx.set_edge_attributes(graph, 'stroke', _dz(reviewed_edges, [
         #     {'linewidth': 3, 'foreground': fg}]))
@@ -252,8 +255,17 @@ class _AnnotInfrViz(object):
         nx.set_edge_attributes(graph, 'alpha', _dz(notcomp_edges, [alpha_med]))
 
         # Ensure reviewed edges are visible
+        nx.set_edge_attributes(graph, 'implicit', _dz(reviewed_edges, [False]))
         nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges,
                                                    [alpha_high]))
+
+        if True:
+            # Infered same edges can be allowed to constrain in order
+            # to make things look nice sometimes
+            nx.set_edge_attributes(graph, 'implicit', _dz(inferred_same,
+                                                          [False]))
+            nx.set_edge_attributes(graph, 'alpha', _dz(inferred_same,
+                                                       [alpha_high]))
 
         # SKETCH: based on inferred_edges
         # Make inferred edges wavy
