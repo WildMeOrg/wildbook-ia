@@ -795,7 +795,7 @@ class _AnnotInfrFeedback(object):
 
             # Check for consistency
             # First remove previous split cases and inferred states
-            nx.set_edge_attributes(infr.graph, 'maybe_split',
+            nx.set_edge_attributes(infr.graph, 'maybe_error',
                                    _dz(subgraph2.edges(), [False]))
             nx.set_edge_attributes(infr.graph, 'is_cut',
                                    _dz(subgraph2.edges(), [False]))
@@ -817,9 +817,9 @@ class _AnnotInfrFeedback(object):
                     split_subgraph = nx.Graph([e + (_subgraph.get_edge_data(*e),)
                                                for e in keep_edges])
                     # _subgraph.remove_edges_from(keep_edges)
-                    split_edges = infr._flag_possible_split_edges(split_subgraph)
-                    nx.set_edge_attributes(infr.graph, 'maybe_split',
-                                           _dz(split_edges, [True]))
+                    error_edges = infr._find_possible_error_edges(split_subgraph)
+                    nx.set_edge_attributes(infr.graph, 'maybe_error',
+                                           _dz(error_edges, [True]))
                 inconsistent |= cc_inconsistent
 
             # First remove all inferences in the subgraph so we can locally
@@ -944,9 +944,9 @@ class _AnnotInfrFeedback(object):
             ]
             split_subgraph = nx.Graph(keep_edges)
             # _subgraph.remove_edges_from(keep_edges)
-            split_edges = infr._flag_possible_split_edges(split_subgraph)
-            nx.set_edge_attributes(infr.graph, 'maybe_split',
-                                   _dz(split_edges, [True]))
+            error_edges = infr._find_possible_error_edges(split_subgraph)
+            nx.set_edge_attributes(infr.graph, 'maybe_error',
+                                   _dz(error_edges, [True]))
             # print('inconsistent_edges = %r' % (inconsistent_edges,))
             nx.set_edge_attributes(infr.graph, 'inferred_state', _dz(
                 inconsistent_edges, [None]))
@@ -1751,7 +1751,7 @@ class AnnotInference(ut.NiceRepr,
                     # Inconsistent case!
                     # mark one of these for review
                     subgraph = infr.graph.subgraph(set(ut.flatten(uvs)))
-                    flagged_edges = infr._flag_possible_split_edges(subgraph)
+                    flagged_edges = infr._find_possible_error_edges(subgraph)
                     chosen = flagged_edges[rng.randint(len(flagged_edges))]
                     why = 'split'
                     needs_review_edges.append((chosen, why))
@@ -1779,7 +1779,7 @@ class AnnotInference(ut.NiceRepr,
         needs_review_edges = ut.take(needs_review_edges, sortx)
         return needs_review_edges
 
-    def _flag_possible_split_edges(infr, subgraph):
+    def _find_possible_error_edges(infr, subgraph):
         inconsistent_edges = [
             edge
             for edge, state in nx.get_edge_attributes(subgraph, 'reviewed_state').items()
@@ -1806,7 +1806,7 @@ class AnnotInference(ut.NiceRepr,
             print('[infr] find_possible_binary_splits')
         flagged_edges = []
         for subgraph in infr.connected_component_reviewed_subgraphs():
-            flagged_edges.extend(infr._flag_possible_split_edges(subgraph))
+            flagged_edges.extend(infr._find_possible_error_edges(subgraph))
         edges = ut.flatten(flagged_edges)
         return edges
 

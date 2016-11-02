@@ -177,8 +177,8 @@ def demo_graph_iden2():
 
     infr.ensure_cliques()
     infr.graph.graph['ignore_labels'] = True
-    infr.set_node_attrs('width', 20)
-    infr.set_node_attrs('height', 20)
+    infr.set_node_attrs('width', 40)
+    infr.set_node_attrs('height', 40)
     infr.set_node_attrs('fontsize', fontsize)
     infr.set_node_attrs('fontname', fontname)
     infr.set_node_attrs('fixed_size', True)
@@ -414,6 +414,12 @@ def do_infr_test(ccs, edges, new_edges):
     infr.apply_review_inference()
     infr.apply_weights()
     infr.graph.graph['dark_background'] = True
+    infr.graph.graph['ignore_labels'] = True
+    infr.set_node_attrs('width', 40)
+    infr.set_node_attrs('height', 40)
+    # infr.set_node_attrs('fontsize', fontsize)
+    # infr.set_node_attrs('fontname', fontname)
+    infr.set_node_attrs('fixed_size', True)
 
     # Preshow
     fnum = 1
@@ -554,7 +560,7 @@ def case_inconsistent():
     # Make sure the previously inferred edge is no longer inferred
     check(infr1, 4, 1, 'inferred_state', 'diff', 'should initially be an inferred diff')
     check(infr2, 4, 1, 'inferred_state', None, 'should not be inferred after incon')
-    check(infr2, 4, 3, 'maybe_split', True, 'need to have a maybe split')
+    check(infr2, 4, 3, 'maybe_error', True, 'need to have a maybe split')
     after()
 
 
@@ -577,7 +583,7 @@ def case_redo_incon():
     new_edges = [(2, 3, {'reviewed_state': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
-    maybe_splits = infr2.get_edge_attrs('maybe_split')
+    maybe_splits = infr2.get_edge_attrs('maybe_error')
     print('maybe_splits = %r' % (maybe_splits,))
     if not any(maybe_splits.values()):
         ut.cprint('FAILURE', 'red')
@@ -612,7 +618,7 @@ def case_override_inference():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
     # Make sure that the inferred edges are no longer inferred when an
     # inconsistent case is introduced
-    check(infr2, 1, 4, 'maybe_split', None, 'should not split inferred edge')
+    check(infr2, 1, 4, 'maybe_error', None, 'should not split inferred edge')
     check(infr2, 5, 2, 'inferred_state', None, 'inference should be overriden')
     after()
 
@@ -785,7 +791,7 @@ def case_keep_in_cc_infr_post_nomatch():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
-        >>> case_keep_in_cc_infr_post_notcomp()
+        >>> case_keep_in_cc_infr_post_nomatch()
     """
     ccs = [[1, 2, 3], [4]]
     edges = [(1, 3), (1, 4), (2, 4), (3, 4)]
