@@ -196,31 +196,31 @@ class _AnnotInfrViz(object):
         edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
 
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
-        nomatch_edges = [edge for edge, state in reviewed_states.items()
-                         if state in {'nomatch'}]
-        reviewed_edges = [edge for edge, state in reviewed_states.items()
-                          if state in {'match', 'nomatch', 'notcomp'}]
-        unreviewed_edges = ut.setdiff(edges, reviewed_edges)
-        # comp_reviewed_edges = [edge for edge, state in
-        #                        reviewed_states_full.items()
-        #                        if state in {'match', 'nomatch'}]
-        split_edges = [edge for edge, split in
-                       nx.get_edge_attributes(graph, 'maybe_split').items()
-                       if split]
-        cut_edges = [edge for edge, cut in
-                     nx.get_edge_attributes(graph, 'is_cut').items()
-                     if cut]
-        unreviewed_cut_edges = ut.setdiff(cut_edges, reviewed_edges)
-        reviewed_cut_edges = ut.setdiff(cut_edges, unreviewed_cut_edges)
         edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
-        uninferred_edges = [edge for edge, state in edge_to_inferred_state.items()
-                            if state not in {'same', 'diff'}]
-        inferred_edges = [edge for edge, state in edge_to_inferred_state.items()
-                          if state in {'same', 'diff'}]
         dummy_edges = [edge for edge, flag in
                        nx.get_edge_attributes(graph, '_dummy_edge').items()
                        if flag]
         edge_to_timestamp = nx.get_edge_attributes(graph, 'review_timestamp')
+        recheck_edges = [edge for edge, split in
+                         nx.get_edge_attributes(graph, 'maybe_split').items()
+                         if split]
+        cut_edges = [edge for edge, cut in
+                     nx.get_edge_attributes(graph, 'is_cut').items()
+                     if cut]
+        nomatch_edges = [edge for edge, state in reviewed_states.items()
+                         if state == 'nomatch']
+        match_edges = [edge for edge, state in reviewed_states.items()
+                       if state == 'match']
+        notcomp_edges = [edge for edge, state in reviewed_states.items()
+                         if state == 'notcomp']
+        inferred_edges = [edge for edge, state in edge_to_inferred_state.items()
+                          if state in {'same', 'diff'}]
+        reviewed_edges = notcomp_edges + match_edges + nomatch_edges
+        unreviewed_edges = ut.setdiff(edges, reviewed_edges)
+        unreviewed_cut_edges = ut.setdiff(cut_edges, reviewed_edges)
+        reviewed_cut_edges = ut.setdiff(cut_edges, unreviewed_cut_edges)
+        compared_edges = match_edges + nomatch_edges
+        uncompared_edges = ut.setdiff(edges, compared_edges)
 
         # EDGE_COLOR: based on edge_weight
         nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
@@ -232,22 +232,24 @@ class _AnnotInfrViz(object):
             unreviewed_edges, [2.0]))
 
         # EDGE_STROKE: based on reviewed_state and maybe_split
-        fg = pt.WHITE if dark_background else pt.BLACK
-        nx.set_edge_attributes(graph, 'stroke', _dz(reviewed_edges, [
-            {'linewidth': 3, 'foreground': fg}]))
-        nx.set_edge_attributes(graph, 'stroke', _dz(split_edges, [
+        # fg = pt.WHITE if dark_background else pt.BLACK
+        # nx.set_edge_attributes(graph, 'stroke', _dz(reviewed_edges, [
+        #     {'linewidth': 3, 'foreground': fg}]))
+        nx.set_edge_attributes(graph, 'stroke', _dz(recheck_edges, [
             {'linewidth': 5, 'foreground': pt.ORANGE}]))
 
-        # Are cuts visible or invisible?
+        # Cut edges are implicit and dashed
         nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
         nx.set_edge_attributes(graph, 'linestyle', _dz(cut_edges, ['dashed']))
         nx.set_edge_attributes(graph, 'alpha', _dz(cut_edges, [alpha_med]))
 
-        nx.set_edge_attributes(graph, 'implicit', _dz(uninferred_edges, [True]))
+        nx.set_edge_attributes(graph, 'implicit', _dz(uncompared_edges, [True]))
 
-        # No-matching edges should not impose a constraint on the graph layout
+        # Only matching edges should impose constraints on the graph layout
         nx.set_edge_attributes(graph, 'implicit', _dz(nomatch_edges, [True]))
         nx.set_edge_attributes(graph, 'alpha', _dz(nomatch_edges, [alpha_med]))
+        nx.set_edge_attributes(graph, 'implicit', _dz(notcomp_edges, [True]))
+        nx.set_edge_attributes(graph, 'alpha', _dz(notcomp_edges, [alpha_med]))
 
         # Ensure reviewed edges are visible
         nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges,
@@ -274,11 +276,11 @@ class _AnnotInfrViz(object):
             # spread and size. offset is the same as angle and distance.
             nx.set_edge_attributes(graph, 'shadow', _dz(recent_edges, [{
                 'rho': .3,
-                'alpha': .3,
+                'alpha': .6,
                 'shadow_color': 'w' if dark_background else 'k',
                 # 'offset': (2, -2),
                 'offset': (0, 0),
-                'scale': 2.0,
+                'scale': 3.0,
                 # 'offset': (4, -4)
             }]))
 
