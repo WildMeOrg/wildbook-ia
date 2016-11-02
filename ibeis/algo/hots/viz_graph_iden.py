@@ -154,6 +154,7 @@ class _AnnotInfrViz(object):
     def update_visual_attrs(infr, graph=None,
                             show_recent_review=True,
                             hide_reviewed_cuts=False,
+                            hide_inferred_same=False,
                             hide_unreviewed_cuts=True,
                             # hide_unreviewed_inferred=True
                             ):
@@ -323,6 +324,10 @@ class _AnnotInfrViz(object):
         if hide_reviewed_cuts:
             nx.set_edge_attributes(graph, 'style', _dz(
                 reviewed_cut_edges, ['invis']))
+
+        if hide_inferred_same:
+            nx.set_edge_attributes(graph, 'style', _dz(
+                inferred_same, ['invis']))
 
         if show_recent_review and edge_to_timestamp:
             # Always show the most recent review (remove setting of invis)

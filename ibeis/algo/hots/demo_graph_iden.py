@@ -104,8 +104,8 @@ def demo_graph_iden2():
     import plottool as pt
     # Create dummy data
     # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
-    # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
     annots_per_name = [4, 3, 2, 1]
+    annots_per_name = [1, 2, 3, 4, 4, 2, 5]
     nids = [val for val, num in enumerate(annots_per_name, start=1)
             for _ in range(num)]
     aids = range(len(nids))
@@ -146,10 +146,12 @@ def demo_graph_iden2():
     # fontname = 'Ubuntu'
     fontname = 'sans'
 
-    def show_graph(infr, title):
+    def show_graph(infr, title, final=False):
         showkw = dict(fontsize=fontsize, fontname=fontname,
                       hide_reviewed_cuts=True,
+                      hide_inferred_same=True,
                       hide_unreviewed_cuts=True,
+                      show_recent_review=not final,
                       with_colorbar=True)
         # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
         infr_ = infr
@@ -224,6 +226,8 @@ def demo_graph_iden2():
 
         if count == TARGET_REVIEW:
             break
+
+    show_graph(infr, 'post-review', final=True)
 
     if not getattr(infr, 'EMBEDME', False):
         if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
