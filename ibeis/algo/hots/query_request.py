@@ -59,7 +59,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
 
     CommandLine:
         python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:0
-        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:2
+        python -m ibeis.algo.hots.query_request --test-new_ibeis_query_request:1
 
     Example0:
         >>> # ENABLE_DOCTEST
@@ -68,7 +68,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': False, 'fg_on': True}  # 'fw_detector': 'rf'}
-        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict =cfgdict)
+        >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> print(qreq_.get_cfgstr())
         >>> assert qreq_.qparams.sv_on is False, (
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
@@ -84,6 +84,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> verbose = ut.NOT_QUIET
         >>> cfgdict = {'sv_on': True, 'fg_on': True}
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
+        >>> assert qreq_.query_config2_.featweight_enabled is False
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
         >>> assert qreq_.qparams.sv_on is True, (
@@ -237,7 +238,9 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
                  ibs.has_species_detector(unique_species[0]))
     if not candetect:
         if ut.NOT_QUIET:
-            print('[qreq] HACKING FG_WEIGHT OFF (db species is not supported)')
+            ut.cprint(
+                '[qreq] HACKING FG_WEIGHT OFF (db species is not supported)',
+                'yellow')
             if len(unique_species) != 1:
                 print('[qreq]  * len(unique_species) = %r' % len(unique_species))
             else:
@@ -245,15 +248,13 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
         #print('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_enabled = 'ERR'
-        cfgdict['featweight_enabled'] = 'ERR'
+        cfgdict['featweight_enabled'] = False  # 'ERR'
         cfgdict['fg_on'] = False
     else:
         #print(ibs.get_annot_species_texts(aid_list))
         if verbose:
             print('[qreq] Using fgweights of unique_species=%r' % (
                 unique_species,))
-        pass
-        #, aid_list=%r' % (unique_species, aid_list))
     return unique_species
 
 
