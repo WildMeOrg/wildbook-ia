@@ -1080,7 +1080,15 @@ class _AnnotMatchConvenienceGetter(object):
         """ top scoring aids of a certain truth value """
         sortx = cm.score_list.argsort()[::-1]
         _top_aids = vt.list_take_(cm.daid_list, sortx)
-        truth_list = ibs.get_aidpair_truths([cm.qaid] * len(_top_aids), _top_aids)
+        _top_nids = vt.list_take_(cm.dnid_list, sortx)
+
+        isunknown_list = _top_nids <= 0
+        if cm.qnid <= 0:
+            isunknown_list[:] = True
+        truth_list = np.array((cm.qnid == _top_nids), dtype=np.int32)
+        truth_list[isunknown_list] = ibs.const.TRUTH_UNKNOWN
+
+        # truth_list = ibs.get_aidpair_truths([cm.qaid] * len(_top_aids), _top_aids)
         flag_list = truth_list == truth
         if invert:
             flag_list = np.logical_not(flag_list)
@@ -1129,6 +1137,11 @@ class _AnnotMatchConvenienceGetter(object):
         gt_flags = cm.get_groundtruth_flags()
         gt_daids = vt.list_compress_(cm.daid_list, gt_flags)
         return gt_daids
+
+    def get_groundfalse_daids(cm):
+        gf_flags = np.logical_not(cm.get_groundtruth_flags())
+        gf_daids = vt.list_compress_(cm.daid_list, gf_flags)
+        return gf_daids
 
     @property
     def groundtruth_daids(cm):

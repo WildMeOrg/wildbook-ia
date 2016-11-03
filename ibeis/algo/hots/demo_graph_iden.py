@@ -148,7 +148,7 @@ def demo_graph_iden2():
 
     def show_graph(infr, title, final=False):
         showkw = dict(fontsize=fontsize, fontname=fontname,
-                      hide_reviewed_cuts=True,
+                      # hide_reviewed_cuts=True,
                       hide_inferred_same=True,
                       hide_unreviewed_cuts=True,
                       show_recent_review=not final,
@@ -390,6 +390,10 @@ def do_infr_test(ccs, edges, new_edges):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
     import plottool as pt
+
+    if nx.__version__.startswith('1'):
+        nx.add_path = nx.Graph.add_path
+
     pt.qt4ensure()
     G = nx.Graph()
     import numpy as np

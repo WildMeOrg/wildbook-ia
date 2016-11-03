@@ -307,7 +307,7 @@ def get_edge_id_probs(G, aid1, aid2, n_names):
     return p_same, p_diff
 
 
-def build_factor_graph(G, nodes, edges , n_annots, n_names, lookup_annot_idx,
+def build_factor_graph(G, nodes, edges, n_annots, n_names, lookup_annot_idx,
                        use_unaries=True, edge_probs=None, operator='multiplier'):
 
     node_state_card = np.ones(n_annots, dtype=index_type) * n_names

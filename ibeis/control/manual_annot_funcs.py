@@ -1063,7 +1063,7 @@ def get_annot_num_contact_aids(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1toM
-def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
+def get_annot_groundfalse(ibs, aid_list, valid_aids=None,
                           filter_unknowns=True, daid_list=None):
     r"""
     gets all annotations with different names
@@ -1071,21 +1071,19 @@ def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
     Returns:
         groundfalse_list (list): a list of aids which are known to be different for each
 
-    #Example:
-    #    >>> # ENABLE_DOCTEST
-    #    >>> import ibeis
-    #    >>> ibs = ibeis.opendb('PZ_MTEST')
-    #    >>> aid_list = ibs.get_valid_aids()
-    #    >>> is_exemplar, noself, daid_list = None, True, None
-    #    >>> groundfalse_list = ibs.get_annot_groundfalse(aid_list)
-    #    >>> result = str(groundtruth_list)
-    #    >>> print(result)
+    Example:
+       >>> # ENABLE_DOCTEST
+       >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+       >>> import ibeis
+       >>> ibs = ibeis.opendb('testdb1')
+       >>> aid_list = ibs.get_valid_aids()
+       >>> groundfalse_list = get_annot_groundfalse(ibs, aid_list)
+       >>> result = str(groundfalse_list)
+       >>> print(result)
     """
     if valid_aids is None:
         # get all valid aids if not specified
-        # really the examplar flag should not be allowed and only daids
-        # should be taken as input
-        valid_aids = ibs.get_valid_aids(is_exemplar=is_exemplar)
+        valid_aids = ibs.get_valid_aids()
     if daid_list is not None:
         valid_aids = list(set(daid_list).intersection(set(valid_aids)))
     if filter_unknowns:
@@ -1095,11 +1093,17 @@ def get_annot_groundfalse(ibs, aid_list, is_exemplar=None, valid_aids=None,
     else:
         valid_aids_ = valid_aids
     # Build the set of groundfalse annotations
+    # nid_list = ibs.get_annot_name_rowids(aid_list)
+    # aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
+    # aids_setlist = map(set, aids_list)
+    # valid_aids = set(valid_aids_)
+    # groundfalse_list = [list(valid_aids - aids) for aids in aids_setlist]
+
     nid_list = ibs.get_annot_name_rowids(aid_list)
-    aids_list = ibs.get_name_aids(nid_list, enable_unknown_fix=True)
-    aids_setlist = map(set, aids_list)
+    nid_to_aids = ut.group_items(aid_list, nid_list)
+    nid_to_aidset = ut.map_dict_vals(set, nid_to_aids)
     valid_aids = set(valid_aids_)
-    groundfalse_list = [list(valid_aids - aids) for aids in aids_setlist]
+    groundfalse_list = [list(valid_aids - nid_to_aidset[nid]) for nid in nid_list]
     return groundfalse_list
 
 

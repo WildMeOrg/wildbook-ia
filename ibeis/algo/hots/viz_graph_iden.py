@@ -281,7 +281,7 @@ class _AnnotInfrViz(object):
 
         # SHADOW: based on review_timestamp
         # Increase visibility of nodes with the most recently changed timestamp
-        if edge_to_timestamp:
+        if show_recent_review and edge_to_timestamp:
             timestamps = list(edge_to_timestamp.values())
             recent_idxs = ut.where(ut.equal([max(timestamps)], timestamps))
             recent_edges = ut.take(list(edge_to_timestamp.keys()), recent_idxs)

@@ -53,7 +53,8 @@ def train_pairwise_rf():
         'score_method': 'csum'
     })
     # Per query choose a set of correct, incorrect, and random training pairs
-    aid_pairs = infr._cm_training_pairs(top_gt=4, top_gf=3, rand_gf=2)
+    rng = np.random.RandomState(42)
+    aid_pairs = infr._cm_training_pairs(top_gt=4, top_gf=3, rand_gf=2, rng=rng)
     aid_pairs = vt.unique_rows(np.array(aid_pairs), directed=False).tolist()
     query_aids = ut.take_column(aid_pairs, 0)
     data_aids = ut.take_column(aid_pairs, 1)

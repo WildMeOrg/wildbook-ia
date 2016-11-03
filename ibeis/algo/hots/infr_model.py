@@ -35,27 +35,115 @@ def estimate_threshold(curve, method=None):
 class InfrModel(ut.NiceRepr):
     """
     Wrapper around graphcut algorithms
+
+    Example:
+        >>> from ibeis.algo.hots.infr_model import *  # NOQA
+        >>> import networkx as nx
+        >>> from scipy.special import logit
+        >>> graph = nx.Graph()
+        >>> graph.add_edges_from([
+        >>>     (1, 2, {'cut_prob': .8}),
+        >>>     (3, 4, {'cut_prob': .8}),
+        >>>     (2, 3, {'cut_prob': .2}),
+        >>>     (1, 3, {'cut_prob': .2}),
+        >>>     (1, 4, {'cut_prob': .2}),
+        >>>     (2, 4, {'cut_prob': .2}),
+        >>> ])
+        >>> model = InfrModel(graph)
     """
 
     def __init__(model, graph):
         model.graph = graph
-        model._update_state()
+        # model._update_state_gco()
+        model._update_state_opengm()
 
-    def _update_state(model, weight_key='cut_weight',
-                      name_label_key='name_label'):
+    def _update_state_opengm(model, weight_key='cut_prob',
+                             name_label_key='name_label'):
+        import opengm
+        import scipy.special
+        graph = model.graph
+        n_annots = len(model.graph)
+        n_names = n_annots
+
+        nodes = sorted(graph.nodes())
+        edges = [tuple(sorted(e)) for e in graph.edges()]
+        edges = ut.sortedby2(edges, edges)
+
+        index_type = opengm.index_type
+        node_state_card = np.ones(n_annots, dtype=index_type) * n_names
+        numberOfStates = node_state_card
+        annot_idxs = list(range(n_annots))
+        lookup_annot_idx = ut.dzip(nodes, annot_idxs)
+
+        gm = opengm.graphicalModel(numberOfStates, operator='adder')
+
+        # annot_idxs = list(range(n_annots))
+        # edge_idxs = list(range(n_annots, n_annots + n_edges))
+        # if use_unaries:
+        #     unaries = np.ones((n_annots, n_names)) / n_names
+        #     # unaries[0][0] = 1
+        #     # unaries[0][1:] = 0
+        #     for annot_idx in annot_idxs:
+        #         fid = gm.addFunction(unaries[annot_idx])
+        #         gm.addFactor(fid, annot_idx)
+
+        # Add Potts function for each edge
+        pairwise_factor_idxs = []
+        for count, (aid1, aid2) in enumerate(edges, start=len(list(gm.factors()))):
+            varx1, varx2 = ut.take(lookup_annot_idx, [aid1, aid2])
+            var_indicies = np.array([varx1, varx2])
+
+            p_same = graph.get_edge_data(aid1, aid2)['cut_prob']
+            # p_diff = 1 - p_same
+
+            eps = 1E-9
+            p_same = np.clip(p_same, eps, 1.0 - eps)
+            same_weight = scipy.special.logit(p_same)
+            # valueEqual = -same_weight
+            valueEqual = 0
+            valueNotEqual = same_weight
+            if not np.isfinite(valueNotEqual):
+                """
+                python -m plottool.draw_func2 --exec-plot_func --show --range=-1,1 --func=scipy.special.logit
+                """
+                print('valueNotEqual = %r' % (valueNotEqual,))
+                print('p_same = %r' % (p_same,))
+                raise ValueError('valueNotEqual')
+
+            pairwise_factor_idxs.append(count)
+
+            potts_func = opengm.PottsFunction((n_names, n_names),
+                                              valueEqual=valueEqual,
+                                              valueNotEqual=valueNotEqual)
+            potts_func_id = gm.addFunction(potts_func)
+            gm.addFactor(potts_func_id, var_indicies)
+
+        model.gm = gm
+
+    def _gm_total_energy(model, internal_labeling):
+        energy = model.gm.evaluate(internal_labeling)
+        return energy
+        # internal_labeling[internal_edges]
+
+    def _update_state_gco(model, weight_key='cut_weight',
+                          name_label_key='name_label'):
         import networkx as nx
         # Get nx graph properties
         external_nodes = sorted(list(model.graph.nodes()))
         external_edges = list(model.graph.edges())
-        edge2_weights = nx.get_edge_attrs(model.graph, weight_key)
-        node2_labeling = nx.get_node_attrs(model.graph, name_label_key)
-        edge_weights = ut.dict_take(edge2_weights, external_edges, 0)
-        external_labeling = ut.take(node2_labeling, external_nodes)
+        edge_to_weights = nx.get_edge_attributes(model.graph, weight_key)
+        node_to_labeling = nx.get_node_attributes(model.graph, name_label_key)
+        edge_weights = ut.dict_take(edge_to_weights, external_edges, 0)
+        external_labeling = [node_to_labeling.get(node, -node) for node in external_nodes]
         # Map to internal ids for pygco
         internal_nodes = ut.rebase_labels(external_nodes)
         extern2_intern = dict(zip(external_nodes, internal_nodes))
         internal_edges = ut.unflat_take(extern2_intern, external_edges)
         internal_labeling = ut.rebase_labels(external_labeling)
+
+        internal_labeling = np.array(internal_labeling)
+        internal_edges = np.array(internal_edges)
+
         n_nodes = len(internal_nodes)
         # Model state
         model.n_nodes = n_nodes
