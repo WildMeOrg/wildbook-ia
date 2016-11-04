@@ -2394,7 +2394,9 @@ def fromiter_nd(iter_, shape, dtype):
     Like np.fromiter but handles iterators that generated
     n-dimensional arrays. Slightly faster than np.array.
 
-    maybe commit to numpy?
+    Note:
+        np.vstack(list_) is still faster than
+        vt.fromiter_nd(ut.iflatten(list_))
 
     Args:
         iter_ (iter): an iterable that generates homogenous ndarrays
@@ -2429,6 +2431,37 @@ def fromiter_nd(iter_, shape, dtype):
         >>> shape = (total, 2)
         >>> result = fromiter_nd(iter_, shape, dtype)
         >>> assert result.shape == shape
+
+    Timeit:
+        >>> dtype = np.uint8
+        >>> feat_dim = 128
+        >>> mu = 1000
+        >>> sigma = 500
+        >>> n_data = 1000
+        >>> rng = np.random.RandomState(42)
+        >>> n_feat_list = np.clip(rng.randn(n_data) * sigma + mu, 0, np.inf).astype(np.int)
+        >>> # Make a large list of vectors of various sizes
+        >>> print('Making random vectors')
+        >>> vecs_list = [(rng.rand(num, feat_dim) * 255).astype(dtype) for num in n_feat_list]
+        >>> mega_bytes = sum([x.nbytes for x in vecs_list]) / 2 ** 20
+        >>> print('mega_bytes = %r' % (mega_bytes,))
+        >>> import itertools as it
+        >>> import vtool as vt
+        >>> n_total = n_feat_list.sum()
+        >>> target1 = np.vstack(vecs_list)
+        >>> iter_ = it.chain.from_iterable(vecs_list)
+        >>> shape = (n_total, feat_dim)
+        >>> target2 = vt.fromiter_nd(it.chain.from_iterable(vecs_list), shape, dtype=dtype)
+        >>> assert np.all(target1 == target2)
+
+        %timeit np.vstack(vecs_list)
+        20.4ms
+        %timeit vt.fromiter_nd(it.chain.from_iterable(vecs_list), shape, dtype)
+        102ms
+
+        iter_ = it.chain.from_iterable(vecs_list)
+        %time vt.fromiter_nd(iter_, shape, dtype)
+        %time np.vstack(vecs_list)
     """
     num_rows = shape[0]
     chunksize = np.prod(shape[1:])
@@ -2510,6 +2543,26 @@ def make_video(images, outvid=None, fps=5, size=None,
         vid.write(img)
     vid.release()
     return vid
+
+
+def take_col_per_row(arr, colx_list):
+    """ takes a column from each row
+
+    Ignore:
+        num_rows = 1000
+        num_cols = 4
+
+        arr = np.arange(10 * 4).reshape(10, 4)
+        colx_list = (np.random.rand(10) * 4).astype(np.int)
+
+        %timeit np.array([row[cx] for (row, cx) in zip(arr, colx_list)])
+        %timeit arr.ravel().take(np.ravel_multi_index((np.arange(len(colx_list)), colx_list), arr.shape))
+        %timeit arr.ravel().take(colx_list + np.arange(arr.shape[0]) * arr.shape[1])
+    """
+    # out = np.array([row[cx] for (row, cx) in zip(arr, colx_list)])
+    multix_list = np.ravel_multi_index((np.arange(len(colx_list)), colx_list), arr.shape)
+    out = arr.ravel().take(multix_list)
+    return out
 
 
 if __name__ == '__main__':
