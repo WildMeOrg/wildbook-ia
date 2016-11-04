@@ -55,6 +55,12 @@ class PairwiseMatch(ut.NiceRepr):
         match.global_measures = None
         match._inplace_default = False
 
+    def add_global_measures(match, global_keys):
+        if match.global_measures is None:
+            match.global_measures = {}
+        for key in global_keys:
+            match.global_measures[key] = (match.annot1[key], match.annot2[key])
+
     def __nice__(match):
         parts = []
         if 'aid' in match.annot1:
@@ -226,32 +232,56 @@ class PairwiseMatch(ut.NiceRepr):
         )
         return ax, xywh1, xywh2
 
-    def make_pairwise_constlen_feature(match, main_key):
-        main_key = 'ratio'
-        import pandas as pd
-        local_feats = pd.DataFrame(match.measures)
-        sortx = local_feats[main_key].argsort()[::-1]
-        local_feats = local_feats.loc[sortx]
-
+    def _make_global_feature(match):
+        import vtool as vt
         feat = ut.odict([])
 
         if match.global_measures:
             for k, v in match.global_measures.items():
                 v1 = v[0]
                 v2 = v[1]
+                if v1 is None:
+                    v1 = np.nan
+                if v2 is None:
+                    v2 = np.nan
                 if ut.isiterable(v1):
                     for i in range(len(v1)):
                         feat[k + str(i) + '_1'] = v1[i]
                         feat[k + str(i) + '_2'] = v2[i]
+                    if k == 'gps':
+                        delta = vt.haversine(v1, v2)
+                    else:
+                        delta = np.abs(v1 - v2)
+                    feat[k + '_delta'] = delta
                 else:
                     feat[k + '_1'] = v1
                     feat[k + '_2'] = v2
+                    if k == 'yaw':
+                        delta = vt.ori_distance(v1, v2)
+                    else:
+                        delta = np.abs(v1 - v2)
+                    feat[k + '_delta'] = delta
 
-        ntop = 10
-        topn = local_feats[:ntop]
+        if 'gps_delta' in feat and 'time_delta' in feat:
+            hour_delta = feat['time_delta'] / 360
+            feat['speed'] = feat['gps_delta'] / hour_delta
+        return feat
+
+    def _make_local_feature(match, main_key='ratio', n_top=3):
+        import pandas as pd
+
+        local_feats = pd.DataFrame(match.measures)
+        sortx = local_feats[main_key].argsort()[::-1]
+        local_feats = local_feats.loc[sortx]
+        topn = local_feats[:n_top]
+
+        # Individual top features
+        feat = ut.odict([])
         for k, vs in topn.iteritems():
             for count, v in enumerate(vs):
                 feat[k + str(count)] = v
+
+        # Summary statistics
         for k, v in local_feats.sum().iteritems():
             feat['sum_' + k] = v
         for k, v in local_feats.mean().iteritems():
@@ -259,6 +289,12 @@ class PairwiseMatch(ut.NiceRepr):
         for k, v in local_feats.std().iteritems():
             feat['std_' + k] = v
         feat['n_total'] = len(local_feats)
+        return feat
+
+    def make_pairwise_constlen_feature(match, **kwargs):
+        feat = ut.odict([])
+        feat.update(match._make_global_feature())
+        feat.update(match._make_local_feature(**kwargs))
         return feat
 
 
