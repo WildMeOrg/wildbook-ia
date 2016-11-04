@@ -422,10 +422,14 @@ class _AnnotInfrMatching(object):
                 'score_method': 'csum'
             }
         # hack for using current nids
-        custom_nid_lookup = dict(zip(aids, infr.get_annot_attrs('name_label', aids)))
-        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                                      custom_nid_lookup=custom_nid_lookup)
-        cm_list = qreq_.execute(prog_hook=prog_hook)
+        with ut.Timer('nid lookup'):
+            custom_nid_lookup = dict(zip(aids, infr.get_annot_attrs('name_label', aids)))
+
+        with ut.Timer('qreq new'):
+            qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                          custom_nid_lookup=custom_nid_lookup)
+        with ut.Timer('qreq execute'):
+            cm_list = qreq_.execute(prog_hook=prog_hook)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
 

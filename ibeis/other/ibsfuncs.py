@@ -5350,6 +5350,11 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],
         'kpts': lambda:  ibs.get_annot_kpts([aid], config2_=config2_)[0],
         'dlen_sqrd': lambda: ibs.get_annot_chip_dlensqrd([aid], config2_=config2_)[0],
+        # global measures
+        'yaw': lambda: ibs.get_annot_yaws_asfloat(aid),
+        'qual': lambda: ibs.get_annot_qualities(aid),
+        'gps': lambda: ibs.get_annot_image_gps2(aid),
+        'time': lambda: ibs.get_annot_image_unixtimes_asfloat(aid),
         'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
     }, reprkw=dict(truncate=True))
     return metadata

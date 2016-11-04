@@ -369,12 +369,18 @@ class QueryRequest(ut.NiceRepr):
         return semantic_hashid
 
     def get_qreq_annot_semantic_uuids(qreq_, aids):
+        # TODO: need to speed up this function.
+        # Perhaps freeze the suuids and cache per aid
         nids = qreq_.get_qreq_annot_nids(aids)
         annot_name_uuids = ut.take(qreq_.nid_to_groupuuid, nids)
+        # Takes 64ms
         annot_visual_uuids = qreq_.ibs.get_annot_visual_uuids(aids)
         # Dynamically create semantic uuids
-        annot_semantic_uuids = [ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
-                                for vuuid, nuuid in zip(annot_visual_uuids, annot_name_uuids)]
+        # Also takes 64ms
+        annot_semantic_uuids = [
+            ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
+            for vuuid, nuuid in zip(annot_visual_uuids, annot_name_uuids)
+        ]
         return annot_semantic_uuids
 
     def __getstate__(qreq_):
@@ -457,6 +463,14 @@ class QueryRequest(ut.NiceRepr):
         bc_cfgstr = qreq_.get_full_cfgstr()
         bc_info = bc_dpath, bc_fname, bc_cfgstr
         return bc_info
+
+    def get_full_cfgstr(qreq_):
+        """ main cfgstring used to identify the 'querytype'
+        FIXME: name
+        params + data + query
+        """
+        full_cfgstr = qreq_.get_cfgstr(with_input=True)
+        return full_cfgstr
 
     def __nice__(qreq_):
         parts = qreq_.get_shortinfo_parts()
@@ -882,14 +896,6 @@ class QueryRequest(ut.NiceRepr):
         cfgstr = ''.join(cfgstr_list)
         return cfgstr
 
-    def get_full_cfgstr(qreq_):
-        """ main cfgstring used to identify the 'querytype'
-        FIXME: name
-        params + data + query
-        """
-        full_cfgstr = qreq_.get_cfgstr(with_input=True)
-        return full_cfgstr
-
     def get_qresdir(qreq_):
         return qreq_.qresdir
 
@@ -1251,9 +1257,10 @@ class QueryRequest(ut.NiceRepr):
             from ibeis.algo.hots import match_chips4 as mc4
             # Send query to hotspotter (runs the query)
             qreq_.prog_hook = prog_hook
-            cm_list = mc4.submit_query_request(
-                qreq_, use_cache=None, use_bigcache=None, verbose=True,
-                save_qcache=None)
+            with ut.Timer('mc4'):
+                cm_list = mc4.submit_query_request(
+                    qreq_, use_cache=None, use_bigcache=None, verbose=True,
+                    save_qcache=None)
         return cm_list
 
 
