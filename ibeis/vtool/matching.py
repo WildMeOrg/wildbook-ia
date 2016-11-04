@@ -96,6 +96,10 @@ class PairwiseMatch(ut.NiceRepr):
 
     def copy(match):
         match_ = match._next_instance(inplace=False)
+        match_.fm = match.fm.copy()
+        match_.fs = match.fs.copy()
+        match_.measures = ut.map_vals(
+                lambda a: a.copy(), match.measures)
         return match_
 
     def compress(match, flags, inplace=None):
