@@ -37,9 +37,9 @@ def train_pairwise_rf():
     import vtool as vt
     import ibeis
     # ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb('PZ_Master1')
-    # ibs = ibeis.opendb('GZ_Master1')
-    aids = ibeis.testdata_aids(a=':mingt=2,species=zebra_plains', ibs=ibs)
+    # ibs = ibeis.opendb('PZ_Master1')
+    ibs = ibeis.opendb('GZ_Master1')
+    aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
 
     # ===========================
     # Get a set of training pairs
@@ -255,7 +255,7 @@ def train_pairwise_rf():
             X_train = X_withnan[train_idx]
             X_test = X_withnan[test_idx]
             # Train uncalibrated random forest classifier on train data
-            clf = RandomForestClassifier(missing_values=np.nan, **rf_params)
+            clf = RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
 
             importances = dict(zip(withnan_cols, clf.feature_importances_))
