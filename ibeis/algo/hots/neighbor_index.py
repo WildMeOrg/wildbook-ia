@@ -694,6 +694,22 @@ class NeighborIndex(object):
             #qfx2_dist = np.sqrt(qfx2_dist) / nnindexer.max_distance_sqrd
         return (qfx2_idx, qfx2_dist)
 
+    def batch_knn(indexer, vecs, K, chunksize=4096, label='batch knn'):
+        """
+        Works like `indexer.knn` but the input is split into batches and
+        progress is reported to give an esimated time remaining.
+        """
+        # Preallocate output
+        idxs = np.empty((vecs.shape[0], K), dtype=np.int32)
+        dists = np.empty((vecs.shape[0], K), dtype=np.float32)
+        # Generate chunk slices
+        num_chunks = ut.get_num_chunks(vecs.shape[0], chunksize)
+        iter_ = ut.ichunk_slices(vecs.shape[0], chunksize)
+        prog = ut.ProgIter(iter_, nTotal=num_chunks, label=label)
+        for sl_ in prog:
+            idxs[sl_], dists[sl_] = indexer.knn(vecs[sl_], K=K)
+        return idxs, dists
+
     def debug_nnindexer(nnindexer):
         r"""
         Makes sure the indexer has valid SIFT descriptors

@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import numpy as np
+import vtool as vt
 import functools
 from ibeis.algo.hots import scoring
 from ibeis.algo.hots import hstypes
@@ -337,8 +338,9 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         >>> ut.assert_inbounds(neighb_normweight.sum(), 600, 950)
     """
     K = len(neighb_idx.T) - Knorm
-    neighb_normdist = np.array(
-        [dists[normk] for (dists, normk) in zip(neighb_dist, neighb_normk)])
+    # neighb_normdist = np.array(
+    #     [dists[normk] for (dists, normk) in zip(neighb_dist, neighb_normk)])
+    neighb_normdist = vt.take_col_per_row(neighb_dist, neighb_normk)
     neighb_normdist.shape = (len(neighb_idx), 1)
     neighb_nndist = neighb_dist.T[0:K].T
     vdist = neighb_nndist    # voting distance
