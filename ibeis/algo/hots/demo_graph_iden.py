@@ -149,6 +149,7 @@ def demo_graph_iden2():
     fontname = 'sans'
 
     def show_graph(infr, title, final=False):
+        return
         showkw = dict(fontsize=fontsize, fontname=fontname,
                       hide_reviewed_cuts=True,
                       hide_inferred_same=True,
