@@ -1640,7 +1640,7 @@ class AnnotInference(ut.NiceRepr,
         return aids1, aids2
 
     @profile
-    def get_edges_for_review(infr):
+    def get_edges_for_review(infr, randomness=0, rng=None):
         """
         Example:
             >>> # DISABLE_DOCTEST
@@ -1685,6 +1685,9 @@ class AnnotInference(ut.NiceRepr,
 
         node_to_nid = infr.get_node_attrs('name_label')
 
+        rng = ut.ensure_rng(rng)
+
+        # Candidate edges are unreviewed
         cand_edges = [
             (u, v, d) for u, v, d in graph.edges(data=True)
             if ((d.get('reviewed_state', 'unreviewed') == 'unreviewed' and
@@ -1712,6 +1715,18 @@ class AnnotInference(ut.NiceRepr,
             why = 'unreviewed'
             chosen_edges.append((edge, why))
 
+        if randomness > 0:
+            # Randomly review redundant edges
+            redundant_edges = [
+                (u, v, d) for u, v, d in graph.edges(data=True)
+                if d.get('reviewed_state', 'unreviewed') == 'unreviewed' and
+                d.get('inferred_state', None) == 'same'
+            ]
+            why = 'consistency check'
+            flags = rng.rand(len(redundant_edges)) > (1 - randomness ** 2)
+            for edge in ut.compress(redundant_edges, flags):
+                chosen_edges.append((edge, why))
+
         for edge in error_edges:
             why = 'maybe_error'
             chosen_edges.append((edge, why))
@@ -1722,6 +1737,10 @@ class AnnotInference(ut.NiceRepr,
             max(infr.graph.get_edge_data(u, v, d).get(priority_metric, -1), -1)
             for u, v, d in ut.take_column(chosen_edges, 0)])
 
+        if len(scores) > 0 and randomness > 0:
+            scores = (scores - scores.min()) / (scores.max() - scores.min())
+            scores = randomness * rng.rand(len(scores)) + (1 - randomness) * scores
+
         sortx = scores.argsort()[::-1]
         needs_review_edges = ut.take(chosen_edges, sortx)
         return needs_review_edges
@@ -1730,7 +1749,7 @@ class AnnotInference(ut.NiceRepr,
         rng = ut.ensure_rng(rng)
 
         def get_next(idx=0):
-            edges = infr.get_edges_for_review()
+            edges = infr.get_edges_for_review(randomness, rng)
             if len(edges) == 0:
                 print('no more edges to reveiw')
                 raise StopIteration('no more to review!')

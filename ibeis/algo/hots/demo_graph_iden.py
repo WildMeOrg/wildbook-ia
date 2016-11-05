@@ -131,7 +131,9 @@ def demo_graph_iden2():
                 if self.dir_ == +1 and self.state >= len(valid_views) - 1:
                     self.dir_ = -1
                 # Transition with probability 1/2
-                if rng.rand() > .5:
+                # if rng.rand() > .5:
+                # if rng.rand() > .9:
+                if False:
                     self.state += self.dir_
                 return valid_views[self.state]
         mkv = MarkovView()
@@ -148,7 +150,7 @@ def demo_graph_iden2():
 
     def show_graph(infr, title, final=False):
         showkw = dict(fontsize=fontsize, fontname=fontname,
-                      # hide_reviewed_cuts=True,
+                      hide_reviewed_cuts=True,
                       hide_inferred_same=True,
                       hide_unreviewed_cuts=True,
                       show_recent_review=not final,
@@ -207,7 +209,8 @@ def demo_graph_iden2():
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
         show_graph(infr, 'pre-reveiw')
 
-    for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
+    rng = np.random.RandomState(42)
+    for count, (aid1, aid2) in enumerate(infr.generate_reviews(randomness=.1, rng=rng)):
         msg = 'review #%d' % (count)
         print('\n----------')
         print(msg)
