@@ -198,6 +198,14 @@ def testdata_pipecfg(p=None, t=None, ibs=None):
         python -m ibeis testdata_pipecfg
         python -m ibeis testdata_pipecfg -t default:AI=False
 
+    Ignore:
+        from jedi.evaluate import docstrings
+        script = jedi.Script(ut.readfrom(main_helpers.__file__))
+        mod = script._get_module()
+        func = mod.names_dict['testdata_pipecfg'][0].parent
+        docstrings.find_return_types(script._evaluator, func)
+
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.main_helpers import *  # NOQA

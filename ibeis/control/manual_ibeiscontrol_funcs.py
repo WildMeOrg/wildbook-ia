@@ -25,7 +25,7 @@ def new_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         verbose (bool):
 
     Returns:
-        QueryRequest: qreq_ -  hyper-parameters
+        ibeis.QueryRequest: qreq_ -  hyper-parameters
     """
     from ibeis.algo.hots import query_request
     qreq_ = query_request.new_ibeis_query_request(
