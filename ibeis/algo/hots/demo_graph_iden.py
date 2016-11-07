@@ -80,6 +80,7 @@ def get_edge_truth(infr, n1, n2):
 
 
 def apply_dummy_scores(infr):
+    print('[demo] apply dummy scores')
     rng = np.random.RandomState(0)
     dummy_params = {
         0: {'mu': .2, 'sigma': .2},
@@ -87,9 +88,9 @@ def apply_dummy_scores(infr):
         2: {'mu': .2, 'sigma': .4},
     }
     edges = list(infr.graph.edges())
-    truths = [get_edge_truth(infr, n1, n2) for n1, n2 in edges]
+    truths = [get_edge_truth(infr, n1, n2) for n1, n2 in ut.ProgIter(edges)]
     normscores = [randn_clip(rng, a_max=0, a_min=1, **dummy_params[truth])
-                  for truth in truths]
+                  for truth in ut.ProgIter(truths)]
     infr.set_edge_attrs('normscore', ut.dzip(edges, normscores))
     ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
 
@@ -106,6 +107,7 @@ def demo_graph_iden2():
     # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
     annots_per_name = [4, 3, 2, 1]
     annots_per_name = [1, 2, 3, 4, 4, 2, 5]
+    annots_per_name = (np.random.rand(100) * 10).astype(np.int32) + 1
     nids = [val for val, num in enumerate(annots_per_name, start=1)
             for _ in range(num)]
     aids = range(len(nids))
@@ -148,8 +150,11 @@ def demo_graph_iden2():
     # fontname = 'Ubuntu'
     fontname = 'sans'
 
+    VISUALIZE = False
+
     def show_graph(infr, title, final=False):
-        return
+        if not VISUALIZE:
+            return
         showkw = dict(fontsize=fontsize, fontname=fontname,
                       hide_reviewed_cuts=True,
                       hide_inferred_same=True,
@@ -187,9 +192,10 @@ def demo_graph_iden2():
     infr.set_node_attrs('fontsize', fontsize)
     infr.set_node_attrs('fontname', fontname)
     infr.set_node_attrs('fixed_size', True)
-    infr.update_visual_attrs()
-    infr.set_node_attrs('pin', 'true')
-    print(ut.repr4(infr.graph.node[1]))
+    if VISUALIZE:
+        infr.update_visual_attrs()
+        infr.set_node_attrs('pin', 'true')
+        print(ut.repr4(infr.graph.node[1]))
     if SHOW_GT:
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')

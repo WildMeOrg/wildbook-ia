@@ -150,6 +150,8 @@ class _AnnotInfrDummy(object):
         infr.ensure_mst()
 
     def ensure_full(infr):
+        if infr.verbose:
+            print('[infr] ensure_full with %d nodes' % (len(infr.graph)))
         new_edges = nx.complement(infr.graph).edges()
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
@@ -158,6 +160,8 @@ class _AnnotInfrDummy(object):
         """
         Force each name label to be a clique
         """
+        if infr.verbose:
+            print('[infr] ensure_cliques')
         node_to_label = infr.get_node_attrs('name_label')
         label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
         new_edges = []
