@@ -524,7 +524,7 @@ def make_agraph_args(kwargs):
 
 
 def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
-                     return_agraph=False, **layoutkw):
+                     return_agraph=False, groupby=None, **layoutkw):
     r"""
     orig_graph = graph
     graph = layout_graph
@@ -541,14 +541,34 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     #import networkx as nx
     import pygraphviz
 
+    graph_ = get_explicit_graph(orig_graph).copy()
+
     #only_explicit = True
     #if only_explicit:
-    graph_ = get_explicit_graph(orig_graph).copy()
     num_nodes = len(graph_)
     is_large = num_nodes > LARGE_GRAPH
 
     layoutkw = layoutkw.copy()
     draw_implicit = layoutkw.pop('draw_implicit', True)
+
+    if groupby is not None:
+        # Layout groups separately
+        import utool
+        with utool.embed_on_exception_context:
+            import networkx as nx
+            node_to_group = nx.get_node_attributes(graph_, groupby)
+            group_to_nodes = ut.invert_dict(node_to_group, unique_vals=False)
+            subgraph_list = []
+            for group, nodes in group_to_nodes.items():
+                subgraph = graph_.subgraph(nodes)
+                nx_agraph_layout(subgraph, inplace=True, groupby=None, **layoutkw)
+                subgraph_list.append(subgraph)
+
+            n_cols = int(np.sqrt(len(subgraph_list)))
+            column_graph = [ut.stack_graphs(chunk, vert=False) for chunk in ut.ichunks(subgraph_list, n_cols)]
+            graph_ = ut.stack_graphs(column_graph, vert=True)
+            # graph_ = ut.stack_graphs(subgraph_list)
+            nx.set_node_attributes(graph_, 'pin', 'true')
 
     prog = layoutkw.pop('prog', 'dot')
     if prog != 'dot':
