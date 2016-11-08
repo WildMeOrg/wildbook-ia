@@ -17,6 +17,10 @@ def _dz(a, b):
     return ut.dzip(a, b)
 
 
+def e_(u, v):
+    return (u, v) if u < v else (v, u)
+
+
 def filter_between_ccs_neg(aids1, aids2, aid_to_nid, nid_to_aids, isneg_flags):
     """
     If two cc's have at least 1 negative review between them, then
@@ -80,10 +84,16 @@ class _AnnotInfrHelpers(object):
 
     def get_edge_attrs(infr, key, edges=None, default=ut.NoParam):
         """ Networkx edge getter helper """
-        edge_to_attr = nx.get_edge_attributes(infr.graph, key)
         if edges is not None:
-            edge_to_attr = ut.dict_subset(edge_to_attr, keys=edges,
-                                          default=default)
+            if default is ut.NoParam:
+                edge_to_attr = {(u, v): infr.graph.edge[u][v][key] for u, v in edges}
+            else:
+                edge_to_attr = {(u, v): infr.graph.edge[u][v].get(key, default) for u, v in edges}
+        else:
+            edge_to_attr = nx.get_edge_attributes(infr.graph, key)
+            if edges is not None:
+                edge_to_attr = ut.dict_subset(edge_to_attr, keys=edges,
+                                              default=default)
         return edge_to_attr
 
     def set_node_attrs(infr, key, node_to_prop):
@@ -153,6 +163,8 @@ class _AnnotInfrDummy(object):
         if infr.verbose:
             print('[infr] ensure_full with %d nodes' % (len(infr.graph)))
         new_edges = nx.complement(infr.graph).edges()
+        # if infr.verbose:
+        #     print('[infr] adding %d complement edges' % (len(new_edges)))
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
 
@@ -294,7 +306,7 @@ class _AnnotInfrIBEIS(object):
         # CHANGE OF FORMAT
         user_feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
-            edge = tuple(sorted([aid1, aid2]))
+            edge = e_(aid1, aid2)
             review_dict = {
                 'p_match': p_match[count],
                 'p_nomatch': p_nomatch[count],
@@ -694,7 +706,7 @@ class _AnnotInfrFeedback(object):
             raise ValueError('aid1=%r is not part of the graph' % (aid1,))
         if aid2 not in infr.aids_set:
             raise ValueError('aid2=%r is not part of the graph' % (aid2,))
-        edge = tuple(sorted([aid1, aid2]))
+        edge = e_(aid1, aid2)
         if state == 'unreviewed':
             review_dict = None
             if edge in infr.user_feedback:
@@ -722,6 +734,7 @@ class _AnnotInfrFeedback(object):
             # Apply new results on the fly
             infr._dynamically_apply_feedback(edge, review_dict, tags)
 
+    @profile
     def _dynamically_apply_feedback(infr, edge, review_dict, tags):
         """
         Dynamically updates all states based on a single dynamic change
@@ -816,106 +829,346 @@ class _AnnotInfrFeedback(object):
         # This re-infers all attributes of the influenced sub-graph only
         infr.apply_review_inference(graph=extended_subgraph)
 
+    @profile
     def apply_review_inference(infr, graph=None):
-        if infr.verbose >= 1:
-            print('[infr] apply_review_inference')
+        """
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_review_inference
 
+        Example:
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> aids = list(range(1, 10))
+            >>> infr = AnnotInference(None, aids, autoinit=True, verbose=1)
+            >>> infr.ensure_full()
+            >>> infr._init_priority_queue()
+            >>> infr.add_feedback(1, 2, 'match', apply=True)
+            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> infr.add_feedback(3, 4, 'match', apply=True)
+            >>> infr.add_feedback(4, 5, 'nomatch', apply=True)
+            >>> infr.add_feedback(6, 7, 'match', apply=True)
+            >>> infr.add_feedback(7, 8, 'match', apply=True)
+            >>> infr.add_feedback(6, 8, 'nomatch', apply=True)
+            >>> infr.add_feedback(6, 1, 'notcomp', apply=True)
+            >>> infr.add_feedback(1, 9, 'notcomp', apply=True)
+            >>> infr.add_feedback(8, 9, 'notcomp', apply=True)
+            >>> #infr.show_graph(hide_cuts=False)
+            >>> graph = infr.graph
+            >>> infr.apply_review_inference(graph)
+        """
         if graph is None:
             graph = infr.graph
 
-        # ut.nx_delete_edge_attr(infr.graph, 'inferred_state', graph.edges())
-        # print('[infr.apply_review_inference] graph.edges() = %r' % (
-        #     list(graph.edges()),))
-        nx.set_edge_attributes(infr.graph, 'inferred_state', _dz(
-            graph.edges(), [None]))
-        nx.set_edge_attributes(infr.graph, 'is_cut', _dz(
-            graph.edges(), [False]))
-        nx.set_edge_attributes(infr.graph, 'maybe_error',
-                               _dz(graph.edges(), [False]))
-
-        # get all negative review edges
-        # Then get the compoments for each of the endpoints
-        # Then only do the negative inference between those two ccs
-        # Then get each positive compoments and do
-        # positive inference only in those ccs
+        if infr.verbose >= 1:
+            print('[infr] apply_review_inference on %d nodes' % (len(graph)))
 
         node_to_label = nx.get_node_attributes(graph, 'name_label')
+        # TODO: uncomment the first line for efficiency once debugging is done
+        # edge_to_review = nx.get_edge_attributes(graph, 'reviewed_state')
+        edge_to_review = {e_(u, v): infr.graph.edge[u][v].get('reviewed_state', 'unreviewed')
+                          for u, v in graph.edges()}
+        # edge_to_review = ut.nx_get_default_edge_attributes(graph, 'reviewed_state', default='unreviewed')
+        # edge_to_review = ut.map_keys(lambda args: e_(*args), edge_to_review)
 
-        edge_to_review = nx.get_edge_attributes(graph, 'reviewed_state')
-        neg_edges = [e for e, s in edge_to_review.items() if s == 'nomatch']
-        pos_edges = [e for e, s in edge_to_review.items() if s == 'match']
+        nid_to_cc = ut.invert_dict(node_to_label, unique_vals=False)
 
-        @ut.memoize
-        def node_to_cc(u):
-            return infr.get_annot_cc(u, graph=graph)
+        # Get all reviewed edges
+        grouped_edges = ut.group_pairs(edge_to_review.items())
+        neg_edges = grouped_edges.pop('nomatch', [])
+        pos_edges = grouped_edges.pop('match', [])
+        notcomp_edges = grouped_edges.pop('notcomp', [])
 
-        neg_inference = []
-        pos_inference = []
-        inconsistent_names = {}
-        seen_neg = set([])
+        # TODO: comment once debugging is done
+        unreviewed_edges = grouped_edges.pop('unreviewed', [])
+
+        if grouped_edges:
+            raise AssertionError('Reviewed state has unknown values: %r' % (list(grouped_edges.keys())),)
+
+        seen_name_edges = set([])
+        seen_nids = set([])
+
+        # First loop through each negative edge looking for inconsistent
+        # compoments
+        inconsistent = {}
         for u, v in neg_edges:
-            nid1 = graph.node[u]['name_label']
-            nid2 = graph.node[v]['name_label']
-            name_edge = tuple(sorted([nid1, nid2]))
-            if name_edge not in seen_neg:
-                seen_neg.add(name_edge)
-                if nid1 != nid2:
-                    cc1 = node_to_cc(u)
-                    cc2 = node_to_cc(v)
-                    neg_inference.extend(ut.nx_edges_between(graph, cc1, cc2))
-                else:
-                    cc = node_to_cc(u)
-                    inconsistent_names[nid1] = cc
-        seen_pos = set([])
+            nid1 = node_to_label[u]
+            nid2 = node_to_label[v]
+            if nid1 == nid2 and nid1 not in inconsistent:
+                cc = nid_to_cc[nid1]
+                cc_inconsistent_edges = [
+                    e_(*e) for e in ut.nx_edges_between(graph, cc)
+                ]
+                inconsistent[nid1] = cc_inconsistent_edges
+        seen_nids.update(inconsistent.keys())
+        # For each negative edge, get the compoments belonging to each
+        # endpoint. If the two compoments are the same then we have an
+        # inconsistent case Otherwise infer all other edges between the
+        # compoments are negative
+        negative = {}
+        inconsistent_outgoing = {}
+        reviewed_negatives = ut.ddict(list)
+        for u, v in neg_edges:
+            nid1 = node_to_label[u]
+            nid2 = node_to_label[v]
+            name_edge = e_(nid1, nid2)
+            if nid1 != nid2:
+                if name_edge not in negative and name_edge not in inconsistent_outgoing:
+                    cc1 = nid_to_cc[nid1]
+                    cc2 = nid_to_cc[nid2]
+                    cross_cc_edges = [
+                        e_(*e) for e in ut.nx_edges_between(graph, cc1, cc2,
+                                                            assume_disjoint=True)
+                    ]
+                    if nid1 in inconsistent or nid2 in inconsistent:
+                        inconsistent_outgoing[name_edge] = cross_cc_edges
+                    else:
+                        negative[name_edge] = cross_cc_edges
+                        reviewed_negatives[name_edge].append((u, v))
+        seen_name_edges.update(negative.keys())
+        seen_name_edges.update(inconsistent_outgoing.keys())
+        # Then get each positive compoments and do
+        # positive inference only in those ccs
+        # also keep a grouping of reviewed positive edges
+        reviewed_positives = ut.ddict(list)
+        positive = {}
         for u, v in pos_edges:
-            cc = node_to_cc(u)
-            nid = graph.node[u]['name_label']
-            if nid not in seen_pos:
-                seen_pos.add(nid)
-                if nid not in inconsistent_names:
-                    pos_inference.extend(ut.nx_edges_between(graph, cc))
+            nid = node_to_label[u]
+            cc = nid_to_cc[nid]
+            if nid not in inconsistent:
+                reviewed_positives[nid].append((u, v))
+                if nid not in positive:
+                    within_cc_edges = [
+                        e_(*e) for e in ut.nx_edges_between(graph, cc)
+                    ]
+                    positive[nid] = within_cc_edges
+        # Look at each not-comparable edge between two compoments not currently
+        # marked as either positive or negative
+        notcomparable = {}
+        for u, v in notcomp_edges:
+            nid1 = node_to_label[u]
+            nid2 = node_to_label[v]
+            name_edge = e_(nid1, nid2)
+            if name_edge not in seen_name_edges and name_edge not in notcomparable:
+                if nid1 != nid2 or (
+                      nid1 not in positive and nid1 not in inconsistent and
+                      nid2 not in positive and nid2 not in inconsistent):
+                    cc1 = nid_to_cc[nid1]
+                    cc2 = nid_to_cc[nid2]
+                    cross_cc_edges = [
+                        e_(*e) for e in ut.nx_edges_between(graph, cc1, cc2,
+                                                            assume_disjoint=True)
+                    ]
+                    notcomparable[name_edge] = cross_cc_edges
+        seen_name_edges.update(notcomparable.keys())
 
-        # Remove inference from inconsistent compoments and then
-        # suggest split / merge edges
-        for nid, cc in inconsistent_names.items():
-            # print('cc = %r' % (cc,))
-            inconsistent_edges = list(ut.nx_edges_between(graph, cc))
-            # only pass in reviewed edges in the subgraph
-            uvd_list = [e + (graph.get_edge_data(*e),)
-                        for e in inconsistent_edges]
-            keep_edges = [
-                (u, v, d) for u, v, d in uvd_list
-                if d.get('reviewed_state', 'unreviewed') != 'unreviewed'
+        # TODO: maybe remove once debugging is done?
+        unreviewed = {}
+        for u, v in unreviewed_edges:
+            nid1 = node_to_label[u]
+            nid2 = node_to_label[v]
+            name_edge = e_(nid1, nid2)
+            if name_edge not in seen_name_edges and name_edge not in unreviewed:
+                if nid1 != nid2 or (
+                      nid1 not in positive and nid1 not in inconsistent and
+                      nid2 not in positive and nid2 not in inconsistent):
+                    cc1 = nid_to_cc[nid1]
+                    cc2 = nid_to_cc[nid2]
+                    cross_cc_edges = [
+                        e_(*e) for e in ut.nx_edges_between(graph, cc1, cc2,
+                                                            assume_disjoint=True)
+                    ]
+                    unreviewed[name_edge] = cross_cc_edges
+        seen_name_edges.update(unreviewed.keys())
+
+        # Find possible fixes for inconsistent compoments
+        suggested_fix_edges = []
+        other_error_edges = []
+        for nid, cc_inconsistent_edges in inconsistent.items():
+            # Find possible edges to fix in the reviewed subgarph
+            reviewed_inconsistent = [
+                e + (graph.get_edge_data(*e),) for e in cc_inconsistent_edges
+                if edge_to_review.get(e, 'unreviewed') != 'unreviewed'
             ]
-            split_subgraph = nx.Graph(keep_edges)
-            error_edges = infr._find_possible_error_edges(split_subgraph)
-            nx.set_edge_attributes(infr.graph, 'maybe_error',
-                                   _dz(error_edges, [True]))
-            nx.set_edge_attributes(infr.graph, 'inferred_state', _dz(
-                inconsistent_edges, [None]))
-            nx.set_edge_attributes(infr.graph, 'is_cut', _dz(
-                inconsistent_edges, [False]))
+            subgraph = nx.Graph(reviewed_inconsistent)
+            cc_error_edges = infr._find_possible_error_edges(subgraph)
+            suggested_fix_edges.extend(cc_error_edges)
+            other_error_edges.extend(ut.setdiff(subgraph.edges(), cc_error_edges))
 
-        cand_edges = pos_inference + neg_inference
-        cand_data = [graph.get_edge_data(u, v) for u, v in cand_edges]
-        is_nontrivial_infr = [
-            d.get('reviewed_state', 'unreviewed') in {'unreviewed', 'notcomp'}
-            for d in cand_data
+        inconsistent_edges = ut.flatten(inconsistent.values())
+        positive_edges = ut.flatten(positive.values())
+        negative_edges = ut.flatten(negative.values())
+        notcomparable_edges = ut.flatten(notcomparable.values())
+        # The only case where an edge is not listed in the previous lists
+        # should be when they are between compoments with absolutely no reviews
+        unreviewed_edges = ut.flatten(unreviewed.values())
+
+        if True or __debug__:
+            num_edges = (len(positive_edges) + len(negative_edges) +
+                         len(inconsistent_edges) + len(notcomparable_edges) +
+                         len(unreviewed_edges) + len(inconsistent_outgoing))
+
+            num_edges_real = graph.number_of_edges()
+
+            if num_edges != num_edges_real:
+                print('num_edges = %r' % (num_edges,))
+                all_edges = (positive_edges + negative_edges +
+                             inconsistent_edges + notcomparable_edges +
+                             unreviewed_edges)
+                assert len(ut.find_duplicate_items(all_edges)) == 0
+                all_edges += (ut.flatten(inconsistent_outgoing.values()))
+                assert len(ut.find_duplicate_items(all_edges)) == 0
+
+                edges = ut.lstarmap(e_, graph.edges())
+                missing12 = ut.setdiff(edges, all_edges)
+                missing21 = ut.setdiff(all_edges, edges)
+                print('missing12 = %r' % (missing12,))
+                print('missing21 = %r' % (missing21,))
+                print(ut.repr4(ut.set_overlaps(graph.edges(), all_edges)))
+                import utool
+                utool.embed()
+                u, v = missing12[0]
+                graph.edge[u][v]
+                nid1 = node_to_label[u]
+                nid2 = node_to_label[v]
+                name_edge = e_(nid1, nid2)
+                raise AssertionError('edges not the same')
+
+        # Update the attributes of all edges in the subgraph
+
+        # Update the infered state
+        infr.set_edge_attrs('inferred_state', _dz(inconsistent_edges, [None]))
+        infr.set_edge_attrs('inferred_state', _dz(unreviewed_edges, [None]))
+        infr.set_edge_attrs('inferred_state', _dz(notcomparable_edges, [None]))
+        infr.set_edge_attrs('inferred_state', _dz(positive_edges, ['same']))
+        infr.set_edge_attrs('inferred_state', _dz(negative_edges, ['diff']))
+
+        # Suggest possible fixes
+        infr.set_edge_attrs('maybe_error', ut.dzip(graph.edges(), [False]))
+        infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
+
+        # Update state of trivial edges
+        infr.set_edge_attrs('is_cut', _dz(negative_edges, [True]))
+        infr.set_edge_attrs('is_cut', _dz(positive_edges, [False]))
+        infr.set_edge_attrs('is_cut', _dz(inconsistent_edges, [False]))
+        infr.set_edge_attrs('is_cut', _dz(notcomparable_edges, [False]))
+        infr.set_edge_attrs('is_cut', _dz(unreviewed_edges, [False]))
+
+        if infr.queue is not None:
+            # update the priority queue on the fly
+            queue = infr.queue
+            # TODO: keep some edges (perhaps probalistically or based on
+            # distance) in pos/neg review
+
+            # pos_thresh = 2
+            # neg_thresh = 3
+            pos_thresh = 7
+            neg_thresh = 8
+            # pos_thresh = 3
+            # neg_thresh = 4
+
+            strong_positives = []
+            for nid, edges in reviewed_positives.items():
+                strong_edges = []
+                weak_edges = []
+                trivial_reviews = nx.Graph(edges)
+                for u, dist_dict in nx.all_pairs_shortest_path_length(trivial_reviews):
+                    for v, dist in dist_dict.items():
+                        if u <= v and graph.has_edge(u, v):
+                            if dist <= pos_thresh:
+                                strong_edges.append((u, v))
+                            else:
+                                weak_edges.append((u, v))
+                strong_positives.extend(strong_edges)
+
+            queue.delete_items(strong_positives)
+            # for edges in positive.values():
+            #     queue.delete_items(edges)
+
+            strong_negatives = []
+            for nid_edge, neg_edges in reviewed_negatives.items():
+                nid1, nid2 = nid_edge
+                pos_edges1 = reviewed_positives[nid1]
+                pos_edges2 = reviewed_positives[nid2]
+                edges = pos_edges2 + pos_edges1 + neg_edges
+                strong_edges = []
+                weak_edges = []
+                trivial_reviews = nx.Graph(edges)
+                for u, v in neg_edges:
+                    if node_to_label[u] == nid2:
+                        u, v = v, u
+                    # Check left side of the shore
+                    for v_, dist in nx.shortest_path_length(trivial_reviews, source=u):
+                        if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
+                            if dist <= neg_thresh:
+                                strong_edges.append(e_(u, v_))
+                            else:
+                                weak_edges.append(e_(u, v_))
+                    # Check right side of the shore
+                    for u_, dist in nx.shortest_path_length(trivial_reviews, source=v):
+                        if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
+                            if dist <= neg_thresh:
+                                strong_edges.append(e_(u_, v))
+                            else:
+                                weak_edges.append(e_(u_, v))
+                strong_negatives.extend(strong_edges)
+                # print('strong_edges.append = %r' % (strong_edges,))
+                # print('weak_edges.append = %r' % (weak_edges,))
+
+            queue.delete_items(strong_negatives)
+            # for edges in negative.values():
+            #     queue.delete_items(edges)
+
+            # Add error edges back in with high (double) priority
+            # for e in suggested_fix_edges:
+            #     queue[e] = -1.0
+            queue.update(zip(suggested_fix_edges, -2 * infr._get_priorites(suggested_fix_edges)))
+
+            queue.delete_items(other_error_edges)
+
+            needs_priority = [e for e in unreviewed_edges if e not in queue]
+            # assert not needs_priority, 'shouldnt need this needs_priority=%r ' % (needs_priority,)
+            queue.update(zip(needs_priority, -infr._get_priorites(needs_priority)))
+
+    def remaining_reviews(infr):
+        assert infr.queue is not None
+        return len(infr.queue)
+
+    def _get_priorites(infr, edges):
+        priority_metric = 'normscore'
+        new_priorities = np.array([max(infr.graph.get_edge_data(*e).get(priority_metric, -1), -1)
+                                   for e in edges])
+        return new_priorities
+
+    def _init_priority_queue(infr, randomness=0, rng=None):
+        graph = infr.graph
+
+        # Candidate edges are unreviewed
+        cand_uvds = [
+            (u, v, d) for u, v, d in graph.edges(data=True)
+            if ((d.get('reviewed_state', 'unreviewed') == 'unreviewed' and
+                 d.get('inferred_state', None) is None) or
+                d.get('maybe_error', False))
         ]
 
-        infr_edges = ut.compress(cand_edges, is_nontrivial_infr)
-        infr_cut = [node_to_label[u] != node_to_label[v]
-                    for u, v in infr_edges]
-        infr_state = ['diff' if is_cut  else 'same'
-                      for is_cut in infr_cut]
+        # TODO: stagger edges to review based on cc analysis
 
-        # TODO: inference should be done for all edges even trivial ones
-        trivial_edges = ut.compress(cand_edges, ut.not_list(is_nontrivial_infr))
-        trivial_cuts = [node_to_label[u] != node_to_label[v]
-                        for u, v in trivial_edges]
-        infr.set_edge_attrs('is_cut', _dz(trivial_edges, trivial_cuts))
-        infr.set_edge_attrs('is_cut', _dz(infr_edges, infr_cut))
-        infr.set_edge_attrs('inferred_state', _dz(infr_edges, infr_state))
+        priority_metric = 'normscore'
+        # priority_metric = 'entropy'
+
+        # Sort edges to review
+        priorities = np.array([max(d.get(priority_metric, -1), -1)
+                               for u, v, d in cand_uvds])
+        edges = [e_(u, v) for u, v, d in cand_uvds]
+
+        if len(priorities) > 0 and randomness > 0:
+            minval = priorities.min()
+            spread = priorities.max() - minval
+            perb = (spread * rng.rand(len(priorities)) + minval)
+            priorities = randomness * perb + (1 - randomness) * priorities
+
+        # All operations on a treap except sorting use O(log(N)) time
+        infr.queue = ut.PriorityQueue(zip(edges, -priorities))
+        print('infr.queue = %r' % (infr.queue,))
 
     def _find_possible_error_edges(infr, subgraph):
         inconsistent_edges = [
@@ -933,7 +1186,7 @@ class _AnnotInfrFeedback(object):
         for s, t in inconsistent_edges:
             cut_edgeset = ut.nx_mincut_edges_weighted(subgraph_, s, t,
                                                       capacity='num_reviews')
-            cut_edgeset = set([tuple(sorted(edge)) for edge in cut_edgeset])
+            cut_edgeset = set([e_(*edge) for edge in cut_edgeset])
             join_edgeset = {(s, t)}
             cut_edgeset_weight = sum([
                 subgraph_.get_edge_data(u, v).get('num_reviews', 1)
@@ -948,12 +1201,7 @@ class _AnnotInfrFeedback(object):
                 maybe_error_edges.update(cut_edgeset)
         return list(maybe_error_edges)
 
-    def edges_between(infr, nodes1, nodes2=None):
-        """
-        Get edges between two compoments or within a single compoment
-        """
-        return ut.nx_edges_between(infr.graph, nodes1, nodes2)
-
+    @profile
     def get_nomatch_ccs(infr, cc):
         """
         Search every neighbor in this cc for a nomatch connection. Then add the
@@ -974,6 +1222,7 @@ class _AnnotInfrFeedback(object):
                         visited.update(set(cc2))
         return nomatch_ccs
 
+    @profile
     def get_annot_cc(infr, node, graph=None):
         """
         Get the cc belonging to a single node
@@ -1358,7 +1607,10 @@ class AnnotInference(ut.NiceRepr,
         infr.aids = aids
         infr.aids_set = set(infr.aids)
         if nids is None:
-            nids = ibs.get_annot_nids(aids)
+            if ibs is None:
+                nids = [-aid for aid in aids]
+            else:
+                nids = ibs.get_annot_nids(aids)
         if ut.isscalar(nids):
             nids = [nids] * len(aids)
         infr.orig_name_labels = nids
@@ -1372,6 +1624,7 @@ class AnnotInference(ut.NiceRepr,
         infr.cm_list = None
         infr.qreq_ = None
         infr.nid_counter = None
+        infr.queue = None
         if autoinit:
             infr.initialize_graph()
 
@@ -1703,7 +1956,8 @@ class AnnotInference(ut.NiceRepr,
         error_edges = ut.compress(cand_edges, error_flags)
         new_edges = ut.compress(cand_edges, ut.not_list(error_flags))
         # We only need one candidate edge between existing ccs
-        cc_edge_id = [tuple(sorted([node_to_nid[u], node_to_nid[v]])) for u, v, d in new_edges]
+        cc_edge_id = [e_(node_to_nid[u], node_to_nid[v])
+                      for u, v, d in new_edges]
         grouped_edges = ut.group_items(new_edges, cc_edge_id)
 
         priority_metric = 'normscore'
@@ -1751,14 +2005,21 @@ class AnnotInference(ut.NiceRepr,
 
     def generate_reviews(infr, randomness=0, rng=None):
         rng = ut.ensure_rng(rng)
+        infr._init_priority_queue(randomness, rng)
 
         def get_next(idx=0):
-            edges = infr.get_edges_for_review(randomness, rng)
-            if len(edges) == 0:
+            # edges = infr.get_edges_for_review(randomness, rng)
+            try:
+                edge, priority = infr.queue.pop()
+                aid1, aid2 = edge
+            except IndexError:
                 print('no more edges to reveiw')
                 raise StopIteration('no more to review!')
-            chosen = edges[idx]
-            aid1, aid2 = chosen[0][0:2]
+            # if len(edges) == 0:
+            #     print('no more edges to reveiw')
+            #     raise StopIteration('no more to review!')
+            # chosen = edges[idx]
+            # aid1, aid2 = chosen[0][0:2]
             return aid1, aid2
 
         for index in it.count():

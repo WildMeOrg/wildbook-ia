@@ -44,6 +44,7 @@ def train_pairwise_rf():
     import sklearn.metrics
     import sklearn.model_selection
     from sklearn.ensemble import RandomForestClassifier
+    import pandas as pd
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_Master1')
     ibs = ibeis.opendb('GZ_Master1')
@@ -157,72 +158,102 @@ def train_pairwise_rf():
         qreq_.load_indexer()
         indexer = qreq_.indexer
 
-        def apply_lnbnn(match, inplace=False):
-            from ibeis.algo.hots import nn_weights
-            if inplace:
-                match_ = match
-            else:
-                match.rrr(0)
-                match_ = match.copy()
+        # def apply_lnbnn(match, inplace=False):
+        #     from ibeis.algo.hots import nn_weights
+        #     if inplace:
+        #         match_ = match
+        #     else:
+        #         match.rrr(0)
+        #         match_ = match.copy()
 
-            matched_vecs = match_.annot1['vecs'].take(match_.fm.T[0], axis=0)
-            K = qreq_.qparams.K
-            Knorm = qreq_.qparams.Knorm
-            normalizer_rule  = qreq_.qparams.normalizer_rule
-            neighb_idx, neighb_dist = indexer.knn(matched_vecs, K=K + Knorm)
+        #     matched_vecs = match_.annot1['vecs'].take(match_.fm.T[0], axis=0)
+        #     K = qreq_.qparams.K
+        #     Knorm = qreq_.qparams.Knorm
+        #     normalizer_rule  = qreq_.qparams.normalizer_rule
+        #     neighb_idx, neighb_dist = indexer.knn(matched_vecs, K=K + Knorm)
 
-            qaid = match_.annot1['aid']
-            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
-            norm_dist = vt.take_col_per_row(neighb_dist, norm_k)
-            vdist = match_.measures['match_dist']
-            lnbnn_dist = nn_weights.lnbnn_fn(vdist, norm_dist)
-            match_.measures['lnbnn_norm_dist'] = norm_dist
-            match_.measures['lnbnn'] = lnbnn_dist
+        #     qaid = match_.annot1['aid']
+        #     norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+        #     norm_dist = vt.take_col_per_row(neighb_dist, norm_k)
+        #     vdist = match_.measures['match_dist']
+        #     lnbnn_dist = nn_weights.lnbnn_fn(vdist, norm_dist)
+        #     match_.measures['lnbnn_norm_dist'] = norm_dist
+        #     match_.measures['lnbnn'] = lnbnn_dist
+        #     return match
 
-        # matches = matches_RAT_SV
+        matches = matches_RAT_SV
         def batch_apply_lnbnn(matches):
             from ibeis.algo.hots import nn_weights
             matches_ = [match.copy() for match in matches]
+            # matches_ = [match.rrr(0) for match in matches_]
 
             K = qreq_.qparams.K
             Knorm = qreq_.qparams.Knorm
             normalizer_rule  = qreq_.qparams.normalizer_rule
-
+            print('Stacking vecs for batch matching')
             offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
-            matched_vecs = np.vstack([match_.annot1['vecs'].take(match_.fm.T[0], axis=0)
-                                      for match_ in matches_])
+            stacked_vecs = np.vstack([
+                match_.matched_vecs2()
+                for match_ in ut.ProgIter(matches_, lablel='stacking matched vecs')
+            ])
+            # vecs_list2 = [stacked_vecs[l:r] for l, r in ut.itertwo(offset_list)]
 
-            vecs = matched_vecs
-            num = K + Knorm
-            idxs, dists = indexer.batch_knn(vecs, num, chunksize=4096, label='lnbnn scoring')
+            vecs = stacked_vecs
+            # num = (K + Knorm) * 2
+            num = 2000
+            idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
-            idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-            dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+            vdist = np.hstack([
+                match_.measures['match_dist']
+                for match_ in ut.ProgIter(matches_, lablel='stacking dist')
+            ])
+            ndist = dists.T[-1]
+            lnbnn = ndist - vdist
+            lnbnn = np.clip(lnbnn, 0, np.inf)
 
-            iter_ = zip(matches_, idx_list, dist_list)
-            prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+            ndist_list = [ndist[l:r] for l, r in ut.itertwo(offset_list)]
+            lnbnn_list = [lnbnn[l:r] for l, r in ut.itertwo(offset_list)]
 
-            for match_, neighb_idx, neighb_dist in prog:
-                qaid = match_.annot1['aid']
-                norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
-                norm_dist = vt.take_col_per_row(neighb_dist, norm_k)
-                vdist = match_.measures['match_dist']
-                lnbnn_dist = nn_weights.lnbnn_fn(vdist, norm_dist)
-                match_.measures['lnbnn_norm_dist'] = norm_dist
-                match_.measures['lnbnn'] = lnbnn_dist
+            for match_, ndist_, lnbnn_ in zip(matches_, ndist_list, lnbnn_list):
+                match_.measures['lnbnn_norm_dist'] = ndist_
+                match_.measures['lnbnn'] = lnbnn_
+                match_.fs = lnbnn_
 
-        matches_RAT_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
+            # idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
+            # dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+            # iter_ = zip(matches_, idx_list, dist_list)
+            # prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+            # for match_, neighb_idx, neighb_dist in prog:
+            #     qaid = match_.annot2['aid']
+            #     norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+            #     ndist = vt.take_col_per_row(neighb_dist, norm_k)
+            #     vdist = match_.measures['match_dist']
+            #     lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
+            #     # lnbnn_dist = np.clip(lnbnn_dist, 0, np.inf)
+            #     match_.measures['lnbnn_norm_dist'] = ndist
+            #     match_.measures['lnbnn'] = lnbnn_dist
+            #     match_.fs = lnbnn_dist
+            matches_SV_LNBNN = matches_
+            matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
+            return matches_
+
+        matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
+        matches = matches_SV_LNBNN
+        main_key = 'lnbnn'
+
+        vsone_sver_lnbnn_auc = matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
+
+    matches = matches_RAT_SV
+    main_key = 'ratio'
 
     # =====================================
     # Attempt to train a simple classsifier
     # =====================================
 
-    import pandas as pd
-
     print('Building pairwise features')
     pairwise_feats = pd.DataFrame([
-        m.make_pairwise_constlen_feature(main_key='ratio', n_top=3)
-        for m in ut.ProgIter(matches_RAT_SV)
+        m.make_pairwise_constlen_feature(main_key=main_key, n_top=3)
+        for m in ut.ProgIter(matches)
     ])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
@@ -233,9 +264,7 @@ def train_pairwise_rf():
     valid_cols = pairwise_feats.columns[valid_colx]
     X_nonan = pairwise_feats[valid_cols].values.copy()
 
-    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches_RAT_SV])
-    # import utool
-    # utool.embed()
+    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
     rng = np.random.RandomState(42)
 
     rng = np.random.RandomState(42)
@@ -266,7 +295,7 @@ def train_pairwise_rf():
         y_train = y[train_idx]
         if True:
             score_list = np.array(
-                [m.fs.sum() for m in ut.take(matches_RAT_SV, test_idx)])
+                [m.measures[main_key].sum() for m in ut.take(matches, test_idx)])
             auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
 
         if True:
@@ -317,22 +346,27 @@ def train_pairwise_rf():
     infr.apply_match_scores()
     edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
     lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
-    lnbnn_auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
-    print('LNBNN auc = %r' % (lnbnn_auc,))
+    vsmany_lnbnn_auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
+    print('LNBNN auc = %r' % (vsmany_lnbnn_auc,))
     rat_auc = matches_auc(truth_list, matches_RAT, 'RAT')
     rat_sver_auc = matches_auc(truth_list, matches_RAT_SV, 'RAT_SVER')
     rat_sver_rf_auc = df.mean()['auc_learn_withnan']
+
+    vsone_sver_lnbnn_auc = matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
+
     print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
     columns = ['Method', 'AUC']
     data = [
-        ['1vM-LNBNN',       lnbnn_auc],
+        ['1vM-LNBNN',       vsmany_lnbnn_auc],
+
+        ['1v1-LNBNN',       vsone_sver_lnbnn_auc],
         ['1v1-RAT',         rat_auc],
         ['1v1-RAT+SVER',    rat_sver_auc],
         ['1v1-RAT+SVER+RF', rat_sver_rf_auc],
     ]
     table = pd.DataFrame(data, columns=columns)
     error = 1 - table['AUC']
-    orig = 1 - lnbnn_auc
+    orig = 1 - vsmany_lnbnn_auc
     import tabulate
     table = table.assign(percent_error_decrease=(orig - error) / orig * 100)
     col_to_nice = {

@@ -78,6 +78,7 @@ class _AnnotInfrViz(object):
         #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)
         nx.set_node_attributes(graph, 'shape', _dz(annot_nodes, ['rect']))
         nx.set_node_attributes(graph, 'image', _dz(annot_nodes, imgpath_list))
+        infr._viz_init_nodes = True
 
     def get_colored_edge_weights(infr, graph=None):
         # Update color and linewidth based on scores/weight
@@ -156,12 +157,22 @@ class _AnnotInfrViz(object):
                             hide_reviewed_cuts=False,
                             hide_inferred_same=False,
                             hide_unreviewed_cuts=True,
+                            hide_cuts=None,
+                            **kwargs
                             # hide_unreviewed_inferred=True
                             ):
+
         if infr.verbose >= 3:
             print('[infr] update_visual_attrs')
         if graph is None:
             graph = infr.graph
+        if hide_cuts is not None:
+            hide_unreviewed_cuts = hide_cuts
+            hide_reviewed_cuts = hide_cuts
+
+        if not getattr(infr, '_viz_init_nodes', False):
+            infr._viz_init_nodes = True
+            infr.set_node_attrs('shape', 'circle')
 
         alpha_low = .5
         alpha_med = .9
@@ -218,13 +229,16 @@ class _AnnotInfrViz(object):
                          if state == 'same']
         inferred_diff = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'diff']
-        inferred_edges = inferred_same + inferred_diff
         reviewed_edges = notcomp_edges + match_edges + nomatch_edges
         unreviewed_edges = ut.setdiff(edges, reviewed_edges)
         unreviewed_cut_edges = ut.setdiff(cut_edges, reviewed_edges)
         reviewed_cut_edges = ut.setdiff(cut_edges, unreviewed_cut_edges)
         compared_edges = match_edges + nomatch_edges
         uncompared_edges = ut.setdiff(edges, compared_edges)
+        nontrivial_inferred_same = ut.setdiff(inferred_same, match_edges + nomatch_edges)
+        nontrivial_inferred_diff = ut.setdiff(inferred_diff, match_edges + nomatch_edges)
+
+        nontrivial_inferred_edges = nontrivial_inferred_same + nontrivial_inferred_diff
 
         # EDGE_COLOR: based on edge_weight
         nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
@@ -271,7 +285,7 @@ class _AnnotInfrViz(object):
         # SKETCH: based on inferred_edges
         # Make inferred edges wavy
         nx.set_edge_attributes(
-            graph, 'sketch', _dz(inferred_edges, [
+            graph, 'sketch', _dz(nontrivial_inferred_edges, [
                 dict(scale=10.0, length=64.0, randomness=None)]
                 # dict(scale=3.0, length=18.0, randomness=None)]
             ))
@@ -327,7 +341,7 @@ class _AnnotInfrViz(object):
 
         if hide_inferred_same:
             nx.set_edge_attributes(graph, 'style', _dz(
-                inferred_same, ['invis']))
+                nontrivial_inferred_same, ['invis']))
 
         if show_recent_review and edge_to_timestamp:
             # Always show the most recent review (remove setting of invis)
@@ -335,7 +349,8 @@ class _AnnotInfrViz(object):
                                    _dz(recent_edges, ['']))
 
         # LAYOUT: update the positioning layout
-        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72)
+        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72, esep=1 / 72, nodesep=.1)
+        layoutkw.update(kwargs)
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     def show_graph(infr, use_image=False, with_colorbar=False, **kwargs):

@@ -48,6 +48,150 @@ import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
 
+@profile
+def demo_graph_iden2():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2
+    """
+    from ibeis.algo.hots import graph_iden
+    import plottool as pt
+    # Create dummy data
+    # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
+    # annots_per_name = [4, 3, 2, 1]
+    annots_per_name = [5, 6, 7, 5]
+    # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
+    annots_per_name = (np.random.rand(100) * 10).astype(np.int32) + 1
+    nids = [val for val, num in enumerate(annots_per_name, start=1)
+            for _ in range(num)]
+    aids = range(len(nids))
+    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True,
+                                     verbose=1)
+    infr.set_node_attrs('shape', 'circle')
+
+    # Assign random viewpoints
+    apply_dummy_viewpoints(infr)
+
+    dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
+    ut.remove_files_in_dir(dpath)
+
+    fontsize = 12
+    # fontname = 'Ubuntu'
+    fontname = 'sans'
+
+    VISUALIZE = False
+    # VISUALIZE = True
+    SHOW_NEG = True
+
+    def show_graph(infr, title, final=False):
+        if not VISUALIZE:
+            return
+        showkw = dict(fontsize=fontsize, fontname=fontname,
+                      hide_reviewed_cuts=not SHOW_NEG,
+                      hide_inferred_same=True,
+                      hide_unreviewed_cuts=True,
+                      show_recent_review=not final,
+                      with_colorbar=True)
+        # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
+        infr_ = infr
+        verbose = infr_.verbose
+        infr_.verbose = 0
+        infr = infr_.copy()
+        infr_.verbose = verbose
+        infr.show_graph(**ut.update_existing(showkw.copy(),
+                                             dict(with_colorbar=True)))
+        pt.set_title(title)
+        pt.gca().set_aspect('equal')
+        pt.gcf().canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
+        dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
+        pt.save_figure(dpath=dpath)
+
+    SHOW_GT = True
+    # QUIT_OR_EMEBED = 'embed'
+    QUIT_OR_EMEBED = 'quit'
+    TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
+    PRESHOW = True
+
+    # PRESHOW = False
+    # SHOW_GT = False
+    # QUIT_OR_EMEBED = 'quit'
+    # TARGET_REVIEW = 14
+
+    rng = np.random.RandomState(42)
+
+    infr.ensure_cliques()
+    infr.graph.graph['ignore_labels'] = True
+    infr.set_node_attrs('width', 30)
+    infr.set_node_attrs('height', 30)
+    infr.set_node_attrs('fontsize', fontsize)
+    infr.set_node_attrs('fontname', fontname)
+    infr.set_node_attrs('fixed_size', True)
+    if VISUALIZE:
+        infr.update_visual_attrs(groupby='name_label')
+        infr.set_node_attrs('pin', 'true')
+        print(ut.repr4(infr.graph.node[1]))
+    if SHOW_GT:
+        # Pin Nodes into the target groundtruth position
+        show_graph(infr, 'target-gt')
+
+    def oracle_decision(infr, n1, n2):
+        """ The perfect reviewer """
+        # oracle_accuracy = .8
+        # oracle_accuracy = .9
+        oracle_accuracy = 1.0
+        truth = get_edge_truth(infr, n1, n2)
+        if rng.rand() > oracle_accuracy:
+            print('oops')
+            # truth = rng.choice(list({0, 1, 2} - {truth}))
+            truth = rng.choice(list({0, 1} - {truth}))
+        state = infr.truth_texts[truth]
+        tags = []
+        return state, tags
+
+    # Dummy scoring
+    apply_random_negative_edges(infr, rng)
+    # infr.ensure_full()
+    apply_dummy_scores(infr, rng)
+    infr.remove_name_labels()
+    infr.apply_weights()
+
+    if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
+        show_graph(infr, 'pre-reveiw')
+
+    _iter = infr.generate_reviews(randomness=.1, rng=rng)
+    _iter2 = enumerate(_iter)
+    prog = ut.ProgIter(_iter2, bs=False, adjust=False)
+    for count, (aid1, aid2) in prog:
+        msg = 'review #%d' % (count)
+        print('\n----------')
+        print(msg)
+        print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+
+        # Make the next review decision
+        state, tags = oracle_decision(infr, aid1, aid2)
+
+        if count == TARGET_REVIEW:
+            infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
+
+        infr.add_feedback(aid1, aid2, state, tags, apply=True)
+
+        # Show the result
+        if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
+            show_graph(infr, msg)
+
+        if count == TARGET_REVIEW:
+            break
+
+    show_graph(infr, 'post-review', final=True)
+
+    if not getattr(infr, 'EMBEDME', False):
+        if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
+            pt.all_figures_tile(monitor_num=0, percent_w=.5)
+        else:
+            pt.all_figures_tile()
+        ut.show_if_requested()
+
+
 def randn_clip(rng, mu, sigma, a_max, a_min):
     a = rng.randn() * sigma + mu
     a = np.clip(a, a_max, a_min)
@@ -79,9 +223,9 @@ def get_edge_truth(infr, n1, n2):
         return int(same)
 
 
-def apply_dummy_scores(infr):
+def apply_dummy_scores(infr, rng=None):
     print('[demo] apply dummy scores')
-    rng = np.random.RandomState(0)
+    rng = ut.ensure_rng(rng)
     dummy_params = {
         0: {'mu': .2, 'sigma': .2},
         1: {'mu': .8, 'sigma': .2},
@@ -95,156 +239,53 @@ def apply_dummy_scores(infr):
     ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
 
 
-@profile
-def demo_graph_iden2():
-    """
-    CommandLine:
-        python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2
-    """
-    from ibeis.algo.hots import graph_iden
-    import plottool as pt
-    # Create dummy data
-    # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
-    annots_per_name = [4, 3, 2, 1]
-    annots_per_name = [1, 2, 3, 4, 4, 2, 5]
-    annots_per_name = (np.random.rand(100) * 10).astype(np.int32) + 1
-    nids = [val for val, num in enumerate(annots_per_name, start=1)
-            for _ in range(num)]
-    aids = range(len(nids))
-    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True,
-                                     verbose=1)
-    infr.set_node_attrs('shape', 'circle')
+def apply_random_negative_edges(infr, rng=None):
+    thresh = .1
+    rng = ut.ensure_rng(rng)
+    nid_to_aids = ut.group_pairs([
+        (n, d['name_label']) for n, d in infr.graph.nodes(data=True)])
+    nid_pairs = list(ut.combinations(nid_to_aids.keys(), 2))
+    random_edges = []
+    total = 0
+    for nid1, nid2 in nid_pairs:
+        aids1 = nid_to_aids[nid1]
+        aids2 = nid_to_aids[nid2]
+        aid_pairs = list(ut.product(aids1, aids2))
+        flags = rng.rand(len(aid_pairs)) < thresh
+        total += len(aid_pairs)
+        chosen = ut.compress(aid_pairs, flags)
+        random_edges.extend(chosen)
+    infr.graph.add_edges_from(random_edges)
+    infr.set_edge_attrs('_dummy_edge', ut.dzip(random_edges, [True]))
 
-    # Assign random viewpoints
-    if True:
-        valid_views = ['L', 'F', 'R', 'B']
-        rng = np.random.RandomState(42)
-        class MarkovView(object):
-            def __init__(self):
-                self.dir_ = +1
-                self.state = 0
 
-            def __call__(self):
-                return self.next_state()
-
-            def next_state(self):
-                if self.dir_ == -1 and self.state <= 0:
-                    self.dir_ = +1
-                if self.dir_ == +1 and self.state >= len(valid_views) - 1:
-                    self.dir_ = -1
-                # Transition with probability 1/2
-                # if rng.rand() > .5:
-                # if rng.rand() > .9:
-                if False:
-                    self.state += self.dir_
-                return valid_views[self.state]
-        mkv = MarkovView()
-        views = [mkv() for val, num in enumerate(annots_per_name, start=1)
-                 for _ in range(num)]
-        infr.set_node_attrs('viewpoint', ut.dzip(aids, views))
-
-    dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
-    ut.remove_files_in_dir(dpath)
-
-    fontsize = 12
-    # fontname = 'Ubuntu'
-    fontname = 'sans'
-
-    VISUALIZE = False
-
-    def show_graph(infr, title, final=False):
-        if not VISUALIZE:
-            return
-        showkw = dict(fontsize=fontsize, fontname=fontname,
-                      hide_reviewed_cuts=True,
-                      hide_inferred_same=True,
-                      hide_unreviewed_cuts=True,
-                      show_recent_review=not final,
-                      with_colorbar=True)
-        # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
-        infr_ = infr
-        verbose = infr_.verbose
-        infr_.verbose = 0
-        infr = infr_.copy()
-        infr_.verbose = verbose
-        infr.show_graph(**ut.update_existing(showkw.copy(),
-                                             dict(with_colorbar=True)))
-        pt.set_title(title)
-        pt.gca().set_aspect('equal')
-        pt.gcf().canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
-        dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
-        pt.save_figure(dpath=dpath)
-
-    SHOW_GT = True
-    QUIT_OR_EMEBED = 'embed'
-    TARGET_REVIEW = None
-    PRESHOW = True
-
-    # PRESHOW = False
-    # SHOW_GT = False
-    # QUIT_OR_EMEBED = 'quit'
-    # TARGET_REVIEW = 14
-
-    infr.ensure_cliques()
-    infr.graph.graph['ignore_labels'] = True
-    infr.set_node_attrs('width', 40)
-    infr.set_node_attrs('height', 40)
-    infr.set_node_attrs('fontsize', fontsize)
-    infr.set_node_attrs('fontname', fontname)
-    infr.set_node_attrs('fixed_size', True)
-    if VISUALIZE:
-        infr.update_visual_attrs()
-        infr.set_node_attrs('pin', 'true')
-        print(ut.repr4(infr.graph.node[1]))
-    if SHOW_GT:
-        # Pin Nodes into the target groundtruth position
-        show_graph(infr, 'target-gt')
-
-    def oracle_decision(infr, n1, n2):
-        """ The perfect reviewer """
-        truth = get_edge_truth(infr, n1, n2)
-        state = infr.truth_texts[truth]
-        tags = []
-        return state, tags
-
-    # Dummy scoring
-    infr.ensure_full()
-    apply_dummy_scores(infr)
-    infr.remove_name_labels()
-    infr.apply_weights()
-
-    if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
-        show_graph(infr, 'pre-reveiw')
-
+def apply_dummy_viewpoints(infr):
+    transition_rate = .5
+    transition_rate = 0
+    valid_views = ['L', 'F', 'R', 'B']
     rng = np.random.RandomState(42)
-    for count, (aid1, aid2) in enumerate(infr.generate_reviews(randomness=.1, rng=rng)):
-        msg = 'review #%d' % (count)
-        print('\n----------')
-        print(msg)
+    class MarkovView(object):
+        def __init__(self):
+            self.dir_ = +1
+            self.state = 0
 
-        # Make the next review decision
-        state, tags = oracle_decision(infr, aid1, aid2)
+        def __call__(self):
+            return self.next_state()
 
-        if count == TARGET_REVIEW:
-            infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
-
-        infr.add_feedback(aid1, aid2, state, tags, apply=True)
-
-        # Show the result
-        if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
-            show_graph(infr, msg)
-
-        if count == TARGET_REVIEW:
-            break
-
-    show_graph(infr, 'post-review', final=True)
-
-    if not getattr(infr, 'EMBEDME', False):
-        if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
-            pt.all_figures_tile(monitor_num=0, percent_w=.5)
-        else:
-            pt.all_figures_tile()
-        ut.show_if_requested()
+        def next_state(self):
+            if self.dir_ == -1 and self.state <= 0:
+                self.dir_ = +1
+            if self.dir_ == +1 and self.state >= len(valid_views) - 1:
+                self.dir_ = -1
+            if rng.rand() < transition_rate:
+                self.state += self.dir_
+            return valid_views[self.state]
+    mkv = MarkovView()
+    nid_to_aids = ut.group_pairs([
+        (n, d['name_label']) for n, d in infr.graph.nodes(data=True)])
+    grouped_nodes = list(nid_to_aids.values())
+    node_to_view = {node: mkv() for nodes in grouped_nodes for node in nodes}
+    infr.set_node_attrs('viewpoint', node_to_view)
 
 
 @profile
@@ -443,7 +484,7 @@ def do_infr_test(ccs, edges, new_edges):
     fnum = 1
     if ut.show_was_requested():
         infr.set_node_attrs('shape', 'circle')
-        infr.show(pnum=(2, 1, 1), fnum=fnum, hide_unreviewed_cuts=False)
+        infr.show(pnum=(2, 1, 1), fnum=fnum, hide_unreviewed_cuts=False, groupby='name_label')
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
