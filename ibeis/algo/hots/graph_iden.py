@@ -1001,11 +1001,12 @@ class _AnnotInfrFeedback(object):
         # The only case where an edge is not listed in the previous lists
         # should be when they are between compoments with absolutely no reviews
         unreviewed_edges = ut.flatten(unreviewed.values())
+        inconsistent_outgoing_edges = (ut.flatten(inconsistent_outgoing.values()))
 
         if True or __debug__:
             num_edges = (len(positive_edges) + len(negative_edges) +
                          len(inconsistent_edges) + len(notcomparable_edges) +
-                         len(unreviewed_edges) + len(inconsistent_outgoing))
+                         len(unreviewed_edges) + len(inconsistent_outgoing_edges))
 
             num_edges_real = graph.number_of_edges()
 
@@ -1013,9 +1014,7 @@ class _AnnotInfrFeedback(object):
                 print('num_edges = %r' % (num_edges,))
                 all_edges = (positive_edges + negative_edges +
                              inconsistent_edges + notcomparable_edges +
-                             unreviewed_edges)
-                assert len(ut.find_duplicate_items(all_edges)) == 0
-                all_edges += (ut.flatten(inconsistent_outgoing.values()))
+                             unreviewed_edges + inconsistent_outgoing_edges)
                 assert len(ut.find_duplicate_items(all_edges)) == 0
 
                 edges = ut.lstarmap(e_, graph.edges())
