@@ -439,12 +439,15 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
 
 class DetectorConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_sensitivity',    0.82),
+        # ut.ParamInfo('classifier_sensitivity',    0.82),
+        ut.ParamInfo('classifier_sensitivity',    0.01),
         ut.ParamInfo('localizer_config_filepath', None),
         ut.ParamInfo('localizer_weight_filepath', None),
         ut.ParamInfo('localizer_grid',            False),
-        ut.ParamInfo('localizer_sensitivity',     0.16),
-        ut.ParamInfo('labeler_sensitivity',       0.42),
+        # ut.ParamInfo('localizer_sensitivity',     0.16),
+        ut.ParamInfo('localizer_sensitivity',     0.10),
+        # ut.ParamInfo('labeler_sensitivity',       0.42),
+        ut.ParamInfo('labeler_sensitivity',       0.10),
     ]
     _sub_config_list = [
         ThumbnailConfig,

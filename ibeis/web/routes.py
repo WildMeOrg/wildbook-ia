@@ -21,7 +21,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-GLOBAL_FEEDBACK_LIMIT = 10
+GLOBAL_FEEDBACK_LIMIT = 100
 GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
     'ranks_top': 3,
@@ -115,27 +115,57 @@ def view():
         ]
         return nid_list
 
+    def filter_annots_general(aid_list):
+        # Grevy's
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'good',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'zebra_grevys',
+            'view': ['right'],
+        }
+        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        # Plains
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'ok',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'zebra_plains',
+            'view': ['left'],
+        }
+        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        # Masai
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'ok',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'giraffe_masai',
+            'view': ['left'],
+        }
+        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        aid_list = list(set(aid_list1 + aid_list2 + aid_list3))
+
+        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        return aid_list
+
     ibs = current_app.ibs
 
-    filter_kw = {
-        'multiple': None,
-        'minqual': 'good',
-        'is_known': True,
-        'min_pername': 1,
-        'view': ['right'],
-    }
-
     aid_list = ibs.get_valid_aids()
-    aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+    aid_list = filter_annots_general(aid_list)
     aid_list = filter_annots_imageset(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     unixtime_list = ibs.get_image_unixtime(gid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
     date_list = _date_list(gid_list)
 
-    flagged_date_list = None
-    # flagged_date_list = ['2016/01/29', '2016/01/30', '2016/01/31', '2016/02/01']
-    # flagged_date_list = ['2015/02/28', '2015/03/01', '2015/03/02', '2015/03/03']
+    # flagged_date_list = None
+    flagged_date_list = ['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31']
 
     gid_list_unique = list(set(gid_list))
     date_list_unique = _date_list(gid_list_unique)
@@ -266,7 +296,7 @@ def view():
     ]
     contributor_list = set(note_list)
     # nid_list = ibs.get_valid_nids()
-    aid_list_count = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+    aid_list_count = filter_annots_general(aid_list)
     aid_list_count = filter_annots_imageset(aid_list_count)
     gid_list_count = list(set(ibs.get_annot_gids(aid_list_count)))
     nid_list_count_dup = ibs.get_annot_name_rowids(aid_list_count)
@@ -281,7 +311,7 @@ def view():
             nsight1, nsight2, resight, pl_index, pl_error = vals
             # pl_index = 'Undefined - Zero recaptured (k = 0)'
         except KeyError:
-            if flagged_date_list is None:
+            if True or flagged_date_list is None:
                 raise ValueError()
             index1 = bar_label_list.index(flagged_date_list[-3])
             index2 = bar_label_list.index(flagged_date_list[-2])
@@ -312,11 +342,90 @@ def view():
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
     gps_list_markers = [ gps for gps in gps_list_markers if tuple(gps) != (-1, -1, ) ]
-    gps_list_markers_all = [ gps for gps in gps_list_markers_all if tuple(gps) != (-1, -1, ) ]
+    gps_list_markers_tuple_all = [ (gps, gid) for gps, gid in zip(gps_list_markers_all, gid_list) if tuple(gps) != (-1, -1, ) ]
+    gps_list_markers_all = [_[0] for _ in gps_list_markers_tuple_all]
+    gid_list_markers_all = [_[1] for _ in gps_list_markers_tuple_all]
     gps_list_tracks = [
         [ gps for gps in gps_list_track if tuple(gps) != (-1, -1, ) ]
         for gps_list_track in gps_list_tracks
     ]
+
+    VERSION = 2
+    # Colors for GPS
+    color_none = [0, "#333333"]
+    color_day1 = [1, "#CA4141"]
+    color_day2 = [2, "#428BCA"]
+    color_resight = [3, "#9A41CA"]
+    combined_list_markers_all = []
+    dataset_color_dict = {}
+    if VERSION == 1:
+        dataset_color_label_list = ['Sightings on Day 1 Only', 'Resightings', 'Sightings on Day 2 Only']
+    else:
+        dataset_color_label_list = ['Sightings on Day 1 Only', 'Resightings', 'Sightings on Day 2 Only', 'Unused']
+
+    for gid, gps in zip(gid_list_markers_all, gps_list_markers_all):
+        image_note = ibs.get_image_notes(gid)
+        current_date = _date_list([gid])[0]
+        if current_date not in flagged_date_list:
+            continue
+        else:
+            aid_list_ = ibs.get_image_aids(gid)
+            nid_list_ = ibs.get_annot_nids(aid_list_)
+            nid_list_ = [nid for nid in nid_list_ if nid > 0]
+            if len(nid_list_) == 0:
+                color = color_none
+            else:
+                aid_list_ = ut.flatten(ibs.get_name_aids(nid_list_))
+                gid_list_ = list(set(ibs.get_annot_gids(aid_list_)))
+                date_list = set(_date_list(gid_list_))
+                if current_date == '2015/03/01':
+                    if '2015/03/02' in date_list:
+                        color = color_resight
+                    else:
+                        color = color_day1
+                elif current_date == '2015/03/02':
+                    if '2015/03/01' in date_list:
+                        color = color_resight
+                    else:
+                        color = color_day2
+                elif current_date == '2016/01/30':
+                    if '2016/01/31' in date_list:
+                        color = color_resight
+                    else:
+                        color = color_day1
+                elif current_date == '2016/01/31':
+                    if '2016/01/30' in date_list:
+                        color = color_resight
+                    else:
+                        color = color_day2
+
+        color_id = color[0]
+        if VERSION == 1 and color_id == 0:
+            continue
+        if VERSION == 1:
+            color_id -= 1
+
+        combined_list_markers_all.append(tuple(color + [gps]))
+        dataset_tag = 'GGR' if 'GGR' in image_note else 'GZGC'
+
+        if dataset_tag not in dataset_color_dict:
+            if VERSION == 1:
+                dataset_color_dict[dataset_tag] = [0, 0, 0]
+            else:
+                dataset_color_dict[dataset_tag] = [0, 0, 0, 0]
+        dataset_color_dict[dataset_tag][color_id] += 1
+
+    for dataset_tag in dataset_color_dict:
+        temp = dataset_color_dict[dataset_tag]
+        temp[-1], temp[-2] = temp[-2], temp[-1]
+        if len(temp) == 4:
+            temp = temp[1:] + temp[:1]
+        dataset_color_dict[dataset_tag] = temp
+
+    combined_list_markers_all = sorted(combined_list_markers_all)
+    color_list_markers_all = [_[1] for _ in combined_list_markers_all]
+    gps_list_markers_all = [_[2] for _ in combined_list_markers_all]
+    assert len(color_list_markers_all) == len(gps_list_markers_all)
 
     valid_aids = ibs.get_valid_aids()
     valid_aids = filter_annots_imageset(valid_aids)
@@ -411,7 +520,10 @@ def view():
                          pl_error=pl_error,
                          gps_list_markers=gps_list_markers,
                          gps_list_markers_all=gps_list_markers_all,
+                         color_list_markers_all=color_list_markers_all,
                          gps_list_tracks=gps_list_tracks,
+                         dataset_color_dict=dataset_color_dict,
+                         dataset_color_label_list=dataset_color_label_list,
                          path_dict=path_dict,
                          bar_label_list=bar_label_list,
                          bar_value_list1=bar_value_list1,
@@ -459,22 +571,410 @@ def view():
 
 @register_route('/view/advanced/', methods=['GET'])
 def view_advanced():
+    def _date_list(gid_list):
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime)
+            if unixtime is not None else
+            'UNKNOWN'
+            for unixtime in unixtime_list
+        ]
+        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        return date_list
+
+    def filter_annots_imageset(aid_list):
+        try:
+            imgsetid = request.args.get('imgsetid', '')
+            imgsetid = int(imgsetid)
+            imgsetid_list = ibs.get_valid_imgsetids()
+            assert imgsetid in imgsetid_list
+        except:
+            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            return aid_list
+        imgsetids_list = ibs.get_annot_imgsetids(aid_list)
+        aid_list = [
+            aid
+            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
+            if imgsetid in imgsetid_list_
+        ]
+        return aid_list
+
+    def filter_annots_general(aid_list):
+        # Grevy's
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'good',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'zebra_grevys',
+            'view': ['right'],
+        }
+        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        # Plains
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'ok',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'zebra_plains',
+            'view': ['left'],
+        }
+        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        # Masai
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'ok',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'giraffe_masai',
+            'view': ['left'],
+        }
+        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+
+        aid_list = aid_list1 + aid_list2 + aid_list3
+
+        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        return aid_list
+
     ibs = current_app.ibs
 
-    # ut.embed()
+    species_tag_list = ['zebra_grevys', 'zebra_plains', 'giraffe_masai']
+    species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
+    species_set = set(species_tag_list)
+    species_nice_dict = {
+        species_tag : ibs.get_species_nice(species_rowid)
+        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
+    }
 
     aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
     viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
-    viewpoint_list_ = [
-        (const.YAWALIAS_NICE[viewpoint], viewpoint_list.count(viewpoint))
-        for viewpoint in const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    viewpoint_dict = {}
+
+    for species, viewpoint in zip(species_list, viewpoint_list):
+        if species in species_set:
+            if species not in viewpoint_dict:
+                viewpoint_dict[species] = {}
+            if viewpoint not in viewpoint_dict[species]:
+                viewpoint_dict[species][viewpoint] = 0
+            viewpoint_dict[species][viewpoint] += 1
+
+    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    pie_values_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
+        )
+        for species in species_tag_list
     ]
 
-    pie_label_list = [ str(_[0]) for _ in viewpoint_list_ ]
-    pie_value_list = [ _[1] for _ in viewpoint_list_ ]
+    pie_left_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
+    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
+    viewpoint_tag_dict = {
+        'zebra_grevys' : pie_right_list,
+        'zebra_plains' : pie_left_list,
+        'giraffe_masai' : pie_left_list,
+    }
+    pie_label_corrected_list = list(map(
+        str,
+        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
+    ))
+    pie_values_corrected_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
+        )
+        for species in species_tag_list
+    ]
 
+    gid_list = ibs.get_valid_gids()
+    note_list = ibs.get_image_notes(gid_list)
+    aids_list = ibs.get_image_aids(gid_list)
+    viewpoints_list = ut.unflat_map(ibs.get_annot_yaw_texts, aids_list)
+    dataset_tag_list = ['GGR', 'GZGC']
+    pie_label_images_list = ['Correct Viewpoint', '+/- 45 Viewpoint', 'Unused']
+    pie_values_images_dict = {
+        dataset_tag : [0, 0, 0]
+        for dataset_tag in dataset_tag_list
+    }
+    allowed_viewpoint_dict = {
+        'GGR': ['right', 'frontright', 'backright'],
+        'GZGC': ['left', 'frontleft', 'backleft'],
+    }
+    for note, viewpoint_list in zip(note_list, viewpoints_list):
+        dataset_tag = 'GGR' if 'GGR' in note else 'GZGC'
+        allowed_viewpoint_list = allowed_viewpoint_dict[dataset_tag]
+
+        found = False
+        for index, allowed_viewpoint in enumerate(allowed_viewpoint_list):
+            if allowed_viewpoint in viewpoint_list:
+                found = True
+                if index == 0:
+                    pie_values_images_dict[dataset_tag][0] += 1
+                else:
+                    pie_values_images_dict[dataset_tag][1] += 1
+                break
+        if not found:
+            pie_values_images_dict[dataset_tag][2] += 1
+
+    pie_values_images_list = [
+        (_, pie_values_images_dict[_])
+        for _ in dataset_tag_list
+    ]
+    # ut.embed()
+
+    nid_list = ibs.get_valid_nids()
+    aids_list = ibs.get_name_aids(nid_list)
+    species_list = map(list, map(set, ut.unflat_map(ibs.get_annot_species_texts, aids_list)))
+    species_list = [ None if len(_) != 1 else _[0] for _ in species_list ]
+
+    num_bins = 15
+    histogram_dict = {}
+    for nid, aids, species in zip(nid_list, aids_list, species_list):
+        if species not in histogram_dict:
+            histogram_dict[species] = {}
+        count = len(aids)
+        count = min(count, num_bins)
+        if count not in histogram_dict[species]:
+            histogram_dict[species][count] = 0
+        histogram_dict[species][count] += 1
+
+    histogram_bins = list(range(1, num_bins + 1))
+    bar_label_list = [
+        '%s+' % (bin_, ) if bin_ == histogram_bins[-1] else '%s' % (bin_, )
+        for bin_ in histogram_bins
+    ]
+    bar_values_dict = {}
+    for species in histogram_dict:
+        bar_values_dict[species] = []
+        for bin_ in histogram_bins:
+            value = histogram_dict[species].get(bin_, 0)
+            if species == 'zebra_plains':
+                value2 = histogram_dict['giraffe_masai'].get(bin_, 0)
+                value += value2
+            bar_values_dict[species].append(value)
+
+    # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
     return appf.template('view', 'advanced',
+                         __wrapper_header__=False,
+                         **embedded)
+
+
+@register_route('/view/advanced2/', methods=['GET'])
+def view_advanced2():
+    def _date_list(gid_list):
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime)
+            if unixtime is not None else
+            'UNKNOWN'
+            for unixtime in unixtime_list
+        ]
+        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        return date_list
+
+    def filter_annots_imageset(aid_list):
+        try:
+            imgsetid = request.args.get('imgsetid', '')
+            imgsetid = int(imgsetid)
+            imgsetid_list = ibs.get_valid_imgsetids()
+            assert imgsetid in imgsetid_list
+        except:
+            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
+            return aid_list
+        imgsetids_list = ibs.get_annot_imgsetids(aid_list)
+        aid_list = [
+            aid
+            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
+            if imgsetid in imgsetid_list_
+        ]
+        return aid_list
+
+    def filter_annots_general(aid_list):
+        # Grevy's
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'good',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'zebra_grevys',
+            'view': ['right'],
+        }
+        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        aid_list1 = []
+
+        # Plains
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'ok',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'zebra_plains',
+            'view': ['left'],
+        }
+        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        # aid_list2 = []
+
+        # Masai
+        filter_kw = {
+            'multiple': None,
+            'minqual': 'ok',
+            'is_known': True,
+            'min_pername': 1,
+            'species': 'giraffe_masai',
+            'view': ['left'],
+        }
+        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        # aid_list3 = []
+
+        aid_list = aid_list1 + aid_list2 + aid_list3
+
+        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
+        return aid_list
+
+    ibs = current_app.ibs
+
+    aid_list = ibs.get_valid_aids()
+    aid_list = filter_annots_general(aid_list)
+    aid_list = filter_annots_imageset(aid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
+    gid_list = ibs.get_annot_gids(aid_list)
+    unixtime_list = ibs.get_image_unixtime(gid_list)
+    nid_list = ibs.get_annot_name_rowids(aid_list)
+    date_list = _date_list(gid_list)
+
+    flagged_date_list = ['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31']
+
+    index = 0
+    value = 0
+    line_index_list = []
+    line_label_list = []
+    line_value_list = []
+    seen_set = set()
+    last_date = None
+    for unixtime, aid, nid, date, species in sorted(list(zip(unixtime_list, aid_list, nid_list, date_list, species_list))):
+        # if flagged_date_list is not None and date not in flagged_date_list:
+        #     continue
+
+        index += 1
+        line_index_list.append(index)
+
+        # Add to counters
+        if nid not in seen_set:
+            seen_set.add(nid)
+            value += 1
+
+        # Add to register
+        line_value_list.append(value)
+
+        # Reset step (per day)
+        if index % 1000 == 0:
+            line_label_list.append(index)
+        else:
+            line_label_list.append('')
+        # if date != last_date and date != 'UNKNOWN':
+        #     last_date = date
+        #     # line_label_list.append(date)
+        #     line_label_list.append('')
+        # else:
+        #     line_label_list.append('')
+
+    # Get number of annotations per name as a histogram for each species
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'advanced2',
+                         __wrapper_header__=False,
+                         **embedded)
+
+
+@register_route('/view/advanced3/', methods=['GET'])
+def view_advanced3():
+
+    ibs = current_app.ibs
+
+    gid_list = ibs.get_valid_gids()
+    # gid_list = gid_list[:100] + gid_list[-100:]
+    note_list = ibs.get_image_notes(gid_list)
+
+    contrib_dict = {}
+    skipped = 0
+    for gid, note in zip(gid_list, note_list):
+        note = note.strip()
+        if len(note) == 0:
+            skipped += 1
+            continue
+
+        dataset_tag = 'GGR' if 'GGR' in note else 'GZGC'
+        if dataset_tag not in contrib_dict:
+            contrib_dict[dataset_tag] = {}
+
+        if dataset_tag == 'GGR':
+            note_ = note.strip().split(',')
+            car, letter = note_[1:3]
+        else:
+            note_ = note.strip().split(',')
+            car, letter = note_[0:2]
+            car = car.split(' ')[-1].strip('\'')
+            letter = letter.split(' ')[-1].strip('\'')
+
+        if car not in contrib_dict[dataset_tag]:
+            contrib_dict[dataset_tag][car] = {}
+        if letter not in contrib_dict[dataset_tag][car]:
+            contrib_dict[dataset_tag][car][letter] = 0
+
+        contrib_dict[dataset_tag][car][letter] += 1
+
+    max_size = 0
+    for dataset_tag in contrib_dict:
+        temp_list = []
+        for car in contrib_dict[dataset_tag]:
+            letter_dict = contrib_dict[dataset_tag][car]
+            combined_list = list([ (_[1], _[0]) for _ in letter_dict.iteritems()])
+            combined_list = sorted(combined_list, reverse=True)
+            letter_list = [_[1] for _ in combined_list]
+            total = sum(letter_dict.values())
+            temp_list.append((total, car, letter_list))
+        temp_list = sorted(temp_list, reverse=True)
+        max_size = max(max_size, len(temp_list))
+        contrib_dict[dataset_tag]['__MANIFEST__'] = temp_list
+
+    max_show = 30
+    # bar_label_list = [''] * max_show
+    bar_label_list = list(range(1, max_show + 1))
+    bar_values_dict = {}
+    for dataset_tag in contrib_dict:
+        values = [_[0] for _ in contrib_dict[dataset_tag]['__MANIFEST__']]
+        padding = max_size - len(values)
+        values = values + [0] * padding
+        values = values[:max_show]
+        bar_values_dict[dataset_tag] = values
+
+    for dataset_tag in contrib_dict:
+        print(dataset_tag)
+        total_cars = 0
+        total_letters = 0
+        total_images = 0
+        for car in contrib_dict[dataset_tag]:
+            if car == '__MANIFEST__':
+                continue
+            total_cars += 1
+            for letter in contrib_dict[dataset_tag][car]:
+                total_letters += 1
+                total_images += contrib_dict[dataset_tag][car][letter]
+        print(total_cars)
+        print(total_letters)
+        print(total_images)
+
+    print(skipped)
+
+    # Get number of annotations per name as a histogram for each species
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'advanced3',
                          __wrapper_header__=False,
                          **embedded)
 
@@ -1305,7 +1805,7 @@ def load_identification_query_object(autoinit=False,
     else:
         if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1 >= global_feedback_limit:
             # Apply current names that have been made to database
-            commit_current_query_object_names(ibs, current_app.QUERY_OBJECT)
+            commit_current_query_object_names(current_app.QUERY_OBJECT, ibs)
 
             # Rebuild the AnnotInference object via the engine
             autoinit = True
@@ -1336,8 +1836,8 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
 
     # We need to precompute the chips in this process for OpenCV, as warp-affine
     # segfaults in the web engine process
-    ibs.depc.get_rowids('chips', ibs.get_valid_aids())
-    ibs.depc.get_rowids('probchip', ibs.get_valid_aids())
+    # ibs.depc.get_rowids('chips', ibs.get_valid_aids())
+    # ibs.depc.get_rowids('probchip', ibs.get_valid_aids())
 
     if current_app.QUERY_OBJECT is not None:
         if current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER + 1 >= global_feedback_limit:
@@ -1399,8 +1899,8 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
 
         if engine_computed:
 
-            ibs.depc_annot.get_rowids('chips', ibs.get_valid_aids())
-            ibs.depc_annot.get_rowids('probchip', ibs.get_valid_aids())
+            # ibs.depc_annot.get_rowids('chips', ibs.get_valid_aids())
+            # ibs.depc_annot.get_rowids('probchip', ibs.get_valid_aids())
 
             query_object = load_identification_query_object(
                 global_feedback_limit=global_feedback_limit
