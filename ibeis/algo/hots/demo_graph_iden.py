@@ -61,7 +61,7 @@ def demo_graph_iden2():
     # annots_per_name = [4, 3, 2, 1]
     annots_per_name = [5, 6, 7, 5]
     # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
-    annots_per_name = (np.random.rand(100) * 10).astype(np.int32) + 1
+    annots_per_name = (np.random.rand(64) * 10).astype(np.int32) + 1
     nids = [val for val, num in enumerate(annots_per_name, start=1)
             for _ in range(num)]
     aids = range(len(nids))
@@ -227,9 +227,12 @@ def apply_dummy_scores(infr, rng=None):
     print('[demo] apply dummy scores')
     rng = ut.ensure_rng(rng)
     dummy_params = {
-        0: {'mu': .2, 'sigma': .2},
-        1: {'mu': .8, 'sigma': .2},
-        2: {'mu': .2, 'sigma': .4},
+        # 0: {'mu': .2, 'sigma': .2},
+        # 1: {'mu': .8, 'sigma': .2},
+        # 2: {'mu': .2, 'sigma': .4},
+        0: {'mu': .2, 'sigma': .02},
+        1: {'mu': .8, 'sigma': .02},
+        2: {'mu': .2, 'sigma': .04},
     }
     edges = list(infr.graph.edges())
     truths = [get_edge_truth(infr, n1, n2) for n1, n2 in ut.ProgIter(edges)]
