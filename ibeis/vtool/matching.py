@@ -77,6 +77,9 @@ class PairwiseMatch(ut.NiceRepr):
         else:
             return 0
 
+    def matched_vecs2(match):
+        return match.annot2['vecs'].take(match.fm.T[1], axis=0)
+
     def _next_instance(match, inplace=None):
         """
         Returns either the same or a new instance of a match object with the
