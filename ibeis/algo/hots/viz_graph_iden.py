@@ -105,6 +105,7 @@ class _AnnotInfrViz(object):
                 colors[idx] = pt.GRAY
         return edges, weights, colors
 
+    @profile
     def get_colored_weights(infr, weights):
         import plottool as pt
         #pt.rrrr()
@@ -152,12 +153,15 @@ class _AnnotInfrViz(object):
         ut.nx_delete_node_attr(simple, infr.visual_node_attrs + ['pin'])
         return simple
 
+    @profile
     def update_visual_attrs(infr, graph=None,
                             show_recent_review=True,
                             hide_reviewed_cuts=False,
                             hide_inferred_same=False,
                             hide_unreviewed_cuts=True,
+                            hide_labels=False,
                             hide_cuts=None,
+                            reposition=True,
                             **kwargs
                             # hide_unreviewed_inferred=True
                             ):
@@ -181,7 +185,8 @@ class _AnnotInfrViz(object):
         dark_background = graph.graph.get('dark_background', None)
 
         # Ensure we are starting from a clean slate
-        ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
+        if reposition:
+            ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
 
         # Set annotation node labels
         node_to_aid = nx.get_node_attributes(graph, 'aid')
@@ -198,7 +203,11 @@ class _AnnotInfrViz(object):
                 node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
                 for node, aid in node_to_aid.items()
             }
-        nx.set_node_attributes(graph, 'label', annotnode_to_label)
+        if hide_labels:
+            nx.set_node_attributes(graph, 'label', _dz(graph.nodes(), ['']))
+            # ut.nx_delete_edge_attr(graph, 'label')
+        else:
+            nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # NODE_COLOR: based on name_label
         ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.4)
@@ -244,10 +253,14 @@ class _AnnotInfrViz(object):
         nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
 
         # LINE_WIDTH: based on review_state
+        # unreviewed_width = 2.0
+        # reviewed_width = 5.0
+        unreviewed_width = 1.0
+        reviewed_width = 2.0
         nx.set_edge_attributes(graph, 'linewidth', _dz(
-            reviewed_edges, [5.0]))
+            reviewed_edges, [reviewed_width]))
         nx.set_edge_attributes(graph, 'linewidth', _dz(
-            unreviewed_edges, [2.0]))
+            unreviewed_edges, [unreviewed_width]))
 
         # EDGE_STROKE: based on reviewed_state and maybe_error
         # fg = pt.WHITE if dark_background else pt.BLACK
@@ -348,21 +361,24 @@ class _AnnotInfrViz(object):
             nx.set_edge_attributes(graph, 'style',
                                    _dz(recent_edges, ['']))
 
-        # LAYOUT: update the positioning layout
-        layoutkw = dict(prog='neato',
-                        # splines='spline',
-                        splines='line',
-                        sep=10 / 72, esep=1 / 72, nodesep=.1)
-        layoutkw.update(kwargs)
-        pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
+        if reposition:
+            # LAYOUT: update the positioning layout
+            layoutkw = dict(prog='neato',
+                            # splines='spline',
+                            # splines='line',
+                            sep=10 / 72, esep=1 / 72, nodesep=.1)
+            layoutkw.update(kwargs)
+            pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
+    @profile
     def show_graph(infr, use_image=False, with_colorbar=False, **kwargs):
-        kwargs['fontsize'] = kwargs.get('fontsize', 8)
+        # kwargs['fontsize'] = kwargs.get('fontsize', 8)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            default_update_kw = ut.get_func_kwargs(infr.update_visual_attrs)
-            update_kw = ut.update_existing(default_update_kw, kwargs)
-            infr.update_visual_attrs(**update_kw)
+            # default_update_kw = ut.get_func_kwargs(infr.update_visual_attrs)
+            # update_kw = ut.update_existing(default_update_kw, kwargs)
+            # infr.update_visual_attrs(**update_kw)
+            infr.update_visual_attrs(**kwargs)
             graph = infr.graph
             plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                                   modify_ax=False, use_image=use_image, verbose=0,

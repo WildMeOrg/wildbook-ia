@@ -5399,15 +5399,17 @@ def get_image_lazydict(ibs, gid, config=None):
 
 @register_ibs_method
 def get_image_instancelist(ibs, gid_list):
+    # DEPRICATE
     obj_list = [ibs.get_image_lazydict(gid) for gid in gid_list]
-    image_list = ut.make_instancelist(obj_list, check=False)
+    image_list = ut.instancelist(obj_list, check=False)
     return image_list
 
 
 @register_ibs_method
 def get_annot_instancelist(ibs, aid_list):
+    # DEPRICATE
     obj_list = [ibs.get_annot_lazydict(aid) for aid in aid_list]
-    annot_list = ut.make_instancelist(obj_list, check=False)
+    annot_list = ut.instancelist(obj_list, check=False)
     return annot_list
 
 

@@ -64,8 +64,8 @@ def train_pairwise_rf():
         'score_method': 'csum'
     })
     # Per query choose a set of correct, incorrect, and random training pairs
-    rng = np.random.RandomState(42)
-    aid_pairs_ = infr._cm_training_pairs(top_gt=4, top_gf=3, rand_gf=2, rng=rng)
+    aid_pairs_ = infr._cm_training_pairs(top_gt=4, top_gf=3, rand_gf=2,
+                                         rng=np.random.RandomState(42))
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
     query_aids_ = ut.take_column(aid_pairs_, 0)
     data_aids_ = ut.take_column(aid_pairs_, 1)
@@ -153,7 +153,7 @@ def train_pairwise_rf():
     matches_RAT_SV = [match.apply_sver(inplace=False)
                       for match in ut.ProgIter(matches_RAT, label='sver')]
 
-    if False:
+    if True:
         # Create another version where we find global normalizers for the data
         qreq_.load_indexer()
         indexer = qreq_.indexer
@@ -183,13 +183,12 @@ def train_pairwise_rf():
 
         matches = matches_RAT_SV
         def batch_apply_lnbnn(matches):
-            from ibeis.algo.hots import nn_weights
+            # from ibeis.algo.hots import nn_weights
             matches_ = [match.copy() for match in matches]
             # matches_ = [match.rrr(0) for match in matches_]
-
             K = qreq_.qparams.K
             Knorm = qreq_.qparams.Knorm
-            normalizer_rule  = qreq_.qparams.normalizer_rule
+            # normalizer_rule  = qreq_.qparams.normalizer_rule
             print('Stacking vecs for batch matching')
             offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
             stacked_vecs = np.vstack([
@@ -199,8 +198,8 @@ def train_pairwise_rf():
             # vecs_list2 = [stacked_vecs[l:r] for l, r in ut.itertwo(offset_list)]
 
             vecs = stacked_vecs
-            # num = (K + Knorm) * 2
-            num = 2000
+            num = (K + Knorm)
+            # num = 2000
             idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
             vdist = np.hstack([
@@ -239,45 +238,69 @@ def train_pairwise_rf():
 
         matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
         matches = matches_SV_LNBNN
-        main_key = 'lnbnn'
+        # keys = 'lnbnn'
 
         vsone_sver_lnbnn_auc = matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
 
     matches = matches_RAT_SV
-    main_key = 'ratio'
 
     # =====================================
     # Attempt to train a simple classsifier
     # =====================================
 
+    # ---------------
+    # Try just using simple scores
+    S_names = ['ratio', 'lnbnn']
+    S_sets = [np.array([m.measures[key].sum() for m in matches])
+              for key in S_names ]
+
+    # ---------------
+    # for m in ut.ProgIter(matches):
+    #     m.rrr(0)
+
+    scorers = ['ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist']
+    keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
+             'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
+    keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
+             'sver_err_scale', 'sver_err_ori']
+
+    # Try different feature constructions
     print('Building pairwise features')
     pairwise_feats = pd.DataFrame([
-        m.make_pairwise_constlen_feature(main_key=main_key, n_top=3)
+        m.make_feature_vector(scorers=scorers, keys=keys1, n_top=3)
         for m in ut.ProgIter(matches)
     ])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
-    X_withnan = pairwise_feats.values.copy()
-    withnan_cols = pairwise_feats.columns
+    pairwise_feats_ratio = pd.DataFrame([
+        m.make_feature_vector(scorers='ratio', keys=keys2, n_top=3)
+        for m in ut.ProgIter(matches)
+    ])
+    pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
 
     valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
     valid_cols = pairwise_feats.columns[valid_colx]
-    X_nonan = pairwise_feats[valid_cols].values.copy()
 
+    X_nonan = pairwise_feats[valid_cols].copy()
+    X_withnan = pairwise_feats.copy()
+    X_withnan_ratio = pairwise_feats_ratio
+
+    X_sets = [X_nonan, X_withnan, X_withnan_ratio]
+    X_names = ['nonan', 'withnan', 'withnan_ratio']
+
+    # ---------------
+    # Setup target data and cross-validation
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
-    rng = np.random.RandomState(42)
 
-    rng = np.random.RandomState(42)
-    xvalkw = dict(n_splits=10, shuffle=True, random_state=rng)
+    # xvalkw = dict(n_splits=10, shuffle=True,
+    xvalkw = dict(n_splits=3, shuffle=True,
+                  random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
     skf_iter = skf.split(X=X_nonan, y=y)
-    df_results = pd.DataFrame(columns=['auc_naive', 'auc_learn_nonan',
-                                       'auc_learn_withnan'])
+    df_results = pd.DataFrame(columns=S_names + X_names)
 
-    rng2 = np.random.RandomState(3915904814)
-    # rf_params = dict(n_estimators=256, bootstrap=True, verbose=0, random_state=rng2)
     rf_params = {
-        'max_depth': 4,
+        # 'max_depth': 4,
         'bootstrap': True,
         'class_weight': None,
         'max_features': 'sqrt',
@@ -287,47 +310,46 @@ def train_pairwise_rf():
         'n_estimators': 256,
         'criterion': 'entropy',
     }
-    rf_params.update(verbose=1, random_state=rng2)
+    rf_params.update(verbose=1, random_state=np.random.RandomState(3915904814))
 
     # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
     for count, (train_idx, test_idx) in enumerate(skf_iter):
         y_test = y[test_idx]
         y_train = y[train_idx]
-        if True:
-            score_list = np.array(
-                [m.measures[main_key].sum() for m in ut.take(matches, test_idx)])
-            auc_naive = sklearn.metrics.roc_auc_score(y_test, score_list)
 
-        if True:
-            X_train = X_nonan[train_idx]
-            X_test = X_nonan[test_idx]
+        split_columns = []
+        split_aucs = []
+
+        for S, name in zip(S_sets, S_names):
+            print('name = %r' % (name,))
+            score_list = ut.take(S, test_idx)
+            auc_score = sklearn.metrics.roc_auc_score(y_test, score_list)
+            split_columns.append(name)
+            split_aucs.append(auc_score)
+
+        for X, name in zip(X_sets, X_names):
+            print('name = %r' % (name,))
+            X_train = X.values[train_idx]
+            X_test = X.values[test_idx]
             # Train uncalibrated random forest classifier on train data
             clf = RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
 
-            # evaluate on test data
-            clf_probs = clf.predict_proba(X_test)
-            auc_learn_nonan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
-
-        if True:
-            X_train = X_withnan[train_idx]
-            X_test = X_withnan[test_idx]
-            # Train uncalibrated random forest classifier on train data
-            clf = RandomForestClassifier(**rf_params)
-            clf.fit(X_train, y_train)
-
-            importances = dict(zip(withnan_cols, clf.feature_importances_))
-            importances = ut.sort_dict(importances, 'vals', reverse=True)
-            print(ut.align(ut.repr4(importances, precision=4), ':'))
+            # importances = dict(zip(withnan_cols, clf.feature_importances_))
+            # importances = ut.sort_dict(importances, 'vals', reverse=True)
+            # print(ut.align(ut.repr4(importances, precision=4), ':'))
 
             # evaluate on test data
             clf_probs = clf.predict_proba(X_test)
             # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
-            auc_learn_withnan = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
 
-        newrow = pd.DataFrame([[auc_naive, auc_learn_nonan,
-                                auc_learn_withnan]],
-                              columns=df_results.columns)
+            # evaluate on test data
+            clf_probs = clf.predict_proba(X_test)
+            auc_learn = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+            split_columns.append(name)
+            split_aucs.append(auc_learn)
+
+        newrow = pd.DataFrame([split_aucs], columns=split_columns)
         # print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
 
@@ -338,10 +360,10 @@ def train_pairwise_rf():
         df = df.assign(percent_change=percent_change)
 
     import sandbox_utools as sbut
-    print(sbut.to_string_monkey(df, highlight_cols=[0, 1, 2]))
+    print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns) - 2))))
     print(df.mean())
 
-    # TEST LNBNN SCORE SEP
+    # TEST ORIGINAL LNBNN SCORE SEP
     infr.apply_match_edges()
     infr.apply_match_scores()
     edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
@@ -600,8 +622,6 @@ def gridsearch_ratio_thresh(match_list, truth_list):
 #     # ax.yaxis.set_major_formatter(NullFormatter())
 #     # plt.axis('tight')
 #     print('--------')
-
-
 
 
 if __name__ == '__main__':

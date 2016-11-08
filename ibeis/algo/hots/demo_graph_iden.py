@@ -48,50 +48,116 @@ import utool as ut
 print, rrr, profile = ut.inject2(__name__)
 
 
+def make_dummy_infr(annots_per_name):
+    from ibeis.algo.hots import graph_iden
+    nids = [val for val, num in enumerate(annots_per_name, start=1)
+            for _ in range(num)]
+    aids = range(len(nids))
+    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True,
+                                     verbose=1)
+    return infr
+
+
 @profile
 def demo_graph_iden2():
     """
     CommandLine:
         python -m ibeis.algo.hots.demo_graph_iden demo_graph_iden2
     """
-    from ibeis.algo.hots import graph_iden
     import plottool as pt
+
+    # ---- Synthetic data params
+
     # Create dummy data
     # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
     # annots_per_name = [4, 3, 2, 1]
-    annots_per_name = [5, 6, 7, 5]
+    # annots_per_name = [9, 9, 9, 9, 9, 9, 9, 9, 9]
+    # annots_per_name = [8, 8, 8, 8, 8, 8, 8, 8]
+    # annots_per_name = [8, 8, 8, 8, 8]
+    annots_per_name = [8, 8, 8]
+    # 8, 8]
     # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
-    annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
-    nids = [val for val, num in enumerate(annots_per_name, start=1)
-            for _ in range(num)]
-    aids = range(len(nids))
-    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True,
-                                     verbose=1)
-    infr.set_node_attrs('shape', 'circle')
+    # annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
 
-    # Assign random viewpoints
-    apply_dummy_viewpoints(infr)
+    queue_params = {
+        'pos_jump_thresh': None,
+        'neg_jump_thresh': None,
+        # 'pos_jump_thresh': 1,
+        # 'neg_jump_thresh': 2,
+    }
+    oracle_accuracy = 1.0
+    # oracle_accuracy = .9
+    # oracle_accuracy = 1.0
 
-    dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
-    ut.remove_files_in_dir(dpath)
+    b = 10
 
-    fontsize = 12
-    # fontname = 'Ubuntu'
-    fontname = 'sans'
+    round2_params = {
+        # 'pos_jump_thresh': None,
+        # 'neg_jump_thresh': None,
+        'pos_jump_thresh': 3,
+        'neg_jump_thresh': 4,
+    }
+    # round2_params = None
+
+    # --- draw params
 
     VISUALIZE = False
     VISUALIZE = True
     SHOW_NEG = False
-    # SHOW_NEG = True
+    SHOW_NEG = True
+
+    SHOW_GT = True
+    # QUIT_OR_EMEBED = 'embed'
+    QUIT_OR_EMEBED = 'quit'
+    TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
+    PRESHOW = True
+    # PRESHOW = False
+    # SHOW_GT = False
+    # QUIT_OR_EMEBED = 'quit'
+    # TARGET_REVIEW = 14
+
+    fontsize = 12
+    # fontname = 'Ubuntu'
+    fontname = 'sans'
+    splines = 'spline'
+    # splines = 'ortho'
+    # splines = 'line'
+
+    # ------------------
+
+    rng = np.random.RandomState(42)
+
+    infr = make_dummy_infr(annots_per_name)
+    infr.set_node_attrs('shape', 'circle')
+    infr.graph.graph['ignore_labels'] = True
+    infr.graph.graph['dark_background'] = True
+    infr.set_node_attrs('width', 29)
+    infr.set_node_attrs('height', 29)
+    infr.set_node_attrs('fontsize', fontsize)
+    infr.set_node_attrs('fontname', fontname)
+    infr.set_node_attrs('fixed_size', True)
+
+    # Assign random viewpoints
+    apply_dummy_viewpoints(infr)
+    infr.ensure_cliques()
+
+    dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
+    ut.remove_files_in_dir(dpath)
 
     def show_graph(infr, title, final=False):
         if not VISUALIZE:
             return
+        if len(infr.graph) < 35:
+            pass
+
         showkw = dict(fontsize=fontsize, fontname=fontname,
                       hide_reviewed_cuts=not SHOW_NEG,
                       hide_inferred_same=True,
                       hide_unreviewed_cuts=True,
+                      hide_labels=True,
                       show_recent_review=not final,
+                      splines=splines,
+                      reposition=False,
                       with_colorbar=True)
         # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
         infr_ = infr
@@ -99,68 +165,68 @@ def demo_graph_iden2():
         infr_.verbose = 0
         infr = infr_.copy()
         infr_.verbose = verbose
-        infr.show_graph(**ut.update_existing(showkw.copy(),
-                                             dict(with_colorbar=True)))
+        infr.show_graph(**showkw)
         pt.set_title(title)
+        pt.adjust_subplots(top=.95, left=0, right=1, bottom=.01)
         pt.gca().set_aspect('equal')
         pt.gcf().canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
         dpath = ut.ensuredir(ut.truepath('~/Desktop/demo_graph_iden'))
-        pt.save_figure(dpath=dpath)
+        pt.save_figure(dpath=dpath, dpi=128)
 
-    SHOW_GT = True
-    # QUIT_OR_EMEBED = 'embed'
-    QUIT_OR_EMEBED = 'quit'
-    TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
-    PRESHOW = True
-
-    # PRESHOW = False
-    # SHOW_GT = False
-    # QUIT_OR_EMEBED = 'quit'
-    # TARGET_REVIEW = 14
-
-    rng = np.random.RandomState(42)
-
-    infr.ensure_cliques()
-    infr.graph.graph['ignore_labels'] = True
-    infr.set_node_attrs('width', 30)
-    infr.set_node_attrs('height', 30)
-    infr.set_node_attrs('fontsize', fontsize)
-    infr.set_node_attrs('fontname', fontname)
-    infr.set_node_attrs('fixed_size', True)
     if VISUALIZE:
-        infr.update_visual_attrs(groupby='name_label')
+        infr.update_visual_attrs(splines=splines, groupby='name_label')
         infr.set_node_attrs('pin', 'true')
         print(ut.repr4(infr.graph.node[1]))
+
     if SHOW_GT:
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')
-
-    def oracle_decision(infr, n1, n2):
-        """ The perfect reviewer """
-        # oracle_accuracy = .8
-        # oracle_accuracy = .9
-        oracle_accuracy = 1.0
-        truth = get_edge_truth(infr, n1, n2)
-        if rng.rand() > oracle_accuracy:
-            print('oops')
-            # truth = rng.choice(list({0, 1, 2} - {truth}))
-            truth = rng.choice(list({0, 1} - {truth}))
-        state = infr.truth_texts[truth]
-        tags = []
-        return state, tags
 
     # Dummy scoring
     apply_random_negative_edges(infr, rng)
     # infr.ensure_full()
     apply_dummy_scores(infr, rng)
-    infr.break_graph(7)
+    infr.break_graph(b)
     infr.remove_name_labels()
     infr.apply_weights()
+
+    if VISUALIZE:
+        infr.update_visual_attrs(splines=splines)
 
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
         show_graph(infr, 'pre-reveiw')
 
-    _iter = infr.generate_reviews(randomness=.1, rng=rng)
+    def oracle_decision(infr, n1, n2):
+        """ The perfect reviewer """
+        truth = get_edge_truth(infr, n1, n2)
+
+        # Baseline accuracy
+        oracle_accuracy_ = oracle_accuracy
+
+        # Increase oracle accuracy for edges that it has seen before
+        num_reviews = infr.graph.edge[n1][n2].get('num_reviews', 1)
+        oracle_accuracy_ = 1 - ((1 - oracle_accuracy_) ** num_reviews)
+
+        # Decrease oracle accuracy for harder cases
+        # if truth == 1:
+        #     easiness = infr.graph.edge[n1][n2]['normscore']
+        # elif truth == 1:
+        #     easiness = infr.graph.edge[n1][n2]['normscore']
+        # else:
+        #     easiness = oracle_accuracy_
+        # oracle_accuracy_ = (oracle_accuracy_) * 1.0 + (1 - oracle_accuracy_) * easiness
+
+        if rng.rand() > oracle_accuracy_:
+            print('oops')
+            # truth = rng.choice(list({0, 1, 2} - {truth}))
+            observed = rng.choice(list({0, 1} - {truth}))
+        else:
+            observed = truth
+        state = infr.truth_texts[observed]
+        tags = []
+        return state, tags
+
+    _iter = infr.generate_reviews(randomness=.1, rng=rng, **queue_params)
     _iter2 = enumerate(_iter)
     prog = ut.ProgIter(_iter2, bs=False, adjust=False)
     for count, (aid1, aid2) in prog:
@@ -185,6 +251,38 @@ def demo_graph_iden2():
             break
 
     show_graph(infr, 'post-review', final=True)
+
+    # ROUND 2 FIGHT
+    if TARGET_REVIEW is None and round2_params is not None:
+        # HACK TO GET NEW THINGS IN QUEUE
+        infr.queue_params = round2_params
+        infr.apply_review_inference()
+
+        _iter = infr.generate_reviews(randomness=.1, rng=rng, **infr.queue_params)
+        _iter2 = enumerate(_iter)
+        prog = ut.ProgIter(_iter2, bs=False, adjust=False)
+        for count, (aid1, aid2) in prog:
+            msg = 'reviewII #%d' % (count)
+            print('\n----------')
+            print(msg)
+            print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+
+            # Make the next review decision
+            state, tags = oracle_decision(infr, aid1, aid2)
+
+            if count == TARGET_REVIEW:
+                infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
+
+            infr.add_feedback(aid1, aid2, state, tags, apply=True)
+
+            # Show the result
+            if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
+                show_graph(infr, msg)
+
+            if count == TARGET_REVIEW:
+                break
+
+        show_graph(infr, 'post-re-review', final=True)
 
     if not getattr(infr, 'EMBEDME', False):
         if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
@@ -216,7 +314,7 @@ def get_edge_truth(infr, n1, n2):
         comparable = view1 in adjacent_views[view2]
     except KeyError:
         comparable = True
-        raise
+        # raise
     same = nid1 == nid2
 
     if not comparable:
@@ -226,15 +324,54 @@ def get_edge_truth(infr, n1, n2):
 
 
 def apply_dummy_scores(infr, rng=None):
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden apply_dummy_scores --show
+
+    Ignore:
+        import sympy
+        x, y = sympy.symbols('x, y', positive=True, real=True)
+
+        num_pos_edges = (x * (x - 1)) / 2 * y
+        num_neg_edges = x * x * (y - 1)
+        subs = {x: 3, y: 3}
+        print(num_pos_edges.evalf(subs=subs))
+        print(num_neg_edges.evalf(subs=subs))
+        sympy.solve(num_pos_edges - num_neg_edges)
+
+        2*x/(x + 1) - y
+
+    Example:
+        >>> import vtool as vt
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> infr = make_dummy_infr([100] * 2)
+        >>> infr.ensure_full()
+        >>> rng = None
+        >>> apply_dummy_scores(infr, rng)
+        >>> edges = list(infr.graph.edges())
+        >>> truths = np.array([get_edge_truth(infr, n1, n2) for n1, n2 in edges])
+        >>> edge_to_normscore = infr.get_edge_attrs('normscore')
+        >>> scores = np.array(list(ut.take(edge_to_normscore, edges)))
+        >>> scorenorm = vt.ScoreNormalizer()
+        >>> scorenorm.fit(scores, truths)
+        >>> ut.quit_if_noshow()
+        >>> scorenorm.visualize()
+        >>> ut.show_if_requested()
+    """
     print('[demo] apply dummy scores')
     rng = ut.ensure_rng(rng)
     dummy_params = {
+        0: {'mu': .2, 'sigma': .5},
+        1: {'mu': .8, 'sigma': .4},
+        2: {'mu': .2, 'sigma': .8},
+
         # 0: {'mu': .2, 'sigma': .2},
         # 1: {'mu': .8, 'sigma': .2},
         # 2: {'mu': .2, 'sigma': .4},
-        0: {'mu': .2, 'sigma': .02},
-        1: {'mu': .8, 'sigma': .02},
-        2: {'mu': .2, 'sigma': .04},
+
+        # 0: {'mu': .2, 'sigma': .02},
+        # 1: {'mu': .8, 'sigma': .02},
+        # 2: {'mu': .2, 'sigma': .04},
     }
     edges = list(infr.graph.edges())
     truths = [get_edge_truth(infr, n1, n2) for n1, n2 in ut.ProgIter(edges)]
@@ -357,14 +494,7 @@ def demo_ibeis_graph_iden():
         for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
             if oracle_mode:
                 state, tags = oracle_decision(aid1, aid2)
-                # if total == 6:
-                #     infr.add_feedback(8, 7, 'nomatch', apply=True)
-                # else:
                 infr.add_feedback(aid1, aid2, state, tags, apply=True)
-                # infr.apply_feedback_edges()
-                # infr.apply_weights()
-                # infr.relabel_using_reviews()
-                # infr.apply_cuts()
             else:
                 raise NotImplementedError('review based on thresholded graph cuts')
 
@@ -442,15 +572,13 @@ def on_pick(event, infr=None):
     print(ut.get_timestamp())
 
 
-def do_infr_test(ccs, edges, new_edges):
+def synthetic_infr(ccs, edges):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
-    import plottool as pt
 
     if nx.__version__.startswith('1'):
         nx.add_path = nx.Graph.add_path
 
-    pt.qt4ensure()
     G = nx.Graph()
     import numpy as np
     rng = np.random.RandomState(42)
@@ -484,6 +612,19 @@ def do_infr_test(ccs, edges, new_edges):
     # infr.set_node_attrs('fontsize', fontsize)
     # infr.set_node_attrs('fontname', fontname)
     infr.set_node_attrs('fixed_size', True)
+    return infr
+
+
+def do_infr_test(ccs, edges, new_edges):
+    import networkx as nx
+    import plottool as pt
+
+    infr = synthetic_infr(ccs, edges)
+
+    if nx.__version__.startswith('1'):
+        nx.add_path = nx.Graph.add_path
+
+    pt.qt4ensure()
 
     # Preshow
     fnum = 1

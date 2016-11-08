@@ -187,8 +187,8 @@ def random_case_set():
     utool.embed()
 
     test_pairs = list(ut.unflat_take(test_cases, pairxs))
-    cases1 = ut.make_instancelist(ut.take_column(test_pairs, 0), check=False)
-    cases2 = ut.make_instancelist(ut.take_column(test_pairs, 1), check=False)
+    cases1 = ut.instancelist(ut.take_column(test_pairs, 0), check=False)
+    cases2 = ut.instancelist(ut.take_column(test_pairs, 1), check=False)
     # FIXME
     labels = labels1 = make_test_pairwise_labels2(cases1, cases2)  # NOQA
 

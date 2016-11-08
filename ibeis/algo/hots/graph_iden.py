@@ -1169,14 +1169,12 @@ class _AnnotInfrFeedback(object):
             # TODO: keep some edges (perhaps probalistically or based on
             # distance) in pos/neg review
 
-            # pos_thresh = 2
-            # neg_thresh = 3
-            pos_thresh = None
-            neg_thresh = None
-            # pos_thresh = 3
-            # neg_thresh = 4
+            # pos_jump_thresh = 2
+            # neg_jump_thresh = 3
+            pos_jump_thresh = infr.queue_params['pos_jump_thresh']
+            neg_jump_thresh = infr.queue_params['neg_jump_thresh']
 
-            if pos_thresh is not None:
+            if pos_jump_thresh is not None:
                 strong_positives = []
                 for nid, edges in reviewed_positives.items():
                     strong_edges = []
@@ -1185,7 +1183,7 @@ class _AnnotInfrFeedback(object):
                     for u, dist_dict in nx.all_pairs_shortest_path_length(trivial_reviews):
                         for v, dist in dist_dict.items():
                             if u <= v and graph.has_edge(u, v):
-                                if dist <= pos_thresh:
+                                if dist <= pos_jump_thresh:
                                     strong_edges.append((u, v))
                                 else:
                                     weak_edges.append((u, v))
@@ -1195,8 +1193,32 @@ class _AnnotInfrFeedback(object):
                 for edges in positive.values():
                     queue.delete_items(edges)
 
-            if neg_thresh is not None:
+            """
+            Example:
+                >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+                >>> from ibeis.algo.hots.graph_iden import _dz
+                >>> from ibeis.algo.hots import demo_graph_iden
+                >>> infr = demo_graph_iden.synthetic_infr(
+                >>>     ccs=[[1, 2, 3, 4, 5],
+                >>>            [6, 7, 8, 9, 10]],
+                >>>     edges=[
+                >>>         #(1, 6, {'reviewed_state': 'nomatch'}),
+                >>>         (1, 6, {}),
+                >>>         (4, 9, {}),
+                >>>     ]
+                >>> )
+                >>> infr._init_priority_queue()
+                >>> assert len(infr.queue) == 2
+                >>> infr.queue_params['neg_jump_thresh'] = None
+                >>> infr.add_feedback(1, 6, 'nomatch', apply=True)
+                >>> assert len(infr.queue) == 0
+                >>> infr.queue_params['neg_jump_thresh'] = 1
+                >>> infr.apply_review_inference()
+            """
+
+            if neg_jump_thresh is not None:
                 strong_negatives = []
+                weak_negatives = []
                 for nid_edge, neg_edges in reviewed_negatives.items():
                     nid1, nid2 = nid_edge
                     pos_edges1 = reviewed_positives[nid1]
@@ -1205,24 +1227,28 @@ class _AnnotInfrFeedback(object):
                     strong_edges = []
                     weak_edges = []
                     trivial_reviews = nx.Graph(edges)
-                    for u, v in neg_edges:
+
+                    unreviewed_neg_edges = negative[nid_edge]
+
+                    for u, v in unreviewed_neg_edges:
                         if node_to_label[u] == nid2:
                             u, v = v, u
                         # Check left side of the shore
                         for v_, dist in nx.shortest_path_length(trivial_reviews, source=u):
                             if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
-                                if dist <= neg_thresh:
-                                    strong_edges.append(e_(u, v_))
-                                else:
+                                if dist > neg_jump_thresh:
                                     weak_edges.append(e_(u, v_))
+                                else:
+                                    strong_edges.append(e_(u, v_))
                         # Check right side of the shore
                         for u_, dist in nx.shortest_path_length(trivial_reviews, source=v):
                             if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
-                                if dist <= neg_thresh:
-                                    strong_edges.append(e_(u_, v))
-                                else:
+                                if dist > neg_jump_thresh:
                                     weak_edges.append(e_(u_, v))
+                                else:
+                                    strong_edges.append(e_(u_, v))
                     strong_negatives.extend(strong_edges)
+                    weak_negatives.extend(weak_edges)
                 # print('strong_edges.append = %r' % (strong_edges,))
                 # print('weak_edges.append = %r' % (weak_edges,))
                 queue.delete_items(strong_negatives)
@@ -1250,14 +1276,18 @@ class _AnnotInfrFeedback(object):
         return new_priorities
 
     def _init_priority_queue(infr, randomness=0, rng=None):
+        if infr.verbose:
+            print('[infr] _init_priority_queue')
         graph = infr.graph
 
         # Candidate edges are unreviewed
         cand_uvds = [
             (u, v, d) for u, v, d in graph.edges(data=True)
-            if ((d.get('reviewed_state', 'unreviewed') == 'unreviewed' and
-                 d.get('inferred_state', None) is None) or
+            if (d.get('reviewed_state', 'unreviewed') == 'unreviewed' or
                 d.get('maybe_error', False))
+            # if ((d.get('reviewed_state', 'unreviewed') == 'unreviewed' and
+            #      d.get('inferred_state', None) is None) or
+            #     d.get('maybe_error', False))
         ]
 
         # TODO: stagger edges to review based on cc analysis
@@ -1278,7 +1308,6 @@ class _AnnotInfrFeedback(object):
 
         # All operations on a treap except sorting use O(log(N)) time
         infr.queue = ut.PriorityQueue(zip(edges, -priorities))
-        print('infr.queue = %r' % (infr.queue,))
 
     def _find_possible_error_edges(infr, subgraph):
         inconsistent_edges = [
@@ -1735,6 +1764,10 @@ class AnnotInference(ut.NiceRepr,
         infr.qreq_ = None
         infr.nid_counter = None
         infr.queue = None
+        infr.queue_params = {
+            'pos_jump_thresh': None,
+            'neg_jump_thresh': None,
+        }
         if autoinit:
             infr.initialize_graph()
 
@@ -2113,8 +2146,11 @@ class AnnotInference(ut.NiceRepr,
         needs_review_edges = ut.take(chosen_edges, sortx)
         return needs_review_edges
 
-    def generate_reviews(infr, randomness=0, rng=None):
+    def generate_reviews(infr, randomness=0, rng=None, pos_jump_thresh=None,
+                         neg_jump_thresh=None):
         rng = ut.ensure_rng(rng)
+        infr.queue_params['pos_jump_thresh'] = pos_jump_thresh
+        infr.queue_params['neg_jump_thresh'] = neg_jump_thresh
         infr._init_priority_queue(randomness, rng)
 
         def get_next(idx=0):
