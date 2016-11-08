@@ -61,7 +61,7 @@ def demo_graph_iden2():
     # annots_per_name = [4, 3, 2, 1]
     annots_per_name = [5, 6, 7, 5]
     # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
-    annots_per_name = (np.random.rand(64) * 10).astype(np.int32) + 1
+    annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
     nids = [val for val, num in enumerate(annots_per_name, start=1)
             for _ in range(num)]
     aids = range(len(nids))
@@ -80,8 +80,9 @@ def demo_graph_iden2():
     fontname = 'sans'
 
     VISUALIZE = False
-    # VISUALIZE = True
-    SHOW_NEG = True
+    VISUALIZE = True
+    SHOW_NEG = False
+    # SHOW_NEG = True
 
     def show_graph(infr, title, final=False):
         if not VISUALIZE:
@@ -152,6 +153,7 @@ def demo_graph_iden2():
     apply_random_negative_edges(infr, rng)
     # infr.ensure_full()
     apply_dummy_scores(infr, rng)
+    infr.break_graph(7)
     infr.remove_name_labels()
     infr.apply_weights()
 

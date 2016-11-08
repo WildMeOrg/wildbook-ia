@@ -349,7 +349,10 @@ class _AnnotInfrViz(object):
                                    _dz(recent_edges, ['']))
 
         # LAYOUT: update the positioning layout
-        layoutkw = dict(prog='neato', splines='spline', sep=10 / 72, esep=1 / 72, nodesep=.1)
+        layoutkw = dict(prog='neato',
+                        # splines='spline',
+                        splines='line',
+                        sep=10 / 72, esep=1 / 72, nodesep=.1)
         layoutkw.update(kwargs)
         pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 

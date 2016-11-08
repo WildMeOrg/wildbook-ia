@@ -492,6 +492,108 @@ class _AnnotInfrMatching(object):
         infr.graph.add_edges_from(edges)
         infr.ensure_mst()
 
+    def break_graph(infr, num):
+        """
+        Is this problem NP-hard? No, it is the b-matching problem.
+        This problem is equivalent to bidirectional flow.
+
+        References:
+            http://www.ams.sunysb.edu/~jsbm/papers/b-matching.pdf
+
+        # given (graph, K):
+        # Let x[e] be 1 if we keep an edge e and 0 if we cut it
+
+        # Keep the best set of edges for each node
+        maximize
+            sum(d['weight'] * x[(u, v)]
+                for u in graph.nodes()
+                for v, d in graph.node[u].items())
+
+        # The degree of each node must be less than K
+        subject to
+            all(
+                sum(x[(u, v)] for v in graph.node[u]) <= K
+                for u in graph.nodes()
+            )
+
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr.exec_matching()
+            >>> infr.apply_match_edges()
+            >>> infr.apply_match_scores()
+            >>> infr.ensure_full()
+
+        The linear program is based on the blossom algorithm
+
+        implicit summation: b(W) = sum(b_v for v in W)
+
+        Let omega = [S \subset V where len(S) >= 3 and abs(sum(v_b for v in S)) % 2 == 1]
+
+        Let q_S = .5 * sum(v_b for v in S) - 1 for S in omega
+
+        For each W \subset V
+        Let delta(W) be the set of edges that meet exactly one node in W
+        Let gamma(W) be the set of edges with both endpoints in W
+
+        maximize c.dot(x)
+        subject to x(delta(v)) = b_v forall v in V
+        x_e >= 0 forall e in E
+        x(gamma(S)) <= q_S foall S in omega
+
+        """
+        # prev_degrees = np.array([infr.graph.degree(n) for n in infr.graph.nodes()])
+
+        weight = 'normscore'
+        if len(infr.graph) < 100:
+            # Ineffcient but exact integer programming solution
+            K = num
+            graph = infr.graph
+            import pulp
+            # Formulate integer program
+            prob = pulp.LpProblem("B-Matching", pulp.LpMaximize)
+            # Solution variables
+            indexs = [e_(*e) for e in graph.edges()]
+            # cat = pulp.LpContinuous
+            cat = pulp.LpInteger
+            x = pulp.LpVariable.dicts(name='x', indexs=indexs,
+                                      lowBound=0, upBound=1, cat=cat)
+            # maximize objective function
+            prob.objective = sum(d.get(weight, 0) * x[e_(u, v)]
+                                 for u in graph.nodes()
+                                 for v, d in graph.edge[u].items())
+            # subject to
+            for u in graph.nodes():
+                prob.add(sum(x[e_(u, v)] for v in graph.edge[u]) <= K)
+            # Solve using with solver like CPLEX, GLPK, or SCIP.
+            #pulp.CPLEX().solve(prob)
+            pulp.PULP_CBC_CMD().solve(prob)
+            # Read solution
+            xvalues = [x[e].varValue for e in indexs]
+            to_remove = [e for e, xval in zip(indexs, xvalues)
+                         if not xval == 1.0]
+            graph.remove_edges_from(to_remove)
+        else:
+            # Hacky solution. TODO: implement b-matching using blossom with
+            # networkx
+            to_remove = set([])
+            # nodes = infr.graph.nodes()
+            # degrees = np.array([infr.graph.degree(n) for n in infr.graph.nodes()])
+            for u in infr.graph.nodes():
+                if len(infr.graph[u]) > num:
+                    edges = []
+                    scores = []
+                    for v, d in infr.graph[u].items():
+                        e = e_(u, v)
+                        if e not in to_remove:
+                            # hack because I think this may be a hard problem
+                            edges.append(e)
+                            scores.append(d.get(weight, -1))
+                    bottomx = ut.argsort(scores)[::-1][num:]
+                    to_remove.update(set(ut.take(edges, bottomx)))
+            infr.graph.remove_edges_from(to_remove)
+        degrees = np.array([infr.graph.degree(n) for n in infr.graph.nodes()])
+        assert np.all(degrees <= num)
+
     def _cm_breaking(infr, review_cfg={}):
         """
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
@@ -945,7 +1047,7 @@ class _AnnotInfrFeedback(object):
         # Look at each not-comparable edge between two compoments not currently
         # marked as either positive or negative
         notcomparable = {}
-        inconsistent_outgoing_notcomparable = {}
+        inconsistent_outgoing_notcomparable = {}  # NOQA
         for u, v in notcomp_edges:
             nid1 = node_to_label[u]
             nid2 = node_to_label[v]
@@ -967,7 +1069,7 @@ class _AnnotInfrFeedback(object):
 
         # maybe remove once debugging is done? No, should categorize each edge.
         unreviewed = {}
-        inconsistent_outgoing_unreviewed = {}
+        inconsistent_outgoing_unreviewed = {}  # NOQA
         for u, v in unreviewed_edges:
             nid1 = node_to_label[u]
             nid2 = node_to_label[v]
