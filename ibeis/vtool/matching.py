@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import six
 import utool as ut
 import numpy as np
 from collections import namedtuple
@@ -48,18 +49,40 @@ class PairwiseMatch(ut.NiceRepr):
         match.annot2 = annot2
         match.fm = None
         match.fs = None
-        match.measures = None
         match.H_21 = None
         match.H_12 = None
 
-        match.global_measures = None
+        match.local_measures = ut.odict([])
+        match.global_measures = ut.odict([])
         match._inplace_default = False
 
+    def __getstate__(match):
+        state = {
+            'fm': match.fm,
+            'H_21': match.H_21,
+            'H_12': match.H_12,
+            'global_measures': match.global_measures,
+            'local_measures': match.local_measures,
+        }
+        # match.__dict__.copy()
+        # del state['annot1']
+        # del state['annot2']
+        return state
+
+    def __setstate__(match, state):
+        match.__dict__.update(state)
+
     def add_global_measures(match, global_keys):
-        if match.global_measures is None:
-            match.global_measures = {}
         for key in global_keys:
-            match.global_measures[key] = (match.annot1[key], match.annot2[key])
+            match.global_measures[key] = (match.annot1[key],
+                                          match.annot2[key])
+
+    # def add_local_measures(match, local_keys):
+    #     if match.local_measures is None:
+    #         match.local_measures = {}
+    #     for key in local_keys:
+    #         match.local_measures[key] = (match.annot1[key],
+    #                                      match.annot2[key])
 
     def __nice__(match):
         parts = []
@@ -99,26 +122,27 @@ class PairwiseMatch(ut.NiceRepr):
 
     def copy(match):
         match_ = match._next_instance(inplace=False)
-        match_.fm = match.fm.copy()
-        match_.fs = match.fs.copy()
-        match_.measures = ut.map_vals(
-                lambda a: a.copy(), match.measures)
+        if match.fm is not None:
+            match_.fm = match.fm.copy()
+            match_.fs = match.fs.copy()
+        match_.local_measures = ut.map_vals(
+                lambda a: a.copy(), match.local_measures)
         return match_
 
     def compress(match, flags, inplace=None):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.compress(flags, axis=0)
         match_.fs = match.fs.compress(flags, axis=0)
-        match_.measures = ut.map_vals(
-                lambda a: a.compress(flags), match.measures)
+        match_.local_measures = ut.map_vals(
+                lambda a: a.compress(flags), match.local_measures)
         return match_
 
     def take(match, indicies, inplace=None):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.take(indicies, axis=0)
         match_.fs = match.fs.take(indicies, axis=0)
-        match_.measures = ut.map_vals(
-                lambda a: a.take(indicies), match.measures)
+        match_.local_measures = ut.map_vals(
+                lambda a: a.take(indicies), match.local_measures)
         return match_
 
     def assign(match, cfgdict={}, verbose=None):
@@ -158,11 +182,9 @@ class PairwiseMatch(ut.NiceRepr):
         ratio = np.divide(match_dist, norm_dist)
         ratio_score = (1.0 - ratio)
 
-        match.measures = ut.odict([
-            ('match_dist', match_dist),
-            ('norm_dist', norm_dist),
-            ('ratio', ratio),
-        ])
+        match.local_measures['match_dist'] = match_dist
+        match.local_measures['norm_dist'] = norm_dist
+        match.local_measures['ratio'] = ratio
         match.fm = fm
         match.fs = ratio_score
         match.fm_norm = np.vstack([fx1_norm, fm.T[1]]).T
@@ -170,7 +192,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     def ratio_test_flags(match, cfgdict={}):
         ratio_thresh = cfgdict.get('ratio_thresh', .625)
-        ratio = match.measures['ratio']
+        ratio = match.local_measures['ratio']
         flags = np.less(ratio, ratio_thresh)
         return flags
 
@@ -220,9 +242,9 @@ class PairwiseMatch(ut.NiceRepr):
         flags, errors, H_12 = match.sver_flags(cfgdict, return_extra=True)
         match_ = match.compress(flags, inplace=inplace)
         errors_ = [e.compress(flags) for e in errors]
-        match_.measures['sver_err_xy'] = errors_[0]
-        match_.measures['sver_err_scale'] = errors_[1]
-        match_.measures['sver_err_ori'] = errors_[2]
+        match_.local_measures['sver_err_xy'] = errors_[0]
+        match_.local_measures['sver_err_scale'] = errors_[1]
+        match_.local_measures['sver_err_ori'] = errors_[2]
         match_.H_12 = H_12
         return match_
 
@@ -243,69 +265,93 @@ class PairwiseMatch(ut.NiceRepr):
         )
         return ax, xywh1, xywh2
 
-    def _make_global_feature(match):
+    def _make_global_feature_vector(match):
+        """ Global annotation properties and deltas """
         import vtool as vt
         feat = ut.odict([])
 
-        if match.global_measures:
-            for k, v in match.global_measures.items():
-                v1 = v[0]
-                v2 = v[1]
-                if v1 is None:
-                    v1 = np.nan
-                if v2 is None:
-                    v2 = np.nan
-                if ut.isiterable(v1):
-                    for i in range(len(v1)):
-                        feat[k + str(i) + '_1'] = v1[i]
-                        feat[k + str(i) + '_2'] = v2[i]
-                    if k == 'gps':
-                        delta = vt.haversine(v1, v2)
-                    else:
-                        delta = np.abs(v1 - v2)
-                    feat[k + '_delta'] = delta
+        for k, v in match.global_measures.items():
+            v1 = v[0]
+            v2 = v[1]
+            if v1 is None:
+                v1 = np.nan
+            if v2 is None:
+                v2 = np.nan
+            if ut.isiterable(v1):
+                for i in range(len(v1)):
+                    feat[k + str(i) + '_1'] = v1[i]
+                    feat[k + str(i) + '_2'] = v2[i]
+                if k == 'gps':
+                    delta = vt.haversine(v1, v2)
                 else:
-                    feat[k + '_1'] = v1
-                    feat[k + '_2'] = v2
-                    if k == 'yaw':
-                        delta = vt.ori_distance(v1, v2)
-                    else:
-                        delta = np.abs(v1 - v2)
-                    feat[k + '_delta'] = delta
+                    delta = np.abs(v1 - v2)
+                feat[k + '_delta'] = delta
+            else:
+                feat[k + '_1'] = v1
+                feat[k + '_2'] = v2
+                if k == 'yaw':
+                    delta = vt.ori_distance(v1, v2)
+                else:
+                    delta = np.abs(v1 - v2)
+                feat[k + '_delta'] = delta
 
         if 'gps_delta' in feat and 'time_delta' in feat:
             hour_delta = feat['time_delta'] / 360
             feat['speed'] = feat['gps_delta'] / hour_delta
         return feat
 
-    def _make_local_feature(match, main_key='ratio', n_top=3):
+    def _make_local_summary_feature_vector(match, keys=None):
+        """ Summary statistics of local features """
         import pandas as pd
+        if keys is None:
+            local_measures = match.local_measures
+        else:
+            local_measures = ut.dict_subset(match.local_measures, keys)
+        local_measures = pd.DataFrame(local_measures)
 
-        local_feats = pd.DataFrame(match.measures)
-        sortx = local_feats[main_key].argsort()[::-1]
-        local_feats = local_feats.loc[sortx]
-        topn = local_feats[:n_top]
+        feat = ut.odict([])
+        for k, v in local_measures.sum().iteritems():
+            feat['sum_' + k] = v
+        for k, v in local_measures.mean().iteritems():
+            feat['mean_' + k] = v
+        for k, v in local_measures.std().iteritems():
+            feat['std_' + k] = v
+        feat['n_total'] = len(local_measures)
+        return feat
+
+    def _make_local_top_feature_vector(match, keys=None, scorers='ratio',
+                                       n_top=3):
+        """ Selected subsets of top features """
+        import pandas as pd
+        if keys is None:
+            local_measures = match.local_measures
+        else:
+            local_measures = ut.dict_subset(match.local_measures, keys)
+        local_measures = pd.DataFrame(local_measures)
+
+        scorers = ut.ensure_iterable(scorers)
 
         # Individual top features
         feat = ut.odict([])
-        for k, vs in topn.iteritems():
-            for count, v in enumerate(vs):
-                feat[k + str(count)] = v
+        for scorer in scorers:
+            # TODO: some scorers might want descending orders
+            sortx = local_measures[scorer].argsort()[::-1]
+            local_measures = local_measures.loc[sortx]
+            topn = local_measures[:n_top]
 
-        # Summary statistics
-        for k, v in local_feats.sum().iteritems():
-            feat['sum_' + k] = v
-        for k, v in local_feats.mean().iteritems():
-            feat['mean_' + k] = v
-        for k, v in local_feats.std().iteritems():
-            feat['std_' + k] = v
-        feat['n_total'] = len(local_feats)
+            for k, vs in six.iteritems(topn):
+                for count, v in enumerate(vs):
+                    feat[scorer + str(count) + '_' + k] = v
         return feat
 
-    def make_pairwise_constlen_feature(match, **kwargs):
+    def make_feature_vector(match, keys=None, **kwargs):
+        """
+        Constructs the pairwise feature vector that represents a match
+        """
         feat = ut.odict([])
-        feat.update(match._make_global_feature())
-        feat.update(match._make_local_feature(**kwargs))
+        feat.update(match._make_global_feature_vector())
+        feat.update(match._make_local_summary_feature_vector(keys))
+        feat.update(match._make_local_top_feature_vector(keys, **kwargs))
         return feat
 
 
