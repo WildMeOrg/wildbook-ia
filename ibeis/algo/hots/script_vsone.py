@@ -71,7 +71,7 @@ def train_pairwise_rf():
     data_aids_ = ut.take_column(aid_pairs_, 1)
 
     # ======================================
-    # Compute one-vs-one scores and measures
+    # Compute one-vs-one scores and local_measures
     # ======================================
 
     # Prepare lazy attributes for annotations
@@ -91,13 +91,13 @@ def train_pairwise_rf():
         bad_aids.extend(annots.compress(~hasfeats).aids)
         annot_dict = configured_annot_dict[config]
         unique_aids = ut.unique(aids)
-        for aid in ut.ProgIter(unique_aids, label='unique'):
-            if aid not in annot_dict:
-                annot = ibs.get_annot_lazy_dict(aid, config)
-                flann_params = {'algorithm': 'kdtree', 'trees': 4}
-                vt.matching.ensure_metadata_flann(annot, flann_params)
-                annot_dict[aid] = annot
-                del annot['annot_context_options']
+        unique_aids = ut.setdiff(unique_aids, annot_dict.keys())
+        unique_annots = ibs.annots(unique_aids, config=config)
+        for _annot in ut.ProgIter(unique_annots.scalars(), label='unique'):
+            annot = _annot._make_lazy_dict()
+            flann_params = {'algorithm': 'kdtree', 'trees': 4}
+            vt.matching.ensure_metadata_flann(annot, flann_params)
+            annot_dict[_annot.aid] = annot
 
     isgood = [not (a1 in bad_aids or a2 in bad_aids) for a1, a2 in aid_pairs_]
     query_aids = ut.compress(query_aids_, isgood)
@@ -109,79 +109,82 @@ def train_pairwise_rf():
     annot2_list = ut.take(configured_annot_dict[dannot_cfg], data_aids)
     truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
 
-    verbose = True  # NOQA
-
-    # TODO: Cache output of one-vs-one matches
-
-    match_list = [vt.PairwiseMatch(annot1, annot2)
-                  for annot1, annot2 in zip(annot1_list, annot2_list)]
-
-    # Construct global measurements
-    global_keys = ['yaw', 'qual', 'gps', 'time']
-    for match in ut.ProgIter(match_list, label='setup globals'):
-        match.add_global_measures(global_keys)
-
-    # Preload needed attributes
-    for match in ut.ProgIter(match_list, label='preload vecs'):
-        match.annot1['vecs']
-        match.annot2['vecs']
-
-    for match in ut.ProgIter(match_list, label='preload FLANN'):
-        match.annot1['flann']
-
-    # Find one-vs-one matches
-    cfgdict = {'checks': 20}
-    for match in ut.ProgIter(match_list, label='assign vsone'):
-        match.assign(cfgdict)
-
-    for match in ut.ProgIter(match_list, label='apply ratio thresh'):
-        match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
-
-    # =====================================
-    # Use scores as a baseline classifier
-    # =====================================
-    # gridsearch_ratio_thresh()
-
     def matches_auc(truth_list, match_list, lbl=''):
         score_list = np.array([m.fs.sum() for m in match_list])
         auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
         print('%s auc = %r' % (lbl, auc,))
         return auc
 
-    matches_RAT = match_list
+    verbose = True  # NOQA
 
-    matches_RAT_SV = [match.apply_sver(inplace=False)
-                      for match in ut.ProgIter(matches_RAT, label='sver')]
+    # TODO: Cache output of one-vs-one matches
+    qvuuids = ibs.get_annot_visual_uuids(query_aids)
+    dvuuids = ibs.get_annot_visual_uuids(data_aids)
+    qcfgstr = qannot_cfg.get_cfgstr()
+    dcfgstr = dannot_cfg.get_cfgstr()
+    pair_vuuids = [ut.combine_uuids([q, d]) for q, d in zip(qvuuids, dvuuids)]
+    pipe_hashid = qreq_.get_pipe_hashid()
+    annots_cfgstr = ut.hashstr27(qcfgstr) + ut.hashstr27(dcfgstr)
+    big_uuid = ut.combine_uuids(pair_vuuids, salt=annots_cfgstr + pipe_hashid)
+    cacher = ut.Cacher('pairwise-matches', cfgstr=str(big_uuid))
 
-    if True:
+    cached_data = cacher.tryload()
+    if cached_data is not None:
+
+        matches = [vt.PairwiseMatch(annot1, annot2)
+                   for annot1, annot2 in zip(annot1_list, annot2_list)]
+
+        for m in ut.ProgIter(matches):
+            ut.reload_class(m, verbose=False, reload_module=False)
+
+        matches_RAT = [match.copy() for match in matches]
+        matches_RAT_SV = [match.copy() for match in matches]
+        matches_SV_LNBNN = [match.copy() for match in matches]
+        for match, internal in zip(matches_RAT, cached_data['RAT']):
+            match.__dict__.update(internal.__dict__)
+        for match, internal in zip(matches_RAT_SV, cached_data['RAT_SV']):
+            match.__dict__.update(internal.__dict__)
+        for match, internal in zip(matches_SV_LNBNN, cached_data['SV_LNBNN']):
+            match.__dict__.update(internal.__dict__)
+    else:
+        unique_lazy_annots = ut.flatten([x.values() for x in configured_annot_dict.values()])
+        for annot in ut.ProgIter(unique_lazy_annots, 'preload kpts'):
+            annot['kpts']
+        for annot in ut.ProgIter(unique_lazy_annots, 'normxy'):
+            annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
+                                 np.array(annot['chip_size'])[:, None])
+        for annot in ut.ProgIter(unique_lazy_annots, 'preload vecs'):
+            annot['vecs']
+
+        matches_RAT = [vt.PairwiseMatch(annot1, annot2)
+                       for annot1, annot2 in zip(annot1_list, annot2_list)]
+
+        # Construct global measurements
+        global_keys = ['yaw', 'qual', 'gps', 'time']
+        for match in ut.ProgIter(matches_RAT, label='setup globals'):
+            match.add_global_measures(global_keys)
+
+        # Preload flann for only specific annots
+        for match in ut.ProgIter(matches_RAT, label='preload FLANN'):
+            match.annot1['flann']
+
+        # Find one-vs-one matches
+        cfgdict = {'checks': 20}
+        for match in ut.ProgIter(matches_RAT, label='assign vsone'):
+            match.assign(cfgdict)
+
+        for match in ut.ProgIter(matches_RAT, label='apply ratio thresh'):
+            match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+
+        # gridsearch_ratio_thresh()
+
+        matches_RAT_SV = [match.apply_sver(inplace=False)
+                          for match in ut.ProgIter(matches_RAT, label='sver')]
+
         # Create another version where we find global normalizers for the data
         qreq_.load_indexer()
         indexer = qreq_.indexer
 
-        # def apply_lnbnn(match, inplace=False):
-        #     from ibeis.algo.hots import nn_weights
-        #     if inplace:
-        #         match_ = match
-        #     else:
-        #         match.rrr(0)
-        #         match_ = match.copy()
-
-        #     matched_vecs = match_.annot1['vecs'].take(match_.fm.T[0], axis=0)
-        #     K = qreq_.qparams.K
-        #     Knorm = qreq_.qparams.Knorm
-        #     normalizer_rule  = qreq_.qparams.normalizer_rule
-        #     neighb_idx, neighb_dist = indexer.knn(matched_vecs, K=K + Knorm)
-
-        #     qaid = match_.annot1['aid']
-        #     norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
-        #     norm_dist = vt.take_col_per_row(neighb_dist, norm_k)
-        #     vdist = match_.measures['match_dist']
-        #     lnbnn_dist = nn_weights.lnbnn_fn(vdist, norm_dist)
-        #     match_.measures['lnbnn_norm_dist'] = norm_dist
-        #     match_.measures['lnbnn'] = lnbnn_dist
-        #     return match
-
-        matches = matches_RAT_SV
         def batch_apply_lnbnn(matches):
             # from ibeis.algo.hots import nn_weights
             matches_ = [match.copy() for match in matches]
@@ -203,7 +206,7 @@ def train_pairwise_rf():
             idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
             vdist = np.hstack([
-                match_.measures['match_dist']
+                match_.local_measures['match_dist']
                 for match_ in ut.ProgIter(matches_, lablel='stacking dist')
             ])
             ndist = dists.T[-1]
@@ -214,8 +217,8 @@ def train_pairwise_rf():
             lnbnn_list = [lnbnn[l:r] for l, r in ut.itertwo(offset_list)]
 
             for match_, ndist_, lnbnn_ in zip(matches_, ndist_list, lnbnn_list):
-                match_.measures['lnbnn_norm_dist'] = ndist_
-                match_.measures['lnbnn'] = lnbnn_
+                match_.local_measures['lnbnn_norm_dist'] = ndist_
+                match_.local_measures['lnbnn'] = lnbnn_
                 match_.fs = lnbnn_
 
             # idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
@@ -226,23 +229,32 @@ def train_pairwise_rf():
             #     qaid = match_.annot2['aid']
             #     norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
             #     ndist = vt.take_col_per_row(neighb_dist, norm_k)
-            #     vdist = match_.measures['match_dist']
+            #     vdist = match_.local_measures['match_dist']
             #     lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
             #     # lnbnn_dist = np.clip(lnbnn_dist, 0, np.inf)
-            #     match_.measures['lnbnn_norm_dist'] = ndist
-            #     match_.measures['lnbnn'] = lnbnn_dist
+            #     match_.local_measures['lnbnn_norm_dist'] = ndist
+            #     match_.local_measures['lnbnn'] = lnbnn_dist
             #     match_.fs = lnbnn_dist
-            matches_SV_LNBNN = matches_
-            matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
             return matches_
 
         matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
-        matches = matches_SV_LNBNN
-        # keys = 'lnbnn'
 
-        vsone_sver_lnbnn_auc = matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
+        if False:
+            for m in ut.ProgIter(matches_RAT):
+                ut.reload_class(m, verbose=False, reload_module=False)
+            for m in ut.ProgIter(matches_RAT_SV):
+                ut.reload_class(m, verbose=False, reload_module=False)
+            for m in ut.ProgIter(matches_SV_LNBNN):
+                ut.reload_class(m, verbose=False, reload_module=False)
 
-    matches = matches_RAT_SV
+        cached_data = {
+            'RAT': matches_RAT,
+            'RAT_SV': matches_RAT_SV,
+            'SV_LNBNN': matches_SV_LNBNN,
+        }
+        cacher.save(cached_data)
+
+    matches = matches_SV_LNBNN
 
     # =====================================
     # Attempt to train a simple classsifier
@@ -251,13 +263,10 @@ def train_pairwise_rf():
     # ---------------
     # Try just using simple scores
     S_names = ['ratio', 'lnbnn']
-    S_sets = [np.array([m.measures[key].sum() for m in matches])
+    S_sets = [np.array([m.local_measures[key].sum() for m in matches])
               for key in S_names ]
 
     # ---------------
-    # for m in ut.ProgIter(matches):
-    #     m.rrr(0)
-
     scorers = ['ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist']
     keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
              'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']

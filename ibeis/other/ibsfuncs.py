@@ -5341,22 +5341,30 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         >>> print(result)
     """
     from ibeis.viz.interact import interact_chip
-    metadata = ut.LazyDict({
-        'aid': aid,
-        'name': lambda: ibs.get_annot_names([aid])[0],
-        'nid': lambda: ibs.get_annot_name_rowids([aid])[0],
-        'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],
-        'rchip': lambda: ibs.get_annot_chips([aid], config2_=config2_)[0],
-        'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],
-        'kpts': lambda:  ibs.get_annot_kpts([aid], config2_=config2_)[0],
-        'dlen_sqrd': lambda: ibs.get_annot_chip_dlensqrd([aid], config2_=config2_)[0],
-        # global measures
-        'yaw': lambda: ibs.get_annot_yaws_asfloat(aid),
-        'qual': lambda: ibs.get_annot_qualities(aid),
-        'gps': lambda: ibs.get_annot_image_gps2(aid),
-        'time': lambda: ibs.get_annot_image_unixtimes_asfloat(aid),
-        'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
-    }, reprkw=dict(truncate=True))
+    # if False:
+    #     metadata1 = ut.LazyDict({
+    #         'aid': aid,
+    #         'name': lambda: ibs.get_annot_names([aid])[0],
+    #         'nid': lambda: ibs.get_annot_name_rowids([aid])[0],
+    #         'rchip_fpath': lambda: ibs.get_annot_chip_fpath([aid], config2_=config2_)[0],
+    #         'rchip': lambda: ibs.get_annot_chips([aid], config2_=config2_)[0],
+    #         'vecs': lambda:  ibs.get_annot_vecs([aid], config2_=config2_)[0],
+    #         'kpts': lambda:  ibs.get_annot_kpts([aid], config2_=config2_)[0],
+    #         'chip_size': lambda: ibs.get_annot_chip_sizes([aid], config2_=config2_)[0],
+    #         'dlen_sqrd': lambda: ibs.get_annot_chip_dlensqrd([aid], config2_=config2_)[0],
+    #         # global measures
+    #         'yaw': lambda: ibs.get_annot_yaws_asfloat(aid),
+    #         'qual': lambda: ibs.get_annot_qualities(aid),
+    #         'gps': lambda: ibs.get_annot_image_gps2(aid),
+    #         'time': lambda: ibs.get_annot_image_unixtimes_asfloat(aid),
+    #         'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
+    #     }, reprkw=dict(truncate=True))
+    annot = ibs.annots([aid], config=config2_)[0]
+    metadata = annot._make_lazy_dict()
+    metadata['rchip'] = metadata.getitem('chips', is_eager=False)
+    metadata['dlen_sqrd'] = metadata.getitem('chip_dlensqrd', is_eager=False)
+    metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
+    metadata['annot_context_options'] = lambda: interact_chip.build_annot_context_options(ibs, aid)
     return metadata
 
 

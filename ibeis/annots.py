@@ -39,9 +39,12 @@ ANNOT_BASE_ATTRS = [
     'bboxes', 'bbox_area',
     'species_uuids', 'species', 'species_rowids', 'species_texts', 'yaw_texts',
     'yaws', 'qualities', 'quality_texts', 'exemplar_flags',
+    'yaws_asfloat',
     # Images
     # 'image_rowids',
-    'gids', 'image_uuids', 'image_gps', 'image_unixtimes_asfloat',
+    'gids', 'image_uuids',
+    'image_gps', 'image_gps2',
+    'image_unixtimes_asfloat',
     'image_datetime_str', 'image_contributor_tag',
     # Names
     'nids', 'names', 'name_uuids',
@@ -130,10 +133,22 @@ class _AnnotPropInjector(BASE_TYPE):
             ('hog', 'hog'),
         ]
 
+        aliased_attrs = {
+            'time': 'image_unixtimes_asfloat',
+            'gps': 'image_gps2',
+            'chip_size': 'chip_sizes',
+            'yaw': 'yaws_asfloat',
+            'qual': 'qualities',
+            'name': 'names',
+            'name': 'names',
+            'nid': 'nids',
+        }
+
         objname = 'annot'
         _ibeis_object._inject_getter_attrs(metaself, objname, attrs,
                                            configurable_attrs, 'depc_annot',
-                                           depcache_attrs, settable_attrs)
+                                           depcache_attrs, settable_attrs,
+                                           aliased_attrs)
 
         # TODO: incorporate dynamic setters
         #def set_case_tags(self, tags):
@@ -151,7 +166,7 @@ class Annots(_ibeis_object.ObjectList1D):
     database using lazy evaluation.
 
     CommandLine:
-        python -m ibeis.annots Annots --show
+        python -m ibeis.annots Annots
 
     Example:
         >>> from ibeis.annots import *  # NOQA

@@ -7,11 +7,13 @@ from six.moves import range
 
 def _find_ibeis_attrs(ibs, objname, blacklist=[]):
     r"""
+    Developer function to help figure out what attributes are available
+
     Args:
         ibs (ibeis.IBEISController):  images analysis api
 
     CommandLine:
-        python -m ibeis.images _find_ibeis_attrs --show
+        python -m ibeis.images _find_ibeis_attrs
 
     Example:
         >>> from ibeis._ibeis_object import *  # NOQA
@@ -47,14 +49,30 @@ def _find_ibeis_attrs(ibs, objname, blacklist=[]):
 
 
 def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
-                         depc_name=None, depcache_attrs=None, settable_attrs=None):
+                         depc_name=None, depcache_attrs=None,
+                         settable_attrs=None, aliased_attrs=None):
     """
-    for use in the metaclass
+    Used by the metaclass to inject methods and properties into the class
+    inheriting from ObjectList1D
     """
 
     if settable_attrs is None:
         settable_attrs = []
     settable_attrs = set(settable_attrs)
+
+    # Inform the class of which variables will be injected
+    metaself._settable_attrs = settable_attrs
+    metaself._attrs = attrs
+    metaself._configurable_attrs = configurable_attrs
+    metaself._depcache_attrs = depcache_attrs
+    if depcache_attrs is None:
+        metaself._depcache_attrs = []
+    if aliased_attrs is not None:
+        metaself._attrs_aliases = aliased_attrs
+    else:
+        metaself._attrs_aliases = {}
+
+    attr_to_aliases = ut.invert_dict(metaself._attrs_aliases, unique_vals=False)
 
     def _make_getter(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
@@ -110,31 +128,46 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
     # Inject function and property version
     for attrname in attrs:
         ibs_getter = _make_getter(objname, attrname)
-        setattr(metaself, '_get_' + attrname, ibs_getter)
         if attrname in settable_attrs:
             ibs_setter = _make_setter(objname, attrname)
-            setattr(metaself, '_set_' + attrname, ibs_setter)
         else:
             ibs_setter = None
         prop = property(fget=ibs_getter, fset=ibs_setter)
+        setattr(metaself, '_get_' + attrname, ibs_getter)
+        if ibs_setter is not None:
+            setattr(metaself, '_set_' + attrname, ibs_setter)
         setattr(metaself, attrname, prop)
+        for alias in attr_to_aliases.pop(attrname, []):
+            setattr(metaself, alias, prop)
 
     for attrname in configurable_attrs:
         ibs_cfg_getter = _make_configurable_getter(objname, attrname)
+        prop = property(ibs_cfg_getter)
         setattr(metaself, '_get_' + attrname, ibs_cfg_getter)
-        setattr(metaself, attrname, property(ibs_cfg_getter))
+        setattr(metaself, attrname, prop)
+        for alias in attr_to_aliases.pop(attrname, []):
+            setattr(metaself, alias, prop)
 
     if depcache_attrs is not None:
         for tbl, col in depcache_attrs:
             attrname = '%s_%s' % (tbl, col)
             ibs_depc_getter = _make_depcache_getter(depc_name, tbl, col)
+            prop = property(ibs_depc_getter)
             setattr(metaself, '_get_' + attrname, ibs_depc_getter)
-            setattr(metaself, attrname, property(ibs_depc_getter))
+            setattr(metaself, attrname, prop)
+            for alias in attr_to_aliases.pop(attrname, []):
+                setattr(metaself, alias, prop)
         #import utool
         #utool.embed()
+    if attr_to_aliases:
+        raise AssertionError('Unmapped aliases %r' % (attr_to_aliases,))
 
 
 class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
+    """
+    This actually stores a ObjectList1D of length 1 and
+    simply calls those functions where available
+    """
     def __init__(self, obj1d):
         assert len(obj1d) == 1
         self.obj1d = obj1d
@@ -145,9 +178,44 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
     def __getattr__(self, key):
         return getattr(self.obj1d, key)[0]
 
+    def __dir__(self):
+        attrs = dir(object)
+        attrs += list(self.__class__.__dict__.keys())
+        attrs += self.obj1d.__vector_attributes__()
+        return attrs
+
+    def _make_lazy_dict(self):
+        """
+        CommandLine:
+            python -m ibeis._ibeis_object ObjectScalar0D._make_lazy_dict
+
+        Example:
+            >>> from ibeis._ibeis_object import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('testdb1')
+            >>> annots = ibs.annots()
+            >>> subset = annots.take([0, 2, 5])
+            >>> scalar = annots[0]
+            >>> assert scalar.obj1d._attrs == annots._attrs
+            >>> self = scalar
+            >>> print(dir(self))
+            >>> metadata = self._make_lazy_dict()
+            >>> print('metadata = %r' % (metadata,))
+            >>> aid = metadata['aid']
+            >>> print('aid = %r' % (aid,))
+        """
+        metadata = ut.LazyDict()
+        for attr in self.obj1d.__vector_attributes__():
+            metadata[attr] = ut.partial(getattr, self, attr)
+        return metadata
+
 
 #@ut.reloadable_class
 class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
+    """
+    An object that efficiently operates on a list of ibeis objects using
+    vectorized code. Single instances can be returned as ObjectScalar0D's
+    """
     def __init__(self, rowids, ibs, config=None, caching=False):
         self._rowids = rowids
         #self._islist = True
@@ -160,6 +228,11 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         # Private attributes
         self.__rowid_to_idx = None
         #ut.make_index_lookup(self._rowids)
+
+    def __vector_attributes__(self):
+        attrs = (self._attrs + self._configurable_attrs +
+                 list(self._attrs_aliases.keys()))
+        return attrs
 
     def set_caching(self, flag):
         self._caching = flag
@@ -179,9 +252,14 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         return new
 
     def take(self, idxs):
+        """
+        Creates a subset of the list using the specified indices.
+        """
         rowids = ut.take(self._rowids, idxs)
+        # Create a new instance pointing only to the requested subset
         newself = self.__class__(rowids, ibs=self._ibs, config=self._config,
                                  caching=self._caching)
+        # Pass along any internally cached values
         _new_internal = {key: ut.take(val, idxs)
                          for key, val in self._internal_attrs.items()}
         newself._internal_attrs = _new_internal
@@ -218,6 +296,10 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         if not isinstance(idx, slice):
             raise AssertionError('only slice supported currently')
         return self.take(idx)
+
+    def scalars(self):
+        scalar_list = [self[idx] for idx in range(len(self))]
+        return scalar_list
 
     def compress(self,  flags):
         idxs = ut.where(flags)
@@ -265,3 +347,15 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
 
     # def filter_flags(self, filterkw):
     #     pass
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis._ibeis_object
+        python -m ibeis._ibeis_object --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

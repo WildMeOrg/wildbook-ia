@@ -74,7 +74,7 @@ def demo_graph_iden2():
     # annots_per_name = [9, 9, 9, 9, 9, 9, 9, 9, 9]
     # annots_per_name = [8, 8, 8, 8, 8, 8, 8, 8]
     # annots_per_name = [8, 8, 8, 8, 8]
-    annots_per_name = [8, 8, 8]
+    annots_per_name = [8, 8]
     # 8, 8]
     # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
     # annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
@@ -94,8 +94,8 @@ def demo_graph_iden2():
     round2_params = {
         # 'pos_jump_thresh': None,
         # 'neg_jump_thresh': None,
-        'pos_jump_thresh': 3,
-        'neg_jump_thresh': 4,
+        'pos_jump_thresh': 6,
+        'neg_jump_thresh': 7,
     }
     # round2_params = None
 
