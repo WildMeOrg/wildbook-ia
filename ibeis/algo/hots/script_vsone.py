@@ -107,7 +107,7 @@ def train_pairwise_rf():
     # Extract pairs of annot objects (with shared caches)
     annot1_list = ut.take(configured_annot_dict[qannot_cfg], query_aids)
     annot2_list = ut.take(configured_annot_dict[dannot_cfg], data_aids)
-    truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
+    # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
 
     def matches_auc(truth_list, match_list, lbl=''):
         score_list = np.array([m.fs.sum() for m in match_list])
@@ -126,7 +126,7 @@ def train_pairwise_rf():
     pipe_hashid = qreq_.get_pipe_hashid()
     annots_cfgstr = ut.hashstr27(qcfgstr) + ut.hashstr27(dcfgstr)
     big_uuid = ut.combine_uuids(pair_vuuids, salt=annots_cfgstr + pipe_hashid)
-    cacher = ut.Cacher('pairwise-matches', cfgstr=str(big_uuid))
+    cacher = ut.Cacher('pairwise-matches-', cfgstr=str(big_uuid))
 
     cached_data = cacher.tryload()
     if cached_data is not None:
@@ -156,6 +156,11 @@ def train_pairwise_rf():
         for annot in ut.ProgIter(unique_lazy_annots, 'preload vecs'):
             annot['vecs']
 
+        for annot in ut.ProgIter(unique_lazy_annots, 'fixup'):
+            # annot['rchip'] = annot.getitem('chips', is_eager=False)
+            # annot['dlen_sqrd'] = annot.getitem('chip_dlensqrd', is_eager=False)
+            annot['rchip_fpath'] = annot.getitem('chip_fpath', is_eager=False)
+
         matches_RAT = [vt.PairwiseMatch(annot1, annot2)
                        for annot1, annot2 in zip(annot1_list, annot2_list)]
 
@@ -175,6 +180,15 @@ def train_pairwise_rf():
 
         for match in ut.ProgIter(matches_RAT, label='apply ratio thresh'):
             match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+
+        for match in matches_RAT:
+            key_ = 'norm_xys'
+            norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
+            norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
+            match.local_measures['norm_x1'] = norm_xy1[0]
+            match.local_measures['norm_y1'] = norm_xy1[1]
+            match.local_measures['norm_x2'] = norm_xy2[0]
+            match.local_measures['norm_y2'] = norm_xy2[1]
 
         # gridsearch_ratio_thresh()
 
@@ -206,7 +220,7 @@ def train_pairwise_rf():
             idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
 
             vdist = np.hstack([
-                match_.local_measures['match_dist']
+                match_.local_measures.get('match_dist', [])
                 for match_ in ut.ProgIter(matches_, lablel='stacking dist')
             ])
             ndist = dists.T[-1]
@@ -237,6 +251,7 @@ def train_pairwise_rf():
             #     match_.fs = lnbnn_dist
             return matches_
 
+        matches = matches_RAT_SV  # NOQA
         matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
 
         if False:
@@ -265,6 +280,14 @@ def train_pairwise_rf():
     S_names = ['ratio', 'lnbnn']
     S_sets = [np.array([m.local_measures[key].sum() for m in matches])
               for key in S_names ]
+    S_names += ['vsmany_lnbnn']
+
+    # TEST ORIGINAL LNBNN SCORE SEP
+    infr.apply_match_edges()
+    infr.apply_match_scores()
+    edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
+    lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
+    S_sets += [lnbnn_score_list]
 
     # ---------------
     scorers = ['ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist']
@@ -372,41 +395,29 @@ def train_pairwise_rf():
     print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns) - 2))))
     print(df.mean())
 
-    # TEST ORIGINAL LNBNN SCORE SEP
-    infr.apply_match_edges()
-    infr.apply_match_scores()
-    edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-    lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
-    vsmany_lnbnn_auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
-    print('LNBNN auc = %r' % (vsmany_lnbnn_auc,))
-    rat_auc = matches_auc(truth_list, matches_RAT, 'RAT')
-    rat_sver_auc = matches_auc(truth_list, matches_RAT_SV, 'RAT_SVER')
-    rat_sver_rf_auc = df.mean()['auc_learn_withnan']
+    import utool
+    utool.embed()
 
-    vsone_sver_lnbnn_auc = matches_auc(truth_list, matches_SV_LNBNN, '1v1-SV+LNBNN')
+    # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
+    # columns = ['Method', 'AUC']
+    # data = [
+    #     ['1vM-LNBNN',       vsmany_lnbnn_auc],
 
-    print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
-    columns = ['Method', 'AUC']
-    data = [
-        ['1vM-LNBNN',       vsmany_lnbnn_auc],
-
-        ['1v1-LNBNN',       vsone_sver_lnbnn_auc],
-        ['1v1-RAT',         rat_auc],
-        ['1v1-RAT+SVER',    rat_sver_auc],
-        ['1v1-RAT+SVER+RF', rat_sver_rf_auc],
-    ]
-    table = pd.DataFrame(data, columns=columns)
-    error = 1 - table['AUC']
-    orig = 1 - vsmany_lnbnn_auc
-    import tabulate
-    table = table.assign(percent_error_decrease=(orig - error) / orig * 100)
-    col_to_nice = {
-        'percent_error_decrease': '% error decrease',
-    }
-    header = [col_to_nice.get(c, c) for c in table.columns]
-    print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
-    # from IPython.display import Markdown, display
-    # md = Markdown(table.to_csv(sep=str('|'), index=False))
+    #     ['1v1-LNBNN',       vsone_sver_lnbnn_auc],
+    #     ['1v1-RAT',         rat_auc],
+    #     ['1v1-RAT+SVER',    rat_sver_auc],
+    #     ['1v1-RAT+SVER+RF', rat_sver_rf_auc],
+    # ]
+    # table = pd.DataFrame(data, columns=columns)
+    # error = 1 - table['AUC']
+    # orig = 1 - vsmany_lnbnn_auc
+    # import tabulate
+    # table = table.assign(percent_error_decrease=(orig - error) / orig * 100)
+    # col_to_nice = {
+    #     'percent_error_decrease': '% error decrease',
+    # }
+    # header = [col_to_nice.get(c, c) for c in table.columns]
+    # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
 
 
 def gridsearch_ratio_thresh(match_list, truth_list):
