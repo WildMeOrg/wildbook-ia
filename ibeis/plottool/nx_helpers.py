@@ -55,6 +55,7 @@ def ensure_nonhex_color(orig_color):
     return color
 
 
+@profile
 def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
             ax=None, pos=None, img_dict=None, title=None, layoutkw=None,
             verbose=None, **kwargs):
@@ -505,7 +506,10 @@ def make_agraph(graph_):
         for node in graph_.nodes():
             anode = pygraphviz.Node(agraph, node)
             if 'label' in anode.attr:
-                del anode.attr['label']
+                try:
+                    del anode.attr['label']
+                except KeyError:
+                    pass
 
     return agraph
 
@@ -561,10 +565,11 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
             subgraph_list = []
             for group, nodes in group_to_nodes.items():
                 subgraph = graph_.subgraph(nodes)
+                subgraph.graph.update(graph_.graph)
                 nx_agraph_layout(subgraph, inplace=True, groupby=None, **layoutkw)
                 subgraph_list.append(subgraph)
 
-            n_cols = int(np.sqrt(len(subgraph_list)))
+            n_cols = int(np.ceil(np.sqrt(len(subgraph_list))))
             column_graph = [ut.stack_graphs(chunk, vert=False) for chunk in ut.ichunks(subgraph_list, n_cols)]
             graph_ = ut.stack_graphs(column_graph, vert=True)
             # graph_ = ut.stack_graphs(subgraph_list)
@@ -843,6 +848,7 @@ def _get_node_size(graph, node, node_size):
     return width, height
 
 
+@profile
 def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                   hacknode=False, verbose=None, **kwargs):
     """
@@ -858,6 +864,8 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     import plottool as pt
     import vtool as vt
     import matplotlib as mpl
+
+    figsize = ut.get_argval('--figsize', type_=list, default=None)
 
     patch_dict = {
         'patch_frame_dict': {},
@@ -995,7 +1003,6 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
                     framecolor = pt.BLACK
                     alpha = 0.0
                 if framewidth is True:
-                    figsize = ut.get_argval('--figsize', type_=list, default=None)
                     if figsize is not None:
                         # HACK
                         graphsize = max(figsize)
