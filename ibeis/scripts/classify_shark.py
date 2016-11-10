@@ -1275,20 +1275,6 @@ def inspect_results(ds, result_list):
     print(pd.DataFrame(confusion, columns=[m for m in result.ds.target_names],
                        index=['gt ' + m for m in result.ds.target_names]))
 
-    def snapped_slice(size, frac, n):
-        start = int(size * frac - np.ceil(n / 2))
-        stop  = int(size * frac + np.floor(n / 2))
-        buf = 0
-        if stop >= size:
-            buf = (size - stop - 1)
-        elif start < 0:
-            buf = 0 - start
-        stop += buf
-        start += buf
-        assert stop < size, 'out of bounds'
-        sl = slice(start, stop)
-        return sl
-
     def target_partition(target):
         df_chunk = df if target is None else df[df['target'] == target]
         df_chunk = df_chunk.take(df_chunk['hardness'].argsort())
@@ -1296,7 +1282,7 @@ def inspect_results(ds, result_list):
 
     def grab_subchunk(frac, n, target):
         df_chunk = target_partition(target)
-        sl = snapped_slice(len(df_chunk), frac, n)
+        sl = ut.snapped_slice(len(df_chunk), frac, n)
         print('sl = %r' % (sl,))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]
@@ -1312,7 +1298,7 @@ def inspect_results(ds, result_list):
         return df_chunk
 
     def grab_subchunk2(df_chunk, frac, n):
-        sl = snapped_slice(len(df_chunk), frac, n)
+        sl = ut.snapped_slice(len(df_chunk), frac, n)
         print('sl = %r' % (sl,))
         idx = df_chunk.index[sl]
         df_chunk = df_chunk.loc[idx]

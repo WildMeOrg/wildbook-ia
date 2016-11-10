@@ -34,6 +34,7 @@ def train_pairwise_rf():
 
     CommandLine:
         python -m ibeis.algo.hots.script_vsone train_pairwise_rf
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1
 
     Example:
         >>> from ibeis.algo.hots.script_vsone import *  # NOQA
@@ -65,9 +66,12 @@ def train_pairwise_rf():
         'score_method': 'csum'
     })
     # Per query choose a set of correct, incorrect, and random training pairs
-    aid_pairs_ = infr._cm_training_pairs(top_gt=4, top_gf=3, rand_gf=2,
-                                         rng=np.random.RandomState(42))
+    aid_pairs_ = infr._cm_training_pairs(
+        top_gt=4, mid_gt=2, bot_gt=2, rand_gt=2,
+        top_gf=3, mid_gf=2, bot_gf=1, rand_gf=2,
+        rng=np.random.RandomState(42))
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
+    # TODO: handle non-comparability
 
     # ======================================
     # Compute one-vs-one scores and local_measures
@@ -339,10 +343,9 @@ def train_pairwise_rf():
 
     # setup truth targets
     # TODO: not-comparable
+    matches = matches_SV_LNBNN  # NOQA
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
     # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
-
-    matches = matches_SV_LNBNN  # NOQA
 
     # ---------------
     # Try just using simple scores

@@ -626,13 +626,24 @@ class _AnnotInfrMatching(object):
                 edges.append((u, v))
         return edges
 
-    def _cm_training_pairs(infr, top_gt=4, top_gf=3, rand_gf=2, rng=None):
+    def _cm_training_pairs(infr, top_gt=2, mid_gt=2, bot_gt=2, top_gf=2,
+                           mid_gf=2, bot_gf=2, rand_gt=2, rand_gf=2, rng=None):
         """
         Constructs training data for a pairwise classifier
 
         Example:
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr.exec_matching(cfgdict={
+            >>>     'can_match_samename': True,
+            >>>     'K': 4,
+            >>>     'Knorm': 1,
+            >>>     'prescore_method': 'csum',
+            >>>     'score_method': 'csum'
+            >>> })
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> exec(ut.execstr_funckw(infr._cm_training_pairs))
+            >>> infr._cm_training_pairs()
         """
         cm_list = infr.cm_list
         qreq_ = infr.qreq_
@@ -642,14 +653,20 @@ class _AnnotInfrMatching(object):
         # dnids = qreq_.get_qreq_annot_nids(qreq_.daids)
         rng = ut.ensure_rng(rng)
         for cm in ut.ProgIter(cm_list, lbl='building pairs'):
-            gt_aids = cm.get_top_gt_aids(ibs)[0:top_gt].tolist()
-            hard_gf_aids = cm.get_top_gf_aids(ibs)[0:top_gf].tolist()
+            all_gt_aids = cm.get_top_gt_aids(ibs)
+            all_gf_aids = cm.get_top_gf_aids(ibs)
+            gt_aids = ut.take_percentile_parts(all_gt_aids, top_gt, mid_gt, bot_gt)
+            gf_aids = ut.take_percentile_parts(all_gf_aids, top_gf, mid_gf, bot_gf)
+            # get unscored examples
+            unscored_gt_aids = [aid for aid in qreq_.daids[cm.qnid == dnids]
+                                if aid not in cm.daid2_idx]
+            rand_gt_aids = ut.random_sample(unscored_gt_aids, rand_gt, rng=rng)
             # gf_aids = cm.get_groundfalse_daids()
-            gf_aids = qreq_.daids[cm.qnid != dnids]
-            gf_aids = qreq_.daids.compress(cm.qnid != dnids)
+            _gf_aids = qreq_.daids[cm.qnid != dnids]
+            _gf_aids = qreq_.daids.compress(cm.qnid != dnids)
             # gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
-            rand_gf_aids = ut.random_sample(gf_aids, rand_gf, rng=rng).tolist()
-            chosen_daids = gt_aids + hard_gf_aids + rand_gf_aids
+            rand_gf_aids = ut.random_sample(_gf_aids, rand_gf, rng=rng).tolist()
+            chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids + rand_gt_aids)
             aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids])
         return aid_pairs
 
