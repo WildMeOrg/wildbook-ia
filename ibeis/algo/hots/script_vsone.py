@@ -578,6 +578,8 @@ def gridsearch_ratio_thresh(matches):
         best_ratio_thresh = subx[suby.argmax()]
         skf_results.append(best_ratio_thresh)
     print('skf_results.append = %r' % (np.mean(skf_results),))
+    import utool
+    utool.embed()
 
 
 # def old_vsone_parts():
