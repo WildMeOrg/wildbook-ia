@@ -10,6 +10,7 @@ def request_pairwise_matches():
     pass
 
 
+@profile
 def train_pairwise_rf():
     """
     Notes:
@@ -94,9 +95,9 @@ def train_pairwise_rf():
     subset_idxs = np.where([not (a1 in bad_aids or a2 in bad_aids)
                             for a1, a2 in aid_pairs_])[0]
     # Keep only a random subset
-    if 1:
+    if 0:
         rng = np.random.RandomState(3104855634)
-        num_max = 2000
+        num_max = 500
         if num_max < len(subset_idxs):
             subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
             subset_idxs = sorted(subset_idxs)
@@ -120,11 +121,6 @@ def train_pairwise_rf():
 
     annots1 = configured_obj_annots[qannot_cfg].loc(query_aids)
     annots2 = configured_obj_annots[dannot_cfg].loc(data_aids)
-
-    # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
-
-    class AnnotPairs(object):
-        pass
 
     def matches_auc(truth_list, match_list, lbl=''):
         score_list = np.array([m.fs.sum() for m in match_list])
@@ -151,7 +147,7 @@ def train_pairwise_rf():
 
     # Combine into a big cache for the entire 1-v-1 matching run
     big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-    cacher = ut.Cacher('vsone', cfgstr=str(big_uuid))
+    cacher = ut.Cacher('vsone', cfgstr=str(big_uuid), appname='vsone_rf_train')
 
     cached_data = cacher.tryload()
     if cached_data is not None:
@@ -169,9 +165,6 @@ def train_pairwise_rf():
         matches = [vt.PairwiseMatch(annot1, annot2)
                    for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
 
-        for m in ut.ProgIter(matches):
-            ut.reload_class(m, verbose=False, reload_module=False)
-
         matches_RAT = [match.copy() for match in matches]
         matches_RAT_SV = [match.copy() for match in matches]
         matches_SV_LNBNN = [match.copy() for match in matches]
@@ -182,7 +175,6 @@ def train_pairwise_rf():
         for match, internal in zip(matches_SV_LNBNN, cached_data['SV_LNBNN']):
             match.__dict__.update(internal.__dict__)
     else:
-
         # Do vectorized preload before constructing lazy dicts
         # Then make sure the lazy dicts point to this subset
         unique_obj_annots = list(configured_obj_annots.values())
@@ -195,6 +187,8 @@ def train_pairwise_rf():
             annots.qual
             annots.gps
             annots.time
+            if qreq_.qparams.featweight_enabled:
+                annots.fgweights
         # annots._internal_attrs.clear()
 
         # Make convinient lazy dict representations (after loading pre info)
@@ -202,10 +196,13 @@ def train_pairwise_rf():
         for config, annots in configured_obj_annots.items():
             annot_dict = configured_lazy_annots[config]
             for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
-                annot_dict[_annot.aid] = _annot._make_lazy_dict()
+                annot = _annot._make_lazy_dict()
+                annot_dict[_annot.aid] = annot
 
         unique_lazy_annots = ut.flatten(
             [x.values() for x in configured_lazy_annots.values()])
+
+        weight_key = 'fgweights'
 
         flann_params = {'algorithm': 'kdtree', 'trees': 4}
         for annot in ut.ProgIter(unique_lazy_annots, label='lazy flann'):
@@ -224,6 +221,12 @@ def train_pairwise_rf():
         lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
         lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
 
+        """
+        TODO: param search over grid
+            'use_sv': [0, 1],
+            'use_fg': [0, 1],
+            'use_ratio_test': [0, 1],
+        """
         matches_RAT = [vt.PairwiseMatch(annot1, annot2)
                        for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
 
@@ -237,13 +240,20 @@ def train_pairwise_rf():
             match.annot1['flann']
 
         # Find one-vs-one matches
-        cfgdict = {'checks': 20}
+        cfgdict = {'checks': 20, 'symmetric': False}
+        if qreq_.qparams.featweight_enabled:
+            cfgdict['weight'] = weight_key
         for match in ut.ProgIter(matches_RAT, label='assign vsone'):
-            match.assign(cfgdict)
+            match.assign(cfgdict=cfgdict)
 
+        # gridsearch_ratio_thresh()
+        # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_ratio_test', {
+        #     'ratio_thresh': np.linspace(.6, .7, 50)
+        # })
         for match in ut.ProgIter(matches_RAT, label='apply ratio thresh'):
             match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
 
+        # Add keypoint spatial information to local features
         for match in matches_RAT:
             key_ = 'norm_xys'
             norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
@@ -253,21 +263,26 @@ def train_pairwise_rf():
             match.local_measures['norm_x2'] = norm_xy2[0]
             match.local_measures['norm_y2'] = norm_xy2[1]
 
-        # gridsearch_ratio_thresh()
+            match.local_measures['scale1'] = vt.get_scales(
+                match.annot1['kpts'].take(match.fm.T[0], axis=0))
+            match.local_measures['scale2'] = vt.get_scales(
+                match.annot2['kpts'].take(match.fm.T[1], axis=0))
 
+        # TODO gridsearch over sv params
+        # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_sver', {
+        #     'xy_thresh': np.linspace(0, 1, 3)
+        # })
         matches_RAT_SV = [
             match.apply_sver(inplace=False)
             for match in ut.ProgIter(matches_RAT, label='sver')
         ]
 
         # Create another version where we find global normalizers for the data
-        qreq_.load_indexer()
-        indexer = qreq_.indexer
-
-        def batch_apply_lnbnn(matches):
+        def batch_apply_lnbnn(matches, qreq_):
+            qreq_.load_indexer()
+            indexer = qreq_.indexer
             from ibeis.algo.hots import nn_weights
             matches_ = [match.copy() for match in matches]
-            # matches_ = [match.rrr(0) for match in matches_]
             K = qreq_.qparams.K
             Knorm = qreq_.qparams.Knorm
             normalizer_rule  = qreq_.qparams.normalizer_rule
@@ -281,24 +296,8 @@ def train_pairwise_rf():
 
             vecs = stacked_vecs
             num = (K + Knorm)
-            # num = 2000
             idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
                                             label='lnbnn scoring')
-
-            # vdist = np.hstack([
-            #     match_.local_measures.get('match_dist', [])
-            #     for match_ in ut.ProgIter(matches_, lablel='stacking dist')
-            # ])
-            # ndist = dists.T[-1]
-            # lnbnn = ndist - vdist
-            # lnbnn = np.clip(lnbnn, 0, np.inf)
-
-            # ndist_list = [ndist[l:r] for l, r in ut.itertwo(offset_list)]
-            # lnbnn_list = [lnbnn[l:r] for l, r in ut.itertwo(offset_list)]
-            # for match_, ndist_, lnbnn_ in zip(matches_, ndist_list, lnbnn_list):
-            #     match_.local_measures['lnbnn_norm_dist'] = ndist_
-            #     match_.local_measures['lnbnn'] = lnbnn_
-            #     match_.fs = lnbnn_
 
             idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
             dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
@@ -316,16 +315,16 @@ def train_pairwise_rf():
                 match_.fs = lnbnn_dist
             return matches_
 
-        # matches = matches_RAT_SV  # NOQA
-        matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
+        matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_)
 
-        if False:
-            for m in ut.ProgIter(matches_RAT):
-                ut.reload_class(m, verbose=False, reload_module=False)
-            for m in ut.ProgIter(matches_RAT_SV):
-                ut.reload_class(m, verbose=False, reload_module=False)
-            for m in ut.ProgIter(matches_SV_LNBNN):
-                ut.reload_class(m, verbose=False, reload_module=False)
+        if qreq_.qparams.featweight_enabled:
+            for match in matches_SV_LNBNN[::-1]:
+                lnbnn_dist = match.local_measures['lnbnn']
+                ndist = match.local_measures['lnbnn_norm_dist']
+                weights = match.local_measures[weight_key]
+                match.local_measures['weighted_lnbnn'] = weights * lnbnn_dist
+                match.local_measures['weighted_lnbnn_norm_dist'] = weights * ndist
+                match.fs = match.local_measures['weighted_lnbnn']
 
         cached_data = {
             'RAT': matches_RAT,
@@ -334,8 +333,6 @@ def train_pairwise_rf():
         }
         cacher.save(cached_data)
 
-    matches = matches_SV_LNBNN
-
     # =====================================
     # Attempt to train a simple classsifier
     # =====================================
@@ -343,62 +340,81 @@ def train_pairwise_rf():
     # setup truth targets
     # TODO: not-comparable
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+    # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
+
+    matches = matches_SV_LNBNN  # NOQA
 
     # ---------------
     # Try just using simple scores
-    simple_measures = ['ratio', 'lnbnn']
-    S_sets = [np.array([m.local_measures[key].sum() for m in matches])
-              for key in simple_measures]
-    S_names = ['score_' + key for key in simple_measures]
+    # vt.rrrr()
+    # for m in matches:
+    #     m.rrr(0, reload_module=False)
+    simple_scores = pd.DataFrame([
+        m._make_local_summary_feature_vector(sum=True, mean=False, std=False)
+        for m in matches])
 
-    # TEST ORIGINAL LNBNN SCORE SEP
-    infr.graph.add_edges_from(aid_pairs)
-    infr.apply_match_scores()
-    edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-    lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
-    lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
-    S_names += ['score_lnbnn_1vM']
-    S_sets += [lnbnn_score_list]
+    if True:
+        # Remove scores that arent worth reporting
+        for k in list(simple_scores.columns)[:]:
+            flags = [part in k for part in ['norm_x', 'norm_y', 'sver_err', 'scale']]
+            if any(flags):
+                del simple_scores[k]
+    if True:
+        # TEST ORIGINAL LNBNN SCORE SEP
+        infr.graph.add_edges_from(aid_pairs)
+        infr.apply_match_scores()
+        edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
+        lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
+        lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
+        simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
+
+    simple_scores[pd.isnull(simple_scores)] = 0
+    # Sort AUC by values
+    simple_aucs = pd.DataFrame(dict([(k, [sklearn.metrics.roc_auc_score(y, simple_scores[k])])
+                                     for k in simple_scores.columns]))
+    simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
+    simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
 
     # Simple printout of aucs
     # we dont need cross validation because there is no learning here
-    for score_list, name in zip(S_sets, S_names):
-        print('name = %r' % (name,))
-        auc_score = sklearn.metrics.roc_auc_score(y, score_list)
-        split_columns.append(name)
-        split_aucs.append(auc_score)
+    print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
 
     # ---------------
-    scorers = ['ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist']
+    scorers = [
+        'ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist'
+    ]
+    if qreq_.qparams.featweight_enabled:
+        scorers += [
+            'weighted_ratio', 'weighted_lnbnn',
+        ]
 
-    keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
-             'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
-    keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
-             'sver_err_scale', 'sver_err_ori']
+    # keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
+    #          'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
+    keys1 = None
+    # keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
+    #          'sver_err_scale', 'sver_err_ori']
 
     # Try different feature constructions
     print('Building pairwise features')
     pairwise_feats = pd.DataFrame([
         m.make_feature_vector(scorers=scorers, keys=keys1, n_top=3)
-        for m in ut.ProgIter(matches)
+        for m in ut.ProgIter(matches, label='making pairwise feats')
     ])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
-    pairwise_feats_ratio = pd.DataFrame([
-        m.make_feature_vector(scorers='ratio', keys=keys2, n_top=3)
-        for m in ut.ProgIter(matches)
-    ])
-    pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
+    # pairwise_feats_ratio = pd.DataFrame([
+    #     m.make_feature_vector(scorers='ratio', keys=keys2, n_top=3)
+    #     for m in ut.ProgIter(matches)
+    # ])
+    # pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
+    # valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
+    # valid_cols = pairwise_feats.columns[valid_colx]
+    # X_nonan = pairwise_feats[valid_cols].copy()
+    X_all = pairwise_feats.copy()
+    # X_withnan_ratio = pairwise_feats_ratio
 
-    valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
-    valid_cols = pairwise_feats.columns[valid_colx]
-
-    X_nonan = pairwise_feats[valid_cols].copy()
-    X_withnan = pairwise_feats.copy()
-    X_withnan_ratio = pairwise_feats_ratio
-
-    X_sets = [X_nonan, X_withnan, X_withnan_ratio]
-    X_names = ['nonan', 'withnan', 'withnan_ratio']
+    X_sets = [X_all]
+    X_names = ['learn(all)']
 
     # ---------------
     # Setup cross-validation
@@ -407,8 +423,8 @@ def train_pairwise_rf():
     xvalkw = dict(n_splits=3, shuffle=True,
                   random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    skf_iter = skf.split(X=X_nonan, y=y)
-    df_results = pd.DataFrame(columns=S_names + X_names)
+    skf_iter = skf.split(X=X_all, y=y)
+    df_results = pd.DataFrame(columns=X_names)
 
     rf_params = {
         # 'max_depth': 4,
@@ -435,12 +451,14 @@ def train_pairwise_rf():
 
         classifiers = {}
 
-        for S, name in zip(S_sets, S_names):
-            print('name = %r' % (name,))
-            score_list = ut.take(S, test_idx)
-            auc_score = sklearn.metrics.roc_auc_score(y_test, score_list)
-            split_columns.append(name)
-            split_aucs.append(auc_score)
+        # for S, name in zip(S_sets, S_names):
+        #     print('name = %r' % (name,))
+        #     score_list = ut.take(S, test_idx)
+        #     auc_score = sklearn.metrics.roc_auc_score(y_test, score_list)
+        #     split_columns.append(name)
+        #     split_aucs.append(auc_score)
+        split_aucs += list(simple_auc_dict.values())
+        split_columns += list(simple_auc_dict.keys())
 
         for X, name in zip(X_sets, X_names):
             print('name = %r' % (name,))
@@ -462,19 +480,22 @@ def train_pairwise_rf():
             split_aucs.append(auc_learn)
 
         cv_classifiers.append(classifiers)
+
         newrow = pd.DataFrame([split_aucs], columns=split_columns)
         # print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
 
         df = df_results
-        change = df[df.columns[2]] - df[df.columns[0]]
-        percent_change = change / df[df.columns[0]] * 100
-        df = df.assign(change=change)
-        df = df.assign(percent_change=percent_change)
+        # change = df[df.columns[2]] - df[df.columns[0]]
+        # percent_change = change / df[df.columns[0]] * 100
+        # df = df.assign(change=change)
+        # df = df.assign(percent_change=percent_change)
 
     import sandbox_utools as sbut
-    print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns) - 2))))
-    print(df.mean())
+    # print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns) - 2))))
+    print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns)))))
+    df_mean = pd.DataFrame([df.mean().values], columns=df.columns)
+    print(sbut.to_string_monkey(df_mean, highlight_cols=list(range(len(df_mean.columns)))))
 
     for X, name in zip(X_sets, X_names):
         # Take average feature importance
@@ -487,8 +508,8 @@ def train_pairwise_rf():
         print(name)
         print(ut.align(ut.repr4(importances, precision=4), ':'))
 
-    import utool
-    utool.embed()
+    # import utool
+    # utool.embed()
 
     # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
     # columns = ['Method', 'AUC']
@@ -512,16 +533,18 @@ def train_pairwise_rf():
     # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
 
 
-def gridsearch_ratio_thresh(match_list, truth_list):
+def gridsearch_ratio_thresh(matches):
+    import sklearn
+    import sklearn.metrics
     import vtool as vt
     # Param search for vsone
     import plottool as pt
     pt.qt4ensure()
 
-    import sklearn
-    import sklearn.metrics
     skf = sklearn.model_selection.StratifiedKFold(n_splits=10,
                                                   random_state=119372)
+
+    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
 
     basis = {'ratio_thresh': np.linspace(.6, .7, 50).tolist()}
     grid = ut.all_dict_combinations(basis)
@@ -540,16 +563,16 @@ def gridsearch_ratio_thresh(match_list, truth_list):
         auc_list = np.array(auc_list)
         return auc_list
 
-    auc_list = _ratio_thresh(truth_list, match_list)
+    auc_list = _ratio_thresh(y, matches)
     pt.plot(xdata, auc_list)
     subx, suby = vt.argsubmaxima(auc_list, xdata)
     best_ratio_thresh = subx[suby.argmax()]
 
     skf_results = []
-    y_true = truth_list
-    for train_idx, test_idx in skf.split(match_list, truth_list):
-        match_list_ = ut.take(match_list, train_idx)
-        y_true = truth_list.take(train_idx)
+    y_true = y
+    for train_idx, test_idx in skf.split(matches, y):
+        match_list_ = ut.take(matches, train_idx)
+        y_true = y.take(train_idx)
         auc_list = _ratio_thresh(y_true, match_list_)
         subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
         best_ratio_thresh = subx[suby.argmax()]
