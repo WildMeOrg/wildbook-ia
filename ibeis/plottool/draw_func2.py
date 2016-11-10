@@ -2413,13 +2413,6 @@ def customize_colormap(data, base_colormap):
     sm.set_clim(-.5, extent_ + 0.5)
     #colorbar = plt.colorbar(sm)
 
-    #missing_ixs = find_nonconsec_indices(unique_scalars, bounds)
-    #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
-
-    #ticks = sel_bounds + .5
-    #ticklabels = sel_bounds
-    #colorbar.set_ticks(ticks)  # tick locations
-    #colorbar.set_ticklabels(ticklabels)  # tick labels
     return cmap
 
 
@@ -2737,11 +2730,6 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
     # This line alone removes data
     # axis.set_ticks([0, .5, 1])
     if custom:
-        #missing_ixs = ut.find_nonconsec_indices(unique_scalars, bounds)
-        #sel_bounds = np.array([x for ix, x in enumerate(bounds) if ix not in missing_ixs])
-        #ticks = sel_bounds + .5 - (sel_bounds.min())
-        #ticklabels = sel_bounds
-        #ticks = bounds
         ticks = np.linspace(0, 1, len(unique_scalars) + 1)
         if len(ticks) < 2:
             ticks += .5
