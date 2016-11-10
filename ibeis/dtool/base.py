@@ -7,7 +7,7 @@ import six
 (print, rrr, profile) = ut.inject2(__name__, '[depbase]')
 
 
-class StackedConfig(ut.DictLike):
+class StackedConfig(ut.DictLike, ut.HashComparable):
     """
     Manages a list of configurations
     """
@@ -36,6 +36,10 @@ class StackedConfig(ut.DictLike):
 
     def keys(self):
         return ut.take_column(self._items, 0)
+
+    def __hash__(cfg):
+        """ Needed for comparison operators """
+        return hash(cfg.get_cfgstr())
 
     def getitem(self, key):
         try:
