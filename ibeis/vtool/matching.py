@@ -103,6 +103,7 @@ class PairwiseMatch(ut.NiceRepr):
     def matched_vecs2(match):
         return match.annot2['vecs'].take(match.fm.T[1], axis=0)
 
+    @profile
     def _next_instance(match, inplace=None):
         """
         Returns either the same or a new instance of a match object with the
@@ -120,6 +121,7 @@ class PairwiseMatch(ut.NiceRepr):
             match_.global_measures = match.global_measures.copy()
         return match_
 
+    @profile
     def copy(match):
         match_ = match._next_instance(inplace=False)
         if match.fm is not None:
@@ -129,6 +131,7 @@ class PairwiseMatch(ut.NiceRepr):
                 lambda a: a.copy(), match.local_measures)
         return match_
 
+    @profile
     def compress(match, flags, inplace=None):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.compress(flags, axis=0)
@@ -137,6 +140,7 @@ class PairwiseMatch(ut.NiceRepr):
                 lambda a: a.compress(flags), match.local_measures)
         return match_
 
+    @profile
     def take(match, indicies, inplace=None):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.take(indicies, axis=0)
@@ -145,9 +149,10 @@ class PairwiseMatch(ut.NiceRepr):
                 lambda a: a.take(indicies), match.local_measures)
         return match_
 
+    @profile
     def assign(match, cfgdict={}, verbose=None):
         """
-        Assign correspondences between annots
+        Assign feature correspondences between annots
 
         >>> from vtool.matching import *  # NOQA
         """
@@ -155,6 +160,7 @@ class PairwiseMatch(ut.NiceRepr):
         Knorm  = cfgdict.get('Knorm', 1)
         symmetric = cfgdict.get('symmetric', False)
         checks = cfgdict.get('checks', 800)
+        weight_key = cfgdict.get('weight', None)
         annot1 = match.annot1
         annot2 = match.annot2
 
@@ -185,17 +191,32 @@ class PairwiseMatch(ut.NiceRepr):
         match.local_measures['match_dist'] = match_dist
         match.local_measures['norm_dist'] = norm_dist
         match.local_measures['ratio'] = ratio
+
+        if weight_key is None:
+            match.fs = ratio_score
+        else:
+            weight1 = annot1[weight_key].take(fm.T[0], axis=0)
+            weight2 = annot2[weight_key].take(fm.T[1], axis=0)
+            weight = np.sqrt(weight1 * weight2)
+            weighted_ratio = ratio_score * weight
+
+            match.local_measures[weight_key] = weight
+            match.local_measures['weighted_ratio'] = weighted_ratio
+            match.local_measures['weighted_norm_dist'] = norm_dist * weight
+            match.fs = weighted_ratio
+
         match.fm = fm
-        match.fs = ratio_score
         match.fm_norm = np.vstack([fx1_norm, fm.T[1]]).T
         return match
 
+    @profile
     def ratio_test_flags(match, cfgdict={}):
         ratio_thresh = cfgdict.get('ratio_thresh', .625)
         ratio = match.local_measures['ratio']
         flags = np.less(ratio, ratio_thresh)
         return flags
 
+    @profile
     def sver_flags(match, cfgdict={}, return_extra=False):
         from vtool import spatial_verification as sver
         import vtool as vt
@@ -225,6 +246,7 @@ class PairwiseMatch(ut.NiceRepr):
         else:
             return flags
 
+    @profile
     def apply_all(match, cfgdict):
         match.H_21 = None
         match.H_12 = None
@@ -233,13 +255,16 @@ class PairwiseMatch(ut.NiceRepr):
         if cfgdict['sv_on']:
             match.apply_sver(cfgdict, inplace=True)
 
+    @profile
     def apply_ratio_test(match, cfgdict={}, inplace=None):
         flags = match.ratio_test_flags(cfgdict)
         match_ = match.compress(flags, inplace=inplace)
         return match_
 
+    @profile
     def apply_sver(match, cfgdict={}, inplace=None):
-        flags, errors, H_12 = match.sver_flags(cfgdict, return_extra=True)
+        flags, errors, H_12 = match.sver_flags(cfgdict,
+                                               return_extra=True)
         match_ = match.compress(flags, inplace=inplace)
         errors_ = [e.compress(flags) for e in errors]
         match_.local_measures['sver_err_xy'] = errors_[0]
@@ -261,89 +286,92 @@ class PairwiseMatch(ut.NiceRepr):
         # H2 = match.H_21 if show_homog else None
 
         ax, xywh1, xywh2 = pt.show_chipmatch2(
-            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False, H1=H1, ax=ax
+            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False,
+            H1=H1, ax=ax
         )
         return ax, xywh1, xywh2
 
+    @profile
     def _make_global_feature_vector(match):
         """ Global annotation properties and deltas """
         import vtool as vt
         feat = ut.odict([])
 
         for k, v in match.global_measures.items():
-            v1 = v[0]
-            v2 = v[1]
+            v1, v2 = v
             if v1 is None:
                 v1 = np.nan
             if v2 is None:
                 v2 = np.nan
             if ut.isiterable(v1):
                 for i in range(len(v1)):
-                    feat[k + str(i) + '_1'] = v1[i]
-                    feat[k + str(i) + '_2'] = v2[i]
+                    feat['global(%s_1[%d])' % (k, i)] = v1[i]
+                    feat['global(%s_2[%d])' % (k, i)] = v2[i]
                 if k == 'gps':
                     delta = vt.haversine(v1, v2)
                 else:
                     delta = np.abs(v1 - v2)
-                feat[k + '_delta'] = delta
             else:
-                feat[k + '_1'] = v1
-                feat[k + '_2'] = v2
+                feat['global(%s_1)' % (k,)] = v1
+                feat['global(%s_2)' % (k,)] = v2
                 if k == 'yaw':
                     delta = vt.ori_distance(v1, v2)
                 else:
                     delta = np.abs(v1 - v2)
-                feat[k + '_delta'] = delta
+            feat['global(%s_delta)' % (k,)] = delta
 
-        if 'gps_delta' in feat and 'time_delta' in feat:
-            hour_delta = feat['time_delta'] / 360
-            feat['speed'] = feat['gps_delta'] / hour_delta
+        if 'global(gps_delta)' in feat and 'global(time_delta)' in feat:
+            hour_delta = feat['global(time_delta)'] / 360
+            feat['global(speed)'] = feat['global(gps_delta)'] / hour_delta
         return feat
 
-    def _make_local_summary_feature_vector(match, keys=None):
+    @profile
+    def _make_local_summary_feature_vector(match, keys=None, sum=True,
+                                           mean=True, std=True):
         """ Summary statistics of local features """
-        import pandas as pd
         if keys is None:
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
-        local_measures = pd.DataFrame(local_measures)
 
         feat = ut.odict([])
-        for k, v in local_measures.sum().iteritems():
-            feat['sum_' + k] = v
-        for k, v in local_measures.mean().iteritems():
-            feat['mean_' + k] = v
-        for k, v in local_measures.std().iteritems():
-            feat['std_' + k] = v
-        feat['n_total'] = len(local_measures)
+        if sum:
+            for k, vs in six.iteritems(local_measures):
+                feat['sum(%s)' % (k,)] = vs.sum()
+        if mean:
+            for k, vs in six.iteritems(local_measures):
+                feat['mean(%s)' % (k,)] = np.mean(vs)
+        if std:
+            for k, vs in six.iteritems(local_measures):
+                feat['std(%s)' % (k,)] = np.std(vs)
+        feat['len(matches)'] = len(local_measures)
         return feat
 
+    @profile
     def _make_local_top_feature_vector(match, keys=None, scorers='ratio',
                                        n_top=3):
         """ Selected subsets of top features """
-        import pandas as pd
         if keys is None:
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
-        local_measures = pd.DataFrame(local_measures)
 
         scorers = ut.ensure_iterable(scorers)
 
-        # Individual top features
-        feat = ut.odict([])
-        for scorer in scorers:
-            # TODO: some scorers might want descending orders
-            sortx = local_measures[scorer].argsort()[::-1]
-            local_measures = local_measures.loc[sortx]
-            topn = local_measures[:n_top]
-
-            for k, vs in six.iteritems(topn):
-                for count, v in enumerate(vs):
-                    feat[scorer + str(count) + '_' + k] = v
+        # TODO: some scorers might want descending orders
+        chosen_xs = [
+            local_measures[scorer].argsort()[::-1][:n_top]
+            for scorer in scorers
+        ]
+        feat = ut.odict([
+            ('loc[%s,%d](%s)' % (scorer, count, k), v)
+            for k, vs in six.iteritems(local_measures)
+            for scorer, topxs in zip(scorers, chosen_xs)
+            for count, v in enumerate(vs[topxs])
+        ])
         return feat
 
+    @profile
     def make_feature_vector(match, keys=None, **kwargs):
         """
         Constructs the pairwise feature vector that represents a match
@@ -353,6 +381,27 @@ class PairwiseMatch(ut.NiceRepr):
         feat.update(match._make_local_summary_feature_vector(keys))
         feat.update(match._make_local_top_feature_vector(keys, **kwargs))
         return feat
+
+
+def gridsearch_match_operation(matches, op_name, basis):
+    import sklearn
+    import sklearn.metrics
+    y_true = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+    grid = ut.all_dict_combinations(basis)
+    auc_list = []
+    for cfgdict in ut.ProgIter(grid, lbl='gridsearch', bs=False):
+        matches_ = [match.copy() for match in matches]
+        y_score = [getattr(m, op_name)(cfgdict=cfgdict).fs.sum()
+                   for m in matches_]
+        auc = sklearn.metrics.roc_auc_score(y_true, y_score)
+        print('cfgdict = %r' % (cfgdict,))
+        print('auc = %r' % (auc,))
+        auc_list.append(auc)
+    print(ut.repr4(ut.sort_dict(ut.dzip(grid, auc_list), 'vals',
+                                reverse=True)))
+    if len(basis) == 1:
+        # interpolate along basis
+        pass
 
 
 class SingleMatch(ut.NiceRepr):
@@ -514,6 +563,7 @@ def ensure_metadata_dlen_sqrd(annot):
 
 
 def ensure_metadata_flann(annot, cfgdict):
+    """ setup lazy flann evaluation """
     import vtool as vt
     flann_params = {'algorithm': 'kdtree', 'trees': 8}
     if 'flann' not in annot:
