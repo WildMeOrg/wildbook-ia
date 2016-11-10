@@ -142,6 +142,10 @@ class _AnnotPropInjector(BASE_TYPE):
             'name': 'names',
             'name': 'names',
             'nid': 'nids',
+
+            # DEPRICATE
+            'rchip': 'chips',
+            'rchip_fpath': 'chip_fpath',
         }
 
         objname = 'annot'

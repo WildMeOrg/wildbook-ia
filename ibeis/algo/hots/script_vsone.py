@@ -46,8 +46,8 @@ def train_pairwise_rf():
     from sklearn.ensemble import RandomForestClassifier
     import pandas as pd
     # ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb('PZ_Master1')
-    # ibs = ibeis.opendb('GZ_Master1')
+    # ibs = ibeis.opendb('PZ_Master1')
+    ibs = ibeis.opendb('GZ_Master1')
 
     aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
 
@@ -67,8 +67,6 @@ def train_pairwise_rf():
     aid_pairs_ = infr._cm_training_pairs(top_gt=4, top_gf=3, rand_gf=2,
                                          rng=np.random.RandomState(42))
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
-    query_aids_ = ut.take_column(aid_pairs_, 0)
-    data_aids_ = ut.take_column(aid_pairs_, 1)
 
     # ======================================
     # Compute one-vs-one scores and local_measures
@@ -81,33 +79,52 @@ def train_pairwise_rf():
     dconfig2_ = qreq_.extern_data_config2
     qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
     dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
-    configured_annot_dict = ut.ddict(dict)
-    bad_aids = []
-    config_aids_pairs = [(qannot_cfg, query_aids_), (dannot_cfg, data_aids_)]
-    for config, aids in ut.ProgIter(config_aids_pairs, label='prepare annots', bs=False):
+
+    # Remove any pairs missing features
+    if dannot_cfg == qannot_cfg:
+        unique_annots = ibs.annots(np.unique(np.array(aid_pairs_)), config=dannot_cfg)
+        bad_aids = unique_annots.compress(~np.array(unique_annots.num_feats) > 0).aids
+        bad_aids = set(bad_aids)
+    else:
+        annots1_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 0)), config=qannot_cfg)
+        annots2_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 1)), config=dannot_cfg)
+        bad_aids1 = annots1_.compress(~np.array(annots1_.num_feats) > 0).aids
+        bad_aids2 = annots2_.compress(~np.array(annots2_.num_feats) > 0).aids
+        bad_aids = set(bad_aids1 + bad_aids2)
+    subset_idxs = np.where([not (a1 in bad_aids or a2 in bad_aids)
+                            for a1, a2 in aid_pairs_])[0]
+    # Keep only a random subset
+    if 1:
+        rng = np.random.RandomState(3104855634)
+        num_max = 2000
+        if num_max < len(subset_idxs):
+            subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
+            subset_idxs = sorted(subset_idxs)
+
+    # Take the current selection
+    aid_pairs = ut.take(aid_pairs_, subset_idxs)
+    query_aids = ut.take_column(aid_pairs, 0)
+    data_aids = ut.take_column(aid_pairs, 1)
+
+    # Determine a unique set of annots per config
+    configured_aids = ut.ddict(set)
+    configured_aids[qannot_cfg].update(query_aids)
+    configured_aids[dannot_cfg].update(data_aids)
+
+    # Make efficient annot-object representation
+    configured_obj_annots = {}
+    for config, aids in configured_aids.items():
+        aids = sorted(list(aids))
         annots = ibs.annots(aids, config=config)
-        hasfeats = np.array(annots.num_feats) > 0
-        aids = annots.compress(hasfeats).aids
-        bad_aids.extend(annots.compress(~hasfeats).aids)
-        annot_dict = configured_annot_dict[config]
-        unique_aids = ut.unique(aids)
-        unique_aids = ut.setdiff(unique_aids, annot_dict.keys())
-        unique_annots = ibs.annots(unique_aids, config=config)
-        for _annot in ut.ProgIter(unique_annots.scalars(), label='unique'):
-            annot = _annot._make_lazy_dict()
-            flann_params = {'algorithm': 'kdtree', 'trees': 4}
-            vt.matching.ensure_metadata_flann(annot, flann_params)
-            annot_dict[_annot.aid] = annot
+        configured_obj_annots[config] = annots
 
-    isgood = [not (a1 in bad_aids or a2 in bad_aids) for a1, a2 in aid_pairs_]
-    query_aids = ut.compress(query_aids_, isgood)
-    data_aids = ut.compress(data_aids_, isgood)
-    aid_pairs = ut.compress(aid_pairs_, isgood)
+    annots1 = configured_obj_annots[qannot_cfg].loc(query_aids)
+    annots2 = configured_obj_annots[dannot_cfg].loc(data_aids)
 
-    # Extract pairs of annot objects (with shared caches)
-    annot1_list = ut.take(configured_annot_dict[qannot_cfg], query_aids)
-    annot2_list = ut.take(configured_annot_dict[dannot_cfg], data_aids)
     # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
+
+    class AnnotPairs(object):
+        pass
 
     def matches_auc(truth_list, match_list, lbl=''):
         score_list = np.array([m.fs.sum() for m in match_list])
@@ -117,22 +134,40 @@ def train_pairwise_rf():
 
     verbose = True  # NOQA
 
-    # TODO: Cache output of one-vs-one matches
-    qvuuids = ibs.get_annot_visual_uuids(query_aids)
-    dvuuids = ibs.get_annot_visual_uuids(data_aids)
-    qcfgstr = qannot_cfg.get_cfgstr()
-    dcfgstr = dannot_cfg.get_cfgstr()
-    pair_vuuids = [ut.combine_uuids([q, d]) for q, d in zip(qvuuids, dvuuids)]
-    pipe_hashid = qreq_.get_pipe_hashid()
+    # Cache output of one-vs-one matches
+    # ----------------------------------
+    # Get hash based on visual annotation appearence of each pair
+    # as well as algorithm configurations used to compute those properties
+    qvuuids = annots1.visual_uuids
+    dvuuids = annots2.visual_uuids
+    qcfgstr = annots1._config.get_cfgstr()
+    dcfgstr = annots2._config.get_cfgstr()
     annots_cfgstr = ut.hashstr27(qcfgstr) + ut.hashstr27(dcfgstr)
-    big_uuid = ut.combine_uuids(pair_vuuids, salt=annots_cfgstr + pipe_hashid)
-    cacher = ut.Cacher('pairwise-matches-', cfgstr=str(big_uuid))
+    vsone_uuids = [
+        ut.combine_uuids(uuids, salt=annots_cfgstr)
+        for uuids in ut.ProgIter(zip(qvuuids, dvuuids), length=len(qvuuids),
+                                 label='hashing ids')
+    ]
+
+    # Combine into a big cache for the entire 1-v-1 matching run
+    big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
+    cacher = ut.Cacher('vsone', cfgstr=str(big_uuid))
 
     cached_data = cacher.tryload()
     if cached_data is not None:
+        # Make convinient lazy dict representations (after loading pre info)
+        configured_lazy_annots = ut.ddict(dict)
+        for config, annots in configured_obj_annots.items():
+            annot_dict = configured_lazy_annots[config]
+            for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
+                annot_dict[_annot.aid] = _annot._make_lazy_dict()
+
+        # Extract pairs of annot objects (with shared caches)
+        lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
+        lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
 
         matches = [vt.PairwiseMatch(annot1, annot2)
-                   for annot1, annot2 in zip(annot1_list, annot2_list)]
+                   for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
 
         for m in ut.ProgIter(matches):
             ut.reload_class(m, verbose=False, reload_module=False)
@@ -147,22 +182,50 @@ def train_pairwise_rf():
         for match, internal in zip(matches_SV_LNBNN, cached_data['SV_LNBNN']):
             match.__dict__.update(internal.__dict__)
     else:
-        unique_lazy_annots = ut.flatten([x.values() for x in configured_annot_dict.values()])
+
+        # Do vectorized preload before constructing lazy dicts
+        # Then make sure the lazy dicts point to this subset
+        unique_obj_annots = list(configured_obj_annots.values())
+        for annots in ut.ProgIter(unique_obj_annots, 'vectorized preload'):
+            annots.set_caching(True)
+            annots.chip_size
+            annots.vecs
+            annots.kpts
+            annots.yaw
+            annots.qual
+            annots.gps
+            annots.time
+        # annots._internal_attrs.clear()
+
+        # Make convinient lazy dict representations (after loading pre info)
+        configured_lazy_annots = ut.ddict(dict)
+        for config, annots in configured_obj_annots.items():
+            annot_dict = configured_lazy_annots[config]
+            for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
+                annot_dict[_annot.aid] = _annot._make_lazy_dict()
+
+        unique_lazy_annots = ut.flatten(
+            [x.values() for x in configured_lazy_annots.values()])
+
+        flann_params = {'algorithm': 'kdtree', 'trees': 4}
+        for annot in ut.ProgIter(unique_lazy_annots, label='lazy flann'):
+            vt.matching.ensure_metadata_flann(annot, flann_params)
+
         for annot in ut.ProgIter(unique_lazy_annots, 'preload kpts'):
             annot['kpts']
+
         for annot in ut.ProgIter(unique_lazy_annots, 'normxy'):
             annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
                                  np.array(annot['chip_size'])[:, None])
         for annot in ut.ProgIter(unique_lazy_annots, 'preload vecs'):
             annot['vecs']
 
-        for annot in ut.ProgIter(unique_lazy_annots, 'fixup'):
-            # annot['rchip'] = annot.getitem('chips', is_eager=False)
-            # annot['dlen_sqrd'] = annot.getitem('chip_dlensqrd', is_eager=False)
-            annot['rchip_fpath'] = annot.getitem('chip_fpath', is_eager=False)
+        # Extract pairs of annot objects (with shared caches)
+        lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
+        lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
 
         matches_RAT = [vt.PairwiseMatch(annot1, annot2)
-                       for annot1, annot2 in zip(annot1_list, annot2_list)]
+                       for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
 
         # Construct global measurements
         global_keys = ['yaw', 'qual', 'gps', 'time']
@@ -192,66 +255,68 @@ def train_pairwise_rf():
 
         # gridsearch_ratio_thresh()
 
-        matches_RAT_SV = [match.apply_sver(inplace=False)
-                          for match in ut.ProgIter(matches_RAT, label='sver')]
+        matches_RAT_SV = [
+            match.apply_sver(inplace=False)
+            for match in ut.ProgIter(matches_RAT, label='sver')
+        ]
 
         # Create another version where we find global normalizers for the data
         qreq_.load_indexer()
         indexer = qreq_.indexer
 
         def batch_apply_lnbnn(matches):
-            # from ibeis.algo.hots import nn_weights
+            from ibeis.algo.hots import nn_weights
             matches_ = [match.copy() for match in matches]
             # matches_ = [match.rrr(0) for match in matches_]
             K = qreq_.qparams.K
             Knorm = qreq_.qparams.Knorm
-            # normalizer_rule  = qreq_.qparams.normalizer_rule
+            normalizer_rule  = qreq_.qparams.normalizer_rule
+
             print('Stacking vecs for batch matching')
             offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
             stacked_vecs = np.vstack([
                 match_.matched_vecs2()
                 for match_ in ut.ProgIter(matches_, lablel='stacking matched vecs')
             ])
-            # vecs_list2 = [stacked_vecs[l:r] for l, r in ut.itertwo(offset_list)]
 
             vecs = stacked_vecs
             num = (K + Knorm)
             # num = 2000
-            idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192, label='lnbnn scoring')
+            idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
+                                            label='lnbnn scoring')
 
-            vdist = np.hstack([
-                match_.local_measures.get('match_dist', [])
-                for match_ in ut.ProgIter(matches_, lablel='stacking dist')
-            ])
-            ndist = dists.T[-1]
-            lnbnn = ndist - vdist
-            lnbnn = np.clip(lnbnn, 0, np.inf)
+            # vdist = np.hstack([
+            #     match_.local_measures.get('match_dist', [])
+            #     for match_ in ut.ProgIter(matches_, lablel='stacking dist')
+            # ])
+            # ndist = dists.T[-1]
+            # lnbnn = ndist - vdist
+            # lnbnn = np.clip(lnbnn, 0, np.inf)
 
-            ndist_list = [ndist[l:r] for l, r in ut.itertwo(offset_list)]
-            lnbnn_list = [lnbnn[l:r] for l, r in ut.itertwo(offset_list)]
+            # ndist_list = [ndist[l:r] for l, r in ut.itertwo(offset_list)]
+            # lnbnn_list = [lnbnn[l:r] for l, r in ut.itertwo(offset_list)]
+            # for match_, ndist_, lnbnn_ in zip(matches_, ndist_list, lnbnn_list):
+            #     match_.local_measures['lnbnn_norm_dist'] = ndist_
+            #     match_.local_measures['lnbnn'] = lnbnn_
+            #     match_.fs = lnbnn_
 
-            for match_, ndist_, lnbnn_ in zip(matches_, ndist_list, lnbnn_list):
-                match_.local_measures['lnbnn_norm_dist'] = ndist_
-                match_.local_measures['lnbnn'] = lnbnn_
-                match_.fs = lnbnn_
-
-            # idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-            # dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
-            # iter_ = zip(matches_, idx_list, dist_list)
-            # prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
-            # for match_, neighb_idx, neighb_dist in prog:
-            #     qaid = match_.annot2['aid']
-            #     norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
-            #     ndist = vt.take_col_per_row(neighb_dist, norm_k)
-            #     vdist = match_.local_measures['match_dist']
-            #     lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
-            #     # lnbnn_dist = np.clip(lnbnn_dist, 0, np.inf)
-            #     match_.local_measures['lnbnn_norm_dist'] = ndist
-            #     match_.local_measures['lnbnn'] = lnbnn_dist
-            #     match_.fs = lnbnn_dist
+            idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
+            dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+            iter_ = zip(matches_, idx_list, dist_list)
+            prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+            for match_, neighb_idx, neighb_dist in prog:
+                qaid = match_.annot2['aid']
+                norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+                ndist = vt.take_col_per_row(neighb_dist, norm_k)
+                vdist = match_.local_measures['match_dist']
+                lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
+                lnbnn_dist = np.clip(lnbnn_dist, 0, np.inf)
+                match_.local_measures['lnbnn_norm_dist'] = ndist
+                match_.local_measures['lnbnn'] = lnbnn_dist
+                match_.fs = lnbnn_dist
             return matches_
 
-        matches = matches_RAT_SV  # NOQA
+        # matches = matches_RAT_SV  # NOQA
         matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV)
 
         if False:
@@ -275,22 +340,37 @@ def train_pairwise_rf():
     # Attempt to train a simple classsifier
     # =====================================
 
+    # setup truth targets
+    # TODO: not-comparable
+    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+
     # ---------------
     # Try just using simple scores
-    S_names = ['ratio', 'lnbnn']
+    simple_measures = ['ratio', 'lnbnn']
     S_sets = [np.array([m.local_measures[key].sum() for m in matches])
-              for key in S_names ]
-    S_names += ['vsmany_lnbnn']
+              for key in simple_measures]
+    S_names = ['score_' + key for key in simple_measures]
 
     # TEST ORIGINAL LNBNN SCORE SEP
-    infr.apply_match_edges()
+    infr.graph.add_edges_from(aid_pairs)
     infr.apply_match_scores()
     edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
     lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
+    lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
+    S_names += ['score_lnbnn_1vM']
     S_sets += [lnbnn_score_list]
+
+    # Simple printout of aucs
+    # we dont need cross validation because there is no learning here
+    for score_list, name in zip(S_sets, S_names):
+        print('name = %r' % (name,))
+        auc_score = sklearn.metrics.roc_auc_score(y, score_list)
+        split_columns.append(name)
+        split_aucs.append(auc_score)
 
     # ---------------
     scorers = ['ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist']
+
     keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
              'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
     keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
@@ -321,8 +401,7 @@ def train_pairwise_rf():
     X_names = ['nonan', 'withnan', 'withnan_ratio']
 
     # ---------------
-    # Setup target data and cross-validation
-    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+    # Setup cross-validation
 
     # xvalkw = dict(n_splits=10, shuffle=True,
     xvalkw = dict(n_splits=3, shuffle=True,
@@ -342,15 +421,19 @@ def train_pairwise_rf():
         'n_estimators': 256,
         'criterion': 'entropy',
     }
-    rf_params.update(verbose=1, random_state=np.random.RandomState(3915904814))
+    rf_params.update(verbose=0, random_state=np.random.RandomState(3915904814))
+
+    cv_classifiers = []
 
     # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
-    for count, (train_idx, test_idx) in enumerate(skf_iter):
+    for count, (train_idx, test_idx) in enumerate(ut.ProgIter(list(skf_iter), label='skf')):
         y_test = y[test_idx]
         y_train = y[train_idx]
 
         split_columns = []
         split_aucs = []
+
+        classifiers = {}
 
         for S, name in zip(S_sets, S_names):
             print('name = %r' % (name,))
@@ -366,10 +449,7 @@ def train_pairwise_rf():
             # Train uncalibrated random forest classifier on train data
             clf = RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
-
-            # importances = dict(zip(withnan_cols, clf.feature_importances_))
-            # importances = ut.sort_dict(importances, 'vals', reverse=True)
-            # print(ut.align(ut.repr4(importances, precision=4), ':'))
+            classifiers[name] = clf
 
             # evaluate on test data
             clf_probs = clf.predict_proba(X_test)
@@ -381,6 +461,7 @@ def train_pairwise_rf():
             split_columns.append(name)
             split_aucs.append(auc_learn)
 
+        cv_classifiers.append(classifiers)
         newrow = pd.DataFrame([split_aucs], columns=split_columns)
         # print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
@@ -394,6 +475,17 @@ def train_pairwise_rf():
     import sandbox_utools as sbut
     print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns) - 2))))
     print(df.mean())
+
+    for X, name in zip(X_sets, X_names):
+        # Take average feature importance
+        feature_importances = np.mean([
+            clf_.feature_importances_
+            for clf_ in ut.dict_take_column(cv_classifiers, name)
+        ], axis=0)
+        importances = ut.dzip(X.columns, feature_importances)
+        importances = ut.sort_dict(importances, 'vals', reverse=True)
+        print(name)
+        print(ut.align(ut.repr4(importances, precision=4), ':'))
 
     import utool
     utool.embed()

@@ -657,38 +657,13 @@ class _AnnotInfrMatching(object):
         # Extract features from the one-vs-one results
         pass
 
-    @profile
-    def apply_match_scores(infr):
-        """
-        Applies precomputed matching scores to edges that already exist in the
-        graph. Typically you should run infr.apply_match_edges() before running
-        this.
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden apply_match_scores --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('PZ_MTEST')
-            >>> infr.exec_matching()
-            >>> infr.apply_match_edges()
-            >>> infr.apply_match_scores()
-            >>> infr.get_edge_attrs('score')
-        """
-        if infr.verbose >= 1:
-            print('[infr] apply_match_scores')
-
-        if infr.cm_list is None:
-            print('[infr] no scores to apply!')
-            return
-
+    def _get_cm_edge_data(infr, edges):
         symmetric = True
 
         # Find scores for the edges that exist in the graph
         edge_to_data = ut.ddict(dict)
-        edges = list(infr.graph.edges())
-        node_to_cm = {infr.aid_to_node[cm.qaid]: cm for cm in infr.cm_list}
+        node_to_cm = {infr.aid_to_node[cm.qaid]:
+                      cm for cm in infr.cm_list}
         for u, v in edges:
             if symmetric and u > v:
                 u, v = v, u
@@ -714,6 +689,35 @@ class _AnnotInfrMatching(object):
                 score = np.nanmean(scores)
             edge_to_data[(u, v)]['score'] = score
             edge_to_data[(u, v)]['rank'] = rank
+        return edge_to_data
+
+    @profile
+    def apply_match_scores(infr):
+        """
+        Applies precomputed matching scores to edges that already exist in the
+        graph. Typically you should run infr.apply_match_edges() before running
+        this.
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_match_scores --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr.exec_matching()
+            >>> infr.apply_match_edges()
+            >>> infr.apply_match_scores()
+            >>> infr.get_edge_attrs('score')
+        """
+        if infr.verbose >= 1:
+            print('[infr] apply_match_scores')
+
+        if infr.cm_list is None:
+            print('[infr] no scores to apply!')
+            return
+        edges = list(infr.graph.edges())
+        edge_to_data = infr._get_cm_edge_data(edges)
 
         # Remove existing attrs
         ut.nx_delete_edge_attr(infr.graph, 'score')
@@ -731,8 +735,8 @@ class _AnnotInfrMatching(object):
         normscores = edge_scores / vt.safe_max(edge_scores, nans=False)
 
         # Add new attrs
-        infr.set_edge_attrs('score', dict(zip(edges, edge_scores)))
-        infr.set_edge_attrs('rank', dict(zip(edges, edge_ranks)))
+        infr.set_edge_attrs('score', ut.dzip(edges, edge_scores))
+        infr.set_edge_attrs('rank', ut.dzip(edges, edge_ranks))
 
         nanflags = np.isnan(normscores)
         p_match = normscores
@@ -1166,27 +1170,26 @@ class _AnnotInfrFeedback(object):
         if infr.queue is not None:
             # update the priority queue on the fly
             queue = infr.queue
-            # TODO: keep some edges (perhaps probalistically or based on
-            # distance) in pos/neg review
-
-            # pos_jump_thresh = 2
-            # neg_jump_thresh = 3
             pos_jump_thresh = infr.queue_params['pos_jump_thresh']
             neg_jump_thresh = infr.queue_params['neg_jump_thresh']
 
             if pos_jump_thresh is not None:
+                # Reconsider edges within connected compoments that are
+                # separated by a large distance over reviewed edges.
                 strong_positives = []
+                weak_positives = []
                 for nid, edges in reviewed_positives.items():
                     strong_edges = []
                     weak_edges = []
-                    trivial_reviews = nx.Graph(edges)
-                    for u, dist_dict in nx.all_pairs_shortest_path_length(trivial_reviews):
+                    reviewed_subgraph = nx.Graph(edges)
+                    for u, dist_dict in nx.all_pairs_shortest_path_length(reviewed_subgraph):
                         for v, dist in dist_dict.items():
                             if u <= v and graph.has_edge(u, v):
                                 if dist <= pos_jump_thresh:
                                     strong_edges.append((u, v))
                                 else:
                                     weak_edges.append((u, v))
+                    weak_positives.extend(weak_edges)
                     strong_positives.extend(strong_edges)
                 queue.delete_items(strong_positives)
             else:
@@ -1212,6 +1215,9 @@ class _AnnotInfrFeedback(object):
                 >>> infr.queue_params['neg_jump_thresh'] = None
                 >>> infr.add_feedback(1, 6, 'nomatch', apply=True)
                 >>> assert len(infr.queue) == 0
+                >>> graph = infr.graph
+                >>> ut.exec_func_src(infr.apply_review_inference,
+                >>>                  sentinal='if neg_jump_thresh', stop=-1, verbose=True)
                 >>> infr.queue_params['neg_jump_thresh'] = 1
                 >>> infr.apply_review_inference()
             """
@@ -1219,29 +1225,43 @@ class _AnnotInfrFeedback(object):
             if neg_jump_thresh is not None:
                 strong_negatives = []
                 weak_negatives = []
+
+                # Reconsider edges between connected compoments that are
+                # separated by a large distance over reviewed edges.
                 for nid_edge, neg_edges in reviewed_negatives.items():
                     nid1, nid2 = nid_edge
                     pos_edges1 = reviewed_positives[nid1]
                     pos_edges2 = reviewed_positives[nid2]
                     edges = pos_edges2 + pos_edges1 + neg_edges
+                    reviewed_subgraph = nx.Graph(edges)
                     strong_edges = []
                     weak_edges = []
-                    trivial_reviews = nx.Graph(edges)
-
                     unreviewed_neg_edges = negative[nid_edge]
+                    # FIXME: Change the forumlation of this problem to:
+                    # Given two connected compoments, a set of potential edges,
+                    # and a number K Find the minimum cost set of potential
+                    # edges such that the maximum distance between two nodes in
+                    # different compoments is less than K.
+
+                    # distance_matrix = dict(nx.shortest_path_length(reviewed_subgraph))
+                    # cc1 = nid_to_cc[nid1]
+                    # cc2 = nid_to_cc[nid2]
+                    # for u in cc1:
+                    #     is_violated = np.array(list(ut.dict_subset(distance_matrix[u], cc2).values())) > neg_jump_thresh
 
                     for u, v in unreviewed_neg_edges:
+                        # Ensure u corresponds to nid1 and v corresponds to nid2
                         if node_to_label[u] == nid2:
                             u, v = v, u
-                        # Check left side of the shore
-                        for v_, dist in nx.shortest_path_length(trivial_reviews, source=u):
+                        # Is the distance from u to any node in cc[nid2] large?
+                        for v_, dist in nx.shortest_path_length(reviewed_subgraph, source=u):
                             if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
                                 if dist > neg_jump_thresh:
                                     weak_edges.append(e_(u, v_))
                                 else:
                                     strong_edges.append(e_(u, v_))
-                        # Check right side of the shore
-                        for u_, dist in nx.shortest_path_length(trivial_reviews, source=v):
+                        # Is the distance from v to any node in cc[nid1] large?
+                        for u_, dist in nx.shortest_path_length(reviewed_subgraph, source=v):
                             if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
                                 if dist > neg_jump_thresh:
                                     weak_edges.append(e_(u_, v))

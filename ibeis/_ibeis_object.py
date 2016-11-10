@@ -76,14 +76,12 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
 
     def _make_getter(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
-        #def ibs_getter(self, *args, **kwargs):
         def ibs_getter(self):
             if self._ibs is None or (self._caching and
                                      attrname in self._internal_attrs):
                 data = self._internal_attrs[attrname]
             else:
                 ibs_callable = getattr(self._ibs, ibs_funcname)
-                #data = ibs_callable(self._rowids, *args, **kwargs)
                 data = ibs_callable(self._rowids)
                 if self._caching:
                     self._internal_attrs[attrname] = data
@@ -91,39 +89,52 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         ut.set_funcname(ibs_getter, ibs_funcname)
         return ibs_getter
 
-    def _make_setter(objname, attrname):
-        ibs_funcname = 'set_%s_%s' % (objname, attrname)
-        def ibs_setter(self, values, *args, **kwargs):
-            if self._ibs is None:
-                return self._internal_attrs[attrname]
-            else:
-                ibs_callable = getattr(self._ibs, ibs_funcname)
-                return ibs_callable(self._rowids, values, *args, **kwargs)
-        ut.set_funcname(ibs_setter, ibs_funcname)
-        return ibs_setter
+    # What is difference between configurable and depcache getters?
+    # Could depcache getters just be made configurable?
+    # I guess its just an efficincy thing
 
     def _make_configurable_getter(objname, attrname):
         ibs_funcname = 'get_%s_%s' % (objname, attrname)
         def ibs_cfg_getter(self):
-            if self._ibs is None:
-                return self._internal_attrs[attrname]
+            if self._ibs is None or (self._caching and
+                                     attrname in self._internal_attrs):
+                data = self._internal_attrs[attrname]
             else:
                 ibs_callable = getattr(self._ibs, ibs_funcname)
-                return ibs_callable(self._rowids, config2_=self._config)
+                data = ibs_callable(self._rowids, config2_=self._config)
+                if self._caching:
+                    self._internal_attrs[attrname] = data
+            return data
         ut.set_funcname(ibs_cfg_getter, ibs_funcname)
         return ibs_cfg_getter
 
     def _make_depcache_getter(depc_name, tbl, col):
         attrname = '%s_%s' % (tbl, col)
         def ibs_cfg_getter(self):
-            if self._ibs is None:
+            if self._ibs is None or (self._caching and
+                                     attrname in self._internal_attrs):
                 data = self._internal_attrs[attrname]
             else:
                 depc = getattr(self._ibs, depc_name)
                 data = depc.get(tbl, self._rowids, col, config=self._config)
+                if self._caching:
+                    self._internal_attrs[attrname] = data
             return data
         ut.set_funcname(ibs_cfg_getter, 'get_' + attrname)
         return ibs_cfg_getter
+
+    def _make_setter(objname, attrname):
+        ibs_funcname = 'set_%s_%s' % (objname, attrname)
+        def ibs_setter(self, values, *args, **kwargs):
+            if self._ibs is None:
+                self._internal_attrs[attrname] = values
+            else:
+                if self._caching and attrname in self._internal_attrs:
+                    self._internal_attrs[attrname] = values
+                ibs_callable = getattr(self._ibs, ibs_funcname)
+                ibs_callable(self._rowids, values, *args, **kwargs)
+        ut.set_funcname(ibs_setter, ibs_funcname)
+        return ibs_setter
 
     # Inject function and property version
     for attrname in attrs:
