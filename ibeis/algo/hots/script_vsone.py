@@ -48,7 +48,7 @@ def train_pairwise_rf():
     import pandas as pd
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_Master1')
-    ibs = ibeis.opendb('GZ_Master1')
+    ibs = ibeis.opendb(defaultdb='GZ_Master1')
 
     aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
 
