@@ -6,48 +6,12 @@ from six.moves import zip, range  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
-def request_pairwise_matches():
-    pass
-
-
-@profile
-def train_pairwise_rf():
-    """
-    Notes:
-        Measures are:
-
-          Local:
-            * LNBNN score
-            * Foregroundness score
-            * SIFT correspondence distance
-            * SIFT normalizer distance
-            * Correspondence neighbor rank
-            * Nearest unique name distances
-            * SVER Error
-
-          Global:
-            * Viewpoint labels
-            * Quality Labels
-            * Database Size
-            * Number of correspondences
-            % Total LNBNN Score
-
-    CommandLine:
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db GZ_Master1
-
-    Example:
-        >>> from ibeis.algo.hots.script_vsone import *  # NOQA
-        >>> train_pairwise_rf()
-    """
+def build_features():
     import vtool as vt
     import ibeis
     import sklearn
     import sklearn.metrics
     import sklearn.model_selection
-    from sklearn.ensemble import RandomForestClassifier
     import pandas as pd
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_Master1')
@@ -429,6 +393,50 @@ def train_pairwise_rf():
 
     X_sets = [X_all]
     X_names = ['learn(all)']
+    return simple_auc_dict, X_sets, X_names, X_all, y
+
+
+@profile
+def train_pairwise_rf():
+    """
+    Notes:
+        Measures are:
+
+          Local:
+            * LNBNN score
+            * Foregroundness score
+            * SIFT correspondence distance
+            * SIFT normalizer distance
+            * Correspondence neighbor rank
+            * Nearest unique name distances
+            * SVER Error
+
+          Global:
+            * Viewpoint labels
+            * Quality Labels
+            * Database Size
+            * Number of correspondences
+            % Total LNBNN Score
+
+    CommandLine:
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db GZ_Master1
+
+    Example:
+        >>> from ibeis.algo.hots.script_vsone import *  # NOQA
+        >>> train_pairwise_rf()
+    """
+    # import vtool as vt
+    # import ibeis
+    import sklearn
+    import sklearn.metrics
+    import sklearn.model_selection
+    from sklearn.ensemble import RandomForestClassifier
+    import pandas as pd
+
+    simple_auc_dict, X_sets, X_names, X_all, y = build_features()
 
     # ---------------
     # Setup cross-validation
@@ -505,6 +513,9 @@ def train_pairwise_rf():
     df_mean = pd.DataFrame([df.mean().values], columns=df.columns)
     print(sbut.to_string_monkey(df_mean, highlight_cols=list(range(len(df_mean.columns)))))
 
+    ut.qt4ensure()
+    import plottool as pt
+
     for X, name in zip(X_sets, X_names):
         # Take average feature importance
         feature_importances = np.mean([
@@ -513,13 +524,13 @@ def train_pairwise_rf():
         ], axis=0)
         importances = ut.dzip(X.columns, feature_importances)
         # importances = {k: v for k, v in importances.items() if v > .005}
+        importances = ut.map_keys(lambda k: k.replace('norm_x', 'x'), importances)
+        importances = ut.map_keys(lambda k: k.replace('norm_y', 'y'), importances)
         importances = {k: v for k, v in importances.items() if v > .01}
         importances = ut.sort_dict(importances, 'vals', reverse=True)
         print(name)
         print(ut.align(ut.repr4(importances, precision=4), ':'))
 
-        ut.qt4ensure()
-        import plottool as pt
         pt.wordcloud(importances)
 
     pt.show_if_requested()
