@@ -2063,7 +2063,7 @@ def wordcloud(text, fnum=None, pnum=None):
         sudo pip install git+git://github.com/amueller/word_cloud.git
 
     Args:
-        text (str):
+        text (str or dict): raw text or dictionary of frequencies
         fnum (int):  figure number(default = None)
         pnum (tuple):  plot number(default = None)
 
@@ -2096,9 +2096,13 @@ def wordcloud(text, fnum=None, pnum=None):
     from wordcloud import WordCloud
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
+
     if len(text) > 0:
         _wc = WordCloud(background_color='black' if is_default_dark_bg() else 'white')
-        wordcloud = _wc.generate(text)
+        if isinstance(text, dict):
+            wordcloud = _wc.fit_words(list(text.items()))
+        else:
+            wordcloud = _wc.generate(text)
         pt.plt.imshow(wordcloud)
     else:
         pt.imshow_null('NO WORDCLOUD DATA')
