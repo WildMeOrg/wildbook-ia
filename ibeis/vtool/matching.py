@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import six
+import warnings
 import utool as ut
 import numpy as np
 from collections import namedtuple
@@ -377,9 +378,11 @@ class PairwiseMatch(ut.NiceRepr):
         Constructs the pairwise feature vector that represents a match
         """
         feat = ut.odict([])
-        feat.update(match._make_global_feature_vector())
-        feat.update(match._make_local_summary_feature_vector(keys))
-        feat.update(match._make_local_top_feature_vector(keys, **kwargs))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            feat.update(match._make_global_feature_vector())
+            feat.update(match._make_local_summary_feature_vector(keys))
+            feat.update(match._make_local_top_feature_vector(keys, **kwargs))
         return feat
 
 
