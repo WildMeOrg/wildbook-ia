@@ -266,56 +266,55 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
     Breaks up query request into several subrequests
     to process "more efficiently" and safer as well.
     """
-    with ut.Timer('Timing Query'):
-        if qreq_.prog_hook is not None:
-            preload_hook, query_hook = qreq_.prog_hook.subdivide(spacing=[0, .15, .8])
-            preload_hook(0, lbl='preloading')
-            qreq_.prog_hook = query_hook
-        else:
-            preload_hook = None
-        # Load features / weights for all annotations
-        qreq_.lazy_preload(prog_hook=preload_hook, verbose=verbose and ut.NOT_QUIET)
+    if qreq_.prog_hook is not None:
+        preload_hook, query_hook = qreq_.prog_hook.subdivide(spacing=[0, .15, .8])
+        preload_hook(0, lbl='preloading')
+        qreq_.prog_hook = query_hook
+    else:
+        preload_hook = None
+    # Load features / weights for all annotations
+    qreq_.lazy_preload(prog_hook=preload_hook, verbose=verbose and ut.NOT_QUIET)
 
-        all_qaids = qreq_.qaids
-        print('len(missed_qaids) = %r' % (len(all_qaids),))
-        qaid2_cm = {}
-        # vsone must have a chunksize of 1
-        if batch_size is None:
-            if HOTS_BATCH_SIZE is None:
-                hots_batch_size = qreq_.ibs.cfg.other_cfg.hots_batch_size
-                #hots_batch_size = 256
-            else:
-                hots_batch_size = HOTS_BATCH_SIZE
+    all_qaids = qreq_.qaids
+    print('len(missed_qaids) = %r' % (len(all_qaids),))
+    qaid2_cm = {}
+    # vsone must have a chunksize of 1
+    if batch_size is None:
+        if HOTS_BATCH_SIZE is None:
+            hots_batch_size = qreq_.ibs.cfg.other_cfg.hots_batch_size
+            #hots_batch_size = 256
         else:
-            hots_batch_size = batch_size
-        chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
+            hots_batch_size = HOTS_BATCH_SIZE
+    else:
+        hots_batch_size = batch_size
+    chunksize = 1 if qreq_.qparams.vsone else hots_batch_size
 
-        # Iterate over vsone queries in chunks.
-        nTotalChunks    = ut.get_num_chunks(len(all_qaids), chunksize)
-        qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
-        _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
-        sub_qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
-                                        lbl='[mc4] query chunk: ',
-                                        prog_hook=qreq_.prog_hook)
-        for sub_qreq_ in sub_qreq_iter:
+    # Iterate over vsone queries in chunks.
+    nTotalChunks    = ut.get_num_chunks(len(all_qaids), chunksize)
+    qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
+    _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
+    sub_qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
+                                    lbl='[mc4] query chunk: ',
+                                    prog_hook=qreq_.prog_hook)
+    for sub_qreq_ in sub_qreq_iter:
+        if ut.VERBOSE:
+            print('Generating vsmany chunk')
+        sub_cm_list = pipeline.request_ibeis_query_L0(qreq_.ibs, sub_qreq_,
+                                                      verbose=verbose)
+        assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
+        assert all([qaid == cm.qaid for qaid, cm in
+                    zip(sub_qreq_.qaids, sub_cm_list)]), 'not corresonding'
+        if save_qcache:
+            fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.qaids)
+            _iter = zip(sub_cm_list, fpath_list)
+            _iter = ut.ProgressIter(_iter, nTotal=len(sub_cm_list),
+                                    lbl='saving chip matches', adjust=True, freq=1)
+            for cm, fpath in _iter:
+                cm.save_to_fpath(fpath, verbose=False)
+        else:
             if ut.VERBOSE:
-                print('Generating vsmany chunk')
-            sub_cm_list = pipeline.request_ibeis_query_L0(qreq_.ibs, sub_qreq_,
-                                                          verbose=verbose)
-            assert len(sub_qreq_.qaids) == len(sub_cm_list), 'not aligned'
-            assert all([qaid == cm.qaid for qaid, cm in
-                        zip(sub_qreq_.qaids, sub_cm_list)]), 'not corresonding'
-            if save_qcache:
-                fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.qaids)
-                _iter = zip(sub_cm_list, fpath_list)
-                _iter = ut.ProgressIter(_iter, nTotal=len(sub_cm_list),
-                                        lbl='saving chip matches', adjust=True, freq=1)
-                for cm, fpath in _iter:
-                    cm.save_to_fpath(fpath, verbose=False)
-            else:
-                if ut.VERBOSE:
-                    print('[mc4] not saving vsmany chunk')
-            qaid2_cm.update({cm.qaid: cm for cm in sub_cm_list})
+                print('[mc4] not saving vsmany chunk')
+        qaid2_cm.update({cm.qaid: cm for cm in sub_cm_list})
     return qaid2_cm
 
 

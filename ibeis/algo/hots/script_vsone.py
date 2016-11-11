@@ -6,38 +6,42 @@ from six.moves import zip, range  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
+class HyperParams(object):
+    vsmany_cfgdict = {
+        'can_match_samename': True,
+        'K': 4,
+        'Knorm': 1,
+        'prescore_method': 'csum',
+        'score_method': 'csum'
+    }
+
+    pair_sample = dict(
+        top_gt=4, mid_gt=2, bot_gt=2, rand_gt=2,
+        top_gf=3, mid_gf=2, bot_gf=1, rand_gf=2,
+        # top_gt=4, mid_gt=0, bot_gt=0, rand_gt=0,
+        # top_gf=3, mid_gf=0, bot_gf=0, rand_gf=2,
+    )
+    pass
+
+
 def build_features():
     import vtool as vt
     import ibeis
-    import sklearn
-    import sklearn.metrics
-    import sklearn.model_selection
     import pandas as pd
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_Master1')
     ibs = ibeis.opendb(defaultdb='GZ_Master1')
-
     aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
 
     # ===========================
     # Get a set of training pairs
     # ===========================
     infr = ibeis.AnnotInference(ibs, aids, autoinit=True)
+    infr.exec_matching(cfgdict=HyperParams.vsmany_cfgdict)
 
-    infr.exec_matching(cfgdict={
-        'can_match_samename': True,
-        'K': 4,
-        'Knorm': 1,
-        'prescore_method': 'csum',
-        'score_method': 'csum'
-    })
     # Per query choose a set of correct, incorrect, and random training pairs
-    aid_pairs_ = infr._cm_training_pairs(
-        top_gt=4, mid_gt=2, bot_gt=2, rand_gt=2,
-        top_gf=3, mid_gf=2, bot_gf=1, rand_gf=2,
-        # top_gt=4, mid_gt=0, bot_gt=0, rand_gt=0,
-        # top_gf=3, mid_gf=0, bot_gf=0, rand_gf=2,
-        rng=np.random.RandomState(42))
+    aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
+                                         **HyperParams.pair_sample)
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
     # TODO: handle non-comparability
 
@@ -93,12 +97,6 @@ def build_features():
 
     annots1 = configured_obj_annots[qannot_cfg].loc(query_aids)
     annots2 = configured_obj_annots[dannot_cfg].loc(data_aids)
-
-    def matches_auc(truth_list, match_list, lbl=''):
-        score_list = np.array([m.fs.sum() for m in match_list])
-        auc = sklearn.metrics.roc_auc_score(truth_list, score_list)
-        print('%s auc = %r' % (lbl, auc,))
-        return auc
 
     verbose = True  # NOQA
 
@@ -332,7 +330,8 @@ def build_features():
                 'sver_err', 'sum(scale', 'sum(match_dist)',
             ]
             if qreq_.qparams.featweight_enabled:
-                ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)', 'sum(lnbnn_norm_dist)'])
+                ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
+                               'sum(lnbnn_norm_dist)'])
 
             flags = [part in k for part in ignore]
             if any(flags):
@@ -347,15 +346,6 @@ def build_features():
         simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
 
     simple_scores[pd.isnull(simple_scores)] = 0
-    # Sort AUC by values
-    simple_aucs = pd.DataFrame(dict([(k, [sklearn.metrics.roc_auc_score(y, simple_scores[k])])
-                                     for k in simple_scores.columns]))
-    simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
-    simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
-
-    # Simple printout of aucs
-    # we dont need cross validation because there is no learning here
-    print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
 
     # ---------------
     scorers = [
@@ -391,9 +381,10 @@ def build_features():
     X_all = pairwise_feats.copy()
     # X_withnan_ratio = pairwise_feats_ratio
 
-    X_sets = [X_all]
-    X_names = ['learn(all)']
-    return simple_auc_dict, X_sets, X_names, X_all, y
+    X_dict = {
+        'learn(all)': X_all
+    }
+    return simple_scores, X_dict, y
 
 
 @profile
@@ -420,9 +411,9 @@ def train_pairwise_rf():
 
     CommandLine:
         python -m ibeis.algo.hots.script_vsone train_pairwise_rf
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db GZ_Master1
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST --show
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1 --show
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db GZ_Master1 --show
 
     Example:
         >>> from ibeis.algo.hots.script_vsone import *  # NOQA
@@ -436,7 +427,31 @@ def train_pairwise_rf():
     from sklearn.ensemble import RandomForestClassifier
     import pandas as pd
 
-    simple_auc_dict, X_sets, X_names, X_all, y = build_features()
+    dbname = ut.get_argval('--db')
+
+    cacher = ut.Cacher('pairwise_feats', cfgstr='devcache' + str(dbname), appname='vsone_rf_train')
+    data = cacher.tryload()
+    if data:
+        simple_scores, X_dict, y = data
+    else:
+        simple_scores, X_dict, y = build_features()
+        data = simple_scores, X_dict, y
+        cacher.save(data)
+
+    print('Building pairwise classifier')
+    print('hist(y) = ' + ut.repr4(ut.dict_hist(y)))
+
+    # Sort AUC by values
+    simple_aucs = pd.DataFrame(dict([
+        (k, [sklearn.metrics.roc_auc_score(y, simple_scores[k])])
+        for k in simple_scores.columns
+    ]))
+    simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
+    simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
+
+    # Simple printout of aucs
+    # we dont need cross validation because there is no learning here
+    print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
 
     # ---------------
     # Setup cross-validation
@@ -445,8 +460,8 @@ def train_pairwise_rf():
     xvalkw = dict(n_splits=3, shuffle=True,
                   random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    skf_iter = skf.split(X=X_all, y=y)
-    df_results = pd.DataFrame(columns=X_names)
+    skf_iter = skf.split(X=np.empty(y.shape), y=y)
+    df_results = pd.DataFrame(columns=list(X_dict.keys()))
 
     rf_params = {
         # 'max_depth': 4,
@@ -464,7 +479,8 @@ def train_pairwise_rf():
     cv_classifiers = []
 
     # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
-    for count, (train_idx, test_idx) in enumerate(ut.ProgIter(list(skf_iter), label='skf')):
+    prog = ut.ProgIter(list(skf_iter), label='skf')
+    for count, (train_idx, test_idx) in enumerate(prog):
         y_test = y[test_idx]
         y_train = y[train_idx]
 
@@ -473,11 +489,15 @@ def train_pairwise_rf():
 
         classifiers = {}
 
-        split_aucs += list(simple_auc_dict.values())
-        split_columns += list(simple_auc_dict.keys())
+        simple_auc_dict.values()
 
-        for X, name in zip(X_sets, X_names):
-            print('name = %r' % (name,))
+        idx = ut.argmax(list(simple_auc_dict.values()))
+        split_aucs += [list(simple_auc_dict.values())[idx]]
+        split_columns += [list(simple_auc_dict.keys())[idx]]
+
+        # prog.ensure_newline()
+        for name, X in X_dict.items():
+            # print('name = %r' % (name,))
             X_train = X.values[train_idx]
             X_test = X.values[test_idx]
             # Train uncalibrated random forest classifier on train data
@@ -516,7 +536,7 @@ def train_pairwise_rf():
     ut.qt4ensure()
     import plottool as pt
 
-    for X, name in zip(X_sets, X_names):
+    for name, X in X_dict.items():
         # Take average feature importance
         feature_importances = np.mean([
             clf_.feature_importances_
@@ -532,6 +552,8 @@ def train_pairwise_rf():
         print(ut.align(ut.repr4(importances, precision=4), ':'))
 
         pt.wordcloud(importances)
+    import utool
+    utool.embed()
 
     pt.show_if_requested()
 

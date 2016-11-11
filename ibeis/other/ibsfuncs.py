@@ -5361,9 +5361,9 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     #     }, reprkw=dict(truncate=True))
     annot = ibs.annots([aid], config=config2_)[0]
     metadata = annot._make_lazy_dict()
-    metadata['rchip'] = metadata.getitem('chips', is_eager=False)
-    metadata['dlen_sqrd'] = metadata.getitem('chip_dlensqrd', is_eager=False)
-    metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
+    # metadata['rchip'] = metadata.getitem('chips', is_eager=False)
+    # metadata['dlen_sqrd'] = metadata.getitem('chip_dlensqrd', is_eager=False)
+    # metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
     metadata['annot_context_options'] = lambda: interact_chip.build_annot_context_options(ibs, aid)
     return metadata
 

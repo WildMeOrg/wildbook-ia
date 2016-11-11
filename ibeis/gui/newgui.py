@@ -1491,8 +1491,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> # GUI_DOCTEST
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
-            >>> url_list = ['images.foo']
-            >>> url_list = [ut.truepath('~/Downloads/hs-images.zip')]
+            >>> url_list = [ut.grab_test_imgpath('carl.jpg')]
+            >>> url_list += [ut.truepath('~/Downloads/Clutter/wd_peter2.zip')]
             >>> url = url_list[0]
             >>> ut.quit_if_noshow()
             >>> ibswgt.imagesDropped(url_list)
@@ -1631,7 +1631,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
 def testdata_guifront(defaultdb='testdb1'):
     import ibeis
-    main_locals = ibeis.main(defaultdb=defaultdb)
+    main_locals = ibeis.main(defaultdb=defaultdb, allow_newdir=True)
     ibs, back = ut.dict_take(main_locals, ['ibs', 'back'])
     ibswgt = back.ibswgt  # NOQA
     globals__ = globals()

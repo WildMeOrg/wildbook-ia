@@ -1257,10 +1257,9 @@ class QueryRequest(ut.NiceRepr):
             from ibeis.algo.hots import match_chips4 as mc4
             # Send query to hotspotter (runs the query)
             qreq_.prog_hook = prog_hook
-            with ut.Timer('mc4'):
-                cm_list = mc4.submit_query_request(
-                    qreq_, use_cache=None, use_bigcache=None, verbose=True,
-                    save_qcache=None)
+            cm_list = mc4.submit_query_request(
+                qreq_, use_cache=None, use_bigcache=None, verbose=True,
+                save_qcache=None)
         return cm_list
 
 
