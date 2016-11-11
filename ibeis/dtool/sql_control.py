@@ -382,7 +382,7 @@ class SQLDatabaseController(object):
         if db.fname != ':memory:':
             assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
             if not exists(db.fpath):
-                print('[sql] Initializing new database')
+                print('[sql] Initializing new database: %r' % (db.fname,))
                 if db.readonly:
                     raise AssertionError('Cannot open a new database in readonly mode')
             # Open the SQL database connection with support for custom types
