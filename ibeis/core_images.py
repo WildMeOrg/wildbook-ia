@@ -266,7 +266,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> config = {'algo': 'pyrf'}
+        >>> config = {'algo': 'rf'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
@@ -300,7 +300,7 @@ def compute_localizations(depc, gid_list, config=None):
         from ibeis.algo.detect import yolo
         print('[ibs] detecting using CNN YOLO')
         detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
-    elif config['algo'] in ['pyrf']:
+    elif config['algo'] in ['rf']:
         from ibeis.algo.detect import randomforest
         print('[ibs] detecting using Random Forests')
         base_key_list[6] = (config['species'], )  # class == species

@@ -75,7 +75,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
     # TODO: Return confidence here as well
     depc = ibs.depc_image
     config = {
-        'algo'                   : 'pyrf',
+        'algo'                   : 'rf',
         'species'                : species,
         'sensitivity'            : 0.2,
         # 'classifier_sensitivity' : 0.64,
