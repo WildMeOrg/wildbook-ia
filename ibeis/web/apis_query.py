@@ -442,7 +442,7 @@ def review_query_chips_test():
         >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web(
-        >>>     browser=true, url_suffix='/test/review/query/chip/?__format__=true')
+        >>>     browser=True, url_suffix='/test/review/query/chip/?__format__=true')
     """
     ibs = current_app.ibs
 
