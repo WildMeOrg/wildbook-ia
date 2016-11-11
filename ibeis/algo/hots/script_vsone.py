@@ -34,7 +34,9 @@ def train_pairwise_rf():
 
     CommandLine:
         python -m ibeis.algo.hots.script_vsone train_pairwise_rf
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST
         python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1
+        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db GZ_Master1
 
     Example:
         >>> from ibeis.algo.hots.script_vsone import *  # NOQA
@@ -69,6 +71,8 @@ def train_pairwise_rf():
     aid_pairs_ = infr._cm_training_pairs(
         top_gt=4, mid_gt=2, bot_gt=2, rand_gt=2,
         top_gf=3, mid_gf=2, bot_gf=1, rand_gf=2,
+        # top_gt=4, mid_gt=0, bot_gt=0, rand_gt=0,
+        # top_gf=3, mid_gf=0, bot_gf=0, rand_gf=2,
         rng=np.random.RandomState(42))
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
     # TODO: handle non-comparability
@@ -359,7 +363,14 @@ def train_pairwise_rf():
     if True:
         # Remove scores that arent worth reporting
         for k in list(simple_scores.columns)[:]:
-            flags = [part in k for part in ['norm_x', 'norm_y', 'sver_err', 'scale']]
+            ignore = [
+                'norm_x', 'norm_y',
+                'sver_err', 'sum(scale', 'sum(match_dist)',
+            ]
+            if qreq_.qparams.featweight_enabled:
+                ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)', 'sum(lnbnn_norm_dist)'])
+
+            flags = [part in k for part in ignore]
             if any(flags):
                 del simple_scores[k]
     if True:
@@ -454,12 +465,6 @@ def train_pairwise_rf():
 
         classifiers = {}
 
-        # for S, name in zip(S_sets, S_names):
-        #     print('name = %r' % (name,))
-        #     score_list = ut.take(S, test_idx)
-        #     auc_score = sklearn.metrics.roc_auc_score(y_test, score_list)
-        #     split_columns.append(name)
-        #     split_aucs.append(auc_score)
         split_aucs += list(simple_auc_dict.values())
         split_columns += list(simple_auc_dict.keys())
 
@@ -507,9 +512,17 @@ def train_pairwise_rf():
             for clf_ in ut.dict_take_column(cv_classifiers, name)
         ], axis=0)
         importances = ut.dzip(X.columns, feature_importances)
+        # importances = {k: v for k, v in importances.items() if v > .005}
+        importances = {k: v for k, v in importances.items() if v > .01}
         importances = ut.sort_dict(importances, 'vals', reverse=True)
         print(name)
         print(ut.align(ut.repr4(importances, precision=4), ':'))
+
+        ut.qt4ensure()
+        import plottool as pt
+        pt.wordcloud(importances)
+
+    pt.show_if_requested()
 
     # import utool
     # utool.embed()
@@ -534,234 +547,6 @@ def train_pairwise_rf():
     # }
     # header = [col_to_nice.get(c, c) for c in table.columns]
     # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
-
-
-def gridsearch_ratio_thresh(matches):
-    import sklearn
-    import sklearn.metrics
-    import vtool as vt
-    # Param search for vsone
-    import plottool as pt
-    pt.qt4ensure()
-
-    skf = sklearn.model_selection.StratifiedKFold(n_splits=10,
-                                                  random_state=119372)
-
-    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
-
-    basis = {'ratio_thresh': np.linspace(.6, .7, 50).tolist()}
-    grid = ut.all_dict_combinations(basis)
-    xdata = np.array(ut.take_column(grid, 'ratio_thresh'))
-
-    def _ratio_thresh(y_true, match_list):
-        # Try and find optional ratio threshold
-        auc_list = []
-        for cfgdict in ut.ProgIter(grid, lbl='gridsearch'):
-            y_score = [
-                match.fs.compress(match.ratio_test_flags(cfgdict)).sum()
-                for match in match_list
-            ]
-            auc = sklearn.metrics.roc_auc_score(y_true, y_score)
-            auc_list.append(auc)
-        auc_list = np.array(auc_list)
-        return auc_list
-
-    auc_list = _ratio_thresh(y, matches)
-    pt.plot(xdata, auc_list)
-    subx, suby = vt.argsubmaxima(auc_list, xdata)
-    best_ratio_thresh = subx[suby.argmax()]
-
-    skf_results = []
-    y_true = y
-    for train_idx, test_idx in skf.split(matches, y):
-        match_list_ = ut.take(matches, train_idx)
-        y_true = y.take(train_idx)
-        auc_list = _ratio_thresh(y_true, match_list_)
-        subx, suby = vt.argsubmaxima(auc_list, xdata, maxima_thresh=.8)
-        best_ratio_thresh = subx[suby.argmax()]
-        skf_results.append(best_ratio_thresh)
-    print('skf_results.append = %r' % (np.mean(skf_results),))
-    import utool
-    utool.embed()
-
-
-# def old_vsone_parts():
-#     if False:
-#         matchesORIG = match_list
-#         matches_auc(truth_list, matchesORIG)
-
-#         matches_SV = [match.apply_sver(inplace=False)
-#                       for match in ut.ProgIter(matchesORIG, label='sver')]
-#         matches_auc(truth_list, matches_SV)
-
-#         matches_RAT = [match.apply_ratio_test(inplace=False)
-#                        for match in ut.ProgIter(matchesORIG, label='ratio')]
-#         matches_auc(truth_list, matches_RAT)
-
-#         matches_RAT_SV = [match.apply_sver(inplace=False)
-#                           for match in ut.ProgIter(matches_RAT, label='sver')]
-#         matches_auc(truth_list, matches_RAT_SV)
-
-#     if True:
-#         matches_RAT = match_list
-#         matches_auc(truth_list, matches_RAT)
-
-#         matches_RAT_SV = [match.apply_sver(inplace=False)
-#                           for match in ut.ProgIter(matches_RAT, label='sver')]
-#         matches_auc(truth_list, matches_RAT_SV)
-
-#     if False:
-#         # Visualize scores
-#         score_list = np.array([m.fs.sum() for m in matches_RAT_SV])
-#         encoder = vt.ScoreNormalizer()
-#         encoder.fit(score_list, truth_list, verbose=True)
-#         encoder.visualize()
-
-#     # Fix issue
-#     # for match in ut.ProgIter(matches_RAT_SV):
-#     #     match.annot1['yaw'] = ibs.get_annot_yaws_asfloat(match.annot1['aid'])
-#     #     match.annot2['yaw'] = ibs.get_annot_yaws_asfloat(match.annot2['aid'])
-#     # # Construct global measurements
-#     # global_keys = ['yaw', 'qual', 'gps', 'time']
-#     # for match in ut.ProgIter(match_list, lbl='setup globals'):
-#     #     match.global_measures = {}
-#     #     for key in global_keys:
-#     #         match.global_measures[key] = (match.annot1[key], match.annot2[key])
-
-#     if False:
-#         # TEST LNBNN SCORE SEP
-#         infr.apply_match_edges()
-#         infr.apply_match_scores()
-#         edge_to_score = infr.get_edge_attrs('score')
-
-#         lnbnn_score_list = [
-#             edge_to_score.get(tup) if tup in edge_to_score
-#             else edge_to_score.get(tup[::-1], 0)
-#             for tup in ut.lmap(tuple, aid_pairs)
-#         ]
-#         auc = sklearn.metrics.roc_auc_score(truth_list, lnbnn_score_list)
-#         print('auc = %r' % (auc,))
-
-#     if False:
-#         nfeats = len(withnan_cols)  # NOQA
-#         param_grid = {
-#             'bootstrap': [True, False],
-#             # 'class_weight': ['balanced', None],
-#             # 'criterion': ['gini', 'entropy'],
-#             # 'max_depth': [2, 4],
-#             'max_features': [int(np.log2(nfeats)), int(np.sqrt(nfeats)), int(np.sqrt(nfeats)) * 2, nfeats],
-#             # 'max_features': [1, 3, 10],
-#             # 'min_samples_split': [2, 3, 5, 10],
-#             # 'min_samples_leaf': [1, 3, 5, 10, 20],
-#             # 'n_estimators': [128, 256],
-#         }
-#         static_params = {
-#             'max_depth': 4,
-#             # 'bootstrap': False,
-#             'class_weight': None,
-#             'max_features': 'sqrt',
-#             'missing_values': np.nan,
-#             'min_samples_leaf': 5,
-#             'min_samples_split': 2,
-#             'n_estimators': 256,
-#             'criterion': 'entropy',
-#         }
-
-#         from sklearn.model_selection import GridSearchCV
-#         clf = RandomForestClassifier(**static_params)
-#         search = GridSearchCV(clf, param_grid=param_grid, n_jobs=4, cv=3,
-#                               refit=False, verbose=5)
-
-#         with ut.Timer('GridSearch'):
-#             search.fit(X_withnan, y)
-
-#         def report(results, n_top=3):
-#             for i in range(1, n_top + 1):
-#                 candidates = np.flatnonzero(results['rank_test_score'] == i)
-#                 for candidate in candidates:
-#                     print('Model with rank: {0}'.format(i))
-#                     print('Mean validation score: {0:.3f} (std: {1:.3f})'.format(
-#                           results['mean_test_score'][candidate],
-#                           results['std_test_score'][candidate]))
-#                     print('Parameters: {0}'.format(results['params'][candidate]))
-#                     print('')
-
-#         results = search.cv_results_
-#         report(results, n_top=10)
-
-#         print(ut.sort_dict(search.cv_results_).keys())
-
-#         params = results['params']
-#         cols = sorted(param_grid.keys())
-#         zX_df = pd.DataFrame([ut.take(p, cols)  for p in params], columns=cols)
-#         # zX_df['class_weight'][pd.isnull(zX_df['class_weight'])] = 'none'
-#         if 'max_depth' in zX_df.columns:
-#             zX_df['max_depth'][pd.isnull(zX_df['max_depth'])] = 10
-#         if 'criterion' in zX_df.columns:
-#             zX_df['criterion'][zX_df['criterion'] == 'entropy'] = 0
-#             zX_df['criterion'][zX_df['criterion'] == 'gini'] = 1
-#         if 'class_weight' in zX_df.columns:
-#             zX_df['class_weight'][pd.isnull(zX_df['class_weight'])] = 0
-#             zX_df['class_weight'][zX_df['class_weight'] == 'balanced'] = 1
-#         [(c, zX_df[c].dtype) for c in cols]
-
-#         # zX = pd.get_dummies(zX_df).values.astype(np.float32)
-#         zX = zX_df.values.astype(np.float32)
-#         zY = mean_test_score = results['mean_test_score']
-
-#         from scipy.stats import mode
-
-#         # from pgmpy.factors.discrete import TabularCPD
-#         # TabularCPD('feat', top_feats.shape[0])
-
-#         num_top = 5
-#         top_feats = zX.take(zY.argsort()[::-1], axis=0)[0:num_top]
-#         print('num_top = %r' % (num_top,))
-
-#         print('Marginalized probabilities over top feature values')
-#         uvals = [np.unique(f) for f in top_feats.T]
-#         marginal_probs = [[np.sum(f == u) / len(f) for u in us] for us, f in zip(uvals , top_feats.T)]
-#         for c, us, mprobs in zip(cols, uvals, marginal_probs):
-#             print(c + ' = ' + ut.repr3(ut.dzip(us, mprobs), precision=2))
-
-#         mode_top_zX_ = mode(top_feats, axis=0)
-#         mode_top_zX = mode_top_zX_.mode[0]
-#         flags = (mode_top_zX_.count == 1)[0]
-#         mode_top_zX[flags] = top_feats[0][flags]
-#         print('mode')
-#         print(ut.repr4(ut.dzip(cols, mode_top_zX)))
-#         mean_top_zX = np.mean(top_feats, axis=0)
-#         print('mean')
-#         print(ut.repr4(ut.dzip(cols, mean_top_zX)))
-
-#         import sklearn.ensemble
-#         clf = sklearn.ensemble.RandomForestRegressor(bootstrap=True, oob_score=True)
-#         clf.fit(zX, zY)
-
-#         importances = dict(zip(cols, clf.feature_importances_))
-#         importances = ut.sort_dict(importances, 'vals', reverse=True)
-#         print(ut.align(ut.repr4(importances, precision=4), ':'))
-
-#         mean_test_score
-
-#     # print(df.to_string())
-
-#     # print(df_results)
-
-#     # TODO: TSNE?
-#     # http://scikit-learn.org/stable/auto_examples/manifold/plot_manifold_sphere.html#sphx-glr-auto-examples-manifold-plot-manifold-sphere-py
-#     # Perform t-distributed stochastic neighbor embedding.
-#     # from sklearn import manifold
-#     # import matplotlib.pyplot as plt
-#     # tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
-#     # trans_data = tsne.fit_transform(feats).T
-#     # ax = fig.add_subplot(2, 5, 10)
-#     # plt.scatter(trans_data[0], trans_data[1], c=colors, cmap=plt.cm.rainbow)
-#     # plt.title("t-SNE (%.2g sec)" % (t1 - t0))
-#     # ax.xaxis.set_major_formatter(NullFormatter())
-#     # ax.yaxis.set_major_formatter(NullFormatter())
-#     # plt.axis('tight')
-#     print('--------')
 
 
 if __name__ == '__main__':

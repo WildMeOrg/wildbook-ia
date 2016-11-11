@@ -46,6 +46,7 @@ CLUTTER_PATTERNS = [
     'tempfile1.txt',
     'tempfile2.txt',
     'profile_out.*',
+    'profile_output.*'
 ]
 
 CLUTTER_DIRS = [
