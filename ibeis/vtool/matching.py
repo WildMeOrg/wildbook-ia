@@ -344,7 +344,7 @@ class PairwiseMatch(ut.NiceRepr):
         if std:
             for k, vs in six.iteritems(local_measures):
                 feat['std(%s)' % (k,)] = np.std(vs)
-        feat['len(matches)'] = len(local_measures)
+        feat['len(matches)'] = len(match.fm)
         return feat
 
     @profile

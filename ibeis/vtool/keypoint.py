@@ -257,10 +257,8 @@ def get_sqrd_scales(kpts):
     """ gets average squared scale (does not take into account elliptical shape """
     if len(kpts) == 0:
         return np.empty([])
-    import utool
-    with utool.embed_on_exception_context:
-        _iv11s, _iv21s, _iv22s = get_invVs(kpts)
-        _scales_sqrd = np.multiply(_iv11s, _iv22s)
+    _iv11s, _iv21s, _iv22s = get_invVs(kpts)
+    _scales_sqrd = np.multiply(_iv11s, _iv22s)
     return _scales_sqrd
 
 
