@@ -90,8 +90,6 @@ def train_pairwise_rf():
 
     data = bigcache_features(qreq_, hyper_params)
     simple_scores, X_dict, y, match = data
-    import utool
-    utool.embed()
 
     print('Building pairwise classifier')
     print('hist(y) = ' + ut.repr4(ut.dict_hist(y)))
@@ -122,8 +120,6 @@ def train_pairwise_rf():
     # Simple printout of aucs
     # we dont need cross validation because there is no learning here
     print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
-    import utool
-    utool.embed()
 
     # ---------------
     # Setup cross-validation
@@ -226,8 +222,8 @@ def train_pairwise_rf():
         pt.wordcloud(importances)
     pt.show_if_requested()
 
-    # import utool
-    # utool.embed()
+    import utool
+    utool.embed()
 
     # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
     # columns = ['Method', 'AUC']
