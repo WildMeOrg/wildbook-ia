@@ -254,7 +254,7 @@ def bigcache_features(qreq_, hyper_params):
     cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
 
     cacher = ut.Cacher('pairwise_data', cfgstr=cfgstr,
-                       appname='vsone_rf_train', enabled=False)
+                       appname='vsone_rf_train', enabled=1)
     data = cacher.tryload()
     if not data:
         data = build_features(qreq_, hyper_params)
@@ -313,7 +313,7 @@ def build_features(qreq_, hyper_params):
 
     # keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
     #          'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
-    keys1 = []
+    keys1 = None
     # keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
     #          'sver_err_scale', 'sver_err_ori']
 
