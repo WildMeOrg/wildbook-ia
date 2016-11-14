@@ -35,137 +35,6 @@ class VsOneAssignConfig(dtool.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
-@ut.reloadable_class
-class PairFeatInfo(object):
-    def __init__(self, X, importances=None):
-        self.X = X
-        self.importances = importances
-        self._summary_keys = ['sum', 'mean', 'std', 'len']
-
-    def _measure(self, key):
-        return key[key.find('(') + 1:-1]
-
-    def nice_text(nice):
-        def _wrp(func):
-            func.nice = nice
-            return func
-        return _wrp
-
-    def select_columns(self, criteria, op='and'):
-        if op == 'and':
-            cols = set(self.X.columns)
-            update = cols.intersection_update
-        elif op == 'or':
-            cols = set([])
-            update = cols.update
-        else:
-            raise Exception(op)
-        for group_id, op, value in criteria:
-            found = self.find(group_id, op, value)
-            update(found)
-        return cols
-
-    def find(self, group_id, op, value):
-        import six
-        if isinstance(op, six.text_type):
-            opdict = ut.get_comparison_operators()
-            op = opdict.get(op)
-        grouper = getattr(self, group_id)
-        found = []
-        for col in self.X.columns:
-            try:
-                value1 = grouper(col)
-                if value1 is not None:
-                    if isinstance(value, int):
-                        value1 = int(value1)
-                    elif isinstance(value, list):
-                        if len(value) > 0 and isinstance(value[0], int):
-                            value1 = int(value1)
-                if op(value1, value):
-                    found.append(col)
-            except:
-                pass
-        return found
-
-    def group_importance(self, item):
-        name, keys = item
-        num = len(keys)
-        weight = sum(ut.take(self.importances, keys))
-        ave_w = weight / num
-        tup = ave_w, weight, num
-        # return tup
-        df = pd.DataFrame([tup], columns=['ave_w', 'weight', 'num'],
-                          index=[name])
-        return df
-
-    def print_margins(self, group_id):
-        X = self.X
-        grouper = getattr(self, group_id)
-        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
-        _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
-        _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
-        nice = ut.get_funcname(grouper).replace('_', ' ')
-        nice = ut.pluralize(nice)
-        print('\nImportance of ' + nice)
-        print(_weights)
-
-    def group_counts(self, item):
-        name, keys = item
-        num = len(keys)
-        tup = (num,)
-        # return tup
-        df = pd.DataFrame([tup], columns=['num'],
-                          index=[name])
-        return df
-
-    def print_counts(self, group_id):
-        X = self.X
-        grouper = getattr(self, group_id)
-        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
-        _weights = pd.concat(ut.lmap(self.group_counts, _keys.items()))
-        _weights = _weights.iloc[_weights['num'].argsort()[::-1]]
-        nice = ut.get_funcname(grouper).replace('_', ' ')
-        nice = ut.pluralize(nice)
-        print('\nCounts of ' + nice)
-        print(_weights)
-
-    def feature(self, key):
-        return key
-
-    def measure_type(self, key):
-        if key.startswith('global'):
-            return 'global'
-        if key.startswith('loc'):
-            return 'local'
-        if any(key.startswith(p) for p in self._summary_keys):
-            return 'summary'
-
-    def summary_op(self, key):
-        for p in self._summary_keys:
-            if key.startswith(p):
-                return key[key.find('(') + 1:-1]
-
-    def summary_measure(self, key):
-        if any(key.startswith(p) for p in self._summary_keys):
-            return self._measure(key)
-
-    def local_sorter(self, key):
-        if key.startswith('loc'):
-            return key[key.find('[') + 1:key.find(',')]
-
-    def local_rank(self, key):
-        if key.startswith('loc'):
-            return key[key.find(',') + 1:key.find(']')]
-
-    def local_measure(self, key):
-        if key.startswith('loc'):
-            return self._measure(key)
-
-    def global_measure(self, key):
-        if key.startswith('global'):
-            return self._measure(key)
-
-
 @profile
 def train_pairwise_rf():
     """
@@ -241,23 +110,35 @@ def train_pairwise_rf():
     X = X_dict['learn(all)']
 
     if True:
-        print('Reducing dataset size for class balance')
-        # Find the data with the most null / 0 values
-        # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
-        nullness = pd.isnull(X).sum(axis=1)
-        false_nullness = (nullness)[~y]
-        sortx = false_nullness.argsort()[::-1]
-        false_nullness_ = false_nullness.iloc[sortx]
-        # Remove a few to make training more balanced / faster
-        num_remove = max(class_hist[False] - class_hist[True], 0)
-        to_remove = false_nullness_.iloc[:num_remove]
-        mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(X)))
+        # Remove anything 1vM didn't get
+        mask = (simple_scores['score_lnbnn_1vM'] > 0).values
         y = y[mask]
         simple_scores = simple_scores[mask]
         class_hist = ut.dict_hist(y)
         print('hist(y) = ' + ut.repr4(class_hist))
         X = X[mask]
         X_dict['learn(all)'] = X
+
+    if True:
+        print('Reducing dataset size for class balance')
+        # Find the data with the most null / 0 values
+        # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
+        nullness = pd.isnull(X).sum(axis=1)
+        nullness = nullness.reset_index(drop=True)
+        false_nullness = (nullness)[~y]
+        sortx = false_nullness.argsort()[::-1]
+        false_nullness_ = false_nullness.iloc[sortx]
+        # Remove a few to make training more balanced / faster
+        num_remove = max(class_hist[False] - class_hist[True], 0)
+        if num_remove > 0:
+            to_remove = false_nullness_.iloc[:num_remove]
+            mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(y)))
+            y = y[mask]
+            simple_scores = simple_scores[mask]
+            class_hist = ut.dict_hist(y)
+            print('hist(y) = ' + ut.repr4(class_hist))
+            X = X[mask]
+            X_dict['learn(all)'] = X
 
     if True:
         print('Reducing dataset size for development')
@@ -273,7 +154,7 @@ def train_pairwise_rf():
 
     self = PairFeatInfo(X)
     if True:
-        # Modify features
+        # Use only local features
         measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
         # sorters_ignore = ['match_dist', 'ratio']
         cols = self.select_columns([
@@ -288,9 +169,18 @@ def train_pairwise_rf():
         cols.update(self.select_columns([
             ('feature', '==', 'sum(weighted_ratio)'),
         ]))
-        X_local = self.X[sorted(cols)]
+        X_dict['learn(local)'] = self.X[sorted(cols)]
 
-        X_dict['learn(local)'] = X_local
+    if True:
+        # Use only summary stats
+        cols = self.select_columns([
+            ('measure_type', '==', 'summary'),
+            # ('local_sorter', 'in', ['weighted_ratio']),
+        ])
+        cols.update(self.select_columns([
+            ('feature', '==', 'sum(weighted_ratio)'),
+        ]))
+        X_dict['learn(summary)']  = self.X[sorted(cols)]
         # del X_dict['learn(all)']
         # self.find('local_rank', '==', 0)
 
@@ -415,11 +305,8 @@ def train_pairwise_rf():
     ut.qt4ensure()
     import plottool as pt  # NOQA
 
-    # def print_dict_ranks(dict_):
-    #     sorted_ = ut.sort_dict(dict_, 'vals', reverse=True)
-    #     print(ut.align(ut.repr4(sorted_, precision=4), ':'))
-
     for name, X in X_dict.items():
+        break
         # Take average feature importance
         print('IMPORTANCE INFO FOR %s DATA' % (name,))
         feature_importances = np.mean([
@@ -468,6 +355,131 @@ def train_pairwise_rf():
     # }
     # header = [col_to_nice.get(c, c) for c in table.columns]
     # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
+
+
+@ut.reloadable_class
+class PairFeatInfo(object):
+    def __init__(self, X, importances=None):
+        self.X = X
+        self.importances = importances
+        self._summary_keys = ['sum', 'mean', 'std', 'len']
+
+    def _measure(self, key):
+        return key[key.find('(') + 1:-1]
+
+    def select_columns(self, criteria, op='and'):
+        if op == 'and':
+            cols = set(self.X.columns)
+            update = cols.intersection_update
+        elif op == 'or':
+            cols = set([])
+            update = cols.update
+        else:
+            raise Exception(op)
+        for group_id, op, value in criteria:
+            found = self.find(group_id, op, value)
+            update(found)
+        return cols
+
+    def find(self, group_id, op, value):
+        import six
+        if isinstance(op, six.text_type):
+            opdict = ut.get_comparison_operators()
+            op = opdict.get(op)
+        grouper = getattr(self, group_id)
+        found = []
+        for col in self.X.columns:
+            try:
+                value1 = grouper(col)
+                if value1 is not None:
+                    if isinstance(value, int):
+                        value1 = int(value1)
+                    elif isinstance(value, list):
+                        if len(value) > 0 and isinstance(value[0], int):
+                            value1 = int(value1)
+                if op(value1, value):
+                    found.append(col)
+            except:
+                pass
+        return found
+
+    def group_importance(self, item):
+        name, keys = item
+        num = len(keys)
+        weight = sum(ut.take(self.importances, keys))
+        ave_w = weight / num
+        tup = ave_w, weight, num
+        # return tup
+        df = pd.DataFrame([tup], columns=['ave_w', 'weight', 'num'],
+                          index=[name])
+        return df
+
+    def print_margins(self, group_id):
+        X = self.X
+        grouper = getattr(self, group_id)
+        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+        _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
+        _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
+        nice = ut.get_funcname(grouper).replace('_', ' ')
+        nice = ut.pluralize(nice)
+        print('\nImportance of ' + nice)
+        print(_weights)
+
+    def group_counts(self, item):
+        name, keys = item
+        num = len(keys)
+        tup = (num,)
+        # return tup
+        df = pd.DataFrame([tup], columns=['num'],
+                          index=[name])
+        return df
+
+    def print_counts(self, group_id):
+        X = self.X
+        grouper = getattr(self, group_id)
+        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+        _weights = pd.concat(ut.lmap(self.group_counts, _keys.items()))
+        _weights = _weights.iloc[_weights['num'].argsort()[::-1]]
+        nice = ut.get_funcname(grouper).replace('_', ' ')
+        nice = ut.pluralize(nice)
+        print('\nCounts of ' + nice)
+        print(_weights)
+
+    def feature(self, key):
+        return key
+
+    def measure_type(self, key):
+        if key.startswith('global'):
+            return 'global'
+        if key.startswith('loc'):
+            return 'local'
+        if any(key.startswith(p) for p in self._summary_keys):
+            return 'summary'
+
+    def summary_op(self, key):
+        for p in self._summary_keys:
+            if key.startswith(p):
+                return key[key.find('(') + 1:-1]
+
+    def summary_measure(self, key):
+        if any(key.startswith(p) for p in self._summary_keys):
+            return self._measure(key)
+
+    def local_sorter(self, key):
+        if key.startswith('loc'):
+            return key[key.find('[') + 1:key.find(',')]
+
+    def local_rank(self, key):
+        if key.startswith('loc'):
+            return key[key.find(',') + 1:key.find(']')]
+
+    def local_measure(self, key):
+        if key.startswith('loc'):
+            return self._measure(key)
+
+    def global_measure(self, key):
+        if key.startswith('global'):
+            return self._measure(key)
 
 
 def bigcache_features(qreq_, hyper_params):
