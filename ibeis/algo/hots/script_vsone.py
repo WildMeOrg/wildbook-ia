@@ -155,7 +155,7 @@ def train_pairwise_rf():
     # -----------
 
     self = PairFeatInfo(X)
-    if True:
+    if False:
         # Use only local features
         measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
         # sorters_ignore = ['match_dist', 'ratio']
@@ -168,9 +168,9 @@ def train_pairwise_rf():
             # ('local_rank', 'in', [0, 5, 10, 15, 20]),
             # ('local_sorter', 'in', ['weighted_ratio', 'norm_dist', 'lnbnn_norm_dist']),
         ])
-        cols.update(self.select_columns([
-            ('feature', '==', 'sum(weighted_ratio)'),
-        ]))
+        # cols.update(self.select_columns([
+        #     ('feature', '==', 'sum(weighted_ratio)'),
+        # ]))
         X_dict['learn(local)'] = self.X[sorted(cols)]
 
     if True:
@@ -184,9 +184,11 @@ def train_pairwise_rf():
         # Use only summary stats
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('summary_measure', '!=', ['lnbnn', 'weighted_lnbnn',
-                                       'sver_err_scale', 'match_dist'
-                                       'scale1', 'scale2']),
+            ('summary_measure', '!=', [
+                'lnbnn', 'weighted_lnbnn',
+                'sver_err_scale',
+                # 'match_dist', 'scale1', 'scale2'
+            ]),
         ])
         X_dict['learn(sum-)']  = self.X[sorted(cols)]
 
@@ -197,6 +199,8 @@ def train_pairwise_rf():
             ('summary_measure', '!=', ['lnbnn', 'weighted_lnbnn',
                                        'sver_err_scale', 'match_dist'
                                        'scale1', 'scale2']),
+            ('summary_op', 'not in' ['std']),
+
         ])
         X_dict['learn(sum-,glob)']  = self.X[sorted(cols)]
 
@@ -313,7 +317,7 @@ def train_pairwise_rf():
     simple_auc_dict.values()
     simple_keys = list(simple_auc_dict.keys())
     simple_vals = list(simple_auc_dict.values())
-    idxs = ut.argsort(list(simple_auc_dict.values()))[::-1][0:3]
+    idxs = ut.argsort(list(simple_auc_dict.values()))[::-1][0:2]
     idx_ = simple_keys.index('score_lnbnn_1vM')
     if idx_ in idxs:
         idxs.remove(idx_)
@@ -490,7 +494,7 @@ class PairFeatInfo(object):
     def summary_op(self, key):
         for p in self._summary_keys:
             if key.startswith(p):
-                return key[key.find('(') + 1:-1]
+                return key[0:key.find('(')]
 
     def summary_measure(self, key):
         if any(key.startswith(p) for p in self._summary_keys):
