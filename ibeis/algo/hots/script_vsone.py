@@ -23,7 +23,7 @@ class PairSampleConfig(dtool.Config):
 
 class PairFeatureConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('indices', 10),
+        ut.ParamInfo('indices', 25),
         ut.ParamInfo('sum', True),
         ut.ParamInfo('std', True),
         ut.ParamInfo('mean', True),
@@ -347,10 +347,12 @@ def train_pairwise_rf():
 class PairFeatMargins(object):
     def __init__(self, X):
         self.X = X
-        self._summaries = ['sum', 'mean', 'std', 'len']
+        self._summary_keys = ['sum', 'mean', 'std', 'len']
 
-    def summary_keys(self, keys):
-        pass
+    def summary_name(self, key):
+        for p in self._summary_keys:
+            if key.startswith(p):
+                return key[key.find('(') + 1:-1]
 
     # import utool
     # utool.embed()
