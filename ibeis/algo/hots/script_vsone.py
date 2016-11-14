@@ -140,10 +140,10 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if True:
+    if False:
         print('Reducing dataset size for development')
-        rng = np.random.RandomState(1850057325)
-        to_keep = rng.choice(np.arange(len(y)), 4000)
+        rng = np.random.RandomState(1851057325)
+        to_keep = rng.choice(np.arange(len(y)), 1000)
         mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
         y = y[mask]
         simple_scores = simple_scores[mask]
@@ -184,7 +184,7 @@ def train_pairwise_rf():
         # Use only summary stats
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('measure', '!=', ['lnbnn', 'weighted_lnbnn']),
+            ('measure', 'not in', ['lnbnn', 'weighted_lnbnn']),
         ])
         cols.update(self.select_columns([
             ('measure_type', '==', 'global'),
@@ -195,10 +195,10 @@ def train_pairwise_rf():
         # Use summary and global
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
+            ('summary_op', 'not in', ['std']),
         ])
         cols.update(self.select_columns([
             ('measure_type', '==', 'global'),
-            ('summary_op', 'not in', ['std']),
         ]))
         X_dict['learn(sum,glob,2)']  = self.X[sorted(cols)]
 
@@ -283,7 +283,7 @@ def train_pairwise_rf():
         split_aucs = []
         classifiers = {}
         prog.ensure_newline()
-        prog2 = ut.ProgIter(X_dict.items(), length=len(X_dict), label='feature selection')
+        prog2 = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
         for name, X in prog2:
             # print(name)
             # Learn a random forest classifier using train data
@@ -362,9 +362,6 @@ def train_pairwise_rf():
         # ut.fix_embed_globals()
         # pt.wordcloud(importances)
     # pt.show_if_requested()
-    # import utool
-    # utool.embed()
-
     # import utool
     # utool.embed()
 
