@@ -66,7 +66,8 @@ def train_pairwise_rf():
     import pandas as pd
     import ibeis
 
-    pd.options.display.max_rows = 10
+    # pd.options.display.max_rows = 10
+    pd.options.display.max_rows = 80
     pd.options.display.max_columns = 40
     pd.options.display.width = 160
 
@@ -91,28 +92,32 @@ def train_pairwise_rf():
     data = bigcache_features(qreq_, hyper_params)
     simple_scores, X_dict, y, match = data
 
+    X = X_dict['learn(all)']
+
+    match.local_measures.keys()
+
     print('Building pairwise classifier')
     print('hist(y) = ' + ut.repr4(ut.dict_hist(y)))
 
+    simple_scores_ = simple_scores.copy()
     if True:
         # Remove scores that arent worth reporting
-        for k in list(simple_scores.columns)[:]:
+        for k in list(simple_scores_.columns)[:]:
             ignore = [
-                'norm_x', 'norm_y',
-                'sver_err', 'sum(scale', 'sum(match_dist)',
+                'sum(norm_x', 'sum(norm_y',
+                'sum(sver_err', 'sum(scale', 'sum(match_dist)',
             ]
             if qreq_.qparams.featweight_enabled:
                 ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
                                'sum(lnbnn_norm_dist)'])
-
             flags = [part in k for part in ignore]
             if any(flags):
-                del simple_scores[k]
+                del simple_scores_[k]
 
     # Sort AUC by values
     simple_aucs = pd.DataFrame(dict([
-        (k, [sklearn.metrics.roc_auc_score(y, simple_scores[k])])
-        for k in simple_scores.columns
+        (k, [sklearn.metrics.roc_auc_score(y, simple_scores_[k])])
+        for k in simple_scores_.columns
     ]))
     simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
     simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
@@ -143,66 +148,69 @@ def train_pairwise_rf():
         'criterion': 'entropy',
     }
     rf_params.update(verbose=0, random_state=np.random.RandomState(3915904814))
-
     cv_classifiers = []
-
     # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
     prog = ut.ProgIter(list(skf_iter), label='skf')
     for count, (train_idx, test_idx) in enumerate(prog):
         y_test = y[test_idx]
         y_train = y[train_idx]
-
         split_columns = []
         split_aucs = []
-
         classifiers = {}
-
-        simple_auc_dict.values()
-
-        idx = ut.argmax(list(simple_auc_dict.values()))
-        split_aucs += [list(simple_auc_dict.values())[idx]]
-        split_columns += [list(simple_auc_dict.keys())[idx]]
-
         # prog.ensure_newline()
         for name, X in X_dict.items():
-            # print('name = %r' % (name,))
+            # Learn a random forest classifier using train data
             X_train = X.values[train_idx]
             X_test = X.values[test_idx]
-            # Train uncalibrated random forest classifier on train data
             clf = RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
             classifiers[name] = clf
-
-            # evaluate on test data
-            clf_probs = clf.predict_proba(X_test)
-            # log_loss = sklearn.metrics.log_loss(y_test, clf_probs)
-
-            # evaluate on test data
+            # Evaluate using on testing data
             clf_probs = clf.predict_proba(X_test)
             auc_learn = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
             split_columns.append(name)
             split_aucs.append(auc_learn)
-
+        # Append this folds' classifiers
         cv_classifiers.append(classifiers)
-
+        # Append this fold's results
         newrow = pd.DataFrame([split_aucs], columns=split_columns)
-        # print(newrow)
         df_results = df_results.append([newrow], ignore_index=True)
 
-        df = df_results
-        # change = df[df.columns[2]] - df[df.columns[0]]
-        # percent_change = change / df[df.columns[0]] * 100
-        # df = df.assign(change=change)
-        # df = df.assign(percent_change=percent_change)
+    # change = df[df.columns[2]] - df[df.columns[0]]
+    # percent_change = change / df[df.columns[0]] * 100
+    # df = df.assign(change=change)
+    # df = df.assign(percent_change=percent_change)
 
     import sandbox_utools as sbut
-    # print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns) - 2))))
-    print(sbut.to_string_monkey(df, highlight_cols=list(range(len(df.columns)))))
-    df_mean = pd.DataFrame([df.mean().values], columns=df.columns)
-    print(sbut.to_string_monkey(df_mean, highlight_cols=list(range(len(df_mean.columns)))))
+    print(sbut.to_string_monkey(
+        df_results, highlight_cols=np.arange(len(df_results.columns))))
+
+    simple_auc_dict.values()
+    simple_keys = list(simple_auc_dict.keys())
+    simple_vals = list(simple_auc_dict.values())
+    idxs = ut.argsort(list(simple_auc_dict.values()))[::-1][0:3]
+    idx_ = simple_keys.index('score_lnbnn_1vM')
+    if idx_ in idxs:
+        idxs.remove(idx_)
+    idxs = [idx_] + idxs
+    best_simple_cols = ut.take(simple_keys, idxs)
+    best_simple_aucs = ut.take(simple_vals, idxs)
+
+    df_simple = pd.DataFrame([best_simple_aucs], columns=best_simple_cols)
+
+    # Take mean over all classifiers
+    df_mean = pd.DataFrame([df_results.mean().values], columns=df_results.columns)
+    df_all = pd.concat([df_simple, df_mean], axis=1)
+
+    # Add in the simple scores
+    print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
     ut.qt4ensure()
     import plottool as pt
+
+    def print_dict_ranks(dict_):
+        sorted_ = ut.sort_dict(dict_, 'vals', reverse=True)
+        print(ut.align(ut.repr4(sorted_, precision=4), ':'))
 
     for name, X in X_dict.items():
         # Take average feature importance
@@ -210,14 +218,68 @@ def train_pairwise_rf():
             clf_.feature_importances_
             for clf_ in ut.dict_take_column(cv_classifiers, name)
         ], axis=0)
-        importances = ut.dzip(X.columns, feature_importances)
-        # importances = {k: v for k, v in importances.items() if v > .005}
-        importances = ut.map_keys(lambda k: k.replace('norm_x', 'x'), importances)
+        _importances = ut.dzip(X.columns, feature_importances)
+        importances = ut.map_keys(lambda k: k.replace('norm_x', 'x'), _importances)
         importances = ut.map_keys(lambda k: k.replace('norm_y', 'y'), importances)
         importances = {k: v for k, v in importances.items() if v > .01}
-        importances = ut.sort_dict(importances, 'vals', reverse=True)
-        print(name)
-        print(ut.align(ut.repr4(importances, precision=4), ':'))
+        # Display weight of each individual feature
+
+        print('\n Most Important Features')
+        print_dict_ranks(importances)
+
+        # ut.fix_embed_globals()
+
+        # Display weight of groups of features
+        def group_importance(item):
+            name, keys = item
+            num = len(keys)
+            weight = sum(ut.take(_importances, keys))
+            ave_w = weight / num
+            tup = ave_w, weight, num
+            # return tup
+            df = pd.DataFrame([tup], columns=['ave_w', 'weight', 'num'], index=[name])
+            return df
+
+        def apply_grouper(grouper):
+            _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+            _weights = pd.concat(ut.lmap(group_importance, _keys.items()))
+            _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
+            print(_weights)
+
+        print('\nImportance of globals-vs-locals')
+        def type_grouper(key):
+            if key.startswith('global'):
+                return 'global'
+            if key.startswith('loc'):
+                return 'local'
+            if any(key.startswith(p) for p in ['sum', 'mean', 'std', 'len']):
+                return 'summary'
+        apply_grouper(type_grouper)
+
+        print('\nImportance of locals summaries')
+        def summary_grouper(key):
+            for p in ['sum', 'std', 'mean']:
+                if key.startswith(p):
+                    return p
+        apply_grouper(summary_grouper)
+
+        print('\nImportance of local measures')
+        def local_grouper(key):
+            if key.startswith('loc'):
+                return key[key.find('(') + 1:-1]
+        apply_grouper(local_grouper)
+
+        print('\nImportance of local sorters')
+        def sorter_grouper(key):
+            if key.startswith('loc'):
+                return key[key.find('[') + 1:key.find(',')]
+        apply_grouper(sorter_grouper)
+
+        print('\nImportance of local ranks')
+        def sorter_grouper(key):
+            if key.startswith('loc'):
+                return key[key.find(',') + 1:key.find(']')]
+        apply_grouper(sorter_grouper)
 
         pt.wordcloud(importances)
     pt.show_if_requested()
@@ -254,7 +316,7 @@ def bigcache_features(qreq_, hyper_params):
     cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
 
     cacher = ut.Cacher('pairwise_data', cfgstr=cfgstr,
-                       appname='vsone_rf_train', enabled=1)
+                       appname='vsone_rf_train', enabled=0)
     data = cacher.tryload()
     if not data:
         data = build_features(qreq_, hyper_params)
@@ -278,6 +340,11 @@ def build_features(qreq_, hyper_params):
     # setup truth targets
     # TODO: not-comparable
     matches = cached_data['SV_LNBNN']
+    # Pass back just one match to play with
+    for match in matches:
+        if len(match.fm) > 10:
+            break
+
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
     # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
 
@@ -303,30 +370,38 @@ def build_features(qreq_, hyper_params):
     simple_scores[pd.isnull(simple_scores)] = 0
 
     # ---------------
-    scorers = [
+    sorters = [
         'ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist'
     ]
     if qreq_.qparams.featweight_enabled:
-        scorers += [
+        sorters += [
             'weighted_ratio', 'weighted_lnbnn',
         ]
 
     # keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
     #          'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
-    keys1 = None
     # keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
     #          'sver_err_scale', 'sver_err_ori']
+    keys1 = list(match.local_measures.keys())
+
+    # Ignore for PZ/GZ
+    keys_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist',
+                   'fgweights']
+    sorters_ignore = ['match_dist', 'ratio']
+
+    keys1 = ut.setdiff(keys1, keys_ignore)
+    sorters = ut.setdiff(sorters, sorters_ignore)
 
     # Try different feature constructions
     print('Building pairwise features')
     pairwise_feats = pd.DataFrame([
-        m.make_feature_vector(scorers=scorers, keys=keys1, n_top=3)
+        m.make_feature_vector(sorters=sorters, keys=keys1, sl=slice(2, 5))
         for m in ut.ProgIter(matches, label='making pairwise feats')
     ])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
     # pairwise_feats_ratio = pd.DataFrame([
-    #     m.make_feature_vector(scorers='ratio', keys=keys2, n_top=3)
+    #     m.make_feature_vector(sorters='ratio', keys=keys2, sl=3)
     #     for m in ut.ProgIter(matches)
     # ])
     # pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
@@ -339,11 +414,6 @@ def build_features(qreq_, hyper_params):
     X_dict = {
         'learn(all)': X_all
     }
-
-    # Pass back just one match to play with
-    for match in matches:
-        if len(match.fm) > 10:
-            break
 
     return simple_scores, X_dict, y, match
 
