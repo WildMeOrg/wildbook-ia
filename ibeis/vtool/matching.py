@@ -22,6 +22,19 @@ class MatchingError(Exception):
     pass
 
 
+VSONE_ASSIGN_CONFIG = [
+    ut.ParamInfo('checks', 20),
+    ut.ParamInfo('symmetric', False),
+    ut.ParamInfo('weight', None),
+    ut.ParamInfo('K', 1, min_=1),
+    ut.ParamInfo('Knorm', 1, min_=1),
+]
+
+
+VSONE_SVER_CONFIG = [
+    ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None, hideif=lambda cfg: not cfg['sv_on']),
+]
+
 VSONE_DEFAULT_CONFIG = [
     ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None, hideif=lambda cfg: not cfg['sv_on']),
     ut.ParamInfo('ratio_thresh', .625, min_=0.0, max_=1.0),
@@ -29,7 +42,7 @@ VSONE_DEFAULT_CONFIG = [
     ut.ParamInfo('symmetric', False),
     ut.ParamInfo('K', 1, min_=1),
     ut.ParamInfo('Knorm', 1, min_=1),
-    ut.ParamInfo('sv_on', True)
+    ut.ParamInfo('sv_on', True),
 
     #ut.ParamInfo('affine_invariance', True),
     #ut.ParamInfo('rotation_invariance', False),
@@ -44,6 +57,16 @@ class PairwiseMatch(ut.NiceRepr):
     Creates an object holding two annotations
     Then a pipeline of operations can be applied to
     generate score and refine the matches
+
+    Note:
+        The annotation dictionaries are required to have certain attributes.
+
+        Required annotation attributes:
+            (kpts, vecs) OR rchip OR rchip_fpath
+
+        Optional annotation attributes:
+            aid, nid, flann, rchip, dlen_sqrd, weight
+
     """
     def __init__(match, annot1=None, annot2=None):
         match.annot1 = annot1
@@ -58,20 +81,45 @@ class PairwiseMatch(ut.NiceRepr):
         match._inplace_default = False
 
     def __getstate__(match):
+        # The state ignores most of the annotation objects
+        _annot1 = {}
+        if 'aid' in match.annot1:
+            _annot1['aid'] = match.annot1['aid']
+        _annot2 = {}
+        if 'aid' in match.annot2:
+            _annot2['aid'] = match.annot2['aid']
         state = {
+            'annot1': _annot1,
+            'annot2': _annot2,
             'fm': match.fm,
+            'fs': match.fs,
             'H_21': match.H_21,
             'H_12': match.H_12,
             'global_measures': match.global_measures,
             'local_measures': match.local_measures,
         }
-        # match.__dict__.copy()
-        # del state['annot1']
-        # del state['annot2']
         return state
 
     def __setstate__(match, state):
         match.__dict__.update(state)
+
+    def show(match, ax=None, show_homog=False):
+        import plottool as pt
+        annot1 = match.annot1
+        annot2 = match.annot2
+        rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
+        rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
+        fm = match.fm
+        fs = match.fs
+
+        H1 = match.H_12 if show_homog else None
+        # H2 = match.H_21 if show_homog else None
+
+        ax, xywh1, xywh2 = pt.show_chipmatch2(
+            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False,
+            H1=H1, ax=ax
+        )
+        return ax, xywh1, xywh2
 
     def add_global_measures(match, global_keys):
         for key in global_keys:
@@ -274,24 +322,6 @@ class PairwiseMatch(ut.NiceRepr):
         match_.H_12 = H_12
         return match_
 
-    def show(match, ax=None, show_homog=False):
-        import plottool as pt
-        annot1 = match.annot1
-        annot2 = match.annot2
-        rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
-        rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
-        fm = match.fm
-        fs = match.fs
-
-        H1 = match.H_12 if show_homog else None
-        # H2 = match.H_21 if show_homog else None
-
-        ax, xywh1, xywh2 = pt.show_chipmatch2(
-            rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False,
-            H1=H1, ax=ax
-        )
-        return ax, xywh1, xywh2
-
     @profile
     def _make_global_feature_vector(match):
         """ Global annotation properties and deltas """
@@ -327,14 +357,13 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     @profile
-    def _make_local_summary_feature_vector(match, keys=None, sum=True,
+    def _make_local_summary_feature_vector(match, keys=[], sum=True,
                                            mean=True, std=True):
         """ Summary statistics of local features """
         if keys is None:
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
-
         feat = ut.odict([])
         if sum:
             for k, vs in six.iteritems(local_measures):
@@ -356,9 +385,7 @@ class PairwiseMatch(ut.NiceRepr):
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
-
         scorers = ut.ensure_iterable(scorers)
-
         # TODO: some scorers might want descending orders
         chosen_xs = [
             local_measures[scorer].argsort()[::-1][:n_top]
@@ -366,8 +393,8 @@ class PairwiseMatch(ut.NiceRepr):
         ]
         feat = ut.odict([
             ('loc[%s,%d](%s)' % (scorer, count, k), v)
-            for k, vs in six.iteritems(local_measures)
             for scorer, topxs in zip(scorers, chosen_xs)
+            for k, vs in six.iteritems(local_measures)
             for count, v in enumerate(vs[topxs])
         ])
         return feat
@@ -408,6 +435,9 @@ def gridsearch_match_operation(matches, op_name, basis):
 
 
 class SingleMatch(ut.NiceRepr):
+    """
+    DEPRICATE in favor of PairwiseMatch
+    """
 
     def __init__(self, matches, metadata):
         self.matches = matches
@@ -426,9 +456,6 @@ class SingleMatch(ut.NiceRepr):
     def __nice__(self):
         parts = [key + '=%d' % (len(m.fm)) for key, m in self.matches.items()]
         return ' ' + ', '.join(parts)
-        #tup = (len(self.matches['ORIG'][0]), len(self.matches['RAT'][0]),
-        #       len(self.matches['RAT+SV'][0]), )
-        #return ' %d, %d, %d' % tup
 
     def __getstate__(self):
         state_dict = self.__dict__
@@ -580,6 +607,8 @@ def ensure_metadata_flann(annot, cfgdict):
 
 def vsone_matching(metadata, cfgdict={}, verbose=None):
     """
+    DEPRICATE in favor of PairwiseMatch
+
     Metadata is a dictionary that contains either computed information
     necessary for matching or the dependenceis of those computations.
 
