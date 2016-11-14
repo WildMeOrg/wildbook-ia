@@ -438,14 +438,11 @@ class _AnnotInfrMatching(object):
                 'score_method': 'csum'
             }
         # hack for using current nids
-        with ut.Timer('nid lookup'):
-            custom_nid_lookup = dict(zip(aids, infr.get_annot_attrs('name_label', aids)))
+        custom_nid_lookup = dict(zip(aids, infr.get_annot_attrs('name_label', aids)))
 
-        with ut.Timer('qreq new'):
-            qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                                          custom_nid_lookup=custom_nid_lookup)
-        with ut.Timer('qreq execute'):
-            cm_list = qreq_.execute(prog_hook=prog_hook)
+        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                      custom_nid_lookup=custom_nid_lookup)
+        cm_list = qreq_.execute(prog_hook=prog_hook)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
 
@@ -1833,7 +1830,7 @@ class AnnotInference(ut.NiceRepr,
         return infr
 
     @classmethod
-    def from_qreq_(cls, qreq_, cm_list):
+    def from_qreq_(cls, qreq_, cm_list, autoinit=False):
         """
         Create a AnnotInference object using a precomputed query / results
         """
@@ -1841,7 +1838,7 @@ class AnnotInference(ut.NiceRepr,
         aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
         nids = qreq_.get_qreq_annot_nids(aids)
         ibs = qreq_.ibs
-        infr = cls(ibs, aids, nids, verbose=False)
+        infr = cls(ibs, aids, nids, verbose=False, autoinit=autoinit)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         return infr

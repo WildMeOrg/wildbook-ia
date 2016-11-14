@@ -2,385 +2,27 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
 import numpy as np
+import vtool as vt
+import dtool
 from six.moves import zip, range  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
-class HyperParams(object):
-    vsmany_cfgdict = {
-        'can_match_samename': True,
-        'K': 4,
-        'Knorm': 1,
-        'prescore_method': 'csum',
-        'score_method': 'csum'
-    }
-
-    pair_sample = dict(
-        top_gt=4, mid_gt=2, bot_gt=2, rand_gt=2,
-        top_gf=3, mid_gf=2, bot_gf=1, rand_gf=2,
-        # top_gt=4, mid_gt=0, bot_gt=0, rand_gt=0,
-        # top_gf=3, mid_gf=0, bot_gf=0, rand_gf=2,
-    )
-    pass
-
-
-def build_features(ibs, aids):
-    import vtool as vt
-    import pandas as pd
-    import ibeis
-
-    # ===========================
-    # Get a set of training pairs
-    # ===========================
-    infr = ibeis.AnnotInference(ibs, aids, autoinit=True)
-    infr.exec_matching(cfgdict=HyperParams.vsmany_cfgdict)
-
-    # Per query choose a set of correct, incorrect, and random training pairs
-    aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
-                                         **HyperParams.pair_sample)
-    aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
-    # TODO: handle non-comparability
-
-    # ======================================
-    # Compute one-vs-one scores and local_measures
-    # ======================================
-
-    # Prepare lazy attributes for annotations
-    qreq_ = infr.qreq_
-    ibs = qreq_.ibs
-    qconfig2_ = qreq_.extern_query_config2
-    dconfig2_ = qreq_.extern_data_config2
-    qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
-    dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
-
-    # Remove any pairs missing features
-    if dannot_cfg == qannot_cfg:
-        unique_annots = ibs.annots(np.unique(np.array(aid_pairs_)), config=dannot_cfg)
-        bad_aids = unique_annots.compress(~np.array(unique_annots.num_feats) > 0).aids
-        bad_aids = set(bad_aids)
-    else:
-        annots1_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 0)), config=qannot_cfg)
-        annots2_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 1)), config=dannot_cfg)
-        bad_aids1 = annots1_.compress(~np.array(annots1_.num_feats) > 0).aids
-        bad_aids2 = annots2_.compress(~np.array(annots2_.num_feats) > 0).aids
-        bad_aids = set(bad_aids1 + bad_aids2)
-    subset_idxs = np.where([not (a1 in bad_aids or a2 in bad_aids)
-                            for a1, a2 in aid_pairs_])[0]
-    # Keep only a random subset
-    if 0:
-        rng = np.random.RandomState(3104855634)
-        num_max = 500
-        if num_max < len(subset_idxs):
-            subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
-            subset_idxs = sorted(subset_idxs)
-
-    # Take the current selection
-    aid_pairs = ut.take(aid_pairs_, subset_idxs)
-    query_aids = ut.take_column(aid_pairs, 0)
-    data_aids = ut.take_column(aid_pairs, 1)
-
-    # Determine a unique set of annots per config
-    configured_aids = ut.ddict(set)
-    configured_aids[qannot_cfg].update(query_aids)
-    configured_aids[dannot_cfg].update(data_aids)
-
-    # Make efficient annot-object representation
-    configured_obj_annots = {}
-    for config, aids in configured_aids.items():
-        aids = sorted(list(aids))
-        annots = ibs.annots(aids, config=config)
-        configured_obj_annots[config] = annots
-
-    annots1 = configured_obj_annots[qannot_cfg].loc(query_aids)
-    annots2 = configured_obj_annots[dannot_cfg].loc(data_aids)
-
-    verbose = True  # NOQA
-
-    # Cache output of one-vs-one matches
-    # ----------------------------------
-    # Get hash based on visual annotation appearence of each pair
-    # as well as algorithm configurations used to compute those properties
-    qvuuids = annots1.visual_uuids
-    dvuuids = annots2.visual_uuids
-    qcfgstr = annots1._config.get_cfgstr()
-    dcfgstr = annots2._config.get_cfgstr()
-    annots_cfgstr = ut.hashstr27(qcfgstr) + ut.hashstr27(dcfgstr)
-    vsone_uuids = [
-        ut.combine_uuids(uuids, salt=annots_cfgstr)
-        for uuids in ut.ProgIter(zip(qvuuids, dvuuids), length=len(qvuuids),
-                                 label='hashing ids')
+class PairSampleConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('top_gt', 4),
+        ut.ParamInfo('mid_gt', 2),
+        ut.ParamInfo('bot_gt', 2),
+        ut.ParamInfo('rand_gt', 2),
+        ut.ParamInfo('top_gf', 3),
+        ut.ParamInfo('mid_gf', 2),
+        ut.ParamInfo('bot_gf', 1),
+        ut.ParamInfo('rand_gf', 2),
     ]
 
-    # Combine into a big cache for the entire 1-v-1 matching run
-    big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-    cacher = ut.Cacher('vsone', cfgstr=str(big_uuid), appname='vsone_rf_train')
 
-    cached_data = cacher.tryload()
-    if cached_data is not None:
-        # Make convinient lazy dict representations (after loading pre info)
-        configured_lazy_annots = ut.ddict(dict)
-        for config, annots in configured_obj_annots.items():
-            annot_dict = configured_lazy_annots[config]
-            for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
-                annot_dict[_annot.aid] = _annot._make_lazy_dict()
-
-        # Extract pairs of annot objects (with shared caches)
-        lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
-        lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
-
-        matches = [vt.PairwiseMatch(annot1, annot2)
-                   for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
-
-        matches_RAT = [match.copy() for match in matches]
-        matches_RAT_SV = [match.copy() for match in matches]
-        matches_SV_LNBNN = [match.copy() for match in matches]
-        for match, internal in zip(matches_RAT, cached_data['RAT']):
-            match.__dict__.update(internal.__dict__)
-        for match, internal in zip(matches_RAT_SV, cached_data['RAT_SV']):
-            match.__dict__.update(internal.__dict__)
-        for match, internal in zip(matches_SV_LNBNN, cached_data['SV_LNBNN']):
-            match.__dict__.update(internal.__dict__)
-    else:
-        # Do vectorized preload before constructing lazy dicts
-        # Then make sure the lazy dicts point to this subset
-        unique_obj_annots = list(configured_obj_annots.values())
-        for annots in ut.ProgIter(unique_obj_annots, 'vectorized preload'):
-            annots.set_caching(True)
-            annots.chip_size
-            annots.vecs
-            annots.kpts
-            annots.yaw
-            annots.qual
-            annots.gps
-            annots.time
-            if qreq_.qparams.featweight_enabled:
-                annots.fgweights
-        # annots._internal_attrs.clear()
-
-        # Make convinient lazy dict representations (after loading pre info)
-        configured_lazy_annots = ut.ddict(dict)
-        for config, annots in configured_obj_annots.items():
-            annot_dict = configured_lazy_annots[config]
-            for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
-                annot = _annot._make_lazy_dict()
-                annot_dict[_annot.aid] = annot
-
-        unique_lazy_annots = ut.flatten(
-            [x.values() for x in configured_lazy_annots.values()])
-
-        weight_key = 'fgweights'
-
-        flann_params = {'algorithm': 'kdtree', 'trees': 4}
-        for annot in ut.ProgIter(unique_lazy_annots, label='lazy flann'):
-            vt.matching.ensure_metadata_flann(annot, flann_params)
-
-        for annot in ut.ProgIter(unique_lazy_annots, 'preload kpts'):
-            annot['kpts']
-
-        for annot in ut.ProgIter(unique_lazy_annots, 'normxy'):
-            annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
-                                 np.array(annot['chip_size'])[:, None])
-        for annot in ut.ProgIter(unique_lazy_annots, 'preload vecs'):
-            annot['vecs']
-
-        # Extract pairs of annot objects (with shared caches)
-        lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
-        lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
-
-        """
-        TODO: param search over grid
-            'use_sv': [0, 1],
-            'use_fg': [0, 1],
-            'use_ratio_test': [0, 1],
-        """
-        matches_RAT = [vt.PairwiseMatch(annot1, annot2)
-                       for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
-
-        # Construct global measurements
-        global_keys = ['yaw', 'qual', 'gps', 'time']
-        for match in ut.ProgIter(matches_RAT, label='setup globals'):
-            match.add_global_measures(global_keys)
-
-        # Preload flann for only specific annots
-        for match in ut.ProgIter(matches_RAT, label='preload FLANN'):
-            match.annot1['flann']
-
-        # Find one-vs-one matches
-        cfgdict = {'checks': 20, 'symmetric': False}
-        if qreq_.qparams.featweight_enabled:
-            cfgdict['weight'] = weight_key
-        for match in ut.ProgIter(matches_RAT, label='assign vsone'):
-            match.assign(cfgdict=cfgdict)
-
-        # gridsearch_ratio_thresh()
-        # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_ratio_test', {
-        #     'ratio_thresh': np.linspace(.6, .7, 50)
-        # })
-        for match in ut.ProgIter(matches_RAT, label='apply ratio thresh'):
-            match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
-
-        # Add keypoint spatial information to local features
-        for match in matches_RAT:
-            key_ = 'norm_xys'
-            norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
-            norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
-            match.local_measures['norm_x1'] = norm_xy1[0]
-            match.local_measures['norm_y1'] = norm_xy1[1]
-            match.local_measures['norm_x2'] = norm_xy2[0]
-            match.local_measures['norm_y2'] = norm_xy2[1]
-
-            match.local_measures['scale1'] = vt.get_scales(
-                match.annot1['kpts'].take(match.fm.T[0], axis=0))
-            match.local_measures['scale2'] = vt.get_scales(
-                match.annot2['kpts'].take(match.fm.T[1], axis=0))
-
-        # TODO gridsearch over sv params
-        # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_sver', {
-        #     'xy_thresh': np.linspace(0, 1, 3)
-        # })
-        matches_RAT_SV = [
-            match.apply_sver(inplace=False)
-            for match in ut.ProgIter(matches_RAT, label='sver')
-        ]
-
-        # Create another version where we find global normalizers for the data
-        def batch_apply_lnbnn(matches, qreq_):
-            qreq_.load_indexer()
-            indexer = qreq_.indexer
-            from ibeis.algo.hots import nn_weights
-            matches_ = [match.copy() for match in matches]
-            K = qreq_.qparams.K
-            Knorm = qreq_.qparams.Knorm
-            normalizer_rule  = qreq_.qparams.normalizer_rule
-
-            print('Stacking vecs for batch matching')
-            offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
-            stacked_vecs = np.vstack([
-                match_.matched_vecs2()
-                for match_ in ut.ProgIter(matches_, lablel='stacking matched vecs')
-            ])
-
-            vecs = stacked_vecs
-            num = (K + Knorm)
-            idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
-                                            label='lnbnn scoring')
-
-            idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-            dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
-            iter_ = zip(matches_, idx_list, dist_list)
-            prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
-            for match_, neighb_idx, neighb_dist in prog:
-                qaid = match_.annot2['aid']
-                norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
-                ndist = vt.take_col_per_row(neighb_dist, norm_k)
-                vdist = match_.local_measures['match_dist']
-                lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
-                lnbnn_dist = np.clip(lnbnn_dist, 0, np.inf)
-                match_.local_measures['lnbnn_norm_dist'] = ndist
-                match_.local_measures['lnbnn'] = lnbnn_dist
-                match_.fs = lnbnn_dist
-            return matches_
-
-        matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_)
-
-        if qreq_.qparams.featweight_enabled:
-            for match in matches_SV_LNBNN[::-1]:
-                lnbnn_dist = match.local_measures['lnbnn']
-                ndist = match.local_measures['lnbnn_norm_dist']
-                weights = match.local_measures[weight_key]
-                match.local_measures['weighted_lnbnn'] = weights * lnbnn_dist
-                match.local_measures['weighted_lnbnn_norm_dist'] = weights * ndist
-                match.fs = match.local_measures['weighted_lnbnn']
-
-        cached_data = {
-            'RAT': matches_RAT,
-            'RAT_SV': matches_RAT_SV,
-            'SV_LNBNN': matches_SV_LNBNN,
-        }
-        cacher.save(cached_data)
-
-    # =====================================
-    # Attempt to train a simple classsifier
-    # =====================================
-
-    # setup truth targets
-    # TODO: not-comparable
-    matches = matches_SV_LNBNN  # NOQA
-    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
-    # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
-
-    # ---------------
-    # Try just using simple scores
-    # vt.rrrr()
-    # for m in matches:
-    #     m.rrr(0, reload_module=False)
-    simple_scores = pd.DataFrame([
-        m._make_local_summary_feature_vector(sum=True, mean=False, std=False)
-        for m in matches])
-
-    if True:
-        # Remove scores that arent worth reporting
-        for k in list(simple_scores.columns)[:]:
-            ignore = [
-                'norm_x', 'norm_y',
-                'sver_err', 'sum(scale', 'sum(match_dist)',
-            ]
-            if qreq_.qparams.featweight_enabled:
-                ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
-                               'sum(lnbnn_norm_dist)'])
-
-            flags = [part in k for part in ignore]
-            if any(flags):
-                del simple_scores[k]
-    if True:
-        # TEST ORIGINAL LNBNN SCORE SEP
-        infr.graph.add_edges_from(aid_pairs)
-        infr.apply_match_scores()
-        edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-        lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
-        lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
-        simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
-
-    simple_scores[pd.isnull(simple_scores)] = 0
-
-    # ---------------
-    scorers = [
-        'ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist'
-    ]
-    if qreq_.qparams.featweight_enabled:
-        scorers += [
-            'weighted_ratio', 'weighted_lnbnn',
-        ]
-
-    # keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
-    #          'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
-    keys1 = None
-    # keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
-    #          'sver_err_scale', 'sver_err_ori']
-
-    # Try different feature constructions
-    print('Building pairwise features')
-    pairwise_feats = pd.DataFrame([
-        m.make_feature_vector(scorers=scorers, keys=keys1, n_top=3)
-        for m in ut.ProgIter(matches, label='making pairwise feats')
-    ])
-    pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
-
-    # pairwise_feats_ratio = pd.DataFrame([
-    #     m.make_feature_vector(scorers='ratio', keys=keys2, n_top=3)
-    #     for m in ut.ProgIter(matches)
-    # ])
-    # pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
-    # valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
-    # valid_cols = pairwise_feats.columns[valid_colx]
-    # X_nonan = pairwise_feats[valid_cols].copy()
-    X_all = pairwise_feats.copy()
-    # X_withnan_ratio = pairwise_feats_ratio
-
-    X_dict = {
-        'learn(all)': X_all
-    }
-    return simple_scores, X_dict, y
+class VsOneAssignConfig(dtool.Config):
+    _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
 @profile
@@ -424,24 +66,50 @@ def train_pairwise_rf():
     import pandas as pd
     import ibeis
 
-    ibs = ibeis.opendb(defaultdb='GZ_Master1')
-    aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
-    dbname = ibs.get_dbname()
+    pd.options.display.max_rows = 10
+    pd.options.display.max_columns = 40
+    pd.options.display.width = 160
 
-    cacher = ut.Cacher('pairwise_feats', cfgstr='devcache' + str(dbname), appname='vsone_rf_train')
-    data = cacher.tryload()
-    if data:
-        simple_scores, X_dict, y = data
-    else:
-        # ut.aug_sysargv('--db PZ_MTEST')
-        # ibs = ibeis.opendb('PZ_MTEST')
-        # ibs = ibeis.opendb('PZ_Master1')
-        simple_scores, X_dict, y = build_features(ibs, aids)
-        data = simple_scores, X_dict, y
-        cacher.save(data)
+    # ut.aug_sysargv('--db PZ_MTEST')
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_MTEST',
+        a=':mingt=2,species=primary',
+        t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+    )
+    assert qreq_.qparams.can_match_samename is True
+    assert qreq_.qparams.prescore_method == 'csum'
+
+    hyper_params = dtool.Config.from_dict(dict(
+        subsample=None,
+        pair_sample=PairSampleConfig(),
+        vsone_assign=VsOneAssignConfig()),
+        tablename='HyperParams'
+    )
+    if qreq_.qparams.featweight_enabled:
+        hyper_params.vsone_assign['weight'] = 'fgweight'
+
+    data = bigcache_features(qreq_, hyper_params)
+    simple_scores, X_dict, y, match = data
+    import utool
+    utool.embed()
 
     print('Building pairwise classifier')
     print('hist(y) = ' + ut.repr4(ut.dict_hist(y)))
+
+    if True:
+        # Remove scores that arent worth reporting
+        for k in list(simple_scores.columns)[:]:
+            ignore = [
+                'norm_x', 'norm_y',
+                'sver_err', 'sum(scale', 'sum(match_dist)',
+            ]
+            if qreq_.qparams.featweight_enabled:
+                ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
+                               'sum(lnbnn_norm_dist)'])
+
+            flags = [part in k for part in ignore]
+            if any(flags):
+                del simple_scores[k]
 
     # Sort AUC by values
     simple_aucs = pd.DataFrame(dict([
@@ -454,6 +122,8 @@ def train_pairwise_rf():
     # Simple printout of aucs
     # we dont need cross validation because there is no learning here
     print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
+    import utool
+    utool.embed()
 
     # ---------------
     # Setup cross-validation
@@ -579,6 +249,386 @@ def train_pairwise_rf():
     # }
     # header = [col_to_nice.get(c, c) for c in table.columns]
     # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
+
+
+def bigcache_features(qreq_, hyper_params):
+    dbname = qreq_.ibs.get_dbname()
+    vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
+    features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
+    cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
+
+    cacher = ut.Cacher('pairwise_data', cfgstr=cfgstr,
+                       appname='vsone_rf_train', enabled=False)
+    data = cacher.tryload()
+    if not data:
+        data = build_features(qreq_, hyper_params)
+        cacher.save(data)
+    # simple_scores, X_dict, y = data
+    return data
+
+
+def build_features(qreq_, hyper_params):
+    import pandas as pd
+
+    # ==================================
+    # Compute or load one-vs-one results
+    # ==================================
+    cached_data, infr = bigcache_vsone(qreq_, hyper_params)
+
+    # =====================================
+    # Attempt to train a simple classsifier
+    # =====================================
+
+    # setup truth targets
+    # TODO: not-comparable
+    matches = cached_data['SV_LNBNN']
+    y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+    # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
+
+    # ---------------
+    # Try just using simple scores
+    # vt.rrrr()
+    # for m in matches:
+    #     m.rrr(0, reload_module=False)
+    simple_scores = pd.DataFrame([
+        m._make_local_summary_feature_vector(sum=True, mean=False, std=False)
+        for m in matches])
+
+    if True:
+        aid_pairs = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
+        # TEST ORIGINAL LNBNN SCORE SEP
+        infr.graph.add_edges_from(aid_pairs)
+        infr.apply_match_scores()
+        edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
+        lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
+        lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
+        simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
+
+    simple_scores[pd.isnull(simple_scores)] = 0
+
+    # ---------------
+    scorers = [
+        'ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist'
+    ]
+    if qreq_.qparams.featweight_enabled:
+        scorers += [
+            'weighted_ratio', 'weighted_lnbnn',
+        ]
+
+    # keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
+    #          'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
+    keys1 = []
+    # keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
+    #          'sver_err_scale', 'sver_err_ori']
+
+    # Try different feature constructions
+    print('Building pairwise features')
+    pairwise_feats = pd.DataFrame([
+        m.make_feature_vector(scorers=scorers, keys=keys1, n_top=3)
+        for m in ut.ProgIter(matches, label='making pairwise feats')
+    ])
+    pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
+
+    # pairwise_feats_ratio = pd.DataFrame([
+    #     m.make_feature_vector(scorers='ratio', keys=keys2, n_top=3)
+    #     for m in ut.ProgIter(matches)
+    # ])
+    # pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
+    # valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
+    # valid_cols = pairwise_feats.columns[valid_colx]
+    # X_nonan = pairwise_feats[valid_cols].copy()
+    X_all = pairwise_feats.copy()
+    # X_withnan_ratio = pairwise_feats_ratio
+
+    X_dict = {
+        'learn(all)': X_all
+    }
+
+    # Pass back just one match to play with
+    for match in matches:
+        if len(match.fm) > 10:
+            break
+
+    return simple_scores, X_dict, y, match
+
+
+def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
+           configured_obj_annots, hyper_params):
+    # Do vectorized preload before constructing lazy dicts
+    # Then make sure the lazy dicts point to this subset
+    unique_obj_annots = list(configured_obj_annots.values())
+    for annots in ut.ProgIter(unique_obj_annots, 'vectorized preload'):
+        annots.set_caching(True)
+        annots.chip_size
+        annots.vecs
+        annots.kpts
+        annots.yaw
+        annots.qual
+        annots.gps
+        annots.time
+        if qreq_.qparams.featweight_enabled:
+            annots.fgweights
+    # annots._internal_attrs.clear()
+
+    # Make convinient lazy dict representations (after loading pre info)
+    configured_lazy_annots = ut.ddict(dict)
+    for config, annots in configured_obj_annots.items():
+        annot_dict = configured_lazy_annots[config]
+        for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
+            annot = _annot._make_lazy_dict()
+            annot_dict[_annot.aid] = annot
+
+    unique_lazy_annots = ut.flatten(
+        [x.values() for x in configured_lazy_annots.values()])
+
+    flann_params = {'algorithm': 'kdtree', 'trees': 4}
+    for annot in ut.ProgIter(unique_lazy_annots, label='lazy flann'):
+        vt.matching.ensure_metadata_flann(annot, flann_params)
+
+    for annot in ut.ProgIter(unique_lazy_annots, 'preload kpts'):
+        annot['kpts']
+
+    for annot in ut.ProgIter(unique_lazy_annots, 'normxy'):
+        annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
+                             np.array(annot['chip_size'])[:, None])
+    for annot in ut.ProgIter(unique_lazy_annots, 'preload vecs'):
+        annot['vecs']
+
+    # Extract pairs of annot objects (with shared caches)
+    lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
+    lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
+
+    # TODO: param search over grid
+    #     'use_sv': [0, 1],
+    #     'use_fg': [0, 1],
+    #     'use_ratio_test': [0, 1],
+    matches_RAT = [vt.PairwiseMatch(annot1, annot2)
+                   for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
+
+    # Construct global measurements
+    global_keys = ['yaw', 'qual', 'gps', 'time']
+    for match in ut.ProgIter(matches_RAT, label='setup globals'):
+        match.add_global_measures(global_keys)
+
+    # Preload flann for only specific annots
+    for match in ut.ProgIter(matches_RAT, label='preload FLANN'):
+        match.annot1['flann']
+
+    cfgdict = hyper_params.vsone_assign
+    if qreq_.qparams.featweight_enabled:
+        del cfgdict['weight']
+    # Find one-vs-one matches
+    # cfgdict = {'checks': 20, 'symmetric': False}
+    for match in ut.ProgIter(matches_RAT, label='assign vsone'):
+        match.assign(cfgdict=cfgdict)
+
+    # gridsearch_ratio_thresh()
+    # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_ratio_test', {
+    #     'ratio_thresh': np.linspace(.6, .7, 50)
+    # })
+    for match in ut.ProgIter(matches_RAT, label='apply ratio thresh'):
+        match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+
+    # Add keypoint spatial information to local features
+    for match in matches_RAT:
+        key_ = 'norm_xys'
+        norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
+        norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
+        match.local_measures['norm_x1'] = norm_xy1[0]
+        match.local_measures['norm_y1'] = norm_xy1[1]
+        match.local_measures['norm_x2'] = norm_xy2[0]
+        match.local_measures['norm_y2'] = norm_xy2[1]
+
+        match.local_measures['scale1'] = vt.get_scales(
+            match.annot1['kpts'].take(match.fm.T[0], axis=0))
+        match.local_measures['scale2'] = vt.get_scales(
+            match.annot2['kpts'].take(match.fm.T[1], axis=0))
+
+    # TODO gridsearch over sv params
+    # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_sver', {
+    #     'xy_thresh': np.linspace(0, 1, 3)
+    # })
+    matches_RAT_SV = [
+        match.apply_sver(inplace=False)
+        for match in ut.ProgIter(matches_RAT, label='sver')
+    ]
+
+    # Create another version where we find global normalizers for the data
+    qreq_.load_indexer()
+    matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_)
+
+    if 'weight' in cfgdict:
+        for match in matches_SV_LNBNN[::-1]:
+            lnbnn_dist = match.local_measures['lnbnn']
+            ndist = match.local_measures['lnbnn_norm_dist']
+            weights = match.local_measures[cfgdict['weight']]
+            match.local_measures['weighted_lnbnn'] = weights * lnbnn_dist
+            match.local_measures['weighted_lnbnn_norm_dist'] = weights * ndist
+            match.fs = match.local_measures['weighted_lnbnn']
+
+    cached_data = {
+        'RAT': matches_RAT,
+        'RAT_SV': matches_RAT_SV,
+        'SV_LNBNN': matches_SV_LNBNN,
+    }
+    return cached_data
+
+
+def batch_apply_lnbnn(matches, qreq_):
+    from ibeis.algo.hots import nn_weights
+    indexer = qreq_.indexer
+    matches_ = [match.copy() for match in matches]
+    K = qreq_.qparams.K
+    Knorm = qreq_.qparams.Knorm
+    normalizer_rule  = qreq_.qparams.normalizer_rule
+
+    print('Stacking vecs for batch matching')
+    offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
+    stacked_vecs = np.vstack([
+        match_.matched_vecs2()
+        for match_ in ut.ProgIter(matches_, lablel='stacking matched vecs')
+    ])
+
+    vecs = stacked_vecs
+    num = (K + Knorm)
+    idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
+                                    label='lnbnn scoring')
+
+    idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
+    dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+    iter_ = zip(matches_, idx_list, dist_list)
+    prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+    for match_, neighb_idx, neighb_dist in prog:
+        qaid = match_.annot2['aid']
+        norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+        ndist = vt.take_col_per_row(neighb_dist, norm_k)
+        vdist = match_.local_measures['match_dist']
+        lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
+        lnbnn_dist = np.clip(lnbnn_dist, 0, np.inf)
+        match_.local_measures['lnbnn_norm_dist'] = ndist
+        match_.local_measures['lnbnn'] = lnbnn_dist
+        match_.fs = lnbnn_dist
+    return matches_
+
+
+def bigcache_vsone(qreq_, hyper_params):
+    """
+    Cached output of one-vs-one matches
+    """
+    import vtool as vt
+    import ibeis
+    # Get a set of training pairs
+    ibs = qreq_.ibs
+    cm_list = qreq_.execute()
+    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
+
+    # Per query choose a set of correct, incorrect, and random training pairs
+    aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
+                                         **hyper_params.pair_sample)
+    aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
+    # TODO: handle non-comparability
+
+    # ======================================
+    # Compute one-vs-one scores and local_measures
+    # ======================================
+
+    # Prepare lazy attributes for annotations
+    qreq_ = infr.qreq_
+    ibs = qreq_.ibs
+    qconfig2_ = qreq_.extern_query_config2
+    dconfig2_ = qreq_.extern_data_config2
+    qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
+    dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
+
+    # Remove any pairs missing features
+    if dannot_cfg == qannot_cfg:
+        unique_annots = ibs.annots(np.unique(np.array(aid_pairs_)), config=dannot_cfg)
+        bad_aids = unique_annots.compress(~np.array(unique_annots.num_feats) > 0).aids
+        bad_aids = set(bad_aids)
+    else:
+        annots1_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 0)), config=qannot_cfg)
+        annots2_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 1)), config=dannot_cfg)
+        bad_aids1 = annots1_.compress(~np.array(annots1_.num_feats) > 0).aids
+        bad_aids2 = annots2_.compress(~np.array(annots2_.num_feats) > 0).aids
+        bad_aids = set(bad_aids1 + bad_aids2)
+    subset_idxs = np.where([not (a1 in bad_aids or a2 in bad_aids)
+                            for a1, a2 in aid_pairs_])[0]
+    # Keep only a random subset
+    if hyper_params.subsample:
+        rng = np.random.RandomState(3104855634)
+        num_max = hyper_params.subsample
+        if num_max < len(subset_idxs):
+            subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
+            subset_idxs = sorted(subset_idxs)
+
+    # Take the current selection
+    aid_pairs = ut.take(aid_pairs_, subset_idxs)
+    query_aids = ut.take_column(aid_pairs, 0)
+    data_aids = ut.take_column(aid_pairs, 1)
+
+    # Determine a unique set of annots per config
+    configured_aids = ut.ddict(set)
+    configured_aids[qannot_cfg].update(query_aids)
+    configured_aids[dannot_cfg].update(data_aids)
+
+    # Make efficient annot-object representation
+    configured_obj_annots = {}
+    for config, aids in configured_aids.items():
+        annots = ibs.annots(sorted(list(aids)), config=config)
+        configured_obj_annots[config] = annots
+
+    annots1 = configured_obj_annots[qannot_cfg].loc(query_aids)
+    annots2 = configured_obj_annots[dannot_cfg].loc(data_aids)
+
+    # Get hash based on visual annotation appearence of each pair
+    # as well as algorithm configurations used to compute those properties
+    qvuuids = annots1.visual_uuids
+    dvuuids = annots2.visual_uuids
+    qcfgstr = annots1._config.get_cfgstr()
+    dcfgstr = annots2._config.get_cfgstr()
+    annots_cfgstr = ut.hashstr27(qcfgstr) + ut.hashstr27(dcfgstr)
+    vsone_uuids = [
+        ut.combine_uuids(uuids, salt=annots_cfgstr)
+        for uuids in ut.ProgIter(zip(qvuuids, dvuuids), length=len(qvuuids),
+                                 label='hashing ids')
+    ]
+
+    # Combine into a big cache for the entire 1-v-1 matching run
+    big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
+    cacher = ut.Cacher('vsone', cfgstr=str(big_uuid), appname='vsone_rf_train')
+
+    cached_data = cacher.tryload()
+    if cached_data is not None:
+        # Caching doesn't work 100% for PairwiseMatch object, so we need to do
+        # some postprocessing
+        configured_lazy_annots = ut.ddict(dict)
+        for config, annots in configured_obj_annots.items():
+            annot_dict = configured_lazy_annots[config]
+            for _annot in ut.ProgIter(annots.scalars(), label='make lazy dict'):
+                annot_dict[_annot.aid] = _annot._make_lazy_dict()
+
+        # Extract pairs of annot objects (with shared caches)
+        lazy_annots1 = ut.take(configured_lazy_annots[qannot_cfg], query_aids)
+        lazy_annots2 = ut.take(configured_lazy_annots[dannot_cfg], data_aids)
+
+        # Create a set of PairwiseMatches with the correct annot properties
+        matches = [vt.PairwiseMatch(annot1, annot2)
+                   for annot1, annot2 in zip(lazy_annots1, lazy_annots2)]
+
+        # Updating a new matches dictionary ensure the annot1/annot2 properties
+        # are set correctly
+        for key, cached_matches in list(cached_data.items()):
+            fixed_matches = [match.copy() for match in matches]
+            for fixed, internal in zip(fixed_matches, cached_matches):
+                dict_ = internal.__dict__
+                ut.delete_dict_keys(dict_, ['annot1', 'annot2'])
+                fixed.__dict__.update(dict_)
+            cached_data[key] = fixed_matches
+    else:
+        cached_data = vsone_(qreq_, query_aids, data_aids, qannot_cfg,
+                             dannot_cfg, configured_obj_annots, hyper_params)
+        cacher.save(cached_data)
+    return cached_data, infr
 
 
 if __name__ == '__main__':
