@@ -91,13 +91,43 @@ def train_pairwise_rf():
 
     data = bigcache_features(qreq_, hyper_params)
     simple_scores, X_dict, y, match = data
-
-    X = X_dict['learn(all)']
-
-    match.local_measures.keys()
+    X_dict = X_dict.copy()
+    class_hist = ut.dict_hist(y)
 
     print('Building pairwise classifier')
-    print('hist(y) = ' + ut.repr4(ut.dict_hist(y)))
+    print('hist(y) = ' + ut.repr4(class_hist))
+    X = X_dict['learn(all)']
+
+    if True:
+        print('Reducing dataset size for class balance')
+        # Find the data with the most null / 0 values
+        # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
+        nullness = pd.isnull(X).sum(axis=1)
+        false_nullness = (nullness)[~y]
+        sortx = false_nullness.argsort()[::-1]
+        false_nullness_ = false_nullness.iloc[sortx]
+        # Remove a few to make training more balanced / faster
+        num_remove = max(class_hist[False] - class_hist[True], 0)
+        to_remove = false_nullness_.iloc[:num_remove]
+        mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(X)))
+        y = y[mask]
+        simple_scores = simple_scores[mask]
+        class_hist = ut.dict_hist(y)
+        print('hist(y) = ' + ut.repr4(class_hist))
+        X = X[mask]
+        X_dict['learn(all)'] = X
+
+    if True:
+        print('Reducing dataset size for development')
+        rng = np.random.RandomState(1850057325)
+        to_keep = rng.choice(np.arange(len(y)), 1000)
+        mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
+        y = y[mask]
+        simple_scores = simple_scores[mask]
+        class_hist = ut.dict_hist(y)
+        print('hist(y) = ' + ut.repr4(class_hist))
+        X = X[mask]
+        X_dict['learn(all)'] = X
 
     simple_scores_ = simple_scores.copy()
     if True:
@@ -124,17 +154,22 @@ def train_pairwise_rf():
 
     # Simple printout of aucs
     # we dont need cross validation because there is no learning here
+    print('\nAUC of simple scoring measures:')
     print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
 
     # ---------------
     # Setup cross-validation
 
+    print('\nTraining Data Info:')
+    for name, X in X_dict.items():
+        print('%s.shape = %r' % (name, X.shape))
+    print('hist(y) = ' + ut.repr4(class_hist))
+
     # xvalkw = dict(n_splits=10, shuffle=True,
     xvalkw = dict(n_splits=3, shuffle=True,
                   random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    skf_iter = skf.split(X=np.empty(y.shape), y=y)
-    df_results = pd.DataFrame(columns=list(X_dict.keys()))
+    skf_iter = skf.split(X=y, y=y)
 
     rf_params = {
         # 'max_depth': 4,
@@ -147,9 +182,14 @@ def train_pairwise_rf():
         'n_estimators': 256,
         'criterion': 'entropy',
     }
-    rf_params.update(verbose=0, random_state=np.random.RandomState(3915904814))
+    rf_settings = {
+        'random_state': np.random.RandomState(3915904814),
+        'verbose': 0,
+        'n_jobs': -1,
+    }
+    rf_params.update(rf_settings)
     cv_classifiers = []
-    # a RandomForestClassifier is an ensemble of DecisionTreeClassifier(s)
+    df_results = pd.DataFrame(columns=list(X_dict.keys()))
     prog = ut.ProgIter(list(skf_iter), label='skf')
     for count, (train_idx, test_idx) in enumerate(prog):
         y_test = y[test_idx]
@@ -157,8 +197,10 @@ def train_pairwise_rf():
         split_columns = []
         split_aucs = []
         classifiers = {}
-        # prog.ensure_newline()
-        for name, X in X_dict.items():
+        prog.ensure_newline()
+        prog2 = ut.ProgIter(X_dict.items(), length=len(X_dict), label='feature selection')
+        for name, X in prog2:
+            # print(name)
             # Learn a random forest classifier using train data
             X_train = X.values[train_idx]
             X_test = X.values[test_idx]
@@ -256,12 +298,19 @@ def train_pairwise_rf():
                 return 'summary'
         apply_grouper(type_grouper)
 
-        print('\nImportance of locals summaries')
+        print('\nImportance of locals summary types')
         def summary_grouper(key):
-            for p in ['sum', 'std', 'mean']:
+            for p in ['sum', 'std', 'mean', 'len']:
                 if key.startswith(p):
                     return p
         apply_grouper(summary_grouper)
+
+        print('\nImportance of locals summary types')
+        def summary_measure_grouper(key):
+            for p in ['sum', 'std', 'mean', 'len']:
+                if key.startswith(p):
+                    return key[key.find('(') + 1:-1]
+        apply_grouper(summary_measure_grouper)
 
         print('\nImportance of local measures')
         def local_grouper(key):
@@ -284,8 +333,8 @@ def train_pairwise_rf():
         pt.wordcloud(importances)
     pt.show_if_requested()
 
-    import utool
-    utool.embed()
+    # import utool
+    # utool.embed()
 
     # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
     # columns = ['Method', 'AUC']
@@ -316,7 +365,7 @@ def bigcache_features(qreq_, hyper_params):
     cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
 
     cacher = ut.Cacher('pairwise_data', cfgstr=cfgstr,
-                       appname='vsone_rf_train', enabled=0)
+                       appname='vsone_rf_train', enabled=1)
     data = cacher.tryload()
     if not data:
         data = build_features(qreq_, hyper_params)
@@ -395,7 +444,8 @@ def build_features(qreq_, hyper_params):
     # Try different feature constructions
     print('Building pairwise features')
     pairwise_feats = pd.DataFrame([
-        m.make_feature_vector(sorters=sorters, keys=keys1, sl=slice(2, 5))
+        m.make_feature_vector(sorters=sorters, keys=keys1, indices=slice(2, 5),
+                              mean=False, std=False)
         for m in ut.ProgIter(matches, label='making pairwise feats')
     ])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
