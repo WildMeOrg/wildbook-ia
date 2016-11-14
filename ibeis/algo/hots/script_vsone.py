@@ -143,7 +143,7 @@ def train_pairwise_rf():
     if True:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1850057325)
-        to_keep = rng.choice(np.arange(len(y)), 1500)
+        to_keep = rng.choice(np.arange(len(y)), 4000)
         mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
         y = y[mask]
         simple_scores = simple_scores[mask]
@@ -185,8 +185,10 @@ def train_pairwise_rf():
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
             ('measure', '!=', ['lnbnn', 'weighted_lnbnn']),
-
         ])
+        cols.update(self.select_columns([
+            ('measure_type', '==', 'global'),
+        ]))
         X_dict['learn(sum,glob,1)']  = self.X[sorted(cols)]
 
     if True:
