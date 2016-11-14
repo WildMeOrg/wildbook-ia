@@ -109,7 +109,7 @@ def train_pairwise_rf():
     print('hist(y) = ' + ut.repr4(class_hist))
     X = X_dict['learn(all)']
 
-    if True:
+    if False:
         # Remove anything 1vM didn't get
         mask = (simple_scores['score_lnbnn_1vM'] > 0).values
         y = y[mask]
@@ -143,7 +143,7 @@ def train_pairwise_rf():
     if True:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1850057325)
-        to_keep = rng.choice(np.arange(len(y)), 2000)
+        to_keep = rng.choice(np.arange(len(y)), 1500)
         mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
         y = y[mask]
         simple_scores = simple_scores[mask]
@@ -151,6 +151,8 @@ def train_pairwise_rf():
         print('hist(y) = ' + ut.repr4(class_hist))
         X = X[mask]
         X_dict['learn(all)'] = X
+
+    # -----------
 
     self = PairFeatInfo(X)
     if True:
@@ -175,14 +177,17 @@ def train_pairwise_rf():
         # Use only summary stats
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
-            # ('local_sorter', 'in', ['weighted_ratio']),
         ])
-        cols.update(self.select_columns([
-            ('feature', '==', 'sum(weighted_ratio)'),
-        ]))
         X_dict['learn(summary)']  = self.X[sorted(cols)]
-        # del X_dict['learn(all)']
-        # self.find('local_rank', '==', 0)
+
+    if True:
+        # Use summary and global
+        cols = self.select_columns([
+            ('measure_type', 'in', ['summary', 'global']),
+        ])
+        X_dict['learn(summary+global)']  = self.X[sorted(cols)]
+
+    del X_dict['learn(all)']
 
     simple_scores_ = simple_scores.copy()
     if True:
@@ -306,7 +311,6 @@ def train_pairwise_rf():
     import plottool as pt  # NOQA
 
     for name, X in X_dict.items():
-        break
         # Take average feature importance
         print('IMPORTANCE INFO FOR %s DATA' % (name,))
         feature_importances = np.mean([
@@ -319,12 +323,12 @@ def train_pairwise_rf():
 
         # self.print_margins('feature')
         self.print_margins('measure_type')
-        # self.print_margins('summary_op')
-        # self.print_margins('summary_measure')
+        self.print_margins('summary_op')
+        self.print_margins('summary_measure')
         # self.print_margins('global_measure')
-        self.print_margins('local_measure')
-        self.print_margins('local_sorter')
-        self.print_margins('local_rank')
+        # self.print_margins('local_measure')
+        # self.print_margins('local_sorter')
+        # self.print_margins('local_rank')
 
         # ut.fix_embed_globals()
         # pt.wordcloud(importances)
