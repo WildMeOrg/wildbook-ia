@@ -21,6 +21,15 @@ class PairSampleConfig(dtool.Config):
     ]
 
 
+class PairFeatureConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('indices', 10),
+        ut.ParamInfo('sum', True),
+        ut.ParamInfo('std', True),
+        ut.ParamInfo('mean', True),
+    ]
+
+
 class VsOneAssignConfig(dtool.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
@@ -83,7 +92,8 @@ def train_pairwise_rf():
     hyper_params = dtool.Config.from_dict(dict(
         subsample=None,
         pair_sample=PairSampleConfig(),
-        vsone_assign=VsOneAssignConfig()),
+        vsone_assign=VsOneAssignConfig(),
+        pairwise_feats=PairFeatureConfig(), ),
         tablename='HyperParams'
     )
     if qreq_.qparams.featweight_enabled:
@@ -248,7 +258,7 @@ def train_pairwise_rf():
     print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
     ut.qt4ensure()
-    import plottool as pt
+    import plottool as pt  # NOQA
 
     def print_dict_ranks(dict_):
         sorted_ = ut.sort_dict(dict_, 'vals', reverse=True)
@@ -330,8 +340,17 @@ def train_pairwise_rf():
                 return key[key.find(',') + 1:key.find(']')]
         apply_grouper(sorter_grouper)
 
-        pt.wordcloud(importances)
-    pt.show_if_requested()
+        # pt.wordcloud(importances)
+    # pt.show_if_requested()
+
+
+class PairFeatMargins(object):
+    def __init__(self, X):
+        self.X = X
+        self._summaries = ['sum', 'mean', 'std', 'len']
+
+    def summary_keys(self, keys):
+        pass
 
     # import utool
     # utool.embed()
@@ -386,16 +405,14 @@ def build_features(qreq_, hyper_params):
     # Attempt to train a simple classsifier
     # =====================================
 
-    # setup truth targets
-    # TODO: not-comparable
     matches = cached_data['SV_LNBNN']
     # Pass back just one match to play with
     for match in matches:
         if len(match.fm) > 10:
             break
 
+    # setup truth targets
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
-    # truth_list = np.array(qreq_.ibs.get_aidpair_truths(*zip(*aid_pairs)))
 
     # ---------------
     # Try just using simple scores
@@ -427,39 +444,26 @@ def build_features(qreq_, hyper_params):
             'weighted_ratio', 'weighted_lnbnn',
         ]
 
-    # keys1 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
-    #          'sver_err_scale', 'sver_err_ori', u'lnbnn_norm_dist', u'lnbnn']
-    # keys2 = ['match_dist', 'norm_dist', 'ratio', 'sver_err_xy',
-    #          'sver_err_scale', 'sver_err_ori']
-    keys1 = list(match.local_measures.keys())
+    measures = list(match.local_measures.keys())
 
     # Ignore for PZ/GZ
-    keys_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist',
-                   'fgweights']
-    sorters_ignore = ['match_dist', 'ratio']
+    # keys_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist',
+    # 'fgweights']
+    # sorters_ignore = ['match_dist', 'ratio']
+    # measures = ut.setdiff(measures, keys_ignore)
+    # sorters = ut.setdiff(sorters, sorters_ignore)
 
-    keys1 = ut.setdiff(keys1, keys_ignore)
-    sorters = ut.setdiff(sorters, sorters_ignore)
+    pairfeat_cfg = hyper_params.pairwise_feats
 
     # Try different feature constructions
     print('Building pairwise features')
     pairwise_feats = pd.DataFrame([
-        m.make_feature_vector(sorters=sorters, keys=keys1, indices=slice(2, 5),
-                              mean=False, std=False)
+        m.make_feature_vector(sorters=sorters, keys=measures, **pairfeat_cfg)
         for m in ut.ProgIter(matches, label='making pairwise feats')
     ])
     pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
 
-    # pairwise_feats_ratio = pd.DataFrame([
-    #     m.make_feature_vector(sorters='ratio', keys=keys2, sl=3)
-    #     for m in ut.ProgIter(matches)
-    # ])
-    # pairwise_feats_ratio[pd.isnull(pairwise_feats)] = np.nan
-    # valid_colx = np.where(np.all(pairwise_feats.notnull(), axis=0))[0]
-    # valid_cols = pairwise_feats.columns[valid_colx]
-    # X_nonan = pairwise_feats[valid_cols].copy()
     X_all = pairwise_feats.copy()
-    # X_withnan_ratio = pairwise_feats_ratio
 
     X_dict = {
         'learn(all)': X_all
