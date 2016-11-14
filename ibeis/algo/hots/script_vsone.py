@@ -180,29 +180,14 @@ def train_pairwise_rf():
         ])
         X_dict['learn(sum)']  = self.X[sorted(cols)]
 
-    if False:
-        # Use only summary stats
-        cols = self.select_columns([
-            ('measure_type', '==', 'summary'),
-            ('summary_measure', '!=', [
-                'lnbnn', 'weighted_lnbnn',
-                'sver_err_scale',
-                # 'match_dist', 'scale1', 'scale2'
-            ]),
-        ])
-        X_dict['learn(sum-)']  = self.X[sorted(cols)]
-
     if True:
         # Use only summary stats
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('summary_measure', '!=', ['lnbnn', 'weighted_lnbnn',
-                                       'sver_err_scale', 'match_dist'
-                                       'scale1', 'scale2']),
-            ('summary_op', 'not in', ['std']),
+            ('measure', '!=', ['lnbnn', 'weighted_lnbnn']),
 
         ])
-        X_dict['learn(sum-,glob)']  = self.X[sorted(cols)]
+        X_dict['learn(sum,glob,1)']  = self.X[sorted(cols)]
 
     if True:
         # Use summary and global
@@ -410,9 +395,6 @@ class PairFeatInfo(object):
         self.importances = importances
         self._summary_keys = ['sum', 'mean', 'std', 'len']
 
-    def _measure(self, key):
-        return key[key.find('(') + 1:-1]
-
     def select_columns(self, criteria, op='and'):
         if op == 'and':
             cols = set(self.X.columns)
@@ -491,6 +473,9 @@ class PairFeatInfo(object):
         print('\nCounts of ' + nice)
         print(_weights)
 
+    def measure(self, key):
+        return key[key.find('(') + 1:-1]
+
     def feature(self, key):
         return key
 
@@ -509,7 +494,7 @@ class PairFeatInfo(object):
 
     def summary_measure(self, key):
         if any(key.startswith(p) for p in self._summary_keys):
-            return self._measure(key)
+            return self.measure(key)
 
     def local_sorter(self, key):
         if key.startswith('loc'):
@@ -521,11 +506,11 @@ class PairFeatInfo(object):
 
     def local_measure(self, key):
         if key.startswith('loc'):
-            return self._measure(key)
+            return self.measure(key)
 
     def global_measure(self, key):
         if key.startswith('global'):
-            return self._measure(key)
+            return self.measure(key)
 
 
 def bigcache_features(qreq_, hyper_params):
