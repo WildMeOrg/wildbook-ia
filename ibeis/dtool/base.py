@@ -361,11 +361,16 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
             >>> updated_config = self.config  # NOQA
             >>> print('updated_config = %r' % (updated_config,))
         """
-        if tablename is None:
-            tablename = 'Unknown'
-        UnnamedConfig = make_configclass(dict_, tablename)
+        UnnamedConfig = cls.class_from_dict(dict_, tablename)
         config = UnnamedConfig()
         return config
+
+    @classmethod
+    def class_from_dict(cls, dict_, tablename=None):
+        if tablename is None:
+            tablename = 'Unnamed'
+        UnnamedConfig = make_configclass(dict_, tablename)
+        return UnnamedConfig
 
     def make_qt_dialog(cfg, parent=None, title='Edit Config', msg='Confim'):
         import guitool as gt
@@ -446,7 +451,7 @@ def make_configclass(dict_, tablename):
             return ut.ParamInfo(key, val, type_=type(val))
 
     param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
-    return from_param_info_list(param_info_list)
+    return from_param_info_list(param_info_list, tablename)
 
 
 def from_param_info_list(param_info_list, tablename='Unnamed'):
