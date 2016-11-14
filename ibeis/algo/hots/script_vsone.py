@@ -178,7 +178,17 @@ def train_pairwise_rf():
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
         ])
-        X_dict['learn(summary)']  = self.X[sorted(cols)]
+        X_dict['learn(sum)']  = self.X[sorted(cols)]
+
+    if False:
+        # Use only summary stats
+        cols = self.select_columns([
+            ('measure_type', '==', 'summary'),
+            ('summary_measure', '!=', ['lnbnn', 'weighted_lnbnn',
+                                       'sver_err_scale', 'match_dist'
+                                       'scale1', 'scale2']),
+        ])
+        X_dict['learn(sum-)']  = self.X[sorted(cols)]
 
     if True:
         # Use only summary stats
@@ -188,7 +198,7 @@ def train_pairwise_rf():
                                        'sver_err_scale', 'match_dist'
                                        'scale1', 'scale2']),
         ])
-        X_dict['learn(summary-)']  = self.X[sorted(cols)]
+        X_dict['learn(sum-,glob)']  = self.X[sorted(cols)]
 
     if True:
         # Use summary and global
@@ -198,7 +208,7 @@ def train_pairwise_rf():
         cols.update(self.select_columns([
             ('measure_type', '==', 'global'),
         ]))
-        X_dict['learn(summary+global)']  = self.X[sorted(cols)]
+        X_dict['learn(sum,glob)']  = self.X[sorted(cols)]
 
     del X_dict['learn(all)']
 
@@ -320,10 +330,14 @@ def train_pairwise_rf():
     # Add in the simple scores
     print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
+    best_name = df_all.columns[df_all.values.argmax()]
+
     ut.qt4ensure()
     import plottool as pt  # NOQA
 
     for name, X in X_dict.items():
+        if name != best_name:
+            continue
         # Take average feature importance
         print('IMPORTANCE INFO FOR %s DATA' % (name,))
         feature_importances = np.mean([
