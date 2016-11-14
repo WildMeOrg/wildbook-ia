@@ -282,7 +282,7 @@ def train_pairwise_rf():
             ('local_measure', 'not in', measures_ignore),
             # ('local_rank', '<=', 22),
             # ('local_rank', 'in', [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
-            ('local_rank', 'in', [0, 5, 10, 15, 20]),
+            # ('local_rank', 'in', [0, 5, 10, 15, 20]),
             # ('local_sorter', 'in', ['weighted_ratio', 'norm_dist', 'lnbnn_norm_dist']),
         ])
         cols.update(self.select_columns([
@@ -291,7 +291,7 @@ def train_pairwise_rf():
         X_local = self.X[sorted(cols)]
 
         X_dict['learn(local)'] = X_local
-        del X_dict['learn(all)']
+        # del X_dict['learn(all)']
         # self.find('local_rank', '==', 0)
 
     simple_scores_ = simple_scores.copy()
