@@ -5,6 +5,7 @@ import numpy as np
 import vtool as vt
 import dtool
 from six.moves import zip, range  # NOQA
+import pandas as pd  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -32,6 +33,133 @@ class PairFeatureConfig(dtool.Config):
 
 class VsOneAssignConfig(dtool.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
+
+
+@ut.reloadable_class
+class PairFeatInfo(object):
+    def __init__(self, X, importances=None):
+        self.X = X
+        self.importances = importances
+        self._summary_keys = ['sum', 'mean', 'std', 'len']
+
+    def _measure(self, key):
+        return key[key.find('(') + 1:-1]
+
+    def nice_text(nice):
+        def _wrp(func):
+            func.nice = nice
+            return func
+        return _wrp
+
+    def select_columns(self, criteria, op='and'):
+        if op == 'and':
+            cols = set(self.X.columns)
+            update = cols.intersection_update
+        elif op == 'or':
+            cols = set([])
+            update = cols.update
+        else:
+            raise Exception(op)
+        for group_id, op, value in criteria:
+            found = self.find(group_id, op, value)
+            update(found)
+        return cols
+
+    def find(self, group_id, op, value):
+        import six
+        if isinstance(op, six.text_type):
+            opdict = ut.get_comparison_operators()
+            op = opdict.get(op)
+        grouper = getattr(self, group_id)
+        found = []
+        for col in self.X.columns:
+            try:
+                value1 = grouper(col)
+                if value1 is not None and isinstance(value, int):
+                    value1 = int(value1)
+                if op(value1, value):
+                    found.append(col)
+            except:
+                pass
+        return found
+
+    def group_importance(self, item):
+        name, keys = item
+        num = len(keys)
+        weight = sum(ut.take(self.importances, keys))
+        ave_w = weight / num
+        tup = ave_w, weight, num
+        # return tup
+        df = pd.DataFrame([tup], columns=['ave_w', 'weight', 'num'],
+                          index=[name])
+        return df
+
+    def print_margins(self, group_id):
+        X = self.X
+        grouper = getattr(self, group_id)
+        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+        _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
+        _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
+        nice = ut.get_funcname(grouper).replace('_', ' ')
+        nice = ut.pluralize(nice)
+        print('\nImportance of ' + nice)
+        print(_weights)
+
+    def group_counts(self, item):
+        name, keys = item
+        num = len(keys)
+        tup = (num,)
+        # return tup
+        df = pd.DataFrame([tup], columns=['num'],
+                          index=[name])
+        return df
+
+    def print_counts(self, group_id):
+        X = self.X
+        grouper = getattr(self, group_id)
+        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+        _weights = pd.concat(ut.lmap(self.group_counts, _keys.items()))
+        _weights = _weights.iloc[_weights['num'].argsort()[::-1]]
+        nice = ut.get_funcname(grouper).replace('_', ' ')
+        nice = ut.pluralize(nice)
+        print('\nCounts of ' + nice)
+        print(_weights)
+
+    def feature(self, key):
+        return key
+
+    def measure_type(self, key):
+        if key.startswith('global'):
+            return 'global'
+        if key.startswith('loc'):
+            return 'local'
+        if any(key.startswith(p) for p in self._summary_keys):
+            return 'summary'
+
+    def summary_op(self, key):
+        for p in self._summary_keys:
+            if key.startswith(p):
+                return key[key.find('(') + 1:-1]
+
+    def summary_measure(self, key):
+        if any(key.startswith(p) for p in self._summary_keys):
+            return self._measure(key)
+
+    def local_sorter(self, key):
+        if key.startswith('loc'):
+            return key[key.find('[') + 1:key.find(',')]
+
+    def local_rank(self, key):
+        if key.startswith('loc'):
+            return key[key.find(',') + 1:key.find(']')]
+
+    def local_measure(self, key):
+        if key.startswith('loc'):
+            return self._measure(key)
+
+    def global_measure(self, key):
+        if key.startswith('global'):
+            return self._measure(key)
 
 
 @profile
@@ -138,6 +266,28 @@ def train_pairwise_rf():
         print('hist(y) = ' + ut.repr4(class_hist))
         X = X[mask]
         X_dict['learn(all)'] = X
+
+    self = PairFeatInfo(X)
+    if True:
+        # Modify features
+        measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
+        # sorters_ignore = ['match_dist', 'ratio']
+        cols = self.select_columns([
+            ('measure_type', '==', 'local'),
+            ('local_sorter', 'in', ['weighted_ratio']),
+            ('local_measure', 'not in', measures_ignore),
+            # ('local_rank', '<=', 22),
+            ('local_rank', 'in', [0, 3, 4, 5, 9, 10, 11, 15, 16, 17, 21, 22]),
+            # ('local_sorter', 'in', ['weighted_ratio', 'norm_dist', 'lnbnn_norm_dist']),
+        ])
+        cols.update(self.select_columns([
+            ('feature', '==', 'sum(weighted_ratio)'),
+        ]))
+        X_local = self.X[sorted(cols)]
+
+        X_dict['learn(local)'] = X_local
+        del X_dict['learn(all)']
+        # self.find('local_rank', '==', 0)
 
     simple_scores_ = simple_scores.copy()
     if True:
@@ -260,99 +410,35 @@ def train_pairwise_rf():
     ut.qt4ensure()
     import plottool as pt  # NOQA
 
-    def print_dict_ranks(dict_):
-        sorted_ = ut.sort_dict(dict_, 'vals', reverse=True)
-        print(ut.align(ut.repr4(sorted_, precision=4), ':'))
+    # def print_dict_ranks(dict_):
+    #     sorted_ = ut.sort_dict(dict_, 'vals', reverse=True)
+    #     print(ut.align(ut.repr4(sorted_, precision=4), ':'))
 
     for name, X in X_dict.items():
         # Take average feature importance
+        print('IMPORTANCE INFO FOR %s DATA' % (name,))
         feature_importances = np.mean([
             clf_.feature_importances_
             for clf_ in ut.dict_take_column(cv_classifiers, name)
         ], axis=0)
-        _importances = ut.dzip(X.columns, feature_importances)
-        importances = ut.map_keys(lambda k: k.replace('norm_x', 'x'), _importances)
-        importances = ut.map_keys(lambda k: k.replace('norm_y', 'y'), importances)
-        importances = {k: v for k, v in importances.items() if v > .01}
-        # Display weight of each individual feature
+        importances = ut.dzip(X.columns, feature_importances)
 
-        print('\n Most Important Features')
-        print_dict_ranks(importances)
+        self = PairFeatInfo(X, importances)
+
+        # self.print_margins('feature')
+        self.print_margins('measure_type')
+        # self.print_margins('summary_op')
+        # self.print_margins('summary_measure')
+        # self.print_margins('global_measure')
+        self.print_margins('local_measure')
+        self.print_margins('local_sorter')
+        self.print_margins('local_rank')
 
         # ut.fix_embed_globals()
-
-        # Display weight of groups of features
-        def group_importance(item):
-            name, keys = item
-            num = len(keys)
-            weight = sum(ut.take(_importances, keys))
-            ave_w = weight / num
-            tup = ave_w, weight, num
-            # return tup
-            df = pd.DataFrame([tup], columns=['ave_w', 'weight', 'num'], index=[name])
-            return df
-
-        def apply_grouper(grouper):
-            _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
-            _weights = pd.concat(ut.lmap(group_importance, _keys.items()))
-            _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
-            print(_weights)
-
-        print('\nImportance of globals-vs-locals')
-        def type_grouper(key):
-            if key.startswith('global'):
-                return 'global'
-            if key.startswith('loc'):
-                return 'local'
-            if any(key.startswith(p) for p in ['sum', 'mean', 'std', 'len']):
-                return 'summary'
-        apply_grouper(type_grouper)
-
-        print('\nImportance of locals summary types')
-        def summary_grouper(key):
-            for p in ['sum', 'std', 'mean', 'len']:
-                if key.startswith(p):
-                    return p
-        apply_grouper(summary_grouper)
-
-        print('\nImportance of locals summary types')
-        def summary_measure_grouper(key):
-            for p in ['sum', 'std', 'mean', 'len']:
-                if key.startswith(p):
-                    return key[key.find('(') + 1:-1]
-        apply_grouper(summary_measure_grouper)
-
-        print('\nImportance of local measures')
-        def local_grouper(key):
-            if key.startswith('loc'):
-                return key[key.find('(') + 1:-1]
-        apply_grouper(local_grouper)
-
-        print('\nImportance of local sorters')
-        def sorter_grouper(key):
-            if key.startswith('loc'):
-                return key[key.find('[') + 1:key.find(',')]
-        apply_grouper(sorter_grouper)
-
-        print('\nImportance of local ranks')
-        def sorter_grouper(key):
-            if key.startswith('loc'):
-                return key[key.find(',') + 1:key.find(']')]
-        apply_grouper(sorter_grouper)
-
         # pt.wordcloud(importances)
     # pt.show_if_requested()
-
-
-class PairFeatMargins(object):
-    def __init__(self, X):
-        self.X = X
-        self._summary_keys = ['sum', 'mean', 'std', 'len']
-
-    def summary_name(self, key):
-        for p in self._summary_keys:
-            if key.startswith(p):
-                return key[key.find('(') + 1:-1]
+    # import utool
+    # utool.embed()
 
     # import utool
     # utool.embed()
@@ -402,6 +488,9 @@ def build_features(qreq_, hyper_params):
     # Compute or load one-vs-one results
     # ==================================
     cached_data, infr = bigcache_vsone(qreq_, hyper_params)
+    for key in list(cached_data.keys()):
+        if key != 'SV_LNBNN':
+            del cached_data[key]
 
     # =====================================
     # Attempt to train a simple classsifier
@@ -447,13 +536,6 @@ def build_features(qreq_, hyper_params):
         ]
 
     measures = list(match.local_measures.keys())
-
-    # Ignore for PZ/GZ
-    # keys_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist',
-    # 'fgweights']
-    # sorters_ignore = ['match_dist', 'ratio']
-    # measures = ut.setdiff(measures, keys_ignore)
-    # sorters = ut.setdiff(sorters, sorters_ignore)
 
     pairfeat_cfg = hyper_params.pairwise_feats
 
@@ -571,13 +653,13 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
     #     'xy_thresh': np.linspace(0, 1, 3)
     # })
     matches_RAT_SV = [
-        match.apply_sver(inplace=False)
+        match.apply_sver(inplace=True)
         for match in ut.ProgIter(matches_RAT, label='sver')
     ]
 
     # Create another version where we find global normalizers for the data
     qreq_.load_indexer()
-    matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_)
+    matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_, inplace=True)
 
     if 'weight' in cfgdict:
         for match in matches_SV_LNBNN[::-1]:
@@ -589,17 +671,20 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
             match.fs = match.local_measures['weighted_lnbnn']
 
     cached_data = {
-        'RAT': matches_RAT,
-        'RAT_SV': matches_RAT_SV,
+        # 'RAT': matches_RAT,
+        # 'RAT_SV': matches_RAT_SV,
         'SV_LNBNN': matches_SV_LNBNN,
     }
     return cached_data
 
 
-def batch_apply_lnbnn(matches, qreq_):
+def batch_apply_lnbnn(matches, qreq_, inplace=False):
     from ibeis.algo.hots import nn_weights
     indexer = qreq_.indexer
-    matches_ = [match.copy() for match in matches]
+    if not inplace:
+        matches_ = [match.copy() for match in matches]
+    else:
+        matches_ = matches
     K = qreq_.qparams.K
     Knorm = qreq_.qparams.Knorm
     normalizer_rule  = qreq_.qparams.normalizer_rule
