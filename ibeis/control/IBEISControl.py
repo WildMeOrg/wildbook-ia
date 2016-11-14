@@ -623,7 +623,12 @@ class IBEISController(BASE_CLASS):
             print('backups = %r' % (backups,))
             sqlstaging_fpath = backups[backup_idx]
             print('CHOSE BACKUP sqlstaging_fpath = %r' % (sqlstaging_fpath,))
-        if backup_idx is None and not ut.get_argflag('--nobackup-staging'):
+        # HACK
+        nobackup = ut.get_argflag('--nobackup-staging')
+        if ibs.get_dbname() == 'PZ_MTEST':
+            nobackup = True
+
+        if backup_idx is None and not nobackup:
             try:
                 _sql_helpers.ensure_daily_database_backup(ibs.get_ibsdir(),
                                                           ibs.sqlstaging_fname,

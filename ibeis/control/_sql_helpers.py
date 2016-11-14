@@ -167,15 +167,11 @@ def get_backup_fpaths(ibs):
 def copy_database(src_fpath, dst_fpath):
     import dtool
     from ibeis import constants as const
-    OLD = False
-    if OLD:
-        ut.copy(src_fpath, dst_fpath)
-    else:
-        # Load database and ask it to copy itself, which enforces an exclusive
-        # blocked lock for all processes potentially writing to the database
-        db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=const.__STR__,
-                                         inmemory=False)
-        db.backup(dst_fpath)
+    # Load database and ask it to copy itself, which enforces an exclusive
+    # blocked lock for all processes potentially writing to the database
+    db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=const.__STR__,
+                                     inmemory=False)
+    db.backup(dst_fpath)
 
 
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):

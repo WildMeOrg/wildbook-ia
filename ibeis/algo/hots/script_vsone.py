@@ -24,14 +24,10 @@ class HyperParams(object):
     pass
 
 
-def build_features():
+def build_features(ibs, aids):
     import vtool as vt
-    import ibeis
     import pandas as pd
-    # ibs = ibeis.opendb('PZ_MTEST')
-    # ibs = ibeis.opendb('PZ_Master1')
-    ibs = ibeis.opendb(defaultdb='GZ_Master1')
-    aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
+    import ibeis
 
     # ===========================
     # Get a set of training pairs
@@ -426,15 +422,21 @@ def train_pairwise_rf():
     import sklearn.model_selection
     from sklearn.ensemble import RandomForestClassifier
     import pandas as pd
+    import ibeis
 
-    dbname = ut.get_argval('--db')
+    ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    aids = ibeis.testdata_aids(a=':mingt=2,species=primary', ibs=ibs)
+    dbname = ibs.get_dbname()
 
     cacher = ut.Cacher('pairwise_feats', cfgstr='devcache' + str(dbname), appname='vsone_rf_train')
     data = cacher.tryload()
     if data:
         simple_scores, X_dict, y = data
     else:
-        simple_scores, X_dict, y = build_features()
+        # ut.aug_sysargv('--db PZ_MTEST')
+        # ibs = ibeis.opendb('PZ_MTEST')
+        # ibs = ibeis.opendb('PZ_Master1')
+        simple_scores, X_dict, y = build_features(ibs, aids)
         data = simple_scores, X_dict, y
         cacher.save(data)
 
@@ -552,9 +554,6 @@ def train_pairwise_rf():
         print(ut.align(ut.repr4(importances, precision=4), ':'))
 
         pt.wordcloud(importances)
-    import utool
-    utool.embed()
-
     pt.show_if_requested()
 
     # import utool
