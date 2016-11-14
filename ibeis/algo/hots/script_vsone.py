@@ -181,10 +181,23 @@ def train_pairwise_rf():
         X_dict['learn(summary)']  = self.X[sorted(cols)]
 
     if True:
+        # Use only summary stats
+        cols = self.select_columns([
+            ('measure_type', '==', 'summary'),
+            ('summary_measure', '!=', ['lnbnn', 'weighted_lnbnn',
+                                       'sver_err_scale', 'match_dist'
+                                       'scale1', 'scale2']),
+        ])
+        X_dict['learn(summary-)']  = self.X[sorted(cols)]
+
+    if True:
         # Use summary and global
         cols = self.select_columns([
-            ('measure_type', 'in', ['summary', 'global']),
+            ('measure_type', '==', 'summary'),
         ])
+        cols.update(self.select_columns([
+            ('measure_type', '==', 'global'),
+        ]))
         X_dict['learn(summary+global)']  = self.X[sorted(cols)]
 
     del X_dict['learn(all)']
