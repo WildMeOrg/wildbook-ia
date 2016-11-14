@@ -281,7 +281,8 @@ def train_pairwise_rf():
             ('local_sorter', 'in', ['weighted_ratio']),
             ('local_measure', 'not in', measures_ignore),
             # ('local_rank', '<=', 22),
-            ('local_rank', 'in', [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
+            # ('local_rank', 'in', [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
+            ('local_rank', 'in', [0, 5, 10, 15, 20]),
             # ('local_sorter', 'in', ['weighted_ratio', 'norm_dist', 'lnbnn_norm_dist']),
         ])
         cols.update(self.select_columns([
