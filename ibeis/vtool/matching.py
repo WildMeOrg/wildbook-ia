@@ -357,7 +357,7 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     @profile
-    def _make_local_summary_feature_vector(match, keys=[], sum=True,
+    def _make_local_summary_feature_vector(match, keys=None, sum=True,
                                            mean=True, std=True):
         """ Summary statistics of local features """
         if keys is None:
@@ -378,22 +378,22 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     @profile
-    def _make_local_top_feature_vector(match, keys=None, scorers='ratio',
-                                       n_top=3):
+    def _make_local_top_feature_vector(match, keys=None, sorters='ratio',
+                                       sl=3):
         """ Selected subsets of top features """
         if keys is None:
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
-        scorers = ut.ensure_iterable(scorers)
-        # TODO: some scorers might want descending orders
+        sorters = ut.ensure_iterable(sorters)
+        # TODO: some sorters might want descending orders
         chosen_xs = [
-            local_measures[scorer].argsort()[::-1][:n_top]
-            for scorer in scorers
+            match.local_measures[scorer].argsort()[::-1][sl]
+            for scorer in sorters
         ]
         feat = ut.odict([
             ('loc[%s,%d](%s)' % (scorer, count, k), v)
-            for scorer, topxs in zip(scorers, chosen_xs)
+            for scorer, topxs in zip(sorters, chosen_xs)
             for k, vs in six.iteritems(local_measures)
             for count, v in enumerate(vs[topxs])
         ])
