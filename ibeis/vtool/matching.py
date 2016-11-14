@@ -379,28 +379,35 @@ class PairwiseMatch(ut.NiceRepr):
 
     @profile
     def _make_local_top_feature_vector(match, keys=None, sorters='ratio',
-                                       sl=3):
+                                       indices=3):
         """ Selected subsets of top features """
         if keys is None:
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
-        sorters = ut.ensure_iterable(sorters)
+
+        if isinstance(indices, int):
+            indices = slice(indices)
+        if isinstance(indices, slice):
+            indices = list(range(*indices.indices(len(match.fm))))
+
         # TODO: some sorters might want descending orders
+        sorters = ut.ensure_iterable(sorters)
         chosen_xs = [
-            match.local_measures[scorer].argsort()[::-1][sl]
-            for scorer in sorters
+            match.local_measures[sorter].argsort()[::-1][indices]
+            for sorter in sorters
         ]
         feat = ut.odict([
-            ('loc[%s,%d](%s)' % (scorer, count, k), v)
-            for scorer, topxs in zip(sorters, chosen_xs)
+            ('loc[%s,%d](%s)' % (sorter, rank, k), v)
+            for sorter, topxs in zip(sorters, chosen_xs)
             for k, vs in six.iteritems(local_measures)
-            for count, v in enumerate(vs[topxs])
+            for rank, v in zip(indices, vs[topxs])
         ])
         return feat
 
     @profile
-    def make_feature_vector(match, keys=None, **kwargs):
+    def make_feature_vector(match, keys=None, sum=True, mean=True, std=True,
+                            **kwargs):
         """
         Constructs the pairwise feature vector that represents a match
         """
@@ -408,7 +415,8 @@ class PairwiseMatch(ut.NiceRepr):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             feat.update(match._make_global_feature_vector())
-            feat.update(match._make_local_summary_feature_vector(keys))
+            feat.update(match._make_local_summary_feature_vector(
+                keys, sum=sum, mean=mean, std=std))
             feat.update(match._make_local_top_feature_vector(keys, **kwargs))
         return feat
 
