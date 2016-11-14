@@ -24,7 +24,7 @@ class PairSampleConfig(dtool.Config):
 
 class PairFeatureConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('indices', slice(0, 20, 5)),
+        ut.ParamInfo('indices', slice(0, 26, 5)),
         ut.ParamInfo('sum', True),
         ut.ParamInfo('std', True),
         ut.ParamInfo('mean', True),
