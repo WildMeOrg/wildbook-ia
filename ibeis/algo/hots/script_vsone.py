@@ -140,7 +140,7 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if 1:
+    if 0:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1851057325)
         to_keep = rng.choice(np.arange(len(y)), 1000)
