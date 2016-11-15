@@ -155,9 +155,9 @@ def train_pairwise_rf():
     # -----------
 
     self = PairFeatInfo(X)
+    measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
     if False:
         # Use only local features
-        measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
         # sorters_ignore = ['match_dist', 'ratio']
         cols = self.select_columns([
             ('measure_type', '==', 'local'),
@@ -268,7 +268,18 @@ def train_pairwise_rf():
             ]))
             X_dict['learn(loc,sum,glob,4)'] = self.X[sorted(cols)]
 
-    del X_dict['learn(all)']
+        if True:
+            cols = set([])
+            cols.update(summary_cols)
+            cols.update(global_cols)
+            cols.update(self.select_columns([
+                ('measure_type', '==', 'local'),
+                ('local_sorter', 'in', ['weighted_ratio']),
+                ('local_measure', 'not in', measures_ignore),
+            ]))
+            X_dict['learn(loc,sum,glob,5)'] = self.X[sorted(cols)]
+
+    # del X_dict['learn(all)']
 
     simple_scores_ = simple_scores.copy()
     if True:
