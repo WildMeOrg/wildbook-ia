@@ -239,6 +239,18 @@ class _AnnotInfrDummy(object):
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
 
+    def review_dummy_edges(infr):
+        if infr.verbose >= 1:
+            print('[infr] review_dummy_edges')
+        print("REMOVE DUMMY EDGES")
+        edge_to_dummy = infr.get_edge_attrs('_dummy_edge')
+        edges = [edge for edge, dummy in edge_to_dummy.items() if dummy]
+        ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
+        print('edges = %r' % (edges,))
+        print("HACK REVIEWED STATE")
+        if len(edges):
+            nx.set_edge_attributes(infr.graph, 'reviewed_state', _dz(edges, 'match'))
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrIBEIS(object):
@@ -1319,9 +1331,6 @@ class _AnnotInfrFeedback(object):
             (u, v, d) for u, v, d in graph.edges(data=True)
             if (d.get('reviewed_state', 'unreviewed') == 'unreviewed' or
                 d.get('maybe_error', False))
-            # if ((d.get('reviewed_state', 'unreviewed') == 'unreviewed' and
-            #      d.get('inferred_state', None) is None) or
-            #     d.get('maybe_error', False))
         ]
 
         # TODO: stagger edges to review based on cc analysis
@@ -1423,6 +1432,7 @@ class _AnnotInfrFeedback(object):
     def _del_feedback_edges(infr, edges=None):
         if infr.verbose >= 3:
             print('[infr] _del_feedback_edges')
+        print("DELETE REVIEW STATE")
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_state', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_tags', edges)

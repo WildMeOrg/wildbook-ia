@@ -122,8 +122,12 @@ class DevGraphWidget(gt.GuitoolWidget):
             'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
         graph_widget.only_reviwed_cb =  bbar2.addNewCheckBox(
             'Only Reviewed', changed=refresh_via_cb, checked=False)
+
         graph_widget.use_image_cb = bbar2.addNewCheckBox(
             'Show Img', changed=refresh_via_cb, checked=use_image)
+        graph_widget.in_image_cb = bbar2.addNewCheckBox(
+            'In Image', changed=refresh_via_cb, checked=True)
+
         graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
             'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
 
@@ -138,12 +142,19 @@ class DevGraphWidget(gt.GuitoolWidget):
             graph_widget.mpl_needs_update = True
         else:
             # Draw the graph because it is visible
-            graph_widget.draw_graph()
+            try:
+                graph_widget.draw_graph()
+            except AttributeError as ex:
+                ut.printex(ex, 'graph likely init yet', iswarning=True)
 
     def draw_graph(graph_widget):
         graph_widget.mpl_needs_update = False
         # print('[graph] Start draw page')
         graph_widget.mpl_wgt.ax.cla()
+
+        graph_widget.infr.update_node_image_config(
+            in_image=graph_widget.in_image_cb.isChecked()
+        )
 
         graph_widget.infr.update_visual_attrs(
             hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
@@ -366,7 +377,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 class AnnotGraphWidget(gt.GuitoolWidget):
     #signal_state_update = QtCore.pyqtSignal(bool)
 
-    def initialize(self, infr=None, use_image=False, init_mode='rereview',
+    def initialize(self, infr=None, use_image=False, init_mode='review',
                    review_cfg=None):
         print('[graph] initialize')
 
@@ -505,6 +516,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             elif self.init_mode == 'review':
                 self.infr.apply_match_edges()
                 self.infr.apply_feedback_edges()
+                self.infr.review_dummy_edges()
                 self.infr.apply_match_scores()
                 self.infr.apply_weights()
                 # self.infr.relabel_using_reviews()
@@ -563,6 +575,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             if self.graph_widget is not None:
                 self.graph_widget.set_pin_state(True)
             infr.apply_feedback_edges()
+            infr.review_dummy_edges()
             infr.apply_match_edges()
             infr.apply_match_scores()
             ctx.set_progress(2, 3)
@@ -793,7 +806,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         new_labels = ut.take(node_to_label, aids)
 
         grouped_oldnames = ut.take(ut.group_items(old_names, new_labels), unique_labels)
-        grouped_oldnames = [[n for n in names if n != ibs.const.UNKNOWN] for names in grouped_oldnames]
+        grouped_oldnames = [[n for n in names if n != ibs.const.UNKNOWN]
+                            for names in grouped_oldnames]
         from ibeis.scripts import name_recitifer
         new_labels = name_recitifer.find_consistent_labeling(grouped_oldnames)
         new_flags = [n.startswith('_extra_name') for n in new_labels]
@@ -922,7 +936,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr = self.infr
         print('infr = %r' % (infr,))
         if infr is not None and infr.graph is not None:
-            print(ut.repr3(ut.graph_info(infr.graph)))
+            # print(ut.repr3(ut.graph_info(infr.graph)))
+            # self.infr.review_dummy_edges()
+            print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
     def embed(self):
         infr = self.infr  # NOQA
@@ -1246,10 +1262,12 @@ def make_qt_graph_review(qreq_, cm_list):
     return win
 
 
-def make_qt_graph_interface(ibs, aids=None, nids=None, init_mode='rereview'):
+def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
+                            init_mode='review', graph_tab=False):
     r"""
     CommandLine:
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graph-tab
+        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graph-tab
 
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
         ibeis make_qt_graph_interface --show
@@ -1269,37 +1287,44 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, init_mode='rereview'):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> nids = ut.get_argval('--nids', type_=list, default=None)
+        >>> gids = ut.get_argval('--gids', type_=list, default=None)
         >>> init_mode = ut.get_argval('--init_mode', default='review')
+        >>> graph_tab = ut.get_argflag('--graph-tab')
         >>> gt.ensure_qtapp()
-        >>> win = make_qt_graph_interface(ibs, aids, nids, init_mode)
+        >>> win = make_qt_graph_interface(ibs, aids, nids, gids, init_mode, graph_tab)
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
-    #print('make_qt_graph_interface init()')
-    #print('nids = %r' % (nids,))
-    #print('aids = %r' % (aids,))
+    print('[qt_graph] make_qt_graph_interface init()')
+    print('[qt_graph] nids = %s' % (ut.trunc_repr(nids),))
+    print('[qt_graph] aids = %s' % (ut.trunc_repr(aids),))
+    print('[qt_graph] gids = %s' % (ut.trunc_repr(gids),))
+    if gids is not None:
+        nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
     if nids is not None and aids is None:
         aids = ut.flatten(ibs.get_name_aids(nids))
     if aids is None:
         aids = ibs.get_valid_aids()[0:40]
 
-    if True:
-        # Expand graph for lynx stuff
-        annots = ibs.annots(aids)
-        annots += ibs.annots(ut.flatten(annots.otherimage_aids))
-        annots = ibs.annots(ut.unique(annots.aids + ut.flatten(annots.groundtruth)))
-        aids = annots.aids
+    # if True:
+    #     # Expand graph for lynx stuff
+    #     annots = ibs.annots(aids)
+    #     annots += ibs.annots(ut.flatten(annots.otherimage_aids))
+    #     annots = ibs.annots(ut.unique(annots.aids + ut.flatten(annots.groundtruth)))
+    #     aids = annots.aids
 
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
-    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
+    # infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=1)
+    infr.initialize_graph()
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=init_mode)
     abstract_interaction.register_interaction(win)
     win.show()
 
-    if ut.get_argflag('--graph-tab'):
+    if graph_tab:
         index = win.graph_tables_widget.indexOf(win.graph_tab)
         win.graph_tables_widget.setCurrentIndex(index)
 

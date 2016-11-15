@@ -70,20 +70,46 @@ class _AnnotInfrViz(object):
         aid_to_node = infr.aid_to_node
         aid_list = list(aid_to_node.keys())
         annot_nodes = ut.take(aid_to_node, aid_list)
-        chip_width = 256
+        infr._viz_image_config = dict(in_image=False,
+                                      thumbsize=256)
         # imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
         #                                        config=dict(dim_size=chip_width),
         #                                        read_extern=False)
         imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
-                                               config=dict(
-                                                   in_image=True,
-                                                   thumbsize=chip_width),
+                                               config=infr._viz_image_config,
                                                read_extern=False)
         nx.set_node_attributes(graph, 'framewidth', 3.0)
         #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)
         nx.set_node_attributes(graph, 'shape', _dz(annot_nodes, ['rect']))
         nx.set_node_attributes(graph, 'image', _dz(annot_nodes, imgpath_list))
+        ut.nx_delete_node_attr(graph, 'size')
+        ut.nx_delete_node_attr(graph, 'width')
+        ut.nx_delete_node_attr(graph, 'height')
+        ut.nx_delete_node_attr(graph, 'radius')
+        # nx.set_node_attributes(graph, 'image', _dz(annot_nodes, imgpath_list))
+
         infr._viz_init_nodes = True
+
+        infr._viz_image_config_dirty = False
+
+    def update_node_image_config(infr, **kwargs):
+        for key, val in kwargs.items():
+            assert key in infr._viz_image_config
+            if infr._viz_image_config[key] != val:
+                infr._viz_image_config[key] = val
+                infr._viz_image_config_dirty = True
+
+    def update_node_image_attribute(infr):
+        aid_list = list(infr.aid_to_node.keys())
+        annot_nodes = ut.take(infr.aid_to_node, aid_list)
+        imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
+                                               config=infr._viz_image_config,
+                                               read_extern=False)
+        nx.set_node_attributes(infr.graph, 'framewidth', 3.0)
+        #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)
+        nx.set_node_attributes(infr.graph, 'shape', _dz(annot_nodes, ['rect']))
+        nx.set_node_attributes(infr.graph, 'image', _dz(annot_nodes, imgpath_list))
+        infr._viz_image_config_dirty = False
 
     def get_colored_edge_weights(infr, graph=None):
         # Update color and linewidth based on scores/weight
@@ -137,7 +163,7 @@ class _AnnotInfrViz(object):
         # picker doesnt really belong here
         return ['alpha', 'color', 'implicit', 'label', 'linestyle', 'lw',
                 'pos', 'stroke', 'capstyle', 'hatch', 'style', 'sketch',
-                'shadow', 'picker']
+                'shadow', 'picker', 'linewidth']
 
     @property
     def visual_edge_attrs_space(infr):
@@ -182,6 +208,9 @@ class _AnnotInfrViz(object):
         if not getattr(infr, '_viz_init_nodes', False):
             infr._viz_init_nodes = True
             infr.set_node_attrs('shape', 'circle')
+
+        if infr._viz_image_config_dirty:
+            infr.update_node_image_attribute()
 
         alpha_low = .5
         alpha_med = .9

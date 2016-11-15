@@ -1351,7 +1351,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 ('----', lambda: None),
                 ('Graph interaction (Annots)',
                  lambda: viz_graph2.make_qt_graph_interface(
-                     ibs, nids=ut.unique(ut.flatten(ibs.get_image_nids(gid_list))))),
+                     # ibs, nids=ut.unique(ut.flatten(ibs.get_image_nids(gid_list))),
+                     ibs, gids=gid_list,
+                     graph_tab=True
+                 )),
             ]
 
             # Continue the conditional context menu
