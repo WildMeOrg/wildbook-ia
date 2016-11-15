@@ -200,11 +200,13 @@ def train_pairwise_rf():
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['sum']),
             ('summary_measure', 'in', [
-                'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
+                'weighted_ratio', 'ratio',
+                'norm_dist', 'weighted_norm_dist',
+                'fgweights',
+                'weighted_lnbnn_norm_dist', 'lnbnn_norm_dist',
                 'norm_y2', 'norm_y1',
                 # 'norm_x1', 'norm_x2',
                 'scale1', 'scale2',
-                'ratio',
                 # 'weighted_norm_dist',
                 # 'weighted_lnbnn_norm_dist',
             ]),
@@ -243,19 +245,28 @@ def train_pairwise_rf():
             ]),
         ])
 
-        # if True:
-        #     cols = set([])
-        #     cols.update(summary_cols)
-        #     cols.update(self.select_columns([
-        #         ('measure_type', '==', 'global'),
-        #     ]))
-        #     X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
+        if False:
+            cols = set([])
+            cols.update(summary_cols)
+            cols.update(self.select_columns([
+                ('measure_type', '==', 'global'),
+            ]))
+            X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
 
         if True:
             cols = set([])
             cols.update(summary_cols)
             cols.update(global_cols)
             X_dict['learn(sum,glob,3)'] = self.X[sorted(cols)]
+
+        if True:
+            cols = set([])
+            cols.update(summary_cols)
+            cols.update(global_cols)
+            cols.update(self.select_columns([
+                ('measure_type', '==', 'local'),
+            ]))
+            X_dict['learn(loc,sum,glob,4)'] = self.X[sorted(cols)]
 
     del X_dict['learn(all)']
 
