@@ -399,8 +399,8 @@ def train_pairwise_rf():
     import plottool as pt  # NOQA
 
     for name, X in X_dict.items():
-        if name != best_name:
-            continue
+        # if name != best_name:
+        #     continue
         # Take average feature importance
         print('IMPORTANCE INFO FOR %s DATA' % (name,))
         feature_importances = np.mean([
