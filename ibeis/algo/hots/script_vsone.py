@@ -173,7 +173,7 @@ def train_pairwise_rf():
         # ]))
         X_dict['learn(local)'] = self.X[sorted(cols)]
 
-    if True:
+    if False:
         # Use only summary stats
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
@@ -198,14 +198,15 @@ def train_pairwise_rf():
         ])
         summary_cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['std']),
+            ('summary_op', 'in', ['sum']),
             ('summary_measure', 'in', [
-                'norm_y1', 'norm_y2',
-                'norm_x1', 'norm_x2',
+                'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
+                'norm_y2', 'norm_y1',
+                # 'norm_x1', 'norm_x2',
                 'scale1', 'scale2',
-                'sver_err_ori', 'sver_err_xy',
-                # 'sver_err_scale',
-                'match_dist', 'norm_dist', 'ratio'
+                'ratio',
+                # 'weighted_norm_dist',
+                # 'weighted_lnbnn_norm_dist',
             ]),
         ]))
         summary_cols.update(self.select_columns([
@@ -215,21 +216,21 @@ def train_pairwise_rf():
                 'sver_err_xy', 'sver_err_ori',
                 # 'sver_err_scale',
                 'norm_y1', 'norm_y2',
-                'norm_x1', 'norm_x2',
+                # 'norm_x1', 'norm_x2',
                 'ratio',
             ]),
         ]))
         summary_cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['sum']),
+            ('summary_op', 'in', ['std']),
             ('summary_measure', 'in', [
-                'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
-                'norm_y2', 'norm_y1',
+                'norm_y1', 'norm_y2',
                 'norm_x1', 'norm_x2',
                 'scale1', 'scale2',
-                'ratio',
-                # 'weighted_norm_dist',
-                # 'weighted_lnbnn_norm_dist',
+                'sver_err_ori', 'sver_err_xy',
+                # 'sver_err_scale',
+                # 'match_dist',
+                'norm_dist', 'ratio'
             ]),
         ]))
 
@@ -242,13 +243,13 @@ def train_pairwise_rf():
             ]),
         ])
 
-        if True:
-            cols = set([])
-            cols.update(summary_cols)
-            cols.update(self.select_columns([
-                ('measure_type', '==', 'global'),
-            ]))
-            X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
+        # if True:
+        #     cols = set([])
+        #     cols.update(summary_cols)
+        #     cols.update(self.select_columns([
+        #         ('measure_type', '==', 'global'),
+        #     ]))
+        #     X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
 
         if True:
             cols = set([])
