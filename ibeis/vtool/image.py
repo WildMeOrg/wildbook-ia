@@ -373,13 +373,22 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
         if imgBGR is None:
             #if not exists(img_fpath):
             if not ut.checkpath(img_fpath, verbose=True):
-                raise IOError('cannot read img_fpath=%s does not exist' % img_fpath)
+                raise IOError('cannot read img_fpath=%s does not exist.' % img_fpath)
             else:
-                msg = 'cannot read img_fpath=%s seems corrupted or memory error.' % img_fpath
-                print('[gtool] ' + msg)
                 if delete_if_corrupted:
+                    msg = (
+                        'Cannot read corrupted img_fpath=%s, requires deletion.'
+                        % img_fpath
+                    )
                     print('[gtool] deleting corrupted image')
                     ut.delete(img_fpath)
+                else:
+                    msg = (
+                        'Cannot read img_fpath=%s, '
+                        'seems corrupted or memory error.'
+                        % img_fpath
+                    )
+                print('[gtool] ' + msg)
                 raise IOError(msg)
         if not isinstance(orient, bool) and orient in exif.ORIENTATION_DICT:
             print('[vt.imread] Applying orientation %r' % (orient, ))
