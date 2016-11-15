@@ -140,10 +140,10 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if 1:
+    if 0:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1851057325)
-        to_keep = rng.choice(np.arange(len(y)), 2000)
+        to_keep = rng.choice(np.arange(len(y)), 5000)
         mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
         y = y[mask]
         simple_scores = simple_scores[mask]
@@ -181,6 +181,16 @@ def train_pairwise_rf():
         X_dict['learn(sum)']  = self.X[sorted(cols)]
 
     if True:
+        # Use summary and global
+        cols = self.select_columns([
+            ('measure_type', '==', 'summary'),
+        ])
+        cols.update(self.select_columns([
+            ('measure_type', '==', 'global'),
+        ]))
+        X_dict['learn(sum,glob)'] = self.X[sorted(cols)]
+
+    if True:
         # Only allow very specific summary features
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
@@ -190,16 +200,23 @@ def train_pairwise_rf():
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['std']),
             ('summary_measure', 'in', [
-                'norm_y1', 'norm_y2', 'scale1', 'scale2',
-                'sver_err_ori', 'sver_err_xy', 'sver_err_scale',
+                'norm_y1', 'norm_y2',
                 'norm_x1', 'norm_x2',
+                'scale1', 'scale2',
+                'sver_err_ori', 'sver_err_xy',
+                # 'sver_err_scale',
+                'match_dist', 'norm_dist', 'ratio'
             ]),
         ]))
         cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['mean']),
             ('summary_measure', 'in', [
-                'ratio', 'sver_err_xy', 'sver_err_ori', 'sver_err_scale',
+                'sver_err_xy', 'sver_err_ori',
+                # 'sver_err_scale',
+                'norm_y1', 'norm_y2',
+                'norm_x1', 'norm_x2',
+                'ratio',
             ]),
         ]))
         cols.update(self.select_columns([
@@ -208,26 +225,17 @@ def train_pairwise_rf():
             ('summary_measure', 'in', [
                 'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
                 'norm_y2', 'norm_y1',
+                'norm_x1', 'norm_x2',
+                'scale1', 'scale2',
+                'ratio',
                 # 'weighted_norm_dist',
                 # 'weighted_lnbnn_norm_dist',
-                'scale1', 'scale2', 'norm_x1',
-                'norm_x2', 'ratio',
             ]),
         ]))
         cols.update(self.select_columns([
             ('measure_type', '==', 'global'),
         ]))
         X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
-
-    if True:
-        # Use summary and global
-        cols = self.select_columns([
-            ('measure_type', '==', 'summary'),
-        ])
-        cols.update(self.select_columns([
-            ('measure_type', '==', 'global'),
-        ]))
-        X_dict['learn(sum,glob)'] = self.X[sorted(cols)]
 
     del X_dict['learn(all)']
 
@@ -279,8 +287,8 @@ def train_pairwise_rf():
         # 'max_depth': 4,
         'bootstrap': True,
         'class_weight': None,
-        # 'max_features': 'sqrt',
-        'max_features': None,
+        'max_features': 'sqrt',
+        # 'max_features': None,
         'missing_values': np.nan,
         'min_samples_leaf': 5,
         'min_samples_split': 2,
@@ -378,6 +386,7 @@ def train_pairwise_rf():
                             ('summary_op', '==', 'mean')])
         self.print_margins([('measure_type', '==', 'summary'),
                             ('summary_op', '==', 'sum')])
+        self.print_margins([('measure_type', '==', 'global')])
         # self.print_margins('global_measure')
         # self.print_margins('local_measure')
         # self.print_margins('local_sorter')
