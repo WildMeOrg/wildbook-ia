@@ -72,7 +72,7 @@ def train_pairwise_rf():
     import sklearn
     import sklearn.metrics
     import sklearn.model_selection
-    from sklearn.ensemble import RandomForestClassifier
+    import sklearn.ensemble
     import pandas as pd
     import ibeis
 
@@ -140,7 +140,7 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if 0:
+    if 1:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1851057325)
         to_keep = rng.choice(np.arange(len(y)), 2000)
@@ -204,7 +204,7 @@ def train_pairwise_rf():
         ]))
         cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['mean']),
+            ('summary_op', 'in', ['sum']),
             ('summary_measure', 'in', [
                 'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
                 'norm_y2', 'norm_y1',
@@ -279,7 +279,8 @@ def train_pairwise_rf():
         # 'max_depth': 4,
         'bootstrap': True,
         'class_weight': None,
-        'max_features': 'sqrt',
+        # 'max_features': 'sqrt',
+        'max_features': None,
         'missing_values': np.nan,
         'min_samples_leaf': 5,
         'min_samples_split': 2,
@@ -308,7 +309,7 @@ def train_pairwise_rf():
             # Learn a random forest classifier using train data
             X_train = X.values[train_idx]
             X_test = X.values[test_idx]
-            clf = RandomForestClassifier(**rf_params)
+            clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
             classifiers[name] = clf
             # Evaluate using on testing data
