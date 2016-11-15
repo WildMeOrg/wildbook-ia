@@ -28,6 +28,7 @@ class PairFeatureConfig(dtool.Config):
         ut.ParamInfo('sum', True),
         ut.ParamInfo('std', True),
         ut.ParamInfo('mean', True),
+        ut.ParamInfo('med', True),
     ]
 
 
@@ -661,7 +662,8 @@ def build_features(qreq_, hyper_params):
         infr.graph.add_edges_from(aid_pairs)
         infr.apply_match_scores()
         edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-        lnbnn_score_list = [0 if d is None else d.get('score', 0) for d in edge_data]
+        lnbnn_score_list = [0 if d is None else d.get('score', 0)
+                            for d in edge_data]
         lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
         simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
 
