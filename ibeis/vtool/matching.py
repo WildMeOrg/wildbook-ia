@@ -358,7 +358,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     @profile
     def _make_local_summary_feature_vector(match, keys=None, sum=True,
-                                           mean=True, std=True):
+                                           mean=True, std=True, med=False):
         """ Summary statistics of local features """
         if keys is None:
             local_measures = match.local_measures
@@ -374,6 +374,9 @@ class PairwiseMatch(ut.NiceRepr):
         if std:
             for k, vs in six.iteritems(local_measures):
                 feat['std(%s)' % (k,)] = np.std(vs)
+        if med:
+            for k, vs in six.iteritems(local_measures):
+                feat['med(%s)' % (k,)] = np.median(vs)
         feat['len(matches)'] = len(match.fm)
         return feat
 
@@ -407,7 +410,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     @profile
     def make_feature_vector(match, keys=None, sum=True, mean=True, std=True,
-                            **kwargs):
+                            med=False, **kwargs):
         """
         Constructs the pairwise feature vector that represents a match
         """
@@ -416,7 +419,7 @@ class PairwiseMatch(ut.NiceRepr):
             warnings.simplefilter("ignore", category=RuntimeWarning)
             feat.update(match._make_global_feature_vector())
             feat.update(match._make_local_summary_feature_vector(
-                keys, sum=sum, mean=mean, std=std))
+                keys, sum=sum, mean=mean, std=std, med=med))
             feat.update(match._make_local_top_feature_vector(keys, **kwargs))
         return feat
 
