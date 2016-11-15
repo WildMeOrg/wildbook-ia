@@ -497,7 +497,7 @@ class APIItemModel(API_MODEL_BASE):
         """
         returns the id (specified by iders i.e. an ibeis rowid) from qtindex
         """
-        if qtindex.isValid():
+        if qtindex is not None and qtindex.isValid():
             node = qtindex.internalPointer()
             if ut.USE_ASSERT:
                 try:
@@ -515,7 +515,7 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def _get_adjacent_qtindex(model, qtindex=QtCore.QModelIndex(), offset=1):
         # check qtindex
-        if not qtindex.isValid():
+        if qtindex is None or not qtindex.isValid():
             return None
         node = qtindex.internalPointer()
         # check node
