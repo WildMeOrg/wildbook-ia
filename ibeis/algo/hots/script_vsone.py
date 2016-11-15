@@ -192,11 +192,11 @@ def train_pairwise_rf():
 
     if True:
         # Only allow very specific summary features
-        cols = self.select_columns([
+        summary_cols = self.select_columns([
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['len']),
         ])
-        cols.update(self.select_columns([
+        summary_cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['std']),
             ('summary_measure', 'in', [
@@ -208,7 +208,7 @@ def train_pairwise_rf():
                 'match_dist', 'norm_dist', 'ratio'
             ]),
         ]))
-        cols.update(self.select_columns([
+        summary_cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['mean']),
             ('summary_measure', 'in', [
@@ -219,7 +219,7 @@ def train_pairwise_rf():
                 'ratio',
             ]),
         ]))
-        cols.update(self.select_columns([
+        summary_cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
             ('summary_op', 'in', ['sum']),
             ('summary_measure', 'in', [
@@ -232,10 +232,29 @@ def train_pairwise_rf():
                 # 'weighted_lnbnn_norm_dist',
             ]),
         ]))
-        cols.update(self.select_columns([
+
+        global_cols = self.select_columns([
             ('measure_type', '==', 'global'),
-        ]))
-        X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
+            ('measure', 'not in', [
+                'gps_2[0]', 'gps_2[1]',
+                'gps_1[0]', 'gps_1[1]',
+                'time_1', 'time_2',
+            ]),
+        ])
+
+        if True:
+            cols = set([])
+            cols.update(summary_cols)
+            cols.update(self.select_columns([
+                ('measure_type', '==', 'global'),
+            ]))
+            X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
+
+        if True:
+            cols = set([])
+            cols.update(summary_cols)
+            cols.update(global_cols)
+            X_dict['learn(sum,glob,3)'] = self.X[sorted(cols)]
 
     del X_dict['learn(all)']
 
