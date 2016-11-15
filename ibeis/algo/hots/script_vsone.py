@@ -140,10 +140,10 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if 0:
+    if 1:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1851057325)
-        to_keep = rng.choice(np.arange(len(y)), 5000)
+        to_keep = rng.choice(np.arange(len(y)), 1000)
         mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
         y = y[mask]
         simple_scores = simple_scores[mask]
@@ -156,7 +156,7 @@ def train_pairwise_rf():
 
     self = PairFeatInfo(X)
     measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
-    if False:
+    if 1:
         # Use only local features
         # sorters_ignore = ['match_dist', 'ratio']
         cols = self.select_columns([
@@ -180,7 +180,7 @@ def train_pairwise_rf():
         ])
         X_dict['learn(sum)']  = self.X[sorted(cols)]
 
-    if True:
+    if 0:
         # Use summary and global
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
@@ -253,7 +253,7 @@ def train_pairwise_rf():
             ]))
             X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
 
-        if True:
+        if 1:
             cols = set([])
             cols.update(summary_cols)
             cols.update(global_cols)
@@ -265,17 +265,10 @@ def train_pairwise_rf():
             cols.update(global_cols)
             cols.update(self.select_columns([
                 ('measure_type', '==', 'local'),
-            ]))
-            X_dict['learn(loc,sum,glob,4)'] = self.X[sorted(cols)]
-
-        if True:
-            cols = set([])
-            cols.update(summary_cols)
-            cols.update(global_cols)
-            cols.update(self.select_columns([
-                ('measure_type', '==', 'local'),
-                ('local_sorter', 'in', ['weighted_ratio']),
-                ('local_measure', 'not in', measures_ignore),
+                ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
+                ('local_measure', 'in', ['weighted_ratio']),
+                ('local_rank', '<', 20),
+                ('local_rank', '>', 0),
             ]))
             X_dict['learn(loc,sum,glob,5)'] = self.X[sorted(cols)]
 
@@ -318,7 +311,7 @@ def train_pairwise_rf():
     print('hist(y) = ' + ut.repr4(class_hist))
 
     # xvalkw = dict(n_splits=10, shuffle=True,
-    xvalkw = dict(n_splits=3, shuffle=True,
+    xvalkw = dict(n_splits=5, shuffle=True,
                   random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
     skf_iter = skf.split(X=y, y=y)
@@ -420,20 +413,20 @@ def train_pairwise_rf():
 
         # self.print_margins('feature')
         self.print_margins('measure_type')
-        self.print_margins('summary_op')
-        self.print_margins('summary_measure')
-        self.print_margins('global_measure')
-        self.print_margins([('measure_type', '==', 'summary'),
-                            ('summary_op', '==', 'sum')])
-        self.print_margins([('measure_type', '==', 'summary'),
-                            ('summary_op', '==', 'mean')])
-        self.print_margins([('measure_type', '==', 'summary'),
-                            ('summary_op', '==', 'std')])
+        # self.print_margins('summary_op')
+        # self.print_margins('summary_measure')
+        # self.print_margins('global_measure')
+        # self.print_margins([('measure_type', '==', 'summary'),
+        #                     ('summary_op', '==', 'sum')])
+        # self.print_margins([('measure_type', '==', 'summary'),
+        #                     ('summary_op', '==', 'mean')])
+        # self.print_margins([('measure_type', '==', 'summary'),
+        #                     ('summary_op', '==', 'std')])
         # self.print_margins([('measure_type', '==', 'global')])
         # self.print_margins('global_measure')
-        # self.print_margins('local_measure')
-        # self.print_margins('local_sorter')
-        # self.print_margins('local_rank')
+        self.print_margins('local_measure')
+        self.print_margins('local_sorter')
+        self.print_margins('local_rank')
 
         # ut.fix_embed_globals()
         # pt.wordcloud(importances)
