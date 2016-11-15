@@ -159,6 +159,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.infr.update_visual_attrs(
             hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
             hide_reviewed_cuts=not graph_widget.show_review_cuts_cb.isChecked(),
+            groupby='name_label',
             # only_reviewed=graph_widget.only_reviwed_cb.isChecked(),
         )
 
@@ -515,8 +516,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 # self.infr.apply_cuts()
             elif self.init_mode == 'review':
                 self.infr.apply_match_edges()
-                self.infr.apply_feedback_edges()
                 self.infr.review_dummy_edges()
+                self.infr.apply_feedback_edges()
                 self.infr.apply_match_scores()
                 self.infr.apply_weights()
                 # self.infr.relabel_using_reviews()
@@ -574,8 +575,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.initialize_graph(update_nids=True)
             if self.graph_widget is not None:
                 self.graph_widget.set_pin_state(True)
-            infr.apply_feedback_edges()
             infr.review_dummy_edges()
+            infr.apply_feedback_edges()
             infr.apply_match_edges()
             infr.apply_match_scores()
             ctx.set_progress(2, 3)
@@ -1269,7 +1270,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graph-tab
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graph-tab
 
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
+        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
         ibeis make_qt_graph_interface --show
 
         ibeis make_qt_graph_interface --db LEWA_splits --nids=1 --show --init-mode=rereview

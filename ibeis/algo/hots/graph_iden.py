@@ -218,13 +218,16 @@ class _AnnotInfrDummy(object):
                                if not aug_graph.has_edge(*edge)]
         # randomness prevents chains and visually looks better
         rng = np.random.RandomState(42)
+        def _randint():
+            return 0
+            return rng.randint(0, 100)
         aug_graph.add_edges_from(candidate_mst_edges)
         # Weight edges in aug_graph such that existing edges are chosen
         # to be part of the MST first before suplementary edges.
         nx.set_edge_attributes(aug_graph, 'weight',
                                {edge: 0.1 for edge in orig_edges})
         nx.set_edge_attributes(aug_graph, 'weight',
-                               {edge: 10.0 + rng.randint(1, 100)
+                               {edge: 10.0 + _randint()
                                 for edge in candidate_mst_edges})
         new_edges = []
         for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
@@ -248,8 +251,11 @@ class _AnnotInfrDummy(object):
         ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
         print('edges = %r' % (edges,))
         print("HACK REVIEWED STATE")
-        if len(edges):
-            nx.set_edge_attributes(infr.graph, 'reviewed_state', _dz(edges, 'match'))
+        for u, v in edges:
+            infr.add_feedback(u, v, 'match')
+        # if len(edges):
+        #     nx.set_edge_attributes(infr.graph, 'reviewed_state', _dz(edges, ['match']))
+        print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1430,9 +1436,10 @@ class _AnnotInfrFeedback(object):
         return p_same
 
     def _del_feedback_edges(infr, edges=None):
-        if infr.verbose >= 3:
-            print('[infr] _del_feedback_edges')
-        print("DELETE REVIEW STATE")
+        if edges is None:
+            edges = list(infr.graph.edges())
+        if infr.verbose >= 1:
+            print('[infr] _del_feedback_edges len(edges) = %r' % (len(edges)))
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_state', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_tags', edges)
