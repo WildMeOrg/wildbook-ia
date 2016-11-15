@@ -140,7 +140,7 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if 1:
+    if 0:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1851057325)
         to_keep = rng.choice(np.arange(len(y)), 2000)
@@ -473,7 +473,11 @@ class PairFeatInfo(object):
         if isinstance(group_id, list):
             cols = self.select_columns(criteria=group_id)
             _keys = [(c, [c]) for c in cols]
-            _weights = pd.concat(ut.lmap(self.group_importance, _keys))
+            try:
+                _weights = pd.concat(ut.lmap(self.group_importance, _keys))
+            except ValueError:
+                _weights = []
+                pass
             nice = str(group_id)
         else:
             grouper = getattr(self, group_id)
@@ -483,7 +487,7 @@ class PairFeatInfo(object):
             nice = ut.pluralize(nice)
         try:
             _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
-        except ValueError:
+        except Exception:
             pass
         print('\nImportance of ' + nice)
         print(_weights)
