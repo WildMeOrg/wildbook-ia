@@ -216,7 +216,7 @@ def train_pairwise_rf():
                 'sver_err_xy', 'sver_err_ori',
                 # 'sver_err_scale',
                 'norm_y1', 'norm_y2',
-                # 'norm_x1', 'norm_x2',
+                'norm_x1', 'norm_x2',
                 'ratio',
             ]),
         ]))
@@ -400,13 +400,14 @@ def train_pairwise_rf():
         self.print_margins('measure_type')
         self.print_margins('summary_op')
         self.print_margins('summary_measure')
+        self.print_margins('global_measure')
         self.print_margins([('measure_type', '==', 'summary'),
-                            ('summary_op', '==', 'std')])
+                            ('summary_op', '==', 'sum')])
         self.print_margins([('measure_type', '==', 'summary'),
                             ('summary_op', '==', 'mean')])
         self.print_margins([('measure_type', '==', 'summary'),
-                            ('summary_op', '==', 'sum')])
-        self.print_margins([('measure_type', '==', 'global')])
+                            ('summary_op', '==', 'std')])
+        # self.print_margins([('measure_type', '==', 'global')])
         # self.print_margins('global_measure')
         # self.print_margins('local_measure')
         # self.print_margins('local_sorter')
