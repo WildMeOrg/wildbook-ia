@@ -192,15 +192,40 @@ def train_pairwise_rf():
         X_dict['learn(sum,glob,1)']  = self.X[sorted(cols)]
 
     if True:
-        # Use summary and global
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('summary_op', 'not in', ['std']),
+            ('summary_op', 'not in', ['mean', 'sum', 'std']),
         ])
+        cols.update(self.select_columns([
+            ('measure_type', '==', 'summary'),
+            ('summary_op', 'in', ['std']),
+            ('summary_measure', 'in', [
+                'norm_y1', 'norm_y2', 'scale1', 'scale2',
+                'sver_err_ori', 'sver_err_xy', 'sver_err_scale',
+                'norm_x1', 'norm_x2',
+            ]),
+        ]))
+        cols.update(self.select_columns([
+            ('measure_type', '==', 'summary'),
+            ('summary_op', 'in', ['mean']),
+            ('summary_measure', 'in', [
+                'ratio', 'sver_err_xy', 'sver_err_ori', 'sver_err_scale',
+            ]),
+        ]))
+        cols.update(self.select_columns([
+            ('measure_type', '==', 'summary'),
+            ('summary_op', 'in', ['mean']),
+            ('summary_measure', 'in', [
+                'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
+                'weighted_norm_dist', 'norm_y2', 'norm_y1',
+                'weighted_lnbnn_norm_dist', 'scale1', 'scale2', 'norm_x1',
+                'norm_x2', 'ratio',
+            ]),
+        ]))
         cols.update(self.select_columns([
             ('measure_type', '==', 'global'),
         ]))
-        X_dict['learn(sum,glob,2)']  = self.X[sorted(cols)]
+        X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
 
     if True:
         # Use summary and global
@@ -210,7 +235,7 @@ def train_pairwise_rf():
         cols.update(self.select_columns([
             ('measure_type', '==', 'global'),
         ]))
-        X_dict['learn(sum,glob)']  = self.X[sorted(cols)]
+        X_dict['learn(sum,glob)'] = self.X[sorted(cols)]
 
     del X_dict['learn(all)']
 
@@ -255,6 +280,8 @@ def train_pairwise_rf():
                   random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
     skf_iter = skf.split(X=y, y=y)
+
+    import sandbox_utools as sbut
 
     rf_params = {
         # 'max_depth': 4,
@@ -301,16 +328,14 @@ def train_pairwise_rf():
         cv_classifiers.append(classifiers)
         # Append this fold's results
         newrow = pd.DataFrame([split_aucs], columns=split_columns)
+        print(sbut.to_string_monkey(
+            newrow, highlight_cols=np.arange(len(newrow.columns))))
         df_results = df_results.append([newrow], ignore_index=True)
 
     # change = df[df.columns[2]] - df[df.columns[0]]
     # percent_change = change / df[df.columns[0]] * 100
     # df = df.assign(change=change)
     # df = df.assign(percent_change=percent_change)
-
-    import sandbox_utools as sbut
-    print(sbut.to_string_monkey(
-        df_results, highlight_cols=np.arange(len(df_results.columns))))
 
     simple_auc_dict.values()
     simple_keys = list(simple_auc_dict.keys())
@@ -354,6 +379,12 @@ def train_pairwise_rf():
         self.print_margins('measure_type')
         self.print_margins('summary_op')
         self.print_margins('summary_measure')
+        self.print_margins([('measure_type', '==', 'summary'),
+                            ('summary_op', '==', 'std')])
+        self.print_margins([('measure_type', '==', 'summary'),
+                            ('summary_op', '==', 'mean')])
+        self.print_margins([('measure_type', '==', 'summary'),
+                            ('summary_op', '==', 'sum')])
         # self.print_margins('global_measure')
         # self.print_margins('local_measure')
         # self.print_margins('local_sorter')
@@ -392,7 +423,7 @@ class PairFeatInfo(object):
     def __init__(self, X, importances=None):
         self.X = X
         self.importances = importances
-        self._summary_keys = ['sum', 'mean', 'std', 'len']
+        self._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
 
     def select_columns(self, criteria, op='and'):
         if op == 'and':
@@ -416,18 +447,22 @@ class PairFeatInfo(object):
         grouper = getattr(self, group_id)
         found = []
         for col in self.X.columns:
-            try:
-                value1 = grouper(col)
-                if value1 is not None:
-                    if isinstance(value, int):
-                        value1 = int(value1)
-                    elif isinstance(value, list):
-                        if len(value) > 0 and isinstance(value[0], int):
+            value1 = grouper(col)
+            if value1 is None:
+                # Only filter out/in comparable things
+                found.append(col)
+            else:
+                try:
+                    if value1 is not None:
+                        if isinstance(value, int):
                             value1 = int(value1)
-                if op(value1, value):
-                    found.append(col)
-            except:
-                pass
+                        elif isinstance(value, list):
+                            if len(value) > 0 and isinstance(value[0], int):
+                                value1 = int(value1)
+                    if op(value1, value):
+                        found.append(col)
+                except:
+                    pass
         return found
 
     def group_importance(self, item):
@@ -443,12 +478,18 @@ class PairFeatInfo(object):
 
     def print_margins(self, group_id):
         X = self.X
-        grouper = getattr(self, group_id)
-        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
-        _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
+        if isinstance(group_id, list):
+            cols = self.select_columns(criteria=group_id)
+            _keys = [(c, [c]) for c in cols]
+            _weights = pd.concat(ut.lmap(self.group_importance, _keys))
+            nice = str(group_id)
+        else:
+            grouper = getattr(self, group_id)
+            _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+            _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
+            nice = ut.get_funcname(grouper).replace('_', ' ')
+            nice = ut.pluralize(nice)
         _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
-        nice = ut.get_funcname(grouper).replace('_', ' ')
-        nice = ut.pluralize(nice)
         print('\nImportance of ' + nice)
         print(_weights)
 
