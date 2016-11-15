@@ -140,10 +140,10 @@ def train_pairwise_rf():
             X = X[mask]
             X_dict['learn(all)'] = X
 
-    if False:
+    if 1:
         print('Reducing dataset size for development')
         rng = np.random.RandomState(1851057325)
-        to_keep = rng.choice(np.arange(len(y)), 1000)
+        to_keep = rng.choice(np.arange(len(y)), 2000)
         mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
         y = y[mask]
         simple_scores = simple_scores[mask]
@@ -181,20 +181,10 @@ def train_pairwise_rf():
         X_dict['learn(sum)']  = self.X[sorted(cols)]
 
     if True:
-        # Use only summary stats
+        # Only allow very specific summary features
         cols = self.select_columns([
             ('measure_type', '==', 'summary'),
-            ('measure', 'not in', ['lnbnn', 'weighted_lnbnn']),
-        ])
-        cols.update(self.select_columns([
-            ('measure_type', '==', 'global'),
-        ]))
-        X_dict['learn(sum,glob,1)']  = self.X[sorted(cols)]
-
-    if True:
-        cols = self.select_columns([
-            ('measure_type', '==', 'summary'),
-            ('summary_op', 'not in', ['mean', 'sum', 'std']),
+            ('summary_op', 'in', ['len']),
         ])
         cols.update(self.select_columns([
             ('measure_type', '==', 'summary'),
@@ -217,8 +207,10 @@ def train_pairwise_rf():
             ('summary_op', 'in', ['mean']),
             ('summary_measure', 'in', [
                 'weighted_ratio', 'norm_dist', 'fgweights', 'lnbnn_norm_dist',
-                'weighted_norm_dist', 'norm_y2', 'norm_y1',
-                'weighted_lnbnn_norm_dist', 'scale1', 'scale2', 'norm_x1',
+                'norm_y2', 'norm_y1',
+                # 'weighted_norm_dist',
+                # 'weighted_lnbnn_norm_dist',
+                'scale1', 'scale2', 'norm_x1',
                 'norm_x2', 'ratio',
             ]),
         ]))
@@ -489,7 +481,10 @@ class PairFeatInfo(object):
             _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
             nice = ut.get_funcname(grouper).replace('_', ' ')
             nice = ut.pluralize(nice)
-        _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
+        try:
+            _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
+        except ValueError:
+            pass
         print('\nImportance of ' + nice)
         print(_weights)
 
