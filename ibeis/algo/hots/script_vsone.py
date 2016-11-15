@@ -238,7 +238,7 @@ def train_pairwise_rf():
             ('measure', 'not in', [
                 'gps_2[0]', 'gps_2[1]',
                 'gps_1[0]', 'gps_1[1]',
-                'time_1', 'time_2',
+                # 'time_1', 'time_2',
             ]),
         ])
 
