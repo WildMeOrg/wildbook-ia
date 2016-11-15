@@ -259,6 +259,14 @@ def train_pairwise_rf():
             cols.update(global_cols)
             X_dict['learn(sum,glob,3)'] = self.X[sorted(cols)]
 
+        if 1:
+            summary_cols_ = summary_cols.copy()
+            summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
+            cols = set([])
+            cols.update(summary_cols_)
+            cols.update(global_cols)
+            X_dict['learn(sum,glob,4)'] = self.X[sorted(cols)]
+
         if True:
             cols = set([])
             cols.update(summary_cols)
