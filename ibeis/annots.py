@@ -140,9 +140,7 @@ class _AnnotPropInjector(BASE_TYPE):
             'yaw': 'yaws_asfloat',
             'qual': 'qualities',
             'name': 'names',
-            'name': 'names',
             'nid': 'nids',
-
             # DEPRICATE
             'rchip': 'chips',
             'rchip_fpath': 'chip_fpath',
@@ -162,9 +160,16 @@ class _AnnotPropInjector(BASE_TYPE):
         #setattr(metaself, 'case_tags', property(fget, fset))
 
 
-@ut.reloadable_class
+try:
+    from ibeis import _autogen_annot_base
+    BASE = _autogen_annot_base._annot_base_class
+except ImportError:
+    BASE = _ibeis_object.ObjectList1D
+
+
+# @ut.reloadable_class
 @six.add_metaclass(_AnnotPropInjector)
-class Annots(_ibeis_object.ObjectList1D):
+class Annots(BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
     database using lazy evaluation.
@@ -179,6 +184,7 @@ class Annots(_ibeis_object.ObjectList1D):
         >>> aids = ibs.get_valid_aids()
         >>> a = self = annots = Annots(aids, ibs)
         >>> a.preload('vecs', 'kpts', 'nids')
+        >>> print(Annots.mro())
         >>> print(ut.depth_profile(a.vecs))
         >>> print(a)
         <Annots(num=13)>

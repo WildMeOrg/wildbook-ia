@@ -293,6 +293,18 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         ('Remove name', lambda: ibs.set_annot_name_rowids([aid], [-aid]))
     ]
 
+    def _setname_callback():
+        import guitool as gt
+        name = ibs.get_annot_name_texts([aid])[0]
+        newname = gt.user_input(title='edit name', msg=name, text=name)
+        if newname is not None:
+            print('[ctx] _setname_callback aid=%r resp=%r' % (aid, newname))
+            ibs.set_annot_name_texts([aid], [newname])
+
+    callback_list += [
+        ('Set name', _setname_callback)
+    ]
+
     callback_list += [
         ('Unset as e&xemplar' if is_exemplar else 'Set as e&xemplar',
          toggle_exemplar_func),

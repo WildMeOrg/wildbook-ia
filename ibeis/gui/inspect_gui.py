@@ -841,7 +841,7 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
             qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
         match = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
                                             use_ibscache=True)
-        interact = match.make_interaction(matches, metadata, type_=type_, mode=1)  # NOQA
+        interact = match.make_interaction(type_=type_, mode=1)  # NOQA
         interact.start()
 
     options =  [

@@ -71,8 +71,13 @@ class _AnnotInfrViz(object):
         aid_list = list(aid_to_node.keys())
         annot_nodes = ut.take(aid_to_node, aid_list)
         chip_width = 256
-        imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
-                                               config=dict(dim_size=chip_width),
+        # imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
+        #                                        config=dict(dim_size=chip_width),
+        #                                        read_extern=False)
+        imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
+                                               config=dict(
+                                                   in_image=True,
+                                                   thumbsize=chip_width),
                                                read_extern=False)
         nx.set_node_attributes(graph, 'framewidth', 3.0)
         #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)

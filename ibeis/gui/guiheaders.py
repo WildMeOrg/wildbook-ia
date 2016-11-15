@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-This model provides the declarative interface to all of the api_*_models in
-guitool. Each different type of model/view has to register its iders, getters,
-and potentially setters (hopefully if guitool ever gets off the ground the
-delters as well)
+This model provides the declarative interface to all of the api_*_models
+in guitool. Each different type of model/view has to register its iders,
+getters, and potentially setters (hopefully if guitool ever gets off the
+ground the delters as well)
 
 Different columns can be hidden / shown by modifying this file
 
@@ -140,21 +140,21 @@ def make_table_declarations(ibs):
             'nAids',
             'thumb',
             'nid',
-            'exemplar',
-            'nExAids',
+            # 'exemplar',
+            # 'nExAids',
             'aid',
-            'annot_gname',
-            'yaw_text',
-            'quality_text',
-            'age_min',
-            'age_max',
-            'sex_text',
-            'imagesettext_names',
-            'datetime',
-            'max_hourdiff',
-            'max_speed',
-            'has_split',
-            'namenotes',
+            # 'annot_gname',
+            # 'yaw_text',
+            # 'quality_text',
+            # 'age_min',
+            # 'age_max',
+            # 'sex_text',
+            # 'imagesettext_names',
+            # 'datetime',
+            # 'max_hourdiff',
+            # 'max_speed',
+            # 'has_split',
+            # 'namenotes',
         ],
 
         IMAGE_GRID     : [
@@ -310,17 +310,33 @@ def make_table_declarations(ibs):
         ('tag_text',                        (str,      'Tags')),
     ])
 
-    declare_tup = TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF
+    declare_tup = (TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES,
+                   TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST,
+                   TABLE_STRIPE_LIST, COL_DEF)
     return declare_tup
 
 #----
 
 
+def partial_imap_1to1(func, si_func):
+    import functools
+    @functools.wraps(si_func)
+    def wrapper(input_):
+        if not ut.isiterable(input_):
+            return func(si_func(input_))
+        else:
+            return list(map(func, si_func(input_)))
+    ut.set_funcname(wrapper, ut.get_callable_name(func) + '_mapper_' +
+                    ut.get_funcname(si_func))
+    return wrapper
+
+
 def make_ibeis_headers_dict(ibs):
     declare_tup = make_table_declarations(ibs)
-    TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES, TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST, TABLE_STRIPE_LIST, COL_DEF = declare_tup
+    (TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES,
+     TABLE_TREE_LEVELS, TABLE_EDITSET, TABLE_HIDDEN_LIST,
+     TABLE_STRIPE_LIST, COL_DEF) = declare_tup
 
-    partial_imap_1to1 = ut.partial_imap_1to1
     #
     # Table Iders/Setters/Getters
     iders = {}
@@ -331,10 +347,12 @@ def make_ibeis_headers_dict(ibs):
         for colname in TABLE_COLNAMES[tablename]:
             if colname not in getters[tablename]:
                 if ut.VERBOSE:
-                    print('[guiheaders] infering getter for tablename=%r, colname=%r' % (tablename, colname,))
+                    print('[guiheaders] infering getter for tablename=%r, colname=%r' % (
+                        tablename, colname,))
                     #print('[guiheaders] infering %r' % (getters[tablename][colname],))
                 try:
-                    getters[tablename][colname] = getattr(ibs, 'get_' + shortname + '_' + colname)
+                    getters[tablename][colname] = getattr(
+                        ibs, 'get_' + shortname + '_' + colname)
                 except AttributeError:
                     # we have inconsistently put in column names
                     # try to "just make things work"
@@ -375,7 +393,7 @@ def make_ibeis_headers_dict(ibs):
     # Image Iders/Setters/Getters
     iders[IMAGE_TABLE]   = [ibs.get_valid_gids]
     getters[IMAGE_TABLE] = {
-        'gid'          : lambda gids: gids,
+        'gid'          : ut.identity,
         'imgsetid'     : ibs.get_image_imgsetids,
         'imagesettext' : partial_imap_1to1(ut.tupstr, ibs.get_image_imagesettext),
         'reviewed'     : ibs.get_image_reviewed,
@@ -410,7 +428,7 @@ def make_ibeis_headers_dict(ibs):
     # ANNOTATION Iders/Setters/Getters
     iders[ANNOTATION_TABLE]   = [ibs.get_valid_aids]
     getters[ANNOTATION_TABLE] = {
-        'aid'                 : lambda aids: aids,
+        'aid'                 : ut.identity,
         'name'                : ibs.get_annot_names,
         'species'             : ibs.get_annot_species_texts,
         'yaw'                 : ibs.get_annot_yaws,
@@ -452,7 +470,7 @@ def make_ibeis_headers_dict(ibs):
     # Name Iders/Setters/Getters
     iders[NAME_TABLE]   = [ibs.get_valid_nids]
     getters[NAME_TABLE] = {
-        'nid'        : lambda nids: nids,
+        'nid'        : ut.identity,
         'name'       : ibs.get_name_texts,
         'nAids'      : ibs.get_name_num_annotations,
         'namenotes'  : ibs.get_name_notes,
@@ -467,14 +485,14 @@ def make_ibeis_headers_dict(ibs):
     iders[NAMES_TREE]   = [ibs.get_valid_nids, ibs.get_name_aids]
     getters[NAMES_TREE] = {
         # level 0
-        'nid'          : lambda nids: nids,
+        'nid'          : ut.identity,
         'name'         : ibs.get_name_texts,
         'nAids'        : ibs.get_name_num_annotations,
         'nExAids'      : ibs.get_name_num_exemplar_annotations,
         'namenotes'    : ibs.get_name_notes,
         'sex_text'     : ibs.get_name_sex_text,
         # level 1
-        'aid'          : lambda aids: aids,
+        'aid'          : ut.identity,
         'exemplar'     : ibs.get_annot_exemplar_flags,
         'thumb'        : ibs.get_annot_chip_thumbtup,
         'annot_gname'  : ibs.get_annot_image_names,

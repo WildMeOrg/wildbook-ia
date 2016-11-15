@@ -72,6 +72,9 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
     else:
         metaself._attrs_aliases = {}
 
+    # if not getattr(metaself, '__needs_inject__', True):
+    #     return
+
     attr_to_aliases = ut.invert_dict(metaself._attrs_aliases, unique_vals=False)
 
     def _make_getter(objname, attrname):
@@ -86,7 +89,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
                 if self._caching:
                     self._internal_attrs[attrname] = data
             return data
-        ut.set_funcname(ibs_getter, ibs_funcname)
+        ut.set_funcname(ibs_getter, '_get_' + attrname)
         return ibs_getter
 
     # What is difference between configurable and depcache getters?
@@ -105,7 +108,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
                 if self._caching:
                     self._internal_attrs[attrname] = data
             return data
-        ut.set_funcname(ibs_cfg_getter, ibs_funcname)
+        ut.set_funcname(ibs_cfg_getter, '_get_' + attrname)
         return ibs_cfg_getter
 
     def _make_depcache_getter(depc_name, tbl, col):
@@ -120,7 +123,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
                 if self._caching:
                     self._internal_attrs[attrname] = data
             return data
-        ut.set_funcname(ibs_cfg_getter, 'get_' + attrname)
+        ut.set_funcname(ibs_cfg_getter, '_get_' + attrname)
         return ibs_cfg_getter
 
     def _make_setter(objname, attrname):
@@ -133,10 +136,13 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
                     self._internal_attrs[attrname] = values
                 ibs_callable = getattr(self._ibs, ibs_funcname)
                 ibs_callable(self._rowids, values, *args, **kwargs)
-        ut.set_funcname(ibs_setter, ibs_funcname)
+        ut.set_funcname(ibs_setter, '_set_' + attrname)
         return ibs_setter
 
-    # Inject function and property version
+    # Collect setter / getter functions and properties
+    getters = []
+    setters = []
+    properties = []
     for attrname in attrs:
         ibs_getter = _make_getter(objname, attrname)
         if attrname in settable_attrs:
@@ -144,32 +150,87 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         else:
             ibs_setter = None
         prop = property(fget=ibs_getter, fset=ibs_setter)
-        setattr(metaself, '_get_' + attrname, ibs_getter)
+        getters.append(('_get_' + attrname, ibs_getter))
         if ibs_setter is not None:
-            setattr(metaself, '_set_' + attrname, ibs_setter)
-        setattr(metaself, attrname, prop)
-        for alias in attr_to_aliases.pop(attrname, []):
-            setattr(metaself, alias, prop)
+            setters.append(('_set_' + attrname, ibs_setter))
+        properties.append((attrname, prop))
 
     for attrname in configurable_attrs:
         ibs_cfg_getter = _make_configurable_getter(objname, attrname)
         prop = property(ibs_cfg_getter)
-        setattr(metaself, '_get_' + attrname, ibs_cfg_getter)
-        setattr(metaself, attrname, prop)
-        for alias in attr_to_aliases.pop(attrname, []):
-            setattr(metaself, alias, prop)
+        getters.append(('_get_' + attrname, ibs_cfg_getter))
+        properties.append((attrname, prop))
 
     if depcache_attrs is not None:
         for tbl, col in depcache_attrs:
             attrname = '%s_%s' % (tbl, col)
             ibs_depc_getter = _make_depcache_getter(depc_name, tbl, col)
             prop = property(ibs_depc_getter)
-            setattr(metaself, '_get_' + attrname, ibs_depc_getter)
-            setattr(metaself, attrname, prop)
-            for alias in attr_to_aliases.pop(attrname, []):
-                setattr(metaself, alias, prop)
-        #import utool
-        #utool.embed()
+            getters.append(('_get_' + attrname, ibs_depc_getter))
+            properties.append((attrname, prop))
+
+    aliases = []
+
+    # Inject all gathered information
+    for funcname, func in getters:
+        setattr(metaself, funcname, func)
+
+    for funcname, func in setters:
+        setattr(metaself, funcname, func)
+
+    for propname, prop in properties:
+        setattr(metaself, propname, prop)
+        for alias in attr_to_aliases.pop(propname, []):
+            aliases.append((alias, propname))
+            setattr(metaself, alias, prop)
+
+    if True:
+        # TODO: turn on autogenertion given a flag
+        def expand_closure_source(funcname, func):
+            source = ut.get_func_sourcecode(func)
+            closure_vars = [(k, v.cell_contents) for k, v in
+                            zip(func.func_code.co_freevars, func.func_closure)]
+            source = ut.unindent(source)
+            import re
+            for k, v in closure_vars:
+                source = re.sub('\\b' + k + '\\b', ut.repr2(v), source)
+            source = re.sub('def .*\(self', 'def ' + funcname + '(self', source)
+            source = ut.indent(source.strip(), '    ') + '\n'
+            return source
+
+        explicit_lines = []
+        # build explicit version for jedi?
+        for funcname, func in getters:
+            source = expand_closure_source(funcname, func)
+            explicit_lines.append(source)
+        # build explicit version for jedi?
+        for funcname, func in setters:
+            source = expand_closure_source(funcname, func)
+            explicit_lines.append(source)
+
+        for propname, prop in properties:
+            getter_name = None if prop.fget is None else ut.get_funcname(prop.fget)
+            setter_name = None if prop.fset is None else ut.get_funcname(prop.fset)
+            source = '    %s = property(%s, %s)' % (propname, getter_name, setter_name)
+            explicit_lines.append(source)
+
+        for alias, propname in aliases:
+            source = '    %s = %s' % (alias, propname)
+            explicit_lines.append(source)
+
+        explicit_source = '\n'.join([
+            'from ibeis import _ibeis_object',
+            '',
+            '',
+            'class _%s_base_class(_ibeis_object.ObjectList1D):',
+            '    __needs_inject__ = False',
+            '',
+        ]) % (objname,)
+        explicit_source += '\n'.join(explicit_lines)
+        explicit_fname = '_autogen_%s_base.py' % (objname,)
+        from os.path import dirname, join
+        ut.writeto(join(dirname(__file__), explicit_fname), explicit_source + '\n')
+
     if attr_to_aliases:
         raise AssertionError('Unmapped aliases %r' % (attr_to_aliases,))
 

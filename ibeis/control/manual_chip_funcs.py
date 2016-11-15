@@ -210,7 +210,7 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
         >>> from ibeis.control.manual_chip_funcs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()
+        >>> aid_list = ibs.get_valid_aids()[1:2]
         >>> thumbsize = 128
         >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
         >>> print(result)
@@ -249,6 +249,8 @@ def delete_annot_chips(ibs, aid_list, config2_=None):
         Method: DELETE
         URL:    /api/chip/
     """
+    # FIXME: Should config2_ be passed down?
+    # Not sure why it isn't currently
     thumbpath_list = ibs.get_annot_chip_thumbpath(aid_list)
     #print(thumbpath_list)
     #ut.remove_fpaths(thumbpath_list, quiet=quiet, lbl='chip_thumbs')

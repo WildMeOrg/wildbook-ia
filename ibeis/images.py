@@ -10,6 +10,18 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 BASE_TYPE = type
 
+try:
+    from ibeis import _autogen_image_base
+    IMAGE_BASE = _autogen_image_base._image_base_class
+except ImportError:
+    IMAGE_BASE = _ibeis_object.ObjectList1D
+
+try:
+    from ibeis import _autogen_imageset_base
+    IMAGESET_BASE = _autogen_imageset_base._imageset_base_class
+except ImportError:
+    IMAGESET_BASE = _ibeis_object.ObjectList1D
+
 
 @register_ibs_method
 def images(ibs, gids=None, **kwargs):
@@ -64,9 +76,9 @@ class ImageIBEISPropertyInjector(BASE_TYPE):
         _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
-@ut.reloadable_class
+# @ut.reloadable_class
 @six.add_metaclass(ImageIBEISPropertyInjector)
-class Images(_ibeis_object.ObjectList1D):
+class Images(IMAGE_BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
     database using lazy evaluation.
@@ -154,15 +166,15 @@ class ImageSetAttrInjector(BASE_TYPE):
         _ibeis_object._inject_getter_attrs(metaself, objname, attrs, [])
 
 
-@ut.reloadable_class
+# @ut.reloadable_class
 @six.add_metaclass(ImageSetAttrInjector)
-class ImageSets(_ibeis_object.ObjectList1D):
+class ImageSets(IMAGESET_BASE):
     """
     Represents a group of annotations. Efficiently accesses properties from a
     database using lazy evaluation.
 
     CommandLine:
-        python -m ibeis.images ImageSets --show
+        python -m ibeis.images ImageSets
 
     Example:
         >>> from ibeis.images import *  # NOQA

@@ -13,9 +13,11 @@ BUGS:
     Should gray out an option if it is not available.
 
 
+CommandLine:
+    ibeis --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --name-tab
 """
 from __future__ import absolute_import, division, print_function
-from six.moves import zip, map, filter  # NOQA
+from six.moves import zip, map, filter
 from os.path import isdir
 import sys
 from ibeis import constants as const
@@ -23,19 +25,22 @@ import functools
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
-from guitool import slot_, checks_qt_error, ChangeLayoutContext, BlockContext  # NOQA
+from guitool import slot_, ChangeLayoutContext
+# from guitool import BlockContext
+# from guitool import checks_qt_error
 import guitool as gt
 from ibeis.other import ibsfuncs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six
 from ibeis.viz.interact import interact_annotations2
-from ibeis.gui.guiheaders import (IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE, IMAGESET_TABLE)  # NOQA
-from ibeis.gui.models_and_views import (IBEISStripeModel, IBEISTableView,
-                                        IBEISItemModel, IBEISTreeView,
-                                        ImagesetTableModel, ImagesetTableView,
-                                        IBEISTableWidget, IBEISTreeWidget,
-                                        ImagesetTableWidget)
+from ibeis.gui.guiheaders import (
+    IMAGE_TABLE, IMAGE_GRID, ANNOTATION_TABLE, NAME_TABLE, NAMES_TREE,
+    IMAGESET_TABLE)
+from ibeis.gui.models_and_views import (
+    IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView,
+    ImagesetTableModel, ImagesetTableView, IBEISTableWidget,
+    IBEISTreeWidget, ImagesetTableWidget)
 from plottool import color_funcs
 import utool as ut
 import plottool as pt
@@ -358,6 +363,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibswgt.models[IMAGE_TABLE].batch_size = 1000
         ibswgt.models[ANNOTATION_TABLE].batch_size = 1000
         ibswgt.models[NAMES_TREE].batch_size = 2
+        ibswgt.models[NAMES_TREE].batch_size = 100
 
         # Custom ImageSet Tab Wiget
         ibswgt.imageset_tabwgt = ImageSetTabWidget(parent=ibswgt)
@@ -1339,6 +1345,15 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                     ('Remove from imageset',
                         lambda: ibswgt.back.remove_from_imageset(gid_list)),
                 ]
+
+            from ibeis.viz import viz_graph2
+            context_options += [
+                ('----', lambda: None),
+                ('Graph interaction (Annots)',
+                 lambda: viz_graph2.make_qt_graph_interface(
+                     ibs, nids=ut.unique(ut.flatten(ibs.get_image_nids(gid_list))))),
+            ]
+
             # Continue the conditional context menu
             if len(gid_list) == 1:
                 # We get gid from above

@@ -1596,8 +1596,27 @@ class _AnnotInfrRelabel(object):
         num_inconsistent = 0
         num_names = len(cc_subgraphs)
 
-        if graph is not None:
-            available_nids = ut.unique(nx.get_node_attributes(graph, 'name_label'))
+        # if graph is not None:
+        #     available_nids = ut.unique(nx.get_node_attributes(graph, 'name_label'))
+
+        # Determine which names can be reused
+        from ibeis.scripts import name_recitifer
+        grouped_oldnames = [list(nx.get_node_attributes(subgraph, 'name_label').values())
+                            for count, subgraph in enumerate(cc_subgraphs)]
+        # Make sure negatives dont get priority
+        grouped_oldnames = [
+            [n for n in group if len(group) == 1 or n > 0]
+            for group in grouped_oldnames]
+        new_labels = name_recitifer.find_consistent_labeling(grouped_oldnames)
+        new_flags = [not isinstance(n, int) and n.startswith('_extra_name')
+                     for n in new_labels]
+        for idx in ut.where(new_flags):
+            new_labels[idx] = infr._next_nid()
+
+        for idx, label in enumerate(new_labels):
+            if label < 0 and len(grouped_oldnames[idx]) > 1:
+                # Remove negative ids for grouped items
+                new_labels[idx] = infr._next_nid()
 
         for count, subgraph in enumerate(cc_subgraphs):
             reviewed_states = nx.get_edge_attributes(subgraph, 'reviewed_state')
@@ -1607,13 +1626,14 @@ class _AnnotInfrRelabel(object):
                 #print('Inconsistent')
                 num_inconsistent += 1
 
-            if graph is None:
-                new_nid = count
-            else:
-                if count >= len(available_nids):
-                    new_nid = available_nids[count]
-                else:
-                    new_nid = infr._next_nid()
+            # if graph is None:
+            #     new_nid = count
+            # else:
+            new_nid = new_labels[count]
+            # if count >= len(available_nids):
+            #     new_nid = available_nids[count]
+            # else:
+            #     new_nid = infr._next_nid()
 
             infr.set_node_attrs('name_label',
                                 _dz(list(subgraph.nodes()), [new_nid]))
@@ -1850,9 +1870,15 @@ class AnnotInference(ut.NiceRepr,
             return 'nAids=%r, nEdges=%r' % (len(infr.aids),
                                               infr.graph.number_of_edges())
 
-    def initialize_graph(infr, graph=None):
+    def initialize_graph(infr, graph=None, update_nids=False):
         if infr.verbose >= 1:
             print('[infr] initialize_graph')
+        if update_nids:
+            if infr.ibs is None:
+                nids = [-aid for aid in infr.aids]
+            else:
+                nids = infr.ibs.get_annot_nids(infr.aids)
+            infr.orig_name_labels = nids
         if graph is None:
             infr.graph = infr.graph_cls()
             infr.graph.add_nodes_from(infr.aids)

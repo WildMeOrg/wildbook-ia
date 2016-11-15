@@ -74,6 +74,136 @@ def testdata_core(defaultdb='testdb1', size=2):
     return ibs, depc, aid_list
 
 
+class ChipThumbConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('thumbsize', 128, 'sz', type_=eval),
+        ut.ParamInfo('pad', 0, hideif=0),
+        ut.ParamInfo('in_image', False),
+        ut.ParamInfo('version', 'dev'),
+    ]
+
+
+@derived_attribute(
+    tablename='chipthumb', parents=['annotations'],
+    colnames=['img', 'width', 'height'],
+    coltypes=[dtool.ExternType(vt.imread, vt.imwrite, extern_ext='.jpg'),
+              int, int],
+    configclass=ChipThumbConfig,
+    fname='chipthumb',
+    rm_extern_on_delete=True,
+    chunksize=256,
+)
+def compute_chipthumb(depc, aid_list, config=None):
+    """
+    Yet another chip thumb computer
+
+    Example:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_annot
+        >>> config = ChipThumbConfig.from_argv_dict(dim_size=None)
+        >>> aid_list = ibs.get_valid_aids()[0:2]
+        >>> compute_chipthumb(depc, aid_list, config)
+        >>> chips = depc.get_property('chips', aid_list, 'img', config={'dim_size': 256})
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> import ibeis.viz.interact.interact_chip
+        >>> interact_obj = ibeis.viz.interact.interact_chip.interact_multichips(ibs, aid_list, config2_=config)
+        >>> interact_obj.start()
+        >>> pt.show_if_requested()
+    """
+    print('Chips Thumbs')
+    print('config = %r' % (config,))
+
+    ibs = depc.controller
+
+    in_image = config['in_image']
+
+    pad = config['pad']
+    thumbsize = config['thumbsize']
+    max_dsize = (thumbsize, thumbsize)
+
+    gid_list    = ibs.get_annot_gids(aid_list)
+    bbox_list   = ibs.get_annot_bboxes(aid_list)
+    theta_list  = ibs.get_annot_thetas(aid_list)
+
+    bbox_size_list = ut.take_column(bbox_list, [2, 3])
+    # Checks
+    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
+    invalid_aids = ut.compress(aid_list, invalid_flags)
+    assert len(invalid_aids) == 0, 'invalid aids=%r' % (invalid_aids,)
+
+    if in_image:
+        imgsz_list = ibs.get_image_sizes(gid_list)
+        newsize_scale_list = [
+            vt.resized_clamped_thumb_dims((w, h), max_dsize)
+            for (w, h) in imgsz_list
+        ]
+        newsize_list_ = ut.take_column(newsize_scale_list, 0)
+        newscale_list = ut.take_column(newsize_scale_list, [1, 2])
+        new_verts_list = [
+            vt.scaled_verts_from_bbox(bbox, theta, sx, sy)
+            for bbox, theta, (sx, sy) in
+            zip(bbox_list, theta_list, newscale_list)
+        ]
+        M_list = [
+            vt.scale_mat3x3(sx, sy) for (sx, sy) in newscale_list
+        ]
+    else:
+        newsize_scale_list = [
+            vt.resized_clamped_thumb_dims((w, h), max_dsize)
+            for (w, h) in bbox_size_list
+        ]
+        newsize_list = ut.take_column(newsize_scale_list, 0)
+        # newscale_list = ut.take_column(newsize_scale_list, [1, 2])
+        if pad > 0:
+            halfoffset_ms = (pad, pad)
+            extras_list = [vt.get_extramargin_measures(bbox, new_size, halfoffset_ms)
+                           for bbox, new_size in zip(bbox_list, newsize_list)]
+
+            # Overwrite bbox and new size with margined versions
+            bbox_list_ = ut.take_column(extras_list, 0)
+            newsize_list_ = ut.take_column(extras_list, 1)
+        else:
+            newsize_list_ = newsize_list
+            bbox_list_ = bbox_list
+        # Build transformation from image to chip
+        M_list = [vt.get_image_to_chip_transform(bbox, new_size, theta) for
+                  bbox, theta, new_size in zip(bbox_list_, theta_list, newsize_list_)]
+
+        new_verts_list = [
+            np.round(vt.transform_points_with_homography(
+                M, np.array(vt.verts_from_bbox(bbox)).T).T).astype(np.int32)
+            for M, bbox in zip(M_list, bbox_list)
+        ]
+
+    #arg_iter = zip(cfpath_list, gid_list, newsize_list_, M_list)
+    arg_iter = zip(gid_list, newsize_list_, M_list, new_verts_list)
+    arg_list = list(arg_iter)
+
+    warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
+
+    last_gid = None
+    for tup in ut.ProgIter(arg_list, lbl='computing annot thumb', bs=True):
+        gid, new_size, M, new_verts = tup
+        if gid != last_gid:
+            imgBGR = ibs.get_image_imgdata(gid)
+            last_gid = gid
+
+        thumbBGR = cv2.warpAffine(imgBGR, M[0:2], tuple(new_size), **warpkw)
+
+        # -----------------
+        if in_image or pad:
+            orange_bgr = (0, 128, 255)
+            thumbBGR = vt.draw_verts(thumbBGR, new_verts, color=orange_bgr,
+                                     thickness=2)
+
+        width, height = vt.get_size(thumbBGR)
+        yield (thumbBGR, width, height)
+
+
 class ChipConfig(dtool.Config):
     _param_info_list = [
         #ut.ParamInfo('dim_size', 128, 'sz', hideif=None),
@@ -244,7 +374,7 @@ def compute_chip(depc, aid_list, config=None):
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
     last_gid = None
-    for tup in ut.ProgIter(arg_list, lbl='computing chips', backspace=True):
+    for tup in ut.ProgIter(arg_list, lbl='computing chips', bs=True):
         # FIXME: THE GPATH SHOULD BE PASSED HERE WITH AN ORIENTATION FLAG
         #cfpath, gid, new_size, M = tup
         gid, new_size, M = tup
@@ -471,7 +601,7 @@ def compute_probchip(depc, aid_list, config=None):
     grouped_probchips = []
     _iter = zip(grouped_aids, unique_species, grouped_ppaths, grouped_mpaths)
     _iter = ut.ProgIter(_iter, nTotal=len(grouped_aids),
-                        lbl='probchip for species', enabled=ut.VERBOSE, backspace=True)
+                        lbl='probchip for species', enabled=ut.VERBOSE, bs=True)
 
     if fw_detector == 'rf':
         for aids, species, probchip_fpaths, inputchip_fpaths in _iter:
@@ -511,7 +641,7 @@ def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_th
     mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
     _iter = zip(probchip_fpath_list, mask_gen)
     for chunk in ut.ichunks(_iter, 256):
-        _progiter = ut.ProgIter(chunk, lbl='compute probchip chunk', adjust=True, time_thresh=30.0, backspace=True)
+        _progiter = ut.ProgIter(chunk, lbl='compute probchip chunk', adjust=True, time_thresh=30.0, bs=True)
         for probchip_fpath, probchip in _progiter:
             if smooth_thresh is not None and smooth_ksize is not None:
                 probchip = postprocess_mask(probchip, smooth_thresh, smooth_ksize)
@@ -1298,7 +1428,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
     #yeild_ = []
     #print("START VSONE")
     for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
-                                   lbl='compute vsone', backspace=True, freq=1):
+                                   lbl='compute vsone', bs=True, freq=1):
         annot1 = qaid_to_annot[qaid]
         annot2 = daid_to_annot[daid]
         metadata = {

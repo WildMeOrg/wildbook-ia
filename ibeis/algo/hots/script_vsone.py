@@ -101,6 +101,8 @@ def train_pairwise_rf():
     )
     if qreq_.qparams.featweight_enabled:
         hyper_params.vsone_assign['weight'] = 'fgweight'
+    else:
+        hyper_params.vsone_assign['weight'] = None
 
     data = bigcache_features(qreq_, hyper_params)
     simple_scores, X_dict, y, match = data
@@ -763,8 +765,6 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
         match.annot1['flann']
 
     cfgdict = hyper_params.vsone_assign
-    if qreq_.qparams.featweight_enabled:
-        del cfgdict['weight']
     # Find one-vs-one matches
     # cfgdict = {'checks': 20, 'symmetric': False}
     for match in ut.ProgIter(matches_RAT, label='assign vsone'):

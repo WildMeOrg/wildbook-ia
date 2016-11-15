@@ -145,6 +145,30 @@ def find_consistent_labeling(grouped_oldnames):
     Solves a a maximum bipirtite matching problem to find a consistent
     name assignment.
 
+    Args:
+        gropued_oldnames (list): A group of old names where the grouping is
+            based on new names. For instance:
+
+                Given:
+                    aids      = [1, 2, 3, 4, 5]
+                    old_names = [0, 1, 1, 1, 0]
+                    new_names = [0, 0, 1, 1, 0]
+
+                The grouping is
+                    [[0, 1, 0], [1, 1]]
+
+                This lets us keep the old names in a split case and
+                re-use exising names and make minimal changes to
+                current annotation names while still being consistent
+                with the new and improved grouping.
+
+                The output will be:
+                    [0, 1]
+
+                Meaning that all annots in the first group are assigned the
+                name 0 and all annots in the second group are assigned the name
+                1.
+
     Notes:
         # Install module containing the Hungarian algorithm for matching
         pip install munkres
@@ -172,6 +196,14 @@ def find_consistent_labeling(grouped_oldnames):
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> print(new_names)
         [u'a', u'b', u'e']
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> grouped_oldnames = [[], ['a', 'a'], [], ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
+        >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> print(new_names)
+        [u'_extra_name0', u'a', u'_extra_name1', u'b', u'_extra_name2']
     """
     import numpy as np
     try:
@@ -201,22 +233,28 @@ def find_consistent_labeling(grouped_oldnames):
     total = len(assignable_names)
 
     # Allocate assignment matrix
-    profit_matrix = np.zeros((total, total), dtype=np.int)
+    # Start with a large negative value indicating
+    # that you must select from your assignments only
+    profit_matrix = -np.ones((total, total), dtype=np.int) * (2 * total)
     # Populate assignment profit matrix
     oldname2_idx = ut.make_index_lookup(assignable_names)
     name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames]
+    # Initialize base profit for using a previously used name
+    for rowx, name_freq in enumerate(name_freq_list):
+        for name, freq in name_freq.items():
+            colx = oldname2_idx[name]
+            profit_matrix[rowx, colx] = 1
+    # Now add in the real profit
     for rowx, name_freq in enumerate(name_freq_list):
         for name, freq in name_freq.items():
             colx = oldname2_idx[name]
             profit_matrix[rowx, colx] += freq
-    # Add extra profit for using a previously used name
-    profit_matrix[profit_matrix > 0] += 2
-    # Add small profit for using an extra name
+    # Set a small profit for using an extra name
     extra_colxs = ut.take(oldname2_idx, extra_oldnames)
-    profit_matrix[:, extra_colxs] += 1
+    profit_matrix[:, extra_colxs] = 1
 
     # Convert to minimization problem
-    big_value = (profit_matrix.max())
+    big_value = (profit_matrix.max()) - (profit_matrix.min())
     cost_matrix = big_value - profit_matrix
     m = munkres.Munkres()
     indexes = m.compute(cost_matrix)
