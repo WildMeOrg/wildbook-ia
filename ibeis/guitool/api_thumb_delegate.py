@@ -27,9 +27,20 @@ MAX_NUM_THUMB_THREADS = 1
 def read_thumb_size(thumb_path):
     if VERBOSE_THUMB:
         print('[ThumbDelegate] Reading thumb size')
-    npimg = vt.imread(thumb_path, delete_if_corrupted=True)
-    (height, width) = npimg.shape[0:2]
-    del npimg
+    # npimg = vt.imread(thumb_path, delete_if_corrupted=True)
+    # (height, width) = npimg.shape[0:2]
+    # del npimg
+    try:
+        width, height = vt.open_image_size(thumb_path)
+    except IOError as ex:
+        if ut.checkpath(thumb_path, verbose=True):
+            ut.printex(ex, 'image=%r seems corrupted. Needs deletion' %
+                       (thumb_path,), iswarning=True)
+            ut.delete(thumb_path)
+        else:
+            ut.printex(ex, 'image=%r does not exist', (thumb_path,),
+                       iswarning=True)
+        raise
     return width, height
 
 
@@ -213,8 +224,9 @@ class APIThumbDelegate(DELEGATE_BASE):
                 #print("[APIThumbDelegate] Name not found")
                 return QtCore.QSize()
         except Exception as ex:
-            print("Error in APIThumbDelegate")
-            ut.printex(ex, 'Error in APIThumbDelegate', tb=True)
+            print('Error in APIThumbDelegate')
+            ut.printex(ex, 'Error in APIThumbDelegate', tb=True,
+                       iswarning=True)
             return QtCore.QSize()
 
     def get_model_data(dgt, qtindex):

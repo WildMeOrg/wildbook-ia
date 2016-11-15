@@ -266,7 +266,8 @@ class APIItemModel(API_MODEL_BASE):
                 'inconsistent collevel')
             for colname, flag, func in zip(col_name_list, col_edit_list, col_setter_list):
                 if flag:
-                    assert func is not None, 'column=%r is editable but func is None' % (colname,)
+                    assert func is not None, (
+                        'column=%r is editable but func is None' % (colname,))
 
         model.clear_cache()
 
@@ -301,12 +302,11 @@ class APIItemModel(API_MODEL_BASE):
         if VERBOSE:
             print('[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r' %
                   (col_sort_index, col_sort_reverse, rebuild_structure,))
-        #with ut.Timer('set_sort'):
-        #printDBG('SET SORT')
         if len(model.col_name_list) > 0:
             if ut.USE_ASSERT:
-                assert isinstance(col_sort_index, int) and col_sort_index < len(model.col_name_list), \
-                    'sort index out of bounds by: %r' % col_sort_index
+                assert (isinstance(col_sort_index, int) and
+                        col_sort_index < len(model.col_name_list)), (
+                            'sort index out of bounds by: %r' % col_sort_index)
             model.col_sort_index = col_sort_index
             model.col_sort_reverse = col_sort_reverse
             # Update the row-id order
@@ -334,14 +334,14 @@ class APIItemModel(API_MODEL_BASE):
                 print('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
-            #print('[item_model] sort_index=%r' % (sort_index,))
             children = model.root_node.get_children()  # THIS IS THE LINE THAT TAKES FOREVER
             id_list = [child.get_id() for child in children]
             #print('ids_ generated')
             nodes = []
             if len(id_list) != 0:
                 if VERBOSE:
-                    print('[APIItemModel] lazy_update_rows len(id_list) = %r' % (len(id_list)))
+                    print('[APIItemModel] lazy_update_rows len(id_list) = %r' %
+                          (len(id_list)))
                 # start sort
                 if model.col_sort_index is not None:
                     type_ = model.col_type_list[sort_index]
@@ -361,7 +361,8 @@ class APIItemModel(API_MODEL_BASE):
                         print("SORTING VALUES IS NONE. VERY WEIRD")
                     if type_ is float:
                         values = np.array(ut.replace_nones(values, np.nan))
-                        values[np.isnan(values)] = -np.inf  # Force nan to be the smallest number
+                        # Force nan to be the smallest number
+                        values[np.isnan(values)] = -np.inf
                     import vtool as vt
                     sortx = vt.argsort_records([values, id_list], reverse=reverse)
                     # </NUMPY MULTIARRAY SORT>
@@ -395,11 +396,9 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _about_to_change(model, force=False):
-        #N = range(0, 10)  # NOQA
         if force or (not model._abouttochange and not model._changeblocked):
             if VERBOSE:
                 print('ABOUT TO CHANGE: %r' % (model.name,))
-            #printDBG('caller=%r' % (ut.get_caller_name(N=N)))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
@@ -410,29 +409,22 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _change(model, force=False):
-        #N = range(0, 10)  # NOQA
         if force or (model._abouttochange and not model._changeblocked):
             if VERBOSE:
                 print('LAYOUT CHANGED:  %r' % (model.name,))
-            #printDBG('caller=%r' % (ut.get_caller_name(N=N)))
-            #model._abouttochange = False
             model._abouttochange = False
-            #printDBG('CHANGE: CACHE INVALIDATED!')
             model.clear_cache()
             model.layoutChanged.emit()
             return True
         else:
             if VERBOSE:
                 print('NOT LAYOUT CHANGING')
-            #print('NOT LAYOU CHANGED: %r, caller=%r' % (model.name, ut.get_caller_name(N=N)))
             return False
 
     @default_method_decorator
     def _update(model, newrows=False):
-        #if newrows:
         model.cache = {}
         model._update_rows()
-        #printDBG('UPDATE: CACHE INVALIDATED!')
 
     def _use_ider(model, level=0):
         if level == 0:
@@ -459,7 +451,8 @@ class APIItemModel(API_MODEL_BASE):
         # Hacked to only work on tables. Should be in terms of qtindex
         row = qtindex.row()
         if ut.USE_ASSERT:
-            assert max(model.col_level_list) == 0, "Must be a table. Input is a tree"
+            assert max(model.col_level_list) == 0, (
+                'Must be a table. Input is a tree')
         col = model.col_name_list.index(colname)
         id_ = model.root_node[row].get_id()
         getter = model.col_getter_list[col]
@@ -501,9 +494,11 @@ class APIItemModel(API_MODEL_BASE):
             node = qtindex.internalPointer()
             if ut.USE_ASSERT:
                 try:
-                    assert isinstance(node, _atn.TreeNode), 'type(node)=%r, node=%r' % (type(node), node)
+                    assert isinstance(node, _atn.TreeNode), (
+                        'type(node)=%r, node=%r' % (type(node), node))
                 except AssertionError as ex:
-                    ut.printex(ex, 'error in _get_row_id', keys=['model', 'qtindex', 'node'])
+                    ut.printex(ex, 'error in _get_row_id',
+                               keys=['model', 'qtindex', 'node'])
                     raise
             try:
                 id_ = node.get_id()
@@ -572,42 +567,28 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _get_data(model, qtindex, **kwargs):
-        #if False:
-        #    if not hasattr(model, '_hack_timer'):
-        #        model._hack_timer = ut.Timer(verbose=False)
-        #        model._hack_timer.tic()
-        #        model._hack_timer.flag = True
-        #    if model._hack_timer.flag:
-        #        print('[api] getdata %r %s' % (model.name, str(qtype.qindexinfo(qtindex))))
-        #        #print('[model] lazy update %r caller %r: ' %
-        #        #      (model.name, ut.get_caller_name(N=range(4))))
-        #        model._hack_timer.flag = False
-        #    if model._hack_timer.toc() > 100:
-        #        model._hack_timer.tic()
-        #        model._hack_timer.flag = True
         col = qtindex.column()
-        row_id = model._get_row_id(qtindex)  # row_id w.r.t. to sorting
+        # row_id wrt. to sorting
+        row_id = model._get_row_id(qtindex)
         cachekey = (row_id, col)
         try:
             data = model.cache[cachekey]
         except KeyError:
-            getter = model.col_getter_list[col]  # getter for this column
+            # getter function for this column
+            getter = model.col_getter_list[col]
             try:
                 # Using this getter may not be thread safe
                 # Should this work around decorators?
                 #data = getter((row_id,), **kwargs)[0]
                 data = getter(row_id, **kwargs)
             except Exception as ex:
-                print(ex)
-                print('[api_item_model] problem getting in column %r' % (col,),)
-                print('model.name = %r' % (model.name,))
-                print('row_id = %r' % (row_id,))
+                ut.printex(
+                    ex,
+                    '[api_item_model] problem getting in column %r' % (col,),
+                    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'],
+                    iswarning=True
+                )
                 print('qtindex = %r' % (qtype.qindexinfo(qtindex),))
-                print('qtindex = %r' % (qtindex,))
-                #ut.printex(
-                #    ex,
-                #    '[api_item_model] problem getting in column %r' % (col,),
-                #    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'])
                 #getting from: %r' % ut.util_str.get_callable_name(getter))
                 raise
             model.cache[cachekey] = data
@@ -616,12 +597,14 @@ class APIItemModel(API_MODEL_BASE):
 
     @default_method_decorator
     def _set_data(model, qtindex, value):
-        """ The setter function should be of the following format def
+        """
+        The setter function should be of the following format def
         setter(column_name, row_id, value) column_name is the key or SQL-like
         name for the column row_id is the corresponding row key or SQL-like id
         that the row call back returned value is the value that needs to be
-        stored The setter function should return a boolean, if setting the value
-        was successfull or not """
+        stored The setter function should return a boolean, if setting the
+        value was successfull or not
+        """
         col = qtindex.column()
         row_id = model._get_row_id(qtindex)
         # <HACK: MODEL_CACHE>
@@ -633,11 +616,14 @@ class APIItemModel(API_MODEL_BASE):
         # </HACK: MODEL_CACHE>
         setter = model.col_setter_list[col]
         if VERBOSE:
-            print('[model] Setting data: row_id=%r, setter=%r' % (row_id, setter))
+            print('[model] Setting data: row_id=%r, setter=%r' %
+                  (row_id, setter))
         try:
             return setter(row_id, value)
         except Exception as ex:
-            ut.printex(ex, 'ERROR: setting data: row_id=%r, setter=%r, col=%r' % (row_id, setter, col))
+            ut.printex(
+                ex, 'ERROR: setting data: row_id=%r, setter=%r, col=%r' % (
+                    row_id, setter, col))
             raise
 
     #------------------------
@@ -748,18 +734,29 @@ class APIItemModel(API_MODEL_BASE):
         return len(model.col_name_list)
 
     @default_method_decorator
-    def canFetchMore(model, parent):
+    def canFetchMore(model, parent=QtCore.QModelIndex()):
         """
-        Returns true if there is more data available for parent; otherwise returns false.
-        The default implementation always returns false.
-        If canFetchMore() returns true, the fetchMore() function should be called. This is the behavior of QAbstractItemView, for example.
+        Returns true if there is more data available for parent; otherwise
+        returns false.  The default implementation always returns false.  If
+        canFetchMore() returns true, the fetchMore() function should be called.
+        This is the behavior of QAbstractItemView, for example.
 
-        http://doc.qt.io/qt-5/qtwidgets-itemviews-fetchmore-example.html
 
-        TODO:
+        References:
+            http://doc.qt.io/qt-5/qtwidgets-itemviews-fetchmore-example.html
             # Extend this to work well with QTreeViews
             http://blog.tjwakeham.com/lazy-loading-pyqt-data-models/
+            http://stackoverflow.com/questions/38506808/pyqt4-force-view-to-fetchmore-from
         """
+        if parent is None:
+            return
+        if parent.isValid():
+            # Check if we are at a leaf node
+            node = parent.internalPointer()
+            if node.get_num_children() == 0:
+                return
+            # if node.get_level() == len(model.col_level_list):
+            #     return
         #print('model.num_rows_total = %r' % (model.num_rows_total,))
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         if model.num_rows_total is not None:
@@ -779,12 +776,22 @@ class APIItemModel(API_MODEL_BASE):
         #return False
 
     @default_method_decorator
-    def fetchMore(model, parent):
+    def fetchMore(model, parent=QtCore.QModelIndex()):
         """
-        Fetches any available data for the items with the parent specified by the parent index.
+        Fetches any available data for the items with the parent specified by
+        the parent index.
+
         Reimplement this if you are populating your model incrementally.
         The default implementation does nothing.
         """
+        if parent is None:
+            return
+        if parent.isValid():
+            # Check if we are at a leaf node
+            node = parent.internalPointer()
+            if node.get_num_children() == 0:
+                return
+
         remainder = model.num_rows_total - model.num_rows_loaded
         if model.batch_size is None:
             num_fetching = remainder
@@ -794,7 +801,8 @@ class APIItemModel(API_MODEL_BASE):
             print('Fetching %r more %s' % (num_fetching, model.name))
         idx1 = model.num_rows_total
         idx2 = model.num_rows_total + num_fetching - 1
-        model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)
+        # model.beginInsertRows(QtCore.QModelIndex(), idx1, idx2)
+        model.beginInsertRows(parent, idx1, idx2)
         model.num_rows_loaded += num_fetching
         #print('model.num_rows_total = %r' % (model.num_rows_total,))
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
@@ -822,16 +830,6 @@ class APIItemModel(API_MODEL_BASE):
         if model.col_level_list[col] != node.get_level():
             return QVariantHack()
         type_ = model._get_type(col)
-
-        #if row >= model.rowCount():
-        #    # Yuck.
-        #    print('[item_model] Yuck. row=%r excedes rowCount=%r' %
-        #          (row, model.rowCount()))
-        #    return QVariantHack()
-
-        #if role == Qt.SizeHintRole:
-        #    #printDBG('REQUEST QSIZE FOR: ' + qtype.ItemDataRoles[role])
-        #    return QtCore.QSize(64, 64)
         #
         # Specify Text Alignment Role
         if role == Qt.TextAlignmentRole:
@@ -935,7 +933,7 @@ class APIItemModel(API_MODEL_BASE):
             if old_data != data:
                 model._set_data(qtindex, data)
                 # This may not work with PyQt5
-                # http://stackoverflow.com/questions/22560296/pyqt-list-view-not-responding-to-datachanged-signal
+                # http://stackoverflow.com/questions/22560296/not-responding-datachanged
                 # Emit that data was changed and return succcess
                 model.dataChanged.emit(qtindex, qtindex)
             return True
@@ -982,7 +980,7 @@ class APIItemModel(API_MODEL_BASE):
         Qt Override
 
         Returns:
-            Qt::ItemFlag::
+            Qt.ItemFlag:
                  0: 'NoItemFlags'          # It does not have any properties set.
                  1: 'ItemIsSelectable'     # It can be selected.
                  2: 'ItemIsEditable'       # It can be edited.
@@ -995,7 +993,8 @@ class APIItemModel(API_MODEL_BASE):
         # Return flags based on column properties (like type, and editable)
         col      = qtindex.column()
         type_    = model._get_type(col)
-        editable = model.col_edit_list[col] and model._get_level(qtindex) == model.col_level_list[col]
+        editable = (model.col_edit_list[col] and
+                    model._get_level(qtindex) == model.col_level_list[col])
         if type_ in qtype.QT_IMAGE_TYPES:
             #return Qt.NoItemFlags
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
