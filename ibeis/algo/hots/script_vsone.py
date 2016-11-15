@@ -86,7 +86,8 @@ def train_pairwise_rf():
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST',
         a=':mingt=2,species=primary',
-        t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+        # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+        t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
     )
     assert qreq_.qparams.can_match_samename is True
     assert qreq_.qparams.prescore_method == 'csum'
