@@ -100,7 +100,7 @@ def train_pairwise_rf():
         tablename='HyperParams'
     )
     if qreq_.qparams.featweight_enabled:
-        hyper_params.vsone_assign['weight'] = 'fgweight'
+        hyper_params.vsone_assign['weight'] = 'fgweights'
     else:
         hyper_params.vsone_assign['weight'] = None
 
