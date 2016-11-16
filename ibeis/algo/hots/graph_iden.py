@@ -1200,6 +1200,13 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('is_cut', _dz(unreviewed_edges, [False]))
 
         if infr.queue is not None:
+            # TODO: Reformulate this as a "Graph Diameter Augmentation" problem.
+            # It turns out this problem is NP-hard.
+            # Bounded
+            # (BCMB Bounded Cost Minimum Diameter Edge Addition)
+            # https://www.cse.unsw.edu.au/~sergeg/papers/FratiGGM13isaac.pdf
+            # http://www.cis.upenn.edu/~sanjeev/papers/diameter.pdf
+
             # update the priority queue on the fly
             queue = infr.queue
             pos_jump_thresh = infr.queue_params['pos_jump_thresh']
