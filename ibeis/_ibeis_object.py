@@ -184,7 +184,7 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
             aliases.append((alias, propname))
             setattr(metaself, alias, prop)
 
-    if True:
+    if ut.get_argflag('--autogen-core'):
         # TODO: turn on autogenertion given a flag
         def expand_closure_source(funcname, func):
             source = ut.get_func_sourcecode(func)
