@@ -20,7 +20,7 @@
           Number of images taken per Viewpoint (Corrected)
         </div>
         <a id="linkPieCorrected" href="#" download="annotations-per-viewpoint-corrected.png">Download Chart</a>
-        <canvas id="canvasPieImages" height="150" style="margin-top: 40px;></canvas>
+        <canvas id="canvasPieImages" height="300" style="margin-top: 40px; max-width: 500px;></canvas>
         <div style="color: #999 !important; font-style: italic;">
           Number of images taken per Viewpoint (Corrected)
         </div>
@@ -52,20 +52,20 @@
     {% endautoescape %}
     datasets: [
       {
-          label: "GGR",
-          backgroundColor: "rgba(247,70,74,0.5)",
-          borderColor: "rgba(247,70,74,0.8)",
-          hoverBackgroundColor: "rgba(247,70,74,0.75)",
-          hoverBorderColor: "rgba(247,70,74,1)",
-          data: {{ bar_values_dict['zebra_grevys'] }}
-      },
-      {
           label: "GZGC",
           backgroundColor: "rgba(253,180,92,0.5)",
           borderColor: "rgba(253,180,92,0.8)",
           hoverBackgroundColor: "rgba(253,180,92,0.75)",
           hoverBorderColor: "rgba(253,180,92,1)",
           data: {{ bar_values_dict['zebra_plains'] }}
+      },
+      {
+          label: "GGR",
+          backgroundColor: "rgba(247,70,74,0.5)",
+          borderColor: "rgba(247,70,74,0.8)",
+          hoverBackgroundColor: "rgba(247,70,74,0.75)",
+          hoverBorderColor: "rgba(247,70,74,1)",
+          data: {{ bar_values_dict['zebra_grevys'] }}
       },
     ]
   };
@@ -195,7 +195,7 @@
         backgroundColor: [
           "rgba(92,184,92,0.5)",
           "rgba(253,180,92,0.5)",
-          "#333333",
+          "#777777",
         ],
 
         // borderColor: [
@@ -222,6 +222,7 @@
   };
 
   window.onload = function(){
+    Chart.defaults.global.defaultFontSize = 30;
 
     var ctxBar = document.getElementById("canvasBar").getContext("2d");
     var linkBar = document.getElementById("linkBar");
@@ -232,6 +233,7 @@
         responsive: true,
         // animation: false,
         showTooltips: false,
+        legend:{display: true,labels:{fontSize:30}},
         animation: {
           onComplete: function(animationItem) {
 
@@ -269,6 +271,7 @@
             linkBarLog.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
           }
         },
+        legend:{display: true,labels:{fontSize:30}},
         scales: {
             yAxes: [{
                 type: 'logarithmic',
@@ -312,6 +315,7 @@
                 },
             }
         },
+        legend:{display: true,labels:{fontSize:30}},
         animation: {
           onComplete: function(animationItem) {
             ctx = animationItem.chartInstance
@@ -352,6 +356,7 @@
                 },
             }
         },
+        legend:{display: true,labels:{fontSize:30}},
         animation: {
           onComplete: function(animationItem) {
             ctx = animationItem.chartInstance
@@ -368,14 +373,14 @@
       data: dataPieImages,
       options: {
         cutoutPercentage: 25,
-        showAllTooltips: false,
+        showAllTooltips: true,
         tooltips: {
             // titleFontColor: "#333",
             // bodyFontColor: "#333",
             // backgroundColor: "transparent",
-            titleFontSize: 10,
-            bodyFontSize: 10,
-            titleMarginBottom: 0,
+            titleFontSize: 20,
+            bodyFontSize: 0,
+            // titleMarginBottom: 0,
             callbacks: {
                 title: function (tooltipItem, data) {
                   tooltipItem = tooltipItem[0]
@@ -388,10 +393,12 @@
                   var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                   var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
                   var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
+                  return '';
                   return percentage;
                 },
             }
         },
+        legend:{display: true,labels:{fontSize:30}},
         animation: {
           onComplete: function(animationItem) {
             ctx = animationItem.chartInstance

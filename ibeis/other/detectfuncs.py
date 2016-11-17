@@ -1568,6 +1568,29 @@ def detector_train(ibs):
     ut.copy(labeler_model_path,    join(output_path, 'labeler.npy'))
 
 
+@register_ibs_method
+def background_train(ibs):
+    from ibeis_cnn.ingest_ibeis import get_background_training_patches2
+    from ibeis_cnn.process import numpy_processed_directory2
+    from ibeis_cnn.netrun import train_background
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    get_background_training_patches2(ibs, data_path)
+    id_file, X_file, y_file = numpy_processed_directory2(data_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'background')
+    model_path = train_background(output_path, X_file, y_file)
+    return model_path
+
+
+@register_ibs_method
+def background_train_example(ibs):
+    from ibeis_cnn.netrun import train_background
+    output_path = join(ibs.get_cachedir(), 'training', 'background')
+    X_file = '/Datasets/TANYA/WWF_Lynx/_ibsdb/_ibeis_cache/extracted/raw/background/X.npy'
+    y_file = '/Datasets/TANYA/WWF_Lynx/_ibsdb/_ibeis_cache/extracted/labels/background/y.npy'
+    model_path = train_background(output_path, X_file, y_file)
+    return model_path
+
+
 def _resize(image, t_width=None, t_height=None):
     print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
     height, width = image.shape[:2]

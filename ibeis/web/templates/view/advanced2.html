@@ -59,6 +59,8 @@
 
   window.onload = function()
   {
+    Chart.defaults.global.defaultFontSize = 40;
+
     var ctxLine = document.getElementById("canvasLine").getContext("2d");
     var linkLine = document.getElementById("linkLine");
     var chartLine = new Chart(ctxLine, {
@@ -82,6 +84,7 @@
               }
             }]
         },
+        legend:{display: true,labels:{fontSize:50}},
         animation: {
           onComplete: function(animationItem) {
             ctx = animationItem.chartInstance

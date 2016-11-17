@@ -105,7 +105,7 @@
         </div>
         <a id='linkAge' href="#" download='annotations-by-sex-age.png'>Download Chart</a>
 
-        <canvas id="canvasPie1" height="150" style="margin-top: 40px;"></canvas>
+        <canvas id="canvasPie1" height="300" style="margin-top: 40px; max-width: 500px;""></canvas>
         <div style="color: #999 !important; font-style: italic;">
           Breakdown of sightings by type for GGR
         </div>
@@ -402,14 +402,14 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
           "#CA4141",
           "#9A41CA",
           "#428BCA",
-          "#333333",
+          "#777777",
         ],
 
         hoverBackgroundColor: [
           "#CA4141",
           "#9A41CA",
           "#428BCA",
-          "#333333",
+          "#777777",
         ],
         data: {{ dataset_color_dict['GGR'] }},
       },
@@ -419,14 +419,14 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
           "#CA4141",
           "#9A41CA",
           "#428BCA",
-          "#333333",
+          "#777777",
         ],
 
         hoverBackgroundColor: [
           "#CA4141",
           "#9A41CA",
           "#428BCA",
-          "#333333",
+          "#777777",
         ],
         data: {{ dataset_color_dict['GZGC'] }},
       },
@@ -441,6 +441,8 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
   {% endautoescape %}
 
   window.onload = function(){
+    Chart.defaults.global.defaultFontSize = 18;
+
     var ctxLine = document.getElementById("canvasLine").getContext("2d");
     var linkLine = document.getElementById("linkLine");
     var chartLine = new Chart(ctxLine, {
@@ -522,9 +524,9 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
             // titleFontColor: "#333",
             // bodyFontColor: "#333",
             // backgroundColor: "transparent",
-            titleFontSize: 10,
-            bodyFontSize: 10,
-            titleMarginBottom: 0,
+            titleFontSize: 20,
+            bodyFontSize: 0,
+            // titleMarginBottom: 0,
             callbacks: {
                 title: function (tooltipItem, data) {
                   tooltipItem = tooltipItem[0]
@@ -537,10 +539,12 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
                   var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                   var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
                   var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
+                  return '';
                   return percentage;
                 },
             }
         },
+        legend:{display: true,labels:{fontSize:30}},
         animation: {
           onComplete: function(animationItem) {
             ctx = animationItem.chartInstance
@@ -550,6 +554,50 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
       }
     });
 
+  Chart.pluginService.register({
+      beforeRender: function (chart) {
+          if (chart.config.options.showAllTooltips) {
+              // create an array of tooltips
+              // we can"t use the chart tooltip because there is only one tooltip per chart
+              chart.pluginTooltips = [];
+              chart.config.data.datasets.forEach(function (dataset, i) {
+                  chart.getDatasetMeta(i).data.forEach(function (sector, j) {
+                      chart.pluginTooltips.push(new Chart.Tooltip({
+                          _chart: chart.chart,
+                          _chartInstance: chart,
+                          _data: chart.data,
+                          _options: chart.options.tooltips,
+                          _active: [sector]
+                      }, chart));
+                  });
+              });
+
+              // turn off normal tooltips
+              chart.options.tooltips.enabled = false;
+          }
+      },
+      afterDraw: function (chart, easing) {
+          if (chart.config.options.showAllTooltips) {
+              // we don"t want the permanent tooltips to animate, so don"t do anything till the animation runs atleast once
+              if (!chart.allTooltipsOnce) {
+                  if (easing !== 1)
+                      return;
+                  chart.allTooltipsOnce = true;
+              }
+
+              // turn on tooltips
+              chart.options.tooltips.enabled = true;
+              Chart.helpers.each(chart.pluginTooltips, function (tooltip) {
+                  tooltip.initialize();
+                  tooltip.update();
+                  // we don"t actually need this since we are not animating tooltips
+                  tooltip.pivot();
+                  tooltip.transition(easing).draw();
+              });
+              chart.options.tooltips.enabled = false;
+          }
+      }
+  });
 
     var center = undefined;
     // var center = new google.maps.LatLng(0.318753, 36.972418); // Mpala
@@ -744,13 +792,20 @@ Unknown (36+  ): {{ age_str_list[2][3] }}
         heatmap_data_all.push(gps);
         // color = "#428BCA";
         color = colors_all[index];
+        opacity = 1.0;
+        strokeWeight = 5;
+        if(color == "#777777")
+        {
+          opacity = 0.5;
+        strokeWeight = 5;
+        }
         new google.maps.Polyline({
             path: [gps, gps2],
             clickable: false,
             borderColor: color,
             strokeColor: color,
-            strokeOpacity: 1.0,
-            strokeWeight: 5,
+            strokeOpacity: opacity,
+            strokeWeight: strokeWeight,
             map: map3
         });
     }

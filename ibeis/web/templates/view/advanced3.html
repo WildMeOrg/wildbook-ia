@@ -24,30 +24,32 @@
 <script type="text/javascript">
   var dataBar = {
     {% autoescape false %}
-    labels: {{ bar_label_list }},
+    labels: {{ bar_label_list[:20] }},
     {% endautoescape %}
     datasets: [
-      {
-          label: "GGR",
-          backgroundColor: "rgba(247,70,74,0.5)",
-          borderColor: "rgba(247,70,74,0.8)",
-          hoverBackgroundColor: "rgba(247,70,74,0.75)",
-          hoverBorderColor: "rgba(247,70,74,1)",
-          data: {{ bar_values_dict['GGR'] }}
-      },
       {
           label: "GZGC",
           backgroundColor: "rgba(253,180,92,0.5)",
           borderColor: "rgba(253,180,92,0.8)",
           hoverBackgroundColor: "rgba(253,180,92,0.75)",
           hoverBorderColor: "rgba(253,180,92,1)",
-          data: {{ bar_values_dict['GZGC'] }}
+          data: {{ bar_values_dict['GZGC'][:20] }}
+      },
+      {
+          label: "GGR",
+          backgroundColor: "rgba(247,70,74,0.5)",
+          borderColor: "rgba(247,70,74,0.8)",
+          hoverBackgroundColor: "rgba(247,70,74,0.75)",
+          hoverBorderColor: "rgba(247,70,74,1)",
+          data: {{ bar_values_dict['GGR'][:20] }}
       },
     ]
   };
 
   window.onload = function()
   {
+    Chart.defaults.global.defaultFontSize = 30;
+
     var ctxBar = document.getElementById("canvasBar").getContext("2d");
     var linkBar = document.getElementById("linkBar");
     var chartBar = new Chart(ctxBar, {
@@ -62,6 +64,8 @@
         //         stacked: true
         //     }]
         // },
+
+        legend:{display: true,labels:{fontSize:30}},
         animation: {
           onComplete: function(animationItem) {
 

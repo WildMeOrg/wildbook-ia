@@ -341,33 +341,36 @@ def view():
         __nid_list, gps_track_list, aid_track_list = ibs.get_name_gps_tracks(aid_list=aid_list_count)
         gps_list_tracks = list(map(lambda x: list(map(list, x)), gps_track_list))
 
-    gps_list_markers = [ gps for gps in gps_list_markers if tuple(gps) != (-1, -1, ) ]
-    gps_list_markers_tuple_all = [ (gps, gid) for gps, gid in zip(gps_list_markers_all, gid_list) if tuple(gps) != (-1, -1, ) ]
+    gps_list_markers = [ gps for gps in gps_list_markers ]
+    gps_list_markers_tuple_all = [ (gps, gid) for gps, gid in zip(gps_list_markers_all, gid_list)  ]
     gps_list_markers_all = [_[0] for _ in gps_list_markers_tuple_all]
     gid_list_markers_all = [_[1] for _ in gps_list_markers_tuple_all]
     gps_list_tracks = [
-        [ gps for gps in gps_list_track if tuple(gps) != (-1, -1, ) ]
+        [ gps for gps in gps_list_track ]
         for gps_list_track in gps_list_tracks
     ]
 
     VERSION = 2
     # Colors for GPS
-    color_none = [0, "#333333"]
+    color_none = [0, "#777777"]
     color_day1 = [1, "#CA4141"]
     color_day2 = [2, "#428BCA"]
     color_resight = [3, "#9A41CA"]
     combined_list_markers_all = []
     dataset_color_dict = {}
     if VERSION == 1:
-        dataset_color_label_list = ['Sightings on Day 1 Only', 'Resightings', 'Sightings on Day 2 Only']
+        dataset_color_label_list = ['Day 1 Only', 'Resightings', 'Day 2 Only']
     else:
-        dataset_color_label_list = ['Sightings on Day 1 Only', 'Resightings', 'Sightings on Day 2 Only', 'Unused']
+        dataset_color_label_list = ['Day 1 Only', 'Resightings', 'Day 2 Only', 'Unused']
 
     for gid, gps in zip(gid_list_markers_all, gps_list_markers_all):
         image_note = ibs.get_image_notes(gid)
         current_date = _date_list([gid])[0]
+        color = color_none
         if current_date not in flagged_date_list:
-            continue
+            color = color_none
+        elif gps == (-1, -1):
+            color = color_none
         else:
             aid_list_ = ibs.get_image_aids(gid)
             nid_list_ = ibs.get_annot_nids(aid_list_)
@@ -423,9 +426,33 @@ def view():
         dataset_color_dict[dataset_tag] = temp
 
     combined_list_markers_all = sorted(combined_list_markers_all)
+    marker = None
+    for index, combined in enumerate(combined_list_markers_all):
+        if combined[0] == 0:
+            continue
+        marker = index
+        break
+
+    # Shuffle day 1, day 2, resights randomly
+    sublist = combined_list_markers_all[marker:]
+    random.shuffle(sublist)
+    combined_list_markers_all[marker:] = sublist
+
     color_list_markers_all = [_[1] for _ in combined_list_markers_all]
     gps_list_markers_all = [_[2] for _ in combined_list_markers_all]
     assert len(color_list_markers_all) == len(gps_list_markers_all)
+
+    JITTER_GPS = True
+    JITTER_AMOUNT = 0.0001
+    if JITTER_GPS:
+        gps_list_markers_all = [
+            gps if color_ == color_none[1] else
+            [
+                gps[0] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT),
+                gps[1] + random.uniform(-JITTER_AMOUNT, JITTER_AMOUNT),
+            ]
+            for gps, color_ in zip(gps_list_markers_all, color_list_markers_all)
+        ]
 
     valid_aids = ibs.get_valid_aids()
     valid_aids = filter_annots_imageset(valid_aids)
@@ -807,7 +834,7 @@ def view_advanced2():
             'view': ['right'],
         }
         aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        aid_list1 = []
+        # aid_list1 = []
 
         # Plains
         filter_kw = {
@@ -819,7 +846,7 @@ def view_advanced2():
             'view': ['left'],
         }
         aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        # aid_list2 = []
+        aid_list2 = []
 
         # Masai
         filter_kw = {
@@ -831,7 +858,7 @@ def view_advanced2():
             'view': ['left'],
         }
         aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        # aid_list3 = []
+        aid_list3 = []
 
         aid_list = aid_list1 + aid_list2 + aid_list3
 
@@ -975,6 +1002,202 @@ def view_advanced3():
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
     return appf.template('view', 'advanced3',
+                         __wrapper_header__=False,
+                         **embedded)
+
+
+@register_route('/view/advanced4/', methods=['GET'])
+def view_advanced4():
+
+    def _date_list(gid_list):
+        unixtime_list = ibs.get_image_unixtime(gid_list)
+        datetime_list = [
+            ut.unixtime_to_datetimestr(unixtime)
+            if unixtime is not None else
+            'UNKNOWN'
+            for unixtime in unixtime_list
+        ]
+        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
+        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
+        return date_list
+
+    def filter_species_of_interest(gid_list):
+        wanted_set = set(['zebra_plains', 'zebra_grevys', 'giraffe_masai'])
+        aids_list = ibs.get_image_aids(gid_list)
+        speciess_list = ut.unflat_map(ibs.get_annot_species_texts, aids_list)
+        speciess_set = map(set, speciess_list)
+        gid_list_filtered = []
+        for gid, species_set in zip(gid_list, speciess_set):
+            intersect_list = list(wanted_set & species_set)
+            if len(intersect_list) > 0:
+                gid_list_filtered.append(gid)
+        return gid_list_filtered
+
+    def filter_viewpoints_of_interest(gid_list, allowed_viewpoint_list):
+        aids_list = ibs.get_image_aids(gid_list)
+        wanted_set = set(allowed_viewpoint_list)
+        viewpoints_list = ut.unflat_map(ibs.get_annot_yaw_texts, aids_list)
+        viewpoints_list = map(set, viewpoints_list)
+        gid_list_filtered = []
+        for gid, viewpoint_set in zip(gid_list, viewpoints_list):
+            intersect_list = list(wanted_set & viewpoint_set)
+            if len(intersect_list) > 0:
+                gid_list_filtered.append(gid)
+        return gid_list_filtered
+
+    def filter_bad_metadata(gid_list):
+        wanted_set = set(['2015/03/01', '2015/03/02', '2016/01/30', '2016/01/31'])
+        date_list = _date_list(gid_list)
+        gps_list = ibs.get_image_gps(gid_list)
+        gid_list_filtered = []
+        for gid, date, gps in zip(gid_list, date_list, gps_list):
+            if date in wanted_set and gps != (-1.0, -1.0):
+                gid_list_filtered.append(gid)
+        return gid_list_filtered
+
+    def filter_bad_quality(gid_list, allowed_quality_list):
+        aids_list = ibs.get_image_aids(gid_list)
+        wanted_set = set(allowed_quality_list)
+        qualities_list = ut.unflat_map(ibs.get_annot_quality_texts, aids_list)
+        qualities_list = map(set, qualities_list)
+        gid_list_filtered = []
+        for gid, quality_list in zip(gid_list, qualities_list):
+            intersect_list = list(wanted_set & quality_list)
+            if len(intersect_list) > 0:
+                gid_list_filtered.append(gid)
+        return gid_list_filtered
+
+    # def filter_singletons(gid_list):
+    #     aids_list = ibs.get_image_aids(gid_list)
+    #     nids_list = ut.unflat_map(ibs.get_annot_nids, aids_list)
+    #     gid_list_filtered = []
+    #     for gid, nid_list in zip(gid_list, nids_list):
+    #         print(gid)
+    #         print(nid_list)
+    #         aids_list_ = ibs.get_name_aids(nid_list)
+    #         print(aids_list_)
+    #         single = True
+    #         for nid, aid_list in zip(nid_list, aids_list_):
+    #             if nid == const.UNKNOWN_NAME_ROWID or nid < 0:
+    #                 continue
+    #             if len(aid_list) > 1:
+    #                 single = False
+    #                 break
+    #         print(single)
+    #         if single:
+    #             gid_list_filtered.append(gid)
+    #     return gid_list_filtered
+
+    ibs = current_app.ibs
+
+    gid_list = ibs.get_valid_gids()
+    note_list = ibs.get_image_notes(gid_list)
+
+    dataset_dict = {}
+    skipped = 0
+    for gid, note in zip(gid_list, note_list):
+        note = note.strip()
+
+        dataset_tag = 'GGR' if 'GGR' in note else 'GZGC'
+        if dataset_tag not in dataset_dict:
+            dataset_dict[dataset_tag] = []
+
+        dataset_dict[dataset_tag].append(gid)
+
+    num_all_gzgc = len(dataset_dict['GZGC'])
+    num_all_ggr = len(dataset_dict['GGR'])
+
+    print('all', num_all_gzgc)
+    print('all', num_all_ggr)
+
+    dataset_dict['GZGC'] = filter_species_of_interest(dataset_dict['GZGC'])
+    dataset_dict['GGR'] = filter_species_of_interest(dataset_dict['GGR'])
+
+    num_species_gzgc = len(dataset_dict['GZGC'])
+    num_species_ggr = len(dataset_dict['GGR'])
+
+    print('species', num_species_gzgc)
+    print('species', num_species_ggr)
+
+    allowed_viewpoint_dict = {
+        'GGR': ['right', 'frontright', 'backright'],
+        'GZGC': ['left', 'frontleft', 'backleft'],
+    }
+    dataset_dict['GZGC'] = filter_viewpoints_of_interest(dataset_dict['GZGC'], allowed_viewpoint_dict['GZGC'])
+    dataset_dict['GGR'] = filter_viewpoints_of_interest(dataset_dict['GGR'], allowed_viewpoint_dict['GGR'])
+
+    num_viewpoint_gzgc = len(dataset_dict['GZGC'])
+    num_viewpoint_ggr = len(dataset_dict['GGR'])
+
+    print('viewpoint', num_viewpoint_gzgc)
+    print('viewpoint', num_viewpoint_ggr)
+
+    allowed_quality_dict = {
+        'GGR': ['good', 'perfect'],
+        'GZGC': ['ok', 'good', 'perfect'],
+    }
+    dataset_dict['GZGC'] = filter_bad_quality(dataset_dict['GZGC'], allowed_quality_dict['GZGC'])
+    dataset_dict['GGR'] = filter_bad_quality(dataset_dict['GGR'], allowed_quality_dict['GZGC'])
+
+    num_quality_gzgc = len(dataset_dict['GZGC'])
+    num_quality_ggr = len(dataset_dict['GGR'])
+
+    print('quality', num_quality_gzgc)
+    print('quality', num_quality_ggr)
+
+    dataset_dict['GZGC'] = filter_bad_metadata(dataset_dict['GZGC'])
+    dataset_dict['GGR'] = filter_bad_metadata(dataset_dict['GGR'])
+
+    num_metadata_gzgc = len(dataset_dict['GZGC'])
+    num_metadata_ggr = len(dataset_dict['GGR'])
+
+    print('metadata', num_metadata_gzgc)
+    print('metadata', num_metadata_ggr)
+
+    # dataset_dict['GZGC'] = filter_singletons(dataset_dict['GZGC'])
+    # dataset_dict['GGR'] = filter_singletons(dataset_dict['GGR'])
+
+    # num_named_gzgc = len(dataset_dict['GZGC'])
+    # num_named_ggr = len(dataset_dict['GGR'])
+
+    # print('named', num_named_gzgc)
+    # print('named', num_named_ggr)
+
+    stage_list_gzgc = [
+        num_all_gzgc,
+        num_species_gzgc,
+        num_viewpoint_gzgc,
+        num_quality_gzgc,
+        num_metadata_gzgc,
+        # num_named_gzgc,
+        0,
+    ]
+
+    stage_list_ggr = [
+        num_all_ggr,
+        num_species_ggr,
+        num_viewpoint_ggr,
+        num_quality_ggr,
+        num_metadata_ggr,
+        # num_named_ggr,
+        0,
+    ]
+
+    diff_list_gzgc = [
+        stage_list_gzgc[i] - stage_list_gzgc[i + 1]
+        for i in range(len(stage_list_gzgc) - 1)
+    ]
+
+    diff_list_ggr = [
+        stage_list_ggr[i] - stage_list_ggr[i + 1]
+        for i in range(len(stage_list_ggr) - 1)
+    ]
+
+    bar_value_list = map(list, zip(diff_list_gzgc, diff_list_ggr))
+
+    # Get number of annotations per name as a histogram for each species
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'advanced4',
                          __wrapper_header__=False,
                          **embedded)
 
