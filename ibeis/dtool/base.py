@@ -486,6 +486,14 @@ class IBEISRequestHacks(object):
         # devleopment time constraints and whatnot
         return self.ibs.get_annot_nids(aids)
         #return self.ibs.annots(self.daids, self.params)
+
+    @property
+    def extern_query_config2(request):
+        return request.params
+
+    @property
+    def extern_data_config2(request):
+        return request.params
     #
 
     #def get_external_data_config2(request):
