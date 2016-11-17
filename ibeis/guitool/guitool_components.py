@@ -834,7 +834,8 @@ class ResizableTextEdit(QtWidgets.QTextEdit):
 
 
 def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
-                align='left', text=None, enabled=True, editable=True, fit_to_text=False):
+                align='left', text=None, enabled=True, editable=True,
+                fit_to_text=False, rich=False):
     """ This is a text area """
     #if fit_to_text:
     #outputEdit = ResizableTextEdit(parent)
@@ -842,7 +843,7 @@ def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
     outputEdit = QtWidgets.QTextEdit(parent)
     sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
     outputEdit.setSizePolicy(sizePolicy)
-    outputEdit.setAcceptRichText(False)
+    outputEdit.setAcceptRichText(rich)
     if visible is not None:
         outputEdit.setVisible(visible)
     outputEdit.setEnabled(enabled)
@@ -975,7 +976,7 @@ def _inject_new_widget_methods(self):
     # Black magic
     guitype_list = [
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
-        'CheckBox',
+        'CheckBox', 'TextEdit',
         'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
         ('EditConfigWidget', PrefWidget2.EditConfigWidget),
         ('TableWidget', QtWidgets.QTableWidget),
