@@ -131,6 +131,7 @@ class _AnnotPropInjector(BASE_TYPE):
 
         depcache_attrs = [
             ('hog', 'hog'),
+            ('probchip', 'img'),
         ]
 
         aliased_attrs = {
@@ -178,6 +179,7 @@ class Annots(BASE):
         python -m ibeis.annots Annots
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
@@ -187,8 +189,21 @@ class Annots(BASE):
         >>> print(Annots.mro())
         >>> print(ut.depth_profile(a.vecs))
         >>> print(a)
-        <Annots(num=13)>
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()
+        >>> a = self = annots = Annots(aids, ibs)
+        >>> a.preload('vecs', 'kpts', 'nids')
+        >>> a.disconnect()
+        >>> assert 'vecs' in a._internal_attrs.keys()
+        >>> assert a._ibs is None
+        >>> ut.assert_raises(KeyError, a._get_num_feats)
+        >>> a._ibs = ibs
+        >>> assert len(a._get_num_feats()) > 0
     """
     #def __init__(self, aids, ibs, config=None, caching=False):
     #    super(Annots, self).__init__(aids, ibs, config, caching)

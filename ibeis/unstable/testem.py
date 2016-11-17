@@ -13,10 +13,7 @@ def draw_em_graph(P, Pn, PL, gam, num_labels):
     """
     num_labels = PL.shape[1]
     name_nodes = ['N%d' % x for x in list(range(1, num_labels + 1))]
-    #annot_nodes = ut.chr_range(len(Pn), base='A')
     annot_nodes = ['X%d' % x for x in list(range(1, len(Pn) + 1))]
-
-    # name_nodes = ut.chr_range(num_labels, base='A')
 
     nodes = name_nodes + annot_nodes
 

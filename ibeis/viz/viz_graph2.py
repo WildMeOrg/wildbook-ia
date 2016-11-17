@@ -81,11 +81,11 @@ class MatplotlibWidget(gt.GuitoolWidget):
 class DevGraphWidget(gt.GuitoolWidget):
 
     def initialize(graph_widget, use_image, self_parent):
-        graph_widget.self_parent = parent = self_parent
+        graph_widget.self_parent = self_parent
         #parent = graph_widget.parent()
-        infr = parent.infr
+        # infr = parent.infr
         graph_widget.plotinfo = None
-        graph_widget.infr = infr
+        # graph_widget.infr = infr
 
         graph_widget.mpl_needs_update = True
         graph_widget.cb = None
@@ -135,6 +135,10 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
         graph_widget.mpl_wgt.key_press_signal.connect(graph_widget.on_key_press)
         graph_widget.mpl_wgt.pick_event_signal.connect(graph_widget.on_pick)
+
+    @property
+    def infr(graph_widget):
+        return graph_widget.self_parent.infr
 
     def on_state_update(graph_widget):
         if graph_widget.mpl_wgt is None or graph_widget.mpl_wgt.visibleRegion().isEmpty():
@@ -412,6 +416,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.menuFile = self.menubar.newMenu('Dev')
         self.menuFile.newAction(triggered=self.print_info)
         self.menuFile.newAction(triggered=self.embed)
+        self.menuFile.newAction(triggered=self.expand_image_and_names)
+        self.menuFile.newAction(triggered=self.on_state_update)
 
         graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
         self.graph_tables_widget = graph_tables_widget
@@ -493,7 +499,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.update_state(structure_changed=True)
 
         if ut.get_argflag('--graph'):
-            self.graph_tables_widget.setCurrentIndex(2)
+            index = self.graph_tables_widget.indexOf(self.graph_tab)
+            self.graph_tables_widget.setCurrentIndex(index)
+            # self.graph_tables_widget.setCurrentIndex(2)
 
     def update_state(self, structure_changed=False, disable_global_update=False):
         print('[graph] update_state mode=%s' % (self.init_mode,))
@@ -714,7 +722,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         view = self.edge_api_widget.view
         selected_qtindex_list = view.selectedRows()
 
-        def _pairs(state):
+        def _pairs():
             #for aid1, aid2 in aid_pair_gen():
             for qtindex in selected_qtindex_list:
                 model = qtindex.model()
@@ -947,6 +955,24 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         graph = infr.graph  # NOQA
         import utool
         utool.embed()
+
+    def expand_image_and_names(self):
+        ibs = self.infr.ibs
+        aids = self.infr.aids
+        old_aids = []
+
+        while len(old_aids) != len(aids):
+            old_aids = aids
+            gids = ut.unique(ibs.get_annot_gids(aids))
+            nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
+            aids = ut.flatten(ibs.get_name_aids(nids))
+
+        nids = ibs.get_annot_nids(aids)
+        new_infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=self.infr.verbose)
+        new_infr.initialize_graph()
+        self.infr = new_infr
+        self.init_inference()
+        # self.on_state_update(structure_changed=True)
 
 
 def make_node_api(infr):
@@ -1270,6 +1296,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graph-tab
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --gids=2289 --graph-tab
 
+        ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --graph-tab --aids=2587,2398
+
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
         ibeis make_qt_graph_interface --show
 
@@ -1317,7 +1345,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
     # infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
-    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=1)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=2)
     infr.initialize_graph()
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
@@ -1328,8 +1356,11 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if graph_tab:
         index = win.graph_tables_widget.indexOf(win.graph_tab)
         win.graph_tables_widget.setCurrentIndex(index)
-
         win.graph_widget.use_image_cb.setChecked(True)
+
+    if True:
+        win.expand_image_and_names()
+
     return win
 
 

@@ -226,9 +226,29 @@ class _AnnotInfrDummy(object):
         # to be part of the MST first before suplementary edges.
         nx.set_edge_attributes(aug_graph, 'weight',
                                {edge: 0.1 for edge in orig_edges})
-        nx.set_edge_attributes(aug_graph, 'weight',
-                               {edge: 10.0 + _randint()
-                                for edge in candidate_mst_edges})
+
+        try:
+            # Try linking by time for lynx data
+            nodes = list(set(ut.iflatten(candidate_mst_edges)))
+            aids = ut.take(infr.node_to_aid, nodes)
+            times = infr.ibs.annots(aids).time
+            node_to_time = ut.dzip(nodes, times)
+            time_deltas = np.array([
+                abs(node_to_time[u] - node_to_time[v])
+                for u, v in candidate_mst_edges
+            ])
+            # print('time_deltas = %r' % (time_deltas,))
+            maxweight = vt.safe_max(time_deltas, nans=False, fill=0) + 1
+            time_deltas[np.isnan(time_deltas)] = maxweight
+            # print('time_deltas = %r' % (time_deltas,))
+            nx.set_edge_attributes(aug_graph, 'weight',
+                                   {edge: 10.0 + delta
+                                    for edge, delta in zip(candidate_mst_edges, time_deltas)})
+        except Exception:
+            print('FAILED WEIGHTING USING TIME')
+            nx.set_edge_attributes(aug_graph, 'weight',
+                                   {edge: 10.0 + _randint()
+                                    for edge in candidate_mst_edges})
         new_edges = []
         for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
             mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
@@ -245,17 +265,17 @@ class _AnnotInfrDummy(object):
     def review_dummy_edges(infr):
         if infr.verbose >= 1:
             print('[infr] review_dummy_edges')
-        print("REMOVE DUMMY EDGES")
+        # print("REMOVE DUMMY EDGES")
         edge_to_dummy = infr.get_edge_attrs('_dummy_edge')
         edges = [edge for edge, dummy in edge_to_dummy.items() if dummy]
         ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
-        print('edges = %r' % (edges,))
-        print("HACK REVIEWED STATE")
+        # print('edges = %r' % (edges,))
+        # print("HACK REVIEWED STATE")
         for u, v in edges:
             infr.add_feedback(u, v, 'match')
         # if len(edges):
         #     nx.set_edge_attributes(infr.graph, 'reviewed_state', _dz(edges, ['match']))
-        print(ut.repr3(ut.graph_info(infr.simplify_graph())))
+        # print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -2007,8 +2027,10 @@ class AnnotInference(ut.NiceRepr,
         }
 
         review_cfg = ut.update_existing(
-            review_cfg_defaults, review_cfg, assert_exists=True,
-            iswarning=True)
+            review_cfg_defaults, review_cfg,
+            assert_exists=False, iswarning=True
+            # assert_exists=True, iswarning=True
+        )
 
         ibs = infr.ibs
         graph = infr.graph

@@ -8,7 +8,7 @@ VERB_PIPELINE = ut.get_argflag(('--verb-pipeline', '--verb-pipe')) or ut.VERYVER
 VERB_TESTDATA = ut.get_argflag('--verb-testdata') or ut.VERYVERBOSE
 
 
-def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
+def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
     r"""
     Main tester function. Runs the pipeline by mirroring
     `request_ibeis_query_L0`, but stops at a requested breakpoint and returns
@@ -33,7 +33,8 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     from ibeis.algo.hots.pipeline import (
         nearest_neighbors, baseline_neighbor_filter, weight_neighbors,
         build_chipmatches, spatial_verification,
-        vsone_reranking, build_impossible_daids_list)
+        # vsone_reranking,
+        build_impossible_daids_list)
 
     print('RUN PIPELINE UPTO: %s' % (stop_node,))
 
@@ -71,15 +72,18 @@ def testrun_pipeline_upto(qreq_, stop_node=None, verbose=True):
     if stop_node == 'spatial_verification':
         return locals()
     cm_list_SVER = spatial_verification(qreq_, cm_list_FILT, verbose=verbose)
-    #---
-    if stop_node == 'vsone_reranking':
+
+    if stop_node == 'end':
         return locals()
-    if qreq_.qparams.rrvsone_on:
-        # VSONE RERANKING
-        cm_list_VSONERR = vsone_reranking(qreq_, cm_list_SVER, verbose=verbose)
-        cm_list = cm_list_VSONERR
-    else:
-        cm_list = cm_list_SVER
+    #---
+    # if stop_node == 'vsone_reranking':
+    #     return locals()
+    # if qreq_.qparams.rrvsone_on:
+    #     # VSONE RERANKING
+    #     cm_list_VSONERR = vsone_reranking(qreq_, cm_list_SVER, verbose=verbose)
+    #     cm_list = cm_list_VSONERR
+    # else:
+    #     cm_list = cm_list_SVER
 
     assert False, 'unknown stop_node=%r' % (stop_node,)
 
@@ -116,8 +120,11 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
     from ibeis.algo.hots import pipeline
     qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, p=p, a=a, **kwargs)
     locals_ = testrun_pipeline_upto(qreq_, stopnode)
-    func = getattr(pipeline, stopnode)
-    argnames = ut.get_argnames(func)
+    if stopnode == 'end' :
+        argnames = ['cm_list_SVER']
+    else:
+        func = getattr(pipeline, stopnode)
+        argnames = ut.get_argnames(func)
     # Hack to ignore qreq_, and verbose
     for ignore in ['qreq_', 'ibs', 'verbose']:
         try:
@@ -207,7 +214,7 @@ def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, cod
     p = 'default' + ut.get_cfg_lbl(cfgdict)
     qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
     ibs = qreq_.ibs
-    locals_ = testrun_pipeline_upto(qreq_, 'vsone_reranking')
+    locals_ = testrun_pipeline_upto(qreq_, 'end')
     cm_list = locals_['cm_list_SVER']
     #nnfilts_list   = locals_['nnfilts_list']
     return ibs, qreq_, cm_list
@@ -227,7 +234,7 @@ def testdata_pre_vsonerr(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
     #daid_list = qreq_.daids.tolist()
     if len(ibs.get_annot_groundtruth(qaid)) == 0:
         print('WARNING: qaid=%r has no groundtruth' % (qaid,))
-    locals_ = testrun_pipeline_upto(qreq_, 'vsone_reranking')
+    locals_ = testrun_pipeline_upto(qreq_, 'end')
     cm_list = locals_['cm_list_SVER']
     return ibs, qreq_, cm_list, qaid_list
 

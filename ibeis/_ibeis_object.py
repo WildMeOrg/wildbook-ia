@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
+import numpy as np  # NOQA
 from six.moves import range
 (print, rrr, profile) = ut.inject2(__name__, '[_ibeis_object]')
 
@@ -64,9 +65,11 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
     metaself._settable_attrs = settable_attrs
     metaself._attrs = attrs
     metaself._configurable_attrs = configurable_attrs
-    metaself._depcache_attrs = depcache_attrs
     if depcache_attrs is None:
         metaself._depcache_attrs = []
+    else:
+        metaself._depcache_attrs = ['%s_%s' % (tbl, col)
+                                    for tbl, col in depcache_attrs]
     if aliased_attrs is not None:
         metaself._attrs_aliases = aliased_attrs
     else:
@@ -77,111 +80,136 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
 
     attr_to_aliases = ut.invert_dict(metaself._attrs_aliases, unique_vals=False)
 
-    def _make_getter(objname, attrname):
-        ibs_funcname = 'get_%s_%s' % (objname, attrname)
-        def ibs_getter(self):
-            if self._ibs is None or (self._caching and
-                                     attrname in self._internal_attrs):
-                data = self._internal_attrs[attrname]
-            else:
-                ibs_callable = getattr(self._ibs, ibs_funcname)
-                data = ibs_callable(self._rowids)
-                if self._caching:
-                    self._internal_attrs[attrname] = data
-            return data
-        ut.set_funcname(ibs_getter, '_get_' + attrname)
-        return ibs_getter
-
     # What is difference between configurable and depcache getters?
     # Could depcache getters just be made configurable?
-    # I guess its just an efficincy thing
+    # I guess its just an efficincy thing. Actually its config2_-vs-config
+    # FIXME: rectify differences between normal / configurable / depcache
+    # getter
 
-    def _make_configurable_getter(objname, attrname):
-        ibs_funcname = 'get_%s_%s' % (objname, attrname)
-        def ibs_cfg_getter(self):
-            if self._ibs is None or (self._caching and
-                                     attrname in self._internal_attrs):
-                data = self._internal_attrs[attrname]
-            else:
-                ibs_callable = getattr(self._ibs, ibs_funcname)
-                data = ibs_callable(self._rowids, config2_=self._config)
-                if self._caching:
-                    self._internal_attrs[attrname] = data
-            return data
-        ut.set_funcname(ibs_cfg_getter, '_get_' + attrname)
-        return ibs_cfg_getter
-
-    def _make_depcache_getter(depc_name, tbl, col):
-        attrname = '%s_%s' % (tbl, col)
-        def ibs_cfg_getter(self):
-            if self._ibs is None or (self._caching and
-                                     attrname in self._internal_attrs):
-                data = self._internal_attrs[attrname]
-            else:
-                depc = getattr(self._ibs, depc_name)
-                data = depc.get(tbl, self._rowids, col, config=self._config)
-                if self._caching:
-                    self._internal_attrs[attrname] = data
-            return data
-        ut.set_funcname(ibs_cfg_getter, '_get_' + attrname)
-        return ibs_cfg_getter
-
-    def _make_setter(objname, attrname):
-        ibs_funcname = 'set_%s_%s' % (objname, attrname)
-        def ibs_setter(self, values, *args, **kwargs):
+    def _make_caching_setter(attrname, _rowid_setter):
+        def _setter(self, values, *args, **kwargs):
             if self._ibs is None:
                 self._internal_attrs[attrname] = values
             else:
                 if self._caching and attrname in self._internal_attrs:
                     self._internal_attrs[attrname] = values
-                ibs_callable = getattr(self._ibs, ibs_funcname)
-                ibs_callable(self._rowids, values, *args, **kwargs)
-        ut.set_funcname(ibs_setter, '_set_' + attrname)
-        return ibs_setter
+                _rowid_setter(self, self._rowids, values)
+        ut.set_funcname(_setter, '_set_' + attrname)
+        return _setter
+
+    def _make_caching_getter(attrname, _rowid_getter):
+        def _getter(self):
+            if self._ibs is None or (self._caching and
+                                     attrname in self._internal_attrs):
+                data = self._internal_attrs[attrname]
+            else:
+                data = _rowid_getter(self, self._rowids)
+                if self._caching:
+                    self._internal_attrs[attrname] = data
+            return data
+        ut.set_funcname(_getter, '_get_' + attrname)
+        return _getter
+
+    # make default version use implicit rowids and another
+    # that takes explicit rowids.
+
+    def _make_setters(objname, attrname):
+        ibs_funcname = 'set_%s_%s' % (objname, attrname)
+        def _rowid_setter(self, rowids, values, *args, **kwargs):
+            ibs_callable = getattr(self._ibs, ibs_funcname)
+            ibs_callable(rowids, values, *args, **kwargs)
+        ut.set_funcname(_rowid_setter, '_rowid_set_' + attrname)
+        _setter = _make_caching_setter(attrname, _rowid_setter)
+        return _rowid_setter, _setter
+
+    # ---
+
+    def _make_getters(objname, attrname):
+        ibs_funcname = 'get_%s_%s' % (objname, attrname)
+        def _rowid_getter(self, rowids):
+            ibs_callable = getattr(self._ibs, ibs_funcname)
+            data = ibs_callable(rowids)
+            return data
+        ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
+        _getter = _make_caching_getter(attrname, _rowid_getter)
+        return _rowid_getter, _getter
+
+    def _make_cfg_getters(objname, attrname):
+        ibs_funcname = 'get_%s_%s' % (objname, attrname)
+        def _rowid_getter(self, rowids):
+            ibs_callable = getattr(self._ibs, ibs_funcname)
+            data = ibs_callable(rowids, config2_=self._config)
+            return data
+        ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
+        _getter = _make_caching_getter(attrname, _rowid_getter)
+        return _rowid_getter, _getter
+
+    def _make_depc_getters(depc_name, attrname, tbl, col):
+        def _rowid_getter(self, rowids):
+            depc = getattr(self._ibs, depc_name)
+            data = depc.get(tbl, rowids, col, config=self._config)
+            return data
+        ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
+        _getter = _make_caching_getter(attrname, _rowid_getter)
+        return _rowid_getter, _getter
 
     # Collect setter / getter functions and properties
+    rowid_getters = []
     getters = []
     setters = []
     properties = []
     for attrname in attrs:
-        ibs_getter = _make_getter(objname, attrname)
+        _rowid_getter, _getter = _make_getters(objname, attrname)
         if attrname in settable_attrs:
-            ibs_setter = _make_setter(objname, attrname)
+            _rowid_setter, _setter = _make_setters(objname, attrname)
+            setters.append(_setter)
         else:
-            ibs_setter = None
-        prop = property(fget=ibs_getter, fset=ibs_setter)
-        getters.append(('_get_' + attrname, ibs_getter))
-        if ibs_setter is not None:
-            setters.append(('_set_' + attrname, ibs_setter))
+            _setter = None
+        prop = property(fget=_getter, fset=_setter)
+        rowid_getters.append((attrname, _rowid_getter))
+        getters.append(_getter)
         properties.append((attrname, prop))
 
     for attrname in configurable_attrs:
-        ibs_cfg_getter = _make_configurable_getter(objname, attrname)
-        prop = property(ibs_cfg_getter)
-        getters.append(('_get_' + attrname, ibs_cfg_getter))
+        _rowid_getter, _getter = _make_cfg_getters(objname, attrname)
+        prop = property(fget=_getter)
+        rowid_getters.append((attrname, _rowid_getter))
+        getters.append(_getter)
         properties.append((attrname, prop))
 
     if depcache_attrs is not None:
         for tbl, col in depcache_attrs:
             attrname = '%s_%s' % (tbl, col)
-            ibs_depc_getter = _make_depcache_getter(depc_name, tbl, col)
-            prop = property(ibs_depc_getter)
-            getters.append(('_get_' + attrname, ibs_depc_getter))
+            _rowid_getter, _getter = _make_depc_getters(depc_name, attrname,
+                                                        tbl, col)
+            prop = property(fget=_getter, fset=None)
+            rowid_getters.append((attrname, _rowid_getter))
+            getters.append(_getter)
             properties.append((attrname, prop))
 
     aliases = []
 
     # Inject all gathered information
-    for funcname, func in getters:
+    for attrname, func in rowid_getters:
+        funcname = ut.get_funcname(func)
+        setattr(metaself, funcname, func)
+        # ensure aliases have rowid getters
+        for alias in attr_to_aliases.get(attrname, []):
+            alias_funcname = '_rowid_get_' + alias
+            setattr(metaself, alias_funcname, func)
+
+    for func in getters:
+        funcname = ut.get_funcname(func)
         setattr(metaself, funcname, func)
 
-    for funcname, func in setters:
+    for func in setters:
+        funcname = ut.get_funcname(func)
         setattr(metaself, funcname, func)
 
-    for propname, prop in properties:
-        setattr(metaself, propname, prop)
-        for alias in attr_to_aliases.pop(propname, []):
-            aliases.append((alias, propname))
+    for attrname, prop in properties:
+        setattr(metaself, attrname, prop)
+        for alias in attr_to_aliases.pop(attrname, []):
+            aliases.append((alias, attrname))
             setattr(metaself, alias, prop)
 
     if ut.get_argflag('--autogen-core'):
@@ -208,14 +236,14 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
             source = expand_closure_source(funcname, func)
             explicit_lines.append(source)
 
-        for propname, prop in properties:
+        for attrname, prop in properties:
             getter_name = None if prop.fget is None else ut.get_funcname(prop.fget)
             setter_name = None if prop.fset is None else ut.get_funcname(prop.fset)
-            source = '    %s = property(%s, %s)' % (propname, getter_name, setter_name)
+            source = '    %s = property(%s, %s)' % (attrname, getter_name, setter_name)
             explicit_lines.append(source)
 
-        for alias, propname in aliases:
-            source = '    %s = %s' % (alias, propname)
+        for alias, attrname in aliases:
+            source = '    %s = %s' % (alias, attrname)
             explicit_lines.append(source)
 
         explicit_source = '\n'.join([
@@ -302,7 +330,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         #ut.make_index_lookup(self._rowids)
 
     def __vector_attributes__(self):
-        attrs = (self._attrs + self._configurable_attrs +
+        attrs = (self._attrs + self._configurable_attrs + self._depcache_attrs +
                  list(self._attrs_aliases.keys()))
         return attrs
 
@@ -419,6 +447,122 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
 
     # def filter_flags(self, filterkw):
     #     pass
+
+    def view(self, rowids=None):
+        """
+        Like take, but returns a view proxy that maps to the original parent
+        """
+        if rowids is None:
+            rowids = self._rowids
+        # unique_parent = self.take(unique_idxs)
+        view = ObjectView1D(rowids, obj1d=self)
+        return view
+
+
+class ObjectView1D(ut.NiceRepr):
+    # ut.HashComparable2):
+    """
+    Allows for proxy caching
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis._ibeis_object import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aids = ibs.get_valid_aids()
+        >>> a = self = annots = ibs.annots(aids)
+        >>> rowids = [1, 1, 3, 2, 1, 2]
+        >>> self = v = a.view(rowids)
+        >>> assert np.all(v.vecs[0] == v.vecs[1])
+        >>> assert v.vecs[0] is v.vecs[1]
+        >>> assert v.vecs[0] is not v.vecs[2]
+    """
+    def __init__(self, rowids, obj1d, cache=None):
+        self._rowids = list(rowids)
+        self._obj1d = obj1d
+        self._unique_rowids = set(self._rowids)
+        self._unique_inverse = ut.list_alignment(self._unique_rowids,
+                                                 self._rowids)
+        if cache is None:
+            self._cache = ut.ddict(dict)
+        else:
+            self._cache = cache
+        self._caching = True
+
+    def __dir__(self):
+        attrs = dir(object)
+        attrs += self.__dict__.keys()
+        attrs += ['__dict__', '__module__', '__weakref__']
+        # ['_unique_parent', '_caching', '_attr_rowid_value', '_rowids']
+        attrs += list(self.__class__.__dict__.keys())
+        attrs += self._obj1d.__vector_attributes__()
+        return attrs
+
+    def __vector_attributes__(self):
+        return self._obj1d.__vector_attributes__()
+
+    def __getattr__(self, key):
+        """
+        key = 'vecs'
+        """
+        try:
+            _rowid_getter = getattr(self._obj1d, '_rowid_get_%s' % (key,))
+        except AttributeError:
+            raise AttributeError('ObjectView1D has no attribute %r' % (key,))
+        if self._caching:
+            rowid_to_value = self._cache[key]
+            miss_rowids = [rowid for rowid in self._unique_rowids
+                           if rowid not in rowid_to_value]
+            miss_data = _rowid_getter(miss_rowids)
+            for rowid, value in zip(miss_rowids, miss_data):
+                rowid_to_value[rowid] = value
+            unique_data = ut.take(rowid_to_value, self._unique_rowids)
+        else:
+            unique_data = _rowid_getter(self._unique_rowids)
+        data = ut.take(unique_data, self._unique_inverse)
+        return data
+
+    def __iter__(self):
+        return iter(self._rowids)
+
+    def __len__(self):
+        return len(self._rowids)
+
+    def __nice__(self):
+        return '(unique=%r, num=%r)' % (len(self._unique_rowids), len(self))
+
+    # def __hash__(self):
+    #     return hash(self.group_uuid())
+
+    def view(self, rowids):
+        """
+        returns a view of a view that uses the same per-item cache
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis._ibeis_object import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='testdb1')
+            >>> aids = ibs.get_valid_aids()
+            >>> annots = ibs.annots(aids)
+            >>> self = annots.view(annots._rowids)
+            >>> v1 = self.view([1, 1, 2, 3, 1, 2])
+            >>> v2 = self.view([3, 4, 5])
+            >>> v3 = self.view([1, 4])
+            >>> v4 = self.view(3)
+            >>> lazy4 = v4._make_lazy_dict()
+            >>> assert v1.vecs[0] is v3.vecs[0]
+            >>> assert v2._cache is self._cache
+            >>> assert v2._cache is v1._cache
+        """
+        if ut.isiterable(rowids):
+            childview = self.__class__(rowids, obj1d=self._obj1d,
+                                       cache=self._cache)
+        else:
+            childview = self.__class__([rowids], obj1d=self._obj1d,
+                                       cache=self._cache)
+            childview = ObjectScalar0D(childview)
+        return childview
 
 
 if __name__ == '__main__':

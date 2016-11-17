@@ -255,13 +255,13 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
     """
     # TODO: clip the fgweights? (dilation?)
     # TODO; normalize and paramatarize and clean
-    dcvs_on = config.get('dcvs_on')
+    # dcvs_on = config.get('dcvs_on')
     fg_on = config.get('fg_on')
     weight_lists = []
-    if dcvs_on:
-        raise NotImplementedError('dcvs')
-        # qdstncvs_list = get_kpts_distinctiveness(ibs, aid_list, config2_, config)
-        # weight_lists.append(qdstncvs_list)
+    # if dcvs_on:
+    #     raise NotImplementedError('dcvs')
+    #     # qdstncvs_list = get_kpts_distinctiveness(ibs, aid_list, config2_, config)
+    #     # weight_lists.append(qdstncvs_list)
     if fg_on:
         qfgweight_list = ibs.get_annot_fgweights(aid_list, ensure=True, config2_=config2_)
         weight_lists.append(qfgweight_list)
@@ -275,16 +275,18 @@ def get_annot_kpts_baseline_weights(ibs, aid_list, config2_=None, config={}):
 
 
 def get_mask_func(config):
-    maskscore_mode = config.get('maskscore_mode', 'grid')
+    # DEPRICATE
+    # maskscore_mode = config.get('maskscore_mode', 'grid')
+    maskscore_mode = 'grid'
     #print(maskscore_mode)
     FUNC_ARGS_DICT = {
         'grid': (coverage_grid.make_grid_coverage_mask, coverage_grid.COVGRID_DEFAULT),
         'kpts': (coverage_kpts.make_kpts_coverage_mask, coverage_kpts.COVKPTS_DEFAULT),
     }
     make_mask_func, func_defaults = FUNC_ARGS_DICT[maskscore_mode]
-    cov_cfg = func_defaults.updated_cfgdict(config)
+    # cov_cfg = func_defaults.updated_cfgdict(config)
     # Hack to make kwargs happy
-    #cov_cfg = ut.filter_valid_kwargs(make_mask_func, config)
+    cov_cfg = ut.filter_valid_kwargs(make_mask_func, config)
     return make_mask_func, cov_cfg
 
 
@@ -306,6 +308,7 @@ def compute_annot_coverage_score(qreq_, cm, config={}):
         >>> result = ut.list_str(score_list, precision=3)
         >>> print(result)
     """
+    # DEPRICATE
     make_mask_func, cov_cfg = get_mask_func(config)
     masks_iter = general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
     daid_list, score_list = score_masks(masks_iter)
@@ -329,6 +332,7 @@ def compute_name_coverage_score(qreq_, cm, config={}):
         >>> result = ut.list_str(score_list, precision=3)
         >>> print(result)
     """
+    # DEPRICATE
     make_mask_func, cov_cfg = get_mask_func(config)
     masks_iter = general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg)
     dnid_list, score_list = score_masks(masks_iter)
@@ -336,6 +340,7 @@ def compute_name_coverage_score(qreq_, cm, config={}):
 
 
 def score_masks(masks_iter):
+    # DEPRICATE
     id_score_list = [(id_, score_matching_mask(weight_mask_m, weight_mask))
                      for id_, weight_mask_m, weight_mask in masks_iter]
     id_list        = np.array(ut.get_list_column(id_score_list, 0))
@@ -344,12 +349,15 @@ def score_masks(masks_iter):
 
 
 def score_matching_mask(weight_mask_m, weight_mask):
+    # DEPRICATE
     coverage_score = weight_mask_m.sum() / weight_mask.sum()
     return coverage_score
 
 
 def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
     """
+    DEPRICATE
+
     Yeilds:
         daid, weight_mask_m, weight_mask
 
@@ -385,6 +393,8 @@ def general_annot_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov
 
 def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_cfg):
     """
+    DEPRICATE
+
     Yeilds:
         nid, weight_mask_m, weight_mask
 
@@ -423,8 +433,12 @@ def general_name_coverage_mask_generator(make_mask_func, qreq_, cm, config, cov_
     return general_coverage_mask_generator(make_mask_func, qreq_, cm.qaid, unique_dnids, fm_name_list, fs_name_list, config, cov_cfg)
 
 
-def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list, fm_list, fs_list, config, cov_cfg):
-    """ agnostic to whether or not the id/fm/fs lists are name or annotation groups """
+def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list,
+                                    fm_list, fs_list, config, cov_cfg):
+    """ agnostic to whether or not the id/fm/fs lists are name or annotation groups
+
+    DEPRICATE
+    """
     if ut.VERYVERBOSE:
         print('[acov] make_mask_func = %r' % (make_mask_func,))
         print('[acov] cov_cfg = %s' % (ut.dict_str(cov_cfg),))
@@ -446,6 +460,9 @@ def general_coverage_mask_generator(make_mask_func, qreq_, qaid, id_list, fm_lis
 
 def compute_general_matching_coverage_mask(make_mask_func, chipsize, fm, fs,
                                            qkpts, qweights, cov_cfg, out=None):
+    """
+    DEPRICATE
+    """
     # Get matching query keypoints
     #SYMMETRIC = False
     #if SYMMETRIC:
@@ -464,6 +481,7 @@ def compute_general_matching_coverage_mask(make_mask_func, chipsize, fm, fs,
 def get_masks(qreq_, cm, config={}):
     r"""
     testing function
+    DEPRICATE
 
     CommandLine:
         # SHOW THE BASELINE AND MATCHING MASKS
@@ -502,7 +520,9 @@ def get_masks(qreq_, cm, config={}):
 
 
 def evaluate_masks_iter(masks_iter):
-    """ save evaluation of a masks iter """
+    """ save evaluation of a masks iter
+    DEPRICATE
+    """
     masks_list = [(id_, weight_mask_m.copy(), weight_mask)
                    for id_, weight_mask_m, weight_mask  in masks_iter]
     id_list, score_list = score_masks(masks_list)
@@ -510,12 +530,18 @@ def evaluate_masks_iter(masks_iter):
 
 
 def show_coverage_mask(qreq_, cm, masks_list, index=0, fnum=None):
+    """
+    DEPRICATE
+    """
     daid, weight_mask_m, weight_mask = masks_list[index]
     daids = [daid]
     show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum=None)
 
 
 def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum=None):
+    """
+    DEPRICATE
+    """
     import plottool as pt
     from ibeis import viz
     fnum = pt.ensure_fnum(fnum)
@@ -554,6 +580,7 @@ def show_single_coverage_mask(qreq_, cm, weight_mask_m, weight_mask, daids, fnum
 def show_annot_weights(qreq_, aid, config={}):
     r"""
     DEMO FUNC
+    DEPRICATE
 
     CommandLine:
         python -m ibeis.algo.hots.scoring --test-show_annot_weights --show --db GZ_ALL --aid 1 --maskscore_mode='grid'

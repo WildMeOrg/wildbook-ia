@@ -491,17 +491,9 @@ class RerankVsOneConfig(ConfigBase):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
+        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=False)
         >>> result = rrvsone_cfg.get_cfgstr()
-        >>> assert result.startswith('_RRVsOne(True,')
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
-        >>> result = rrvsone_cfg.get_cfgstr()
-        >>> print(result)
-        _RRVsOne(True,nNm=20,nApN=3,prior_coeff=0.6,unc_coeff=0.4,sver_unc=True,uncRat=0.8)
+        >>> assert result.startswith('_RRVsOne(False')
 
     """
     def __init__(rrvsone_cfg, **kwargs):
@@ -514,22 +506,22 @@ class RerankVsOneConfig(ConfigBase):
 
     def get_param_info_list(rrvsone_cfg):
         # from ibeis.algo.hots import distinctiveness_normalizer
-        from ibeis.algo.hots import vsone_pipeline
+        # from ibeis.algo.hots import vsone_pipeline
         # new way to try and specify config options.
         # not sure if i like it yet
         param_info_list = ut.flatten([
             [
                 ut.ParamInfo('rrvsone_on', False, ''),
             ],
-            vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
-            vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
-            vsone_pipeline.COEFF_DEFAULTS.aslist(),
-            vsone_pipeline.UNC_DEFAULTS.aslist(),
-            vsone_pipeline.SCR_DEFAULTS.aslist(),
-            vsone_pipeline.COVKPTS_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
-            vsone_pipeline.COVGRID_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
+            # vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
+            # vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
+            # vsone_pipeline.COEFF_DEFAULTS.aslist(),
+            # vsone_pipeline.UNC_DEFAULTS.aslist(),
+            # vsone_pipeline.SCR_DEFAULTS.aslist(),
+            # vsone_pipeline.COVKPTS_DEFAULT.aslist(
+            #     hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
+            # vsone_pipeline.COVGRID_DEFAULT.aslist(
+            #     hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
             # distinctiveness_normalizer.DCVS_DEFAULT.aslist(
             #     hideif=lambda cfg: not cfg['dcvs_on']),
         ])

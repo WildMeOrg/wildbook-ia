@@ -405,7 +405,7 @@ def train_pairwise_rf():
     # Add in the simple scores
     print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
-    best_name = df_all.columns[df_all.values.argmax()]
+    # best_name = df_all.columns[df_all.values.argmax()]
 
     ut.qt4ensure()
     import plottool as pt  # NOQA
