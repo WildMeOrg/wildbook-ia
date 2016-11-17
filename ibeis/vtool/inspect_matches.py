@@ -93,15 +93,35 @@ class MultiMatchInspector(INSPECT_BASE):
 class MatchInspector(INSPECT_BASE):
     """
     CommandLine:
-        python -m vtool.inspect_matches MatchInspector --show
+        python -m vtool.inspect_matches MatchInspector:0 --show
+        python -m vtool.inspect_matches MatchInspector:1 --show
 
     Example:
+        >>> # SCRIPT
         >>> from vtool.inspect_matches import *  # NOQA
         >>> import vtool as vt
         >>> gt.ensure_qapp()
         >>> ut.qt4ensure()
         >>> annot1 = lazy_test_annot('easy1.png')
         >>> annot2 = lazy_test_annot('easy2.png')
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> self = MatchInspector(match=match)
+        >>> self.show()
+        >>> ut.quit_if_noshow()
+        >>> self.update()
+        >>> gt.qtapp_loop(qwin=self, freq=10)
+
+    Example:
+        >>> # SCRIPT
+        >>> from vtool.inspect_matches import *  # NOQA
+        >>> import vtool as vt
+        >>> import ibeis
+        >>> gt.ensure_qapp()
+        >>> ut.qt4ensure()
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> annots = ibs.annots([1, 2])
+        >>> annot1 = annots[0]._make_lazy_dict()
+        >>> annot2 = annots[1]._make_lazy_dict()
         >>> match = vt.PairwiseMatch(annot1, annot2)
         >>> self = MatchInspector(match=match)
         >>> self.show()
@@ -118,6 +138,13 @@ class MatchInspector(INSPECT_BASE):
         self.match = match
         self._setup_configs()
         self._setup_layout()
+        from plottool import abstract_interaction
+        abstract_interaction.register_interaction(self)
+
+    def embed(self):
+        match = self.match  # NOQA
+        import utool
+        utool.embed()
 
     def _new_confg_widget(self, cfg, changed=None):
         from guitool import PrefWidget2
@@ -125,6 +152,11 @@ class MatchInspector(INSPECT_BASE):
         cfg_widget = PrefWidget2.EditConfigWidget(
             config=cfg, user_mode=user_mode, parent=self, changed=changed)
         return cfg_widget
+
+    def closeEvent(self, event):
+        from plottool import abstract_interaction
+        abstract_interaction.unregister_interaction(self)
+        super(MatchInspector, self).closeEvent(event)
 
     def _setup_configs(self):
         from vtool import matching
@@ -137,30 +169,51 @@ class MatchInspector(INSPECT_BASE):
             self.config, changed=self.on_cfg_changed)
 
         TmpDisplayConfig = dtool.from_param_info_list([
-            ut.ParamInfo('show_homog', False)
+            ut.ParamInfo('show_all_kpts', False),
+            ut.ParamInfo('mask_blend', 0.0, min_=0, max_=1),
+
+            ut.ParamInfo('show_homog', False),
+            ut.ParamInfo('show_ori', False),
+            ut.ParamInfo('show_ell', True),
+            ut.ParamInfo('show_pts', False),
+            ut.ParamInfo('show_lines', True),
+            ut.ParamInfo('show_rect', False),
+            ut.ParamInfo('show_eig', False),
         ])
         self.disp_config = TmpDisplayConfig()
         self.disp_config_widget = self._new_confg_widget(
             self.disp_config, changed=self.on_cfg_changed)
 
     def _setup_layout(self):
-        self.mpl_widget = MatplotlibWidget()
+        self.menubar = gt.newMenubar(self)
+        self.menuFile = self.menubar.newMenu('Dev')
+        self.menuFile.newAction(triggered=self.embed)
         from guitool.__PYQT__ import QtWidgets
-        splitter = self.addNewSplitter(orientation='horiz')
-        config_vframe = splitter.newWidget()
+        splitter1 = self.addNewSplitter(orientation='horiz')
+        config_vframe = splitter1.newWidget()
+        splitter2     = splitter1.addNewSplitter(orientation='vert')
         config_vframe.addWidget(QtWidgets.QLabel('Query Config'))
         config_vframe.addWidget(self.config_widget)
         config_vframe.addWidget(QtWidgets.QLabel('Display Config'))
         config_vframe.addWidget(self.disp_config_widget)
         config_vframe.addNewButton('Update', pressed=self.update)
-        splitter.addWidget(self.mpl_widget)
+
+        self.mpl_widget = MatplotlibWidget()
+        splitter2.addWidget(self.mpl_widget)
+
+        self.infobox = splitter2.addNewTextEdit()
 
     def execute_vsone(self):
         print('Execute vsone')
         cfgdict = self.config.asdict()
 
         match = self.match
+        match._inplace_default = True
         match.apply_all(cfgdict)
+
+        summary = match._make_local_summary_feature_vector(
+            sum=True, mean=False, std=False, med=False)
+        self.infobox.setText('<pre>' + ut.align(ut.repr4(summary), ':') + '</pre>')
 
         self.mpl_widget.clf()
         ax = self.mpl_widget.ax

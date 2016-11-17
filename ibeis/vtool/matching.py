@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+    vt
+    python -m utool.util_inspect check_module_usage --pat="matching.py"
+
+"""
 from __future__ import absolute_import, division, print_function
 import six
 import warnings
@@ -17,6 +22,8 @@ PSEUDO_MAX_VEC_COMPONENT = 512
 PSEUDO_MAX_DIST_SQRD = 2 * (PSEUDO_MAX_VEC_COMPONENT ** 2)
 PSEUDO_MAX_DIST = np.sqrt(2) * (PSEUDO_MAX_VEC_COMPONENT)
 
+TAU = 2 * np.pi  # tauday.org
+
 
 class MatchingError(Exception):
     pass
@@ -25,28 +32,36 @@ class MatchingError(Exception):
 VSONE_ASSIGN_CONFIG = [
     ut.ParamInfo('checks', 20),
     ut.ParamInfo('symmetric', False),
-    ut.ParamInfo('weight', None),
+    ut.ParamInfo('weight', None, valid_values=[None, 'fgweights'],),
     ut.ParamInfo('K', 1, min_=1),
     ut.ParamInfo('Knorm', 1, min_=1),
+]
+
+VSONE_RATIO_CONFIG = [
+    ut.ParamInfo('ratio_thresh', .625, min_=0.0, max_=1.0),
 ]
 
 
 VSONE_SVER_CONFIG = [
-    ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None, hideif=lambda cfg: not cfg['sv_on']),
-]
-
-VSONE_DEFAULT_CONFIG = [
-    ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None, hideif=lambda cfg: not cfg['sv_on']),
-    ut.ParamInfo('ratio_thresh', .625, min_=0.0, max_=1.0),
-    ut.ParamInfo('refine_method', 'homog', valid_values=['homog', 'affine']),
-    ut.ParamInfo('symmetric', False),
-    ut.ParamInfo('K', 1, min_=1),
-    ut.ParamInfo('Knorm', 1, min_=1),
     ut.ParamInfo('sv_on', True),
+    ut.ParamInfo('refine_method', 'homog', valid_values=['homog', 'affine'],
+                 hideif=lambda cfg: not cfg['sv_on']),
+    ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None,
+                 hideif=lambda cfg: not cfg['sv_on']),
+    ut.ParamInfo('sver_ori_thresh', TAU / 4.0, min_=0.0, max_=TAU,
+                 hideif=lambda cfg: not cfg['sv_on']),
+    ut.ParamInfo('sver_scale_thresh', 2.0, min_=1.0, max_=None,
+                 hideif=lambda cfg: not cfg['sv_on']),
 
-    #ut.ParamInfo('affine_invariance', True),
-    #ut.ParamInfo('rotation_invariance', False),
 ]
+
+VSONE_DEFAULT_CONFIG = (
+    VSONE_ASSIGN_CONFIG + VSONE_RATIO_CONFIG + VSONE_SVER_CONFIG
+)
+
+VSONE_PI_DICT = {
+    pi.varname: pi for pi in VSONE_DEFAULT_CONFIG
+}
 
 
 @ut.reloadable_class
@@ -80,6 +95,12 @@ class PairwiseMatch(ut.NiceRepr):
         match.global_measures = ut.odict([])
         match._inplace_default = False
 
+    @staticmethod
+    def _take_params(config, keys):
+        if isinstance(keys, six.string_types):
+            keys = keys.split(', ')
+        return [config.get(key, VSONE_PI_DICT[key].default) for key in keys]
+
     def __getstate__(match):
         # The state ignores most of the annotation objects
         _annot1 = {}
@@ -103,12 +124,21 @@ class PairwiseMatch(ut.NiceRepr):
     def __setstate__(match, state):
         match.__dict__.update(state)
 
-    def show(match, ax=None, show_homog=False):
+    def show(match, ax=None, show_homog=False, show_ori=True, show_ell=True,
+             show_pts=True, show_lines=True, show_rect=False, show_eig=False,
+             show_all_kpts=False, mask_blend=0):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
         rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
         rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
+        if mask_blend:
+            import vtool as vt
+            mask1 = vt.resize(annot1['probchip_img'], vt.get_size(rchip1))
+            mask2 = vt.resize(annot2['probchip_img'], vt.get_size(rchip2))
+            # vt.blend_images_average(vt.mask1, 1.0, alpha=mask_blend)
+            rchip1 = vt.blend_images_mult_average(rchip1, mask1, alpha=mask_blend)
+            rchip2 = vt.blend_images_mult_average(rchip2, mask2, alpha=mask_blend)
         fm = match.fm
         fs = match.fs
 
@@ -117,7 +147,10 @@ class PairwiseMatch(ut.NiceRepr):
 
         ax, xywh1, xywh2 = pt.show_chipmatch2(
             rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False,
-            H1=H1, ax=ax
+            H1=H1, ax=ax,
+            ori=show_ori, rect=show_rect, eig=show_eig, ell=show_ell,
+            pts=show_pts, draw_lines=show_lines,
+            all_kpts=show_all_kpts,
         )
         return ax, xywh1, xywh2
 
@@ -205,11 +238,9 @@ class PairwiseMatch(ut.NiceRepr):
 
         >>> from vtool.matching import *  # NOQA
         """
-        K = cfgdict.get('K', 1)
-        Knorm  = cfgdict.get('Knorm', 1)
-        symmetric = cfgdict.get('symmetric', False)
-        checks = cfgdict.get('checks', 800)
-        weight_key = cfgdict.get('weight', None)
+        K, Knorm, symmetric, checks, weight_key = match._take_params(
+            cfgdict,
+            'K, Knorm, symmetric, checks, weight')
         annot1 = match.annot1
         annot2 = match.annot2
 
@@ -260,7 +291,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     @profile
     def ratio_test_flags(match, cfgdict={}):
-        ratio_thresh = cfgdict.get('ratio_thresh', .625)
+        ratio_thresh = match._take_params(cfgdict, 'ratio_thresh')
         ratio = match.local_measures['ratio']
         flags = np.less(ratio, ratio_thresh)
         return flags
@@ -269,8 +300,11 @@ class PairwiseMatch(ut.NiceRepr):
     def sver_flags(match, cfgdict={}, return_extra=False):
         from vtool import spatial_verification as sver
         import vtool as vt
-        sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
-        refine_method  = cfgdict.get('refine_method', 'homog')
+        params = match._take_params(
+            cfgdict,
+            'sver_xy_thresh, sver_ori_thresh, sver_scale_thresh, refine_method')
+        sver_xy_thresh, sver_ori_thresh, sver_scale_thresh, refine_method = params
+
         kpts1 = match.annot1['kpts']
         kpts2 = match.annot2['kpts']
         dlen_sqrd2 = match.annot2['dlen_sqrd']
@@ -279,8 +313,13 @@ class PairwiseMatch(ut.NiceRepr):
         # match_weights = np.ones(len(fm))
         match_weights = match.fs
         svtup = sver.spatially_verify_kpts(
-            kpts1, kpts2, fm, sver_xy_thresh, dlen_sqrd2,
-            match_weights=match_weights, refine_method=refine_method)
+            kpts1, kpts2, fm,
+            xy_thresh=sver_xy_thresh,
+            ori_thresh=sver_ori_thresh,
+            scale_thresh=sver_scale_thresh,
+            dlen_sqrd2=dlen_sqrd2,
+            match_weights=match_weights,
+            refine_method=refine_method)
         if svtup is None:
             errors = [np.empty(0), np.empty(0), np.empty(0)]
             inliers = []
@@ -299,6 +338,7 @@ class PairwiseMatch(ut.NiceRepr):
     def apply_all(match, cfgdict):
         match.H_21 = None
         match.H_12 = None
+        match.local_measures = ut.odict([])
         match.assign(cfgdict)
         match.apply_ratio_test(cfgdict, inplace=True)
         if cfgdict['sv_on']:
@@ -365,6 +405,7 @@ class PairwiseMatch(ut.NiceRepr):
         else:
             local_measures = ut.dict_subset(match.local_measures, keys)
         feat = ut.odict([])
+        feat['len(matches)'] = len(match.fm)
         if sum:
             for k, vs in six.iteritems(local_measures):
                 feat['sum(%s)' % (k,)] = vs.sum()
@@ -377,7 +418,6 @@ class PairwiseMatch(ut.NiceRepr):
         if med:
             for k, vs in six.iteritems(local_measures):
                 feat['med(%s)' % (k,)] = np.median(vs)
-        feat['len(matches)'] = len(match.fm)
         return feat
 
     @profile
@@ -443,79 +483,6 @@ def gridsearch_match_operation(matches, op_name, basis):
     if len(basis) == 1:
         # interpolate along basis
         pass
-
-
-class SingleMatch(ut.NiceRepr):
-    """
-    DEPRICATE in favor of PairwiseMatch
-    """
-
-    def __init__(self, matches, metadata):
-        self.matches = matches
-        self.metadata = metadata
-
-    def show(self, *args, **kwargs):
-        from vtool import inspect_matches
-        inspect_matches.show_matching_dict(
-            self.matches, self.metadata, *args, **kwargs)
-
-    def make_interaction(self, *args, **kwargs):
-        from vtool import inspect_matches
-        return inspect_matches.make_match_interaction(
-            self.matches, self.metadata, *args, **kwargs)
-
-    def __nice__(self):
-        parts = [key + '=%d' % (len(m.fm)) for key, m in self.matches.items()]
-        return ' ' + ', '.join(parts)
-
-    def __getstate__(self):
-        state_dict = self.__dict__
-        return state_dict
-
-    def __setstate__(self, state_dict):
-        self.__dict__.update(state_dict)
-
-
-def vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict={}, metadata_=None):
-    r"""
-    Args:
-        rchip_fpath1 (str):
-        rchip_fpath2 (str):
-        cfgdict (dict): (default = {})
-
-    CommandLine:
-        python -m vtool --tf vsone_image_fpath_matching --show
-        python -m vtool --tf vsone_image_fpath_matching --show --helpx
-        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128
-        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+siam128 --ratio-thresh=.9
-        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
-        python -m vtool --tf vsone_image_fpath_matching --show --feat-type=hesaff+sift --ratio-thresh=.8
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
-        >>> import vtool as vt
-        >>> rchip_fpath1 = ut.grab_test_imgpath('easy1.png')
-        >>> rchip_fpath2 = ut.grab_test_imgpath('easy2.png')
-        >>> import pyhesaff
-        >>> metadata_ = None
-        >>> default_cfgdict = dict(feat_type='hesaff+sift', ratio_thresh=.625,
-        >>>                        **pyhesaff.get_hesaff_default_params())
-        >>> cfgdict = ut.parse_dict_from_argv(default_cfgdict)
-        >>> match = vsone_image_fpath_matching(rchip_fpath1, rchip_fpath2, cfgdict)
-        >>> ut.quit_if_noshow()
-        >>> match.show(mode=1)
-        >>> ut.show_if_requested()
-    """
-    metadata = ut.LazyDict()
-    annot1 = metadata['annot1'] = ut.LazyDict()
-    annot2 = metadata['annot2'] = ut.LazyDict()
-    if metadata_ is not None:
-        metadata.update(metadata_)
-    annot1['rchip_fpath'] = rchip_fpath1
-    annot2['rchip_fpath'] = rchip_fpath2
-    match =  vsone_matching(metadata, cfgdict)
-    return match
 
 
 def testdata_annot_metadata(rchip_fpath, cfgdict={}):
@@ -616,193 +583,6 @@ def ensure_metadata_flann(annot, cfgdict):
     return annot
 
 
-def vsone_matching(metadata, cfgdict={}, verbose=None):
-    """
-    DEPRICATE in favor of PairwiseMatch
-
-    Metadata is a dictionary that contains either computed information
-    necessary for matching or the dependenceis of those computations.
-
-    Args:
-        metadata (utool.LazyDict):
-        cfgdict (dict): (default = {})
-        verbose (bool):  verbosity flag(default = None)
-
-    Returns:
-        tuple: (matches, metadata)
-    """
-    # import vtool as vt
-    #assert isinstance(metadata, ut.LazyDict), 'type(metadata)=%r' % (type(metadata),)
-
-    annot1 = metadata['annot1']
-    annot2 = metadata['annot2']
-
-    ensure_metadata_feats(annot1, cfgdict=cfgdict)
-    ensure_metadata_feats(annot2, cfgdict=cfgdict)
-    ensure_metadata_dlen_sqrd(annot2)
-
-    # Exceute relevant dependencies
-    kpts1 = annot1['kpts']
-    vecs1 = annot1['vecs']
-    kpts2 = annot2['kpts']
-    vecs2 = annot2['vecs']
-    dlen_sqrd2 = annot2['dlen_sqrd']
-    flann1 = annot1.get('flann', None)
-    flann2 = annot2.get('flann', None)
-
-    matches, output_metdata = vsone_feature_matching(
-        kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict=cfgdict,
-        flann1=flann1, flann2=flann2, verbose=verbose)
-    metadata.update(output_metdata)
-    match = SingleMatch(matches, metadata)
-    return match
-
-
-def vsone_feature_matching(kpts1, vecs1, kpts2, vecs2, dlen_sqrd2, cfgdict={},
-                           flann1=None, flann2=None, verbose=None):
-    r"""
-    logic for matching
-
-    Args:
-        vecs1 (ndarray[uint8_t, ndim=2]): SIFT descriptors
-        vecs2 (ndarray[uint8_t, ndim=2]): SIFT descriptors
-        kpts1 (ndarray[float32_t, ndim=2]):  keypoints
-        kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-
-    Ignore:
-        >>> from vtool.matching import *  # NOQA
-        >>> ut.qt4ensure()
-        >>> import plottool as pt
-        >>> pt.imshow(rchip1)
-        >>> pt.draw_kpts2(kpts1)
-        >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
-        >>> pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm=fm, fs=fs)
-    """
-    import vtool as vt
-    #import vtool as vt
-    sv_on = cfgdict.get('sv_on', True)
-    sver_xy_thresh = cfgdict.get('sver_xy_thresh', .01)
-    ratio_thresh   = cfgdict.get('ratio_thresh', .625)
-    refine_method  = cfgdict.get('refine_method', 'homog')
-    symmetric      = cfgdict.get('symmetric', False)
-    K              = cfgdict.get('K', 1)
-    Knorm          = cfgdict.get('Knorm', 1)
-    checks = cfgdict.get('checks', 800)
-    if verbose is None:
-        verbose = True
-
-    flann_params = {'algorithm': 'kdtree', 'trees': 8}
-    if flann1 is None:
-        flann1 = vt.flann_cache(vecs1, flann_params=flann_params,
-                                verbose=verbose)
-    if symmetric:
-        if flann2 is None:
-            flann2 = vt.flann_cache(vecs2, flann_params=flann_params,
-                                    verbose=verbose)
-    try:
-        num_neighbors = K + Knorm
-        # Search for nearest neighbors
-        fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
-            flann1, vecs2, num_neighbors, checks)
-        if symmetric:
-            fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
-                flann2, vecs1, K, checks)
-
-        if symmetric:
-            valid_flags = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
-        else:
-            valid_flags = np.ones((len(fx2_to_fx1), K), dtype=np.bool)
-
-        # Assign matches
-        assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
-                                                 Knorm, valid_flags)
-        fm, match_dist, fx1_norm, norm_dist = assigntup
-        fs = 1 - np.divide(match_dist, norm_dist)
-
-        fm_ORIG = fm
-        fs_ORIG = fs
-
-        ratio_on = sv_on
-        if ratio_on:
-            # APPLY RATIO TEST
-            fm, fs, fm_norm = ratio_test(fm_ORIG, fx1_norm, match_dist, norm_dist,
-                                         ratio_thresh)
-            fm_RAT, fs_RAT, fm_norm_RAT = (fm, fs, fm_norm)
-
-        if sv_on:
-            fm, fs, fm_norm, H_RAT = match_spatial_verification(
-                kpts1, kpts2, fm, fs, fm_norm, sver_xy_thresh, dlen_sqrd2,
-                refine_method)
-            fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV = (fm, fs, fm_norm)
-
-        #top_percent = .5
-        #top_idx = ut.take_percentile(match_dist.T[0].argsort(), top_percent)
-        #fm_TOP = fm_ORIG.take(top_idx, axis=0)
-        #fs_TOP = match_dist.T[0].take(top_idx)
-        #match_weights = 1 - fs_TOP
-        #svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm_TOP, sver_xy_thresh,
-        #                                   dlen_sqrd2, match_weights=match_weights,
-        #                                   refine_method=refine_method)
-        #if svtup is not None:
-        #    (homog_inliers, homog_errors, H_TOP) = svtup[0:3]
-        #    np.sqrt(homog_errors[0] / dlen_sqrd2)
-        #else:
-        #    H_TOP = np.eye(3)
-        #    homog_inliers = []
-        #fm_TOP_SV = fm_TOP.take(homog_inliers, axis=0)
-        #fs_TOP_SV = fs_TOP.take(homog_inliers, axis=0)
-
-        matches = {
-            'ORIG'   : MatchTup2(fm_ORIG, fs_ORIG),
-        }
-        output_metdata = {}
-        if ratio_on:
-            matches['RAT'] = MatchTup3(fm_RAT, fs_RAT, fm_norm_RAT)
-        if sv_on:
-            matches['RAT+SV'] = MatchTup3(fm_RAT_SV, fs_RAT_SV, fm_norm_RAT_SV)
-            output_metdata['H_RAT'] = H_RAT
-            #output_metdata['H_TOP'] = H_TOP
-            #'TOP'    : MatchTup2(fm_TOP, fs_TOP),
-            #'TOP+SV' : MatchTup2(fm_TOP_SV, fs_TOP_SV),
-
-    except MatchingError:
-        fm_ERR = np.empty((0, 2), dtype=np.int32)
-        fs_ERR = np.empty((0, 1), dtype=np.float32)
-        H_ERR = np.eye(3)
-        matches = {
-            'ORIG'   : MatchTup2(fm_ERR, fs_ERR),
-            'RAT'    : MatchTup3(fm_ERR, fs_ERR, fm_ERR),
-            'RAT+SV' : MatchTup3(fm_ERR, fs_ERR, fm_ERR),
-            #'TOP'    : MatchTup2(fm_ERR, fs_ERR),
-            #'TOP+SV' : MatchTup2(fm_ERR, fs_ERR),
-        }
-        output_metdata = {
-            'H_RAT': H_ERR,
-            #'H_TOP': H_ERR,
-        }
-
-    return matches, output_metdata
-
-
-def match_spatial_verification(kpts1, kpts2, fm, fs, fm_norm, sver_xy_thresh,
-                               dlen_sqrd2, refine_method):
-    from vtool import spatial_verification as sver
-    # SPATIAL VERIFICATION FILTER
-    match_weights = np.ones(len(fm))
-    svtup = sver.spatially_verify_kpts(kpts1, kpts2, fm, sver_xy_thresh,
-                                       dlen_sqrd2, match_weights=match_weights,
-                                       refine_method=refine_method)
-    if svtup is not None:
-        (homog_inliers, homog_errors, H_RAT) = svtup[0:3]
-    else:
-        H_RAT = np.eye(3)
-        homog_inliers = []
-    fm_SV = fm.take(homog_inliers, axis=0)
-    fs_SV = fs.take(homog_inliers, axis=0)
-    fm_norm_SV = fm_norm[homog_inliers]
-    return fm_SV, fs_SV, fm_norm_SV, H_RAT
-
-
 def empty_neighbors(num_vecs=0, K=0):
     shape = (num_vecs, K)
     fx2_to_fx1 = np.empty(shape, dtype=np.int32)
@@ -825,7 +605,8 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
         raise MatchingError('not enough database features')
         #(fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(len(vecs2), 0)
     else:
-        fx2_to_fx1, _fx2_to_dist_sqrd = flann.nn_index(vecs2, num_neighbors=K, checks=checks)
+        fx2_to_fx1, _fx2_to_dist_sqrd = flann.nn_index(vecs2, num_neighbors=K,
+                                                       checks=checks)
     _fx2_to_dist = np.sqrt(_fx2_to_dist_sqrd.astype(np.float64))
     # normalized dist
     fx2_to_dist = np.divide(_fx2_to_dist, PSEUDO_MAX_DIST)

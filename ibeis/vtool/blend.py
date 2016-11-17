@@ -185,7 +185,7 @@ def blend_images_mult_average(img1, img2, alpha=.5):
         >>> args = testdata_blend()
         >>> param_info = ut.ParamInfoList('blend_params', [
         ...    ut.ParamInfo('alpha', .8, 'alpha=',
-        ...                 varyvals=np.linspace(0, 1.0, 25).tolist()),
+        ...                 varyvals=np.linspace(0, 1.0, 9).tolist()),
         ... ])
         >>> gridsearch_image_function(param_info, test_func, args)
         >>> ut.show_if_requested()
@@ -194,7 +194,16 @@ def blend_images_mult_average(img1, img2, alpha=.5):
     #imgB = np.zeros(img2.shape, dtype=img2.dtype)
     #assert img1.min() >= 0 and img1.max() <= 1
     #assert img2.min() >= 0 and img2.max() <= 1
-    imgB = blend_images_average(img1, blend_images_multiply(img1, img2, .5), alpha)
+    import vtool as vt
+    img1_ = vt.rectify_to_float01(img1)
+    img2_ = vt.rectify_to_float01(img2)
+    img1_, img2_ = vt.make_channels_comparable(img1_, img2_)
+
+    mult_ave = blend_images_multiply(img1_, img2_, .5)
+    if alpha < .5:
+        imgB = blend_images_average(img1_, mult_ave, alpha * 2)
+    else:
+        imgB = blend_images_average(mult_ave, img2_, (alpha - .5) * 2)
     #assert imgB.min() >= 0 and imgB.max() <= 1
     return imgB
 
@@ -235,7 +244,7 @@ def blend_images_multiply(img1, img2, alpha=0.5):
         >>> args = testdata_blend(scale=128)
         >>> param_info = ut.ParamInfoList('blend_params', [
         ...    ut.ParamInfo('alpha', .8, 'alpha=',
-        ...                 varyvals=np.linspace(0, 1.0, 25).tolist()),
+        ...                 varyvals=np.linspace(0, 1.0, 9).tolist()),
         ... ])
         >>> gridsearch_image_function(param_info, test_func, args)
         >>> ut.show_if_requested()
@@ -244,6 +253,7 @@ def blend_images_multiply(img1, img2, alpha=0.5):
     # rectify type
     img1_ = vt.rectify_to_float01(img1)
     img2_ = vt.rectify_to_float01(img2)
+    img1_, img2_ = vt.make_channels_comparable(img1_, img2_)
     #assert img1_.min() >= 0 and img1_.max() <= 1
     #assert img2_.min() >= 0 and img2_.max() <= 1
     # apply transform
@@ -253,6 +263,10 @@ def blend_images_multiply(img1, img2, alpha=0.5):
     #data = [img1_, img2_]
     w1 = 1.0 - alpha + .5
     w2 = alpha + .5
+
+    # w1 = alpha
+    # w2 = (1 - alpha)
+
     #weights = [w1, w2]
     #imgB = vt.weighted_geometic_mean(data, weights)
     #imgB = ((img1_ ** w1) * (img2_ ** w2)) ** (1 / (w1 + w2))
@@ -281,7 +295,8 @@ def gridsearch_addWeighted():
         src1 = vt.rectify_to_float01(src1)
         src2 = vt.rectify_to_float01(src2)
         dst = np.empty(src1.shape, dtype=src1.dtype)
-        cv2.addWeighted(src1=src1, src2=src2, dst=dst, alpha=alpha, beta=beta, dtype=-1, **kwargs)
+        cv2.addWeighted(src1=src1, src2=src2, dst=dst, alpha=alpha, beta=beta,
+                        dtype=-1, **kwargs)
         return dst
     img1, img2 = testdata_blend()
     args = img1, img2 = vt.make_channels_comparable(img1, img2)

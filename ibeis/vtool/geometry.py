@@ -319,7 +319,7 @@ def closest_point_on_line(p, e1, e2):
     return pt_on_line
 
 
-def closest_point_on_verts(p, verts):
+def closest_point_on_vert_segments(p, verts):
     import vtool as vt
     candidates = [closest_point_on_line_segment(p, e1, e2) for e1, e2 in ut.itertwo(verts)]
     dists = np.array([vt.L2_sqrd(p, new_pt) for new_pt in candidates])
@@ -339,7 +339,7 @@ def closest_point_on_bbox(p, bbox):
     """
     import vtool as vt
     verts = np.array(vt.verts_from_bbox(bbox, close=True))
-    new_pts = closest_point_on_verts(p, verts)
+    new_pts = closest_point_on_vert_segments(p, verts)
     return new_pts
 
 
