@@ -3511,6 +3511,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
             # Draw any selected matches in blue
             sm_kw = dict(rect=True, colors=BLUE)
             plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, ax=ax, **sm_kw)
+
     return ax, xywh1, xywh2
 
 
@@ -3613,13 +3614,14 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
 
     if nMatch > 0:
         # draw lines and ellipses and points
-        colors = [kwargs['colors']] * nMatch if 'colors' in kwargs else distinct_colors(nMatch)
+        colors = ([kwargs['colors']] * nMatch if 'colors' in kwargs else
+                  distinct_colors(nMatch))
         if fs is not None:
             if cmap is None:
                 cmap = 'hot'
             colors = scores_to_color(fs, cmap)
 
-        acols = add_alpha(colors)
+        # acols = add_alpha(colors)
 
         # Helper functions
         def _drawkpts(**_kwargs):
@@ -3655,8 +3657,9 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
         if ell:
             _drawkpts(pts=False, ell=True, color_list=colors)
         if pts:
+            # TODO: just draw points with a stroke
             _drawkpts(pts_size=8, pts=True, ell=False, pts_color=BLACK)
-            _drawkpts(pts_size=6, pts=True, ell=False, color_list=acols)
+            _drawkpts(pts_size=6, pts=True, ell=False, color_list=colors)
         if lines and kpts1 is not None:
             _drawlines(color_list=colors)
     else:

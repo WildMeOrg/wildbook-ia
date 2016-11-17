@@ -79,14 +79,14 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         fontproperties
 
     CommandLine:
-        python -m plottool.nx_helpers --exec-show_nx --show
+        python -m plottool.nx_helpers show_nx --show
         python -m dtool --tf DependencyCache.make_graph --show
         python -m ibeis.scripts.specialdraw double_depcache_graph --show --testmode
         python -m vtool.clustering2 unsupervised_multicut_labeling --show
 
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from plottool.nx_helpers import *  # NOQA
         >>> import networkx as nx
         >>> graph = nx.DiGraph()
@@ -168,10 +168,11 @@ def show_nx(graph, with_labels=True, fnum=None, pnum=None, layout='agraph',
         color_list = ut.dict_take(nx.get_node_attributes(graph, 'framecolor'), node_list, None)
         framewidth_list = ut.dict_take(nx.get_node_attributes(graph, 'framewidth'),
                                        node_list, framewidth)
-        # TODO; frames without images
-        imgdat = pt.netx_draw_images_at_positions(img_list, pos_list,
-                                                  size_list, color_list,
-                                                  framewidth_list=framewidth_list)
+        pt.netx_draw_images_at_positions(img_list, pos_list, size_list,
+                                         color_list,
+                                         framewidth_list=framewidth_list)
+        # Hack in older interface
+        imgdat = {}
         imgdat['node_list'] = node_list
         layout_info['imgdat'] = imgdat
     else:
@@ -194,14 +195,9 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
         http://stackoverflow.com/questions/11487797/mpl-overlay-small-image
         http://matplotlib.org/api/text_api.html
         http://matplotlib.org/api/offsetbox_api.html
-
-    TODO: look into DraggableAnnotation
     """
-    # Thumb stackartist
     import vtool as vt
     import plottool as pt
-    #ax  = pt.gca()
-
     # Ensure all images have been read
     img_list_ = [vt.convert_colorspace(vt.imread(img), 'RGB')
                  if isinstance(img, six.string_types) else img
@@ -209,44 +205,10 @@ def netx_draw_images_at_positions(img_list, pos_list, size_list, color_list,
     size_list_ = [vt.get_size(img) if size is None else size
                   for size, img in zip(size_list, img_list)]
 
-    as_offset_image = False
-
-    if as_offset_image:
-        offset_img_list = []
-        artist_list = []
-        # THIS DOES NOT DO WHAT I WANT
-        # Scales the image with data coords
-        from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-        bboxkw = dict(
-            xycoords='data',
-            boxcoords='offset points',
-            #boxcoords='data',
-            pad=0.25,
-            # frameon=False, bboxprops=dict(fc="cyan"),
-            # arrowprops=dict(arrowstyle="->"))
-        )
-        for pos, img, framewidth in zip(pos_list, img_list_, framewidth_list):
-            offset_img = OffsetImage(img, zoom=.4)
-            bboxkw['frameon'] = framewidth > 0
-            artist = AnnotationBbox(offset_img, pos, xybox=(-0., 0.), **bboxkw)
-            offset_img_list.append(offset_img)
-            artist_list.append(artist)
-    else:
-        # THIS DOES EXACTLY WHAT I WANT
-        # Ties the image to data coords
-        #for pos, img, size, color, framewidth in zip(pos_list, img_list_,
-        #                                             size_list_, color_list,
-        #                                             framewidth_list):
-        for pos, img, size in zip(pos_list, img_list_, size_list_):
-            bbox = vt.bbox_from_center_wh(pos, size)
-            extent = vt.extent_from_bbox(bbox)
-            pt.plt.imshow(img, extent=extent)
-
-    imgdat = {
-        #'offset_img_list': offset_img_list,
-        #'artist_list': artist_list,
-    }
-    return imgdat
+    for pos, img, size in zip(pos_list, img_list_, size_list_):
+        bbox = vt.bbox_from_center_wh(pos, size)
+        extent = vt.extent_from_bbox(bbox)
+        pt.plt.imshow(img, extent=extent)
 
 
 class GraphVizLayoutConfig(dtool.Config):
@@ -327,6 +289,7 @@ def get_explicit_graph(graph):
     Args:
         graph (nx.Graph)
     """
+    import copy
 
     def get_nx_base(graph):
         import networkx as nx
@@ -349,7 +312,6 @@ def get_explicit_graph(graph):
     # explicit_graph = graph.copy()
     # explicit_graph.clear()
     explicit_graph = base_class()
-    import copy
     explicit_graph.graph = copy.deepcopy(graph.graph)
 
     explicit_nodes = graph.nodes(data=True)
@@ -530,22 +492,61 @@ def make_agraph_args(kwargs):
 def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
                      return_agraph=False, groupby=None, **layoutkw):
     r"""
-    orig_graph = graph
-    graph = layout_graph
+    Uses graphviz and custom code to determine position attributes of nodes and
+    edges.
+
+    Args:
+        groupby (str): if not None then nodes will be grouped by this
+            attributes and groups will be layed out separately and then stacked
+            together in a grid
+
+    Ignore:
+        orig_graph = graph
+        graph = layout_graph
 
     References:
         http://www.graphviz.org/content/attrs
         http://www.graphviz.org/doc/info/attrs.html
 
-    >>> from plottool.nx_helpers import *  # NOQA
-    >>> orig_graph = graph
-    >>> layoutkw = {'prog': 'neato'}
+    CommandLine:
+        python -m plottool.nx_helpers nx_agraph_layout --show
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.nx_helpers import *  # NOQA
+        >>> import plottool as pt
+        >>> import networkx as nx
+        >>> import utool as ut
+        >>> n, s = 9, 4
+        >>> offsets = list(range(0, (1 + n) * s, s))
+        >>> node_groups = [ut.lmap(str, range(*o)) for o in ut.itertwo(offsets)]
+        >>> edge_groups = [ut.combinations(nodes, 2) for nodes in node_groups]
+        >>> graph = nx.Graph()
+        >>> [graph.add_nodes_from(nodes) for nodes in node_groups]
+        >>> [graph.add_edges_from(edges) for edges in edge_groups]
+        >>> for count, nodes in enumerate(node_groups):
+        ...     nx.set_node_attributes(graph, 'id', ut.dzip(nodes, [count]))
+        >>> layoutkw = dict(prog='neato')
+        >>> graph1, info1 = nx_agraph_layout(graph.copy(), inplace=True, groupby='id', **layoutkw)
+        >>> graph2, info2 = nx_agraph_layout(graph.copy(), inplace=True, **layoutkw)
+        >>> graph3, _ = nx_agraph_layout(graph1.copy(), inplace=True, **layoutkw)
+        >>> nx.set_node_attributes(graph1, 'pin', 'true')
+        >>> graph4, _ = nx_agraph_layout(graph1.copy(), inplace=True, **layoutkw)
+        >>> assert np.all(nx.get_node_attributes(graph1, 'pos')['1'] == nx.get_node_attributes(graph4, 'pos')['1'])
+        >>> assert np.all(nx.get_node_attributes(graph2, 'pos')['1'] == nx.get_node_attributes(graph3, 'pos')['1'])
+        >>> ut.quit_if_noshow()
+        >>> pt.show_nx(graph1, layout='custom', pnum=(2, 2, 1), fnum=1)
+        >>> pt.show_nx(graph2, layout='custom', pnum=(2, 2, 2), fnum=1)
+        >>> pt.show_nx(graph3, layout='custom', pnum=(2, 2, 3), fnum=1)
+        >>> pt.show_nx(graph4, layout='custom', pnum=(2, 2, 4), fnum=1)
+        >>> ut.show_if_requested()
     """
     #import networkx as nx
     import pygraphviz
+    import networkx as nx
 
-    graph_ = get_explicit_graph(orig_graph).copy()
+    # graph_ = get_explicit_graph(orig_graph).copy()
+    graph_ = get_explicit_graph(orig_graph)
 
     #only_explicit = True
     #if only_explicit:
@@ -555,11 +556,16 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     layoutkw = layoutkw.copy()
     draw_implicit = layoutkw.pop('draw_implicit', True)
 
+    pinned_groups = False
+
     if groupby is not None:
-        # Layout groups separately
-        import utool
-        with utool.embed_on_exception_context:
-            import networkx as nx
+        has_pins = any([v.lower() == 'true' for v in nx.get_node_attributes(graph_, 'pin').values()])
+        has_pins &= all('pos' in d for n, d in graph_.node.items())
+        if has_pins:
+            # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
+            pass
+        else:
+            # Layout groups separately
             node_to_group = nx.get_node_attributes(graph_, groupby)
             group_to_nodes = ut.invert_dict(node_to_group, unique_vals=False)
             subgraph_list = []
@@ -570,12 +576,15 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
                 subgraph_list.append(subgraph)
 
             n_cols = int(np.ceil(np.sqrt(len(subgraph_list))))
-            column_graph = [ut.stack_graphs(chunk, vert=False) for chunk in ut.ichunks(subgraph_list, n_cols)]
+            column_graph = [ut.stack_graphs(chunk, vert=False)
+                            for chunk in ut.ichunks(subgraph_list, n_cols)]
             graph_ = ut.stack_graphs(column_graph, vert=True)
             # graph_ = ut.stack_graphs(subgraph_list)
             nx.set_node_attributes(graph_, 'pin', 'true')
+            pinned_groups = True
 
     prog = layoutkw.pop('prog', 'dot')
+
     if prog != 'dot':
         layoutkw['overlap'] = layoutkw.get('overlap', 'false')
     layoutkw['splines'] = layoutkw.get('splines', 'spline')
@@ -724,6 +733,10 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
                 for key, val in iedge_attrs.items():
                     edge_layout_attrs[key][iedge] = val
 
+    if pinned_groups:
+        # Remove temporary pins put in place by groups
+        ut.nx_delete_node_attr(graph_, 'pin')
+
     graph_layout_attrs = dict(
         splines=splines
     )
@@ -738,6 +751,8 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
         apply_graph_layout_attrs(orig_graph, layout_info)
         graph = orig_graph
     else:
+        # FIXME: there is really no point to returning graph unless we actually
+        # modify its attributes
         graph = graph_
     if return_agraph:
         return graph, layout_info, agraph
