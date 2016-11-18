@@ -190,6 +190,7 @@ class _AnnotInfrViz(object):
                             hide_reviewed_cuts=False,
                             hide_inferred_same=False,
                             hide_unreviewed_cuts=True,
+                            hide_unreviewed=False,
                             hide_labels=False,
                             hide_cuts=None,
                             reposition=True,
@@ -370,14 +371,14 @@ class _AnnotInfrViz(object):
         #     nx.set_edge_attributes(
         #         graph, 'style', _dz(inferred_edges, ['invis']))
 
-        # if only_reviewed:
-        #     # only reviewed edges contribute
-        #     nx.set_edge_attributes(graph, 'implicit',
-        #                            _dz(unreviewed_edges, [True]))
-        #     nx.set_edge_attributes(graph, 'alpha',
-        #                            _dz(unreviewed_edges, [alpha_med]))
-        #     nx.set_edge_attributes(graph, 'style',
-        #                            _dz(unreviewed_edges, ['invis']))
+        if hide_unreviewed:
+            # only reviewed edges contribute
+            # nx.set_edge_attributes(graph, 'implicit',
+            #                        _dz(unreviewed_edges, [True]))
+            # nx.set_edge_attributes(graph, 'alpha',
+            #                        _dz(unreviewed_edges, [alpha_med]))
+            nx.set_edge_attributes(graph, 'style',
+                                   _dz(unreviewed_edges, ['invis']))
 
         if hide_unreviewed_cuts:
             nx.set_edge_attributes(graph, 'style', _dz(

@@ -863,7 +863,7 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
     #     interact = match.make_interaction(type_=type_, mode=1)  # NOQA
     #     interact.start()
 
-    def vsone_tuner_hack(ibs, qaid, daid, qreq_, type_='RAT+SV'):
+    def vsone_tuner_hack(ibs, qaid, daid, qreq_):
         from vtool import inspect_matches
         import vtool as vt
         if qreq_ is None:

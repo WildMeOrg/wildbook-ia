@@ -95,9 +95,13 @@ def setup_file_menu(mainwin, back):
     menu.newAction(
         name='actionExport_Database',
         tooltip='Dumps and exports database as csv tables.',
-        text='Export Database',
-        shortcut='Ctrl+S',
-        triggered=back.export_database)
+        text='Export As CSV',
+        triggered=back.export_database_as_csv)
+    menu.newAction(
+        name='actionDuplicate_Database',
+        tooltip='Creates a duplicate of the database',
+        text='Duplicate Database',
+        triggered=back.make_database_duplicate)
     menu.addSeparator()
     menu.newAction(
         name='actionImport_Img_file',
@@ -401,11 +405,6 @@ def setup_developer_menu(mainwin, back):
         text='Assert Modules',
         triggered=back.assert_modules)
     # --- TESTS --
-    menu.addSeparator()
-    menu.newAction(
-        name='actionDeveloper_DumpDB',
-        text='Dump SQL Database',
-        triggered=back.dev_dumpdb)
     menu.addSeparator()
     menu.newAction(
         name='actionLocalizeImages',

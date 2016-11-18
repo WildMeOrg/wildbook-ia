@@ -1018,6 +1018,11 @@ class IBEISController(BASE_CLASS):
         from ibeis.init import sysres
         sysres.copy_ibeisdb(ibs.get_dbdir(), dest_dbdir)
 
+    def dump_database_csv(ibs):
+        dump_dir = join(ibs.get_dbdir(), 'CSV_DUMP')
+        ibs.db.dump_tables_to_csv(dump_dir=dump_dir)
+        ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
+
     @accessor_decors.default_decorator
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""

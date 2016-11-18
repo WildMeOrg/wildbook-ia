@@ -641,22 +641,35 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
-    def initialize(self, back=None):
+    def initialize(self, back=None, mode='new', on_chosen=None):
         # Save arguments
         if back is not None:
             self.back = back
-            self.on_chosen = back.open_database
+            if on_chosen is None:
+                on_chosen = back.open_database
+            self.on_chosen = on_chosen
             self.workdir = back.get_work_directory()
         else:
             self.back = None
             self.workdir = ut.truepath('.')
             self.on_chosen = None
-        self.dbname = 'MyNewIBEISDatabase'
+
+        title_mode = {
+            'new': 'Create a new IBEIS Database',
+            'copy': 'Create an IBEIS Database copy',
+        }
+        instruction_mode = {
+            'new': 'Choose a name for the new database',
+            'copy': 'Choose a name for the database copy',
+        }
+
+        self.dbname = 'MyNewIBEISDatabase',
+        if mode == 'copy':
+            self.dbname = back.ibs.get_dbname() + '_Copy'
 
         # Build layout
-        self.setWindowTitle('Create a new IBEIS Database')
-        self.instructions = self.addNewLabel(
-            'Choose a name for the new database', align='center')
+        self.setWindowTitle(title_mode[mode])
+        self.instructions = self.addNewLabel(instruction_mode[mode], align='center')
         # ---
         self.dbname_row = self.newHWidget()
         self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname, align='center')
@@ -2837,14 +2850,6 @@ class MainWindowBackend(GUIBACK_BASE):
         from plottool import draw_func2 as df2
         df2.update()
 
-    @blocking_slot()
-    def dev_dumpdb(back):
-        """ Help -> Developer Mode"""
-        print('[back] dev_dumpdb')
-        back.ibs.db.dump()
-        ut.view_directory(back.ibs._ibsdb)
-        back.ibs.db.dump_tables_to_csv()
-
     @slot_()
     @backreport
     def dev_export_annotations(back):
@@ -2947,7 +2952,9 @@ class MainWindowBackend(GUIBACK_BASE):
             else:
                 from guitool.__PYQT__.QtCore import Qt  # NOQA
                 from guitool.__PYQT__ import QtGui  # NOQA
-                dlg = NewDatabaseWidget.as_dialog(back.front, back=back)
+                dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
+                                                  on_chosen=back.open_database,
+                                                  mode='new')
                 dlg.exec_()
 
     @blocking_slot()
@@ -2998,17 +3005,30 @@ class MainWindowBackend(GUIBACK_BASE):
                 sysres.set_default_dbdir(dbdir)
 
     @blocking_slot()
-    def export_database(back):
-        """ File -> Export Database"""
-        print('[back] export_database')
-        back.ibs.db.dump()
-        back.ibs.db.dump_tables_to_csv()
+    def export_database_as_csv(back):
+        """ File -> Export Database """
+        print('[back] export_database_as_csv')
+        dump_dir = join(back.ibs.get_dbdir(), 'CSV_DUMP')
+        ut.ensuredir(dump_dir)
+        ut.view_directory(dump_dir)
+        back.ibs.dump_database_csv()
 
     @blocking_slot()
     def backup_database(back):
         """ File -> Backup Database"""
         print('[back] backup_database')
         back.ibs.backup_database()
+
+    @blocking_slot()
+    def make_database_duplicate(back):
+        """ File -> Copy Database"""
+        print('[back] make_database_duplicate')
+        def on_chosen(new_dbdir):
+            back.ibs.copy_database(new_dbdir)
+        dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
+                                          on_chosen=on_chosen,
+                                          mode='copy')
+        dlg.exec_()
 
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,

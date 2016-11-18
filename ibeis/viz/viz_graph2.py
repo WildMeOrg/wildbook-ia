@@ -120,8 +120,8 @@ class DevGraphWidget(gt.GuitoolWidget):
             'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
         graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
             'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
-        graph_widget.only_reviwed_cb =  bbar2.addNewCheckBox(
-            'Only Reviewed', changed=refresh_via_cb, checked=False)
+        graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
+            'Show Unreviewed', changed=refresh_via_cb, checked=False)
 
         graph_widget.use_image_cb = bbar2.addNewCheckBox(
             'Show Img', changed=refresh_via_cb, checked=use_image)
@@ -153,7 +153,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def draw_graph(graph_widget):
         graph_widget.mpl_needs_update = False
-        # print('[graph] Start draw page')
+        # print('[viz_graph] Start draw page')
         graph_widget.mpl_wgt.ax.cla()
 
         graph_widget.infr.update_node_image_config(
@@ -164,7 +164,7 @@ class DevGraphWidget(gt.GuitoolWidget):
             hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
             hide_reviewed_cuts=not graph_widget.show_review_cuts_cb.isChecked(),
             groupby='name_label',
-            # only_reviewed=graph_widget.only_reviwed_cb.isChecked(),
+            hide_unreviewed=not graph_widget.show_unreviewed_cb.isChecked(),
         )
 
         try:
@@ -187,7 +187,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         # fig.canvas.blit(ax.bbox)
         graph_widget.mpl_wgt.fig.subplots_adjust(left=.02, top=.98, bottom=.02,
                                                  right=.85)
-        # print('[graph] End draw page')
+        # print('[viz_graph] End draw page')
 
     def on_key_press(graph_widget, event):
         # called by matplotlib events
@@ -384,7 +384,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def initialize(self, infr=None, use_image=False, init_mode='review',
                    review_cfg=None):
-        print('[graph] initialize')
+        print('[viz_graph] initialize')
 
         self.pcfg = {
             'can_match_samename': True,
@@ -477,12 +477,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
-        print('[graph] showEvent')
+        print('[viz_graph] showEvent')
         # Fire initialize event after we show the GUI
         QtCore.QTimer.singleShot(50, self.init_inference)
 
     def init_inference(self):
-        print('[graph] init_inference')
+        print('[viz_graph] init_inference mode=%r' % (self.init_mode))
         if self.init_mode is None:
             pass
         elif self.init_mode == 'split':
@@ -504,7 +504,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             # self.graph_tables_widget.setCurrentIndex(2)
 
     def update_state(self, structure_changed=False, disable_global_update=False):
-        print('[graph] update_state mode=%s' % (self.init_mode,))
+        print('[viz_graph] update_state mode=%s' % (self.init_mode,))
         #if self.init_mode in ['split', 'rereview']:
         if not disable_global_update:
             if self.init_mode == 'split':
@@ -528,8 +528,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.apply_feedback_edges()
                 self.infr.apply_match_scores()
                 self.infr.apply_weights()
-                # self.infr.relabel_using_reviews()
-                # self.infr.apply_cuts()
+                self.infr.relabel_using_reviews()
+                self.infr.apply_review_inference()
+                self.infr.apply_cuts()
 
         # Set gui status indicators
         status = self.infr.connected_component_status()
@@ -552,7 +553,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     @QtCore.pyqtSlot(bool)
     def on_state_update(self, structure_changed=False):
-        print('[graph] on_update_state mode=%s' % (self.init_mode,))
+        print('[viz_graph] on_update_state mode=%s' % (self.init_mode,))
         if structure_changed:
             self.populate_node_model()
             self.populate_edge_model()
@@ -575,7 +576,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.repopulate()
 
     def reset_review(self):
-        print('[graph] reset_review')
+        print('[viz_graph] reset_review')
         infr = self.infr
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
@@ -600,7 +601,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             You can change the state of those edges.
             They are not filtered.
         """
-        print('[graph] reset_rereview')
+        print('[viz_graph] reset_rereview')
         infr = self.infr
         self.init_mode = 'rereview'
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
@@ -637,7 +638,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         pass
 
     def reset_empty(self):
-        print('[graph] reset_empty')
+        print('[viz_graph] reset_empty')
         infr = self.infr
         self.init_mode = 'split'
         with gt.GuiProgContext('Reset Empty', self.prog_bar) as ctx:
@@ -668,7 +669,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.update_state(structure_changed=True)
 
     def populate_node_model(self):
-        print('[graph] populate_node_model')
+        print('[viz_graph] populate_node_model')
         node_api = make_node_api(self.infr)
         headers = node_api.make_headers(tblnice='Nodes')
         self.node_api_widget.change_headers(headers)
@@ -682,7 +683,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         return node_api
 
     def populate_edge_model(self):
-        print('[graph] populate_edge_model')
+        print('[viz_graph] populate_edge_model')
         if self.init_mode is None:
             self.review_cfg['show_match_thumb'] = False
 
@@ -698,8 +699,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         """
         qtindex = qtindex = self.edge_api_widget.view.get_row_and_qtindex_from_id(1)[0]
         """
-        print('[graph] _on_doubleclick: ')
-        print('[graph] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
+        print('[viz_graph] _on_doubleclick: ')
+        print('[viz_graph] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
         model = qtindex.model()
         aid1  = model.get_header_data('aid1', qtindex)
         aid2  = model.get_header_data('aid2', qtindex)
@@ -802,7 +803,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             return
 
     def accept(self):
-        print('[graph] accept')
+        print('[viz_graph] accept')
         infr = self.infr
         graph = infr.graph
         num_names, num_inconsistent = self.infr.relabel_using_reviews()
@@ -1301,7 +1302,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
         ibeis make_qt_graph_interface --show
 
-        ibeis make_qt_graph_interface --db LEWA_splits --nids=1 --show --init-mode=rereview
+        ibeis make_qt_graph_interface --db LEWA_splits --nids=1 --show --sample
+
         ibeis make_qt_graph_interface --db PZ_MTEST --nids=1 --show --init-mode=rereview
 
         ibeis make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=2300 --show
@@ -1333,7 +1335,10 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if nids is not None and aids is None:
         aids = ut.flatten(ibs.get_name_aids(nids))
     if aids is None:
-        aids = ibs.get_valid_aids()[0:40]
+        aids = ibs.get_valid_aids()[0:20]
+    if ut.get_argflag('--sample'):
+        rng = np.random.RandomState(42)
+        aids = rng.choice(aids, 30, replace=False)
 
     # if True:
     #     # Expand graph for lynx stuff
@@ -1345,7 +1350,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
     # infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
-    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=2)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=1)
     infr.initialize_graph()
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
@@ -1358,7 +1363,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         win.graph_tables_widget.setCurrentIndex(index)
         win.graph_widget.use_image_cb.setChecked(True)
 
-    if True:
+    if False:
         win.expand_image_and_names()
 
     return win

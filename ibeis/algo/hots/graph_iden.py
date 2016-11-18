@@ -192,7 +192,7 @@ class _AnnotInfrDummy(object):
         Needs to be applied after any operation that adds/removes edges if we
         want to maintain that name labels must be connected in some way.
         """
-        if infr.verbose >= 2:
+        if infr.verbose >= 1:
             print('[infr] ensure_mst')
         import networkx as nx
         # Find clusters by labels
@@ -203,6 +203,14 @@ class _AnnotInfrDummy(object):
 
         # remove cut edges from augmented graph
         edge_to_iscut = nx.get_edge_attributes(aug_graph, 'is_cut')
+        cut_edges = [
+            (u, v)
+            for (u, v, d) in aug_graph.edges(data=True)
+            if not (
+                d.get('is_cut') or
+                d.get('reviewed_state', 'unreviewed') in ['nomatch']
+            )
+        ]
         cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
         aug_graph.remove_edges_from(cut_edges)
 
@@ -266,13 +274,15 @@ class _AnnotInfrDummy(object):
         if infr.verbose >= 1:
             print('[infr] review_dummy_edges')
         # print("REMOVE DUMMY EDGES")
+        infr.ensure_mst()
         edge_to_dummy = infr.get_edge_attrs('_dummy_edge')
         edges = [edge for edge, dummy in edge_to_dummy.items() if dummy]
         ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
-        # print('edges = %r' % (edges,))
+        if infr.verbose >= 1:
+            print('[infr] reviewing %s dummy edges' % (len(edges),))
         # print("HACK REVIEWED STATE")
         for u, v in edges:
-            infr.add_feedback(u, v, 'match')
+            infr.add_feedback(u, v, 'match', verbose=False)
         # if len(edges):
         #     nx.set_edge_attributes(infr.graph, 'reviewed_state', _dz(edges, ['match']))
         # print(ut.repr3(ut.graph_info(infr.simplify_graph())))
@@ -469,7 +479,9 @@ class _AnnotInfrMatching(object):
         aids = infr.aids
         if cfgdict is None:
             cfgdict = {
-                'can_match_samename': False,
+                # 'can_match_samename': False,
+                'can_match_samename': True,
+                'can_match_sameimg': True,
                 'K': 3,
                 'Knorm': 3,
                 'prescore_method': 'csum',
@@ -515,17 +527,18 @@ class _AnnotInfrMatching(object):
 
     @profile
     def apply_match_edges(infr, review_cfg={}):
+        if infr.cm_list is None:
+            print('[infr] apply_match_edges - matching has not been run!')
+            return
         if infr.verbose >= 1:
             print('[infr] apply_match_edges')
-
-        if infr.cm_list is None:
-            print('[infr] matching has not been run!')
-            return
         edges = infr._cm_breaking(review_cfg)
         # Create match-based graph structure
         infr.remove_dummy_edges()
+        if infr.verbose >= 1:
+            print('[infr] apply_match_edges adding %d edges' % len(edges))
         infr.graph.add_edges_from(edges)
-        infr.ensure_mst()
+        # infr.ensure_mst()
 
     def break_graph(infr, num):
         """
@@ -762,12 +775,11 @@ class _AnnotInfrMatching(object):
             >>> infr.apply_match_scores()
             >>> infr.get_edge_attrs('score')
         """
+        if infr.cm_list is None:
+            print('[infr] apply_match_scores - no scores to apply!')
+            return
         if infr.verbose >= 1:
             print('[infr] apply_match_scores')
-
-        if infr.cm_list is None:
-            print('[infr] no scores to apply!')
-            return
         edges = list(infr.graph.edges())
         edge_to_data = infr._get_cm_edge_data(edges)
 
@@ -825,7 +837,8 @@ class _AnnotInfrFeedback(object):
     }
 
     @profile
-    def add_feedback(infr, aid1, aid2, state, tags=[], apply=False):
+    def add_feedback(infr, aid1, aid2, state, tags=[], apply=False,
+                     verbose=None):
         """
         Public interface to add feedback for a single edge
 
@@ -857,7 +870,9 @@ class _AnnotInfrFeedback(object):
                 ],
             }
         """
-        if infr.verbose >= 1:
+        if verbose is None:
+            verbose = infr.verbose
+        if verbose >= 1:
             print('[infr] add_feedback(%r, %r, state=%r, tags=%r)' % (
                 aid1, aid2, state, tags))
         if aid1 not in infr.aids_set:
@@ -1465,7 +1480,7 @@ class _AnnotInfrFeedback(object):
     def _del_feedback_edges(infr, edges=None):
         if edges is None:
             edges = list(infr.graph.edges())
-        if infr.verbose >= 1:
+        if infr.verbose >= 2:
             print('[infr] _del_feedback_edges len(edges) = %r' % (len(edges)))
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_weight', edges)
         ut.nx_delete_edge_attr(infr.graph, 'reviewed_state', edges)
@@ -1535,7 +1550,7 @@ class _AnnotInfrFeedback(object):
                         (aid1, aid2) for (aid1, aid2) in feedback_edges]
         infr._set_feedback_edges(unique_pairs, review_state, p_same_list, tags_list)
         infr.set_edge_attrs('num_reviews', _dz(unique_pairs, num_review_list))
-        infr.ensure_mst()
+        # infr.ensure_mst()
 
     def reset_feedback(infr):
         """ Resets feedback edges to state of the SQL annotmatch table """
@@ -1700,7 +1715,7 @@ class _AnnotInfrRelabel(object):
 
         infr.set_node_attrs('name_label', model.node_to_label)
         infr.apply_cuts()
-        infr.ensure_mst()
+        # infr.ensure_mst()
 
     def get_threshold(infr):
         # Only use the normalized scores to estimate a threshold
