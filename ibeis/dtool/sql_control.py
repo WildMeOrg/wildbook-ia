@@ -1082,17 +1082,19 @@ class SQLDatabaseController(object):
 
     def dump(db, file_=None, **kwargs):
         if file_ is None or isinstance(file_, six.string_types):
-            dump_fpath = file_
-            if dump_fpath is None:
-                # Default filepath
-                version_str = 'v' + db.get_db_version()
-                if kwargs.get('schema_only', False):
-                    version_str += '.schema_only'
-                dump_fname = db.fname + '.' + version_str +  '.dump.txt'
-                dump_fpath = join(db.dir_, dump_fname)
-            with open(dump_fpath, 'w') as file_:
-                db.dump_to_file(file_, **kwargs)
+            db.dump_to_fpath(file_, **kwargs)
         else:
+            db.dump_to_file(file_, **kwargs)
+
+    def dump_to_fpath(db, dump_fpath, **kwargs):
+        if dump_fpath is None:
+            # Default filepath
+            version_str = 'v' + db.get_db_version()
+            if kwargs.get('schema_only', False):
+                version_str += '.schema_only'
+            dump_fname = db.fname + '.' + version_str +  '.dump.txt'
+            dump_fpath = join(db.dir_, dump_fname)
+        with open(dump_fpath, 'w') as file_:
             db.dump_to_file(file_, **kwargs)
 
     def dump_to_string(db, **kwargs):
@@ -1113,7 +1115,14 @@ class SQLDatabaseController(object):
             if schema_only and line.startswith('INSERT'):
                 if not include_metadata or 'metadata' not in line:
                     continue
-            file_.write('%s\n' % line)
+            to_write = '%s\n' % line
+            # Ensure python2 writes in bytes
+            if six.PY2 and isinstance(to_write, unicode):
+                to_write = to_write.encode('utf8')
+            try:
+                file_.write(to_write)
+            except UnicodeEncodeError:
+                raise
 
     def dump_to_stdout(db, **kwargs):
         import sys
@@ -1652,15 +1661,16 @@ class SQLDatabaseController(object):
     # CONVINENCE
     #==============
 
-    def dump_tables_to_csv(db):
+    def dump_tables_to_csv(db, dump_dir=None):
         """ Convenience: Dumps all csv database files to disk """
-        dump_dir = join(db.dir_, 'CSV_DUMP')
+        if dump_dir is None:
+            dump_dir = join(db.dir_, 'CSV_DUMP')
         ut.ensuredir(dump_dir)
         for tablename in db.get_table_names():
             table_fname = tablename + '.csv'
+            table_fpath = join(dump_dir, table_fname)
             table_csv = db.get_table_csv(tablename)
-            with open(join(dump_dir, table_fname), 'w') as file_:
-                file_.write(table_csv)
+            ut.writeto(table_fpath, table_csv)
 
     def get_schema_current_autogeneration_str(db, autogen_cmd=''):
         """ Convenience: Autogenerates the most up-to-date database schema
@@ -2588,7 +2598,8 @@ class SQLDatabaseController(object):
             old_rowids_to_new_roids = dict(zip(valid_old_rowid_list, new_rowid_list))  # NOQA
             #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
-    def get_table_csv(db, tablename, exclude_columns=[], params_iter=None, andwhere_colnames=None, truncate=False):
+    def get_table_csv(db, tablename, exclude_columns=[], params_iter=None,
+                      andwhere_colnames=None, truncate=False):
         """ Conveinience: Converts a tablename to csv format
 
         Args:
@@ -2629,6 +2640,7 @@ class SQLDatabaseController(object):
             column_list = [[ut.trunc_repr(col) for col in column] for column in column_list]
 
         csv_table = ut.make_csv_table(column_list, column_lbls, header, comma_repl=';')
+        csv_table = ut.ensure_unicode(csv_table)
         #csv_table = ut.make_csv_table(column_list, column_lbls, header, comma_repl='<comma>')
         return csv_table
 
