@@ -93,8 +93,10 @@ def testdata_depc3(in_memory=True):
     register_dummy_config = depc_34_helper(depc)
 
     register_dummy_config(tablename='labeler', parents=['annot'])
+    register_dummy_config(tablename='meta_labeler', parents=['labeler'])
     register_dummy_config(tablename='indexer', parents=['annot*'])
-    register_dummy_config(tablename='neighbs', parents=['annot', 'indexer'])
+    # register_dummy_config(tablename='neighbs', parents=['annot', 'indexer'])
+    register_dummy_config(tablename='neighbs', parents=['meta_labeler', 'indexer'])
     register_dummy_config(tablename='vocab', parents=['annot*'])
     register_dummy_config(tablename='smk_vec', parents=['annot', 'vocab'], vectorized=True)
     #register_dummy_config(tablename='inv_index', parents=['smk_vec*'])

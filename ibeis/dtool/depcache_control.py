@@ -543,7 +543,7 @@ class _CoreDependencyCache(object):
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> kwargs = {}
             >>> root_rowids = [1, 2, 3]
-            >>> root_rowids2 = [4, 5, 6, 7, 8]
+            >>> root_rowids2 = [4, 5, 6, 7]
             >>> root_rowids3 = root_rowids2
             >>> _debug = True
             >>> tablename = 'smk_match'

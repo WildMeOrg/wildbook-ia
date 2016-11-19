@@ -7,23 +7,29 @@ import networkx as nx  # NOQA
 
 
 class BranchId(ut.HashComparable):
-    def __init__(_id, *args):
-        _id.args = args
+    def __init__(_id, accum_ids, k):
+        _id.accum_ids = accum_ids
+        # hack in multi-edge id
+        _id.k = k
 
     def __hash__(_id):
-        return hash(_id.args)
+        return hash(_id.accum_ids)
 
     def __getitem__(_id, index):
-        return _id.args[index]
+        return _id.accum_ids[index]
 
     def __repr__(_id):
-        return '[' + ', '.join(_id.args) + ']'
+        return '[' + ', '.join(_id.accum_ids) + ']'
 
 
 class ExiNode(ut.HashComparable):
-    """ helps distinguish nodes and tuples """
-    def __init__(node, *args):
-        node.args = args
+    """
+    Expanded Input Node
+
+    helps distinguish nodes and branch_ids
+    """
+    def __init__(node, node_id, branch_id):
+        node.args = (node_id, branch_id)
 
     def __hash__(node):
         return hash(node.args)
@@ -62,11 +68,6 @@ def make_expanded_input_graph(graph, target):
 
     # FIXME: two vocabs have the same edge id, they should be the same in the
     # Expanded Input Graph as well. Their accum_id needs to be changed.
-
-    NODE_TYPE = ExiNode
-    BRANCH_TYPE = BranchId
-    #BRANCH_TYPE = lambda *args: args
-    #NODE_TYPE = lambda *args: args
 
     def condense_accum_ids(rinput_path_id):
         # Hack to condense and consolidate graph sources
@@ -118,6 +119,7 @@ def make_expanded_input_graph(graph, target):
         toaccum_list_ = ut.dict_take_column(edge_data, 'local_input_id')
         if BIG_HACK and True:
             v_list = ut.take_column(edge_list, 1)
+            # show the local_input_ids at the entire level
             pred_ids = ([
                 [x['local_input_id'] for x in list(graph.pred[node].values())[0].values()]
                 if len(graph.pred[node]) else []
@@ -185,8 +187,12 @@ def make_expanded_input_graph(graph, target):
 
         # A node's output(?) on this path determines its expanded id
         #exi_nodes = [tuple(v, d['accum_id']) for u, v, k, d in edge_list[:-1]]
-        #exi_nodes = [NODE_TYPE(v, BRANCH_TYPE(*d['accum_id'])) for u, v, k, d in edge_list[:-1]]
-        exi_nodes = [NODE_TYPE(v, BRANCH_TYPE(*d['accum_id'])) for u, v, k, d in edge_list[:-1]]
+        # node_id_list = [v for u, v, k, d in edge_list[:-1]]
+        # branch_id_list = [BranchId(d['accum_id'], k) for u, v, k, d in edge_list[:-1]]
+        # exi_nodes = [NODE_TYPE(v, BRANCH_TYPE(*d['accum_id'])) for u, v, k, d in edge_list[:-1]]
+        exi_nodes = [ExiNode(v, BranchId(d['accum_id'], k)) for u, v, k, d in edge_list[:-1]]
+        # exi_nodes = [ExiNode(v, bid) for v, bid in zip(node_id_list,
+        #                                                branch_id_list)]
         # A node's input(?) on this path determines its expanded id
         #exi_nodes = [(u, d['accum_id']) for u, v, k, d in edge_list[1:]]
 
@@ -259,6 +265,15 @@ def make_expanded_input_graph(graph, target):
     for node in rootmost_nodes:
         #exi_graph.node[node]['color'] = [1, 0, 0]
         exi_graph.node[node]['rootmost'] = True
+
+    # We actually need to hack away any root-most nodes that have another
+    # rootmost node as the parent.  Otherwise, this would cause constraints in
+    # what the user could specify as valid input combinations.
+    # ie: specify a vocab and an index, but the index depends on the vocab.
+    # this forces the user to specify the vocab that was the parent of the index
+    # the user should either just specify the index and have the vocab inferred
+    # or for now, we just dont allow this to happen.
+    nx.get_node_attributes(exi_graph, 'rootmost')
 
     recolor_exi_graph(exi_graph, rootmost_nodes)
     return exi_graph
@@ -335,6 +350,46 @@ class TableInput(ut.NiceRepr):
         inputs._order_rmi_list(reorder)
 
     def _order_rmi_list(inputs, reorder=False):
+        """
+        Attempts to put the required inputs in a reasonable order
+        for 1-to-1 properties this is just the root_ids.
+
+        For vsone, it should be root1, root2
+        For vsmany it should be root1, root2*
+
+        Ok, here is the measure:
+        Order is primarily determined by your parent input order as given in
+        the table definition. If one parent expands in to multiple parents then
+        the secondary ordering inherits from the parents. If the two paths
+        merge, then there is no problem. There is only one parent.
+
+        CommandLine:
+            python -m dtool.input_helpers _order_rmi_list --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc3()
+            >>> exi_inputs1 = depc['vsone'].rootmost_inputs.total_expand()
+            >>> print('exi_inputs1 = %r' % (exi_inputs1,))
+            >>> exi_inputs2 = depc['neighbs'].rootmost_inputs.total_expand()
+            >>> print('exi_inputs2 = %r' % (exi_inputs2,))
+            >>> exi_inputs3 = depc['meta_labeler'].rootmost_inputs.total_expand()
+            >>> print('exi_inputs3 = %r' % (exi_inputs3,))
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> from plottool.interactions import ExpandableInteraction
+            >>> inter = ExpandableInteraction(nCols=2)
+            >>> depc['vsone'].show_dep_subgraph(inter)
+            >>> exi_inputs1.show_exi_graph(inter)
+            >>> depc['neighbs'].show_dep_subgraph(inter)
+            >>> exi_inputs2.show_exi_graph(inter)
+            >>> depc['meta_labeler'].show_dep_subgraph(inter)
+            >>> exi_inputs3.show_exi_graph(inter)
+            >>> inter.start()
+            >>> #depc['viewpoint_classification'].show_input_graph()
+            >>> ut.show_if_requested()
+        """
         # hack for labels
         rmi_list = ut.unique(inputs.rmi_list)
         rootmost_exi_nodes = [rmi.node for rmi in rmi_list]
@@ -361,20 +416,129 @@ class TableInput(ut.NiceRepr):
         if reorder:
             # FIXME: This should re-order based in the parent input specs
             # from the table.parents()
-
-            if True:
+            if 1:
                 import utool
                 with utool.embed_on_exception_context:
                     # HACK: This only works with cases that exist so far.  Not
                     # sure what the general solution is. Too hungry to think
                     # about that.
+                    # if sink_node.args[0] == 'vsone':
+                    #     # hack to make vsone work
+                    #     inputs.rmi_list = rmi_list
                     if len(inputs.rmi_list) > 1:
+                        # I forgot what this hack fixes. maybe indexer?
+                        rmi_list = inputs.rmi_list
+
+                        # The second to last item in the computer order is the parent node
+                        # FIXME; need to recursively get compute order for any
+                        # set of inputs that resolve to the same node.
+                        # if False:
+                        #     current_table = [inputs.table for _ in range(len(rmi_list))]
+
+                        #     reverse_compute_branches = [rmi.compute_order()[::-1] for rmi in rmi_list]
+                        #     rcb = reverse_compute_branches
+
+                        #     def recursive_group(rcb_):
+                        #         print('---')
+                        #         print('rcb_ = %r' % (rcb_,))
+                        #         import utool as ut
+                        #         current = ut.take_column(rcb_, slice(0, 2))
+                        #         nexts = [c[1] if len(c) > 1 else c[0] for c in current]
+                        #         nexts_ = [(p.args[0], p.args[1].k + 1) for p in nexts]
+                        #         bases = ut.unique(ut.take_column(current, 0))
+                        #         print('bases = %r' % (bases,))
+                        #         assert len(bases) == 1
+                        #         base = bases[0]
+
+                        #         # order this leven
+                        #         base_order = [(n, d.get('nwise_idx', 1))
+                        #                       for n, d in inputs.table.depc[base.args[0]].parents(data=True)]
+
+                        #         #
+                        #         unique_, groupxs = ut.group_indices(nexts_)
+                        #         level_sortx = ut.list_alignment(base_order, unique_)
+                        #         unique_ = ut.take(unique_, level_sortx)
+                        #         groupxs = ut.take(groupxs, level_sortx)
+                        #         print('groupxs = %r' % (groupxs,))
+
+                        #         suborders = []
+
+                        #         for xs in groupxs:
+                        #             if len(xs) == 1:
+                        #                 suborder = [0]
+                        #             else:
+                        #                 next_rcbs = ut.take(rcb_, xs)
+                        #                 next_rcbs = [n if len(n) == 1 else n[1:] for n in next_rcbs]
+                        #                 print('next_rcbs = %r' % (next_rcbs,))
+                        #                 suborder = recursive_group(next_rcbs)
+                        #             suborders.append(suborder)
+                        #         level_orders = [count + x for count, sub in enumerate(suborders) for x in sub]
+                        #         return level_orders
+                        #     ut.fix_embed_globals()
+                        #     x = recursive_group(rcb)
+
+                        #     compute_branches = [rmi.compute_order() for rmi in rmi_list]
+                        #     pointers = [len(b) - 1 for b in compute_branches]
+                        #     # move pointers up until every branch has a unique node
+                        #     current_nodes = ut.ziptake(compute_branches, pointers)
+                        #     dups = ut.find_duplicate_items(current_nodes)
+
+                        #     # while dups:
+                        #     max_iters = max(pointers)
+                        #     for _ in range(max_iters):
+                        #         for idx in ut.flatten(dups.values()):
+                        #             if pointers[idx] > 0:
+                        #                 pointers[idx] -= 1
+                        #                 compute_branches[idx][pointers[idx]].args[0]
+                        #                 current_table[idx].parents()
+                        #         current_nodes = ut.ziptake(compute_branches, pointers)
+                        #         dups = ut.find_duplicate_items(current_nodes)
+                        #         if not dups:
+                        #             break
+
+                        #     upstream_rmis = current_nodes
+
+                        if False:
+                            parent_rmis = [rmi.compute_order()[-2]
+                                           for rmi in rmi_list]
+                            # parent_nodes = [parent_rmi.args[0] for parent_rmi in parent_rmis]
+
+                            rmi_order = [(parent_rmi.args[0], parent_rmi.args[1].k + 1) for parent_rmi in parent_rmis]
+
+                            # Target Order
+                            target_order = [(n, d.get('nwise_idx', 1)) for n, d in inputs.table.parents(data=True)]
+
+                            order_lookup = ut.make_index_lookup(target_order)
+
+                            sortx = ut.take(order_lookup, rmi_order)
+                            rmi_list = ut.take(rmi_list, sortx)
+                            inputs.rmi_list = rmi_list
+
                         parent_nodes = [rmi.compute_order()[-2].args[0]
                                         for rmi in inputs.rmi_list]
                         order_lookup = ut.make_index_lookup(inputs.table.parents())
                         sortx = ut.take(order_lookup, parent_nodes)
                         inputs.rmi_list = ut.take(rmi_list, sortx)
+
+                        # We need to map these parent rmis to the input order
+                        # specified by the parent. This requires knowledge of
+                        # local_input_ids / nwise_idx / parent_colx
+                        # The k attribute of branch_id has been hacked in for
+                        # this it may only work with vsone edge at the same
+                        # level though...
+                        # parent_rmis = [rmi.compute_order()[-2]
+                        #                for rmi in rmi_list]
+                        # parent_nodes = [parent_rmi.args[0] for parent_rmi in parent_rmis]
+                        # print('parent_nodes = %r' % (parent_nodes,))
+                        # order_rank1 = ut.unique_inverse(parent_nodes)[1]
+                        # print('order_rank1 = %r' % (order_rank1,))
+                        # order_rank2 = [parent_rmi.args[1].k for parent_rmi in parent_rmis]
+                        # print('order_rank2 = %r' % (order_rank2,))
+                        # inputs.rmi_list = ut.sortedby2(rmi_list, order_rank1, order_rank2)
+
+                        # inputs.table.parents(data=True)
             else:
+                # HACK: this fails
                 rootmost_exi_nodes = list(rootmost_nodes)
                 rootmost_depc_nodes = [node[0] for node in rootmost_exi_nodes]
                 ranks = ut.nx_dag_node_rank(inputs.table.depc.graph,
@@ -422,8 +586,11 @@ class TableInput(ut.NiceRepr):
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
         rmi_list = [RootMostInput(node, sink, inputs.exi_graph)
                     for node in source_nodes]
-        new_inputs = TableInput(rmi_list, inputs.exi_graph, inputs.table,
-                                reorder=True)
+        exi_graph = inputs.exi_graph
+        table = inputs.table
+        reorder = True
+        new_inputs = TableInput(rmi_list, exi_graph, table,
+                                reorder=reorder)
         return new_inputs
 
     def expand_input(inputs, index, inplace=False):
@@ -478,7 +645,11 @@ class TableInput(ut.NiceRepr):
         flat_compute_order = ut.take(flat_node_order_, sortx)
         # Inputs are pre-computed.
         for rmi in inputs.rmi_list:
-            flat_compute_order.remove(rmi.node)
+            try:
+                flat_compute_order.remove(rmi.node)
+            except ValueError as ex:
+                ut.printex(ex, 'something is wrong', keys=['rmi.node'])
+                raise
         return flat_compute_order
 
     def flat_compute_edges(inputs):
@@ -578,7 +749,7 @@ class TableInput(ut.NiceRepr):
             >>> #print('inputs = %r' % (inputs,))
             >>> #inputs.show_exi_graph(inter=inter)
             >>> inter.start()
-            >>> print(depc['smk_match'].compute_order)
+            >>> #print(depc['smk_match'].rootmost_inputs.compute_order)
             >>> ut.show_if_requested()
         """
         import plottool as pt
@@ -611,7 +782,15 @@ def get_rootmost_inputs(exi_graph, table):
     CommandLine:
         python -m dtool.input_helpers get_rootmost_inputs --show
 
+    Args:
+        exi_graph (nx.Graph): made from make_expanded_input_graph(graph, target)
+        table (dtool.Table):
+
+    CommandLine:
+        python -m dtool.input_helpers get_rootmost_inputs
+
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from dtool.input_helpers import *  # NOQA
         >>> from dtool.example_depcache2 import *  # NOQA
         >>> import plottool as pt
@@ -621,6 +800,7 @@ def get_rootmost_inputs(exi_graph, table):
         >>> table = depc[tablename]
         >>> exi_graph = table.expanded_input_graph
         >>> inputs_ = get_rootmost_inputs(exi_graph, table)
+        >>> print('inputs_ = %r' % (inputs_,))
         >>> inputs = inputs_.expand_input(1)
         >>> rmi = inputs.rmi_list[0]
         >>> result = ('inputs = %s' % (inputs,)) + '\n'
@@ -628,6 +808,7 @@ def get_rootmost_inputs(exi_graph, table):
         >>> print(result)
     """
     # Take out the shallowest (wrt target) rootmost nodes
+    # attrs = nx.get_node_attributes(exi_graph, 'rootmost')
     attrs = ut.nx_get_default_node_attributes(exi_graph, 'rootmost', False)
     rootmost_exi_nodes = [node for node, v in attrs.items() if v]
     sink = list(ut.nx_sink_nodes(exi_graph))[0]

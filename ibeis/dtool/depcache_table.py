@@ -1033,6 +1033,29 @@ class _TableGeneralHelper(ut.NiceRepr):
         children_tablenames = nx.ancestors(graph, table.tablename)
         return children_tablenames
 
+    def show_dep_subgraph(table, inter=None):
+        from plottool.interactions import ExpandableInteraction
+        #exi_graph = table.expanded_input_graph
+        autostart = inter is None
+        if inter is None:
+            inter = ExpandableInteraction(nCols=2)
+        import plottool as pt
+        graph = table.depc.explicit_graph
+        nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
+        G = graph.subgraph(nodes)
+
+        #for node in exi_graph.node:
+        #    if isinstance(node, tuple):
+        #        if exi_graph.node.get('label') is None:
+        #            label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
+        #            exi_graph.node[node]['label'] = label
+
+        plot_kw = {'fontname': 'Ubuntu'}
+        inter.append_plot(
+            ut.partial(pt.show_nx, G, title='Dependency Subgraph (%s)' % (table.tablename), **plot_kw))
+        if autostart:
+            inter.start()
+
     def show_input_graph(table, inter=None):
         """
         CommandLine:
@@ -1049,27 +1072,13 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> #print(depc['smk_match'].flat_compute_edges)
             >>> ut.show_if_requested()
         """
-        import plottool as pt
         from plottool.interactions import ExpandableInteraction
         #exi_graph = table.expanded_input_graph
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
-        graph = table.depc.explicit_graph
-        nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
-        G = graph.subgraph(nodes)
-
-        #for node in exi_graph.node:
-        #    if isinstance(node, tuple):
-        #        if exi_graph.node.get('label') is None:
-        #            label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
-        #            exi_graph.node[node]['label'] = label
-
+        table.show_dep_subgraph(inter)
         inputs = table.rootmost_inputs
-
-        plot_kw = {'fontname': 'Ubuntu'}
-        inter.append_plot(
-            ut.partial(pt.show_nx, G, title='Dependency Subgraph (%s)' % (table.tablename), **plot_kw))
         inter = inputs.show_exi_graph(inter)
         #inter.append_plot(
         #    ut.partial(pt.show_nx, exi_graph, title='Expanded Input (%s)' % (table.tablename,), **plot_kw))
@@ -1092,11 +1101,12 @@ class _TableGeneralHelper(ut.NiceRepr):
             * compute dependencies in order
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache2 import * # NOQA
             >>> import plottool as pt
             >>> pt.ensure_pylab_qt4()
-            >>> depc = testdata_depc_annot()
+            >>> depc = testdata_depc3()
             >>> tablename = ut.get_argval('--table', default='vsone')
             >>> table = depc[tablename]
             >>> table.show_input_graph()
@@ -1334,8 +1344,8 @@ class _TableComputeHelper(object):
         andwhere_colnames = (table.model_uuid_colname,)
         params_iter = list(zip(model_uuid_list))
         rowid_list = table.db.get_where_eq(table.tablename, colnames,
-                                         params_iter, andwhere_colnames,
-                                         eager=True, nInput=len(model_uuid_list))
+                                           params_iter, andwhere_colnames,
+                                           eager=True, nInput=len(model_uuid_list))
         return rowid_list
 
     @ profile
@@ -2066,8 +2076,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         params_iter = list(params_iter)
         #print('**params_iter = %r' % (params_iter,))
         rowid_list = table.db.get_where_eq(table.tablename, colnames,
-                                         params_iter, andwhere_colnames,
-                                         eager=eager, nInput=nInput)
+                                           params_iter, andwhere_colnames,
+                                           eager=eager, nInput=nInput)
         if _debug:
             print('_get_rowid rowid_list = %s' % (ut.trunc_repr(rowid_list)))
         return rowid_list
