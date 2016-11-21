@@ -637,7 +637,6 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
     # if True:
     #     axes_extents.x0 = 0
     #     # axes_extents.y1 = 0
-    print('axes_extents = %r' % (axes_extents,))
     return axes_extents
 
 
