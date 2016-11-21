@@ -353,9 +353,6 @@ class _CoreDependencyCache(object):
     # STATE GETTERS
 
     def rectify_input_tuple(depc, exi_inputs, input_tuple):
-        print('input_tuple = %r' % (input_tuple,))
-        print('exi_inputs = %r' % (exi_inputs,))
-
         if isinstance(input_tuple, (list, np.ndarray)):
             input_tuple = (input_tuple,)
         if len(exi_inputs) == 1:
@@ -382,7 +379,6 @@ class _CoreDependencyCache(object):
                     rectified_input.append([x])
                 else:
                     rectified_input.append(x)
-        print('rectified_input = %r' % (rectified_input,))
         return rectified_input
 
     def get_parent_rowids(depc, target_tablename, input_tuple, config=None,
