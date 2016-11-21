@@ -966,30 +966,32 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             def get_edgedata(tablekey, parentkey, parent_data):
                 if parent_data['ismulti'] or parent_data['isnwise']:
                     edge_type_parts = []
-                    local_input_id = ''
+                    # local_input_id = ''
                     if parent_data['ismulti']:
                         # TODO: give different ids to multi edges
                         # edge_type_parts.append('multi_%s_%s' % (parentkey, tablekey))
                         edge_type_parts.append('multi')
-                        local_input_id += '*'
+                        # local_input_id += '*'
                     if parent_data['isnwise']:
                         edge_type_parts.append('nwise_%s' % (
                              parent_data['nwise_idx'],))
-                        local_input_id += six.text_type(parent_data['nwise_idx'])
+                        # local_input_id += six.text_type(parent_data['nwise_idx'])
                         # edge_type_parts.append('nwise_%s_%s_%s' % (
                         #     parentkey, tablekey, parent_data['nwise_idx'],))
                     edge_type_id = '_'.join(edge_type_parts)
                 else:
                     edge_type_id = 'normal'
-                    local_input_id = '1'
+                    # local_input_id = '1'
                 edge_data = {
                     'ismulti': parent_data['ismulti'],
                     'isnwise': parent_data.get('isnwise'),
                     'nwise_idx': parent_data.get('nwise_idx'),
                     'parent_colx': parent_data.get('parent_colx'),
                     'edge_type': edge_type_id,
-                    'local_input_id': local_input_id,
-                    'taillabel': local_input_id,  # proper graphviz attribute
+                    # 'local_input_id': local_input_id,
+                    'local_input_id': parent_data.get('local_input_id'),
+                    'taillabel': parent_data.get('local_input_id'),
+                    # 'taillabel': local_input_id,  # proper graphviz attribute
                 }
                 return edge_data
             edges = [

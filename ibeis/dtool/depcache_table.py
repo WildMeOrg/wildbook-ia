@@ -195,7 +195,8 @@ class _TableConfigHelper(object):
             for rowid, uuid, p_id_list in zip(rowid_list, model_uuids, parent_rowids):
                 input_info = table.get_model_inputs(uuid)
                 fixed_args = []
-                for p_name, p_id, flag in zip(table.parent_id_colnames, p_id_list, parent_ismulti):
+                for p_name, p_id, flag in zip(table.parent_id_colnames,
+                                              p_id_list, parent_ismulti):
                     if flag:
                         new_p_id = input_info[p_name + '_model_input']
                         col_uuid = input_info[p_name + '_multi_id']
@@ -339,7 +340,8 @@ class _TableConfigHelper(object):
         cfgdict_list = table.db.get(
             CONFIG_TABLE, colnames=(CONFIG_DICT,), id_iter=config_rowids,
             id_colname=CONFIG_ROWID)
-        return [None if dict_ is None else table.configclass(**dict_) for dict_ in cfgdict_list]
+        return [None if dict_ is None else table.configclass(**dict_)
+                for dict_ in cfgdict_list]
 
     #@profile
     def add_config(table, config, _debug=None):
@@ -380,7 +382,8 @@ class _TableDebugHelper(object):
     """
 
     def print_sql_info(table):
-        add_op = table.db._make_add_table_sqlstr(sep='\n    ', **table._get_addtable_kw())
+        add_op = table.db._make_add_table_sqlstr(
+            sep='\n    ', **table._get_addtable_kw())
         ut.cprint(add_op, 'sql')
 
     def print_internal_info(table, all_attrs=False):
@@ -669,8 +672,10 @@ class _TableInternalSetup(ut.NiceRepr):
             >>> from dtool.depcache_table import *  # NOQA
             >>> from dtool.example_depcache2 import testdata_depc3
             >>> depc = testdata_depc3()
-            >>> table = depc['indexer']
+            >>> table = depc['vsone']
+            >>> table = depc['smk_match']
             >>> table = depc['neighbs']
+            >>> table = depc['indexer']
             >>> parent_col_attrs = table._infer_parentcol()
             >>> result = ('parent_col_attrs = %s' % (ut.repr2(parent_col_attrs, nl=2),))
             >>> print(result)
@@ -681,9 +686,8 @@ class _TableInternalSetup(ut.NiceRepr):
             >>> depc = testdata_depc3()
             >>> depc.d.get_indexer_data([1, 2, 3])
             >>> import uuid
-            >>> depc.d.get_indexer_data([uuid.UUID('a01eda32-e4e0-b139-3274-e91d1b3e9ecf')])
-
-
+            >>> depc.d.get_indexer_data([
+            >>>     uuid.UUID('a01eda32-e4e0-b139-3274-e91d1b3e9ecf')])
         """
         parent_tablenames = table.parent_tablenames
         parent_col_attrs = []
@@ -704,6 +708,10 @@ class _TableInternalSetup(ut.NiceRepr):
                 parent_table = col
             colattr['col'] = col
             colattr['ismulti'] = ismulti
+            # Local input-id helps specify branch ordering
+            colattr['local_input_id'] = ''
+            if ismulti:
+                colattr['local_input_id'] += '*'
             colattr['parent_table'] = parent_table
             colattr['parent_colx'] = parent_colx
             parent_id_prefixs1.append(parent_table)
@@ -721,7 +729,10 @@ class _TableInternalSetup(ut.NiceRepr):
                 colattr['isnwise'] = True
                 colattr['nwise_total'] = nwise_total
                 colattr['nwise_idx'] = nwise_idx
+                colattr['local_input_id'] += six.text_type(nwise_idx)
             else:
+                if not colattr['local_input_id']:
+                    colattr['local_input_id'] = '1'
                 prefix = col
                 colattr['isnwise'] = False
             colattr['prefix'] = prefix
@@ -1052,7 +1063,9 @@ class _TableGeneralHelper(ut.NiceRepr):
 
         plot_kw = {'fontname': 'Ubuntu'}
         inter.append_plot(
-            ut.partial(pt.show_nx, G, title='Dependency Subgraph (%s)' % (table.tablename), **plot_kw))
+            ut.partial(
+                pt.show_nx, G, title='Dependency Subgraph (%s)' %
+                (table.tablename), **plot_kw))
         if autostart:
             inter.start()
 
@@ -1260,7 +1273,8 @@ class _TableComputeHelper(object):
                     if table.ismulti:
                         multi_setsizes = []
                         manifest_data = {}
-                        for multi_id, arg_, name in zip(multi_ids, multi_args, multi_id_names):
+                        for multi_id, arg_, name in zip(multi_ids, multi_args,
+                                                        multi_id_names):
                             assert table.ismulti, 'only valid for models'
                             # TODO: need to get back to root ids
                             manifest_data.update(**{
