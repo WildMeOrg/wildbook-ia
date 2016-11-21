@@ -503,7 +503,6 @@ class _CoreDependencyCache(object):
                     # Get table configuration
                     config_ = depc._ensure_config(tablekey, config, _debug)
 
-                    print('_parent_rowids = %r' % (_parent_rowids,))
                     output_rowids = table.get_rowid(_parent_rowids,
                                                     config=config_,
                                                     recompute=_recompute,
