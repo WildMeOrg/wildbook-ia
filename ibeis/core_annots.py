@@ -1219,7 +1219,7 @@ class VsOneConfig(dtool.Config):
 def compute_one_vs_one(depc, qaids, daids, config):
     r"""
     CommandLine:
-        python -m ibeis.core_annots --test-compute_one_vs_one:0 --show
+        python -m ibeis.core_annots --test-compute_one_vs_one:1 --show
         python -m ibeis.core_annots --test-compute_one_vs_one
         python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
         python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
@@ -1263,14 +1263,17 @@ def compute_one_vs_one(depc, qaids, daids, config):
 
     Example:
         >>> # Example of a one-vs-one query
+        >>> import utool as ut
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> config = {'codename': 'vsone'}
-        >>> qreq_ = ibs.new_query_request([1], [2], cfgdict=config)
-        >>> cm_list = qreq_.execute()
-        >>> match = cm_list[0]
+        >>> cm_list = ibs.depc.get('vsone', ([1], [2]), config={'ratio_thresh': .9}, recompute=True, _debug=True)
+        >>> #cm_list = qreq_.execute()
+        >>> score, match = cm_list[0]
+        >>> print('score = %r' % (score,))
+        >>> qreq_ = ibs.new_query_request([1], [2])
         >>> match.print_inspect_str(qreq_)
-        >>> match.show_single_annotmatch(qreq_=qreq_, vert=False)
+        >>> ut.quit_if_noshow()
+        >>> match.show_single_annotmatch(qreq_)
         >>> import utool as ut
         >>> ut.show_if_requested()
 
@@ -1295,6 +1298,8 @@ def compute_one_vs_one(depc, qaids, daids, config):
     # Prepare lazy attributes for annotations
     # qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
     # dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
+    print('qaids = %r' % (qaids,))
+    print('daids = %r' % (daids,))
 
     unique_qaids = set(qaids)
     unique_daids = set(daids)
@@ -1360,12 +1365,9 @@ def compute_one_vs_one(depc, qaids, daids, config):
         fs = match.fs
 
         match = ibeis.ChipMatch(
-            qaid=qaid,
-            daid_list=[daid],
-            fm_list=[fm],
+            qaid=qaid, daid_list=[daid], fm_list=[fm],
             fsv_list=[vt.atleast_nd(fs, 2)],
-            H_list=[H],
-            fsv_col_lbls=['L2_SIFT'])
+            H_list=[H], fsv_col_lbls=['L2_SIFT'])
         match._update_daid_index()
         match.evaluate_dnids(ibs=ibs)
         match._update_daid_index()

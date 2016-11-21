@@ -493,19 +493,47 @@ class _AnnotInfrMatching(object):
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
                                       custom_nid_lookup=custom_nid_lookup)
         cm_list = qreq_.execute(prog_hook=prog_hook)
+        infr.vsmany_qreq_ = qreq_
+        infr.vsmany_cm_list = cm_list
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
 
-    def exec_vsone_refine(infr, prog_hook=None):
+    def exec_vsone(infr, prog_hook=None):
         # Post process ranks_top and bottom vsmany queries with vsone
         # Execute vsone queries on the best vsmany results
         parent_rowids = list(infr.graph.edges())
-        # Hack to get around default product of qaids
-        qreq_ = infr.ibs.depc.new_request('vsone', [], [], cfgdict={})
-        cm_list = qreq_.execute(parent_rowids=parent_rowids,
-                                prog_hook=prog_hook)
-        infr.vsone_qreq_ = qreq_
+        qaids = ut.take_column(parent_rowids, 0)
+        daids = ut.take_column(parent_rowids, 1)
+
+        # import utool
+        # utool.embed()
+
+        result_list = infr.ibs.depc.get('vsone', (qaids, daids), _debug=True)
+        # result_list = infr.ibs.depc.get('vsone', parent_rowids)
+        # result_list = infr.ibs.depc.get('vsone', [list(zip(qaids)), list(zip(daids))])
+        # hack copy the postprocess
+        import ibeis
+        qaid_list, daid_list = list(zip(*parent_rowids))
+        unique_qaids, groupxs = ut.group_indices(qaid_list)
+        grouped_daids = ut.apply_grouping(daid_list, groupxs)
+
+        unique_qnids = infr.ibs.get_annot_nids(unique_qaids)
+        single_cm_list = ut.take_column(result_list, 1)
+        grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
+
+        _iter = zip(unique_qaids, unique_qnids, grouped_daids, grouped_cms)
+        cm_list = []
+        for qaid, qnid, daids, cms in _iter:
+            # Hacked in version of creating an annot match object
+            chip_match = ibeis.ChipMatch.combine_cms(cms)
+            # chip_match.score_maxcsum(request)
+            cm_list.append(chip_match)
+
+        # cm_list = qreq_.execute(parent_rowids)
+        # infr.vsone_qreq_ = qreq_
         infr.vsone_cm_list_ = cm_list
+        # infr.qreq_ = qreq_
+        infr.cm_list = cm_list
 
     def lookup_cm(infr, aid1, aid2):
         """

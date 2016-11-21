@@ -1339,11 +1339,12 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
+    unique_qx = ut.unique(qx_list)
     if interact:
-        _iter = ut.InteractiveIter(qx_list, enabled=interact,
+        _iter = ut.InteractiveIter(unique_qx, enabled=interact,
                                    custom_actions=custom_actions)
     else:
-        _iter = ut.ProgIter(qx_list, lbl='drawing cases')
+        _iter = ut.ProgIter(unique_qx, lbl='drawing cases')
 
     fnum = pt.ensure_fnum(None)
     fpaths_list = []

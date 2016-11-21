@@ -445,6 +445,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.state_lbl = self.status_bar.addNewLabel('STATE_LBL')
 
         self.status_bar.addNewButton('Match and Score', pressed=self.match_and_score_edges)
+        self.status_bar.addNewButton('ScoreVsOne', pressed=self.score_edges_vsone)
         self.status_bar.addNewButton('Edit Filters', pressed=self.edit_filters)
         self.status_bar.addNewButton('Repopulate', pressed=self.repopulate)
         self.status_bar.addNewButton('Accept', pressed=self.accept)
@@ -495,7 +496,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.reset_review()
         else:
             raise ValueError('Unknown init_mode=%r' % (self.init_mode,))
-        #self.apply_scores()
         self.update_state(structure_changed=True)
 
         if ut.get_argflag('--graph'):
@@ -571,6 +571,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
             self.infr.exec_matching(prog_hook=ctx.prog_hook)
             self.infr.apply_match_edges(self.review_cfg)
+            self.infr.apply_match_scores()
+            self.infr.apply_weights()
+        self.repopulate()
+
+    def score_edges_vsone(self):
+        with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
+            self.infr.exec_vsone(prog_hook=ctx.prog_hook)
             self.infr.apply_match_scores()
             self.infr.apply_weights()
         self.repopulate()

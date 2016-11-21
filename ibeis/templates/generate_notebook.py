@@ -96,7 +96,7 @@ def get_default_cell_template_list(ibs):
     dev_analysis = [
         cells.config_overlap,
         #cells.dbsize_expt,
-        None if ibs.get_dbname() == 'humpbacks' else cells.feat_score_sep,
+        # None if ibs.get_dbname() == 'humpbacks' else cells.feat_score_sep,
         cells.all_annot_scoresep,
         cells.success_annot_scoresep,
     ]
