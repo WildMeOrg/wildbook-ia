@@ -353,6 +353,8 @@ class _CoreDependencyCache(object):
     # STATE GETTERS
 
     def rectify_input_tuple(depc, exi_inputs, input_tuple):
+        print('input_tuple = %r' % (input_tuple,))
+        print('exi_inputs = %r' % (exi_inputs,))
 
         if isinstance(input_tuple, (list, np.ndarray)):
             input_tuple = (input_tuple,)
@@ -380,6 +382,7 @@ class _CoreDependencyCache(object):
                     rectified_input.append([x])
                 else:
                     rectified_input.append(x)
+        print('rectified_input = %r' % (rectified_input,))
         return rectified_input
 
     def get_parent_rowids(depc, target_tablename, input_tuple, config=None,
@@ -451,10 +454,11 @@ class _CoreDependencyCache(object):
             compute_edges = exi_inputs.flat_compute_rmi_edges()
             if _debug:
                 print(' * compute_edges=%s' % (ut.repr2(compute_edges, nl=2),))
-            for input_nodes, output_node in compute_edges:
+
+            for count, (input_nodes, output_node) in enumerate(compute_edges, start=1):
                 if _debug:
-                    print(' * COMPUTING EDGE %r -- %r' % (input_nodes,
-                                                          output_node))
+                    ut.cprint(' * COMPUTING %d/%d EDGE %r -- %r' % (
+                        count, len(compute_edges), input_nodes, output_node), 'blue')
                 #ut.colorprint('output_node = %r' % (output_node,), 'yellow')
                 tablekey = output_node.tablename
                 table = depc[tablekey]
@@ -503,6 +507,7 @@ class _CoreDependencyCache(object):
                     # Get table configuration
                     config_ = depc._ensure_config(tablekey, config, _debug)
 
+                    print('_parent_rowids = %r' % (_parent_rowids,))
                     output_rowids = table.get_rowid(_parent_rowids,
                                                     config=config_,
                                                     recompute=_recompute,
@@ -543,7 +548,7 @@ class _CoreDependencyCache(object):
             >>> exec(ut.execstr_funckw(depc.get), globals())
             >>> kwargs = {}
             >>> root_rowids = [1, 2, 3]
-            >>> root_rowids2 = [4, 5, 6, 7]
+            >>> root_rowids2 = [(4, 5, 6, 7)]
             >>> root_rowids3 = root_rowids2
             >>> _debug = True
             >>> tablename = 'smk_match'
