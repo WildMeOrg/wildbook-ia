@@ -449,6 +449,7 @@ class _CoreDependencyCache(object):
 
             compute_edges = exi_inputs.flat_compute_rmi_edges()
             if _debug:
+                print(' * rectified_input=%s' % (ut.trunc_repr(rectified_input),))
                 print(' * compute_edges=%s' % (ut.repr2(compute_edges, nl=2),))
 
             for count, (input_nodes, output_node) in enumerate(compute_edges, start=1):
@@ -459,10 +460,14 @@ class _CoreDependencyCache(object):
                 tablekey = output_node.tablename
                 table = depc[tablekey]
                 # ensure correct ordering to the table
-                input_tablekeys = [n.tablename for n in input_nodes]
-                sortx = ut.list_alignment(table.parent_id_tablenames,
-                                          input_tablekeys)
-                input_nodes_ = ut.take(input_nodes, sortx)
+                # input_tablekeys = [n.tablename for n in input_nodes]
+                # sortx = ut.list_alignment(table.parent_id_tablenames,
+                #                           input_tablekeys)
+                # input_nodes_ = ut.take(input_nodes, sortx)
+                input_nodes_ = input_nodes
+                if _debug:
+                    print('table.parent_id_tablenames = %r' % (table.parent_id_tablenames,))
+                    print('input_nodes_ = %r' % (input_nodes_,))
                 input_multi_flags = [
                     node.ismulti and node in exi_inputs.rmi_list
                     for node in input_nodes_]
@@ -494,11 +499,21 @@ class _CoreDependencyCache(object):
                 # that must be broadcast.
                 rowlens = list(map(len, parent_rowids_))
                 maxlen = max(rowlens)
+                if _debug:
+                    print('parent_rowids_ = %r' % (parent_rowids_,))
                 parent_rowids2_ = [r * maxlen if len(r) == 1 else r
                                    for r in parent_rowids_]
+                if _debug:
+                    print('parent_rowids2_ = %r' % (parent_rowids2_,))
                 _parent_rowids = list(zip(*parent_rowids2_))
                 #_parent_rowids = list(ut.product(*parent_rowids_))
 
+                if _debug:
+                    print(' * _parent_rowids=%s' % (
+                        ut.trunc_repr(_parent_rowids),))
+
+                if _debug:
+                    ut.cprint('-------------', 'blue')
                 if output_node.tablename != target_tablename:
                     # Get table configuration
                     config_ = depc._ensure_config(tablekey, config, _debug)
