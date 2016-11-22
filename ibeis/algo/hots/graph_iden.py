@@ -499,23 +499,39 @@ class _AnnotInfrMatching(object):
         infr.qreq_ = qreq_
 
     def exec_vsone(infr, prog_hook=None):
+        r"""
+        Args:
+            prog_hook (None): (default = None)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden exec_vsone
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.ensure_full()
+            >>> result = infr.exec_vsone()
+            >>> print(result)
+        """
         # Post process ranks_top and bottom vsmany queries with vsone
         # Execute vsone queries on the best vsmany results
         parent_rowids = list(infr.graph.edges())
         qaids = ut.take_column(parent_rowids, 0)
         daids = ut.take_column(parent_rowids, 1)
 
-        # import utool
-        # utool.embed()
+        config = {
+            # 'sv_on': False,
+            'ratio_thresh': .9,
+        }
 
-        result_list = infr.ibs.depc.get('vsone', (qaids, daids), _debug=True)
+        result_list = infr.ibs.depc.get('vsone', (daids, qaids), config=config)
         # result_list = infr.ibs.depc.get('vsone', parent_rowids)
         # result_list = infr.ibs.depc.get('vsone', [list(zip(qaids)), list(zip(daids))])
         # hack copy the postprocess
         import ibeis
-        qaid_list, daid_list = list(zip(*parent_rowids))
-        unique_qaids, groupxs = ut.group_indices(qaid_list)
-        grouped_daids = ut.apply_grouping(daid_list, groupxs)
+        unique_qaids, groupxs = ut.group_indices(qaids)
+        grouped_daids = ut.apply_grouping(daids, groupxs)
 
         unique_qnids = infr.ibs.get_annot_nids(unique_qaids)
         single_cm_list = ut.take_column(result_list, 1)
@@ -530,9 +546,9 @@ class _AnnotInfrMatching(object):
             cm_list.append(chip_match)
 
         # cm_list = qreq_.execute(parent_rowids)
-        # infr.vsone_qreq_ = qreq_
+        infr.vsone_qreq_ = infr.ibs.depc.new_request('vsone', qaids, daids, cfgdict=config)
         infr.vsone_cm_list_ = cm_list
-        # infr.qreq_ = qreq_
+        infr.qreq_  = infr.vsone_qreq_
         infr.cm_list = cm_list
 
     def lookup_cm(infr, aid1, aid2):

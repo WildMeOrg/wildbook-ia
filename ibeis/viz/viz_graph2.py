@@ -116,20 +116,39 @@ class DevGraphWidget(gt.GuitoolWidget):
         def refresh_via_cb(flag):
             graph_widget.on_state_update()
 
-        graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
-            'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
-        graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
-            'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
-        graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
-            'Show Unreviewed', changed=refresh_via_cb, checked=False)
+        graph_widget.show_config_tree = gt.SimpleTree(bbar2)
+        tree = graph_widget.show_config_tree
 
-        graph_widget.use_image_cb = bbar2.addNewCheckBox(
-            'Show Img', changed=refresh_via_cb, checked=use_image)
-        graph_widget.in_image_cb = bbar2.addNewCheckBox(
-            'In Image', changed=refresh_via_cb, checked=True)
+        appearence = tree.add_parent(title='Appearence')
+        visibility = tree.add_parent(title='Visibility')
+        graph_widget.use_image_cb = tree.add_checkbox(
+            appearence, 'Show Img', checked=use_image, changed=refresh_via_cb)
+        graph_widget.in_image_cb = tree.add_checkbox(
+            appearence, 'In Image', checked=True, changed=refresh_via_cb)
+        graph_widget.toggle_pin_cb = tree.add_checkbox(
+            appearence, 'Pin Positions', checked=True, changed=graph_widget.set_pin_state)
 
-        graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
-            'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
+        graph_widget.show_unreviewed_cuts_cb = tree.add_checkbox(
+            visibility, 'Show Unreviewed Cuts', checked=False, changed=refresh_via_cb)
+        graph_widget.show_review_cuts_cb = tree.add_checkbox(
+            visibility, 'Show Reviewed Cuts', checked=True, changed=refresh_via_cb)
+        graph_widget.show_unreviewed_cb = tree.add_checkbox(
+            visibility, 'Show Unreviewed', checked=False, changed=refresh_via_cb)
+
+        # graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
+        #     'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
+        # graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
+        #     'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
+        # graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
+        #     'Show Unreviewed', changed=refresh_via_cb, checked=False)
+
+        # graph_widget.use_image_cb = bbar2.addNewCheckBox(
+        #     'Show Img', changed=refresh_via_cb, checked=use_image)
+        # graph_widget.in_image_cb = bbar2.addNewCheckBox(
+        #     'In Image', changed=refresh_via_cb, checked=True)
+
+        # graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
+        #     'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
 
         # Connect signals and slots
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
