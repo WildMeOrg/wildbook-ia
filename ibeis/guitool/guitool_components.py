@@ -2112,6 +2112,73 @@ class Spoiler(WIDGET_BASE):
             contentAnimation.setEndValue(contentEnd)
 
 
+class SimpleTree(QtCore.QObject):
+    """
+    References:
+        http://stackoverflow.com/questions/12737721/developing-pyqt4-tree-widget
+    """
+    def __init__(self, parent):
+        super(SimpleTree, self).__init__(parent)
+        self.tree = QtWidgets.QTreeWidget()
+        parent.addWidget(self.tree)
+        self.tree.setHeaderHidden(True)
+        self.root = self.tree.invisibleRootItem()
+        x = self.tree.itemChanged.connect(self.handleChanged)
+        print('x = %r' % (x,))
+        self.tree.itemClicked.connect(self.handleClicked)
+        self.callbacks = {}
+
+    def add_parent(self, parent=None, title='', data='ff'):
+        if parent is None:
+            parent = self.root
+        column = 0
+        item = QtWidgets.QTreeWidgetItem(parent, [title])
+        item.setData(column, QtCore.Qt.UserRole, data)
+        item.setChildIndicatorPolicy(QtWidgets.QTreeWidgetItem.ShowIndicator)
+        item.setExpanded(True)
+        return item
+
+    def add_checkbox(self, parent, title, data='ff', checked=False, changed=None):
+        column = 0
+        with BlockSignals(self.tree):
+            item = QtWidgets.QTreeWidgetItem(parent, [title])
+            item.setData(column, QtCore.Qt.UserRole, data)
+            item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
+            if changed:
+                self.callbacks[item] = changed
+            # Inject helper method
+            def isChecked():
+                return item.checkState(column) == QtCore.Qt.Checked
+            item.isChecked = isChecked
+        return item
+
+    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
+    def handleClicked(self, item, column):
+        print('item = %r' % (item,))
+
+    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
+    def handleChanged(self, item, column):
+        callback = self.callbacks.get(item, None)
+        if item.checkState(column) == QtCore.Qt.Checked:
+            state = True
+        if item.checkState(column) == QtCore.Qt.Unchecked:
+            state = False
+        if callback:
+            callback(state)
+
+
+class BlockSignals(object):
+    def __init__(self, qobj):
+        self.qobj = qobj
+        self.prev = None
+
+    def __enter__(self):
+        self.prev = self.qobj.blockSignals(True)
+
+    def __exit__(self, tb, e, s):
+        self.qobj.blockSignals(self.prev)
+
+
 if __name__ == '__main__':
     """
     CommandLine:
