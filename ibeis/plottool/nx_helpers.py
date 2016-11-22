@@ -623,10 +623,11 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     #    ptstr_ = anode.attr['pos']
     #    print('ptstr_ = %r' % (ptstr_,))
 
-    #with warnings.catch_warnings(record=True):
-    #    warnings.filterwarnings("error")
-    #    try:
-    # FIXME; This spits out warnings on bad input
+    # FIXME; This spits out warnings on weird color input
+    # import warnings
+    # with warnings.catch_warnings(record=True):
+    #     # warnings.filterwarnings('error')
+    #     warnings.filterwarnings('ignore')
     agraph.layout(prog=prog, args=args)
     #except RuntimeWarning as ex:
     #    ut.printex(ex, iswarning=True)
