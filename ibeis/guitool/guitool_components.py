@@ -31,6 +31,8 @@ def newSizePolicy(widget=None,
                   hSizePolicy=None, vSizePolicy=None, vStretch=None,
                   hStretch=None):
     """
+    References:
+        https://i.stack.imgur.com/Y8IDK.png
     """
     if hStretch is not None:
         horizontalStretch = hStretch
@@ -741,7 +743,8 @@ def newOutputLog(parent, pointSize=6, visible=True, verticalStretch=1):
     return outputLog
 
 
-def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
+def newLabel(parent=None, text='', align='center', gpath=None, fontkw={},
+             min_width=None):
     r"""
     Args:
         parent (None): (default = None)
@@ -815,6 +818,8 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={}):
         self.setStyleSheet(style_sheet_str)
     ut.inject_func_as_method(label, setColorFG)
     ut.inject_func_as_method(label, setColor)
+    if min_width is not None:
+        label.setMinimumWidth(min_width)
     return label
 
 
@@ -1366,7 +1371,8 @@ class ConfigConfirmWidget(GuitoolWidget):
 
             self.default_button = None
             for opt in options:
-                button = self.button_row.addNewButton(opt, clicked=_make_option_clicked(opt))
+                button = self.button_row.addNewButton(
+                    opt, clicked=_make_option_clicked(opt))
                 if opt == default:
                     self.default_button = button
 
@@ -1518,9 +1524,10 @@ class ConfigConfirmWidget(GuitoolWidget):
         self.close()
 
 
-def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None, visible=True,
-              enabled=True, bgcolor=None, fgcolor=None, fontkw={},
-              shrink_to_text=False):
+def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
+              visible=True, enabled=True, bgcolor=None, fgcolor=None,
+              fontkw={}, shrink_to_text=False,
+              min_width=None):
     """ wrapper around QtWidgets.QPushButton
 
     Args:
@@ -1594,18 +1601,21 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None, vi
     button.setVisible(visible)
     button.setEnabled(enabled)
     if clicked is not None:
-        #import utool
-        #utool.embed()
         button.setCheckable(True)
     adjust_font(button, **fontkw)
-    #sizePolicy = newSizePolicy(button,
-    #                           #verticalSizePolicy=QSizePolicy.Fixed,
-    #                           #horizontalSizePolicy=QSizePolicy.Fixed,
-    #                           verticalStretch=0)
-    #button.setSizePolicy(sizePolicy)
+    sizePolicy = newSizePolicy(
+        button,
+        verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
+        horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
+        # verticalStretch=0
+    )
+    button.setSizePolicy(sizePolicy)
     if shrink_to_text:
         width = get_widget_text_width(button) + 10
         button.setMaximumWidth(width)
+    if min_width is not None:
+        button.setMinimumWidth(min_width)
+    # button.setMaximumWidth(1)
     return button
 
 
@@ -2117,10 +2127,11 @@ class SimpleTree(QtCore.QObject):
     References:
         http://stackoverflow.com/questions/12737721/developing-pyqt4-tree-widget
     """
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super(SimpleTree, self).__init__(parent)
-        self.tree = QtWidgets.QTreeWidget()
-        parent.addWidget(self.tree)
+        self.tree = QtWidgets.QTreeWidget(parent)
+        if parent:
+            parent.addWidget(self.tree)
         self.tree.setHeaderHidden(True)
         self.root = self.tree.invisibleRootItem()
         x = self.tree.itemChanged.connect(self.handleChanged)
@@ -2149,7 +2160,10 @@ class SimpleTree(QtCore.QObject):
             # Inject helper method
             def isChecked():
                 return item.checkState(column) == QtCore.Qt.Checked
+            def setChecked(flag):
+                return item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
             item.isChecked = isChecked
+            item.setChecked = setChecked
         return item
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
