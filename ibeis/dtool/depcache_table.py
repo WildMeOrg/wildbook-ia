@@ -1082,7 +1082,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> import plottool as pt
             >>> table = depc['smk_match']
             >>> table.show_input_graph()
-            >>> #print(depc['smk_match'].flat_compute_edges)
+            >>> #print(depc['smk_match'].flat_compute_rmi_edges)
             >>> ut.show_if_requested()
         """
         from plottool.interactions import ExpandableInteraction
@@ -1149,7 +1149,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> table = depc[tablename]
             >>> inputs = table.rootmost_inputs
             >>> result = ('inputs = %s' % (inputs,))
-            >>> print('compute_order = %s' % (ut.repr2(inputs.flat_compute_edges(), nl=1)))
+            >>> print('compute_order = %s' % (ut.repr2(inputs.flat_compute_rmi_edges(), nl=1)))
             >>> print(result)
             inputs = <TableInput [annot[t], vocab[t], inv_index[t]]>
         """

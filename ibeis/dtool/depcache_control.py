@@ -440,8 +440,7 @@ class _CoreDependencyCache(object):
             if _debug:
                 print(' * exi_inputs=%s' % (exi_inputs,))
 
-            rectified_input = depc.rectify_input_tuple(exi_inputs,
-                                                       input_tuple)
+            rectified_input = depc.rectify_input_tuple(exi_inputs, input_tuple)
 
             rowid_dict = {}
             for rmi, rowids in zip(exi_inputs.rmi_list, rectified_input):

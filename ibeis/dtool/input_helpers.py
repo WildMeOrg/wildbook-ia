@@ -235,16 +235,13 @@ def make_expanded_input_graph(graph, target):
     paths_to_source   = ut.all_multi_paths(graph, source_input,
                                            target_output, data=True)
 
-    reverse_path = ut.reverse_path_edges
-    #order_edges = ut.identity
-
     # Build expanded input graph
     # The inputs to this table can be derived from this graph.
     # The output is a new expanded input graph.
     exi_graph = graph.__class__()
     for path in paths_to_source:
-        # Accumlate unique identifiers along the reversed(?) path
-        edge_list = reverse_path(path)
+        # Accumlate unique identifiers along the reversed path
+        edge_list = ut.reverse_path_edges(path)
         accumulate_input_ids(edge_list)
 
         # A node's output(?) on this path determines its expanded branch id
@@ -258,8 +255,8 @@ def make_expanded_input_graph(graph, target):
         nx.set_node_attributes(exi_graph, 'label', exi_node_to_label)
 
         # Undo any accumulation ordering and remove dummy nodes
-        old_edges = reverse_path(edge_list[1:-1])
-        new_edges = reverse_path(list(ut.itertwo(exi_nodes)))
+        old_edges = ut.reverse_path_edges(edge_list[1:-1])
+        new_edges = ut.reverse_path_edges(list(ut.itertwo(exi_nodes)))
         for new_edge, old_edge in zip(new_edges, old_edges):
             u2, v2 = new_edge[:2]
             d = old_edge[3]
@@ -272,8 +269,6 @@ def make_expanded_input_graph(graph, target):
     assert len(sink_nodes) == 1, 'expected a unique sink'
     sink_node = sink_nodes[0]
 
-    # Color Rootmost inputs
-
     # First identify if a node is root_specifiable
     for node in exi_graph.nodes():
         root_specifiable = False
@@ -284,18 +279,11 @@ def make_expanded_input_graph(graph, target):
                     root_specifiable = True
         if exi_graph.in_degree(node) == 0:
             root_specifiable = True
-        if root_specifiable:
-            #exi_graph.node[node]['color'] = [1, .7, .6]
-            exi_graph.node[node]['root_specifiable'] = True
-        else:
-            exi_graph.node[node]['root_specifiable'] = False
+        exi_graph.node[node]['root_specifiable'] = root_specifiable
 
     # Need to specify any combo of red nodes such that
-    # 1) for each path from a (leaf) to the (root) there is exactly one
-    # red node along that path.
-    # This garentees that all inputs are gievn.
-    #path_list = [nx.shortest_path(exi_graph, source_node, sink_node)
-    #             for source_node in source_nodes]
+    # 1) for each path from a (leaf) to the (root) there is exactly one red
+    # node along that path.  This garentees that all inputs are gievn.
     path_list = ut.flatten([
         nx.all_simple_paths(exi_graph, source_node, sink_node)
         for source_node in source_nodes])
@@ -304,12 +292,9 @@ def make_expanded_input_graph(graph, target):
         flags = [exi_graph.node[node]['root_specifiable'] for node in path]
         valid_nodes = ut.compress(path, flags)
         rootmost_nodes.add(valid_nodes[-1])
-        #print('valid_nodes = %r' % (valid_nodes,))
-    #print('rootmost_nodes = %r' % (rootmost_nodes,))
-    # Rootmost nodes are the ones specifiable by default when computing
-    # the normal property.
+    # Rootmost nodes are the ones specifiable by default when computing the
+    # normal property.
     for node in rootmost_nodes:
-        #exi_graph.node[node]['color'] = [1, 0, 0]
         exi_graph.node[node]['rootmost'] = True
 
     # We actually need to hack away any root-most nodes that have another
@@ -488,7 +473,6 @@ class TableInput(ut.NiceRepr):
         else:
             flags = [x in rootmost_nodes for x in inputs.rmi_list]
             inputs.rmi_list = ut.compress(inputs.rmi_list, flags)
-            pass
 
     def __nice__(inputs):
         return repr(inputs.rmi_list)
@@ -595,36 +579,40 @@ class TableInput(ut.NiceRepr):
                 raise
         return flat_compute_order
 
-    def flat_compute_edges(inputs):
+    def flat_compute_rmi_edges(inputs):
         """
         Defines order of computation that maps input_ids to target_ids.
 
         Returns:
             list: compute_edges
-                Each item is a tuple in the form
+                Each item is a tuple of input/output RootMostInputs
                     ([parent_1, ..., parent_n], node_i)
                 All parents should be known before you reach the i-th item in
                 the list.
                 Results of the the i-th item may be used in subsequent item
                 computations.
         """
-        flat_compute_order = inputs.flat_compute_order()
-        compute_edges = []
-        exi_graph = inputs.exi_graph
-        for output_node in flat_compute_order:
-            input_nodes = list(exi_graph.predecessors(output_node))
-            edge = (input_nodes, output_node)
-            compute_edges.append(edge)
-        return compute_edges
-
-    def flat_compute_rmi_edges(inputs):
-        """ Wraps flat compute edges in RMI structure """
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
         exi_graph = inputs.exi_graph
         compute_rmi_edges = []
-        for input_nodes, output_node in inputs.flat_compute_edges():
+
+        flat_compute_order = inputs.flat_compute_order()
+        exi_graph = inputs.exi_graph
+        for output_node in flat_compute_order:
+            input_nodes = list(exi_graph.predecessors(output_node))
+
             input_rmis = [RootMostInput(node, sink, exi_graph)
                           for node in input_nodes]
+
+            # Order the input rmis via declaration
+            reverse_compute_branches = [rmi.compute_order()[::-1] for rmi in input_rmis]
+            sort_keys = [
+                tuple([r.branch_id.parent_colx for r in rs])
+                for rs in reverse_compute_branches
+            ]
+            sortx = ut.argsort(sort_keys)
+            input_rmis = ut.take(input_rmis, sortx)
+
             output_rmis = RootMostInput(output_node, sink, exi_graph)
             edge = (input_rmis, output_rmis)
             compute_rmi_edges.append(edge)
@@ -749,7 +737,7 @@ def get_rootmost_inputs(exi_graph, table):
         >>> inputs = inputs_.expand_input(1)
         >>> rmi = inputs.rmi_list[0]
         >>> result = ('inputs = %s' % (inputs,)) + '\n'
-        >>> result += ('compute_order = %s' % (ut.repr2(inputs.flat_compute_edges(), nl=1)))
+        >>> result += ('compute_order = %s' % (ut.repr2(inputs.flat_compute_rmi_edges(), nl=1)))
         >>> print(result)
     """
     # Take out the shallowest (wrt target) rootmost nodes
