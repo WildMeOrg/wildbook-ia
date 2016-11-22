@@ -111,12 +111,15 @@ class _AnnotInfrViz(object):
         nx.set_node_attributes(infr.graph, 'image', _dz(annot_nodes, imgpath_list))
         infr._viz_image_config_dirty = False
 
-    def get_colored_edge_weights(infr, graph=None):
+    def get_colored_edge_weights(infr, graph=None, highlight_reviews=True):
         # Update color and linewidth based on scores/weight
         if graph is None:
             graph = infr.graph
         edges = list(infr.graph.edges())
-        edge2_weight = nx.get_edge_attributes(infr.graph, infr.CUT_WEIGHT_KEY)
+        if highlight_reviews:
+            edge2_weight = nx.get_edge_attributes(infr.graph, infr.CUT_WEIGHT_KEY)
+        else:
+            edge2_weight = nx.get_edge_attributes(infr.graph, 'normscore')
         #edges = list(edge2_weight.keys())
         weights = np.array(ut.dict_take(edge2_weight, edges, np.nan))
         nan_idxs = []
@@ -186,12 +189,16 @@ class _AnnotInfrViz(object):
 
     @profile
     def update_visual_attrs(infr, graph=None,
+                            show_reviewed_edges=True,
+                            show_unreviewed_edges=False,
+                            show_inferred_diff=True,
+                            show_inferred_same=True,
+                            # show_unreviewed_cuts=True,
+                            show_reviewed_cuts=False,
                             show_recent_review=True,
-                            hide_reviewed_cuts=False,
-                            hide_inferred_same=False,
-                            hide_unreviewed_cuts=True,
-                            hide_unreviewed=False,
-                            hide_labels=False,
+                            highlight_reviews=True,
+                            #
+                            show_labels=True,
                             hide_cuts=None,
                             reposition=True,
                             **kwargs
@@ -203,8 +210,8 @@ class _AnnotInfrViz(object):
         if graph is None:
             graph = infr.graph
         if hide_cuts is not None:
-            hide_unreviewed_cuts = hide_cuts
-            hide_reviewed_cuts = hide_cuts
+            # show_unreviewed_cuts = not hide_cuts
+            show_reviewed_cuts = not hide_cuts
 
         if not getattr(infr, '_viz_init_nodes', False):
             infr._viz_init_nodes = True
@@ -224,24 +231,23 @@ class _AnnotInfrViz(object):
             ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
 
         # Set annotation node labels
-        node_to_aid = nx.get_node_attributes(graph, 'aid')
-        node_to_nid = nx.get_node_attributes(graph, 'name_label')
-        node_to_view = nx.get_node_attributes(graph, 'viewpoint')
-        if node_to_view:
-            annotnode_to_label = {
-                node: 'aid=%r%s\nnid=%r' % (aid, node_to_view[node],
-                                            node_to_nid[node])
-                for node, aid in node_to_aid.items()
-            }
-        else:
-            annotnode_to_label = {
-                node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
-                for node, aid in node_to_aid.items()
-            }
-        if hide_labels:
+        if not show_labels:
             nx.set_node_attributes(graph, 'label', _dz(graph.nodes(), ['']))
-            # ut.nx_delete_edge_attr(graph, 'label')
         else:
+            node_to_aid = nx.get_node_attributes(graph, 'aid')
+            node_to_nid = nx.get_node_attributes(graph, 'name_label')
+            node_to_view = nx.get_node_attributes(graph, 'viewpoint')
+            if node_to_view:
+                annotnode_to_label = {
+                    node: 'aid=%r%s\nnid=%r' % (aid, node_to_view[node],
+                                                node_to_nid[node])
+                    for node, aid in node_to_aid.items()
+                }
+            else:
+                annotnode_to_label = {
+                    node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
+                    for node, aid in node_to_aid.items()
+                }
             nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # NODE_COLOR: based on name_label
@@ -249,7 +255,8 @@ class _AnnotInfrViz(object):
 
         # EDGES:
         # Grab different types of edges
-        edges, edge_weights, edge_colors = infr.get_colored_edge_weights(graph)
+        edges, edge_weights, edge_colors = infr.get_colored_edge_weights(
+            graph, highlight_reviews)
 
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
         edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
@@ -279,10 +286,12 @@ class _AnnotInfrViz(object):
         reviewed_cut_edges = ut.setdiff(cut_edges, unreviewed_cut_edges)
         compared_edges = match_edges + nomatch_edges
         uncompared_edges = ut.setdiff(edges, compared_edges)
-        nontrivial_inferred_same = ut.setdiff(inferred_same, match_edges + nomatch_edges)
-        nontrivial_inferred_diff = ut.setdiff(inferred_diff, match_edges + nomatch_edges)
-
-        nontrivial_inferred_edges = nontrivial_inferred_same + nontrivial_inferred_diff
+        nontrivial_inferred_same = ut.setdiff(inferred_same, match_edges +
+                                              nomatch_edges)
+        nontrivial_inferred_diff = ut.setdiff(inferred_diff, match_edges +
+                                              nomatch_edges)
+        nontrivial_inferred_edges = (nontrivial_inferred_same +
+                                     nontrivial_inferred_diff)
 
         # EDGE_COLOR: based on edge_weight
         nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
@@ -292,10 +301,14 @@ class _AnnotInfrViz(object):
         # reviewed_width = 5.0
         unreviewed_width = 1.0
         reviewed_width = 2.0
-        nx.set_edge_attributes(graph, 'linewidth', _dz(
-            reviewed_edges, [reviewed_width]))
-        nx.set_edge_attributes(graph, 'linewidth', _dz(
-            unreviewed_edges, [unreviewed_width]))
+        if highlight_reviews:
+            nx.set_edge_attributes(graph, 'linewidth', _dz(
+                reviewed_edges, [reviewed_width]))
+            nx.set_edge_attributes(graph, 'linewidth', _dz(
+                unreviewed_edges, [unreviewed_width]))
+        else:
+            nx.set_edge_attributes(graph, 'linewidth', _dz(
+                edges, [unreviewed_width]))
 
         # EDGE_STROKE: based on reviewed_state and maybe_error
         # fg = pt.WHITE if dark_background else pt.BLACK
@@ -366,30 +379,28 @@ class _AnnotInfrViz(object):
         nx.set_edge_attributes(graph, 'picker', _dz(edges, [10]))
 
         # VISIBILITY: Set visibility of edges based on arguments
-        # if show_unreviewed_inferred:
-        #     # Infered edges are hidden
-        #     nx.set_edge_attributes(
-        #         graph, 'style', _dz(inferred_edges, ['invis']))
+        if not show_reviewed_edges:
+            nx.set_edge_attributes(graph, 'style',
+                                   _dz(reviewed_edges, ['invis']))
 
-        if hide_unreviewed:
-            # only reviewed edges contribute
-            # nx.set_edge_attributes(graph, 'implicit',
-            #                        _dz(unreviewed_edges, [True]))
-            # nx.set_edge_attributes(graph, 'alpha',
-            #                        _dz(unreviewed_edges, [alpha_med]))
+        if not show_unreviewed_edges:
             nx.set_edge_attributes(graph, 'style',
                                    _dz(unreviewed_edges, ['invis']))
 
-        if hide_unreviewed_cuts:
-            nx.set_edge_attributes(graph, 'style', _dz(
-                unreviewed_cut_edges, ['invis']))
-        if hide_reviewed_cuts:
+        # if not show_unreviewed_cuts:
+        #     nx.set_edge_attributes(graph, 'style', _dz(
+        #         unreviewed_cut_edges, ['invis']))
+        if not show_reviewed_cuts:
             nx.set_edge_attributes(graph, 'style', _dz(
                 reviewed_cut_edges, ['invis']))
 
-        if hide_inferred_same:
+        if not show_inferred_same:
             nx.set_edge_attributes(graph, 'style', _dz(
                 nontrivial_inferred_same, ['invis']))
+
+        if not show_inferred_diff:
+            nx.set_edge_attributes(graph, 'style', _dz(
+                nontrivial_inferred_diff, ['invis']))
 
         if show_recent_review and edge_to_timestamp:
             # Always show the most recent review (remove setting of invis)

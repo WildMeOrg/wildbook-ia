@@ -881,7 +881,7 @@ def temp_multidb_cmc():
     ut.startfile('cmc-combined.png')
 
 
-def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
+def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
                   do_per_annot=True, draw_icon=True,
                   numranks=5, kind='cmc', cdfzoom=False):
     # numranks=3, kind='bar', cdfzoom=False):
@@ -890,20 +890,25 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         ibs (ibeis.IBEISController):  ibeis controller object
         testres (TestResult):
 
+    TODO:
+        # Cross-validated results with timectrl
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl:xval=True -t invar --kind=cmc
+
     CommandLine:
-        python -m ibeis draw_rank_cdf
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a :proot=smk,num_words=64000
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
-        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis draw_rank_cmc
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
 
-        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
+        #ibeis -e rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cdf -t best -a timectrl --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
+        python -m ibeis --tf draw_rank_cmc -t best -a timectrl --db PZ_Master1 --show
+
+        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd
 
@@ -916,7 +921,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
             -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
              default:K=1,resize_dim=[area],dim_size=[450,550,600,650]
 
-        ibeis draw_rank_cdf --db GZ_ALL -a ctrl -t default --show
+        ibeis draw_rank_cmc --db GZ_ALL -a ctrl -t default --show
         ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
 
     Example:
@@ -926,8 +931,8 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> #ibs, testres = main_helpers.testdata_expts(
         >>> #    'seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
-        >>> kwargs = ut.argparse_funckw(draw_rank_cdf)
-        >>> result = draw_rank_cdf(ibs, testres, **kwargs)
+        >>> kwargs = ut.argparse_funckw(draw_rank_cmc)
+        >>> result = draw_rank_cmc(ibs, testres, **kwargs)
         >>> ut.show_if_requested()
         >>> print(result)
     """
@@ -1005,10 +1010,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     elif kind == 'cmc':
         kind = 'plot'
 
-    if kind == 'plot':
-        plotname = ('Cumulative Match Curve (CMC)')
-    else:
-        plotname = ('Cumulative Rank Histogram')
+    plotname = ('Cumulative Match Characteristic (CMC)')
     plotname = ut.get_argval('--plotname', default=plotname)
     figtitle = testres.make_figtitle(plotname)
 

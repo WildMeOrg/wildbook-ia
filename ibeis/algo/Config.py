@@ -266,7 +266,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.sv_on = True
         sv_cfg.xy_thresh = .01
         sv_cfg.scale_thresh = 2.0
-        sv_cfg.ori_thresh   = tau / 4.0
+        sv_cfg.ori_thresh = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
@@ -1132,8 +1132,8 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         if verbose:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
-        #if ut.VERBOSE:
-        ut.printex(ex, iswarning=True)
+        if ut.VERBOSE:
+            ut.printex(ex, iswarning=True)
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
         cfg.save()

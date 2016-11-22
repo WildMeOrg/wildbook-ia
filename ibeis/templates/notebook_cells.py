@@ -244,14 +244,12 @@ timestamp_distribution = (
             ibs, acfg_name_list=a, qaid_override=qaid_override,
             daid_override=daid_override, verbose=0)
 
-        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
-        # aids = ut.unique_ordered(ut.flatten([qaids, daids]))
-        gids = ut.unique_ordered(ibs.get_annot_gids(aids))
+        aids = ut.unique(ut.total_flatten(expanded_aids_list))
+        gids = ut.unique(ibs.get_annot_gids(aids))
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
 
         ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
-        #ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
         # ENDBLOCK
         '''))
 
@@ -374,7 +372,7 @@ per_annotation_accuracy = (
         r'''
         # STARTBLOCK
         testres = ibeis.run_experiment(
-            e='rank_cdf',
+            e='rank_cmc',
             db=db, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         _ = testres.draw_func()
@@ -412,7 +410,7 @@ per_name_accuracy = (
         r'''
         # STARTBLOCK
         testres = ibeis.run_experiment(
-            e='rank_cdf',
+            e='rank_cmc',
             db=db, a=a, t=t, do_per_annot=False, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         _ = testres.draw_func()

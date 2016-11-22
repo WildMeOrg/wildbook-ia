@@ -94,15 +94,19 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.splitter = graph_widget.addNewSplitter(
             orientation=Qt.Horizontal)
         graph_widget.ctrls_ = graph_widget.splitter.addNewWidget(
-            orientation=Qt.Vertical, vertical_stretch=1, margin=1, spacing=1)
-        graph_widget.ctrls = graph_widget.ctrls_.addNewScrollArea()
+            orientation=Qt.Vertical, verticalStretch=1, margin=1, spacing=1)
+        # graph_widget.ctrls = graph_widget.ctrls_
+        # graph_widget.ctrls = graph_widget.ctrls_.addNewScrollArea()
+        graph_widget.ctrls = graph_widget.ctrls_.addNewSplitter(
+            orientation='vert')
 
-        graph_widget.mpl_wgt = MatplotlibWidget(parent=graph_widget)
+        graph_widget.mpl_wgt = MatplotlibWidget(parent=graph_widget, horizontalStretch=1)
         graph_widget.mpl_wgt.installEventFilter(graph_widget)
         graph_widget.splitter.addWidget(graph_widget.mpl_wgt)
 
         ctrls = graph_widget.ctrls
         bbar1 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
+        # bbar2 = bbar1
         bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
 
         bbar1.addNewButton('Mark: Match', pressed=graph_widget.mark_match)
@@ -110,50 +114,65 @@ class DevGraphWidget(gt.GuitoolWidget):
         bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_notcomp)
         # bbar1.addNewButton('Mark: Same+Not-Comp', pressed=graph_widget.mark_same_notcomp)
 
-        bbar2.addNewButton('Deselect', pressed=graph_widget.deselect)
-        bbar2.addNewButton('Show Annots', pressed=graph_widget.show_selected)
+        bbar1.addNewButton('Deselect', pressed=graph_widget.deselect)
+        bbar1.addNewButton('Show Annots', pressed=graph_widget.show_selected)
 
         def refresh_via_cb(flag):
             graph_widget.on_state_update()
 
-        # graph_widget.show_config_tree = gt.SimpleTree(bbar2)
-        # tree = graph_widget.show_config_tree
+        graph_widget.show_config_tree = gt.SimpleTree(bbar2)
+        tree = graph_widget.show_config_tree
 
-        # appearence = tree.add_parent(title='Appearence')
-        # visibility = tree.add_parent(title='Visibility')
-        # graph_widget.use_image_cb = tree.add_checkbox(
-            # appearence, 'Show Img', checked=use_image, changed=refresh_via_cb)
-        # graph_widget.in_image_cb = tree.add_checkbox(
-            # appearence, 'In Image', checked=True, changed=refresh_via_cb)
-        # graph_widget.toggle_pin_cb = tree.add_checkbox(
-            # appearence, 'Pin Positions', checked=True, changed=graph_widget.set_pin_state)
+        appearence = tree.add_parent(title='Appearence')
+        visibility = tree.add_parent(title='Visibility')
+        graph_widget.use_image_cb = tree.add_checkbox(
+            appearence, 'Show Img', checked=use_image, changed=refresh_via_cb)
+        graph_widget.in_image_cb = tree.add_checkbox(
+            appearence, 'In Image', checked=True, changed=refresh_via_cb)
+        graph_widget.toggle_pin_cb = tree.add_checkbox(
+            appearence, 'Pin Positions', checked=True, changed=graph_widget.set_pin_state)
+
+        graph_widget.edge_visibility_options = {}
+        def add_visibility_option(key, default, title=None):
+            title = key
+            graph_widget.edge_visibility_options[key] = tree.add_checkbox(
+                visibility, title, checked=default, changed=refresh_via_cb)
+        add_visibility_option('show_reviewed_edges', True)
+        add_visibility_option('show_unreviewed_edges', True)
+        add_visibility_option('show_reviewed_cuts', True)
+        add_visibility_option('show_inferred_same', True)
+        add_visibility_option('show_inferred_diff', True)
+
+        add_visibility_option('highlight_reviews', True)
+        add_visibility_option('show_recent_review', False)
 
         # graph_widget.show_unreviewed_cuts_cb = tree.add_checkbox(
-            # visibility, 'Show Unreviewed Cuts', checked=False, changed=refresh_via_cb)
+        #     visibility, 'Show Unreviewed Cuts', checked=False, changed=refresh_via_cb)
         # graph_widget.show_review_cuts_cb = tree.add_checkbox(
-            # visibility, 'Show Reviewed Cuts', checked=True, changed=refresh_via_cb)
+        #     visibility, 'Show Reviewed Cuts', checked=True, changed=refresh_via_cb)
         # graph_widget.show_unreviewed_cb = tree.add_checkbox(
-            # visibility, 'Show Unreviewed', checked=False, changed=refresh_via_cb)
+        #     visibility, 'Show Unreviewed', checked=False, changed=refresh_via_cb)
 
-        graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
-            'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
-        graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
-            'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
-        graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
-            'Show Unreviewed', changed=refresh_via_cb, checked=False)
+        # graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
+        #     'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
+        # graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
+        #     'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
+        # graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
+        #     'Show Unreviewed', changed=refresh_via_cb, checked=False)
 
-        graph_widget.use_image_cb = bbar2.addNewCheckBox(
-            'Show Img', changed=refresh_via_cb, checked=use_image)
-        graph_widget.in_image_cb = bbar2.addNewCheckBox(
-            'In Image', changed=refresh_via_cb, checked=True)
+        # graph_widget.use_image_cb = bbar2.addNewCheckBox(
+        #     'Show Img', changed=refresh_via_cb, checked=use_image)
+        # graph_widget.in_image_cb = bbar2.addNewCheckBox(
+        #     'In Image', changed=refresh_via_cb, checked=True)
 
-        graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
-            'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
+        # graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
+        #     'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
 
         # Connect signals and slots
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
         graph_widget.mpl_wgt.key_press_signal.connect(graph_widget.on_key_press)
         graph_widget.mpl_wgt.pick_event_signal.connect(graph_widget.on_pick)
+        graph_widget.splitter.setSizes([30, 70])
 
     @property
     def infr(graph_widget):
@@ -168,7 +187,7 @@ class DevGraphWidget(gt.GuitoolWidget):
             try:
                 graph_widget.draw_graph()
             except AttributeError as ex:
-                ut.printex(ex, 'graph likely init yet', iswarning=True)
+                ut.printex(ex, 'graph likely not init yet', iswarning=True)
 
     def draw_graph(graph_widget):
         graph_widget.mpl_needs_update = False
@@ -179,11 +198,17 @@ class DevGraphWidget(gt.GuitoolWidget):
             in_image=graph_widget.in_image_cb.isChecked()
         )
 
+        visibility_kw = {
+            k: v.isChecked()
+            for k, v in graph_widget.edge_visibility_options.items()
+        }
+
         graph_widget.infr.update_visual_attrs(
-            hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
-            hide_reviewed_cuts=not graph_widget.show_review_cuts_cb.isChecked(),
+            # hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
+            # hide_reviewed_cuts=not graph_widget.show_review_cuts_cb.isChecked(),
+            # hide_unreviewed=not graph_widget.show_unreviewed_cb.isChecked(),
             groupby='name_label',
-            hide_unreviewed=not graph_widget.show_unreviewed_cb.isChecked(),
+            **visibility_kw
         )
 
         try:
@@ -442,9 +467,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.graph_tables_widget = graph_tables_widget
 
         self.statbar1 = self.addNewWidget(
-            orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+            orientation=Qt.Horizontal, verticalStretch=1, margin=1, spacing=1)
         self.statbar2 = self.addNewWidget(
-            orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+            orientation=Qt.Horizontal, verticalStretch=1, margin=1, spacing=1)
 
         self.prog_bar = self.addNewProgressBar(visible=False)
 
@@ -472,8 +497,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                                    pressed=self.reset_review)
         self.statbar2.addNewButton('Reset Rereview', min_width=1,
                                    pressed=self.reset_rereview)
-        self.statbar2.addNewButton('Reset Empty', min_width=1,
-                                   pressed=self.reset_empty)
+        # self.statbar2.addNewButton('Reset Empty', min_width=1,
+        #                            pressed=self.reset_empty)
 
         self.num_names_lbl = self.statbar2.addNewLabel('NUM_NAMES_LBL')
         self.state_lbl = self.statbar2.addNewLabel('STATE_LBL')
@@ -1398,6 +1423,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if graph_tab:
         index = win.graph_tables_widget.indexOf(win.graph_tab)
         win.graph_tables_widget.setCurrentIndex(index)
+        print('win.graph_widget.use_image_cb.setChecked = %r' % (win.graph_widget.use_image_cb.setChecked,))
         win.graph_widget.use_image_cb.setChecked(True)
 
     if False:

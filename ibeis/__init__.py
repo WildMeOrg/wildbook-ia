@@ -109,7 +109,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis import *  # NOQA
-        >>> e = 'rank_cdf'
+        >>> e = 'rank_cmc'
         >>> db = 'testdb1'
         >>> a = ['default:species=primary']
         >>> t = ['default']

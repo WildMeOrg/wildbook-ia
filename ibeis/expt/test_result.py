@@ -20,10 +20,10 @@ def combine_testres_list(ibs, testres_list):
     CommandLine:
         python -m ibeis --tf combine_testres_list
 
-        python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show
-        python -m ibeis --tf -draw_rank_cdf --db PZ_Master1 --show
-        python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
-        python -m ibeis --tf -draw_rank_cdf --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis --tf -draw_rank_cmc --db PZ_MTEST --show
+        python -m ibeis --tf -draw_rank_cmc --db PZ_Master1 --show
+        python -m ibeis --tf -draw_rank_cmc --db PZ_MTEST --show -a varysize -t default
+        python -m ibeis --tf -draw_rank_cmc --db PZ_MTEST --show -a varysize -t default
 
     >>> # DISABLE_DOCTEST
     >>> from ibeis.expt.test_result import *  # NOQA
@@ -156,7 +156,8 @@ class TestResult(ut.NiceRepr):
                 ibs_list.append(qreq_.depc.controller)
         ibs = ibs_list[0]
         for ibs_ in ibs_list:
-            assert ibs is ibs_, ('all requests must use the same controller')
+            assert ibs.get_dbdir() == ibs_.get_dbdir(), (
+                'all requests must use the same database')
         return ibs
 
     @property
@@ -565,7 +566,7 @@ class TestResult(ut.NiceRepr):
         CommandLine:
             # TODO: More robust fix
             # To reproduce the error
-            ibeis -e rank_cdf --db humpbacks_fb -a default:mingt=2,qsize=10,dsize=100 default:qmingt=2,qsize=10,dsize=100 -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_score_weight=0.5 --show
+            ibeis -e rank_cmc --db humpbacks_fb -a default:mingt=2,qsize=10,dsize=100 default:qmingt=2,qsize=10,dsize=100 -t default:proot=BC_DTW,decision=max,crop_dim_size=500,crop_enabled=True,manual_extract=False,use_te_scorer=True,ignore_notch=True,te_score_weight=0.5 --show
         """
         if '_cfgstr' in testres.common_acfg['common']:
             annotcfg_args = [testres.common_acfg['common']['_cfgstr']]
@@ -1922,12 +1923,12 @@ class TestResult(ut.NiceRepr):
         figtitle = 'Score vs DBSize: %s' % (testres.get_title_aug())
         pt.set_figtitle(figtitle)
 
-    def draw_rank_cdf(testres):
+    def draw_rank_cmc(testres):
         """
         Wrapper
         """
         from ibeis.expt import experiment_drawing
-        experiment_drawing.draw_rank_cdf(testres.ibs, testres)
+        experiment_drawing.draw_rank_cmc(testres.ibs, testres)
 
     def draw_match_cases(testres, **kwargs):
         """
@@ -2271,7 +2272,7 @@ class TestResult(ut.NiceRepr):
     def get_options(testres):
         func_list = [
             testres.print_results,
-            testres.draw_rank_cdf,
+            testres.draw_rank_cmc,
             testres.draw_match_cases,
             testres.embed_testres
         ]
@@ -2280,7 +2281,7 @@ class TestResult(ut.NiceRepr):
     def get_actions(testres):
         actions = ut.odict([
             (testres.print_results, (['print', 'p'], '')),
-            (testres.draw_rank_cdf, (['cmc'], '')),
+            (testres.draw_rank_cmc, (['cmc'], '')),
             (testres.draw_match_cases, (['case'], '')),
             (testres.embed_testres, (['embed', 'ipy'], '')),
         ])

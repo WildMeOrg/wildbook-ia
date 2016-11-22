@@ -1312,11 +1312,11 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         ibeis.ChipMatch: cmSV
 
     CommandLine:
-        python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
             -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] \
             -a timectrlhard ---acfginfo --veryverbtd
 
-        python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
             -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] \
             -a timectrlhard ---acfginfo --veryverbtd
 

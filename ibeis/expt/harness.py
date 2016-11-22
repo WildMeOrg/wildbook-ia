@@ -359,13 +359,13 @@ def build_qresinfo(qreq_, cm_list):
         >>> print(ut.dict_str(cfgres_info))
 
     Ignore:
-        ibeis -e rank_cdf --db humpbacks -a :has_any=hasnotch,mingt=2 \
+        ibeis -e rank_cmc --db humpbacks -a :has_any=hasnotch,mingt=2 \
                 -t :proot=BC_DTW --show --nocache-big
 
-        ibeis -e rank_cdf --db humpbacks -a :is_known=True,mingt=2 \
+        ibeis -e rank_cmc --db humpbacks -a :is_known=True,mingt=2 \
                 -t :pipeline_root=BC_DTW
 
-        ibeis -e rank_cdf --db humpbacks -a :is_known=True \
+        ibeis -e rank_cmc --db humpbacks -a :is_known=True \
                 -t :pipeline_root=BC_DTW \
                 --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 \
                 --show --debug-depc

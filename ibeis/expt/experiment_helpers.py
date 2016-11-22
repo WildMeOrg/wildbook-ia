@@ -205,11 +205,12 @@ def parse_acfg_combo_list(acfg_name_list):
         list: acfg_combo_list
 
     CommandLine:
-        python -m ibeis parse_acfg_combo_list
+        python -m ibeis parse_acfg_combo_list:0
         python -m ibeis parse_acfg_combo_list:1
+        python -m ibeis parse_acfg_combo_list:2
 
     Example:
-        >>> # ENABLE_DOCTET
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
@@ -223,7 +224,7 @@ def parse_acfg_combo_list(acfg_name_list):
         [u'qcfg', u'dcfg']
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
@@ -370,6 +371,17 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>>                per_qual=False, per_vp=False, case_tag_hist=False)
         >>> annotation_configs.print_acfg_list(
         >>>     acfg_list, expanded_aids_list, ibs, **printkw)
+
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.expt import annotation_configs
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> acfg_name_list = testdata_acfg_names(['timectrl'])
+        >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
+        >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list)
     """
     if ut.VERBOSE:
         print('[harn.help] building acfg_list using %r' % (acfg_name_list,))

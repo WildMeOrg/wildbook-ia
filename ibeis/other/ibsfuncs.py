@@ -1641,6 +1641,12 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         vals_list += [ibs.get_annot_image_unixtimes(aid_list)]
         key_list += [key]
 
+    key = 'timestr'
+    if kwargs.get(key, default):
+        unixtimes = ibs.get_annot_image_unixtimes(aid_list)
+        vals_list += [list(map(ut.util_time.unixtime_to_datetimestr, unixtimes))]
+        key_list += [key]
+
     key = 'timedelta'
     if kwargs.get(key, default) and reference_aid is not None:
         times = np.array(ibs.get_annot_image_unixtimes_asfloat(aid_list))
@@ -4231,7 +4237,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -4254,6 +4260,30 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     grouped_aids = ibs.group_annots_by_name(aid_list)[0]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
     # Find the maximum size subset such that all timedeltas are less than a given value
+    r"""
+    Given a set of annotations V (all of the same name).
+    Let $E = V \times V$ be the the set of all pairs of annotations.
+
+    We will now indicate which annotations are included as to separate them by
+    a minimum timedelta while maximizing the number of annotations taken.
+
+    Let t[u, v] be the absolute difference in time deltas between u and v
+
+    Let x[u, v] = 1 if the annotation pair (u, v) is included.
+
+    Let y[u] = 1 if the annotation u is included.
+
+    maximize sum(y[u] for u in V)
+    subject to:
+
+        # Annotations pairs are only included if their timedelta is less than
+        # the threshold.
+        x[u, v] = 0 if t[u, v] > thresh
+
+        # If a pair is excluded than at least one annotation in that pair must
+        # be excluded.
+        y[u] + y[v] - x[u, v] < 2
+    """
     chosen_idxs_list = [
         ut.maximin_distance_subset1d(unixtimes, min_thresh=min_timedelta)[0]
         for unixtimes in unixtimes_list]

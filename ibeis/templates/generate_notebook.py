@@ -82,7 +82,7 @@ def get_default_cell_template_list(ibs):
 
     cells = notebook_cells
 
-    noexample = ut.get_argflag('--noexample')
+    noexample = not ut.get_argflag('--examples')
     asreport = ut.get_argflag('--asreport')
     withtags = ut.get_argflag('--withtags')
 
@@ -214,9 +214,9 @@ def make_ibeis_cell_list(ibs):
             #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'default:require_timestamp=True,min_timedelta=3600',
             #'default:species=primary',
-            #'default:view=primary,minqual=ok',
             #'unctrl:been_adjusted=True',
             #'timectrl:',
+            #'timectrl:view=primary,minqual=good',
             ''')
         )
         pipeline_list_body = ut.codeblock(

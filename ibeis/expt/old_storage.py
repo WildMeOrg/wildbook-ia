@@ -295,7 +295,7 @@ def draw_results(ibs, testres):
     #cfg_columns = ensure_item(cfg_metadata, 'columns', {})
     #import guitool
 
-    # ut.argv_flag_dec(draw_rank_cdf)(ibs, testres)
+    # ut.argv_flag_dec(draw_rank_cmc)(ibs, testres)
 
     # VIZ_INDIVIDUAL_RESULTS = True
     # if VIZ_INDIVIDUAL_RESULTS:

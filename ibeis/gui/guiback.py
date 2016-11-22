@@ -335,7 +335,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         dbdir = self.ibs.get_dbdir()
         ibeis_part = ['python', '-m', 'ibeis']
         data_part = ['--dbdir', dbdir, '-a', a, '-t', p]
-        cmd_parts = ibeis_part + ['draw_rank_cdf'] + data_part + ['--show']
+        cmd_parts = ibeis_part + ['draw_rank_cmc'] + data_part + ['--show']
         cmdstr = ' '.join(cmd_parts)
         return cmdstr
 

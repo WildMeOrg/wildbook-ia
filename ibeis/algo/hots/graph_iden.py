@@ -509,7 +509,7 @@ class _AnnotInfrMatching(object):
             python -m ibeis.algo.hots.graph_iden exec_vsone
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.ensure_full()
@@ -527,7 +527,7 @@ class _AnnotInfrMatching(object):
             'ratio_thresh': .9,
         }
 
-        result_list = infr.ibs.depc.get('vsone', (daids, qaids), config=config)
+        result_list = infr.ibs.depc.get('vsone', (qaids, daids), config=config)
         # result_list = infr.ibs.depc.get('vsone', parent_rowids)
         # result_list = infr.ibs.depc.get('vsone', [list(zip(qaids)), list(zip(daids))])
         # hack copy the postprocess
@@ -2009,7 +2009,7 @@ class AnnotInference(ut.NiceRepr,
         """
         if infr.verbose >= 1:
             print('[infr] apply_weights')
-        ut.nx_delete_edge_attr(infr.graph, 'cut_weight')
+        ut.nx_delete_edge_attr(infr.graph, infr.CUT_WEIGHT_KEY)
         # mst not needed. No edges are removed
 
         edges = list(infr.graph.edges())
@@ -2027,7 +2027,7 @@ class AnnotInference(ut.NiceRepr,
         is_valid = ~np.isnan(weights)
         weights = weights.compress(is_valid, axis=0)
         edges = ut.compress(edges, is_valid)
-        infr.set_edge_attrs('cut_weight', _dz(edges, weights))
+        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, weights))
 
     @profile
     def apply_cuts(infr, graph=None):
@@ -2353,7 +2353,7 @@ def testdata_infr(defaultdb='PZ_MTEST'):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
+        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph-tab
         python -m ibeis.algo.hots.graph_iden
         python -m ibeis.algo.hots.graph_iden --allexamples
     """

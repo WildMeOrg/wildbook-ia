@@ -572,8 +572,8 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         python -m ibeis.dev -e print_acfg  -a timectrl --db PZ_Master1 --verbtd --nocache-aid
         python -m ibeis.dev -e print_acfg  -a timequalctrl --db PZ_Master1 --verbtd --nocache-aid
 
-        python -m ibeis.dev -e rank_cdf   -a controlled:qsize=10,dsize=10,dper_name=2 -t default --db PZ_MTEST
-        python -m ibeis.dev -e rank_cdf   -a controlled:qsize=10,dsize=20,dper_name=2 -t default --db PZ_MTEST
+        python -m ibeis.dev -e rank_cmc   -a controlled:qsize=10,dsize=10,dper_name=2 -t default --db PZ_MTEST
+        python -m ibeis.dev -e rank_cmc   -a controlled:qsize=10,dsize=20,dper_name=2 -t default --db PZ_MTEST
         python -m ibeis.dev -e print      -a controlled:qsize=10,dsize=10             -t default --db PZ_MTEST --verbtd --nocache-aid
 
         python -m ibeis.dev -e latexsum -t candinvar -a viewpoint_compare  --db NNP_Master3 --acfginfo
@@ -585,7 +585,7 @@ def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
         python -m ibeis --tf get_annotcfg_list  --db PZ_Master1 \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd  --veryverbtd
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
+        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd
 
@@ -813,7 +813,7 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
 
     Ignore:
         # Testing tag features
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
+        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             ---acfginfo --veryverbtd
     """
@@ -1233,7 +1233,7 @@ def sample_annots_wrt_ref(ibs, avail_aids, aidcfg, ref_aids, prefix='',
             avail_aids = ut.setdiff_ordered(avail_aids, sameimg_samename_aids)
 
     if sample_occur is True:
-        with VerbosityContext('sample_occurr',
+        with VerbosityContext('sample_occur',
                               num_ref_aids=len(ref_aids)):
             # Get other aids from the references' encounters
             ref_enc_texts = ibs.get_annot_encounter_text(ref_aids)

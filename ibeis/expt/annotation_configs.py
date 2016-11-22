@@ -625,7 +625,7 @@ varypername2_td = apply_timecontrol(varypername2)
 """
 ibeis -e print_acfg --db PZ_Master1 -a ctrl2
 ibeis -e print_acfg --db PZ_Master1 -a timectrl2
-ibeis -e rank_cdf --db PZ_Master1 -a timectrl2 -t invarbest
+ibeis -e rank_cmc --db PZ_Master1 -a timectrl2 -t invarbest
 """
 ctrl2 = {
     'qcfg': ut.augdict(
@@ -813,7 +813,7 @@ ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,ex
 ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
 ('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),
 
-ibeis draw_rank_cdf --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
+ibeis draw_rank_cmc --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
 
 """
 oxford = {
