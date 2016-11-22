@@ -72,7 +72,7 @@ introduction = (ut.codeblock(
     run the results here.
     '''), None)
 
-initialize = ('# Initialization (Code)', ut.codeblock(
+nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
     r'''
     # STARTBLOCK
     {autogen_str}
@@ -81,54 +81,46 @@ initialize = ('# Initialization (Code)', ut.codeblock(
     %matplotlib inline
     %load_ext autoreload
     %autoreload
-
-    # Set global utool flags
-    import utool as ut
-    ut.util_io.__PRINT_WRITES__ = False
-    ut.util_io.__PRINT_READS__ = False
-    ut.util_parallel.__FORCE_SERIAL__ = True
-    ut.util_cache.VERBOSE_CACHE = False
-    ut.NOT_QUIET = False
-
     import plottool as pt
+    from ibeis.templates import notebook_helpers
+    notebook_helpers.custom_globals()
+
     fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)
-    pt.custom_figure.TITLE_SIZE = 20
-    pt.custom_figure.LABEL_SIZE = 20
-    pt.custom_figure.FIGTITLE_SIZE = 20
 
     draw_case_kw = dict(show_in_notebook=True, annot_modes=[1])
+    notebook_helpers.make_cells_wider()
+    # ENDBLOCK
+    '''))
 
+
+db_init = ('# Database Configuration (Code)', ut.codeblock(
+    r'''
+    # STARTBLOCK
     # Setup database specific parameter configurations
     db = '{dbname}'
 
-    # Pick one of the following annotation configurations
-    # to choose the query and database annotations
+    # Customize one or more of the following annotation configurations
+    # See ibeis/expt/annotation_configs.py for an enumeration of options
     a = [
         {annotconfig_list_body}
     ]
-    #'ctrl:pername=None,view=left,view_ext=1,exclude_reference=False'
 
-
-    # Set to override any special configs
+    # Specific query / database ids can override annotation configurations
     qaid_override = None
     daid_override = None
 
-    # Uncomment one or more of the following pipeline configurations to choose
-    # how the algorithm will run.  If multiple configurations are chosen, they
-    # will be compared in the histograms, but only the first configuration will
-    # be used for inspecting results.
+    # Customize one ore more of the following pipeline configurations.
+    # See ibeis/algo/Config.py and ibeis/core_annots.py for config options
     t = [
         {pipeline_list_body}
     ]
+
+    # TODO: programatic way of listing full set of configuration options
 
     # Load database for this test run
     import ibeis
     ibeis.expt.harness.USE_BIG_TEST_CACHE = True
     ibs = ibeis.opendb(db=db)
-
-    # Make notebook cells wider
-    from IPython.core.display import HTML
-    HTML("<style>body .container {{ width:99% !important; }}</style>")
     # ENDBLOCK
     '''))
 

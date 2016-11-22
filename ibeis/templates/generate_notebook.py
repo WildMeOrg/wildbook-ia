@@ -47,7 +47,8 @@ def autogen_ipynb(ibs, launch=None, run=None):
         >>> from ibeis.templates.generate_notebook import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> result = autogen_ipynb(ibs)
+        >>> launch = ut.get_argflag('--launch')
+        >>> result = autogen_ipynb(ibs, launch)
         >>> print(result)
     """
     dbname = ibs.get_dbname()
@@ -103,7 +104,8 @@ def get_default_cell_template_list(ibs):
 
     cell_template_list += [
         cells.introduction if asreport else None,
-        cells.initialize,
+        cells.nb_init,
+        cells.db_init,
         None if ibs.get_dbname() != 'humpbacks' else cells.fluke_select,
     ]
 
@@ -145,6 +147,15 @@ def get_default_cell_template_list(ibs):
 
     cell_template_list = ut.filter_Nones(cell_template_list)
 
+    cell_template_list = ut.lmap(ut.normalize_cells, cell_template_list)
+
+    if not asreport:
+        # Remove all of the extra fluff
+        cell_template_list = [
+            (header.split('\n')[0], code, None)
+            for (header, code, footer) in cell_template_list
+        ]
+
     return cell_template_list
 
 
@@ -178,7 +189,8 @@ def make_ibeis_notebook(ibs):
 
 def make_ibeis_cell_list(ibs):
     cell_template_list = get_default_cell_template_list(ibs)
-    autogen_str = ut.make_autogen_str()
+    autogen_str = '# python -m ibeis autogen_ipynb --launch --dbdir %r' % (ibs.get_dbdir())
+    # autogen_str = ut.make_autogen_str()
     dbname = ibs.get_dbname()
     default_acfgstr = ut.get_argval('-a', type_=str, default='default:is_known=True')
 
@@ -197,14 +209,14 @@ def make_ibeis_cell_list(ibs):
         annotconfig_list_body = ut.codeblock(
             ut.repr2(default_acfgstr) + '\n' +
             ut.codeblock('''
-            # See ibeis/expt/annotation_configs.py for names of annot configuration options
             #'default:has_any=(query,),dpername=1,exclude_reference=True',
             #'default:is_known=True',
             #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'default:require_timestamp=True,min_timedelta=3600',
             #'default:species=primary',
-            #'timectrl:',
+            #'default:view=primary,minqual=ok',
             #'unctrl:been_adjusted=True',
+            #'timectrl:',
             ''')
         )
         pipeline_list_body = ut.codeblock(

@@ -116,39 +116,39 @@ class DevGraphWidget(gt.GuitoolWidget):
         def refresh_via_cb(flag):
             graph_widget.on_state_update()
 
-        graph_widget.show_config_tree = gt.SimpleTree(bbar2)
-        tree = graph_widget.show_config_tree
+        # graph_widget.show_config_tree = gt.SimpleTree(bbar2)
+        # tree = graph_widget.show_config_tree
 
-        appearence = tree.add_parent(title='Appearence')
-        visibility = tree.add_parent(title='Visibility')
-        graph_widget.use_image_cb = tree.add_checkbox(
-            appearence, 'Show Img', checked=use_image, changed=refresh_via_cb)
-        graph_widget.in_image_cb = tree.add_checkbox(
-            appearence, 'In Image', checked=True, changed=refresh_via_cb)
-        graph_widget.toggle_pin_cb = tree.add_checkbox(
-            appearence, 'Pin Positions', checked=True, changed=graph_widget.set_pin_state)
+        # appearence = tree.add_parent(title='Appearence')
+        # visibility = tree.add_parent(title='Visibility')
+        # graph_widget.use_image_cb = tree.add_checkbox(
+            # appearence, 'Show Img', checked=use_image, changed=refresh_via_cb)
+        # graph_widget.in_image_cb = tree.add_checkbox(
+            # appearence, 'In Image', checked=True, changed=refresh_via_cb)
+        # graph_widget.toggle_pin_cb = tree.add_checkbox(
+            # appearence, 'Pin Positions', checked=True, changed=graph_widget.set_pin_state)
 
-        graph_widget.show_unreviewed_cuts_cb = tree.add_checkbox(
-            visibility, 'Show Unreviewed Cuts', checked=False, changed=refresh_via_cb)
-        graph_widget.show_review_cuts_cb = tree.add_checkbox(
-            visibility, 'Show Reviewed Cuts', checked=True, changed=refresh_via_cb)
-        graph_widget.show_unreviewed_cb = tree.add_checkbox(
-            visibility, 'Show Unreviewed', checked=False, changed=refresh_via_cb)
+        # graph_widget.show_unreviewed_cuts_cb = tree.add_checkbox(
+            # visibility, 'Show Unreviewed Cuts', checked=False, changed=refresh_via_cb)
+        # graph_widget.show_review_cuts_cb = tree.add_checkbox(
+            # visibility, 'Show Reviewed Cuts', checked=True, changed=refresh_via_cb)
+        # graph_widget.show_unreviewed_cb = tree.add_checkbox(
+            # visibility, 'Show Unreviewed', checked=False, changed=refresh_via_cb)
 
-        # graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
-        #     'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
-        # graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
-        #     'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
-        # graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
-        #     'Show Unreviewed', changed=refresh_via_cb, checked=False)
+        graph_widget.show_unreviewed_cuts_cb = bbar2.addNewCheckBox(
+            'Show Unreviewed Cuts', changed=refresh_via_cb, checked=False)
+        graph_widget.show_review_cuts_cb =  bbar2.addNewCheckBox(
+            'Show Reviewed Cuts', changed=refresh_via_cb, checked=True)
+        graph_widget.show_unreviewed_cb =  bbar2.addNewCheckBox(
+            'Show Unreviewed', changed=refresh_via_cb, checked=False)
 
-        # graph_widget.use_image_cb = bbar2.addNewCheckBox(
-        #     'Show Img', changed=refresh_via_cb, checked=use_image)
-        # graph_widget.in_image_cb = bbar2.addNewCheckBox(
-        #     'In Image', changed=refresh_via_cb, checked=True)
+        graph_widget.use_image_cb = bbar2.addNewCheckBox(
+            'Show Img', changed=refresh_via_cb, checked=use_image)
+        graph_widget.in_image_cb = bbar2.addNewCheckBox(
+            'In Image', changed=refresh_via_cb, checked=True)
 
-        # graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
-        #     'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
+        graph_widget.toggle_pin_cb = bbar2.addNewCheckBox(
+            'Pin Positions', changed=graph_widget.set_pin_state, checked=True)
 
         # Connect signals and slots
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
@@ -441,8 +441,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
         self.graph_tables_widget = graph_tables_widget
 
-        self.status_bar = self.addNewWidget(
+        self.statbar1 = self.addNewWidget(
             orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+        self.statbar2 = self.addNewWidget(
+            orientation=Qt.Horizontal, vertical_stretch=1, margin=1, spacing=1)
+
         self.prog_bar = self.addNewProgressBar(visible=False)
 
         self.edge_tab = graph_tables_widget.addNewTab('Edges')
@@ -456,18 +459,26 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
         self.edge_api_widget.view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
 
-        self.status_bar.addNewButton('Reset DBState', pressed=self.reset_review)
-        self.status_bar.addNewButton('Reset Rereview', pressed=self.reset_rereview)
-        self.status_bar.addNewButton('Reset Empty', pressed=self.reset_empty)
+        self.statbar1.addNewButton('Match and Score', min_width=1,
+                                   pressed=self.match_and_score_edges)
+        self.statbar1.addNewButton('ScoreVsOne', min_width=1,
+                                   pressed=self.score_edges_vsone)
+        self.statbar1.addNewButton('Edit Filters', min_width=1,
+                                   pressed=self.edit_filters)
+        self.statbar1.addNewButton('Repopulate', min_width=1,
+                                   pressed=self.repopulate)
 
-        self.num_names_lbl = self.status_bar.addNewLabel('NUM_NAMES_LBL')
-        self.state_lbl = self.status_bar.addNewLabel('STATE_LBL')
+        self.statbar2.addNewButton('Reset DBState', min_width=1,
+                                   pressed=self.reset_review)
+        self.statbar2.addNewButton('Reset Rereview', min_width=1,
+                                   pressed=self.reset_rereview)
+        self.statbar2.addNewButton('Reset Empty', min_width=1,
+                                   pressed=self.reset_empty)
 
-        self.status_bar.addNewButton('Match and Score', pressed=self.match_and_score_edges)
-        self.status_bar.addNewButton('ScoreVsOne', pressed=self.score_edges_vsone)
-        self.status_bar.addNewButton('Edit Filters', pressed=self.edit_filters)
-        self.status_bar.addNewButton('Repopulate', pressed=self.repopulate)
-        self.status_bar.addNewButton('Accept', pressed=self.accept)
+        self.num_names_lbl = self.statbar2.addNewLabel('NUM_NAMES_LBL')
+        self.state_lbl = self.statbar2.addNewLabel('STATE_LBL')
+
+        self.statbar2.addNewButton('Accept', pressed=self.accept)
 
         self.node_tab.addWidget(self.node_api_widget)
         self.edge_tab.addWidget(self.edge_api_widget)

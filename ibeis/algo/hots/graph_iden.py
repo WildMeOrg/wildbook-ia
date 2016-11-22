@@ -492,7 +492,9 @@ class _AnnotInfrMatching(object):
 
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
                                       custom_nid_lookup=custom_nid_lookup)
+
         cm_list = qreq_.execute(prog_hook=prog_hook)
+
         infr.vsmany_qreq_ = qreq_
         infr.vsmany_cm_list = cm_list
         infr.cm_list = cm_list
