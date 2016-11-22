@@ -74,7 +74,8 @@ def newSizePolicy(widget=None,
     return sizePolicy
 
 
-def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
+def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1,
+                horizontalStretch=None):
     """
     input: widget - the central widget
     """
@@ -82,7 +83,8 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1):
     splitter = QtWidgets.QSplitter(orientation, widget)
     _inject_new_widget_methods(splitter)
     # This line makes the splitter resize with the widget
-    sizePolicy = newSizePolicy(splitter, verticalStretch=verticalStretch)
+    sizePolicy = newSizePolicy(splitter, verticalStretch=verticalStretch,
+                               horizontalStretch=horizontalStretch)
     splitter.setSizePolicy(sizePolicy)
     setattr(splitter, '_guitool_sizepolicy', sizePolicy)
     return splitter
@@ -2134,9 +2136,9 @@ class SimpleTree(QtCore.QObject):
             parent.addWidget(self.tree)
         self.tree.setHeaderHidden(True)
         self.root = self.tree.invisibleRootItem()
-        x = self.tree.itemChanged.connect(self.handleChanged)
-        print('x = %r' % (x,))
-        self.tree.itemClicked.connect(self.handleClicked)
+        self.tree.itemChanged.connect(self.handleChanged)
+        # print('x = %r' % (x,))
+        # self.tree.itemClicked.connect(self.handleClicked)
         self.callbacks = {}
 
     def add_parent(self, parent=None, title='', data='ff'):
@@ -2166,9 +2168,10 @@ class SimpleTree(QtCore.QObject):
             item.setChecked = setChecked
         return item
 
-    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
-    def handleClicked(self, item, column):
-        print('item = %r' % (item,))
+    # @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
+    # def handleClicked(self, item, column):
+    #     pass
+    #     # print('item = %r' % (item,))
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, int)
     def handleChanged(self, item, column):
