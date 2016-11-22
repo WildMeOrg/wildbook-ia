@@ -238,7 +238,7 @@ def make_expanded_input_graph(graph, target):
     # Build expanded input graph
     # The inputs to this table can be derived from this graph.
     # The output is a new expanded input graph.
-    exi_graph = graph.__class__()
+    exi_graph = nx.DiGraph()
     for path in paths_to_source:
         # Accumlate unique identifiers along the reversed path
         edge_list = ut.reverse_path_edges(path)
@@ -261,8 +261,9 @@ def make_expanded_input_graph(graph, target):
             u2, v2 = new_edge[:2]
             d = old_edge[3]
             taillabel = d['taillabel']
+            parent_colx = d.get('parent_colx', -1)
             if not exi_graph.has_edge(u2, v2):
-                exi_graph.add_edge(u2, v2, taillabel=taillabel)
+                exi_graph.add_edge(u2, v2, taillabel=taillabel, parent_colx=parent_colx)
 
     sink_nodes = list(ut.nx_sink_nodes(exi_graph))
     source_nodes = list(ut.nx_source_nodes(exi_graph))
@@ -272,7 +273,10 @@ def make_expanded_input_graph(graph, target):
     # First identify if a node is root_specifiable
     for node in exi_graph.nodes():
         root_specifiable = False
-        for edge in exi_graph.in_edges(node, keys=True):
+        # for edge in exi_graph.in_edges(node, keys=True):
+        for edge in exi_graph.in_edges(node):
+            # key = edge[-1]
+            # assert key == 0, 'multi di graph is necessary'
             edata = exi_graph.get_edge_data(*edge)
             if edata.get('taillabel').startswith('*'):
                 if node != sink_node:
@@ -370,6 +374,41 @@ class RootMostInput(ut.HashComparable):
     __str__ = __repr__
 
 
+def sort_rmi_list(rmi_list):
+    """
+    CommandLine:
+        python -m dtool.input_helpers sort_rmi_list
+
+    Example:
+        >>> from dtool.input_helpers import *  # NOQA
+        >>> from dtool.example_depcache2 import *  # NOQA
+        >>> depc =testdata_custom_annot_depc([
+        ...    dict(tablename='Notch_Tips', parents=['annot']),
+        ...    dict(tablename='chips', parents=['annot']),
+        ...    dict(tablename='Cropped_Chips', parents=['chips', 'Notch_Tips']),
+        ... ])
+        >>> table = depc['Cropped_Chips']
+        >>> inputs = exi_inputs = table.rootmost_inputs
+        >>> compute_rmi_edges = exi_inputs.flat_compute_rmi_edges()
+        >>> input_rmis = compute_rmi_edges[-1][0]
+        >>> rmi_list = input_rmis[::-1]
+        >>> rmi_list = sort_rmi_list(rmi_list)
+        >>> assert rmi_list[0].node[0] == 'chips'
+    """
+    # Order the input rmis via declaration
+    reverse_compute_branches = [rmi.compute_order()[::-1] for rmi in rmi_list]
+    # print('rmi_list = %r' % (rmi_list,))
+    # rmi = rmi_list[0]  # hack
+    # reverse_compute_branches = [path[::-1] for path in nx.all_simple_paths(rmi.exi_graph, rmi.node, rmi.sink)]
+    sort_keys = [
+        tuple([r.branch_id.parent_colx for r in rs])
+        for rs in reverse_compute_branches
+    ]
+    sortx = ut.argsort(sort_keys)
+    rmi_list = ut.take(rmi_list, sortx)
+    return rmi_list
+
+
 @ut.reloadable_class
 class TableInput(ut.NiceRepr):
     """
@@ -462,14 +501,7 @@ class TableInput(ut.NiceRepr):
             # input defined by the user. This ordering is represented by the
             # parent_colx property from the table.parents()
             if len(inputs.rmi_list) > 1:
-                rmi_list = inputs.rmi_list
-                reverse_compute_branches = [rmi.compute_order()[::-1] for rmi in rmi_list]
-                sort_keys = [
-                    tuple([r.branch_id.parent_colx for r in rs])
-                    for rs in reverse_compute_branches
-                ]
-                sortx = ut.argsort(sort_keys)
-                inputs.rmi_list = ut.take(rmi_list, sortx)
+                inputs.rmi_list = sort_rmi_list(inputs.rmi_list)
         else:
             flags = [x in rootmost_nodes for x in inputs.rmi_list]
             inputs.rmi_list = ut.compress(inputs.rmi_list, flags)
@@ -562,10 +594,23 @@ class TableInput(ut.NiceRepr):
         return [rmi.node for rmi in inputs.rmi_list]
 
     def flat_compute_order(inputs):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.input_helpers import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc4()
+            >>> inputs = depc['feat'].rootmost_inputs.total_expand()
+            >>> flat_compute_order = inputs.flat_compute_order()
+            >>> result = ut.repr2(flat_compute_order)
+            >>> print(result)
+            [chip[t, t:1, 1:1], probchip[t, t:1, 1:1], feat[t, t:1]]
+        """
         # Compute the order in which all noes must be evaluated
         import networkx as nx  # NOQA
         ordered_compute_nodes =  [rmi.compute_order() for rmi in inputs.rmi_list]
         flat_node_order_ = ut.unique(ut.flatten(ordered_compute_nodes))
+
         rgraph = inputs.exi_graph.reverse()
         toprank = ut.nx_topsort_rank(rgraph, flat_node_order_)
         sortx = ut.argsort(toprank)[::-1]
@@ -583,6 +628,9 @@ class TableInput(ut.NiceRepr):
         """
         Defines order of computation that maps input_ids to target_ids.
 
+        CommandLine:
+            python -m dtool.input_helpers flat_compute_rmi_edges
+
         Returns:
             list: compute_edges
                 Each item is a tuple of input/output RootMostInputs
@@ -591,6 +639,22 @@ class TableInput(ut.NiceRepr):
                 the list.
                 Results of the the i-th item may be used in subsequent item
                 computations.
+
+        Example:
+            >>> from dtool.input_helpers import *  # NOQA
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc =testdata_custom_annot_depc([
+            ...    dict(tablename='chips', parents=['annot']),
+            ...    dict(tablename='Notch_Tips', parents=['annot']),
+            ...    dict(tablename='Cropped_Chips', parents=['chips', 'Notch_Tips']),
+            ... ])
+            >>> table = depc['Cropped_Chips']
+            >>> inputs = exi_inputs = table.rootmost_inputs.total_expand()
+            >>> compute_rmi_edges = exi_inputs.flat_compute_rmi_edges()
+            >>> input_rmis = compute_rmi_edges[-1][0]
+            >>> result = ut.repr2(input_rmis)
+            >>> print(result)
+            [chips[t, t:1, 1:1], Notch_Tips[t, t:1, 1:1]]
         """
         sink = list(ut.nx_sink_nodes(inputs.exi_graph))[0]
         exi_graph = inputs.exi_graph
@@ -600,56 +664,51 @@ class TableInput(ut.NiceRepr):
         exi_graph = inputs.exi_graph
         for output_node in flat_compute_order:
             input_nodes = list(exi_graph.predecessors(output_node))
+            # input_edges = [(node, output_node, node.branch_id.k) for node in input_nodes]
+            input_edges = [(node, output_node) for node in input_nodes]
+
+            # another sorting strategy. maybe this is correct.
+            sortx = [exi_graph.get_edge_data(*e).get('parent_colx') for e in input_edges]
+            input_nodes = ut.take(input_nodes, sortx)
 
             input_rmis = [RootMostInput(node, sink, exi_graph)
                           for node in input_nodes]
 
-            # Order the input rmis via declaration
-            reverse_compute_branches = [rmi.compute_order()[::-1] for rmi in input_rmis]
-            sort_keys = [
-                tuple([r.branch_id.parent_colx for r in rs])
-                for rs in reverse_compute_branches
-            ]
-            sortx = ut.argsort(sort_keys)
-            input_rmis = ut.take(input_rmis, sortx)
+            # input_rmis = sort_rmi_list(input_rmis)
 
             output_rmis = RootMostInput(output_node, sink, exi_graph)
             edge = (input_rmis, output_rmis)
             compute_rmi_edges.append(edge)
         return compute_rmi_edges
 
-    def flat_input_order(inputs):
-        flat_input_order = [rmi.node for rmi in inputs.rmi_list]
-        return flat_input_order
+    # def get_node_to_branch_ids(inputs):
+    #     """
+    #     Nodes may belong to several computation branches (paths)
+    #     This returns a mapping from a node to each branch it belongs to
+    #     """
+    #     sources = ut.nx_source_nodes(inputs.exi_graph)
+    #     sinks = ut.nx_sink_nodes(inputs.exi_graph)
+    #     _node_branchid_pairs = [
+    #         (s[1], node)
+    #         for s, t in ut.product(sources, sinks)
+    #         for node in ut.nx_all_nodes_between(inputs.exi_graph, s, t)
+    #     ]
+    #     branch_ids = ut.take_column(_node_branchid_pairs, 0)
+    #     node_ids = ut.take_column(_node_branchid_pairs, 1)
+    #     node_to_branchids_ = ut.group_items(branch_ids, node_ids)
+    #     node_to_branchids = ut.map_dict_vals(tuple, node_to_branchids_)
+    #     return node_to_branchids
 
-    def get_node_to_branch_ids(inputs):
-        """
-        Nodes may belong to several computation branches (paths)
-        This returns a mapping from a node to each branch it belongs to
-        """
-        sources = ut.nx_source_nodes(inputs.exi_graph)
-        sinks = ut.nx_sink_nodes(inputs.exi_graph)
-        _node_branchid_pairs = [
-            (s[1], node)
-            for s, t in ut.product(sources, sinks)
-            for node in ut.nx_all_nodes_between(inputs.exi_graph, s, t)
-        ]
-        branch_ids = ut.take_column(_node_branchid_pairs, 0)
-        node_ids = ut.take_column(_node_branchid_pairs, 1)
-        node_to_branchids_ = ut.group_items(branch_ids, node_ids)
-        node_to_branchids = ut.map_dict_vals(tuple, node_to_branchids_)
-        return node_to_branchids
-
-    def get_input_branch_ids(inputs):
-        """ Return what branches the inputs are used in """
-        # Get node to branch-id mapping
-        node_to_branchids = inputs.get_node_to_branch_ids()
-        # Map input nodes to branch-ids
-        exi_nodes = inputs.exi_nodes()
-        rootmost_exi_branches = ut.dict_take(node_to_branchids, exi_nodes)
-        rootmost_tables = ut.take_column(exi_nodes, 0)
-        input_compute_ids = list(zip(rootmost_tables, rootmost_exi_branches))
-        return input_compute_ids
+    # def get_input_branch_ids(inputs):
+    #     """ Return what branches the inputs are used in """
+    #     # Get node to branch-id mapping
+    #     node_to_branchids = inputs.get_node_to_branch_ids()
+    #     # Map input nodes to branch-ids
+    #     exi_nodes = inputs.exi_nodes()
+    #     rootmost_exi_branches = ut.dict_take(node_to_branchids, exi_nodes)
+    #     rootmost_tables = ut.take_column(exi_nodes, 0)
+    #     input_compute_ids = list(zip(rootmost_tables, rootmost_exi_branches))
+    #     return input_compute_ids
 
     def show_exi_graph(inputs, inter=None):
         """
@@ -680,7 +739,6 @@ class TableInput(ut.NiceRepr):
             >>> #print('inputs = %r' % (inputs,))
             >>> #inputs.show_exi_graph(inter=inter)
             >>> inter.start()
-            >>> #print(depc['smk_match'].rootmost_inputs.compute_order)
             >>> ut.show_if_requested()
         """
         import plottool as pt
@@ -737,7 +795,7 @@ def get_rootmost_inputs(exi_graph, table):
         >>> inputs = inputs_.expand_input(1)
         >>> rmi = inputs.rmi_list[0]
         >>> result = ('inputs = %s' % (inputs,)) + '\n'
-        >>> result += ('compute_order = %s' % (ut.repr2(inputs.flat_compute_rmi_edges(), nl=1)))
+        >>> result += ('compute_edges = %s' % (ut.repr2(inputs.flat_compute_rmi_edges(), nl=1)))
         >>> print(result)
     """
     # Take out the shallowest (wrt target) rootmost nodes

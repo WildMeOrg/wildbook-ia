@@ -1035,18 +1035,17 @@ class _TableGeneralHelper(ut.NiceRepr):
     @property
     def children(table):
         graph = table.depc.explicit_graph
-        children_tablenames = nx.neighbors(graph, table.tablename)
+        children_tablenames = list(nx.neighbors(graph, table.tablename))
         return children_tablenames
 
     @property
     def ancestors(table):
         graph = table.depc.explicit_graph
-        children_tablenames = nx.ancestors(graph, table.tablename)
+        children_tablenames = list(nx.ancestors(graph, table.tablename))
         return children_tablenames
 
     def show_dep_subgraph(table, inter=None):
         from plottool.interactions import ExpandableInteraction
-        #exi_graph = table.expanded_input_graph
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
@@ -1054,12 +1053,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         graph = table.depc.explicit_graph
         nodes = ut.nx_all_nodes_between(graph, None, table.tablename)
         G = graph.subgraph(nodes)
-
-        #for node in exi_graph.node:
-        #    if isinstance(node, tuple):
-        #        if exi_graph.node.get('label') is None:
-        #            label = node[0] + '[' + ','.join(map(str, node[1])) + ']'
-        #            exi_graph.node[node]['label'] = label
 
         plot_kw = {'fontname': 'Ubuntu'}
         inter.append_plot(
@@ -1077,7 +1070,7 @@ class _TableGeneralHelper(ut.NiceRepr):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from dtool.example_depcache2 import *  # NOQA
-            >>> depc = testdata_depc_annot()
+            >>> depc = testdata_depc3()
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> table = depc['smk_match']
@@ -1086,15 +1079,12 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> ut.show_if_requested()
         """
         from plottool.interactions import ExpandableInteraction
-        #exi_graph = table.expanded_input_graph
         autostart = inter is None
         if inter is None:
             inter = ExpandableInteraction(nCols=2)
         table.show_dep_subgraph(inter)
         inputs = table.rootmost_inputs
         inter = inputs.show_exi_graph(inter)
-        #inter.append_plot(
-        #    ut.partial(pt.show_nx, exi_graph, title='Expanded Input (%s)' % (table.tablename,), **plot_kw))
         if autostart:
             inter.start()
         return inter
@@ -1155,7 +1145,6 @@ class _TableGeneralHelper(ut.NiceRepr):
         """
         from dtool import input_helpers
         exi_graph = table.expanded_input_graph
-        #depc_graph = table.depc.graph
         rootmost_inputs = input_helpers.get_rootmost_inputs(exi_graph, table)
         return rootmost_inputs
 
@@ -2381,6 +2370,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 def _generator_resolve_all():
                     extern_dpath = table.extern_dpath
                     for rawprop in raw_prop_list:
+                        if rawprop is None:
+                            raise Exception(
+                                'raw prop was None, but it should always be a tuple. '
+                                'This may indicate that the cache needs to be cleared')
+
                         exprop = list(rawprop)
                         # Modify prop with external data
                         for extern_colx, read_func in extern_resolve_tups:

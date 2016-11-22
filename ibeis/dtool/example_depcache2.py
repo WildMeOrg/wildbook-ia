@@ -179,6 +179,28 @@ def testdata_depc4(in_memory=True):
     return depc
 
 
+def testdata_custom_annot_depc(dummy_dependencies, in_memory=True):
+    import dtool
+    # put the test cache in the dtool repo
+    dtool_repo = dirname(ut.get_module_dir(dtool))
+    cache_dpath = join(dtool_repo, 'DEPCACHE5')
+    # FIXME: this only puts the sql files in memory
+    default_fname = ':memory:' if in_memory else None
+    root = 'annot'
+    depc = dtool.DependencyCache(
+        root_tablename=root, get_root_uuid=ut.identity,
+        default_fname=default_fname,
+        cache_dpath=cache_dpath, use_globals=False)
+    # ----------
+    register_dummy_config = depc_34_helper(depc)
+
+    for dummy in dummy_dependencies:
+        register_dummy_config(**dummy)
+
+    depc.initialize()
+    return depc
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

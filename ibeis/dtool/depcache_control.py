@@ -498,18 +498,22 @@ class _CoreDependencyCache(object):
                 # that must be broadcast.
                 rowlens = list(map(len, parent_rowids_))
                 maxlen = max(rowlens)
-                if _debug:
-                    print('parent_rowids_ = %r' % (parent_rowids_,))
                 parent_rowids2_ = [r * maxlen if len(r) == 1 else r
                                    for r in parent_rowids_]
-                if _debug:
-                    print('parent_rowids2_ = %r' % (parent_rowids2_,))
                 _parent_rowids = list(zip(*parent_rowids2_))
                 #_parent_rowids = list(ut.product(*parent_rowids_))
 
                 if _debug:
-                    print(' * _parent_rowids=%s' % (
-                        ut.trunc_repr(_parent_rowids),))
+                    print('parent_rowids_ = %s' % (
+                        ut.repr4([ut.trunc_repr(ids_)
+                                  for ids_ in parent_rowids_], strvals=True)))
+                    print('parent_rowids2_ = %s' % (
+                        ut.repr4([ut.trunc_repr(ids_)
+                                  for ids_ in parent_rowids2_], strvals=True)))
+                    print('_parent_rowids = %s' % (
+                        ut.truncate_str(ut.repr4(
+                            [ut.trunc_repr(ids_)
+                             for ids_ in _parent_rowids], strvals=True))))
 
                 if _debug:
                     ut.cprint('-------------', 'blue')
