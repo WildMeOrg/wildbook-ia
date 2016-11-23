@@ -399,8 +399,28 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
                 --verbtd --nofilter-dups
         ibeis --tf get_annotcfg_list -a timectrl --db GZ_Master1 --verbtd \
                 --nofilter-dups
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from ibeis.expt import annotation_configs
+        >>> from ibeis.expt.experiment_helpers import parse_acfg_combo_list
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> #acfg_name_list = ['timectrl:dpername=[1,2]']
+        >>> acfg_name_list = ['default:crossval_enc=True,require_timestamp=True']
+        >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
+        >>> acfg_combo = acfg_combo_list[0]
+        >>> initial_aids = None
+        >>> use_cache = False
+        >>> verbose = False
+        >>> expanded_aids_combo_list = expand_acfgs_consistently(
+        >>>     ibs, acfg_combo, initial_aids=initial_aids, use_cache=use_cache,
+        >>>     verbose=verbose)
+        >>> assert len(expanded_aids_combo_list) == 3
     """
     from ibeis.expt import annotation_configs
+    import copy
 
     if verbose is None:
         verbose = VERB_TESTDATA
@@ -427,9 +447,10 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
          for acfg in varied_acfg_list])))
 
     # HACK: determine unconstrained min / max nannots
+    acfg_combo_in = copy.deepcopy(acfg_combo)
+
     if False:
-        import copy
-        acfg_combo2 = copy.deepcopy(acfg_combo)
+        acfg_combo2 = copy.deepcopy(acfg_combo_in)
 
         unconstrained_expansions = []
         for combox, acfg in enumerate(acfg_combo2):
@@ -442,12 +463,12 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
                                              verbose=verbose)
                 unconstrained_expansions.append(expanded_aids)
 
-        if any(ut.take_column(ut.take_column(acfg_combo, 'dcfg'), 'force_const_size')):
+        if any(ut.take_column(ut.take_column(acfg_combo_in, 'dcfg'), 'force_const_size')):
             unconstrained_lens = np.array([(len(q), len(d)) for q, d in unconstrained_expansions])
             #max_dlen = unconstrained_lens.T[1].max()
             min_dlen = unconstrained_lens.T[1].min()
 
-            for acfg in acfg_combo:
+            for acfg in acfg_combo_in:
                 dcfg = acfg['dcfg']
                 # TODO: make sample size annot_sample_size
                 # sample size is #annots
@@ -455,7 +476,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
                     dcfg['_orig_sample_size'] = dcfg['sample_size']
                     dcfg['sample_size'] = min_dlen
 
-    for combox, acfg in enumerate(acfg_combo):
+    acfg_combo_out = []
+
+    for combox, acfg in enumerate(acfg_combo_in):
         qcfg = acfg['qcfg']
         dcfg = acfg['dcfg']
 
@@ -514,11 +537,104 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
             if remove_label_errors:
                 expanded_aids = hack_remove_label_errors(ibs, expanded_aids, verbose)
 
-        #ibs.print_annotconfig_stats(*expanded_aids)
-        expanded_aids_list.append(expanded_aids)
+        if qcfg['crossval_enc'] or dcfg['crossval_enc']:
+            # Hack, just use qaids for cross validated sampleing
+            aids = expanded_aids[0]
+            crossval_expansion = encounter_crossval(ibs, aids)
+
+            for count, _ in enumerate(crossval_expansion):
+                acfg_out = copy.deepcopy(acfg)
+                acfg_out['qcfg']['_crossval_idx'] = count
+                acfg_out['dcfg']['_crossval_idx'] = count
+                # FIMXE: needs to be different for all acfgs
+                # out of this sample.
+                if 'joinme' not in acfg_out['qcfg']:
+                    acfg_out['qcfg']['joinme'] = combox
+                    acfg_out['dcfg']['joinme'] = combox
+                acfg_combo_out.append(acfg_out)
+            expanded_aids_list.extend(crossval_expansion)
+
+        else:
+            acfg_combo_out.append(acfg)
+            #ibs.print_annotconfig_stats(*expanded_aids)
+            expanded_aids_list.append(expanded_aids)
 
     # Sample afterwords
-    return list(zip(acfg_combo, expanded_aids_list))
+    return list(zip(acfg_combo_out, expanded_aids_list))
+
+
+def encounter_crossval(ibs, aids):
+    annots = ibs.annots(aids)
+    unique_encounters, groupxs = annots.group_indicies(annots.encounter_text)
+    encounter_nids = annots.take(ut.take_column(groupxs, 0)).nid
+    encounter_aids = ut.apply_grouping(annots.aids, groupxs)
+
+    nid_to_encounters = ut.group_items(encounter_aids, encounter_nids)
+    nid_to_single_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
+                                if len(enc) == 1}
+    nid_to_multi_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
+                                if len(enc) > 1}
+    rng = np.random.RandomState(0)
+    multi_enc_rand_idxs = [(nid, ut.random_indexes(len(enc), rng=rng))
+                           for nid, enc in nid_to_multi_encounters.items()]
+
+    crossval_samples = []
+    max_ = max(map(len, (t[1] for t in multi_enc_rand_idxs)))
+    for i in range(max_):
+        encx_split = {}
+        for nid, idxs in multi_enc_rand_idxs:
+            if i < len(idxs):
+                # For now only allow one encounter
+                d_choices = ut.where(ut.not_list(ut.index_to_boolmask([i], len(idxs))))
+                j = rng.choice(d_choices, 1)[0]
+                encx_split[nid] = (idxs[i], idxs[j])
+        crossval_samples.append(encx_split)
+
+    crossval_samples2 = []
+    for encx_split in crossval_samples:
+        aid_split = {}
+        for nid, (qx, dx) in encx_split.items():
+            qaids = nid_to_multi_encounters[nid][qx]
+            daids = nid_to_multi_encounters[nid][dx]
+            aid_split[nid] = (qaids, daids)
+        crossval_samples2.append(aid_split)
+
+    tups = [(nid, aids_) for aid_split_ in crossval_samples2
+            for nid, aids_ in aid_split_.items()]
+    groups = ut.take_column(tups, 0)
+    aidpairs = ut.take_column(tups, 1)
+    # crossval_samples[0]
+
+    # rebalance the queries
+    # Very inefficient but does what I want
+    group_to_idxs = ut.dzip(*ut.group_indices(groups))
+    freq = ut.dict_hist(groups)
+    g = list(freq.keys())[ut.argmax(freq.values())]
+    size = freq[g]
+    new_splits = [[] for _ in range(size)]
+    while True:
+        try:
+            g = list(freq.keys())[ut.argmax(freq.values())]
+            if freq[g] == 0:
+                raise StopIteration()
+            group_idxs = group_to_idxs[g]
+            group_to_idxs[g] = []
+            freq[g] = 0
+            priorityx = ut.argsort(list(map(len, new_splits)))
+            for nextidx, splitx in zip(group_idxs, priorityx):
+                new_splits[splitx].append(nextidx)
+        except StopIteration:
+            break
+    # name_splits = ut.unflat_take(groups, new_splits)
+    aid_splits = ut.unflat_take(aidpairs, new_splits)
+    confusors = ut.flatten(ut.flatten(list(nid_to_single_encounters.values())))
+
+    expanded_aids_list = []
+    for aidsplit in aid_splits:
+        qaids = sorted(ut.flatten(ut.take_column(aidsplit, 0)))
+        daids = sorted(ut.flatten(ut.take_column(aidsplit, 1)) + confusors)
+        expanded_aids_list.append((qaids, daids))
+    return expanded_aids_list
 
 
 @profile

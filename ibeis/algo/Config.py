@@ -959,7 +959,7 @@ class OccurrenceConfig(ConfigBase):
             #ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative', 'meanshift']),
             ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative']),
             #ut.ParamInfo('quantile', .01, 'quant', hideif=lambda cfg: cfg['cluster_algo'] != 'meanshift'),
-            ut.ParamInfo('seconds_thresh', 600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
+            ut.ParamInfo('seconds_thresh', 1600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
             ut.ParamInfo('use_gps', True, hideif=False),
             ut.ParamInfo('km_per_sec', .002)
         ]

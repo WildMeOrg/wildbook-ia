@@ -535,7 +535,6 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     from ibeis.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
-    #rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
     #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
     percent_le1_list = cfgx2_cumhist_percent.T[0]
@@ -937,7 +936,6 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> print(result)
     """
     import plottool as pt
-    #cdf_list, edges = testres.get_rank_cumhist(bins='dense')
     if do_per_annot:
         key = 'qx2_bestranks'
         target_label = 'accuracy (% per annotation)'

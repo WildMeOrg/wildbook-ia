@@ -68,6 +68,7 @@ SUBINDEX_DEFAULTS_PARAM_INFO = [
 OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size'    : None,
+    'crossval_enc'    : False,
     #'hack_extra' : None,  # hack param to make bigger db sizes
     #'hack_imageset': None,
     # Hack out errors in test data

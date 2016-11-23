@@ -272,7 +272,8 @@ def parse_acfg_combo_list(acfg_name_list):
         is_nestedcfgtype=True)
 
     acfg_combo_list = []
-    for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list, nested_dcfg_combo_list):
+    for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list,
+                                                    nested_dcfg_combo_list):
         acfg_combo = []
         # Only the inner nested combos are combinatorial
         for qcfg_combo, dcfg_combo in zip(nested_qcfg_combo, nested_dcfg_combo):
@@ -379,7 +380,8 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
-        >>> acfg_name_list = testdata_acfg_names(['timectrl'])
+        >>> a = ['default:crossval_enc=True,require_timestamp=True']
+        >>> acfg_name_list = testdata_acfg_names(a)
         >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
         >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list)
     """

@@ -361,6 +361,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         # Force full loading
         ibswgt.models[IMAGE_TABLE].batch_size = 1000
+        ibswgt.models[IMAGESET_TABLE].batch_size = 1000
         ibswgt.models[ANNOTATION_TABLE].batch_size = 1000
         ibswgt.models[NAMES_TREE].batch_size = 2
         ibswgt.models[NAMES_TREE].batch_size = 100
@@ -1276,10 +1277,36 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             current_imagesettext = ibswgt.back.ibs.get_imageset_text(imgsetid)
             context_options = []
             # Conditional context menu
+
+            def view_images_in_directory(gid_list):
+                images = ibs.images(gid_list)
+                fpaths = images.paths
+                ut.view_file_in_directory(fpaths)
+
+            def view_images_in_web(gid_list):
+                ibswgt.back.show_images_in_web(gid_list)
+
+            fmt = {
+                'images': ut.pluralize('image', len(gid_list)),
+                'images\'s': ut.pluralize('image\'s', len(gid_list)),
+                'annotations': ut.pluralize('annotation', len(gid_list)),
+                'times': ut.pluralize('time', len(gid_list)),
+            }
+
             context_options = [
-                ('Edit image ' + ut.pluralize('time', len(gid_list)),
-                 lambda: ibswgt.edit_image_time([gid]))
+                ('Edit {images\'s} {times}'.format(**fmt),
+                 lambda: ibswgt.edit_image_time(gid_list)),
+                ('View {images} in Web'.format(**fmt),
+                 lambda: view_images_in_web(gid_list)),
+                ('View {images} in Directory'.format(**fmt),
+                 lambda: view_images_in_directory(gid_list)),
+                ('---', lambda: None),
+                ('Add annotation from entire {images}'.format(**fmt),
+                 lambda: ibswgt.back.add_annotation_from_image(gid_list)),
+                ('Run detection on {images} (can cause duplicates)'.format(**fmt),
+                 lambda: ibswgt.back.run_detection_on_images(gid_list)),
             ]
+
             if len(gid_list) == 1:
                 gid = gid_list[0]
                 imgsetid = model.imgsetid
@@ -1306,29 +1333,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View image in Matplotlib',
                         lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=False)),
-                    ('View image in Web',
-                        lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image_(gid)),
                     annot_option_item,
-                    #('View annotation in Matplotlib:',
-                    #   view_aid_options1),
-                    #('View annotation in Web:',
-                    #   view_aid_options2),
-                    ('Add annotation from entire image',
-                        lambda: ibswgt.back.add_annotation_from_image([gid])),
-                    ('Run detection on image (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images([gid])),
-                ]
-            else:
-                context_options += [
-                    ('View images in Web',
-                        lambda: ibswgt.back.show_gid_list_in_web(gid_list)),
-                    ('----', lambda: None),
-                    ('Add annotation from entire images',
-                        lambda: ibswgt.back.add_annotation_from_image(gid_list)),
-                    ('Run detection on images (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images(gid_list)),
                 ]
             # Special condition for imagesets
             if current_imagesettext != const.NEW_IMAGESET_IMAGESETTEXT:

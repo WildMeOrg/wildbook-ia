@@ -885,53 +885,30 @@ class MainWindowBackend(GUIBACK_BASE):
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(imgsetid_list, (tuple, list)):
-            imgsetid_list = [imgsetid_list]
-        if len(imgsetid_list) > 0:
-            imgsetid_str = ','.join( map(str, imgsetid_list) )
-        else:
-            imgsetid_str = ''
-
+        imgsetid_list = ut.ensure_iterable(imgsetid_list)
+        imgsetid_str = ','.join( map(str, imgsetid_list) )
         url = 'http://%s/view/images/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_imgsetid_detection_turk_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(imgsetid_list, (tuple, list)):
-            imgsetid_list = [imgsetid_list]
-        if len(imgsetid_list) > 0:
-            imgsetid_str = ','.join( map(str, imgsetid_list) )
-        else:
-            imgsetid_str = ''
-
+        imgsetid_list = ut.ensure_iterable(imgsetid_list)
+        imgsetid_str = ','.join( map(str, imgsetid_list) )
         url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(imgsetid_list, (tuple, list)):
-            imgsetid_list = [imgsetid_list]
-        if len(imgsetid_list) > 0:
-            imgsetid_str = ','.join( map(str, imgsetid_list) )
-        else:
-            imgsetid_str = ''
-
+        imgsetid_list = ut.ensure_iterable(imgsetid_list)
+        imgsetid_str = ','.join( map(str, imgsetid_list) )
         url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
         if web:
-            import webbrowser
-            back.start_web_server_parallel(browser=False)
-            # url = 'http://%s/turk/detection/?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
-            url = 'http://%s/turk/detection/?gid=%s' % (WEB_DOMAIN, gid, )
-            # url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
-            webbrowser.open(url)
+            back.show_images_in_web(gid)
         else:
             kwargs.update({
                 'sel_aids': sel_aids,
@@ -939,18 +916,15 @@ class MainWindowBackend(GUIBACK_BASE):
             })
             interact.ishow_image(back.ibs, gid, **kwargs)
 
-    def show_gid_list_in_web(back, gid_list, **kwargs):
+    def show_images_in_web(back, gid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(gid_list, (tuple, list)):
-            gid_list = [gid_list]
-        if len(gid_list) > 0:
-            gid_list = ','.join( map(str, gid_list) )
+        gid_list = ut.ensure_iterable(gid_list)
+        gid_text = ','.join(map(str, gid_list))
+        if len(gid_list) == 1:
+            url = 'http://%s/view/detection?gid=%s' % (WEB_DOMAIN, gid_text, )
         else:
-            gid_list = ''
-
-        url = 'http://%s/view/images?gid=%s' % (WEB_DOMAIN, gid_list, )
+            url = 'http://%s/view/images?gid=%s' % (WEB_DOMAIN, gid_text, )
         webbrowser.open(url)
 
     def show_annotation(back, aid, show_image=False, web=False, **kwargs):
@@ -1285,7 +1259,8 @@ class MainWindowBackend(GUIBACK_BASE):
         print(prefix + '[back] select imageset imgsetid=%r' % (imgsetid))
         back._set_selection(sel_imgsetids=imgsetid, **kwargs)
 
-    def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
+    def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None,
+                   fnum=None, web=False, **kwargs):
         r"""
         Table Click -> Image Table
 
@@ -1318,8 +1293,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 sel_aids = sel_aids[0:1]
             else:
                 sel_aids = []
-        print('[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)' % (gid, imgsetid, sel_aids))
-        back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_imgsetids=imgsetid, **kwargs)
+        print('[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)' % (
+            gid, imgsetid, sel_aids))
+        back._set_selection(sel_gids=gid, sel_aids=sel_aids,
+                            sel_imgsetids=imgsetid, **kwargs)
         if show:
             back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
@@ -1716,7 +1693,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         class TmpConfig(dtool.Config):
             _param_info_list = [
-                ut.ParamInfo('seconds_thresh', 600, 'sec'),
+                ut.ParamInfo('seconds_thresh', 1600, 'sec'),
                 ut.ParamInfo('use_gps', True, ''),
             ]
         config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
@@ -1724,7 +1701,7 @@ class MainWindowBackend(GUIBACK_BASE):
         options = [
             'Create new occurrences',
             'Add to existing',
-            #'Regroup everything',
+            'Regroup all',
         ]
         reply, new_config = back.user_option(
             title='Occurrence Grouping',
@@ -1732,8 +1709,9 @@ class MainWindowBackend(GUIBACK_BASE):
                 '''
                 Choose how we should group the %d ungrouped images into occurrences.
                 We can either:
-                    (1) create new occurrences or
-                    (2) add to the %d existing occurrences.
+                    (1) append new occurrences
+                    (2) add to the %d existing occurrences
+                    (3) redo everything
                 ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
             config=config,
             options=options,
@@ -1744,24 +1722,11 @@ class MainWindowBackend(GUIBACK_BASE):
         if reply not in options:
             raise guiexcept.UserCancel
 
-        if len(ungrouped_gid_list) == 0:
+        if reply != options[2] and len(ungrouped_gid_list) == 0:
             back.user_warning(msg='There are no ungrouped images.')
             raise guiexcept.UserCancel
 
-        #seconds_thresh = new_config['seconds_thresh']
-        #use_gps = new_config['use_gps']
-
-        #from ibeis.algo.preproc import preproc_occurrence
-        #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-        #    ibs, gid_list, seconds_thresh=seconds_thresh)
-        #sortx = ut.argsort(flat_imgsetids)
-        #flat_imgsetids = ut.take(flat_imgsetids, sortx)
-        #flat_gids = ut.take(flat_gids, sortx)
-
         if reply == options[0]:
-            #back.ibs.delete_all_imagesets()
-            #config = new_config
-            #back.ibs.compute_occurrences(config=ibs.cfg.occur_cfg)
             back.ibs.compute_occurrences(config=new_config)
         elif reply == options[1]:
             # Add to existing imaesets
@@ -1784,9 +1749,13 @@ class MainWindowBackend(GUIBACK_BASE):
             # HACK TO UPDATE IMAGESET POSIX TIMES
             # CAREFUL THIS BLOWS AWAY SMART DATA
             ibs.update_imageset_info(ibs.get_valid_imgsetids())
-        else:
-            # Redo everything
-            pass
+        elif reply == options[2]:
+            if back.are_you_sure(use_msg='Regrouping will destroy all existing groups'):
+                back.ibs.delete_all_imagesets()
+                back.ibs.compute_occurrences(config=new_config)
+            else:
+                raise guiexcept.UserCancel
+
         back.update_special_imagesets_()
         print('[back] about to finish computing imagesets')
         back.front.imageset_tabwgt._close_all_tabs()
@@ -2865,6 +2834,7 @@ class MainWindowBackend(GUIBACK_BASE):
             back.web_ibs = ibeis.opendb_bg_web(dbdir=ibs.get_dbdir(), web=True,
                                                browser=browser,
                                                start_job_queue=False)
+            print('[guiback] Web service started')
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
 
