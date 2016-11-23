@@ -925,38 +925,34 @@ class EditConfigWidget(QtWidgets.QWidget):
 
     def init_layout(self):
         import guitool as gt
-        self.vbox = QtWidgets.QVBoxLayout(self)
+        # Create the tree view and buttons
         self.tree_view = QtWidgets.QTreeView(self)
         self.delegate = ConfigValueDelegate(self.tree_view)
         self.tree_view.setItemDelegateForColumn(1, self.delegate)
-        self.vbox.addWidget(self.tree_view)
 
-        self.hbox = QtWidgets.QHBoxLayout()
+        buttons = []
         self.default_but = gt.newButton(self, 'Defaults', pressed=self.reset_to_default)
-        self.default_but.setStyleSheet('QToolButton { border: none; }')
-        self.hbox.addWidget(self.default_but)
+        buttons.append(self.default_but)
 
         self.orig_but = gt.newButton(self, 'Original', pressed=self.reset_to_original)
-        self.orig_but.setStyleSheet('QToolButton { border: none; }')
-        self.hbox.addWidget(self.orig_but)
+        buttons.append(self.orig_but)
 
         if not self.user_mode:
             self.print_internals = gt.newButton(self, 'Print Internals',
                                                 pressed=self.print_internals)
-            self.hbox.addWidget(self.print_internals)
+            buttons.append(self.print_internals)
+
+        # Add compoments to the layout
+        self.hbox = QtWidgets.QHBoxLayout()
+        for button in buttons:
+            self.hbox.addWidget(button)
+            button.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                 QtWidgets.QSizePolicy.Maximum)
+
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.vbox.addWidget(self.tree_view)
         self.vbox.addLayout(self.hbox)
         self.setWindowTitle(_translate('self', 'Edit Config Widget', None))
-        #self.tree_view.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        #self.tree_view.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
-        #self.tree_view.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-        #                             QtWidgets.QSizePolicy.MinimumExpanding)
-        # FIXME: http://doc.qt.io/qt-5/qsizepolicy.html
-        #self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
-        #self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding,
-        #                   QtWidgets.QSizePolicy.MinimumExpanding)
-        if 0 or False:
-            # debug code
-            self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
 
     def init_mvc(self):
         import operator

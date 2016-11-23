@@ -33,6 +33,8 @@ def newSizePolicy(widget=None,
     """
     References:
         https://i.stack.imgur.com/Y8IDK.png
+        http://doc.qt.io/qt-4.8/qsizepolicy.html
+        http://doc.qt.io/qt-5/qsizepolicy.html
     """
     if hStretch is not None:
         horizontalStretch = hStretch
@@ -1533,19 +1535,18 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
     """ wrapper around QtWidgets.QPushButton
 
     Args:
-        parent (QWidget): parent widget
-        text (str):
-        clicked (func): callback function
-        qicon (None):
-        visible (bool):
-        enabled (bool):
-        bgcolor (None):
-        fgcolor (None):
+        parent (None): (default = None)
+        text (str):  (default = None)
+        clicked (None): (default = None)
+        pressed (None): (default = None)
+        qicon (None): (default = None)
+        visible (bool): (default = True)
+        enabled (bool): (default = True)
+        bgcolor (None): (default = None)
+        fgcolor (None): (default = None)
         fontkw (dict): (default = {})
-
-    Kwargs:
-        parent, text, clicked, qicon, visible, enabled, bgcolor, fgcolor,
-        fontkw
+        shrink_to_text (bool): (default = False)
+        min_width (None): (default = None)
 
     connectable signals:
         void clicked(bool checked=false)
@@ -1559,8 +1560,6 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
     CommandLine:
         python -m guitool.guitool_components --exec-newButton
         python -m guitool.guitool_components --test-newButton
-
-    CommandLine:
         python -m guitool.guitool_components newButton --show
 
     Example:
@@ -1568,11 +1567,12 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
         >>> from guitool.guitool_components import *  # NOQA
         >>> import guitool as gt
         >>> gt.ensure_qtapp()
-        >>> exec(ut.execstr_funckw(newComboBox), globals())
-        >>> button = newButton()
+        >>> exec(ut.execstr_funckw(newButton), globals())
+        >>> button = newButton(text='button')
         >>> result = ('button = %s' % (ut.repr2(button),))
         >>> print(result)
         >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=button, freq=10)
     """
     if text is None:
         if pressed is not None:
@@ -1607,7 +1607,7 @@ def newButton(parent=None, text=None, clicked=None, pressed=None, qicon=None,
     adjust_font(button, **fontkw)
     sizePolicy = newSizePolicy(
         button,
-        verticalSizePolicy=QtWidgets.QSizePolicy.Expanding,
+        verticalSizePolicy=QtWidgets.QSizePolicy.Maximum,
         horizontalSizePolicy=QtWidgets.QSizePolicy.Expanding,
         # verticalStretch=0
     )
@@ -1671,7 +1671,7 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> combo.show()
-        >>> guitool.qtapp_loop(qwin=combo, freq=10)
+        >>> gt.qtapp_loop(qwin=combo, freq=10)
     """
 
     # Check for tuple option formating
