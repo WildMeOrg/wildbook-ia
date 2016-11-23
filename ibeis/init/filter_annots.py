@@ -381,7 +381,7 @@ def hack_extra(ibs, expanded_aids):
 
 
 def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
-                              use_cache=None, verbose=None):
+                              use_cache=None, verbose=None, base=0):
     """
     Expands a set of configurations such that they are comparable
 
@@ -542,15 +542,18 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
             aids = expanded_aids[0]
             crossval_expansion = encounter_crossval(ibs, aids)
 
+            import uuid
+            unique_joinme = uuid.uuid4()
+
             for count, _ in enumerate(crossval_expansion):
                 acfg_out = copy.deepcopy(acfg)
-                acfg_out['qcfg']['_crossval_idx'] = count
-                acfg_out['dcfg']['_crossval_idx'] = count
+                acfg_out['qcfg']['crossval_idx'] = count
+                acfg_out['dcfg']['crossval_idx'] = count
                 # FIMXE: needs to be different for all acfgs
                 # out of this sample.
-                if 'joinme' not in acfg_out['qcfg']:
-                    acfg_out['qcfg']['joinme'] = combox
-                    acfg_out['dcfg']['joinme'] = combox
+                if acfg_out['qcfg'].get('joinme', None) is None:
+                    acfg_out['qcfg']['joinme'] = unique_joinme
+                    acfg_out['dcfg']['joinme'] = unique_joinme
                 acfg_combo_out.append(acfg_out)
             expanded_aids_list.extend(crossval_expansion)
 

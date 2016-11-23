@@ -354,6 +354,22 @@ class TestResult(ut.NiceRepr):
         """
         Groupxs configurations specified to be joined
 
+        Ignore:
+            >>> a = [
+            >>>     'default:minqual=good,require_timestamp=True,view=left,crossval_enc=True,joinme=1',
+            >>>     'default:minqual=good,require_timestamp=True,view=right,crossval_enc=True,joinme=1',
+            >>>     'default:minqual=ok,require_timestamp=True,view=left,crossval_enc=True,joinme=2',
+            >>>     'default:minqual=ok,require_timestamp=True,view=right,crossval_enc=True,joinme=2',
+            >>> ]
+            >>> from ibeis.init import main_helpers
+            >>> #a = 'default:minqual=good,require_timestamp=True,crossval_enc=True,view=[right,left]'
+            >>> t = 'default:K=[1]'
+            >>> ibs, testres = main_helpers.testdata_expts('WWF_Lynx_Copy', a=a, t=t)
+            >>> testres.get_cfgx_groupxs()
+
+            ut.lmap(sum, ut.apply_grouping([len(ut.unique(ibs.annots(aids).nids)) for aids in testres.cfgx2_qaids], testres.get_cfgx_groupxs()))
+            ut.lmap(sum, ut.apply_grouping([len(ut.unique(ibs.annots(aids))) for aids in testres.cfgx2_qaids], testres.get_cfgx_groupxs()))
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA

@@ -141,7 +141,8 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     def build_commandline(e=e, **kwargs):
         # Equivalent command line version of this func
         import ibeis.dev
-        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2] for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
+        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2]
+                                    for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
         if e in valid_e_flags:
             epref = '-e'
         else:

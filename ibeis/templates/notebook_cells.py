@@ -411,7 +411,7 @@ per_name_accuracy = (
         # STARTBLOCK
         testres = ibeis.run_experiment(
             e='rank_cmc',
-            db=db, a=a, t=t, do_per_annot=False, qaid_override=qaid_override, daid_override=daid_override)
+            db=db, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         _ = testres.draw_func()
         fix_figsize()

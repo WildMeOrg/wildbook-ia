@@ -171,8 +171,8 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
     if ut.VERYVERBOSE or verbose:
         print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
-        print('[nnindex] idx2_vecs.dtype = {}'.format(idx2_vec.dtype))
-        print('[nnindex] memory(idx2_vecs) = {}'.format(
+        print('[nnindex] idx2_vecs dtype={}, memory={}'.format(
+            idx2_vec.dtype,
             ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)))
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 

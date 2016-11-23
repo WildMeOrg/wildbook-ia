@@ -881,7 +881,7 @@ def temp_multidb_cmc():
 
 
 def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
-                  do_per_annot=True, draw_icon=True,
+                  group_queries=False, draw_icon=True,
                   numranks=5, kind='cmc', cdfzoom=False):
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
@@ -936,12 +936,12 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> print(result)
     """
     import plottool as pt
-    if do_per_annot:
-        key = 'qx2_bestranks'
-        target_label = 'accuracy (% per annotation)'
-    else:
+    if group_queries:
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
+    else:
+        key = 'qx2_bestranks'
+        target_label = 'accuracy (% per annotation)'
 
     join_acfgs = True
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
@@ -1052,7 +1052,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     pt.set_figtitle(figtitle)
 
     icon = ibs.get_database_icon()
-    print('draw_icon = %r' % (draw_icon,))
+    # print('draw_icon = %r' % (draw_icon,))
     if draw_icon and icon is not None:
         #ax = pt.gca()
         #ax.get_xlim()

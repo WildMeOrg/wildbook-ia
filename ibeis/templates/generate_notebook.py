@@ -211,6 +211,7 @@ def make_ibeis_cell_list(ibs):
             ut.codeblock('''
             #'default:has_any=(query,),dpername=1,exclude_reference=True',
             #'default:is_known=True',
+            #'default:is_known=True,minqual=good,require_timestamp=True,crossval_enc=True,view=left'
             #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'default:require_timestamp=True,min_timedelta=3600',
             #'default:species=primary',

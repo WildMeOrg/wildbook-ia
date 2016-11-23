@@ -405,8 +405,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         filter_annots.expand_acfgs_consistently(ibs, acfg_combo_,
                                                 initial_aids=initial_aids,
                                                 use_cache=use_cache,
-                                                verbose=verbose)
-        for acfg_combo_ in acfg_combo_list
+                                                verbose=verbose,
+                                                base=base)
+        for base, acfg_combo_ in enumerate(acfg_combo_list)
     ]
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)
     acfg_list = ut.get_list_column(expanded_aids_combo_flag_list, 0)
