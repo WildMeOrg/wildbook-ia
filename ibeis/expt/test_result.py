@@ -355,6 +355,12 @@ class TestResult(ut.NiceRepr):
         Groupxs configurations specified to be joined
 
         Ignore:
+            a = [
+            'default:minqual=good,require_timestamp=True,view=left,crossval_enc=True,joinme=1',
+            'default:minqual=good,require_timestamp=True,view=right,crossval_enc=True,joinme=1',
+            'default:minqual=ok,require_timestamp=True,view=left,crossval_enc=True,joinme=2',
+            'default:minqual=ok,require_timestamp=True,view=right,crossval_enc=True,joinme=2',
+            ]
             >>> a = [
             >>>     'default:minqual=good,require_timestamp=True,view=left,crossval_enc=True,joinme=1',
             >>>     'default:minqual=good,require_timestamp=True,view=right,crossval_enc=True,joinme=1',
