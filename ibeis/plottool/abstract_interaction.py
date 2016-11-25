@@ -310,11 +310,11 @@ class AbstractInteraction(object):
         """
         context menu
         """
-        import guitool
+        import guitool as gt
         height = self.fig.canvas.geometry().height()
-        qpoint = guitool.newQPoint(event.x, height - event.y)
+        qpoint = gt.newQPoint(event.x, height - event.y)
         qwin = self.fig.canvas
-        guitool.popup_menu(qwin, qpoint, options)
+        gt.popup_menu(qwin, qpoint, options)
 
     def clear_parent_axes(self, ax):
         """ for clearing axes that we appended anything to """
