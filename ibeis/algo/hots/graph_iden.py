@@ -749,8 +749,10 @@ class _AnnotInfrMatching(object):
         for cm in ut.ProgIter(cm_list, lbl='building pairs'):
             all_gt_aids = cm.get_top_gt_aids(ibs)
             all_gf_aids = cm.get_top_gf_aids(ibs)
-            gt_aids = ut.take_percentile_parts(all_gt_aids, top_gt, mid_gt, bot_gt)
-            gf_aids = ut.take_percentile_parts(all_gf_aids, top_gf, mid_gf, bot_gf)
+            gt_aids = ut.take_percentile_parts(all_gt_aids, top_gt, mid_gt,
+                                               bot_gt)
+            gf_aids = ut.take_percentile_parts(all_gf_aids, top_gf, mid_gf,
+                                               bot_gf)
             # get unscored examples
             unscored_gt_aids = [aid for aid in qreq_.daids[cm.qnid == dnids]
                                 if aid not in cm.daid2_idx]
@@ -760,7 +762,8 @@ class _AnnotInfrMatching(object):
             _gf_aids = qreq_.daids.compress(cm.qnid != dnids)
             # gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
             rand_gf_aids = ut.random_sample(_gf_aids, rand_gf, rng=rng).tolist()
-            chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids + rand_gt_aids)
+            chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids +
+                                     rand_gt_aids)
             aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids])
         return aid_pairs
 

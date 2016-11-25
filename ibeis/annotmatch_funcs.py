@@ -275,6 +275,17 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
+def get_annotmatch_aids(ibs, annotmatch_rowid_list):
+    ANNOT_ROWID1 = 'annot_rowid1'
+    ANNOT_ROWID2 = 'annot_rowid2'
+    id_iter = annotmatch_rowid_list
+    colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
+    aid_pairs = ibs.db.get(ibs.const.ANNOTMATCH_TABLE, colnames,
+                           id_iter, id_colname='rowid')
+    return aid_pairs
+
+
+@register_ibs_method
 def get_annot_pair_truth(ibs, aid1_list, aid2_list):
     """
     CAREFUL: uses annot match table for truth, so only works if reviews have happend

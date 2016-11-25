@@ -129,6 +129,8 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         def _rowid_getter(self, rowids):
             ibs_callable = getattr(self._ibs, ibs_funcname)
             data = ibs_callable(rowids)
+            if self._asarray:
+                data = np.array(data)
             return data
         ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
         _getter = _make_caching_getter(attrname, _rowid_getter)
@@ -139,6 +141,8 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         def _rowid_getter(self, rowids):
             ibs_callable = getattr(self._ibs, ibs_funcname)
             data = ibs_callable(rowids, config2_=self._config)
+            if self._asarray:
+                data = np.array(data)
             return data
         ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
         _getter = _make_caching_getter(attrname, _rowid_getter)
@@ -148,6 +152,8 @@ def _inject_getter_attrs(metaself, objname, attrs, configurable_attrs,
         def _rowid_getter(self, rowids):
             depc = getattr(self._ibs, depc_name)
             data = depc.get(tbl, rowids, col, config=self._config)
+            if self._asarray:
+                data = np.array(data)
             return data
         ut.set_funcname(_rowid_getter, '_rowid_get_' + attrname)
         _getter = _make_caching_getter(attrname, _rowid_getter)
@@ -316,7 +322,8 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
     An object that efficiently operates on a list of ibeis objects using
     vectorized code. Single instances can be returned as ObjectScalar0D's
     """
-    def __init__(self, rowids, ibs, config=None, caching=False):
+    def __init__(self, rowids, ibs, config=None, caching=False,
+                 asarray=False):
         self._rowids = rowids
         #self._islist = True
         # Internal cache
@@ -327,6 +334,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         self._caching = caching
         # Private attributes
         self.__rowid_to_idx = None
+        self._asarray = asarray
         #ut.make_index_lookup(self._rowids)
 
     def __vector_attributes__(self):

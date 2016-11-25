@@ -39,25 +39,6 @@ class VsOneAssignConfig(dtool.Config):
 @profile
 def train_pairwise_rf():
     """
-    Notes:
-        Measures are:
-
-          Local:
-            * LNBNN score
-            * Foregroundness score
-            * SIFT correspondence distance
-            * SIFT normalizer distance
-            * Correspondence neighbor rank
-            * Nearest unique name distances
-            * SVER Error
-
-          Global:
-            * Viewpoint labels
-            * Quality Labels
-            * Database Size
-            * Number of correspondences
-            % Total LNBNN Score
-
     CommandLine:
         python -m ibeis.algo.hots.script_vsone train_pairwise_rf
         python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST --show
@@ -82,7 +63,7 @@ def train_pairwise_rf():
     pd.options.display.max_columns = 40
     pd.options.display.width = 160
 
-    # ut.aug_sysargv('--db PZ_MTEST')
+    ut.aug_sysargv('--db PZ_Master1')
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST',
         a=':mingt=2,species=primary',
@@ -877,7 +858,17 @@ def bigcache_vsone(qreq_, hyper_params):
     aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
                                          **hyper_params.pair_sample)
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
-    # TODO: handle non-comparability
+    # TODO: handle non-comparability / photobombs
+
+    # all_annots = ibs.annots()
+    am_rowids = ibs._get_all_annotmatch_rowids()
+    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+    am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+    am_rowids_ = ut.compress(am_rowids, am_flags)
+    a1 = ibs.annots(ibs.get_annotmatch_aid1(am_rowids_))
+    a2 = ibs.annots(ibs.get_annotmatch_aid2(am_rowids_))
+    a1.nids == a2.nids
+    # []
 
     # ======================================
     # Compute one-vs-one scores and local_measures
@@ -893,12 +884,16 @@ def bigcache_vsone(qreq_, hyper_params):
 
     # Remove any pairs missing features
     if dannot_cfg == qannot_cfg:
-        unique_annots = ibs.annots(np.unique(np.array(aid_pairs_)), config=dannot_cfg)
-        bad_aids = unique_annots.compress(~np.array(unique_annots.num_feats) > 0).aids
+        unique_annots = ibs.annots(np.unique(np.array(aid_pairs_)),
+                                   config=dannot_cfg)
+        bad_aids = unique_annots.compress(~np.array(unique_annots.num_feats) >
+                                          0).aids
         bad_aids = set(bad_aids)
     else:
-        annots1_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 0)), config=qannot_cfg)
-        annots2_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 1)), config=dannot_cfg)
+        annots1_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 0)),
+                              config=qannot_cfg)
+        annots2_ = ibs.annots(ut.unique(ut.take_column(aid_pairs_, 1)),
+                              config=dannot_cfg)
         bad_aids1 = annots1_.compress(~np.array(annots1_.num_feats) > 0).aids
         bad_aids2 = annots2_.compress(~np.array(annots2_.num_feats) > 0).aids
         bad_aids = set(bad_aids1 + bad_aids2)
