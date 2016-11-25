@@ -843,6 +843,43 @@ def batch_apply_lnbnn(matches, qreq_, inplace=False):
     return matches_
 
 
+def photobomb_samples(ibs):
+    """
+    import ibeis
+    ibs = ibeis.opendb('PZ_Master1')
+    """
+    # all_annots = ibs.annots()
+    am_rowids = ibs._get_all_annotmatch_rowids()
+    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+    am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+    am_rowids_ = ut.compress(am_rowids, am_flags)
+    a1 = ibs.annots(ibs.get_annotmatch_aid1(am_rowids_), asarray=True)
+    a2 = ibs.annots(ibs.get_annotmatch_aid2(am_rowids_), asarray=True)
+    flags = ut.where(a1.nids == a2.nids)
+    a1_ = a1.compress(flags)
+    a2_ = a2.compress(flags)
+
+    if False:
+        import guitool as gt
+        ut.qt4ensure()
+        gt.ensure_qapp()
+        from vtool import inspect_matches
+        import vtool as vt
+        i = 0
+        annot1 = a1_[i]._make_lazy_dict()
+        annot2 = a2_[i]._make_lazy_dict()
+
+        def on_context():
+            from ibeis.gui import inspect_gui
+            return inspect_gui.make_annotpair_context_options(
+                ibs, annot1['aid'], annot1['aid'], None)
+
+        match = vt.PairwiseMatch(annot1, annot2)
+        self = inspect_matches.MatchInspector(match=match,
+                                              on_context=on_context)
+        self.show()
+
+
 def bigcache_vsone(qreq_, hyper_params):
     """
     Cached output of one-vs-one matches
@@ -860,14 +897,6 @@ def bigcache_vsone(qreq_, hyper_params):
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
     # TODO: handle non-comparability / photobombs
 
-    # all_annots = ibs.annots()
-    am_rowids = ibs._get_all_annotmatch_rowids()
-    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
-    am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
-    am_rowids_ = ut.compress(am_rowids, am_flags)
-    a1 = ibs.annots(ibs.get_annotmatch_aid1(am_rowids_))
-    a2 = ibs.annots(ibs.get_annotmatch_aid2(am_rowids_))
-    a1.nids == a2.nids
     # []
 
     # ======================================

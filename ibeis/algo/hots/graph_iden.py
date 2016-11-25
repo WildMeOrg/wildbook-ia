@@ -765,6 +765,7 @@ class _AnnotInfrMatching(object):
             chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids +
                                      rand_gt_aids)
             aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids])
+
         return aid_pairs
 
     def get_pairwise_features():
@@ -808,6 +809,7 @@ class _AnnotInfrMatching(object):
     @profile
     def apply_match_scores(infr):
         """
+
         Applies precomputed matching scores to edges that already exist in the
         graph. Typically you should run infr.apply_match_edges() before running
         this.
