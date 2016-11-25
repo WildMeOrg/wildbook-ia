@@ -494,9 +494,9 @@ def testdata_annot_metadata(rchip_fpath, cfgdict={}):
 def ensure_metadata_vsone(annot1, annot2, cfgdict={}):
     ensure_metadata_feats(annot1, cfgdict=cfgdict)
     ensure_metadata_feats(annot2, cfgdict=cfgdict)
-    ensure_metadata_dlen_sqrd(annot2)
     ensure_metadata_flann(annot1, cfgdict=cfgdict)
     ensure_metadata_flann(annot2, cfgdict=cfgdict)
+    ensure_metadata_dlen_sqrd(annot2)
     pass
 
 

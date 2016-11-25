@@ -130,16 +130,29 @@ class MatchInspector(INSPECT_BASE):
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
 
-    def set_match(self, match=None):
+    def set_match(self, match=None, on_context=None):
         self.match = match
+        self.on_context = on_context
         self.update()
 
-    def initialize(self, match):
+    def initialize(self, match, on_context=None):
         self.match = match
+        self.on_context = on_context
         self._setup_configs()
         self._setup_layout()
         from plottool import abstract_interaction
         abstract_interaction.register_interaction(self)
+
+        from guitool.__PYQT__ import QtCore
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.execContextMenu)
+
+    def execContextMenu(self, qpoint):
+        if self.on_context:
+            options = self.on_context()
+        else:
+            options = [('No context set', None)]
+        gt.popup_menu(self, qpoint, options)
 
     def embed(self):
         match = self.match  # NOQA
@@ -161,6 +174,19 @@ class MatchInspector(INSPECT_BASE):
     def _setup_configs(self):
         from vtool import matching
         import dtool
+
+        import vtool as vt
+
+        default_dict = vt.get_extract_features_default_params()
+        TmpFeatConfig = dtool.from_param_info_list([
+            ut.ParamInfo(key, val) for key, val in default_dict.items()
+            # ut.ParamInfo('affine_invariance', True),
+            # ut.ParamInfo('rotation_invariance', False),
+        ])
+
+        self.featconfig = TmpFeatConfig()
+        self.featconfig_widget = self._new_confg_widget(
+            self.featconfig, changed=self.on_feat_cfg_changed)
 
         TmpVsOneConfig = dtool.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
@@ -185,13 +211,15 @@ class MatchInspector(INSPECT_BASE):
             self.disp_config, changed=self.on_cfg_changed)
 
     def _setup_layout(self):
+        from guitool.__PYQT__ import QtWidgets
         self.menubar = gt.newMenubar(self)
         self.menuFile = self.menubar.newMenu('Dev')
         self.menuFile.newAction(triggered=self.embed)
-        from guitool.__PYQT__ import QtWidgets
         splitter1 = self.addNewSplitter(orientation='horiz')
         config_vframe = splitter1.newWidget()
         splitter2     = splitter1.addNewSplitter(orientation='vert')
+        config_vframe.addWidget(QtWidgets.QLabel('Feat Config'))
+        config_vframe.addWidget(self.featconfig_widget)
         config_vframe.addWidget(QtWidgets.QLabel('Query Config'))
         config_vframe.addWidget(self.config_widget)
         config_vframe.addWidget(QtWidgets.QLabel('Display Config'))
@@ -204,11 +232,17 @@ class MatchInspector(INSPECT_BASE):
         self.infobox = splitter2.addNewTextEdit()
 
     def execute_vsone(self):
+        from vtool import matching
         print('Execute vsone')
         cfgdict = self.config.asdict()
 
+        feat_cfgdict = self.featconfig.asdict()
+
         match = self.match
         match._inplace_default = True
+        matching.ensure_metadata_vsone(match.annot1, match.annot2,
+                                       cfgdict=feat_cfgdict)
+
         match.apply_all(cfgdict)
 
         summary = match._make_local_summary_feature_vector(
@@ -223,11 +257,22 @@ class MatchInspector(INSPECT_BASE):
 
     def update(self):
         print('update')
-        import vtool as vt
-        vt.rrrr()
+        # import vtool as vt
+        # vt.rrrr()
         self.execute_vsone()
 
     def on_cfg_changed(self):
+        self.update()
+        self.cfg_needs_update = True
+
+    def on_feat_cfg_changed(self):
+        print('Update feats')
+        feat_keys = ['vecs', 'kpts', '_feats', 'flann']
+        self.match.annot1._mutable = True
+        self.match.annot2._mutable = True
+        for key in feat_keys:
+            del self.match.annot1[key]
+            del self.match.annot2[key]
         self.update()
         self.cfg_needs_update = True
 
