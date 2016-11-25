@@ -456,7 +456,10 @@ def build_nested_qmenu(widget, context_options, name=None):
             opt, shortcut_str, func = option_tup
             shortcut = QtGui.QKeySequence(shortcut_str)
 
-        if isinstance(func, list):
+        if func is None:
+            action = menu.addAction(opt, lambda: None, shortcut)
+            action_list.append(action)
+        elif isinstance(func, list):
             # Recursive case
             sub_menu, sub_action_list = build_nested_qmenu(widget, func, opt)
             menu.addMenu(sub_menu)
