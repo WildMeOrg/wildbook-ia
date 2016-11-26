@@ -851,21 +851,25 @@ def photobomb_samples(ibs):
     # all_annots = ibs.annots()
     am_rowids = ibs._get_all_annotmatch_rowids()
     am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+
+    # ut.dict_hist(ut.flatten(am_tags))
     am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
     am_rowids_ = ut.compress(am_rowids, am_flags)
-    a1 = ibs.annots(ibs.get_annotmatch_aid1(am_rowids_), asarray=True)
-    a2 = ibs.annots(ibs.get_annotmatch_aid2(am_rowids_), asarray=True)
-    flags = ut.where(a1.nids == a2.nids)
-    a1_ = a1.compress(flags)
-    a2_ = a2.compress(flags)
+    aids1 = ibs.get_annotmatch_aid1(am_rowids_)
+    aids2 = ibs.get_annotmatch_aid2(am_rowids_)
 
     if False:
+        a1 = ibs.annots(aids1, asarray=True)
+        a2 = ibs.annots(aids2, asarray=True)
+        flags = a1.nids == a2.nids
+        a1_ = a1.compress(flags)
+        a2_ = a2.compress(flags)
         import guitool as gt
         ut.qt4ensure()
         gt.ensure_qapp()
         from vtool import inspect_matches
         import vtool as vt
-        i = 0
+        i = 1
         annot1 = a1_[i]._make_lazy_dict()
         annot2 = a2_[i]._make_lazy_dict()
 
@@ -878,6 +882,7 @@ def photobomb_samples(ibs):
         self = inspect_matches.MatchInspector(match=match,
                                               on_context=on_context)
         self.show()
+    return list(zip(aids1, aids2))
 
 
 def bigcache_vsone(qreq_, hyper_params):
@@ -894,7 +899,10 @@ def bigcache_vsone(qreq_, hyper_params):
     # Per query choose a set of correct, incorrect, and random training pairs
     aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
                                          **hyper_params.pair_sample)
+
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
+
+    aid_pairs_ += photobomb_samples(ibs)
     # TODO: handle non-comparability / photobombs
 
     # []
