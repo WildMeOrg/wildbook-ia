@@ -3,13 +3,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import numpy as np
 import vtool as vt
-import dtool
+import dtool as dt
 from six.moves import zip, range  # NOQA
 import pandas as pd  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
-class PairSampleConfig(dtool.Config):
+class PairSampleConfig(dt.Config):
     _param_info_list = [
         ut.ParamInfo('top_gt', 4),
         ut.ParamInfo('mid_gt', 2),
@@ -22,7 +22,7 @@ class PairSampleConfig(dtool.Config):
     ]
 
 
-class PairFeatureConfig(dtool.Config):
+class PairFeatureConfig(dt.Config):
     _param_info_list = [
         ut.ParamInfo('indices', slice(0, 26, 5)),
         ut.ParamInfo('sum', True),
@@ -32,7 +32,7 @@ class PairFeatureConfig(dtool.Config):
     ]
 
 
-class VsOneAssignConfig(dtool.Config):
+class VsOneAssignConfig(dt.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
@@ -40,13 +40,13 @@ class VsOneAssignConfig(dtool.Config):
 def train_pairwise_rf():
     """
     CommandLine:
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_MTEST --show
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db PZ_Master1 --show
-        python -m ibeis.algo.hots.script_vsone train_pairwise_rf --db GZ_Master1 --show
+        python -m ibeis.scripts.script_vsone train_pairwise_rf
+        python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_MTEST --show
+        python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_Master1 --show
+        python -m ibeis.scripts.script_vsone train_pairwise_rf --db GZ_Master1 --show
 
     Example:
-        >>> from ibeis.algo.hots.script_vsone import *  # NOQA
+        >>> from ibeis.scripts.script_vsone import *  # NOQA
         >>> train_pairwise_rf()
     """
     # import vtool as vt
@@ -63,7 +63,7 @@ def train_pairwise_rf():
     pd.options.display.max_columns = 40
     pd.options.display.width = 160
 
-    ut.aug_sysargv('--db PZ_Master1')
+    # ut.aug_sysargv('--db PZ_Master1')
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST',
         a=':mingt=2,species=primary',
@@ -73,7 +73,7 @@ def train_pairwise_rf():
     assert qreq_.qparams.can_match_samename is True
     assert qreq_.qparams.prescore_method == 'csum'
 
-    hyper_params = dtool.Config.from_dict(dict(
+    hyper_params = dt.Config.from_dict(dict(
         subsample=None,
         pair_sample=PairSampleConfig(),
         vsone_assign=VsOneAssignConfig(),
@@ -885,6 +885,70 @@ def photobomb_samples(ibs):
     return list(zip(aids1, aids2))
 
 
+def photobombing_subset():
+    import ibeis
+    pair_sample = ut.odict([
+        ('top_gt', 4), ('mid_gt', 2), ('bot_gt', 2), ('rand_gt', 2),
+        ('top_gf', 3), ('mid_gf', 2), ('bot_gf', 1), ('rand_gf', 2),
+    ])
+    qreq_ = ibeis.testdata_qreq_(
+        defaultdb='PZ_Master1',
+        a=':mingt=2,species=primary',
+        # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+        t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+    )
+    ibs = qreq_.ibs
+    cm_list = qreq_.execute()
+    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
+    aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
+                                         **pair_sample)
+
+    # ut.dict_hist(ut.flatten(am_tags))
+    am_rowids = ibs._get_all_annotmatch_rowids()
+    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+    am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+    am_rowids_ = ut.compress(am_rowids, am_flags)
+    aids1 = ibs.get_annotmatch_aid1(am_rowids_)
+    aids2 = ibs.get_annotmatch_aid2(am_rowids_)
+    pb_aids_pairs = list(zip(aids1, aids2))
+
+    # aids = unique_pb_aids = ut.unique(ut.flatten(pb_aids_pairs))
+    # ut.compress(unique_pb_aids, ibs.is_aid_unknown(unique_pb_aids))
+
+    assert len(pb_aids_pairs) > 0
+
+    # Keep only a random subset
+    subset_idxs = list(range(len(aid_pairs_)))
+    rng = np.random.RandomState(3104855634)
+    num_max = len(pb_aids_pairs)
+    if num_max < len(subset_idxs):
+        subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
+        subset_idxs = sorted(subset_idxs)
+    aid_pairs_ = ut.take(aid_pairs_, subset_idxs)
+
+    aid_pairs_ += pb_aids_pairs
+    unique_aids = ut.unique(ut.flatten(aid_pairs_))
+
+    a1 = ibs.filter_annots_general(unique_aids, is_known=True, verbose=True, min_pername=2, has_none=['photobomb'])
+    a2 = ibs.filter_annots_general(unique_aids, has_any=['photobomb'], verbose=True, is_known=True)
+    a = sorted(set(a1 + a2))
+    ibs.print_annot_stats(a)
+    len(a)
+
+    from ibeis.dbio import export_subset
+    export_subset.export_annots(ibs, a, 'PZ_PB_RF_TRAIN')
+
+    # closed_aids = ibs.annots(unique_aids).get_name_image_closure()
+
+    # annots = ibs.annots(unique_aids)
+    # closed_gt_aids = ut.unique(ut.flatten(ibs.get_annot_groundtruth(unique_aids)))
+    # closed_gt_aids = ut.unique(ut.flatten(ibs.get_annot_groundtruth(unique_aids)))
+    # closed_img_aids = ut.unique(ut.flatten(ibs.get_annot_otherimage_aids(unique_aids)))
+
+    ibs.print_annot_stats(unique_aids)
+    # all_annots = ibs.annots()
+
+
 def bigcache_vsone(qreq_, hyper_params):
     """
     Cached output of one-vs-one matches
@@ -902,8 +966,10 @@ def bigcache_vsone(qreq_, hyper_params):
 
     aid_pairs_ = vt.unique_rows(np.array(aid_pairs_), directed=False).tolist()
 
-    aid_pairs_ += photobomb_samples(ibs)
+    pb_aid_pairs_ = photobomb_samples(ibs)
     # TODO: handle non-comparability / photobombs
+
+    aid_pairs_ = pb_aid_pairs_ + aid_pairs_
 
     # []
 
@@ -1017,8 +1083,8 @@ def bigcache_vsone(qreq_, hyper_params):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.script_vsone
-        python -m ibeis.algo.hots.script_vsone --allexamples
+        python -m ibeis.scripts.script_vsone
+        python -m ibeis.scripts.script_vsone --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

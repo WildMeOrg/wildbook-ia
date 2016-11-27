@@ -1314,10 +1314,15 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True)
     dst_imgdir = ibs_dst.get_imgdir()
     if localize_images:
         ut.copy_files_to(imgpath_list, dst_imgdir, overwrite=False, verbose=True)
-    ignore_tables = ['lblannot', 'lblimage', 'image_lblimage_relationship',
-                     'annotation_lblannot_relationship', 'keys']
+    ignore_tables = [
+        'lblannot', 'lblimage', 'image_lblimage_relationship',
+        'annotation_lblannot_relationship', 'keys'
+    ]
+    # ignore_tables += [
+    #     'contributors', 'party', 'configs'
+    # ]
     # TODO: Fix database merge to allow merging tables with more than one superkey
-    # and no primary superkey, which requires an extension of the depcache
+    # and no primary superkey.
     error_tables = [
         'imageset_image_relationship',
         'annotgroup_annotation_relationship',
@@ -1451,11 +1456,12 @@ def export_images(ibs, gid_list, new_dbpath=None):
 
 
 def export_annots(ibs, aid_list, new_dbpath=None):
-    """
+    r"""
     exports a subset of annotations and other required info
 
     TODO:
-        PZ_Master1 needs to backproject information back on to NNP_Master3 and PZ_Master0
+        PZ_Master1 needs to backproject information back on to NNP_Master3 and
+        PZ_Master0
 
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -1466,14 +1472,22 @@ def export_annots(ibs, aid_list, new_dbpath=None):
         str: new_dbpath
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --exec-export_annots
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.dbio.export_subset export_annots
+        python -m ibeis.dbio.export_subset export_annots --db NNP_Master3 \
+            -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
 
-        python -m ibeis.dbio.export_subset --exec-export_annots --db NNP_Master3 -a viewpoint_compare --nocache-aid --verbtd --new_dbpath=PZ_ViewPoints
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 \
+            --db NNP_Master3 \
+            -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+            -a viewpoint_compare --nocache-aid --verbtd
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+            -a default:aids=all,is_known=True,view_pername=#primary>0&#primary1>0,per_name=4,size=200
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db NNP_Master3 \
+            -a default:aids=all,is_known=True,view_pername='#primary>0&#primary1>0',per_name=4,size=200 --acfginfo
 
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids=all,is_known=True,view_pername=#primary>0&#primary1>0,per_name=4,size=200
-        python -m ibeis.expt.experiment_helpers --exec-get_annotcfg_list:0 --db NNP_Master3 -a default:aids=all,is_known=True,view_pername='#primary>0&#primary1>0',per_name=4,size=200 --acfginfo
+        python -m ibeis.expt.experiment_helpers get_annotcfg_list:0 --db PZ_Master1 \
+            -a default:has_any=photobomb --acfginfo
 
     Example:
         >>> # SCRIPT
@@ -1497,10 +1511,8 @@ def export_annots(ibs, aid_list, new_dbpath=None):
     print('Exporting annotations aid_list=%r' % (aid_list,))
     if new_dbpath is None:
         new_dbpath = make_new_dbpath(ibs, 'aid', aid_list)
-
-    gid_list = ut.unique_unordered(ibs.get_annot_gids(aid_list))
-    nid_list = ut.unique_unordered(ibs.get_annot_nids(aid_list))
-
+    gid_list = ut.unique(ibs.get_annot_gids(aid_list))
+    nid_list = ut.unique(ibs.get_annot_nids(aid_list))
     return export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=new_dbpath)
 
 
@@ -1526,20 +1538,21 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     gsgrid_list = ut.unique_unordered(
         ut.flatten(ibs.get_image_gsgrids(gid_list)))
 
-    annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
+    # TODO: write SQL query to do this
+    am_rowids = ibs._get_all_annotmatch_rowids()
     flags1_list = [
-        aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(annotmatch_rowid_list)]
+        aid in set(aid_list) for aid in ibs.get_annotmatch_aid1(am_rowids)]
     flags2_list = [
-        aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(annotmatch_rowid_list)]
+        aid in set(aid_list) for aid in ibs.get_annotmatch_aid2(am_rowids)]
     flag_list = ut.and_lists(flags1_list, flags2_list)
-    annotmatch_rowid_list = ut.compress(annotmatch_rowid_list, flag_list)
-    #annotmatch_rowid_list = ibs.get_valid_aids(ibs.get_valid_aids())
+    am_rowids = ut.compress(am_rowids, flag_list)
+    #am_rowids = ibs.get_valid_aids(ibs.get_valid_aids())
 
     rowid_subsets = {
         const.ANNOTATION_TABLE: aid_list,
         const.NAME_TABLE: nid_list,
         const.IMAGE_TABLE: gid_list,
-        const.ANNOTMATCH_TABLE: annotmatch_rowid_list,
+        const.ANNOTMATCH_TABLE: am_rowids,
         const.GSG_RELATION_TABLE: gsgrid_list,
         const.IMAGESET_TABLE: imgsetid_list,
     }
@@ -1678,19 +1691,19 @@ def check_database_overlap(ibs1, ibs2):
     CommandLine:
         python -m ibeis.other.dbinfo --test-get_dbinfo:1 --db PZ_MTEST
         dev.py -t listdbs
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap
+        python -m ibeis.dbio.export_subset check_database_overlap
         --db PZ_MTEST --db2 PZ_MOTHERS
 
     CommandLine:
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap
+        python -m ibeis.dbio.export_subset check_database_overlap
 
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_MTEST --db2=PZ_Master0  # NOQA
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=NNP_Master3 --db2=PZ_Master0  # NOQA
 
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=GZ_Master0 --db2=GZ_ALL
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=GZ_ALL --db2=lewa_grevys
 
-        python -m ibeis.dbio.export_subset --exec-check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
+        python -m ibeis.dbio.export_subset check_database_overlap --db1=PZ_FlankHack --db2=PZ_Master1
 
 
     Example:

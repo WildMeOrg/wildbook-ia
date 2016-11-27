@@ -212,6 +212,12 @@ class Annots(BASE):
     def aids(self):
         return self._rowids
 
+    def get_stats(self, **kwargs):
+        self._ibs.get_annot_stats(self.aids, **kwargs)
+
+    def print_stats(self, **kwargs):
+        self._ibs.print_annot_stats(self.aids, **kwargs)
+
     #@property
     def get_speeds(self):
         #import vtool as vt
@@ -221,6 +227,18 @@ class Annots(BASE):
         #speeds = self._ibs.get_unflat_annots_speeds_list([self.aids])[0]
         edge_to_speed = dict(zip(edges, speeds))
         return edge_to_speed
+
+    def get_name_image_closure(self):
+        ibs = self._ibs
+        aids = self.aids
+        old_aids = []
+        while len(old_aids) != len(aids):
+            old_aids = aids
+            gids = ut.unique(ibs.get_annot_gids(aids))
+            other_aids = list(set(ut.flatten(ibs.get_image_aids(gids))))
+            other_nids = list(set(ibs.get_annot_nids(other_aids)))
+            aids = ut.flatten(ibs.get_name_aids(other_nids))
+        return aids
 
     def get_aidpairs(self):
         aids = self.aids

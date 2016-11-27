@@ -1020,16 +1020,17 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         utool.embed()
 
     def expand_image_and_names(self):
+        # call get_name_image_closure()
         ibs = self.infr.ibs
         aids = self.infr.aids
-        old_aids = []
-
-        while len(old_aids) != len(aids):
-            old_aids = aids
-            gids = ut.unique(ibs.get_annot_gids(aids))
-            nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
-            aids = ut.flatten(ibs.get_name_aids(nids))
-
+        annots = ibs.annots(aids)
+        aids = annots.get_name_image_closure()
+        # old_aids = []
+        # while len(old_aids) != len(aids):
+        #     old_aids = aids
+        #     gids = ut.unique(ibs.get_annot_gids(aids))
+        #     nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
+        #     aids = ut.flatten(ibs.get_name_aids(nids))
         nids = ibs.get_annot_nids(aids)
         new_infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=self.infr.verbose)
         new_infr.initialize_graph()
