@@ -2317,7 +2317,8 @@ class SQLDatabaseController(object):
 
     def merge_databases_new(db, db_src, ignore_tables=None, rowid_subsets=None):
         r"""
-        Copies over all non-rowid properties into another sql table. handles annotated dependenceis.
+        Copies over all non-rowid properties into another sql table. handles
+        annotated dependenceis.
         Does not handle external files
         Could handle dependency tree order, but not yet implemented.
 
@@ -2458,7 +2459,8 @@ class SQLDatabaseController(object):
             ]
             depth = 0 if len(depth_list) == 0 else max(depth_list) + 1
             return depth
-        order_list = [find_depth(tablename, dependency_digraph) for tablename in tablename_list]
+        order_list = [find_depth(tablename, dependency_digraph)
+                      for tablename in tablename_list]
         sorted_tablename_list = ut.sortedby(tablename_list, order_list)
         # ================================
         # Merge each table into new database
@@ -2490,9 +2492,12 @@ class SQLDatabaseController(object):
                 valid_rowids = set(rowid_subsets[tablename])
                 isvalid_list = [rowid in valid_rowids for rowid in old_rowid_list]
                 valid_old_rowid_list = ut.compress(old_rowid_list, isvalid_list)
-                valid_column_list_ = [ut.compress(col, isvalid_list) for col in column_list_]
-                valid_extern_superkey_colval_list =  [ut.compress(col, isvalid_list)
-                                                      for col in extern_superkey_colval_list]
+                valid_column_list_ = [ut.compress(col, isvalid_list)
+                                      for col in column_list_]
+                valid_extern_superkey_colval_list =  [
+                    ut.compress(col, isvalid_list)
+                    for col in extern_superkey_colval_list
+                ]
                 print(' * filtered number of rows from %d to %d.' % (
                     len(valid_rowids), len(valid_old_rowid_list)))
             else:
@@ -2536,7 +2541,8 @@ class SQLDatabaseController(object):
                                      extern_primarycolname))
                     _params_iter = list(zip(extern_superkey_colval))
                     new_extern_rowids = db.get_rowid_from_superkey(
-                        extern_tablename, _params_iter, superkey_colnames=extern_superkey_colname)
+                        extern_tablename, _params_iter,
+                        superkey_colnames=extern_superkey_colname)
                     num_Nones = sum(ut.flag_None_items(new_extern_rowids))
                     if verbose:
                         print('[sqlmerge] * there were %d none items' % (num_Nones,))
@@ -2554,7 +2560,8 @@ class SQLDatabaseController(object):
             superkey_colnames_list = db.get_table_superkey_colnames(tablename)
             try:
                 superkey_paramxs_list = [
-                    [column_names_.index(str(superkey)) for superkey in  superkey_colnames]
+                    [column_names_.index(str(superkey))
+                     for superkey in  superkey_colnames]
                     for superkey_colnames in superkey_colnames_list
                 ]
             except Exception as ex:
@@ -2568,7 +2575,8 @@ class SQLDatabaseController(object):
                     raise AssertionError(
                         ('tablename=%r has multiple superkey_colnames_list=%r, '
                          'but no primary superkey. '
-                         'A primary superkey is required') % (tablename, superkey_colnames_list))
+                         'A primary superkey is required') % (
+                             tablename, superkey_colnames_list))
                 else:
                     superkey_index = superkey_colnames_list.index(primary_superkey)
                     superkey_paramx = superkey_paramxs_list[superkey_index]
@@ -2585,17 +2593,19 @@ class SQLDatabaseController(object):
             def get_rowid_from_superkey(*superkey_column_list):
                 superkey_params_iter = zip(*superkey_column_list)
                 rowid = db.get_rowid_from_superkey(
-                    tablename, superkey_params_iter, superkey_colnames=superkey_colnames)
+                    tablename, superkey_params_iter,
+                    superkey_colnames=superkey_colnames)
                 return rowid
 
             # TODO: allow for cetrain databases to take precidence over another
             # basically allow insert or replace
-            new_rowid_list = db.add_cleanly(tablename, column_names_,
-                                            params_iter,
-                                            get_rowid_from_superkey=get_rowid_from_superkey,
-                                            superkey_paramx=superkey_paramx)
+            new_rowid_list = db.add_cleanly(
+                tablename, column_names_, params_iter,
+                get_rowid_from_superkey=get_rowid_from_superkey,
+                superkey_paramx=superkey_paramx)
             # TODO: Use mapping generated here for new rowids
-            old_rowids_to_new_roids = dict(zip(valid_old_rowid_list, new_rowid_list))  # NOQA
+            old_rowids_to_new_roids = dict(zip(valid_old_rowid_list,  # NOQA
+                                               new_rowid_list))
             #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
     def get_table_csv(db, tablename, exclude_columns=[], params_iter=None,
