@@ -373,8 +373,16 @@ class SQLDatabaseController(object):
             db.squeeze()
             db._copy_to_memory()
             db.connection.text_factory = text_factory
+
+        db.USE_FOREIGN_HACK = False
+        if db.USE_FOREIGN_HACK:
+            db.cur.execute("PRAGMA foreign_keys = ON")
+            # db.cur.execute("PRAGMA foreign_keys;")
+            # print(db.cur.fetchall())
+
         # Optimize the database (if anything is set)
         db.optimize()
+
         if not db.readonly:
             db._ensure_metadata_table()
 
@@ -1306,25 +1314,28 @@ class SQLDatabaseController(object):
 
         body_list = []
         foreign_body = []
-        USE_FOREIGN_HACK = False
+        # False
         for (name, type_) in coldef_list:
-            if USE_FOREIGN_HACK and name.endswith('_rowid'):
+            if db.USE_FOREIGN_HACK and name.endswith('_rowid'):
                 # HACK THAT ONLY WORKS WITH IBEIS STRUCTURE
                 foreign_table = name[:-len('_rowid')]
-                if foreign_table != tablename:
+                if foreign_table != tablename and foreign_table + 's' != tablename:
                     if False:
                         foreign_body.append('FOREIGN KEY (%s) REFERENCES %s (%s)' % (name, foreign_table, name))
                         coldef_line = '%s %s' % (name, type_)
                     else:
-                        # alternative way to do this
+                        # alternative way to do this in SQLITE 3
                         coldef_line = '%s %s REFERENCES %s' % (name, type_, foreign_table)
+                    body_list.append(coldef_line)
+                else:
+                    coldef_line = '%s %s' % (name, type_)
                     body_list.append(coldef_line)
             else:
                 #else:
                 coldef_line = '%s %s' % (name, type_)
                 body_list.append(coldef_line)
 
-        if USE_FOREIGN_HACK:
+        if db.USE_FOREIGN_HACK:
             body_list += foreign_body
 
         sep_ = ',' + sep
@@ -1332,8 +1343,12 @@ class SQLDatabaseController(object):
         fmtkw = {
             'table_body': table_body,
             'tablename': tablename,
+            'sep': sep,
         }
-        op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
+        if sep == ' ':
+            op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({table_body})'
+        else:
+            op_fmtstr = 'CREATE TABLE IF NOT EXISTS {tablename} ({sep}{table_body}{sep})'
         operation = op_fmtstr.format(**fmtkw)
         return operation
 
@@ -1430,9 +1445,9 @@ class SQLDatabaseController(object):
             if (src is None or isinstance(src, int)):
                 # Add column
                 assert dst is not None and len(dst) > 0, (
-                    "New column's name must be valid")
+                    'New column name must be valid')
                 assert type_ is not None and len(type_) > 0, (
-                    "New column's type must be specified")
+                    'New column type must be specified')
                 if isinstance(src, int) and (src < 0 or len(colname_list) <= src):
                     src = None
                 if src is None:
@@ -1456,7 +1471,7 @@ class SQLDatabaseController(object):
                 if dst is None:
                     # Drop column
                     assert src is not None and len(src) > 0, (
-                        "Deleted column's name  must be valid")
+                        'Deleted column name  must be valid')
                     del colname_list[index]
                     del coltype_list[index]
                     del colname_dict[src]
@@ -2410,42 +2425,6 @@ class SQLDatabaseController(object):
             for dependsmap, tablename in zip(dependsmap_list, tablename_list)
         }
 
-        #EXTEND_SUBSETS = False
-        #if EXTEND_SUBSETS:
-
-        #    inverted_digraph = ut.ddict(list)
-        #    for key, item_list in six.iteritems(dependency_digraph):
-        #        for item in item_list:
-        #            inverted_digraph[item].append(key)
-        #        #dependency_digraph
-        #    inverted_digraph = dict(inverted_digraph)
-
-        #    rowid_subsets
-        #    seen_ = set([])
-        #    #def expand_subsets(rowid_subsets, seen_=seen_):
-        #    #    key_list = list(set(rowid_subsets.keys()) - seen_)
-        #    #    for key in key_list:
-        #    #        item_list = dependency_digraph[key]
-        #    #        for item in item_list:
-        #    #            dependsmap = dependsmap_list[tablename_list.index(key)]
-        #    #            new_transferdata = db_src.get_table_new_transferdata(tablename)
-        #    #            # FIXME: SUPER DUPLICATE CODE
-        #    #            (column_list, column_names,
-        #    #             extern_colx_list, extern_superkey_colname_list,
-        #    #             extern_superkey_colval_list, extern_tablename_list,
-        #    #             extern_primarycolnames_list
-        #    #             ) = new_transferdata
-        #    #            for index, (key2, val2) in enumerate(six.iteritems(dependsmap)):
-        #    #                if key2 == 'image_rowid':
-        #    #                    break
-        #    #                column_list[key2]
-        #    #                column_list[index]
-        #    #                pass
-
-        #    #        pass
-
-        #    #    pass
-
         def find_depth(tablename, dependency_digraph):
             """
             depth first search to find root self cycles are counted as 0 depth
@@ -2585,9 +2564,14 @@ class SQLDatabaseController(object):
                 superkey_paramx = superkey_paramxs_list[0]
                 superkey_colnames = superkey_colnames_list[0]
             else:
-                print('superkey_paramxs_list = %r' % (superkey_paramxs_list, ))
-                print('superkey_colnames_list = %r' % (superkey_colnames_list, ))
-                raise IOError('Cannot merge %r' % (tablename, ))
+                superkey_paramx = superkey_paramxs_list[0]
+                superkey_colnames = superkey_colnames_list[0]
+                # def get_referenced_table():
+                #     # TODO use foreign keys to infer this data instead of hacks
+                #     pass
+                # print('superkey_paramxs_list = %r' % (superkey_paramxs_list, ))
+                # print('superkey_colnames_list = %r' % (superkey_colnames_list, ))
+                # raise ValueError('Cannot merge %r' % (tablename, ))
 
             params_iter = list(zip(*modified_column_list_))
             def get_rowid_from_superkey(*superkey_column_list):
