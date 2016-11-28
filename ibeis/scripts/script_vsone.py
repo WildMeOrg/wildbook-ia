@@ -886,6 +886,10 @@ def photobomb_samples(ibs):
 
 
 def photobombing_subset():
+    """
+    CommandLine:
+        python -m ibeis.scripts.script_vsone photobombing_subset
+    """
     import ibeis
     pair_sample = ut.odict([
         ('top_gt', 4), ('mid_gt', 2), ('bot_gt', 2), ('rand_gt', 2),
@@ -898,42 +902,97 @@ def photobombing_subset():
         t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
     )
     ibs = qreq_.ibs
-    cm_list = qreq_.execute()
-    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
-    aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
-                                         **pair_sample)
+    # cm_list = qreq_.execute()
+    # infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
+    # aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
+    #                                      **pair_sample)
 
-    # ut.dict_hist(ut.flatten(am_tags))
-    am_rowids = ibs._get_all_annotmatch_rowids()
-    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
-    am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
-    am_rowids_ = ut.compress(am_rowids, am_flags)
-    aids1 = ibs.get_annotmatch_aid1(am_rowids_)
-    aids2 = ibs.get_annotmatch_aid2(am_rowids_)
-    pb_aids_pairs = list(zip(aids1, aids2))
+    # # ut.dict_hist(ut.flatten(am_tags))
+    # am_rowids = ibs._get_all_annotmatch_rowids()
+    # am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+    # am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+    # am_rowids_ = ut.compress(am_rowids, am_flags)
+    # aids1 = ibs.get_annotmatch_aid1(am_rowids_)
+    # aids2 = ibs.get_annotmatch_aid2(am_rowids_)
+    # pb_aids_pairs = list(zip(aids1, aids2))
 
-    # aids = unique_pb_aids = ut.unique(ut.flatten(pb_aids_pairs))
-    # ut.compress(unique_pb_aids, ibs.is_aid_unknown(unique_pb_aids))
+    # # aids = unique_pb_aids = ut.unique(ut.flatten(pb_aids_pairs))
+    # # ut.compress(unique_pb_aids, ibs.is_aid_unknown(unique_pb_aids))
 
-    assert len(pb_aids_pairs) > 0
+    # assert len(pb_aids_pairs) > 0
 
-    # Keep only a random subset
-    subset_idxs = list(range(len(aid_pairs_)))
-    rng = np.random.RandomState(3104855634)
-    num_max = len(pb_aids_pairs)
-    if num_max < len(subset_idxs):
-        subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
-        subset_idxs = sorted(subset_idxs)
-    aid_pairs_ = ut.take(aid_pairs_, subset_idxs)
+    # # Keep only a random subset
+    # subset_idxs = list(range(len(aid_pairs_)))
+    # rng = np.random.RandomState(3104855634)
+    # num_max = len(pb_aids_pairs)
+    # if num_max < len(subset_idxs):
+    #     subset_idxs = rng.choice(subset_idxs, size=num_max, replace=False)
+    #     subset_idxs = sorted(subset_idxs)
+    # aid_pairs_ = ut.take(aid_pairs_, subset_idxs)
 
-    aid_pairs_ += pb_aids_pairs
-    unique_aids = ut.unique(ut.flatten(aid_pairs_))
+    # aid_pairs_ += pb_aids_pairs
+    # unique_aids = ut.unique(ut.flatten(aid_pairs_))
 
-    a1 = ibs.filter_annots_general(unique_aids, is_known=True, verbose=True, min_pername=2, has_none=['photobomb'])
-    a2 = ibs.filter_annots_general(unique_aids, has_any=['photobomb'], verbose=True, is_known=True)
-    a = sorted(set(a1 + a2))
-    ibs.print_annot_stats(a)
-    len(a)
+    # a1 = ibs.filter_annots_general(unique_aids, is_known=True, verbose=True, min_pername=2, has_none=['photobomb'])
+    # a2 = ibs.filter_annots_general(unique_aids, has_any=['photobomb'], verbose=True, is_known=True)
+    # a = sorted(set(a1 + a2))
+    # ibs.print_annot_stats(a)
+    # len(a)
+
+    a = [8, 27, 30, 86, 87, 90, 92, 94, 99, 103, 104, 106, 111, 217, 218, 242,
+         298, 424, 425, 456, 464, 465, 472, 482, 529, 559, 574, 585, 588, 592,
+         598, 599, 601, 617, 630, 645, 661, 664, 667, 694, 723, 724, 759, 768,
+         843, 846, 861, 862, 866, 933, 934, 980, 987, 1000, 1003, 1005, 1011,
+         1017, 1020, 1027, 1059, 1074, 1076, 1080, 1095, 1096, 1107, 1108,
+         1192, 1203, 1206, 1208, 1220, 1222, 1223, 1224, 1256, 1278, 1293,
+         1294, 1295, 1296, 1454, 1456, 1474, 1484, 1498, 1520, 1521, 1548,
+         1563, 1576, 1593, 1669, 1675, 1680, 1699, 1748, 1751, 1811, 1813,
+         1821, 1839, 1927, 1934, 1938, 1952, 1992, 2003, 2038, 2054, 2066,
+         2080, 2103, 2111, 2170, 2171, 2175, 2192, 2216, 2227, 2240, 2250,
+         2253, 2266, 2272, 2288, 2292, 2314, 2329, 2341, 2344, 2378, 2397,
+         2417, 2429, 2444, 2451, 2507, 2551, 2552, 2553, 2581, 2628, 2640,
+         2642, 2646, 2654, 2667, 2686, 2733, 2743, 2750, 2759, 2803, 2927,
+         3008, 3054, 3077, 3082, 3185, 3205, 3284, 3306, 3334, 3370, 3386,
+         3390, 3393, 3401, 3448, 3508, 3542, 3597, 3614, 3680, 3684, 3695,
+         3707, 3727, 3758, 3765, 3790, 3812, 3813, 3818, 3858, 3860, 3874,
+         3875, 3887, 3892, 3915, 3918, 3924, 3927, 3929, 3933, 3941, 3952,
+         3955, 3956, 3959, 4004, 4059, 4073, 4076, 4089, 4094, 4124, 4126,
+         4128, 4182, 4189, 4217, 4222, 4229, 4257, 4266, 4268, 4288, 4289,
+         4296, 4306, 4339, 4353, 4376, 4403, 4428, 4455, 4487, 4494, 4515,
+         4517, 4524, 4541, 4544, 4556, 4580, 4585, 4597, 4604, 4629, 4639,
+         4668, 4671, 4672, 4675, 4686, 4688, 4693, 4716, 4730, 4731, 4749,
+         4772, 4803, 4820, 4823, 4832, 4833, 4836, 4900, 4902, 4909, 4924,
+         4936, 4938, 4939, 4944, 5004, 5006, 5034, 5043, 5044, 5055, 5064,
+         5072, 5115, 5131, 5150, 5159, 5165, 5167, 5168, 5174, 5218, 5235,
+         5245, 5249, 5309, 5319, 5334, 5339, 5344, 5347, 5378, 5379, 5384,
+         5430, 5447, 5466, 5509, 5546, 5587, 5588, 5621, 5640, 5663, 5676,
+         5682, 5685, 5687, 5690, 5707, 5717, 5726, 5732, 5733, 5791, 5830,
+         5863, 5864, 5869, 5870, 5877, 5879, 5905, 5950, 6008, 6110, 6134,
+         6160, 6167, 6234, 6238, 6265, 6344, 6345, 6367, 6384, 6386, 6437,
+         6495, 6533, 6538, 6569, 6587, 6626, 6634, 6643, 6659, 6661, 6689,
+         6714, 6725, 6739, 6754, 6757, 6759, 6763, 6781, 6830, 6841, 6843,
+         6893, 6897, 6913, 6930, 6932, 6936, 6944, 6976, 7003, 7022, 7037,
+         7052, 7058, 7074, 7103, 7107, 7108, 7113, 7143, 7183, 7185, 7187,
+         7198, 7200, 7202, 7207, 7222, 7275, 7285, 7388, 7413, 7421, 7425,
+         7429, 7445, 7487, 7507, 7508, 7528, 7615, 7655, 7696, 7762, 7786,
+         7787, 7796, 7797, 7801, 7807, 7808, 7809, 7826, 7834, 7835, 7852,
+         7861, 7874, 7881, 7901, 7902, 7905, 7913, 7918, 7941, 7945, 7990,
+         7999, 8007, 8009, 8017, 8018, 8019, 8034, 8041, 8057, 8058, 8079,
+         8080, 8086, 8089, 8092, 8094, 8100, 8105, 8109, 8147, 8149, 8153,
+         8221, 8264, 8302, 8303, 8331, 8366, 8367, 8370, 8376, 8474, 8501,
+         8504, 8506, 8507, 8514, 8531, 8532, 8534, 8538, 8563, 8564, 8587,
+         8604, 8608, 8751, 8771, 8792, 9175, 9204, 9589, 9726, 9841, 10674,
+         12122, 12305, 12796, 12944, 12947, 12963, 12966, 13098, 13099, 13101,
+         13103, 13109, 13147, 13157, 13168, 13194, 13236, 13253, 13255, 13410,
+         13450, 13474, 13477, 13481, 13508, 13630, 13670, 13727, 13741, 13819,
+         13820, 13908, 13912, 13968, 13979, 14007, 14009, 14010, 14019, 14066,
+         14067, 14072, 14074, 14148, 14153, 14224, 14230, 14237, 14239, 14241,
+         14274, 14277, 14290, 14293, 14308, 14309, 14313, 14319, 14668, 14670,
+         14776, 14918, 14920, 14924, 15135, 15157, 15318, 15319, 15490, 15518,
+         15531, 15777, 15903, 15913, 16004, 16012, 16013, 16014, 16020, 16215,
+         16221, 16235, 16240, 16259, 16273, 16279, 16284, 16289, 16316, 16322,
+         16329, 16336, 16364, 16389, 16706, 16897, 16898, 16903, 16949, 17094,
+         17101, 17137, 17200, 17222, 17290, 17327, 17336]
 
     from ibeis.dbio import export_subset
     export_subset.export_annots(ibs, a, 'PZ_PB_RF_TRAIN')
@@ -945,7 +1004,7 @@ def photobombing_subset():
     # closed_gt_aids = ut.unique(ut.flatten(ibs.get_annot_groundtruth(unique_aids)))
     # closed_img_aids = ut.unique(ut.flatten(ibs.get_annot_otherimage_aids(unique_aids)))
 
-    ibs.print_annot_stats(unique_aids)
+    # ibs.print_annot_stats(unique_aids)
     # all_annots = ibs.annots()
 
 
