@@ -312,7 +312,7 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     if verbose > 1:
         print('+--- START CACHED FLANN INDEX ')
     if len(dpts) == 0:
-        raise AssertionError(
+        raise ValueError(
             'cannot build flann when len(dpts) == 0. (prevents a segfault)')
     flann_fpath = get_flann_fpath(dpts, cache_dir, cfgstr, flann_params,
                                   use_params_hash=use_params_hash,

@@ -577,7 +577,11 @@ def ensure_metadata_flann(annot, cfgdict):
     if 'flann' not in annot:
         def eval_flann():
             vecs = annot['vecs']
-            _flann = vt.flann_cache(vecs, flann_params=flann_params, verbose=False)
+            if len(vecs) == 0:
+                _flann = None
+            else:
+                _flann = vt.flann_cache(vecs, flann_params=flann_params,
+                                        verbose=False)
             return _flann
         annot.set_lazy_func('flann', eval_flann)
     return annot
@@ -600,6 +604,8 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
         (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(len(vecs2), 0)
     elif len(vecs2) == 0:
         (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(0, K)
+    elif flann is None:
+        (fx2_to_fx1, _fx2_to_dist_sqrd) = empty_neighbors(0, 0)
     elif K > flann.get_indexed_shape()[0]:
         # Corner case, may be better to throw an assertion error
         raise MatchingError('not enough database features')
@@ -616,9 +622,10 @@ def normalized_nearest_neighbors(flann, vecs2, K, checks=800):
 
 
 def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
-                                         fx2_to_fx1, fx2_to_dist, match_xy_thresh,
+                                         fx2_to_fx1, fx2_to_dist,
+                                         match_xy_thresh,
                                          norm_xy_bounds=(0.0, 1.0)):
-    """
+    r"""
     assigns spatially constrained vsone match using results of nearest
     neighbors.
 
@@ -626,7 +633,8 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
         chip2_dlen_sqrd (dict):
         kpts1 (ndarray[float32_t, ndim=2]):  keypoints
         kpts2 (ndarray[float32_t, ndim=2]):  keypoints
-        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix that maps image1 space into image2 space
+        H (ndarray[float64_t, ndim=2]):  homography/perspective matrix that
+            maps image1 space into image2 space
         fx2_to_fx1 (ndarray): image2s nearest feature indices in image1
         fx2_to_dist (ndarray):
         match_xy_thresh (float):
@@ -670,16 +678,14 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
         >>>     chip2_dlen_sqrd, kpts1, kpts2, H, fx2_to_fx1, fx2_to_dist,
         >>>     match_xy_thresh, norm_xy_bounds)
         >>> fm, fx1_norm, match_dist, norm_dist = assigntup
-        >>> result = ut.list_str(assigntup, precision=3)
+        >>> result = ut.list_str(assigntup, precision=3, nobr=True)
         >>> print(result)
-        (
-            np.array([[2, 0],
-                      [0, 1],
-                      [2, 2]], dtype=np.int32),
-            np.array([1, 1, 0], dtype=np.int32),
-            np.array([ 0.4,  0.3,  0.8], dtype=np.float32),
-            np.array([ 0.8,  0.5,  0.9], dtype=np.float32),
-        )
+        np.array([[2, 0],
+                  [0, 1],
+                  [2, 2]], dtype=np.int32),
+        np.array([1, 1, 0], dtype=np.int32),
+        np.array([ 0.4,  0.3,  0.8], dtype=np.float32),
+        np.array([ 0.8,  0.5,  0.9], dtype=np.float32),
     """
     import vtool as vt
     index_dtype = fx2_to_fx1.dtype
@@ -724,7 +730,8 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     return assigntup
 
 
-def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_flags=None):
+def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
+                                 valid_flags=None):
     """
     assigns vsone matches using results of nearest neighbors.
 
@@ -733,12 +740,29 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_f
 
     CommandLine:
         python -m vtool.matching --test-assign_unconstrained_matches --show
-        python -m vtool.matching assign_unconstrained_matches --show
+        python -m vtool.matching assign_unconstrained_matches:0
+        python -m vtool.matching assign_unconstrained_matches:1
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
-        >>> # build test data
+        >>> fx2_to_fx1, fx2_to_dist = empty_neighbors(0, 0)
+        >>> K = 1
+        >>> Knorm = 1
+        >>> valid_flags = None
+        >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
+        >>>                                          Knorm, valid_flags)
+        >>> fm, match_dist, norm_fx1, norm_dist = assigntup
+        >>> result = ut.list_str(assigntup, precision=3, nobr=True)
+        >>> print(result)
+        np.array([], shape=(0, 2), dtype=np.int32),
+        np.array([], dtype=np.float64),
+        np.array([], dtype=np.int32),
+        np.array([], dtype=np.float64),
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
         >>> fx2_to_fx1 = np.array([[ 77,   971, 22],
         >>>                        [116,   120, 34],
         >>>                        [122,   128, 99],
@@ -755,19 +779,13 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_f
         >>> Knorm = 1
         >>> valid_flags = np.array([[1, 1], [0, 1], [1, 1], [0, 1], [1, 1], [1, 1]])
         >>> valid_flags = valid_flags[:, 0:K]
-        >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm, valid_flags)
+        >>> assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
+        >>>                                          Knorm, valid_flags)
         >>> fm, match_dist, norm_fx1, norm_dist = assigntup
-        >>> result = ut.list_str(assigntup, precision=3)
+        >>> result = ut.list_str(assigntup, precision=3, nobr=True)
         >>> print(result)
-        (
-            np.array([[ 77,   0],
-                      [122,   2],
-                      [530,   4],
-                      [ 45,   5]], dtype=np.int32),
-            np.array([ 0.059,  0.039,  0.226,  0.215], dtype=np.float32),
-            np.array([971, 128,  45, 530], dtype=np.int32),
-            np.array([ 0.238,  0.247,  0.244,  0.236], dtype=np.float32),
-        )
+        >>> assert len(fm.shape) == 2 and fm.shape[1] == 2
+        >>> assert ut.allsame(map(len, assigntup))
     """
     # Infer the valid internal query feature indexes and ranks
     index_dtype = fx2_to_fx1.dtype
@@ -786,8 +804,6 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_f
                                           dims=fx2_to_fx1.shape)
     match_fx1 = fx2_to_fx1.take(flat_match_idx)
     match_dist = fx2_to_dist.take(flat_match_idx)
-    #match_fx1  = fx2_to_fx1[match_fx2, match_rank]
-    #match_dist = fx2_to_dist[match_fx2, match_rank]
 
     fm = np.vstack((match_fx1, match_fx2)).T
 
@@ -797,30 +813,17 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None, valid_f
         basic_norm_rank = K + Knorm - 1
 
     # Currently just use the last one as a normalizer
-    norm_rank = [basic_norm_rank] * len(match_fx2)
+    norm_rank = np.array([basic_norm_rank] * len(match_fx2),
+                         dtype=match_fx2.dtype)
     flat_norm_idx = np.ravel_multi_index((match_fx2, norm_rank),
                                          dims=fx2_to_fx1.shape)
     norm_fx1 = fx2_to_fx1.take(flat_norm_idx)
     norm_dist = fx2_to_dist.take(flat_norm_idx)
-    #norm_fx1 = fx2_to_fx1[match_fx2, norm_rank]
-    #norm_dist = fx2_to_dist[match_fx2, norm_rank]
     norm_fx1 = fx2_to_fx1[match_fx2, norm_rank]
     norm_dist = fx2_to_dist[match_fx2, norm_rank]
 
-    # assigntup = fm, match_dist, norm_fx1, norm_dist
     assigntup = AssignTup(fm, match_dist, norm_fx1, norm_dist)
     return assigntup
-    ## Then take the valid indices from internal database
-    ## annot_rowids, feature indexes, and all scores
-    #valid_daid  = neighb_daid.take(flat_validx, axis=None)
-    #valid_dfx   = neighb_dfx.take(flat_validx, axis=None)
-    #valid_scorevec = np.concatenate(
-    #    [neighb_score.take(flat_validx)[:, None]
-    #     for neighb_score in neighb_score_list], axis=1)
-    #fx2_match, fx1_match, fx1_norm, match_dist, norm_dist = assigntup
-    #fm_ORIG = np.vstack((fx1_match, fx2_match)).T
-    #assigntup = fx2_match, fx1_match, fx1_norm, match_dist, norm_dist
-    #return assigntup
 
 
 def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
@@ -845,14 +848,6 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
                [False, False],
                [ True, False]], dtype=bool)
     """
-    #import vtool as vt
-    #fx2_to_fx1_ = fx1_to_fx2.T[::-1].T
-    #print(fx2_to_fx1_.shape)
-    #print(fx2_to_fx1_.dtype)
-    #print(fx2_to_fx1.shape)
-    #print(fx2_to_fx1.dtype)
-    #is_symmetric2 = vt.intersect2d_flags(fx2_to_fx1, fx2_to_fx1_)[0]
-
     # np.arange(len(fx2_to_fx1), dtype=fx2_to_fx1.dtype)
     match_12 = fx1_to_fx2.T[:K].T
     match_21 = fx2_to_fx1.T[:K].T
@@ -992,7 +987,6 @@ def marge_matches(fm_A, fm_B, fsv_A, fsv_B):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
-        >>> # build test data
         >>> fm_A  = np.array([[ 15, 17], [ 54, 29], [ 95, 111], [ 25, 125], [ 97, 125]], dtype=np.int32)
         >>> fm_B  = np.array([[ 11, 21], [ 15, 17], [ 25, 125], [ 30,  32]], dtype=np.int32)
         >>> fsv_A = np.array([[ .1, .2], [1.0, .9], [.8,  .2],  [.1, .1], [1.0, .9]], dtype=np.float32)

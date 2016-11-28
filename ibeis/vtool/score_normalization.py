@@ -241,7 +241,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         encoder.support['y'] = y
         encoder.support['attrs'] = {} if attrs is None else attrs
         encoder.learn_probabilities(verbose=verbose)
-        encoder.learn_threshold(verbose=verbose)
+        try:
+            encoder.learn_threshold(verbose=verbose)
+        except Exception as ex:
+            ut.printex(ex, 'could not learn thresh', iswarning=True)
 
     @staticmethod
     # @ut.apply_docstr(flatten_scores)
@@ -1000,14 +1003,22 @@ def learn_score_normalization(tp_support, tn_support, gridsize=1024, adjust=8,
         print('[sn.pre]stats:p_score_given_tp = ' + ut.get_stats_str(p_score_given_tp, use_nan=True, precision=5))
         #print('stats.tn_support = ' + ut.get_stats_str(tn_support, use_nan=True))
 
+    problems = []
+
     try:
         assert not np.any(np.isnan(p_score_given_tp)), ('Need more positive support')
-        assert not np.any(np.isnan(p_score_given_tn)), ('Need more negative support')
     except AssertionError as ex:  # NOQA
         print('[sn.pre]stats:tpsupport = ' + ut.get_stats_str(score_tp_pdf.support, use_nan=True, precision=5))
-        print('[sn.pre]stats:tnsupport = ' + ut.get_stats_str(score_tn_pdf.support, use_nan=True, precision=5))
+        problems += [str(ex)]
 
-        raise
+    try:
+        assert not np.any(np.isnan(p_score_given_tn)), ('Need more negative support')
+    except AssertionError as ex:  # NOQA
+        print('[sn.pre]stats:tnsupport = ' + ut.get_stats_str(score_tn_pdf.support, use_nan=True, precision=5))
+        problems += [str(ex)]
+
+    if problems:
+        raise AssertionError(', '.join(problems))
 
     if True:
         # Make sure we still have probability functions
@@ -1633,15 +1644,32 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
     import utool as ut
     import numpy as np
     import statsmodels.nonparametric.kde
+    import statsmodels.nonparametric.bandwidths
     #import scipy.stats as spstats
     #import statsmodels
     data = data.astype(np.float64)  # HACK
+
+    if True:
+        # Ensure that a non-zero bandwidth is chosen
+        # bw_choices = ['scott', 'silverman', 'normal_reference']
+        # bw = bw_choices[1]
+        for bw in ['silverman', 'scott']:
+            bw_value = statsmodels.nonparametric.bandwidths.select_bandwidth(data, bw, None)
+            if bw_value > 0:
+                break
+        if bw_value == 0:
+            sorted_diffs = np.diff(sorted(data))
+            nonzero_diffs = sorted_diffs[sorted_diffs > 0]
+            if len(nonzero_diffs) > 0:
+                median_diff = np.median(nonzero_diffs)
+                bw_value = np.sqrt(median_diff)
+            else:
+                # use a very small value
+                bw_value = 1e-9
     try:
         data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
-        bw_choices = ['scott', 'silverman', 'normal_reference']
-        bw = bw_choices[1]
         fitkw = dict(kernel='gau',
-                     bw=bw,
+                     bw=bw_value,
                      fft=True,
                      weights=None,
                      adjust=adjust,
@@ -1649,14 +1677,11 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
                      gridsize=gridsize,
                      clip=(-np.inf, np.inf),)
         data_pdf.fit(**fitkw)
-        #density = data_pdf.density
-    #try:
-    #    data_pdf = spstats.gaussian_kde(data, bw_factor)
-    #    data_pdf.covariance_factor = bw_factor
     except Exception as ex:
         ut.printex(ex, '! Exception while estimating kernel density',
                    keys=['data'])
         raise
+
     return data_pdf
 
 
