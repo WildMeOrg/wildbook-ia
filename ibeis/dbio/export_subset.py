@@ -51,14 +51,14 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     FIXME: annotmatch table
 
     CommandLine:
-        python -m ibeis merge_databases
+        python -m ibeis --test-merge_databases
 
-        python -m export_subset --test-merge_databases:0
-        python -m export_subset --test-merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
-        python -m export_subset --test-merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
+        python -m ibeis merge_databases:0
+        python -m ibeis merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
+        python -m ibeis merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
 
-        python -m export_subset --test-merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1
-        python -m export_subset --test-merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1
+        python -m ibeis merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1
+        python -m ibeis merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -117,7 +117,7 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     error_tables = [
         'imageset_image_relationship',
         'annotgroup_annotation_relationship',
-        'annotmatch',
+        # 'annotmatch',
     ]
     ignore_tables += error_tables
     ibs_dst.db.merge_databases_new(

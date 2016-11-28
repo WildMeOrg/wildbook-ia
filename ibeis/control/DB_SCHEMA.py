@@ -1414,6 +1414,16 @@ def update_1_5_4(db, ibs=None):
     ))
 
 
+def update_1_5_5(db, ibs=None):
+    # db.modify_table(const.ANNOTMATCH_TABLE)
+
+    # Enable foreign keys and indexed tables
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (14, 'annot_toggle_multiple',        'INTEGER DEFAULT NULL', None),
+    ))
+    pass
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1457,6 +1467,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.2',    (None,                 update_1_5_2,       post_1_5_2          )),
     ('1.5.3',    (None,                 update_1_5_3,       None                )),
     ('1.5.4',    (None,                 update_1_5_4,       None                )),
+    # ('1.5.5',    (None,                 update_1_5_5,       None                )),
 ])
 """
 SeeAlso:
@@ -1559,6 +1570,25 @@ def autogen_db_schema():
     schema_spec = DB_SCHEMA
     db = _sql_helpers.autogenerate_nth_schema_version(schema_spec, n=n)
     return db
+
+
+def dump_schema_sql():
+    """
+    CommandLine:
+        python -m ibeis.control.DB_SCHEMA dump_schema_sql
+    """
+    import dtool as dt
+    from ibeis.control import DB_SCHEMA_CURRENT
+    db = dt.SQLDatabaseController(fpath=':memory:', simple=True)
+    DB_SCHEMA_CURRENT.update_current(db)
+    dump_str = db.dump_to_string()
+    print(dump_str)
+
+    for tablename in db.get_table_names():
+        autogen_dict = db.get_table_autogen_dict(tablename)
+        coldef_list = autogen_dict['coldef_list']
+        str_ = db._make_add_table_sqlstr(tablename, coldef_list=coldef_list, sep='\n    ')
+        print(str_)
 
 
 if __name__ == '__main__':
