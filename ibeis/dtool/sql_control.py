@@ -2237,94 +2237,96 @@ class SQLDatabaseController(object):
             >>> print('dependsmap = %s' % (ut.repr2(dependsmap, nl=True),))
             >>> print('L___')
         """
-        all_column_names = db.get_column_names(tablename)
-        isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.compress(all_column_names, isvalid_list)
-        column_list = [db.get_column(tablename, name)
-                       for name in column_names if name not in exclude_columns]
+        import utool
+        with utool.embed_on_exception_context:
+            all_column_names = db.get_column_names(tablename)
+            isvalid_list = [name not in exclude_columns for name in all_column_names]
+            column_names = ut.compress(all_column_names, isvalid_list)
+            column_list = [db.get_column(tablename, name)
+                           for name in column_names if name not in exclude_columns]
 
-        extern_colx_list = []
-        extern_tablename_list  = []
-        extern_superkey_colname_list  = []
-        extern_superkey_colval_list = []
-        extern_primarycolnames_list = []
-        dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
-        if dependsmap is not None:
-            for colname, dependtup in six.iteritems(dependsmap):
-                assert len(dependtup) == 3, 'must be 3 for now'
-                (extern_tablename, extern_primary_colnames, extern_superkey_colnames) = dependtup
-                if extern_primary_colnames is None:
-                    # INFER PRIMARY COLNAMES
-                    extern_primary_colnames = db.get_table_primarykey_colnames(extern_tablename)
-                if extern_superkey_colnames is None:
-                    def get_standard_superkey_colnames(tablename_):
-                        try:
-                            # FIXME: Rectify duplicate code
-                            superkeys = db.get_table_superkey_colnames(tablename_)
-                            if len(superkeys) > 1:
-                                #primary_superkey =
-                                #db.get_metadata_val(tablename_ +
-                                #                    '_primary_superkey',
-                                #                    eval_=True)
-                                primary_superkey = db.get_metadata_val(
-                                    tablename_ + '_primary_superkey', eval_=True)
-                                db.get_table_superkey_colnames('contributors')
-                                if primary_superkey is None:
-                                    raise AssertionError(
-                                        ('tablename_=%r has multiple superkeys=%r, '
-                                         'but no primary superkey.'
-                                         ' A primary superkey is required') % (
-                                             tablename_, superkeys))
+            extern_colx_list = []
+            extern_tablename_list  = []
+            extern_superkey_colname_list  = []
+            extern_superkey_colval_list = []
+            extern_primarycolnames_list = []
+            dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
+            if dependsmap is not None:
+                for colname, dependtup in six.iteritems(dependsmap):
+                    assert len(dependtup) == 3, 'must be 3 for now'
+                    (extern_tablename, extern_primary_colnames, extern_superkey_colnames) = dependtup
+                    if extern_primary_colnames is None:
+                        # INFER PRIMARY COLNAMES
+                        extern_primary_colnames = db.get_table_primarykey_colnames(extern_tablename)
+                    if extern_superkey_colnames is None:
+                        def get_standard_superkey_colnames(tablename_):
+                            try:
+                                # FIXME: Rectify duplicate code
+                                superkeys = db.get_table_superkey_colnames(tablename_)
+                                if len(superkeys) > 1:
+                                    #primary_superkey =
+                                    #db.get_metadata_val(tablename_ +
+                                    #                    '_primary_superkey',
+                                    #                    eval_=True)
+                                    primary_superkey = db.get_metadata_val(
+                                        tablename_ + '_primary_superkey', eval_=True)
+                                    db.get_table_superkey_colnames('contributors')
+                                    if primary_superkey is None:
+                                        raise AssertionError(
+                                            ('tablename_=%r has multiple superkeys=%r, '
+                                             'but no primary superkey.'
+                                             ' A primary superkey is required') % (
+                                                 tablename_, superkeys))
+                                    else:
+                                        index = superkeys.index(primary_superkey)
+                                        superkey_colnames = superkeys[index]
+                                elif len(superkeys) == 1:
+                                    superkey_colnames = superkeys[0]
                                 else:
-                                    index = superkeys.index(primary_superkey)
-                                    superkey_colnames = superkeys[index]
-                            elif len(superkeys) == 1:
-                                superkey_colnames = superkeys[0]
-                            else:
-                                print(db.get_table_csv_header(tablename_))
-                                db.print_table_csv('metadata', exclude_columns=['metadata_value'])
-                                # Execute hack to fix contributor tables
-                                if tablename_ == 'contributors':
-                                    # hack to fix contributors table
-                                    constraint_str = db.get_metadata_val(tablename_ + '_constraint')
-                                    parse_result = parse.parse(
-                                        'CONSTRAINT superkey UNIQUE ({superkey})',
-                                        constraint_str)
-                                    superkey = parse_result['superkey']
-                                    assert superkey == 'contributor_tag', 'hack failed1'
-                                    assert None is db.get_metadata_val('contributors_superkey'), (
-                                        'hack failed2')
-                                    if True:
-                                        db.set_metadata_val('contributors_superkeys',
-                                                            "[('" + superkey + "',)]")
-                                raise NotImplementedError(
-                                    'Cannot Handle: len(superkeys) == 0. '
-                                    'Probably a degenerate case')
+                                    print(db.get_table_csv_header(tablename_))
+                                    db.print_table_csv('metadata', exclude_columns=['metadata_value'])
+                                    # Execute hack to fix contributor tables
+                                    if tablename_ == 'contributors':
+                                        # hack to fix contributors table
+                                        constraint_str = db.get_metadata_val(tablename_ + '_constraint')
+                                        parse_result = parse.parse(
+                                            'CONSTRAINT superkey UNIQUE ({superkey})',
+                                            constraint_str)
+                                        superkey = parse_result['superkey']
+                                        assert superkey == 'contributor_tag', 'hack failed1'
+                                        assert None is db.get_metadata_val('contributors_superkey'), (
+                                            'hack failed2')
+                                        if True:
+                                            db.set_metadata_val('contributors_superkeys',
+                                                                "[('" + superkey + "',)]")
+                                    raise NotImplementedError(
+                                        'Cannot Handle: len(superkeys) == 0. '
+                                        'Probably a degenerate case')
+                            except Exception as ex:
+                                ut.printex(ex, 'Error Getting superkey colnames',
+                                           keys=['tablename_', 'superkeys'])
+                                raise
+                            return superkey_colnames
+                        try:
+                            extern_superkey_colnames = get_standard_superkey_colnames(extern_tablename)
                         except Exception as ex:
-                            ut.printex(ex, 'Error Getting superkey colnames',
-                                       keys=['tablename_', 'superkeys'])
+                            ut.printex(ex, 'Error Building Transferdata',
+                                       keys=['tablename_', 'dependtup'])
                             raise
-                        return superkey_colnames
-                    try:
-                        extern_superkey_colnames = get_standard_superkey_colnames(extern_tablename)
-                    except Exception as ex:
-                        ut.printex(ex, 'Error Building Transferdata',
-                                   keys=['tablename_', 'dependtup'])
-                        raise
-                    # INFER SUPERKEY COLNAMES
-                colx = ut.listfind(column_names, colname)
-                extern_rowids = column_list[colx]
-                superkey_column = db.get(extern_tablename, extern_superkey_colnames, extern_rowids)
-                extern_colx_list.append(colx)
-                extern_superkey_colname_list.append(extern_superkey_colnames)
-                extern_superkey_colval_list.append(superkey_column)
-                extern_tablename_list.append(extern_tablename)
-                extern_primarycolnames_list.append(extern_primary_colnames)
+                        # INFER SUPERKEY COLNAMES
+                    colx = ut.listfind(column_names, colname)
+                    extern_rowids = column_list[colx]
+                    superkey_column = db.get(extern_tablename, extern_superkey_colnames, extern_rowids)
+                    extern_colx_list.append(colx)
+                    extern_superkey_colname_list.append(extern_superkey_colnames)
+                    extern_superkey_colval_list.append(superkey_column)
+                    extern_tablename_list.append(extern_tablename)
+                    extern_primarycolnames_list.append(extern_primary_colnames)
 
-        new_transferdata = (column_list, column_names, extern_colx_list,
-                            extern_superkey_colname_list,
-                            extern_superkey_colval_list, extern_tablename_list,
-                            extern_primarycolnames_list)
+            new_transferdata = (column_list, column_names, extern_colx_list,
+                                extern_superkey_colname_list,
+                                extern_superkey_colval_list, extern_tablename_list,
+                                extern_primarycolnames_list)
         return new_transferdata
 
     #def import_table_new_transferdata(tablename, new_transferdata):
