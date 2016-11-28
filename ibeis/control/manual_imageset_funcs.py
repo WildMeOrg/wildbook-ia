@@ -109,15 +109,14 @@ def get_imageset_isoccurrence(ibs, imgsetid_list):
 @register_ibs_method
 @accessor_decors.adder
 @register_api('/api/imageset/', methods=['POST'])
-def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None, config_rowid_list=None,
-                   notes_list=None):
+def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None,
+                  notes_list=None):
     r"""
     Adds a list of imagesets.
 
     Args:
         imagesettext_list (list):
         imageset_uuid_list (list):
-        config_rowid_list (list):
         notes_list (list):
 
     Returns:
@@ -134,10 +133,8 @@ def add_imagesets(ibs, imagesettext_list, imageset_uuid_list=None, config_rowid_
         notes_list = [''] * len(imagesettext_list)
     if imageset_uuid_list is None:
         imageset_uuid_list = [uuid.uuid4() for _ in range(len(imagesettext_list))]
-    if config_rowid_list is None:
-        config_rowid_list = [ibs.MANUAL_CONFIGID] * len(imagesettext_list)
-    colnames = ['imageset_text', 'imageset_uuid', 'config_rowid', 'imageset_note']
-    params_iter = zip(imagesettext_list, imageset_uuid_list, config_rowid_list, notes_list)
+    colnames = ['imageset_text', 'imageset_uuid', 'imageset_note']
+    params_iter = zip(imagesettext_list, imageset_uuid_list, notes_list)
     get_rowid_from_superkey = functools.partial(ibs.get_imageset_imgsetids_from_text, ensure=False)
     imgsetid_list = ibs.db.add_cleanly(const.IMAGESET_TABLE, colnames, params_iter, get_rowid_from_superkey)
     return imgsetid_list
@@ -663,19 +660,6 @@ def get_imageset_uuid(ibs, imgsetid_list):
     # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
     encuuid_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_uuid',), imgsetid_list, id_colname='imageset_rowid')
     return encuuid_list
-
-
-@register_ibs_method
-@accessor_decors.getter_1to1
-# @register_api('/api/imageset/configid/', methods=['GET'])
-def get_imageset_configid(ibs, imgsetid_list):
-    r"""
-    Returns:
-        list_ (list): config_rowid of each imgsetid in imgsetid_list
-    """
-    # FIXME: MAKE SQL-METHOD FOR NON-ROWID GETTERS
-    config_rowid_list = ibs.db.get(const.IMAGESET_TABLE, ('config_rowid',), imgsetid_list, id_colname='imageset_rowid')
-    return config_rowid_list
 
 
 @register_ibs_method

@@ -52,7 +52,6 @@ def parse_args():
         parser2.add_flag(('--cmd', '--ipy'), help='Runs in IPython mode')
         parser2.add_flag(('--all-cases', '--all'))
         parser2.add_flag(('--all-gt-cases', '--allgt'), help='chooses all groundtruthed annotations to be queried')
-        parser2.add_flag(('--all-hard-cases', '--allhard'))  # all_hard_cases
         parser2.add_flag(('--all-singleton-cases', '--allsingle'))
         parser2.add_ints(('--qindex', '-qx', '--index'), None, help='test only these query indices. Out of bounds errors are clipped')
         parser2.add_ints(('--dindex', '-dx'), None, help='test only these database indices. . Out of bounds errors are clipped')
@@ -141,8 +140,6 @@ def parse_args():
         parser2.add_int(('--select-aid', '--aid'), help='view col')
         parser2.add_ints(('--query-aid', '--query'), help='query aid(s)')
         parser2.add_flag(('--edit-notes'), help='edits database notes')
-        parser2.add_str(('--set-notes'), help='overwrites database notes')
-        parser2.add_ints('--set-aids-as-hard', help='set hard tag on selected aids')
         parser2.add_str(('--set-all-species'), help='careful. overwrites all species info.')
         parser2.add_flag(('--dump-schema', '--print-schema'), help='dumps schema to stdout')
         parser2.add_flag(('--delete-cache'), help='deletes most of the cache')

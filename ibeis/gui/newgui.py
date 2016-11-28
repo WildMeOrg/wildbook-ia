@@ -20,8 +20,8 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, filter
 from os.path import isdir
 import sys
-from ibeis import constants as const
 import functools
+import utool as ut
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
@@ -29,7 +29,8 @@ from guitool import slot_, ChangeLayoutContext
 # from guitool import BlockContext
 # from guitool import checks_qt_error
 import guitool as gt
-from ibeis.other import ibsfuncs
+import plottool as pt
+from plottool import color_funcs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six
@@ -41,9 +42,7 @@ from ibeis.gui.models_and_views import (
     IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView,
     ImagesetTableModel, ImagesetTableView, IBEISTableWidget,
     IBEISTreeWidget, ImagesetTableWidget)
-from plottool import color_funcs
-import utool as ut
-import plottool as pt
+from ibeis import constants as const
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -693,7 +692,26 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             with ut.Timer('make headers', verbose=VERBOSE_GUI):
                 header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
             ibswgt.declare_tup = declare_tup
-            title = ibsfuncs.get_title(ibswgt.ibs)
+
+            def get_title(ibs):
+                """
+                DEPRICATE OR MOVE
+                """
+                if ibs is None:
+                    title = 'IBEIS - No Database Directory Open'
+                elif ibs.dbdir is None:
+                    title = 'IBEIS - !! INVALID DATABASE !!'
+                else:
+                    dbdir = ibs.get_dbdir()
+                    dbname = ibs.get_dbname()
+                    title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
+                    wb_target = ibs.const.WILDBOOK_TARGET
+                    #params.args.wildbook_target
+                    if wb_target is not None:
+                        title = '%s - Wildbook Target = %s' % (title, wb_target)
+                return title
+
+            title = get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')

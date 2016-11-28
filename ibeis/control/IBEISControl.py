@@ -194,7 +194,8 @@ def request_IBEISController(
         manager.start()
         ibs = manager.IBEISController(
             dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-            request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
+            request_dbversion=request_dbversion,
+            request_stagingversion=request_stagingversion)
         return ibs
 
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
@@ -211,7 +212,8 @@ def request_IBEISController(
         else:
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-                request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
+                request_dbversion=request_dbversion,
+                request_stagingversion=request_stagingversion)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
@@ -257,7 +259,8 @@ class IBEISController(BASE_CLASS):
 
     @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
-                 request_dbversion=None, request_stagingversion=None, force_serial=None):
+                 request_dbversion=None, request_stagingversion=None,
+                 force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
@@ -291,7 +294,8 @@ class IBEISController(BASE_CLASS):
         # _send_wildbook_request will do nothing if no wildbook address is
         # specified
         ibs._send_wildbook_request(wbaddr)
-        ibs._init_sql(request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
+        ibs._init_sql(request_dbversion=request_dbversion,
+                      request_stagingversion=request_stagingversion)
         ibs._init_config()
         if not ut.get_argflag('--noclean') and not ibs.readonly:
             # ibs._init_burned_in_species()
@@ -481,8 +485,8 @@ class IBEISController(BASE_CLASS):
         # ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID
         # ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID
 
-        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
-        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
+        # ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
+        # ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
         # duct_tape.fix_nulled_yaws(ibs)
@@ -556,14 +560,14 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.5.4'
+            ibs.db_version_expected = '1.5.5'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
             new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
-                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.4')
+                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.5')
             ibs.db_version_expected = new_version
             ibs.sqldb_fname = new_fname
         if sqldb_fpath is None:

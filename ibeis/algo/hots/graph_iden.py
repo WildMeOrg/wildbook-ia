@@ -885,6 +885,10 @@ class _AnnotInfrFeedback(object):
         1: 'match',
         2: 'notcomp',
         3: 'unreviewed',
+
+        4: 'nomatch-photobomb',
+        5: 'match-photobomb',
+        6: 'notcomp-photobomb',
     }
 
     @profile
@@ -1637,7 +1641,7 @@ class _AnnotInfrRelabel(object):
             graph = infr.graph
         # Make a graph where connections do indicate same names
         reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
-        graph2 = infr.graph_cls()
+        graph2 = infr._graph_cls()
         keep_edges = [key for key, val in reviewed_states.items()
                       if val == 'match']
         graph2.add_nodes_from(graph.nodes())
@@ -1899,29 +1903,20 @@ class AnnotInference(ut.NiceRepr,
     """
 
     CUT_WEIGHT_KEY = 'cut_weight'
-    graph_cls = nx.Graph
-    # graph_cls = nx.DiGraph
+    _graph_cls = nx.Graph
+    # _graph_cls = nx.DiGraph
 
     def __init__(infr, ibs, aids, nids=None, autoinit=False, verbose=False):
         infr.verbose = verbose
         if infr.verbose >= 1:
             print('[infr] __init__')
         infr.ibs = ibs
-        infr.aids = aids
-        infr.aids_set = set(infr.aids)
-        if nids is None:
-            if ibs is None:
-                nids = [-aid for aid in aids]
-            else:
-                nids = ibs.get_annot_nids(aids)
-        if ut.isscalar(nids):
-            nids = [nids] * len(aids)
-        infr.orig_name_labels = nids
-        #if current_nids is None:
-        #    current_nids = nids
-        assert len(aids) == len(nids), 'must correspond'
-        #assert len(aids) == len(current_nids)
+        infr.aids = None
+        infr.aids_set = None
+        infr.orig_name_labels = None
         infr.graph = None
+        infr.aid_to_node = None
+        infr.node_to_aid = None
         infr.user_feedback = ut.ddict(list)
         infr.thresh = None
         infr.cm_list = None
@@ -1932,6 +1927,7 @@ class AnnotInference(ut.NiceRepr,
             'pos_jump_thresh': None,
             'neg_jump_thresh': None,
         }
+        infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
 
@@ -1956,7 +1952,7 @@ class AnnotInference(ut.NiceRepr,
         nids = [-a for a in aids]
         infr = cls(None, aids, nids, autoinit=False)
         infr.graph = G
-        infr.initialize_graph(G)
+        infr.update_node_attributes(G)
         return infr
 
     @classmethod
@@ -1980,31 +1976,81 @@ class AnnotInference(ut.NiceRepr,
             return 'nAids=%r, nEdges=%r' % (len(infr.aids),
                                               infr.graph.number_of_edges())
 
-    def initialize_graph(infr, graph=None, update_nids=False):
-        if infr.verbose >= 1:
-            print('[infr] initialize_graph')
-        if update_nids:
+    def _rectify_nids(infr, aids, nids):
+        if nids is None:
             if infr.ibs is None:
-                nids = [-aid for aid in infr.aids]
+                nids = [-aid for aid in aids]
             else:
-                nids = infr.ibs.get_annot_nids(infr.aids)
-            infr.orig_name_labels = nids
-        if graph is None:
-            infr.graph = infr.graph_cls()
-            infr.graph.add_nodes_from(infr.aids)
-        else:
-            infr.graph = graph
+                nids = infr.ibs.get_annot_nids(aids)
+        elif ut.isscalar(nids):
+            nids = [nids] * len(aids)
+        return nids
 
-        node_to_aid = {aid: aid for aid in infr.aids}
-        infr.node_to_aid = node_to_aid
-        node_to_nid = {aid: nid for aid, nid in
-                       zip(infr.aids, infr.orig_name_labels)}
-        assert len(node_to_nid) == len(node_to_aid), '%r - %r' % (
-            len(node_to_nid), len(node_to_aid))
+    def add_aids(infr, aids, nids=None):
+        """
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden add_aids --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> aids_ = [1, 2, 3, 4, 5, 6, 7, 9]
+            >>> infr = AnnotInference(ibs=None, aids=aids_, autoinit=True)
+            >>> aids = [2, 22, 7, 9, 8]
+            >>> nids = None
+            >>> infr.add_aids(aids, nids)
+            >>> result = infr.aids
+            >>> print(result)
+            >>> assert len(infr.graph.node) == len(infr.aids)
+            [1, 2, 3, 4, 5, 6, 7, 9, 22, 8]
+        """
+        nids = infr._rectify_nids(aids, nids)
+        assert len(aids) == len(nids), 'must correspond'
+        if infr.aids is None:
+            nids = infr._rectify_nids(aids, nids)
+            # Set object attributes
+            infr.aids = aids
+            infr.aids_set = set(infr.aids)
+            infr.orig_name_labels = nids
+        else:
+            aid_to_idx = ut.make_index_lookup(infr.aids)
+            orig_idxs = ut.dict_take(aid_to_idx, aids, None)
+            new_flags = ut.flag_None_items(orig_idxs)
+            new_aids = ut.compress(aids, new_flags)
+            new_nids = ut.compress(nids, new_flags)
+            # Extend object attributes
+            infr.aids.extend(new_aids)
+            infr.orig_name_labels.extend(new_nids)
+            infr.aids_set.update(new_aids)
+            infr.update_node_attributes(new_aids, new_nids)
+
+    def update_node_attributes(infr, aids=None, nids=None):
+        if aids is None:
+            aids = infr.aids
+            nids = infr.orig_name_labels
+            infr.node_to_aid = {}
+            infr.aid_to_node = {}
+        node_to_aid = {aid: aid for aid in aids}
+        aid_to_node = ut.invert_dict(node_to_aid)
+        node_to_nid = {aid: nid for aid, nid in zip(aids, nids)}
+        ut.assert_eq_len(node_to_nid, node_to_aid)
+        infr.graph.add_nodes_from(aids)
         infr.set_node_attrs('aid', node_to_aid)
         infr.set_node_attrs('name_label', node_to_nid)
         infr.set_node_attrs('orig_name_label', node_to_nid)
-        infr.aid_to_node = ut.invert_dict(infr.node_to_aid)
+        infr.node_to_aid.update(node_to_aid)
+        infr.aid_to_node.update(aid_to_node)
+
+    def reinit_name_labels(infr):
+        """ Resets to empty or IBEIS de-facto labels """
+        nids = infr._rectify_nids(infr.aids, None)
+        infr.orig_name_labels = nids
+
+    def initialize_graph(infr):
+        if infr.verbose >= 1:
+            print('[infr] initialize_graph')
+        infr.graph = infr._graph_cls()
+        infr.update_node_attributes()
 
     @profile
     def apply_weights(infr):

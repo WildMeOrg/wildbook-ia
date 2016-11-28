@@ -262,22 +262,9 @@ def post_1_2_0(db, ibs=None):
         #
         #ANNOT_ROWID             = 'annot_rowid'
         ANNOTATION_TABLE        = 'annotations'
-        ANNOT_SEMANTIC_UUID     = 'annot_semantic_uuid'
         NAME_ROWID              = 'name_rowid'
         SPECIES_ROWID           = 'species_rowid'
         AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
-
-        def set_annot_semantic_uuids(ibs, aid_list, annot_semantic_uuid_list):
-            id_iter = aid_list
-            colnames = (ANNOT_SEMANTIC_UUID,)
-            ibs.db.set(ANNOTATION_TABLE, colnames,
-                       annot_semantic_uuid_list, id_iter)
-
-        def set_annot_visual_uuids(ibs, aid_list, annot_visual_uuid_list):
-            id_iter = aid_list
-            colnames = (ANNOT_VISUAL_UUID,)
-            ibs.db.set(ANNOTATION_TABLE, colnames,
-                       annot_visual_uuid_list, id_iter)
 
         def set_annot_species_rowids(ibs, aid_list, species_rowid_list):
             id_iter = aid_list
@@ -1415,14 +1402,17 @@ def update_1_5_4(db, ibs=None):
 
 
 def update_1_5_5(db, ibs=None):
-    # db.modify_table(const.ANNOTMATCH_TABLE)
-
-    # Enable foreign keys and indexed tables
-    db.modify_table(const.ANNOTATION_TABLE, (
-        (14, 'annot_toggle_multiple',        'INTEGER DEFAULT NULL', None),
-    ))
-    pass
-
+    # Remove the config table
+    db.drop_table('configs')
+    db.modify_table('image_lblimage_relationship',
+                    drop_columns=['config_rowid'],
+                    superkeys=[('image_rowid', 'lblimage_rowid')])
+    db.modify_table('annotation_lblannot_relationship',
+                    drop_columns=['config_rowid'],
+                    superkeys=[('annot_rowid', 'lblannot_rowid')])
+    db.modify_table('imagesets',
+                    drop_columns=['config_rowid'],
+                    dependsmap={})
 
 # ========================
 # Valid Versions & Mapping
@@ -1467,7 +1457,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.2',    (None,                 update_1_5_2,       post_1_5_2          )),
     ('1.5.3',    (None,                 update_1_5_3,       None                )),
     ('1.5.4',    (None,                 update_1_5_4,       None                )),
-    # ('1.5.5',    (None,                 update_1_5_5,       None                )),
+    ('1.5.5',    (None,                 update_1_5_5,       None                )),
 ])
 """
 SeeAlso:

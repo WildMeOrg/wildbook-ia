@@ -643,7 +643,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
             infr.reset_feedback()
-            infr.initialize_graph(update_nids=True)
+            infr.reinit_name_labels()
+            infr.initialize_graph()
             if self.graph_widget is not None:
                 self.graph_widget.set_pin_state(True)
             infr.review_dummy_edges()

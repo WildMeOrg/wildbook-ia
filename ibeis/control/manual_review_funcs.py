@@ -44,7 +44,6 @@ def _get_all_review_rowids(ibs):
         list_ (list): all nids of known animals
         (does not include unknown names)
     """
-    #all_known_review_rowids = ibs._get_all_known_lblannot_rowids(const.review_KEY)
     all_known_review_rowids = ibs.staging.get_all_rowids(const.REVIEW_TABLE)
     return all_known_review_rowids
 

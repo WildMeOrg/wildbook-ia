@@ -36,11 +36,89 @@ class VsOneAssignConfig(dt.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
+def make_multiclass_labels(ibs, aid_pairs, simple_scores):
+    # Create the multi-label target
+    # ibs = qreq_.ibs
+    aids1 = aid_pairs.T[0]
+    aids2 = aid_pairs.T[1]
+    nids1 = ibs.get_annot_nids(aids1)
+    nids2 = ibs.get_annot_nids(aids2)
+    is_same = nids1 == nids2
+    am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+    is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+    # y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+    key = 'sum(weighted_ratio)'
+    if key not in simple_scores:
+        key = 'sum(ratio)'
+    scores = simple_scores[key].values
+    yaws1 = np.array(ibs.get_annot_yaws(aids1))
+    yaws2 = np.array(ibs.get_annot_yaws(aids2))
+    dists = vt.ori_distance(yaws1, yaws2)
+    tau = np.pi * 2
+    # Take a guess as to which annots are not comparable
+    is_notcomp = np.logical_and(
+        scores < .1,
+        dists > tau / 8.1
+    )
+    is_match = np.logical_and(is_same, ~is_notcomp)
+    is_nomatch = np.logical_and(~is_same, ~is_notcomp)
+    is_nomatch_pb = np.logical_and(is_match, is_pb)
+    is_match_pb = np.logical_and(is_nomatch, is_pb)
+    is_notcomp_pb = np.logical_and(is_notcomp, is_pb)
+
+    y = np.empty(len(aid_pairs), dtype=np.int32)
+    import ibeis
+    truth_to_text = ibeis.AnnotInference.truth_texts
+    text_to_truth = ut.invert_dict(truth_to_text)
+    y[is_nomatch] = text_to_truth['nomatch']
+    y[is_match] = text_to_truth['match']
+    y[is_notcomp] = text_to_truth['notcomp']
+
+    y[is_nomatch_pb] = text_to_truth['nomatch-photobomb']
+    y[is_match_pb] = text_to_truth['match-photobomb']
+    y[is_notcomp_pb] = text_to_truth['notcomp-photobomb']
+
+    from sklearn.preprocessing import LabelEncoder, label_binarize
+    encoder = LabelEncoder().fit(y)
+    y_enc = encoder.transform(y)
+    y_bin = label_binarize(y_enc, np.arange(len(encoder.classes_)))
+
+    # encoder.classes_ = np.array(ut.take(truth_to_text, encoder.classes_))
+    # encoder.transform(['nomatch'])
+    # convert simple scores to multiclass scores
+    def _to_multiclass_score(scores):
+        import vtool as vt
+        normer = vt.ScoreNormalizer(adjust=8, gridsize=256, monotonize=True)
+        normer.fit(scores, y=is_same)
+        normed_scores = normer.normalize_scores(scores)
+        # Create a dimension for each class
+        # but only populate two of the dimensions
+        raw_classes = ut.take(text_to_truth, ['nomatch', 'match'])
+        class_idxs = encoder.transform(raw_classes)
+        pred = np.zeros((len(scores), len(encoder.classes_)))
+        pred[:, class_idxs[0]] = 1 - normed_scores
+        pred[:, class_idxs[1]] = normed_scores
+        return pred
+
+    simple_scores2 = ut.map_vals(_to_multiclass_score, simple_scores)
+    # preds = simple_scores2.values()[0]
+    # sklearn.metrics.roc_auc_score(y2, preds)
+    classes_ = encoder.classes_
+    class_names = ut.take(truth_to_text, classes_)
+    return class_names, classes_, y_enc, y_bin, simple_scores2
+
+
+# def multiclass_roc():
+#     pass
+
+
 @profile
 def train_pairwise_rf():
     """
     CommandLine:
         python -m ibeis.scripts.script_vsone train_pairwise_rf
+        python -m ibeis.scripts.script_vsone train_pairwise_rf --dbdir PZ_PB_RF_TRAIN --show
         python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_MTEST --show
         python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_Master1 --show
         python -m ibeis.scripts.script_vsone train_pairwise_rf --db GZ_Master1 --show
@@ -86,25 +164,32 @@ def train_pairwise_rf():
         hyper_params.vsone_assign['weight'] = None
 
     data = bigcache_features(qreq_, hyper_params)
-    simple_scores, X_dict, y, match = data
+    aid_pairs, simple_scores, X_dict, y, match = data
+
+    if True:
+        ibs = qreq_.ibs
+        class_names, classes_, y_enc, y_bin, simple_scores2 = make_multiclass_labels(
+            ibs, aid_pairs, simple_scores)
+
     X_dict = X_dict.copy()
-    class_hist = ut.dict_hist(y)
+    class_hist = ut.dict_hist(y_enc)
 
     print('Building pairwise classifier')
-    print('hist(y) = ' + ut.repr4(class_hist))
+    print('hist(y_enc) = ' + ut.repr4(class_hist))
     X = X_dict['learn(all)']
 
     if False:
         # Remove anything 1vM didn't get
         mask = (simple_scores['score_lnbnn_1vM'] > 0).values
-        y = y[mask]
+        y_enc = y_enc[mask]
+        y_bin = y_bin[mask]
         simple_scores = simple_scores[mask]
-        class_hist = ut.dict_hist(y)
-        print('hist(y) = ' + ut.repr4(class_hist))
+        class_hist = ut.dict_hist(y_enc)
+        print('hist(y_enc) = ' + ut.repr4(class_hist))
         X = X[mask]
         X_dict['learn(all)'] = X
 
-    if True:
+    if False:
         print('Reducing dataset size for class balance')
         # Find the data with the most null / 0 values
         # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
@@ -143,19 +228,11 @@ def train_pairwise_rf():
     measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
     if 1:
         # Use only local features
-        # sorters_ignore = ['match_dist', 'ratio']
         cols = self.select_columns([
             ('measure_type', '==', 'local'),
             ('local_sorter', 'in', ['weighted_ratio']),
             ('local_measure', 'not in', measures_ignore),
-            # ('local_rank', '<=', 22),
-            # ('local_rank', 'in', [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
-            # ('local_rank', 'in', [0, 5, 10, 15, 20]),
-            # ('local_sorter', 'in', ['weighted_ratio', 'norm_dist', 'lnbnn_norm_dist']),
         ])
-        # cols.update(self.select_columns([
-        #     ('feature', '==', 'sum(weighted_ratio)'),
-        # ]))
         X_dict['learn(local)'] = self.X[sorted(cols)]
 
     if False:
@@ -267,10 +344,10 @@ def train_pairwise_rf():
 
     # del X_dict['learn(all)']
 
-    simple_scores_ = simple_scores.copy()
-    if True:
+    simple_scores_ = simple_scores2.copy()
+    if False:
         # Remove scores that arent worth reporting
-        for k in list(simple_scores_.columns)[:]:
+        for k in list(simple_scores_.keys())[:]:
             ignore = [
                 'sum(norm_x', 'sum(norm_y',
                 'sum(sver_err', 'sum(scale', 'sum(match_dist)',
@@ -284,8 +361,8 @@ def train_pairwise_rf():
 
     # Sort AUC by values
     simple_aucs = pd.DataFrame(dict([
-        (k, [sklearn.metrics.roc_auc_score(y, simple_scores_[k])])
-        for k in simple_scores_.columns
+        (k, [sklearn.metrics.roc_auc_score(y_bin, simple_scores_[k])])
+        for k in simple_scores_.keys()
     ]))
     simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
     simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
@@ -307,7 +384,7 @@ def train_pairwise_rf():
     xvalkw = dict(n_splits=5, shuffle=True,
                   random_state=np.random.RandomState(42))
     skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    skf_iter = skf.split(X=y, y=y)
+    skf_iter = skf.split(X=y_enc, y=y_enc)
 
     import sandbox_utools as sbut
 
@@ -332,9 +409,16 @@ def train_pairwise_rf():
     cv_classifiers = []
     df_results = pd.DataFrame(columns=list(X_dict.keys()))
     prog = ut.ProgIter(list(skf_iter), label='skf')
+
+    # if False:
+    #     for i in range(len(classes_)):
+    #         from sklearn.metrics import roc_curve, auc
+    #         roc_curve(np.append(y_test_bin.T[i], [0, 1]), np.append(clf_probs.T[i], [0, 1]))
+
     for count, (train_idx, test_idx) in enumerate(prog):
-        y_test = y[test_idx]
-        y_train = y[train_idx]
+        y_test_bin = y_bin[test_idx]
+        y_test_enc = y_enc[test_idx]
+        y_train = y_enc[train_idx]
         split_columns = []
         split_aucs = []
         classifiers = {}
@@ -350,7 +434,36 @@ def train_pairwise_rf():
             classifiers[name] = clf
             # Evaluate using on testing data
             clf_probs = clf.predict_proba(X_test)
-            auc_learn = sklearn.metrics.roc_auc_score(y_test, clf_probs.T[1])
+
+            # Ensure at least one example of each class
+            y_test_enc_aug = np.hstack([y_test_enc, np.arange(len(classes_))])
+            y_test_bin_aug = np.vstack([y_test_bin, np.eye(len(classes_))])
+            clf_probs_aug = np.vstack([clf_probs, np.eye(len(classes_))])
+
+            sample_weight = np.ones(len(y_test_enc_aug))
+            # significantly downweight dummy samples
+            sample_weight[-len(classes_)] = 1e-9
+
+            pred_enc = clf_probs_aug.argmax(axis=1)
+
+            p, r, f1, s = sklearn.metrics.precision_recall_fscore_support(
+                y_true=y_test_enc_aug, y_pred=pred_enc,
+                sample_weight=sample_weight,
+            )
+            report = sklearn.metrics.classification_report(
+                y_true=y_test_enc_aug, y_pred=pred_enc,
+                target_names=class_names,
+                sample_weight=sample_weight,
+            )
+            print(report)
+
+            confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc)
+            print('Confusion Matrix:')
+            print(pd.DataFrame(confusion, columns=[m for m in class_names],
+                               index=['gt ' + m for m in class_names]))
+
+            auc_learn = sklearn.metrics.roc_auc_score(y_test_bin_aug, clf_probs_aug)
+
             split_columns.append(name)
             split_aucs.append(auc_learn)
         # Append this folds' classifiers
@@ -597,7 +710,7 @@ def bigcache_features(qreq_, hyper_params):
     features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
     cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
 
-    cacher = ut.Cacher('pairwise_data', cfgstr=cfgstr,
+    cacher = ut.Cacher('pairwise_data_v3', cfgstr=cfgstr,
                        appname='vsone_rf_train', enabled=1)
     data = cacher.tryload()
     if not data:
@@ -630,6 +743,7 @@ def build_features(qreq_, hyper_params):
 
     # setup truth targets
     y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
+    aid_pairs = np.array([(m.annot1['aid'], m.annot2['aid']) for m in matches])
 
     # ---------------
     # Try just using simple scores
@@ -641,9 +755,11 @@ def build_features(qreq_, hyper_params):
         for m in matches])
 
     if True:
-        aid_pairs = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
-        # TEST ORIGINAL LNBNN SCORE SEP
+        # Ensure that all annots exist in the graph
+        expt_aids = ut.unique(ut.flatten(aid_pairs))
+        infr.add_aids(expt_aids)
         infr.graph.add_edges_from(aid_pairs)
+        # TEST ORIGINAL LNBNN SCORE SEP
         infr.apply_match_scores()
         edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
         lnbnn_score_list = [0 if d is None else d.get('score', 0)
@@ -680,7 +796,7 @@ def build_features(qreq_, hyper_params):
         'learn(all)': X_all
     }
 
-    return simple_scores, X_dict, y, match
+    return aid_pairs, simple_scores, X_dict, y, match
 
 
 def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
