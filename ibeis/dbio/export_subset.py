@@ -109,9 +109,9 @@ def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
         'lblannot', 'lblimage', 'image_lblimage_relationship',
         'annotation_lblannot_relationship', 'keys'
     ]
-    ignore_tables += [
-        'contributors', 'party', 'configs'
-    ]
+    # ignore_tables += [
+    #     'contributors', 'party', 'configs'
+    # ]
     # TODO: Fix database merge to allow merging tables with more than one superkey
     # and no primary superkey.
     error_tables = [
