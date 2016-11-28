@@ -43,7 +43,7 @@ def check_merge(ibs_src, ibs_dst):
     print('Merge seems ok...')
 
 
-def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
+def merge_databases(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True):
     """
     New way of merging using the non-hacky sql table merge.
     However, its only workings due to major hacks.
@@ -51,14 +51,14 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True)
     FIXME: annotmatch table
 
     CommandLine:
-        python -m ibeis merge_databases2
+        python -m ibeis merge_databases
 
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 PZ_Master0 --db2 PZ_Master1
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 NNP_Master3 --db2 PZ_Master1
+        python -m export_subset --test-merge_databases:0
+        python -m export_subset --test-merge_databases:0 --db1 PZ_Master0 --db2 PZ_Master1
+        python -m export_subset --test-merge_databases:0 --db1 NNP_Master3 --db2 PZ_Master1
 
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 GZ_ALL --db2 GZ_Master1
-        python -m ibeis.dbio.export_subset --test-merge_databases2:0 --db1 lewa_grevys --db2 GZ_Master1
+        python -m export_subset --test-merge_databases:0 --db1 GZ_ALL --db2 GZ_Master1
+        python -m export_subset --test-merge_databases:0 --db1 lewa_grevys --db2 GZ_Master1
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -80,7 +80,7 @@ def merge_databases2(ibs_src, ibs_dst, rowid_subsets=None, localize_images=True)
         >>> ibs_src = ibeis.opendb(db=db1, dbdir=dbdir1)
         >>> ibs_dst = ibeis.opendb(db=db2, dbdir=dbdir2, allow_newdir=True,
         >>>                        delete_ibsdir=delete_ibsdir)
-        >>> merge_databases2(ibs_src, ibs_dst)
+        >>> merge_databases(ibs_src, ibs_dst)
         >>> check_merge(ibs_src, ibs_dst)
         >>> ibs_dst.print_dbinfo()
     """
@@ -341,7 +341,7 @@ def export_data(ibs, gid_list, aid_list, nid_list, new_dbpath=None):
     }
     ibs_dst = ibeis.opendb(dbdir=new_dbpath, allow_newdir=True)
     # Main merge driver
-    merge_databases2(ibs, ibs_dst, rowid_subsets=rowid_subsets)
+    merge_databases(ibs, ibs_dst, rowid_subsets=rowid_subsets)
     print('Exported to %r' % (new_dbpath,))
     return new_dbpath
 
@@ -363,7 +363,7 @@ def slow_merge_test():
     ibs1.fix_invalid_annotmatches()
     ibs_dst = ibeis.opendb(
         db='testdb_dst2', allow_newdir=True, delete_ibsdir=True)
-    export_subset.merge_databases2(ibs1, ibs_dst)
+    export_subset.merge_databases(ibs1, ibs_dst)
     #ibs_src = ibs1
     check_merge(ibs1, ibs_dst)
 
@@ -374,12 +374,12 @@ def slow_merge_test():
 
     ibs_dst.print_dbinfo()
 
-    export_subset.merge_databases2(ibs2, ibs_dst)
+    export_subset.merge_databases(ibs2, ibs_dst)
     #ibs_src = ibs2
     check_merge(ibs2, ibs_dst)
 
     ibs3 = ibeis.opendb('PZ_MTEST')
-    export_subset.merge_databases2(ibs3, ibs_dst)
+    export_subset.merge_databases(ibs3, ibs_dst)
     #ibs_src = ibs2
     check_merge(ibs3, ibs_dst)
 
@@ -648,10 +648,10 @@ def MERGE_NNP_MASTER_SCRIPT():
     # Step 1
     ibs_src1 = ibeis.opendb('GZC')
     ibs_dst = ibeis.opendb('NNP_Master3', allow_newdir=True)
-    merge_databases2(ibs_src1, ibs_dst)
+    merge_databases(ibs_src1, ibs_dst)
 
     ibs_src2 = ibeis.opendb('NNP_initial')
-    merge_databases2(ibs_src2, ibs_dst)
+    merge_databases(ibs_src2, ibs_dst)
 
     ## Step 2
     #ibs_src = ibeis.opendb('GZC')
