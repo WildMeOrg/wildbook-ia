@@ -1379,6 +1379,7 @@ class SQLDatabaseController(object):
             db._tablenames += [tablename]
 
     def modify_table(db, tablename=None, colmap_list=None, tablename_new=None,
+                     drop_columns=[],
                      #constraint=None, docstr=None, superkeys=None,
                      **metadata_keyval):
         """
@@ -1423,6 +1424,7 @@ class SQLDatabaseController(object):
         """
         #assert colmap_list is not None, 'must specify colmaplist'
         assert tablename is not None, 'tablename must be given'
+
         if VERBOSE_SQL or ut.VERBOSE:
             print('[sql] schema modifying tablename=%r' % tablename)
             print('[sql] * colmap_list = ' + 'None' if colmap_list is None else
@@ -1430,6 +1432,10 @@ class SQLDatabaseController(object):
 
         if colmap_list is None:
             colmap_list = []
+
+        # Augment colmap_list using convience mappings
+        for drop_col in drop_columns:
+            colmap_list += [(drop_col, None, '', None)]
 
         colname_list = db.get_column_names(tablename)
         colname_original_list = colname_list[:]
