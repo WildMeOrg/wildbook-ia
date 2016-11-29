@@ -118,7 +118,7 @@ def train_pairwise_rf():
     """
     CommandLine:
         python -m ibeis.scripts.script_vsone train_pairwise_rf
-        python -m ibeis.scripts.script_vsone train_pairwise_rf --dbdir PZ_PB_RF_TRAIN --show
+        python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_PB_RF_TRAIN --show
         python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_MTEST --show
         python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_Master1 --show
         python -m ibeis.scripts.script_vsone train_pairwise_rf --db GZ_Master1 --show

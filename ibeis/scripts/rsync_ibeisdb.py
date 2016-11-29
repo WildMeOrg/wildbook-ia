@@ -149,6 +149,8 @@ if __name__ == '__main__':
         ibeis rsync push --db WS_ALL --user joncrall --remote lev --dryrun
         ibeis rsync pull --db WS_ALL --user joncrall --remote hyrule --dryrun
 
+        ibeis rsync pull --db PZ_PB_RF_TRAIN --user joncrall --remote hyrule --dryrun
+
         ibeis rsync push --db lynx2 --user joncrall --remote lev --dryrun
 
         ibeis rsync push --user joncrall --remote lev --db Oxford --dryrun
