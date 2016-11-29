@@ -37,7 +37,7 @@ import scipy.sparse.linalg as spsl
 from numpy.core.umath_tests import matrix_multiply
 import vtool.keypoint as ktool
 import vtool.linalg as ltool
-import vtool.distance as dtool
+import vtool.distance
 try:
     import cv2
 except ImportError as ex:
@@ -472,9 +472,9 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     _det1_mt  = ktool.get_invVR_mats_sqrd_scale(invVR1s_mt)
     _ori1_mt  = ktool.get_invVR_mats_oris(invVR1s_mt)
     ## Check for projection errors
-    xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
-    scale_err = dtool.det_distance(_det1_mt, det2_m)
-    ori_err   = dtool.ori_distance(_ori1_mt, ori2_m)
+    xy_err    = vtool.distance.L2_sqrd(xy2_m.T, _xy1_mt.T, dtype=SV_DTYPE)
+    scale_err = vtool.distance.det_distance(_det1_mt, det2_m)
+    ori_err   = vtool.distance.ori_distance(_ori1_mt, ori2_m)
 
     # Mark keypoints which are inliers to this hypothosis
     xy_inliers_flag    = np.less(xy_err, xy_thresh_sqrd)
@@ -817,7 +817,7 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
     # You cannot test for scale or orientation easily here because
     # you no longer have an ellipse? (maybe, probably have a conic) when using a
     # projective transformation
-    xy_err = dtool.L2_sqrd(xy1_mt.T, xy2_m.T)
+    xy_err = vtool.distance.L2_sqrd(xy1_mt.T, xy2_m.T)
     # Estimate final inliers
     #ut.embed()
     if full_homog_checks:
@@ -841,9 +841,9 @@ def test_homog_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh,
         _det1_mt = scales1_mt ** 2
         det2_m = ktool.get_sqrd_scales(kpts2_m)
         ori2_m = ktool.get_oris(kpts2_m)
-        #xy_err    = dtool.L2_sqrd(xy2_m.T, _xy1_mt.T)
-        scale_err = dtool.det_distance(_det1_mt, det2_m)
-        ori_err   = dtool.ori_distance(oris1_mt, ori2_m)
+        #xy_err    = vtool.distance.L2_sqrd(xy2_m.T, _xy1_mt.T)
+        scale_err = vtool.distance.det_distance(_det1_mt, det2_m)
+        ori_err   = vtool.distance.ori_distance(oris1_mt, ori2_m)
         ###
         xy_inliers_flag = np.less(xy_err, xy_thresh_sqrd)
         scale_inliers_flag = np.less(scale_err, scale_thresh)
