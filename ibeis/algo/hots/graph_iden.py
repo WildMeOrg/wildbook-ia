@@ -885,10 +885,9 @@ class _AnnotInfrFeedback(object):
         1: 'match',
         2: 'notcomp',
         3: 'unreviewed',
-
-        4: 'nomatch-photobomb',
-        5: 'match-photobomb',
-        6: 'notcomp-photobomb',
+        # 4: 'nomatch-photobomb',
+        # 5: 'match-photobomb',
+        # 6: 'notcomp-photobomb',
     }
 
     @profile

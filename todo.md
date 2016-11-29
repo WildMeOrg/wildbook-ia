@@ -65,3 +65,12 @@ the streams of different print statements.
 * Delay the execution of costly imports such as theano and matplotlib to allow for 
 a faster startup time of the program. Only incur the cost of initialization if these 
 modules are used. The same goes for dtool databases and database backups.
+
+
+* SQL Changes
+    - From the main DB Schema remove config_table and all constraints that use config.
+      Configs are used by the depcache and no longer serve any purpose in the main sql control 
+      which just reflects explicitly set state.
+    - Remove or refactor lblannot and lblimage into a tagging system
+    - Add foreign key support
+    - use NULLs instead of unset values

@@ -252,8 +252,8 @@ def job_engine_tester():
     jobiface = JobInterface(client_id, reciever.port_dict)
     from ibeis.init import sysres
     if ut.get_argflag('--bg'):
-        dbdir = sysres.get_args_dbdir('cache', False, None, None,
-                                      cache_priority=False)
+        dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
+                                      db=None, dbdir=None)
         reciever.initialize_background_processes(dbdir)
         print('[testzmq] parent process is looping forever')
         while True:
@@ -261,8 +261,8 @@ def job_engine_tester():
     elif ut.get_argflag('--fg'):
         jobiface.initialize_client_thread()
     else:
-        dbdir = sysres.get_args_dbdir('cache', False, None, None,
-                                      cache_priority=False)
+        dbdir = sysres.get_args_dbdir(defaultdb='cache', allow_newdir=False,
+                                      db=None, dbdir=None)
         reciever.initialize_background_processes(dbdir)
         jobiface.initialize_client_thread()
 

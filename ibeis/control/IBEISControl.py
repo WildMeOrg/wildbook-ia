@@ -186,6 +186,7 @@ def request_IBEISController(
     global __IBEIS_CONTROLLER_CACHE__
     if asproxy:
         # Not sure if this is the correct way to do a controller proxy
+        # UNFINISHED MAYBE SCRAP
         from multiprocessing.managers import BaseManager
         class IBEISManager(BaseManager):
             pass

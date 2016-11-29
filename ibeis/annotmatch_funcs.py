@@ -138,6 +138,14 @@ def get_annotmatch_rowid_from_undirected_superkey(ibs, aids1, aids2):
 
 
 @register_ibs_method
+def get_annotmatch_rowid_from_edges(ibs, aid_pairs):
+    aid_pairs = np.array(aid_pairs)
+    aids1 = aid_pairs.T[0]
+    aids2 = aid_pairs.T[1]
+    return ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
+
+
+@register_ibs_method
 def get_annotmatch_rowids_in_cliques(ibs, aids_list):
     # Equivalent call:
     #ibs.get_annotmatch_rowids_between_groups(ibs, aids_list, aids_list)

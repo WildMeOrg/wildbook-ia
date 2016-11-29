@@ -11,8 +11,7 @@ import utool as ut
 from six.moves import input, zip, map
 from ibeis import constants as const
 from ibeis import params
-# Inject utool functions
-(print, rrr, profile) = ut.inject2(__name__, '[sysres]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 WORKDIR_CACHEID   = 'work_directory_cache_id'
 DEFAULTDB_CAHCEID = 'cached_dbdir'
@@ -46,8 +45,6 @@ def _ibeis_cache_read(key, **kwargs):
 # Specific cache getters / setters
 
 def set_default_dbdir(dbdir):
-    """
-    """
     if ut.DEBUG2:
         print('[sysres] SETTING DEFAULT DBDIR: %r' % dbdir)
     _ibeis_cache_write(DEFAULTDB_CAHCEID, dbdir)
@@ -107,7 +104,7 @@ def set_workdir(work_dir=None, allow_gui=ALLOW_GUI):
         python -m ibeis.init.sysres --exec-set_workdir --workdir
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # SCRIPT
         >>> from ibeis.init.sysres import *  # NOQA
         >>> print('current_work_dir = %s' % (str(get_workdir(False)),))
         >>> work_dir = ut.get_argval('--workdir', type_=str, default=None)
@@ -168,6 +165,7 @@ def guiselect_workdir():
 
 
 def get_dbalias_dict():
+    # HACK: DEPRICATE
     dbalias_dict = {}
     if ut.is_developer():
         # For jon's convinience
@@ -205,9 +203,14 @@ def get_dbalias_dict():
 
 
 def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
-    """ Implicitly gets dbdir. Searches for db inside of workdir """
+    """
+    Implicitly gets dbdir. Searches for db inside of workdir
+    """
     if ut.VERBOSE:
         print('[sysres] db_to_dbdir: db=%r, allow_newdir=%r' % (db, allow_newdir))
+
+    if db is None:
+        raise ValueError('db is None')
 
     work_dir = get_workdir()
     dbalias_dict = get_dbalias_dict()
@@ -216,7 +219,7 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     for extra_dir in extra_workdirs:
         if exists(extra_dir):
             workdir_list.append(extra_dir)
-    workdir_list.append(work_dir)  # TODO: Allow multiple workdirs
+    workdir_list.append(work_dir)  # TODO: Allow multiple workdirs?
 
     # Check all of your work directories for the database
     for _dir in workdir_list:
@@ -263,21 +266,41 @@ def db_to_dbdir(db, allow_newdir=False, extra_workdirs=[]):
     return dbdir
 
 
-def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
-                   cache_priority=False):
-    """ Machinery for finding a database directory
+def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
+    r"""
+    Machinery for finding a database directory using the following priorities.
+    The function first defaults to the specified function arguments.  If those
+    are not specified, then command line arguments are used.  In all other
+    circumstances the defaultdb is used. If defaultdb='cache' then the most
+    recently used database directory is returned.
 
-    such a hacky function with bad coding.
-    Needs to just return a database dir and use the following priority
-    dbdir, db, cache, something like that...
+    Args:
+        defaultdb (None): database return if none other is specified
+        allow_newdir (bool): raises error if True and directory not found
+        db (None): specification using workdir priority
+        dbdir (None): specification using normal directory priority
+        cache_priority (bool): (default = False)
+
+    Returns:
+        str: dbdir
+
+    CommandLine:
+        python -m ibeis.init.sysres get_args_dbdir
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.init.sysres import *  # NOQA
+        >>> dir1 = get_args_dbdir(None, False, 'testdb1', None)
+        >>> print('dir1 = %r' % (dir1,))
+        >>> dir2 = get_args_dbdir(None, False, dir1, None)
+        >>> print('dir2 = %r' % (dir2,))
+        >>> ut.assert_raises(ValueError, get_args_dbdir)
+        >>> print('dir3 = %r' % (dir2,))
     """
     if not ut.QUIET and ut.VERBOSE:
         print('[sysres] get_args_dbdir: parsing commandline for dbdir')
-        print('[sysres] defaultdb=%r, allow_newdir=%r, cache_priority=%r' % (defaultdb, allow_newdir, cache_priority))
+        print('[sysres] defaultdb=%r, allow_newdir=%r' % (defaultdb, allow_newdir))
         print('[sysres] db=%r, dbdir=%r' % (db, dbdir))
-
-    if ut.get_argflag('--nodbcache'):
-        return dbdir
 
     def _db_arg_priorty(dbdir_, db_):
         invalid = ['', ' ', '.', 'None']
@@ -293,80 +316,29 @@ def get_args_dbdir(defaultdb=None, allow_newdir=False, db=None, dbdir=None,
             return db_to_dbdir(db_, allow_newdir=allow_newdir)
         return None
 
-    if not cache_priority:
-        # Check function's passed args
-        dbdir = _db_arg_priorty(dbdir, db)
-        if dbdir is not None:
-            return dbdir
-        # Get command line args
-        dbdir = params.args.dbdir
-        db = params.args.db
-        # TODO; use these instead of params
-        #ut.get_argval('--dbdir', return_was_specified=True))
-        #ut.get_argval('--db', return_was_specified=True)
-        # Check command line passed args
-        dbdir = _db_arg_priorty(dbdir, db)
-        if dbdir is not None:
-            return dbdir
+    # Check function arguments
+    dbdir1 = _db_arg_priorty(dbdir, db)
+    if dbdir1 is not None:
+        return dbdir1
+
+    # Check command line arguments
+    dbdir_arg = params.args.dbdir
+    db_arg = params.args.db
+    # TODO: use these instead of params
+    #ut.get_argval('--dbdir', return_was_specified=True))
+    #ut.get_argval('--db', return_was_specified=True)
+    # Check command line passed args
+    dbdir2 = _db_arg_priorty(dbdir_arg, db_arg)
+    if dbdir2 is not None:
+        return dbdir2
+
     # Return cached database directory
-    if defaultdb == 'cache':
+    if defaultdb is None:
+        raise ValueError('Must specify at least db, dbdir, or defaultdb')
+    elif defaultdb == 'cache':
         return get_default_dbdir()
     else:
         return db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
-
-
-def resolve_dbdir2(defaultdb=None, allow_newdir=False, db=None, dbdir=None):
-    r"""
-
-    CommandLine:
-        python -m ibeis.init.sysres --exec-resolve_dbdir2 --db PZ_MTEST
-        python -m ibeis.init.sysres --exec-resolve_dbdir2 --db None
-        python -m ibeis.init.sysres --exec-resolve_dbdir2 --dbdir None
-
-    Args:
-        defaultdb (None): (default = None)
-        allow_newdir (bool): (default = False)
-        db (None): (default = None)
-        dbdir (None): (default = None)
-
-    CommandLine:
-        python -m ibeis.init.sysres --exec-resolve_dbdir2
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.init.sysres import *  # NOQA
-        >>> defaultdb = 'cache'
-        >>> allow_newdir = False
-        >>> dbdir_ = resolve_dbdir2(defaultdb)
-        >>> result = ('dbdir_ = %r' % (dbdir_,))
-        >>> print(result)
-    """
-    invalid = ['', ' ', '.', 'None']
-    if db in invalid:
-        db = None
-    if dbdir in invalid:
-        dbdir = None
-    db, db_specified = ut.get_argval(
-        '--db', type_=str, default=db, return_was_specified=True)
-    dbdir, dbdir_specified = ut.get_argval(
-        '--dbdir', type_=str, default=dbdir, return_was_specified=True)
-
-    dbdir_flag = dbdir_specified or dbdir is not None
-    db_flag = db_specified or db is not None
-
-    if dbdir_flag:
-        # Priority 1
-        dbdir_ = realpath(dbdir)
-    elif db_flag:
-        # Priority 2
-        dbdir_ = db_to_dbdir(db, allow_newdir=allow_newdir)
-    else:
-        # Priority 3
-        if defaultdb == 'cache':
-            dbdir_ = get_default_dbdir()
-        else:
-            dbdir_ = db_to_dbdir(defaultdb, allow_newdir=allow_newdir)
-    return dbdir_
 
 
 lookup_dbdir = db_to_dbdir
@@ -729,7 +701,6 @@ def ensure_nauts():
 
 
 def ensure_testdb2():
-    """ SeeAlso ibeis.init.sysres """
     zipped_db_url = 'https://lev.cs.rpi.edu/public/databases/testdb2.tar.gz'
     ensure_db_from_url(zipped_db_url)
 
@@ -743,31 +714,12 @@ def ensure_db_from_url(zipped_db_url):
 
 
 def get_global_distinctiveness_modeldir(ensure=True):
+    # DEPRICATE
     resource_dir = get_ibeis_resource_dir()
     global_distinctdir = join(resource_dir, const.PATH_NAMES.distinctdir)
     if ensure:
         ut.ensuredir(global_distinctdir)
     return global_distinctdir
-
-
-def grab_example_smart_xml_fpath():
-    """ Gets smart example xml
-
-    CommandLine:
-        python -m ibeis.init.sysres --test-grab_example_smart_xml_fpath
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> import ibeis
-        >>> import os
-        >>> smart_xml_fpath = ibeis.sysres.grab_example_smart_xml_fpath()
-        >>> os.system('gvim ' + smart_xml_fpath)
-        >>> #ut.editfile(smart_xml_fpath)
-
-    """
-    smart_xml_url = 'https://lev.cs.rpi.edu/public/data/LWC_000261.xml'
-    smart_sml_fpath = ut.grab_file_url(smart_xml_url, ensure=True, appname='ibeis')
-    return smart_sml_fpath
 
 
 if __name__ == '__main__':

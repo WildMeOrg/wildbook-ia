@@ -5,7 +5,11 @@ import numpy as np
 import vtool as vt
 import dtool as dt
 from six.moves import zip, range  # NOQA
-import pandas as pd  # NOQA
+import pandas as pd
+import sklearn
+import sklearn.metrics
+import sklearn.model_selection
+import sklearn.ensemble
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -36,542 +40,916 @@ class VsOneAssignConfig(dt.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
-def make_multiclass_labels(ibs, aid_pairs, simple_scores):
-    # Create the multi-label target
-    # ibs = qreq_.ibs
-    aids1 = aid_pairs.T[0]
-    aids2 = aid_pairs.T[1]
-    nids1 = ibs.get_annot_nids(aids1)
-    nids2 = ibs.get_annot_nids(aids2)
-    is_same = nids1 == nids2
-    am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
-    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
-    is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
-    # y = np.array([m.annot1['nid'] == m.annot2['nid'] for m in matches])
-    key = 'sum(weighted_ratio)'
-    if key not in simple_scores:
-        key = 'sum(ratio)'
-    scores = simple_scores[key].values
-    yaws1 = np.array(ibs.get_annot_yaws(aids1))
-    yaws2 = np.array(ibs.get_annot_yaws(aids2))
-    dists = vt.ori_distance(yaws1, yaws2)
-    tau = np.pi * 2
-    # Take a guess as to which annots are not comparable
-    is_notcomp = np.logical_and(
-        scores < .1,
-        dists > tau / 8.1
-    )
-    is_match = np.logical_and(is_same, ~is_notcomp)
-    is_nomatch = np.logical_and(~is_same, ~is_notcomp)
-    is_nomatch_pb = np.logical_and(is_match, is_pb)
-    is_match_pb = np.logical_and(is_nomatch, is_pb)
-    is_notcomp_pb = np.logical_and(is_notcomp, is_pb)
-
-    y = np.empty(len(aid_pairs), dtype=np.int32)
-    import ibeis
-    truth_to_text = ibeis.AnnotInference.truth_texts
-    text_to_truth = ut.invert_dict(truth_to_text)
-    y[is_nomatch] = text_to_truth['nomatch']
-    y[is_match] = text_to_truth['match']
-    y[is_notcomp] = text_to_truth['notcomp']
-
-    y[is_nomatch_pb] = text_to_truth['nomatch-photobomb']
-    y[is_match_pb] = text_to_truth['match-photobomb']
-    y[is_notcomp_pb] = text_to_truth['notcomp-photobomb']
-
-    from sklearn.preprocessing import LabelEncoder, label_binarize
-    encoder = LabelEncoder().fit(y)
-    y_enc = encoder.transform(y)
-    y_bin = label_binarize(y_enc, np.arange(len(encoder.classes_)))
-
-    # encoder.classes_ = np.array(ut.take(truth_to_text, encoder.classes_))
-    # encoder.transform(['nomatch'])
-    # convert simple scores to multiclass scores
-    def _to_multiclass_score(scores):
-        import vtool as vt
-        normer = vt.ScoreNormalizer(adjust=8, gridsize=256, monotonize=True)
-        normer.fit(scores, y=is_same)
-        normed_scores = normer.normalize_scores(scores)
-        # Create a dimension for each class
-        # but only populate two of the dimensions
-        raw_classes = ut.take(text_to_truth, ['nomatch', 'match'])
-        class_idxs = encoder.transform(raw_classes)
-        pred = np.zeros((len(scores), len(encoder.classes_)))
-        pred[:, class_idxs[0]] = 1 - normed_scores
-        pred[:, class_idxs[1]] = normed_scores
-        return pred
-
-    simple_scores2 = ut.map_vals(_to_multiclass_score, simple_scores)
-    # preds = simple_scores2.values()[0]
-    # sklearn.metrics.roc_auc_score(y2, preds)
-    classes_ = encoder.classes_
-    class_names = ut.take(truth_to_text, classes_)
-    return class_names, classes_, y_enc, y_bin, simple_scores2
-
-
-# def multiclass_roc():
-#     pass
-
-
-@profile
-def train_pairwise_rf():
+class OneVsOneProblem(object):
     """
-    CommandLine:
-        python -m ibeis.scripts.script_vsone train_pairwise_rf
-        python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_PB_RF_TRAIN --show
-        python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_MTEST --show
-        python -m ibeis.scripts.script_vsone train_pairwise_rf --db PZ_Master1 --show
-        python -m ibeis.scripts.script_vsone train_pairwise_rf --db GZ_Master1 --show
+    Keeps information about the one-vs-one pairwise classification problem
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> train_pairwise_rf()
+        >>> self = OneVsOneProblem()
+        >>> self.load_features()
     """
-    # import vtool as vt
-    # import ibeis
-    import sklearn
-    import sklearn.metrics
-    import sklearn.model_selection
-    import sklearn.ensemble
-    import pandas as pd
-    import ibeis
+    def __init__(self):
+        import ibeis
+        # ut.aug_sysargv('--db PZ_Master1')
+        qreq_ = ibeis.testdata_qreq_(
+            defaultdb='PZ_PB_RF_TRAIN',
+            a=':mingt=2,species=primary',
+            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+            t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+        )
+        assert qreq_.qparams.can_match_samename is True
+        assert qreq_.qparams.prescore_method == 'csum'
+        self.qreq_ = qreq_
+        self.ibs = qreq_.ibs
 
-    # pd.options.display.max_rows = 10
-    pd.options.display.max_rows = 80
-    pd.options.display.max_columns = 40
-    pd.options.display.width = 160
+    def evaluate_classifiers(self):
+        """
+        python -m ibeis.scripts.script_vsone evaluate_classifiers
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1 --show
 
-    # ut.aug_sysargv('--db PZ_Master1')
-    qreq_ = ibeis.testdata_qreq_(
-        defaultdb='PZ_MTEST',
-        a=':mingt=2,species=primary',
-        # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
-        t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-    )
-    assert qreq_.qparams.can_match_samename is True
-    assert qreq_.qparams.prescore_method == 'csum'
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> self = OneVsOneProblem()
+            >>> self.evaluate_classifiers()
+        """
+        import pandas as pd
+        # pd.options.display.max_rows = 10
+        pd.options.display.max_rows = 80
+        pd.options.display.max_columns = 40
+        pd.options.display.width = 160
 
-    hyper_params = dt.Config.from_dict(dict(
-        subsample=None,
-        pair_sample=PairSampleConfig(),
-        vsone_assign=VsOneAssignConfig(),
-        pairwise_feats=PairFeatureConfig(), ),
-        tablename='HyperParams'
-    )
-    if qreq_.qparams.featweight_enabled:
-        hyper_params.vsone_assign['weight'] = 'fgweights'
-    else:
-        hyper_params.vsone_assign['weight'] = None
+        self.load_features()
+        self.load_labels()
 
-    data = bigcache_features(qreq_, hyper_params)
-    aid_pairs, simple_scores, X_dict, y, match = data
+        # self.labels.print_info()
+        # self.reduce_dataset_size()
+        self.build_feature_subsets()
+        self.labels.print_info()
 
-    if True:
-        ibs = qreq_.ibs
-        class_names, classes_, y_enc, y_bin, simple_scores2 = make_multiclass_labels(
-            ibs, aid_pairs, simple_scores)
+        # _all_dfs = []
+        # self.load_multiclass_scores()
+        # df_simple = self.evaluate_simple_scores()
+        # _all_dfs.append(df_simple)
 
-    X_dict = X_dict.copy()
-    class_hist = ut.dict_hist(y_enc)
+        # df_rf = self.evaluate_random_forest()
+        self.evaluate_tasks()
+        # _all_dfs.append(df_rf)
+        # df_all = pd.concat(_all_dfs, axis=1)
 
-    print('Building pairwise classifier')
-    print('hist(y_enc) = ' + ut.repr4(class_hist))
-    X = X_dict['learn(all)']
+        # # Add in the simple scores
+        # import sandbox_utools as sbut
+        # print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
-    if False:
-        # Remove anything 1vM didn't get
-        mask = (simple_scores['score_lnbnn_1vM'] > 0).values
-        y_enc = y_enc[mask]
-        y_bin = y_bin[mask]
-        simple_scores = simple_scores[mask]
-        class_hist = ut.dict_hist(y_enc)
-        print('hist(y_enc) = ' + ut.repr4(class_hist))
-        X = X[mask]
-        X_dict['learn(all)'] = X
+        # self.report_classifier_importance()
 
-    if False:
-        print('Reducing dataset size for class balance')
-        # Find the data with the most null / 0 values
-        # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
-        nullness = pd.isnull(X).sum(axis=1)
-        nullness = nullness.reset_index(drop=True)
-        false_nullness = (nullness)[~y]
-        sortx = false_nullness.argsort()[::-1]
-        false_nullness_ = false_nullness.iloc[sortx]
-        # Remove a few to make training more balanced / faster
-        num_remove = max(class_hist[False] - class_hist[True], 0)
-        if num_remove > 0:
-            to_remove = false_nullness_.iloc[:num_remove]
-            mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(y)))
-            y = y[mask]
-            simple_scores = simple_scores[mask]
-            class_hist = ut.dict_hist(y)
-            print('hist(y) = ' + ut.repr4(class_hist))
-            X = X[mask]
-            X_dict['learn(all)'] = X
+        # best_name = df_all.columns[df_all.values.argmax()]
+        # pt.show_if_requested()
+        # import utool
+        # utool.embed()
+        # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
+        # columns = ['Method', 'AUC']
+        # data = [
+        #     ['1vM-LNBNN',       vsmany_lnbnn_auc],
+        #     ['1v1-LNBNN',       vsone_sver_lnbnn_auc],
+        #     ['1v1-RAT',         rat_auc],
+        #     ['1v1-RAT+SVER',    rat_sver_auc],
+        #     ['1v1-RAT+SVER+RF', rat_sver_rf_auc],
+        # ]
+        # table = pd.DataFrame(data, columns=columns)
+        # error = 1 - table['AUC']
+        # orig = 1 - vsmany_lnbnn_auc
+        # import tabulate
+        # table = table.assign(percent_error_decrease=(orig - error) / orig * 100)
+        # col_to_nice = {
+        #     'percent_error_decrease': '% error decrease',
+        # }
+        # header = [col_to_nice.get(c, c) for c in table.columns]
+        # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
 
-    if 0:
-        print('Reducing dataset size for development')
-        rng = np.random.RandomState(1851057325)
-        to_keep = rng.choice(np.arange(len(y)), 1000)
-        mask = np.array(ut.index_to_boolmask(to_keep, len(y)))
-        y = y[mask]
-        simple_scores = simple_scores[mask]
-        class_hist = ut.dict_hist(y)
-        print('hist(y) = ' + ut.repr4(class_hist))
-        X = X[mask]
-        X_dict['learn(all)'] = X
+    def load_labels(self):
+        self.labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
 
-    # -----------
+    def load_features(self):
+        qreq_ = self.qreq_
+        hyper_params = dt.Config.from_dict(dict(
+            subsample=None,
+            pair_sample=PairSampleConfig(),
+            vsone_assign=VsOneAssignConfig(),
+            pairwise_feats=PairFeatureConfig(), ),
+            tablename='HyperParams'
+        )
+        if qreq_.qparams.featweight_enabled:
+            hyper_params.vsone_assign['weight'] = 'fgweights'
+        else:
+            hyper_params.vsone_assign['weight'] = None
+        data = bigcache_features(qreq_, hyper_params)
+        aid_pairs, simple_scores, X_dict, y, match = data
+        self.aid_pairs = aid_pairs
+        self.raw_X_dict = X_dict
+        self.simple_scores = simple_scores
+        self.match = match
 
-    self = PairFeatInfo(X)
-    measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist', 'fgweights']
-    if 1:
-        # Use only local features
-        cols = self.select_columns([
-            ('measure_type', '==', 'local'),
-            ('local_sorter', 'in', ['weighted_ratio']),
-            ('local_measure', 'not in', measures_ignore),
-        ])
-        X_dict['learn(local)'] = self.X[sorted(cols)]
+    def load_multiclass_scores(self):
+        # convert simple scores to multiclass scores
+        import vtool as vt
+        self.multiclass_scores = {}
+        for key in self.simple_scores.keys():
+            scores = self.simple_scores[key].values
+            # Hack scores into the range 0 to 1
+            normer = vt.ScoreNormalizer(adjust=8, monotonize=True)
+            normer.fit(scores, y=self.labels.is_same())
+            normed_scores = normer.normalize_scores(scores)
+            # Create a dimension for each class
+            # but only populate two of the dimensions
+            class_idxs = ut.take(self.labels.text_to_class, ['nomatch', 'match'])
+            pred = np.zeros((len(scores), len(self.labels.class_names)))
+            pred[:, class_idxs[0]] = 1 - normed_scores
+            pred[:, class_idxs[1]] = normed_scores
+            self.multiclass_scores[key] = pred
 
-    if False:
-        # Use only summary stats
-        cols = self.select_columns([
-            ('measure_type', '==', 'summary'),
-        ])
-        X_dict['learn(sum)']  = self.X[sorted(cols)]
+    def reduce_dataset_size(self):
+        """
+        Reduce the size of the dataset for development speed
 
-    if 0:
-        # Use summary and global
-        cols = self.select_columns([
-            ('measure_type', '==', 'summary'),
-        ])
-        cols.update(self.select_columns([
-            ('measure_type', '==', 'global'),
-        ]))
-        X_dict['learn(sum,glob)'] = self.X[sorted(cols)]
-
-    if True:
-        # Only allow very specific summary features
-        summary_cols = self.select_columns([
-            ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['len']),
-        ])
-        summary_cols.update(self.select_columns([
-            ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['sum']),
-            ('summary_measure', 'in', [
-                'weighted_ratio', 'ratio',
-                'norm_dist', 'weighted_norm_dist',
-                'fgweights',
-                'weighted_lnbnn_norm_dist', 'lnbnn_norm_dist',
-                'norm_y2', 'norm_y1',
-                # 'norm_x1', 'norm_x2',
-                'scale1', 'scale2',
-                # 'weighted_norm_dist',
-                # 'weighted_lnbnn_norm_dist',
-            ]),
-        ]))
-        summary_cols.update(self.select_columns([
-            ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['mean']),
-            ('summary_measure', 'in', [
-                'sver_err_xy', 'sver_err_ori',
-                # 'sver_err_scale',
-                'norm_y1', 'norm_y2',
-                'norm_x1', 'norm_x2',
-                'ratio',
-            ]),
-        ]))
-        summary_cols.update(self.select_columns([
-            ('measure_type', '==', 'summary'),
-            ('summary_op', 'in', ['std']),
-            ('summary_measure', 'in', [
-                'norm_y1', 'norm_y2',
-                'norm_x1', 'norm_x2',
-                'scale1', 'scale2',
-                'sver_err_ori', 'sver_err_xy',
-                # 'sver_err_scale',
-                # 'match_dist',
-                'norm_dist', 'ratio'
-            ]),
-        ]))
-
-        global_cols = self.select_columns([
-            ('measure_type', '==', 'global'),
-            ('measure', 'not in', [
-                'gps_2[0]', 'gps_2[1]',
-                'gps_1[0]', 'gps_1[1]',
-                # 'time_1', 'time_2',
-            ]),
-        ])
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> self = OneVsOneProblem()
+            >>> self.load_features()
+            >>> self.load_labels()
+        """
+        raw_X_dict = self.raw_X_dict
+        X = raw_X_dict['learn(all)']
+        labels = self.labels
 
         if False:
-            cols = set([])
-            cols.update(summary_cols)
-            cols.update(self.select_columns([
+            # Remove anything 1vM didn't get
+            mask = (self.simple_scores['score_lnbnn_1vM'] > 0).values
+            self.labels = self.labels.compress(mask)
+            simple_scores = self.simple_scores[mask]
+            labels.print_info()
+            X = X[mask]
+            raw_X_dict['learn(all)'] = X
+
+        if False:
+            print('Reducing dataset size for class balance')
+            # Find the data with the most null / 0 values
+            # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
+            nullness = pd.isnull(X).sum(axis=1)
+            nullness = nullness.reset_index(drop=True)
+            false_nullness = (nullness)[~labels.is_same()]
+            sortx = false_nullness.argsort()[::-1]
+            false_nullness_ = false_nullness.iloc[sortx]
+            # Remove a few to make training more balanced / faster
+            class_hist = labels.make_histogram()
+            num_remove = max(class_hist['match'] - class_hist['nomatch'], 0)
+            if num_remove > 0:
+                to_remove = false_nullness_.iloc[:num_remove]
+                mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(labels)))
+                self.labels = self.labels.compress(mask)
+                simple_scores = simple_scores[mask]
+                print('hist(y) = ' + ut.repr4(labels.make_histogram()))
+                X = X[mask]
+                raw_X_dict['learn(all)'] = X
+
+        if 0:
+            print('Reducing dataset size for development')
+            rng = np.random.RandomState(1851057325)
+            num = len(self.labels)
+            to_keep = rng.choice(np.arange(num), 1000)
+            mask = np.array(ut.index_to_boolmask(to_keep, num))
+            self.labels = self.labels.compress(mask)
+            simple_scores = simple_scores[mask]
+            class_hist = labels.make_histogram()
+            print('hist(y) = ' + ut.repr4(class_hist))
+            X = X[mask]
+            raw_X_dict['learn(all)'] = X
+
+    def build_feature_subsets(self):
+        """
+        Try to identify a useful subset of features to reduce problem
+        dimensionality
+        """
+        X_dict = self.raw_X_dict.copy()
+        X = X_dict['learn(all)']
+        featinfo = PairFeatInfo(X)
+        if 1:
+            measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist',
+                               'fgweights']
+            # Use only local features
+            cols = featinfo.select_columns([
+                ('measure_type', '==', 'local'),
+                ('local_sorter', 'in', ['weighted_ratio']),
+                ('local_measure', 'not in', measures_ignore),
+            ])
+            X_dict['learn(local)'] = featinfo.X[sorted(cols)]
+
+        if False:
+            # Use only summary stats
+            cols = featinfo.select_columns([
+                ('measure_type', '==', 'summary'),
+            ])
+            X_dict['learn(sum)']  = featinfo.X[sorted(cols)]
+
+        if 0:
+            # Use summary and global
+            cols = featinfo.select_columns([
+                ('measure_type', '==', 'summary'),
+            ])
+            cols.update(featinfo.select_columns([
                 ('measure_type', '==', 'global'),
             ]))
-            X_dict['learn(sum,glob,2)'] = self.X[sorted(cols)]
-
-        if 1:
-            cols = set([])
-            cols.update(summary_cols)
-            cols.update(global_cols)
-            X_dict['learn(sum,glob,3)'] = self.X[sorted(cols)]
-
-        if 1:
-            summary_cols_ = summary_cols.copy()
-            summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
-            cols = set([])
-            cols.update(summary_cols_)
-            cols.update(global_cols)
-            X_dict['learn(sum,glob,4)'] = self.X[sorted(cols)]
+            X_dict['learn(sum,glob)'] = featinfo.X[sorted(cols)]
 
         if True:
-            cols = set([])
-            cols.update(summary_cols)
-            cols.update(global_cols)
-            cols.update(self.select_columns([
-                ('measure_type', '==', 'local'),
-                ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
-                ('local_measure', 'in', ['weighted_ratio']),
-                ('local_rank', '<', 20),
-                ('local_rank', '>', 0),
+            # Only allow very specific summary features
+            summary_cols = featinfo.select_columns([
+                ('measure_type', '==', 'summary'),
+                ('summary_op', 'in', ['len']),
+            ])
+            summary_cols.update(featinfo.select_columns([
+                ('measure_type', '==', 'summary'),
+                ('summary_op', 'in', ['sum']),
+                ('summary_measure', 'in', [
+                    'weighted_ratio', 'ratio',
+                    'norm_dist', 'weighted_norm_dist',
+                    'fgweights',
+                    'weighted_lnbnn_norm_dist', 'lnbnn_norm_dist',
+                    'norm_y2', 'norm_y1',
+                    # 'norm_x1', 'norm_x2',
+                    'scale1', 'scale2',
+                    # 'weighted_norm_dist',
+                    # 'weighted_lnbnn_norm_dist',
+                ]),
             ]))
-            X_dict['learn(loc,sum,glob,5)'] = self.X[sorted(cols)]
+            summary_cols.update(featinfo.select_columns([
+                ('measure_type', '==', 'summary'),
+                ('summary_op', 'in', ['mean']),
+                ('summary_measure', 'in', [
+                    'sver_err_xy', 'sver_err_ori',
+                    # 'sver_err_scale',
+                    'norm_y1', 'norm_y2',
+                    'norm_x1', 'norm_x2',
+                    'ratio',
+                ]),
+            ]))
+            summary_cols.update(featinfo.select_columns([
+                ('measure_type', '==', 'summary'),
+                ('summary_op', 'in', ['std']),
+                ('summary_measure', 'in', [
+                    'norm_y1', 'norm_y2',
+                    'norm_x1', 'norm_x2',
+                    'scale1', 'scale2',
+                    'sver_err_ori', 'sver_err_xy',
+                    # 'sver_err_scale',
+                    # 'match_dist',
+                    'norm_dist', 'ratio'
+                ]),
+            ]))
 
-    # del X_dict['learn(all)']
+            global_cols = featinfo.select_columns([
+                ('measure_type', '==', 'global'),
+                ('measure', 'not in', [
+                    'gps_2[0]', 'gps_2[1]',
+                    'gps_1[0]', 'gps_1[1]',
+                    # 'time_1', 'time_2',
+                ]),
+                # NEED TO REMOVE YAW BECAUSE WE USE IT IN CONSTRUCTING LABELS
+                ('measure', 'not in', [
+                    'yaw_1', 'yaw_2', 'yaw_delta'
+                ]),
+            ])
 
-    simple_scores_ = simple_scores2.copy()
-    if False:
-        # Remove scores that arent worth reporting
-        for k in list(simple_scores_.keys())[:]:
-            ignore = [
-                'sum(norm_x', 'sum(norm_y',
-                'sum(sver_err', 'sum(scale', 'sum(match_dist)',
-            ]
-            if qreq_.qparams.featweight_enabled:
-                ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
-                               'sum(lnbnn_norm_dist)'])
-            flags = [part in k for part in ignore]
-            if any(flags):
-                del simple_scores_[k]
+            if False:
+                cols = set([])
+                cols.update(summary_cols)
+                cols.update(featinfo.select_columns([
+                    ('measure_type', '==', 'global'),
+                ]))
+                X_dict['learn(sum,glob,2)'] = featinfo.X[sorted(cols)]
 
-    # Sort AUC by values
-    simple_aucs = pd.DataFrame(dict([
-        (k, [sklearn.metrics.roc_auc_score(y_bin, simple_scores_[k])])
-        for k in simple_scores_.keys()
-    ]))
-    simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
-    simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
+            if 1:
+                cols = set([])
+                cols.update(summary_cols)
+                cols.update(global_cols)
+                X_dict['learn(sum,glob,3)'] = featinfo.X[sorted(cols)]
 
-    # Simple printout of aucs
-    # we dont need cross validation because there is no learning here
-    print('\nAUC of simple scoring measures:')
-    print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
+            if 0:
+                summary_cols_ = summary_cols.copy()
+                summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
+                cols = set([])
+                cols.update(summary_cols_)
+                cols.update(global_cols)
+                X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
 
-    # ---------------
-    # Setup cross-validation
+            if 0:
+                cols = set([])
+                cols.update(summary_cols)
+                cols.update(global_cols)
+                cols.update(featinfo.select_columns([
+                    ('measure_type', '==', 'local'),
+                    ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
+                    ('local_measure', 'in', ['weighted_ratio']),
+                    ('local_rank', '<', 20),
+                    ('local_rank', '>', 0),
+                ]))
+                X_dict['learn(loc,sum,glob,5)'] = featinfo.X[sorted(cols)]
+        self.X_dict = X_dict
 
-    print('\nTraining Data Info:')
-    for name, X in X_dict.items():
-        print('%s.shape = %r' % (name, X.shape))
-    print('hist(y) = ' + ut.repr4(class_hist))
+    def evaluate_simple_scores(self):
+        score_dict = self.multiclass_scores.copy()
+        if False:
+            # Remove scores that arent worth reporting
+            for k in list(score_dict.keys())[:]:
+                ignore = [
+                    'sum(norm_x', 'sum(norm_y',
+                    'sum(sver_err', 'sum(scale', 'sum(match_dist)',
+                ]
+                if self.qreq_.qparams.featweight_enabled:
+                    ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
+                                   'sum(lnbnn_norm_dist)'])
+                flags = [part in k for part in ignore]
+                if any(flags):
+                    del score_dict[k]
 
-    # xvalkw = dict(n_splits=10, shuffle=True,
-    xvalkw = dict(n_splits=5, shuffle=True,
-                  random_state=np.random.RandomState(42))
-    skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-    skf_iter = skf.split(X=y_enc, y=y_enc)
+        # Sort AUC by values
+        simple_aucs = pd.DataFrame(dict([
+            (k, [sklearn.metrics.roc_auc_score(self.labels.y_bin, score_dict[k])])
+            for k in score_dict.keys()
+        ]))
+        simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
+        simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
 
-    import sandbox_utools as sbut
+        # Simple printout of aucs
+        # we dont need cross validation because there is no learning here
+        print('\nAUC of simple scoring measures:')
+        print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
 
-    rf_params = {
-        # 'max_depth': 4,
-        'bootstrap': True,
-        'class_weight': None,
-        'max_features': 'sqrt',
-        # 'max_features': None,
-        'missing_values': np.nan,
-        'min_samples_leaf': 5,
-        'min_samples_split': 2,
-        'n_estimators': 256,
-        'criterion': 'entropy',
-    }
-    rf_settings = {
-        'random_state': np.random.RandomState(3915904814),
-        'verbose': 0,
-        'n_jobs': -1,
-    }
-    rf_params.update(rf_settings)
-    cv_classifiers = []
-    df_results = pd.DataFrame(columns=list(X_dict.keys()))
-    prog = ut.ProgIter(list(skf_iter), label='skf')
+        simple_auc_dict.values()
+        simple_keys = list(simple_auc_dict.keys())
+        simple_vals = list(simple_auc_dict.values())
+        idxs = ut.argsort(list(simple_auc_dict.values()))[::-1][0:2]
+        idx_ = simple_keys.index('score_lnbnn_1vM')
+        if idx_ in idxs:
+            idxs.remove(idx_)
+        idxs = [idx_] + idxs
+        best_simple_cols = ut.take(simple_keys, idxs)
+        best_simple_aucs = ut.take(simple_vals, idxs)
+        df_simple = pd.DataFrame([best_simple_aucs], columns=best_simple_cols)
+        return df_simple
 
-    # if False:
-    #     for i in range(len(classes_)):
-    #         from sklearn.metrics import roc_curve, auc
-    #         roc_curve(np.append(y_test_bin.T[i], [0, 1]), np.append(clf_probs.T[i], [0, 1]))
+    def get_rf_params(self):
+        rf_params = {
+            # 'max_depth': 4,
+            'bootstrap': True,
+            'class_weight': None,
+            'max_features': 'sqrt',
+            # 'max_features': None,
+            'missing_values': np.nan,
+            'min_samples_leaf': 5,
+            'min_samples_split': 2,
+            'n_estimators': 256,
+            'criterion': 'entropy',
+        }
+        rf_settings = {
+            'random_state': 3915904814,
+            'verbose': 0,
+            'n_jobs': -1,
+        }
+        rf_params.update(rf_settings)
+        return rf_params
 
-    for count, (train_idx, test_idx) in enumerate(prog):
-        y_test_bin = y_bin[test_idx]
-        y_test_enc = y_enc[test_idx]
-        y_train = y_enc[train_idx]
-        split_columns = []
-        split_aucs = []
-        classifiers = {}
-        prog.ensure_newline()
-        prog2 = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
-        for name, X in prog2:
-            # print(name)
-            # Learn a random forest classifier using train data
-            X_train = X.values[train_idx]
-            X_test = X.values[test_idx]
+    def evaluate_tasks(self):
+        """
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        """
+        X_dict = self.X_dict
+        dataset_prog = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
+        for name, X_df in dataset_prog:
+            dataset_prog.ensure_newline()
+            task_prog = ut.ProgIter(list(self.labels.items()), label='task')
+            for task_name, task_labels in task_prog:
+                task_prog.ensure_newline()
+                clf_list, res_list = self.evaluate_single_rf(X_df, task_labels)
+
+                print('\nDataset Name = %r' % (name,))
+                print('Task Name = %r' % (task_name,))
+                combo_res = ClfResult.combine_results(res_list, task_labels)
+                combo_res.print_report()
+
+    def evaluate_single_rf(self, X_df, task_labels):
+        """
+        X_df = self.X_dict['learn(all)']
+        task_labels = self.labels.subtasks['photobomb_state']
+        """
+        rf_params = self.get_rf_params()
+
+        clf_list = []
+        res_list = []
+
+        skf_list = self.get_crossval_idxs()
+        for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
+            X_train = X_df.values[train_idx]
+            y_train = task_labels.y_enc[train_idx]
             clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
-            classifiers[name] = clf
-            # Evaluate using on testing data
+
+            # Evaluate on testing data
+            X_test = X_df.values[test_idx]
             clf_probs = clf.predict_proba(X_test)
 
-            # Ensure at least one example of each class
-            y_test_enc_aug = np.hstack([y_test_enc, np.arange(len(classes_))])
-            y_test_bin_aug = np.vstack([y_test_bin, np.eye(len(classes_))])
-            clf_probs_aug = np.vstack([clf_probs, np.eye(len(classes_))])
+            res = ClfResult.make_single(test_idx, clf_probs, task_labels)
+            res_list.append(res)
+            clf_list.append(clf)
+        return clf_list, res_list
 
-            sample_weight = np.ones(len(y_test_enc_aug))
-            # significantly downweight dummy samples
-            sample_weight[-len(classes_)] = 1e-9
+    def get_crossval_idxs(self):
+        """
+        # TODO: check xval label frequency
+        """
+        # ---------------
+        # Setup cross-validation
+        labels = self.labels
+        # xvalkw = dict(n_splits=10, shuffle=True,
+        xvalkw = dict(n_splits=3, shuffle=True,
+                      random_state=np.random.RandomState(42))
+        skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
+        skf_iter = skf.split(X=np.empty((len(labels), 0)), y=labels.encoded_1d())
+        skf_list = list(skf_iter)
+        return skf_list
 
-            pred_enc = clf_probs_aug.argmax(axis=1)
+    def evaluate_random_forest(self):
+        print('\nTraining Data Info:')
+        X_dict = self.X_dict
+        for name, X in X_dict.items():
+            print('%s.shape = %r' % (name, X.shape))
 
-            p, r, f1, s = sklearn.metrics.precision_recall_fscore_support(
-                y_true=y_test_enc_aug, y_pred=pred_enc,
-                sample_weight=sample_weight,
-            )
-            report = sklearn.metrics.classification_report(
-                y_true=y_test_enc_aug, y_pred=pred_enc,
-                target_names=class_names,
-                sample_weight=sample_weight,
-            )
-            print(report)
+        labels = self.labels
+        self.labels.print_info()
 
-            confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc)
-            print('Confusion Matrix:')
-            print(pd.DataFrame(confusion, columns=[m for m in class_names],
-                               index=['gt ' + m for m in class_names]))
+        import utool
+        utool.embed()
 
-            auc_learn = sklearn.metrics.roc_auc_score(y_test_bin_aug, clf_probs_aug)
+        rf_params = self.rf_params()
+        self.cv_classifiers = []
+        df_results = pd.DataFrame(columns=list(X_dict.keys()))
 
-            split_columns.append(name)
-            split_aucs.append(auc_learn)
-        # Append this folds' classifiers
-        cv_classifiers.append(classifiers)
-        # Append this fold's results
-        newrow = pd.DataFrame([split_aucs], columns=split_columns)
-        print(sbut.to_string_monkey(
-            newrow, highlight_cols=np.arange(len(newrow.columns))))
-        df_results = df_results.append([newrow], ignore_index=True)
+        skf_list = self.get_crossval_idxs()
+        prog = ut.ProgIter(skf_list, label='skf')
 
-    # change = df[df.columns[2]] - df[df.columns[0]]
-    # percent_change = change / df[df.columns[0]] * 100
-    # df = df.assign(change=change)
-    # df = df.assign(percent_change=percent_change)
+        crossval_results = ut.ddict(list)
 
-    simple_auc_dict.values()
-    simple_keys = list(simple_auc_dict.keys())
-    simple_vals = list(simple_auc_dict.values())
-    idxs = ut.argsort(list(simple_auc_dict.values()))[::-1][0:2]
-    idx_ = simple_keys.index('score_lnbnn_1vM')
-    if idx_ in idxs:
-        idxs.remove(idx_)
-    idxs = [idx_] + idxs
-    best_simple_cols = ut.take(simple_keys, idxs)
-    best_simple_aucs = ut.take(simple_vals, idxs)
+        for count, (train_idx, test_idx) in enumerate(prog):
+            y_train = labels.y_enc[train_idx]
+            split_columns = []
+            split_aucs = []
+            classifiers = {}
+            prog.ensure_newline()
+            prog2 = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
+            for name, X in prog2:
+                # print(name)
+                # Learn a random forest classifier using train data
+                X_train = X.values[train_idx]
+                clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
+                clf.fit(X_train, y_train)
+                classifiers[name] = clf
 
-    df_simple = pd.DataFrame([best_simple_aucs], columns=best_simple_cols)
+                # Evaluate on testing data
+                X_test = X.values[test_idx]
+                clf_probs = clf.predict_proba(X_test)
 
-    # Take mean over all classifiers
-    df_mean = pd.DataFrame([df_results.mean().values], columns=df_results.columns)
-    df_all = pd.concat([df_simple, df_mean], axis=1)
+                res = ClfResult.make_single(test_idx, clf_probs, labels)
+                crossval_results[name].append(res)
+                auc_learn = res.roc_score()
 
-    # Add in the simple scores
-    print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
+                split_columns.append(name)
+                split_aucs.append(auc_learn)
+            # Append this folds' classifiers
+            self.cv_classifiers.append(classifiers)
+            # Append this fold's results
+            newrow = pd.DataFrame([split_aucs], columns=split_columns)
 
-    # best_name = df_all.columns[df_all.values.argmax()]
+            df_results = df_results.append([newrow], ignore_index=True)
 
-    ut.qt4ensure()
-    import plottool as pt  # NOQA
+            import sandbox_utools as sbut
+            print(sbut.to_string_monkey(
+                newrow, highlight_cols=np.arange(len(newrow.columns))))
 
-    for name, X in X_dict.items():
-        # if name != best_name:
-        #     continue
-        # Take average feature importance
-        print('IMPORTANCE INFO FOR %s DATA' % (name,))
-        feature_importances = np.mean([
-            clf_.feature_importances_
-            for clf_ in ut.dict_take_column(cv_classifiers, name)
-        ], axis=0)
-        importances = ut.dzip(X.columns, feature_importances)
+        # Combine results over cross validation runs
+        for name, res_list in crossval_results.items():
+            print('\nname = %r' % (name,))
+            combo_res = ClfResult.combine_results(res_list, labels)
+            combo_res.print_report()
 
-        self = PairFeatInfo(X, importances)
+        # change = df[df.columns[2]] - df[df.columns[0]]
+        # percent_change = change / df[df.columns[0]] * 100
+        # df = df.assign(change=change)
+        # df = df.assign(percent_change=percent_change)
 
-        # self.print_margins('feature')
-        self.print_margins('measure_type')
-        # self.print_margins('summary_op')
-        # self.print_margins('summary_measure')
-        # self.print_margins('global_measure')
-        # self.print_margins([('measure_type', '==', 'summary'),
-        #                     ('summary_op', '==', 'sum')])
-        # self.print_margins([('measure_type', '==', 'summary'),
-        #                     ('summary_op', '==', 'mean')])
-        # self.print_margins([('measure_type', '==', 'summary'),
-        #                     ('summary_op', '==', 'std')])
-        # self.print_margins([('measure_type', '==', 'global')])
-        # self.print_margins('global_measure')
-        self.print_margins('local_measure')
-        self.print_margins('local_sorter')
-        self.print_margins('local_rank')
+        # Take mean over all classifiers
+        df_rf = pd.DataFrame([df_results.mean().values], columns=df_results.columns)
+        return df_rf
 
-        # ut.fix_embed_globals()
-        # pt.wordcloud(importances)
-    # pt.show_if_requested()
-    # import utool
-    # utool.embed()
+    def report_classifier_importance(self):
+        ut.qt4ensure()
+        import plottool as pt  # NOQA
 
-    # print('rat_sver_rf_auc = %r' % (rat_sver_rf_auc,))
-    # columns = ['Method', 'AUC']
-    # data = [
-    #     ['1vM-LNBNN',       vsmany_lnbnn_auc],
+        for name, X in self.X_dict.items():
+            # if name != best_name:
+            #     continue
+            # Take average feature importance
+            print('IMPORTANCE INFO FOR %s DATA' % (name,))
+            with ut.Indenter('[%s] ' % (name,)):
+                feature_importances = np.mean([
+                    clf_.feature_importances_
+                    for clf_ in ut.dict_take_column(self.cv_classifiers, name)
+                ], axis=0)
+                importances = ut.dzip(X.columns, feature_importances)
 
-    #     ['1v1-LNBNN',       vsone_sver_lnbnn_auc],
-    #     ['1v1-RAT',         rat_auc],
-    #     ['1v1-RAT+SVER',    rat_sver_auc],
-    #     ['1v1-RAT+SVER+RF', rat_sver_rf_auc],
-    # ]
-    # table = pd.DataFrame(data, columns=columns)
-    # error = 1 - table['AUC']
-    # orig = 1 - vsmany_lnbnn_auc
-    # import tabulate
-    # table = table.assign(percent_error_decrease=(orig - error) / orig * 100)
-    # col_to_nice = {
-    #     'percent_error_decrease': '% error decrease',
-    # }
-    # header = [col_to_nice.get(c, c) for c in table.columns]
-    # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
+                featinfo = PairFeatInfo(X, importances)
+
+                # featinfo.print_margins('feature')
+                featinfo.print_margins('measure_type')
+                # featinfo.print_margins('summary_op')
+                # featinfo.print_margins('summary_measure')
+                featinfo.print_margins('global_measure')
+                # featinfo.print_margins([('measure_type', '==', 'summary'),
+                #                     ('summary_op', '==', 'sum')])
+                # featinfo.print_margins([('measure_type', '==', 'summary'),
+                #                     ('summary_op', '==', 'mean')])
+                # featinfo.print_margins([('measure_type', '==', 'summary'),
+                #                     ('summary_op', '==', 'std')])
+                # featinfo.print_margins([('measure_type', '==', 'global')])
+                # featinfo.print_margins('global_measure')
+                featinfo.print_margins('local_measure')
+                featinfo.print_margins('local_sorter')
+                featinfo.print_margins('local_rank')
+                # ut.fix_embed_globals()
+                # pt.wordcloud(importances)
+
+
+class ClfResult(object):
+    """
+    cls = ClfResult
+    """
+    def __init__(res):
+        pass
+
+    @classmethod
+    def make_single(ClfResult, test_idx, clf_probs, task_labels):
+        """
+        Make a result for a single cross validiation subset
+        """
+        class_names = ut.lmap(str, task_labels.class_names)
+        index = pd.Series(test_idx, name='test_idx')
+        res = ClfResult()
+        res.class_names = class_names
+        res.probs_df = pd.DataFrame(
+            clf_probs, index=index,
+            columns=['p_' + n for n in class_names],
+        )
+        res.target_bin_df = pd.DataFrame(
+            data=task_labels.y_bin[test_idx], index=index,
+            columns=['is_' + n for n in class_names],
+        )
+        res.target_enc_df = pd.DataFrame(
+            data=task_labels.y_enc[test_idx], index=index,
+            columns=['class_idx'],
+        )
+        return res
+
+    @classmethod
+    def combine_results(cls, res_list, task_labels=None):
+        """
+        Combine results from cross validation runs into a single result
+        representing the performance of the entire dataset
+        """
+        # Ensure that res_lists are not overlapping
+        idx_sets = [set(_res.probs_df.index.values) for _res in res_list]
+        assert not any([s1.intersection(s2)
+                        for s1, s2 in ut.combinations(idx_sets, 2)])
+        # Combine them with pandas
+        res = cls()
+        res0 = res_list[0]
+        # res.labels = res0.labels
+        res.class_names = res0.class_names
+        res.probs_df = pd.concat([r.probs_df for r in res_list])
+        res.target_bin_df = pd.concat([r.target_bin_df for r in res_list])
+        res.target_enc_df = pd.concat([r.target_enc_df for r in res_list])
+
+        # meta = {}
+        # meta['easiness'] = np.array(ut.ziptake(res.probs_df.values, res.target_enc_df.values)).ravel()
+        # meta['hardness'] = 1 - meta['easiness']
+        # # meta['aid1'] = labels.aid_pairs.T[0].take(res.probs_df.index.values)
+        # # meta['aid2'] = labels.aid_pairs.T[1].take(res.probs_df.index.values)
+        # meta['pred'] = res.probs_df.values.argmax(axis=1)
+        # meta['target'] = res.target_enc_df.values.ravel()
+        # meta['failed'] = meta['pred'] != meta['target']
+        # res.meta = pd.DataFrame(meta)
+        # res.meta.take(res.meta['easiness'].argsort())
+        return res
+
+    def aug_labels(res):
+        n_classes = len(res.class_names)
+        # Check if augmentation is necessary
+        # needs_augment = (len(np.unique(res.probs_df.values.argmax(axis=1))) ==
+        #                  n_classes)
+
+        _extra_enc = np.arange(n_classes)[:, None]
+        y_test_enc_aug = np.vstack([res.target_enc_df.values, _extra_enc])
+        y_test_bin_aug = np.vstack([res.target_bin_df.values, np.eye(n_classes)])
+        clf_probs_aug = np.vstack([res.probs_df.values, np.eye(n_classes)])
+
+        # make sample weights where dummies are significantly downweighted
+        sample_weight = np.ones(len(y_test_enc_aug))
+        sample_weight[-n_classes] = 1e-9
+        return y_test_enc_aug, y_test_bin_aug, clf_probs_aug, sample_weight
+
+    def print_report(res):
+        (y_test_enc_aug, y_test_bin_aug,
+         clf_probs_aug, sample_weight) = res.aug_labels()
+
+        pred_enc = clf_probs_aug.argmax(axis=1)
+
+        p, r, f1, s = sklearn.metrics.precision_recall_fscore_support(
+            y_true=y_test_enc_aug, y_pred=pred_enc,
+            sample_weight=sample_weight,
+        )
+        report = sklearn.metrics.classification_report(
+            y_true=y_test_enc_aug, y_pred=pred_enc,
+            target_names=res.class_names,
+            sample_weight=sample_weight,
+        )
+        confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc)
+        print('Confusion Matrix:')
+        print(pd.DataFrame(confusion, columns=[m for m in res.class_names],
+                           index=['gt ' + m for m in res.class_names]))
+
+        print(report)
+
+    def roc_score(res):
+        (y_test_enc_aug, y_test_bin_aug,
+         clf_probs_aug, sample_weight) = res.aug_labels()
+        auc_learn = sklearn.metrics.roc_auc_score(y_test_bin_aug, clf_probs_aug)
+        return auc_learn
+
+
+class MultiClassLabels(ut.NiceRepr):
+    """
+    Handles labels that encode mutually exclusive classes
+
+        import pandas as pd
+        pd.options.display.max_rows = 10
+        # pd.options.display.max_rows = 20
+        pd.options.display.max_columns = 40
+        pd.options.display.width = 160
+
+    """
+    def __init__(task_labels):
+        # Helper Info
+        task_labels.task_name = None
+        task_labels.class_names = None
+        task_labels.classes_ = None
+        task_labels.n_samples = None
+        task_labels.n_classes = None
+        # Core data
+        task_labels.indicator_df = None
+        task_labels.encoded_df = None
+
+    @property
+    def y_bin(task_labels):
+        return task_labels.indicator_df.values
+
+    @property
+    def y_enc(task_labels):
+        return task_labels.encoded_df.values.ravel()
+
+    @classmethod
+    def from_indicators(MultiClassLabels, indicator, task_name=None):
+        import six
+        task_labels = MultiClassLabels()
+        n_samples = len(six.next(six.itervalues(indicator)))
+        # if index is None:
+        #     index = pd.Series(np.arange(n_samples), name='index')
+        indicator_df = pd.DataFrame(indicator)
+        assert np.all(indicator_df.sum(axis=1).values), (
+            'states in the same task must be mutually exclusive')
+        task_labels.indicator_df = indicator_df
+        task_labels.class_names = indicator_df.columns.values
+        task_labels.encoded_df = pd.DataFrame(
+            indicator_df.values.argmax(axis=1),
+            columns=[task_name]
+        )
+        task_labels.task_name = task_name
+        task_labels.n_samples = n_samples
+        task_labels.n_classes = len(task_labels.class_names)
+        task_labels.classes_ = np.arange(task_labels.n_classes)
+        return task_labels
+
+    def __nice__(task_labels):
+        parts = []
+        if task_labels.task_name is not None:
+            parts.append(task_labels.task_name)
+        parts.append('nD=%r' % (task_labels.n_samples))
+        parts.append('nC=%r' % (task_labels.n_classes))
+        return ' '.join(parts)
+
+    def __len__(task_labels):
+        return task_labels.n_samples
+
+    def make_histogram(task_labels):
+        class_idx_hist = ut.dict_hist(task_labels.y_enc)
+        class_hist = ut.map_keys(
+            lambda idx: task_labels.class_names[idx], class_idx_hist)
+        return class_hist
+
+    def print_info(task_labels):
+        print('hist(%s) = %s' % (task_labels.task_name, ut.repr4(task_labels.make_histogram())))
+
+
+class MultiTaskLabels(ut.NiceRepr):
+    """
+    Handles a combination of non-mutually exclusive subclassification labels
+    """
+    def __init__(labels):
+        labels.subtasks = ut.odict()
+
+    def apply_indicators(labels, tasks_to_indicators):
+        labels.n_tasks = len(tasks_to_indicators)
+        for task_name, indicator in tasks_to_indicators.items():
+            task_labels = MultiClassLabels.from_indicators(
+                indicator, task_name=task_name)
+            labels.subtasks[task_name] = task_labels
+
+    @ut.memoize
+    def encoded_2d(labels):
+        encoded_2d = pd.concat([v.encoded_df for k, v in labels.items()], axis=1).values
+        return encoded_2d
+
+    def class_name_basis(labels):
+        """ corresponds with indexes returned from encoded1d """
+        class_name_basis = [(b, a) for a, b in ut.product(*[
+            v.class_names for k, v in labels.items()][::-1])]
+        return class_name_basis
+
+    @ut.memoize
+    def encoded_1d(labels):
+        """ Returns a unique label for each combination of labels """
+        # from sklearn.preprocessing import MultiLabelBinarizer
+        encoded_2d = labels.encoded_2d()
+        class_space = [v.n_classes for k, v in labels.items()]
+        offsets = np.array([1] + np.cumprod(class_space).tolist()[:-1])[None, :]
+        encoded_1d = (offsets * encoded_2d).sum(axis=1)
+        # e = MultiLabelBinarizer()
+        # bin_coeff = e.fit_transform(encoded_2d)
+        # bin_basis = (2 ** np.arange(bin_coeff.shape[1]))[None, :]
+        # # encoded_1d = (bin_coeff * bin_basis).sum(axis=1)
+        # encoded_1d = (bin_coeff * bin_basis[::-1]).sum(axis=1)
+        # # vt.unique_rows(sklearn.preprocessing.MultiLabelBinarizer().fit_transform(encoded_2d))
+        # [v.encoded_df.values for k, v in labels.items()]
+        # encoded_df_1d = pd.concat([v.encoded_df for k, v in labels.items()], axis=1)
+        return encoded_1d
+
+    def __nice__(labels):
+        return 'nS=%r, nT=%r' % (len(labels), labels.n_tasks)
+
+    def __len__(labels):
+        return labels.n_samples
+
+    def print_info(labels):
+        for task_name, task_labels in labels.items():
+            task_labels.print_info()
+        print('hist(all) = %s' % (ut.repr4(labels.make_histogram())))
+
+    def make_histogram(labels):
+        class_name_basis = labels.class_name_basis()
+        multi_task_idx_hist = ut.dict_hist(labels.encoded_1d())
+        multi_task_hist = ut.map_keys(
+            lambda k: class_name_basis[k], multi_task_idx_hist)
+        return multi_task_hist
+
+    def items(labels):
+        for task_name, task_labels in labels.subtasks.items():
+            yield task_name, task_labels
+
+    # def take(labels, idxs):
+    #     mask = ut.index_to_boolmask(idxs, len(labels))
+    #     return labels.compress(mask)
+    # def compress(labels, flags):
+    #     y_raw = labels.y_raw.compress(flags, axis=0)
+    #     class_names = labels.class_names
+    #     new_labels = MultiClassLabels(y_raw, class_names)
+    #     return new_labels
+
+
+class PairLabels(MultiTaskLabels):
+    """
+    Manages the different ways to assign labels to 1-v-1 classification labels
+
+    CommandLine:
+        python -m ibeis.scripts.script_vsone PairLabels
+
+    Example:
+        >>> from ibeis.scripts.script_vsone import *  # NOQA
+        >>> self = OneVsOneProblem()
+        >>> self.load_features()
+        >>> labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
+        >>> print(labels)
+        >>> labels.print_info()
+    """
+    def __init__(labels, ibs, aid_pairs, simple_scores):
+        super(PairLabels, labels).__init__()
+        labels.ibs = ibs
+        labels.aid_pairs = aid_pairs
+        labels.simple_scores = simple_scores
+        labels.annots1 = ibs.annots(aid_pairs.T[0], asarray=True)
+        labels.annots2 = ibs.annots(aid_pairs.T[1], asarray=True)
+        labels.n_samples = len(aid_pairs)
+        labels.apply_multi_task_multi_label()
+
+    @ut.memoize
+    def is_same(labels):
+        is_same = labels.annots1.nids == labels.annots2.nids
+        return is_same
+
+    @ut.memoize
+    def is_photobomb(labels):
+        am_rowids = labels.ibs.get_annotmatch_rowid_from_edges(labels.aid_pairs)
+        am_tags = labels.ibs.get_annotmatch_case_tags(am_rowids)
+        is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+        return is_pb
+
+    @ut.memoize
+    def is_comparable(labels):
+        # If we don't have actual comparability information just guess
+        return labels.guess_if_comparable()
+
+    def guess_if_comparable(labels):
+        """
+        Takes a guess as to which annots are not comparable based on scores and
+        viewpoints. If either viewpoints is null assume they are comparable.
+        """
+        simple_scores = labels.simple_scores
+        key = 'sum(weighted_ratio)'
+        if key not in simple_scores:
+            key = 'sum(ratio)'
+        scores = simple_scores[key].values
+        yaws1 = labels.annots1.yaws_asfloat
+        yaws2 = labels.annots2.yaws_asfloat
+        dists = vt.ori_distance(yaws1, yaws2)
+        tau = np.pi * 2
+        is_comp = (scores > .1) | (dists < tau / 8.1) | np.isnan(dists)
+        return is_comp
+
+    def apply_multi_task_multi_label(labels):
+        # multioutput-multiclass / multi-task
+        tasks_to_indicators = ut.odict([
+            ('match_state', ut.odict([
+                ('nomatch', ~labels.is_same() & labels.is_comparable()),
+                ('match',    labels.is_same() & labels.is_comparable()),
+                ('notcomp', ~labels.is_comparable()),
+            ])),
+            ('photobomb_state', ut.odict([
+                (False, ~labels.is_photobomb()),
+                (True,   labels.is_photobomb()),
+            ]))
+        ])
+        labels.apply_indicators(tasks_to_indicators)
+
+    def apply_single_task_multi_label(labels):
+        is_comp = labels.is_comparable()
+        is_same = labels.is_same()
+        is_pb   = labels.is_photobomb()
+        tasks_to_indicators = ut.odict([
+            ('match_pb_state', ut.odict([
+                ('is_notcomp',       ~is_comp & ~is_pb),
+                ('is_match',          is_same & is_comp & ~is_pb),
+                ('is_nomatch',       ~is_same & is_comp & ~is_pb),
+                ('is_notcomp_pb',    ~is_comp & is_pb),
+                ('is_match_pb',       is_same & is_comp & is_pb),
+                ('is_nomatch_pb',    ~is_same & is_comp & is_pb),
+            ])),
+        ])
+        labels.apply_indicators(tasks_to_indicators)
 
 
 @ut.reloadable_class
 class PairFeatInfo(object):
-    def __init__(self, X, importances=None):
-        self.X = X
-        self.importances = importances
-        self._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
+    """
+    Used to compute marginal importances over groups of features used in the
+    pairwise one-vs-one scoring algorithm
+    """
+    def __init__(featinfo, X, importances=None):
+        featinfo.X = X
+        featinfo.importances = importances
+        featinfo._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
 
-    def select_columns(self, criteria, op='and'):
+    def select_columns(featinfo, criteria, op='and'):
         if op == 'and':
-            cols = set(self.X.columns)
+            cols = set(featinfo.X.columns)
             update = cols.intersection_update
         elif op == 'or':
             cols = set([])
@@ -579,18 +957,18 @@ class PairFeatInfo(object):
         else:
             raise Exception(op)
         for group_id, op, value in criteria:
-            found = self.find(group_id, op, value)
+            found = featinfo.find(group_id, op, value)
             update(found)
         return cols
 
-    def find(self, group_id, op, value):
+    def find(featinfo, group_id, op, value):
         import six
         if isinstance(op, six.text_type):
             opdict = ut.get_comparison_operators()
             op = opdict.get(op)
-        grouper = getattr(self, group_id)
+        grouper = getattr(featinfo, group_id)
         found = []
-        for col in self.X.columns:
+        for col in featinfo.X.columns:
             value1 = grouper(col)
             if value1 is None:
                 # Only filter out/in comparable things
@@ -609,10 +987,10 @@ class PairFeatInfo(object):
                     pass
         return found
 
-    def group_importance(self, item):
+    def group_importance(featinfo, item):
         name, keys = item
         num = len(keys)
-        weight = sum(ut.take(self.importances, keys))
+        weight = sum(ut.take(featinfo.importances, keys))
         ave_w = weight / num
         tup = ave_w, weight, num
         # return tup
@@ -620,21 +998,21 @@ class PairFeatInfo(object):
                           index=[name])
         return df
 
-    def print_margins(self, group_id):
-        X = self.X
+    def print_margins(featinfo, group_id):
+        X = featinfo.X
         if isinstance(group_id, list):
-            cols = self.select_columns(criteria=group_id)
+            cols = featinfo.select_columns(criteria=group_id)
             _keys = [(c, [c]) for c in cols]
             try:
-                _weights = pd.concat(ut.lmap(self.group_importance, _keys))
+                _weights = pd.concat(ut.lmap(featinfo.group_importance, _keys))
             except ValueError:
                 _weights = []
                 pass
             nice = str(group_id)
         else:
-            grouper = getattr(self, group_id)
+            grouper = getattr(featinfo, group_id)
             _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
-            _weights = pd.concat(ut.lmap(self.group_importance, _keys.items()))
+            _weights = pd.concat(ut.lmap(featinfo.group_importance, _keys.items()))
             nice = ut.get_funcname(grouper).replace('_', ' ')
             nice = ut.pluralize(nice)
         try:
@@ -644,7 +1022,7 @@ class PairFeatInfo(object):
         print('\nImportance of ' + nice)
         print(_weights)
 
-    def group_counts(self, item):
+    def group_counts(featinfo, item):
         name, keys = item
         num = len(keys)
         tup = (num,)
@@ -653,55 +1031,55 @@ class PairFeatInfo(object):
                           index=[name])
         return df
 
-    def print_counts(self, group_id):
-        X = self.X
-        grouper = getattr(self, group_id)
+    def print_counts(featinfo, group_id):
+        X = featinfo.X
+        grouper = getattr(featinfo, group_id)
         _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
-        _weights = pd.concat(ut.lmap(self.group_counts, _keys.items()))
+        _weights = pd.concat(ut.lmap(featinfo.group_counts, _keys.items()))
         _weights = _weights.iloc[_weights['num'].argsort()[::-1]]
         nice = ut.get_funcname(grouper).replace('_', ' ')
         nice = ut.pluralize(nice)
         print('\nCounts of ' + nice)
         print(_weights)
 
-    def measure(self, key):
+    def measure(featinfo, key):
         return key[key.find('(') + 1:-1]
 
-    def feature(self, key):
+    def feature(featinfo, key):
         return key
 
-    def measure_type(self, key):
+    def measure_type(featinfo, key):
         if key.startswith('global'):
             return 'global'
         if key.startswith('loc'):
             return 'local'
-        if any(key.startswith(p) for p in self._summary_keys):
+        if any(key.startswith(p) for p in featinfo._summary_keys):
             return 'summary'
 
-    def summary_op(self, key):
-        for p in self._summary_keys:
+    def summary_op(featinfo, key):
+        for p in featinfo._summary_keys:
             if key.startswith(p):
                 return key[0:key.find('(')]
 
-    def summary_measure(self, key):
-        if any(key.startswith(p) for p in self._summary_keys):
-            return self.measure(key)
+    def summary_measure(featinfo, key):
+        if any(key.startswith(p) for p in featinfo._summary_keys):
+            return featinfo.measure(key)
 
-    def local_sorter(self, key):
+    def local_sorter(featinfo, key):
         if key.startswith('loc'):
             return key[key.find('[') + 1:key.find(',')]
 
-    def local_rank(self, key):
+    def local_rank(featinfo, key):
         if key.startswith('loc'):
             return key[key.find(',') + 1:key.find(']')]
 
-    def local_measure(self, key):
+    def local_measure(featinfo, key):
         if key.startswith('loc'):
-            return self.measure(key)
+            return featinfo.measure(key)
 
-    def global_measure(self, key):
+    def global_measure(featinfo, key):
         if key.startswith('global'):
-            return self.measure(key)
+            return featinfo.measure(key)
 
 
 def bigcache_features(qreq_, hyper_params):
@@ -1007,10 +1385,10 @@ def photobombing_subset():
         python -m ibeis.scripts.script_vsone photobombing_subset
     """
     import ibeis
-    pair_sample = ut.odict([
-        ('top_gt', 4), ('mid_gt', 2), ('bot_gt', 2), ('rand_gt', 2),
-        ('top_gf', 3), ('mid_gf', 2), ('bot_gf', 1), ('rand_gf', 2),
-    ])
+    # pair_sample = ut.odict([
+    #     ('top_gt', 4), ('mid_gt', 2), ('bot_gt', 2), ('rand_gt', 2),
+    #     ('top_gf', 3), ('mid_gf', 2), ('bot_gf', 1), ('rand_gf', 2),
+    # ])
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_Master1',
         a=':mingt=2,species=primary',

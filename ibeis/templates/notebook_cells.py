@@ -680,3 +680,29 @@ investigate_specific_case = (
         _ = test_result.draw_func()
         # ENDBLOCK
         '''))
+
+
+per_encounter_stats = (
+    '# Encounter Info',
+    ut.codeblock(
+        r'''
+        # STARTBLOCK
+        # Load cross validation slices
+        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+            ibs, acfg_name_list=a, qaid_override=qaid_override,
+            daid_override=daid_override, verbose=0)
+
+        # For each slice, find how many annotations are in each encounter
+        qannots_per_enc = []
+        dannots_per_enc = []
+        for qaids, daids in expanded_aids_list:
+            qannots = ibs.annots(qaids)
+            dannots = ibs.annots(daids)
+            qannots_per_enc.extend(list(ut.dict_hist(qannots.encounter_text).values()))
+            dannots_per_enc.extend(list(ut.dict_hist(dannots.encounter_text).values()))
+        # Aggregate encounter sizes into a histogram over each slice
+        query_enc_size_hist = ut.dict_hist(qannots_per_enc)
+        data_enc_size_hist = ut.dict_hist(dannots_per_enc)
+        print('query_enc_size_hist = ' + ut.repr4(query_enc_size_hist))
+        print('data_enc_size_hist = ' + ut.repr4(data_enc_size_hist))
+        '''))
