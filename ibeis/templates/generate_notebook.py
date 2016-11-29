@@ -218,6 +218,12 @@ def make_ibeis_cell_list(ibs):
             #'unctrl:been_adjusted=True',
             #'timectrl:',
             #'timectrl:view=primary,minqual=good',
+
+            #'default:minqual=good,require_timestamp=True,view=left,crossval_enc=True,joinme=1',
+            #'default:minqual=good,require_timestamp=True,view=right,crossval_enc=True,joinme=1',
+            #'default:minqual=ok,require_timestamp=True,view=left,crossval_enc=True,joinme=2',
+            #'default:minqual=ok,require_timestamp=True,view=right,crossval_enc=True,joinme=2',
+
             ''')
         )
         pipeline_list_body = ut.codeblock(
