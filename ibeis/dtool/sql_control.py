@@ -42,6 +42,50 @@ def _unpacker(results_):
         results = results_[0]
     return results
 
+
+def tuplize(list_):
+    """ Converts each scalar item in a list to a dimension-1 tuple """
+    tup_list = [item if ut.isiterable(item) else (item,) for item in list_]
+    return tup_list
+
+
+def flattenize(list_):
+    """
+    maps flatten to a tuplized list
+
+    Weird function. DEPRICATE
+
+    Example:
+        >>> list_ = [[1, 2, 3], [2, 3, [4, 2, 1]], [3, 2], [[1, 2], [3, 4]]]
+        >>> import utool
+        >>> from itertools import zip
+        >>> val_list1 = [(1, 2), (2, 4), (5, 3)]
+        >>> id_list1  = [(1,),     (2,),   (3,)]
+        >>> out_list1 = utool.flattenize(zip(val_list1, id_list1))
+
+        >>> val_list2 = [1, 4, 5]
+        >>> id_list2  = [(1,),     (2,),   (3,)]
+        >>> out_list2 = utool.flattenize(zip(val_list2, id_list2))
+
+        >>> val_list3 = [1, 4, 5]
+        >>> id_list3  = [1, 2, 3]
+        >>> out_list3 = utool.flattenize(zip(val_list3, id_list3))
+
+        out_list4 = list(zip(val_list3, id_list3))
+        %timeit utool.flattenize(zip(val_list1, id_list1))
+        %timeit utool.flattenize(zip(val_list2, id_list2))
+        %timeit utool.flattenize(zip(val_list3, id_list3))
+        %timeit list(zip(val_list3, id_list3))
+
+        100000 loops, best of 3: 14 us per loop
+        100000 loops, best of 3: 16.5 us per loop
+        100000 loops, best of 3: 18 us per loop
+        1000000 loops, best of 3: 1.18 us per loop
+    """
+    tuplized_iter   = map(tuplize, list_)
+    flatenized_list = list(map(ut.flatten, tuplized_iter))
+    return flatenized_list
+
 # =======================
 # SQL Context Class
 # =======================
@@ -946,7 +990,8 @@ class SQLDatabaseController(object):
             '''
 
         # TODO: The flattenize can be removed if we pass in val_lists instead
-        params_iter = ut.flattenize(list(zip(val_list, id_list)))
+        params_iter = flattenize(list(zip(val_list, id_list)))
+
         #params_iter = list(zip(val_list, id_list))
         return db._executemany_operation_fmt(operation_fmt, fmtdict,
                                              params_iter=params_iter, **kwargs)

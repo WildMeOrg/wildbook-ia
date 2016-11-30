@@ -2351,7 +2351,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
 
         def tup_unflat_take(items_list, unflat_index_list):
             r"""
-            Hack for depcache, that needs a tuple version of ut.list_unflat_take
+            Hack for depcache, that needs a tuple version of ut.unflat_take
             """
             def tuptake(list_, index_list):
                 try:
@@ -2387,7 +2387,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                                 if ensure:
                                     ut.assertpath(uri_full)
                             exprop[extern_colx] = data
-                        #nestprop = ut.list_unflat_take(exprop, nesting_xs)
+                        #nestprop = ut.unflat_take(exprop, nesting_xs)
                         nestprop = tup_unflat_take(exprop, nesting_xs)
                         yield nestprop
                 prop_gen = _generator_resolve_all()
@@ -2415,7 +2415,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 ####
                 # Unflatten data into any given nested structure
                 if len(prop_listT) > 0:
-                    nested_proplistT = ut.list_unflat_take(prop_listT, nesting_xs)
+                    nested_proplistT = ut.unflat_take(prop_listT, nesting_xs)
                     for tx in ut.where([isinstance(xs, list) for xs in nesting_xs]):
                         nested_proplistT[tx] = list(zip(*nested_proplistT[tx]))
                     prop_list = list(zip(*nested_proplistT))
