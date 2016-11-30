@@ -149,7 +149,7 @@ __IBEIS_CONTROLLER_CACHE__ = {}
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
         use_cache=True, request_dbversion=None, request_stagingversion=None,
-        asproxy=None):
+        asproxy=None, check_hsdb=True):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -206,7 +206,7 @@ def request_IBEISController(
     else:
         # Convert hold hotspotter dirs if necessary
         from ibeis.dbio import ingest_hsdb
-        if ingest_hsdb.check_unconverted_hsdb(dbdir):
+        if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,
                                                     verbose=verbose)
