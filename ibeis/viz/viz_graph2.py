@@ -1366,6 +1366,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
         ibeis make_qt_graph_interface --show
 
+        ibeis make_qt_graph_interface --show --db RotanTurtles --aids=610,716
+
         ibeis make_qt_graph_interface --db LEWA_splits --nids=1 --show --sample
 
         ibeis make_qt_graph_interface --db PZ_MTEST --nids=1 --show --init-mode=rereview

@@ -95,7 +95,6 @@ class OneVsOneProblem(object):
         # df_simple = self.evaluate_simple_scores()
         # _all_dfs.append(df_simple)
 
-        # df_rf = self.evaluate_random_forest()
         self.evaluate_tasks()
 
         for task_name in self.labels.subtasks.keys():
