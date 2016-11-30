@@ -91,6 +91,7 @@ def get_default_cell_template_list(ibs):
     info_cells = [
         cells.pipe_config_info,
         cells.annot_config_info,
+        cells.per_encounter_stats,
         cells.timestamp_distribution,
     ]
 

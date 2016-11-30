@@ -97,6 +97,11 @@ class OneVsOneProblem(object):
 
         # df_rf = self.evaluate_random_forest()
         self.evaluate_tasks()
+
+        for task_name in self.labels.subtasks.keys():
+            self.report_classifier_accuracy(task_name)
+            self.report_classifier_importance(task_name)
+
         # _all_dfs.append(df_rf)
         # df_all = pd.concat(_all_dfs, axis=1)
 
@@ -422,50 +427,6 @@ class OneVsOneProblem(object):
         rf_params.update(rf_settings)
         return rf_params
 
-    def evaluate_tasks(self):
-        """
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
-        """
-        X_dict = self.X_dict
-        dataset_prog = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
-        for name, X_df in dataset_prog:
-            dataset_prog.ensure_newline()
-            task_prog = ut.ProgIter(list(self.labels.items()), label='task')
-            for task_name, task_labels in task_prog:
-                task_prog.ensure_newline()
-                clf_list, res_list = self.evaluate_single_rf(X_df, task_labels)
-
-                print('\nDataset Name = %r' % (name,))
-                print('Task Name = %r' % (task_name,))
-                combo_res = ClfResult.combine_results(res_list, task_labels)
-                combo_res.print_report()
-
-    def evaluate_single_rf(self, X_df, task_labels):
-        """
-        X_df = self.X_dict['learn(all)']
-        task_labels = self.labels.subtasks['photobomb_state']
-        """
-        rf_params = self.get_rf_params()
-
-        clf_list = []
-        res_list = []
-
-        skf_list = self.get_crossval_idxs()
-        for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
-            X_train = X_df.values[train_idx]
-            y_train = task_labels.y_enc[train_idx]
-            clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
-            clf.fit(X_train, y_train)
-
-            # Evaluate on testing data
-            X_test = X_df.values[test_idx]
-            clf_probs = clf.predict_proba(X_test)
-
-            res = ClfResult.make_single(test_idx, clf_probs, task_labels)
-            res_list.append(res)
-            clf_list.append(clf)
-        return clf_list, res_list
-
     def get_crossval_idxs(self):
         """
         # TODO: check xval label frequency
@@ -481,79 +442,7 @@ class OneVsOneProblem(object):
         skf_list = list(skf_iter)
         return skf_list
 
-    def evaluate_random_forest(self):
-        print('\nTraining Data Info:')
-        X_dict = self.X_dict
-        for name, X in X_dict.items():
-            print('%s.shape = %r' % (name, X.shape))
-
-        labels = self.labels
-        self.labels.print_info()
-
-        import utool
-        utool.embed()
-
-        rf_params = self.rf_params()
-        self.cv_classifiers = []
-        df_results = pd.DataFrame(columns=list(X_dict.keys()))
-
-        skf_list = self.get_crossval_idxs()
-        prog = ut.ProgIter(skf_list, label='skf')
-
-        crossval_results = ut.ddict(list)
-
-        for count, (train_idx, test_idx) in enumerate(prog):
-            y_train = labels.y_enc[train_idx]
-            split_columns = []
-            split_aucs = []
-            classifiers = {}
-            prog.ensure_newline()
-            prog2 = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
-            for name, X in prog2:
-                # print(name)
-                # Learn a random forest classifier using train data
-                X_train = X.values[train_idx]
-                clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
-                clf.fit(X_train, y_train)
-                classifiers[name] = clf
-
-                # Evaluate on testing data
-                X_test = X.values[test_idx]
-                clf_probs = clf.predict_proba(X_test)
-
-                res = ClfResult.make_single(test_idx, clf_probs, labels)
-                crossval_results[name].append(res)
-                auc_learn = res.roc_score()
-
-                split_columns.append(name)
-                split_aucs.append(auc_learn)
-            # Append this folds' classifiers
-            self.cv_classifiers.append(classifiers)
-            # Append this fold's results
-            newrow = pd.DataFrame([split_aucs], columns=split_columns)
-
-            df_results = df_results.append([newrow], ignore_index=True)
-
-            import sandbox_utools as sbut
-            print(sbut.to_string_monkey(
-                newrow, highlight_cols=np.arange(len(newrow.columns))))
-
-        # Combine results over cross validation runs
-        for name, res_list in crossval_results.items():
-            print('\nname = %r' % (name,))
-            combo_res = ClfResult.combine_results(res_list, labels)
-            combo_res.print_report()
-
-        # change = df[df.columns[2]] - df[df.columns[0]]
-        # percent_change = change / df[df.columns[0]] * 100
-        # df = df.assign(change=change)
-        # df = df.assign(percent_change=percent_change)
-
-        # Take mean over all classifiers
-        df_rf = pd.DataFrame([df_results.mean().values], columns=df_results.columns)
-        return df_rf
-
-    def report_classifier_importance(self):
+    def report_classifier_importance(self, task_name):
         ut.qt4ensure()
         import plottool as pt  # NOQA
 
@@ -561,11 +450,11 @@ class OneVsOneProblem(object):
             # if name != best_name:
             #     continue
             # Take average feature importance
-            print('IMPORTANCE INFO FOR %s DATA' % (name,))
+            print('IMPORTANCE INFO FOR %s DATA FOR %s' % (name, task_name))
             with ut.Indenter('[%s] ' % (name,)):
+                clf_list = self.task_clfs[task_name][name]
                 feature_importances = np.mean([
-                    clf_.feature_importances_
-                    for clf_ in ut.dict_take_column(self.cv_classifiers, name)
+                    clf_.feature_importances_ for clf_ in clf_list
                 ], axis=0)
                 importances = ut.dzip(X.columns, feature_importances)
 
@@ -590,6 +479,72 @@ class OneVsOneProblem(object):
                 # ut.fix_embed_globals()
                 # pt.wordcloud(importances)
 
+    def report_classifier_accuracy(self, task_name):
+        roc_scores = {}
+        for name, X in self.X_dict.items():
+            combo_res = self.task_combo_res[task_name][name]
+            roc_scores[name] = [combo_res.roc_score()]
+        df_rf = pd.DataFrame(roc_scores)
+        import sandbox_utools as sbut
+        print(sbut.to_string_monkey(
+            df_rf, highlight_cols=np.arange(len(df_rf.columns))))
+
+    def evaluate_tasks(self):
+        """
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        """
+
+        self.task_clfs = ut.ddict(dict)
+        self.task_res_list = ut.ddict(dict)
+        self.task_combo_res = ut.ddict(dict)
+
+        X_dict = self.X_dict
+        dataset_prog = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
+        for name, X_df in dataset_prog:
+            dataset_prog.ensure_newline()
+            task_prog = ut.ProgIter(list(self.labels.items()), label='task')
+            for task_name, task_labels in task_prog:
+                task_prog.ensure_newline()
+                clf_list, res_list = self.evaluate_single_rf(X_df, task_labels)
+
+                print('\nDataset Name = %r' % (name,))
+                print('Task Name = %r' % (task_name,))
+                combo_res = ClfResult.combine_results(res_list, task_labels)
+                combo_res.print_report()
+
+                self.task_clfs[task_name][name]      = clf_list
+                self.task_res_list[task_name][name]  = res_list
+                self.task_combo_res[task_name][name] = combo_res
+
+    def evaluate_single_rf(self, X_df, task_labels):
+        """
+        X_df = self.X_dict['learn(all)']
+        task_labels = self.labels.subtasks['photobomb_state']
+        """
+        rf_params = self.get_rf_params()
+
+        clf_list = []
+        res_list = []
+
+        skf_list = self.get_crossval_idxs()
+        for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
+            X_train = X_df.values[train_idx]
+            y_train = task_labels.y_enc[train_idx]
+
+            clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
+            clf.fit(X_train, y_train)
+
+            # Evaluate on testing data
+            X_test = X_df.values[test_idx]
+            clf_probs = clf.predict_proba(X_test)
+
+            pred_classes = clf.classes_
+
+            res = ClfResult.make_single(test_idx, clf_probs, pred_classes, task_labels)
+            res_list.append(res)
+            clf_list.append(clf)
+        return clf_list, res_list
+
 
 class ClfResult(object):
     """
@@ -599,16 +554,24 @@ class ClfResult(object):
         pass
 
     @classmethod
-    def make_single(ClfResult, test_idx, clf_probs, task_labels):
+    def make_single(ClfResult, test_idx, clf_probs, pred_classes, task_labels):
         """
         Make a result for a single cross validiation subset
         """
-        class_names = ut.lmap(str, task_labels.class_names)
-        index = pd.Series(test_idx, name='test_idx')
         res = ClfResult()
+
+        # Ensure shape corresponds with all classes
+        alignx = ut.list_alignment(pred_classes, task_labels.classes_, missing=True)
+        aligned_probs_ = ut.none_take(clf_probs.T, alignx)
+        aligned_probs_ = ut.replace_nones(aligned_probs_, np.zeros(len(clf_probs)))
+        aligned_probs = np.vstack(aligned_probs_).T
+
+        class_names = ut.lmap(str, task_labels.class_names)
         res.class_names = class_names
+        index = pd.Series(test_idx, name='test_idx')
+
         res.probs_df = pd.DataFrame(
-            clf_probs, index=index,
+            aligned_probs, index=index,
             columns=['p_' + n for n in class_names],
         )
         res.target_bin_df = pd.DataFrame(
@@ -652,25 +615,36 @@ class ClfResult(object):
         # res.meta.take(res.meta['easiness'].argsort())
         return res
 
-    def aug_labels(res):
+    def missing_classes(res):
+        # Find classes that were never predicted
+        unique_predictions = np.unique(res.probs_df.values.argmax(axis=1))
         n_classes = len(res.class_names)
-        # Check if augmentation is necessary
-        # needs_augment = (len(np.unique(res.probs_df.values.argmax(axis=1))) ==
-        #                  n_classes)
+        missing_classes = ut.index_complement(unique_predictions, n_classes)
+        return missing_classes
 
-        _extra_enc = np.arange(n_classes)[:, None]
-        y_test_enc_aug = np.vstack([res.target_enc_df.values, _extra_enc])
-        y_test_bin_aug = np.vstack([res.target_bin_df.values, np.eye(n_classes)])
-        clf_probs_aug = np.vstack([res.probs_df.values, np.eye(n_classes)])
-
-        # make sample weights where dummies are significantly downweighted
+    def augment_if_needed(res):
+        missing_classes = res.missing_classes()
+        n_classes = len(res.class_names)
+        y_test_enc_aug = res.target_enc_df.values
+        y_test_bin_aug = res.target_bin_df.values
+        clf_probs_aug = res.probs_df.values
         sample_weight = np.ones(len(y_test_enc_aug))
-        sample_weight[-n_classes] = 1e-9
+        n_missing = len(missing_classes)
+        # Check if augmentation is necessary
+        if n_missing > 0:
+            missing_bin = np.zeros((n_missing, n_classes))
+            missing_bin[(np.arange(n_missing), missing_classes)] = 1.0
+            missing_enc = np.array(missing_classes)[:, None]
+            y_test_enc_aug = np.vstack([y_test_enc_aug, missing_enc])
+            y_test_bin_aug = np.vstack([y_test_bin_aug, missing_bin])
+            clf_probs_aug = np.vstack([clf_probs_aug, missing_bin])
+            # make sample weights where dummies are significantly downweighted
+            sample_weight = np.hstack([sample_weight, np.full(n_missing, 1e-9)])
         return y_test_enc_aug, y_test_bin_aug, clf_probs_aug, sample_weight
 
     def print_report(res):
         (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.aug_labels()
+         clf_probs_aug, sample_weight) = res.augment_if_needed()
 
         pred_enc = clf_probs_aug.argmax(axis=1)
 
@@ -683,16 +657,16 @@ class ClfResult(object):
             target_names=res.class_names,
             sample_weight=sample_weight,
         )
-        confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc)
+        confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc,
+                                                     sample_weight=sample_weight)
         print('Confusion Matrix:')
         print(pd.DataFrame(confusion, columns=[m for m in res.class_names],
                            index=['gt ' + m for m in res.class_names]))
-
         print(report)
 
     def roc_score(res):
         (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.aug_labels()
+         clf_probs_aug, sample_weight) = res.augment_if_needed()
         auc_learn = sklearn.metrics.roc_auc_score(y_test_bin_aug, clf_probs_aug)
         return auc_learn
 

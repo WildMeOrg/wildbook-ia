@@ -683,7 +683,7 @@ investigate_specific_case = (
 
 
 per_encounter_stats = (
-    '# Encounter Info',
+    '# Combined Annot Per Encounter Info',
     ut.codeblock(
         r'''
         # STARTBLOCK
