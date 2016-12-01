@@ -491,6 +491,9 @@ class OneVsOneProblem(object):
     def evaluate_tasks(self):
         """
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+
+        TODO: use Markedness and Informedness
+        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
         """
 
         self.task_clfs = ut.ddict(dict)
