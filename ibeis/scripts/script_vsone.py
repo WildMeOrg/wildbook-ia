@@ -105,8 +105,8 @@ class OneVsOneProblem(object):
         # df_all = pd.concat(_all_dfs, axis=1)
 
         # # Add in the simple scores
-        # import sandbox_utools as sbut
-        # print(sbut.to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
+        # from utool.experimental.pandas_highlight import to_string_monkey
+        # print(to_string_monkey(df_all, highlight_cols=np.arange(len(df_all.columns))))
 
         # self.report_classifier_importance()
 
@@ -484,8 +484,8 @@ class OneVsOneProblem(object):
             combo_res = self.task_combo_res[task_name][name]
             roc_scores[name] = [combo_res.roc_score()]
         df_rf = pd.DataFrame(roc_scores)
-        import sandbox_utools as sbut
-        print(sbut.to_string_monkey(
+        from utool.experimental.pandas_highlight import to_string_monkey
+        print(to_string_monkey(
             df_rf, highlight_cols=np.arange(len(df_rf.columns))))
 
     def evaluate_tasks(self):
