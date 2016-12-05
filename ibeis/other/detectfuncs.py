@@ -1574,7 +1574,8 @@ def background_train(ibs):
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.netrun import train_background
     data_path = join(ibs.get_cachedir(), 'extracted')
-    get_background_training_patches2(ibs, data_path, patch_size=50)
+    get_background_training_patches2(ibs, data_path, patch_size=50,
+                                     global_limit=200000)
     id_file, X_file, y_file = numpy_processed_directory2(data_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')
     model_path = train_background(output_path, X_file, y_file)
