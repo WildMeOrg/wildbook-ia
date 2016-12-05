@@ -86,7 +86,7 @@ class OneVsOneProblem(object):
         self.load_labels()
 
         # self.labels.print_info()
-        # self.reduce_dataset_size()
+        self.reduce_dataset_size()
         self.build_feature_subsets()
         self.labels.print_info()
 
@@ -95,11 +95,60 @@ class OneVsOneProblem(object):
         # df_simple = self.evaluate_simple_scores()
         # _all_dfs.append(df_simple)
 
-        self.evaluate_tasks()
+        self.task_clfs = ut.ddict(dict)
+        self.task_res_list = ut.ddict(dict)
+        self.task_combo_res = ut.ddict(dict)
 
-        for task_name in self.labels.subtasks.keys():
+        task_list = [
+            # 'match_state',
+            'photobomb_state'
+        ]
+
+        self.datakey_list = [
+            'learn(sum,glob,3)',
+        ]
+
+        cfgstr = 'tmp'
+        cacher = ut.Cacher('pair_clf', cfgstr=cfgstr,
+                           appname='vsone_rf_train', enabled=1)
+        data = cacher.tryload()
+        if not data:
+            task_prog = ut.ProgIter(task_list, label='task')
+            for task_name in task_prog:
+                task_prog.ensure_newline()
+                self.evaluate_task(task_name)
+            data = (self.task_clfs, self.task_res_list, self.task_combo_res)
+            cacher.save(data)
+        else:
+            self.task_clfs, self.task_res_list, self.task_combo_res = data
+
+        for task_name in task_list:
             self.report_classifier_accuracy(task_name)
-            self.report_classifier_importance(task_name)
+            # self.report_classifier_importance(task_name)
+
+        for task_name in task_list:
+            data_combo_res = self.task_combo_res[task_name]
+            best_data_key = 'learn(sum,glob,3)'
+            combo_res = data_combo_res[best_data_key]
+            combo_res.print_report()
+
+        # TODO: view failure / success cases
+        # Need to show and potentially fix misclassified examples
+        if True:
+            self.labels.aid_pairs
+            combo_res.target_bin_df
+            res = combo_res
+            labels = self.labels
+            meta = res.make_meta(labels).copy()
+            import ibeis
+            AnnotInference = ibeis.AnnotInference
+            aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
+            attrs = meta.drop(['aid1', 'aid2'], 1).to_dict()
+            ibs = self.qreq_.ibs
+            infr = AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs)
+            win = infr.start_qt_interface()
+            import guitool as gt
+            gt.qtapp_loop(qwin=win, freq=10)
 
         # _all_dfs.append(df_rf)
         # df_all = pd.concat(_all_dfs, axis=1)
@@ -133,6 +182,58 @@ class OneVsOneProblem(object):
         # }
         # header = [col_to_nice.get(c, c) for c in table.columns]
         # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
+
+    def evaluate_task(self, task_name):
+        """
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+
+        TODO: use Markedness and Informedness
+        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
+        """
+        X_dict = self.X_dict
+        task_labels = self.labels.subtasks[task_name]
+        dataset_prog = ut.ProgIter(self.datakey_list, label='X_set')
+        for name in dataset_prog:
+            X_df = X_dict[name]
+            clf_list, res_list = self.evaluate_single_rf(X_df, task_labels)
+
+            print('\nDataset Name = %r' % (name,))
+            print('Task Name = %r' % (task_name,))
+            combo_res = ClfResult.combine_results(res_list, task_labels)
+            # combo_res.print_report()
+
+            self.task_clfs[task_name][name]      = clf_list
+            self.task_res_list[task_name][name]  = res_list
+            self.task_combo_res[task_name][name] = combo_res
+
+    def evaluate_single_rf(self, X_df, task_labels):
+        """
+        X_df = self.X_dict['learn(all)']
+        task_labels = self.labels.subtasks['photobomb_state']
+        """
+        rf_params = self.get_rf_params()
+
+        clf_list = []
+        res_list = []
+
+        skf_list = self.get_crossval_idxs()
+        for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
+            X_train = X_df.values[train_idx]
+            y_train = task_labels.y_enc[train_idx]
+
+            clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
+            clf.fit(X_train, y_train)
+
+            # Evaluate on testing data
+            X_test = X_df.values[test_idx]
+            clf_probs = clf.predict_proba(X_test)
+
+            pred_classes = clf.classes_
+
+            res = ClfResult.make_single(test_idx, clf_probs, pred_classes, task_labels)
+            res_list.append(res)
+            clf_list.append(clf)
+        return clf_list, res_list
 
     def load_labels(self):
         self.labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
@@ -187,19 +288,31 @@ class OneVsOneProblem(object):
         """
         raw_X_dict = self.raw_X_dict
         X = raw_X_dict['learn(all)']
-        labels = self.labels
+
+        if True:
+            labels = self.labels
+            # Remove singletons
+            unique_aids = np.unique(labels.aid_pairs)
+            nids = self.ibs.get_annot_nids(unique_aids)
+            singleton_nids = set([nid for nid, v in ut.dict_hist(nids).items() if v == 1])
+            nid_flags = [nid in singleton_nids for nid in nids]
+            singleton_aids = set(ut.compress(unique_aids, nid_flags))
+            flags = [not (a1 in singleton_aids or a2 in singleton_aids)
+                     for a1, a2 in labels.aid_pairs]
+            self.labels = labels.compress(flags)
 
         if False:
             # Remove anything 1vM didn't get
             mask = (self.simple_scores['score_lnbnn_1vM'] > 0).values
             self.labels = self.labels.compress(mask)
             simple_scores = self.simple_scores[mask]
-            labels.print_info()
+            self.labels.print_info()
             X = X[mask]
             raw_X_dict['learn(all)'] = X
 
         if False:
             print('Reducing dataset size for class balance')
+            labels = self.labels
             # Find the data with the most null / 0 values
             # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
             nullness = pd.isnull(X).sum(axis=1)
@@ -227,7 +340,7 @@ class OneVsOneProblem(object):
             mask = np.array(ut.index_to_boolmask(to_keep, num))
             self.labels = self.labels.compress(mask)
             simple_scores = simple_scores[mask]
-            class_hist = labels.make_histogram()
+            class_hist = self.labels.make_histogram()
             print('hist(y) = ' + ut.repr4(class_hist))
             X = X[mask]
             raw_X_dict['learn(all)'] = X
@@ -480,72 +593,14 @@ class OneVsOneProblem(object):
 
     def report_classifier_accuracy(self, task_name):
         roc_scores = {}
-        for name, X in self.X_dict.items():
+        for name in self.datakey_list:
+            # X = self.X_dict[name]
             combo_res = self.task_combo_res[task_name][name]
             roc_scores[name] = [combo_res.roc_score()]
         df_rf = pd.DataFrame(roc_scores)
         from utool.experimental.pandas_highlight import to_string_monkey
         print(to_string_monkey(
             df_rf, highlight_cols=np.arange(len(df_rf.columns))))
-
-    def evaluate_tasks(self):
-        """
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
-
-        TODO: use Markedness and Informedness
-        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
-        """
-
-        self.task_clfs = ut.ddict(dict)
-        self.task_res_list = ut.ddict(dict)
-        self.task_combo_res = ut.ddict(dict)
-
-        X_dict = self.X_dict
-        dataset_prog = ut.ProgIter(X_dict.items(), length=len(X_dict), label='X_set')
-        for name, X_df in dataset_prog:
-            dataset_prog.ensure_newline()
-            task_prog = ut.ProgIter(list(self.labels.items()), label='task')
-            for task_name, task_labels in task_prog:
-                task_prog.ensure_newline()
-                clf_list, res_list = self.evaluate_single_rf(X_df, task_labels)
-
-                print('\nDataset Name = %r' % (name,))
-                print('Task Name = %r' % (task_name,))
-                combo_res = ClfResult.combine_results(res_list, task_labels)
-                combo_res.print_report()
-
-                self.task_clfs[task_name][name]      = clf_list
-                self.task_res_list[task_name][name]  = res_list
-                self.task_combo_res[task_name][name] = combo_res
-
-    def evaluate_single_rf(self, X_df, task_labels):
-        """
-        X_df = self.X_dict['learn(all)']
-        task_labels = self.labels.subtasks['photobomb_state']
-        """
-        rf_params = self.get_rf_params()
-
-        clf_list = []
-        res_list = []
-
-        skf_list = self.get_crossval_idxs()
-        for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
-            X_train = X_df.values[train_idx]
-            y_train = task_labels.y_enc[train_idx]
-
-            clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
-            clf.fit(X_train, y_train)
-
-            # Evaluate on testing data
-            X_test = X_df.values[test_idx]
-            clf_probs = clf.predict_proba(X_test)
-
-            pred_classes = clf.classes_
-
-            res = ClfResult.make_single(test_idx, clf_probs, pred_classes, task_labels)
-            res_list.append(res)
-            clf_list.append(clf)
-        return clf_list, res_list
 
 
 class ClfResult(object):
@@ -605,17 +660,24 @@ class ClfResult(object):
         res.target_bin_df = pd.concat([r.target_bin_df for r in res_list])
         res.target_enc_df = pd.concat([r.target_enc_df for r in res_list])
 
-        # meta = {}
-        # meta['easiness'] = np.array(ut.ziptake(res.probs_df.values, res.target_enc_df.values)).ravel()
-        # meta['hardness'] = 1 - meta['easiness']
-        # # meta['aid1'] = labels.aid_pairs.T[0].take(res.probs_df.index.values)
-        # # meta['aid2'] = labels.aid_pairs.T[1].take(res.probs_df.index.values)
-        # meta['pred'] = res.probs_df.values.argmax(axis=1)
-        # meta['target'] = res.target_enc_df.values.ravel()
-        # meta['failed'] = meta['pred'] != meta['target']
-        # res.meta = pd.DataFrame(meta)
-        # res.meta.take(res.meta['easiness'].argsort())
         return res
+
+    def make_meta(res, labels):
+        """
+        labels = self.labels
+        """
+        meta = {}
+        meta['easiness'] = np.array(ut.ziptake(res.probs_df.values, res.target_enc_df.values)).ravel()
+        meta['hardness'] = 1 - meta['easiness']
+        meta['aid1'] = labels.aid_pairs.T[0].take(res.probs_df.index.values)
+        meta['aid2'] = labels.aid_pairs.T[1].take(res.probs_df.index.values)
+        meta['pred'] = res.probs_df.values.argmax(axis=1)
+        meta['target'] = res.target_enc_df.values.ravel()
+        meta['failed'] = meta['pred'] != meta['target']
+        meta = pd.DataFrame(meta)
+        res.meta = meta
+        res.meta.take(res.meta['easiness'].argsort())
+        return res.meta
 
     def missing_classes(res):
         # Find classes that were never predicted
@@ -654,6 +716,11 @@ class ClfResult(object):
             y_true=y_test_enc_aug, y_pred=pred_enc,
             sample_weight=sample_weight,
         )
+
+        # invp, invr, _, _ = sklearn.metrics.precision_recall_fscore_support(
+        #     y_true=1 - y_test_enc_aug, y_pred=1 - pred_enc,
+        #     sample_weight=sample_weight,
+        # )
         report = sklearn.metrics.classification_report(
             y_true=y_test_enc_aug, y_pred=pred_enc,
             target_names=res.class_names,
@@ -661,6 +728,11 @@ class ClfResult(object):
         )
         confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc,
                                                      sample_weight=sample_weight)
+
+        # mcc = sklearn.metrics.matthews_corrcoef(y_test_enc_aug, pred_enc,
+        #                                         sample_weight=sample_weight)
+        # print('MCC = %r' % (mcc,))
+
         print('Confusion Matrix:')
         print(pd.DataFrame(confusion, columns=[m for m in res.class_names],
                            index=['gt ' + m for m in res.class_names]))
@@ -814,11 +886,6 @@ class MultiTaskLabels(ut.NiceRepr):
     # def take(labels, idxs):
     #     mask = ut.index_to_boolmask(idxs, len(labels))
     #     return labels.compress(mask)
-    # def compress(labels, flags):
-    #     y_raw = labels.y_raw.compress(flags, axis=0)
-    #     class_names = labels.class_names
-    #     new_labels = MultiClassLabels(y_raw, class_names)
-    #     return new_labels
 
 
 class PairLabels(MultiTaskLabels):
@@ -846,9 +913,17 @@ class PairLabels(MultiTaskLabels):
         labels.n_samples = len(aid_pairs)
         labels.apply_multi_task_multi_label()
 
+    def compress(labels, flags):
+        aid_pairs = labels.aid_pairs.compress(flags, axis=0)
+        simple_scores = labels.simple_scores[flags]
+        ibs = labels.ibs
+        new_labels = PairLabels(ibs, aid_pairs, simple_scores)
+        return new_labels
+
     @ut.memoize
     def is_same(labels):
         is_same = labels.annots1.nids == labels.annots2.nids
+        labels.simple_scores
         return is_same
 
     @ut.memoize

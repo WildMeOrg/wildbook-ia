@@ -454,4 +454,14 @@ class _AnnotInfrViz(object):
         if infr.graph.graph.get('dark_background', None):
             pt.dark_background(force=True)
 
+    def start_qt_interface(infr):
+        import guitool as gt
+        from plottool import abstract_interaction
+        gt.ensure_qtapp()
+        from ibeis.viz.viz_graph2 import AnnotGraphWidget
+        win = AnnotGraphWidget(infr=infr, use_image=False)
+        abstract_interaction.register_interaction(win)
+        win.show()
+        return win
+
     show = show_graph

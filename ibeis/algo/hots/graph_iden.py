@@ -1692,7 +1692,8 @@ class _AnnotInfrRelabel(object):
                     ccx1, ccx2 = ccx2, ccx1
                 separated_ccxs.add((ccx1, ccx2))
 
-        num_names_min = ut.approx_min_num_components(infr.aids, separated_ccxs)
+        ccxs = list(ccx_to_aids.keys())
+        num_names_min = ut.approx_min_num_components(ccxs, separated_ccxs)
 
         status = dict(
             num_names_max=num_names_max,
@@ -1946,16 +1947,30 @@ class AnnotInference(ut.NiceRepr,
         return infr2
 
     @classmethod
-    def from_netx(cls, G):
-        aids = list(G.nodes())
-        nids = [-a for a in aids]
-        infr = cls(None, aids, nids, autoinit=False)
-        infr.graph = G
-        infr.update_node_attributes(G)
+    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None):
+        # infr.graph = G
+        # infr.update_node_attributes(G)
+        # aids = set(ut.flatten(aid_pairs))
+        import networkx as nx
+        G = nx.Graph()
+        G.add_edges_from(aid_pairs)
+        if attrs is not None:
+            for key in attrs.keys():
+                nx.set_edge_attributes(G, key, ut.dzip(aid_pairs, attrs[key]))
+        infr = AnnotInference.from_netx(G, ibs=ibs)
         return infr
 
     @classmethod
-    def from_qreq_(cls, qreq_, cm_list, autoinit=False):
+    def from_netx(AnnotInference, G, ibs=None):
+        aids = list(G.nodes())
+        nids = [-a for a in aids]
+        infr = AnnotInference(ibs, aids, nids, autoinit=False)
+        infr.graph = G
+        infr.update_node_attributes()
+        return infr
+
+    @classmethod
+    def from_qreq_(AnnotInference, qreq_, cm_list, autoinit=False):
         """
         Create a AnnotInference object using a precomputed query / results
         """
@@ -1963,7 +1978,7 @@ class AnnotInference(ut.NiceRepr,
         aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
         nids = qreq_.get_qreq_annot_nids(aids)
         ibs = qreq_.ibs
-        infr = cls(ibs, aids, nids, verbose=False, autoinit=autoinit)
+        infr = AnnotInference(ibs, aids, nids, verbose=False, autoinit=autoinit)
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         return infr
@@ -2029,6 +2044,8 @@ class AnnotInference(ut.NiceRepr,
             nids = infr.orig_name_labels
             infr.node_to_aid = {}
             infr.aid_to_node = {}
+        assert aids is not None, 'must have aids'
+        assert nids is not None, 'must have nids'
         node_to_aid = {aid: aid for aid in aids}
         aid_to_node = ut.invert_dict(node_to_aid)
         node_to_nid = {aid: nid for aid, nid in zip(aids, nids)}
