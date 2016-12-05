@@ -205,11 +205,12 @@ def parse_acfg_combo_list(acfg_name_list):
         list: acfg_combo_list
 
     CommandLine:
-        python -m ibeis parse_acfg_combo_list
+        python -m ibeis parse_acfg_combo_list:0
         python -m ibeis parse_acfg_combo_list:1
+        python -m ibeis parse_acfg_combo_list:2
 
     Example:
-        >>> # ENABLE_DOCTET
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
@@ -223,7 +224,7 @@ def parse_acfg_combo_list(acfg_name_list):
         [u'qcfg', u'dcfg']
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
         >>> from ibeis.expt import annotation_configs
@@ -271,7 +272,8 @@ def parse_acfg_combo_list(acfg_name_list):
         is_nestedcfgtype=True)
 
     acfg_combo_list = []
-    for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list, nested_dcfg_combo_list):
+    for nested_qcfg_combo, nested_dcfg_combo in zip(nested_qcfg_combo_list,
+                                                    nested_dcfg_combo_list):
         acfg_combo = []
         # Only the inner nested combos are combinatorial
         for qcfg_combo, dcfg_combo in zip(nested_qcfg_combo, nested_dcfg_combo):
@@ -370,6 +372,18 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>>                per_qual=False, per_vp=False, case_tag_hist=False)
         >>> annotation_configs.print_acfg_list(
         >>>     acfg_list, expanded_aids_list, ibs, **printkw)
+
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.expt.experiment_helpers import *  # NOQA
+        >>> import ibeis
+        >>> from ibeis.expt import annotation_configs
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> a = ['default:crossval_enc=True,require_timestamp=True']
+        >>> acfg_name_list = testdata_acfg_names(a)
+        >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
+        >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list)
     """
     if ut.VERBOSE:
         print('[harn.help] building acfg_list using %r' % (acfg_name_list,))
@@ -391,8 +405,9 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         filter_annots.expand_acfgs_consistently(ibs, acfg_combo_,
                                                 initial_aids=initial_aids,
                                                 use_cache=use_cache,
-                                                verbose=verbose)
-        for acfg_combo_ in acfg_combo_list
+                                                verbose=verbose,
+                                                base=base)
+        for base, acfg_combo_ in enumerate(acfg_combo_list)
     ]
     expanded_aids_combo_flag_list = ut.flatten(expanded_aids_combo_list)
     acfg_list = ut.get_list_column(expanded_aids_combo_flag_list, 0)

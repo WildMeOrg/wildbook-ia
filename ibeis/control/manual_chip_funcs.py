@@ -80,8 +80,9 @@ def get_annot_chips(ibs, aid_list, config2_=None, ensure=True, verbose=False, ea
         >>> aid_list = ibs.get_valid_aids()[0:5]
         >>> config2_ = {'dim_size': 450, 'resize_dim': 'area'}
         >>> chip_list = get_annot_chips(ibs, aid_list, config2_)
-        >>> chip_sum_list = list(map(sum, chip_list))
-        >>> ut.assert_almost_eq(chip_sum_list, [96053500, 65152954, 67223241, 109358624, 73995960], 2000)
+        >>> chip_sum_list = [chip.sum() for chip in chip_list]
+        >>> target = [96053500, 65152954, 67223241, 109358624, 73995960]
+        >>> ut.assert_almost_eq(chip_sum_list, target, 2000)
         >>> print(chip_sum_list)
     """
     return ibs.depc_annot.get('chips', aid_list, 'img', config=config2_,

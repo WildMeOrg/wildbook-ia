@@ -374,7 +374,7 @@ def get_results_command(expt_name, media_name):
         margs = 'ibeis.dev -e print_latexsum'
         static_flags += '--rank-lt-list=1,5,10,100'
     elif media_name == 'cumhist':
-        margs = 'ibeis.dev -e draw_rank_cdf'
+        margs = 'ibeis.dev -e draw_rank_cmc'
         output_flags +=  ' --save ' + plot_fname + '.png'
         output_flags += ' --dpath=' + dpath
         static_flags += ' --adjust=.05,.08,.0,.15 --dpi=256 --clipwhite'
@@ -493,7 +493,7 @@ def gen_dbranks_tables():
         r'''
         \begin{comment}
         python -c "import utool as ut; ut.write_modscript_alias('ExptPrint.sh', 'ibeis.expt.experiment_printres --exec-print_latexsum')"
-        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.expt.experiment_drawing --exec-draw_rank_cdf')"
+        python -c "import utool as ut; ut.write_modscript_alias('DrawRanks.sh', 'python -m ibeis.expt.experiment_drawing --exec-draw_rank_cmc')"
         \end{comment}
         ''')
 

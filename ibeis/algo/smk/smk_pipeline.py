@@ -5,12 +5,12 @@ Oxford Experiment:
 
 
 Zebra Experiment:
-    python -m ibeis draw_rank_cdf --db GZ_Master1 --show \
+    python -m ibeis draw_rank_cmc --db GZ_Master1 --show \
         -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
 
-    python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+    python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
         -p :proot=smk,num_words=[64000],fg_on=False,nAssign=[1],SV=[False] \
            :proot=vsmany,fg_on=False,SV=[False] \
         -a ctrl:qmingt=2
@@ -68,29 +68,29 @@ class SMKRequest(mc5.EstimatorRequest):
         python -m ibeis.algo.smk.smk_pipeline SMKRequest --profile
         python -m ibeis.algo.smk.smk_pipeline SMKRequest --show
 
-        python -m ibeis draw_rank_cdf --db GZ_ALL --show \
+        python -m ibeis draw_rank_cmc --db GZ_ALL --show \
             -p :proot=smk,num_words=[64000,4000],nAssign=[1,5],sv_on=[False,True] \
             -a ctrl:qmingt=2
 
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show \
             -p :proot=smk,num_words=[64000,8000,4000],nAssign=[1,2,4],sv_on=[True,False] \
                 default:proot=vsmany,sv_on=[True,False] \
             -a default:qmingt=2
 
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show \
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
                 default:proot=vsmany,sv_on=[True] \
             -a default:qmingt=2
 
-        python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] \
             -a ctrl:qmingt=2
 
-        python -m ibeis draw_rank_cdf --db PZ_Master1 \
+        python -m ibeis draw_rank_cmc --db PZ_Master1 \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
             -a ctrl:qmingt=2,qindex=60:80 --profile
 
-        python -m ibeis draw_rank_cdf --db GZ_ALL \
+        python -m ibeis draw_rank_cmc --db GZ_ALL \
             -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[True] \
             -a ctrl:qmingt=2,qindex=40:60 --profile
 

@@ -11,6 +11,10 @@ print, rrr, profile = ut.inject2(__name__)
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
 
 
+# def get_annotmatch_rowids_subset_from_aids(ibs, aids):
+#     pass
+
+
 @register_ibs_method
 @profile
 def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
@@ -131,6 +135,14 @@ def get_annotmatch_rowid_from_undirected_superkey(ibs, aids1, aids2):
     for idx, rowid in zip(idxs, am_rowids_):
         am_rowids[idx] = rowid
     return am_rowids
+
+
+@register_ibs_method
+def get_annotmatch_rowid_from_edges(ibs, aid_pairs):
+    aid_pairs = np.array(aid_pairs)
+    aids1 = aid_pairs.T[0]
+    aids2 = aid_pairs.T[1]
+    return ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
 
 
 @register_ibs_method
@@ -272,6 +284,17 @@ def get_annot_reviewed_matching_aids(ibs, aid_list, eager=True, nInput=None):
                                     params_iter, where_colnames, eager=eager,
                                     unpack_scalars=False, nInput=nInput)
     return aids_list
+
+
+@register_ibs_method
+def get_annotmatch_aids(ibs, annotmatch_rowid_list):
+    ANNOT_ROWID1 = 'annot_rowid1'
+    ANNOT_ROWID2 = 'annot_rowid2'
+    id_iter = annotmatch_rowid_list
+    colnames = (ANNOT_ROWID1, ANNOT_ROWID2)
+    aid_pairs = ibs.db.get(ibs.const.ANNOTMATCH_TABLE, colnames,
+                           id_iter, id_colname='rowid')
+    return aid_pairs
 
 
 @register_ibs_method

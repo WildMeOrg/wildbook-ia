@@ -32,10 +32,10 @@ def vwd():
     ut.util_cplat.view_directory(sysres.get_workdir())
 
 
-def preload_convert_hsdb(dbdir):
-    """ Convert the database before loading (A bit hacky) """
-    from ibeis.dbio import ingest_hsdb
-    ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
+# def preload_convert_hsdb(dbdir):
+#     """ Convert the database before loading (A bit hacky) """
+#     from ibeis.dbio import ingest_hsdb
+#     ingest_hsdb.convert_hsdb_to_ibeis(dbdir, force_delete=params.args.force_delete)
 
 
 def preload_commands(dbdir, **kwargs):
@@ -62,8 +62,6 @@ def preload_commands(dbdir, **kwargs):
         vdq(dbdir)
     if kwargs.get('delete_ibsdir', False):
         ibsfuncs.delete_ibeis_database(dbdir)
-    if params.args.convert:
-        preload_convert_hsdb(dbdir)
     if params.args.preload_exit:
         print('[main_cmd] preload exit')
         sys.exit(0)
@@ -102,13 +100,6 @@ def postload_commands(ibs, back):
         ibs._overwrite_all_annot_species_to(params.args.set_all_species)
     if params.args.dump_schema:
         ibs.db.print_schema()
-    # DEPRICATE
-    if params.args.set_notes is not None:
-        ibs.set_dbnotes(params.args.set_notes)
-    if params.args.set_aids_as_hard is not None:
-        aid_list = params.args.set_aids_as_hard
-        ibs.set_annot_is_hard(aid_list, [True] * len(aid_list))
-    #/DEPRICATE
 
     if ut.get_argflag('--ipynb'):
         back.launch_ipy_notebook()

@@ -284,7 +284,9 @@ def main(gui=True, dbdir=None, defaultdb='cache',
         print('[main]  * sys.argv = %r' % (sys.argv,))
     # Parse directory to be loaded from command line args
     # and explicit kwargs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                  allow_newdir=allow_newdir, db=db,
+                                  dbdir=dbdir)
     if delete_ibsdir is True:
         from ibeis.other import ibsfuncs
         assert allow_newdir, 'must be making new directory if you are deleting everything!'
@@ -487,8 +489,9 @@ def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,
     """
     from ibeis.init import sysres
     from ibeis.other import ibsfuncs
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir,
-                                  cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                  allow_newdir=allow_newdir, db=db,
+                                  dbdir=dbdir)
     if delete_ibsdir is True:
         assert allow_newdir, (
             'must be making new directory if you are deleting everything!')
@@ -508,7 +511,9 @@ def opendb_test(gui=True, dbdir=None, defaultdb='cache', allow_newdir=False,
     """ alias for main() """  # + main.__doc__
     from ibeis.init import sysres
     _preload()
-    dbdir = sysres.get_args_dbdir(defaultdb, allow_newdir, db, dbdir, cache_priority=False)
+    dbdir = sysres.get_args_dbdir(defaultdb=defaultdb,
+                                  allow_newdir=allow_newdir, db=db,
+                                  dbdir=dbdir)
     ibs = _init_ibeis(dbdir)
     return ibs
 

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+DEPRICATE
+
 TODO: Rename to ibeis/init/commands.py
 
 The AID configuration selection is getting a mjor update right now

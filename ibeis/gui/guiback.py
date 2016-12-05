@@ -335,7 +335,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         dbdir = self.ibs.get_dbdir()
         ibeis_part = ['python', '-m', 'ibeis']
         data_part = ['--dbdir', dbdir, '-a', a, '-t', p]
-        cmd_parts = ibeis_part + ['draw_rank_cdf'] + data_part + ['--show']
+        cmd_parts = ibeis_part + ['draw_rank_cmc'] + data_part + ['--show']
         cmdstr = ' '.join(cmd_parts)
         return cmdstr
 
@@ -641,22 +641,35 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
-    def initialize(self, back=None):
+    def initialize(self, back=None, mode='new', on_chosen=None):
         # Save arguments
         if back is not None:
             self.back = back
-            self.on_chosen = back.open_database
+            if on_chosen is None:
+                on_chosen = back.open_database
+            self.on_chosen = on_chosen
             self.workdir = back.get_work_directory()
         else:
             self.back = None
             self.workdir = ut.truepath('.')
             self.on_chosen = None
-        self.dbname = 'MyNewIBEISDatabase'
+
+        title_mode = {
+            'new': 'Create a new IBEIS Database',
+            'copy': 'Create an IBEIS Database copy',
+        }
+        instruction_mode = {
+            'new': 'Choose a name for the new database',
+            'copy': 'Choose a name for the database copy',
+        }
+
+        self.dbname = 'MyNewIBEISDatabase',
+        if mode == 'copy':
+            self.dbname = back.ibs.get_dbname() + '_Copy'
 
         # Build layout
-        self.setWindowTitle('Create a new IBEIS Database')
-        self.instructions = self.addNewLabel(
-            'Choose a name for the new database', align='center')
+        self.setWindowTitle(title_mode[mode])
+        self.instructions = self.addNewLabel(instruction_mode[mode], align='center')
         # ---
         self.dbname_row = self.newHWidget()
         self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname, align='center')
@@ -872,53 +885,30 @@ class MainWindowBackend(GUIBACK_BASE):
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(imgsetid_list, (tuple, list)):
-            imgsetid_list = [imgsetid_list]
-        if len(imgsetid_list) > 0:
-            imgsetid_str = ','.join( map(str, imgsetid_list) )
-        else:
-            imgsetid_str = ''
-
+        imgsetid_list = ut.ensure_iterable(imgsetid_list)
+        imgsetid_str = ','.join( map(str, imgsetid_list) )
         url = 'http://%s/view/images/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_imgsetid_detection_turk_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(imgsetid_list, (tuple, list)):
-            imgsetid_list = [imgsetid_list]
-        if len(imgsetid_list) > 0:
-            imgsetid_str = ','.join( map(str, imgsetid_list) )
-        else:
-            imgsetid_str = ''
-
+        imgsetid_list = ut.ensure_iterable(imgsetid_list)
+        imgsetid_str = ','.join( map(str, imgsetid_list) )
         url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(imgsetid_list, (tuple, list)):
-            imgsetid_list = [imgsetid_list]
-        if len(imgsetid_list) > 0:
-            imgsetid_str = ','.join( map(str, imgsetid_list) )
-        else:
-            imgsetid_str = ''
-
+        imgsetid_list = ut.ensure_iterable(imgsetid_list)
+        imgsetid_str = ','.join( map(str, imgsetid_list) )
         url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
         if web:
-            import webbrowser
-            back.start_web_server_parallel(browser=False)
-            # url = 'http://%s/turk/detection/?gid=%s&refer=dmlldy9pbWFnZXM=' % (WEB_DOMAIN, gid, )
-            url = 'http://%s/turk/detection/?gid=%s' % (WEB_DOMAIN, gid, )
-            # url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
-            webbrowser.open(url)
+            back.show_images_in_web(gid)
         else:
             kwargs.update({
                 'sel_aids': sel_aids,
@@ -926,18 +916,15 @@ class MainWindowBackend(GUIBACK_BASE):
             })
             interact.ishow_image(back.ibs, gid, **kwargs)
 
-    def show_gid_list_in_web(back, gid_list, **kwargs):
+    def show_images_in_web(back, gid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
-
-        if not isinstance(gid_list, (tuple, list)):
-            gid_list = [gid_list]
-        if len(gid_list) > 0:
-            gid_list = ','.join( map(str, gid_list) )
+        gid_list = ut.ensure_iterable(gid_list)
+        gid_text = ','.join(map(str, gid_list))
+        if len(gid_list) == 1:
+            url = 'http://%s/view/detection?gid=%s' % (WEB_DOMAIN, gid_text, )
         else:
-            gid_list = ''
-
-        url = 'http://%s/view/images?gid=%s' % (WEB_DOMAIN, gid_list, )
+            url = 'http://%s/view/images?gid=%s' % (WEB_DOMAIN, gid_text, )
         webbrowser.open(url)
 
     def show_annotation(back, aid, show_image=False, web=False, **kwargs):
@@ -1272,7 +1259,8 @@ class MainWindowBackend(GUIBACK_BASE):
         print(prefix + '[back] select imageset imgsetid=%r' % (imgsetid))
         back._set_selection(sel_imgsetids=imgsetid, **kwargs)
 
-    def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None, fnum=None, web=False, **kwargs):
+    def select_gid(back, gid, imgsetid=None, show=True, sel_aids=None,
+                   fnum=None, web=False, **kwargs):
         r"""
         Table Click -> Image Table
 
@@ -1305,8 +1293,10 @@ class MainWindowBackend(GUIBACK_BASE):
                 sel_aids = sel_aids[0:1]
             else:
                 sel_aids = []
-        print('[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)' % (gid, imgsetid, sel_aids))
-        back._set_selection(sel_gids=gid, sel_aids=sel_aids, sel_imgsetids=imgsetid, **kwargs)
+        print('[back] select_gid(gid=%r, imgsetid=%r, sel_aids=%r)' % (
+            gid, imgsetid, sel_aids))
+        back._set_selection(sel_gids=gid, sel_aids=sel_aids,
+                            sel_imgsetids=imgsetid, **kwargs)
         if show:
             back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
@@ -1703,7 +1693,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         class TmpConfig(dtool.Config):
             _param_info_list = [
-                ut.ParamInfo('seconds_thresh', 600, 'sec'),
+                ut.ParamInfo('seconds_thresh', 1600, 'sec'),
                 ut.ParamInfo('use_gps', True, ''),
             ]
         config = TmpConfig(**back.ibs.cfg.occur_cfg.to_dict())
@@ -1711,7 +1701,7 @@ class MainWindowBackend(GUIBACK_BASE):
         options = [
             'Create new occurrences',
             'Add to existing',
-            #'Regroup everything',
+            'Regroup all',
         ]
         reply, new_config = back.user_option(
             title='Occurrence Grouping',
@@ -1719,8 +1709,9 @@ class MainWindowBackend(GUIBACK_BASE):
                 '''
                 Choose how we should group the %d ungrouped images into occurrences.
                 We can either:
-                    (1) create new occurrences or
-                    (2) add to the %d existing occurrences.
+                    (1) append new occurrences
+                    (2) add to the %d existing occurrences
+                    (3) redo everything
                 ''') % (len(ungrouped_gid_list), len(existing_imgset_id_list)),
             config=config,
             options=options,
@@ -1731,24 +1722,11 @@ class MainWindowBackend(GUIBACK_BASE):
         if reply not in options:
             raise guiexcept.UserCancel
 
-        if len(ungrouped_gid_list) == 0:
+        if reply != options[2] and len(ungrouped_gid_list) == 0:
             back.user_warning(msg='There are no ungrouped images.')
             raise guiexcept.UserCancel
 
-        #seconds_thresh = new_config['seconds_thresh']
-        #use_gps = new_config['use_gps']
-
-        #from ibeis.algo.preproc import preproc_occurrence
-        #flat_imgsetids, flat_gids = preproc_occurrence.ibeis_compute_occurrences(
-        #    ibs, gid_list, seconds_thresh=seconds_thresh)
-        #sortx = ut.argsort(flat_imgsetids)
-        #flat_imgsetids = ut.take(flat_imgsetids, sortx)
-        #flat_gids = ut.take(flat_gids, sortx)
-
         if reply == options[0]:
-            #back.ibs.delete_all_imagesets()
-            #config = new_config
-            #back.ibs.compute_occurrences(config=ibs.cfg.occur_cfg)
             back.ibs.compute_occurrences(config=new_config)
         elif reply == options[1]:
             # Add to existing imaesets
@@ -1771,9 +1749,13 @@ class MainWindowBackend(GUIBACK_BASE):
             # HACK TO UPDATE IMAGESET POSIX TIMES
             # CAREFUL THIS BLOWS AWAY SMART DATA
             ibs.update_imageset_info(ibs.get_valid_imgsetids())
-        else:
-            # Redo everything
-            pass
+        elif reply == options[2]:
+            if back.are_you_sure(use_msg='Regrouping will destroy all existing groups'):
+                back.ibs.delete_all_imagesets()
+                back.ibs.compute_occurrences(config=new_config)
+            else:
+                raise guiexcept.UserCancel
+
         back.update_special_imagesets_()
         print('[back] about to finish computing imagesets')
         back.front.imageset_tabwgt._close_all_tabs()
@@ -2837,14 +2819,6 @@ class MainWindowBackend(GUIBACK_BASE):
         from plottool import draw_func2 as df2
         df2.update()
 
-    @blocking_slot()
-    def dev_dumpdb(back):
-        """ Help -> Developer Mode"""
-        print('[back] dev_dumpdb')
-        back.ibs.db.dump()
-        ut.view_directory(back.ibs._ibsdb)
-        back.ibs.db.dump_tables_to_csv()
-
     @slot_()
     @backreport
     def dev_export_annotations(back):
@@ -2860,6 +2834,7 @@ class MainWindowBackend(GUIBACK_BASE):
             back.web_ibs = ibeis.opendb_bg_web(dbdir=ibs.get_dbdir(), web=True,
                                                browser=browser,
                                                start_job_queue=False)
+            print('[guiback] Web service started')
         else:
             print('[guiback] CANNOT START WEB SERVER: WEB INSTANCE ALREADY RUNNING')
 
@@ -2947,7 +2922,9 @@ class MainWindowBackend(GUIBACK_BASE):
             else:
                 from guitool.__PYQT__.QtCore import Qt  # NOQA
                 from guitool.__PYQT__ import QtGui  # NOQA
-                dlg = NewDatabaseWidget.as_dialog(back.front, back=back)
+                dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
+                                                  on_chosen=back.open_database,
+                                                  mode='new')
                 dlg.exec_()
 
     @blocking_slot()
@@ -2998,17 +2975,30 @@ class MainWindowBackend(GUIBACK_BASE):
                 sysres.set_default_dbdir(dbdir)
 
     @blocking_slot()
-    def export_database(back):
-        """ File -> Export Database"""
-        print('[back] export_database')
-        back.ibs.db.dump()
-        back.ibs.db.dump_tables_to_csv()
+    def export_database_as_csv(back):
+        """ File -> Export Database """
+        print('[back] export_database_as_csv')
+        dump_dir = join(back.ibs.get_dbdir(), 'CSV_DUMP')
+        ut.ensuredir(dump_dir)
+        ut.view_directory(dump_dir)
+        back.ibs.dump_database_csv()
 
     @blocking_slot()
     def backup_database(back):
         """ File -> Backup Database"""
         print('[back] backup_database')
         back.ibs.backup_database()
+
+    @blocking_slot()
+    def make_database_duplicate(back):
+        """ File -> Copy Database"""
+        print('[back] make_database_duplicate')
+        def on_chosen(new_dbdir):
+            back.ibs.copy_database(new_dbdir)
+        dlg = NewDatabaseWidget.as_dialog(back.front, back=back,
+                                          on_chosen=on_chosen,
+                                          mode='copy')
+        dlg.exec_()
 
     @blocking_slot()
     def import_images_from_file(back, gpath_list=None, refresh=True, as_annots=False,

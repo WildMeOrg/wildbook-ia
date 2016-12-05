@@ -154,10 +154,10 @@ def demo_graph_iden2():
             pass
 
         showkw = dict(fontsize=fontsize, fontname=fontname,
-                      hide_reviewed_cuts=not SHOW_NEG,
-                      hide_inferred_same=True,
-                      hide_unreviewed_cuts=True,
-                      hide_labels=True,
+                      show_reviewed_cuts=SHOW_NEG,
+                      show_inferred_same=False,
+                      show_inferred_diff=False,
+                      show_labels=False,
                       show_recent_review=not final,
                       splines=splines,
                       reposition=False,
@@ -633,7 +633,7 @@ def do_infr_test(ccs, edges, new_edges):
     fnum = 1
     if ut.show_was_requested():
         infr.set_node_attrs('shape', 'circle')
-        infr.show(pnum=(2, 1, 1), fnum=fnum, hide_unreviewed_cuts=False, groupby='name_label')
+        infr.show(pnum=(2, 1, 1), fnum=fnum, show_inferred_diff=True, groupby='name_label')
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
@@ -649,7 +649,7 @@ def do_infr_test(ccs, edges, new_edges):
 
     # Postshow
     if ut.show_was_requested():
-        infr2.show(pnum=(2, 1, 2), fnum=fnum, hide_unreviewed_cuts=False)
+        infr2.show(pnum=(2, 1, 2), fnum=fnum, show_inferred_diff=True)
         pt.gca().set_aspect('equal')
         pt.set_title('post-review')
         fig2 = pt.gcf()

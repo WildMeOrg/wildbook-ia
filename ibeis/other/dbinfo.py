@@ -1971,7 +1971,7 @@ def print_feature_info(testres):
     Ignore:
         import plottool as pt
         pt.qt4ensure()
-        testres.draw_rank_cdf()
+        testres.draw_rank_cmc()
 
     Example:
         >>> # DISABLE_DOCTEST

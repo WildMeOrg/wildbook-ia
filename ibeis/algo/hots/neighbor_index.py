@@ -41,8 +41,9 @@ def get_support_data(qreq_, daid_list):
         >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
         >>> result = ('depth_profile = %r' % (ut.depth_profile(tup),))
         >>> print(result)
-        depth_profile = [[(35, 128), (24, 128)], [35, 24], [35, 24]]
+        depth_profile = [[(39, 128), (22, 128)], [39, 22], [39, 22]]
 
+        depth_profile = [[(35, 128), (24, 128)], [35, 24], [35, 24]]
         depth_profile = [[(34, 128), (31, 128)], [34, 31], [34, 31]]
         depth_profile = [[(83, 128), (129, 128)], [83, 129], [83, 129]]
         depth_profile = [[(13, 128), (104, 128)], [13, 104], [13, 104]]
@@ -170,8 +171,8 @@ def invert_index(vecs_list, fgws_list, ax_list, fxs_list, verbose=ut.NOT_QUIET):
     if ut.VERYVERBOSE or verbose:
         print('[nnindex] stacked nVecs={nVecs} from nAnnots={nAnnots}'.format(
             nVecs=len(idx2_vec), nAnnots=len(ax_list)))
-        print('[nnindex] idx2_vecs.dtype = {}'.format(idx2_vec.dtype))
-        print('[nnindex] memory(idx2_vecs) = {}'.format(
+        print('[nnindex] idx2_vecs dtype={}, memory={}'.format(
+            idx2_vec.dtype,
             ut.byte_str2(idx2_vec.size * idx2_vec.dtype.itemsize)))
     return idx2_vec, idx2_fgw, idx2_ax, idx2_fx
 

@@ -72,7 +72,7 @@ introduction = (ut.codeblock(
     run the results here.
     '''), None)
 
-initialize = ('# Initialization (Code)', ut.codeblock(
+nb_init = ('# Notebook Initialization (Code)', ut.codeblock(
     r'''
     # STARTBLOCK
     {autogen_str}
@@ -81,54 +81,46 @@ initialize = ('# Initialization (Code)', ut.codeblock(
     %matplotlib inline
     %load_ext autoreload
     %autoreload
-
-    # Set global utool flags
-    import utool as ut
-    ut.util_io.__PRINT_WRITES__ = False
-    ut.util_io.__PRINT_READS__ = False
-    ut.util_parallel.__FORCE_SERIAL__ = True
-    ut.util_cache.VERBOSE_CACHE = False
-    ut.NOT_QUIET = False
-
     import plottool as pt
+    from ibeis.templates import notebook_helpers
+    notebook_helpers.custom_globals()
+
     fix_figsize = ut.partial(pt.set_figsize, w=30, h=10, dpi=256)
-    pt.custom_figure.TITLE_SIZE = 20
-    pt.custom_figure.LABEL_SIZE = 20
-    pt.custom_figure.FIGTITLE_SIZE = 20
 
     draw_case_kw = dict(show_in_notebook=True, annot_modes=[1])
+    notebook_helpers.make_cells_wider()
+    # ENDBLOCK
+    '''))
 
+
+db_init = ('# Database Configuration (Code)', ut.codeblock(
+    r'''
+    # STARTBLOCK
     # Setup database specific parameter configurations
     db = '{dbname}'
 
-    # Pick one of the following annotation configurations
-    # to choose the query and database annotations
+    # Customize one or more of the following annotation configurations
+    # See ibeis/expt/annotation_configs.py for an enumeration of options
     a = [
         {annotconfig_list_body}
     ]
-    #'ctrl:pername=None,view=left,view_ext=1,exclude_reference=False'
 
-
-    # Set to override any special configs
+    # Specific query / database ids can override annotation configurations
     qaid_override = None
     daid_override = None
 
-    # Uncomment one or more of the following pipeline configurations to choose
-    # how the algorithm will run.  If multiple configurations are chosen, they
-    # will be compared in the histograms, but only the first configuration will
-    # be used for inspecting results.
+    # Customize one ore more of the following pipeline configurations.
+    # See ibeis/algo/Config.py and ibeis/core_annots.py for config options
     t = [
         {pipeline_list_body}
     ]
+
+    # TODO: programatic way of listing full set of configuration options
 
     # Load database for this test run
     import ibeis
     ibeis.expt.harness.USE_BIG_TEST_CACHE = True
     ibs = ibeis.opendb(db=db)
-
-    # Make notebook cells wider
-    from IPython.core.display import HTML
-    HTML("<style>body .container {{ width:99% !important; }}</style>")
     # ENDBLOCK
     '''))
 
@@ -252,14 +244,12 @@ timestamp_distribution = (
             ibs, acfg_name_list=a, qaid_override=qaid_override,
             daid_override=daid_override, verbose=0)
 
-        aids = ut.unique(ut.flatten(ut.flatten(expanded_aids_list)))
-        # aids = ut.unique_ordered(ut.flatten([qaids, daids]))
-        gids = ut.unique_ordered(ibs.get_annot_gids(aids))
+        aids = ut.unique(ut.total_flatten(expanded_aids_list))
+        gids = ut.unique(ibs.get_annot_gids(aids))
         # Or just get time delta of all images
         #gids = ibs.get_valid_gids()
 
         ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
-        #ibeis.other.dbinfo.show_image_time_distributions(ibs, gids)
         # ENDBLOCK
         '''))
 
@@ -382,7 +372,7 @@ per_annotation_accuracy = (
         r'''
         # STARTBLOCK
         testres = ibeis.run_experiment(
-            e='rank_cdf',
+            e='rank_cmc',
             db=db, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         _ = testres.draw_func()
@@ -420,8 +410,8 @@ per_name_accuracy = (
         r'''
         # STARTBLOCK
         testres = ibeis.run_experiment(
-            e='rank_cdf',
-            db=db, a=a, t=t, do_per_annot=False, qaid_override=qaid_override, daid_override=daid_override)
+            e='rank_cmc',
+            db=db, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
         _ = testres.draw_func()
         fix_figsize()
@@ -689,4 +679,30 @@ investigate_specific_case = (
             **draw_case_kw)
         _ = test_result.draw_func()
         # ENDBLOCK
+        '''))
+
+
+per_encounter_stats = (
+    '# Combined Annot Per Encounter Info',
+    ut.codeblock(
+        r'''
+        # STARTBLOCK
+        # Load cross validation slices
+        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+            ibs, acfg_name_list=a, qaid_override=qaid_override,
+            daid_override=daid_override, verbose=0)
+
+        # For each slice, find how many annotations are in each encounter
+        qannots_per_enc = []
+        dannots_per_enc = []
+        for qaids, daids in expanded_aids_list:
+            qannots = ibs.annots(qaids)
+            dannots = ibs.annots(daids)
+            qannots_per_enc.extend(list(ut.dict_hist(qannots.encounter_text).values()))
+            dannots_per_enc.extend(list(ut.dict_hist(dannots.encounter_text).values()))
+        # Aggregate encounter sizes into a histogram over each slice
+        query_enc_size_hist = ut.dict_hist(qannots_per_enc)
+        data_enc_size_hist = ut.dict_hist(dannots_per_enc)
+        print('query_enc_size_hist = ' + ut.repr4(query_enc_size_hist))
+        print('data_enc_size_hist = ' + ut.repr4(data_enc_size_hist))
         '''))

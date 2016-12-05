@@ -776,7 +776,7 @@ class _ChipMatchScorers(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qreq_, args = plh.testdata_pre('vsone_reranking', defaultdb='PZ_MTEST', a=['default'], qaid_override=[18])
+            >>> qreq_, args = plh.testdata_pre('end', defaultdb='PZ_MTEST', a=['default'], qaid_override=[18])
             >>> cm = args.cm_list_SVER[0]
             >>> #ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> #cm = cm_list[0]

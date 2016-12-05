@@ -149,7 +149,7 @@ __IBEIS_CONTROLLER_CACHE__ = {}
 def request_IBEISController(
         dbdir=None, ensure=True, wbaddr=None, verbose=ut.VERBOSE,
         use_cache=True, request_dbversion=None, request_stagingversion=None,
-        asproxy=None):
+        asproxy=None, check_hsdb=True):
     r"""
     Alternative to directory instantiating a new controller object. Might
     return a memory cached object
@@ -186,6 +186,7 @@ def request_IBEISController(
     global __IBEIS_CONTROLLER_CACHE__
     if asproxy:
         # Not sure if this is the correct way to do a controller proxy
+        # UNFINISHED MAYBE SCRAP
         from multiprocessing.managers import BaseManager
         class IBEISManager(BaseManager):
             pass
@@ -194,7 +195,8 @@ def request_IBEISController(
         manager.start()
         ibs = manager.IBEISController(
             dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-            request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
+            request_dbversion=request_dbversion,
+            request_stagingversion=request_stagingversion)
         return ibs
 
     if use_cache and dbdir in __IBEIS_CONTROLLER_CACHE__:
@@ -204,14 +206,15 @@ def request_IBEISController(
     else:
         # Convert hold hotspotter dirs if necessary
         from ibeis.dbio import ingest_hsdb
-        if ingest_hsdb.check_unconverted_hsdb(dbdir):
+        if check_hsdb and ingest_hsdb.check_unconverted_hsdb(dbdir):
             ibs = ingest_hsdb.convert_hsdb_to_ibeis(dbdir, ensure=ensure,
                                                     wbaddr=wbaddr,
                                                     verbose=verbose)
         else:
             ibs = IBEISController(
                 dbdir=dbdir, ensure=ensure, wbaddr=wbaddr, verbose=verbose,
-                request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
+                request_dbversion=request_dbversion,
+                request_stagingversion=request_stagingversion)
         __IBEIS_CONTROLLER_CACHE__[dbdir] = ibs
     return ibs
 
@@ -257,7 +260,8 @@ class IBEISController(BASE_CLASS):
 
     @profile
     def __init__(ibs, dbdir=None, ensure=True, wbaddr=None, verbose=True,
-                 request_dbversion=None, request_stagingversion=None, force_serial=None):
+                 request_dbversion=None, request_stagingversion=None,
+                 force_serial=None):
         """ Creates a new IBEIS Controller associated with one database """
         #if verbose and ut.VERBOSE:
         print('\n[ibs.__init__] new IBEISController')
@@ -291,7 +295,8 @@ class IBEISController(BASE_CLASS):
         # _send_wildbook_request will do nothing if no wildbook address is
         # specified
         ibs._send_wildbook_request(wbaddr)
-        ibs._init_sql(request_dbversion=request_dbversion, request_stagingversion=request_stagingversion)
+        ibs._init_sql(request_dbversion=request_dbversion,
+                      request_stagingversion=request_stagingversion)
         ibs._init_config()
         if not ut.get_argflag('--noclean') and not ibs.readonly:
             # ibs._init_burned_in_species()
@@ -481,8 +486,8 @@ class IBEISController(BASE_CLASS):
         # ibs.UNKNOWN_NAME_ROWID     = ibs.UNKNOWN_LBLANNOT_ROWID
         # ibs.UNKNOWN_SPECIES_ROWID  = ibs.UNKNOWN_LBLANNOT_ROWID
 
-        ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
-        ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
+        # ibs.MANUAL_CONFIG_SUFFIX = 'MANUAL_CONFIG'
+        # ibs.MANUAL_CONFIGID = ibs.add_config(ibs.MANUAL_CONFIG_SUFFIX)
         # duct_tape.fix_compname_configs(ibs)
         # duct_tape.remove_database_slag(ibs)
         # duct_tape.fix_nulled_yaws(ibs)
@@ -556,14 +561,14 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.5.4'
+            ibs.db_version_expected = '1.5.5'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
             new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
-                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.4')
+                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.5.5')
             ibs.db_version_expected = new_version
             ibs.sqldb_fname = new_fname
         if sqldb_fpath is None:
@@ -1017,6 +1022,11 @@ class IBEISController(BASE_CLASS):
         # TODO: rectify with rsync, script, and merge script.
         from ibeis.init import sysres
         sysres.copy_ibeisdb(ibs.get_dbdir(), dest_dbdir)
+
+    def dump_database_csv(ibs):
+        dump_dir = join(ibs.get_dbdir(), 'CSV_DUMP')
+        ibs.db.dump_tables_to_csv(dump_dir=dump_dir)
+        ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
 
     @accessor_decors.default_decorator
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):

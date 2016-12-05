@@ -1311,86 +1311,6 @@ def get_annot_vecs_cache(ibs, aids):
     return desc_cache
 
 
-# TODO: move to const
-
-@register_ibs_method
-def get_annot_is_hard(ibs, aid_list):
-    """
-    CmdLine:
-        ./dev.py --cmd --db PZ_Mothers
-
-    Args:
-        ibs (IBEISController):
-        aid_list (list):
-
-    Returns:
-        list: is_hard_list
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> aid_list = ibs.get_valid_aids()[0::2]
-        >>> is_hard_list = get_annot_is_hard(ibs, aid_list)
-        >>> result = str(is_hard_list)
-        >>> print(result)
-        [False, False, False, False, False, False, False]
-    """
-    notes_list = ibs.get_annot_notes(aid_list)
-    is_hard_list = [const.HARD_NOTE_TAG in notes.upper().split() for (notes)
-                    in notes_list]
-    return is_hard_list
-
-
-@register_ibs_method
-def get_hard_annot_rowids(ibs):
-    valid_aids = ibs.get_valid_aids()
-    hard_aids = ut.compress(valid_aids, ibs.get_annot_is_hard(valid_aids))
-    return hard_aids
-
-
-@register_ibs_method
-def get_easy_annot_rowids(ibs):
-    hard_aids = ibs.get_hard_annot_rowids()
-    easy_aids = ut.setdiff_ordered(ibs.get_valid_aids(), hard_aids)
-    easy_aids = ut.compress(easy_aids, ibs.get_annot_has_groundtruth(easy_aids))
-    return easy_aids
-
-
-@register_ibs_method
-def set_annot_is_hard(ibs, aid_list, flag_list):
-    """
-    Hack to mark hard cases in the notes column
-
-    Example:
-        >>> pz_mothers_hard_aids = [27, 43, 44, 49, 50, 51, 54, 66, 89, 97]
-        >>> aid_list = pz_mothers_hard_aids
-        >>> flag_list = [True] * len(aid_list)
-    """
-    notes_list = ibs.get_annot_notes(aid_list)
-    is_hard_list = [const.HARD_NOTE_TAG in notes.lower().split() for (notes) in notes_list]
-    def hack_notes(notes, is_hard, flag):
-        """ Adds or removes hard tag if needed """
-        if flag and is_hard or not (flag or is_hard):
-            # do nothing
-            return notes
-        elif not is_hard and flag:
-            # need to add flag
-            return const.HARD_NOTE_TAG + ' '  + notes
-        elif is_hard and not flag:
-            # need to remove flag
-            return notes.replace(const.HARD_NOTE_TAG, '').strip()
-        else:
-            raise AssertionError('impossible state')
-
-    new_notes_list = [
-        hack_notes(notes, is_hard, flag)
-        for notes, is_hard, flag in zip(notes_list, is_hard_list, flag_list)]
-    ibs.set_annot_notes(aid_list, new_notes_list)
-    return is_hard_list
-
-
 @register_ibs_method
 @accessor_decors.getter_1to1
 def is_nid_unknown(ibs, nid_list):
@@ -1476,39 +1396,6 @@ def unflat_map(method, unflat_rowids, **kwargs):
             'unflat lens not the same, len(unflat_vals)=%d len(unflat_rowids)=%d' %
             (len(unflat_vals), len(unflat_rowids),))
     return unflat_vals
-
-
-#def unflat_filter(method, unflat_rowids, **kwargs):
-    # does not seem possible with this input
-
-
-def unflat_dict_map(method, dict_rowids, **kwargs):
-    """ maps dictionaries of rowids to a function """
-    key_list = list(dict_rowids.keys())
-    unflat_rowids = list(dict_rowids.values())
-    unflat_vals = unflat_map(method, unflat_rowids, **kwargs)
-    keyval_iter = zip(key_list, unflat_vals)
-    #_dict_cls = type(dict_rowids)
-    #if isinstance(dict_rowids, ut.ddict):
-    #    _dict_cls_args = (dict_rowids.default_factory, keyval_iter)
-    #else:
-    #    _dict_cls_args = (keyval_iter,)
-    #dict_vals = _dict_cls(*_dict_cls_args)
-    dict_vals = dict(keyval_iter)
-    return dict_vals
-
-
-def unflat_multimap(method_list, unflat_rowids, **kwargs):
-    """ unflat_map, but allows multiple methods
-    """
-    # First flatten the list, and remember the original dimensions
-    flat_rowids, reverse_list = ut.invertible_flatten2(unflat_rowids)
-    # Then preform the lookup / implicit mapping
-    flat_vals_list = [method(flat_rowids, **kwargs) for method in method_list]
-    # Then ut.unflatten2 the results to the original input dimensions
-    unflat_vals_list = [ut.unflatten2(flat_vals, reverse_list)
-                        for flat_vals in flat_vals_list]
-    return unflat_vals_list
 
 
 def _make_unflat_getter_func(flat_getter):
@@ -1639,6 +1526,12 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
     key = 'time'
     if kwargs.get(key, default):
         vals_list += [ibs.get_annot_image_unixtimes(aid_list)]
+        key_list += [key]
+
+    key = 'timestr'
+    if kwargs.get(key, default):
+        unixtimes = ibs.get_annot_image_unixtimes(aid_list)
+        vals_list += [list(map(ut.util_time.unixtime_to_datetimestr, unixtimes))]
         key_list += [key]
 
     key = 'timedelta'
@@ -2138,12 +2031,6 @@ def is_aid_unknown(ibs, aid_list):
     """
     nid_list = ibs.get_annot_name_rowids(aid_list)
     return ibs.is_nid_unknown(nid_list)
-
-
-def make_imagesettext_list(imgsetid_list, occur_cfgstr):
-    # DEPRICATE
-    imagesettext_list = [str(imgsetid) + occur_cfgstr for imgsetid in imgsetid_list]
-    return imagesettext_list
 
 
 @register_ibs_method
@@ -2973,22 +2860,6 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
     return truth_list
 
 
-def get_title(ibs):
-    if ibs is None:
-        title = 'IBEIS - No Database Directory Open'
-    elif ibs.dbdir is None:
-        title = 'IBEIS - !! INVALID DATABASE !!'
-    else:
-        dbdir = ibs.get_dbdir()
-        dbname = ibs.get_dbname()
-        title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
-        wb_target = ibs.const.WILDBOOK_TARGET
-        #params.args.wildbook_target
-        if wb_target is not None:
-            title = '%s - Wildbook Target = %s' % (title, wb_target)
-    return title
-
-
 @register_ibs_method
 def get_dbinfo_str(ibs):
     from ibeis.other import dbinfo
@@ -3301,43 +3172,6 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
     if verbose:
         print('Found %d exemplars for %d names' % (sum(flag_list), len(unique_nids)))
     return flag_list
-
-
-def detect_join_cases(ibs):
-    r"""
-    Args:
-        ibs (IBEISController):  ibeis controller object
-
-    Returns:
-        QueryResult: qres_list -  object of feature correspondences and scores
-
-    CommandLine:
-        python -m ibeis.other.ibsfuncs --test-detect_join_cases --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.other.ibsfuncs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> cm_list = detect_join_cases(ibs)
-        >>> #result = str(qres_list)
-        >>> #print(result)
-        >>> ut.quit_if_noshow()
-        >>> import guitool
-        >>> from ibeis.gui import inspect_gui
-        >>> guitool.ensure_qapp()
-        >>> qres_wgt = inspect_gui.QueryResultsWidget(ibs, cm_list, qreq_=qreq_, review_cfg=dict(filter_reviewed=False))
-        >>> qres_wgt.show()
-        >>> qres_wgt.raise_()
-        >>> guitool.qtapp_loop(qres_wgt)
-    """
-    qaids = ibs.get_valid_aids(is_exemplar=None, minqual='poor')
-    daids = ibs.get_valid_aids(is_exemplar=None, minqual='poor')
-    cfgdict = dict(can_match_samename=False, use_k_padding=True)
-    qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
-    cm_list = qreq_.execute()
-    return cm_list
-    #return qres_list
 
 
 def _split_car_contributor_tag(contributor_tag, distinguish_invalids=True):
@@ -4231,7 +4065,7 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
         python -m ibeis.other.ibsfuncs --exec-filter_annots_using_minimum_timedelta --db PZ_Master1
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -4254,6 +4088,30 @@ def filter_annots_using_minimum_timedelta(ibs, aid_list, min_timedelta):
     grouped_aids = ibs.group_annots_by_name(aid_list)[0]
     unixtimes_list = ibs.unflat_map(ibs.get_annot_image_unixtimes_asfloat, grouped_aids)
     # Find the maximum size subset such that all timedeltas are less than a given value
+    r"""
+    Given a set of annotations V (all of the same name).
+    Let $E = V \times V$ be the the set of all pairs of annotations.
+
+    We will now indicate which annotations are included as to separate them by
+    a minimum timedelta while maximizing the number of annotations taken.
+
+    Let t[u, v] be the absolute difference in time deltas between u and v
+
+    Let x[u, v] = 1 if the annotation pair (u, v) is included.
+
+    Let y[u] = 1 if the annotation u is included.
+
+    maximize sum(y[u] for u in V)
+    subject to:
+
+        # Annotations pairs are only included if their timedelta is less than
+        # the threshold.
+        x[u, v] = 0 if t[u, v] > thresh
+
+        # If a pair is excluded than at least one annotation in that pair must
+        # be excluded.
+        y[u] + y[v] - x[u, v] < 2
+    """
     chosen_idxs_list = [
         ut.maximin_distance_subset1d(unixtimes, min_thresh=min_timedelta)[0]
         for unixtimes in unixtimes_list]
@@ -5424,6 +5282,8 @@ def get_annot_instancelist(ibs, aid_list):
 @register_ibs_method
 def get_annot_lazy_dict2(ibs, aid, config=None):
     r"""
+    DEPRICATE FOR ibs.annots
+
     Args:
         ibs (ibeis.IBEISController):  image analysis api
         aid (int):  annotation id
@@ -5505,14 +5365,7 @@ def lookup_annot_vecs_subset(ibs, unflat_aids, unflat_fxs, annots=None, config2_
     # HACK
     # FIXME: naive and regular multigroup still arnt equivalent
     #unflat_vecs = unflat_vecs1 = [[] if len(x) == 1 and x[0] is None else x  for x in unflat_vecs1]
-    unflat_vecs =  unflat_vecs2 = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)  # NOQA
-    # import utool
-    # vt.sver_c_wrapper.asserteq(unflat_vecs1, unflat_vecs2)
-    # unflat_vecs = unflat_vecs2
-    # unflat_vecs = unflat_vecs1
-    # import utool
-    # utool.embed()
-
+    unflat_vecs = vt.multigroup_lookup_naive(annots, unflat_aids, unflat_fxs, extract_vecs)  # NOQA
     return unflat_vecs
 
 

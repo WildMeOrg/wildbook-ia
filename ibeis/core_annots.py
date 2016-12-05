@@ -1189,96 +1189,23 @@ class VsOneConfig(dtool.Config):
         >>> result = str(cfg)
         >>> print(result)
     """
-    _param_info_list = [
-        #ut.ParamInfo('sver_xy_thresh', .01),
-        ut.ParamInfo('sver_xy_thresh', .001),
-        ut.ParamInfo('ratio_thresh', .625),
-        ut.ParamInfo('refine_method', 'homog'),
-        ut.ParamInfo('symmetric', False),
-        ut.ParamInfo('K', 1),
-        ut.ParamInfo('Knorm', 1),
-        ut.ParamInfo('version', 0),
+    _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG + [
+        ut.ParamInfo('version', 2),
         ut.ParamInfo('augment_queryside_hack', False),
     ]
+    #     #ut.ParamInfo('sver_xy_thresh', .01),
+    #     ut.ParamInfo('sver_xy_thresh', .001),
+    #     ut.ParamInfo('ratio_thresh', .625),
+    #     ut.ParamInfo('refine_method', 'homog'),
+    #     ut.ParamInfo('symmetric', False),
+    #     ut.ParamInfo('K', 1),
+    #     ut.ParamInfo('Knorm', 1),
+
     _sub_config_list = [
         FeatConfig,
         ChipConfig,  # TODO: infer chip config from feat config
         FeatWeightConfig,
     ]
-
-
-def cut_test(ibs, parent_rowids_T, score_list2):
-
-    unique_aids = ut.unique(ut.flatten(parent_rowids_T))
-    #for view in set(ibs.get_annot_yaw_texts(unique_aids)):
-    #    aid2_idx = ut.make_index_lookup(unique_aids)
-    #    #idx2_aid = ut.invert_dict(aid2_idx)
-    #    idx_pairs = np.array(ut.unflat_take(aid2_idx, zip(*parent_rowids_T)))
-    #    num = len(aid2_idx)
-    #    flat_idx = np.ravel_multi_index(idx_pairs.T, (num, num))
-    #    score_list2 = np.array(score_list2)
-    #    cost_matrix = np.zeros(num * num)
-    #    cost_matrix[flat_idx] = score_list2
-    #    cost_matrix = cost_matrix.reshape((num, num))
-    #    thresh = np.median(cost_matrix)
-    #    thresh = 20
-    #    labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh)
-    #    grouping = ut.group_items(unique_aids, labels)
-
-    if True:
-        #vp2_name2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts, ibs.get_annot_name_texts])
-        aid2_idx = ut.make_index_lookup(unique_aids)
-        num = len(aid2_idx)
-        idx_pairs = np.array(ut.unflat_take(aid2_idx, zip(*parent_rowids_T)))
-        flat_idx = np.ravel_multi_index(idx_pairs.T, (num, num))
-        score_list2 = np.array(score_list2)
-        cost_matrix = np.zeros(num * num)
-        cost_matrix[flat_idx] = score_list2
-        cost_matrix = cost_matrix.reshape((num, num))
-
-        vp2_aids = ibs.group_annots_by_multi_prop(unique_aids, [ibs.get_annot_yaw_texts])
-
-        for view, aids in vp2_aids.items():
-            print('---')
-            print('view = %r' % (view,))
-            print('len(aids) = %r' % (len(aids),))
-            idxs = ut.take(aid2_idx, aids)
-            if len(idxs) == 1:
-                continue
-            real_group = ibs.group_annots_by_name(aids)[0]
-            sub_cost_matrix = cost_matrix[idxs].T[idxs].T
-            #ibs = ut.search_stack_for_localvar('ibs')
-            for thresh in [5, 7, 10, 15, 25, 50]:
-                labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, thresh)
-                grouping = ut.group_items(aids, labels)
-                diff = ut.compare_groupings(real_group, grouping.values())
-                print('thresh = %r, diff=%r' % (thresh, diff))
-                #print('--')
-
-        if False:
-            # synthetic data
-            size = 100
-            thresh = 50
-            np.random.randint(0, 1)
-            np.zeros((size, size))
-            #np.random.rand(size, size)
-            size = 40
-            for size in range(2, 100):
-                aids = np.arange(size)
-                encounter_lbls = np.random.randint(0, size, size)
-                grid1 = np.tile(encounter_lbls, (size, 1))
-                is_match = grid1.T == grid1
-                good_pos = np.where(is_match)
-                bad_pos = np.where(~is_match)
-                sub_cost_matrix = np.empty((size, size))
-                sub_cost_matrix[good_pos] = np.random.randn(len(good_pos[0])) + 20
-                sub_cost_matrix[bad_pos] = np.random.randn(len(bad_pos[0])) - 20
-                sub_cost_matrix[np.diag_indices_from(sub_cost_matrix)] = np.inf
-                labels = vt.unsupervised_multicut_labeling(sub_cost_matrix, 0)
-                diff = ut.compare_groupings(
-                    list(ut.group_items(aids, encounter_lbls).values()),
-                    list(ut.group_items(aids, labels).values()))
-                print('diff = %r' % (diff,))
 
 
 @derived_attribute(
@@ -1287,41 +1214,15 @@ def cut_test(ibs, parent_rowids_T, score_list2):
     requestclass=VsOneRequest,
     configclass=VsOneConfig,
     chunksize=128,
-    #chunksize=16,
     fname='vsone',
 )
 def compute_one_vs_one(depc, qaids, daids, config):
     r"""
     CommandLine:
-        python -m ibeis.core_annots --test-compute_one_vs_one --show
+        python -m ibeis.core_annots --test-compute_one_vs_one:1 --show
         python -m ibeis.core_annots --test-compute_one_vs_one
         python -m ibeis.control.IBEISControl --test-show_depc_annot_graph --show
         python -m ibeis.control.IBEISControl --test-show_depc_annot_table_input --show --tablename=vsone
-
-    Ignore:
-        >>> from ibeis.core_annots import *  # NOQA
-        >>> import ibeis
-        >>> ibs, aid_list = ibeis.testdata_aids('PZ_Master1', 'default:')
-        >>> occurid2_aids = ibs.temp_group_annot_occurrences(aid_list)
-        >>> aids_list = [np.unique(aids) for aids in occurid2_aids.values()]
-        >>> aids_list = [aids for aids in aids_list if len(aids) > 1 and len(aids) < 100]
-
-        aids = ut.sortedby([a.tolist() for a in aids_list], ut.lmap(len, aids_list))[-1]
-
-        depc = ibs.depc_annot
-
-        progiter = ut.ProgIter(aids_list, freq=1)
-        for aids in progiter:
-            request = depc.new_request('vsone', aids, aids, {'dim_size': 450})
-            qaids, daids = request.parent_rowids_T
-            config = request.config
-            parent_rowids_T = request.parent_rowids_T
-            rawres_list2 = request.execute(postprocess=False)
-            #score_list2 = ut.take_column(rawres_list2, 0)
-            ut.list_T = ut.list_transpose
-            #test_cut(ibs, parent_rowids_T, score_list2)
-            # x = 44
-            #test_cut(ibs, ut.list_T(ut.list_T(parent_rowids_T)[0:x]), score_list2[0:x])
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1360,17 +1261,19 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> match.show_single_annotmatch(qreq_=request, vert=False)
         >>> ut.show_if_requested()
 
-
     Example:
         >>> # Example of a one-vs-one query
+        >>> import utool as ut
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> config = {'codename': 'vsone'}
-        >>> qreq_ = ibs.new_query_request([1], [2], cfgdict=config)
-        >>> cm_list = qreq_.execute()
-        >>> match = cm_list[0]
+        >>> cm_list = ibs.depc.get('vsone', ([1], [2]), config={'ratio_thresh': .9}, recompute=True, _debug=True)
+        >>> #cm_list = qreq_.execute()
+        >>> score, match = cm_list[0]
+        >>> print('score = %r' % (score,))
+        >>> qreq_ = ibs.new_query_request([1], [2])
         >>> match.print_inspect_str(qreq_)
-        >>> match.show_single_annotmatch(qreq_=qreq_, vert=False)
+        >>> ut.quit_if_noshow()
+        >>> match.show_single_annotmatch(qreq_)
         >>> import utool as ut
         >>> ut.show_if_requested()
 
@@ -1389,80 +1292,92 @@ def compute_one_vs_one(depc, qaids, daids, config):
     """
     import ibeis
     ibs = depc.controller
-    qconfig2_ = config
-    dconfig2_ = config
-    unique_qaids = np.unique(qaids)
-    unique_daids = np.unique(daids)
+    qannot_cfg = config
+    dannot_cfg = config
+
+    # Prepare lazy attributes for annotations
+    # qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
+    # dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
+    print('qaids = %r' % (qaids,))
+    print('daids = %r' % (daids,))
+
+    unique_qaids = set(qaids)
+    unique_daids = set(daids)
+
+    # Determine a unique set of annots per config
+    configured_aids = ut.ddict(set)
+    configured_aids[qannot_cfg].update(unique_qaids)
+    configured_aids[dannot_cfg].update(unique_daids)
+
+    # Make efficient annot-view representation
+    configured_annot_views = {}
+    for config, aids in configured_aids.items():
+        annots = ibs.annots(sorted(list(aids)), config=config)
+        configured_annot_views[config] = annots.view()
+
+    # These annot views behave like annot objects
+    # but they use the same internal cache
+    # annots1 = configured_annot_views[qannot_cfg].view(qaids)
+    # annots2 = configured_annot_views[dannot_cfg].view(daids)
 
     # TODO: Ensure entire pipeline can use new dependencies
-    # DEPC Precompute
-    ibs.depc.d.get_feat_rowids(unique_qaids, config=qconfig2_)
-    ibs.depc.d.get_feat_rowids(unique_daids, config=dconfig2_)
-    if True:
-        annot1_list = [ibs.get_annot_lazy_dict2(qaid, config=qconfig2_)
-                       for qaid in unique_qaids]
-        annot2_list = [ibs.get_annot_lazy_dict2(daid, config=dconfig2_)
-                       for daid in unique_daids]
-    else:
-        #config.chip_cfgstr = config.chip_cfg.get_cfgstr()
-        #config.chip_cfg_dict = config.chip_cfg.asdict()
-        annot1_list = [ibs.get_annot_lazy_dict(qaid, config2_=qconfig2_)
-                       for qaid in unique_qaids]
-        annot2_list = [ibs.get_annot_lazy_dict(daid, config2_=dconfig2_)
-                       for daid in unique_daids]
+    unique_annot_views = list(configured_annot_views.values())
+    for annots in unique_annot_views:
+        annots.chip_size
+        annots.vecs
+        annots.kpts
+        annots.yaw
+        annots.qual
+        annots.gps
+        annots.time
 
-    # precache flann structures
-    # TODO: Make depcache node
-    flann_params = {'algorithm': 'kdtree', 'trees': 8}
-    for annot1 in annot1_list:
-        if 'flann' not in annot1:
-            annot1['flann'] = lambda: vt.flann_cache(
-                annot1['vecs'], flann_params=flann_params,
-                verbose=False)
+    configured_lazy_annots = ut.ddict(dict)
+    for config, annots in configured_annot_views.items():
+        annot_dict = configured_lazy_annots[config]
+        for aid in ut.ProgIter(annots, label='make lazy dict'):
+            annot = annots.view(aid)._make_lazy_dict()
+            annot_dict[aid] = annot
 
-    qaid_to_annot = dict(zip(unique_qaids, annot1_list))
-    daid_to_annot = dict(zip(unique_daids, annot2_list))
+    unique_lazy_annots = ut.flatten(
+        [x.values() for x in configured_lazy_annots.values()])
 
-    #all_aids = np.unique(ut.flatten([qaids, daids]))
-    verbose = False
-    #yeild_ = []
-    #print("START VSONE")
+    flann_params = {'algorithm': 'kdtree', 'trees': 4}
+    import vtool.matching  # NOQA
+    import vtool as vt
+    for annot in unique_lazy_annots:
+        vt.matching.ensure_metadata_flann(annot, flann_params)
+
+    for annot in unique_lazy_annots:
+        annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
+                             np.array(annot['chip_size'])[:, None])
+
     for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
                                    lbl='compute vsone', bs=True, freq=1):
-        annot1 = qaid_to_annot[qaid]
-        annot2 = daid_to_annot[daid]
-        metadata = {
-            'annot1': annot1,
-            'annot2': annot2,
-        }
-        vt_match = vt.vsone_matching(metadata, cfgdict=config, verbose=verbose)
-        matchtup = vt_match.matches['RAT+SV']
-        H = vt_match.metadata['H_RAT']
-        score = matchtup.fs.sum()
-        fm = matchtup.fm
-        fs = matchtup.fs
+        # TODO: precompute these
+        annot1 = configured_lazy_annots[qannot_cfg][qaid]
+        annot2 = configured_lazy_annots[dannot_cfg][daid]
+
+        match = vt.PairwiseMatch(annot1, annot2)
+        match.apply_all(config)
+        H = match.H_12
+        score = match.fs.sum()
+        fm = match.fm
+        fs = match.fs
 
         match = ibeis.ChipMatch(
-            qaid=qaid,
-            daid_list=[daid],
-            fm_list=[fm],
+            qaid=qaid, daid_list=[daid], fm_list=[fm],
             fsv_list=[vt.atleast_nd(fs, 2)],
-            H_list=[H],
-            fsv_col_lbls=['L2_SIFT'])
+            H_list=[H], fsv_col_lbls=['L2_SIFT'])
         match._update_daid_index()
         match.evaluate_dnids(ibs=ibs)
         match._update_daid_index()
         match.set_cannonical_name_score([score], [score])
 
-        #import utool
-        #utool.embed()
         if False:
             ut.ensure_pylab_qt4()
             ibs, depc, aid_list = testdata_core(size=3)
             request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
             match.ishow_analysis(request)
-        #match = SingleMatch_IBEIS(qaid, daid, score, fm)
-        #yeild_.append((score, match))
         yield (score, match)
 
 

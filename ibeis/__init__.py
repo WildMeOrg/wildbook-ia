@@ -109,7 +109,7 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis import *  # NOQA
-        >>> e = 'rank_cdf'
+        >>> e = 'rank_cmc'
         >>> db = 'testdb1'
         >>> a = ['default:species=primary']
         >>> t = ['default']
@@ -141,7 +141,8 @@ def run_experiment(e='print', db='PZ_MTEST', a=['unctrl'], t=['default'],
     def build_commandline(e=e, **kwargs):
         # Equivalent command line version of this func
         import ibeis.dev
-        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2] for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
+        valid_e_flags = ut.flatten([[tup[1]] if len(tup) == 2 else [tup[1]] + tup[2]
+                                    for tup in ibeis.dev.REGISTERED_DOCTEST_EXPERIMENTS])
         if e in valid_e_flags:
             epref = '-e'
         else:
@@ -301,7 +302,7 @@ rrrr = reload_subs
 
 from ibeis.control.DB_SCHEMA_CURRENT import VERSION_CURRENT
 __version__ = VERSION_CURRENT
-__version__ = '1.5.4'
+__version__ = '1.5.5'
 
 if __version__ != VERSION_CURRENT:
     raise AssertionError(

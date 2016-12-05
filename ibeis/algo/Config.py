@@ -266,7 +266,7 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.sv_on = True
         sv_cfg.xy_thresh = .01
         sv_cfg.scale_thresh = 2.0
-        sv_cfg.ori_thresh   = tau / 4.0
+        sv_cfg.ori_thresh = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.full_homog_checks = True
         sv_cfg.nNameShortlistSVER = 50
@@ -491,17 +491,9 @@ class RerankVsOneConfig(ConfigBase):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
+        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=False)
         >>> result = rrvsone_cfg.get_cfgstr()
-        >>> assert result.startswith('_RRVsOne(True,')
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.Config import *  # NOQA
-        >>> rrvsone_cfg = RerankVsOneConfig(rrvsone_on=True)
-        >>> result = rrvsone_cfg.get_cfgstr()
-        >>> print(result)
-        _RRVsOne(True,nNm=20,nApN=3,prior_coeff=0.6,unc_coeff=0.4,sver_unc=True,uncRat=0.8)
+        >>> assert result.startswith('_RRVsOne(False')
 
     """
     def __init__(rrvsone_cfg, **kwargs):
@@ -514,22 +506,22 @@ class RerankVsOneConfig(ConfigBase):
 
     def get_param_info_list(rrvsone_cfg):
         # from ibeis.algo.hots import distinctiveness_normalizer
-        from ibeis.algo.hots import vsone_pipeline
+        # from ibeis.algo.hots import vsone_pipeline
         # new way to try and specify config options.
         # not sure if i like it yet
         param_info_list = ut.flatten([
             [
                 ut.ParamInfo('rrvsone_on', False, ''),
             ],
-            vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
-            vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
-            vsone_pipeline.COEFF_DEFAULTS.aslist(),
-            vsone_pipeline.UNC_DEFAULTS.aslist(),
-            vsone_pipeline.SCR_DEFAULTS.aslist(),
-            vsone_pipeline.COVKPTS_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
-            vsone_pipeline.COVGRID_DEFAULT.aslist(
-                hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
+            # vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
+            # vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
+            # vsone_pipeline.COEFF_DEFAULTS.aslist(),
+            # vsone_pipeline.UNC_DEFAULTS.aslist(),
+            # vsone_pipeline.SCR_DEFAULTS.aslist(),
+            # vsone_pipeline.COVKPTS_DEFAULT.aslist(
+            #     hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
+            # vsone_pipeline.COVGRID_DEFAULT.aslist(
+            #     hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
             # distinctiveness_normalizer.DCVS_DEFAULT.aslist(
             #     hideif=lambda cfg: not cfg['dcvs_on']),
         ])
@@ -967,7 +959,7 @@ class OccurrenceConfig(ConfigBase):
             #ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative', 'meanshift']),
             ut.ParamInfo('cluster_algo', 'agglomerative', '', valid_values=['agglomerative']),
             #ut.ParamInfo('quantile', .01, 'quant', hideif=lambda cfg: cfg['cluster_algo'] != 'meanshift'),
-            ut.ParamInfo('seconds_thresh', 600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
+            ut.ParamInfo('seconds_thresh', 1600, 'sec', hideif=lambda cfg: cfg['cluster_algo'] != 'agglomerative'),
             ut.ParamInfo('use_gps', True, hideif=False),
             ut.ParamInfo('km_per_sec', .002)
         ]
@@ -1140,8 +1132,8 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
         if verbose:
             print('[Config] successfully loaded config cfgname=%r' % (cfgname,))
     except Exception as ex:
-        #if ut.VERBOSE:
-        ut.printex(ex, iswarning=True)
+        if ut.VERBOSE:
+            ut.printex(ex, iswarning=True)
         # Totally new completely default preferences
         cfg = _default_config(cfg, cfgname)
         cfg.save()

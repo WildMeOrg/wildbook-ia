@@ -774,9 +774,9 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
              lambda: review_match(
                  ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)),
             # FIXME, more than 2 aids
-            ('New Split Case Pair Interaction',
+            ('New Graph Interaction (Names)',
              partial(viz_graph2.make_qt_graph_interface,
-                     ibs, aids=aid_list2)),
+                     ibs, nids=ibs.get_annot_nids(aid_list2))),
         ]
 
     with_vsone = True
@@ -833,24 +833,60 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
 
 
 def make_vsone_context_options(ibs, aid1, aid2, qreq_):
-    from ibeis.algo.hots import vsone_pipeline
-    def vsone_single_hack(ibs, qaid, daid, qreq_, type_='RAT+SV'):
+    """
+    CommandLine:
+        python -m ibeis.gui.inspect_gui make_vsone_context_options --db PZ_MTEST
+        python -m ibeis.gui.inspect_gui make_vsone_context_options --dbdir ~/lev/media/hdd/work/WWF_Lynx/  --aids=2587,2398
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.gui.inspect_gui import *  # NOQA
+        >>> import ibeis
+        >>> gt.ensure_qapp()
+        >>> ut.qt4ensure()
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids = ut.get_argval('--aids', default=[1, 2], type_=list)
+        >>> print('aids = %r' % (aids,))
+        >>> aid1, aid2 = aids
+        >>> options = make_vsone_context_options(ibs, 1, 2, None)
+        >>> dict(options)['Tune Vsone(vt)']()
+        >>> gt.qtapp_loop(freq=10)
+    """
+    # from ibeis.algo.hots import vsone_pipeline
+    # def vsone_single_hack(ibs, qaid, daid, qreq_, type_='RAT+SV'):
+    #     if qreq_ is None:
+    #         qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
+    #     else:
+    #         qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
+    #     match = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
+    #                                         use_ibscache=True)
+    #     interact = match.make_interaction(type_=type_, mode=1)  # NOQA
+    #     interact.start()
+
+    def vsone_tuner_hack(ibs, qaid, daid, qreq_):
+        from vtool import inspect_matches
+        import vtool as vt
         if qreq_ is None:
             qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict={})
         else:
             qreq2_ = ibs.new_query_request([qaid], [daid], cfgdict=qreq_.qparams)
-        match = vsone_pipeline.vsone_single(qaid, daid, qreq2_,
-                                            use_ibscache=True)
-        interact = match.make_interaction(type_=type_, mode=1)  # NOQA
-        interact.start()
+        qconfig2_ = qreq2_.extern_query_config2
+        dconfig2_ = qreq2_.extern_data_config2
+        annot1 = ibs.annots([qaid], config=qconfig2_)[0]._make_lazy_dict()
+        annot2 = ibs.annots([daid], config=dconfig2_)[0]._make_lazy_dict()
+        match = vt.PairwiseMatch(annot1, annot2)
+        self = inspect_matches.MatchInspector(match=match)
+        self.show()
 
     options =  [
-        ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
-                                  ibs, aid1, aid2, qreq_=qreq_)),
-        ('Run Vsone(vt)', partial(vsone_single_hack,
-                                  ibs, aid1, aid2, qreq_=qreq_)),
-        ('Run Vsone(vt, orig)', partial(vsone_single_hack,
-                                        ibs, aid1, aid2, qreq_=qreq_, type_='ORIG')),
+        # ('Run Vsone(ib)', partial(vsone_pipeline.vsone_independant_pair_hack,
+        #                           ibs, aid1, aid2, qreq_=qreq_)),
+        ('Tune Vsone(vt)', partial(vsone_tuner_hack,
+                                   ibs, aid1, aid2, qreq_=qreq_)),
+        # ('Run Vsone(vt)', partial(vsone_single_hack,
+        #                           ibs, aid1, aid2, qreq_=qreq_)),
+        # ('Run Vsone(vt, orig)', partial(vsone_single_hack,
+        #                                 ibs, aid1, aid2, qreq_=qreq_, type_='ORIG')),
     ]
     return  options
 

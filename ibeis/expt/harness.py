@@ -156,7 +156,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
             cfgstr_list = [qreq_.get_cfgstr(with_input=True)
                            for qreq_ in cfgx2_qreq_]
             bt_cachestr = ut.hashstr_arr27(cfgstr_list, ibs.get_dbname() + '_cfgs')
-            bt_cachename = 'BULKTESTCACHE2'
+            bt_cachename = 'BULKTESTCACHE2_v2'
             testres = ut.load_cache(bt_cachedir, bt_cachename, bt_cachestr)
             testres.cfgdict_list = cfgdict_list
             testres.cfgx2_lbl = cfgx2_lbl  # hack override
@@ -317,9 +317,12 @@ def get_qres_name_result_info(ibs, cm, qreq_):
 
 def build_qresinfo(qreq_, cm_list):
     """
-    Helper function.
+    Helper function to report results over multiple queries.  Basically given a
+    group of queries of the same name, we only care if one of them is correct.
+    This emulates encounters.
 
-    Runs queries of a specific configuration returns the best rank of each query
+    Runs queries of a specific configuration returns the best rank of each
+    query.
 
     Args:
         qaids (list) : query annotation ids
@@ -359,13 +362,13 @@ def build_qresinfo(qreq_, cm_list):
         >>> print(ut.dict_str(cfgres_info))
 
     Ignore:
-        ibeis -e rank_cdf --db humpbacks -a :has_any=hasnotch,mingt=2 \
+        ibeis -e rank_cmc --db humpbacks -a :has_any=hasnotch,mingt=2 \
                 -t :proot=BC_DTW --show --nocache-big
 
-        ibeis -e rank_cdf --db humpbacks -a :is_known=True,mingt=2 \
+        ibeis -e rank_cmc --db humpbacks -a :is_known=True,mingt=2 \
                 -t :pipeline_root=BC_DTW
 
-        ibeis -e rank_cdf --db humpbacks -a :is_known=True \
+        ibeis -e rank_cmc --db humpbacks -a :is_known=True \
                 -t :pipeline_root=BC_DTW \
                 --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 \
                 --show --debug-depc
@@ -373,7 +376,6 @@ def build_qresinfo(qreq_, cm_list):
         --clear-all-depcache
     """
     ibs = qreq_.ibs
-    qx2_cm = cm_list
     qaids = qreq_.qaids
     #qaids2 = [cm.qaid for cm in cm_list]
     qnids = ibs.get_annot_name_rowids(qaids)
@@ -409,10 +411,16 @@ def build_qresinfo(qreq_, cm_list):
         failure = np.logical_and(~success, sorted_dnids > 0)
         gt_name_rank = None if not np.any(success) else np.where(success)[0][0]
         gf_name_rank = None if not np.any(failure) else np.nonzero(failure)[0][0]
+
         gt_nid = sorted_dnids[gt_name_rank]
         gf_nid = sorted_dnids[gf_name_rank]
         gt_name_score = sorted_namescores[gt_name_rank]
         gf_name_score = sorted_namescores[gf_name_rank]
+
+        if gt_name_score <= 0:
+            # ensure failure cases are loud give them the worst possible rank
+            # instead of a random one.
+            gt_name_rank = len(qreq_.dnids) + 1
         qnx2_nameres_info = {}
         qnx2_nameres_info['qnid'] = qnid
         qnx2_nameres_info['gt_nid'] = gt_nid
@@ -429,14 +437,15 @@ def build_qresinfo(qreq_, cm_list):
     daids = qreq_.daids
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
-    qx2_qresinfo = [get_qres_name_result_info(ibs, cm, qreq_) for cm in qx2_cm]
+    qx2_qresinfo = [get_qres_name_result_info(ibs, cm, qreq_)
+                    for cm in cm_list]
 
     cfgres_info = ut.dict_stack(qx2_qresinfo, 'qx2_')
 
     if False:
         qx2_avepercision = np.array(
             [cm.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
-             (cm, gt_aids) in zip(qx2_cm, qx2_gtaids)])
+             (cm, gt_aids) in zip(cm_list, qx2_gtaids)])
         cfgres_info['qx2_avepercision'] = qx2_avepercision
     # Compute mAP score  # TODO: use mAP score
     # (Actually map score doesn't make much sense if using name scoring

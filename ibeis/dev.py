@@ -65,7 +65,7 @@ print, rrr, profile = utool.inject2(__name__)
 
 """
 ./dev.py -e print_results --db PZ_Master1 -a varysize_pzm:dper_name=[1,2],dsize=1500 -t candidacy_k:K=1 --intersect_hack
-./dev.py -e draw_rank_cdf -t baseline -a baseline --show --db PZ_Master1
+./dev.py -e draw_rank_cmc -t baseline -a baseline --show --db PZ_Master1
 ./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline
 ./dev.py -e get_dbinfo --db PZ_MTEST
 ./dev.py -e get_dbinfo --db PZ_Master1 --aid_list=baseline --hackshow-unixtime --show
@@ -78,7 +78,7 @@ REGISTERED_DOCTEST_EXPERIMENTS = [
     ('ibeis.expt.experiment_drawing', 'draw_casetag_hist', ['taghist']),
 
     ('ibeis.expt.old_storage', 'draw_results'),
-    ('ibeis.expt.experiment_drawing', 'draw_rank_cdf', ['rank_cdf']),
+    ('ibeis.expt.experiment_drawing', 'draw_rank_cmc', ['rank_cmc']),
     ('ibeis.other.dbinfo', 'get_dbinfo'),
     ('ibeis.other.dbinfo', 'latex_dbstats'),
     ('ibeis.other.dbinfo', 'show_image_time_distributions', ['db_time_hist']),

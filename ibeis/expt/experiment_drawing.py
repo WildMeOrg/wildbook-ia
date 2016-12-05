@@ -535,7 +535,6 @@ def draw_rank_surface(ibs, testres, verbose=None, fnum=None):
     from ibeis.expt import annotation_configs
     if verbose is None:
         verbose = ut.VERBOSE
-    #rank_le1_list = testres.get_rank_cumhist(bins='dense')[0].T[0]
     #percent_le1_list = 100 * rank_le1_list / len(testres.qaids)
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense')
     percent_le1_list = cfgx2_cumhist_percent.T[0]
@@ -881,8 +880,8 @@ def temp_multidb_cmc():
     ut.startfile('cmc-combined.png')
 
 
-def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
-                  do_per_annot=True, draw_icon=True,
+def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
+                  group_queries=False, draw_icon=True,
                   numranks=5, kind='cmc', cdfzoom=False):
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
@@ -890,20 +889,25 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         ibs (ibeis.IBEISController):  ibeis controller object
         testres (TestResult):
 
+    TODO:
+        # Cross-validated results with timectrl
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl:xval=True -t invar --kind=cmc
+
     CommandLine:
-        python -m ibeis draw_rank_cdf
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a :proot=smk,num_words=64000
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
-        python -m ibeis draw_rank_cdf --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
-        #ibeis -e rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis draw_rank_cmc
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
 
-        python -m ibeis.dev -e draw_rank_cdf --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc --cdfzoom
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a varypername_td   -t CircQRH_ScoreMech:K=3
+        #ibeis -e rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cdf -t best -a timectrl --db PZ_Master1 --show
+        python -m ibeis.dev -e draw_rank_cmc --db lynx -a default:qsame_imageset=True,been_adjusted=True,excluderef=True -t default:K=1 --show
 
-        python -m ibeis --tf draw_rank_cdf --db PZ_Master1 --show -t best \
+        python -m ibeis --tf draw_rank_cmc -t best -a timectrl --db PZ_Master1 --show
+
+        python -m ibeis --tf draw_rank_cmc --db PZ_Master1 --show -t best \
             -a timectrl:qhas_any=\(needswork,correctable,mildviewpoint\),qhas_none=\(viewpoint,photobomb,error:viewpoint,quality\) \
             --acfginfo --veryverbtd
 
@@ -916,7 +920,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
             -t default:K=1,resize_dim=[width],dim_size=[600,700,750] \
              default:K=1,resize_dim=[area],dim_size=[450,550,600,650]
 
-        ibeis draw_rank_cdf --db GZ_ALL -a ctrl -t default --show
+        ibeis draw_rank_cmc --db GZ_ALL -a ctrl -t default --show
         ibeis draw_match_cases --db GZ_ALL -a ctrl -t default -f :fail=True --show
 
     Example:
@@ -926,19 +930,18 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
         >>> #ibs, testres = main_helpers.testdata_expts(
         >>> #    'seaturtles', a='default2:qhas_any=(left),sample_occur=True,occur_offset=[0,1,2,3,4,5,6,7,8],num_names=None')
         >>> ibs, testres = main_helpers.testdata_expts('PZ_MTEST')
-        >>> kwargs = ut.argparse_funckw(draw_rank_cdf)
-        >>> result = draw_rank_cdf(ibs, testres, **kwargs)
+        >>> kwargs = ut.argparse_funckw(draw_rank_cmc)
+        >>> result = draw_rank_cmc(ibs, testres, **kwargs)
         >>> ut.show_if_requested()
         >>> print(result)
     """
     import plottool as pt
-    #cdf_list, edges = testres.get_rank_cumhist(bins='dense')
-    if do_per_annot:
-        key = 'qx2_bestranks'
-        target_label = 'accuracy (% per annotation)'
-    else:
+    if group_queries:
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
+    else:
+        key = 'qx2_bestranks'
+        target_label = 'accuracy (% per annotation)'
 
     join_acfgs = True
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
@@ -1005,10 +1008,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     elif kind == 'cmc':
         kind = 'plot'
 
-    if kind == 'plot':
-        plotname = ('Cumulative Match Curve (CMC)')
-    else:
-        plotname = ('Cumulative Rank Histogram')
+    plotname = ('Cumulative Match Characteristic (CMC)')
     plotname = ut.get_argval('--plotname', default=plotname)
     figtitle = testres.make_figtitle(plotname)
 
@@ -1052,7 +1052,7 @@ def draw_rank_cdf(ibs, testres, verbose=False, test_cfgx_slice=None,
     pt.set_figtitle(figtitle)
 
     icon = ibs.get_database_icon()
-    print('draw_icon = %r' % (draw_icon,))
+    # print('draw_icon = %r' % (draw_icon,))
     if draw_icon and icon is not None:
         #ax = pt.gca()
         #ax.get_xlim()
@@ -1339,11 +1339,12 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if show_in_notebook:
         cfg_colors = pt.distinct_colors(len(testres.cfgx2_qreq_))
 
+    unique_qx = ut.unique(qx_list)
     if interact:
-        _iter = ut.InteractiveIter(qx_list, enabled=interact,
+        _iter = ut.InteractiveIter(unique_qx, enabled=interact,
                                    custom_actions=custom_actions)
     else:
-        _iter = ut.ProgIter(qx_list, lbl='drawing cases')
+        _iter = ut.ProgIter(unique_qx, lbl='drawing cases')
 
     fnum = pt.ensure_fnum(None)
     fpaths_list = []

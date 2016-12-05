@@ -158,7 +158,7 @@ def make_name_model(num_annots, num_names=None, verbose=True, mode=1,
         MATCH_TTYPE, match_states,
         evidence_ttypes=[name_cpd_t, name_cpd_t], pmf_func=match_pmf)
     #match_cpd_t.varpref = 'S'
-    namepair_cpds = ut.list_unflat_take(name_cpds, upper_diag_idxs)
+    namepair_cpds = ut.unflat_take(name_cpds, upper_diag_idxs)
     match_cpds = [match_cpd_t.new_cpd(parents=cpds)
                   for cpds in namepair_cpds]
     cpd_list.extend(match_cpds)

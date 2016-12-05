@@ -249,7 +249,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     # or just not do that and use some good pipeline framework
     if qreq_.qparams.rrvsone_on:
         # VSONE RERANKING
-        cm_list = vsone_reranking(qreq_, cm_list_SVER, verbose=verbose)
+        raise NotImplementedError('Depricated')
+        # cm_list = vsone_reranking(qreq_, cm_list_SVER, verbose=verbose)
     else:
         cm_list = cm_list_SVER
         # Final Scoring
@@ -1311,11 +1312,11 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         ibeis.ChipMatch: cmSV
 
     CommandLine:
-        python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
             -t best:refine_method=[homog,affine,cv2-homog,cv2-ransac-homog,cv2-lmeds-homog] \
             -a timectrlhard ---acfginfo --veryverbtd
 
-        python -m ibeis draw_rank_cdf --db PZ_Master1 --show \
+        python -m ibeis draw_rank_cmc --db PZ_Master1 --show \
             -t best:refine_method=[homog,cv2-lmeds-homog],full_homog_checks=[True,False] \
             -a timectrlhard ---acfginfo --veryverbtd
 
@@ -1483,47 +1484,6 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         filtkey = hstypes.FiltKeys.HOMOGERR
         filtweight_list = homog_err_weight_list
         cmSV.append_featscore_column(filtkey, filtweight_list)
-    #else:
-    #    # Remove all matches that failed spatial verification
-    #    # TODO: change to list compress and numpy arrays
-    #    flags = ut.flag_not_None_items(svtup_list)
-    #    svtup_list_ = ut.compress(svtup_list, flags)
-    #    daid_list   = ut.compress(cm.daid_list, flags)
-    #    dnid_list   = ut.compress(cm.dnid_list, flags)
-    #    fm_list     = ut.compress(cm.fm_list, flags)
-    #    fsv_list    = ut.compress(cm.fsv_list, flags)
-    #    fk_list     = ut.compress(cm.fk_list, flags)
-
-    #    sver_matchtup_list = []
-    #    fsv_col_lbls = cm.fsv_col_lbls[:]
-    #    if sver_output_weighting:
-    #        fsv_col_lbls += [hstypes.FiltKeys.HOMOGERR]
-
-    #    for sv_tup, daid, fm, fsv, fk in zip(svtup_list_, daid_list, fm_list, fsv_list, fk_list):
-    #        # Return the inliers to the homography from chip2 to chip1
-    #        (homog_inliers, homog_errors, H, aff_inliers, aff_errors, Aff) = sv_tup
-    #        fm_SV  = fm.take(homog_inliers, axis=0)
-    #        fsv_SV = fsv.take(homog_inliers, axis=0)
-    #        fk_SV  = fk.take(homog_inliers, axis=0)
-    #        if sver_output_weighting:
-    #            # Rescore based on homography errors
-    #            xy_thresh_sqrd = dlen_sqrd2 * xy_thresh
-    #            homog_xy_errors = homog_errors[0].take(homog_inliers, axis=0)
-    #            homog_err_weight = (1.0 - np.sqrt(homog_xy_errors / xy_thresh_sqrd))
-    #            homog_err_weight.shape = (homog_err_weight.size, 1)
-    #            fsv_SV = np.concatenate((fsv_SV, homog_err_weight), axis=1)
-    #        sver_matchtup_list.append((fm_SV, fsv_SV, fk_SV, H))
-
-    #    fm_list_SV  = ut.get_list_column(sver_matchtup_list, 0)
-    #    fsv_list_SV = ut.get_list_column(sver_matchtup_list, 1)
-    #    fk_list_SV  = ut.get_list_column(sver_matchtup_list, 2)
-    #    H_list_SV   = ut.get_list_column(sver_matchtup_list, 3)
-
-    #    cmSV = chip_match.ChipMatch(
-    #        qaid=cm.qaid, daid_list=daid_list,
-    #        fm_list=fm_list_SV, fsv_list=fsv_list_SV, fk_list=fk_list_SV,
-    #        H_list=H_list_SV, dnid_list=dnid_list, qnid=cm.qnid,
-    #        fsv_col_lbls=fsv_col_lbls)
     return cmSV
 
 
@@ -1557,45 +1517,6 @@ def compute_matching_dlen_extent(qreq_, fm_list, kpts_list):
     dlen_sqrd_list = [vt.get_kpts_dlen_sqrd(kpts2_m)
                       for kpts2_m in kpts2_m_list]
     return dlen_sqrd_list
-
-
-#============================
-# 5.5ish) Vsone Reranking
-#============================
-
-
-def vsone_reranking(qreq_, cm_list_SVER, verbose=VERB_PIPELINE):
-    r"""
-    CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-vsone_reranking
-        python -m ibeis.algo.hots.pipeline --test-vsone_reranking --show
-
-    Example2:
-        >>> # SLOW_DOCTEST (IMPORTANT)
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis
-        >>> cfgdict = dict(prescore_method='nsum', score_method='nsum', vsone_reranking=True)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST', p=[p], qaid_override=[2])
-        >>> ibs = qreq_.ibs
-        >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'vsone_reranking')
-        >>> cm_list = locals_['cm_list_SVER']
-        >>> verbose = True
-        >>> cm_list_VSONE = vsone_reranking(qreq_, cm_list, verbose=verbose)
-        >>> ut.quit_if_noshow()
-        >>> from ibeis.algo.hots import vsone_pipeline
-        >>> import plottool as pt
-        >>> # NOTE: the aid2_score field must have been hacked
-        >>> vsone_pipeline.show_top_chipmatches(ibs, cm_list, 0,  'prescore')
-        >>> vsone_pipeline.show_top_chipmatches(ibs, cm_list_VSONE,   1, 'vsone-reranked')
-        >>> pt.show_if_requested()
-    """
-    from ibeis.algo.hots import vsone_pipeline
-    if verbose:
-        print('Step 5.5ish) vsone reranking')
-    cm_list = cm_list_SVER
-    cm_list_VSONE = vsone_pipeline.vsone_reranking(qreq_, cm_list, verbose)
-    return cm_list_VSONE
 
 
 if __name__ == '__main__':

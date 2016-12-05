@@ -107,6 +107,8 @@ def print_results(ibs, testres, **kwargs):
     Rows store different qaids (query annotation ids)
     Cols store different configurations (algorithm parameters)
 
+    TODO: join acfgs
+
     Args:
         ibs (IBEISController):  ibeis controller object
         testres (test_result.TestResult):
@@ -147,6 +149,8 @@ def print_results(ibs, testres, **kwargs):
                         'cfgx2_lbl', 'cfgx2_qreq_'])
     (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = tup
 
+    # join_acfgs = kwargs.get('join_acfgs', False)
+
     print(' --- PRINT RESULTS ---')
     # print(' use --rank-lt-list=1,5 to specify X_LIST')
     if True:
@@ -168,6 +172,10 @@ def print_results(ibs, testres, **kwargs):
         #------------
         # Build Colscore
         nLessX_dict = testres.get_nLessX_dict()
+
+        # cfgx2_hist, edges = testres.get_rank_histograms(bins=X_LIST + [np.inf],
+        #                                                join_acfgs=join_acfgs)
+        # cfgx2_cumsum = cfgx2_hist.cumsum(axis=1)
 
         #------------
         best_rankscore_summary = []

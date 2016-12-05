@@ -68,6 +68,7 @@ SUBINDEX_DEFAULTS_PARAM_INFO = [
 OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size'    : None,
+    'crossval_enc'    : False,
     #'hack_extra' : None,  # hack param to make bigger db sizes
     #'hack_imageset': None,
     # Hack out errors in test data
@@ -343,7 +344,7 @@ def compress_acfg_list_for_printing(acfg_list):
 
 
 def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
-                    combined=False, **kwargs):
+                    combined=False, only_summary=False, **kwargs):
     r"""
     Args:
         acfg_list (list):
@@ -389,10 +390,11 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         title = ('q_cfgname=' + acfg['qcfg']['_cfgname'] +
                  ' d_cfgname=' + acfg['dcfg']['_cfgname'])
 
-        ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
-                      (acfgx + 1, len(acfg_list), title), 'lightgray')
-        print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx],
-                                      strvals=True))
+        if not only_summary:
+            ut.colorprint('+--- acfg %d / %d -- %s ---- ' %
+                          (acfgx + 1, len(acfg_list), title), 'lightgray')
+            print('acfg = ' + ut.dict_str(varied_compressed_dict_list[acfgx],
+                                          strvals=True))
 
         if expanded_aids_list is not None:
             qaids, daids = expanded_aids_list[acfgx]
@@ -410,12 +412,14 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
                     stats_str2 = ut.dict_str(stats_, strvals=True,
                                              newlines=True, explicit=False,
                                              nobraces=False)
-                    print('annot_config_stats = ' + stats_str2)
+                    if not only_summary:
+                        print('annot_config_stats = ' + stats_str2)
             else:
                 dupindex = seen_[key]
-                print('DUPLICATE of index %r' % (dupindex,))
                 dupdict = varied_compressed_dict_list[dupindex[0]]
-                print('DUP OF acfg = ' + ut.dict_str(dupdict, strvals=True))
+                if not only_summary:
+                    print('DUPLICATE of index %r' % (dupindex,))
+                    print('DUP OF acfg = ' + ut.dict_str(dupdict, strvals=True))
     print('hashid summary = ' + ut.list_str(hashid_list, nl=1))
     ut.colorprint('L___ </Info acfg_list> ___', 'white')
 
@@ -625,7 +629,7 @@ varypername2_td = apply_timecontrol(varypername2)
 """
 ibeis -e print_acfg --db PZ_Master1 -a ctrl2
 ibeis -e print_acfg --db PZ_Master1 -a timectrl2
-ibeis -e rank_cdf --db PZ_Master1 -a timectrl2 -t invarbest
+ibeis -e rank_cmc --db PZ_Master1 -a timectrl2 -t invarbest
 """
 ctrl2 = {
     'qcfg': ut.augdict(
@@ -813,7 +817,7 @@ ibeis get_annotcfg_list --db Oxford -a default:qhas_any=\(query,\),dpername=2,ex
 ibeis get_annotcfg_list --db Oxford -a oxford --acfginfo
 ('_QSUUIDS((55)qxlgljvomqpdvlny)', '_DSUUIDS((4240)vhtqsdkrwetbftis)'),
 
-ibeis draw_rank_cdf --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
+ibeis draw_rank_cmc --db Oxford --save oxfordccm.png -p :proot=smk,num_words=[64000],nAssign=[1],sv_on=[False] -a oxford
 
 """
 oxford = {

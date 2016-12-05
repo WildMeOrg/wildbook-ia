@@ -332,54 +332,25 @@ python dev.py --dump-schema --postquit
 #------------------
 # Convert a hotspotter database to IBEIS
 #------------------
-# Set this as your workdir
-python dev.py --db PZ_MTEST --setdb
-# If its in the same location as a hotspotter db, convert it
-python dev.py --convert --force-delete
-python dev.py --convert --force-delete --db Database_MasterGrevy_Elleni
-# Then interact with your new IBEIS database
-python dev.py --cmd --gui 
-> rid_list = ibs.get_valid_rids()
 
-# Convinience: Convert ALL hotspotter databases
-python dev.py -t convert_hsdbs --force-delete
+# NEW: You can simply open a hotspotter database and it will be converted to IBEIS
+python -m ibeis convert_hsdb_to_ibeis --dbdir <path_to_hsdb>
 
-
-#--------------
-# Run Result Inspection
-#--------------
-python dev.py --convert --force-delete --db Mothers --setdb
-python dev.py --db Mothers --setdb
-python dev.py --cmd --allgt -t inspect
+# This script will exlicitly conver the hsdb
+python -m ibeis convert_hsdb_to_ibeis --hsdir <path_to_hsdb> --dbdir <path_to_newdb>
 
 
 #---------
 # Ingest examples
 #---------
 # Ingest raw images
-python ibeis/ingest/ingest_database.py --db JAG_Kieryn
-
-# Opening a hotspotter database will automatically convert it
-python -m ibeis --db JAG_KELLY
-# The explicit hotspotter conversion script can be run via
-python -m ibeis.dbio.ingest_hsdb --test-convert_hsdb_to_ibeis:0 --db JAG_KELLY
+python -m ibeis.dbio.ingest_database --db JAG_Kieryn
 
 
 #---------
 # Run Tests
 #---------
-./testsuit/run_tests.sh
-
-
-#----------------
-# Profiling Code
-#----------------
-
-dev.py -t best --db testdb1 --allgt --nocache-query --prof-mod "spatial;linalg;keypoint" --profile
-dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint" --profile
-dev.py -t best --db PZ_MTEST --all --nocache-query --prof-mod "spatial;linalg;keypoint" --profile
-dev.py -t custom --db PZ_MTEST --allgt --noqcache --profile
-dev.py -t custom:sv_on=False --db PZ_MTEST --allgt --noqcache --profile
+./run_tests.py
 
 
 #----------------

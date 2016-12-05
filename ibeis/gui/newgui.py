@@ -20,8 +20,8 @@ from __future__ import absolute_import, division, print_function
 from six.moves import zip, map, filter
 from os.path import isdir
 import sys
-from ibeis import constants as const
 import functools
+import utool as ut
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__.QtCore import Qt
@@ -29,7 +29,8 @@ from guitool import slot_, ChangeLayoutContext
 # from guitool import BlockContext
 # from guitool import checks_qt_error
 import guitool as gt
-from ibeis.other import ibsfuncs
+import plottool as pt
+from plottool import color_funcs
 from ibeis.gui import guiheaders as gh
 from ibeis.gui import guimenus
 import six
@@ -41,9 +42,7 @@ from ibeis.gui.models_and_views import (
     IBEISStripeModel, IBEISTableView, IBEISItemModel, IBEISTreeView,
     ImagesetTableModel, ImagesetTableView, IBEISTableWidget,
     IBEISTreeWidget, ImagesetTableWidget)
-from plottool import color_funcs
-import utool as ut
-import plottool as pt
+from ibeis import constants as const
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -361,6 +360,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
 
         # Force full loading
         ibswgt.models[IMAGE_TABLE].batch_size = 1000
+        ibswgt.models[IMAGESET_TABLE].batch_size = 1000
         ibswgt.models[ANNOTATION_TABLE].batch_size = 1000
         ibswgt.models[NAMES_TREE].batch_size = 2
         ibswgt.models[NAMES_TREE].batch_size = 100
@@ -692,7 +692,26 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             with ut.Timer('make headers', verbose=VERBOSE_GUI):
                 header_dict, declare_tup = gh.make_ibeis_headers_dict(ibswgt.ibs)
             ibswgt.declare_tup = declare_tup
-            title = ibsfuncs.get_title(ibswgt.ibs)
+
+            def get_title(ibs):
+                """
+                DEPRICATE OR MOVE
+                """
+                if ibs is None:
+                    title = 'IBEIS - No Database Directory Open'
+                elif ibs.dbdir is None:
+                    title = 'IBEIS - !! INVALID DATABASE !!'
+                else:
+                    dbdir = ibs.get_dbdir()
+                    dbname = ibs.get_dbname()
+                    title = 'IBEIS - %r - Database Directory = %s' % (dbname, dbdir)
+                    wb_target = ibs.const.WILDBOOK_TARGET
+                    #params.args.wildbook_target
+                    if wb_target is not None:
+                        title = '%s - Wildbook Target = %s' % (title, wb_target)
+                return title
+
+            title = get_title(ibswgt.ibs)
             ibswgt.setWindowTitle(title)
             if ut.VERBOSE:
                 print('[newgui] Calling model _update_headers')
@@ -1276,10 +1295,36 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             current_imagesettext = ibswgt.back.ibs.get_imageset_text(imgsetid)
             context_options = []
             # Conditional context menu
+
+            def view_images_in_directory(gid_list):
+                images = ibs.images(gid_list)
+                fpaths = images.paths
+                ut.view_file_in_directory(fpaths)
+
+            def view_images_in_web(gid_list):
+                ibswgt.back.show_images_in_web(gid_list)
+
+            fmt = {
+                'images': ut.pluralize('image', len(gid_list)),
+                'images\'s': ut.pluralize('image\'s', len(gid_list)),
+                'annotations': ut.pluralize('annotation', len(gid_list)),
+                'times': ut.pluralize('time', len(gid_list)),
+            }
+
             context_options = [
-                ('Edit image ' + ut.pluralize('time', len(gid_list)),
-                 lambda: ibswgt.edit_image_time([gid]))
+                ('Edit {images\'s} {times}'.format(**fmt),
+                 lambda: ibswgt.edit_image_time(gid_list)),
+                ('View {images} in Web'.format(**fmt),
+                 lambda: view_images_in_web(gid_list)),
+                ('View {images} in Directory'.format(**fmt),
+                 lambda: view_images_in_directory(gid_list)),
+                ('---', lambda: None),
+                ('Add annotation from entire {images}'.format(**fmt),
+                 lambda: ibswgt.back.add_annotation_from_image(gid_list)),
+                ('Run detection on {images} (can cause duplicates)'.format(**fmt),
+                 lambda: ibswgt.back.run_detection_on_images(gid_list)),
             ]
+
             if len(gid_list) == 1:
                 gid = gid_list[0]
                 imgsetid = model.imgsetid
@@ -1306,29 +1351,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                 context_options += [
                     ('View image in Matplotlib',
                         lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=False)),
-                    ('View image in Web',
-                        lambda: ibswgt.back.select_gid(gid, imgsetid, show=True, web=True)),
                     ('View detection image (Hough) [dev]',
                         lambda: ibswgt.back.show_hough_image_(gid)),
                     annot_option_item,
-                    #('View annotation in Matplotlib:',
-                    #   view_aid_options1),
-                    #('View annotation in Web:',
-                    #   view_aid_options2),
-                    ('Add annotation from entire image',
-                        lambda: ibswgt.back.add_annotation_from_image([gid])),
-                    ('Run detection on image (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images([gid])),
-                ]
-            else:
-                context_options += [
-                    ('View images in Web',
-                        lambda: ibswgt.back.show_gid_list_in_web(gid_list)),
-                    ('----', lambda: None),
-                    ('Add annotation from entire images',
-                        lambda: ibswgt.back.add_annotation_from_image(gid_list)),
-                    ('Run detection on images (can cause duplicates)',
-                        lambda: ibswgt.back.run_detection_on_images(gid_list)),
                 ]
             # Special condition for imagesets
             if current_imagesettext != const.NEW_IMAGESET_IMAGESETTEXT:
