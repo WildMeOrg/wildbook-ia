@@ -1078,8 +1078,7 @@ class PairFeatInfo(object):
         num = len(keys)
         tup = (num,)
         # return tup
-        df = pd.DataFrame([tup], columns=['num'],
-                          index=[name])
+        df = pd.DataFrame([tup], columns=['num'], index=[name])
         return df
 
     def print_counts(featinfo, group_id):
@@ -1156,15 +1155,14 @@ def build_features(qreq_, hyper_params):
     # Compute or load one-vs-one results
     # ==================================
     cached_data, infr = bigcache_vsone(qreq_, hyper_params)
-    for key in list(cached_data.keys()):
-        if key != 'SV_LNBNN':
-            del cached_data[key]
+    # key_ = 'SV_LNBNN'
+    key_ = 'RAT_SV'
 
-    # =====================================
-    # Attempt to train a simple classsifier
-    # =====================================
+    # for key in list(cached_data.keys()):
+    #     if key != 'SV_LNBNN':
+    #         del cached_data[key]
 
-    matches = cached_data['SV_LNBNN']
+    matches = cached_data[key_]
     # Pass back just one match to play with
     for match in matches:
         if len(match.fm) > 10:
@@ -1328,22 +1326,22 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
     ]
 
     # Create another version where we find global normalizers for the data
-    qreq_.load_indexer()
-    matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_, inplace=True)
+    # qreq_.load_indexer()
+    # matches_SV_LNBNN = batch_apply_lnbnn(matches_RAT_SV, qreq_, inplace=True)
 
-    if 'weight' in cfgdict:
-        for match in matches_SV_LNBNN[::-1]:
-            lnbnn_dist = match.local_measures['lnbnn']
-            ndist = match.local_measures['lnbnn_norm_dist']
-            weights = match.local_measures[cfgdict['weight']]
-            match.local_measures['weighted_lnbnn'] = weights * lnbnn_dist
-            match.local_measures['weighted_lnbnn_norm_dist'] = weights * ndist
-            match.fs = match.local_measures['weighted_lnbnn']
+    # if 'weight' in cfgdict:
+    #     for match in matches_SV_LNBNN[::-1]:
+    #         lnbnn_dist = match.local_measures['lnbnn']
+    #         ndist = match.local_measures['lnbnn_norm_dist']
+    #         weights = match.local_measures[cfgdict['weight']]
+    #         match.local_measures['weighted_lnbnn'] = weights * lnbnn_dist
+    #         match.local_measures['weighted_lnbnn_norm_dist'] = weights * ndist
+    #         match.fs = match.local_measures['weighted_lnbnn']
 
     cached_data = {
         # 'RAT': matches_RAT,
-        # 'RAT_SV': matches_RAT_SV,
-        'SV_LNBNN': matches_SV_LNBNN,
+        'RAT_SV': matches_RAT_SV,
+        # 'SV_LNBNN': matches_SV_LNBNN,
     }
     return cached_data
 
