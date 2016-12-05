@@ -239,10 +239,14 @@ class GuiProgContext(object):
     def prog_hook(ctx):
         return ctx.prog_bar.utool_prog_hook
 
-    def set_progress(ctx, count, total=None):
+    def set_progress(ctx, count=None, total=None, msg=None):
         if total is None:
             total = ctx.total
+        if count is None:
+            count = ctx.prog_hook.count + 1
         ctx.prog_hook.set_progress(count, total)
+        if msg is not None:
+            ctx.prog_bar.setWindowTitle(ctx.title + ' ' + msg)
 
     def set_total(ctx, total):
         ctx.total = total
