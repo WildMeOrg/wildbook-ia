@@ -1226,6 +1226,8 @@ def make_edge_api(infr, review_cfg={}):
     custom_edge_props = [
         # TODO: allow user to specify things like hardness / failed / passed or
         # whatever
+        'maybe_error',
+        'failed',
     ]
 
     col_name_list = [
@@ -1241,9 +1243,9 @@ def make_edge_api(infr, review_cfg={}):
         'cc_size1',
         'cc_size2',
         'aid1', 'aid2',
-        'maybe_error',
         #'data',
     ]
+    col_name_list.extend(custom_edge_props)
 
     #if not DEVELOPER_MODE:
     #    col_name_list.remove('data')
@@ -1273,26 +1275,18 @@ def make_edge_api(infr, review_cfg={}):
         'thumb1': ibs.get_annot_chip_thumbtup,
         'thumb2': ibs.get_annot_chip_thumbtup,
         'match_thumb': get_match_thumbtup,
-        'maybe_error': edge_attr_getter('maybe_error')
     }
+    for name in custom_edge_props:
+        col_getter_dict[name] = edge_attr_getter(name)
 
-    col_ider_dict = {
+    col_ider_dict = {name: ('aid1', 'aid2') for name in col_name_list}
+    # col_ider_dict = ({
+    col_ider_dict.update({
         'thumb1': 'aid1',
         'thumb2': 'aid2',
-        'match_thumb': ('aid1', 'aid2'),
-        'data': ('aid1', 'aid2'),
-        'score': ('aid1', 'aid2'),
-        'rank': ('aid1', 'aid2'),
-        'timedelta': ('aid1', 'aid2'),
-        'speed': ('aid1', 'aid2'),
-        'kmdist': ('aid1', 'aid2'),
-        'matched': ('aid1', 'aid2'),
-        'reviewed': ('aid1', 'aid2'),
-        'tags': ('aid1', 'aid2'),
-        'cc_size1': ('aid1', 'aid2'),
-        'cc_size2': ('aid1', 'aid2'),
-        'maybe_error': ('aid1', 'aid2'),
-    }
+    })
+    ut.delete_dict_keys(col_ider_dict, ['aid1', 'aid2'])
+
     col_types_dict = {
         'rank': int,
         'score': float,
