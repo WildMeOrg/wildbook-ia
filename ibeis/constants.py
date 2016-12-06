@@ -332,6 +332,7 @@ class TEST_SPECIES(object):
     ZEB_HYBRID      = 'zebra_hybrid'
     ZEB_PLAIN       = 'zebra_plains'
     LYNX            = 'lynx'
+    CHEETAH         = 'cheetah'
     UNKNOWN         = UNKNOWN
 
 
@@ -341,6 +342,7 @@ SPECIES_WITH_DETECTORS = (
     TEST_SPECIES.WHALE_FLUKE,
     TEST_SPECIES.WHALE_HUMPBACK,
     TEST_SPECIES.LYNX,
+    TEST_SPECIES.CHEETAH,
 )
 
 
