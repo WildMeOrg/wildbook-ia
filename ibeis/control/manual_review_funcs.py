@@ -31,8 +31,23 @@ REVIEW_AID2      = 'annot_2_rowid'
 REVIEW_COUNT     = 'review_count'
 REVIEW_DECISION  = 'review_decision'
 REVIEW_TIMESTAMP = 'review_time_posix'
-REVIEW_IDENTITY  = 'review_identity'
+REVIEW_USER_IDENTITY = 'review_user_identity'
+REVIEW_USER_CONFIDENCE = 'review_user_confidence'
 REVIEW_TAGS      = 'review_tags'
+
+
+def hack_create_aidpair_index(ibs):
+    # HACK IN INDEX
+    sqlfmt = ut.codeblock(
+        '''
+        CREATE INDEX IF NOT EXISTS {index_name} ON {table} ({index_cols});
+        ''')
+    sqlcmd = sqlfmt.format(
+        index_name='aidpair_to_rowid',
+        table=ibs.const.REVIEW_TABLE,
+        index_cols=','.join([REVIEW_AID1, REVIEW_AID2])
+    )
+    ibs.staging.connection.execute(sqlcmd).fetchall()
 
 
 @register_ibs_method
@@ -49,7 +64,8 @@ def _get_all_review_rowids(ibs):
 
 
 @register_ibs_method
-def get_review_rowid_from_superkey(ibs, aid_1_list, aid_2_list, count_list, eager=False, nInput=None):
+def get_review_rowid_from_superkey(ibs, aid_1_list, aid_2_list, count_list,
+                                   eager=False, nInput=None):
     """ Returns review_rowid_list
 
     Args:
@@ -62,7 +78,8 @@ def get_review_rowid_from_superkey(ibs, aid_1_list, aid_2_list, count_list, eage
     params_iter = zip(aid_1_list, aid_2_list, count_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT]
     review_rowid_list = list(ibs.staging.get_where_eq(
-        const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames, eager=eager, nInput=nInput))
+        const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
+        eager=eager, nInput=nInput))
     return review_rowid_list
 
 
@@ -86,7 +103,8 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, identity_list=None,
     """
     # Get current review counts from database
     diff_list =  - np.array(aid_2_list)
-    assert np.all(diff_list != 0), 'Cannot add a review state between an aid and itself'
+    assert np.all(diff_list != 0), (
+        'Cannot add a review state between an aid and itself')
 
     # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
     pairs_list = zip(aid_1_list, aid_2_list)
@@ -119,7 +137,7 @@ def add_review(ibs, aid_1_list, aid_2_list, decision_list, identity_list=None,
     superkey_paramx = (0, 1, 2, )
     # TODO Allow for better ensure=False without using partial
     # Just autogenerate these functions
-    colnames = [REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION, REVIEW_IDENTITY, REVIEW_TAGS]
+    colnames = [REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION, REVIEW_USER_IDENTITY, REVIEW_TAGS]
     params_iter = list(zip(aid_1_list, aid_2_list, count_list, decision_list, identity_list, tag_str_list))
     review_rowid_list = ibs.staging.add_cleanly(const.REVIEW_TABLE, colnames, params_iter,
                                                 ibs.get_review_rowid_from_superkey, superkey_paramx)
@@ -161,6 +179,29 @@ def get_review_rowids_from_aid_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
     review_rowids_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
+    return review_rowids_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/rowids/undirected/', methods=['GET'], __api_plural_check__=False)
+def get_review_rowids_from_undirected_tuple(ibs, aid_1_list, aid_2_list):
+    aids1, aids2 = aid_1_list, aid_2_list
+    review_rowids_dir1 = ibs.get_review_rowids_from_aid_tuple(aids1, aids2)
+    review_rowids_dir2 = ibs.get_review_rowids_from_aid_tuple(aids2, aids1)
+    def _join_rowids(rowids1, rowids2):
+        if rowids1 is None and rowids2 is None:
+            return None
+        else:
+            if rowids1 is None:
+                rowids1 = []
+            elif rowids2 is None:
+                rowids2 = []
+            return rowids1 + rowids2
+    review_rowids_list = [
+        _join_rowids(rowids1, rowids2)
+        for rowids1, rowids2 in zip(review_rowids_dir1, review_rowids_dir2)
+    ]
     return review_rowids_list
 
 
@@ -324,8 +365,18 @@ def get_review_decisions_str_from_tuple(ibs, aid_1_list, aid_2_list, **kwargs):
 @accessor_decors.getter_1to1
 @register_api('/api/review/identity/', methods=['GET'], __api_plural_check__=False)
 def get_review_identity(ibs, review_rowid_list):
-    review_identity_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_IDENTITY,), review_rowid_list)
+    review_identity_list = ibs.staging.get(const.REVIEW_TABLE, (REVIEW_USER_IDENTITY,), review_rowid_list)
     return review_identity_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/review/confidence/', methods=['GET'], __api_plural_check__=False)
+def get_review_user_confidence(ibs, review_rowid_list):
+    user_confidence_list = ibs.staging.get(const.REVIEW_TABLE,
+                                           (REVIEW_USER_CONFIDENCE,),
+                                           review_rowid_list)
+    return user_confidence_list
 
 
 @register_ibs_method
@@ -340,7 +391,7 @@ def get_review_identities_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
         Method: GET
         URL:    /api/review/identities/tuple/
     """
-    colnames = (REVIEW_IDENTITY,)
+    colnames = (REVIEW_USER_IDENTITY,)
     params_iter = zip(aid_1_list, aid_2_list)
     andwhere_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_identities_list = ibs.staging.get_where_eq(
@@ -388,6 +439,13 @@ def get_review_posix_times_from_tuple(ibs, aid_1_list, aid_2_list, eager=True, n
         const.REVIEW_TABLE, colnames, params_iter, andwhere_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
     return review_posix_times_list
+
+
+# def _parse_tag_str(tag_str):
+#     if tag_str is None or len(tag_str) == 0:
+#         return None
+#     else:
+#         return tag_str.split(';')
 
 
 @register_ibs_method

@@ -41,7 +41,7 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
         # HACK IN INDEX
         ibs.db.connection.execute(
             '''
-            CREATE INDEX IF NOT EXISTS aid1_to_am ON {ANNOTMATCH_TABLE} (annot_rowid1);
+            CREATE INDEX IF NOT EXISTS aid1_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid1});
             '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
                        annot_rowid1=_autogen_annotmatch_funcs.ANNOT_ROWID1)).fetchall()
     where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1]
@@ -67,7 +67,7 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
         # HACK IN INDEX
         ibs.db.connection.execute(
             '''
-            CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} (annot_rowid2);
+            CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid2});
             '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
                        annot_rowid2=_autogen_annotmatch_funcs.ANNOT_ROWID2)).fetchall()
     colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)

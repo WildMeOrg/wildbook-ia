@@ -212,7 +212,6 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     qaid_list = ibs.get_annot_aids_from_uuid(qannot_uuid_list)
     if dannot_uuid_list is None:
         daid_list = ibs.get_valid_aids()
-        #None
     else:
         if len(dannot_uuid_list) == 1 and dannot_uuid_list[0] is None:
             # VERY HACK
@@ -220,10 +219,13 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
         else:
             daid_list = ibs.get_annot_aids_from_uuid(dannot_uuid_list)
 
-    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
-    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
+    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids',
+                          auuid_list=qannot_uuid_list)
+    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids',
+                          auuid_list=dannot_uuid_list)
     args = (qaid_list, daid_list, pipecfg)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_simple_dict', callback_url, callback_method, *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_simple_dict', callback_url, callback_method, *args)
 
     #if callback_url is not None:
     #    #import requests
@@ -383,10 +385,13 @@ def start_identify_annots_query(ibs,
         'p_notcomp' : [1.0 if state in valid_states['notcomp'] else 0.0 for state in state_list],
     }
 
-    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids', auuid_list=qannot_uuid_list)
-    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids', auuid_list=dannot_uuid_list)
+    ibs.assert_valid_aids(qaid_list, msg='error in start_identify qaids',
+                          auuid_list=qannot_uuid_list)
+    ibs.assert_valid_aids(daid_list, msg='error in start_identify daids',
+                          auuid_list=dannot_uuid_list)
     args = (qaid_list, daid_list, user_feedback, query_config_dict, echo_query_params)
-    jobid = ibs.job_manager.jobiface.queue_job('query_chips_graph', callback_url, callback_method, *args)
+    jobid = ibs.job_manager.jobiface.queue_job(
+        'query_chips_graph', callback_url, callback_method, *args)
     return jobid
 
 

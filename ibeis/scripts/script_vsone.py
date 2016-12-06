@@ -143,7 +143,7 @@ class OneVsOneProblem(object):
             import ibeis
             AnnotInference = ibeis.AnnotInference
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
-            attrs = meta.drop(['aid1', 'aid2'], 1).to_dict()
+            attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
             ibs = self.qreq_.ibs
             infr = AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs)
             win = infr.start_qt_interface()
