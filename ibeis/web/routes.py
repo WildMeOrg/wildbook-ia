@@ -2140,7 +2140,12 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
 
             with ut.Timer('[web.routes.turk_identification] Get status'):
                 # Get status
-                status_dict = query_object.connected_component_status()
+                try:
+                    status_dict = query_object.connected_component_status()
+                except RuntimeError:
+                    status_dict = {}
+                    status_dict['num_names_max'] = np.nan
+                    status_dict['num_names_min'] = np.nan
                 status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
                 print('Feedback counter    = %r / %r' % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT, ))
                 print('Status dict         = %r' % (status_dict, ))
