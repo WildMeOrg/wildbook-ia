@@ -1424,7 +1424,8 @@ class SQLDatabaseController(object):
             db._tablenames += [tablename]
 
     def modify_table(db, tablename=None, colmap_list=None, tablename_new=None,
-                     drop_columns=[],
+                     drop_columns=[], add_columns=[], rename_columns=[],
+                     # transform_columns=[],
                      #constraint=None, docstr=None, superkeys=None,
                      **metadata_keyval):
         """
@@ -1482,6 +1483,12 @@ class SQLDatabaseController(object):
         for drop_col in drop_columns:
             colmap_list += [(drop_col, None, '', None)]
 
+        for add_col, add_type in add_columns:
+            colmap_list += [(None, add_col, add_type, None)]
+
+        for old_col, new_col in rename_columns:
+            colmap_list += [(old_col, new_col, None, None)]
+
         colname_list = db.get_column_names(tablename)
         colname_original_list = colname_list[:]
         coltype_list = db.get_column_types(tablename)
@@ -1489,16 +1496,14 @@ class SQLDatabaseController(object):
         colmap_dict  = {}
 
         insert = False
-        for (src, dst, type_, map_) in colmap_list:
-            #is_newcol = dst not in colname_list
-            #if dst == 'contributor_rowid':
-            #    ut.embed()
+        for colmap in colmap_list:
+            (src, dst, type_, map_) = colmap
             if (src is None or isinstance(src, int)):
                 # Add column
                 assert dst is not None and len(dst) > 0, (
-                    'New column name must be valid')
+                    'New column name must be valid in colmap=%r' % (colmap,))
                 assert type_ is not None and len(type_) > 0, (
-                    'New column type must be specified')
+                    'New column type must be specified in colmap=%r' % (colmap,))
                 if isinstance(src, int) and (src < 0 or len(colname_list) <= src):
                     src = None
                 if src is None:
@@ -1506,12 +1511,13 @@ class SQLDatabaseController(object):
                     coltype_list.append(type_)
                 else:
                     if insert:
-                        print('[sql] WARNING: multiple index inserted add columns'
-                              ', may cause allignment issues')
+                        print('[sql] WARNING: multiple index inserted add '
+                              'columns, may cause allignment issues')
                     colname_list.insert(src, dst)
                     coltype_list.insert(src, type_)
                     insert = True
             else:
+                # Modify column
                 try:
                     assert src in colname_list, (
                         'Unkown source colname=%s in tablename=%s' % (
@@ -1531,7 +1537,7 @@ class SQLDatabaseController(object):
                     colname_list[index] = dst
                     colname_dict[src] = dst
                     # Check if type should change as well
-                    if ((type_ is None or len(type_) == 0) and type_ != coltype_list[index]):
+                    if (type_ is not None and len(type_) > 0 and type_ != coltype_list[index]):
                         coltype_list[index] = type_
                 elif len(type_) > 0 and type_ != coltype_list[index]:
                     # Change column type
@@ -1548,7 +1554,7 @@ class SQLDatabaseController(object):
                     # Identity, this can be ommited as it is automatically done
                     if len(dst) == 0:
                         dst = src
-                    if len(type_) == 0:
+                    if type_ is None or len(type_) == 0:
                         type_ = coltype_list[index]
             if map_ is not None:
                 colmap_dict[src] = map_
@@ -2093,11 +2099,11 @@ class SQLDatabaseController(object):
         """ Conveinience: Returns the sql tablename columns """
         def _format(type_, null, default, key):
             if key == 1:
-                return type_ + " PRIMARY KEY"
+                return "%s PRIMARY KEY" % (type_,)
             elif null == 1:
-                return type_ + " NOT NULL"
+                return "%s NOT NULL" % (type_,)
             elif default is not None:
-                return type_ + " DEFAULT " + default
+                return "%s DEFAULT (%s)" % (type_, default)
             else:
                 return type_
 
