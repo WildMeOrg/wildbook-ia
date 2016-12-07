@@ -2246,6 +2246,9 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
             view_orientation = None
             match_score = None
 
+    session_counter = current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER
+    session_limit = global_feedback_limit
+
     callback_url = url_for('submit_identification')
     return appf.template('turk', 'identification',
                          match_score=match_score,
@@ -2254,6 +2257,8 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                          aid1=aid1,
                          aid2=aid2,
                          progress=progress,
+                         session_counter=session_counter,
+                         session_limit=session_limit,
                          finished=finished,
                          annot_uuid_1=str(annot_uuid_1),
                          annot_uuid_2=str(annot_uuid_2),
