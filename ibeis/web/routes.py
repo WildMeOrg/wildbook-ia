@@ -21,7 +21,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-GLOBAL_FEEDBACK_LIMIT = 100
+GLOBAL_FEEDBACK_LIMIT = 1000
 GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
     'ranks_top': 3,
@@ -1967,6 +1967,13 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
                                       **kwargs):
     from ibeis.algo.hots.graph_iden import AnnotInference
     aid_list = ibs.get_valid_aids()
+
+    wanted_set = set(['right', 'frontright', 'backright'])
+    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    num_aids = len(aid_list)
+    aid_list = [ aid for aid, yaw in zip(aid_list, yaw_list) if yaw in wanted_set ]
+    print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
+
     nids = aid_list if debug_ignore_name_gt else None
     query_object = AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
 
