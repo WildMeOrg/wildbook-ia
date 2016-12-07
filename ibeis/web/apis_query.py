@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Dependencies: flask, tornado
+
+SeeAlso:
+    routes.turk_identification
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from ibeis.control import accessor_decors, controller_inject
@@ -435,11 +438,6 @@ def review_query_chips_test():
 
     Example:
         >>> # SCRIPT
-        >>> import ibeis
-        >>> #web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
-        >>> #import webbrowser
-        >>> #webbrowser.open(web_ibs.baseurl + '/test/review/query/chip/?__format__=True')
-        >>> # DISABLE_DOCTEST
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web(
         >>>     browser=True, url_suffix='/test/review/query/chip/?__format__=true')

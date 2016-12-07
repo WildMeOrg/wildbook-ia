@@ -295,6 +295,54 @@ class _AnnotInfrIBEIS(object):
     (most of these should not be used or be reworked)
     """
 
+    def hack_write_ibeis_staging_onetime(infr):
+        # puts data from annotmatch into staging
+        pass
+
+    def write_ibeis_staging_feedback(infr):
+        pass
+
+    def read_ibeis_staging_feedback(infr):
+        """
+        Reads feedback from review staging table.
+        TODO: DEPRICATE (make an external helper function?)
+        """
+        if infr.verbose >= 1:
+            print('[infr] read_ibeis_staging_feedback')
+        ibs = infr.ibs
+        # annots = ibs.annots(infr.aids)
+        import itertools as it
+        aid_pairs = list(it.combinations(infr.aids, 2))
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        review_ids_ = ibs.get_review_rowids_from_undirected_tuple(aids1, aids2)
+        flags = [ids is not None and len(ids) > 0 for ids in review_ids_]
+        review_ids = ut.compress(review_ids_, flags)
+        aid_pairs = ut.compress(aid_pairs, flags)
+
+        flat_review_ids, cumsum = ut.invertible_flatten2(review_ids)
+
+        from ibeis.controller.manual_review_funcs import (
+            REVEIW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
+            REVIEW_TIMESTAMP, REVIEW_TAGS)
+        colnames = (REVEIW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
+                    REVIEW_TIMESTAMP, REVIEW_TAGS)
+        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, colnames,
+                                      flat_review_ids)
+
+        user_feedback = ut.ddict(list)
+        for data in review_data:
+            aid1, aid2, count, decision, timestamp, tags = data
+            edge = e_(aid1, aid2)
+            review_dict = {
+                'p_match': ibs.const.REVIEW_MATCH == decision,
+                'p_nomatch': ibs.const.REVIEW_NON_MATCH == decision,
+                'p_notcomp': ibs.const.REVIEW_NOT_COMPARABLE == decision,
+            }
+            tags = [] if tags is None else ';'.split(tags)
+            user_feedback[edge].append((review_dict, tags))
+        return user_feedback
+
     def read_ibeis_annotmatch_feedback(infr):
         """
         Reads feedback from annotmatch table.

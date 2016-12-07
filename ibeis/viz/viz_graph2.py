@@ -432,7 +432,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         # connection_type = QtCore.Qt.BlockingQueuedConnection
         # connection_type = QtCore.Qt.DirectConnection
         connection_type = QtCore.Qt.QueuedConnection
-        self.signal_state_update.connect(self.on_state_update, type=connection_type)
+        self.signal_state_update.connect(self.on_state_update,
+                                         type=connection_type)
 
     def emit_state_update(self):
         self.on_state_update.emit(False)
@@ -478,9 +479,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.graph_tables_widget = graph_tables_widget
 
         self.statbar1 = self.addNewWidget(
-            orientation=Qt.Horizontal, verticalStretch=1, margin=1, spacing=1)
+            orientation='horiz', verticalStretch=1, margin=1, spacing=1)
         self.statbar2 = self.addNewWidget(
-            orientation=Qt.Horizontal, verticalStretch=1, margin=1, spacing=1)
+            orientation='horiz', verticalStretch=1, margin=1, spacing=1)
 
         self.prog_bar = self.addNewProgressBar(visible=False)
 
@@ -490,10 +491,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.node_api_widget = gt.APIItemWidget()
         self.edge_api_widget = gt.APIItemWidget()
 
-        self.edge_api_widget.view.doubleClicked.connect(self.edge_doubleclick)
-        self.edge_api_widget.view.contextMenuClicked.connect(self.edge_context)
-        self.edge_api_widget.view.connect_keypress_to_slot(self.edge_keypress)
-        self.edge_api_widget.view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
+        edge_view = self.edge_api_widget.view
+
+        edge_view.doubleClicked.connect(self.edge_doubleclick)
+        edge_view.contextMenuClicked.connect(self.edge_context)
+        edge_view.connect_keypress_to_slot(self.edge_keypress)
+        edge_view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
 
         self.statbar1.addNewButton('Match and Score', min_width=1,
                                    pressed=self.match_and_score_edges)
@@ -1054,7 +1057,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         #     nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
         #     aids = ut.flatten(ibs.get_name_aids(nids))
         nids = ibs.get_annot_nids(aids)
-        new_infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=self.infr.verbose)
+        new_infr = graph_iden.AnnotInference(ibs, aids, nids,
+                                             verbose=self.infr.verbose)
         new_infr.initialize_graph()
         self.infr = new_infr
         self.init_inference()
@@ -1223,11 +1227,15 @@ def make_edge_api(infr, review_cfg={}):
 
     aids1, aids2 = infr.get_filtered_edges(review_cfg)
 
+    # from six import next
+    # data = next(infr.graph.edges(data=True))[-1]
+
     custom_edge_props = [
         # TODO: allow user to specify things like hardness / failed / passed or
         # whatever
         'maybe_error',
         'failed',
+        'hardness',
     ]
 
     col_name_list = [
@@ -1240,12 +1248,14 @@ def make_edge_api(infr, review_cfg={}):
         'timedelta',
         'kmdist',
         'speed',
+    ]
+    col_name_list.extend(custom_edge_props)
+    col_name_list += [
         'cc_size1',
         'cc_size2',
         'aid1', 'aid2',
         #'data',
     ]
-    col_name_list.extend(custom_edge_props)
 
     #if not DEVELOPER_MODE:
     #    col_name_list.remove('data')

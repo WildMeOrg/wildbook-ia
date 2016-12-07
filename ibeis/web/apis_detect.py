@@ -56,11 +56,9 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:2]
         >>> species = ibeis.const.TEST_SPECIES.ZEB_PLAIN
-        >>> # execute function
         >>> aids_list = ibs.detect_random_forest(gid_list, species)
         >>> # Visualize results
         >>> if ut.show_was_requested():
@@ -279,10 +277,8 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()[0:2]
-        >>> # execute function
         >>> results_dict = ibs.detect_cnn_yolo_json(gid_list)
         >>> print(results_dict)
     """
@@ -343,12 +339,9 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()[:5]
-        >>> # execute function
         >>> aids_list = ibs.detect_cnn_yolo(gid_list)
-        >>> # Visualize results
         >>> if ut.show_was_requested():
         >>>     import plottool as pt
         >>>     from ibeis.viz import viz_image
@@ -411,7 +404,6 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.web.apis_detect import *  # NOQA
         >>> import ibeis
-        >>> # build test data
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> gid_list = ibs.get_valid_gids()
         >>> depc = ibs.depc_image

@@ -35,7 +35,7 @@ REVIEW_ROWID        = 'review_rowid'
 @profile
 def update_1_0_0(db, ibs=None):
     db.add_table(const.REVIEW_TABLE, (
-        (REVIEW_ROWID,                   'INTEGER PRIMARY KEY'),
+        ('review_rowid',                 'INTEGER PRIMARY KEY'),
         ('annot_1_rowid',                'INTEGER NOT NULL'),
         ('annot_2_rowid',                'INTEGER NOT NULL'),
         ('review_count',                 'INTEGER NOT NULL'),
@@ -49,6 +49,20 @@ def update_1_0_0(db, ibs=None):
         Used to store completed user review states of two matched annotations
         ''')
 
+
+def update_1_0_1(db, ibs=None):
+    db.modify_table(
+        const.REVIEW_TABLE,
+        add_columns=[
+            ('review_user_confidence', 'INTEGER'),
+        ],
+        rename_columns=[
+            ('review_identity', 'review_user_identity'),
+        ]
+    )
+
+    pass
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -61,6 +75,7 @@ VALID_VERSIONS = ut.odict([
     #version:    (Pre-Update Function,  Update Function,    Post-Update Function)
     (base   ,    (None,                 None,               None                )),
     ('1.0.0',    (None,                 update_1_0_0,       None                )),
+    ('1.0.1',    (None,                 update_1_0_1,       None                )),
 ])
 """
 SeeAlso:
