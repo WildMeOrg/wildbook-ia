@@ -2249,28 +2249,30 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
     session_counter = current_app.QUERY_OBJECT.GLOBAL_FEEDBACK_COUNTER
     session_limit = global_feedback_limit
 
+    timedelta_str = 'Unknown'
     if aid1 is not None and aid2 is not None:
         unixtime_list = ibs.get_image_unixtime(ibs.get_annot_gids([aid1, aid2]))
-        timedelta = abs(unixtime_list[1] - unixtime_list[0])
-        secs = 60.0
-        mins = 60.0 * 60.0
-        hrs  = 60.0 * 60.0 * 24.0
-        days = 60.0 * 60.0 * 24.0 * 365.0
+        if -1.0 not in unixtime_list and 0.0 not in unixtime_list:
+            timedelta = abs(unixtime_list[1] - unixtime_list[0])
+            secs = 60.0
+            mins = 60.0 * 60.0
+            hrs  = 60.0 * 60.0 * 24.0
+            days = 60.0 * 60.0 * 24.0 * 365.0
 
-        if timedelta < secs:
-            timedelta_str = '%0.2f seconds' % (timedelta, )
-        elif timedelta < mins:
-            timedelta /= secs
-            timedelta_str = '%0.2f minutes' % (timedelta, )
-        elif timedelta < hrs:
-            timedelta /= mins
-            timedelta_str = '%0.2f hours' % (timedelta, )
-        elif timedelta < days:
-            timedelta /= hrs
-            timedelta_str = '%0.2f days' % (timedelta, )
-        else:
-            timedelta /= days
-            timedelta_str = '%0.2f years' % (timedelta, )
+            if timedelta < secs:
+                timedelta_str = '%0.2f seconds' % (timedelta, )
+            elif timedelta < mins:
+                timedelta /= secs
+                timedelta_str = '%0.2f minutes' % (timedelta, )
+            elif timedelta < hrs:
+                timedelta /= mins
+                timedelta_str = '%0.2f hours' % (timedelta, )
+            elif timedelta < days:
+                timedelta /= hrs
+                timedelta_str = '%0.2f days' % (timedelta, )
+            else:
+                timedelta /= days
+                timedelta_str = '%0.2f years' % (timedelta, )
 
     callback_url = url_for('submit_identification')
     return appf.template('turk', 'identification',
