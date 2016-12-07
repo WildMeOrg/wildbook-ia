@@ -42,9 +42,9 @@ $(window).keydown(function(event) {
     //   // S key pressed + 5
     //   $('input#ia-turk-submit-scenerymatch').click();
     // }
-    else if(key == 81)
+    else if(key == 80)
     {
-      // Q key pressed
+      // P key pressed
       $('a#ia-turk-previous')[0].click();
     }
   }
