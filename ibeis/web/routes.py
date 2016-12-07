@@ -2146,7 +2146,8 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                     status_dict = {}
                     status_dict['num_names_max'] = np.nan
                     status_dict['num_names_min'] = np.nan
-                status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
+                # status_remaining = status_dict['num_names_max'] - status_dict['num_names_min']
+                status_remaining = status_dict['num_names_max'] - 0
                 print('Feedback counter    = %r / %r' % (query_object.GLOBAL_FEEDBACK_COUNTER, GLOBAL_FEEDBACK_LIMIT, ))
                 print('Status dict         = %r' % (status_dict, ))
                 print('Raw list len        = %r' % (len(raw_review_list), ))
