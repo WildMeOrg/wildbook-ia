@@ -29,8 +29,8 @@ profile = ut.profile
 
 API_MODEL_BASE = QtCore.QAbstractItemModel
 
-VERBOSE = ut.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
-VERBOSE = VERBOSE or ut.get_argflag(('--verbose-qt-api', '--verbqt-api'))
+VERBOSE_MODEL = ut.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE_MODEL = VERBOSE_MODEL or ut.get_argflag(('--verbose-qt-api', '--verbqt-api'))
 
 
 class ChangeLayoutContext(object):
@@ -129,7 +129,7 @@ class APIItemModel(API_MODEL_BASE):
     #
     # Non-Qt Init Functions
     def __init__(model, headers=None, parent=None):
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('[APIItemModel] __init__')
         model.view = parent
         API_MODEL_BASE.__init__(model, parent=parent)
@@ -157,7 +157,7 @@ class APIItemModel(API_MODEL_BASE):
         model.cache = None  # FIXME: This is not sustainable
         model.cache_timeout_sec = 2.5
         model.cache_size = 512
-        model.batch_size = 2  # Small batch sizes give good response time
+        model.batch_size = None  # Small batch sizes give good response time
         model.scope_hack_list = []
         model.root_node = _atn.TreeNode(-1, None, -1)
         # Initialize member variables
@@ -202,7 +202,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @updater
     def _update_headers(model, **headers):
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('[APIItemModel] _update_headers')
         iders            = headers.get('iders', None)
         name             = headers.get('name', None)
@@ -299,7 +299,7 @@ class APIItemModel(API_MODEL_BASE):
 
     @updater
     def _set_sort(model, col_sort_index, col_sort_reverse=False, rebuild_structure=False):
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('[APIItemModel] _set_sort, index=%r reverse=%r, rebuild=%r' %
                   (col_sort_index, col_sort_reverse, rebuild_structure,))
         if len(model.col_name_list) > 0:
@@ -320,7 +320,7 @@ class APIItemModel(API_MODEL_BASE):
         """
         #with ut.Timer('[gt] update_rows (%s)' % (model.name,)):
         if True:
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('[APIItemModel] +-----------')
                 print('[APIItemModel] _update_rows')
             # this is not slow
@@ -330,7 +330,7 @@ class APIItemModel(API_MODEL_BASE):
             #old_root = model.root_node  # NOQA
             if rebuild_structure:
                 model.root_node = _atn.build_internal_structure(model)
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
             sort_index = 0 if model.col_sort_index is None else model.col_sort_index
@@ -339,7 +339,7 @@ class APIItemModel(API_MODEL_BASE):
             #print('ids_ generated')
             nodes = []
             if len(id_list) != 0:
-                if VERBOSE:
+                if VERBOSE_MODEL:
                     print('[APIItemModel] lazy_update_rows len(id_list) = %r' %
                           (len(id_list)))
                 # start sort
@@ -386,7 +386,7 @@ class APIItemModel(API_MODEL_BASE):
                 model.num_rows_loaded = model.num_rows_total
             # emit the numerr of rows and the name of for the view to display
             model._rows_updated.emit(model.name, model.num_rows_total)
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('[APIItemModel] finished _update_rows')
                 print('[APIItemModel] L__________')
 
@@ -397,27 +397,27 @@ class APIItemModel(API_MODEL_BASE):
     @default_method_decorator
     def _about_to_change(model, force=False):
         if force or (not model._abouttochange and not model._changeblocked):
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('ABOUT TO CHANGE: %r' % (model.name,))
             model._abouttochange = True
             model.layoutAboutToBeChanged.emit()
             return True
         else:
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('NOT ABOUT TO CHANGE')
             return False
 
     @default_method_decorator
     def _change(model, force=False):
         if force or (model._abouttochange and not model._changeblocked):
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('LAYOUT CHANGED:  %r' % (model.name,))
             model._abouttochange = False
             model.clear_cache()
             model.layoutChanged.emit()
             return True
         else:
-            if VERBOSE:
+            if VERBOSE_MODEL:
                 print('NOT LAYOUT CHANGING')
             return False
 
@@ -615,7 +615,7 @@ class APIItemModel(API_MODEL_BASE):
             pass
         # </HACK: MODEL_CACHE>
         setter = model.col_setter_list[col]
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('[model] Setting data: row_id=%r, setter=%r' %
                   (row_id, setter))
         try:
@@ -761,10 +761,10 @@ class APIItemModel(API_MODEL_BASE):
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         if model.num_rows_total is not None:
             if model.num_rows_loaded < model.num_rows_total:
-                if VERBOSE:
+                if VERBOSE_MODEL:
                     print('canFetchMore %s? -- Yes' % (model.name,))
                 return True
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('canFetchMore %s? -- No' % (model.name,))
         return False
         #if not parent.isValid():
@@ -797,7 +797,7 @@ class APIItemModel(API_MODEL_BASE):
             num_fetching = remainder
         else:
             num_fetching = min(model.batch_size, remainder)
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('Fetching %r more %s' % (num_fetching, model.name))
         idx1 = model.num_rows_total
         idx2 = model.num_rows_total + num_fetching - 1
@@ -807,7 +807,7 @@ class APIItemModel(API_MODEL_BASE):
         #print('model.num_rows_total = %r' % (model.num_rows_total,))
         #print('model.num_rows_loaded = %r' % (model.num_rows_loaded,))
         model.endInsertRows()
-        if VERBOSE:
+        if VERBOSE_MODEL:
             print('Fetched %r/%r rows' % (model.num_rows_loaded, model.num_rows_total))
         #model.numberPopulated.emit(num_loading)
 

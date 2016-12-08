@@ -6,10 +6,7 @@ CommandLine:
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtGui, QtCore
 from guitool.__PYQT__ import QtWidgets  # NOQA
-#import cv2  # NOQA
-#import numpy as np
-#import time
-#from six.moves import zip
+import six
 import vtool as vt
 from os.path import exists
 from vtool import geometry
@@ -207,7 +204,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 painter.restore()
         except Exception as ex:
             print('Error in APIThumbDelegate')
-            ut.printex(ex, 'Error in APIThumbDelegate')
+            ut.printex(ex, 'Error in APIThumbDelegate', tb=True)
             painter.save()
             painter.restore()
 
@@ -245,6 +242,9 @@ class APIThumbDelegate(DELEGATE_BASE):
             data = data.toPyObject()
         if data is None:
             return None
+        if isinstance(data, six.string_types):
+            # data = (data, None, None, None, None)
+            return data
         if isinstance(data, dict):
             # HACK FOR DIFFERENT TYPE OF THUMB DATA
             return data
@@ -294,6 +294,10 @@ class APIThumbDelegate(DELEGATE_BASE):
                 return
             thumbtup_mode = isinstance(data, tuple)
             thumbdat_mode = isinstance(data, dict)
+            if isinstance(data, six.string_types):
+                thumb_path = data
+                assert exists(thumb_path), 'must exist'
+                return thumb_path
             if thumbtup_mode:
                 (thumb_path, img_path, img_size, bbox_list, theta_list) = data
                 invalid = (thumb_path is None or img_path is None or bbox_list is

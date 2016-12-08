@@ -7,6 +7,7 @@ from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.api_item_model import APIItemModel
 from guitool.api_table_view import APITableView
+from guitool.api_tree_view import APITreeView
 #from guitool import guitool_components as comp
 from functools import partial
 from six.moves import range
@@ -57,6 +58,66 @@ def simple_api_item_widget():
     headers = api.make_headers(tblnice='Simple Example')
 
     wgt = guitool.APIItemWidget()
+    wgt.change_headers(headers)
+    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    return wgt
+
+
+def simple_api_tree_widget():
+    r"""
+    Minimal example of a tree based api widget
+
+    CommandLine:
+        python -m guitool.api_item_widget --test-simple_api_tree_widget
+        python -m guitool.api_item_widget --test-simple_api_tree_widget --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.api_item_widget import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> wgt = simple_api_tree_widget()
+        >>> ut.quit_if_noshow()
+        >>> wgt.show()
+        >>> guitool.qtapp_loop(wgt, frequency=100)
+    """
+    import guitool
+    guitool.ensure_qapp()
+    col_name_list = ['name', 'num_annots', 'annots']
+    col_getter_dict = {
+        'name': ['fred', 'sue', 'tom', 'mary', 'paul'],
+        'num_annots': [2, 1, 3, 5, 1],
+    }
+    # make consistent data
+    grouped_data = [
+        [col_getter_dict['name'][index] + '-' + str(i) for i in range(num)]
+        for index, num in enumerate(col_getter_dict['num_annots'])
+    ]
+    flat_data, reverse_list = ut.invertible_flatten1(grouped_data)
+    col_getter_dict['annots'] = flat_data
+
+    iders = [
+        list(range(len(col_getter_dict['name']))),
+        reverse_list
+    ]
+
+    col_level_dict = {
+        'name': 0,
+        'num_annots': 0,
+        'annots': 1,
+    }
+    sortby = 'name'
+
+    api = guitool.CustomAPI(
+        col_name_list=col_name_list,
+        col_getter_dict=col_getter_dict,
+        sortby=sortby,
+        iders=iders,
+        col_level_dict=col_level_dict,
+    )
+    headers = api.make_headers(tblnice='Tree Example')
+
+    wgt = guitool.APIItemWidget(view_class=APITreeView)
     wgt.change_headers(headers)
     #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
@@ -213,6 +274,14 @@ class CustomAPI(object):
             self.col_sort_index = sortby
         self.col_sort_reverse = sort_reverse
 
+        # Hacks for tree widget
+        self._iders = kwargs.get('iders', None)
+        col_level_dict = kwargs.get('col_level_dict', None)
+        if col_level_dict is None:
+            self.col_level_list = None
+        else:
+            self.col_level_list = ut.take(col_level_dict, col_name_list)
+
     def _infer_index(self, column, row):
         """
         returns the row based on the columns iders.
@@ -242,7 +311,13 @@ class CustomAPI(object):
     def _general_get(getter, index, **kwargs):
         """ Works with getter funcs or indexable read/write arrays """
         if hasattr(getter, '__getitem__'):
-            val = getter[index]
+            try:
+                val = getter[index]
+            except IndexError:
+                print('index error at column index=%r' % (index))
+                print('getter = %r' % (getter,))
+                # print('index for column=%r' % (self.column_names[index]))
+                raise
         else:
             val = getter(index, **kwargs)
         return val
@@ -290,6 +365,23 @@ class CustomAPI(object):
     def ider(self):
         return list(range(self.nRows))
 
+    def get_iders(self):
+        if self._iders is None:
+            return [self.ider]
+        else:
+            def _make_ider(level, ids_):
+                # the first ider takes no args.
+                # the second ider is in the context of the previous
+                if level == 0:
+                    def _tmp_ider():
+                        return ids_
+                else:
+                    def _tmp_ider(parent_ids):
+                        return ut.take(ids_, parent_ids)
+                return _tmp_ider
+
+            return [_make_ider(level, ids_) for level, ids_ in enumerate(self._iders)]
+
     def make_headers(self, tblname='custom_api', tblnice='Custom API'):
         """
         Builds headers for APIItemModel
@@ -297,12 +389,14 @@ class CustomAPI(object):
         headers = {
             'name': tblname,
             'nice': tblname if tblnice is None else tblnice,
-            'iders': [self.ider],
+            'iders': self.get_iders(),
+            # 'iders': [self.ider],
             'col_name_list'    : self.col_name_list,
             'col_type_list'    : self.col_type_list,
             'col_nice_list'    : self.col_nice_list,
             'col_edit_list'    : self.col_edit_list,
             'col_sort_index'   : self.col_sort_index,
+            'col_level_list'   : self.col_level_list,
             'col_sort_reverse' : self.col_sort_reverse,
             'col_getter_list'  : self._make_getter_list(),
             'col_setter_list'  : self._make_setter_list(),
@@ -332,6 +426,9 @@ class APIItemWidget(WIDGET_BASE):
                  model_class=APIItemModel, view_class=APITableView,
                  tblnice='APIItemWidget', doubleClicked=None):
         WIDGET_BASE.__init__(widget, parent)
+        if isinstance(view_class, six.string_types):
+            if view_class == 'tree':
+                view_class = APITreeView
         # Create vertical layout for the table to go into
         widget.vert_layout = QtWidgets.QVBoxLayout(widget)
         # Create a ColumnListTableView for the AbstractItemModel

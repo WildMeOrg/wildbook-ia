@@ -1298,6 +1298,7 @@ class ConfigConfirmWidget(GuitoolWidget):
         >>> dlg.show()
         >>> guitool.qtapp_loop(qwin=dlg)
         >>> updated_config = self.config  # NOQA
+        >>> print('orig_config = %r' % (config,))
         >>> print('updated_config = %r' % (updated_config,))
     """
     def __init__(self, *args, **kwargs):

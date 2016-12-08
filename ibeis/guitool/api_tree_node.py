@@ -10,7 +10,7 @@ import utool as ut
 
 TREE_NODE_BASE = QtCore.QObject
 #TREE_NODE_BASE = object
-VERBOSE = utool.VERBOSE or ut.get_argflag(('--verbose-qt', '--verbqt'))
+VERBOSE_TREE_NODE = ut.get_argflag(('--verb-qt-tree'))
 
 
 class TreeNode(TREE_NODE_BASE):
@@ -26,7 +26,7 @@ class TreeNode(TREE_NODE_BASE):
         TREE_NODE_BASE.__init__(self, parent=parent_node)
         #super(TreeNode, self).__init__(parent_node)
         #if TREE_NODE_BASE is not object:
-        #if VERBOSE:
+        #if VERBOSE_TREE_NODE:
         #    print('[TreeNode] __init__')
         #super(TreeNode, self).__init__(parent=parent_node)
         self.id_ = id_
@@ -36,7 +36,7 @@ class TreeNode(TREE_NODE_BASE):
 
     def __del__(self):
         #print('[guitool] DELETING THE TREE NODE!:')
-        if VERBOSE:
+        if VERBOSE_TREE_NODE:
             print('[guitool] DELETING THE TREE NODE!: id_=%r' % self.id_)
 
     def __getitem__(self, index):
@@ -228,10 +228,13 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         >>> result = ut.hashstr(infostr)
         >>> print(result)
     """
-    #print('_populate_tree_iterative')
     root_ids = ider_list[0]()
     parent_node_list = [root_node]
     ids_list = [root_ids]
+    if VERBOSE_TREE_NODE:
+        print('_populate_tree_iterative')
+        print('root_ids = %r' % (root_ids,))
+        print('num_levels = %r' % (num_levels,))
     for level in range(num_levels):
         #print('------------ level=%r -----------' % (level,))
         #print(utool.dict_str(locals()))
@@ -389,7 +392,12 @@ def build_internal_structure(model):
         # TODO: Vet this code a bit more.
         root_node = TreeNode(-1, None, -1)
         _populate_tree_iterative(root_node, num_levels, ider_list)
-    #print(root_node.full_str())
+
+    if VERBOSE_TREE_NODE:
+        print('ider_list = %r' % (ider_list,))
+        infostr = tree_node_string(root_node, charids=2)
+        print(infostr)
+        # print(ut.repr3(root_node.__dict__))
     #assert root_node.__dict__, "root_node.__dict__ is empty"
     return root_node
 
