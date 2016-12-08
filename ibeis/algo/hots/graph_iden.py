@@ -2224,7 +2224,7 @@ class AnnotInference(ut.NiceRepr,
             verbose=infr.verbose)
         infr2.graph = infr.graph.copy()
         infr2.external_feedback = copy.deepcopy(infr.external_feedback)
-        infr2.new_feedback = copy.deepcopy(infr.new_feedback)
+        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
         infr2.cm_list = copy.deepcopy(infr.cm_list)
         infr2.qreq_ = copy.deepcopy(infr.qreq_)
         infr2.nid_counter = infr.nid_counter
