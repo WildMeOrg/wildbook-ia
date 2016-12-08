@@ -144,7 +144,16 @@ def process_graph_match_html(ibs, **kwargs):
     state = sanitize(state)
     state = map_dict[state]
     assert state in map_dict.values(), 'matching state is unrecognized'
-    return (annot_uuid_1, annot_uuid_2, state, )
+    # Get checbox tags
+    tag_list = []
+    checbox_tag_list = ['photobomb', 'scenerymatch']
+    for checbox_tag in checbox_tag_list:
+        checkbox_name = 'ia-%s-value' % (checbox_tag)
+        if checkbox_name in request.form:
+            tag_list.append(checbox_tag)
+    if len(tag_list) == 0:
+        tag_list = None
+    return (annot_uuid_1, annot_uuid_2, state, tag_list, )
 
 
 def make_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',

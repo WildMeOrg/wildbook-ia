@@ -380,10 +380,9 @@ def submit_identification():
     replace_review_rowid = int(request.form.get('identification-replace-review-rowid', -1))
 
     # Process form data
-    annot_uuid_1, annot_uuid_2, state = process_graph_match_html(ibs)
+    annot_uuid_1, annot_uuid_2, state, tag_list = process_graph_match_html(ibs)
 
     # Add state to staging database
-    tags_list = None
     if state == 'matched':
         decision = const.REVIEW_MATCH
     elif state == 'notmatched':
@@ -392,10 +391,10 @@ def submit_identification():
         decision = const.REVIEW_NOT_COMPARABLE
     elif state == 'photobomb':
         decision = const.REVIEW_NON_MATCH
-        tags_list = [['photobomb']]
+        tag_list = ['photobomb']
     elif state == 'scenerymatch':
         decision = const.REVIEW_NON_MATCH
-        tags_list = [['scenerymatch']]
+        tag_list = ['scenerymatch']
     else:
         raise ValueError()
 
@@ -405,6 +404,7 @@ def submit_identification():
         ibs.delete_review([replace_review_rowid])
 
     # Add a new review row for the new decision (possibly replacing the old one)
+    tags_list = None if tag_list is None else [tag_list]
     review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
     review_rowid = review_rowid[0]
     previous = '%s;%s;%s' % (aid1, aid2, review_rowid, )
