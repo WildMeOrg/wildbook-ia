@@ -158,7 +158,8 @@ class SQLExecutionContext(object):
                 else:
                     tablename = context.tablename
                 try:
-                    print('ERR REPORT: exepcted param types = ' + ut.list_str(context.db.get_column_types(tablename)))
+                    coldef_list = context.db.get_coldef_list(tablename)
+                    print('ERR REPORT: expected types = %s' % (ut.repr4(coldef_list),))
                 except Exception as ex:
                     pass
             raise
@@ -1510,9 +1511,11 @@ class SQLDatabaseController(object):
         for old_col, new_col in rename_columns:
             colmap_list += [(old_col, new_col, None, None)]
 
-        colname_list = db.get_column_names(tablename)
+        coldef_list = db.get_coldef_list(tablename)
+        colname_list = ut.take_column(coldef_list, 0)
+        coltype_list = ut.take_column(coldef_list, 1)
+
         colname_original_list = colname_list[:]
-        coltype_list = db.get_column_types(tablename)
         colname_dict = {colname: colname for colname in colname_list}
         colmap_dict  = {}
 
@@ -1630,9 +1633,10 @@ class SQLDatabaseController(object):
         if ut.VERBOSE:
             print('[sql] schema column reordering for tablename=%r' % tablename)
         # Get current tables
-        colname_list = db.get_column_names(tablename)
-        coltype_list = db.get_column_types(tablename)
-        assert len(colname_list) == len(coltype_list) and len(colname_list) == len(order_list)
+        coldef_list = db.get_coldef_list(tablename)
+        colname_list = ut.take_column(coldef_list, 0)
+        coltype_list = ut.take_column(coldef_list, 1)
+        assert len(coldef_list) == len(order_list)
         assert all([ i in order_list for i in range(len(colname_list)) ]), (
             'Order index list invalid')
         # Reorder column definitions
@@ -1666,9 +1670,9 @@ class SQLDatabaseController(object):
             print('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' %
                     (tablename, colname, tablename, colname_duplicate))
         # Modify table to add a blank column with the appropriate tablename and NO data
-        column_names = db.get_column_names(tablename)
-        column_types = db.get_column_types(tablename)
-        assert len(column_names) == len(column_types)
+        coldef_list = db.get_coldef_list(tablename)
+        column_names = ut.take_column(coldef_list, 0)
+        column_types = ut.take_column(coldef_list, 1)
         try:
             index = column_names.index(colname)
         except Exception:
@@ -1819,8 +1823,19 @@ class SQLDatabaseController(object):
         line_list.append('')
         return '\n'.join(line_list)
 
-    def get_table_autogen_dict(db, tablename):
-        autogen_dict = ut.odict()
+    def get_table_constraints(db, tablename):
+        """
+        TODO: use coldef_list with table_autogen_dict instead
+        """
+        constraint = db.get_metadata_val(tablename + '_constraint',
+                                         default=None)
+        return None if constraint is None else constraint.split(';')
+
+    def get_coldef_list(db, tablename):
+        """
+        Returns:
+            list of (str, str) : each tuple is (col_name, col_type)
+        """
         column_list = db.get_columns(tablename)
 
         coldef_list = []
@@ -1832,45 +1847,82 @@ class SQLDatabaseController(object):
             elif column[3] == 1:  # Check if NOT NULL
                 col_type += ' NOT NULL'
             elif column[4] is not None:
-                col_type += ' DEFAULT ' + six.text_type(column[4])  # Specify default value
+                col_type += ' DEFAULT (%s)' % six.text_type(column[4])  # Specify default value
             coldef_list.append((col_name, col_type))
+        return coldef_list
+
+    def get_table_autogen_dict(db, tablename):
+        r"""
+        Args:
+            tablename (str):
+
+        Returns:
+            dict: autogen_dict
+
+        CommandLine:
+            python -m dtool.sql_control get_table_autogen_dict
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.sql_control import *  # NOQA
+            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> tablename = 'dummy_table'
+            >>> db.add_table(tablename, (
+            >>>     ('rowid', 'INTEGER PRIMARY KEY'),
+            >>>     ('value', 'TEXT'),
+            >>>     ('time_added', "INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))")
+            >>> ))
+            >>> autogen_dict = db.get_table_autogen_dict(tablename)
+            >>> result = ut.repr2(autogen_dict, nl=2)
+            >>> print(result)
+        """
+        autogen_dict = ut.odict()
         autogen_dict['tablename'] = tablename
-        autogen_dict['coldef_list'] = coldef_list
+        autogen_dict['coldef_list'] = db.get_coldef_list(tablename)
         autogen_dict['docstr'] = db.get_table_docstr(tablename)
         autogen_dict['superkeys'] = db.get_table_superkey_colnames(tablename)
         autogen_dict['dependson'] = db.get_metadata_val(tablename + '_dependson', eval_=True, default=None)
         return autogen_dict
 
     def get_table_autogen_str(db, tablename):
+        r"""
+        Args:
+            tablename (str):
+
+        Returns:
+            str: quoted_docstr
+
+        CommandLine:
+            python -m dtool.sql_control get_table_autogen_str
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from dtool.sql_control import *  # NOQA
+            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> tablename = 'dummy_table'
+            >>> db.add_table(tablename, (
+            >>>     ('rowid', 'INTEGER PRIMARY KEY'),
+            >>>     ('value', 'TEXT'),
+            >>>     ('time_added', "INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))")
+            >>> ))
+            >>> result = '\n'.join(db.get_table_autogen_str(tablename))
+            >>> print(result)
+        """
         line_list = []
         tab1 = ' ' * 4
         tab2 = ' ' * 8
-        constant_name = None
-        # Hack to find the name of the constant variable
-        #for variable, value in const.__dict__.iteritems():
-        #    if value == tablename:
-        #        constant_name = variable
-        #        break
-        # assert constant_name is not None, "Table name does not exists in constants"
-        if constant_name is not None:
-            line_list.append(tab1 + 'db.add_table(const.%s, [' % (constant_name, ))
-        else:
-            line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
-        column_list = db.get_columns(tablename)
-        colnamerepr_list = [ut.repr2(six.text_type(column[1]))
-                            for column in column_list]
-        # max_colsize = max(1, 2 + max(map(len, colnamerepr_list)))
-        max_colsize = max(32, 2 + max(map(len, colnamerepr_list)))
-        for column, colname_repr in zip(column_list, colnamerepr_list):
-            col_name = ('%s,' % colname_repr).ljust(max_colsize)
-            col_type = str(column[2])
-            if column[5] == 1:  # Check if PRIMARY KEY
-                col_type += ' PRIMARY KEY'
-            elif column[3] == 1:  # Check if NOT NULL
-                col_type += ' NOT NULL'
-            elif column[4] is not None:
-                col_type += ' DEFAULT ' + six.text_type(column[4])  # Specify default value
-            line_list.append(tab2 + '(%s%s),' % (col_name, ut.repr2(col_type), ))
+        line_list.append(tab1 + 'db.add_table(%s, [' % (ut.repr2(tablename),))
+        # column_list = db.get_columns(tablename)
+        # colnamerepr_list = [ut.repr2(six.text_type(column[1]))
+        #                     for column in column_list]
+        autogen_dict = db.get_table_autogen_dict(tablename)
+        coldef_list = autogen_dict['coldef_list']
+        max_colsize = max(32, 2 + max(map(len, ut.take_column(coldef_list, 0))))
+        # for column, colname_repr in zip(column_list, colnamerepr_list):
+        for col_name, col_type in coldef_list:
+            name_part = ('%s,' % ut.repr2(col_name)).ljust(max_colsize)
+            type_part = ut.repr2(col_type)
+            line_list.append(tab2 + '(%s%s),' % (name_part, type_part,))
         line_list.append(tab1 + '],')
         superkeys = db.get_table_superkey_colnames(tablename)
         docstr = db.get_table_docstr(tablename)
@@ -1879,16 +1931,16 @@ class SQLDatabaseController(object):
                                             #'constraint',
                                             'dependsmap']
         def quote_docstr(docstr):
+            if docstr is None:
+                return None
             import textwrap
             wraped_docstr = '\n'.join(textwrap.wrap(ut.textblock(docstr)))
             indented_docstr = ut.indent(wraped_docstr.strip(), tab2)
             _TSQ = ut.TRIPLE_SINGLE_QUOTE
             quoted_docstr = _TSQ + '\n' + indented_docstr + '\n' + tab2 + _TSQ
             return quoted_docstr
-        line_list.append(tab2 + 'docstr=' + quote_docstr(docstr) + ',')
+        line_list.append(tab2 + 'docstr=%s,' % quote_docstr(docstr))
         line_list.append(tab2 + 'superkeys=%s,' % (ut.repr2(superkeys), ))
-        #line_list.append(tab2 + 'constraint=%r,' %
-        #(db.get_metadata_val(tablename + '_constraint'),))
         # Hack out docstr and superkeys for now
         for suffix in db.table_metadata_keys:
             if suffix in specially_handled_table_metakeys:
@@ -1898,6 +1950,7 @@ class SQLDatabaseController(object):
             print(key)
             if val is not None:
                 line_list.append(tab2 + '%s=%s,' % (suffix, ut.repr2(val)))
+        # FIXME: are we depricating dependsmap?
         dependsmap = db.get_metadata_val(tablename + '_dependsmap', eval_=True, default=None)
         if dependsmap is not None:
             _dictstr = ut.indent(ut.repr2(dependsmap, nl=1), tab2)
@@ -1910,13 +1963,12 @@ class SQLDatabaseController(object):
 
     def dump_schema(db):
         """
-            Convenience: Dumps all csv database files to disk
-            NOTE: This function is semi-obsolete because of the auto-generated
-            current schema file.  Use dump_schema_current_autogeneration instead for
-            all purposes except for parsing out the database schema or for consice visual
-            representation.
+        Convenience: Dumps all csv database files to disk NOTE: This function
+        is semi-obsolete because of the auto-generated current schema file.
+        Use dump_schema_current_autogeneration instead for all purposes except
+        for parsing out the database schema or for consice visual
+        representation.
         """
-
         app_resource_dir = ut.get_app_resource_dir('ibeis')
         dump_fpath = join(app_resource_dir, 'schema.txt')
         with open(dump_fpath, 'w') as file_:
@@ -1944,18 +1996,6 @@ class SQLDatabaseController(object):
         if not lazy or db._tablenames is None:
             db._tablenames = db.get_table_names()
         return tablename in db._tablenames
-
-    def get_table_constraints(db, tablename):
-        constraint = db.get_metadata_val(tablename + '_constraint', default=None)
-        #where_clause = 'metadata_key=?'
-        #colnames = ('metadata_value',)
-        #data = [(tablename + '_constraint',)]
-        #constraint = db.get_where(const.METADATA_TABLE, colnames, data, where_clause)
-        #constraint = constraint[0]
-        if constraint is None:
-            return None
-        else:
-            return constraint.split(';')
 
     def get_table_superkey_colnames(db, tablename):
         """
@@ -2113,32 +2153,8 @@ class SQLDatabaseController(object):
     def get_column_names(db, tablename):
         """ Conveinience: Returns the sql tablename columns """
         column_list = db.get_columns(tablename)
-        column_names = [str(column[1]) for column in column_list]
+        column_names = ut.lmap(six.text_type, ut.take_column(column_list, 1))
         return column_names
-
-    def get_column_types(db, tablename):
-        """ Conveinience: Returns the sql tablename columns """
-        def _format(type_, null, default, key):
-            if key == 1:
-                return "%s PRIMARY KEY" % (type_,)
-            elif null == 1:
-                return "%s NOT NULL" % (type_,)
-            elif default is not None:
-                return "%s DEFAULT (%s)" % (type_, default)
-            else:
-                return type_
-
-        column_list = db.get_columns(tablename)
-        column_types   = [ column[2] for column in column_list]
-        column_null    = [ column[3] for column in column_list]
-        column_default = [ column[4] for column in column_list]
-        column_key     = [ column[5] for column in column_list]
-        column_types_  = [
-            _format(type_, null, default, key)
-            for type_, null, default, key
-            in zip(column_types, column_null, column_default, column_key)
-        ]
-        return column_types_
 
     def get_column(db, tablename, name):
         """ Conveinience: """
@@ -2722,11 +2738,14 @@ class SQLDatabaseController(object):
         print(db.get_table_csv(tablename, exclude_columns=exclude_columns, truncate=truncate))
 
     def get_table_csv_header(db, tablename):
-        column_nametypes = zip(db.get_column_names(tablename), db.get_column_types(tablename))
+        coldef_list = db.get_coldef_list(tablename)
         header_constraints = '# CONSTRAINTS: %r' % db.get_table_constraints(tablename)
         header_name  = '# TABLENAME: %r' % tablename
-        header_types = ut.indentjoin(column_nametypes, '\n# ')
-        header_doc = ut.indentjoin(ut.unindent(db.get_table_docstr(tablename)).split('\n'), '\n# ')
+        header_types = ut.indentjoin(coldef_list, '\n# ')
+        docstr = db.get_table_docstr(tablename)
+        if docstr is None:
+            docstr = ''
+        header_doc = ut.indentjoin(ut.unindent(docstr).split('\n'), '\n# ')
         header = header_doc + '\n' + header_name + header_types + '\n' + header_constraints
         return header
 
