@@ -27,24 +27,24 @@ $(window).keydown(function(event) {
       // F key pressed + 2
       $('input#ia-turk-submit-notmatch').click();
     }
-    else if(key == 67 || key == 51 || key == 99)
+    // else if(key == 67 || key == 51 || key == 99)
+    // {
+    //   // C key pressed + 3
+    //   $('input#ia-turk-submit-notcomparable').click();
+    // }
+    // else if(key == 80 || key == 52 || key == 100)
+    // {
+    //   // P key pressed + 4
+    //   $('input#ia-turk-submit-photobomb').click();
+    // }
+    // else if(key == 83 || key == 53 || key == 101)
+    // {
+    //   // S key pressed + 5
+    //   $('input#ia-turk-submit-scenerymatch').click();
+    // }
+    else if(key == 80)
     {
-      // C key pressed + 3
-      $('input#ia-turk-submit-notcomparable').click();
-    }
-    else if(key == 80 || key == 52 || key == 100)
-    {
-      // P key pressed + 4
-      $('input#ia-turk-submit-photobomb').click();
-    }
-    else if(key == 83 || key == 53 || key == 101)
-    {
-      // S key pressed + 5
-      $('input#ia-turk-submit-scenerymatch').click();
-    }
-    else if(key == 81)
-    {
-      // Q key pressed
+      // P key pressed
       $('a#ia-turk-previous')[0].click();
     }
   }

@@ -414,6 +414,70 @@ def assert_images_exist(ibs, gid_list=None, verbose=True):
     print('[check] checked %d images exist' % len(gid_list))
 
 
+@register_ibs_method
+def assert_images_are_unique(ibs, gid_list=None, verbose=True):
+    if gid_list is None:
+        gid_list = ibs.get_valid_gids()
+
+    gpath_list = ibs.get_image_paths(gid_list)
+    hash_list = [
+        ut.get_file_hash(gpath, hexdigest=True)
+        for gpath in gpath_list
+    ]
+
+    if len(hash_list) != len(set(hash_list)):
+        hash_histogram = {}
+        for gid, gpath, hash_ in zip(gid_list, gpath_list, hash_list):
+            if hash_ not in hash_histogram:
+                hash_histogram[hash_] = []
+            vals = (gid, gpath)
+            hash_histogram[hash_].append(vals)
+
+        divergent = 0
+        counter = 0
+        global_delete_gid_list = []
+        for key, gid_gpath_list_ in hash_histogram.iteritems():
+            if len(gid_gpath_list_) >= 2:
+                gid_list   = [_[0] for _ in gid_gpath_list_]
+                gpath_list = [_[1] for _ in gid_gpath_list_]
+
+                aids_list = ibs.get_image_aids(gid_list)
+                aids_len_list = list(map(len,  aids_list))
+                max_aids = max(aids_len_list)
+
+                filtered_gid_list = sorted([
+                    gid
+                    for gid, aids_len in zip(gid_list, aids_len_list)
+                    if aids_len == max_aids
+                ])
+
+                survive_gid = filtered_gid_list[0]
+                delete_gid_list = list(gid_list)
+                delete_gid_list.remove(survive_gid)
+                assert survive_gid not in delete_gid_list
+
+                global_delete_gid_list += delete_gid_list
+                counter += 1
+
+                if len(set(aids_len_list)) > 1:
+                    divergent += 1
+                    # print('FOUND DIVERGENT')
+
+                # print(gid_list)
+                # print(aids_list)
+                # print(aids_len_list)
+                # print(max_aids)
+                # print(filtered_gid_list)
+                # print(survive_gid)
+                # print(delete_gid_list)
+                # print('-' * 40)
+
+        total = len(hash_histogram.keys())
+        print('Found [%d / %d / %d] images that have duplicates...' % (divergent, counter, total, ))
+        ibs.delete_images(global_delete_gid_list)
+        print('Deleted %d images.' % (len(global_delete_gid_list), ))
+
+
 def assert_valid_names(name_list):
     """ Asserts that user specified names do not conflict with
     the standard unknown name """
