@@ -1711,12 +1711,19 @@ class SQLDatabaseController(object):
         for column in column_list:
             col_name = column.name
             col_type = str(column[2])
-            if column[5] == 1:  # Check if PRIMARY KEY
+            if column[5] == 1:
                 col_type += ' PRIMARY KEY'
-            elif column[3] == 1:  # Check if NOT NULL
+            elif column[3] == 1:
                 col_type += ' NOT NULL'
             elif column[4] is not None:
-                col_type += ' DEFAULT (%s)' % six.text_type(column[4])  # Specify default value
+                default_value = six.text_type(column[4])
+                # HACK: add parens if the value contains parens in the future
+                # all default values should contain parens
+                LEOPARD_TURK_HACK = True
+                if LEOPARD_TURK_HACK and '(' not in default_value:
+                    col_type += ' DEFAULT %s' % default_value
+                else:
+                    col_type += ' DEFAULT (%s)' % default_value
             coldef_list.append((col_name, col_type))
         return coldef_list
 
@@ -1738,7 +1745,9 @@ class SQLDatabaseController(object):
             >>> tablename = 'dummy_table'
             >>> db.add_table(tablename, (
             >>>     ('rowid', 'INTEGER PRIMARY KEY'),
-            >>>     ('value', 'TEXT'),
+            >>>     ('value1', 'TEXT'),
+            >>>     ('value2', 'TEXT NOT NULL'),
+            >>>     ('value3', 'TEXT DEFAULT 1'),
             >>>     ('time_added', "INTEGER DEFAULT (CAST(STRFTIME('%s', 'NOW', 'UTC') AS INTEGER))")
             >>> ))
             >>> autogen_dict = db.get_table_autogen_dict(tablename)
