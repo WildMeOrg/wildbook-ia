@@ -41,10 +41,10 @@ CONFIG_STRID     = 'config_strid'
 CONFIG_DICT      = 'config_dict'
 
 
-if ut.is_developer():
-    GRACE_PERIOD = 0
-else:
-    GRACE_PERIOD = 0
+# if ut.is_developer():
+#     GRACE_PERIOD = 10
+# else:
+GRACE_PERIOD = ut.get_argval('--grace', type_=int, default=0)
 #ALLOW_NONE_YIELD = False
 ALLOW_NONE_YIELD = True
 
