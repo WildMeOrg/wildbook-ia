@@ -1893,6 +1893,8 @@ def commit_current_query_object_names(query_object, ibs):
     new_df, old_df = query_object.match_state_delta()
 
     # Set names
+    vals = (len(aid_list), )
+    print('COMMITTING IDENTIFICATION REVIEWS TO DATABASE AS NAMES: %d' % vals)
     ibs.set_annot_names(aid_list, name_list)
 
     # Add am rowids for nonexisting rows
@@ -1906,12 +1908,13 @@ def commit_current_query_object_names(query_object, ibs):
         new_df.set_index('am_rowid', drop=False, inplace=True)
 
         # Set residual matching data
-        truth_options = [ibs.const.TRUTH_MATCH,
-                         ibs.const.TRUTH_NOT_MATCH,
-                         ibs.const.TRUTH_UNKNOWN]
-        truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
-        truth_idxs = new_df[truth_keys].values.argmax(axis=1)
-        new_truth = ut.take(truth_options, truth_idxs)
+        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, new_df['decision'])
+        # truth_options = [ibs.const.TRUTH_MATCH,
+        #                  ibs.const.TRUTH_NOT_MATCH,
+        #                  ibs.const.TRUTH_UNKNOWN]
+        # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
+        # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
+        # new_truth = ut.take(truth_options, truth_idxs)
         am_rowids = new_df['am_rowid'].values
 
         ibs.set_annotmatch_truth(am_rowids, new_truth)
@@ -2105,6 +2108,7 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
     """
     CommandLine:
         python -m ibeis.web.app --exec-turk_identification --db PZ_Master1
+        python -m ibeis.web.app --exec-turk_identification --db PZ_MTEST
 
     Example:
         >>> # SCRIPT
@@ -2225,8 +2229,8 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                             previous = tuple(map(int, previous.split(';')))
                             assert len(previous) == 3
 
-                        print('Previous = %r' % (previous, ))
-                        print('replace_review_rowid  = %r' % (replace_review_rowid, ))
+                        # print('Previous = %r' % (previous, ))
+                        # print('replace_review_rowid  = %r' % (replace_review_rowid, ))
                 else:
                     finished = True
                     progress = 100.0

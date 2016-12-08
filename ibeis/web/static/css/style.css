@@ -309,7 +309,7 @@
   right: 0;
 }
 
-#identification-image-matches:hover
+#identification-image-clean:hover
 {
   opacity: 0.01;
   filter: alpha(opacity=1);

@@ -93,6 +93,8 @@ class _AnnotInfrViz(object):
         infr._viz_image_config_dirty = False
 
     def update_node_image_config(infr, **kwargs):
+        if not hasattr(infr, '_viz_image_config_dirty'):
+            infr.initialize_visual_node_attrs()
         for key, val in kwargs.items():
             assert key in infr._viz_image_config
             if infr._viz_image_config[key] != val:
@@ -100,6 +102,9 @@ class _AnnotInfrViz(object):
                 infr._viz_image_config_dirty = True
 
     def update_node_image_attribute(infr):
+        if not hasattr(infr, '_viz_image_config_dirty'):
+            infr.initialize_visual_node_attrs()
+            return
         aid_list = list(infr.aid_to_node.keys())
         annot_nodes = ut.take(infr.aid_to_node, aid_list)
         imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
@@ -217,7 +222,7 @@ class _AnnotInfrViz(object):
             infr._viz_init_nodes = True
             infr.set_node_attrs('shape', 'circle')
 
-        if infr._viz_image_config_dirty:
+        if getattr(infr, '_viz_image_config_dirty', True):
             infr.update_node_image_attribute()
 
         alpha_low = .5
@@ -461,7 +466,8 @@ class _AnnotInfrViz(object):
         gt.ensure_qtapp()
         win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=None)
         abstract_interaction.register_interaction(win)
-        win.show()
+        # win.show()
+        gt.qtapp_loop(qwin=win, freq=10)
         return win
 
     show = show_graph
