@@ -350,14 +350,24 @@ REVIEW_NON_MATCH = 0
 REVIEW_MATCH = 1
 REVIEW_NOT_COMPARABLE = 2
 
-REVIEW_INT_TO_TEXT = {
+REVIEW_MATCH_CODE = {
+    'nomatch' : REVIEW_NON_MATCH,
+    'match'   : REVIEW_MATCH,
+    'notcomp' : REVIEW_NOT_COMPARABLE,
+}
+
+REVIEW_INT_TO_NICE = {
     REVIEW_NON_MATCH      : 'Non Match',
     REVIEW_MATCH          : 'Match',
     REVIEW_NOT_COMPARABLE : 'Not Comparable',
 }
 
-REVIEW_INT_TO_CODE = {
-    REVIEW_NON_MATCH      : 'nomatch',
-    REVIEW_MATCH          : 'match',
-    REVIEW_NOT_COMPARABLE : 'notcomp',
+REVIEW_INT_TO_CODE = ut.invert_dict(REVIEW_MATCH_CODE)
+
+
+REVIEW_USER_CONFIDENCE_CODE = {
+    'guessing': 1,
+    'not_sure': 2,
+    'pretty_sure': 3,
+    'absolutely_sure': 4,
 }

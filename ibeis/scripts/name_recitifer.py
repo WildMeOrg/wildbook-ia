@@ -206,13 +206,16 @@ def find_consistent_labeling(grouped_oldnames):
         [u'_extra_name0', u'a', u'_extra_name1', u'b', u'_extra_name2']
     """
     import numpy as np
-    try:
-        import munkres
-    except ImportError:
-        print('Need to install Hungrian algorithm bipartite matching solver.')
-        print('Run:')
-        print('pip install munkres')
-        raise
+    # Don't use munkres, it is pure python and very slow
+    # Use scipy instead
+    # http://stackoverflow.com/questions/1398822/the-assignment-problem-a-numpy-function
+    # try:
+    #     import munkres
+    # except ImportError:
+    #     print('Need to install Hungrian algorithm bipartite matching solver.')
+    #     print('Run:')
+    #     print('pip install munkres')
+    #     raise
     unique_old_names = ut.unique(ut.flatten(grouped_oldnames))
     num_new_names = len(grouped_oldnames)
     num_old_names = len(unique_old_names)
@@ -256,8 +259,11 @@ def find_consistent_labeling(grouped_oldnames):
     # Convert to minimization problem
     big_value = (profit_matrix.max()) - (profit_matrix.min())
     cost_matrix = big_value - profit_matrix
-    m = munkres.Munkres()
-    indexes = m.compute(cost_matrix)
+    # m = munkres.Munkres()
+    # indexes = m.compute(cost_matrix)
+
+    import scipy.optimize
+    indexes = list(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
 
     # Map output to be aligned with input
     rx2_cx = dict(indexes)

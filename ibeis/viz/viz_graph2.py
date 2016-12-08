@@ -81,6 +81,11 @@ class MatplotlibWidget(gt.GuitoolWidget):
 class DevGraphWidget(gt.GuitoolWidget):
     signal_graph_update = QtCore.pyqtSignal()
 
+    def emit_graph_update(graph_widget):
+        # ut.cprint('[graph] emit graph update', 'blue')
+        # graph_widget.signal_graph_update.emit()
+        graph_widget.on_graph_update()
+
     def init_signals_and_slots(self):
         # https://doc.qt.io/archives/qtjambi-4.5.2_01/com/trolltech/qt/core/Qt.ConnectionType.html
         # connection_type = QtCore.Qt.AutoConnection
@@ -127,7 +132,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         bbar1.addNewButton('Show Annots', pressed=graph_widget.show_selected)
 
         def refresh_via_cb(flag):
-            graph_widget.on_graph_update()
+            graph_widget.emit_graph_update()
 
         graph_widget.show_config_tree = gt.SimpleTree(bbar2)
         tree = graph_widget.show_config_tree
@@ -149,7 +154,7 @@ class DevGraphWidget(gt.GuitoolWidget):
             graph_widget.edge_visibility_options[key] = tree.add_checkbox(
                 visibility, title, checked=default, changed=refresh_via_cb)
 
-        small_graph = False
+        small_graph = len(self_parent.infr.aids) < 20
 
         add_visibility_option('show_reviewed_edges', small_graph)
         add_visibility_option('show_unreviewed_edges', small_graph)
@@ -166,12 +171,14 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.mpl_wgt.key_press_signal.connect(graph_widget.on_key_press)
         graph_widget.mpl_wgt.pick_event_signal.connect(graph_widget.on_pick)
         graph_widget.splitter.setSizes([30, 70])
+        graph_widget.init_signals_and_slots()
 
     @property
     def infr(graph_widget):
         return graph_widget.self_parent.infr
 
     def on_graph_update(graph_widget):
+        # ut.cprint('[graph] on_graph_update', 'green')
         if graph_widget.mpl_wgt is None or graph_widget.mpl_wgt.visibleRegion().isEmpty():
             # Flag that graph should draw next time it is visible
             graph_widget.mpl_needs_update = True
@@ -190,7 +197,7 @@ class DevGraphWidget(gt.GuitoolWidget):
         # self.my_thread.start()
         # self.graph_widget.moveToThread(self.my_thread)
 
-        print('[graph] draw_graph')
+        print('[graph] draw_graph', 'green')
         graph_widget.mpl_needs_update = False
         # print('[viz_graph] Start draw page')
         graph_widget.mpl_wgt.ax.cla()
@@ -419,7 +426,7 @@ class DevGraphWidget(gt.GuitoolWidget):
     def eventFilter(graph_widget, source, event):
         if event.type() == QtCore.QEvent.Show:
             if graph_widget.mpl_needs_update:
-                graph_widget.signal_graph_update.emit()
+                graph_widget.emit_graph_update()
         return super(DevGraphWidget, graph_widget).eventFilter(source, event)
 
 
@@ -522,7 +529,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.node_tab.addWidget(self.node_api_widget)
         self.edge_tab.addWidget(self.edge_api_widget)
 
-        _show_graph = self.init_mode in ['split', 'rereview', 'review']
+        # _show_graph = self.init_mode in ['split', 'rereview', 'review']
+        _show_graph = True
         if _show_graph:
             # TODO: separate graph view into its own class
             self.graph_tab = graph_tables_widget.addNewTab('Graph')
@@ -547,7 +555,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
-        print('[viz_graph] showEvent')
+        ut.cprint('[viz_graph] showEvent', 'green')
         # Fire initialize event after we show the GUI
         QtCore.QTimer.singleShot(50, self.init_inference)
 
@@ -627,7 +635,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.populate_node_model()
             self.populate_edge_model()
         if self.graph_widget is not None:
-            self.graph_widget.signal_graph_update.emit()
+            self.graph_widget.emit_graph_update()
 
     def apply_scores(self):
         with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
@@ -941,7 +949,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print_('old_name_list = %r' % (old_name_list,))
         print_('new_name_list = %r' % (name_list,))
         # logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
-        print_('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
+        print_('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
+        print_('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
 
         # keep track of residual data
         new_df, old_df = infr.match_state_delta()
@@ -1005,14 +1014,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 new_df.set_index('am_rowid', drop=False, inplace=True)
 
                 # Set residual matching data
-                truth_options = [ibs.const.TRUTH_MATCH,
-                                 ibs.const.TRUTH_NOT_MATCH,
-                                 ibs.const.TRUTH_UNKNOWN]
-                truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
-                truth_idxs = new_df[truth_keys].values.argmax(axis=1)
-                new_truth = ut.take(truth_options, truth_idxs)
+                new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, new_df['decision'])
+                # truth_options = [ibs.const.TRUTH_MATCH,
+                #                  ibs.const.TRUTH_NOT_MATCH,
+                #                  ibs.const.TRUTH_UNKNOWN]
+                # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
+                # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
+                # new_truth = ut.take(truth_options, truth_idxs)
                 am_rowids = new_df['am_rowid'].values
-
                 ibs.set_annotmatch_truth(am_rowids, new_truth)
         else:
             print('DRY RUN. NOT DOING ANYTHING')
@@ -1029,7 +1038,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def print_info(self):
         print('[graph] print_info')
         #print('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
-        print('user_feedback = ' + ut.repr2(self.infr.user_feedback, nl=1))
+        print('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
+        print('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
         infr = self.infr
         print('infr = %r' % (infr,))
         if infr is not None and infr.graph is not None:
@@ -1370,14 +1380,14 @@ def make_qt_graph_review(qreq_, cm_list):
     infr = graph_iden.AnnotInference.from_qreq_(qreq_, cm_list)
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
-    win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='rereview')
+    win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
     abstract_interaction.register_interaction(win)
     win.show()
     return win
 
 
 def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
-                            init_mode='rereview', graph_tab=False):
+                            init_mode='review', graph_tab=False):
     r"""
     CommandLine:
         ibeis make_qt_graph_interface --dbdir ~/lev/media/hdd/work/WWF_Lynx/ --show --nids=281 --graph-tab
@@ -1407,7 +1417,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         >>> aids = ut.get_argval('--aids', type_=list, default=None)
         >>> nids = ut.get_argval('--nids', type_=list, default=None)
         >>> gids = ut.get_argval('--gids', type_=list, default=None)
-        >>> init_mode = ut.get_argval('--init_mode', default='rereview')
+        >>> init_mode = ut.get_argval('--init_mode', default='review')
         >>> graph_tab = ut.get_argflag('--graph-tab')
         >>> gt.ensure_qtapp()
         >>> win = make_qt_graph_interface(ibs, aids, nids, gids, init_mode, graph_tab)
