@@ -1893,6 +1893,8 @@ def commit_current_query_object_names(query_object, ibs):
     new_df, old_df = query_object.match_state_delta()
 
     # Set names
+    vals = (len(aid_list), )
+    print('COMMITTING IDENTIFICATION REVIEWS TO DATABASE AS NAMES: %d' % vals)
     ibs.set_annot_names(aid_list, name_list)
 
     # Add am rowids for nonexisting rows
@@ -2218,8 +2220,8 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                             previous = tuple(map(int, previous.split(';')))
                             assert len(previous) == 3
 
-                        print('Previous = %r' % (previous, ))
-                        print('replace_review_rowid  = %r' % (replace_review_rowid, ))
+                        # print('Previous = %r' % (previous, ))
+                        # print('replace_review_rowid  = %r' % (replace_review_rowid, ))
                 else:
                     finished = True
                     progress = 100.0
