@@ -1217,15 +1217,13 @@ class SQLDatabaseController(object):
             list: metadata_items
 
         CommandLine:
-            python -m dtool.sql_control --exec-get_metadata_items --db=PZ_Master0
-            python -m dtool.sql_control --exec-get_metadata_items --db=testdb1
             python -m dtool.sql_control --exec-get_metadata_items
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.example_depcache import testdata_depc
             >>> from dtool.sql_control import *  # NOQA
-            >>> import ibeis
-            >>> db = ibeis.opendb(defaultdb='testdb1').db
+            >>> db = testdata_depc()['notch'].db
             >>> metadata_items = db.get_metadata_items()
             >>> result = ('metadata_items = %s' % (ut.list_str(sorted(metadata_items)),))
             >>> print(result)
@@ -1305,25 +1303,13 @@ class SQLDatabaseController(object):
             coldef_list (list): (default = None)
 
         Returns:
-            ?: operation
+            str: operation
 
         CommandLine:
             python -m dtool.sql_control _make_add_table_sqlstr --show
 
         Example:
-            >>> # DISABLE_DOCTEST
-            >>> from dtool.sql_control import *  # NOQA
-            >>> from dtool.example_depcache import testdata_depc
-            >>> depc = testdata_depc()
-            >>> tablename = 'keypoint'
-            >>> db = depc[tablename].db
-            >>> autogen_dict = db.get_table_autogen_dict(tablename)
-            >>> coldef_list = autogen_dict['coldef_list']
-            >>> operation = db._make_add_table_sqlstr(tablename, coldef_list)
-            >>> print(operation)
-
-        Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
@@ -1863,7 +1849,7 @@ class SQLDatabaseController(object):
             python -m dtool.sql_control get_table_autogen_dict
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> tablename = 'dummy_table'
@@ -1896,7 +1882,7 @@ class SQLDatabaseController(object):
             python -m dtool.sql_control get_table_autogen_str
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
             >>> db = SQLDatabaseController(sqldb_fname=':memory:')
             >>> tablename = 'dummy_table'
@@ -2704,7 +2690,7 @@ class SQLDatabaseController(object):
             python -m dtool.sql_control --exec-get_table_csv --tablename=contributors
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> depc = testdata_depc()
