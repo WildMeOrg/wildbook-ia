@@ -685,18 +685,39 @@ class SQLDatabaseController(object):
             iterable: rowid_list_ -- list of newly added or previously added rowids
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
-            >>> db = '?'
-            >>> tblname = tblname_temp
-            >>> colnames = dst_list
-            >>> params_iter = data_list
-            >>> #get_rowid_from_superkey = '?'
-            >>> superkey_paramx = (0,)
-            >>> rowid_list_ = add_cleanly(db, tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
+            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> db.add_table('dummy_table', (
+            >>>     ('rowid',               'INTEGER PRIMARY KEY'),
+            >>>     ('key',                 'TEXT'),
+            >>>     ('superkey1',           'TEXT'),
+            >>>     ('superkey2',           'TEXT'),
+            >>>     ('val',                 'TEXT'),
+            >>> ),
+            >>>     superkeys=[('key',), ('superkey1', 'superkey2')],
+            >>>     docstr='')
+            >>> db.print_schema()
+            >>> tblname = 'dummy_table'
+            >>> colnames = ('key', 'val')
+            >>> params_iter = [('spam', 'eggs'), ('foo', 'bar')]
+            >>> # Find a useable superkey
+            >>> superkey_colnames = db.get_table_superkey_colnames(tblname)
+            >>> superkey_paramx = None
+            >>> for superkey in superkey_colnames:
+            >>>    if all(k in colnames for k in superkey):
+            >>>        superkey_paramx = [colnames.index(k) for k in superkey]
+            >>>        superkey_colnames = ut.take(colnames, superkey_paramx)
+            >>>        break
+            >>> def get_rowid_from_superkey(superkeys_list):
+            >>>     return db.get_where_eq(tblname, ('rowid',), zip(superkeys_list), superkey_colnames)
+            >>> rowid_list_ = db.add_cleanly(
+            >>>     tblname, colnames, params_iter, get_rowid_from_superkey, superkey_paramx)
             >>> print(rowid_list_)
         """
         # ADD_CLEANLY_1: PREPROCESS INPUT
-        params_list = list(params_iter)  # eagerly evaluate for superkeys
+        # eagerly evaluate for superkeys
+        params_list = list(params_iter)
         # Extract superkeys from the params list (requires eager eval)
         superkey_lists = [[None if params is None else params[x]
                            for params in params_list]
