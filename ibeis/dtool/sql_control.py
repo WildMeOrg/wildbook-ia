@@ -267,30 +267,6 @@ def sanitize_sql(db, tablename_, columns=None):
         return tablename, columns
 
 
-class SQLAtomicContext(object):
-    def __init__(context, db, verbose=VERBOSE_SQL):
-        context.db = db  # Reference to sqldb
-        context.cur = context.db.connection.cursor()  # Get new cursor
-        context.verbose = verbose
-
-    def __enter__(context):
-        """ Sets the database into a state of an atomic transaction """
-        context.cur.execute('BEGIN EXCLUSIVE TRANSACTION')
-        return context
-
-    def __exit__(context, type_, value, trace):
-        """ Finalization of an SQLAtomicContext """
-        if trace is not None:
-            # An SQLError is a serious offence.
-            print('[sql] FATAL ERROR IN ATOMIC CONTEXT')
-            context.db.dump()  # Dump on error
-            print('[sql] Error in atomic context manager!: ' + str(value))
-            return False  # return a falsey value on error
-        else:
-            context.db.connection.commit()
-            context.cur.close()
-
-
 def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname,
                                 version_current, version_next=None):
     """
@@ -329,35 +305,31 @@ def dev_test_new_schema_version(dbname, sqldb_dpath, sqldb_fname,
 @six.add_metaclass(ut.ReloadingMetaclass)
 class SQLDatabaseController(object):
     """
-    SQLDatabaseController an efficientish interface into SQL
+    Interface to an SQL database
     """
 
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
-                 text_factory=six.text_type, inmemory=None, simple=False,
-                 fpath=None, readonly=None):
+                 text_factory=six.text_type, inmemory=None, fpath=None,
+                 readonly=None):
         """ Creates db and opens connection
 
         Args:
-            sqldb_dpath (unicode):  directory path string(default = u'.')
-            sqldb_fname (unicode): (default = u'database.sqlite3')
-            text_factory (type): (default = <type 'unicode'>)
+            sqldb_dpath (unicode):  directory path string(default = '.')
+            sqldb_fname (unicode): (default = 'database.sqlite3')
+            text_factory (type): (default = unicode)
             inmemory (None): (default = None)
-            simple (bool): (default = False)
             fpath (str):  file path string(default = None)
             readonly (bool): (default = False)
 
         CommandLine:
-            python -m dtool.sql_control --exec-__init__ --show
+            python -m dtool.sql_control --exec-__init__
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.sql_control import *  # NOQA
+            >>> ut.exec_funckw(SQLDatabaseController.__init__, locals())
             >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
             >>> sqldb_fname = u'test_database.sqlite3'
-            >>> inmemory = None
-            >>> simple = False
-            >>> fpath = None
-            >>> text_factory = six.text_type
             >>> readonly = False
             >>> db = SQLDatabaseController(sqldb_dpath, sqldb_fname)
             >>> db.print_schema()
@@ -368,8 +340,7 @@ class SQLDatabaseController(object):
             >>>     ('key',                 'TEXT'),
             >>>     ('val',                 'TEXT'),
             >>> ),
-            >>>     superkeys=[('key',)],
-            >>>     docstr='')
+            >>>     superkeys=[('key',)])
             >>> db2.print_schema()
         """
         # standard metadata table keys for each docstr
@@ -432,7 +403,10 @@ class SQLDatabaseController(object):
             db._ensure_metadata_table()
 
     def _create_connection(db):
-        if db.fname != ':memory:':
+        if db.fname == ':memory:':
+            uri = None
+            connection = lite.connect(':memory:', detect_types=lite.PARSE_DECLTYPES)
+        else:
             assert exists(db.dir_), ('[sql] db.dir_=%r does not exist!' % db.dir_)
             if not exists(db.fpath):
                 print('[sql] Initializing new database: %r' % (db.fname,))
@@ -461,9 +435,6 @@ class SQLDatabaseController(object):
                 else:
                     uri = db.fpath
                     connection = lite.connect(uri, detect_types=lite.PARSE_DECLTYPES)
-        else:
-            uri = None
-            connection = lite.connect(db.fpath, detect_types=lite.PARSE_DECLTYPES)
         return connection, uri
 
     def get_fpath(db):
@@ -765,15 +736,6 @@ class SQLDatabaseController(object):
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
-    # def get_where_eq(db, tblname, colnames, params_iter, where_colnames,
-    #                unpack_scalars=True, eager=True, **kwargs):
-    #     """ hacked in function for nicer templates """
-    #     andwhere_clauses = [colname + '=?' for colname in andwhere_colnames]
-    #     where_clause = ' AND '.join(andwhere_clauses)
-    #     return db.get_where(tblname, colnames, params_iter, where_clause,
-    #                         unpack_scalars=unpack_scalars, eager=eager,
-    #                         **kwargs)
-
     def get_where_eq(db, tblname, colnames, params_iter, where_colnames,
                      unpack_scalars=True, eager=True, op='AND', **kwargs):
         """ hacked in function for nicer templates
@@ -796,8 +758,6 @@ class SQLDatabaseController(object):
         """
         """
         assert isinstance(colnames, tuple), 'colnames must be a tuple'
-        #if isinstance(colnames, six.string_types):
-        #    colnames = (colnames,)
 
         if where_clause is None:
             operation_fmt = '''
@@ -863,7 +823,7 @@ class SQLDatabaseController(object):
             id_colname (bool): default False. Experimental feature that could result in a 10x speedup
 
         CommandLine:
-            python -m dtool.sql_control get --show
+            python -m dtool.sql_control get
 
         Ignore:
             tblname = 'annotations'
@@ -879,7 +839,6 @@ class SQLDatabaseController(object):
             x1 == x2
             %timeit  db.get(tblname, colnames, id_iter, assume_unique=True)
             %timeit  db.get(tblname, colnames, id_iter, assume_unique=False)
-
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -939,7 +898,7 @@ class SQLDatabaseController(object):
         setter
 
         CommandLine:
-            python -m dtool.sql_control set --show
+            python -m dtool.sql_control set
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1306,7 +1265,7 @@ class SQLDatabaseController(object):
             str: operation
 
         CommandLine:
-            python -m dtool.sql_control _make_add_table_sqlstr --show
+            python -m dtool.sql_control _make_add_table_sqlstr
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1614,70 +1573,6 @@ class SQLDatabaseController(object):
             # Rename new table to new name
             db.rename_table(tablename_temp, tablename_new)
 
-    def reorder_columns(db, tablename, order_list):
-        raise NotImplementedError('needs update')
-        if ut.VERBOSE:
-            print('[sql] schema column reordering for tablename=%r' % tablename)
-        # Get current tables
-        coldef_list = db.get_coldef_list(tablename)
-        colname_list = ut.take_column(coldef_list, 0)
-        coltype_list = ut.take_column(coldef_list, 1)
-        assert len(coldef_list) == len(order_list)
-        assert all([ i in order_list for i in range(len(colname_list)) ]), (
-            'Order index list invalid')
-        # Reorder column definitions
-        combined = sorted(list(zip(order_list, colname_list, coltype_list)))
-        coldef_list = [ (name, type_) for i, name, type_ in combined ]
-        tablename_temp = tablename + '_temp' + ut.random_nonce(length=8)
-        docstr = db.get_table_docstr(tablename)
-        #constraint = db.get_table_constraints(tablename)
-
-        db.add_table(tablename_temp, coldef_list,
-                     #constraint=constraint,
-                     docstr=docstr,)
-        # Copy data
-        data_list = db.get(tablename, tuple(colname_list))
-        # Add the data to the database
-        get_rowid_from_superkey = (lambda x: [None] * len(x))
-        db.add_cleanly(tablename_temp, colname_list, data_list, get_rowid_from_superkey)
-        # Drop original table
-        db.drop_table(tablename)
-        # Rename temp table to original table name
-        db.rename_table(tablename_temp, tablename)
-
-    def duplicate_table(db, tablename, tablename_duplicate):
-        if VERBOSE_SQL:
-            print('[sql] schema duplicating tablename=%r into tablename=%r' %
-                  (tablename, tablename_duplicate))
-        db.modify_table(tablename, [], tablename_new=tablename_duplicate)
-
-    def duplicate_column(db, tablename, colname, colname_duplicate):
-        if ut.VERBOSE:
-            print('[sql] schema duplicating tablename.colname=%r.%r into tablename.colname=%r.%r' %
-                    (tablename, colname, tablename, colname_duplicate))
-        # Modify table to add a blank column with the appropriate tablename and NO data
-        coldef_list = db.get_coldef_list(tablename)
-        column_names = ut.take_column(coldef_list, 0)
-        column_types = ut.take_column(coldef_list, 1)
-        try:
-            index = column_names.index(colname)
-        except Exception:
-            if VERBOSE_SQL:
-                print('[!sql] could not find colname=%r to duplicate' % colname)
-            return
-        # Add column to the table
-        # DATABASE TABLE CACHES ARE UPDATED WITH add_column
-        db.add_column(tablename, colname_duplicate, column_types[index])
-        # Copy the data from the original column to the new duplcate column
-        fmtkw = {
-            'tablename':           tablename,
-            'colname_duplicate':   colname_duplicate,
-            'colname':             colname,
-        }
-        op_fmtstr = 'UPDATE {tablename} SET {colname_duplicate} = {colname}'
-        operation = op_fmtstr.format(**fmtkw)
-        db.executeone(operation, [], verbose=False)
-
     def rename_table(db, tablename_old, tablename_new):
         if ut.VERBOSE:
             print('[sql] schema renaming tablename=%r -> %r' % (tablename_old, tablename_new))
@@ -1701,12 +1596,6 @@ class SQLDatabaseController(object):
         #print('Setting metadata_key from %s to %s' % (ut.list_str(id_iter), ut.list_str(val_iter)))
         db.set(METADATA_TABLE, colnames, val_iter, id_iter, id_colname='metadata_key')
 
-    def rename_column(db, tablename, colname_old, colname_new):
-        # DATABASE TABLE CACHES ARE UPDATED WITH modify_table
-        db.modify_table(tablename, (
-            (colname_old, colname_new, '', None),
-        ))
-
     def drop_table(db, tablename):
         if VERBOSE_SQL:
             print('[sql] schema dropping tablename=%r' % tablename)
@@ -1723,12 +1612,6 @@ class SQLDatabaseController(object):
         # Delete table's metadata
         key_list = [tablename + '_' + suffix for suffix in db.table_metadata_keys]
         db.delete(METADATA_TABLE, key_list, id_colname='metadata_key')
-
-    def drop_column(db, tablename, colname):
-        """ # DATABASE TABLE CACHES ARE UPDATED WITH modify_table """
-        db.modify_table(tablename, (
-            (colname, None, '', None),
-        ))
 
     def drop_all_tables(db):
         """
@@ -2049,17 +1932,6 @@ class SQLDatabaseController(object):
             if pk
         ])
         return primarykey_colnames
-
-    def get_table_otherkey_colnames(db, tablename):
-        flat_superkey_colnames_list = ut.flatten(db.get_table_superkey_colnames(tablename))
-        #superkeys = set((lambda x: x if x is not None else
-        #[])(db.get_table_superkey_colnames(tablename)))
-        columns = db.get_columns(tablename)
-        otherkey_colnames = [name
-                             for (column_id, name, type_, notnull, dflt_value, pk,) in columns
-                             if (not pk and   # not primary key
-                                 name not in flat_superkey_colnames_list)]
-        return otherkey_colnames
 
     def get_table_docstr(db, tablename):
         r"""
@@ -2419,6 +2291,8 @@ class SQLDatabaseController(object):
         Does not handle external files
         Could handle dependency tree order, but not yet implemented.
 
+        FINISHME
+
         Args:
             db_src (SQLController): merge data from db_src into db
 
@@ -2676,7 +2550,8 @@ class SQLDatabaseController(object):
 
     def get_table_csv(db, tablename, exclude_columns=[], params_iter=None,
                       andwhere_colnames=None, truncate=False):
-        """ Conveinience: Converts a tablename to csv format
+        """
+        Converts a tablename to csv format
 
         Args:
             tablename (str):

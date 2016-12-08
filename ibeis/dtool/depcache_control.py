@@ -207,7 +207,7 @@ class _CoreDependencyCache(object):
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
             if ut.get_argflag('--clear-all-depcache'):
                 ut.delete(fpath)
-            db = sql_control.SQLDatabaseController(fpath=fpath, simple=True)
+            db = sql_control.SQLDatabaseController(fpath=fpath)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db
         if ut.VERBOSE:
