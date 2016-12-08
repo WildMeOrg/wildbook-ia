@@ -1038,8 +1038,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def print_info(self):
         print('[graph] print_info')
         #print('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
-        print('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
-        print('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
+        print('all_feedback() = ' + ut.repr2(self.infr.all_feedback(), nl=1))
         infr = self.infr
         print('infr = %r' % (infr,))
         if infr is not None and infr.graph is not None:
