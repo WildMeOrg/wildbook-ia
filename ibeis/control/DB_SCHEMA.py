@@ -1569,7 +1569,7 @@ def dump_schema_sql():
     """
     import dtool as dt
     from ibeis.control import DB_SCHEMA_CURRENT
-    db = dt.SQLDatabaseController(fpath=':memory:', simple=True)
+    db = dt.SQLDatabaseController(fpath=':memory:')
     DB_SCHEMA_CURRENT.update_current(db)
     dump_str = db.dump_to_string()
     print(dump_str)
