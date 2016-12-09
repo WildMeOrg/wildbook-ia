@@ -14,6 +14,7 @@ from ibeis.web import routes_ajax
 import utool as ut
 import vtool as vt
 import numpy as np
+import traceback
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -1950,12 +1951,14 @@ def precompute_current_review_match_images(ibs, query_object,
             make_review_image(ibs, aid2, cm, qreq_,
                               view_orientation=view_orientation)
         except KeyError:
+            traceback.print_exc()
             pass
         try:
             make_review_image(ibs, aid2, cm, qreq_,
                               view_orientation=view_orientation,
                               draw_matches=False)
         except KeyError:
+            traceback.print_exc()
             pass
 
 
@@ -2203,13 +2206,14 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                                                                   view_orientation=view_orientation)
                             except KeyError:
                                 image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
-
+                                traceback.print_exc()
                             try:
                                 image_clean = make_review_image(ibs, aid2, cm, qreq_,
                                                                 view_orientation=view_orientation,
                                                                 draw_matches=False)
                             except KeyError:
                                 image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+                                traceback.print_exc()
 
                         with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
                             image_matches_src = appf.embed_image_html(image_matches)

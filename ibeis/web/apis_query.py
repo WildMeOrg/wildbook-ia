@@ -14,6 +14,7 @@ import cv2
 import numpy as np   # NOQA
 import utool as ut
 from ibeis.web import appfuncs as appf
+import traceback
 ut.noinject('[apis_query]')
 
 
@@ -383,13 +384,21 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     match_score = cm.name_score_list[idx]
     #match_score = cm.aid2_score[aid_2]
 
-    image_matches = make_review_image(ibs, aid_2, cm, qreq_,
-                                      view_orientation=view_orientation)
-    image_matches_src = appf.embed_image_html(image_matches)
+    try:
+        image_matches = make_review_image(ibs, aid_2, cm, qreq_,
+                                          view_orientation=view_orientation)
+    except KeyError:
+        image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
+        traceback.print_exc()
+    try:
+        image_clean = make_review_image(ibs, aid_2, cm, qreq_,
+                                        view_orientation=view_orientation,
+                                        draw_matches=False)
+    except KeyError:
+        image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+        traceback.print_exc()
 
-    image_clean = make_review_image(ibs, aid_2, cm, qreq_,
-                                    view_orientation=view_orientation,
-                                    draw_matches=False)
+    image_matches_src = appf.embed_image_html(image_matches)
     image_clean_src = appf.embed_image_html(image_clean)
 
     if False:
