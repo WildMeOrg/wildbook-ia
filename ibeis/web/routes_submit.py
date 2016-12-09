@@ -404,6 +404,7 @@ def submit_identification():
         ibs.delete_review([replace_review_rowid])
 
     # Add a new review row for the new decision (possibly replacing the old one)
+    print('ADDING REVIEW: %r %r %r %r' % (aid1, aid2, decision, tag_list, ))
     tags_list = None if tag_list is None else [tag_list]
     review_rowid = ibs.add_review([aid1], [aid2], [decision], tags_list=tags_list)
     review_rowid = review_rowid[0]
