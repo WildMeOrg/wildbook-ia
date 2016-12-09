@@ -58,14 +58,14 @@
 
             <div class="col-lg-3"></div>
             <div class="col-lg-3">
-              <div class="checkbox pull-right">
+              <div class="checkbox">
                 <label>
                   <input id="ia-turk-photobomb" name="ia-photobomb-value" type="checkbox"> Photobomb
                 </label>
               </div>
             </div>
             <div class="col-lg-3">
-              <div class="checkbox pull-right">
+              <div class="checkbox">
                 <label>
                   <input id="ia-turk-scenerymatch" name="ia-scenerymatch-value" type="checkbox"> Scenery Match
                 </label>
@@ -141,6 +141,10 @@
     });
 
     $(".identification-image").load(function() {
+      fix_height();
+    });
+
+    $( document ).ready(function() {
       fix_height();
     });
   </script>
