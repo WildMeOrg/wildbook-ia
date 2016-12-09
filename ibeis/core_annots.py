@@ -186,7 +186,7 @@ def compute_chipthumb(depc, aid_list, config=None):
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
     last_gid = None
-    for tup in ut.ProgIter(arg_list, lbl='computing annot thumb', bs=True):
+    for tup in ut.ProgIter(arg_list, lbl='computing annot chipthumb', bs=True):
         gid, new_size, M, new_verts = tup
         if gid != last_gid:
             imgBGR = ibs.get_image_imgdata(gid)

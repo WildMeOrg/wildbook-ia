@@ -54,7 +54,7 @@ class OneVsOneProblem(object):
         # ut.aug_sysargv('--db PZ_Master1')
         qreq_ = ibeis.testdata_qreq_(
             defaultdb='PZ_PB_RF_TRAIN',
-            a=':mingt=2,species=primary',
+            a=':mingt=4,species=primary',
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
             t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
         )
@@ -108,8 +108,7 @@ class OneVsOneProblem(object):
             'learn(sum,glob,3)',
         ]
 
-        cfgstr = 'tmp'
-        cacher = ut.Cacher('pair_clf', cfgstr=cfgstr,
+        cacher = ut.Cacher('pair_clf', cfgstr='tmp' + self.qreq_.get_cfgstr(),
                            appname='vsone_rf_train', enabled=1)
         data = cacher.tryload()
         if not data:
@@ -1198,11 +1197,14 @@ def build_features(qreq_, hyper_params):
 
     # ---------------
     sorters = [
-        'ratio', 'lnbnn', 'lnbnn_norm_dist', 'norm_dist', 'match_dist'
+        'ratio',
+        # 'lnbnn', 'lnbnn_norm_dist',
+        'norm_dist', 'match_dist'
     ]
     if qreq_.qparams.featweight_enabled:
         sorters += [
-            'weighted_ratio', 'weighted_lnbnn',
+            'weighted_ratio',
+            # 'weighted_lnbnn',
         ]
 
     measures = list(match.local_measures.keys())
