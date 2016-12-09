@@ -21,7 +21,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-GLOBAL_FEEDBACK_LIMIT = 500
+GLOBAL_FEEDBACK_LIMIT = 50
 GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
     'ranks_top': 3,
