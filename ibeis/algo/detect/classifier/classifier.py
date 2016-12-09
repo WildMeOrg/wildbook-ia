@@ -205,7 +205,7 @@ def classify_thumbnail_list(thumbnail_list, model='v1'):
 
     print('[classifier] Create the JPCNN_Model used for testing')
     url = MODEL_DOMAIN + MODEL_URLS[model]
-    model_path = ut.grab_file_url(url, appname='ibeis')
+    model_path = ut.grab_file_url(url, appname='ibeis', check_hash=True)
     model = Classifier_Model(model_path)
 
     print('[mnist] Create the JPCNN_network and start testing')

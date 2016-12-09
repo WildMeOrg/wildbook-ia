@@ -240,6 +240,46 @@ def get_annot_chip_thumbtup(ibs, aid_list, thumbsize=None, config2_=None):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_chip_thumb_path2(ibs, aid_list, thumbsize=None, config=None):
+    r"""
+    get chip thumb info
+    The return type of this is interpreted and computed in
+    ~/code/guitool/guitool/api_thumb_delegate.py
+
+    Args:
+        aid_list  (list):
+        thumbsize (int):
+
+    Returns:
+        list: thumbtup_list - [(thumb_path, img_path, imgsize, bboxes, thetas)]
+
+    CommandLine:
+        python -m ibeis.control.manual_chip_funcs --test-get_annot_chip_thumbtup
+
+    RESTful:
+        Method: GET
+        URL:    /api/chip/thumbtup/
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_chip_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[1:2]
+        >>> thumbsize = 128
+        >>> result = get_annot_chip_thumbtup(ibs, aid_list, thumbsize)
+        >>> print(result)
+    """
+    if thumbsize is not None:
+        config = {} if config is None else config.copy()
+        config['thumbsize'] = thumbsize
+    imgpath_list = ibs.depc_annot.get('chipthumb', aid_list, 'img',
+                                      config=config, read_extern=False)
+    return imgpath_list
+
+
+@register_ibs_method
 @accessor_decors.deleter
 # @register_api('/api/chip/', methods=['DELETE'])
 def delete_annot_chips(ibs, aid_list, config2_=None):

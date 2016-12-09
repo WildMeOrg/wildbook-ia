@@ -62,6 +62,7 @@ class _AnnotInfrViz(object):
             return infr._cmap
 
     def initialize_visual_node_attrs(infr, graph=None):
+        print('[infr] initialize_visual_node_attrs!!!')
         if infr.verbose >= 3:
             print('[infr] initialize_visual_node_attrs')
         import networkx as nx
@@ -71,7 +72,7 @@ class _AnnotInfrViz(object):
         aid_list = list(aid_to_node.keys())
         annot_nodes = ut.take(aid_to_node, aid_list)
         infr._viz_image_config = dict(in_image=False,
-                                      thumbsize=256)
+                                      thumbsize=221)
         # imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
         #                                        config=dict(dim_size=chip_width),
         #                                        read_extern=False)
@@ -416,7 +417,7 @@ class _AnnotInfrViz(object):
             # LAYOUT: update the positioning layout
             layoutkw = dict(prog='neato',
                             # splines='spline',
-                            # splines='line',
+                            splines='line',
                             sep=10 / 72, esep=1 / 72, nodesep=.1)
             layoutkw.update(kwargs)
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
