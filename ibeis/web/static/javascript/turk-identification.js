@@ -34,12 +34,12 @@ $(window).keydown(function(event) {
     }
     else if(key == 81)
     {
-      // Q key pressed + 4
-      $('#iia-turk-photobomb').trigger('click');
+      // Q key pressed
+      $('#ia-turk-photobomb').trigger('click');
     }
     else if(key == 87)
     {
-      // W key pressed + 5
+      // W key pressed
       $('#ia-turk-scenerymatch').trigger('click');
     }
     else if(key == 80)
