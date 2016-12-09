@@ -694,15 +694,19 @@ class _AnnotInfrFeedback(object):
             >>> infr.add_feedback(5, 6, 'match')
             >>> infr.add_feedback(5, 6, 'nomatch', ['Photobomb'])
             >>> infr.add_feedback(1, 2, 'notcomp')
-            >>> result = ut.repr2(infr.all_feedback(), nl=3)
+            >>> feedback = infr.all_feedback()
+            >>> for item in (item for vals in feedback.values() for item in vals):
+            >>>     if 'timestamp' in item:
+            >>>         item['timestamp'] = 'removed'
+            >>> result = ut.repr2(feedback, nl=2)
             >>> print(result)
             {
                 (1, 2): [
-                    ({'p_match': 0.0, 'p_nomatch': 0.0, 'p_notcomp': 1.0}, []),
+                    {'decision': 'notcomp', 'tags': [], 'timestamp': 'removed', 'user_confidence': None},
                 ],
                 (5, 6): [
-                    ({'p_match': 1.0, 'p_nomatch': 0.0, 'p_notcomp': 0.0}, []),
-                    ({'p_match': 0.0, 'p_nomatch': 1.0, 'p_notcomp': 0.0}, ['Photobomb']),
+                    {'decision': 'match', 'tags': [], 'timestamp': 'removed', 'user_confidence': None},
+                    {'decision': 'nomatch', 'tags': ['Photobomb'], 'timestamp': 'removed', 'user_confidence': None},
                 ],
             }
         """
