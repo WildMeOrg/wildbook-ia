@@ -1957,15 +1957,15 @@ def precompute_current_review_match_images(ibs, query_object,
                 # Make images
                 view_orientation = request.args.get('view_orientation', 'vertical')
                 try:
-                    image_matches = make_review_image(ibs, aid2_, cm, qreq_,
-                                                      view_orientation=view_orientation)
+                    make_review_image(ibs, aid2_, cm, qreq_,
+                                      view_orientation=view_orientation)
                 except KeyError:
                     success = False
                     traceback.print_exc()
                 try:
-                    image_clean = make_review_image(ibs, aid2_, cm, qreq_,
-                                                    view_orientation=view_orientation,
-                                                    draw_matches=False)
+                    make_review_image(ibs, aid2_, cm, qreq_,
+                                      view_orientation=view_orientation,
+                                      draw_matches=False)
                 except KeyError:
                     success = False
                     traceback.print_exc()
@@ -2205,7 +2205,6 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
 
                     with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
                         # lookup ChipMatch object
-                         =
                         qreq_ = query_object.qreq_
 
                     with ut.Timer('[web.routes.turk_identification] ... Get scores'):
