@@ -1939,27 +1939,39 @@ def precompute_current_review_match_images(ibs, query_object,
     from ibeis.web.apis_query import make_review_image
 
     review_aid1_list, review_aid2_list = query_object.get_filtered_edges(GLOBAL_FEEDBACK_CONFIG_DICT)
+    qreq_ = query_object.qreq_
 
     # Precompute
     zipped = zip(review_aid1_list, review_aid2_list)
     for index, (aid1, aid2) in enumerate(zipped):
         if index > global_feedback_limit * 2:
             break
-        cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
-        qreq_ = query_object.qreq_
-        try:
-            make_review_image(ibs, aid2, cm, qreq_,
-                              view_orientation=view_orientation)
-        except KeyError:
-            traceback.print_exc()
-            pass
-        try:
-            make_review_image(ibs, aid2, cm, qreq_,
-                              view_orientation=view_orientation,
-                              draw_matches=False)
-        except KeyError:
-            traceback.print_exc()
-            pass
+
+        cm_fallback_list = [
+            query_object.lookup_cm(aid1, aid2),
+            query_object.lookup_cm(aid2, aid1),
+        ]
+        for cm, aid1_, aid2_ in cm_fallback_list:
+            success = True
+            with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
+                # Make images
+                view_orientation = request.args.get('view_orientation', 'vertical')
+                try:
+                    image_matches = make_review_image(ibs, aid2_, cm, qreq_,
+                                                      view_orientation=view_orientation)
+                except KeyError:
+                    success = False
+                    traceback.print_exc()
+                try:
+                    image_clean = make_review_image(ibs, aid2_, cm, qreq_,
+                                                    view_orientation=view_orientation,
+                                                    draw_matches=False)
+                except KeyError:
+                    success = False
+                    traceback.print_exc()
+
+            if success:
+                break
 
 
 @register_ibs_method
@@ -2186,7 +2198,7 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
 
                     with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
                         # lookup ChipMatch object
-                        cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
+                         =
                         qreq_ = query_object.qreq_
 
                     with ut.Timer('[web.routes.turk_identification] ... Get scores'):
@@ -2198,26 +2210,37 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                         match_score = graph_dict.get('score', -1.0)
 
                     with ut.Timer('[web.routes.turk_identification] ... Make images'):
-                        with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
-                            # Make images
-                            view_orientation = request.args.get('view_orientation', 'vertical')
-                            try:
-                                image_matches = make_review_image(ibs, aid2, cm, qreq_,
-                                                                  view_orientation=view_orientation)
-                            except KeyError:
-                                image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
-                                traceback.print_exc()
-                            try:
-                                image_clean = make_review_image(ibs, aid2, cm, qreq_,
-                                                                view_orientation=view_orientation,
-                                                                draw_matches=False)
-                            except KeyError:
-                                image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
-                                traceback.print_exc()
+                        cm_fallback_list = [
+                            query_object.lookup_cm(aid1, aid2),
+                            query_object.lookup_cm(aid2, aid1),
+                        ]
+                        for cm, aid1_, aid2_ in cm_fallback_list:
+                            success = True
+                            with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
+                                # Make images
+                                view_orientation = request.args.get('view_orientation', 'vertical')
+                                try:
+                                    image_matches = make_review_image(ibs, aid2_, cm, qreq_,
+                                                                      view_orientation=view_orientation)
+                                except KeyError:
+                                    success = False
+                                    image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
+                                    traceback.print_exc()
+                                try:
+                                    image_clean = make_review_image(ibs, aid2_, cm, qreq_,
+                                                                    view_orientation=view_orientation,
+                                                                    draw_matches=False)
+                                except KeyError:
+                                    success = False
+                                    image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+                                    traceback.print_exc()
 
-                        with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
-                            image_matches_src = appf.embed_image_html(image_matches)
-                            image_clean_src = appf.embed_image_html(image_clean)
+                            with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
+                                image_matches_src = appf.embed_image_html(image_matches)
+                                image_clean_src = appf.embed_image_html(image_clean)
+
+                            if success:
+                                break
 
                     with ut.Timer('[web.routes.turk_identification] ... Process previous'):
                         # Get previous
