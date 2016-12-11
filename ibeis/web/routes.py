@@ -1957,15 +1957,15 @@ def precompute_current_review_match_images(ibs, query_object,
                 # Make images
                 view_orientation = request.args.get('view_orientation', 'vertical')
                 try:
-                    image_matches = make_review_image(ibs, aid2_, cm, qreq_,
-                                                      view_orientation=view_orientation)
+                    make_review_image(ibs, aid2_, cm, qreq_,
+                                      view_orientation=view_orientation)
                 except KeyError:
                     success = False
                     traceback.print_exc()
                 try:
-                    image_clean = make_review_image(ibs, aid2_, cm, qreq_,
-                                                    view_orientation=view_orientation,
-                                                    draw_matches=False)
+                    make_review_image(ibs, aid2_, cm, qreq_,
+                                      view_orientation=view_orientation,
+                                      draw_matches=False)
                 except KeyError:
                     success = False
                     traceback.print_exc()
