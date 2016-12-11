@@ -2198,7 +2198,6 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
 
                     with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
                         # lookup ChipMatch object
-                         =
                         qreq_ = query_object.qreq_
 
                     with ut.Timer('[web.routes.turk_identification] ... Get scores'):
