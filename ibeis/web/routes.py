@@ -1985,6 +1985,9 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
                                       global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
                                       **kwargs):
     """
+    CommandLine:
+        python -m ibeis.web.routes _init_identification_query_object
+
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.web.routes import *  # NOQA
@@ -2132,14 +2135,15 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
 def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_identification --db PZ_Master1
-        python -m ibeis.web.app --exec-turk_identification --db PZ_MTEST
+        python -m ibeis.web.routes turk_identification --db PZ_Master1
+        python -m ibeis.web.routes turk_identification --db PZ_MTEST
+        python -m ibeis.web.routes turk_identification --db testdb1 --show
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('PZ_MTEST')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')
         >>> resp = web_ibs.get('/turk/identification/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
