@@ -159,12 +159,21 @@ class PairwiseMatch(ut.NiceRepr):
             match.global_measures[key] = (match.annot1[key],
                                           match.annot2[key])
 
-    # def add_local_measures(match, local_keys):
-    #     if match.local_measures is None:
-    #         match.local_measures = {}
-    #     for key in local_keys:
-    #         match.local_measures[key] = (match.annot1[key],
-    #                                      match.annot2[key])
+    def add_local_measures(match, xy=True, scale=True):
+        import vtool as vt
+        if xy:
+            key_ = 'norm_xys'
+            norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
+            norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
+            match.local_measures['norm_x1'] = norm_xy1[0]
+            match.local_measures['norm_y1'] = norm_xy1[1]
+            match.local_measures['norm_x2'] = norm_xy2[0]
+            match.local_measures['norm_y2'] = norm_xy2[1]
+        if scale:
+            kpts1_m = match.annot1['kpts'].take(match.fm.T[0], axis=0)
+            kpts2_m = match.annot1['kpts'].take(match.fm.T[1], axis=0)
+            match.local_measures['scale1'] = vt.get_scales(kpts1_m)
+            match.local_measures['scale2'] = vt.get_scales(kpts2_m)
 
     def __nice__(match):
         parts = []
@@ -498,6 +507,16 @@ def ensure_metadata_vsone(annot1, annot2, cfgdict={}):
     ensure_metadata_flann(annot2, cfgdict=cfgdict)
     ensure_metadata_dlen_sqrd(annot2)
     pass
+
+
+def ensure_metadata_normxy(annot, cfgdict={}):
+    import vtool as vt
+    if 'norm_xys' not in annot:
+        def eval_normxy():
+            xys = vt.get_xys(annot['kpts'])
+            chip_wh = np.array(annot['chip_size'])[:, None]
+            return xys / chip_wh
+        annot.set_lazy_func('norm_xys', eval_normxy)
 
 
 def ensure_metadata_feats(annot, suffix='', cfgdict={}):

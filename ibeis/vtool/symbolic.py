@@ -159,6 +159,35 @@ def sympy_numpy_repr(expr1):
     #autopep8.fix_code(expr1_repr)
 
 
+"""
+Symbolic Scrap Work:
+The number of negative reviews needed is usually much larger than the number of
+positive reviews.
+
+import sympy
+from sympy.abc import theta
+import sympy.stats
+from sympy.stats import E as mean
+items = sympy.symbols('a, b, c, d')
+
+from sympy.stats import FiniteRV, P, E
+density = {0: .1, 1: .2, 2: .3, 3: .4}
+X = FiniteRV('X', density)
+
+cs = sympy.stats.FiniteRV(str('X'), {0: .5, 1: .5})
+
+cs = [[None] * np.random.randint(10) for _ in range(1)]
+print(sum(len(c) - 1 for c in cs))
+print(np.mean([len(c) for c in cs]) * len(cs) - len(cs))
+
+ori = theta
+x, y, iv11, iv21, iv22, patch_size = sympy.symbols('x y iv11 iv21 iv22 S')
+
+
+
+"""
+
+
 if __name__ == '__main__':
     """
     CommandLine:
