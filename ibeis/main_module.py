@@ -320,9 +320,11 @@ def opendb_in_background(*args, **kwargs):
     import time
     sec = kwargs.pop('wait', 0)
     if sec != 0:
+        raise AssertionError('wait is depricated')
         print('waiting %s seconds for startup' % (sec,))
     proc = ut.spawn_background_process(opendb, *args, **kwargs)
     if sec != 0:
+        raise AssertionError('wait is depricated')
         time.sleep(sec)  # wait for process to initialize
     return proc
 
@@ -332,10 +334,16 @@ def opendb_bg_web(*args, **kwargs):
     Wrapper around opendb_in_background, returns a nice web_ibs
     object to execute web calls using normal python-like syntax
 
-    Accespts domain and port as kwargs
+    Args:
+        *args: passed to opendb_in_background
+        **kwargs:
+            port (int):
+            domain (str): if specified assumes server is already running
+                somewhere otherwise kwargs is passed to opendb_in_background
+            start_job_queue (bool)
 
-    Kwargs:
-        port, domain
+    Returns:
+        web_ibs - this is a KillableProcess object with special functions
 
     CommandLine:
         python -m ibeis.main_module opendb_bg_web
@@ -343,6 +351,8 @@ def opendb_bg_web(*args, **kwargs):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.main_module import *  # NOQA
+        >>> args = tuple()
+        >>> kwargs = {}
         >>> print('Opening a web_ibs')
         >>> web_ibs = opendb_bg_web()
         >>> print('SUCESS Opened a web_ibs!')
@@ -351,9 +361,9 @@ def opendb_bg_web(*args, **kwargs):
         >>> web_ibs.terminate2()
     """
     import utool as ut
-    kwargs = kwargs.copy()
+    from ibeis.web import appfuncs
     domain = kwargs.pop('domain', ut.get_argval('--domain', type_=str, default=None))
-    port = kwargs.pop('port', 6000)
+    port = kwargs.pop('port', appfuncs.DEFAULT_WEB_API_PORT)
 
     if 'wait' in kwargs:
         print('NOTE: No need to specify wait param anymore. '
@@ -378,6 +388,14 @@ def opendb_bg_web(*args, **kwargs):
     web_ibs.domain = domain
     web_ibs.port = port
     web_ibs.baseurl = baseurl
+
+    def get(suffix, **kwargs):
+        import requests
+        return requests.get(baseurl + suffix)
+
+    def post(suffix, **kwargs):
+        import requests
+        return requests.post(baseurl + suffix)
 
     def send_ibeis_request(suffix, type_='post', **kwargs):
         """
@@ -432,12 +450,14 @@ def opendb_bg_web(*args, **kwargs):
     web_ibs.wait_for_results = wait_for_results
     web_ibs.read_engine_results = read_engine_results
     web_ibs.send_request_and_wait = send_request_and_wait
+    web_ibs.get = get
+    web_ibs.post = post
 
     def wait_until_started():
         """ waits until the web server responds to a request """
         import requests
         for count in ut.delayed_retry_gen([1], timeout=15):
-            if ut.VERBOSE:
+            if True or ut.VERBOSE:
                 print('Waiting for server to be up. count=%r' % (count,))
             try:
                 web_ibs.send_ibeis_request('/api/test/heartbeat/', type_='get')
@@ -446,6 +466,28 @@ def opendb_bg_web(*args, **kwargs):
                 pass
     wait_until_started()
     return web_ibs
+
+
+def opendb_fg_web(*args, **kwargs):
+    """
+    Example:
+        >>> from ibeis.main_module import *  # NOQA
+        >>> kwargs = {'db': 'testdb1'}
+        >>> args = tuple()
+
+        >>> import ibeis
+        >>> ibs = ibeis.opendb_fg_web()
+
+    """
+    # Gives you context inside the web app for testing
+    kwargs['start_web_loop'] = False
+    kwargs['web'] = True
+    kwargs['browser'] = False
+    ibs = opendb(*args, **kwargs)
+    from ibeis.control import controller_inject
+    app = controller_inject.get_flask_app()
+    ibs.app = app
+    return ibs
 
 
 def opendb(db=None, dbdir=None, defaultdb='cache', allow_newdir=False,

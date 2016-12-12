@@ -271,12 +271,13 @@ class _ChipMatchVisualization(object):
         return _
 
     def show_single_annotmatch(cm, qreq_, daid=None, fnum=None, pnum=None,
-                               homog=ut.get_argflag('--homog'), aid2=None, **kwargs):
-        """
+                               homog=False, aid2=None, **kwargs):
+        r"""
         TODO: rename daid to aid2
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match show_single_annotmatch --show
+            python -m ibeis.algo.hots.chip_match show_single_annotmatch:0 --show
+            python -m ibeis.algo.hots.chip_match show_single_annotmatch:1 --show
 
             python -m ibeis.algo.hots.chip_match show_single_annotmatch --show --qaids=5245 --daids=5161 --db PZ_Master1
 
@@ -287,6 +288,18 @@ class _ChipMatchVisualization(object):
             >>> cm = cm_list[0]
             >>> cm.score_nsum(qreq_)
             >>> daid = cm.groundtruth_daids[0]
+            >>> ut.quit_if_noshow()
+            >>> cm.show_single_annotmatch(qreq_, daid)
+            >>> ut.show_if_requested()
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.chip_match import *  # NOQA
+            >>> # Make sure we can show results against an aid that wasn't matched
+            >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
+            >>> cm = cm_list[0]
+            >>> cm.score_nsum(qreq_)
+            >>> daid = ut.setdiff(qreq_.daids, cm.daid_list)[0]
             >>> ut.quit_if_noshow()
             >>> cm.show_single_annotmatch(qreq_, daid)
             >>> ut.show_if_requested()
@@ -302,7 +315,11 @@ class _ChipMatchVisualization(object):
             idx = cm.argsort()[0]
             daid = cm.daid_list[idx]
         else:
-            idx = cm.daid2_idx[daid]
+            try:
+                idx = cm.daid2_idx[daid]
+            except KeyError:
+                cm = cm.extend_results(qreq_)
+                idx = cm.daid2_idx[daid]
         fm   = cm.fm_list[idx]
         H1   = None if not homog or cm.H_list is None else cm.H_list[idx]
         fsv  = None if cm.fsv_list is None else cm.fsv_list[idx]

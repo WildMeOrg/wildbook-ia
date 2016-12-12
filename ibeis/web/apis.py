@@ -235,7 +235,8 @@ def hello_world(*args, **kwargs):
         >>> # WEB_DOCTEST
         >>> from ibeis.web.app import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web(browser=True, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
+        >>> web_ibs = ibeis.opendb_bg_web(browser=True, start_job_queue=False, url_suffix='/api/test/helloworld/?test0=0')  # start_job_queue=False)
+        >>> print('web_ibs = %r' % (web_ibs,))
         >>> print('Server will run until control c')
         >>> #web_ibs.terminate2()
 
