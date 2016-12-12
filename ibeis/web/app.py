@@ -30,7 +30,8 @@ def tst_html_error():
     pass
 
 
-def start_tornado(ibs, port=None, browser=None, url_suffix=None):
+def start_tornado(ibs, port=None, browser=None, url_suffix=None,
+                  start_web_loop=True):
     """
         Initialize the web server
     """
@@ -73,7 +74,8 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None):
             message = 'The port specified for the IBEIS web interface is ' + \
                       'not available. (Hint: port %d is available)' % args
             raise RuntimeError(message)
-        tornado.ioloop.IOLoop.instance().start()
+        if start_web_loop:
+            tornado.ioloop.IOLoop.instance().start()
 
     # Set logging level
     logging.getLogger().setLevel(logging.INFO)
@@ -85,7 +87,8 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None):
 
 
 def start_from_ibeis(ibs, port=None, browser=None, precache=None,
-                     url_suffix=None, start_job_queue=True):
+                     url_suffix=None, start_job_queue=True,
+                     start_web_loop=True):
     """
     Parse command line options and start the server.
 
@@ -119,11 +122,12 @@ def start_from_ibeis(ibs, port=None, browser=None, precache=None,
 
     print('[web] starting tornado')
     try:
-        start_tornado(ibs, port, browser, url_suffix)
+        start_tornado(ibs, port, browser, url_suffix, start_web_loop)
     except KeyboardInterrupt:
         print('Caught ctrl+c in webserver. Gracefully exiting')
-    print('[web] closing job manager')
-    ibs.close_job_manager()
+    if start_web_loop:
+        print('[web] closing job manager')
+        ibs.close_job_manager()
 
 
 def start_web_annot_groupreview(ibs, aid_list):

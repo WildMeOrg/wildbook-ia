@@ -440,6 +440,79 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.signal_state_update.connect(self.update_state,
                                          type=connection_type)
 
+    def initialize_api_tabs(self):
+        self.api_tabs = {}
+        self.api_widgets = {}
+
+        def _add_item_widget_tab(key, view_class='table'):
+            title = key.title().replace('_', ' ')
+            self.api_tabs[key] = self.graph_tab_widget.addNewTab(title)
+            self.api_widgets[key] = gt.APIItemWidget(view_class=view_class)
+            self.api_tabs[key].addWidget(self.api_widgets[key])
+
+        _add_item_widget_tab('edges')
+        _add_item_widget_tab('nodes')
+        _add_item_widget_tab('name_nodes', view_class='tree')
+        _add_item_widget_tab('name_edges', view_class='tree')
+
+        edge_view = self.api_widgets['edges'].view
+        edge_view.doubleClicked.connect(self.edge_doubleclick)
+        edge_view.contextMenuClicked.connect(self.edge_context)
+        edge_view.connect_keypress_to_slot(self.edge_keypress)
+        edge_view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
+
+    def populate_edge_model(self):
+        print('[viz_graph] populate_edge_model')
+        # if self.init_mode is None:
+        #     self.review_cfg['show_match_thumb'] = False
+        key = 'edges'
+        tab = self.api_tabs[key]
+        widget = self.api_widgets[key]
+        api = make_edge_api(self.infr, review_cfg=self.review_cfg)
+        title = key.title().replace('_', ' ')
+        headers = api.make_headers(tblnice=title)
+        widget.change_headers(headers)
+        widget.resize_headers(api)
+        widget.view.verticalHeader().setVisible(True)
+        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+        widget.view.verticalHeader().setDefaultSectionSize(221)
+
+    def populate_node_model(self):
+        print('[viz_graph] populate_node_model')
+        api = make_node_api(self.infr)
+        key = 'nodes'
+        tab = self.api_tabs[key]
+        widget = self.api_widgets[key]
+        title = key.title().replace('_', ' ')
+        headers = api.make_headers(tblnice=title)
+        widget.change_headers(headers)
+        widget.view.verticalHeader().setVisible(True)
+        try:
+            widget.view.verticalHeader().setMovable(True)
+        except AttributeError:
+            widget.view.verticalHeader().setSectionsMovable(True)
+        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+
+    def populate_name_node_model(self):
+        api = make_name_node_api(self.infr, review_cfg=self.review_cfg)
+        key = 'name_nodes'
+        tab = self.api_tabs[key]
+        widget = self.api_widgets[key]
+        title = key.title().replace('_', ' ')
+        headers = api.make_headers(tblnice=title)
+        widget.change_headers(headers)
+        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+
+    def populate_name_edge_model(self):
+        api = make_name_edge_api(self.infr, review_cfg=self.review_cfg)
+        key = 'name_edges'
+        tab = self.api_tabs[key]
+        widget = self.api_widgets[key]
+        title = key.title().replace('_', ' ')
+        headers = api.make_headers(tblnice=title)
+        widget.change_headers(headers)
+        tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
+
     def initialize(self, infr=None, use_image=False, init_mode='rereview',
                    review_cfg=None):
         print('[viz_graph] initialize')
@@ -477,8 +550,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.menuFile.newAction(triggered=self.expand_image_and_names)
         self.menuFile.newAction(triggered=self.emit_state_update)
 
-        graph_tables_widget = self.addNewTabWidget(verticalStretch=1)
-        self.graph_tables_widget = graph_tables_widget
+        self.graph_tab_widget = self.addNewTabWidget(verticalStretch=1)
 
         self.statbar1 = self.addNewWidget(
             orientation='horiz', verticalStretch=1, margin=1, spacing=1)
@@ -487,24 +559,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         self.prog_bar = self.addNewProgressBar(visible=False)
 
-        self.edge_tab = graph_tables_widget.addNewTab('Edges')
-        self.node_tab = graph_tables_widget.addNewTab('Nodes')
-        self.name_tab = graph_tables_widget.addNewTab('Names')
-
-        self.node_api_widget = gt.APIItemWidget()
-        self.edge_api_widget = gt.APIItemWidget()
-        self.name_api_widget = gt.APIItemWidget(view_class='tree')
-
-        self.node_tab.addWidget(self.node_api_widget)
-        self.edge_tab.addWidget(self.edge_api_widget)
-        self.name_tab.addWidget(self.name_api_widget)
-
-        edge_view = self.edge_api_widget.view
-
-        edge_view.doubleClicked.connect(self.edge_doubleclick)
-        edge_view.contextMenuClicked.connect(self.edge_context)
-        edge_view.connect_keypress_to_slot(self.edge_keypress)
-        edge_view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
+        self.initialize_api_tabs()
 
         self.statbar1.addNewButton('Match and Score', min_width=1,
                                    pressed=self.match_and_score_edges)
@@ -531,7 +586,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         _show_graph = True
         if _show_graph:
             # TODO: separate graph view into its own class
-            self.graph_tab = graph_tables_widget.addNewTab('Graph')
+            self.graph_tab = self.graph_tab_widget.addNewTab('Graph')
             # TODO: make this its own proper widget
             self.graph_widget = DevGraphWidget(parent=self, self_parent=self,
                                                use_image=use_image)
@@ -576,9 +631,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.repopulate()
 
         if ut.get_argflag('--graph'):
-            index = self.graph_tables_widget.indexOf(self.graph_tab)
-            self.graph_tables_widget.setCurrentIndex(index)
-            # self.graph_tables_widget.setCurrentIndex(2)
+            index = self.graph_tab_widget.indexOf(self.graph_tab)
+            self.graph_tab_widget.setCurrentIndex(index)
+            # self.graph_tab_widget.setCurrentIndex(2)
 
     def repopulate(self):
         # self.update_state(structure_changed=True)
@@ -636,12 +691,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         if structure_changed:
             self.populate_node_model()
             self.populate_edge_model()
-            self.populate_name_model()
+            self.populate_name_node_model()
+            self.populate_name_edge_model()
         if self.graph_widget is not None:
             self.graph_widget.emit_graph_update()
 
-        self.edge_api_widget.model.layoutChanged.emit()
-        self.node_api_widget.model.layoutChanged.emit()
+        for widget in self.api_widgets.values():
+            widget.model.layoutChanged.emit()
 
     def apply_scores(self):
         with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
@@ -766,45 +822,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.review_cfg = updated_config.asdict()
         self.repopulate()
 
-    def populate_node_model(self):
-        print('[viz_graph] populate_node_model')
-        node_api = make_node_api(self.infr)
-        headers = node_api.make_headers(tblnice='Nodes')
-        self.node_api_widget.change_headers(headers)
-        self.node_api_widget.view.verticalHeader().setVisible(True)
-        try:
-            self.node_api_widget.view.verticalHeader().setMovable(True)
-        except AttributeError:
-            self.node_api_widget.view.verticalHeader().setSectionsMovable(True)
-
-        self.node_tab.setTabText('Nodes (%r)' % (self.node_api_widget.model.num_rows_total))
-        return node_api
-
-    def populate_name_model(self):
-        name_api = make_name_api(self.infr, review_cfg=self.review_cfg)
-        headers = name_api.make_headers(tblnice='Edges')
-        self.name_api_widget.change_headers(headers)
-        # self.edge_api_widget.resize_headers(edge_api)
-        # self.edge_api_widget.view.verticalHeader().setVisible(True)
-        # self.edge_tab.setTabText('Edges (%r)' % (self.edge_api_widget.model.num_rows_total))
-        # self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
-
-    def populate_edge_model(self):
-        print('[viz_graph] populate_edge_model')
-        # if self.init_mode is None:
-        #     self.review_cfg['show_match_thumb'] = False
-
-        edge_api = make_edge_api(self.infr, review_cfg=self.review_cfg)
-        headers = edge_api.make_headers(tblnice='Edges')
-        self.edge_api_widget.change_headers(headers)
-        self.edge_api_widget.resize_headers(edge_api)
-        self.edge_api_widget.view.verticalHeader().setVisible(True)
-        self.edge_tab.setTabText('Edges (%r)' % (self.edge_api_widget.model.num_rows_total))
-        self.edge_api_widget.view.verticalHeader().setDefaultSectionSize(221)
-
     def edge_doubleclick(self, qtindex):
         """
-        qtindex = qtindex = self.edge_api_widget.view.get_row_and_qtindex_from_id(1)[0]
+        qtindex = qtindex = self.api_widgets['edges'].view.get_row_and_qtindex_from_id(1)[0]
         """
         print('[viz_graph] _on_doubleclick: ')
         print('[viz_graph] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
@@ -827,7 +847,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.emit_state_update(disable_global_update=True)
 
     def get_edge_options(self):
-        view = self.edge_api_widget.view
+        view = self.api_widgets['edges'].view
         selected_qtindex_list = view.selectedRows()
 
         def _pairs():
@@ -894,7 +914,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def edge_keypress(self, view, event):
         """
-        view = self.edge_api_widget.view
+        view = self.api_widgets['edges'].view
         """
         event_key = event.key()
         options = self.get_edge_options()
@@ -1122,7 +1142,73 @@ def make_node_api(infr):
     return node_api
 
 
-def make_name_api(infr, review_cfg={}):
+def make_name_edge_api(infr, review_cfg={}):
+    # TODO: only make this API if the tab is clicked
+    node_to_name = infr.get_node_attrs('name_label')
+    name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
+
+    name_to_edges = {name: list(infr.graph.subgraph(nodes).edges())
+                     for name, nodes in name_to_nodes.items()}
+
+    # utool.embed()
+    names = list(name_to_edges.keys())
+    flat_edges, grouped_edge_idxs = ut.invertible_flatten1(name_to_edges.values())
+    col_name_list = [
+        'name_label',
+        'n_edges',
+        'thumb1',
+        'thumb2',
+        'aid1',
+        'aid2',
+    ]
+    col_level_dict = {
+        'name_label': 0,
+        'n_edges': 0,
+        'aid1': 1,
+        'aid2': 1,
+        'thumb1': 1,
+        'thumb2': 1,
+    }
+    iders = [
+        list(range(len(names))),
+        grouped_edge_idxs,
+    ]
+    col_getter_dict = {
+        'name_label': names,
+        'n_edges': list(map(len, grouped_edge_idxs)),
+        'aid1': ut.take_column(flat_edges, 0),
+        'aid2': ut.take_column(flat_edges, 1),
+        'thumb1': infr.ibs.get_annot_chip_thumbtup,
+        'thumb2': infr.ibs.get_annot_chip_thumbtup,
+    }
+    col_ider_dict = {
+        'thumb1': 'aid1',
+        'thumb2': 'aid2',
+    }
+    col_types_dict = {
+        'thumb2': 'PIXMAP',
+        'thumb1': 'PIXMAP',
+    }
+    name_api = gt.CustomAPI(
+        col_name_list,
+        iders=iders,
+        # col_types_dict=col_types_dict,
+        col_ider_dict=col_ider_dict,
+        col_getter_dict=col_getter_dict,
+        col_types_dict=col_types_dict,
+        # col_bgrole_dict=col_bgrole_dict,
+        # col_display_role_func_dict=col_display_role_func_dict,
+        # col_width_dict=col_width_dict,
+        # get_thumb_size=lambda: 221,
+        col_level_dict=col_level_dict,
+        sortby='n_edges',
+        #sortby='aid1',
+        # sort_reverse=True
+    )
+    return name_api
+
+
+def make_name_node_api(infr, review_cfg={}):
     # TODO: only make this API if the tab is clicked
     node_to_name = infr.get_node_attrs('name_label')
     name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
@@ -1528,8 +1614,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     win.show()
 
     if graph_tab:
-        index = win.graph_tables_widget.indexOf(win.graph_tab)
-        win.graph_tables_widget.setCurrentIndex(index)
+        index = win.graph_tab_widget.indexOf(win.graph_tab)
+        win.graph_tab_widget.setCurrentIndex(index)
         print('win.graph_widget.use_image_cb.setChecked = %r' % (win.graph_widget.use_image_cb.setChecked,))
         win.graph_widget.use_image_cb.setChecked(True)
 

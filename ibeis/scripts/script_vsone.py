@@ -1228,6 +1228,40 @@ def build_features(qreq_, hyper_params):
     return aid_pairs, simple_scores, X_dict, y, match
 
 
+def demo_single_pairwise_feature_vector():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.script_vsone demo_single_pairwise_feature_vector
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.script_vsone import *  # NOQA
+        >>> result = demo_single_pairwise_feature_vector()
+        >>> print(result)
+    """
+    import vtool as vt
+    import ibeis
+    ibs = ibeis.opendb('testdb1')
+    qaid, daid = 1, 2
+    annot1 = ibs.annots([qaid])[0]._make_lazy_dict()
+    annot2 = ibs.annots([daid])[0]._make_lazy_dict()
+
+    vt.matching.ensure_metadata_normxy(annot1)
+    vt.matching.ensure_metadata_normxy(annot2)
+
+    match = vt.PairwiseMatch(annot1, annot2)
+    cfgdict = {'checks': 200, 'symmetric': False}
+    match.assign(cfgdict=cfgdict)
+    match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
+    match.apply_sver(inplace=True)
+
+    match.add_global_measures(['yaw', 'qual', 'gps', 'time'])
+    match.add_local_measures()
+
+    # sorters = ['ratio', 'norm_dist', 'match_dist']
+    match.make_feature_vector()
+
+
 def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
            configured_obj_annots, hyper_params):
     # Do vectorized preload before constructing lazy dicts
@@ -1260,13 +1294,12 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
     flann_params = {'algorithm': 'kdtree', 'trees': 4}
     for annot in ut.ProgIter(unique_lazy_annots, label='lazy flann'):
         vt.matching.ensure_metadata_flann(annot, flann_params)
+        vt.matching.ensure_metadata_normxy(annot)
 
     for annot in ut.ProgIter(unique_lazy_annots, 'preload kpts'):
         annot['kpts']
-
-    for annot in ut.ProgIter(unique_lazy_annots, 'normxy'):
-        annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
-                             np.array(annot['chip_size'])[:, None])
+    for annot in ut.ProgIter(unique_lazy_annots, 'preload normxy'):
+        annot['norm_xys']
     for annot in ut.ProgIter(unique_lazy_annots, 'preload vecs'):
         annot['vecs']
 
@@ -1305,18 +1338,19 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
 
     # Add keypoint spatial information to local features
     for match in matches_RAT:
-        key_ = 'norm_xys'
-        norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
-        norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
-        match.local_measures['norm_x1'] = norm_xy1[0]
-        match.local_measures['norm_y1'] = norm_xy1[1]
-        match.local_measures['norm_x2'] = norm_xy2[0]
-        match.local_measures['norm_y2'] = norm_xy2[1]
+        match.add_local_meausres()
+        # key_ = 'norm_xys'
+        # norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
+        # norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
+        # match.local_measures['norm_x1'] = norm_xy1[0]
+        # match.local_measures['norm_y1'] = norm_xy1[1]
+        # match.local_measures['norm_x2'] = norm_xy2[0]
+        # match.local_measures['norm_y2'] = norm_xy2[1]
 
-        match.local_measures['scale1'] = vt.get_scales(
-            match.annot1['kpts'].take(match.fm.T[0], axis=0))
-        match.local_measures['scale2'] = vt.get_scales(
-            match.annot2['kpts'].take(match.fm.T[1], axis=0))
+        # match.local_measures['scale1'] = vt.get_scales(
+        #     match.annot1['kpts'].take(match.fm.T[0], axis=0))
+        # match.local_measures['scale2'] = vt.get_scales(
+        #     match.annot2['kpts'].take(match.fm.T[1], axis=0))
 
     # TODO gridsearch over sv params
     # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_sver', {

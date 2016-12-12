@@ -1953,15 +1953,15 @@ def precompute_current_review_match_images(ibs, query_object,
         ]
         for cm, aid1_, aid2_ in cm_fallback_list:
             success = True
-            with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
+            with ut.Timer('[web.routes.turk_identification] ... ... Render images1'):
                 # Make images
-                view_orientation = request.args.get('view_orientation', 'vertical')
                 try:
                     make_review_image(ibs, aid2_, cm, qreq_,
                                       view_orientation=view_orientation)
                 except KeyError:
                     success = False
                     traceback.print_exc()
+                    raise
                 try:
                     make_review_image(ibs, aid2_, cm, qreq_,
                                       view_orientation=view_orientation,
@@ -1969,6 +1969,7 @@ def precompute_current_review_match_images(ibs, query_object,
                 except KeyError:
                     success = False
                     traceback.print_exc()
+                    raise
 
             if success:
                 break
@@ -1983,7 +1984,19 @@ def load_identification_query_object_worker(ibs, **kwargs):
 def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
                                       global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
                                       **kwargs):
-    from ibeis.algo.hots.graph_iden import AnnotInference
+    """
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.web.routes import *  # NOQA
+        >>> from ibeis.web.routes import _init_identification_query_object
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> ut.exec_funckw(_init_identification_query_object, locals())
+        >>> kwargs = {}
+        >>> _init_identification_query_object(ibs)
+
+    """
+    from ibeis.algo.hots import graph_iden
     aid_list = ibs.get_valid_aids()
 
     wanted_set = set(['right', 'frontright', 'backright'])
@@ -1993,33 +2006,37 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
 
     nids = aid_list if debug_ignore_name_gt else None
-    query_object = AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
+
+    query_object = graph_iden.AnnotInference(ibs, aid_list, nids=nids,
+                                             autoinit=True)
 
     # Add some feedback
-    # query_object.reset_feedback()
-    # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+    if True:
+        query_object.reset_feedback('staging')
+    else:
+        # query_object.reset_feedback()
+        # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+        review_rowids_list = ibs.get_review_rowids_from_only(aid_list)
+        flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
+        # Lookup data based on flattened rowids
+        flat_decisions = ibs.get_review_decision(flat_rowids)
+        flat_tags = ibs.get_review_tags(flat_rowids)
+        flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
+        # # Reshape to original grouping (Actually, no need)
+        # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
+        # decision_groups = ut.unflatten2(flat_decisions, offsets)
+        # tags_groups = ut.unflatten2(flat_tags, offsets)
 
-    review_rowids_list = ibs.get_review_rowids_from_only(aid_list)
-    flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
-    # Lookup data based on flattened rowids
-    flat_decisions = ibs.get_review_decision(flat_rowids)
-    flat_tags = ibs.get_review_tags(flat_rowids)
-    flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
-    # # Reshape to original grouping (Actually, no need)
-    # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
-    # decision_groups = ut.unflatten2(flat_decisions, offsets)
-    # tags_groups = ut.unflatten2(flat_tags, offsets)
-
-    # for tup in zip(aids_groups, decision_groups, tags_groups):
-    # for (aid1, aid2), decision, tags in zip(*tup):
-    zipped = zip(flat_aid_tuples, flat_decisions, flat_tags)
-    for (aid1, aid2), decision, tags in zipped:
-        # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
-        try:
-            state = const.REVIEW_INT_TO_CODE[decision]
-            query_object.add_feedback(aid1, aid2, state, tags)
-        except ValueError:
-            pass
+        # for tup in zip(aids_groups, decision_groups, tags_groups):
+        # for (aid1, aid2), decision, tags in zip(*tup):
+        zipped = zip(flat_aid_tuples, flat_decisions, flat_tags)
+        for (aid1, aid2), decision, tags in zipped:
+            # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
+            try:
+                state = const.REVIEW_INT_TO_CODE[decision]
+                query_object.add_feedback(aid1, aid2, state, tags)
+            except ValueError:
+                pass
     query_object.apply_feedback_edges()
 
     # Exec matching
@@ -2034,6 +2051,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     # fig.savefig('/Users/bluemellophone/Desktop/temp.png')
 
     print('Precomputing match images')
+    # view_orientation = request.args.get('view_orientation', 'vertical')
     precompute_current_review_match_images(ibs, query_object,
                                            global_feedback_limit=global_feedback_limit,
                                            view_orientation='vertical')
@@ -2078,7 +2096,6 @@ def load_identification_query_object(autoinit=False,
     return query_object
 
 
-@register_ibs_method
 def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
     ibs = current_app.ibs
 
@@ -2129,10 +2146,13 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
         >>> # SCRIPT
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
-        >>> aid_list_ = ibs.find_unlabeled_name_members(suspect_yaws=True)
-        >>> aid_list = ibs.filter_aids_to_quality(aid_list_, 'good', unknown_ok=False)
-        >>> ibs.start_web_annot_groupreview(aid_list)
+        >>> web_ibs = ibeis.opendb_bg_web('PZ_MTEST')
+        >>> resp = web_ibs.get('/turk/identification/')
+        >>> web_ibs.terminate2()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.render_html(resp.content)
+        >>> ut.show_if_requested()
     """
     from ibeis.web.apis_query import make_review_image
 
@@ -2147,7 +2167,6 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
             engine_computed = True
 
         if engine_computed:
-
             # ibs.depc_annot.get_rowids('chips', ibs.get_valid_aids())
             # ibs.depc_annot.get_rowids('probchip', ibs.get_valid_aids())
 
@@ -2222,7 +2241,7 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                         ]
                         for cm, aid1_, aid2_ in cm_fallback_list:
                             success = True
-                            with ut.Timer('[web.routes.turk_identification] ... ... Render images'):
+                            with ut.Timer('[web.routes.turk_identification] ... ... Render images2'):
                                 # Make images
                                 view_orientation = request.args.get('view_orientation', 'vertical')
                                 try:
