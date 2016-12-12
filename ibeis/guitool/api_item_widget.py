@@ -418,8 +418,8 @@ class CustomAPI(object):
 
 
 class APIItemWidget(WIDGET_BASE):
-    """ SIMPLE WIDGET WHICH AUTO-CREATES MODEL AND VIEW FOR YOU.
-    TODO: Deprecate this except for as an example.
+    """
+    SIMPLE WIDGET WHICH AUTO-CREATES MODEL AND VIEW FOR YOU.
     """
 
     def __init__(widget, headers=None, parent=None,
@@ -429,6 +429,10 @@ class APIItemWidget(WIDGET_BASE):
         if isinstance(view_class, six.string_types):
             if view_class == 'tree':
                 view_class = APITreeView
+            elif view_class == 'table':
+                view_class = APITableView
+            else:
+                raise ValueError('Unknown view_class=%r' % (view_class,))
         # Create vertical layout for the table to go into
         widget.vert_layout = QtWidgets.QVBoxLayout(widget)
         # Create a ColumnListTableView for the AbstractItemModel
@@ -504,7 +508,6 @@ class APIItemWidget(WIDGET_BASE):
             #widget.change_headers(widget.api.make_headers())
         if VERBOSE_ITEM_WIDGET:
             print('context request')
-        pass
 
 
 if __name__ == '__main__':
