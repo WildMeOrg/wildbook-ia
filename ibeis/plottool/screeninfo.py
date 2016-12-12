@@ -117,6 +117,14 @@ def get_resolution_info(monitor_num=0):
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
     ensure_app_is_running()
+    import guitool as gt
+
+    app = gt.ensure_qapp()[0]
+    screen_resolution = app.desktop().screenGeometry()
+    width, height = screen_resolution.width(), screen_resolution.height()
+    print('height = %r' % (height,))
+    print('width = %r' % (width,))
+
     desktop = QtWidgets.QDesktopWidget()
     screen = desktop.screen(monitor_num)
     ppi_x = screen.logicalDpiX()
@@ -126,6 +134,10 @@ def get_resolution_info(monitor_num=0):
     rect = desktop.availableGeometry(screen=monitor_num)
     pixels_w = rect.width()
     pixels_h = rect.height()
+
+    pt = screen.pos()
+    # pt = screen.mapToGlobal(pt)
+    off_x, off_y = pt.x(), pt.y()
 
     inches_w = (pixels_w / dpi_x)
     inches_h = (pixels_h / dpi_y)
@@ -140,6 +152,8 @@ def get_resolution_info(monitor_num=0):
     #pixel_density = dpi_x / ppi_x
     info = ut.odict([
         ('monitor_num', monitor_num),
+        ('off_x', off_x),
+        ('off_y', off_y),
         ('ratio', ratio),
         ('ppi_x', ppi_x),
         ('ppi_y', ppi_y),
