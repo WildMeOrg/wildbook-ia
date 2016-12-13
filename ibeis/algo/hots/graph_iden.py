@@ -817,7 +817,6 @@ class _AnnotInfrFeedback(object):
 
         # Put pair orders in context of the graph
         infr._set_feedback_edges(feedback_edges, decision_list, p_same_list, tags_list, num_review_list)
-        # infr.set_edge_attrs('num_reviews', _dz(unique_pairs, num_review_list))
 
     @profile
     def _dynamically_apply_feedback(infr, edge, feedback_item):
@@ -1207,7 +1206,11 @@ class _AnnotInfrMatching(object):
         """
         Constructs training data for a pairwise classifier
 
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden _cm_training_pairs
+
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching(cfgdict={
@@ -1219,7 +1222,10 @@ class _AnnotInfrMatching(object):
             >>> })
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> exec(ut.execstr_funckw(infr._cm_training_pairs))
-            >>> infr._cm_training_pairs()
+            >>> rng = np.random.RandomState(42)
+            >>> aid_pairs = np.array(infr._cm_training_pairs(rng=rng))
+            >>> print(len(aid_pairs))
+            >>> assert np.sum(aid_pairs.T[0] == aid_pairs.T[1]) == 0
         """
         cm_list = infr.cm_list
         qreq_ = infr.qreq_
@@ -1246,7 +1252,7 @@ class _AnnotInfrMatching(object):
             rand_gf_aids = ut.random_sample(_gf_aids, rand_gf, rng=rng).tolist()
             chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids +
                                      rand_gt_aids)
-            aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids])
+            aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids if cm.qaid != aid])
 
         return aid_pairs
 
@@ -1597,6 +1603,8 @@ class _AnnotInfrUpdates(object):
                     print('name_edge = %r' % (name_edge,))
                     cat = name_edge_to_category.get(name_edge, None)
                     print('cat = %r' % (cat,))
+                import utool
+                utool.embed()
                 raise AssertionError('edges not the same')
 
         # Update the attributes of all edges in the subgraph
@@ -2241,6 +2249,7 @@ class AnnotInference(ut.NiceRepr,
         # aids = set(ut.flatten(aid_pairs))
         import networkx as nx
         G = nx.Graph()
+        assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
         G.add_edges_from(aid_pairs)
         if attrs is not None:
             for key in attrs.keys():
