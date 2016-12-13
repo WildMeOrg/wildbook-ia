@@ -254,16 +254,40 @@ def get_oris(kpts):
 # --- keypoint properties ---
 
 def get_sqrd_scales(kpts):
-    """ gets average squared scale (does not take into account elliptical shape """
+    """
+    gets average squared scale (does not take into account elliptical shape
+
+    Args:
+        kpts (ndarray[float32_t, ndim=2]):  keypoints
+
+    Returns:
+        np.ndarray
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> import vtool as vt
+        >>> kpts = vt.dummy.get_dummy_kpts()
+        >>> result = get_sqrd_scales(kpts)
+        >>> print(ut.repr2(result, precision=2))
+        np.array([ 125.98,   56.88,  128.62,  188.37,  188.38])
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.keypoint import *  # NOQA
+        >>> result = get_sqrd_scales([])
+        >>> print(ut.repr2(result, precision=2))
+        np.array([])
+    """
     if len(kpts) == 0:
-        return np.empty([])
+        return np.empty(0)
     _iv11s, _iv21s, _iv22s = get_invVs(kpts)
     _scales_sqrd = np.multiply(_iv11s, _iv22s)
     return _scales_sqrd
 
 
 def get_scales(kpts):
-    """  Gets average scale (does not take into account elliptical shape """
+    """ Gets average scale (does not take into account elliptical shape """
     _scales = np.sqrt(get_sqrd_scales(kpts))
     return _scales
 

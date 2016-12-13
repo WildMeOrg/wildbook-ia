@@ -171,7 +171,7 @@ class PairwiseMatch(ut.NiceRepr):
             match.local_measures['norm_y2'] = norm_xy2[1]
         if scale:
             kpts1_m = match.annot1['kpts'].take(match.fm.T[0], axis=0)
-            kpts2_m = match.annot1['kpts'].take(match.fm.T[1], axis=0)
+            kpts2_m = match.annot2['kpts'].take(match.fm.T[1], axis=0)
             match.local_measures['scale1'] = vt.get_scales(kpts1_m)
             match.local_measures['scale2'] = vt.get_scales(kpts2_m)
 
