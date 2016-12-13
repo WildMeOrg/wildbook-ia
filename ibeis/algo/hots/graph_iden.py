@@ -932,11 +932,13 @@ class _AnnotInfrFeedback(object):
     def reset_feedback(infr, mode='annotmatch'):
         """ Resets feedback edges to state of the SQL annotmatch table """
         if infr.verbose >= 1:
-            print('[infr] reset_feedback')
+            print('[infr] reset_feedback mode=%r' % (mode,))
         if mode == 'annotmatch':
             infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
         elif mode == 'staging':
             infr.external_feedback = infr.read_ibeis_staging_feedback()
+        else:
+            raise ValueError('no mode=%r' % (mode,))
         infr.internal_feedback = ut.ddict(list)
 
     def remove_feedback(infr):
@@ -1067,7 +1069,7 @@ class _AnnotInfrMatching(object):
 
     def break_graph(infr, num):
         """
-        Is this problem NP-hard? No, it is the b-matching problem.
+        This is the b-matching problem and is P-time solvable.
         This problem is equivalent to bidirectional flow.
 
         References:
@@ -1628,10 +1630,10 @@ class _AnnotInfrUpdates(object):
 
             # update the priority queue on the fly
             queue = infr.queue
-            pos_jump_thresh = infr.queue_params['pos_jump_thresh']
-            neg_jump_thresh = infr.queue_params['neg_jump_thresh']
+            pos_diameter = infr.queue_params['pos_diameter']
+            neg_diameter = infr.queue_params['neg_diameter']
 
-            if pos_jump_thresh is not None:
+            if pos_diameter is not None:
                 # Reconsider edges within connected compoments that are
                 # separated by a large distance over reviewed edges.
                 strong_positives = []
@@ -1643,7 +1645,7 @@ class _AnnotInfrUpdates(object):
                     for u, dist_dict in nx.all_pairs_shortest_path_length(reviewed_subgraph):
                         for v, dist in dist_dict.items():
                             if u <= v and graph.has_edge(u, v):
-                                if dist <= pos_jump_thresh:
+                                if dist <= pos_diameter:
                                     strong_edges.append((u, v))
                                 else:
                                     weak_edges.append((u, v))
@@ -1670,17 +1672,17 @@ class _AnnotInfrUpdates(object):
                 >>> )
                 >>> infr._init_priority_queue()
                 >>> assert len(infr.queue) == 2
-                >>> infr.queue_params['neg_jump_thresh'] = None
+                >>> infr.queue_params['neg_diameter'] = None
                 >>> infr.add_feedback(1, 6, 'nomatch', apply=True)
                 >>> assert len(infr.queue) == 0
                 >>> graph = infr.graph
                 >>> ut.exec_func_src(infr.apply_review_inference,
-                >>>                  sentinal='if neg_jump_thresh', stop=-1, verbose=True)
-                >>> infr.queue_params['neg_jump_thresh'] = 1
+                >>>                  sentinal='if neg_diameter', stop=-1, verbose=True)
+                >>> infr.queue_params['neg_diameter'] = 1
                 >>> infr.apply_review_inference()
             """
 
-            if neg_jump_thresh is not None:
+            if neg_diameter is not None:
                 strong_negatives = []
                 weak_negatives = []
 
@@ -1705,7 +1707,7 @@ class _AnnotInfrUpdates(object):
                     # cc1 = nid_to_cc[nid1]
                     # cc2 = nid_to_cc[nid2]
                     # for u in cc1:
-                    #     is_violated = np.array(list(ut.dict_subset(distance_matrix[u], cc2).values())) > neg_jump_thresh
+                    #     is_violated = np.array(list(ut.dict_subset(distance_matrix[u], cc2).values())) > neg_diameter
 
                     for u, v in unreviewed_neg_edges:
                         # Ensure u corresponds to nid1 and v corresponds to nid2
@@ -1714,14 +1716,14 @@ class _AnnotInfrUpdates(object):
                         # Is the distance from u to any node in cc[nid2] large?
                         for v_, dist in nx.shortest_path_length(reviewed_subgraph, source=u):
                             if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
-                                if dist > neg_jump_thresh:
+                                if dist > neg_diameter:
                                     weak_edges.append(e_(u, v_))
                                 else:
                                     strong_edges.append(e_(u, v_))
                         # Is the distance from v to any node in cc[nid1] large?
                         for u_, dist in nx.shortest_path_length(reviewed_subgraph, source=v):
                             if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
-                                if dist > neg_jump_thresh:
+                                if dist > neg_diameter:
                                     weak_edges.append(e_(u_, v))
                                 else:
                                     strong_edges.append(e_(u_, v))
@@ -1975,6 +1977,13 @@ class _AnnotInfrRelabel(object):
         return status
 
     @profile
+    def reset_labels_to_ibeis(infr):
+        """ Sets to IBEIS de-facto labels if available """
+        nids = infr._rectify_nids(infr.aids, None)
+        nodes = ut.take(infr.aid_to_node, infr.aids)
+        infr.set_node_attrs('name_label', ut.dzip(nodes, nids))
+
+    @profile
     def relabel_using_reviews(infr, graph=None):
         if infr.verbose >= 1:
             print('[infr] relabel_using_reviews')
@@ -2025,9 +2034,8 @@ class _AnnotInfrRelabel(object):
             #     new_nid = available_nids[count]
             # else:
             #     new_nid = infr._next_nid()
-
-            infr.set_node_attrs('name_label',
-                                _dz(list(subgraph.nodes()), [new_nid]))
+            infr.set_node_attrs('name_label', ut.dzip(subgraph.nodes(),
+                                                      [new_nid]))
             # Check for consistency
         if infr.verbose >= 3:
             print('[infr] done relabeling')
@@ -2212,31 +2220,15 @@ class AnnotInference(ut.NiceRepr,
         infr.nid_counter = None
         infr.queue = None
         infr.queue_params = {
-            'pos_jump_thresh': None,
-            'neg_jump_thresh': None,
+            'pos_diameter': None,
+            'neg_diameter': None,
         }
         infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
 
-    def copy(infr):
-        import copy
-        # deep copy everything but ibs
-        infr2 = AnnotInference(
-            infr.ibs, copy.deepcopy(infr.aids),
-            copy.deepcopy(infr.orig_name_labels), autoinit=False,
-            verbose=infr.verbose)
-        infr2.graph = infr.graph.copy()
-        infr2.external_feedback = copy.deepcopy(infr.external_feedback)
-        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
-        infr2.cm_list = copy.deepcopy(infr.cm_list)
-        infr2.qreq_ = copy.deepcopy(infr.qreq_)
-        infr2.nid_counter = infr.nid_counter
-        infr2.thresh = infr.thresh
-        return infr2
-
     @classmethod
-    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None):
+    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
         # infr.graph = G
         # infr.update_node_attributes(G)
         # aids = set(ut.flatten(aid_pairs))
@@ -2246,14 +2238,14 @@ class AnnotInference(ut.NiceRepr,
         if attrs is not None:
             for key in attrs.keys():
                 nx.set_edge_attributes(G, key, ut.dzip(aid_pairs, attrs[key]))
-        infr = AnnotInference.from_netx(G, ibs=ibs)
+        infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
         return infr
 
     @classmethod
-    def from_netx(AnnotInference, G, ibs=None):
+    def from_netx(AnnotInference, G, ibs=None, verbose=False):
         aids = list(G.nodes())
         nids = [-a for a in aids]
-        infr = AnnotInference(ibs, aids, nids, autoinit=False)
+        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
         infr.graph = G
         infr.update_node_attributes()
         return infr
@@ -2271,6 +2263,22 @@ class AnnotInference(ut.NiceRepr,
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         return infr
+
+    def copy(infr):
+        import copy
+        # deep copy everything but ibs
+        infr2 = AnnotInference(
+            infr.ibs, copy.deepcopy(infr.aids),
+            copy.deepcopy(infr.orig_name_labels), autoinit=False,
+            verbose=infr.verbose)
+        infr2.graph = infr.graph.copy()
+        infr2.external_feedback = copy.deepcopy(infr.external_feedback)
+        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
+        infr2.cm_list = copy.deepcopy(infr.cm_list)
+        infr2.qreq_ = copy.deepcopy(infr.qreq_)
+        infr2.nid_counter = infr.nid_counter
+        infr2.thresh = infr.thresh
+        return infr2
 
     def __nice__(infr):
         if infr.graph is None:
@@ -2360,11 +2368,6 @@ class AnnotInference(ut.NiceRepr,
         infr.set_node_attrs('orig_name_label', node_to_nid)
         infr.node_to_aid.update(node_to_aid)
         infr.aid_to_node.update(aid_to_node)
-
-    def reinit_name_labels(infr):
-        """ Resets to empty or IBEIS de-facto labels """
-        nids = infr._rectify_nids(infr.aids, None)
-        infr.orig_name_labels = nids
 
     def initialize_graph(infr):
         if infr.verbose >= 1:
@@ -2684,11 +2687,11 @@ class AnnotInference(ut.NiceRepr,
         needs_review_edges = ut.take(chosen_edges, sortx)
         return needs_review_edges
 
-    def generate_reviews(infr, randomness=0, rng=None, pos_jump_thresh=None,
-                         neg_jump_thresh=None):
+    def generate_reviews(infr, randomness=0, rng=None, pos_diameter=None,
+                         neg_diameter=None):
         rng = ut.ensure_rng(rng)
-        infr.queue_params['pos_jump_thresh'] = pos_jump_thresh
-        infr.queue_params['neg_jump_thresh'] = neg_jump_thresh
+        infr.queue_params['pos_diameter'] = pos_diameter
+        infr.queue_params['neg_diameter'] = neg_diameter
         infr._init_priority_queue(randomness, rng)
 
         def get_next(idx=0):

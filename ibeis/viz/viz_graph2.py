@@ -123,10 +123,15 @@ class DevGraphWidget(gt.GuitoolWidget):
         # bbar2 = bbar1
         bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
 
-        bbar1.addNewButton('Mark: Match', pressed=graph_widget.mark_match)
-        bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_nomatch)
-        bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_notcomp)
-        # bbar1.addNewButton('Mark: Same+Not-Comp', pressed=graph_widget.mark_same_notcomp)
+        graph_widget.mark_state_funcs = {
+            'F': ut.partial(graph_widget.mark_selected_pair_state, 'nomatch'),
+            'T': ut.partial(graph_widget.mark_selected_pair_state, 'match'),
+            'N': ut.partial(graph_widget.mark_selected_pair_state, 'notcomp'),
+        }
+
+        bbar1.addNewButton('Mark: Match', pressed=graph_widget.mark_state_funcs['T'])
+        bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_state_funcs['F'])
+        bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_state_funcs['N'])
 
         bbar1.addNewButton('Deselect', pressed=graph_widget.deselect)
         bbar1.addNewButton('Show Annots', pressed=graph_widget.show_selected)
@@ -243,13 +248,10 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def on_key_press(graph_widget, event):
         # called by matplotlib events
-        if event.key.upper() == 'T':
-            graph_widget.mark_match()
-        if event.key.upper() == 'F':
-            graph_widget.mark_nomatch()
-        if event.key.upper() == 'N':
-            graph_widget.mark_notcomp()
-        if event.key.upper() == 'D':
+        key = event.key.upper()
+        if key in graph_widget.mark_state_funcs:
+            graph_widget.mark_state_funcs[key]()
+        elif key == 'D':
             graph_widget.deselect()
 
     def on_pick(self, event):
@@ -348,21 +350,11 @@ class DevGraphWidget(gt.GuitoolWidget):
         else:
             ut.nx_delete_node_attr(graph_widget.infr.graph, 'pin')
 
-    def mark_graph_state(graph_widget, state):
-        print('%s graph_widget.selected_aids = %r' % (state.upper(), graph_widget.selected_aids,))
-        graph_widget.self_parent.mark_pairs(it.combinations(graph_widget.selected_aids, 2), state)
-
-    def mark_nomatch(graph_widget):
-        graph_widget.mark_graph_state('nomatch')
-
-    def mark_match(graph_widget):
-        graph_widget.mark_graph_state('match')
-
-    def mark_notcomp(graph_widget):
-        graph_widget.mark_graph_state('notcomp')
-
-    def mark_same_notcomp(graph_widget):
-        graph_widget.mark_graph_state('same+notcomp')
+    def mark_selected_pair_state(graph_widget, state):
+        print('[graph] %s graph_widget.selected_aids = %r' % (
+            state.upper(), graph_widget.selected_aids,))
+        pairs = it.combinations(graph_widget.selected_aids, 2)
+        graph_widget.self_parent.mark_pair_state(pairs, state)
 
     def show_selected(graph_widget):
         # TODO: move to mpl widget
@@ -460,6 +452,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         edge_view.contextMenuClicked.connect(self.edge_context)
         edge_view.connect_keypress_to_slot(self.edge_keypress)
         edge_view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
+
+        name_edge_view = self.api_widgets['name_edges'].view
+        name_edge_view.doubleClicked.connect(self.edge_doubleclick)
+        name_edge_view.contextMenuClicked.connect(self.edge_context)
+        name_edge_view.connect_keypress_to_slot(self.edge_keypress)
+        name_edge_view.connect_single_key_to_slot(gt.ALT_KEY, self.on_alt_pressed)
 
     def populate_edge_model(self):
         print('[viz_graph] populate_edge_model')
@@ -727,17 +725,19 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         with gt.GuiProgContext('Reset Review', self.prog_bar) as ctx:
             ctx.set_progress(0, 3)
             with ut.Timer('reset_feedback'):
-                infr.reset_feedback()
+                infr.reset_feedback('staging')
+            # with ut.Timer('reinit_name_labels'):
+            #     infr.reinit_name_labels()
+            # with ut.Timer('initialize_graph'):
+            #     infr.initialize_graph()
             with ut.Timer('reinit_name_labels'):
-                infr.reinit_name_labels()
-            with ut.Timer('initialize_graph'):
-                infr.initialize_graph()
+                infr.reset_labels_to_ibeis()
             if self.graph_widget is not None:
                 self.graph_widget.set_pin_state(True)
-            with ut.Timer('review_dummy_edges'):
-                infr.review_dummy_edges()
             with ut.Timer('apply_feedback_edges'):
                 infr.apply_feedback_edges()
+            with ut.Timer('review_dummy_edges'):
+                infr.review_dummy_edges()
             with ut.Timer('apply_match_edges'):
                 infr.apply_match_edges()
             infr.apply_match_scores()
@@ -841,14 +841,28 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             #self.graph_widget.selected_aids = [aid1, aid2]
             self.graph_widget.show_selected()
 
-    def mark_pairs(self, pairs, state):
+    def mark_pair_state(self, pairs, state):
+        valid_states = ['match', 'nomatch', 'notcomp', 'unreviewed']
+        assert state in valid_states
         for aid1, aid2 in pairs:
             self.infr.add_feedback(aid1, aid2, state, apply=True)
         self.emit_state_update(disable_global_update=True)
 
-    def get_edge_options(self):
-        view = self.api_widgets['edges'].view
-        selected_qtindex_list = view.selectedRows()
+    def get_edge_options(self, view):
+        # view = self.api_widgets['edges'].view
+        selected_qtindex_list_ = view.selectedRows()
+
+        # Hack to ensure that we are getting edge data
+        selected_qtindex_list = []
+        for qtindex in selected_qtindex_list_:
+            model = qtindex.model()
+            # hack to determine in tree or table view
+            if max(model.col_level_list) == 1:
+                flag = qtindex.internalPointer().level == 1
+            else:
+                flag = qtindex.internalPointer().level == 0
+            if flag:
+                selected_qtindex_list.append(qtindex)
 
         def _pairs():
             #for aid1, aid2 in aid_pair_gen():
@@ -858,12 +872,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 aid2  = model.get_header_data('aid2', qtindex)
                 yield aid1, aid2
 
-        options = [
-            ('Mark &True', lambda: self.mark_pairs(_pairs(), 'match')),
-            ('Mark &False', lambda: self.mark_pairs(_pairs(), 'nomatch')),
-            ('Mark &Not-Comparable', lambda: self.mark_pairs(_pairs(), 'notcomp')),
-            ('&Unreview', lambda: self.mark_pairs(_pairs(), 'unreviewed')),
-        ]
+        if len(selected_qtindex_list) == 0:
+            options = []
+        else:
+            options = [
+                ('Mark &True', lambda: self.mark_pair_state(_pairs(), 'match')),
+                ('Mark &False', lambda: self.mark_pair_state(_pairs(), 'nomatch')),
+                ('Mark &Not-Comparable', lambda: self.mark_pair_state(_pairs(), 'notcomp')),
+                ('&Unreview', lambda: self.mark_pair_state(_pairs(), 'unreviewed')),
+            ]
 
         if len(selected_qtindex_list) == 1:
             from ibeis.gui import inspect_gui
@@ -900,7 +917,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def edge_context(self, qtindex, qpoint):
         print('context')
         #print('option_dict = %s' % (ut.repr3(option_dict, nl=2),))
-        options = self.get_edge_options()
+        view = qtindex.model().view
+        options = self.get_edge_options(view)
         gt.popup_menu(self, qpoint, options)
 
     def on_alt_pressed(self, view, event):
@@ -917,7 +935,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         view = self.api_widgets['edges'].view
         """
         event_key = event.key()
-        options = self.get_edge_options()
+        options = self.get_edge_options(view)
         option_dict = gt.make_option_dict(options, shortcuts=True)
         handled = False
         for key, func in option_dict.items():
@@ -1142,80 +1160,17 @@ def make_node_api(infr):
     return node_api
 
 
-def make_name_edge_api(infr, review_cfg={}):
-    # TODO: only make this API if the tab is clicked
-    node_to_name = infr.get_node_attrs('name_label')
-    name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
-
-    name_to_edges = {name: list(infr.graph.subgraph(nodes).edges())
-                     for name, nodes in name_to_nodes.items()}
-
-    # utool.embed()
-    names = list(name_to_edges.keys())
-    flat_edges, grouped_edge_idxs = ut.invertible_flatten1(name_to_edges.values())
-    col_name_list = [
-        'name_label',
-        'n_edges',
-        'thumb1',
-        'thumb2',
-        'aid1',
-        'aid2',
-    ]
-    col_level_dict = {
-        'name_label': 0,
-        'n_edges': 0,
-        'aid1': 1,
-        'aid2': 1,
-        'thumb1': 1,
-        'thumb2': 1,
-    }
-    iders = [
-        list(range(len(names))),
-        grouped_edge_idxs,
-    ]
-    col_getter_dict = {
-        'name_label': names,
-        'n_edges': list(map(len, grouped_edge_idxs)),
-        'aid1': ut.take_column(flat_edges, 0),
-        'aid2': ut.take_column(flat_edges, 1),
-        'thumb1': infr.ibs.get_annot_chip_thumbtup,
-        'thumb2': infr.ibs.get_annot_chip_thumbtup,
-    }
-    col_ider_dict = {
-        'thumb1': 'aid1',
-        'thumb2': 'aid2',
-    }
-    col_types_dict = {
-        'thumb2': 'PIXMAP',
-        'thumb1': 'PIXMAP',
-    }
-    name_api = gt.CustomAPI(
-        col_name_list,
-        iders=iders,
-        # col_types_dict=col_types_dict,
-        col_ider_dict=col_ider_dict,
-        col_getter_dict=col_getter_dict,
-        col_types_dict=col_types_dict,
-        # col_bgrole_dict=col_bgrole_dict,
-        # col_display_role_func_dict=col_display_role_func_dict,
-        # col_width_dict=col_width_dict,
-        # get_thumb_size=lambda: 221,
-        col_level_dict=col_level_dict,
-        sortby='n_edges',
-        #sortby='aid1',
-        # sort_reverse=True
-    )
-    return name_api
-
-
 def make_name_node_api(infr, review_cfg={}):
     # TODO: only make this API if the tab is clicked
     node_to_name = infr.get_node_attrs('name_label')
     name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
 
+    self = EdgeAPIHelper(infr)
+
     # utool.embed()
     names = list(name_to_nodes.keys())
     flat_aids, grouped_aid_idxs = ut.invertible_flatten1(name_to_nodes.values())
+
     col_name_list = [
         'name_label',
         'n_annots',
@@ -1244,6 +1199,12 @@ def make_name_node_api(infr, review_cfg={}):
     col_types_dict = {
         'thumb': 'PIXMAP',
     }
+
+    col_bgrole_dict = {
+        'matched' : self.get_match_status_bgrole,
+        'reviewed': self.get_reviewed_status_bgrole,
+    }
+
     name_api = gt.CustomAPI(
         col_name_list,
         iders=iders,
@@ -1251,7 +1212,7 @@ def make_name_node_api(infr, review_cfg={}):
         col_ider_dict=col_ider_dict,
         col_getter_dict=col_getter_dict,
         col_types_dict=col_types_dict,
-        # col_bgrole_dict=col_bgrole_dict,
+        col_bgrole_dict=col_bgrole_dict,
         # col_display_role_func_dict=col_display_role_func_dict,
         # col_width_dict=col_width_dict,
         # get_thumb_size=lambda: 221,
@@ -1259,6 +1220,300 @@ def make_name_node_api(infr, review_cfg={}):
         sortby='n_annots',
         #sortby='aid1',
         # sort_reverse=True
+    )
+    return name_api
+
+
+class EdgeAPIHelper(object):
+    def __init__(self, infr):
+        self.infr = infr
+        self.graph = infr.graph
+        self.ibs = infr.ibs
+
+    def make_partial_edge_headers(self):
+        """
+        These are partial api headers meant to augment edge headers
+        """
+
+        custom_edge_props = [
+            # TODO: allow user to specify things like hardness / failed / passed or
+            # whatever
+            'maybe_error',
+            'failed',
+            'hardness',
+        ]
+
+        col_getter_dict = {
+            'data': self.get_edge_data,
+            'timedelta': self.get_edge_timedelta,
+            'speed': self.get_edge_speed,
+            'kmdist': self.get_edge_kmdist,
+            'matched':  self.get_match_text,
+            'reviewed':  self.edge_attr_getter('reviewed_state', 'unreviewed'),
+            'score':  self.edge_attr_getter('score'),
+            'rank':  self.edge_attr_getter('rank', -1),
+            'tags': self.get_pair_tags,
+            'cc_size1': lambda edge: self.get_num_other(edge[0]),
+            'cc_size2': lambda edge: self.get_num_other(edge[1]),
+
+            'thumb1': self.ibs.get_annot_chip_thumbtup,
+            'thumb2': self.ibs.get_annot_chip_thumbtup,
+            'match_thumb': self.get_match_thumbtup,
+        }
+        for name in custom_edge_props:
+            col_getter_dict[name] = self.edge_attr_getter(name)
+
+        col_ider_dict = {name: ('aid1', 'aid2') for name in col_getter_dict.keys()}
+        # col_ider_dict = ({
+        col_ider_dict.update({
+            'thumb1': 'aid1',
+            'thumb2': 'aid2',
+        })
+
+        col_types_dict = {
+            'rank': int,
+            'score': float,
+            'timedelta': float,
+            'speed': float,
+            'thumb1': 'PIXMAP',
+            'thumb2': 'PIXMAP',
+            'match_thumb': 'PIXMAP',
+            'cc_size1': int,
+            'cc_size2': int,
+        }
+
+        col_display_role_func_dict = {
+            'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
+            'speed': lambda speed: '%.2f km/h' % (speed,),
+            'kmdist': lambda speed: '%.2f km' % (speed,),
+        }
+
+        col_bgrole_dict = {
+            'matched' : self.get_match_status_bgrole,
+            'reviewed': self.get_reviewed_status_bgrole,
+        }
+
+        col_width_dict = {
+            'index': 42,
+            'aid1': 50,
+            'aid2': 50,
+            'cc_size1': 80,
+            'cc_size2': 80,
+            'score': 65,
+            'rank': 42,
+            #'timedelta': 65,
+        }
+
+        partial_headers = {
+            'col_getter_dict': col_getter_dict,
+            'col_ider_dict': col_ider_dict,
+            'col_ider_dict': col_ider_dict,
+            'col_types_dict': col_types_dict,
+            'col_display_role_func_dict': col_display_role_func_dict,
+            'col_bgrole_dict': col_bgrole_dict,
+            'col_width_dict': col_width_dict,
+        }
+        return partial_headers
+
+    def get_edge_timedelta(self, edge):
+        self.edge_assert(edge)
+        return self.ibs.get_unflat_annots_timedelta_list([edge])[0][0]
+
+    def get_edge_speed(self, edge):
+        self.edge_assert(edge)
+        return self.ibs.get_unflat_annots_speeds_list2([edge])[0][0]
+
+    def get_edge_kmdist(self, edge):
+        self.edge_assert(edge)
+        return self.ibs.get_unflat_annots_kmdists_list([edge])[0][0]
+
+    def get_edge_data(self, edge):
+        aid1, aid2 = edge
+        attrs = self.graph.get_edge_data(aid1, aid2).copy()
+        remove_attrs = self.infr.visual_edge_attrs + ['rank', 'reviewed_state', 'score']
+        try:
+            remove_attrs.remove('style')
+        except ValueError:
+            pass
+        ut.delete_dict_keys(attrs, remove_attrs)
+        attrs = {k: v for k, v in attrs.items() if v is not None}
+        #attrs['name_label1'] = graph.node[aid1]['name_label']
+        #attrs['name_label2'] = graph.node[aid2]['name_label']
+        return ut.repr2(attrs, precision=2, explicit=True, nobr=True)
+
+    def get_match_text(self, edge):
+        aid1, aid2 = edge
+        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        nid1 = self.graph.node[aid1]['name_label']
+        nid2 = self.graph.node[aid2]['name_label']
+        if nid1 == nid2:
+            return 'matched nid=%d' % (nid1,)
+        else:
+            return 'not matched nids=(%d,%d)' % (nid1, nid2)
+
+    def edge_attr_getter(self, attr, default=None):
+        def get_edge_attr(edge):
+            data = self.graph.get_edge_data(*edge)
+            return data.get(attr, default)
+        return get_edge_attr
+
+    def get_pair_tags(self, edge):
+        aid1, aid2 = edge
+        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        ibs = self.infr.ibs
+        # FIXME: use graph properties instead
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(
+            [aid1], [aid2])
+        tag_text = ibs.get_annotmatch_tag_text(am_rowids)[0]
+        if tag_text is None:
+            tag_text = ''
+        return str(tag_text)
+
+    def edge_assert(self, edge):
+        aid1, aid2 = edge
+        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+
+    def get_match_status_bgrole(self, edge):
+        """ Background role for status column """
+        aid1, aid2 = edge
+        nid1 = self.graph.node[aid1]['name_label']
+        nid2 = self.graph.node[aid2]['name_label']
+        data = self.graph.get_edge_data(*edge)
+        if data.get('maybe_error', False):
+            color = pt.ORANGE
+        else:
+            lighten_amount = .35
+            state = self.edge_attr_getter('reviewed_state', 'unreviewed')(edge)
+            if state == 'unreviewed':
+                lighten_amount = .7
+            truth_colors = self.infr._get_truth_colors()
+            color = truth_colors['match' if nid1 == nid2 else 'nomatch']
+            #self.graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')]
+            if lighten_amount is not None:
+                color = pt.lighten_rgb(color, lighten_amount)
+        color = pt.to_base255(color)
+        return color
+
+    def get_reviewed_status_bgrole(self, edge):
+        """ Background role for status column """
+        data = self.graph.get_edge_data(*edge)
+        state = data.get('reviewed_state', 'unreviewed')
+        truth_colors = self.infr._get_truth_colors()
+        color = truth_colors[state]
+        lighten_amount = .35
+        if state == 'unreviewed':
+            lighten_amount = .7
+        if lighten_amount is not None:
+            color = pt.lighten_rgb(color, lighten_amount)
+        color = pt.to_base255(color)
+        return color
+
+    def get_match_thumbtup(self, edge, thumbsize=None):
+        #sibs, qaid2_cm, qaids, daids, index, qreq_=None,
+        #                   thumbsize=(128, 128), match_thumbtup_cache={}):
+        aid1, aid2 = edge
+        cm, aid1, aid2 = self.infr.lookup_cm(aid1, aid2)
+        if cm is None:
+            return None
+        #assert cm.qaid == aid1, 'aids do not aggree'
+        # Hacky new way of drawing
+        from ibeis.gui import id_review_api
+        fpath, func, func2 = id_review_api.make_ensure_match_img_nosql_func(
+            self.infr.qreq_, cm, aid2)
+        thumbdat = {
+            'fpath': fpath,
+            'thread_func': func,
+            'main_func': func2,
+        }
+        return thumbdat
+
+    def get_num_other(self, aid):
+        node = self.infr.aid_to_node[aid]
+        node_to_name_label = nx.get_node_attributes(self.graph, 'name_label')
+        name_label = node_to_name_label[node]
+        labels = list(node_to_name_label.values())
+        return labels.count(name_label)
+
+
+def make_name_edge_api(infr, review_cfg={}):
+    # TODO: only make this API if the tab is clicked
+    node_to_name = infr.get_node_attrs('name_label')
+    name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
+
+    name_to_edges = {name: list(infr.graph.subgraph(nodes).edges())
+                     for name, nodes in name_to_nodes.items()}
+
+    # utool.embed()
+    names = list(name_to_edges.keys())
+    flat_edges, grouped_edge_idxs = ut.invertible_flatten1(name_to_edges.values())
+
+    nid_col_name_list = ['name_label', 'n_edges']
+
+    custom_edge_props = [
+        # TODO: allow user to specify things like hardness / failed / passed or
+        # whatever
+        'maybe_error',
+        'failed',
+        'hardness',
+    ]
+
+    edge_col_name_list = [
+        #'index',
+        'thumb1', 'thumb2',
+        'match_thumb',
+        'matched', 'reviewed',
+        'score', 'rank',
+        'tags',
+        'timedelta',
+        'kmdist',
+        'speed',
+    ]
+    edge_col_name_list.extend(custom_edge_props)
+    edge_col_name_list += [
+        'cc_size1',
+        'cc_size2',
+        'aid1', 'aid2',
+        #'data',
+    ]
+
+    col_name_list = nid_col_name_list + edge_col_name_list
+    col_level_dict = {}
+    for col in nid_col_name_list:
+        col_level_dict[col] = 0
+    for col in edge_col_name_list:
+        col_level_dict[col] = 1
+    iders = [
+        list(range(len(names))),
+        grouped_edge_idxs,
+    ]
+    col_getter_dict = {
+        'name_label': names,
+        'n_edges': list(map(len, grouped_edge_idxs)),
+        'aid1': ut.take_column(flat_edges, 0),
+        'aid2': ut.take_column(flat_edges, 1),
+    }
+
+    self = EdgeAPIHelper(infr)
+    partial_headers = self.make_partial_edge_headers()
+    col_getter_dict.update(partial_headers['col_getter_dict'])
+
+    name_api = gt.CustomAPI(
+        col_name_list,
+        col_ider_dict=partial_headers['col_ider_dict'],
+        col_types_dict=partial_headers['col_types_dict'],
+        col_getter_dict=col_getter_dict,
+        col_bgrole_dict=partial_headers['col_bgrole_dict'],
+        col_display_role_func_dict=partial_headers['col_display_role_func_dict'],
+        col_width_dict=partial_headers['col_width_dict'],
+        get_thumb_size=lambda: 221,
+        col_level_dict=col_level_dict,
+        iders=iders,
+        sortby='n_edges',
+        sort_reverse=True
+        #sortby='aid1',
     )
     return name_api
 
@@ -1273,122 +1528,10 @@ def make_edge_api(infr, review_cfg={}):
         Dark unknown yellow is for noncomparable annotations
 
     """
-    graph = infr.graph
-    ibs = infr.ibs
-
-    def get_edge_data(edge):
-        aid1, aid2 = edge
-        attrs = graph.get_edge_data(aid1, aid2).copy()
-        remove_attrs = infr.visual_edge_attrs + ['rank', 'reviewed_state', 'score']
-        try:
-            remove_attrs.remove('style')
-        except ValueError:
-            pass
-        ut.delete_dict_keys(attrs, remove_attrs)
-        attrs = {k: v for k, v in attrs.items() if v is not None}
-        #attrs['name_label1'] = graph.node[aid1]['name_label']
-        #attrs['name_label2'] = graph.node[aid2]['name_label']
-        return ut.repr2(attrs, precision=2, explicit=True, nobr=True)
-
-    def get_match_text(edge):
-        aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        nid1 = graph.node[aid1]['name_label']
-        nid2 = graph.node[aid2]['name_label']
-        if nid1 == nid2:
-            return 'matched nid=%d' % (nid1,)
-        else:
-            return 'not matched nids=(%d,%d)' % (nid1, nid2)
-
-    def edge_attr_getter(attr, default=None):
-        def get_edge_attr(edge):
-            data = graph.get_edge_data(*edge)
-            return data.get(attr, default)
-        return get_edge_attr
-
-    def get_pair_tags(edge):
-        aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(
-            [aid1], [aid2])
-        tag_text = ibs.get_annotmatch_tag_text(am_rowids)[0]
-        if tag_text is None:
-            tag_text = ''
-        return str(tag_text)
-
-    def edge_assert(edge):
-        aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
-
-    def get_match_status_bgrole(ibs, edge):
-        """ Background role for status column """
-        aid1, aid2 = edge
-        nid1 = graph.node[aid1]['name_label']
-        nid2 = graph.node[aid2]['name_label']
-
-        data = graph.get_edge_data(*edge)
-
-        if data.get('maybe_error', False):
-            color = pt.ORANGE
-        else:
-            lighten_amount = .35
-            state = edge_attr_getter('reviewed_state', 'unreviewed')(edge)
-            if state == 'unreviewed':
-                lighten_amount = .7
-
-            truth_colors = infr._get_truth_colors()
-            color = truth_colors['match' if nid1 == nid2 else 'nomatch']
-            #graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')]
-            if lighten_amount is not None:
-                color = pt.lighten_rgb(color, lighten_amount)
-        color = pt.to_base255(color)
-        return color
-
-    def get_reviewed_status_bgrole(ibs, edge):
-        """ Background role for status column """
-        data = graph.get_edge_data(*edge)
-        state = data.get('reviewed_state', 'unreviewed')
-        truth_colors = infr._get_truth_colors()
-        color = truth_colors[state]
-        lighten_amount = .35
-        if state == 'unreviewed':
-            lighten_amount = .7
-        if lighten_amount is not None:
-            color = pt.lighten_rgb(color, lighten_amount)
-        color = pt.to_base255(color)
-        return color
-
-    def get_match_thumbtup(edge, thumbsize=None):
-        #sibs, qaid2_cm, qaids, daids, index, qreq_=None,
-        #                   thumbsize=(128, 128), match_thumbtup_cache={}):
-        aid1, aid2 = edge
-        cm, aid1, aid2 = infr.lookup_cm(aid1, aid2)
-        if cm is None:
-            return None
-        #assert cm.qaid == aid1, 'aids do not aggree'
-        # Hacky new way of drawing
-        from ibeis.gui import id_review_api
-        fpath, func, func2 = id_review_api.make_ensure_match_img_nosql_func(
-            infr.qreq_, cm, aid2)
-        thumbdat = {
-            'fpath': fpath,
-            'thread_func': func,
-            'main_func': func2,
-        }
-        return thumbdat
-
-    def get_num_other(aid):
-        node = infr.aid_to_node[aid]
-        node_to_name_label = nx.get_node_attributes(graph, 'name_label')
-        name_label = node_to_name_label[node]
-        labels = list(node_to_name_label.values())
-        return labels.count(name_label)
-
     aids1, aids2 = infr.get_filtered_edges(review_cfg)
 
+    self = EdgeAPIHelper(infr)
+    partial_headers = self.make_partial_edge_headers()
     # from six import next
     # data = next(infr.graph.edges(data=True))[-1]
 
@@ -1430,79 +1573,17 @@ def make_edge_api(infr, review_cfg={}):
         'index': np.arange(len(aids1)),
         'aid1': aids1,
         'aid2': aids2,
-        'data': get_edge_data,
-        'timedelta': lambda edge: (edge_assert(edge),
-                                   ibs.get_unflat_annots_timedelta_list([edge])[0][0])[1],
-        'speed': lambda edge: (edge_assert(edge),
-                               ibs.get_unflat_annots_speeds_list2([edge])[0][0])[1],
-        'kmdist': lambda edge: (edge_assert(edge),
-                                ibs.get_unflat_annots_kmdists_list([edge])[0][0])[1],
-        'matched':  get_match_text,
-        'reviewed':  edge_attr_getter('reviewed_state', 'unreviewed'),
-        'score':  edge_attr_getter('score'),
-        'rank':  edge_attr_getter('rank', -1),
-        'tags': get_pair_tags,
-        'cc_size1': lambda edge: get_num_other(edge[0]),
-        'cc_size2': lambda edge: get_num_other(edge[1]),
-        # 'thumb1': ibs.get_annot_chip_thumb_path2,
-        # 'thumb2': ibs.get_annot_chip_thumb_path2,
-        'thumb1': ibs.get_annot_chip_thumbtup,
-        'thumb2': ibs.get_annot_chip_thumbtup,
-        'match_thumb': get_match_thumbtup,
     }
-    for name in custom_edge_props:
-        col_getter_dict[name] = edge_attr_getter(name)
-
-    col_ider_dict = {name: ('aid1', 'aid2') for name in col_name_list}
-    # col_ider_dict = ({
-    col_ider_dict.update({
-        'thumb1': 'aid1',
-        'thumb2': 'aid2',
-    })
-    ut.delete_dict_keys(col_ider_dict, ['aid1', 'aid2'])
-
-    col_types_dict = {
-        'rank': int,
-        'score': float,
-        'timedelta': float,
-        'speed': float,
-        'thumb1': 'PIXMAP',
-        'thumb2': 'PIXMAP',
-        'match_thumb': 'PIXMAP',
-        'cc_size1': int,
-        'cc_size2': int,
-    }
-
-    col_display_role_func_dict = {
-        'timedelta': ut.partial(ut.get_posix_timedelta_str, year=True, approx=2),
-        'speed': lambda speed: '%.2f km/h' % (speed,),
-        'kmdist': lambda speed: '%.2f km' % (speed,),
-    }
-
-    col_bgrole_dict = {
-        'matched' : ut.partial(get_match_status_bgrole, ibs),
-        'reviewed': ut.partial(get_reviewed_status_bgrole, ibs),
-    }
-
-    col_width_dict = {
-        'index': 42,
-        'aid1': 50,
-        'aid2': 50,
-        'cc_size1': 80,
-        'cc_size2': 80,
-        'score': 65,
-        'rank': 42,
-        #'timedelta': 65,
-    }
+    col_getter_dict.update(partial_headers['col_getter_dict'])
 
     edge_api = gt.CustomAPI(
         col_name_list,
-        col_ider_dict=col_ider_dict,
-        col_types_dict=col_types_dict,
+        col_ider_dict=partial_headers['col_ider_dict'],
+        col_types_dict=partial_headers['col_types_dict'],
         col_getter_dict=col_getter_dict,
-        col_bgrole_dict=col_bgrole_dict,
-        col_display_role_func_dict=col_display_role_func_dict,
-        col_width_dict=col_width_dict,
+        col_bgrole_dict=partial_headers['col_bgrole_dict'],
+        col_display_role_func_dict=partial_headers['col_display_role_func_dict'],
+        col_width_dict=partial_headers['col_width_dict'],
         get_thumb_size=lambda: 221,
         sortby='score',
         #sortby='aid1',

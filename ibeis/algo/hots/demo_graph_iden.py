@@ -80,10 +80,10 @@ def demo_graph_iden2():
     # annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
 
     queue_params = {
-        'pos_jump_thresh': None,
-        'neg_jump_thresh': None,
-        # 'pos_jump_thresh': 1,
-        # 'neg_jump_thresh': 2,
+        'pos_diameter': None,
+        'neg_diameter': None,
+        # 'pos_diameter': 1,
+        # 'neg_diameter': 2,
     }
     # oracle_accuracy = 1.0
     oracle_accuracy = .8
@@ -93,12 +93,12 @@ def demo_graph_iden2():
     b = 10
 
     round2_params = {
-        # 'pos_jump_thresh': None,
-        # 'neg_jump_thresh': None,
-        # 'pos_jump_thresh': 6,
-        # 'neg_jump_thresh': 7,
-        'pos_jump_thresh': 2,
-        'neg_jump_thresh': 3,
+        # 'pos_diameter': None,
+        # 'neg_diameter': None,
+        # 'pos_diameter': 6,
+        # 'neg_diameter': 7,
+        'pos_diameter': 2,
+        'neg_diameter': 3,
     }
     # round2_params = None
 

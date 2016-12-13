@@ -140,11 +140,14 @@ class OneVsOneProblem(object):
             labels = self.labels
             meta = res.make_meta(labels).copy()
             import ibeis
-            AnnotInference = ibeis.AnnotInference
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
             attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
             ibs = self.qreq_.ibs
-            infr = AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs)
+            infr = ibeis.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs, verbose=3)
+            infr.reset_feedback('staging')
+            infr.reset_labels_to_ibeis()
+            infr.apply_feedback_edges()
+            infr.relabel_using_reviews()
             win = infr.start_qt_interface()
             import guitool as gt
             gt.qtapp_loop(qwin=win, freq=10)
