@@ -752,7 +752,7 @@ class _AnnotInfrFeedback(object):
         ut.nx_delete_edge_attr(infr.graph, 'num_reviews', edges)
         # ut.nx_delete_edge_attr(infr.graph, 'is_reviewed', edges)
 
-    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list):
+    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list, n_reviews_list):
         if infr.verbose >= 3:
             print('[infr] _set_feedback_edges')
         # Ensure edges exist
@@ -763,6 +763,8 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('reviewed_state', _dz(edges, review_state))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
+        infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
+        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
         # infr.set_edge_attrs('num_reviews', _dz(edges, tags_list))
         # infr.set_edge_attrs('is_reviewed', _dz(edges, [True]))
 
@@ -814,10 +816,8 @@ class _AnnotInfrFeedback(object):
         p_same_list = ut.take(p_same_lookup, decision_list)
 
         # Put pair orders in context of the graph
-        unique_pairs = [(aid2, aid1) if infr.graph.has_edge(aid2, aid1) else
-                        (aid1, aid2) for (aid1, aid2) in feedback_edges]
-        infr._set_feedback_edges(unique_pairs, decision_list, p_same_list, tags_list)
-        infr.set_edge_attrs('num_reviews', _dz(unique_pairs, num_review_list))
+        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list, tags_list, num_review_list)
+        # infr.set_edge_attrs('num_reviews', _dz(unique_pairs, num_review_list))
 
     @profile
     def _dynamically_apply_feedback(infr, edge, feedback_item):
@@ -875,7 +875,7 @@ class _AnnotInfrFeedback(object):
             state = 'unreviewed'
             infr._del_feedback_edges([edge])
             infr.set_edge_attrs(
-                'cut_weight', infr.get_edge_attrs('normscore', [edge], np.nan))
+                infr.CUT_WEIGHT_KEY, infr.get_edge_attrs('normscore', [edge], np.nan))
         else:
             # Apply the review to the specified edge
             state = feedback_item['decision']
@@ -892,12 +892,13 @@ class _AnnotInfrFeedback(object):
 
             # p_same = infr._compute_p_same(review_dict['p_match'],
             #                               review_dict['p_notcomp'])
-            infr._set_feedback_edges([edge], [state], [p_same], [tags])
-            # TODO: change num_reviews to num_consistent_reviews
             num_reviews = infr.get_edge_attrs('num_reviews', [edge],
-                                              default=0)[edge]
-            infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
-            infr.set_edge_attrs('cut_weight', {edge: p_same})
+                                              default=0).get(edge, 0)
+            infr._set_feedback_edges([edge], [state], [p_same], [tags],
+                                     [num_reviews + 1])
+            # TODO: change num_reviews to num_consistent_reviews
+            # infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
+            # infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, {edge: p_same})
             if state != 'notcomp':
                 ut.nx_delete_edge_attr(infr.graph, 'inferred_state', [edge])
 
@@ -2189,7 +2190,13 @@ class AnnotInference(ut.NiceRepr,
 
     """
 
+    # Scores are ordered in priority order:
+    # CUT_WEIGHT - final weight used for inference (overridden by user)
+    # NORMSCORE - normalized score computed by an automatic process
+    # SCORE - raw score computed by automatic process
+
     CUT_WEIGHT_KEY = 'cut_weight'
+
     _graph_cls = nx.Graph
     # _graph_cls = nx.DiGraph
 

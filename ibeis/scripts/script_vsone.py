@@ -148,6 +148,11 @@ class OneVsOneProblem(object):
             infr.reset_labels_to_ibeis()
             infr.apply_feedback_edges()
             infr.relabel_using_reviews()
+
+            x = [c for c in infr.consistent_compoments()]
+            cc = x[ut.argmax(ut.lmap(len, x))]
+            keep = list(cc.nodes())
+            infr.remove_aids(ut.setdiff(infr.aids, keep))
             win = infr.start_qt_interface()
             import guitool as gt
             gt.qtapp_loop(qwin=win, freq=10)
