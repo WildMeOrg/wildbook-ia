@@ -100,15 +100,15 @@ class OneVsOneProblem(object):
         self.task_combo_res = ut.ddict(dict)
 
         task_list = [
-            # 'match_state',
-            'photobomb_state'
+            'match_state',
+            # 'photobomb_state'
         ]
 
         self.datakey_list = [
             'learn(sum,glob,3)',
         ]
 
-        cacher = ut.Cacher('pair_clf_v2', cfgstr='tmp' + self.qreq_.get_cfgstr(),
+        cacher = ut.Cacher('pair_clf_v2', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
                            appname='vsone_rf_train', enabled=1)
         data = cacher.tryload()
         if not data:
