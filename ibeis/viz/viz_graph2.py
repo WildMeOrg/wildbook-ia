@@ -947,47 +947,51 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             print('Key  not handled %r' % (event_key,))
             return
 
+    def _get_rectified_name_assignment(self):
+        infr = self.infr
+        graph = self.infr.graph
+        node_to_new_label = nx.get_node_attributes(graph, 'name_label')
+        nodes = list(node_to_new_label.keys())
+        aids = ut.take(infr.node_to_aid, nodes)
+        old_names = infr.ibs.get_annot_name_texts(aids)
+        # Indicate that unknown names should be replaced
+        old_names = [None if n == infr.ibs.const.UNKNOWN else n for n in old_names]
+        new_labels = ut.take(node_to_new_label, aids)
+        # Recycle as many old names as possible
+        label_to_name, needs_assign = infr._rectify_names(old_names, new_labels)
+        # Overwrite names of labels with temporary names
+        needed_names = self.infr.ibs.make_next_name(len(needs_assign))
+        for unassigned_label, new in zip(needs_assign, needed_names):
+            label_to_name[unassigned_label] = new
+        # Assign each node to the rectified label
+        aid_to_newname = {
+            infr.node_to_aid[node]: label_to_name[name_label]
+            for node, name_label in node_to_new_label.items()
+        }
+        return aid_to_newname
+
     def accept(self):
+        import pandas as pd
         print('[viz_graph] accept')
         infr = self.infr
-        graph = infr.graph
         num_names, num_inconsistent = self.infr.relabel_using_reviews()
-        node_to_label = nx.get_node_attributes(graph, 'name_label')
-        unique_labels = set(node_to_label.values())
 
-        aids = list(node_to_label.keys())
-        ibs = infr.ibs
-        old_names = ibs.get_annot_name_texts(aids)
-        new_labels = ut.take(node_to_label, aids)
+        aid_to_newname = self._get_rectified_name_assignment()
+        aid_list = list(aid_to_newname.keys())
+        new_name_list = list(aid_to_newname.values())
+        old_name_list = infr.ibs.get_annot_name_texts(aid_list)
 
-        grouped_oldnames = ut.take(ut.group_items(old_names, new_labels), unique_labels)
-        grouped_oldnames = [[n for n in names if n != ibs.const.UNKNOWN]
-                            for names in grouped_oldnames]
-        from ibeis.scripts import name_recitifer
-        new_labels = name_recitifer.find_consistent_labeling(grouped_oldnames)
-        new_flags = [n.startswith('_extra_name') for n in new_labels]
-        needed_names = self.infr.ibs.make_next_name(sum(new_flags))
-        for idx, new in zip(ut.where(new_flags), needed_names):
-            new_labels[idx] = new
-        new_names = new_labels
-
-        to_newname = dict(zip(unique_labels, new_names))
-        node_to_newname = {node: to_newname[name_label]
-                           for node, name_label in node_to_label.items()}
-
-        aid_list = list(node_to_newname.keys())
-        name_list = list(node_to_newname.values())
-        old_name_list = ibs.get_annot_name_texts(aid_list)
-        #print('aid_list = %r' % (aid_list,))
-        #print('name_list = %r' % (name_list,))
+        num_names_changed = sum([n1 != n2 for n1, n2 in
+                                 zip(new_name_list, old_name_list)])
 
         msg = ut.codeblock(
             '''
             Are you sure this is correct?
             #orig_names=%r
             #new_names=%r
+            #names_changed=%r
             #inconsistent=%r
-            ''') % (len(ut.unique(infr.orig_name_labels)), num_names, num_inconsistent)
+            ''') % (len(ut.unique(infr.orig_name_labels)), num_names_changed, num_names, num_inconsistent)
 
         lines = []
         print_ = lines.append
@@ -997,22 +1001,27 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print_('ACCEPT GRAPH REVIEW')
         print_('aid_list = %r' % (aid_list,))
         print_('old_name_list = %r' % (old_name_list,))
-        print_('new_name_list = %r' % (name_list,))
+        print_('new_name_list = %r' % (new_name_list,))
         # logger.info('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
-        print_('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
+        # print_('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
         print_('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
 
         # keep track of residual data
-        new_df, old_df = infr.match_state_delta()
-        num_added = len(new_df) - len(old_df)
-        num_changed = len(old_df)
+        changed_df = infr.match_state_delta()
+        # num_added = len(new_df) - len(old_df)
+        # num_reviews_modified = len(old_df)
 
-        pdkw = dict(max_rows=len(new_df) + 1)
+        # TODO: move this into match delta such that it ONLY returns
+        # the changed_df
+        # np.all(x3['new_decision'] != x3['old_decision'])
+        num_added = pd.isnull(changed_df['am_rowid']).values.sum()
+        num_reviews_modified = len(changed_df) - num_added
+
+        pdkw = dict(max_rows=len(changed_df) + 1)
         #print_ = print
         print_('There were %d added annot match rows' % (num_added,))
-        print_('There were %d changed annot match rows' % (num_changed,))
-        print_('---DATAFRAME\nold_df =\n' + old_df.to_string(**pdkw))
-        print_('---DATAFRAME\nnew_df =\n' + new_df.to_string(**pdkw))
+        print_('There were %d modified annot match rows' % (num_reviews_modified,))
+        print_('---DATAFRAME\nchanged_info =\n' + changed_df.to_string(**pdkw))
 
         print('\n'.join(lines))
 
@@ -1047,32 +1056,27 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         logger.info('\n'.join(lines))
 
-        ibs = self.infr.ibs
-        dryrun = False
-        if not dryrun:
+        if True:
             # Set names
-            ibs.set_annot_names(aid_list, name_list)
+            ibs = self.infr.ibs
+            ibs.set_annot_names(aid_list, new_name_list)
 
             # Add am rowids for nonexisting rows
-            if len(new_df) > 0:
-                import pandas as pd
-                is_add = pd.isnull(new_df['am_rowid']).values
-                add_df = new_df.loc[is_add]
+            if len(changed_df) > 0:
+                is_add = pd.isnull(changed_df['am_rowid']).values
+                add_df = changed_df.loc[is_add]
                 add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
                                                         add_df['aid2'].values)
-                new_df.loc[is_add, 'am_rowid'] = add_ams
-                new_df.set_index('am_rowid', drop=False, inplace=True)
+                changed_df.loc[is_add, 'am_rowid'] = add_ams
+                changed_df.set_index('am_rowid', drop=False, inplace=True)
 
                 # Set residual matching data
-                new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, new_df['decision'])
-                # truth_options = [ibs.const.TRUTH_MATCH,
-                #                  ibs.const.TRUTH_NOT_MATCH,
-                #                  ibs.const.TRUTH_UNKNOWN]
-                # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
-                # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
-                # new_truth = ut.take(truth_options, truth_idxs)
-                am_rowids = new_df['am_rowid'].values
+                new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
+                am_rowids = changed_df['am_rowid'].values
                 ibs.set_annotmatch_truth(am_rowids, new_truth)
+
+                # TODO: set tags here as well
+                pass
         else:
             print('DRY RUN. NOT DOING ANYTHING')
         gt.user_info(self, 'Name Change Complete')
@@ -1249,7 +1253,7 @@ class EdgeAPIHelper(object):
             'speed': self.get_edge_speed,
             'kmdist': self.get_edge_kmdist,
             'matched':  self.get_match_text,
-            'reviewed':  self.edge_attr_getter('reviewed_state', 'unreviewed'),
+            'reviewed': self.get_reviewed_text,
             'score':  self.edge_attr_getter('score'),
             'rank':  self.edge_attr_getter('rank', -1),
             'tags': self.get_pair_tags,
@@ -1341,17 +1345,6 @@ class EdgeAPIHelper(object):
         #attrs['name_label2'] = graph.node[aid2]['name_label']
         return ut.repr2(attrs, precision=2, explicit=True, nobr=True)
 
-    def get_match_text(self, edge):
-        aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        nid1 = self.graph.node[aid1]['name_label']
-        nid2 = self.graph.node[aid2]['name_label']
-        if nid1 == nid2:
-            return 'matched nid=%d' % (nid1,)
-        else:
-            return 'not matched nids=(%d,%d)' % (nid1, nid2)
-
     def edge_attr_getter(self, attr, default=None):
         def get_edge_attr(edge):
             data = self.graph.get_edge_data(*edge)
@@ -1376,17 +1369,29 @@ class EdgeAPIHelper(object):
         assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
         assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
 
+    def get_match_text(self, edge):
+        aid1, aid2 = edge
+        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
+        nid1 = self.graph.node[aid1]['name_label']
+        nid2 = self.graph.node[aid2]['name_label']
+        if nid1 == nid2:
+            return 'matched nid=%d' % (nid1,)
+        else:
+            return 'not matched nids=(%d,%d)' % (nid1, nid2)
+
     def get_match_status_bgrole(self, edge):
         """ Background role for status column """
         aid1, aid2 = edge
-        nid1 = self.graph.node[aid1]['name_label']
-        nid2 = self.graph.node[aid2]['name_label']
-        data = self.graph.get_edge_data(*edge)
+        graph = self.infr.graph
+        nid1 = graph.node[aid1]['name_label']
+        nid2 = graph.node[aid2]['name_label']
+        data = graph.get_edge_data(*edge)
         if data.get('maybe_error', False):
             color = pt.ORANGE
         else:
             lighten_amount = .35
-            state = self.edge_attr_getter('reviewed_state', 'unreviewed')(edge)
+            state = graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
             if state == 'unreviewed':
                 lighten_amount = .7
             truth_colors = self.infr._get_truth_colors()
@@ -1396,6 +1401,13 @@ class EdgeAPIHelper(object):
                 color = pt.lighten_rgb(color, lighten_amount)
         color = pt.to_base255(color)
         return color
+
+    def get_reviewed_text(self, edge):
+        graph = self.infr.graph
+        text = graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+        text += '\n'
+        text += 'inferred=%s' % (graph.get_edge_data(*edge).get('inferred_state', None))
+        return text
 
     def get_reviewed_status_bgrole(self, edge):
         """ Background role for status column """

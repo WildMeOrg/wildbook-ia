@@ -1891,7 +1891,7 @@ def commit_current_query_object_names(query_object, ibs):
     #print('name_list = %r' % (name_list,))
 
     # keep track of residual data
-    new_df, old_df = query_object.match_state_delta()
+    changed_df = query_object.match_state_delta()
 
     # Set names
     vals = (len(aid_list), )
@@ -1899,24 +1899,24 @@ def commit_current_query_object_names(query_object, ibs):
     ibs.set_annot_names(aid_list, name_list)
 
     # Add am rowids for nonexisting rows
-    if len(new_df) > 0:
+    if len(changed_df) > 0:
         # ut.embed()
-        is_add = np.array(pd.isnull(new_df['am_rowid'].values))
-        add_df = new_df.loc[is_add]
+        is_add = np.array(pd.isnull(changed_df['am_rowid'].values))
+        add_df = changed_df.loc[is_add]
         add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
                                                 add_df['aid2'].values)
-        new_df.loc[is_add, 'am_rowid'] = add_ams
-        new_df.set_index('am_rowid', drop=False, inplace=True)
+        changed_df.loc[is_add, 'am_rowid'] = add_ams
+        changed_df.set_index('am_rowid', drop=False, inplace=True)
 
         # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, new_df['decision'])
+        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
         # truth_options = [ibs.const.TRUTH_MATCH,
         #                  ibs.const.TRUTH_NOT_MATCH,
         #                  ibs.const.TRUTH_UNKNOWN]
         # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
         # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
         # new_truth = ut.take(truth_options, truth_idxs)
-        am_rowids = new_df['am_rowid'].values
+        am_rowids = changed_df['am_rowid'].values
 
         ibs.set_annotmatch_truth(am_rowids, new_truth)
 

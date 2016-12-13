@@ -584,15 +584,15 @@ class _AnnotInfrIBEIS(object):
             >>> infr.reset_feedback()
             >>> infr.add_feedback(2, 3, 'match')
             >>> infr.add_feedback(5, 6, 'nomatch')
-            >>> (new_df, old_df) = infr.match_state_delta()
-            >>> result = ('new_df =\n%s' % (new_df,))
-            >>> result += ('\nold_df =\n%s' % (old_df,))
+            >>> infr.add_feedback(5, 4, 'nomatch')
+            >>> (changed_df) = infr.match_state_delta()
+            >>> result = ('changed_df =\n%s' % (changed_df,))
             >>> print(result)
         """
         old_feedback = infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback())
         new_feedback = infr._pandas_feedback_format(infr.all_feedback())
-        new_df, old_df = infr._make_state_delta(old_feedback, new_feedback)
-        return new_df, old_df
+        changed_df = infr._make_state_delta(old_feedback, new_feedback)
+        return changed_df
 
     def all_feedback(infr):
         all_feedback = ut.ddict(list)
@@ -604,7 +604,7 @@ class _AnnotInfrIBEIS(object):
 
     @staticmethod
     def _make_state_delta(old_feedback, new_feedback):
-        """
+        r"""
         CommandLine:
             python -m ibeis.algo.hots.graph_iden _make_state_delta
 
@@ -615,14 +615,14 @@ class _AnnotInfrIBEIS(object):
             >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid']
             >>> old_data = [
             >>>     ['nomatch', 100, 101, 1000],
-            >>>     ['match', 101, 102, 1001],
-            >>>     ['match', 103, 104, 1003],
+            >>>     [  'match', 101, 102, 1001],
+            >>>     [  'match', 103, 104, 1002],
             >>>     ['nomatch', 101, 104, 1004],
             >>> ]
             >>> new_data = [
-            >>>     ['match', 101, 102, 1001],
-            >>>     ['match', 103, 104, 1002],
-            >>>     ['match', 101, 104, 1003],
+            >>>     [  'match', 101, 102, 1001],
+            >>>     ['nomatch', 103, 104, 1002],
+            >>>     [  'match', 101, 104, 1003],
             >>>     ['nomatch', 102, 103, None],
             >>>     ['nomatch', 100, 103, None],
             >>>     ['notcomp', 107, 109, None],
@@ -631,15 +631,22 @@ class _AnnotInfrIBEIS(object):
             >>> new_feedback = pd.DataFrame(new_data, columns=columns)
             >>> old_feedback.set_index('am_rowid', inplace=True, drop=False)
             >>> new_feedback.set_index('am_rowid', inplace=True, drop=False)
-            >>> new_df, old_df = AnnotInference._make_state_delta(old_feedback, new_feedback)
+            >>> changed_df = AnnotInference._make_state_delta(old_feedback, new_feedback)
             >>> # post
-            >>> is_add = np.isnan(new_df['am_rowid'].values)
-            >>> add_df = new_df.loc[is_add]
+            >>> is_add = np.isnan(changed_df['am_rowid'].values)
+            >>> add_df = changed_df.loc[is_add]
             >>> add_ams = [2000, 2001, 2002]
-            >>> new_df.loc[is_add, 'am_rowid'] = add_ams
-            >>> new_df.set_index('am_rowid', drop=False, inplace=True)
-            >>> print(old_df)
-            >>> print(new_df)
+            >>> changed_df.loc[is_add, 'am_rowid'] = add_ams
+            >>> changed_df.set_index('am_rowid', drop=False, inplace=True)
+            >>> result = ('changed_df =\n%s' % (changed_df,))
+            >>> print(result)
+            changed_df =
+                      aid1  aid2  am_rowid old_decision new_decision
+            am_rowid
+            1002.0     103   104    1002.0        match      nomatch
+            2000.0     102   103    2000.0          NaN      nomatch
+            2001.0     100   103    2001.0          NaN      nomatch
+            2002.0     107   109    2002.0          NaN      notcomp
         """
         import pandas as pd
         existing_ams = new_feedback['am_rowid'][~pd.isnull(new_feedback['am_rowid'])]
@@ -657,7 +664,16 @@ class _AnnotInfrIBEIS(object):
             new_df_ = all_new_df
             old_df = all_old_df
         new_df = pd.concat([new_df_, add_df])
-        return new_df, old_df
+
+        assert np.all(old_df['aid1'] < old_df['aid2'])
+        assert np.all(new_df['aid1'] < new_df['aid2'])
+        x1 = new_df.rename(columns={'decision': 'new_decision'})
+        x2 = old_df.rename(columns={'decision': 'old_decision'})
+        x3 = x2.merge(x1, how='outer')
+        col_order = ['old_decision', 'new_decision']
+        changed_df = x3.reindex(columns=ut.setdiff(x3.columns.values, col_order) + col_order)
+
+        return changed_df
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1992,6 +2008,31 @@ class _AnnotInfrRelabel(object):
         nodes = ut.take(infr.aid_to_node, infr.aids)
         infr.set_node_attrs('name_label', ut.dzip(nodes, nids))
 
+    def _rectify_names(infr, old_names, new_labels):
+        """
+        Finds the best assignment of old names based on the new groups each is
+        assigned to.
+
+        old_names  = [None, None, None, 1, 2, 3, 3, 4, 4, 4, 5, None]
+        new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
+        """
+        from ibeis.scripts import name_recitifer
+        newlabel_to_oldnames = ut.group_items(old_names, new_labels)
+        # Remove nones
+        unique_newlabels = list(newlabel_to_oldnames.keys())
+        grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
+        grouped_oldnames = [
+            [n for n in oldgroup if n is not None]
+            for oldgroup in grouped_oldnames_]
+        new_names = name_recitifer.find_consistent_labeling(grouped_oldnames)
+        new_flags = [
+            isinstance(n, six.string_types) and n.startswith('_extra_name')
+            for n in new_names
+        ]
+        label_to_name = ut.dzip(unique_newlabels, new_names)
+        needs_assign = ut.compress(unique_newlabels, new_flags)
+        return label_to_name, needs_assign
+
     @profile
     def relabel_using_reviews(infr, graph=None):
         if infr.verbose >= 1:
@@ -2002,6 +2043,8 @@ class _AnnotInfrRelabel(object):
 
         # if graph is not None:
         #     available_nids = ut.unique(nx.get_node_attributes(graph, 'name_label'))
+        grouped_oldnames = [list(nx.get_node_attributes(subgraph, 'name_label').values())
+                            for count, subgraph in enumerate(cc_subgraphs)]
 
         # Determine which names can be reused
         if infr.verbose >= 2:
