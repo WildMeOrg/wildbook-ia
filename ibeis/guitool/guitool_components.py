@@ -148,8 +148,10 @@ def newMenubar(widget):
     setattr(menubar, 'newMenu', ut.partial(newMenu, menubar))
     if hasattr(widget, 'setMenuBar'):
         widget.setMenuBar(menubar)
-    else:
+    if hasattr(widget, 'addWidget'):
         widget.addWidget(menubar)
+    else:
+        widget.layout().addWidget(menubar)
         #menubar.show()
     return menubar
 

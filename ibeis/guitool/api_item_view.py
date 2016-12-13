@@ -52,6 +52,12 @@ class APIItemView(API_VIEW_BASE):
     def __init__(view, parent=None):
         API_VIEW_BASE.__init__(view, parent)
 
+
+@register_view_method
+def _init_api_item_view(view):
+    view.registered_single_keys = []
+    view.registered_keypress_funcs = []
+
 #---------------
 # Data Manipulation
 #---------------
@@ -227,7 +233,6 @@ def hide_cols(view):
 
 
 @register_view_method
-@profile
 def get_row_and_qtindex_from_id(view, _id):
     """ uses an sqlrowid (from iders) to get a qtindex """
     model = view.model()
@@ -236,7 +241,6 @@ def get_row_and_qtindex_from_id(view, _id):
 
 
 @register_view_method
-@profile
 def select_row_from_id(view, _id, scroll=False, collapse=True):
     """
         _id is from the iders function (i.e. an ibeis rowid)
@@ -267,9 +271,62 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
             return row
     return None
 
+
+@register_view_method
+def connect_single_key_to_slot(view, key, func):
+    view.registered_single_keys.append((key, func))
+
+
+@register_view_method
+def connect_keypress_to_slot(view, func):
+    view.registered_keypress_funcs.append(func)
+
+
+@register_view_method
+def selectedRows(view):
+    selected_qtindex_list = view.selectedIndexes()
+    selected_qtindex_list2 = []
+    seen_ = set([])
+    for qindex in selected_qtindex_list:
+        row = qindex.row()
+        if row not in seen_:
+            selected_qtindex_list2.append(qindex)
+            seen_.add(row)
+    return selected_qtindex_list2
+
+
 #---------------
 # Qt Overrides
 #---------------
+
+
+def keyPressEvent(view, event):
+    """
+    CommandLine:
+        python -m guitool.api_item_widget --test-simple_api_item_widget --show
+        python -m guitool.api_table_view --test-keyPressEvent --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.api_table_view import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qapp()
+        >>> view = APITableView()
+        >>> view._init_header_behavior()
+    """
+    # TODO: can this be in api_item_view?
+    assert isinstance(event, QtGui.QKeyEvent)
+    view.API_VIEW_BASE.keyPressEvent(view, event)
+    if event.matches(QtGui.QKeySequence.Copy):
+        #print('Received Ctrl+C in View')
+        view.copy_selection_to_clipboard()
+    #print ('[view] keyPressEvent: %s' % event.key())
+    for func in view.registered_keypress_funcs:
+        func(view, event)
+    for key, func in view.registered_single_keys:
+        #print(key)
+        if event.key() == key:
+            func(view, event)
 
 
 #@register_view_method

@@ -3,12 +3,10 @@ from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets
 from guitool.guitool_decorators import signal_, slot_
-import utool
-#from guitool import guitool_components
+import utool as ut
 from guitool import api_item_view
 
-(print, rrr, profile) = utool.inject2(
-    __name__, '[APITreeView]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # If you need to set the selected index try:
@@ -43,6 +41,7 @@ class APITreeView(API_VIEW_BASE):
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
         #view.cornerButton = guitool_components.newButton(view)
         #view.setCornerWidget(view.cornerButton)
+        view._init_api_item_view()
 
         #view.setUniformRowHeights(True)
 
@@ -95,6 +94,9 @@ class APITreeView(API_VIEW_BASE):
         """ QtOverride: Returns item delegate for this index """
         api_item_view.setModel(view, model)
 
+    def keyPressEvent(view, event):
+        return api_item_view.keyPressEvent(view, event)
+
     #---------------
     # Slots
     #---------------
@@ -108,6 +110,74 @@ class APITreeView(API_VIEW_BASE):
     def on_customMenuRequested(view, pos):
         index = view.indexAt(pos)
         view.contextMenuClicked.emit(index, pos)
+
+
+def testdata_tree_view():
+    r"""
+    CommandLine:
+        python -m guitool.api_tree_view testdata_tree_view
+        --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> import guitool as gt
+        >>> from guitool.api_tree_view import *  # NOQA
+        >>> wgt = testdata_tree_view()
+        >>> view = wgt.view
+        >>> rows = view.selectedRows()
+        >>> print('rows = %r' % (rows,))
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(qwin=wgt)
+    """
+    import guitool as gt
+    gt.ensure_qapp()
+    col_name_list = ['name', 'num_annots', 'annots']
+    col_getter_dict = {
+        'name': ['fred', 'sue', 'tom', 'mary', 'paul'],
+        'num_annots': [2, 1, 3, 5, 1],
+    }
+    # make consistent data
+    grouped_data = [
+        [col_getter_dict['name'][index] + '-' + str(i) for i in range(num)]
+        for index, num in enumerate(col_getter_dict['num_annots'])
+    ]
+    flat_data, reverse_list = ut.invertible_flatten1(grouped_data)
+    col_getter_dict['annots'] = flat_data
+
+    iders = [
+        list(range(len(col_getter_dict['name']))),
+        reverse_list
+    ]
+
+    col_level_dict = {
+        'name': 0,
+        'num_annots': 0,
+        'annots': 1,
+    }
+    sortby = 'name'
+
+    api = gt.CustomAPI(
+        col_name_list=col_name_list,
+        col_getter_dict=col_getter_dict,
+        sortby=sortby,
+        iders=iders,
+        col_level_dict=col_level_dict,
+    )
+    headers = api.make_headers(tblnice='Tree Example')
+
+    wgt = gt.APIItemWidget(view_class=APITreeView)
+    wgt.change_headers(headers)
+
+    wgt.menubar = gt.newMenubar(wgt)
+    wgt.menuFile = wgt.menubar.newMenu('Dev')
+    def wgt_embed(wgt):
+        view = wgt.view  # NOQA
+        import utool
+        utool.embed()
+    ut.inject_func_as_method(wgt, wgt_embed)
+    wgt.menuFile.newAction(triggered=wgt.wgt_embed)
+
+    return wgt
 
 
 if __name__ == '__main__':

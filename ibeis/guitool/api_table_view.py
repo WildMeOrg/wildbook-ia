@@ -38,6 +38,7 @@ class APITableView(API_VIEW_BASE):
         # Context menu
         view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         view.customContextMenuRequested.connect(view.on_customMenuRequested)
+        view._init_api_item_view()
 
     #---------------
     # Initialization
@@ -102,16 +103,6 @@ class APITableView(API_VIEW_BASE):
             horizontalHeader.setSectionsMovable(True)
         #horizontalHeader.setCascadingSectionResizes(True)
         # Columns moveable
-        view.registered_single_keys = []
-        view.registered_keypress_funcs = []
-
-    def connect_single_key_to_slot(view, key, func):
-        # TODO: move to api_item_view
-        view.registered_single_keys.append((key, func))
-
-    def connect_keypress_to_slot(view, func):
-        # TODO: move to api_item_view
-        view.registered_keypress_funcs.append(func)
 
     #---------------
     # Qt Overrides
@@ -135,19 +126,21 @@ class APITableView(API_VIEW_BASE):
             >>> view = APITableView()
             >>> view._init_header_behavior()
         """
-        # TODO: can this be in api_item_view?
-        assert isinstance(event, QtGui.QKeyEvent)
-        API_VIEW_BASE.keyPressEvent(view, event)
-        if event.matches(QtGui.QKeySequence.Copy):
-            #print('Received Ctrl+C in View')
-            view.copy_selection_to_clipboard()
-        #print ('[view] keyPressEvent: %s' % event.key())
-        for func in view.registered_keypress_funcs:
-            func(view, event)
-        for key, func in view.registered_single_keys:
-            #print(key)
-            if event.key() == key:
-                func(view, event)
+        return api_item_view.keyPressEvent(view, event)
+
+        # # TODO: can this be in api_item_view?
+        # assert isinstance(event, QtGui.QKeyEvent)
+        # view.API_VIEW_BASE.keyPressEvent(view, event)
+        # if event.matches(QtGui.QKeySequence.Copy):
+        #     #print('Received Ctrl+C in View')
+        #     view.copy_selection_to_clipboard()
+        # #print ('[view] keyPressEvent: %s' % event.key())
+        # for func in view.registered_keypress_funcs:
+        #     func(view, event)
+        # for key, func in view.registered_single_keys:
+        #     #print(key)
+        #     if event.key() == key:
+        #         func(view, event)
 
     def mouseMoveEvent(view, event):
         assert isinstance(event, QtGui.QMouseEvent)
@@ -178,14 +171,3 @@ class APITableView(API_VIEW_BASE):
     def on_customMenuRequested(view, pos):
         index = view.indexAt(pos)
         view.contextMenuClicked.emit(index, pos)
-
-    def selectedRows(view):
-        selected_qtindex_list = view.selectedIndexes()
-        selected_qtindex_list2 = []
-        seen_ = set([])
-        for qindex in selected_qtindex_list:
-            row = qindex.row()
-            if row not in seen_:
-                selected_qtindex_list2.append(qindex)
-                seen_.add(row)
-        return selected_qtindex_list2
