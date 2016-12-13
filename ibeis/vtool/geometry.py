@@ -226,7 +226,7 @@ def closest_point_on_line_segment(p, e1, e2):
         >>>                   [ 21.83012702,  13.16987298]])
         >>> rng = np.random.RandomState(0)
         >>> p_list = rng.rand(64, 2) * 20 + 5
-        >>> close_pts = np.array([closest_point_on_verts(p, verts) for p in p_list])
+        >>> close_pts = np.array([closest_point_on_vert_segments(p, verts) for p in p_list])
         >>> import plottool as pt
         >>> pt.ensure_pylab_qt4()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
