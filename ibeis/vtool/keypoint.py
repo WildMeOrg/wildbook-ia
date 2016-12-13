@@ -268,15 +268,17 @@ def get_sqrd_scales(kpts):
         >>> from vtool.keypoint import *  # NOQA
         >>> import vtool as vt
         >>> kpts = vt.dummy.get_dummy_kpts()
-        >>> result = get_sqrd_scales(kpts)
-        >>> print(ut.repr2(result, precision=2))
+        >>> _scales_sqrd = get_sqrd_scales(kpts)
+        >>> result = (ut.repr2(_scales_sqrd, precision=2))
+        >>> print(result)
         np.array([ 125.98,   56.88,  128.62,  188.37,  188.38])
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.keypoint import *  # NOQA
-        >>> result = get_sqrd_scales([])
-        >>> print(ut.repr2(result, precision=2))
+        >>> _scales_sqrd = get_sqrd_scales([])
+        >>> result = (ut.repr2(_scales_sqrd, precision=2))
+        >>> print(result)
         np.array([])
     """
     if len(kpts) == 0:
