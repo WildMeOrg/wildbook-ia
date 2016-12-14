@@ -100,15 +100,15 @@ class OneVsOneProblem(object):
         self.task_combo_res = ut.ddict(dict)
 
         task_list = [
-            # 'match_state',
-            'photobomb_state'
+            'match_state',
+            # 'photobomb_state'
         ]
 
         self.datakey_list = [
             'learn(sum,glob,3)',
         ]
 
-        cacher = ut.Cacher('pair_clf', cfgstr='tmp' + self.qreq_.get_cfgstr(),
+        cacher = ut.Cacher('pair_clf_v2', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
                            appname='vsone_rf_train', enabled=1)
         data = cacher.tryload()
         if not data:
@@ -140,11 +140,20 @@ class OneVsOneProblem(object):
             labels = self.labels
             meta = res.make_meta(labels).copy()
             import ibeis
-            AnnotInference = ibeis.AnnotInference
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
             attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
             ibs = self.qreq_.ibs
-            infr = AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs)
+            infr = ibeis.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs, verbose=3)
+            infr.reset_feedback('staging')
+            infr.reset_labels_to_ibeis()
+            infr.apply_feedback_edges()
+            infr.relabel_using_reviews()
+
+            # x = [c for c in infr.consistent_compoments()]
+            # cc = x[ut.argmax(ut.lmap(len, x))]
+            # keep = list(cc.nodes())
+            # infr.remove_aids(ut.setdiff(infr.aids, keep))
+
             win = infr.start_qt_interface()
             import guitool as gt
             gt.qtapp_loop(qwin=win, freq=10)
@@ -250,7 +259,19 @@ class OneVsOneProblem(object):
             hyper_params.vsone_assign['weight'] = 'fgweights'
         else:
             hyper_params.vsone_assign['weight'] = None
-        data = bigcache_features(qreq_, hyper_params)
+
+        dbname = qreq_.ibs.get_dbname()
+        vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
+        features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
+        cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
+
+        cacher = ut.Cacher('pairwise_data_v5', cfgstr=cfgstr,
+                           appname='vsone_rf_train', enabled=1)
+        data = cacher.tryload()
+        if not data:
+            data = build_features(qreq_, hyper_params)
+        cacher.save(data)
+
         aid_pairs, simple_scores, X_dict, y, match = data
         self.aid_pairs = aid_pairs
         self.raw_X_dict = X_dict
@@ -1131,22 +1152,6 @@ class PairFeatInfo(object):
             return featinfo.measure(key)
 
 
-def bigcache_features(qreq_, hyper_params):
-    dbname = qreq_.ibs.get_dbname()
-    vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
-    features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
-    cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
-
-    cacher = ut.Cacher('pairwise_data_v3', cfgstr=cfgstr,
-                       appname='vsone_rf_train', enabled=1)
-    data = cacher.tryload()
-    if not data:
-        data = build_features(qreq_, hyper_params)
-        cacher.save(data)
-    # simple_scores, X_dict, y = data
-    return data
-
-
 def build_features(qreq_, hyper_params):
     import pandas as pd
 
@@ -1236,8 +1241,8 @@ def demo_single_pairwise_feature_vector():
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> result = demo_single_pairwise_feature_vector()
-        >>> print(result)
+        >>> match = demo_single_pairwise_feature_vector()
+        >>> print(match)
     """
     import vtool as vt
     import ibeis
@@ -1260,6 +1265,7 @@ def demo_single_pairwise_feature_vector():
 
     # sorters = ['ratio', 'norm_dist', 'match_dist']
     match.make_feature_vector()
+    return match
 
 
 def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
@@ -1336,9 +1342,18 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
     for match in ut.ProgIter(matches_RAT, label='apply ratio thresh'):
         match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
 
+    # TODO gridsearch over sv params
+    # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_sver', {
+    #     'xy_thresh': np.linspace(0, 1, 3)
+    # })
+    matches_RAT_SV = [
+        match.apply_sver(inplace=True)
+        for match in ut.ProgIter(matches_RAT, label='sver')
+    ]
+
     # Add keypoint spatial information to local features
-    for match in matches_RAT:
-        match.add_local_meausres()
+    for match in matches_RAT_SV:
+        match.add_local_measures()
         # key_ = 'norm_xys'
         # norm_xy1 = match.annot1[key_].take(match.fm.T[0], axis=1)
         # norm_xy2 = match.annot2[key_].take(match.fm.T[1], axis=1)
@@ -1351,15 +1366,6 @@ def vsone_(qreq_, query_aids, data_aids, qannot_cfg, dannot_cfg,
         #     match.annot1['kpts'].take(match.fm.T[0], axis=0))
         # match.local_measures['scale2'] = vt.get_scales(
         #     match.annot2['kpts'].take(match.fm.T[1], axis=0))
-
-    # TODO gridsearch over sv params
-    # vt.matching.gridsearch_match_operation(matches_RAT, 'apply_sver', {
-    #     'xy_thresh': np.linspace(0, 1, 3)
-    # })
-    matches_RAT_SV = [
-        match.apply_sver(inplace=True)
-        for match in ut.ProgIter(matches_RAT, label='sver')
-    ]
 
     # Create another version where we find global normalizers for the data
     # qreq_.load_indexer()
@@ -1682,7 +1688,7 @@ def bigcache_vsone(qreq_, hyper_params):
 
     # Combine into a big cache for the entire 1-v-1 matching run
     big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-    cacher = ut.Cacher('vsone', cfgstr=str(big_uuid), appname='vsone_rf_train')
+    cacher = ut.Cacher('vsone_v2', cfgstr=str(big_uuid), appname='vsone_rf_train')
 
     cached_data = cacher.tryload()
     if cached_data is not None:

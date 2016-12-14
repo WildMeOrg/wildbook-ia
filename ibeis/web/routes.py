@@ -14,7 +14,6 @@ from ibeis.web import routes_ajax
 import utool as ut
 import vtool as vt
 import numpy as np
-import traceback
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -1891,7 +1890,7 @@ def commit_current_query_object_names(query_object, ibs):
     #print('name_list = %r' % (name_list,))
 
     # keep track of residual data
-    new_df, old_df = query_object.match_state_delta()
+    changed_df = query_object.match_state_delta()
 
     # Set names
     vals = (len(aid_list), )
@@ -1899,24 +1898,24 @@ def commit_current_query_object_names(query_object, ibs):
     ibs.set_annot_names(aid_list, name_list)
 
     # Add am rowids for nonexisting rows
-    if len(new_df) > 0:
+    if len(changed_df) > 0:
         # ut.embed()
-        is_add = np.array(pd.isnull(new_df['am_rowid'].values))
-        add_df = new_df.loc[is_add]
+        is_add = np.array(pd.isnull(changed_df['am_rowid'].values))
+        add_df = changed_df.loc[is_add]
         add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
                                                 add_df['aid2'].values)
-        new_df.loc[is_add, 'am_rowid'] = add_ams
-        new_df.set_index('am_rowid', drop=False, inplace=True)
+        changed_df.loc[is_add, 'am_rowid'] = add_ams
+        changed_df.set_index('am_rowid', drop=False, inplace=True)
 
         # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, new_df['decision'])
+        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
         # truth_options = [ibs.const.TRUTH_MATCH,
         #                  ibs.const.TRUTH_NOT_MATCH,
         #                  ibs.const.TRUTH_UNKNOWN]
         # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
         # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
         # new_truth = ut.take(truth_options, truth_idxs)
-        am_rowids = new_df['am_rowid'].values
+        am_rowids = changed_df['am_rowid'].values
 
         ibs.set_annotmatch_truth(am_rowids, new_truth)
 
@@ -1936,43 +1935,30 @@ def commit_current_query_object_names(query_object, ibs):
 def precompute_current_review_match_images(ibs, query_object,
                                            global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
                                            view_orientation='vertical'):
-    from ibeis.web.apis_query import make_review_image
+    from ibeis.web import apis_query
 
     review_aid1_list, review_aid2_list = query_object.get_filtered_edges(GLOBAL_FEEDBACK_CONFIG_DICT)
     qreq_ = query_object.qreq_
 
+    assert len(review_aid1_list) == len(review_aid2_list), 'not aligned'
+
     # Precompute
     zipped = zip(review_aid1_list, review_aid2_list)
-    for index, (aid1, aid2) in enumerate(zipped):
+    prog = ut.ProgIter(enumerate(zipped), length=len(review_aid2_list),
+                       label='Rending images')
+    for index, (aid1, aid2) in prog:
         if index > global_feedback_limit * 2:
             break
-
-        cm_fallback_list = [
-            query_object.lookup_cm(aid1, aid2),
-            # query_object.lookup_cm(aid2, aid1),
-        ]
-        for cm, aid1_, aid2_ in cm_fallback_list:
-            success = True
-            with ut.Timer('[web.routes.turk_identification] ... ... Render images1'):
-                # Make images
-                try:
-                    make_review_image(ibs, aid2_, cm, qreq_,
-                                      view_orientation=view_orientation)
-                except KeyError:
-                    success = False
-                    traceback.print_exc()
-                    raise
-                try:
-                    make_review_image(ibs, aid2_, cm, qreq_,
-                                      view_orientation=view_orientation,
-                                      draw_matches=False)
-                except KeyError:
-                    success = False
-                    traceback.print_exc()
-                    raise
-
-            if success:
-                break
+        cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
+        try:
+            apis_query.ensure_review_image(ibs, aid2, cm, qreq_,
+                                           view_orientation=view_orientation)
+        except KeyError as ex:
+            ut.printex(ex, 'Failed to make review image. falling back',
+                       tb=True, keys=['cm.qaid', 'aid2'], iswarning=True)
+            apis_query.ensure_review_image(ibs, aid2, cm, qreq_,
+                                           view_orientation=view_orientation,
+                                           draw_matches=False)
 
 
 @register_ibs_method
@@ -1985,6 +1971,26 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
                                       global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
                                       **kwargs):
     """
+    CommandLine:
+        python -m ibeis.web.routes _init_identification_query_object
+
+    Ignore:
+        # mount lev to the home drive
+        sshfs -o idmap=user lev:/ ~/lev
+
+        # Url to debug
+        http://128.213.17.12:5000/turk/identification/?aid1=6619&aid2=7094
+
+        import ibeis
+        ibs = ibeis.opendb(ut.truepath('~/lev/media/hdd/work/EWT_Cheetahs'))
+        aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
+        infr = ibeis.AnnotInference(ibs, aid_list, autoinit=True)
+        infr.reset_feedback('staging')
+        infr.apply_feedback_edges()
+        infr.exec_matching()
+        infr.apply_match_edges()
+        infr.apply_match_scores()
+
     Example:
         >>> # SLOW_DOCTEST
         >>> from ibeis.web.routes import *  # NOQA
@@ -2008,7 +2014,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     # aid_list = [ aid for aid, yaw in zip(aid_list, yaw_list) if yaw in wanted_set ]
     # print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
 
-    nids = aid_list if debug_ignore_name_gt else None
+    nids = [-aid for aid in aid_list] if debug_ignore_name_gt else None
 
     query_object = graph_iden.AnnotInference(ibs, aid_list, nids=nids,
                                              autoinit=True)
@@ -2142,14 +2148,15 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
 def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
     """
     CommandLine:
-        python -m ibeis.web.app --exec-turk_identification --db PZ_Master1
-        python -m ibeis.web.app --exec-turk_identification --db PZ_MTEST
+        python -m ibeis.web.routes turk_identification --db PZ_Master1
+        python -m ibeis.web.routes turk_identification --db PZ_MTEST
+        python -m ibeis.web.routes turk_identification --db testdb1 --show
 
     Example:
         >>> # SCRIPT
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
-        >>> web_ibs = ibeis.opendb_bg_web('PZ_MTEST')
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')
         >>> resp = web_ibs.get('/turk/identification/')
         >>> web_ibs.terminate2()
         >>> ut.quit_if_noshow()
@@ -2157,7 +2164,7 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
         >>> ut.render_html(resp.content)
         >>> ut.show_if_requested()
     """
-    from ibeis.web.apis_query import make_review_image
+    from ibeis.web import apis_query
 
     with ut.Timer('[web.routes.turk_identification] Load query_object'):
         ibs = current_app.ibs
@@ -2238,37 +2245,30 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                         match_score = graph_dict.get('score', -1.0)
 
                     with ut.Timer('[web.routes.turk_identification] ... Make images'):
-                        cm_fallback_list = [
-                            query_object.lookup_cm(aid1, aid2),
-                            # query_object.lookup_cm(aid2, aid1),
-                        ]
-                        for cm, aid1_, aid2_ in cm_fallback_list:
-                            success = True
-                            with ut.Timer('[web.routes.turk_identification] ... ... Render images2'):
-                                # Make images
-                                view_orientation = request.args.get('view_orientation', 'vertical')
+                        cm, aid1, aid2 = query_object.lookup_cm(aid1, aid2)
+                        view_orientation = request.args.get('view_orientation', 'vertical')
+                        with ut.Timer('[web.routes.turk_identification] ... ... Render images2'):
+                            try:
+                                image_matches = apis_query.ensure_review_image(
+                                    ibs, aid2, cm, qreq_,
+                                    view_orientation=view_orientation)
+                            except KeyError as ex:
+                                ut.printex(ex, 'Failed to make review image', tb=True,
+                                           keys=['cm.qaid', 'aid1', 'aid2'],
+                                           iswarning=True)
                                 try:
-                                    image_matches = make_review_image(ibs, aid2_, cm, qreq_,
-                                                                      view_orientation=view_orientation)
+                                    image_clean = apis_query.ensure_review_image(
+                                        ibs, aid2, cm, qreq_,
+                                        view_orientation=view_orientation,
+                                        draw_matches=False)
                                 except KeyError:
-                                    success = False
-                                    image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
-                                    traceback.print_exc()
-                                try:
-                                    image_clean = make_review_image(ibs, aid2_, cm, qreq_,
-                                                                    view_orientation=view_orientation,
-                                                                    draw_matches=False)
-                                except KeyError:
-                                    success = False
                                     image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
-                                    traceback.print_exc()
+                                    ut.printex(ex, 'Failed to make fallback review image', tb=True,
+                                               keys=['cm.qaid', 'aid1', 'aid2'])
 
-                            with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
-                                image_matches_src = appf.embed_image_html(image_matches)
-                                image_clean_src = appf.embed_image_html(image_clean)
-
-                            if success:
-                                break
+                        with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
+                            image_matches_src = appf.embed_image_html(image_matches)
+                            image_clean_src = appf.embed_image_html(image_clean)
 
                     with ut.Timer('[web.routes.turk_identification] ... Process previous'):
                         # Get previous
@@ -2276,7 +2276,6 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                         if previous is not None and ';' in previous:
                             previous = tuple(map(int, previous.split(';')))
                             assert len(previous) == 3
-
                         # print('Previous = %r' % (previous, ))
                         # print('replace_review_rowid  = %r' % (replace_review_rowid, ))
                 else:

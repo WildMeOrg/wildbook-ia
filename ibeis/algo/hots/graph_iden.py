@@ -584,15 +584,15 @@ class _AnnotInfrIBEIS(object):
             >>> infr.reset_feedback()
             >>> infr.add_feedback(2, 3, 'match')
             >>> infr.add_feedback(5, 6, 'nomatch')
-            >>> (new_df, old_df) = infr.match_state_delta()
-            >>> result = ('new_df =\n%s' % (new_df,))
-            >>> result += ('\nold_df =\n%s' % (old_df,))
+            >>> infr.add_feedback(5, 4, 'nomatch')
+            >>> (changed_df) = infr.match_state_delta()
+            >>> result = ('changed_df =\n%s' % (changed_df,))
             >>> print(result)
         """
         old_feedback = infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback())
         new_feedback = infr._pandas_feedback_format(infr.all_feedback())
-        new_df, old_df = infr._make_state_delta(old_feedback, new_feedback)
-        return new_df, old_df
+        changed_df = infr._make_state_delta(old_feedback, new_feedback)
+        return changed_df
 
     def all_feedback(infr):
         all_feedback = ut.ddict(list)
@@ -604,7 +604,7 @@ class _AnnotInfrIBEIS(object):
 
     @staticmethod
     def _make_state_delta(old_feedback, new_feedback):
-        """
+        r"""
         CommandLine:
             python -m ibeis.algo.hots.graph_iden _make_state_delta
 
@@ -615,14 +615,14 @@ class _AnnotInfrIBEIS(object):
             >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid']
             >>> old_data = [
             >>>     ['nomatch', 100, 101, 1000],
-            >>>     ['match', 101, 102, 1001],
-            >>>     ['match', 103, 104, 1003],
+            >>>     [  'match', 101, 102, 1001],
+            >>>     [  'match', 103, 104, 1002],
             >>>     ['nomatch', 101, 104, 1004],
             >>> ]
             >>> new_data = [
-            >>>     ['match', 101, 102, 1001],
-            >>>     ['match', 103, 104, 1002],
-            >>>     ['match', 101, 104, 1003],
+            >>>     [  'match', 101, 102, 1001],
+            >>>     ['nomatch', 103, 104, 1002],
+            >>>     [  'match', 101, 104, 1003],
             >>>     ['nomatch', 102, 103, None],
             >>>     ['nomatch', 100, 103, None],
             >>>     ['notcomp', 107, 109, None],
@@ -631,15 +631,22 @@ class _AnnotInfrIBEIS(object):
             >>> new_feedback = pd.DataFrame(new_data, columns=columns)
             >>> old_feedback.set_index('am_rowid', inplace=True, drop=False)
             >>> new_feedback.set_index('am_rowid', inplace=True, drop=False)
-            >>> new_df, old_df = AnnotInference._make_state_delta(old_feedback, new_feedback)
+            >>> changed_df = AnnotInference._make_state_delta(old_feedback, new_feedback)
             >>> # post
-            >>> is_add = np.isnan(new_df['am_rowid'].values)
-            >>> add_df = new_df.loc[is_add]
+            >>> is_add = np.isnan(changed_df['am_rowid'].values)
+            >>> add_df = changed_df.loc[is_add]
             >>> add_ams = [2000, 2001, 2002]
-            >>> new_df.loc[is_add, 'am_rowid'] = add_ams
-            >>> new_df.set_index('am_rowid', drop=False, inplace=True)
-            >>> print(old_df)
-            >>> print(new_df)
+            >>> changed_df.loc[is_add, 'am_rowid'] = add_ams
+            >>> changed_df.set_index('am_rowid', drop=False, inplace=True)
+            >>> result = ('changed_df =\n%s' % (changed_df,))
+            >>> print(result)
+            changed_df =
+                      aid1  aid2  am_rowid old_decision new_decision
+            am_rowid
+            1002.0     103   104    1002.0        match      nomatch
+            2000.0     102   103    2000.0          NaN      nomatch
+            2001.0     100   103    2001.0          NaN      nomatch
+            2002.0     107   109    2002.0          NaN      notcomp
         """
         import pandas as pd
         existing_ams = new_feedback['am_rowid'][~pd.isnull(new_feedback['am_rowid'])]
@@ -657,7 +664,16 @@ class _AnnotInfrIBEIS(object):
             new_df_ = all_new_df
             old_df = all_old_df
         new_df = pd.concat([new_df_, add_df])
-        return new_df, old_df
+
+        assert np.all(old_df['aid1'] < old_df['aid2'])
+        assert np.all(new_df['aid1'] < new_df['aid2'])
+        x1 = new_df.rename(columns={'decision': 'new_decision'})
+        x2 = old_df.rename(columns={'decision': 'old_decision'})
+        x3 = x2.merge(x1, how='outer')
+        col_order = ['old_decision', 'new_decision']
+        changed_df = x3.reindex(columns=ut.setdiff(x3.columns.values, col_order) + col_order)
+
+        return changed_df
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -752,7 +768,7 @@ class _AnnotInfrFeedback(object):
         ut.nx_delete_edge_attr(infr.graph, 'num_reviews', edges)
         # ut.nx_delete_edge_attr(infr.graph, 'is_reviewed', edges)
 
-    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list):
+    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list, n_reviews_list):
         if infr.verbose >= 3:
             print('[infr] _set_feedback_edges')
         # Ensure edges exist
@@ -763,6 +779,8 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('reviewed_state', _dz(edges, review_state))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
+        infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
+        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
         # infr.set_edge_attrs('num_reviews', _dz(edges, tags_list))
         # infr.set_edge_attrs('is_reviewed', _dz(edges, [True]))
 
@@ -814,10 +832,7 @@ class _AnnotInfrFeedback(object):
         p_same_list = ut.take(p_same_lookup, decision_list)
 
         # Put pair orders in context of the graph
-        unique_pairs = [(aid2, aid1) if infr.graph.has_edge(aid2, aid1) else
-                        (aid1, aid2) for (aid1, aid2) in feedback_edges]
-        infr._set_feedback_edges(unique_pairs, decision_list, p_same_list, tags_list)
-        infr.set_edge_attrs('num_reviews', _dz(unique_pairs, num_review_list))
+        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list, tags_list, num_review_list)
 
     @profile
     def _dynamically_apply_feedback(infr, edge, feedback_item):
@@ -875,7 +890,7 @@ class _AnnotInfrFeedback(object):
             state = 'unreviewed'
             infr._del_feedback_edges([edge])
             infr.set_edge_attrs(
-                'cut_weight', infr.get_edge_attrs('normscore', [edge], np.nan))
+                infr.CUT_WEIGHT_KEY, infr.get_edge_attrs('normscore', [edge], np.nan))
         else:
             # Apply the review to the specified edge
             state = feedback_item['decision']
@@ -892,12 +907,13 @@ class _AnnotInfrFeedback(object):
 
             # p_same = infr._compute_p_same(review_dict['p_match'],
             #                               review_dict['p_notcomp'])
-            infr._set_feedback_edges([edge], [state], [p_same], [tags])
-            # TODO: change num_reviews to num_consistent_reviews
             num_reviews = infr.get_edge_attrs('num_reviews', [edge],
-                                              default=0)[edge]
-            infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
-            infr.set_edge_attrs('cut_weight', {edge: p_same})
+                                              default=0).get(edge, 0)
+            infr._set_feedback_edges([edge], [state], [p_same], [tags],
+                                     [num_reviews + 1])
+            # TODO: change num_reviews to num_consistent_reviews
+            # infr.set_edge_attrs('num_reviews', {edge: num_reviews + 1})
+            # infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, {edge: p_same})
             if state != 'notcomp':
                 ut.nx_delete_edge_attr(infr.graph, 'inferred_state', [edge])
 
@@ -932,11 +948,13 @@ class _AnnotInfrFeedback(object):
     def reset_feedback(infr, mode='annotmatch'):
         """ Resets feedback edges to state of the SQL annotmatch table """
         if infr.verbose >= 1:
-            print('[infr] reset_feedback')
+            print('[infr] reset_feedback mode=%r' % (mode,))
         if mode == 'annotmatch':
             infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
         elif mode == 'staging':
             infr.external_feedback = infr.read_ibeis_staging_feedback()
+        else:
+            raise ValueError('no mode=%r' % (mode,))
         infr.internal_feedback = ut.ddict(list)
 
     def remove_feedback(infr):
@@ -1038,16 +1056,21 @@ class _AnnotInfrMatching(object):
         """
         if infr.cm_list is None:
             return None, aid1, aid2
+        # TODO: keep chip matches in dictionary by default?
         aid2_idx = ut.make_index_lookup(
             [cm.qaid for cm in infr.cm_list])
         try:
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
+            if aid2 not in cm.daid2_idx:
+                raise KeyError('switch order')
         except KeyError:
             # switch order
             aid1, aid2 = aid2, aid1
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
+            if aid2 not in cm.daid2_idx:
+                raise KeyError('No ChipMatch for edge (%r, %r)' % (aid1, aid2))
         return cm, aid1, aid2
 
     @profile
@@ -1067,7 +1090,7 @@ class _AnnotInfrMatching(object):
 
     def break_graph(infr, num):
         """
-        Is this problem NP-hard? No, it is the b-matching problem.
+        This is the b-matching problem and is P-time solvable.
         This problem is equivalent to bidirectional flow.
 
         References:
@@ -1204,7 +1227,11 @@ class _AnnotInfrMatching(object):
         """
         Constructs training data for a pairwise classifier
 
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden _cm_training_pairs
+
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching(cfgdict={
@@ -1216,7 +1243,10 @@ class _AnnotInfrMatching(object):
             >>> })
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> exec(ut.execstr_funckw(infr._cm_training_pairs))
-            >>> infr._cm_training_pairs()
+            >>> rng = np.random.RandomState(42)
+            >>> aid_pairs = np.array(infr._cm_training_pairs(rng=rng))
+            >>> print(len(aid_pairs))
+            >>> assert np.sum(aid_pairs.T[0] == aid_pairs.T[1]) == 0
         """
         cm_list = infr.cm_list
         qreq_ = infr.qreq_
@@ -1243,7 +1273,7 @@ class _AnnotInfrMatching(object):
             rand_gf_aids = ut.random_sample(_gf_aids, rand_gf, rng=rng).tolist()
             chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids +
                                      rand_gt_aids)
-            aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids])
+            aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids if cm.qaid != aid])
 
         return aid_pairs
 
@@ -1594,6 +1624,8 @@ class _AnnotInfrUpdates(object):
                     print('name_edge = %r' % (name_edge,))
                     cat = name_edge_to_category.get(name_edge, None)
                     print('cat = %r' % (cat,))
+                import utool
+                utool.embed()
                 raise AssertionError('edges not the same')
 
         # Update the attributes of all edges in the subgraph
@@ -1628,10 +1660,10 @@ class _AnnotInfrUpdates(object):
 
             # update the priority queue on the fly
             queue = infr.queue
-            pos_jump_thresh = infr.queue_params['pos_jump_thresh']
-            neg_jump_thresh = infr.queue_params['neg_jump_thresh']
+            pos_diameter = infr.queue_params['pos_diameter']
+            neg_diameter = infr.queue_params['neg_diameter']
 
-            if pos_jump_thresh is not None:
+            if pos_diameter is not None:
                 # Reconsider edges within connected compoments that are
                 # separated by a large distance over reviewed edges.
                 strong_positives = []
@@ -1643,7 +1675,7 @@ class _AnnotInfrUpdates(object):
                     for u, dist_dict in nx.all_pairs_shortest_path_length(reviewed_subgraph):
                         for v, dist in dist_dict.items():
                             if u <= v and graph.has_edge(u, v):
-                                if dist <= pos_jump_thresh:
+                                if dist <= pos_diameter:
                                     strong_edges.append((u, v))
                                 else:
                                     weak_edges.append((u, v))
@@ -1670,17 +1702,17 @@ class _AnnotInfrUpdates(object):
                 >>> )
                 >>> infr._init_priority_queue()
                 >>> assert len(infr.queue) == 2
-                >>> infr.queue_params['neg_jump_thresh'] = None
+                >>> infr.queue_params['neg_diameter'] = None
                 >>> infr.add_feedback(1, 6, 'nomatch', apply=True)
                 >>> assert len(infr.queue) == 0
                 >>> graph = infr.graph
                 >>> ut.exec_func_src(infr.apply_review_inference,
-                >>>                  sentinal='if neg_jump_thresh', stop=-1, verbose=True)
-                >>> infr.queue_params['neg_jump_thresh'] = 1
+                >>>                  sentinal='if neg_diameter', stop=-1, verbose=True)
+                >>> infr.queue_params['neg_diameter'] = 1
                 >>> infr.apply_review_inference()
             """
 
-            if neg_jump_thresh is not None:
+            if neg_diameter is not None:
                 strong_negatives = []
                 weak_negatives = []
 
@@ -1705,7 +1737,7 @@ class _AnnotInfrUpdates(object):
                     # cc1 = nid_to_cc[nid1]
                     # cc2 = nid_to_cc[nid2]
                     # for u in cc1:
-                    #     is_violated = np.array(list(ut.dict_subset(distance_matrix[u], cc2).values())) > neg_jump_thresh
+                    #     is_violated = np.array(list(ut.dict_subset(distance_matrix[u], cc2).values())) > neg_diameter
 
                     for u, v in unreviewed_neg_edges:
                         # Ensure u corresponds to nid1 and v corresponds to nid2
@@ -1714,14 +1746,14 @@ class _AnnotInfrUpdates(object):
                         # Is the distance from u to any node in cc[nid2] large?
                         for v_, dist in nx.shortest_path_length(reviewed_subgraph, source=u):
                             if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
-                                if dist > neg_jump_thresh:
+                                if dist > neg_diameter:
                                     weak_edges.append(e_(u, v_))
                                 else:
                                     strong_edges.append(e_(u, v_))
                         # Is the distance from v to any node in cc[nid1] large?
                         for u_, dist in nx.shortest_path_length(reviewed_subgraph, source=v):
                             if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
-                                if dist > neg_jump_thresh:
+                                if dist > neg_diameter:
                                     weak_edges.append(e_(u_, v))
                                 else:
                                     strong_edges.append(e_(u_, v))
@@ -1975,6 +2007,38 @@ class _AnnotInfrRelabel(object):
         return status
 
     @profile
+    def reset_labels_to_ibeis(infr):
+        """ Sets to IBEIS de-facto labels if available """
+        nids = infr._rectify_nids(infr.aids, None)
+        nodes = ut.take(infr.aid_to_node, infr.aids)
+        infr.set_node_attrs('name_label', ut.dzip(nodes, nids))
+
+    def _rectify_names(infr, old_names, new_labels):
+        """
+        Finds the best assignment of old names based on the new groups each is
+        assigned to.
+
+        old_names  = [None, None, None, 1, 2, 3, 3, 4, 4, 4, 5, None]
+        new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
+        """
+        from ibeis.scripts import name_recitifer
+        newlabel_to_oldnames = ut.group_items(old_names, new_labels)
+        # Remove nones
+        unique_newlabels = list(newlabel_to_oldnames.keys())
+        grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
+        grouped_oldnames = [
+            [n for n in oldgroup if n is not None]
+            for oldgroup in grouped_oldnames_]
+        new_names = name_recitifer.find_consistent_labeling(grouped_oldnames)
+        new_flags = [
+            isinstance(n, six.string_types) and n.startswith('_extra_name')
+            for n in new_names
+        ]
+        label_to_name = ut.dzip(unique_newlabels, new_names)
+        needs_assign = ut.compress(unique_newlabels, new_flags)
+        return label_to_name, needs_assign
+
+    @profile
     def relabel_using_reviews(infr, graph=None):
         if infr.verbose >= 1:
             print('[infr] relabel_using_reviews')
@@ -1984,6 +2048,8 @@ class _AnnotInfrRelabel(object):
 
         # if graph is not None:
         #     available_nids = ut.unique(nx.get_node_attributes(graph, 'name_label'))
+        grouped_oldnames = [list(nx.get_node_attributes(subgraph, 'name_label').values())
+                            for count, subgraph in enumerate(cc_subgraphs)]
 
         # Determine which names can be reused
         if infr.verbose >= 2:
@@ -2025,9 +2091,8 @@ class _AnnotInfrRelabel(object):
             #     new_nid = available_nids[count]
             # else:
             #     new_nid = infr._next_nid()
-
-            infr.set_node_attrs('name_label',
-                                _dz(list(subgraph.nodes()), [new_nid]))
+            infr.set_node_attrs('name_label', ut.dzip(subgraph.nodes(),
+                                                      [new_nid]))
             # Check for consistency
         if infr.verbose >= 3:
             print('[infr] done relabeling')
@@ -2181,7 +2246,13 @@ class AnnotInference(ut.NiceRepr,
 
     """
 
+    # Scores are ordered in priority order:
+    # CUT_WEIGHT - final weight used for inference (overridden by user)
+    # NORMSCORE - normalized score computed by an automatic process
+    # SCORE - raw score computed by automatic process
+
     CUT_WEIGHT_KEY = 'cut_weight'
+
     _graph_cls = nx.Graph
     # _graph_cls = nx.DiGraph
 
@@ -2212,48 +2283,33 @@ class AnnotInference(ut.NiceRepr,
         infr.nid_counter = None
         infr.queue = None
         infr.queue_params = {
-            'pos_jump_thresh': None,
-            'neg_jump_thresh': None,
+            'pos_diameter': None,
+            'neg_diameter': None,
         }
         infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
 
-    def copy(infr):
-        import copy
-        # deep copy everything but ibs
-        infr2 = AnnotInference(
-            infr.ibs, copy.deepcopy(infr.aids),
-            copy.deepcopy(infr.orig_name_labels), autoinit=False,
-            verbose=infr.verbose)
-        infr2.graph = infr.graph.copy()
-        infr2.external_feedback = copy.deepcopy(infr.external_feedback)
-        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
-        infr2.cm_list = copy.deepcopy(infr.cm_list)
-        infr2.qreq_ = copy.deepcopy(infr.qreq_)
-        infr2.nid_counter = infr.nid_counter
-        infr2.thresh = infr.thresh
-        return infr2
-
     @classmethod
-    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None):
+    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
         # infr.graph = G
         # infr.update_node_attributes(G)
         # aids = set(ut.flatten(aid_pairs))
         import networkx as nx
         G = nx.Graph()
+        assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
         G.add_edges_from(aid_pairs)
         if attrs is not None:
             for key in attrs.keys():
                 nx.set_edge_attributes(G, key, ut.dzip(aid_pairs, attrs[key]))
-        infr = AnnotInference.from_netx(G, ibs=ibs)
+        infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
         return infr
 
     @classmethod
-    def from_netx(AnnotInference, G, ibs=None):
+    def from_netx(AnnotInference, G, ibs=None, verbose=False):
         aids = list(G.nodes())
         nids = [-a for a in aids]
-        infr = AnnotInference(ibs, aids, nids, autoinit=False)
+        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
         infr.graph = G
         infr.update_node_attributes()
         return infr
@@ -2271,6 +2327,22 @@ class AnnotInference(ut.NiceRepr,
         infr.cm_list = cm_list
         infr.qreq_ = qreq_
         return infr
+
+    def copy(infr):
+        import copy
+        # deep copy everything but ibs
+        infr2 = AnnotInference(
+            infr.ibs, copy.deepcopy(infr.aids),
+            copy.deepcopy(infr.orig_name_labels), autoinit=False,
+            verbose=infr.verbose)
+        infr2.graph = infr.graph.copy()
+        infr2.external_feedback = copy.deepcopy(infr.external_feedback)
+        infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
+        infr2.cm_list = copy.deepcopy(infr.cm_list)
+        infr2.qreq_ = copy.deepcopy(infr.qreq_)
+        infr2.nid_counter = infr.nid_counter
+        infr2.thresh = infr.thresh
+        return infr2
 
     def __nice__(infr):
         if infr.graph is None:
@@ -2360,11 +2432,6 @@ class AnnotInference(ut.NiceRepr,
         infr.set_node_attrs('orig_name_label', node_to_nid)
         infr.node_to_aid.update(node_to_aid)
         infr.aid_to_node.update(aid_to_node)
-
-    def reinit_name_labels(infr):
-        """ Resets to empty or IBEIS de-facto labels """
-        nids = infr._rectify_nids(infr.aids, None)
-        infr.orig_name_labels = nids
 
     def initialize_graph(infr):
         if infr.verbose >= 1:
@@ -2684,11 +2751,11 @@ class AnnotInference(ut.NiceRepr,
         needs_review_edges = ut.take(chosen_edges, sortx)
         return needs_review_edges
 
-    def generate_reviews(infr, randomness=0, rng=None, pos_jump_thresh=None,
-                         neg_jump_thresh=None):
+    def generate_reviews(infr, randomness=0, rng=None, pos_diameter=None,
+                         neg_diameter=None):
         rng = ut.ensure_rng(rng)
-        infr.queue_params['pos_jump_thresh'] = pos_jump_thresh
-        infr.queue_params['neg_jump_thresh'] = neg_jump_thresh
+        infr.queue_params['pos_diameter'] = pos_diameter
+        infr.queue_params['neg_diameter'] = neg_diameter
         infr._init_priority_queue(randomness, rng)
 
         def get_next(idx=0):
