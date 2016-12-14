@@ -1949,7 +1949,7 @@ def precompute_current_review_match_images(ibs, query_object,
 
         cm_fallback_list = [
             query_object.lookup_cm(aid1, aid2),
-            query_object.lookup_cm(aid2, aid1),
+            # query_object.lookup_cm(aid2, aid1),
         ]
         for cm, aid1_, aid2_ in cm_fallback_list:
             success = True
@@ -1997,13 +1997,16 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
 
     """
     from ibeis.algo.hots import graph_iden
-    aid_list = ibs.get_valid_aids()
 
-    wanted_set = set(['right', 'frontright', 'backright'])
-    yaw_list = ibs.get_annot_yaw_texts(aid_list)
-    num_aids = len(aid_list)
-    aid_list = [ aid for aid, yaw in zip(aid_list, yaw_list) if yaw in wanted_set ]
-    print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
+    if ibs.dbname == 'EWT_Cheetahs':
+        aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
+
+    # aid_list = ibs.get_valid_aids()
+    # wanted_set = set(['right', 'frontright', 'backright'])
+    # yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    # num_aids = len(aid_list)
+    # aid_list = [ aid for aid, yaw in zip(aid_list, yaw_list) if yaw in wanted_set ]
+    # print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
 
     nids = aid_list if debug_ignore_name_gt else None
 
@@ -2237,7 +2240,7 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                     with ut.Timer('[web.routes.turk_identification] ... Make images'):
                         cm_fallback_list = [
                             query_object.lookup_cm(aid1, aid2),
-                            query_object.lookup_cm(aid2, aid1),
+                            # query_object.lookup_cm(aid2, aid1),
                         ]
                         for cm, aid1_, aid2_ in cm_fallback_list:
                             success = True
