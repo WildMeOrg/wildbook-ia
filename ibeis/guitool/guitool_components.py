@@ -2133,6 +2133,8 @@ class Spoiler(WIDGET_BASE):
 
 class SimpleTree(QtCore.QObject):
     """
+    DEPRICATE IN FAVOR OF CONFIG WIDGETS? Need to make them heirarchical first
+
     References:
         http://stackoverflow.com/questions/12737721/developing-pyqt4-tree-widget
     """
@@ -2159,6 +2161,23 @@ class SimpleTree(QtCore.QObject):
         return item
 
     def add_checkbox(self, parent, title, data='ff', checked=False, changed=None):
+        column = 0
+        with BlockSignals(self.tree):
+            item = QtWidgets.QTreeWidgetItem(parent, [title])
+            item.setData(column, QtCore.Qt.UserRole, data)
+            item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
+            if changed:
+                self.callbacks[item] = changed
+            # Inject helper method
+            def isChecked():
+                return item.checkState(column) == QtCore.Qt.Checked
+            def setChecked(flag):
+                return item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
+            item.isChecked = isChecked
+            item.setChecked = setChecked
+        return item
+
+    def add_combobox(self, parent, title, data='ff', checked=False, changed=None):
         column = 0
         with BlockSignals(self.tree):
             item = QtWidgets.QTreeWidgetItem(parent, [title])

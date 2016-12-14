@@ -886,6 +886,8 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> import guitool
         >>> guitool.ensure_qtapp()
         >>> import dtool
+        >>> def changed(key=None):
+        >>>     print('config[key] = %r has changed' % (key,))
         >>> class ExampleConfig(dtool.Config):
         >>>     _param_info_list = [
         >>>         ut.ParamInfo('str_option', 'hello'),
@@ -901,7 +903,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>>         ut.ParamInfo('hidden_combo', 'one', valid_values=['oneA', 'twoB', 'threeC'], hideif=lambda cfg: not cfg['bool_option']),
         >>>     ]
         >>> config = ExampleConfig()
-        >>> widget = EditConfigWidget(config=config)
+        >>> widget = EditConfigWidget(config=config, changed=changed)
         >>> widget.rootNode.print_tree()
         >>> from plottool import fig_presenter
         >>> fig_presenter.register_qt4_win(widget)
@@ -910,12 +912,15 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> widget.resize(400, 500)
         >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
-    data_changed = QtCore.pyqtSignal()
+    data_changed = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None, config=None, user_mode=False, changed=None):
+    def __init__(self, parent=None, config=None, user_mode=False,
+                 with_buttons=True,
+                 changed=None):
         super(EditConfigWidget, self).__init__(parent)
         rootNode = ConfigNodeWrapper('root', config)
         self.user_mode = user_mode
+        self._with_buttons = with_buttons
         self.init_layout()
         self.rootNode = rootNode
         self.config_model = QConfigModel(self, rootNode=rootNode)
@@ -930,28 +935,30 @@ class EditConfigWidget(QtWidgets.QWidget):
         self.delegate = ConfigValueDelegate(self.tree_view)
         self.tree_view.setItemDelegateForColumn(1, self.delegate)
 
-        buttons = []
-        self.default_but = gt.newButton(self, 'Defaults', pressed=self.reset_to_default)
-        buttons.append(self.default_but)
+        if self._with_buttons:
+            buttons = []
+            self.default_but = gt.newButton(self, 'Defaults', pressed=self.reset_to_default)
+            buttons.append(self.default_but)
 
-        self.orig_but = gt.newButton(self, 'Original', pressed=self.reset_to_original)
-        buttons.append(self.orig_but)
+            self.orig_but = gt.newButton(self, 'Original', pressed=self.reset_to_original)
+            buttons.append(self.orig_but)
 
-        if not self.user_mode:
-            self.print_internals = gt.newButton(self, 'Print Internals',
-                                                pressed=self.print_internals)
-            buttons.append(self.print_internals)
+            if not self.user_mode:
+                self.print_internals = gt.newButton(self, 'Print Internals',
+                                                    pressed=self.print_internals)
+                buttons.append(self.print_internals)
 
-        # Add compoments to the layout
-        self.hbox = QtWidgets.QHBoxLayout()
-        for button in buttons:
-            self.hbox.addWidget(button)
-            button.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                 QtWidgets.QSizePolicy.Maximum)
+            # Add compoments to the layout
+            self.hbox = QtWidgets.QHBoxLayout()
+            for button in buttons:
+                self.hbox.addWidget(button)
+                button.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                     QtWidgets.QSizePolicy.Maximum)
 
         self.vbox = QtWidgets.QVBoxLayout(self)
         self.vbox.addWidget(self.tree_view)
-        self.vbox.addLayout(self.hbox)
+        if self._with_buttons:
+            self.vbox.addLayout(self.hbox)
         self.setWindowTitle(_translate('self', 'Edit Config Widget', None))
 
     def init_mvc(self):
@@ -1007,7 +1014,16 @@ class EditConfigWidget(QtWidgets.QWidget):
         self.config_model.dataChanged.connect(self._on_change)
 
     def _on_change(self, top_left, bottom_right):
-        self.data_changed.emit()
+        if top_left is bottom_right:
+            # we know what index changed
+            qtindex = top_left
+            model = qtindex.model()
+            # Find index with config key
+            key_index = model.index(qtindex.row(), 0, qtindex.parent())
+            key = key_index.data()
+        else:
+            key = None
+        self.data_changed.emit(key)
 
     def reset_to_default(self):
         print('Defaulting')
