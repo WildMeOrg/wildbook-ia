@@ -32,18 +32,19 @@ def simple_api_item_widget():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from guitool.api_item_widget import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qapp()  # must be ensured before any embeding
+        >>> import guitool as gt
+        >>> gt.ensure_qapp()  # must be ensured before any embeding
         >>> wgt = simple_api_item_widget()
         >>> ut.quit_if_noshow()
         >>> wgt.show()
-        >>> guitool.qtapp_loop(wgt, frequency=100)
+        >>> gt.qtapp_loop(wgt, frequency=100)
     """
-    import guitool
-    guitool.ensure_qapp()
+    import guitool as gt
+    gt.ensure_qapp()
     col_getter_dict = {
         'col1': [1, 2, 3],
         'col2': ['a', 'b', 'c'],
+        'col3': ['e', 'f', 'g'],
     }
     sortby = 'col1'
 
@@ -51,15 +52,16 @@ def simple_api_item_widget():
     #    'col1': lambda x: 'banana %d' % ((x * 100 % 23)),
     #}
 
-    api = guitool.CustomAPI(
+    api = gt.CustomAPI(
         col_getter_dict=col_getter_dict,
         #col_display_role_func_dict=col_display_role_func_dict,
+        editable_colnames=['col3'],
         sortby=sortby)
     headers = api.make_headers(tblnice='Simple Example')
 
-    wgt = guitool.APIItemWidget()
+    wgt = gt.APIItemWidget()
     wgt.change_headers(headers)
-    #guitool.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+    #gt.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
     return wgt
 
 

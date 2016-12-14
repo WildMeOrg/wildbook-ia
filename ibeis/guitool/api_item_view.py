@@ -274,11 +274,17 @@ def select_row_from_id(view, _id, scroll=False, collapse=True):
 
 @register_view_method
 def connect_single_key_to_slot(view, key, func):
+    """
+    hacky way to simulate slots for generic key press events
+    """
     view.registered_single_keys.append((key, func))
 
 
 @register_view_method
 def connect_keypress_to_slot(view, func):
+    """
+    hacky way to simulate slots for single key press events
+    """
     view.registered_keypress_funcs.append(func)
 
 
@@ -302,31 +308,48 @@ def selectedRows(view):
 
 def keyPressEvent(view, event):
     """
+    Handles simple key press events. There is probably a better way to do this
+    using real signals / slots, but maybe you need to always overwrite to set the
+    handled flag correctly.
+
     CommandLine:
         python -m guitool.api_item_widget --test-simple_api_item_widget --show
-        python -m guitool.api_table_view --test-keyPressEvent --show
+        python -m guitool.api_item_view --test-keyPressEvent --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from guitool.api_table_view import *  # NOQA
-        >>> import guitool
-        >>> guitool.ensure_qapp()
-        >>> view = APITableView()
+        >>> from guitool.api_item_view import *  # NOQA
+        >>> import guitool as gt
+        >>> gt.ensure_qapp()
+        >>> wgt = gt.simple_api_item_widget()
+        >>> view = wgt.view
+        >>> def foo(view, event):
+        >>>     key = event.key()
+        >>>     print('[foo] key = %r' % (key,))
+        >>>     if event.key() == 67:
+        >>>         print('Pressed C')
+        >>>         return True
+        >>> view.connect_keypress_to_slot(foo)
         >>> view._init_header_behavior()
+        >>> ut.quit_if_noshow()
+        >>> gt.qtapp_loop(wgt, frequency=100)
     """
     # TODO: can this be in api_item_view?
     assert isinstance(event, QtGui.QKeyEvent)
-    view.API_VIEW_BASE.keyPressEvent(view, event)
     if event.matches(QtGui.QKeySequence.Copy):
         #print('Received Ctrl+C in View')
         view.copy_selection_to_clipboard()
     #print ('[view] keyPressEvent: %s' % event.key())
+    flag = False
     for func in view.registered_keypress_funcs:
-        func(view, event)
+        flag |= bool(func(view, event))
     for key, func in view.registered_single_keys:
         #print(key)
         if event.key() == key:
+            flag = True
             func(view, event)
+    if not flag:
+        view.API_VIEW_BASE.keyPressEvent(view, event)
 
 
 #@register_view_method
@@ -369,3 +392,15 @@ def copy_selection_to_clipboard(view):
     clipboard.setText(copy_qstr)
     if VERBOSE:
         print('[guitool] finished copy')
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m guitool.api_item_view
+        python -m guitool.api_item_view --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
