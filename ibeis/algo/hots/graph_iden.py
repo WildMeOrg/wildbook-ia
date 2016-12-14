@@ -1289,8 +1289,8 @@ class _AnnotInfrMatching(object):
         node_to_cm = {infr.aid_to_node[cm.qaid]:
                       cm for cm in infr.cm_list}
         for u, v in edges:
-            if symmetric and u > v:
-                u, v = v, u
+            if symmetric:
+                u, v = e_(u, v)
             cm1 = node_to_cm.get(u, None)
             cm2 = node_to_cm.get(v, None)
             scores = []
