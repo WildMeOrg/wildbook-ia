@@ -261,11 +261,11 @@ class MatchInspector(INSPECT_BASE):
         # vt.rrrr()
         self.execute_vsone()
 
-    def on_cfg_changed(self):
+    def on_cfg_changed(self, *args):
         self.update()
         self.cfg_needs_update = True
 
-    def on_feat_cfg_changed(self):
+    def on_feat_cfg_changed(self, *args):
         print('Update feats')
         feat_keys = ['vecs', 'kpts', '_feats', 'flann']
         self.match.annot1._mutable = True
