@@ -88,13 +88,25 @@ def activate_qwindow(qwin):
 
 
 def qtapp_loop_nonblocking(qwin=None, **kwargs):
+    """
+    Fixme:
+        In order to have a non-blocking qt application then the app must have been started
+        with IPython.lib.inputhook.enable_gui
+        import IPython.lib.inputhook
+        IPython.lib.inputhook.enable_gui('qt4')
+        Actually lib.inputhook is depricated
+
+        Maybe IPython.terminal.pt_inputhooks
+        import IPython.terminal.pt_inputhooks
+        inputhook = IPython.terminal.pt_inputhooks.get_inputhook_func('qt4')
+    """
     global QAPP
     #from IPython.lib.inputhook import enable_qt4
-    from IPython.lib.guisupport import start_event_loop_qt4
+    import IPython.lib.guisupport
     if not QUIET:
         print('[guitool] Starting ipython qt4 hook')
     #enable_qt4()
-    start_event_loop_qt4(QAPP)
+    IPython.lib.guisupport.start_event_loop_qt4(QAPP)
 
 
 #if '__PYQT__' in sys.modules:

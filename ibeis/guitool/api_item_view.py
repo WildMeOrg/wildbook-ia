@@ -313,24 +313,51 @@ def keyPressEvent(view, event):
     handled flag correctly.
 
     CommandLine:
-        python -m guitool.api_item_widget --test-simple_api_item_widget --show
-        python -m guitool.api_item_view --test-keyPressEvent --show
+        python -m guitool.api_item_view --test-keyPressEvent
+        --show
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from guitool.api_item_view import *  # NOQA
         >>> import guitool as gt
-        >>> gt.ensure_qapp()
+        >>> app = gt.ensure_qapp()[0]
         >>> wgt = gt.simple_api_item_widget()
         >>> view = wgt.view
+        >>> c_pressed = [0]
         >>> def foo(view, event):
         >>>     key = event.key()
-        >>>     print('[foo] key = %r' % (key,))
-        >>>     if event.key() == 67:
+        >>>     print('[foo] Pressed key = %r' % (key,))
+        >>>     if event.key() == Qt.Key_C:
         >>>         print('Pressed C')
+        >>>         c_pressed[0] = 1
         >>>         return True
         >>> view.connect_keypress_to_slot(foo)
         >>> view._init_header_behavior()
+        >>> # Try to simulate an event for testing
+        >>> wgt.show()
+        >>> from guitool.__PYQT__ import QtTest
+        >>> QTest = QtTest.QTest
+        >>> QTest.qWaitForWindowShown(wgt)
+        >>> qtindex = view.model().index(1, 2)
+        >>> point = view.visualRect(qtindex).center()
+        >>> #point = wgt.visibleRegion().boundingRect().center()
+        >>> #QTest.mouseClick(view.viewport(), Qt.LeftButton, Qt.NoModifier, point)
+        >>> QTest.mouseClick(wgt, Qt.LeftButton, Qt.NoModifier, point)
+        >>> selected_indices = view.selectedIndexes()
+        >>> print('selected_indices = %r' % (selected_indices,))
+        >>> # Why does this not work?
+        >>> def check_selection():
+        >>>     selected_indices = view.selectedIndexes()
+        >>>     if len(selected_indices) > 0:
+        >>>         return selected_indices[0].data()
+        >>> # Hack because I cant figure out how to get a click to simulate
+        >>> # a selection
+        >>> QTest.keyPress(view, Qt.Key_Right)
+        >>> QTest.keyPress(view, Qt.Key_B)
+        >>> ut.assert_eq(check_selection(), 'b')
+        >>> QTest.keyPress(view, Qt.Key_C)
+        >>> ut.assert_eq(check_selection(), 'b')
+        >>> assert c_pressed[0] == 1
         >>> ut.quit_if_noshow()
         >>> gt.qtapp_loop(wgt, frequency=100)
     """

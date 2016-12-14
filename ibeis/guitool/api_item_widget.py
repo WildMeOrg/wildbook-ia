@@ -62,6 +62,16 @@ def simple_api_item_widget():
     wgt = gt.APIItemWidget()
     wgt.change_headers(headers)
     #gt.qtapp_loop(qwin=wgt, ipy=ipy, frequency=loop_freq)
+
+    # for testing
+    wgt.menubar = gt.newMenubar(wgt)
+    wgt.menuFile = wgt.menubar.newMenu('Dev')
+    def wgt_embed(wgt):
+        view = wgt.view  # NOQA
+        import utool
+        utool.embed()
+    ut.inject_func_as_method(wgt, wgt_embed)
+    wgt.menuFile.newAction(triggered=wgt.wgt_embed)
     return wgt
 
 
