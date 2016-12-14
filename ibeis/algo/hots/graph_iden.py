@@ -85,15 +85,16 @@ class _AnnotInfrHelpers(object):
     def get_edge_attrs(infr, key, edges=None, default=ut.NoParam):
         """ Networkx edge getter helper """
         if edges is not None:
+            # remove edges that don't exist
+            uv_iter = ((u, v) for u, v in edges if infr.graph.has_edge(u, v))
             if default is ut.NoParam:
-                edge_to_attr = {(u, v): infr.graph.edge[u][v][key] for u, v in edges}
+                edge_to_attr = {(u, v): infr.graph.edge[u][v][key]
+                                for u, v in uv_iter}
             else:
-                edge_to_attr = {(u, v): infr.graph.edge[u][v].get(key, default) for u, v in edges}
+                edge_to_attr = {(u, v): infr.graph.edge[u][v].get(key, default)
+                                for u, v in uv_iter}
         else:
             edge_to_attr = nx.get_edge_attributes(infr.graph, key)
-            if edges is not None:
-                edge_to_attr = ut.dict_subset(edge_to_attr, keys=edges,
-                                              default=default)
         return edge_to_attr
 
     def set_node_attrs(infr, key, node_to_prop):
@@ -410,6 +411,31 @@ class _AnnotInfrIBEIS(object):
         # df.sort('timestamp')
         return df
 
+    def commit_to_staging(infr):
+        # staging_external_delta = infr.match_state_delta('staging', 'external')
+        # infr.match_state_delta('external', 'staging')
+        # infr.match_state_delta('internal', 'staging')
+        # assert len(staging_external_delta) == 0, (
+        #     'staging is out of sync with external_feedback')
+
+        # Copy internal feedback into staging
+        infr.write_ibeis_staging_feedback()
+        # Copy internal feedback into external
+        for edge, feedbacks in infr.internal_feedback.items():
+            infr.external_feedback[edge].extend(feedbacks)
+        # Delete internal feedback
+        infr.internal_feedback = ut.ddict(list)
+
+    def commit_to_annotmatch(infr):
+        # BE VERY CAREFUL TO COMMIT TO STAGING FIRST
+        # Copy internal feedback into staging
+        infr.write_ibeis_staging_feedback()
+        # Copy internal feedback into external
+        for edge, feedbacks in infr.internal_feedback.items():
+            infr.external_feedback[edge].extend(feedbacks)
+        # Delete internal feedback
+        infr.internal_feedback = ut.ddict(list)
+
     def write_ibeis_staging_feedback(infr):
         # TODO: need to get all reviews after initial review.  This requires
         # maintaining which reivews are from the original state and which are
@@ -446,6 +472,65 @@ class _AnnotInfrIBEIS(object):
                                         tags_list=tags_list,
                                         timestamp_list=timestamp_list)
         assert len(ut.find_duplicate_items(review_id_list)) == 0
+
+    def write_ibeis_name_assignment(infr, name_delta=None):
+        if name_delta is None:
+            name_delta = infr.get_ibeis_name_delta()
+        aid_list = list(name_delta.keys())
+        new_name_list = list(name_delta.values())
+        infr.ibs.set_annot_names(aid_list, new_name_list)
+
+    def get_ibeis_name_delta(infr):
+        aid_to_newname = infr.get_ibeis_name_assignment()
+        aid_list = list(aid_to_newname.keys())
+        new_name_list = list(aid_to_newname.values())
+        old_name_list = infr.ibs.get_annot_name_texts(aid_list)
+        diff_flags = [n1 != n2 for n1, n2 in zip(new_name_list, old_name_list)]
+
+        aid_list = ut.compress(aid_list, diff_flags)
+        new_name_list = ut.compress(new_name_list, diff_flags)
+        name_delta = ut.dzip(aid_list, new_name_list)
+        return name_delta
+
+    def get_ibeis_name_assignment(infr):
+        graph = infr.graph
+        node_to_new_label = nx.get_node_attributes(graph, 'name_label')
+        nodes = list(node_to_new_label.keys())
+        aids = ut.take(infr.node_to_aid, nodes)
+        old_names = infr.ibs.get_annot_name_texts(aids)
+        # Indicate that unknown names should be replaced
+        old_names = [None if n == infr.ibs.const.UNKNOWN else n for n in old_names]
+        new_labels = ut.take(node_to_new_label, aids)
+        # Recycle as many old names as possible
+        label_to_name, needs_assign = infr._rectify_names(old_names, new_labels)
+        # Overwrite names of labels with temporary names
+        needed_names = infr.ibs.make_next_name(len(needs_assign))
+        for unassigned_label, new in zip(needs_assign, needed_names):
+            label_to_name[unassigned_label] = new
+        # Assign each node to the rectified label
+        aid_to_newname = {
+            infr.node_to_aid[node]: label_to_name[name_label]
+            for node, name_label in node_to_new_label.items()
+        }
+        return aid_to_newname
+
+    def write_ibeis_annotmatch_feedback(infr, changed_df=None):
+        if changed_df is not None:
+            changed_df = infr.match_state_delta(old='annotmatch', new='all')
+
+        ibs = infr.ibs
+        import pandas as pd
+        is_add = pd.isnull(changed_df['am_rowid']).values
+        add_df = changed_df.loc[is_add]
+        add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
+                                                add_df['aid2'].values)
+        changed_df.loc[is_add, 'am_rowid'] = add_ams
+        changed_df.set_index('am_rowid', drop=False, inplace=True)
+
+        # Set residual matching data
+        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
+        am_rowids = changed_df['am_rowid'].values
+        ibs.set_annotmatch_truth(am_rowids, new_truth)
 
     def read_ibeis_staging_feedback(infr):
         """
@@ -547,6 +632,7 @@ class _AnnotInfrIBEIS(object):
 
     #@staticmethod
     def _pandas_feedback_format(infr, feedback):
+        # FIXME: its not all about am_rowids anymore
         import pandas as pd
         aid_pairs = list(feedback.keys())
         aids1 = ut.take_column(aid_pairs, 0)
@@ -567,7 +653,7 @@ class _AnnotInfrIBEIS(object):
         #df.index = pd.Index(aid_pairs, name=('aid1', 'aid2'))
         return df
 
-    def match_state_delta(infr):
+    def match_state_delta(infr, old='annotmatch', new='all'):
         r"""
         Returns information about state change of annotmatches
 
@@ -589,8 +675,23 @@ class _AnnotInfrIBEIS(object):
             >>> result = ('changed_df =\n%s' % (changed_df,))
             >>> print(result)
         """
-        old_feedback = infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback())
-        new_feedback = infr._pandas_feedback_format(infr.all_feedback())
+        def _lookup_feedback(key):
+            if key == 'annotmatch':
+                df = infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback())
+            elif key == 'staging':
+                df = infr._pandas_feedback_format(infr.read_ibeis_staging_feedback())
+            elif key == 'all':
+                df = infr._pandas_feedback_format(infr.all_feedback())
+            elif key == 'internal':
+                df = infr._pandas_feedback_format(infr.internal_feedback)
+            elif key == 'external':
+                df = infr._pandas_feedback_format(infr.external_feedback)
+            else:
+                raise KeyError('key=%r' % (key,))
+            return df
+
+        old_feedback = _lookup_feedback(old)
+        new_feedback = _lookup_feedback(new)
         changed_df = infr._make_state_delta(old_feedback, new_feedback)
         return changed_df
 
@@ -741,7 +842,7 @@ class _AnnotInfrFeedback(object):
         if decision == 'unreviewed':
             feedback_item = None
             if edge in infr.external_feedback:
-                del infr.external_feedback[edge]
+                raise ValueError('Can\'t unreview an edge that has been committed')
             if edge in infr.internal_feedback:
                 del infr.internal_feedback[edge]
         else:
@@ -1631,8 +1732,8 @@ class _AnnotInfrUpdates(object):
         # Update the attributes of all edges in the subgraph
 
         # Update the infered state
-        infr.set_edge_attrs('inferred_state', _dz(inconsistent_outgoing_negative_edges, [None]))
-        infr.set_edge_attrs('inferred_state', _dz(inconsistent_edges, [None]))
+        infr.set_edge_attrs('inferred_state', _dz(inconsistent_outgoing_negative_edges, ['inconsistent_outgoing']))
+        infr.set_edge_attrs('inferred_state', _dz(inconsistent_edges, ['inconsistent']))
         infr.set_edge_attrs('inferred_state', _dz(unreviewed_edges, [None]))
         infr.set_edge_attrs('inferred_state', _dz(notcomparable_edges, [None]))
         infr.set_edge_attrs('inferred_state', _dz(positive_edges, ['same']))
@@ -1642,13 +1743,23 @@ class _AnnotInfrUpdates(object):
         infr.set_edge_attrs('maybe_error', ut.dzip(graph.edges(), [False]))
         infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
 
-        # Update state of trivial edges
-        infr.set_edge_attrs('inferred_state', _dz(inconsistent_outgoing_negative_edges, [True]))
-        infr.set_edge_attrs('is_cut', _dz(negative_edges, [True]))
-        infr.set_edge_attrs('is_cut', _dz(positive_edges, [False]))
+        # Update the cut state
+        infr.set_edge_attrs('is_cut', _dz(inconsistent_outgoing_negative_edges, [True]))
         infr.set_edge_attrs('is_cut', _dz(inconsistent_edges, [False]))
-        infr.set_edge_attrs('is_cut', _dz(notcomparable_edges, [False]))
         infr.set_edge_attrs('is_cut', _dz(unreviewed_edges, [False]))
+        infr.set_edge_attrs('is_cut', _dz(notcomparable_edges, [False]))
+        infr.set_edge_attrs('is_cut', _dz(positive_edges, [False]))
+        infr.set_edge_attrs('is_cut', _dz(negative_edges, [True]))
+
+        # Update basic priorites
+        priority_metric = 'normscore'
+        infr.set_edge_attrs('priority', infr.get_edge_attrs(priority_metric, inconsistent_outgoing_negative_edges, default=.01))
+        infr.set_edge_attrs('priority', infr.get_edge_attrs(priority_metric, inconsistent_edges, default=.01))
+        infr.set_edge_attrs('priority', infr.get_edge_attrs(priority_metric, unreviewed_edges, default=.01))
+        infr.set_edge_attrs('priority', _dz(notcomparable_edges, [0]))
+        infr.set_edge_attrs('priority', _dz(positive_edges, [0]))
+        infr.set_edge_attrs('priority', _dz(negative_edges, [0]))
+        infr.set_edge_attrs('priority', _dz(suggested_fix_edges, [2]))
 
         if infr.queue is not None:
             # TODO: Reformulate this as a "Graph Diameter Augmentation" problem.

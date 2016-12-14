@@ -1978,6 +1978,9 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         # mount lev to the home drive
         sshfs -o idmap=user lev:/ ~/lev
 
+        # unmount
+        fusermount -u ~/lev
+
         # Url to debug
         http://128.213.17.12:5000/turk/identification/?aid1=6619&aid2=7094
 

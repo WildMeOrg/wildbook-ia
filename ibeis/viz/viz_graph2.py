@@ -45,6 +45,20 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 }
 
 
+# MENU_ITEMS = ut.ddict(list)
+
+
+# def register_menu_item(key):
+#     def _wrp(func, shortcut=None):
+#         member = {
+#             'func': func,
+#             'shortcut': shortcut,
+#         }
+#         MENU_ITEMS[key].append(member)
+#         return func
+#     return _wrp
+
+
 class MatplotlibWidget(gt.GuitoolWidget):
     click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
     key_press_signal = QtCore.pyqtSignal(KeyEvent)
@@ -123,15 +137,10 @@ class DevGraphWidget(gt.GuitoolWidget):
         # bbar2 = bbar1
         bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
 
-        graph_widget.mark_state_funcs = {
-            'F': ut.partial(graph_widget.mark_selected_pair_state, 'nomatch'),
-            'T': ut.partial(graph_widget.mark_selected_pair_state, 'match'),
-            'N': ut.partial(graph_widget.mark_selected_pair_state, 'notcomp'),
-        }
-
-        bbar1.addNewButton('Mark: Match', pressed=graph_widget.mark_state_funcs['T'])
-        bbar1.addNewButton('Mark: Non-Match', pressed=graph_widget.mark_state_funcs['F'])
-        bbar1.addNewButton('Mark: Not-Comp', pressed=graph_widget.mark_state_funcs['N'])
+        graph_widget.mark_state_funcs = self_parent.make_mark_state_funcs(
+            graph_widget.selected_graph_pairs)
+        for key, func in graph_widget.mark_state_funcs:
+            bbar1.addNewButton(key.replace(' &', ': ').replace('&', ''), pressed=func)
 
         bbar1.addNewButton('Deselect', pressed=graph_widget.deselect)
         bbar1.addNewButton('Show Annots', pressed=graph_widget.show_selected)
@@ -139,37 +148,45 @@ class DevGraphWidget(gt.GuitoolWidget):
         def refresh_via_cb(flag):
             graph_widget.emit_graph_update()
 
-        graph_widget.show_config_tree = gt.SimpleTree(bbar2)
-        tree = graph_widget.show_config_tree
-
-        appearence = tree.add_parent(title='Appearence')
-        visibility = tree.add_parent(title='Visibility')
-        graph_widget.use_image_cb = tree.add_checkbox(
-            appearence, 'Show Img', checked=use_image, changed=refresh_via_cb)
-        graph_widget.in_image_cb = tree.add_checkbox(
-            appearence, 'In Image', checked=False, changed=refresh_via_cb)
-        graph_widget.toggle_pin_cb = tree.add_checkbox(
-            appearence, 'Pin Positions', checked=True, changed=graph_widget.set_pin_state)
-        # graph_widget.show_lbl_cb = tree.add_checkbox(
-        #     appearence, 'Show Labels', checked=True, changed=refresh_via_cb)
-
-        graph_widget.edge_visibility_options = {}
-        def add_visibility_option(key, default, title=None):
-            title = key
-            graph_widget.edge_visibility_options[key] = tree.add_checkbox(
-                visibility, title, checked=default, changed=refresh_via_cb)
-
+        import dtool
+        from guitool import PrefWidget2
         small_graph = len(self_parent.infr.aids) < 20
 
-        add_visibility_option('show_reviewed_edges', small_graph)
-        add_visibility_option('show_unreviewed_edges', small_graph)
-        add_visibility_option('show_reviewed_cuts', small_graph)
-        add_visibility_option('show_inferred_same', small_graph)
-        add_visibility_option('show_inferred_diff', small_graph)
+        # class AppearanceConfig(dtool.Config):
+        class GraphVizConfig(dtool.Config):
+            _param_info_list = [
+                # Appearance
+                ut.ParamInfo('show_image', default=use_image),
+                ut.ParamInfo('in_image', default=use_image, hideif=lambda cfg: not cfg['show_image']),
+                ut.ParamInfo('pin_positions', default=use_image),
 
-        add_visibility_option('highlight_reviews', True)
-        add_visibility_option('show_recent_review', False)
-        add_visibility_option('show_labels', small_graph)
+                # Visibility
+                ut.ParamInfo('show_reviewed_edges', small_graph),
+                ut.ParamInfo('show_unreviewed_edges', small_graph),
+                ut.ParamInfo('show_reviewed_cuts', small_graph),
+                ut.ParamInfo('show_inferred_same', small_graph),
+                ut.ParamInfo('show_inferred_diff', small_graph),
+                ut.ParamInfo('highlight_reviews', True),
+                ut.ParamInfo('show_recent_review', False),
+                ut.ParamInfo('show_labels', small_graph),
+                ut.ParamInfo('splines', 'spline' if small_graph else 'line', valid_values=['line', 'spline', 'ortho']),
+                ut.ParamInfo('groupby', 'name_label', valid_values=['name_label', None]),
+            ]
+
+        def on_graphviz_config_changed(key=None):
+            if key == 'pin_positions':
+                graph_widget.set_pin_state(graph_widget.graphviz_config[key])
+            else:
+                graph_widget.emit_graph_update()
+            # print('Graph config has changed')
+
+        graph_widget.graphviz_config = GraphVizConfig()
+        graph_widget.graphviz_config_widget = PrefWidget2.EditConfigWidget(
+            config=graph_widget.graphviz_config, with_buttons=False,
+            changed=on_graphviz_config_changed)
+        # remove headers
+        graph_widget.graphviz_config_widget.tree_view.header().hide()
+        bbar2.addWidget(graph_widget.graphviz_config_widget)
 
         # Connect signals and slots
         graph_widget.mpl_wgt.click_inside_signal.connect(graph_widget.on_click_inside)
@@ -195,7 +212,6 @@ class DevGraphWidget(gt.GuitoolWidget):
                 ut.printex(ex, 'graph likely not init yet', iswarning=True)
 
     def draw_graph(graph_widget):
-
         # Is it possible to make things more responsive with threads?
         # http://stackoverflow.com/questions/20324804/how-to-use-qthread-correctly-in-pyqt-with-movetothread
         # self.my_thread = QtCore.QThread()
@@ -207,20 +223,14 @@ class DevGraphWidget(gt.GuitoolWidget):
         # print('[viz_graph] Start draw page')
         graph_widget.mpl_wgt.ax.cla()
 
-        graph_widget.infr.update_node_image_config(
-            in_image=graph_widget.in_image_cb.isChecked()
-        )
+        visibility_kw = graph_widget.graphviz_config.asdict()
 
-        visibility_kw = {
-            k: v.isChecked()
-            for k, v in graph_widget.edge_visibility_options.items()
-        }
+        visibility_kw.pop('pin_positions')
+        in_image = visibility_kw.pop('in_image')
+        use_image = visibility_kw.pop('show_image')
 
+        graph_widget.infr.update_node_image_config(in_image=in_image)
         graph_widget.infr.update_visual_attrs(
-            # hide_unreviewed_cuts=not graph_widget.show_unreviewed_cuts_cb.isChecked(),
-            # hide_reviewed_cuts=not graph_widget.show_review_cuts_cb.isChecked(),
-            # hide_unreviewed=not graph_widget.show_unreviewed_cb.isChecked(),
-            groupby='name_label',
             **visibility_kw
         )
 
@@ -228,13 +238,13 @@ class DevGraphWidget(gt.GuitoolWidget):
             graph_widget.plotinfo = pt.show_nx(
                 graph_widget.infr.graph, layout='custom', as_directed=False,
                 ax=graph_widget.mpl_wgt.ax,
-                use_image=graph_widget.use_image_cb.isChecked(), verbose=0)
+                use_image=use_image, verbose=0)
         except IOError:
             graph_widget.infr.initialize_visual_node_attrs()
             graph_widget.plotinfo = pt.show_nx(
                 graph_widget.infr.graph, layout='custom', as_directed=False,
                 ax=graph_widget.mpl_wgt.ax,
-                use_image=graph_widget.use_image_cb.isChecked(), verbose=0)
+                use_image=use_image, verbose=0)
         graph_widget.mpl_wgt.ax.set_aspect('equal')
 
         for aid in graph_widget.selected_aids:
@@ -249,10 +259,12 @@ class DevGraphWidget(gt.GuitoolWidget):
     def on_key_press(graph_widget, event):
         # called by matplotlib events
         key = event.key.upper()
-        if key in graph_widget.mark_state_funcs:
-            graph_widget.mark_state_funcs[key]()
-        elif key == 'D':
-            graph_widget.deselect()
+        option_dict = gt.make_option_dict(graph_widget.mark_state_funcs,
+                                          shortcuts=True)
+        assert 'D' not in option_dict
+        option_dict['D'] = graph_widget.deselect
+        if key in option_dict:
+            option_dict[key]()
 
     def on_pick(self, event):
         artist = event.artist
@@ -350,11 +362,8 @@ class DevGraphWidget(gt.GuitoolWidget):
         else:
             ut.nx_delete_node_attr(graph_widget.infr.graph, 'pin')
 
-    def mark_selected_pair_state(graph_widget, state):
-        print('[graph] %s graph_widget.selected_aids = %r' % (
-            state.upper(), graph_widget.selected_aids,))
-        pairs = it.combinations(graph_widget.selected_aids, 2)
-        graph_widget.self_parent.mark_pair_state(pairs, state)
+    def selected_graph_pairs(graph_widget):
+        return it.combinations(graph_widget.selected_aids, 2)
 
     def show_selected(graph_widget):
         # TODO: move to mpl widget
@@ -511,6 +520,41 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         widget.change_headers(headers)
         tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
 
+    def initialize_menus(self):
+        # self.config = InferenceConfig()
+
+        # for menu_name, members in MENU_ITEMS.items():
+        #     pass
+        #     menu = self.menubar.newMenu(menu_name)
+        #     for member in members:
+        #         func = member['func']
+        #         method = getattr(self, ut.get_funcname(func))
+        #         menu.newAction(triggered=method,
+        #                        shortcut=member['shortcut'])
+        self.menubar = gt.newMenubar(self)
+        self.menus = {}
+
+        key = 'Dev'
+        menu = self.menus[key] = self.menubar.newMenu(key)
+        menu.newAction(triggered=self.print_info)
+        menu.newAction(triggered=self.embed, shortcut='ctrl+shift+I')
+        menu.newAction(triggered=self.expand_image_and_names)
+        menu.newAction(triggered=self.emit_state_update)
+        menu.newAction(triggered=self.print_staging_table)
+        menu.newAction(triggered=self.print_annotmatch_table)
+        menu.newAction(triggered=self.print_deltas)
+
+        key = 'Actions'
+        menu = self.menus[key] = self.menubar.newMenu(key)
+        menu.newAction(triggered=self.commit_to_staging)
+        menu.newAction(triggered=self.commit_to_database)
+
+        key = 'Debug'
+        menu = self.menus[key] = self.menubar.newMenu(key)
+        menu.newAction(triggered=self.name_rebase)
+        menu.newAction(triggered=self.ensure_full)
+        menu.newAction(triggered=self.ensure_cliques)
+
     def initialize(self, infr=None, use_image=False, init_mode='rereview',
                    review_cfg=None):
         print('[viz_graph] initialize')
@@ -527,26 +571,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         print('self.init_mode = %r' % (self.init_mode,))
 
         if review_cfg is None:
-            if self.init_mode is None:
-                self.preset_unfiltered_config()
-            elif self.init_mode == 'split':
-                self.preset_filtered_config()
-            elif self.init_mode == 'rereview':
-                self.preset_unfiltered_config()
-            elif self.init_mode == 'review':
-                self.preset_unfiltered_config()
-            else:
-                raise ValueError('Unknown mode = %r' % (self.init_mode,))
+            mode = 'filtered' if self.init_mode == 'split' else 'unfiltered'
+            self.preset_config(mode)
 
         self.infr = infr
-        # self.config = InferenceConfig()
-
-        self.menubar = gt.newMenubar(self)
-        self.menuFile = self.menubar.newMenu('Dev')
-        self.menuFile.newAction(triggered=self.print_info)
-        self.menuFile.newAction(triggered=self.embed)
-        self.menuFile.newAction(triggered=self.expand_image_and_names)
-        self.menuFile.newAction(triggered=self.emit_state_update)
+        self.initialize_menus()
 
         self.graph_tab_widget = self.addNewTabWidget(verticalStretch=1)
 
@@ -595,16 +624,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.graph_tab = None
         self.init_signals_and_slots()
 
-    def preset_unfiltered_config(self):
-        print('[graph] preset_unfiltered_config')
-        self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
-        for key in self.review_cfg.keys():
-            if key.startswith('filter_'):
-                self.review_cfg[key] = False
-
-    def preset_filtered_config(self):
-        print('[graph] preset_filtered_config')
-        self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
+    def preset_config(self, mode='filtered'):
+        print('[graph] preset_config mode=%r' % (mode,))
+        if mode == 'filtered':
+            self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
+        elif mode == 'unfiltered':
+            self.review_cfg = GRAPH_REVIEW_CFG_DEFAULTS.copy()
+            for key in self.review_cfg.keys():
+                if key.startswith('filter_'):
+                    self.review_cfg[key] = False
 
     def showEvent(self, event):
         super(AnnotGraphWidget, self).showEvent(event)
@@ -617,10 +645,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         if self.init_mode is None:
             pass
         elif self.init_mode == 'split':
-            self.preset_filtered_config()
+            self.preset_config('filtered')
             self.reset_split()
         elif self.init_mode == 'rereview':
-            self.preset_unfiltered_config()
+            self.preset_config('unfiltered')
             self.reset_rereview()
         elif self.init_mode == 'review':
             self.reset_review()
@@ -648,10 +676,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         if not disable_global_update:
             if self.init_mode == 'split':
                 self.infr.apply_feedback_edges()
-                if structure_changed:
-                    # FIXME: when should score be reapplied?
-                    # This should happen in split mode, but not None mode
-                    self.apply_scores()
                 self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
                 # self.infr.apply_cuts()
@@ -669,6 +693,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
                 self.infr.apply_review_inference()
+                # probably don't need apply_cuts
                 self.infr.apply_cuts()
 
         # Set gui status indicators
@@ -703,6 +728,18 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.infr.apply_match_edges(self.review_cfg)
             self.infr.apply_match_scores()
             self.infr.apply_weights()
+
+    def ensure_cliques(self):
+        self.infr.ensure_cliques()
+        self.infr.relabel_using_reviews()
+        self.infr.apply_review_inference()
+        self.repopulate()
+
+    def ensure_full(self):
+        self.infr.ensure_full()
+        self.infr.relabel_using_reviews()
+        self.infr.apply_review_inference()
+        self.repopulate()
 
     def match_and_score_edges(self):
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
@@ -843,10 +880,26 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def mark_pair_state(self, pairs, state):
         valid_states = ['match', 'nomatch', 'notcomp', 'unreviewed']
+        statetags = state.split('+')
+        state = statetags[0]
+        tags = statetags[1].split(';') if len(statetags) > 1 else []
         assert state in valid_states
         for aid1, aid2 in pairs:
-            self.infr.add_feedback(aid1, aid2, state, apply=True)
+            self.infr.add_feedback(aid1, aid2, state, tags=tags, apply=True)
         self.emit_state_update(disable_global_update=True)
+
+    def make_mark_state_funcs(self, selection_func):
+        def _mark_selected_pair_state(state):
+            self.mark_pair_state(selection_func(), state)
+        options = [
+            ('Mark &True', ut.partial(_mark_selected_pair_state, 'match')),
+            ('Mark &False', ut.partial(_mark_selected_pair_state, 'nomatch')),
+            ('Mark &Not-Comparable', ut.partial(_mark_selected_pair_state, 'notcomp')),
+            ('Mark &Photobomb', ut.partial(_mark_selected_pair_state, 'notcomp+photobomb')),
+            ('&Unreview', ut.partial(_mark_selected_pair_state, 'unreviewed')),
+            # unreview will only remove internal feedback, anything commited will not change
+        ]
+        return options
 
     def get_edge_options(self, view):
         # view = self.api_widgets['edges'].view
@@ -871,16 +924,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 aid1  = model.get_header_data('aid1', qtindex)
                 aid2  = model.get_header_data('aid2', qtindex)
                 yield aid1, aid2
+        def _mark_selected_pair_state(state):
+            self.mark_pair_state(_pairs(), state)
 
         if len(selected_qtindex_list) == 0:
             options = []
         else:
-            options = [
-                ('Mark &True', lambda: self.mark_pair_state(_pairs(), 'match')),
-                ('Mark &False', lambda: self.mark_pair_state(_pairs(), 'nomatch')),
-                ('Mark &Not-Comparable', lambda: self.mark_pair_state(_pairs(), 'notcomp')),
-                ('&Unreview', lambda: self.mark_pair_state(_pairs(), 'unreviewed')),
-            ]
+            options = self.make_mark_state_funcs(_pairs)
 
         if len(selected_qtindex_list) == 1:
             from ibeis.gui import inspect_gui
@@ -946,43 +996,63 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         if not handled:
             print('Key  not handled %r' % (event_key,))
             return
+        return handled
 
-    def _get_rectified_name_assignment(self):
-        infr = self.infr
-        graph = self.infr.graph
-        node_to_new_label = nx.get_node_attributes(graph, 'name_label')
-        nodes = list(node_to_new_label.keys())
-        aids = ut.take(infr.node_to_aid, nodes)
-        old_names = infr.ibs.get_annot_name_texts(aids)
-        # Indicate that unknown names should be replaced
-        old_names = [None if n == infr.ibs.const.UNKNOWN else n for n in old_names]
-        new_labels = ut.take(node_to_new_label, aids)
-        # Recycle as many old names as possible
-        label_to_name, needs_assign = infr._rectify_names(old_names, new_labels)
-        # Overwrite names of labels with temporary names
-        needed_names = self.infr.ibs.make_next_name(len(needs_assign))
-        for unassigned_label, new in zip(needs_assign, needed_names):
-            label_to_name[unassigned_label] = new
-        # Assign each node to the rectified label
-        aid_to_newname = {
-            infr.node_to_aid[node]: label_to_name[name_label]
-            for node, name_label in node_to_new_label.items()
-        }
-        return aid_to_newname
+    # @register_menu_item('Dev')
+    def print_staging_table(self):
+        db = self.infr.ibs.staging
+        print(db.get_table_csv('reviews'))
+
+    # @register_menu_item('Dev')
+    def print_annotmatch_table(self):
+        db = self.infr.ibs.db
+        print(db.get_table_csv('annotmatch'))
+
+    # @register_menu_item('Actions')
+    def commit_to_staging(self):
+        print('[graph] commit to staging')
+        self.infr.commit_to_staging()
+
+    # @register_menu_item('Actions')
+    def commit_to_database(self):
+        print('[graph] commit to database')
+        self.infr.write_ibeis_staging_feedback()
+        self.infr.write_ibeis_annotmatch_feedback()
+
+    def print_deltas(self):
+        pairs = [('external', 'internal'),
+                 ('annotmatch', 'all'),
+                 ('staging', 'all'),
+                 ('annotmatch', 'staging')]
+        for old, new in pairs:
+            print('old = %r' % (old,))
+            print('new = %r' % (new,))
+            print(self.infr.match_state_delta(old, new))
+
+    def name_rebase(self):
+        num_names, num_inconsistent = self.infr.relabel_using_reviews()
+        aid_to_newname = self.get_ibeis_name_assignment()
+        self.infr.graph.set_node_attributes('name_label', aid_to_newname)
 
     def accept(self):
         import pandas as pd
         print('[viz_graph] accept')
         infr = self.infr
-        num_names, num_inconsistent = self.infr.relabel_using_reviews()
+        num_new_names, num_inconsistent = self.infr.relabel_using_reviews()
 
-        aid_to_newname = self._get_rectified_name_assignment()
+        aid_to_newname = self.get_ibeis_name_assignment()
         aid_list = list(aid_to_newname.keys())
         new_name_list = list(aid_to_newname.values())
         old_name_list = infr.ibs.get_annot_name_texts(aid_list)
 
         num_names_changed = sum([n1 != n2 for n1, n2 in
                                  zip(new_name_list, old_name_list)])
+        num_old_names = len(set(old_name_list))
+
+        # keep track of residual data
+        changed_df = infr.match_state_delta()
+        num_added = pd.isnull(changed_df['am_rowid']).values.sum()
+        num_edges_modified = len(changed_df) - num_added
 
         msg = ut.codeblock(
             '''
@@ -990,8 +1060,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             #orig_names=%r
             #new_names=%r
             #names_changed=%r
+            #edges_modified=%r
             #inconsistent=%r
-            ''') % (len(ut.unique(infr.orig_name_labels)), num_names_changed, num_names, num_inconsistent)
+            ''') % (num_old_names, num_new_names, num_names_changed,
+                    num_edges_modified, num_inconsistent)
 
         lines = []
         print_ = lines.append
@@ -1006,21 +1078,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         # print_('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
         print_('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
 
-        # keep track of residual data
-        changed_df = infr.match_state_delta()
-        # num_added = len(new_df) - len(old_df)
-        # num_reviews_modified = len(old_df)
-
-        # TODO: move this into match delta such that it ONLY returns
-        # the changed_df
-        # np.all(x3['new_decision'] != x3['old_decision'])
-        num_added = pd.isnull(changed_df['am_rowid']).values.sum()
-        num_reviews_modified = len(changed_df) - num_added
-
         pdkw = dict(max_rows=len(changed_df) + 1)
         #print_ = print
         print_('There were %d added annot match rows' % (num_added,))
-        print_('There were %d modified annot match rows' % (num_reviews_modified,))
+        print_('There were %d modified annot match rows' % (num_edges_modified,))
         print_('---DATAFRAME\nchanged_info =\n' + changed_df.to_string(**pdkw))
 
         print('\n'.join(lines))
@@ -1029,54 +1090,55 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             raise Exception('Cancel')
 
         # LOG ACTIVITY
-        import logging
+        # import logging
         # ut.vd(review_log_dir)
         # create logger with 'spam_application'
-        logger = logging.getLogger('query_review')
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # create file handler which logs even debug messages
-        dbdir = self.infr.ibs.get_dbdir()
-        expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
-        review_log_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'review_logs'))
-        log_fpath = ut.unixjoin(review_log_dir,
-                                'split_log_%s.json' % (self.infr.ibs.dbname))
-        fh = logging.FileHandler(log_fpath)
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
+        # logger = logging.getLogger('query_review')
+        # logger.setLevel(logging.DEBUG)
+        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # # create file handler which logs even debug messages
+        # dbdir = self.infr.ibs.get_dbdir()
+        # expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
+        # review_log_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'review_logs'))
+        # log_fpath = ut.unixjoin(review_log_dir,
+        #                         'split_log_%s.json' % (self.infr.ibs.dbname))
+        # fh = logging.FileHandler(log_fpath)
+        # fh.setLevel(logging.DEBUG)
+        # fh.setFormatter(formatter)
+        # logger.addHandler(fh)
 
-        # create console handler with a higher log level
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
+        # # create console handler with a higher log level
+        # ch = logging.StreamHandler()
+        # ch.setLevel(logging.INFO)
+        # ch.setFormatter(formatter)
+        # logger.addHandler(ch)
 
-        self.logger = logger
-
-        logger.info('\n'.join(lines))
+        # self.logger = logger
+        # logger.info('\n'.join(lines))
+        print('\n'.join(lines))
 
         if True:
-            # Set names
-            ibs = self.infr.ibs
-            ibs.set_annot_names(aid_list, new_name_list)
+            infr.write_ibeis_name_assignment(aid_to_newname)
+            infr.commit_to_database()
+            # # Set names
+            # ibs = self.infr.ibs
+            # ibs.set_annot_names(aid_list, new_name_list)
 
             # Add am rowids for nonexisting rows
-            if len(changed_df) > 0:
-                is_add = pd.isnull(changed_df['am_rowid']).values
-                add_df = changed_df.loc[is_add]
-                add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
-                                                        add_df['aid2'].values)
-                changed_df.loc[is_add, 'am_rowid'] = add_ams
-                changed_df.set_index('am_rowid', drop=False, inplace=True)
+            # if len(changed_df) > 0:
+            #     is_add = pd.isnull(changed_df['am_rowid']).values
+            #     add_df = changed_df.loc[is_add]
+            #     add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
+            #                                             add_df['aid2'].values)
+            #     changed_df.loc[is_add, 'am_rowid'] = add_ams
+            #     changed_df.set_index('am_rowid', drop=False, inplace=True)
 
-                # Set residual matching data
-                new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
-                am_rowids = changed_df['am_rowid'].values
-                ibs.set_annotmatch_truth(am_rowids, new_truth)
-
-                # TODO: set tags here as well
-                pass
+            #     # Set residual matching data
+            #     new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
+            #     am_rowids = changed_df['am_rowid'].values
+            #     ibs.set_annotmatch_truth(am_rowids, new_truth)
+            #     # TODO: set tags here as well
+            #     pass
         else:
             print('DRY RUN. NOT DOING ANYTHING')
         gt.user_info(self, 'Name Change Complete')
@@ -1089,10 +1151,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         abstract_interaction.unregister_interaction(self)
         super(AnnotGraphWidget, self).closeEvent(event)
 
+    # @register_menu_item('Dev')
     def print_info(self):
         print('[graph] print_info')
-        #print('_initial_feedback = ' + ut.repr2(self.infr._initial_feedback, nl=1))
-        print('all_feedback() = ' + ut.repr2(self.infr.all_feedback(), nl=1))
+        print('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
+        print('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
         infr = self.infr
         print('infr = %r' % (infr,))
         if infr is not None and infr.graph is not None:
@@ -1100,6 +1163,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             # self.infr.review_dummy_edges()
             print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
+    # @register_menu_item('Dev', shortcut='ctrl+shift+I')
     def embed(self):
         infr = self.infr  # NOQA
         ibs = infr.ibs  # NOQA
@@ -1107,6 +1171,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         import utool
         utool.embed()
 
+    # @register_menu_item('Dev')
     def expand_image_and_names(self):
         # call get_name_image_closure()
         ibs = self.infr.ibs
@@ -1205,8 +1270,8 @@ def make_name_node_api(infr, review_cfg={}):
     }
 
     col_bgrole_dict = {
-        'matched' : self.get_match_status_bgrole,
-        'reviewed': self.get_reviewed_status_bgrole,
+        'inference' : self.get_inference_bgrole,
+        'review': self.get_review_bgrole,
     }
 
     name_api = gt.CustomAPI(
@@ -1242,9 +1307,30 @@ class EdgeAPIHelper(object):
         custom_edge_props = [
             # TODO: allow user to specify things like hardness / failed / passed or
             # whatever
+            'priority',
             'maybe_error',
             'failed',
             'hardness',
+            'normscore',
+        ]
+
+        edge_col_name_list = [
+            #'index',
+            'thumb1', 'thumb2',
+            'match_thumb',
+            'inference', 'review',
+            'score', 'rank',
+            'tags',
+            'timedelta',
+            'kmdist',
+            'speed',
+        ]
+        edge_col_name_list.extend(custom_edge_props)
+        edge_col_name_list += [
+            'cc_size1',
+            'cc_size2',
+            'aid1', 'aid2',
+            #'data',
         ]
 
         col_getter_dict = {
@@ -1252,8 +1338,8 @@ class EdgeAPIHelper(object):
             'timedelta': self.get_edge_timedelta,
             'speed': self.get_edge_speed,
             'kmdist': self.get_edge_kmdist,
-            'matched':  self.get_match_text,
-            'reviewed': self.get_reviewed_text,
+            'inference':  self.get_inference_text,
+            'review': self.get_review_text,
             'score':  self.edge_attr_getter('score'),
             'rank':  self.edge_attr_getter('rank', -1),
             'tags': self.get_pair_tags,
@@ -1293,8 +1379,8 @@ class EdgeAPIHelper(object):
         }
 
         col_bgrole_dict = {
-            'matched' : self.get_match_status_bgrole,
-            'reviewed': self.get_reviewed_status_bgrole,
+            'inference' : self.get_inference_bgrole,
+            'review': self.get_review_bgrole,
         }
 
         col_width_dict = {
@@ -1309,6 +1395,7 @@ class EdgeAPIHelper(object):
         }
 
         partial_headers = {
+            'edge_col_name_list': edge_col_name_list,
             'col_getter_dict': col_getter_dict,
             'col_ider_dict': col_ider_dict,
             'col_ider_dict': col_ider_dict,
@@ -1369,52 +1456,97 @@ class EdgeAPIHelper(object):
         assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
         assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
 
-    def get_match_text(self, edge):
+    def _get_inference_info(self, edge):
         aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
         nid1 = self.graph.node[aid1]['name_label']
         nid2 = self.graph.node[aid2]['name_label']
-        if nid1 == nid2:
-            return 'matched nid=%d' % (nid1,)
-        else:
-            return 'not matched nids=(%d,%d)' % (nid1, nid2)
+        data = self.infr.graph.get_edge_data(*edge)
+        inferred_state = data['inferred_state']
+        maybe_error = data.get('maybe_error', False)
 
-    def get_match_status_bgrole(self, edge):
-        """ Background role for status column """
-        aid1, aid2 = edge
+        if inferred_state is None:
+            state = 'unknown'
+        elif inferred_state.startswith('inconsistent'):
+            state = inferred_state
+        else:
+            inferred_truth = {'same': True, 'diff': False}[inferred_state]
+            name_truth = (nid1 == nid2)
+            if name_truth != inferred_truth:
+                state = 'disagree'
+            else:
+                state = 'same' if nid1 == nid2 else 'diff'
+
+        if state == 'inconsistent_outgoing':
+            text = 'inconsistent'
+        else:
+            text = state
+
+        if nid1 == nid2:
+            text += ' nid=%d' % (nid1,)
+        else:
+            text += ' nids=%d,%d' % (nid1, nid2)
+
+        if maybe_error:
+            text += ' (FIXME?)'
+
+        if state == 'inconsistent_outgoing':
+            text += ' (outgoing)'
+
+        info = (state, text, maybe_error)
+        return info
+
+    def get_inference_text(self, edge):
+        info = self._get_inference_info(edge)
+        state, text, maybe_error = info
+        return text
+
+    def get_review_text(self, edge):
         graph = self.infr.graph
-        nid1 = graph.node[aid1]['name_label']
-        nid2 = graph.node[aid2]['name_label']
-        data = graph.get_edge_data(*edge)
-        if data.get('maybe_error', False):
+        text = graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+        return text
+
+    def get_inference_bgrole(self, edge):
+        """ Background role for status column """
+        state, text, maybe_error = self._get_inference_info(edge)
+        if state == 'disagree':
+            color = pt.WHITE
+        elif state.startswith('inconsistent'):
             color = pt.ORANGE
+            if state == 'inconsistent_outgoing':
+                lighten_amount = .55
+                color = pt.lighten_rgb(color, lighten_amount)
+            elif not maybe_error:
+                lighten_amount = .35
+                color = pt.lighten_rgb(color, lighten_amount)
         else:
             lighten_amount = .35
-            state = graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
-            if state == 'unreviewed':
-                lighten_amount = .7
             truth_colors = self.infr._get_truth_colors()
-            color = truth_colors['match' if nid1 == nid2 else 'nomatch']
+            if state == 'unknown':
+                lighten_amount = .7
+                color = truth_colors['unreviewed']
+            else:
+                color = truth_colors['match'] if state == 'same' else truth_colors['nomatch']
             #self.graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')]
             if lighten_amount is not None:
                 color = pt.lighten_rgb(color, lighten_amount)
         color = pt.to_base255(color)
         return color
 
-    def get_reviewed_text(self, edge):
-        graph = self.infr.graph
-        text = graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
-        text += '\n'
-        text += 'inferred=%s' % (graph.get_edge_data(*edge).get('inferred_state', None))
-        return text
-
-    def get_reviewed_status_bgrole(self, edge):
+    def get_review_bgrole(self, edge):
         """ Background role for status column """
         data = self.graph.get_edge_data(*edge)
         state = data.get('reviewed_state', 'unreviewed')
         truth_colors = self.infr._get_truth_colors()
-        color = truth_colors[state]
+        if state == 'unreviewed':
+            inference_state, text, maybe_error = self._get_inference_info(edge)
+            if inference_state == 'same':
+                color = truth_colors['match']
+            elif inference_state == 'diff':
+                color = truth_colors['nomatch']
+            else:
+                color = truth_colors[state]
+        else:
+            color = truth_colors[state]
         lighten_amount = .35
         if state == 'unreviewed':
             lighten_amount = .7
@@ -1458,38 +1590,14 @@ def make_name_edge_api(infr, review_cfg={}):
     name_to_edges = {name: list(infr.graph.subgraph(nodes).edges())
                      for name, nodes in name_to_nodes.items()}
 
-    # utool.embed()
     names = list(name_to_edges.keys())
     flat_edges, grouped_edge_idxs = ut.invertible_flatten1(name_to_edges.values())
 
     nid_col_name_list = ['name_label', 'n_edges']
 
-    custom_edge_props = [
-        # TODO: allow user to specify things like hardness / failed / passed or
-        # whatever
-        'maybe_error',
-        'failed',
-        'hardness',
-    ]
-
-    edge_col_name_list = [
-        #'index',
-        'thumb1', 'thumb2',
-        'match_thumb',
-        'matched', 'reviewed',
-        'score', 'rank',
-        'tags',
-        'timedelta',
-        'kmdist',
-        'speed',
-    ]
-    edge_col_name_list.extend(custom_edge_props)
-    edge_col_name_list += [
-        'cc_size1',
-        'cc_size2',
-        'aid1', 'aid2',
-        #'data',
-    ]
+    self = EdgeAPIHelper(infr)
+    partial_headers = self.make_partial_edge_headers()
+    edge_col_name_list = partial_headers['edge_col_name_list']
 
     col_name_list = nid_col_name_list + edge_col_name_list
     col_level_dict = {}
@@ -1508,8 +1616,6 @@ def make_name_edge_api(infr, review_cfg={}):
         'aid2': ut.take_column(flat_edges, 1),
     }
 
-    self = EdgeAPIHelper(infr)
-    partial_headers = self.make_partial_edge_headers()
     col_getter_dict.update(partial_headers['col_getter_dict'])
 
     name_api = gt.CustomAPI(
@@ -1547,35 +1653,9 @@ def make_edge_api(infr, review_cfg={}):
     # from six import next
     # data = next(infr.graph.edges(data=True))[-1]
 
-    custom_edge_props = [
-        # TODO: allow user to specify things like hardness / failed / passed or
-        # whatever
-        'maybe_error',
-        'failed',
-        'hardness',
-    ]
-
-    col_name_list = [
-        #'index',
-        'thumb1', 'thumb2',
-        'match_thumb',
-        'matched', 'reviewed',
-        'score', 'rank',
-        'tags',
-        'timedelta',
-        'kmdist',
-        'speed',
-    ]
-    col_name_list.extend(custom_edge_props)
-    col_name_list += [
-        'cc_size1',
-        'cc_size2',
-        'aid1', 'aid2',
-        #'data',
-    ]
-
     #if not DEVELOPER_MODE:
     #    col_name_list.remove('data')
+    col_name_list = partial_headers['edge_col_name_list']
 
     if not review_cfg['show_match_thumb']:
         # FIXME: do one-vs-one scoring instead

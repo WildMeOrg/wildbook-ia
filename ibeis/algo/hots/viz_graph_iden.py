@@ -207,6 +207,7 @@ class _AnnotInfrViz(object):
                             show_labels=True,
                             hide_cuts=None,
                             reposition=True,
+                            splines='line',
                             **kwargs
                             # hide_unreviewed_inferred=True
                             ):
@@ -417,7 +418,7 @@ class _AnnotInfrViz(object):
             # LAYOUT: update the positioning layout
             layoutkw = dict(prog='neato',
                             # splines='spline',
-                            splines='line',
+                            splines=splines,
                             sep=10 / 72, esep=1 / 72, nodesep=.1)
             layoutkw.update(kwargs)
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
