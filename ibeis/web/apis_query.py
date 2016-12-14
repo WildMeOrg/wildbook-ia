@@ -157,13 +157,13 @@ def process_graph_match_html(ibs, **kwargs):
     return (annot_uuid_1, annot_uuid_2, state, tag_list, )
 
 
-def make_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
-                      draw_matches=True, verbose=False):
-    """"
+def ensure_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
+                        draw_matches=True, verbose=False):
+    r""""
     Create the review image for a pair of annotations
 
     CommandLine:
-        python -m ibeis.web.apis_query make_review_image --show
+        python -m ibeis.web.apis_query ensure_review_image --show
 
     Example:
         >>> # SCRIPT
@@ -173,7 +173,7 @@ def make_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> ibs = qreq_.ibs
         >>> aid = cm.get_top_aids()[0]
         >>> tt = ut.tic('make image')
-        >>> image = make_review_image(ibs, aid, cm, qreq_)
+        >>> image = ensure_review_image(ibs, aid, cm, qreq_)
         >>> ut.toc(tt)
         >>> ut.quit_if_noshow()
         >>> print('image.shape = %r' % (image.shape,))
@@ -183,12 +183,12 @@ def make_review_image(ibs, aid, cm, qreq_, view_orientation='vertical',
         >>> pt.imshow(image)
         >>> ut.show_if_requested()
     """
-    from ibeis.gui.id_review_api import get_match_thumb_fname
+    from ibeis.gui import id_review_api
     # Get thumb path
     match_thumb_path = ibs.get_match_thumbdir()
-    match_thumb_filename = get_match_thumb_fname(cm, aid, qreq_,
-                                                 view_orientation=view_orientation,
-                                                 draw_matches=draw_matches)
+    match_thumb_filename = id_review_api.get_match_thumb_fname(cm, aid, qreq_,
+                                                               view_orientation=view_orientation,
+                                                               draw_matches=draw_matches)
     match_thumb_filepath = join(match_thumb_path, match_thumb_filename)
     if verbose:
         print('Checking: %r' % (match_thumb_filepath, ))
@@ -234,7 +234,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
         cm_dict (dict):
         query_config_dict (dict):
         _internal_state (?):
-        callback_url (?):
+        callback_url (str):
         callback_method (unicode): (default = u'POST')
         view_orientation (unicode): (default = u'vertical')
         include_jquery (bool): (default = False)
@@ -385,15 +385,15 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
     #match_score = cm.aid2_score[aid_2]
 
     try:
-        image_matches = make_review_image(ibs, aid_2, cm, qreq_,
-                                          view_orientation=view_orientation)
+        image_matches = ensure_review_image(ibs, aid_2, cm, qreq_,
+                                            view_orientation=view_orientation)
     except KeyError:
         image_matches = np.zeros((100, 100, 3), dtype=np.uint8)
         traceback.print_exc()
     try:
-        image_clean = make_review_image(ibs, aid_2, cm, qreq_,
-                                        view_orientation=view_orientation,
-                                        draw_matches=False)
+        image_clean = ensure_review_image(ibs, aid_2, cm, qreq_,
+                                          view_orientation=view_orientation,
+                                          draw_matches=False)
     except KeyError:
         image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
         traceback.print_exc()

@@ -1056,16 +1056,21 @@ class _AnnotInfrMatching(object):
         """
         if infr.cm_list is None:
             return None, aid1, aid2
+        # TODO: keep chip matches in dictionary by default?
         aid2_idx = ut.make_index_lookup(
             [cm.qaid for cm in infr.cm_list])
         try:
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
+            if aid2 not in cm.daid2_idx:
+                raise KeyError('switch order')
         except KeyError:
             # switch order
             aid1, aid2 = aid2, aid1
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
+            if aid2 not in cm.daid2_idx:
+                raise KeyError('No ChipMatch for edge (%r, %r)' % (aid1, aid2))
         return cm, aid1, aid2
 
     @profile
