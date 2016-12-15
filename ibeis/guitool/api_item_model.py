@@ -131,6 +131,7 @@ class APIItemModel(API_MODEL_BASE):
     def __init__(model, headers=None, parent=None):
         if VERBOSE_MODEL:
             print('[APIItemModel] __init__')
+        # FIXME: don't let the model point to the view
         model.view = parent
         API_MODEL_BASE.__init__(model, parent=parent)
         # Internal Flags

@@ -452,8 +452,11 @@ class APIItemWidget(WIDGET_BASE):
         # Instantiate the AbstractItemModel
         # FIXME: It is very bad to give the model a view.
         # Only the view should have a model
-        widget.model = model_class(parent=widget.view)
-        widget.view.setModel(widget.model)
+        # Also the model should not be an attribute because
+        # it might live in another thread
+        widget._model = model_class(parent=widget.view)
+
+        widget.view.setModel(widget._model)
         widget.vert_layout.addWidget(widget.view)
         widget.tblnice = tblnice
         if headers is not None:
@@ -463,6 +466,10 @@ class APIItemWidget(WIDGET_BASE):
         widget.api = None
         if doubleClicked:
             widget.view.doubleClicked.connect(doubleClicked)
+
+    @property
+    def model(widget):
+        return widget.view.model()
 
     def connect_api(widget, api, autopopulate=True):
         widget.api = api
@@ -476,14 +483,14 @@ class APIItemWidget(WIDGET_BASE):
     def change_headers(widget, headers):
         parent = widget.parent()
         # Update headers of both model and view
-        widget.model._update_headers(**headers)
+        widget._model._update_headers(**headers)
         widget.view._update_headers(**headers)
         if parent is None:
             nice = headers.get('nice', 'NO NICE NAME')
             widget.setWindowTitle(nice)
 
     def connect_signals(widget):
-        widget.model._rows_updated.connect(widget.on_rows_updated)
+        widget._model._rows_updated.connect(widget.on_rows_updated)
         widget.view.contextMenuClicked.connect(widget.on_contextMenuRequested)
 
     def on_rows_updated(widget, name, num):
