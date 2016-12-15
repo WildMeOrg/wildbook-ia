@@ -2454,6 +2454,7 @@ class AnnotInference(ut.NiceRepr,
         infr2.qreq_ = copy.deepcopy(infr.qreq_)
         infr2.nid_counter = infr.nid_counter
         infr2.thresh = infr.thresh
+        infr2.aid_to_node = copy.deepcopy(infr.aid_to_node)
         return infr2
 
     def __nice__(infr):

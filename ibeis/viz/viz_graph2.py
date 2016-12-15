@@ -152,9 +152,9 @@ class DevGraphWidget(gt.GuitoolWidget):
 
         visibility_kw.pop('pin_positions')
         in_image = visibility_kw.pop('in_image')
-        use_image = visibility_kw.pop('show_image')
-
-        graph_widget.infr.update_node_image_config(in_image=in_image)
+        use_image = visibility_kw.get('show_image')
+        if use_image:
+            graph_widget.infr.update_node_image_config(in_image=in_image)
         graph_widget.infr.update_visual_attrs(
             **visibility_kw
         )
