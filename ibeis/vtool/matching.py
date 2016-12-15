@@ -97,6 +97,10 @@ class PairwiseMatch(ut.NiceRepr):
 
     @staticmethod
     def _take_params(config, keys):
+        """
+        take parameter info from config using default values defined in module
+        constants.
+        """
         if isinstance(keys, six.string_types):
             keys = keys.split(', ')
         return [config.get(key, VSONE_PI_DICT[key].default) for key in keys]
@@ -130,8 +134,10 @@ class PairwiseMatch(ut.NiceRepr):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
-        rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
-        rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
+        # rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
+        # rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
+        rchip1, kpts1 = ut.dict_take(annot1, ['rchip', 'kpts'])
+        rchip2, kpts2 = ut.dict_take(annot2, ['rchip', 'kpts'])
         if mask_blend:
             import vtool as vt
             mask1 = vt.resize(annot1['probchip_img'], vt.get_size(rchip1))
@@ -277,6 +283,9 @@ class PairwiseMatch(ut.NiceRepr):
         ratio = np.divide(match_dist, norm_dist)
         ratio_score = (1.0 - ratio)
 
+        # remove local measure that can no longer apply
+        ut.delete_dict_keys(match.local_measures, ['sver_err_xy', 'sver_err_scale', 'sver_err_ori'])
+
         match.local_measures['match_dist'] = match_dist
         match.local_measures['norm_dist'] = norm_dist
         match.local_measures['ratio'] = ratio
@@ -350,7 +359,9 @@ class PairwiseMatch(ut.NiceRepr):
         match.local_measures = ut.odict([])
         match.assign(cfgdict)
         match.apply_ratio_test(cfgdict, inplace=True)
-        if cfgdict['sv_on']:
+        sv_on = match._take_params(cfgdict, 'sv_on')
+
+        if sv_on:
             match.apply_sver(cfgdict, inplace=True)
 
     @profile
