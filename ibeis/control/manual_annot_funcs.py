@@ -7,9 +7,9 @@ Autogen:
     sh Tgen.sh --key annot --invert --Tcfg with_getters=True with_setters=True --modfname manual_annot_funcs --funcname-filter=is_ --diff  # NOQA
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six  # NOQA
+import six
 import uuid
-import numpy as np  # NOQA
+import numpy as np
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
 import utool as ut
@@ -478,7 +478,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
     if yaw_list is None:
         yaw_list = [-1.0] * len(gid_list)
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [const.__STR__(verts) for verts in vert_list]
+    vertstr_list = [six.text_type(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
 
@@ -2607,7 +2607,7 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     nInput = len(aid_list)
     # Compute data to set
     num_verts_list   = list(map(len, verts_list))
-    verts_as_strings = list(map(const.__STR__, verts_list))
+    verts_as_strings = list(map(six.text_type, verts_list))
     id_iter1 = ((aid,) for aid in aid_list)
     # also need to set the internal number of vertices
     val_iter1 = ((num_verts, verts) for (num_verts, verts)

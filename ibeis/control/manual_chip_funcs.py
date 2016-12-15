@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
+import six
 import utool as ut
 from six.moves import zip
 from os.path import join
@@ -178,7 +179,7 @@ def get_annot_chip_thumbpath(ibs, aid_list, thumbsize=None, config2_=None):
     thumb_dpath = ibs.thumb_dpath
     thumb_suffix = '_' + str(thumbsize) + const.CHIP_THUMB_SUFFIX
     annot_uuid_list = ibs.get_annot_visual_uuids(aid_list)
-    thumbpath_list = [join(thumb_dpath, const.__STR__(uuid) + thumb_suffix)
+    thumbpath_list = [join(thumb_dpath, six.text_type(uuid) + thumb_suffix)
                       for uuid in annot_uuid_list]
     return thumbpath_list
 

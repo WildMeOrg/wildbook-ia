@@ -1909,12 +1909,6 @@ def commit_current_query_object_names(query_object, ibs):
 
         # Set residual matching data
         new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
-        # truth_options = [ibs.const.TRUTH_MATCH,
-        #                  ibs.const.TRUTH_NOT_MATCH,
-        #                  ibs.const.TRUTH_UNKNOWN]
-        # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
-        # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
-        # new_truth = ut.take(truth_options, truth_idxs)
         am_rowids = changed_df['am_rowid'].values
 
         ibs.set_annotmatch_truth(am_rowids, new_truth)

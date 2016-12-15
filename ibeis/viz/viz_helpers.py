@@ -124,15 +124,7 @@ def is_unknown(ibs, nid_list):
 
 
 def get_truth_text(ibs, truth):
-    truth_texts = [
-        #'FALSE',
-        #'TRUE',
-        #'???'
-        'Imposter',
-        'Genuine',
-        'Unknown',
-    ]
-    return truth_texts[truth]
+    return ibs.const.TRUTH_INT_TO_TEXT.get(truth, None)
 
 
 def get_truth_color(truth, base255=False, lighten_amount=None):
@@ -140,6 +132,7 @@ def get_truth_color(truth, base255=False, lighten_amount=None):
         df2.FALSE_RED,
         df2.TRUE_GREEN,
         df2.UNKNOWN_PURP,
+        df2.YELLOW,
     ]
     color = truth_colors[truth]
     if lighten_amount is not None:

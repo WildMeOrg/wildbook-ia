@@ -4,10 +4,10 @@ helpers for controller manual_annot_funcs
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range, filter, map  # NOQA
+import six
 import utool as ut
 import uuid
 from vtool import geometry
-from ibeis import constants as const
 (print, rrr, profile) = ut.inject2(__name__, '[preproc_annot]')
 
 
@@ -97,7 +97,7 @@ def generate_annot_properties(ibs, gid_list, bbox_list=None, theta_list=None,
     if yaw_list is None:
         yaw_list = [-1.0] * len(image_uuid_list)
     nVert_list = [len(verts) for verts in vert_list]
-    vertstr_list = [const.__STR__(verts) for verts in vert_list]
+    vertstr_list = [six.text_type(verts) for verts in vert_list]
     xtl_list, ytl_list, width_list, height_list = list(zip(*bbox_list))
     assert len(nVert_list) == len(vertstr_list)
     # Define arguments to insert

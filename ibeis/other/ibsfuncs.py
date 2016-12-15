@@ -2889,7 +2889,8 @@ def get_match_truth(ibs, aid1, aid2):
 @register_ibs_method
 def get_aidpair_truths(ibs, aid1_list, aid2_list):
     r"""
-    Uses NIDS to verify truth
+    Uses NIDS to verify truth.
+    TODO: rectify with annotmatch table
 
     Args:
         ibs (IBEISController):  ibeis controller object

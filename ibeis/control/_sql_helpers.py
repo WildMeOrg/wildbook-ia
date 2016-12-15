@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from os.path import split, splitext, join, exists
+import six
 import datetime
 import distutils
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[sql-helpers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 # =======================
 # Helper Functions
@@ -166,10 +167,9 @@ def get_backup_fpaths(ibs):
 
 def copy_database(src_fpath, dst_fpath):
     import dtool
-    from ibeis import constants as const
     # Load database and ask it to copy itself, which enforces an exclusive
     # blocked lock for all processes potentially writing to the database
-    db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=const.__STR__,
+    db = dtool.SQLDatabaseController(fpath=src_fpath, text_factory=six.text_type,
                                      inmemory=False)
     db.backup(dst_fpath)
 

@@ -688,7 +688,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(msg='reset name labels')
             infr.reset_name_labels()
             ctx.set_progress(msg='reset feedback')
-            infr.reset_feedback()
+            infr.reset_feedback('staging')
             ctx.set_progress(msg='reset feedback edges')
             infr.apply_feedback_edges()
             ctx.set_progress(msg='remove name labels')
@@ -830,18 +830,19 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 ]
 
             options += [
-                ('VsOne', inspect_gui.make_vsone_context_options(ibs, aid1, aid2, qreq_))
+                ('Tune Vsone(vt)', inspect_gui.make_vsone_context_options(ibs, aid1, aid2, qreq_)[0][1])
             ]
 
-        if len(selected_qtindex_names) > 0:
-            import utool
-            utool.embed()
-            options += [
-                # TODO
-                ('Restrict Graph To Names', lambda: self.restrict_graph_to_names),
-                ('Vsone subset', lambda: self.vsone_subset()),
-            ]
-        else:
+        # if len(selected_qtindex_names) > 0:
+        #     import utool
+        #     utool.embed()
+        #     options += [
+        #         # TODO
+        #         # ('Restrict Graph To Names', lambda: self.restrict_graph_to_names),
+        #         ('Vsone subset', lambda: self.vsone_subset()),
+        #     ]
+        # else:
+        if len(selected_qtindex_edges) > 0:
             options += [
                 ('Vsone subset', lambda: self.vsone_subset(_pairs())),
             ]
@@ -1598,7 +1599,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         fusermount -u ~/lev
         # mount
         sshfs -o idmap=user lev:/ ~/lev
-        ibeis make_qt_graph_interface --dbdir=/home/joncrall/lev/media/hdd/work/EWT_Cheetahs --show
+        ibeis make_qt_graph_interface --dbdir=/home/joncrall/lev/media/hdd/work/EWT_Cheetahs --show -a default:view=right;frontright;backright
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1626,7 +1627,11 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if nids is not None and aids is None:
         aids = ut.flatten(ibs.get_name_aids(nids))
     if aids is None:
-        aids = ibs.get_valid_aids()
+        # import ibeis
+        # aids = ibeis.testdata_aids(ibs=ibs)
+        # ['right', 'frontright', 'backright']
+        # aids = ibs.get_valid_aids()
+        aids = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
         # [0:20]
     if ut.get_argflag('--sample'):
         rng = np.random.RandomState(42)

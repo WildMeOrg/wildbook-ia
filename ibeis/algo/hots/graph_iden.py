@@ -535,15 +535,18 @@ class _AnnotInfrIBEIS(object):
     def read_ibeis_staging_feedback(infr):
         """
         Reads feedback from review staging table.
-        TODO: DEPRICATE (make an external helper function?)
         """
         if infr.verbose >= 1:
             print('[infr] read_ibeis_staging_feedback')
         ibs = infr.ibs
         # annots = ibs.annots(infr.aids)
         review_ids = ibs.get_review_rowids_between(infr.aids)
+        review_ids = sorted(review_ids)
         # aid_pairs = ibs.get_review_aid_tuple(review_ids)
         # flat_review_ids, cumsum = ut.invertible_flatten2(review_ids)
+
+        from ibeis.control.manual_review_funcs import hack_create_aidpair_index
+        hack_create_aidpair_index(ibs)
 
         from ibeis.control.manual_review_funcs import (
             REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
@@ -594,32 +597,35 @@ class _AnnotInfrIBEIS(object):
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
 
+        # a = set(infr.aids)
+        # all([a1 in a and a2 in a for a1, a2 in aid_pairs])
+
         # Use tags to infer truth
-        props = ['SplitCase', 'JoinCase', 'Photobomb']
+        props = ['SplitCase', 'JoinCase']
         flags_list = ibs.get_annotmatch_prop(props, am_rowids)
-        is_split, is_merge, is_pb = flags_list
+        is_split, is_merge = flags_list
         is_split = np.array(is_split).astype(np.bool)
         is_merge = np.array(is_merge).astype(np.bool)
-        is_pb = np.array(is_pb).astype(np.bool)
 
         # Use explicit truth state to mark truth
         truth = np.array(ibs.get_annotmatch_truth(am_rowids))
         tags_list = ibs.get_annotmatch_case_tags(am_rowids)
         # Hack, if we didnt set it, it probably means it matched
         need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
-        need_aids1 = ut.compress(aids1, need_truth)
-        need_aids2 = ut.compress(aids2, need_truth)
-        needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
-        truth[need_truth] = needed_truth
+        if np.any(need_truth):
+            need_aids1 = ut.compress(aids1, need_truth)
+            need_aids2 = ut.compress(aids2, need_truth)
+            needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
+            truth[need_truth] = needed_truth
 
         # Add information from relevant tags
         truth = np.array(truth, dtype=np.int)
+        # truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
         truth[is_split] = ibs.const.TRUTH_NOT_MATCH
-        truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
         truth[is_merge] = ibs.const.TRUTH_MATCH
 
-        int_to_key = ut.invert_dict(ibs.const.REVIEW_MATCH_CODE)
         # CHANGE OF FORMAT
+        int_to_key = ut.invert_dict(ibs.const.REVIEW_MATCH_CODE)
         feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
             edge = e_(aid1, aid2)
@@ -641,8 +647,9 @@ class _AnnotInfrIBEIS(object):
 
         am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
         #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
-        rectified_feedback = infr._rectify_feedback_most_recent(feedback)
-        decision = ut.dict_take_column(rectified_feedback.values(), 'decision')
+        rectified_feedback_ = infr._rectify_feedback_most_recent(feedback)
+        rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
+        decision = ut.dict_take_column(rectified_feedback, 'decision')
         df = pd.DataFrame([])
         df['decision'] = decision
         df['aid1'] = aids1
@@ -677,7 +684,8 @@ class _AnnotInfrIBEIS(object):
         """
         def _lookup_feedback(key):
             if key == 'annotmatch':
-                df = infr._pandas_feedback_format(infr.read_ibeis_annotmatch_feedback())
+                feedback = infr.read_ibeis_annotmatch_feedback()
+                df = infr._pandas_feedback_format(feedback)
             elif key == 'staging':
                 df = infr._pandas_feedback_format(infr.read_ibeis_staging_feedback())
             elif key == 'all':

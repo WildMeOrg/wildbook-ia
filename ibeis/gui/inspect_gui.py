@@ -782,7 +782,7 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     with_vsone = True
     if with_vsone:
         options += [
-            ('VsOne', make_vsone_context_options(ibs, aid1, aid2, qreq_))
+            ('Tune Vsone(vt)', make_vsone_context_options(ibs, aid1, aid2, qreq_)[0][1])
         ]
 
     with_vsmany = True
