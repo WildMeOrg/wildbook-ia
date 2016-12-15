@@ -869,7 +869,8 @@ class _AnnotInfrFeedback(object):
         ut.nx_delete_edge_attr(infr.graph, 'num_reviews', edges)
         # ut.nx_delete_edge_attr(infr.graph, 'is_reviewed', edges)
 
-    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list, n_reviews_list):
+    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list,
+                            n_reviews_list):
         if infr.verbose >= 3:
             print('[infr] _set_feedback_edges')
         # Ensure edges exist

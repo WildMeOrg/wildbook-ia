@@ -15,18 +15,9 @@ from ibeis.algo.hots import graph_iden
 import guitool as gt
 import plottool as pt
 from plottool import abstract_interaction
+from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__.QtCore import Qt
-from guitool.__PYQT__ import QtCore, QtWidgets, QtGui  # NOQA
-from plottool import interact_helpers as ih
-from matplotlib.backend_bases import MouseEvent, KeyEvent, PickEvent
-
-from guitool import __PYQT__
-if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
-    import matplotlib.backends.backend_qt4agg as backend_qt
-else:
-    import matplotlib.backends.backend_qt5agg as backend_qt
-FigureCanvas = backend_qt.FigureCanvasQTAgg
-
+from guitool import mpl_widget
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
     'ranks_top': 3,
@@ -43,53 +34,6 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 
     'show_match_thumb': True,
 }
-
-
-# MENU_ITEMS = ut.ddict(list)
-
-
-# def register_menu_item(key):
-#     def _wrp(func, shortcut=None):
-#         member = {
-#             'func': func,
-#             'shortcut': shortcut,
-#         }
-#         MENU_ITEMS[key].append(member)
-#         return func
-#     return _wrp
-
-
-class MatplotlibWidget(gt.GuitoolWidget):
-    click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
-    key_press_signal = QtCore.pyqtSignal(KeyEvent)
-    pick_event_signal = QtCore.pyqtSignal(PickEvent)
-
-    def initialize(self):
-        from plottool.interactions import zoom_factory, pan_factory
-        self.fig = pt.plt.figure()
-        self.fig._no_raise_plottool = True
-        # Add a figure canvas widget to this widget
-        self.canvas = FigureCanvas(self.fig)
-        # Workaround key_press bug
-        # References: https://github.com/matplotlib/matplotlib/issues/707
-        self.canvas.setFocusPolicy(Qt.ClickFocus)
-
-        self.ax = self.fig.add_subplot(1, 1, 1)
-        self.addWidget(self.canvas)
-
-        self.pan_events = pan_factory(self.ax)
-        self.zoon_events = zoom_factory(self.ax)
-        self.fig.canvas.mpl_connect('button_press_event', self._emit_button_press)
-        self.fig.canvas.mpl_connect('key_press_event', self.key_press_signal.emit)
-        self.fig.canvas.mpl_connect('pick_event', self.pick_event_signal.emit)
-
-        # self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
-        self.setMinimumHeight(20)
-        self.setMinimumWidth(20)
-
-    def _emit_button_press(self, event):
-        if ih.clicked_inside_axis(event):
-            self.click_inside_signal.emit(event, event.inaxes)
 
 
 class DevGraphWidget(gt.GuitoolWidget):
@@ -128,8 +72,9 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.ctrls = graph_widget.ctrls_.addNewSplitter(
             orientation='vert')
 
-        graph_widget.mpl_wgt = MatplotlibWidget(parent=graph_widget, horizontalStretch=1)
-        graph_widget.mpl_wgt.installEventFilter(graph_widget)
+        graph_widget.mpl_wgt = mpl_widget.MatplotlibWidget(
+            parent=graph_widget, horizontalStretch=1)
+        # graph_widget.mpl_wgt.installEventFilter(graph_widget)
         graph_widget.splitter.addWidget(graph_widget.mpl_wgt)
 
         ctrls = graph_widget.ctrls
@@ -206,10 +151,7 @@ class DevGraphWidget(gt.GuitoolWidget):
             graph_widget.mpl_needs_update = True
         else:
             # Draw the graph because it is visible
-            try:
-                graph_widget.draw_graph()
-            except AttributeError as ex:
-                ut.printex(ex, 'graph likely not init yet', iswarning=True)
+            graph_widget.draw_graph()
 
     def draw_graph(graph_widget):
         # Is it possible to make things more responsive with threads?
@@ -255,106 +197,6 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.mpl_wgt.fig.subplots_adjust(left=.02, top=.98, bottom=.02,
                                                  right=.85)
         # print('[viz_graph] End draw page')
-
-    def on_key_press(graph_widget, event):
-        # called by matplotlib events
-        key = event.key.upper()
-        option_dict = gt.make_option_dict(graph_widget.mark_state_funcs,
-                                          shortcuts=True)
-        assert 'D' not in option_dict
-        option_dict['D'] = graph_widget.deselect
-        if key in option_dict:
-            option_dict[key]()
-
-    def on_pick(self, event):
-        artist = event.artist
-        plotdat = pt.get_plotdat_dict(artist)
-        infr = self.self_parent.infr
-        if plotdat:
-            if 'node' in plotdat:
-                if False:
-                    all_node_data = ut.sort_dict(plotdat['node_data'].copy())
-                    visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
-                    node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
-                    print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
-                    print('node_data: ' + ut.repr2(node_data, nl=1))
-                    print('node: ' + ut.repr2(plotdat['node']))
-            elif 'edge' in plotdat:
-                all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
-                visual_edge_data = ut.dict_subset(all_edge_data, infr.visual_edge_attrs, None)
-                edge_data = ut.delete_dict_keys(all_edge_data, infr.visual_edge_attrs)
-                print('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1))
-                print('edge_data: ' + ut.repr2(edge_data, nl=1))
-                print('edge: ' + ut.repr2(plotdat['edge']))
-            else:
-                print('unknown artist ' + ut.repr2(plotdat))
-                print('artist = %r' % (artist,))
-                print('event = %r' % (event,))
-
-    def on_click_inside(graph_widget, event, ax):
-        pos = graph_widget.plotinfo['node']['pos']
-        nodes = list(pos.keys())
-        pos_list = ut.dict_take(pos, nodes)
-
-        # TODO: FIXME
-        #x = 10
-        #y = 10
-        x, y = event.xdata, event.ydata
-        point = np.array([x, y])
-        pos_list = np.array(pos_list)
-        index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
-        node = nodes[index]
-        aid = graph_widget.infr.node_to_aid[node]
-        context_shown = False
-
-        CHECK_PAIR = True
-        if CHECK_PAIR:
-            if event.button == 3 and not context_shown:
-                if len(graph_widget.selected_aids) != 2:
-                    print('This funciton only work if exactly 2 are selected')
-                else:
-                    from ibeis.gui import inspect_gui
-                    context_shown = True
-                    aid1, aid2 = (graph_widget.selected_aids)
-                    qres = None
-                    qreq_ = None
-                    options = inspect_gui.get_aidpair_context_menu_options(
-                        graph_widget.infr.ibs, aid1, aid2, qres, qreq_=qreq_)
-                    graph_widget.show_popup_menu(options, event)
-
-        bbox = vt.bbox_from_center_wh(graph_widget.plotinfo['node']['pos'][node],
-                                      graph_widget.plotinfo['node']['size'][node])
-        SELECT_ANNOT = vt.point_inside_bbox(point, bbox)
-
-        if SELECT_ANNOT:
-            ibs = graph_widget.infr.ibs
-            print(ut.obj_str(ibs.get_annot_info(aid, default=True,
-                                                name=True, gname=True)))
-            if event.button == 1:
-                graph_widget.toggle_selected_aid(aid)
-
-            if event.button == 3 and not context_shown:
-                # right click
-                from ibeis.viz.interact import interact_chip
-                context_shown = True
-                #refresh_func = functools.partial(viz.show_name, ibs, nid,
-                #fnum=fnum, sel_aids=sel_aids)
-                refresh_func = None
-                config2_ = None
-                options = interact_chip.build_annot_context_options(
-                    graph_widget.infr.ibs, aid, refresh_func=refresh_func,
-                    with_interact_name=False,
-                    config2_=config2_)
-                graph_widget.show_popup_menu(options, event)
-
-    def show_popup_menu(graph_widget, options, event):
-        """
-        context menu
-        """
-        height = graph_widget.mpl_wgt.fig.canvas.geometry().height()
-        qpoint = gt.newQPoint(event.x, height - event.y)
-        qwin = graph_widget.mpl_wgt.fig.canvas
-        gt.popup_menu(qwin, qpoint, options)
 
     def set_pin_state(graph_widget, flag):
         if flag:
@@ -424,6 +266,106 @@ class DevGraphWidget(gt.GuitoolWidget):
         if graph_widget.mpl_wgt is not None:
             graph_widget.mpl_wgt.fig.canvas.draw()
 
+    def show_popup_menu(graph_widget, options, event):
+        """
+        context menu
+        """
+        height = graph_widget.mpl_wgt.fig.canvas.geometry().height()
+        qpoint = gt.newQPoint(event.x, height - event.y)
+        qwin = graph_widget.mpl_wgt.fig.canvas
+        gt.popup_menu(qwin, qpoint, options)
+
+    def on_key_press(graph_widget, event):
+        # called by matplotlib events
+        key = event.key.upper()
+        option_dict = gt.make_option_dict(graph_widget.mark_state_funcs,
+                                          shortcuts=True)
+        assert 'D' not in option_dict
+        option_dict['D'] = graph_widget.deselect
+        if key in option_dict:
+            option_dict[key]()
+
+    def on_pick(self, event):
+        artist = event.artist
+        plotdat = pt.get_plotdat_dict(artist)
+        infr = self.self_parent.infr
+        if plotdat:
+            if 'node' in plotdat:
+                if False:
+                    all_node_data = ut.sort_dict(plotdat['node_data'].copy())
+                    visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
+                    node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
+                    print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
+                    print('node_data: ' + ut.repr2(node_data, nl=1))
+                    print('node: ' + ut.repr2(plotdat['node']))
+            elif 'edge' in plotdat:
+                all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
+                visual_edge_data = ut.dict_subset(all_edge_data, infr.visual_edge_attrs, None)
+                edge_data = ut.delete_dict_keys(all_edge_data, infr.visual_edge_attrs)
+                print('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1))
+                print('edge_data: ' + ut.repr2(edge_data, nl=1))
+                print('edge: ' + ut.repr2(plotdat['edge']))
+            else:
+                print('unknown artist ' + ut.repr2(plotdat))
+                print('artist = %r' % (artist,))
+                print('event = %r' % (event,))
+
+    def on_click_inside(graph_widget, event, ax):
+        pos = graph_widget.plotinfo['node']['pos']
+        nodes = list(pos.keys())
+        pos_list = ut.dict_take(pos, nodes)
+
+        # TODO: FIXME
+        #x = 10
+        #y = 10
+        x, y = event.xdata, event.ydata
+        point = np.array([x, y])
+        pos_list = np.array(pos_list)
+        index, dist = vt.closest_point(point, pos_list, distfunc=vt.L2)
+        node = nodes[index]
+        aid = graph_widget.infr.node_to_aid[node]
+        context_shown = False
+
+        if event.button == 3 and not context_shown:
+            if len(graph_widget.selected_aids) != 2:
+                print('This funciton only work if exactly 2 are selected')
+            else:
+                from ibeis.gui import inspect_gui
+                context_shown = True
+                aid1, aid2 = (graph_widget.selected_aids)
+                qres = None
+                qreq_ = None
+                # TODO: rectify with get_edge_options so that can be used here
+                # Really, just rectify the selection model
+                options = inspect_gui.get_aidpair_context_menu_options(
+                    graph_widget.infr.ibs, aid1, aid2, qres, qreq_=qreq_)
+                graph_widget.show_popup_menu(options, event)
+
+        bbox = vt.bbox_from_center_wh(graph_widget.plotinfo['node']['pos'][node],
+                                      graph_widget.plotinfo['node']['size'][node])
+        annot_selected = vt.point_inside_bbox(point, bbox)
+
+        if annot_selected:
+            ibs = graph_widget.infr.ibs
+            print(ut.obj_str(ibs.get_annot_info(aid, default=True,
+                                                name=True, gname=True)))
+            if event.button == 1:
+                graph_widget.toggle_selected_aid(aid)
+
+            if event.button == 3 and not context_shown:
+                # right click
+                from ibeis.viz.interact import interact_chip
+                context_shown = True
+                #refresh_func = functools.partial(viz.show_name, ibs, nid,
+                #fnum=fnum, sel_aids=sel_aids)
+                refresh_func = None
+                config2_ = None
+                options = interact_chip.build_annot_context_options(
+                    graph_widget.infr.ibs, aid, refresh_func=refresh_func,
+                    with_interact_name=False,
+                    config2_=config2_)
+                graph_widget.show_popup_menu(options, event)
+
     def eventFilter(graph_widget, source, event):
         if event.type() == QtCore.QEvent.Show:
             if graph_widget.mpl_needs_update:
@@ -477,7 +419,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         widget = self.api_widgets[key]
         api = make_edge_api(self.infr, review_cfg=self.review_cfg)
         title = key.title().replace('_', ' ')
-        headers = api.make_headers(tblnice=title)
+        headers = api.make_headers(tblnice=title, tblname=key)
         widget.change_headers(headers)
         widget.resize_headers(api)
         widget.view.verticalHeader().setVisible(True)
@@ -491,7 +433,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tab = self.api_tabs[key]
         widget = self.api_widgets[key]
         title = key.title().replace('_', ' ')
-        headers = api.make_headers(tblnice=title)
+        headers = api.make_headers(tblnice=title, tblname=key)
         widget.change_headers(headers)
         widget.view.verticalHeader().setVisible(True)
         try:
@@ -506,7 +448,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tab = self.api_tabs[key]
         widget = self.api_widgets[key]
         title = key.title().replace('_', ' ')
-        headers = api.make_headers(tblnice=title)
+        headers = api.make_headers(tblnice=title, tblname=key)
         widget.change_headers(headers)
         tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
 
@@ -516,7 +458,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tab = self.api_tabs[key]
         widget = self.api_widgets[key]
         title = key.title().replace('_', ' ')
-        headers = api.make_headers(tblnice=title)
+        headers = api.make_headers(tblnice=title, tblname=key)
         widget.change_headers(headers)
         tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
 
@@ -720,7 +662,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.graph_widget.emit_graph_update()
 
         for widget in self.api_widgets.values():
-            widget.model.layoutChanged.emit()
+            model = widget.view.model()
+            # FIXME: should only clear cache in viewport
+            model.clear_cache()
+            model.layoutChanged.emit()
 
     def apply_scores(self):
         with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
@@ -778,8 +723,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             with ut.Timer('apply_match_edges'):
                 infr.apply_match_edges()
             infr.apply_match_scores()
-            # ctx.set_progress(2, 3)
-            # infr.initialize_visual_node_attrs()
             self.repopulate()
             ctx.set_progress(3, 3)
 
@@ -809,8 +752,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.remove_name_labels()
             ctx.set_progress(msg='apply match scores')
             infr.apply_match_scores()
-            ctx.set_progress(msg='init visual attrs')
-            infr.initialize_visual_node_attrs()
             ctx.set_progress(msg='repopulate')
             self.repopulate()
             ctx.set_progress(8, 8)
@@ -827,7 +768,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.remove_feedback()
             ctx.set_progress(2, 3)
             infr.remove_name_labels()
-            infr.initialize_visual_node_attrs()
             ctx.set_progress(3, 3)
         pass
 
@@ -895,7 +835,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ('Mark &True', ut.partial(_mark_selected_pair_state, 'match')),
             ('Mark &False', ut.partial(_mark_selected_pair_state, 'nomatch')),
             ('Mark &Not-Comparable', ut.partial(_mark_selected_pair_state, 'notcomp')),
-            ('Mark &Photobomb', ut.partial(_mark_selected_pair_state, 'notcomp+photobomb')),
+            ('Mark &Photobomb', ut.partial(_mark_selected_pair_state, 'nomatch+photobomb')),
             ('&Unreview', ut.partial(_mark_selected_pair_state, 'unreviewed')),
             # unreview will only remove internal feedback, anything commited will not change
         ]
@@ -906,20 +846,23 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         selected_qtindex_list_ = view.selectedRows()
 
         # Hack to ensure that we are getting edge data
-        selected_qtindex_list = []
+        selected_qtindex_edges = []
+        selected_qtindex_names = []
         for qtindex in selected_qtindex_list_:
             model = qtindex.model()
-            # hack to determine in tree or table view
-            if max(model.col_level_list) == 1:
-                flag = qtindex.internalPointer().level == 1
-            else:
-                flag = qtindex.internalPointer().level == 0
-            if flag:
-                selected_qtindex_list.append(qtindex)
+            print('model.name = %r' % (model.name,))
+            if model.name == 'name_edges':
+                level = qtindex.internalPointer().level
+                if level == 0:
+                    selected_qtindex_names.append(qtindex)
+                elif level == 1:
+                    selected_qtindex_edges.append(qtindex)
+            elif model.name == 'edges':
+                selected_qtindex_edges.append(qtindex)
 
         def _pairs():
             #for aid1, aid2 in aid_pair_gen():
-            for qtindex in selected_qtindex_list:
+            for qtindex in selected_qtindex_edges:
                 model = qtindex.model()
                 aid1  = model.get_header_data('aid1', qtindex)
                 aid2  = model.get_header_data('aid2', qtindex)
@@ -927,15 +870,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         def _mark_selected_pair_state(state):
             self.mark_pair_state(_pairs(), state)
 
-        if len(selected_qtindex_list) == 0:
-            options = []
-        else:
-            options = self.make_mark_state_funcs(_pairs)
+        options = []
+        if len(selected_qtindex_edges) > 0:
+            options += self.make_mark_state_funcs(_pairs)
 
-        if len(selected_qtindex_list) == 1:
+        if len(selected_qtindex_edges) == 1:
             from ibeis.gui import inspect_gui
             ibs = self.infr.ibs
-            qtindex = selected_qtindex_list[0]
+            qtindex = selected_qtindex_edges[0]
             model = qtindex.model()
             aid1  = model.get_header_data('aid1', qtindex)
             aid2  = model.get_header_data('aid2', qtindex)
@@ -943,10 +885,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             pair_tag_options = inspect_gui.make_aidpair_tag_context_options(ibs, aid1, aid2)
             chip_context_options = inspect_gui.make_annotpair_context_options(
                 ibs, aid1, aid2, qreq_=qreq_)
-            options += [
+            external_options = []
+            external_options += [
                 ('Match Ta&gs', pair_tag_options)
             ]
-            options += chip_context_options
+            external_options += chip_context_options
+            options += [
+                ('External Options', external_options),
+            ]
 
             if True or self.init_mode != 'split':
                 from ibeis.viz import viz_graph2
@@ -959,6 +905,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
             options += [
                 ('VsOne', inspect_gui.make_vsone_context_options(ibs, aid1, aid2, qreq_))
+            ]
+
+        if len(selected_qtindex_names) > 0:
+            options += [
+                # TODO
+                ('Restrict Graph To Names', lambda: None),
             ]
 
         return options
@@ -998,22 +950,18 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             return
         return handled
 
-    # @register_menu_item('Dev')
     def print_staging_table(self):
         db = self.infr.ibs.staging
         print(db.get_table_csv('reviews'))
 
-    # @register_menu_item('Dev')
     def print_annotmatch_table(self):
         db = self.infr.ibs.db
         print(db.get_table_csv('annotmatch'))
 
-    # @register_menu_item('Actions')
     def commit_to_staging(self):
         print('[graph] commit to staging')
         self.infr.commit_to_staging()
 
-    # @register_menu_item('Actions')
     def commit_to_database(self):
         print('[graph] commit to database')
         self.infr.write_ibeis_staging_feedback()
@@ -1031,8 +979,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def name_rebase(self):
         num_names, num_inconsistent = self.infr.relabel_using_reviews()
-        aid_to_newname = self.get_ibeis_name_assignment()
-        self.infr.graph.set_node_attributes('name_label', aid_to_newname)
+        aid_to_newname = self.infr.get_ibeis_name_assignment()
+        nx.set_node_attributes(self.infr.graph, 'name_label', aid_to_newname)
 
     def accept(self):
         import pandas as pd
@@ -1040,7 +988,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr = self.infr
         num_new_names, num_inconsistent = self.infr.relabel_using_reviews()
 
-        aid_to_newname = self.get_ibeis_name_assignment()
+        aid_to_newname = self.infr.get_ibeis_name_assignment()
         aid_list = list(aid_to_newname.keys())
         new_name_list = list(aid_to_newname.values())
         old_name_list = infr.ibs.get_annot_name_texts(aid_list)
@@ -1151,7 +1099,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         abstract_interaction.unregister_interaction(self)
         super(AnnotGraphWidget, self).closeEvent(event)
 
-    # @register_menu_item('Dev')
     def print_info(self):
         print('[graph] print_info')
         print('external_feedback = ' + ut.repr2(self.infr.external_feedback, nl=1))
@@ -1163,7 +1110,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             # self.infr.review_dummy_edges()
             print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
-    # @register_menu_item('Dev', shortcut='ctrl+shift+I')
     def embed(self):
         infr = self.infr  # NOQA
         ibs = infr.ibs  # NOQA
@@ -1171,7 +1117,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         import utool
         utool.embed()
 
-    # @register_menu_item('Dev')
     def expand_image_and_names(self):
         # call get_name_image_closure()
         ibs = self.infr.ibs
@@ -1440,15 +1385,17 @@ class EdgeAPIHelper(object):
 
     def get_pair_tags(self, edge):
         aid1, aid2 = edge
-        assert not ut.isiterable(aid1), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        assert not ut.isiterable(aid2), 'aid1=%r, aid2=%r' % (aid1, aid2)
-        ibs = self.infr.ibs
-        # FIXME: use graph properties instead
-        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(
-            [aid1], [aid2])
-        tag_text = ibs.get_annotmatch_tag_text(am_rowids)[0]
-        if tag_text is None:
+        self.edge_assert(edge)
+        # ibs = self.infr.ibs
+        # # FIXME: use graph properties instead
+        # am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(
+        #     [aid1], [aid2])
+        # tag_text = ibs.get_annotmatch_tag_text(am_rowids)[0]
+        tags = self.infr.graph.get_edge_data(*edge).get('reviewed_tags', [])
+        if tags is None:
             tag_text = ''
+        else:
+            tag_text = ';'.join(tags)
         return str(tag_text)
 
     def edge_assert(self, edge):
@@ -1482,9 +1429,9 @@ class EdgeAPIHelper(object):
             text = state
 
         if nid1 == nid2:
-            text += ' nid=%d' % (nid1,)
+            text += ' nid=%r' % (nid1,)
         else:
-            text += ' nids=%d,%d' % (nid1, nid2)
+            text += ' nids=%r,%r' % (nid1, nid2)
 
         if maybe_error:
             text += ' (FIXME?)'
@@ -1592,8 +1539,10 @@ def make_name_edge_api(infr, review_cfg={}):
 
     names = list(name_to_edges.keys())
     flat_edges, grouped_edge_idxs = ut.invertible_flatten1(name_to_edges.values())
+    grouped_edges = ut.apply_grouping(flat_edges, grouped_edge_idxs)
+    n_annots_list = [len(set(ut.flatten(edges))) for edges in grouped_edges]
 
-    nid_col_name_list = ['name_label', 'n_edges']
+    nid_col_name_list = ['name_label', 'n_annots', 'n_edges']
 
     self = EdgeAPIHelper(infr)
     partial_headers = self.make_partial_edge_headers()
@@ -1612,19 +1561,42 @@ def make_name_edge_api(infr, review_cfg={}):
     col_getter_dict = {
         'name_label': names,
         'n_edges': list(map(len, grouped_edge_idxs)),
+        'n_annots': n_annots_list,
         'aid1': ut.take_column(flat_edges, 0),
         'aid2': ut.take_column(flat_edges, 1),
     }
 
     col_getter_dict.update(partial_headers['col_getter_dict'])
 
+    col_display_role_func_dict = partial_headers['col_display_role_func_dict']
+    col_bgrole_dict = partial_headers['col_bgrole_dict']
+
+    col_ider_dict = partial_headers['col_ider_dict']
+
+    def name_bg_role(idx):
+        name = names[idx]
+        edges = name_to_edges[name]
+        color = pt.WHITE
+        for edge in edges:
+            data = self.infr.graph.get_edge_data(*edge)
+            inferred_state = data['inferred_state']
+            if inferred_state.startswith('inconsistent'):
+                color = pt.ORANGE
+                break
+        color = pt.to_base255(color)
+        return color
+
+    col_bgrole_dict['name_label'] = name_bg_role
+    col_bgrole_dict['n_edges'] = name_bg_role
+    col_bgrole_dict['n_annots'] = name_bg_role
+
     name_api = gt.CustomAPI(
         col_name_list,
-        col_ider_dict=partial_headers['col_ider_dict'],
+        col_ider_dict=col_ider_dict,
         col_types_dict=partial_headers['col_types_dict'],
         col_getter_dict=col_getter_dict,
-        col_bgrole_dict=partial_headers['col_bgrole_dict'],
-        col_display_role_func_dict=partial_headers['col_display_role_func_dict'],
+        col_bgrole_dict=col_bgrole_dict,
+        col_display_role_func_dict=col_display_role_func_dict,
         col_width_dict=partial_headers['col_width_dict'],
         get_thumb_size=lambda: 221,
         col_level_dict=col_level_dict,
@@ -1725,6 +1697,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         ibeis make_qt_graph_interface --show --db PZ_PB_RF_TRAIN
 
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph-tab
+        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
         ibeis make_qt_graph_interface --show
 
         ibeis make_qt_graph_interface --show --db RotanTurtles --aids=610,716
@@ -1735,6 +1708,12 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
 
         ibeis make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=2300 --show
         ibeis make_qt_graph_interface --dbdir=~/lev/media/danger/GGR/GGR-IBEIS --nids=4617 --show
+
+        # unmount
+        fusermount -u ~/lev
+        # mount
+        sshfs -o idmap=user lev:/ ~/lev
+        ibeis make_qt_graph_interface --dbdir=/home/joncrall/lev/media/hdd/work/EWT_Cheetahs --show
 
     Example:
         >>> # DISABLE_DOCTEST
