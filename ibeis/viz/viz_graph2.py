@@ -519,6 +519,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         menu.newAction(triggered=self.name_rebase)
         menu.newAction(triggered=self.ensure_full)
         menu.newAction(triggered=self.ensure_cliques)
+        menu.newAction(triggered=self.vsone_subset)
 
     def preset_config(self, mode='filtered'):
         print('[graph] preset_config mode=%r' % (mode,))
@@ -833,12 +834,28 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ]
 
         if len(selected_qtindex_names) > 0:
+            import utool
+            utool.embed()
             options += [
                 # TODO
-                ('Restrict Graph To Names', lambda: None),
+                ('Restrict Graph To Names', lambda: self.restrict_graph_to_names),
+                ('Vsone subset', lambda: self.vsone_subset()),
+            ]
+        else:
+            options += [
+                ('Vsone subset', lambda: self.vsone_subset(_pairs())),
             ]
 
         return options
+
+    def vsone_subset(self, edges=None):
+        print('[graph] vsone_subset')
+        if edges is None:
+            edges = self.infr.graph.edges()
+        self.infr.exec_vsone_subset(edges)
+
+    def restrict_graph_to_names(self):
+        pass
 
     @gt.slot_(QtCore.QModelIndex, QtCore.QPoint)
     def edge_context(self, qtindex, qpoint):
@@ -1271,11 +1288,23 @@ class EdgeAPIHelper(object):
         #                   thumbsize=(128, 128), match_thumbtup_cache={}):
         aid1, aid2 = edge
         cm, aid1, aid2 = self.infr.lookup_cm(aid1, aid2)
+        from ibeis.gui import id_review_api
         if cm is None:
-            return None
+            # HACK: check if a PairwiseMatch exists
+            match = self.infr.vsone_matches.get((aid1, aid2))
+            if match is not None:
+                fpath, func, func2 = id_review_api.make_ensure_match_img_nosql_func(
+                    self.infr.ibs, match, None)
+                thumbdat = {
+                    'fpath': fpath,
+                    'thread_func': func,
+                    'main_func': func2,
+                }
+                return thumbdat
+            else:
+                return None
         #assert cm.qaid == aid1, 'aids do not aggree'
         # Hacky new way of drawing
-        from ibeis.gui import id_review_api
         fpath, func, func2 = id_review_api.make_ensure_match_img_nosql_func(
             self.infr.qreq_, cm, aid2)
         thumbdat = {

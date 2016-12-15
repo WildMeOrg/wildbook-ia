@@ -1152,6 +1152,44 @@ class _AnnotInfrMatching(object):
         infr.qreq_  = infr.vsone_qreq_
         infr.cm_list = cm_list
 
+    def exec_vsone_subset(infr, edges, config={}, prog_hook=None):
+        r"""
+        Args:
+            prog_hook (None): (default = None)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden exec_vsone
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> config = {}
+            >>> infr.ensure_full()
+            >>> edges = [(1, 2), (2, 3)]
+            >>> result = infr.exec_vsone_subset(edges)
+            >>> print(result)
+        """
+        edges = list(edges)
+        print('[infr] exec_vsone_subset')
+        qaids = ut.take_column(edges, 0)
+        daids = ut.take_column(edges, 1)
+        match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
+                                       'match', config=config, recompute=True)
+        # Hack: Postprocess matches to re-add annotation info in lazy-dict format
+        from ibeis import core_annots
+        config = ut.hashdict(config)
+        configured_lazy_annots = core_annots.make_configured_annots(
+            infr.ibs, qaids, daids, config, config, preload=True)
+        edge_scores = []
+        for match, qaid, daid in zip(match_list, qaids, daids):
+            match.annot1 = configured_lazy_annots[config][qaid]
+            match.annot2 = configured_lazy_annots[config][daid]
+            match.config = config
+            infr.vsone_matches[e_(qaid, daid)] = match
+            edge_scores.append(match.fs.sum())
+        infr.set_edge_attrs('score', ut.dzip(edges, edge_scores))
+
     def lookup_cm(infr, aid1, aid2):
         """
         Get chipmatch object associated with an edge if one exists.
@@ -2391,6 +2429,7 @@ class AnnotInference(ut.NiceRepr,
 
         infr.thresh = None
         infr.cm_list = None
+        infr.vsone_matches = {}
         infr.qreq_ = None
         infr.nid_counter = None
         infr.queue = None
