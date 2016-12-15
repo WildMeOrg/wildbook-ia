@@ -628,7 +628,13 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     # with warnings.catch_warnings(record=True):
     #     # warnings.filterwarnings('error')
     #     warnings.filterwarnings('ignore')
-    agraph.layout(prog=prog, args=args)
+    try:
+        agraph.layout(prog=prog, args=args)
+    except Exception as ex:
+        ut.printex(ex, tb=True)
+        # import utool
+        # utool.embed()
+        raise
     #except RuntimeWarning as ex:
     #    ut.printex(ex, iswarning=True)
     #    flag = True
