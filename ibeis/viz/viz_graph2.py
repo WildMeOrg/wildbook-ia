@@ -3,12 +3,12 @@
 CommandLine:
     ibeis make_qt_graph_interface --show
     ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9
-    ibeis make_qt_graph_interface --show --aids=1,4,5,6,8,9
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import vtool as vt
 import numpy as np
+import dtool
 import networkx as nx
 import itertools as it
 from ibeis.algo.hots import graph_iden
@@ -18,6 +18,7 @@ from plottool import abstract_interaction
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool import mpl_widget
+from guitool import PrefWidget2
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
     'ranks_top': 3,
@@ -40,8 +41,6 @@ class DevGraphWidget(gt.GuitoolWidget):
     signal_graph_update = QtCore.pyqtSignal()
 
     def emit_graph_update(graph_widget):
-        # ut.cprint('[graph] emit graph update', 'blue')
-        # graph_widget.signal_graph_update.emit()
         graph_widget.on_graph_update()
 
     def init_signals_and_slots(self):
@@ -54,10 +53,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def initialize(graph_widget, use_image, self_parent):
         graph_widget.self_parent = self_parent
-        #parent = graph_widget.parent()
-        # infr = parent.infr
         graph_widget.plotinfo = None
-        # graph_widget.infr = infr
 
         graph_widget.mpl_needs_update = True
         graph_widget.cb = None
@@ -67,19 +63,15 @@ class DevGraphWidget(gt.GuitoolWidget):
             orientation=Qt.Horizontal)
         graph_widget.ctrls_ = graph_widget.splitter.addNewWidget(
             orientation=Qt.Vertical, verticalStretch=1, margin=1, spacing=1)
-        # graph_widget.ctrls = graph_widget.ctrls_
-        # graph_widget.ctrls = graph_widget.ctrls_.addNewScrollArea()
         graph_widget.ctrls = graph_widget.ctrls_.addNewSplitter(
             orientation='vert')
 
         graph_widget.mpl_wgt = mpl_widget.MatplotlibWidget(
             parent=graph_widget, horizontalStretch=1)
-        # graph_widget.mpl_wgt.installEventFilter(graph_widget)
         graph_widget.splitter.addWidget(graph_widget.mpl_wgt)
 
         ctrls = graph_widget.ctrls
         bbar1 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
-        # bbar2 = bbar1
         bbar2 = ctrls.addNewWidget(ori='vert', margin=1, spacing=1)
 
         graph_widget.mark_state_funcs = self_parent.make_mark_state_funcs(
@@ -90,14 +82,8 @@ class DevGraphWidget(gt.GuitoolWidget):
         bbar1.addNewButton('Deselect', pressed=graph_widget.deselect)
         bbar1.addNewButton('Show Annots', pressed=graph_widget.show_selected)
 
-        def refresh_via_cb(flag):
-            graph_widget.emit_graph_update()
-
-        import dtool
-        from guitool import PrefWidget2
         small_graph = len(self_parent.infr.aids) < 20
 
-        # class AppearanceConfig(dtool.Config):
         class GraphVizConfig(dtool.Config):
             _param_info_list = [
                 # Appearance
@@ -123,7 +109,6 @@ class DevGraphWidget(gt.GuitoolWidget):
                 graph_widget.set_pin_state(graph_widget.graphviz_config[key])
             else:
                 graph_widget.emit_graph_update()
-            # print('Graph config has changed')
 
         graph_widget.graphviz_config = GraphVizConfig()
         graph_widget.graphviz_config_widget = PrefWidget2.EditConfigWidget(
@@ -159,10 +144,8 @@ class DevGraphWidget(gt.GuitoolWidget):
         # self.my_thread = QtCore.QThread()
         # self.my_thread.start()
         # self.graph_widget.moveToThread(self.my_thread)
-
         print('[graph] draw_graph', 'green')
         graph_widget.mpl_needs_update = False
-        # print('[viz_graph] Start draw page')
         graph_widget.mpl_wgt.ax.cla()
 
         visibility_kw = graph_widget.graphviz_config.asdict()
@@ -175,7 +158,6 @@ class DevGraphWidget(gt.GuitoolWidget):
         graph_widget.infr.update_visual_attrs(
             **visibility_kw
         )
-
         try:
             graph_widget.plotinfo = pt.show_nx(
                 graph_widget.infr.graph, layout='custom', as_directed=False,
@@ -193,10 +175,8 @@ class DevGraphWidget(gt.GuitoolWidget):
             graph_widget.highlight_aid(aid, True)
 
         graph_widget.mpl_wgt.canvas.draw()
-        # fig.canvas.blit(ax.bbox)
         graph_widget.mpl_wgt.fig.subplots_adjust(left=.02, top=.98, bottom=.02,
                                                  right=.85)
-        # print('[viz_graph] End draw page')
 
     def set_pin_state(graph_widget, flag):
         if flag:
@@ -208,7 +188,6 @@ class DevGraphWidget(gt.GuitoolWidget):
         return it.combinations(graph_widget.selected_aids, 2)
 
     def show_selected(graph_widget):
-        # TODO: move to mpl widget
         print('[graph_widget] show_selected')
         from ibeis.viz import viz_chip
         fnum = pt.ensure_fnum(10)
@@ -219,13 +198,6 @@ class DevGraphWidget(gt.GuitoolWidget):
         fig.show()
         fig.canvas.draw()
         graph_widget._figscope = fig
-
-    def infer_cut(graph_widget):
-        infrkw = {}
-        # keys = ['min_labels', 'max_labels']
-        # infrkw = ut.dict_subset(graph_widget.config, keys)
-        graph_widget.infr.infer_cut(**infrkw)
-        graph_widget.on_graph_update()
 
     def highlight_aid(graph_widget, aid, color=None):
         # TODO: move to mpl widget
@@ -374,6 +346,67 @@ class DevGraphWidget(gt.GuitoolWidget):
 
 
 class AnnotGraphWidget(gt.GuitoolWidget):
+    signal_state_update = QtCore.pyqtSignal(bool, bool)
+
+    def initialize(self, infr=None, use_image=False, init_mode='rereview',
+                   review_cfg=None):
+        print('[viz_graph] initialize')
+
+        self.init_mode = init_mode
+        print('self.init_mode = %r' % (self.init_mode,))
+
+        if review_cfg is None:
+            mode = 'filtered' if self.init_mode == 'split' else 'unfiltered'
+            self.preset_config(mode)
+
+        self.infr = infr
+        self.initialize_menus()
+
+        self.graph_tab_widget = self.addNewTabWidget(verticalStretch=1)
+
+        self.statbar1 = self.addNewWidget(
+            orientation='horiz', verticalStretch=1, margin=1, spacing=1)
+        self.statbar2 = self.addNewWidget(
+            orientation='horiz', verticalStretch=1, margin=1, spacing=1)
+
+        self.prog_bar = self.addNewProgressBar(visible=False)
+
+        self.initialize_api_tabs()
+
+        self.statbar1.addNewButton('Match and Score', min_width=1,
+                                   pressed=self.match_and_score_edges)
+        self.statbar1.addNewButton('ScoreVsOne', min_width=1,
+                                   pressed=self.score_edges_vsone)
+        self.statbar1.addNewButton('Edit Filters', min_width=1,
+                                   pressed=self.edit_filters)
+        self.statbar1.addNewButton('Repopulate', min_width=1,
+                                   pressed=self.repopulate)
+
+        self.statbar2.addNewButton('Reset DBState', min_width=1,
+                                   pressed=self.reset_review)
+        self.statbar2.addNewButton('Reset Rereview', min_width=1,
+                                   pressed=self.reset_rereview)
+
+        self.num_names_lbl = self.statbar2.addNewLabel('NUM_NAMES_LBL')
+        self.state_lbl = self.statbar2.addNewLabel('STATE_LBL')
+
+        self.statbar2.addNewButton('Accept', pressed=self.accept)
+
+        # _show_graph = self.init_mode in ['split', 'rereview', 'review']
+        _show_graph = True
+        if _show_graph:
+            # TODO: separate graph view into its own class
+            self.graph_tab = self.graph_tab_widget.addNewTab('Graph')
+            # TODO: make this its own proper widget
+            self.graph_widget = DevGraphWidget(parent=self, self_parent=self,
+                                               use_image=use_image)
+            self.graph_tab.addWidget(self.graph_widget)
+            # self.graph_widget.connect_kepress_to_slot
+        else:
+            self.graph_widget = None
+            self.graph_tab = None
+        self.init_signals_and_slots()
+
     def init_signals_and_slots(self):
         # https://doc.qt.io/archives/qtjambi-4.5.2_01/com/trolltech/qt/core/Qt.ConnectionType.html
         # connection_type = QtCore.Qt.AutoConnection
@@ -463,16 +496,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tab.setTabText('%s (%r)' % (title, widget.model.num_rows_total))
 
     def initialize_menus(self):
-        # self.config = InferenceConfig()
-
-        # for menu_name, members in MENU_ITEMS.items():
-        #     pass
-        #     menu = self.menubar.newMenu(menu_name)
-        #     for member in members:
-        #         func = member['func']
-        #         method = getattr(self, ut.get_funcname(func))
-        #         menu.newAction(triggered=method,
-        #                        shortcut=member['shortcut'])
         self.menubar = gt.newMenubar(self)
         self.menus = {}
 
@@ -496,75 +519,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         menu.newAction(triggered=self.name_rebase)
         menu.newAction(triggered=self.ensure_full)
         menu.newAction(triggered=self.ensure_cliques)
-
-    def initialize(self, infr=None, use_image=False, init_mode='rereview',
-                   review_cfg=None):
-        print('[viz_graph] initialize')
-
-        self.pcfg = {
-            'can_match_samename': True,
-            'K': 3,
-            'Knorm': 3,
-            'prescore_method': 'csum',
-            'score_method': 'csum'
-        }
-
-        self.init_mode = init_mode
-        print('self.init_mode = %r' % (self.init_mode,))
-
-        if review_cfg is None:
-            mode = 'filtered' if self.init_mode == 'split' else 'unfiltered'
-            self.preset_config(mode)
-
-        self.infr = infr
-        self.initialize_menus()
-
-        self.graph_tab_widget = self.addNewTabWidget(verticalStretch=1)
-
-        self.statbar1 = self.addNewWidget(
-            orientation='horiz', verticalStretch=1, margin=1, spacing=1)
-        self.statbar2 = self.addNewWidget(
-            orientation='horiz', verticalStretch=1, margin=1, spacing=1)
-
-        self.prog_bar = self.addNewProgressBar(visible=False)
-
-        self.initialize_api_tabs()
-
-        self.statbar1.addNewButton('Match and Score', min_width=1,
-                                   pressed=self.match_and_score_edges)
-        self.statbar1.addNewButton('ScoreVsOne', min_width=1,
-                                   pressed=self.score_edges_vsone)
-        self.statbar1.addNewButton('Edit Filters', min_width=1,
-                                   pressed=self.edit_filters)
-        self.statbar1.addNewButton('Repopulate', min_width=1,
-                                   pressed=self.repopulate)
-
-        self.statbar2.addNewButton('Reset DBState', min_width=1,
-                                   pressed=self.reset_review)
-        self.statbar2.addNewButton('Reset Rereview', min_width=1,
-                                   pressed=self.reset_rereview)
-        # self.statbar2.addNewButton('Reset Empty', min_width=1,
-        #                            pressed=self.reset_empty)
-
-        self.num_names_lbl = self.statbar2.addNewLabel('NUM_NAMES_LBL')
-        self.state_lbl = self.statbar2.addNewLabel('STATE_LBL')
-
-        self.statbar2.addNewButton('Accept', pressed=self.accept)
-
-        # _show_graph = self.init_mode in ['split', 'rereview', 'review']
-        _show_graph = True
-        if _show_graph:
-            # TODO: separate graph view into its own class
-            self.graph_tab = self.graph_tab_widget.addNewTab('Graph')
-            # TODO: make this its own proper widget
-            self.graph_widget = DevGraphWidget(parent=self, self_parent=self,
-                                               use_image=use_image)
-            self.graph_tab.addWidget(self.graph_widget)
-            # self.graph_widget.connect_kepress_to_slot
-        else:
-            self.graph_widget = None
-            self.graph_tab = None
-        self.init_signals_and_slots()
 
     def preset_config(self, mode='filtered'):
         print('[graph] preset_config mode=%r' % (mode,))
@@ -606,8 +560,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def repopulate(self):
         # self.update_state(structure_changed=True)
         self.emit_state_update(structure_changed=True)
-
-    signal_state_update = QtCore.pyqtSignal(bool, bool)
 
     def emit_state_update(self, structure_changed=False, disable_global_update=False):
         self.signal_state_update.emit(structure_changed, disable_global_update)
@@ -654,6 +606,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         # print('[viz_graph] on_update_state mode=%s' % (self.init_mode,))
         if structure_changed:
+            # TODO: only make this API if the tab is clicked
             self.populate_node_model()
             self.populate_edge_model()
             self.populate_name_node_model()
@@ -666,13 +619,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             # FIXME: should only clear cache in viewport
             model.clear_cache()
             model.layoutChanged.emit()
-
-    def apply_scores(self):
-        with gt.GuiProgContext('Computing Matches', self.prog_bar) as ctx:
-            self.infr.exec_matching(prog_hook=ctx.prog_hook)
-            self.infr.apply_match_edges(self.review_cfg)
-            self.infr.apply_match_scores()
-            self.infr.apply_weights()
 
     def ensure_cliques(self):
         self.infr.ensure_cliques()
@@ -708,10 +654,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(0, 3)
             with ut.Timer('reset_feedback'):
                 infr.reset_feedback('staging')
-            # with ut.Timer('reinit_name_labels'):
-            #     infr.reinit_name_labels()
-            # with ut.Timer('initialize_graph'):
-            #     infr.initialize_graph()
             with ut.Timer('reinit_name_labels'):
                 infr.reset_labels_to_ibeis()
             if self.graph_widget is not None:
@@ -769,22 +711,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ctx.set_progress(2, 3)
             infr.remove_name_labels()
             ctx.set_progress(3, 3)
-        pass
-
-    def reset_empty(self):
-        print('[viz_graph] reset_empty')
-        infr = self.infr
-        self.init_mode = 'split'
-        with gt.GuiProgContext('Reset Empty', self.prog_bar) as ctx:
-            ctx.set_progress(0, 3)
-            infr.remove_feedback()
-            infr.remove_name_labels()
-            # infr.apply_cuts()
-            self.repopulate()
-            ctx.set_progress(3, 3)
 
     def edit_filters(self):
-        import dtool
         # TODO: split up review configs / show thumbs etc...
         config = dtool.Config.from_dict(self.review_cfg)
         dlg = gt.ConfigConfirmWidget.as_dialog(self, title='Edit Filters',
@@ -803,7 +731,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         """
         qtindex = qtindex = self.api_widgets['edges'].view.get_row_and_qtindex_from_id(1)[0]
         """
-        print('[viz_graph] _on_doubleclick: ')
         print('[viz_graph] DoubleClicked: ' + str(gt.qtype.qindexinfo(qtindex)))
         model = qtindex.model()
         aid1  = model.get_header_data('aid1', qtindex)
@@ -836,16 +763,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             ('Mark &False', ut.partial(_mark_selected_pair_state, 'nomatch')),
             ('Mark &Not-Comparable', ut.partial(_mark_selected_pair_state, 'notcomp')),
             ('Mark &Photobomb', ut.partial(_mark_selected_pair_state, 'nomatch+photobomb')),
+            ('Mark &SceneryMatch', ut.partial(_mark_selected_pair_state, 'nomatch+scenerymatch')),
             ('&Unreview', ut.partial(_mark_selected_pair_state, 'unreviewed')),
             # unreview will only remove internal feedback, anything commited will not change
         ]
         return options
 
     def get_edge_options(self, view):
-        # view = self.api_widgets['edges'].view
         selected_qtindex_list_ = view.selectedRows()
 
-        # Hack to ensure that we are getting edge data
         selected_qtindex_edges = []
         selected_qtindex_names = []
         for qtindex in selected_qtindex_list_:
@@ -861,7 +787,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 selected_qtindex_edges.append(qtindex)
 
         def _pairs():
-            #for aid1, aid2 in aid_pair_gen():
             for qtindex in selected_qtindex_edges:
                 model = qtindex.model()
                 aid1  = model.get_header_data('aid1', qtindex)
@@ -1036,66 +961,16 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         if not gt.are_you_sure(msg=msg):
             raise Exception('Cancel')
-
-        # LOG ACTIVITY
-        # import logging
-        # ut.vd(review_log_dir)
-        # create logger with 'spam_application'
-        # logger = logging.getLogger('query_review')
-        # logger.setLevel(logging.DEBUG)
-        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # # create file handler which logs even debug messages
-        # dbdir = self.infr.ibs.get_dbdir()
-        # expt_dir = ut.ensuredir(ut.unixjoin(dbdir, 'SPECIAL_GGR_EXPT_LOGS'))
-        # review_log_dir = ut.ensuredir(ut.unixjoin(expt_dir, 'review_logs'))
-        # log_fpath = ut.unixjoin(review_log_dir,
-        #                         'split_log_%s.json' % (self.infr.ibs.dbname))
-        # fh = logging.FileHandler(log_fpath)
-        # fh.setLevel(logging.DEBUG)
-        # fh.setFormatter(formatter)
-        # logger.addHandler(fh)
-
-        # # create console handler with a higher log level
-        # ch = logging.StreamHandler()
-        # ch.setLevel(logging.INFO)
-        # ch.setFormatter(formatter)
-        # logger.addHandler(ch)
-
-        # self.logger = logger
-        # logger.info('\n'.join(lines))
         print('\n'.join(lines))
 
-        if True:
-            infr.write_ibeis_name_assignment(aid_to_newname)
-            infr.commit_to_database()
-            # # Set names
-            # ibs = self.infr.ibs
-            # ibs.set_annot_names(aid_list, new_name_list)
-
-            # Add am rowids for nonexisting rows
-            # if len(changed_df) > 0:
-            #     is_add = pd.isnull(changed_df['am_rowid']).values
-            #     add_df = changed_df.loc[is_add]
-            #     add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
-            #                                             add_df['aid2'].values)
-            #     changed_df.loc[is_add, 'am_rowid'] = add_ams
-            #     changed_df.set_index('am_rowid', drop=False, inplace=True)
-
-            #     # Set residual matching data
-            #     new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
-            #     am_rowids = changed_df['am_rowid'].values
-            #     ibs.set_annotmatch_truth(am_rowids, new_truth)
-            #     # TODO: set tags here as well
-            #     pass
-        else:
-            print('DRY RUN. NOT DOING ANYTHING')
+        infr.write_ibeis_name_assignment(aid_to_newname)
+        infr.commit_to_database()
         gt.user_info(self, 'Name Change Complete')
 
     def sizeHint(self):
         return QtCore.QSize(1100, 500)
 
     def closeEvent(self, event):
-        #event.accept()
         abstract_interaction.unregister_interaction(self)
         super(AnnotGraphWidget, self).closeEvent(event)
 
@@ -1106,8 +981,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr = self.infr
         print('infr = %r' % (infr,))
         if infr is not None and infr.graph is not None:
-            # print(ut.repr3(ut.graph_info(infr.graph)))
-            # self.infr.review_dummy_edges()
             print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
     def embed(self):
@@ -1123,119 +996,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         aids = self.infr.aids
         annots = ibs.annots(aids)
         aids = annots.get_name_image_closure()
-        # old_aids = []
-        # while len(old_aids) != len(aids):
-        #     old_aids = aids
-        #     gids = ut.unique(ibs.get_annot_gids(aids))
-        #     nids = ut.unique(ut.flatten(ibs.get_image_nids(gids)))
-        #     aids = ut.flatten(ibs.get_name_aids(nids))
         nids = ibs.get_annot_nids(aids)
         new_infr = graph_iden.AnnotInference(ibs, aids, nids,
                                              verbose=self.infr.verbose)
         new_infr.initialize_graph()
         self.infr = new_infr
         self.init_inference()
-
-
-def make_node_api(infr):
-    aids = sorted(list(infr.graph.nodes()))
-    col_name_list = [
-        'aid',
-        #'data',
-        'thumb',
-        'name_label'
-    ]
-    #if not DEVELOPER_MODE:
-    #    col_name_list.remove('data')
-
-    def get_node_data(aid):
-        data = infr.graph.node[aid].copy()
-        ut.delete_dict_keys(data, infr.visual_node_attrs)
-        return ut.repr2(data, precision=2)
-    col_getter_dict = {
-        'aid': np.array(aids),
-        'data': get_node_data,
-        'thumb': infr.ibs.get_annot_chip_thumbtup,
-        'name_label': lambda node: infr.graph.node[node].get('name_label', None)
-    }
-    col_ider_dict = {
-        'thumb': 'aid',
-        'data': 'aid',
-        'name_label': 'aid',
-    }
-    col_types_dict = {
-        'thumb': 'PIXMAP',
-    }
-    node_api = gt.CustomAPI(col_name_list,
-                            col_ider_dict=col_ider_dict,
-                            col_types_dict=col_types_dict,
-                            col_getter_dict=col_getter_dict,
-                            sortby='aid', sort_reverse=False)
-    return node_api
-
-
-def make_name_node_api(infr, review_cfg={}):
-    # TODO: only make this API if the tab is clicked
-    node_to_name = infr.get_node_attrs('name_label')
-    name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
-
-    self = EdgeAPIHelper(infr)
-
-    # utool.embed()
-    names = list(name_to_nodes.keys())
-    flat_aids, grouped_aid_idxs = ut.invertible_flatten1(name_to_nodes.values())
-
-    col_name_list = [
-        'name_label',
-        'n_annots',
-        'aid',
-        'thumb'
-    ]
-    col_level_dict = {
-        'name_label': 0,
-        'n_annots': 0,
-        'aid': 1,
-        'thumb': 1,
-    }
-    iders = [
-        list(range(len(names))),
-        grouped_aid_idxs,
-    ]
-    col_getter_dict = {
-        'thumb': infr.ibs.get_annot_chip_thumbtup,
-        'name_label': names,
-        'n_annots': list(map(len, grouped_aid_idxs)),
-        'aid': flat_aids
-    }
-    col_ider_dict = {
-        'thumb': 'aid',
-    }
-    col_types_dict = {
-        'thumb': 'PIXMAP',
-    }
-
-    col_bgrole_dict = {
-        'inference' : self.get_inference_bgrole,
-        'review': self.get_review_bgrole,
-    }
-
-    name_api = gt.CustomAPI(
-        col_name_list,
-        iders=iders,
-        # col_types_dict=col_types_dict,
-        col_ider_dict=col_ider_dict,
-        col_getter_dict=col_getter_dict,
-        col_types_dict=col_types_dict,
-        col_bgrole_dict=col_bgrole_dict,
-        # col_display_role_func_dict=col_display_role_func_dict,
-        # col_width_dict=col_width_dict,
-        # get_thumb_size=lambda: 221,
-        col_level_dict=col_level_dict,
-        sortby='n_annots',
-        #sortby='aid1',
-        # sort_reverse=True
-    )
-    return name_api
 
 
 class EdgeAPIHelper(object):
@@ -1373,8 +1139,6 @@ class EdgeAPIHelper(object):
             pass
         ut.delete_dict_keys(attrs, remove_attrs)
         attrs = {k: v for k, v in attrs.items() if v is not None}
-        #attrs['name_label1'] = graph.node[aid1]['name_label']
-        #attrs['name_label2'] = graph.node[aid2]['name_label']
         return ut.repr2(attrs, precision=2, explicit=True, nobr=True)
 
     def edge_attr_getter(self, attr, default=None):
@@ -1530,7 +1294,6 @@ class EdgeAPIHelper(object):
 
 
 def make_name_edge_api(infr, review_cfg={}):
-    # TODO: only make this API if the tab is clicked
     node_to_name = infr.get_node_attrs('name_label')
     name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
 
@@ -1657,6 +1420,99 @@ def make_edge_api(infr, review_cfg={}):
     return edge_api
 
 
+def make_node_api(infr):
+    aids = sorted(list(infr.graph.nodes()))
+    col_name_list = ['aid', 'thumb', 'name_label']
+
+    def get_node_data(aid):
+        data = infr.graph.node[aid].copy()
+        ut.delete_dict_keys(data, infr.visual_node_attrs)
+        return ut.repr2(data, precision=2)
+    col_getter_dict = {
+        'aid': np.array(aids),
+        'data': get_node_data,
+        'thumb': infr.ibs.get_annot_chip_thumbtup,
+        'name_label': lambda node: infr.graph.node[node].get('name_label', None)
+    }
+    col_ider_dict = {
+        'thumb': 'aid',
+        'data': 'aid',
+        'name_label': 'aid',
+    }
+    col_types_dict = {
+        'thumb': 'PIXMAP',
+    }
+    node_api = gt.CustomAPI(col_name_list,
+                            col_ider_dict=col_ider_dict,
+                            col_types_dict=col_types_dict,
+                            col_getter_dict=col_getter_dict,
+                            sortby='aid', sort_reverse=False)
+    return node_api
+
+
+def make_name_node_api(infr, review_cfg={}):
+    # TODO: only make this API if the tab is clicked
+    node_to_name = infr.get_node_attrs('name_label')
+    name_to_nodes = ut.group_items(node_to_name.keys(), node_to_name.values())
+
+    self = EdgeAPIHelper(infr)
+
+    # utool.embed()
+    names = list(name_to_nodes.keys())
+    flat_aids, grouped_aid_idxs = ut.invertible_flatten1(name_to_nodes.values())
+
+    col_name_list = [
+        'name_label',
+        'n_annots',
+        'aid',
+        'thumb'
+    ]
+    col_level_dict = {
+        'name_label': 0,
+        'n_annots': 0,
+        'aid': 1,
+        'thumb': 1,
+    }
+    iders = [
+        list(range(len(names))),
+        grouped_aid_idxs,
+    ]
+    col_getter_dict = {
+        'thumb': infr.ibs.get_annot_chip_thumbtup,
+        'name_label': names,
+        'n_annots': list(map(len, grouped_aid_idxs)),
+        'aid': flat_aids
+    }
+    col_ider_dict = {
+        'thumb': 'aid',
+    }
+    col_types_dict = {
+        'thumb': 'PIXMAP',
+    }
+
+    col_bgrole_dict = {
+        'inference' : self.get_inference_bgrole,
+        'review': self.get_review_bgrole,
+    }
+
+    name_api = gt.CustomAPI(
+        col_name_list,
+        iders=iders,
+        # col_types_dict=col_types_dict,
+        col_ider_dict=col_ider_dict,
+        col_getter_dict=col_getter_dict,
+        col_types_dict=col_types_dict,
+        col_bgrole_dict=col_bgrole_dict,
+        # col_display_role_func_dict=col_display_role_func_dict,
+        # col_width_dict=col_width_dict,
+        # get_thumb_size=lambda: 221,
+        col_level_dict=col_level_dict,
+        sortby='n_annots',
+        sort_reverse=True
+    )
+    return name_api
+
+
 def make_qt_graph_review(qreq_, cm_list):
     r"""
     CommandLine:
@@ -1746,13 +1602,6 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if ut.get_argflag('--sample'):
         rng = np.random.RandomState(42)
         aids = rng.choice(aids, 30, replace=False)
-
-    # if True:
-    #     # Expand graph for lynx stuff
-    #     annots = ibs.annots(aids)
-    #     annots += ibs.annots(ut.flatten(annots.otherimage_aids))
-    #     annots = ibs.annots(ut.unique(annots.aids + ut.flatten(annots.groundtruth)))
-    #     aids = annots.aids
 
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
