@@ -2076,6 +2076,43 @@ def cache_memory_stats(ibs, cid_list, fnum=None):
     return fnum + 1
 
 
+def cheetah_stats(ibs):
+    filters = [
+        dict(view=['right', 'frontright', 'backright'], minqual='good'),
+        dict(view=['right', 'frontright', 'backright']),
+    ]
+    for filtkw in filters:
+        annots = ibs.annots(ibs.filter_annots_general(**filtkw))
+        unique_nids, grouped_annots = annots.group(annots.nids)
+        annots_per_name = ut.lmap(len, grouped_annots)
+        annots_per_name_freq = ut.dict_hist(annots_per_name)
+        def bin_mapper(num):
+            if num < 5:
+                return (num, num + 1)
+            else:
+                for bin, mod in [(20, 5), (50, 10)]:
+                    if num < bin:
+                        low = (num // mod) * mod
+                        high = low + mod
+                        return (low, high)
+                if num >= bin:
+                    return (bin, None)
+                else:
+                    assert False, str(num)
+        hist = ut.ddict(lambda: 0)
+        for num in annots_per_name:
+            hist[bin_mapper(num)] += 1
+        hist = ut.sort_dict(hist)
+
+        print('------------')
+        print('filters = %s' % ut.repr4(filtkw))
+        print('num_annots = %r' % (len(annots)))
+        print('num_names = %r' % (len(unique_nids)))
+        print('annots_per_name_freq = %s' % (ut.repr4(annots_per_name_freq)))
+        print('annots_per_name_freq (ranges) = %s' % (ut.repr4(hist)))
+        assert sum(hist.values()) == len(unique_nids)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -518,6 +518,8 @@ class _AnnotInfrIBEIS(object):
         if changed_df is not None:
             changed_df = infr.match_state_delta(old='annotmatch', new='all')
 
+        # TODO: need to add tags
+
         ibs = infr.ibs
         import pandas as pd
         is_add = pd.isnull(changed_df['am_rowid']).values
