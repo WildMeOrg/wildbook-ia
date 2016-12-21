@@ -663,7 +663,7 @@ class NewDatabaseWidget(gt.GuitoolWidget):
             'copy': 'Choose a name for the database copy',
         }
 
-        self.dbname = 'MyNewIBEISDatabase',
+        self.dbname = 'MyNewIBEISDatabase'
         if mode == 'copy':
             self.dbname = back.ibs.get_dbname() + '_Copy'
 
