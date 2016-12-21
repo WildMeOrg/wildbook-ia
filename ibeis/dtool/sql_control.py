@@ -2034,9 +2034,29 @@ class SQLDatabaseController(object):
             ''' % (_column, _table))
         return column_vals
 
-    def get_table_column_data(db, tablename, exclude_columns=[],
-                              params_iter=None, andwhere_colnames=None):
+    def get_table_as_pandas(db, tablename, rowids=None, exclude_columns=[]):
         """
+        aid = 30
+        db = ibs.staging
+        rowids = ut.flatten(ibs.get_review_rowids_from_single([aid]))
+        tablename = 'reviews'
+        exclude_columns = 'review_user_confidence review_user_identity'.split(' ')
+        print(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
+
+        db = ibs.db
+        rowids = ut.flatten(ibs.get_annotmatch_rowids_from_aid([aid]))
+        tablename = 'annotmatch'
+        exclude_columns = 'annotmatch_confidence annotmatch_pairwise_prob annotmatch_posixtime_modified annotmatch_reviewed annotmatch_reviewer config_hashid'.split(' ')
+        print(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
+        """
+        column_list, column_names = db.get_table_column_data(tablename, rowids=rowids, exclude_columns=exclude_columns)
+        import pandas as pd
+        return pd.DataFrame(ut.dzip(column_names, column_list))
+
+    def get_table_column_data(db, tablename, exclude_columns=[], rowids=None):
+        """
+        Grabs a table of information
+
         CommandLine:
             python -m dtool.sql_control --test-get_table_column_data
 
@@ -2050,19 +2070,15 @@ class SQLDatabaseController(object):
             >>> column_list, column_names = db.get_table_column_data(tablename)
         """
         all_column_names = db.get_column_names(tablename)
-        isvalid_list = [name not in exclude_columns for name in all_column_names]
-        column_names = ut.compress(all_column_names, isvalid_list)
-        if params_iter is not None:
-            rowids = ut.flatten(db.get_where_eq(tablename, ('rowid',), params_iter,
-                                                andwhere_colnames,
-                                                unpack_scalars=False))
+        column_names = ut.setdiff(all_column_names, exclude_columns)
+        if rowids is not None:
             column_list = [
                 db.get(tablename, (name,), rowids, unpack_scalars=True)
-                for name in column_names if name not in exclude_columns
+                for name in column_names
             ]
         else:
             column_list = [db.get_column(tablename, name)
-                           for name in column_names if name not in exclude_columns]
+                           for name in column_names]
         return column_list, column_names
 
     def make_json_table_definition(db, tablename):
@@ -2557,8 +2573,8 @@ class SQLDatabaseController(object):
                                                new_rowid_list))
             #tablename_to_rowidmap[tablename] = old_rowids_to_new_roids
 
-    def get_table_csv(db, tablename, exclude_columns=[], params_iter=None,
-                      andwhere_colnames=None, truncate=False):
+    def get_table_csv(db, tablename, exclude_columns=[], rowids=None,
+                      truncate=False):
         """
         Converts a tablename to csv format
 
@@ -2590,8 +2606,7 @@ class SQLDatabaseController(object):
         #=None, column_list=[], header='', column_type=None
         column_list, column_names = db.get_table_column_data(tablename,
                                                              exclude_columns,
-                                                             params_iter,
-                                                             andwhere_colnames)
+                                                             rowids)
         # remove column prefix for more compact csvs
         column_lbls = [name.replace(tablename[:-1] + '_', '') for name in column_names]
         header = db.get_table_csv_header(tablename)
