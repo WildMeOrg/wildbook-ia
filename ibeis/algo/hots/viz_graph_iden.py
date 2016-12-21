@@ -461,7 +461,7 @@ class _AnnotInfrViz(object):
         from ibeis.viz.viz_graph2 import AnnotGraphWidget
         from plottool import abstract_interaction
         gt.ensure_qtapp()
-        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=None)
+        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
         abstract_interaction.register_interaction(win)
         # win.show()
         gt.qtapp_loop(qwin=win, freq=10)
