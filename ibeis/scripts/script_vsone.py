@@ -56,7 +56,8 @@ class OneVsOneProblem(object):
             defaultdb='PZ_PB_RF_TRAIN',
             a=':mingt=4,species=primary',
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
-            t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
         )
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
@@ -110,7 +111,7 @@ class OneVsOneProblem(object):
             'learn(local)',
         ]
 
-        cacher = ut.Cacher('pair_clf_v2', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
+        cacher = ut.Cacher('pair_clf_v7', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
                            appname='vsone_rf_train', enabled=0)
         data = cacher.tryload()
         if not data:
@@ -139,9 +140,6 @@ class OneVsOneProblem(object):
             print('BEST REPORT task_name = %r' % (task_name,))
             print('best_data_key = %r' % (best_data_key,))
             combo_res.print_report()
-
-        import utool
-        utool.embed()
 
         # TODO: view failure / success cases
         # Need to show and potentially fix misclassified examples
@@ -278,7 +276,7 @@ class OneVsOneProblem(object):
         features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
         cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
 
-        cacher = ut.Cacher('pairwise_data_v5', cfgstr=cfgstr,
+        cacher = ut.Cacher('pairwise_data_v7', cfgstr=cfgstr,
                            appname='vsone_rf_train', enabled=1)
         data = cacher.tryload()
         if not data:
@@ -1715,7 +1713,7 @@ def bigcache_vsone(qreq_, hyper_params):
 
     # Combine into a big cache for the entire 1-v-1 matching run
     big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-    cacher = ut.Cacher('vsone_v2', cfgstr=str(big_uuid), appname='vsone_rf_train')
+    cacher = ut.Cacher('vsone_v7', cfgstr=str(big_uuid), appname='vsone_rf_train')
 
     cached_data = cacher.tryload()
     if cached_data is not None:

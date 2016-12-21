@@ -1743,8 +1743,8 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
         # import ibeis
         # aids = ibeis.testdata_aids(ibs=ibs)
         # ['right', 'frontright', 'backright']
-        # aids = ibs.get_valid_aids()
-        aids = ibs.filter_annots_general(max_pername=2, min_pername=2)
+        aids = ibs.get_valid_aids()
+        # aids = ibs.filter_annots_general(max_pername=2, min_pername=2)
         # aids = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
         # [0:20]
     if ut.get_argflag('--sample'):
