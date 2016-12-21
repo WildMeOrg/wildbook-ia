@@ -177,11 +177,11 @@ def rename_and_reduce_tags(ibs, annotmatch_rowids):
 
     tags_list_ = get_annotmatch_case_tags(ibs, annotmatch_rowids)
     def fix_tags(tags):
-        return {ibs.const.__STR__(t.lower()) for t in tags}
+        return {six.text_type(t.lower()) for t in tags}
     tags_list = list(map(fix_tags, tags_list_))
 
     prop_mapping = {
-        ibs.const.__STR__(key.lower()): val
+        six.text_type(key.lower()): val
         for key, val in six.iteritems(PROP_MAPPING)
     }
 
@@ -505,11 +505,9 @@ def filterflags_general_tags(tags_list,
     """
     import re
     import operator
-    from ibeis import constants as const
 
     def fix_tags(tags):
-        from ibeis import constants as const
-        return {const.__STR__(t.lower()) for t in tags}
+        return {six.text_type(t.lower()) for t in tags}
 
     if logic is None:
         logic = 'and'
@@ -569,11 +567,11 @@ def filterflags_general_tags(tags_list,
 
     flags = execute_filter(
         flags, tags_list, any_startswith,
-        operator.gt, const.__STR__.startswith)
+        operator.gt, six.text_type.startswith)
 
     flags = execute_filter(
         flags, tags_list, any_endswith,
-        operator.gt, const.__STR__.endswith)
+        operator.gt, six.text_type.endswith)
 
     flags = execute_filter(
         flags, tags_list, any_match,

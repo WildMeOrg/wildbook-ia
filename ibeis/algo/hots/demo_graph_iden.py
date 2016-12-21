@@ -633,7 +633,9 @@ def do_infr_test(ccs, edges, new_edges):
     fnum = 1
     if ut.show_was_requested():
         infr.set_node_attrs('shape', 'circle')
-        infr.show(pnum=(2, 1, 1), fnum=fnum, show_inferred_diff=True, groupby='name_label')
+        infr.show(pnum=(2, 1, 1), fnum=fnum, show_unreviewed_edges=True,
+                  show_reviewed_cuts=True,
+                  show_inferred_diff=True, groupby='name_label')
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
@@ -649,7 +651,8 @@ def do_infr_test(ccs, edges, new_edges):
 
     # Postshow
     if ut.show_was_requested():
-        infr2.show(pnum=(2, 1, 2), fnum=fnum, show_inferred_diff=True)
+        infr2.show(pnum=(2, 1, 2), fnum=fnum, show_unreviewed_edges=True,
+                   show_inferred_diff=True)
         pt.gca().set_aspect('equal')
         pt.set_title('post-review')
         fig2 = pt.gcf()
@@ -767,7 +770,7 @@ def case_inconsistent():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
     # Make sure the previously inferred edge is no longer inferred
     check(infr1, 4, 1, 'inferred_state', 'diff', 'should initially be an inferred diff')
-    check(infr2, 4, 1, 'inferred_state', None, 'should not be inferred after incon')
+    check(infr2, 4, 1, 'inferred_state', 'inconsistent', 'should not be inferred after incon')
     check(infr2, 4, 3, 'maybe_error', True, 'need to have a maybe split')
     after()
 
@@ -829,7 +832,7 @@ def case_override_inference():
     # inconsistent case is introduced
     check(infr2, 1, 4, 'maybe_error', False, 'should not split inferred edge')
     check(infr2, 4, 5, 'maybe_error', True, 'split me')
-    check(infr2, 5, 2, 'inferred_state', None, 'inference should be overriden')
+    check(infr2, 5, 2, 'inferred_state', 'inconsistent', 'inference should be overriden')
     after()
 
 
@@ -893,7 +896,7 @@ def case_incon_removes_inference():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr1, 2, 5, 'inferred_state', 'diff', 'should be preinferred')
-    check(infr2, 2, 5, 'inferred_state', None, 'should be uninferred on incon')
+    check(infr2, 2, 5, 'inferred_state', 'inconsistent', 'should be uninferred on incon')
     after()
 
 
@@ -1007,7 +1010,7 @@ def case_keep_in_cc_infr_post_nomatch():
     edges = [(1, 3), (1, 4), (2, 4), (3, 4)]
     new_edges = [(4, 2, {'reviewed_state': 'nomatch'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr1, 3, 4, 'inferred_state', None, 'should not be inferred')
+    check(infr1, 3, 4, 'inferred_state', None, 'should be no inference')
     check(infr1, 1, 3, 'inferred_state', 'same', 'should be inferred')
     check(infr2, 1, 3, 'inferred_state', 'same', 'should remain inferred')
     check(infr2, 3, 4, 'inferred_state', 'diff', 'should become inferred')

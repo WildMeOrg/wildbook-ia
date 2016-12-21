@@ -65,32 +65,23 @@ class _AnnotInfrViz(object):
         print('[infr] initialize_visual_node_attrs!!!')
         if infr.verbose >= 3:
             print('[infr] initialize_visual_node_attrs')
-        import networkx as nx
+        # import networkx as nx
         if graph is None:
             graph = infr.graph
-        aid_to_node = infr.aid_to_node
-        aid_list = list(aid_to_node.keys())
-        annot_nodes = ut.take(aid_to_node, aid_list)
+        # aid_to_node = infr.aid_to_node
+        # aid_list = list(aid_to_node.keys())
+        # annot_nodes = ut.take(aid_to_node, aid_list)
         infr._viz_image_config = dict(in_image=False,
                                       thumbsize=221)
-        # imgpath_list = infr.ibs.depc_annot.get('chips', aid_list, 'img',
-        #                                        config=dict(dim_size=chip_width),
-        #                                        read_extern=False)
-        imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
-                                               config=infr._viz_image_config,
-                                               read_extern=False)
-        nx.set_node_attributes(graph, 'framewidth', 3.0)
-        #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)
-        nx.set_node_attributes(graph, 'shape', _dz(annot_nodes, ['rect']))
-        nx.set_node_attributes(graph, 'image', _dz(annot_nodes, imgpath_list))
+
+        # nx.set_node_attributes(graph, 'framewidth', 3.0)
+        # nx.set_node_attributes(graph, 'shape', _dz(annot_nodes, ['rect']))
         ut.nx_delete_node_attr(graph, 'size')
         ut.nx_delete_node_attr(graph, 'width')
         ut.nx_delete_node_attr(graph, 'height')
         ut.nx_delete_node_attr(graph, 'radius')
-        # nx.set_node_attributes(graph, 'image', _dz(annot_nodes, imgpath_list))
 
         infr._viz_init_nodes = True
-
         infr._viz_image_config_dirty = False
 
     def update_node_image_config(infr, **kwargs):
@@ -102,19 +93,21 @@ class _AnnotInfrViz(object):
                 infr._viz_image_config[key] = val
                 infr._viz_image_config_dirty = True
 
-    def update_node_image_attribute(infr):
+    def update_node_image_attribute(infr, use_image=False):
         if not hasattr(infr, '_viz_image_config_dirty'):
             infr.initialize_visual_node_attrs()
-            return
         aid_list = list(infr.aid_to_node.keys())
         annot_nodes = ut.take(infr.aid_to_node, aid_list)
-        imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
-                                               config=infr._viz_image_config,
-                                               read_extern=False)
-        nx.set_node_attributes(infr.graph, 'framewidth', 3.0)
-        #nx.set_node_attributes(graph, 'framecolor', pt.DARK_BLUE)
-        nx.set_node_attributes(infr.graph, 'shape', _dz(annot_nodes, ['rect']))
-        nx.set_node_attributes(infr.graph, 'image', _dz(annot_nodes, imgpath_list))
+
+        if infr.ibs is not None:
+            nx.set_node_attributes(infr.graph, 'framewidth', 3.0)
+            nx.set_node_attributes(infr.graph, 'shape', _dz(annot_nodes, ['rect']))
+            if infr.ibs is None:
+                raise ValueError('Cannot show images when ibs is None')
+            imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
+                                                   config=infr._viz_image_config,
+                                                   read_extern=False)
+            nx.set_node_attributes(infr.graph, 'image', _dz(annot_nodes, imgpath_list))
         infr._viz_image_config_dirty = False
 
     def get_colored_edge_weights(infr, graph=None, highlight_reviews=True):
@@ -207,6 +200,8 @@ class _AnnotInfrViz(object):
                             show_labels=True,
                             hide_cuts=None,
                             reposition=True,
+                            splines='line',
+                            use_image=False,
                             **kwargs
                             # hide_unreviewed_inferred=True
                             ):
@@ -224,7 +219,7 @@ class _AnnotInfrViz(object):
             infr.set_node_attrs('shape', 'circle')
 
         if getattr(infr, '_viz_image_config_dirty', True):
-            infr.update_node_image_attribute()
+            infr.update_node_image_attribute(use_image=use_image)
 
         alpha_low = .5
         alpha_med = .9
@@ -417,13 +412,14 @@ class _AnnotInfrViz(object):
             # LAYOUT: update the positioning layout
             layoutkw = dict(prog='neato',
                             # splines='spline',
-                            splines='line',
+                            splines=splines,
                             sep=10 / 72, esep=1 / 72, nodesep=.1)
             layoutkw.update(kwargs)
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     @profile
-    def show_graph(infr, use_image=False, with_colorbar=False, **kwargs):
+    def show_graph(infr, use_image=False, with_colorbar=False, pnum=(1, 1, 1),
+                   **kwargs):
         # kwargs['fontsize'] = kwargs.get('fontsize', 8)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -434,7 +430,7 @@ class _AnnotInfrViz(object):
             graph = infr.graph
             plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                                   modify_ax=False, use_image=use_image, verbose=0,
-                                  **kwargs)
+                                  pnum=pnum, **kwargs)
             plotinfo  # NOQA
             pt.zoom_factory()
             pt.pan_factory(pt.gca())
@@ -465,7 +461,7 @@ class _AnnotInfrViz(object):
         from ibeis.viz.viz_graph2 import AnnotGraphWidget
         from plottool import abstract_interaction
         gt.ensure_qtapp()
-        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=None)
+        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
         abstract_interaction.register_interaction(win)
         # win.show()
         gt.qtapp_loop(qwin=win, freq=10)

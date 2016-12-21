@@ -101,15 +101,17 @@ class OneVsOneProblem(object):
 
         task_list = [
             'match_state',
-            # 'photobomb_state'
+            'photobomb_state'
         ]
 
         self.datakey_list = [
             'learn(sum,glob,3)',
+            'learn(all)',
+            'learn(local)',
         ]
 
         cacher = ut.Cacher('pair_clf_v2', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
-                           appname='vsone_rf_train', enabled=1)
+                           appname='vsone_rf_train', enabled=0)
         data = cacher.tryload()
         if not data:
             task_prog = ut.ProgIter(task_list, label='task')
@@ -126,14 +128,24 @@ class OneVsOneProblem(object):
             # self.report_classifier_importance(task_name)
 
         for task_name in task_list:
+            roc_scores = {}
+            for name in self.datakey_list:
+                combo_res = self.task_combo_res[task_name][name]
+                roc_scores[name] = combo_res.roc_score()
+            # best_data_key = 'learn(sum,glob,3)'
+            best_data_key = list(roc_scores.keys())[ut.argmax(roc_scores.values())]
             data_combo_res = self.task_combo_res[task_name]
-            best_data_key = 'learn(sum,glob,3)'
             combo_res = data_combo_res[best_data_key]
+            print('BEST REPORT task_name = %r' % (task_name,))
+            print('best_data_key = %r' % (best_data_key,))
             combo_res.print_report()
+
+        import utool
+        utool.embed()
 
         # TODO: view failure / success cases
         # Need to show and potentially fix misclassified examples
-        if True:
+        if False:
             self.labels.aid_pairs
             combo_res.target_bin_df
             res = combo_res
@@ -154,9 +166,10 @@ class OneVsOneProblem(object):
             # keep = list(cc.nodes())
             # infr.remove_aids(ut.setdiff(infr.aids, keep))
 
-            win = infr.start_qt_interface()
-            import guitool as gt
-            gt.qtapp_loop(qwin=win, freq=10)
+            infr.start_qt_interface()
+            # import guitool as gt
+            # gt.qtapp_loop(qwin=win, freq=10)
+            return
 
         # _all_dfs.append(df_rf)
         # df_all = pd.concat(_all_dfs, axis=1)
@@ -612,6 +625,7 @@ class OneVsOneProblem(object):
                 # pt.wordcloud(importances)
 
     def report_classifier_accuracy(self, task_name):
+        print('CLASSIFIER ACCURACY FOR task_name = %r' % (task_name,))
         roc_scores = {}
         for name in self.datakey_list:
             # X = self.X_dict[name]
@@ -749,9 +763,9 @@ class ClfResult(object):
         confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc,
                                                      sample_weight=sample_weight)
 
-        # mcc = sklearn.metrics.matthews_corrcoef(y_test_enc_aug, pred_enc,
-        #                                         sample_weight=sample_weight)
-        # print('MCC = %r' % (mcc,))
+        mcc = sklearn.metrics.matthews_corrcoef(y_test_enc_aug, pred_enc,
+                                                sample_weight=sample_weight)
+        print('MCC = %r' % (mcc,))
 
         print('Confusion Matrix:')
         print(pd.DataFrame(confusion, columns=[m for m in res.class_names],
@@ -956,7 +970,20 @@ class PairLabels(MultiTaskLabels):
     @ut.memoize
     def is_comparable(labels):
         # If we don't have actual comparability information just guess
-        return labels.guess_if_comparable()
+        # Start off by guessing
+        is_comp_guess = labels.guess_if_comparable()
+        is_comp = is_comp_guess.copy()
+
+        # But use information that we have
+        am_rowids = labels.ibs.get_annotmatch_rowid_from_edges(labels.aid_pairs)
+        truths = np.array(ut.replace_nones(labels.ibs.get_annotmatch_truth(am_rowids), np.nan))
+        is_notcomp_have = truths == labels.ibs.const.TRUTH_NOT_COMP
+        is_comp_have = (truths == labels.ibs.const.TRUTH_MATCH) | (truths == labels.ibs.const.TRUTH_NOT_MATCH)
+        is_comp[is_notcomp_have] = False
+        is_comp[is_comp_have] = True
+        # num_guess = (~(is_notcomp_have  | is_comp_have)).sum()
+        # num_have = len(is_notcomp_have) - num_guess
+        return is_comp
 
     def guess_if_comparable(labels):
         """

@@ -635,6 +635,66 @@ def make_ensure_match_img_nosql_func(qreq_, cm, daid):
     import plottool as pt
     import vtool as vt
     import matplotlib as mpl
+
+    if cm.__class__.__name__ == 'PairwiseMatch':
+        # HACK DO THIS THE VTOOL WAY
+        match = cm
+        ibs = qreq_  # VERY HACK
+        match_thumbdir = ibs.get_match_thumbdir()
+        cfgstr = hash(match.config)  # HACK only works if config is already a hashdict
+        match_thumb_fname = 'tmpmatch-%d-%d-%s.jpg' % (match.annot1['aid'], match.annot2['aid'], cfgstr)
+        fpath = ut.unixjoin(match_thumbdir, match_thumb_fname)
+
+        def main_thread_load2():
+            rchip1, kpts1 = ut.dict_take(match.annot1, ['rchip', 'kpts'])
+            rchip2, kpts2 = ut.dict_take(match.annot2, ['rchip', 'kpts'])
+            return (match,)
+
+        def nosql_draw2(check_func, match):
+            from matplotlib.backends.backend_agg import FigureCanvas
+            from matplotlib.backends.backend_agg import Figure
+            was_interactive = mpl.is_interactive()
+            if was_interactive:
+                mpl.interactive(False)
+            #fnum = 32
+            fig = Figure()
+            canvas = FigureCanvas(fig)  # NOQA
+            #fig.clf()
+            ax = fig.add_subplot(1, 1, 1)
+            if check_func is not None and check_func():
+                return
+            ax, xywh1, xywh2 = match.show(ax=ax)
+            if check_func is not None and check_func():
+                return
+            savekw = {
+                # 'dpi' : 60,
+                'dpi' : 80,
+            }
+            axes_extents = pt.extract_axes_extents(fig)
+            #assert len(axes_extents) == 1, 'more than one axes'
+            extent = axes_extents[0]
+            with io.BytesIO() as stream:
+                # This call takes 23% - 15% of the time depending on settings
+                fig.savefig(stream, bbox_inches=extent, **savekw)
+                stream.seek(0)
+                data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+            if check_func is not None and check_func():
+                return
+            pt.plt.close(fig)
+            image = cv2.imdecode(data, 1)
+            thumbsize = 221
+            max_dsize = (thumbsize, thumbsize)
+            dsize, sx, sy = vt.resized_clamped_thumb_dims(vt.get_size(image), max_dsize)
+            if check_func is not None and check_func():
+                return
+            image = vt.resize(image, dsize)
+            vt.imwrite(fpath, image)
+            if check_func is not None and check_func():
+                return
+            #fig.savefig(fpath, bbox_inches=extent, **savekw)
+        #match_thumbtup_cache[match_thumb_fpath_] = fpath
+        return fpath, nosql_draw2, main_thread_load2
+
     aid1 = cm.qaid
     aid2 = daid
 

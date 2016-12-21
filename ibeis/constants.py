@@ -282,24 +282,25 @@ class ZIPPED_URLS(object):
     PZ_MTEST       = 'https://lev.cs.rpi.edu/public/databases/PZ_MTEST.zip'
     NAUTS          = 'https://lev.cs.rpi.edu/public/databases/NAUT_test.zip'
     WDS            = 'https://lev.cs.rpi.edu/public/databases/wd_peter2.zip'
-    PZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip'
+    PZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip'  # DEPRICATE
     GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'
 
 if six.PY2:
-    __STR__ = unicode  # change to str if needed
+    __STR__ = unicode  # TODO: use six.text_type instead
 else:
     __STR__ = str
 
 
-# TODO: rename to same / different
-# add add match, nomatch, notcomp
-TRUTH_UNKNOWN = 2
+# FIXME; TRUTH_UNKNOWN value should be None
+TRUTH_UNKNOWN = 3
+TRUTH_NOT_COMP = 2
 TRUTH_MATCH = 1
 TRUTH_NOT_MATCH = 0
 
 
 TRUTH_INT_TO_TEXT = {
     TRUTH_UNKNOWN   : 'Unknown',
+    TRUTH_NOT_COMP  : 'Not Comparable',
     TRUTH_NOT_MATCH : 'Not Matched',
     TRUTH_MATCH     : 'Matched',
 }

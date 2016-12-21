@@ -1367,7 +1367,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         match = ibeis.ChipMatch(
             qaid=qaid, daid_list=[daid], fm_list=[fm],
             fsv_list=[vt.atleast_nd(fs, 2)],
-            H_list=[H], fsv_col_lbls=['L2_SIFT'])
+            H_list=[H], fsv_col_lbls=['ratio'])
         match._update_daid_index()
         match.evaluate_dnids(ibs=ibs)
         match._update_daid_index()
@@ -1379,6 +1379,87 @@ def compute_one_vs_one(depc, qaids, daids, config):
             request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
             match.ishow_analysis(request)
         yield (score, match)
+
+
+def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=False):
+    # Hack just to get annots into a good format for vsone matching
+    # Prepare lazy attributes for annotations
+    unique_qaids = set(qaids)
+    unique_daids = set(daids)
+
+    # Determine a unique set of annots per config
+    configured_aids = ut.ddict(set)
+    configured_aids[qannot_cfg].update(unique_qaids)
+    configured_aids[dannot_cfg].update(unique_daids)
+
+    # Make efficient annot-view representation
+    configured_annot_views = {}
+    for config, aids in configured_aids.items():
+        annots = ibs.annots(sorted(list(aids)), config=config)
+        configured_annot_views[config] = annots.view()
+
+    if preload:
+        # TODO: Ensure entire pipeline can use new dependencies
+        unique_annot_views = list(configured_annot_views.values())
+        for annots in unique_annot_views:
+            annots.chip_size
+            annots.vecs
+            annots.kpts
+            annots.yaw
+            annots.qual
+            annots.gps
+            annots.time
+
+    configured_lazy_annots = ut.ddict(dict)
+    for config, annots in configured_annot_views.items():
+        annot_dict = configured_lazy_annots[config]
+        for aid in ut.ProgIter(annots, label='make lazy dict'):
+            annot = annots.view(aid)._make_lazy_dict()
+            annot_dict[aid] = annot
+
+    return configured_lazy_annots
+
+
+@derived_attribute(
+    tablename='pairwise_match', parents=['annotations', 'annotations'],
+    colnames=['match'], coltypes=[vt.PairwiseMatch],
+    configclass=VsOneConfig,
+    chunksize=128,
+    fname='vsone2',
+)
+def compute_pairwise_vsone(depc, qaids, daids, config):
+    """
+    Hack that mirrors vsone, but returns vt.PairwiseMatch objects
+    """
+    ibs = depc.controller
+    qannot_cfg = config
+    dannot_cfg = config
+
+    configured_lazy_annots = make_configured_annots(ibs, qaids, daids,
+                                                    qannot_cfg, dannot_cfg,
+                                                    preload=True)
+
+    unique_lazy_annots = ut.flatten(
+        [x.values() for x in configured_lazy_annots.values()])
+
+    flann_params = {'algorithm': 'kdtree', 'trees': 4}
+    import vtool.matching  # NOQA
+    import vtool as vt
+    for annot in unique_lazy_annots:
+        vt.matching.ensure_metadata_flann(annot, flann_params)
+
+    for annot in unique_lazy_annots:
+        vt.matching.ensure_metadata_normxy(annot)
+        # annot['norm_xys'] = (vt.get_xys(annot['kpts']) /
+        #                      np.array(annot['chip_size'])[:, None])
+
+    for qaid, daid  in ut.ProgIter(zip(qaids, daids), nTotal=len(qaids),
+                                   lbl='compute vsone', bs=True, freq=1):
+        annot1 = configured_lazy_annots[qannot_cfg][qaid]
+        annot2 = configured_lazy_annots[dannot_cfg][daid]
+        match = vt.PairwiseMatch(annot1, annot2)
+        match.apply_all(config)
+        yield (match,)
 
 
 class IndexerConfig(dtool.Config):

@@ -1870,66 +1870,63 @@ def commit_current_query_object_names(query_object, ibs):
         ibs (ibeis.IBEISController):  image analysis api
 
     """
-    import networkx as nx
-    import pandas as pd
-
+    # import networkx as nx
+    # import pandas as pd
     # Get the graph and the current reviewed connected components
-    graph = query_object.graph
+    # graph = query_object.graph
     num_names, num_inconsistent = query_object.relabel_using_reviews()
 
+    query_object.write_ibeis_staging_feedback()
+    query_object.write_ibeis_annotmatch_feedback()
+    query_object.write_ibeis_name_assignment()
+
     # Extract names out of the networkx graph
-    node_to_label = nx.get_node_attributes(graph, 'name_label')
-    unique_labels = set(node_to_label.values())
-    new_names = query_object.ibs.make_next_name(num_names)
-    to_newname = dict(zip(unique_labels, new_names))
-    node_to_newname = {node: to_newname[name_label]
-                       for node, name_label in node_to_label.items()}
-    aid_list = list(node_to_newname.keys())
-    name_list = list(node_to_newname.values())
+    # node_to_label = nx.get_node_attributes(graph, 'name_label')
+    # unique_labels = set(node_to_label.values())
+    # new_names = query_object.ibs.make_next_name(num_names)
+    # to_newname = dict(zip(unique_labels, new_names))
+    # node_to_newname = {node: to_newname[name_label]
+    #                    for node, name_label in node_to_label.items()}
+    # aid_list = list(node_to_newname.keys())
+    # name_list = list(node_to_newname.values())
     #print('aid_list = %r' % (aid_list,))
     #print('name_list = %r' % (name_list,))
 
-    # keep track of residual data
-    changed_df = query_object.match_state_delta()
+    # # keep track of residual data
+    # changed_df = query_object.match_state_delta()
 
-    # Set names
-    vals = (len(aid_list), )
-    print('COMMITTING IDENTIFICATION REVIEWS TO DATABASE AS NAMES: %d' % vals)
-    ibs.set_annot_names(aid_list, name_list)
+    # # Set names
+    # vals = (len(aid_list), )
+    # print('COMMITTING IDENTIFICATION REVIEWS TO DATABASE AS NAMES: %d' % vals)
+    # ibs.set_annot_names(aid_list, name_list)
 
-    # Add am rowids for nonexisting rows
-    if len(changed_df) > 0:
-        # ut.embed()
-        is_add = np.array(pd.isnull(changed_df['am_rowid'].values))
-        add_df = changed_df.loc[is_add]
-        add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
-                                                add_df['aid2'].values)
-        changed_df.loc[is_add, 'am_rowid'] = add_ams
-        changed_df.set_index('am_rowid', drop=False, inplace=True)
+    # # Add am rowids for nonexisting rows
+    # if len(changed_df) > 0:
+    #     # ut.embed()
+    #     is_add = np.array(pd.isnull(changed_df['am_rowid'].values))
+    #     add_df = changed_df.loc[is_add]
+    #     add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
+    #                                             add_df['aid2'].values)
+    #     changed_df.loc[is_add, 'am_rowid'] = add_ams
+    #     changed_df.set_index('am_rowid', drop=False, inplace=True)
 
-        # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
-        # truth_options = [ibs.const.TRUTH_MATCH,
-        #                  ibs.const.TRUTH_NOT_MATCH,
-        #                  ibs.const.TRUTH_UNKNOWN]
-        # truth_keys = ['p_match', 'p_nomatch', 'p_notcomp']
-        # truth_idxs = new_df[truth_keys].values.argmax(axis=1)
-        # new_truth = ut.take(truth_options, truth_idxs)
-        am_rowids = changed_df['am_rowid'].values
+    #     # Set residual matching data
+    #     new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
+    #     am_rowids = changed_df['am_rowid'].values
 
-        ibs.set_annotmatch_truth(am_rowids, new_truth)
+    #     ibs.set_annotmatch_truth(am_rowids, new_truth)
 
-        # Set tags from staging
-        # TODO: set tags from annotmatch
-        aid_1_list = ibs.get_annotmatch_aid1(am_rowids)
-        aid_2_list = ibs.get_annotmatch_aid2(am_rowids)
-        tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
-        tags_list = list(map(ut.flatten, tags_list))
-        tag_str_list = [
-            ';'.join(map(str, tag_list))
-            for tag_list in tags_list
-        ]
-        ibs.set_annotmatch_tag_text(am_rowids, tag_str_list)
+    #     # Set tags from staging
+    #     # TODO: set tags from annotmatch
+    #     aid_1_list = ibs.get_annotmatch_aid1(am_rowids)
+    #     aid_2_list = ibs.get_annotmatch_aid2(am_rowids)
+    #     tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+    #     tags_list = list(map(ut.flatten, tags_list))
+    #     tag_str_list = [
+    #         ';'.join(map(str, tag_list))
+    #         for tag_list in tags_list
+    #     ]
+    #     ibs.set_annotmatch_tag_text(am_rowids, tag_str_list)
 
 
 def precompute_current_review_match_images(ibs, query_object,
@@ -1978,6 +1975,9 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         # mount lev to the home drive
         sshfs -o idmap=user lev:/ ~/lev
 
+        # unmount
+        fusermount -u ~/lev
+
         # Url to debug
         http://128.213.17.12:5000/turk/identification/?aid1=6619&aid2=7094
 
@@ -2020,32 +2020,32 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
                                              autoinit=True)
 
     # Add some feedback
-    if True:
-        query_object.reset_feedback('staging')
-    else:
-        # query_object.reset_feedback()
-        # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
-        review_rowids_list = ibs.get_review_rowids_from_only(aid_list)
-        flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
-        # Lookup data based on flattened rowids
-        flat_decisions = ibs.get_review_decision(flat_rowids)
-        flat_tags = ibs.get_review_tags(flat_rowids)
-        flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
-        # # Reshape to original grouping (Actually, no need)
-        # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
-        # decision_groups = ut.unflatten2(flat_decisions, offsets)
-        # tags_groups = ut.unflatten2(flat_tags, offsets)
+    # if True:
+    query_object.reset_feedback('staging')
+    # else:
+    #     # query_object.reset_feedback()
+    #     # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
+    #     review_rowids_list = ibs.get_review_rowids_from_only(aid_list)
+    #     flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
+    #     # Lookup data based on flattened rowids
+    #     flat_decisions = ibs.get_review_decision(flat_rowids)
+    #     flat_tags = ibs.get_review_tags(flat_rowids)
+    #     flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
+    #     # # Reshape to original grouping (Actually, no need)
+    #     # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
+    #     # decision_groups = ut.unflatten2(flat_decisions, offsets)
+    #     # tags_groups = ut.unflatten2(flat_tags, offsets)
 
-        # for tup in zip(aids_groups, decision_groups, tags_groups):
-        # for (aid1, aid2), decision, tags in zip(*tup):
-        zipped = zip(flat_aid_tuples, flat_decisions, flat_tags)
-        for (aid1, aid2), decision, tags in zipped:
-            # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
-            try:
-                state = const.REVIEW_INT_TO_CODE[decision]
-                query_object.add_feedback(aid1, aid2, state, tags)
-            except ValueError:
-                pass
+    #     # for tup in zip(aids_groups, decision_groups, tags_groups):
+    #     # for (aid1, aid2), decision, tags in zip(*tup):
+    #     zipped = zip(flat_aid_tuples, flat_decisions, flat_tags)
+    #     for (aid1, aid2), decision, tags in zipped:
+    #         # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
+    #         try:
+    #             state = const.REVIEW_INT_TO_CODE[decision]
+    #             query_object.add_feedback(aid1, aid2, state, tags)
+    #         except ValueError:
+    #             pass
     query_object.apply_feedback_edges()
 
     # Exec matching
