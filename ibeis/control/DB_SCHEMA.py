@@ -1362,6 +1362,7 @@ def post_1_5_2(db, ibs=None, verbose=False):
     if ibs is not None:
         from PIL import Image  # NOQA
         from ibeis.algo.preproc.preproc_image import parse_exif
+        from ibeis.scripts import fix_annotation_orientation_issue as faoi
         from os.path import exists
 
         def _parse_orient(gpath):
@@ -1385,6 +1386,8 @@ def post_1_5_2(db, ibs=None, verbose=False):
         gpath_list_ = ibs.get_image_paths(gid_list_)
         orient_list_ = [ _parse_orient(gpath) for gpath in gpath_list_ ]
         ibs.set_image_orientation(gid_list_, orient_list_)
+
+        faoi.fix_annotation_orientation(ibs)
 
 
 def update_1_5_3(db, ibs=None):
