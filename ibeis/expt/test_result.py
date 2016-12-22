@@ -913,9 +913,8 @@ class TestResult(ut.NiceRepr):
                 daids = testres.cfgx2_daids[0]
                 title_aug += ' #daids=%r' % (len(testres.cfgx2_daids[0]),)
                 if testres.has_constant_qaids():
-                    locals_ = ibs.get_annotconfig_stats(
-                        testres.qaids, daids, verbose=False)[1]
-                    all_daid_per_name_stats = locals_['all_daid_per_name_stats']
+                    all_daid_per_name_stats = ut.get_stats(
+                        ibs.get_num_annots_per_name(daids)[0], use_nan=True)
                     if all_daid_per_name_stats['std'] == 0:
                         title_aug += ' dper_name=%s' % (
                             ut.scalar_str(all_daid_per_name_stats['mean'],

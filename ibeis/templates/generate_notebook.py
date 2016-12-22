@@ -212,7 +212,7 @@ def make_ibeis_cell_list(ibs):
             ut.codeblock('''
             #'default:has_any=(query,),dpername=1,exclude_reference=True',
             #'default:is_known=True',
-            #'default:is_known=True,minqual=good,require_timestamp=True,crossval_enc=True,view=left'
+            #'default:is_known=True,minqual=good,require_timestamp=True,dcrossval_enc=1,view=left'
             #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'default:require_timestamp=True,min_timedelta=3600',
             #'default:species=primary',
@@ -220,10 +220,10 @@ def make_ibeis_cell_list(ibs):
             #'timectrl:',
             #'timectrl:view=primary,minqual=good',
 
-            #'default:minqual=good,require_timestamp=True,view=left,crossval_enc=True,joinme=1',
-            #'default:minqual=good,require_timestamp=True,view=right,crossval_enc=True,joinme=1',
-            #'default:minqual=ok,require_timestamp=True,view=left,crossval_enc=True,joinme=2',
-            #'default:minqual=ok,require_timestamp=True,view=right,crossval_enc=True,joinme=2',
+            #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+            #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+            #'default:minqual=ok,require_timestamp=True,view=left,dcrossval_enc=1,joinme=2',
+            #'default:minqual=ok,require_timestamp=True,view=right,dcrossval_enc=1,joinme=2',
 
             ''')
         )

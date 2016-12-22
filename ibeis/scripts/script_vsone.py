@@ -44,6 +44,9 @@ class OneVsOneProblem(object):
     """
     Keeps information about the one-vs-one pairwise classification problem
 
+    CommandLine:
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
         >>> self = OneVsOneProblem()
@@ -54,7 +57,7 @@ class OneVsOneProblem(object):
         # ut.aug_sysargv('--db PZ_Master1')
         qreq_ = ibeis.testdata_qreq_(
             defaultdb='PZ_PB_RF_TRAIN',
-            a=':mingt=4,species=primary',
+            a=':mingt=3,species=primary',
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
             t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
@@ -63,6 +66,41 @@ class OneVsOneProblem(object):
         assert qreq_.qparams.prescore_method == 'csum'
         self.qreq_ = qreq_
         self.ibs = qreq_.ibs
+
+    def load_labels(self):
+        self.labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
+
+    def load_features(self):
+        qreq_ = self.qreq_
+        hyper_params = dt.Config.from_dict(dict(
+            subsample=None,
+            pair_sample=PairSampleConfig(),
+            vsone_assign=VsOneAssignConfig(),
+            pairwise_feats=PairFeatureConfig(), ),
+            tablename='HyperParams'
+        )
+        if qreq_.qparams.featweight_enabled:
+            hyper_params.vsone_assign['weight'] = 'fgweights'
+        else:
+            hyper_params.vsone_assign['weight'] = None
+
+        dbname = qreq_.ibs.get_dbname()
+        vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
+        features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
+        cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
+
+        cacher = ut.Cacher('pairwise_data_v7', cfgstr=cfgstr,
+                           appname='vsone_rf_train', enabled=1)
+        data = cacher.tryload()
+        if not data:
+            data = build_features(qreq_, hyper_params)
+            cacher.save(data)
+
+        aid_pairs, simple_scores, X_dict, y, match = data
+        self.aid_pairs = aid_pairs
+        self.raw_X_dict = X_dict
+        self.simple_scores = simple_scores
+        self.match = match
 
     def evaluate_classifiers(self):
         """
@@ -253,41 +291,6 @@ class OneVsOneProblem(object):
             res_list.append(res)
             clf_list.append(clf)
         return clf_list, res_list
-
-    def load_labels(self):
-        self.labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
-
-    def load_features(self):
-        qreq_ = self.qreq_
-        hyper_params = dt.Config.from_dict(dict(
-            subsample=None,
-            pair_sample=PairSampleConfig(),
-            vsone_assign=VsOneAssignConfig(),
-            pairwise_feats=PairFeatureConfig(), ),
-            tablename='HyperParams'
-        )
-        if qreq_.qparams.featweight_enabled:
-            hyper_params.vsone_assign['weight'] = 'fgweights'
-        else:
-            hyper_params.vsone_assign['weight'] = None
-
-        dbname = qreq_.ibs.get_dbname()
-        vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
-        features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
-        cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
-
-        cacher = ut.Cacher('pairwise_data_v7', cfgstr=cfgstr,
-                           appname='vsone_rf_train', enabled=1)
-        data = cacher.tryload()
-        if not data:
-            data = build_features(qreq_, hyper_params)
-        cacher.save(data)
-
-        aid_pairs, simple_scores, X_dict, y, match = data
-        self.aid_pairs = aid_pairs
-        self.raw_X_dict = X_dict
-        self.simple_scores = simple_scores
-        self.match = match
 
     def load_multiclass_scores(self):
         # convert simple scores to multiclass scores

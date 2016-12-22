@@ -540,7 +540,15 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
         if qcfg['crossval_enc'] or dcfg['crossval_enc']:
             # Hack, just use qaids for cross validated sampleing
             aids = expanded_aids[0]
-            crossval_expansion = encounter_crossval(ibs, aids)
+            qenc_per_name = qcfg['crossval_enc']
+            denc_per_name = dcfg['crossval_enc']
+            if qenc_per_name is None:
+                qenc_per_name = 1
+            if denc_per_name is None:
+                denc_per_name = 1
+            crossval_expansion = encounter_crossval(ibs, aids,
+                                                    qenc_per_name=qenc_per_name,
+                                                    denc_per_name=denc_per_name)
 
             import uuid
             unique_joinme = uuid.uuid4()
@@ -566,43 +574,87 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
     return list(zip(acfg_combo_out, expanded_aids_list))
 
 
-def encounter_crossval(ibs, aids):
+def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
+    """
+    Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
+    `denc_per_name` for each individual in the datasets respectively.
+
+    CommandLine:
+        python -m ibeis.init.filter_annots encounter_crossval
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('WWF_Lynx_Copy')
+        >>> aids = ibeis.testdata_aids(a='default:minqual=good,require_timestamp=True,view=left', ibs=ibs)
+        >>> denc_per_name = 3
+        >>> qenc_per_name = 1
+        >>> print('denc_per_name = %r' % (denc_per_name,))
+        >>> print('qenc_per_name = %r' % (qenc_per_name,))
+        >>> expanded_aids = encounter_crossval(ibs, aids, qenc_per_name=qenc_per_name, denc_per_name=denc_per_name)
+        >>> # ensure stats agree
+        >>> for qaids, daids in expanded_aids:
+        >>>     stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False)
+        >>>     print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
+        >>>     denc_stats = stats['matchable_daid_stats']['denc_per_name']
+        >>>     qenc_stats = stats['qaid_stats']['qenc_per_name']
+        >>>     assert denc_stats['min'] == denc_stats['max'] and denc_stats['min'] == denc_per_name
+        >>>     assert qenc_stats['min'] == qenc_stats['max'] and qenc_stats['min'] == qenc_per_name
+        >>> #qaids, daids = expanded_aids[0]
+        >>> #stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=True)
+        >>> #print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
+
+    """
+    assert qenc_per_name == 1, 'can only do one qenc right now'
+
     annots = ibs.annots(aids)
     unique_encounters, groupxs = annots.group_indicies(annots.encounter_text)
     encounter_nids = annots.take(ut.take_column(groupxs, 0)).nid
     encounter_aids = ut.apply_grouping(annots.aids, groupxs)
 
     nid_to_encounters = ut.group_items(encounter_aids, encounter_nids)
-    nid_to_single_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
-                                if len(enc) == 1}
-    nid_to_multi_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
-                                if len(enc) > 1}
+    # We can only select individuals with enough encounters
+    needed_enc_per_name = qenc_per_name + denc_per_name
+
+    nid_to_confusor_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
+                                  if len(enc) <  needed_enc_per_name}
+    nid_to_valid_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
+                               if len(enc) >= needed_enc_per_name}
     rng = np.random.RandomState(0)
-    multi_enc_rand_idxs = [(nid, ut.random_indexes(len(enc), rng=rng))
-                           for nid, enc in nid_to_multi_encounters.items()]
 
-    crossval_samples = []
-    max_ = max(map(len, (t[1] for t in multi_enc_rand_idxs)))
-    for i in range(max_):
+    # Randomly shuffle encounters for each individual
+    valid_enc_rand_idxs = [(nid, ut.random_indexes(len(enc), rng=rng))
+                           for nid, enc in nid_to_valid_encounters.items()]
+
+    # For each individual choose a set of query and database encounters
+    crossval_idx_samples = []
+    max_num_encounters = max(map(len, (t[1] for t in valid_enc_rand_idxs)))
+    # TODO: iterate over a sliding window to choose multiple queries OR
+    # iterate over all combinations of queries... (harder)
+    for i in range(max_num_encounters):
         encx_split = {}
-        for nid, idxs in multi_enc_rand_idxs:
+        for nid, idxs in valid_enc_rand_idxs:
             if i < len(idxs):
-                # For now only allow one encounter
+                # Choose the database encounters from anything not chosen as a query
                 d_choices = ut.where(ut.not_list(ut.index_to_boolmask([i], len(idxs))))
-                j = rng.choice(d_choices, 1)[0]
-                encx_split[nid] = (idxs[i], idxs[j])
-        crossval_samples.append(encx_split)
+                js = rng.choice(d_choices, size=denc_per_name, replace=False)
+                encx_split[nid] = (idxs[i:i + 1], idxs[js])
+        crossval_idx_samples.append(encx_split)
 
-    crossval_samples2 = []
-    for encx_split in crossval_samples:
+    # convert to aids
+    crossval_aid_samples = []
+    for encx_split in crossval_idx_samples:
         aid_split = {}
-        for nid, (qx, dx) in encx_split.items():
-            qaids = nid_to_multi_encounters[nid][qx]
-            daids = nid_to_multi_encounters[nid][dx]
+        for nid, (qxs, dxs) in encx_split.items():
+            qaids = ut.flatten(ut.take(nid_to_valid_encounters[nid], qxs))
+            daids = ut.flatten(ut.take(nid_to_valid_encounters[nid], dxs))
+            assert len(dxs) == denc_per_name
+            assert len(qxs) == qenc_per_name
             aid_split[nid] = (qaids, daids)
-        crossval_samples2.append(aid_split)
+        crossval_aid_samples.append(aid_split)
 
-    tups = [(nid, aids_) for aid_split_ in crossval_samples2
+    tups = [(nid, aids_) for aid_split_ in crossval_aid_samples
             for nid, aids_ in aid_split_.items()]
     groups = ut.take_column(tups, 0)
     aidpairs = ut.take_column(tups, 1)
@@ -630,7 +682,9 @@ def encounter_crossval(ibs, aids):
             break
     # name_splits = ut.unflat_take(groups, new_splits)
     aid_splits = ut.unflat_take(aidpairs, new_splits)
-    confusors = ut.flatten(ut.flatten(list(nid_to_single_encounters.values())))
+
+    # Add annots that could not meet these requirements are distractors
+    confusors = ut.flatten(ut.flatten(list(nid_to_confusor_encounters.values())))
 
     expanded_aids_list = []
     for aidsplit in aid_splits:

@@ -407,8 +407,8 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         self.qreq_ = self.ibs.new_query_request(self.qaids, self.daids,
                                                 cfgdict=self.pcfg, query_cfg=query_cfg)
         qreq_ = self.qreq_
-        stats_dict, _ = ibs.get_annotconfig_stats(
-            qreq_.qaids, qreq_.daids, verbose=False, **self.info_cfg)
+        stats_dict = ibs.get_annotconfig_stats(
+            qreq_.qaids, qreq_.daids, **self.info_cfg)
         cmdstr = self.make_commandline_str()
         stat_parts = ut.filter_Nones([
             cmdstr,
@@ -2223,7 +2223,6 @@ class MainWindowBackend(GUIBACK_BASE):
             >>> ut.exec_funckw(back.make_confirm_query_msg2, globals())
             >>> imgsetid = ibs.get_imageset_imgsetids_from_text('*All Images')
             >>> species2_expanded_aids = back._get_expanded_aids_groups(imgsetid)
-            >>> #ibs.get_annotconfig_stats(qaid_list, daid_list)
             >>> short_msg, detailed_msg = back.make_confirm_query_msg2(species2_expanded_aids)
             >>> print(short_msg)
             >>> print(detailed_msg)
@@ -2275,8 +2274,8 @@ class MainWindowBackend(GUIBACK_BASE):
             fmtdict = {}
             qaid_stats = ibs.get_annot_stats_dict(qaids, prefix='q', per_name=True, old=False)
             daid_stats = ibs.get_annot_stats_dict(daids, prefix='d', per_name=True, old=False)
-            stats_, locals_ = ibs.get_annotconfig_stats(
-                qaids, daids, verbose=False, combined=False, species_hist=True,
+            stats_ = ibs.get_annotconfig_stats(
+                qaids, daids, combined=False, species_hist=True,
                 **annotstats_kw)
             fmtdict.update(**qaid_stats)
             fmtdict.update(**daid_stats)

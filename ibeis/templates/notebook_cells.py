@@ -150,8 +150,9 @@ annot_config_info =  ('# Annotation Config Info (Safely Ignored)', ut.codeblock(
     acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list=a, qaid_override=qaid_override,
         daid_override=daid_override, verbose=0)
+    # Set use_hist=True to see specific breakdowns of properties
     ibeis.expt.annotation_configs.print_acfg_list(
-        acfg_list, expanded_aids_list, ibs, per_qual=True)
+        acfg_list, expanded_aids_list, ibs, per_qual=True, use_hist=False)
     # ENDBLOCK
     ''')
 )
@@ -705,4 +706,30 @@ per_encounter_stats = (
         data_enc_size_hist = ut.dict_hist(dannots_per_enc)
         print('query_enc_size_hist = ' + ut.repr4(query_enc_size_hist))
         print('data_enc_size_hist = ' + ut.repr4(data_enc_size_hist))
+
+        # For each slice, find how many annotations are in each encounter
+        qenc_per_name = []
+        denc_per_name = []
+        for column, list_ in enumerate([qenc_per_name, denc_per_name]):
+            for aids in ut.take_column(expanded_aids_list, column):
+                annots = ibs.annots(aids)
+                nid_to_encounters_ = ut.group_items(annots.encounter_text, annots.nids)
+                num_encounters_pername = list(ut.dict_hist(nid_to_encounters_).values())
+                list_.extend(num_encounters_pername)
+        query_enc_per_name_hist = ut.dict_hist(qenc_per_name)
+        data_enc_per_name_hist = ut.dict_hist(denc_per_name)
+        print('Mapping from #encounters to #names with that #of encounters')
+        print('query_enc_per_name_hist = ' + ut.repr4(query_enc_per_name_hist))
+        print('data_enc_per_name_hist = ' + ut.repr4(data_enc_per_name_hist))
+
+        # In general
+        # aids = ibs.get_valid_aids()
+        # # aids = list(set(ut.flatten(ut.flatten(expanded_aids_list))))
+        # annots = ibs.annots(aids)
+        # nid_to_encounters_ = ut.group_items(annots.encounter_text, annots.nids)
+        # nid_to_encounters = ut.map_vals(ut.unique, nid_to_encounters_)
+        # num_encounters_pername = map(len, nid_to_encounters.values())
+        # print('Database wide encounters per name histogram:')
+        # print(ut.dict_hist(num_encounters_pername))
+        # Now find out how many encounter per individual
         '''))

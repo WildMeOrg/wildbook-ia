@@ -3318,8 +3318,19 @@ def get_annot_multiple(ibs, aid_list):
     RESTful:
         Method: GET
         URL:    /api/annot/multiple/
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> flag_list = get_annot_multiple(ibs, aid_list)
+        >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
+        >>> print(result)
     """
     flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_multiple',), aid_list)
+    flag_list = [None if flag is None else bool(flag) for flag in flag_list]
     return flag_list
 
 
