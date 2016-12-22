@@ -171,7 +171,7 @@ class MatchInteraction2(BASE_CLASS):
         fsv = self.fsv
         fs  = self.fs
         print('score stats:')
-        print(ut.get_stats_str(fsv, axis=0, newlines=True))
+        print(ut.repr2(ut.get_stats(fsv, axis=0), nl=1))
         print('fsv[mx] = %r' % (fsv[mx],))
         print('fs[mx] = %r' % (fs[mx],))
         #----------------------
