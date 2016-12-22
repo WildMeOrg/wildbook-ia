@@ -55,6 +55,12 @@ def REGISTER_SQLITE3_TYPES():
         out.close()
         return arr
 
+    def _read_bool(b):
+        return None if b is None else bool(b)
+
+    def _write_bool(b):
+        return b
+
     if six.PY2:
         def _write_numpy_to_sqlite3(arr):
             out = io.BytesIO()
@@ -134,11 +140,19 @@ def REGISTER_SQLITE3_TYPES():
         register_converter('LIST', ut.from_json)
         register_adapter(list, ut.to_json)
 
+    def register_bool():
+        # FIXME: ensure this works
+        if VERBOSE_SQL:
+            print('Register BOOL with SQLite3')
+        register_converter('BOOL', _read_bool)
+        register_adapter(bool, _write_bool)
+
     register_numpy_dtypes()
     register_numpy()
     register_uuid()
     register_dict()
     register_list()
+    # register_bool()  # TODO
 REGISTER_SQLITE3_TYPES()
 
 
@@ -159,6 +173,7 @@ TYPE_TO_SQLTYPE = {
     float: 'REAL',
     int: 'INTEGER',
     str: 'TEXT',
+    # bool: 'BOOL',  # TODO
     bool: 'INTEGER',
     dict: 'DICT',
     list: 'LIST',
