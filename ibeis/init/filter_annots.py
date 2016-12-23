@@ -553,15 +553,19 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
             import uuid
             unique_joinme = uuid.uuid4()
 
-            for count, _ in enumerate(crossval_expansion):
+            for count, aid_pairs in enumerate(crossval_expansion):
                 acfg_out = copy.deepcopy(acfg)
                 acfg_out['qcfg']['crossval_idx'] = count
                 acfg_out['dcfg']['crossval_idx'] = count
+                acfg_out['qcfg']['sample_size'] = len(aid_pairs[0])
+                acfg_out['dcfg']['sample_size'] = len(aid_pairs[1])
                 # FIMXE: needs to be different for all acfgs
                 # out of this sample.
                 if acfg_out['qcfg'].get('joinme', None) is None:
                     acfg_out['qcfg']['joinme'] = unique_joinme
                     acfg_out['dcfg']['joinme'] = unique_joinme
+                # need further hacks to assign sample size correctly
+                # after the crossval hack
                 acfg_combo_out.append(acfg_out)
             expanded_aids_list.extend(crossval_expansion)
 

@@ -176,6 +176,9 @@ __default_aidcfg = DEFAULT_AIDCFG
 
 def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommon=[]):
     r"""
+    Idea is to add a third subconfig named `common` that is the intersection of
+    `qcfg` and `dcfg`.
+
     Args:
         acfg (dict):
 

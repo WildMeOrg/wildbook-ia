@@ -748,16 +748,28 @@ class TestResult(ut.NiceRepr):
             >>> # SLOW_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST',
-            >>>                                     t='default:K=[1,2]',
-            >>>                                     a='timectrl:qsize=[1,2],dsize=3')
-            >>> varied_lbls = testres.get_varied_labels()
-            >>> result = ('varied_lbls = %r' % (varied_lbls,))
+            >>> # ibs, testres = ibeis.testdata_expts(
+            >>> #     'PZ_MTEST', t='default:K=[1,2]',
+            >>> #     a=['timectrl:qsize=[1,2],dsize=3']
+            >>> # )
+            >>> ibs, testres = ibeis.testdata_expts(
+            >>>     'WWF_Lynx_Copy', t='default:K=1',
+            >>>     a=[
+            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+            >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
+            >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=2',
+            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+            >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+            >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=2',
+            >>>       ]
+            >>> )
+            >>> varied_lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
+            >>> result = ('varied_lbls = %s' % (ut.repr2(varied_lbls, nl=2),))
             >>> print(result)
+
             varied_lbls = [u'K=1+qsize=1', u'K=2+qsize=1', u'K=1+qsize=2', u'K=2+qsize=2']
         """
         from ibeis.expt import annotation_configs
-
         varied_acfgs = annotation_configs.get_varied_acfg_labels(
             testres.cfgx2_acfg, checkname=True)
         #print('testres.cfgx2_acfg = %s' % (ut.repr3(testres.cfgx2_acfg),))

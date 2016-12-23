@@ -376,7 +376,9 @@ per_annotation_accuracy = (
             e='rank_cmc',
             db=db, a=a, t=t, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
-        _ = testres.draw_func(cdfzoom=True, draw_icon=True)
+        _ = testres.draw_func(cdfzoom=True, draw_icon=True, labelsize=40,
+                              ticksize=30, figtitlesize=30, legendsize=30,
+                              linewidth=5, markersize=40)
         fix_figsize()
         # ENDBLOCK
         '''
