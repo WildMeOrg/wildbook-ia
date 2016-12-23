@@ -334,6 +334,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ticksize = kwargs.get('ticksize', None)
     tick_fontprop = mpl.font_manager.FontProperties(family=family,
                                                     weight=weight)
+    print('ticksize = %r' % (ticksize,))
 
     if ticksize is not None:
         for label in ax.get_xticklabels():
@@ -466,7 +467,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
                 weight=weight,
                 size=legendsize)
         }
-
         df2.legend(loc=legend_loc, **legendkw)
 
     figtitle = kwargs.get('figtitle', None)
