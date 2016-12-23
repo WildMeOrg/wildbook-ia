@@ -1022,10 +1022,13 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=xpad,
         kind=kind,
+        figtitle=figtitle,
         #xpad=.05,
         #**FONTKW
     )
     cumhistkw.update(kwargs)
+
+    # if not twoplots:
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
@@ -1038,6 +1041,8 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         pnum=pnum_(), **cumhistkw)
 
     if twoplots:
+        del cumhistkw['figtitle']
+        # = figtitle
         numranks2 = len(cfgx2_cumhist_percent.T)
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
@@ -1049,13 +1054,6 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         #pt.zoom_effect01(ax1, ax2, 1, numranks2, fc='w')
         #pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
         pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
-    #pt.set_figtitle(figtitle, size=14)
-    family = kwargs.get('fontfamily', 'DejaVu Sans')
-    # family = kwargs.get('fontfamily', 'Arial')
-    fontsize = kwargs.get('figtitlesize')
-    print('kwargs = %r' % (kwargs,))
-    print('family = %r' % (family,))
-    pt.set_figtitle(figtitle, size=fontsize, fontfamily=family)
 
     icon = ibs.get_database_icon()
     # print('draw_icon = %r' % (draw_icon,))
