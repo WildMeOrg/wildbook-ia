@@ -6,7 +6,7 @@ import utool as ut
 # import os
 
 target = 'dev_combo'
-base = 'master'
+master = 'master'
 
 mixins = [
     'multiclass_mcc',
@@ -16,14 +16,21 @@ mixins = [
 ]
 
 # dpath = os.getcwd()
-dpath = ut.truepath('~/code/sklearn')
+dpath = ut.truepath('~/code/scikit-learn')
 utrepo = ut.Repo(dpath=dpath)
 
 gitrepo = utrepo.as_gitpython()
 
 # Checkout master, ensure its up to date, and recreate the combo branch
-utrepo.issue('git checkout ' + base)
+utrepo.issue('git checkout ' + master)
 utrepo.issue('git pull')
+utrepo.issue('git fetch --all')
+
+for branch in mixins:
+    utrepo.issue('git checkout ' + branch)
+    # utrepo.reset_branch_to_remote(branch)
+    utrepo.issue('git pull')
+
 if target in utrepo.branches:
     utrepo.issue('git branch -D ' + target)
 utrepo.issue('git checkout -b ' + target)
