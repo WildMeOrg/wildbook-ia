@@ -736,7 +736,7 @@ class TestResult(ut.NiceRepr):
             cfg_lbls = group_lbls
         return cfg_lbls
 
-    def get_varied_labels(testres, shorten=False, join_acfgs=False, sep=' '):
+    def get_varied_labels(testres, shorten=False, join_acfgs=False, sep=''):
         """
         Returns labels indicating only the parameters that have been varied between
         different annot/pipeline configurations.
@@ -782,13 +782,6 @@ class TestResult(ut.NiceRepr):
         #varied_acfgs = ut.get_varied_cfg_lbls(testres.cfgx2_acfg, checkname=True)
         name_sep = ':'
         cfg_sep = '+'
-        def combo_lbls(lbla, lblp):
-            parts = []
-            if lbla != name_sep and lbla:
-                parts.append(lbla)
-            if lblp != name_sep and lblp:
-                parts.append(lblp)
-            return (sep + cfg_sep).join(parts)
 
         if join_acfgs:
             # Hack for the grouped config problem
@@ -850,6 +843,14 @@ class TestResult(ut.NiceRepr):
                 new_varied_acfgs.append(new_lbl)
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
             varied_acfgs = new_varied_acfgs
+
+        def combo_lbls(lbla, lblp):
+            parts = []
+            if lbla != name_sep and lbla:
+                parts.append(lbla)
+            if lblp != name_sep and lblp:
+                parts.append(lblp)
+            return (sep + cfg_sep).join(parts)
 
         varied_lbls = [combo_lbls(lbla, lblp) for lblp, lbla in zip(varied_acfgs, varied_pcfgs)]
         if shorten:
