@@ -608,6 +608,8 @@ class TestResult(ut.NiceRepr):
             ('bar_l2_on=True', 'dist'),
             ('bar_l2_on=False,?', ''),
 
+            ('joinme=\d+,?', ''),
+
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
             ('affine_invariance', 'AI'),
@@ -807,9 +809,9 @@ class TestResult(ut.NiceRepr):
                     import pandas as pd
                     intern_variations = pd.DataFrame.from_dict(internal_cfgs).to_dict(orient='list')
                     if 'dsize' in intern_variations:
-                        new_acfg['µdsize'] = np.sum(intern_variations['dsize'])
+                        new_acfg['µ-dsize'] = np.sum(intern_variations['dsize'])
                     if 'qsize' in intern_variations:
-                        new_acfg['Σqsize'] = np.sum(intern_variations['qsize'])
+                        new_acfg['Σ-qsize'] = np.sum(intern_variations['qsize'])
                     if 'view' in intern_variations:
                         new_acfg['views'] = '&'.join(set(intern_variations['view']))
                     if 'crossval_idx' in intern_variations:
