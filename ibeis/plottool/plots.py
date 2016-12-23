@@ -544,10 +544,13 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         marker_list = df2.distinct_markers(num_cdfs)
     if len(x_data) > 256:
         marker_list = [None] * num_cdfs
-    if len(x_data) <= 10:
-        markersize = 12
+    if kwargs.get('markersize', None) is not None:
+        markersize = kwargs['markersize']
     else:
-        markersize = 7
+        if len(x_data) <= 10:
+            markersize = 12
+        else:
+            markersize = 7
 
     multi_kw = dict(
         linewidth=2, markeredgewidth=2, linestyle='-', markersize=markersize,
