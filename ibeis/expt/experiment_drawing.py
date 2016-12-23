@@ -957,7 +957,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     label_list = [
         ('%6.2f%%' % (percent,)) + ' - ' + label
-        for percent, label in cfglbl_to_score.items()]
+        for label, percent in cfglbl_to_score.items()]
 
     cmap_seed = ut.get_argval('--prefix', type_=str, default=None)
     color_list = pt.distinct_colors(len(label_list), cmap_seed=cmap_seed)
