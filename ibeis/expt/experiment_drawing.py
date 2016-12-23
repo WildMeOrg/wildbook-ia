@@ -882,7 +882,7 @@ def temp_multidb_cmc():
 
 def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
                   group_queries=False, draw_icon=True,
-                  numranks=5, kind='cmc', cdfzoom=False, **kwargs):
+                  numranks=5, kind='cmc', cdfzoom=True, **kwargs):
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
@@ -895,7 +895,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     CommandLine:
         python -m ibeis draw_rank_cmc
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t default --kind=cmc
 
         python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
         python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
@@ -1050,7 +1050,12 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         #pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
         pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
     #pt.set_figtitle(figtitle, size=14)
-    pt.set_figtitle(figtitle, size=kwargs.get('figtitlesize'), fontfamily='DejaVu Sans')
+    family = kwargs.get('fontfamily', 'DejaVu Sans')
+    # family = kwargs.get('fontfamily', 'Arial')
+    fontsize = kwargs.get('figtitlesize')
+    print('kwargs = %r' % (kwargs,))
+    print('family = %r' % (family,))
+    pt.set_figtitle(figtitle, size=fontsize, fontfamily=family)
 
     icon = ibs.get_database_icon()
     # print('draw_icon = %r' % (draw_icon,))
