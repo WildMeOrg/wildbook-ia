@@ -830,7 +830,7 @@ class TestResult(ut.NiceRepr):
                             new_acfg['folds'] = len(intern_variations['crossval_idx'])
                         else:
                             op, pref, suff = op_prefixes[mode]
-                            new_acfg[pref + key + suff] = op(vals)
+                            new_acfg[pref + key + suff] = ut.repr2(op(vals), precision=2)
                     # if 'dsize' in intern_variations:
                     #     new_acfg['µ-dsize'] = np.sum(intern_variations['dsize'])
                     # if 'qsize' in intern_variations:
