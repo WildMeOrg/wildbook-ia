@@ -743,6 +743,7 @@ class TestResult(ut.NiceRepr):
         CommandLine:
             python -m ibeis --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
             python -m ibeis --tf TestResult.make_figtitle
+            python -m ibeis TestResult.get_varied_labels
 
         Example:
             >>> # SLOW_DOCTEST
@@ -764,7 +765,7 @@ class TestResult(ut.NiceRepr):
             >>>       ]
             >>> )
             >>> varied_lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
-            >>> result = ('varied_lbls = %s' % (ut.repr2(varied_lbls, nl=2),))
+            >>> result = ('varied_lbls = %s' % (ut.list_str(varied_lbls, strvals=True, nl=2),))
             >>> print(result)
 
             varied_lbls = [u'K=1+qsize=1', u'K=2+qsize=1', u'K=1+qsize=2', u'K=2+qsize=2']
