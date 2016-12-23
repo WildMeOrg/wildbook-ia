@@ -761,10 +761,10 @@ class TestResult(ut.NiceRepr):
             >>>     a=[
             >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
             >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
-            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
+            >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
             >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
             >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
-            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
+            >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
             >>>       ]
             >>> )
             >>> varied_lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
@@ -820,6 +820,8 @@ class TestResult(ut.NiceRepr):
                         'view': 'set',
                     }
                     for key in intern_variations.keys():
+                        if key.startswith('_'):
+                            continue
                         mode = known_modes.get(key, None)
                         vals = intern_variations[key]
                         if mode is None:
