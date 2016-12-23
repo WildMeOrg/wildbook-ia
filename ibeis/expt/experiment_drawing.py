@@ -1050,7 +1050,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         #pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
         pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
     #pt.set_figtitle(figtitle, size=14)
-    pt.set_figtitle(figtitle)
+    pt.set_figtitle(figtitle, size=kwargs.get('figtitlesize'))
 
     icon = ibs.get_database_icon()
     # print('draw_icon = %r' % (draw_icon,))
