@@ -736,7 +736,7 @@ class TestResult(ut.NiceRepr):
             cfg_lbls = group_lbls
         return cfg_lbls
 
-    def get_varied_labels(testres, shorten=False, join_acfgs=False):
+    def get_varied_labels(testres, shorten=False, join_acfgs=False, sep=''):
         """
         Returns labels indicating only the parameters that have been varied between
         different annot/pipeline configurations.
@@ -786,7 +786,7 @@ class TestResult(ut.NiceRepr):
                 parts.append(lbla)
             if lblp != ':' and lblp:
                 parts.append(lblp)
-            return '+'.join(parts)
+            return (sep + '+' + sep).join(parts)
 
         if join_acfgs:
             # Hack for the grouped config problem
@@ -795,7 +795,7 @@ class TestResult(ut.NiceRepr):
             grouped_acfgs = ut.apply_grouping(varied_acfgs, groupxs)
             grouped_pcfgs = ut.apply_grouping(varied_pcfgs, groupxs)
             for group in grouped_acfgs:
-                group = [p if ':' in p else ':' + p for p in group]
+                group = [p if ':' in p else (sep + ':' + sep) + p for p in group]
                 # Re-parse given back into dictionary form
                 cfgdicts_ = cfghelpers.parse_cfgstr_list2(group, strict=False)
                 # I forget why these are stored in a 2d-list

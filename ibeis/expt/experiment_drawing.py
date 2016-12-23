@@ -948,7 +948,8 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         bins='dense', key=key, join_acfgs=join_acfgs)
 
     #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
-    label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs)
+    label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs,
+                                           sep=kwargs.get('sep', ''))
     #label_list = [l1 + l2 for l1, l2 in zip(label_list, label_list2)]
 
     label_list = [
@@ -1022,7 +1023,8 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=xpad,
         kind=kind,
-        figtitle=figtitle,
+        title=figtitle,
+        # figtitle=figtitle,
         #xpad=.05,
         #**FONTKW
     )
@@ -1041,8 +1043,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         pnum=pnum_(), **cumhistkw)
 
     if twoplots:
-        del cumhistkw['figtitle']
-        # = figtitle
+        del cumhistkw['title']
         numranks2 = len(cfgx2_cumhist_percent.T)
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
@@ -1074,7 +1075,6 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     if ut.get_argflag('--contextadjust') or True:
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
         pt.adjust_subplots(use_argv=True)
-    #pt.set_figtitle(figtitle, size=10)
 
 
 @profile
