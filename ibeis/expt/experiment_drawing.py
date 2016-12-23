@@ -882,7 +882,7 @@ def temp_multidb_cmc():
 
 def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
                   group_queries=False, draw_icon=True,
-                  numranks=5, kind='cmc', cdfzoom=False):
+                  numranks=5, kind='cmc', cdfzoom=False, **kwargs):
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
@@ -1025,6 +1025,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         #xpad=.05,
         #**FONTKW
     )
+    cumhistkw.update(kwargs)
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
