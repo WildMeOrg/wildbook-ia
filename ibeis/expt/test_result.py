@@ -736,7 +736,7 @@ class TestResult(ut.NiceRepr):
             cfg_lbls = group_lbls
         return cfg_lbls
 
-    def get_varied_labels(testres, shorten=False, join_acfgs=False, sep=''):
+    def get_varied_labels(testres, shorten=False, join_acfgs=False, sep=' '):
         """
         Returns labels indicating only the parameters that have been varied between
         different annot/pipeline configurations.
@@ -752,21 +752,21 @@ class TestResult(ut.NiceRepr):
             >>> # SLOW_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> # ibs, testres = ibeis.testdata_expts(
-            >>> #     'PZ_MTEST', t='default:K=[1,2]',
-            >>> #     a=['timectrl:qsize=[1,2],dsize=3']
-            >>> # )
             >>> ibs, testres = ibeis.testdata_expts(
-            >>>     'WWF_Lynx_Copy', t='default:K=1',
-            >>>     a=[
-            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
-            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
-            >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
-            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
-            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
-            >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
-            >>>       ]
+            >>>     'PZ_MTEST', t='default:K=[1,2]',
+            >>>     a=['timectrl:qsize=[1,2],dsize=[3,4],is_known=[True,None]']
             >>> )
+            >>> # >>> ibs, testres = ibeis.testdata_expts(
+            >>> # >>>     'WWF_Lynx_Copy', t='default:K=1',
+            >>> # >>>     a=[
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
+            >>> # >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+            >>> # >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
+            >>> # >>>       ]
+            >>> # >>> )
             >>> varied_lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
             >>> result = ('varied_lbls = %s' % (ut.list_str(varied_lbls, strvals=True, nl=2),))
             >>> print(result)
@@ -780,13 +780,15 @@ class TestResult(ut.NiceRepr):
         varied_pcfgs = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg, checkname=True)
         # print('varied_pcfgs = %r' % (varied_pcfgs,))
         #varied_acfgs = ut.get_varied_cfg_lbls(testres.cfgx2_acfg, checkname=True)
+        name_sep = ':'
+        cfg_sep = '+'
         def combo_lbls(lbla, lblp):
             parts = []
-            if lbla != ':' and lbla:
+            if lbla != name_sep and lbla:
                 parts.append(lbla)
-            if lblp != ':' and lblp:
+            if lblp != name_sep and lblp:
                 parts.append(lblp)
-            return (sep + '+' + sep).join(parts)
+            return (sep + cfg_sep).join(parts)
 
         if join_acfgs:
             # Hack for the grouped config problem
@@ -795,7 +797,7 @@ class TestResult(ut.NiceRepr):
             grouped_acfgs = ut.apply_grouping(varied_acfgs, groupxs)
             grouped_pcfgs = ut.apply_grouping(varied_pcfgs, groupxs)
             for group in grouped_acfgs:
-                group = [p if ':' in p else (sep + ':' + sep) + p for p in group]
+                group = [p if name_sep in p else (sep + name_sep + sep) + p for p in group]
                 # Re-parse given back into dictionary form
                 cfgdicts_ = cfghelpers.parse_cfgstr_list2(group, strict=False)
                 # I forget why these are stored in a 2d-list
@@ -844,7 +846,7 @@ class TestResult(ut.NiceRepr):
                     #     new_acfg['views'] = '&'.join(set(intern_variations['view']))
                     # if 'crossval_idx' in intern_variations:
                     #     new_acfg['folds'] = len(intern_variations['crossval_idx'])
-                new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False)
+                new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False, sep=sep)
                 new_varied_acfgs.append(new_lbl)
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
             varied_acfgs = new_varied_acfgs
