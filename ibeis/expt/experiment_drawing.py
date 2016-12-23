@@ -953,7 +953,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
                                             sep=kwargs.get('sep', ''))
     cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
     cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
-    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strvals=True,
+    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True,
                                          precision=4))
 
     label_list = [
