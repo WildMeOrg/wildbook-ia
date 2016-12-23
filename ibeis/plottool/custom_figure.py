@@ -491,7 +491,8 @@ def set_ylabel(lbl, **kwargs):
     labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
+            # weight='light',
+            size=labelsize)
     }
     ax.set_ylabel(lbl, **labelkw)
     #ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
@@ -520,8 +521,14 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         if fontfamily is not None:
             prop['family'] = fontfamily
         prop['size'] = size
+        # prop['weight'] = 'light'
+        # print('prop = %s' % (prop,))
         fontproperties = mpl.font_manager.FontProperties(**prop)
-        fig.suptitle(figtitle + subtitle, fontproperties=fontproperties, fontsize=size)
+        # print('fontproperties = %r' % (fontproperties.__dict__,))
+        # fig.suptitle(figtitle + subtitle, fontproperties=fontproperties, fontsize=size)
+        sup = fig.suptitle(figtitle + subtitle)
+        sup.set_fontproperties(fontproperties)
+        # , fontproperties=fontproperties, family=fontfamily, fontsize=size)
         #fig_relative_text(.5, .96, subtitle,
         # fontproperties=custom_constants.FONTS.subtitle)
     else:

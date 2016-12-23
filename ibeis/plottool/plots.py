@@ -315,21 +315,25 @@ def multi_plot(xdata, ydata_list, **kwargs):
     legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
 
     # 'DejaVu Sans','Verdana', 'Arial'
-    default_family = 'DejaVu Sans'
-    family = kwargs.get('fontfamily', default_family)
+    family = kwargs.get('fontfamily', 'DejaVu Sans')
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', family=family, size=labelsize)
+            # weight='light',
+            family=family, size=labelsize)
     }
+    print('plotfont ' + repr(labelkw['fontproperties'].__dict__))
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
 
     ticksize = kwargs.get('ticksize', None)
+    tick_fontprop = mpl.font_manager.FontProperties(family=family)
     if ticksize is not None:
         for label in ax.get_xticklabels():
+            label.set_fontproperties(tick_fontprop)
             label.set_fontsize(ticksize)
         for label in ax.get_yticklabels():
+            label.set_fontproperties(tick_fontprop)
             label.set_fontsize(ticksize)
 
     # Setup axes limits
@@ -435,7 +439,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
                 family=family,
-                weight='light', size=titlesize)
+                # weight='light',
+                size=titlesize)
         }
         ax.set_title(title, **titlekw)
 
@@ -447,7 +452,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
             'alpha': legend_alpha,
             'fontproperties': mpl.font_manager.FontProperties(
                 family=family,
-                weight='light', size=legendsize)
+                # weight='light',
+                size=legendsize)
         }
 
         df2.legend(loc=legend_loc, **legendkw)
@@ -1804,6 +1810,8 @@ def plot_search_surface(known_nd_data, known_target_points, nd_labels,
 
         label_fontprop = mpl.font_manager.FontProperties(weight='light', size=8)
         title_fontprop = mpl.font_manager.FontProperties(weight='light', size=10)
+        # label_fontprop = mpl.font_manager.FontProperties(size=8)
+        # title_fontprop = mpl.font_manager.FontProperties(size=10)
         labelkw = dict(labelpad=1000, fontproperties=label_fontprop)
         titlekw = dict(fontproperties=title_fontprop)
 
