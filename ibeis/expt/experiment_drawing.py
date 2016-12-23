@@ -947,14 +947,19 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
         bins='dense', key=key, join_acfgs=join_acfgs)
 
-    #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
+    # Do this twice, but no sep the first time
+    cfglbl_list = testres.get_varied_labels(shorten=True,
+                                            join_acfgs=join_acfgs)
+    cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
+    cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
+    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True,
+                                         precision=4))
+
     cfglbl_list = testres.get_varied_labels(shorten=True,
                                             join_acfgs=join_acfgs,
                                             sep=kwargs.get('sep', ''))
     cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
     cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
-    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True,
-                                         precision=4))
 
     label_list = [
         ('%6.2f%%' % (percent,)) + ' - ' + label
