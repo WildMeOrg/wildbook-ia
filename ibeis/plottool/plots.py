@@ -334,19 +334,18 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ticksize = kwargs.get('ticksize', None)
     tick_fontprop = mpl.font_manager.FontProperties(family=family,
                                                     weight=weight)
-    print('ticksize = %r' % (ticksize,))
-
-    if ticksize is not None:
-        for label in ax.get_xticklabels():
-            label.set_fontsize(ticksize)
-        for label in ax.get_yticklabels():
-            label.set_fontsize(ticksize)
 
     if tick_fontprop is not None:
         for label in ax.get_xticklabels():
             label.set_fontproperties(tick_fontprop)
         for label in ax.get_yticklabels():
             label.set_fontproperties(tick_fontprop)
+
+    if ticksize is not None:
+        for label in ax.get_xticklabels():
+            label.set_fontsize(ticksize)
+        for label in ax.get_yticklabels():
+            label.set_fontsize(ticksize)
 
     # Setup axes limits
     if 'xlim' in kwargs:
