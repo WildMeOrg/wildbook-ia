@@ -958,12 +958,9 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     cfglbl_list = testres.get_varied_labels(shorten=True,
                                             join_acfgs=join_acfgs,
                                             sep=kwargs.get('sep', ''))
-    cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
-    cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
-
     label_list = [
         ('%6.2f%%' % (percent,)) + ' - ' + label
-        for label, percent in cfglbl_to_score.items()]
+        for label, percent in zip(cfglbl_list, cfgx2_cumhist_percent.T[0])]
 
     cmap_seed = ut.get_argval('--prefix', type_=str, default=None)
     color_list = pt.distinct_colors(len(label_list), cmap_seed=cmap_seed)
