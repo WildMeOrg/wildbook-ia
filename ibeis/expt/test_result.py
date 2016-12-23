@@ -762,7 +762,7 @@ class TestResult(ut.NiceRepr):
             testres.cfgx2_acfg, checkname=True)
         #print('testres.cfgx2_acfg = %s' % (ut.repr3(testres.cfgx2_acfg),))
         varied_pcfgs = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg, checkname=True)
-        print('varied_pcfgs = %r' % (varied_pcfgs,))
+        # print('varied_pcfgs = %r' % (varied_pcfgs,))
         #varied_acfgs = ut.get_varied_cfg_lbls(testres.cfgx2_acfg, checkname=True)
         def combo_lbls(lbla, lblp):
             parts = []
