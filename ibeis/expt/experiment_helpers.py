@@ -326,10 +326,9 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
                     ut.dict_str(nonvaried_compressed_dict),))
                 print('L__')
 
-        print('[harn.help] parsed %d / %d unique annot configs')
+        print('[harn.help] parsed %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list),))
         if verbose > 2:
-            print('[harn.help] parsed from: %r' % (
-                len(acfg_list_), len(acfg_list), acfg_name_list))
+            print('[harn.help] parsed from: %r' % (acfg_name_list,))
     return expanded_aids_list_, acfg_list_
 
 

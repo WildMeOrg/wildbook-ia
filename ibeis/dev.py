@@ -1,7 +1,9 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 DEV SCRIPT
+
+TODO: DEPRICATE
 
 This is a hacky script meant to be run mostly automatically with the option of
 interactions.
