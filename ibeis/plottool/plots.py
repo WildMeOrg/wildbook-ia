@@ -315,19 +315,25 @@ def multi_plot(xdata, ydata_list, **kwargs):
     legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
 
     # 'DejaVu Sans','Verdana', 'Arial'
-    family = kwargs.get('fontfamily', 'DejaVu Sans')
+    family = kwargs.get('fontfamily', None)
+    weight = kwargs.get('fontweight', None)
+    if weight is None:
+        weight = 'light'
+    if family is None:
+        family = 'DejaVu Sans'
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            # weight='light',
+            weight=weight,
             family=family, size=labelsize)
     }
-    print('plotfont ' + repr(labelkw['fontproperties'].__dict__))
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
 
     ticksize = kwargs.get('ticksize', None)
-    tick_fontprop = mpl.font_manager.FontProperties(family=family)
+    tick_fontprop = mpl.font_manager.FontProperties(family=family,
+                                                    weight=weight)
+
     if ticksize is not None:
         for label in ax.get_xticklabels():
             label.set_fontproperties(tick_fontprop)
@@ -439,7 +445,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
                 family=family,
-                # weight='light',
+                weight=weight,
                 size=titlesize)
         }
         ax.set_title(title, **titlekw)
@@ -452,7 +458,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
             'alpha': legend_alpha,
             'fontproperties': mpl.font_manager.FontProperties(
                 family=family,
-                # weight='light',
+                weight=weight,
                 size=legendsize)
         }
 
