@@ -948,15 +948,16 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         bins='dense', key=key, join_acfgs=join_acfgs)
 
     #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
-    label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs,
-                                           sep=kwargs.get('sep', ''))
-    #label_list = [l1 + l2 for l1, l2 in zip(label_list, label_list2)]
+    cfglbl_list = testres.get_varied_labels(shorten=True,
+                                            join_acfgs=join_acfgs,
+                                            sep=kwargs.get('sep', ''))
+    cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
+    cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
+    print(ut.repr4(cfglbl_to_score, strvals=True, precision=4))
 
     label_list = [
-        ('%6.2f%%' % (percent,)) +
-        #ut.scalar_str(percent, precision=2)
-        ' - ' + label
-        for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
+        ('%6.2f%%' % (percent,)) + ' - ' + label
+        for percent, label in cfglbl_to_score.items()]
 
     cmap_seed = ut.get_argval('--prefix', type_=str, default=None)
     color_list = pt.distinct_colors(len(label_list), cmap_seed=cmap_seed)
