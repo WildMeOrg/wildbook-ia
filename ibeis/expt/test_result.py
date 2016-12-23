@@ -754,7 +754,13 @@ class TestResult(ut.NiceRepr):
             >>> import ibeis
             >>> ibs, testres = ibeis.testdata_expts(
             >>>     'PZ_MTEST', t='default:K=[1,2]',
-            >>>     a=['timectrl:qsize=[1,2],dsize=[3,4],is_known=[True,None]']
+            >>>     #a=['timectrl:qsize=[1,2],dsize=[3,4]']
+            >>>     a=[
+            >>>        'default:qsize=[1,2],dsize=2,joinme=1,view=left',
+            >>>        'default:qsize=2,dsize=3,joinme=1,view=primary',
+            >>>        'default:qsize=[3,2],dsize=4,joinme=2,view=left',
+            >>>        'default:qsize=4,dsize=5,joinme=2,view=primary',
+            >>>       ]
             >>> )
             >>> # >>> ibs, testres = ibeis.testdata_expts(
             >>> # >>>     'WWF_Lynx_Copy', t='default:K=1',
@@ -767,7 +773,7 @@ class TestResult(ut.NiceRepr):
             >>> # >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
             >>> # >>>       ]
             >>> # >>> )
-            >>> varied_lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
+            >>> varied_lbls = testres.get_varied_labels(shorten=False, join_acfgs=True)
             >>> result = ('varied_lbls = %s' % (ut.list_str(varied_lbls, strvals=True, nl=2),))
             >>> print(result)
 
@@ -776,9 +782,9 @@ class TestResult(ut.NiceRepr):
         from ibeis.expt import annotation_configs
         varied_acfgs = annotation_configs.get_varied_acfg_labels(
             testres.cfgx2_acfg, checkname=True)
-        #print('testres.cfgx2_acfg = %s' % (ut.repr3(testres.cfgx2_acfg),))
+        # print('varied_acfgs = %s' % (ut.repr2(varied_acfgs, nl=2),))
+        # print('testres.cfgx2_acfg = %s' % (ut.repr3(testres.cfgx2_acfg),))
         varied_pcfgs = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg, checkname=True)
-        # print('varied_pcfgs = %r' % (varied_pcfgs,))
         #varied_acfgs = ut.get_varied_cfg_lbls(testres.cfgx2_acfg, checkname=True)
         name_sep = ':'
         cfg_sep = '+'
@@ -839,10 +845,19 @@ class TestResult(ut.NiceRepr):
                     #     new_acfg['views'] = '&'.join(set(intern_variations['view']))
                     # if 'crossval_idx' in intern_variations:
                     #     new_acfg['folds'] = len(intern_variations['crossval_idx'])
-                new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False, sep=sep)
-                new_varied_acfgs.append(new_lbl)
+                new_varied_acfgs.append(new_acfg)
+
+            # Do one more dup check to remove the duplicate summaries
+            common_new_acfg = ut.partition_varied_cfg_list(new_varied_acfgs)[0]
+            for key in common_new_acfg.keys():
+                if not key.startswith('_'):
+                    for new_acfg in new_varied_acfgs:
+                        del new_acfg[key]
+            # new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False, sep=sep)
+
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
-            varied_acfgs = new_varied_acfgs
+            varied_acfgs = [ut.get_cfg_lbl(new_acfg_, with_name=False, sep=sep)
+                            for new_acfg_ in new_varied_acfgs]
 
         def combo_lbls(lbla, lblp):
             parts = []
