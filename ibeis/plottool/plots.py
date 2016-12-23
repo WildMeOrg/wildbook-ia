@@ -337,10 +337,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     if ticksize is not None:
         for label in ax.get_xticklabels():
-            label.set_fontproperties(tick_fontprop)
             label.set_fontsize(ticksize)
         for label in ax.get_yticklabels():
-            label.set_fontproperties(tick_fontprop)
             label.set_fontsize(ticksize)
 
     if tick_fontprop is not None:
