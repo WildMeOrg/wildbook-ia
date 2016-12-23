@@ -811,7 +811,7 @@ class TestResult(ut.NiceRepr):
                     if 'qsize' in intern_variations:
                         new_acfg['Σqsize'] = np.sum(intern_variations['qsize'])
                     if 'view' in intern_variations:
-                        new_acfg['views'] = '^'.join(set(intern_variations['view']))
+                        new_acfg['views'] = '&'.join(set(intern_variations['view']))
                     if 'crossval_idx' in intern_variations:
                         new_acfg['folds'] = len(intern_variations['crossval_idx'])
                 new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False)
