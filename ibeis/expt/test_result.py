@@ -790,7 +790,7 @@ class TestResult(ut.NiceRepr):
             grouped_acfgs = ut.apply_grouping(varied_acfgs, groupxs)
             grouped_pcfgs = ut.apply_grouping(varied_pcfgs, groupxs)
             for group in grouped_acfgs:
-                group = [p if name_sep in p else (sep + name_sep + sep) + p for p in group]
+                group = [p if name_sep in p else name_sep + p for p in group]
                 # Re-parse given back into dictionary form
                 cfgdicts_ = cfghelpers.parse_cfgstr_list2(group, strict=False)
                 # I forget why these are stored in a 2d-list
