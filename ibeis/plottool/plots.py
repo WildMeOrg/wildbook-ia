@@ -298,9 +298,12 @@ def multi_plot(xdata, ydata_list, **kwargs):
     title      = kwargs.get('title', None)
     xlabel     = kwargs.get('xlabel', '')
     ylabel     = kwargs.get('ylabel', '')
-    xlabel = ut.ensure_unicode(xlabel)
-    ylabel = ut.ensure_unicode(ylabel)
-    title = ut.ensure_unicode(title)
+    def none_or_unicode(text):
+        return None if text is None else ut.ensure_unicode(text)
+
+    xlabel = none_or_unicode(xlabel)
+    ylabel = none_or_unicode(ylabel)
+    title = none_or_unicode(title)
 
     # Font sizes
     #titlesize  = kwargs.get('titlesize',  12)
