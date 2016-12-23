@@ -498,7 +498,7 @@ def set_ylabel(lbl, **kwargs):
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
-                 size=None, font=None, family=None):
+                 size=None, font=None, fontfamily=None):
     if size is None:
         size = FIGTITLE_SIZE
     if font is not None:
@@ -517,8 +517,8 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         #fontproperties = mpl.font_manager.FontProperties(weight='light',
         #                                                 size=size)
         prop = {}
-        if family is not None:
-            prop['family'] = family
+        if fontfamily is not None:
+            prop['family'] = fontfamily
         prop['size'] = size
         fontproperties = mpl.font_manager.FontProperties(**prop)
         fig.suptitle(figtitle + subtitle, fontproperties=fontproperties, fontsize=size)
