@@ -347,6 +347,10 @@ def multi_plot(xdata, ydata_list, **kwargs):
         for label in ax.get_yticklabels():
             label.set_fontsize(ticksize)
 
+    # TODO: control tick length/width
+    # ax.xaxis.set_tick_params(width=2, length=5)
+    # ax.yaxis.set_tick_params(width=2, length=5)
+
     # Setup axes limits
     if 'xlim' in kwargs:
         xlim = kwargs['xlim']
