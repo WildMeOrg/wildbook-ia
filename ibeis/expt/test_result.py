@@ -761,10 +761,10 @@ class TestResult(ut.NiceRepr):
             >>>     a=[
             >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
             >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
-            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=2',
+            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
             >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
             >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
-            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=2',
+            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
             >>>       ]
             >>> )
             >>> varied_lbls = testres.get_varied_labels(shorten=True, join_acfgs=True)
@@ -809,14 +809,34 @@ class TestResult(ut.NiceRepr):
                     internal_cfgs = new_acfgs[1]
                     import pandas as pd
                     intern_variations = pd.DataFrame.from_dict(internal_cfgs).to_dict(orient='list')
-                    if 'dsize' in intern_variations:
-                        new_acfg['µ-dsize'] = np.sum(intern_variations['dsize'])
-                    if 'qsize' in intern_variations:
-                        new_acfg['Σ-qsize'] = np.sum(intern_variations['qsize'])
-                    if 'view' in intern_variations:
-                        new_acfg['views'] = '&'.join(set(intern_variations['view']))
-                    if 'crossval_idx' in intern_variations:
-                        new_acfg['folds'] = len(intern_variations['crossval_idx'])
+                    op_prefixes = {
+                        'sum': (np.sum, 'Σ-', ''),
+                        'mean': (np.mean, 'µ-', ''),
+                        'set': (lambda x: '&'.join(set(map(six.text_type, x))), '', 's'),
+                    }
+                    known_modes = {
+                        'dsize': 'mean',
+                        'qsize': 'sum',
+                        'view': 'set',
+                    }
+                    for key in intern_variations.keys():
+                        mode = known_modes.get(key, None)
+                        vals = intern_variations[key]
+                        if mode is None:
+                            mode = 'set'
+                        if key == 'crossval_idx':
+                            new_acfg['folds'] = len(intern_variations['crossval_idx'])
+                        else:
+                            op, pref, suff = op_prefixes[mode]
+                            new_acfg[pref + key + suff] = op(vals)
+                    # if 'dsize' in intern_variations:
+                    #     new_acfg['µ-dsize'] = np.sum(intern_variations['dsize'])
+                    # if 'qsize' in intern_variations:
+                    #     new_acfg['Σ-qsize'] = np.sum(intern_variations['qsize'])
+                    # if 'view' in intern_variations:
+                    #     new_acfg['views'] = '&'.join(set(intern_variations['view']))
+                    # if 'crossval_idx' in intern_variations:
+                    #     new_acfg['folds'] = len(intern_variations['crossval_idx'])
                 new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False)
                 new_varied_acfgs.append(new_lbl)
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
