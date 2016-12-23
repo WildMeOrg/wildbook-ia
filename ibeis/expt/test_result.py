@@ -809,6 +809,7 @@ class TestResult(ut.NiceRepr):
                     internal_cfgs = new_acfgs[1]
                     import pandas as pd
                     intern_variations = pd.DataFrame.from_dict(internal_cfgs).to_dict(orient='list')
+
                     op_prefixes = {
                         'sum': (np.sum, 'Σ-', ''),
                         'mean': (np.mean, 'µ-', ''),
