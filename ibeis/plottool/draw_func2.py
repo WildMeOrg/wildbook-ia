@@ -2215,9 +2215,11 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1):
     ax = gca()
     if fontproperties is None:
         fontproperties = custom_constants.FONTS.legend
-    prop = {}
-    if size is not None:
-        prop['size'] = size
+        prop = {}
+        if size is not None:
+            prop['size'] = size
+    else:
+        prop = fontproperties
     legend = ax.legend(loc=loc, prop=prop)
     legend.get_frame().set_fc(fc)
     legend.get_frame().set_alpha(alpha)

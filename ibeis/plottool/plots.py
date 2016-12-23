@@ -27,6 +27,32 @@ def is_default_dark_bg():
     return not lightbg
 
 
+def demo_fonts():
+    r"""
+    CommandLine:
+        python -m plottool.plots demo_fonts --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> demo_fonts()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.present()
+        >>> ut.show_if_requested()
+    """
+    xdata = [1, 2, 3, 4, 5]
+    ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
+    kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
+    f = ['DejaVu Sans', 'Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
+         'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+    f = ['DejaVu Sans', 'Verdana', 'Arial']
+    for count, family in enumerate(f):
+        multi_plot(xdata, ydata_list, title=family + ' ΣΣΣµµµ',
+                   xlabel='\nfdsΣΣΣµµµ', fontfamily=family, fnum=count,
+                   **kwargs)
+
+
 def multi_plot(xdata, ydata_list, **kwargs):
     r"""
     plots multiple lines, bars, etc...
@@ -58,8 +84,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
         >>> from plottool.plots import *  # NOQA
         >>> xdata = [1, 2, 3, 4, 5]
         >>> ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
-        >>> kwargs = {'label_list': ['spam', 'eggs', 'jam', 'pram'],  'linestyle': '-'}
-        >>> fig = multi_plot(xdata, ydata_list, title='$\phi_1(\\vec{x})$', xlabel='\nfds', **kwargs)
+        >>> kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
+        >>> #fig = multi_plot(xdata, ydata_list, title='$\phi_1(\\vec{x})$', xlabel='\nfds', **kwargs)
+        >>> fig = multi_plot(xdata, ydata_list, title='ΣΣΣµµµ', xlabel='\nfdsΣΣΣµµµ', **kwargs)
         >>> result = ('fig = %s' % (str(fig),))
         >>> print(result)
         >>> ut.show_if_requested()
@@ -284,9 +311,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
     labelsize  = kwargs.get('labelsize',  custom_figure.LABEL_SIZE)
     legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
 
+    # 'DejaVu Sans','Verdana', 'Arial'
+    default_family = 'DejaVu Sans'
+    family = kwargs.get('fontfamily', default_family)
+
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
+            weight='light', family=family, size=labelsize)
     }
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
@@ -400,6 +431,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     if title is not None:
         titlekw = {
             'fontproperties': mpl.font_manager.FontProperties(
+                family=family,
                 weight='light', size=titlesize)
         }
         ax.set_title(title, **titlekw)
@@ -408,7 +440,14 @@ def multi_plot(xdata, ydata_list, **kwargs):
     legend_loc   = kwargs.get('legend_loc', 'best')
     legend_alpha = kwargs.get('legend_alpha', 1.0)
     if use_legend:
-        df2.legend(loc=legend_loc, size=legendsize, alpha=legend_alpha)
+        legendkw = {
+            'alpha': legend_alpha,
+            'fontproperties': mpl.font_manager.FontProperties(
+                family=family,
+                weight='light', size=legendsize)
+        }
+
+        df2.legend(loc=legend_loc, **legendkw)
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     lightbg = kwargs.get('lightbg', None)
