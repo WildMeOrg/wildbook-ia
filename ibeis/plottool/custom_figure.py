@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import exists, splitext, join, split
 import six
 import utool as ut
@@ -506,6 +506,8 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
     if figtitle is None:
         figtitle = ''
     fig = gcf()
+    figtitle = ut.ensure_unicode(figtitle)
+    subtitle = ut.ensure_unicode(subtitle)
     if incanvas:
         if subtitle != '':
             subtitle = '\n' + subtitle

@@ -271,6 +271,9 @@ def multi_plot(xdata, ydata_list, **kwargs):
     title      = kwargs.get('title', None)
     xlabel     = kwargs.get('xlabel', '')
     ylabel     = kwargs.get('ylabel', '')
+    xlabel = ut.ensure_unicode(xlabel)
+    ylabel = ut.ensure_unicode(ylabel)
+    title = ut.ensure_unicode(title)
 
     # Font sizes
     #titlesize  = kwargs.get('titlesize',  12)
@@ -528,6 +531,11 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         >>> plot_rank_cumhist(cdf_list, label_list, edges=edges, fnum=fnum, pnum=pnum)
         >>> ut.show_if_requested()
     """
+    # Remove values of None (those are defaults)
+    for k in list(kwargs.keys()):
+        if kwargs[k] is None:
+            del kwargs[k]
+
     num_cdfs = len(cdf_list)
     num_data = len(cdf_list[0])
     if color_list is None:
@@ -544,7 +552,7 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
         marker_list = df2.distinct_markers(num_cdfs)
     if len(x_data) > 256:
         marker_list = [None] * num_cdfs
-    if kwargs.get('markersize', None) is not None:
+    if 'markersize' in kwargs:
         markersize = kwargs['markersize']
     else:
         if len(x_data) <= 10:
