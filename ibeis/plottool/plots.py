@@ -505,6 +505,8 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
                       edges=None, xlabel='', ylabel='cumfreq', use_legend=True,
                       num_xticks=None, kind='bar', **kwargs):
     r"""
+    Plots CMC curves
+    TODO rename to plot_cmc
 
     CommandLine:
         python -m plottool.plots --test-plot_rank_cumhist --show
@@ -547,14 +549,18 @@ def plot_rank_cumhist(cdf_list, label_list, color_list=None, marker_list=None,
     else:
         markersize = 7
 
+    multi_kw = dict(
+        linewidth=2, markeredgewidth=2, linestyle='-', markersize=markersize,
+        xlabel=xlabel, ylabel=ylabel, num_xticks=num_xticks,
+        use_legend=use_legend,
+    )
+    multi_kw.update(kwargs)
+
     fig = multi_plot(
         x_data, cdf_list,
-        kind=kind,
-        label_list=label_list, color_list=color_list, marker_list=marker_list,
-        markersize=markersize, linewidth=2, markeredgewidth=2, linestyle='-',
-        num_xticks=num_xticks, xlabel=xlabel, ylabel=ylabel,
-        use_legend=use_legend,
-        **kwargs
+        kind=kind, label_list=label_list, color_list=color_list,
+        marker_list=marker_list,
+        **multi_kw
     )
     return fig
 
