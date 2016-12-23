@@ -609,6 +609,7 @@ class TestResult(ut.NiceRepr):
             ('bar_l2_on=False,?', ''),
 
             ('joinme=\d+,?', ''),
+            ('dcrossval_enc', 'denc_per_name')
 
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
