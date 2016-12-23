@@ -318,7 +318,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
     family = kwargs.get('fontfamily', None)
     weight = kwargs.get('fontweight', None)
     if weight is None:
-        weight = 'light'
+        # weight = 'light'
+        weight = 'normal'
     if family is None:
         family = 'DejaVu Sans'
 
