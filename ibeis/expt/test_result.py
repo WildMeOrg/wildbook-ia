@@ -756,10 +756,10 @@ class TestResult(ut.NiceRepr):
             >>>     'WWF_Lynx_Copy', t='default:K=1',
             >>>     a=[
             >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
-            >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
+            >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
             >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=2',
             >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
-            >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+            >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
             >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=2',
             >>>       ]
             >>> )
@@ -790,10 +790,29 @@ class TestResult(ut.NiceRepr):
             groupxs = testres.get_cfgx_groupxs()
             grouped_acfgs = ut.apply_grouping(varied_acfgs, groupxs)
             grouped_pcfgs = ut.apply_grouping(varied_pcfgs, groupxs)
-            for part in grouped_acfgs:
-                part = [p if ':' in p else ':' + p for p in part]
-                cfgdict = cfghelpers.parse_cfgstr_list2(part, strict=False)[0][0]
-                new_acfg = ut.partition_varied_cfg_list([cfgdict])[0]
+            for group in grouped_acfgs:
+                group = [p if ':' in p else ':' + p for p in group]
+                # Re-parse given back into dictionary form
+                cfgdicts_ = cfghelpers.parse_cfgstr_list2(group, strict=False)
+                # I forget why these are stored in a 2d-list
+                cfgdicts = ut.take_column(cfgdicts_, 0)
+                new_acfgs = ut.partition_varied_cfg_list(cfgdicts)
+                # Hack, just taking the first one that has agreement between
+                # joinme / crossvalidation runs
+                new_acfg = new_acfgs[0]
+                if True:
+                    # look at internal variance within xval runs
+                    internal_cfgs = new_acfgs[1]
+                    import pandas as pd
+                    intern_variations = pd.DataFrame.from_dict(internal_cfgs).to_dict(orient='list')
+                    if 'dsize' in intern_variations:
+                        new_acfg['µdsize'] = np.sum(intern_variations['dsize'])
+                    if 'qsize' in intern_variations:
+                        new_acfg['Σqsize'] = np.sum(intern_variations['qsize'])
+                    if 'view' in intern_variations:
+                        new_acfg['views'] = '^'.join(set(intern_variations['view']))
+                    if 'crossval_idx' in intern_variations:
+                        new_acfg['folds'] = len(intern_variations['crossval_idx'])
                 new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False)
                 new_varied_acfgs.append(new_lbl)
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
