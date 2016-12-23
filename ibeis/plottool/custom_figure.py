@@ -518,10 +518,12 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
         #fontproperties = mpl.font_manager.FontProperties(weight='light',
         #                                                 size=size)
         prop = {}
-        if fontfamily is not None:
-            prop['family'] = fontfamily
-        if fontweight is not None:
-            prop['weight'] = fontweight
+        if fontfamily is None:
+            fontfamily = 'DejaVu Sans'
+        if fontweight is None:
+            fontweight = 'light'
+        prop['family'] = fontfamily
+        prop['weight'] = fontweight
         prop['size'] = size
         # print('prop = %s' % (prop,))
         fontproperties = mpl.font_manager.FontProperties(**prop)

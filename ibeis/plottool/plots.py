@@ -342,6 +342,12 @@ def multi_plot(xdata, ydata_list, **kwargs):
             label.set_fontproperties(tick_fontprop)
             label.set_fontsize(ticksize)
 
+    if tick_fontprop is not None:
+        for label in ax.get_xticklabels():
+            label.set_fontproperties(tick_fontprop)
+        for label in ax.get_yticklabels():
+            label.set_fontproperties(tick_fontprop)
+
     # Setup axes limits
     if 'xlim' in kwargs:
         xlim = kwargs['xlim']
@@ -463,6 +469,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
         }
 
         df2.legend(loc=legend_loc, **legendkw)
+
+    figtitle = kwargs.get('figtitle', None)
+    if figtitle is not None:
+        pt.set_figtitle(figtitle, fontfamily=family, fontweight=weight,
+                        size=kwargs.get('figtitlesize'))
 
     use_darkbackground = kwargs.get('use_darkbackground', None)
     lightbg = kwargs.get('lightbg', None)
