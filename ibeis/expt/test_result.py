@@ -391,11 +391,17 @@ class TestResult(ut.NiceRepr):
             [[7], [6], [5], [4], [0, 1, 2, 3]]
         """
         import itertools
+        # Group-ids for annotations are determined by joinme labels (used by xval)
         group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.cfgx2_acfg]
+        # Anything that does not have a joinme groupid is standalone and must
+        # be given a unique groupid
         gen_groupid = itertools.count(1)
-        group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
-                     for groupid in group_ids_]
-        groupxs = ut.group_indices(group_ids)[1]
+        acfg_group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
+                          for groupid in group_ids_]
+        # Ensure that different pipeline configs are in different groups
+        pcfg_group_ids = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg)
+        group_ids_ = list(zip(pcfg_group_ids, acfg_group_ids))
+        groupxs = ut.group_indices(group_ids_)[1]
         return groupxs
 
     def get_rank_histogram_bins(testres):
@@ -853,7 +859,6 @@ class TestResult(ut.NiceRepr):
                 if not key.startswith('_'):
                     for new_acfg in new_varied_acfgs:
                         del new_acfg[key]
-            # new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False, sep=sep)
 
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
             varied_acfgs = [ut.get_cfg_lbl(new_acfg_, with_name=False, sep=sep)
