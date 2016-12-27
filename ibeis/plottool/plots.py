@@ -67,11 +67,21 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ydata_list (list of ndarrays): can also be a single array
 
     Kwargs:
-        fnum, pnum, title, xlabel, ylabel, num_xticks, use_legend, legend_loc,
-        labelsize, xmin, xmax, ymin, ymax, ticksize, titlesize, legendsize, spread_list
-        can append _list to any of these
-        plot_kw_keys = ['label', 'color', 'marker', 'markersize', 'markeredgewidth', 'linewidth', 'linestyle']
-        kind = ['bar', 'plot', ...]
+        Misc:
+            fnum, pnum, use_legend, legend_loc
+        Labels:
+            xlabel, ylabel, title, figtitle
+            ticksize, titlesize, legendsize, labelsize
+        Grid:
+            gridlinewidth, gridlinestyle
+        Ticks:
+            num_xticks, num_yticks, tickwidth, ticklength, ticksize
+        Data:
+            xmin, xmax, ymin, ymax, spread_list
+            # can append _list to any of these
+            plot_kw_keys = ['label', 'color', 'marker', 'markersize',
+                'markeredgewidth', 'linewidth', 'linestyle']
+            kind = ['bar', 'plot', ...]
 
     References:
         matplotlib.org/examples/api/barchart_demo.html
@@ -185,12 +195,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     extra_kw_list = [dict(zip(extra_kw_keys, vals)) for vals in zip(*extra_kw_vals)]
 
     # Setup figure
-    # newfig = kwargs.get('newfig', True)
-    # if newfig:
-    # fig = pt.figure(fnum=fnum, pnum=pnum)
     fig = pt.figure(fnum=fnum, pnum=pnum, docla=False)
-    # else:
-    #     fig = pt.gcf()
 
     # +---------------
     # Draw plot lines
@@ -207,7 +212,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
         plot_func = getattr(ax, kind)  # usually ax.plot
 
     assert len(ydata_list) > 0, 'no ydata'
-    #ut.embed()
     #assert len(extra_kw_list) == len(plot_kw_list), 'bad length'
     #assert len(extra_kw_list) == len(ydata_list), 'bad length'
     _iter = enumerate(zip_longest(xdata_list, ydata_list, plot_kw_list, extra_kw_list))
@@ -215,10 +219,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ymask = np.isfinite(_ydata)
         ydata_ = _ydata.compress(ymask)
         xdata_ = _xdata.compress(ymask)
-        #print('count = %r' % (count,))
-        #print('ydata_ = %r' % (ydata_,))
-        #print('xdata_ = %r' % (xdata_,))
-        #ax.plot(xdata_, ydata_, **plot_kw)
         if kind == 'bar':
             if stacked:
                 # Plot bars on top of each other
@@ -309,7 +309,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
     #titlesize  = kwargs.get('titlesize',  12)
     #labelsize  = kwargs.get('labelsize',  10)
     #legendsize = kwargs.get('legendsize', 10)
-
     titlesize  = kwargs.get('titlesize',  custom_figure.TITLE_SIZE)
     labelsize  = kwargs.get('labelsize',  custom_figure.LABEL_SIZE)
     legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
@@ -347,9 +346,12 @@ def multi_plot(xdata, ydata_list, **kwargs):
         for label in ax.get_yticklabels():
             label.set_fontsize(ticksize)
 
-    # TODO: control tick length/width
-    # ax.xaxis.set_tick_params(width=2, length=5)
-    # ax.yaxis.set_tick_params(width=2, length=5)
+    xtick_kw = ytick_kw = {
+        'width': kwargs.get('tickwidth', None),
+        'length': kwargs.get('ticklength', None),
+    }
+    ax.xaxis.set_tick_params(**xtick_kw)
+    ax.yaxis.set_tick_params(**ytick_kw)
 
     # Setup axes limits
     if 'xlim' in kwargs:
@@ -448,6 +450,16 @@ def multi_plot(xdata, ydata_list, **kwargs):
         ax.set_yscale(yscale)
     if xscale is not None:
         ax.set_xscale(xscale)
+
+    gridlinestyle = kwargs.get('gridlinestyle', None)
+    gridlinewidth = kwargs.get('gridlinewidth', None)
+    gridlines = ax.get_xgridlines() + ax.get_ygridlines()
+    if gridlinestyle:
+        for line in gridlines:
+            line.set_linestyle(gridlinestyle)
+    if gridlinewidth:
+        for line in gridlines:
+            line.set_linewidth(gridlinewidth)
 
     # Setup title
     if title is not None:
