@@ -1357,11 +1357,23 @@ def get_dbinfo(ibs, verbose=True,
         sextext2_nAnnots = {key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0}
         return sextext2_nAnnots
 
+    def get_annot_qual_stats(ibs, aid_list):
+        key_order = list(const.QUALITY_TEXT_TO_INT.keys())
+        prop_getter = ibs.get_annot_quality_texts
+        qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+        return qualtext2_nAnnots
+
+    def get_annot_yaw_stats(ibs, aid_list):
+        key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        prop_getter = ibs.get_annot_yaw_texts
+        yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+        return yawtext2_nAnnots
+
     if verbose:
         print('Checking Other Annot Stats')
 
-    qualtext2_nAnnots = ibs.get_annot_qual_stats(valid_aids)
-    yawtext2_nAnnots = ibs.get_annot_yaw_stats(valid_aids)
+    qualtext2_nAnnots = get_annot_qual_stats(ibs, valid_aids)
+    yawtext2_nAnnots = get_annot_yaw_stats(ibs, valid_aids)
     agetext2_nAnnots = get_annot_age_stats(valid_aids)
     sextext2_nAnnots = get_annot_sex_stats(valid_aids)
 
@@ -1377,8 +1389,8 @@ def get_dbinfo(ibs, verbose=True,
     contributor_tag_to_gids = ut.group_items(valid_gids, image_contributor_tags)
     contributor_tag_to_aids = ut.group_items(valid_aids, annot_contributor_tags)
 
-    contributor_tag_to_qualstats = {key: ibs.get_annot_qual_stats(aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
-    contributor_tag_to_viewstats = {key: ibs.get_annot_yaw_stats(aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_qualstats = {key: get_annot_qual_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_viewstats = {key: get_annot_yaw_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
 
     contributor_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)}
     contributor_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)}
