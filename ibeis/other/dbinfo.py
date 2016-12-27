@@ -1145,7 +1145,8 @@ def get_dbinfo(ibs, verbose=True,
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
-        gx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in gx2_aids]
+        gx2_aids = [list(set(aids_).intersection(valid_aids_set))
+                    for aids_ in gx2_aids]
 
     gx2_nAnnots = np.array(list(map(len, gx2_aids)))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
@@ -1159,7 +1160,8 @@ def get_dbinfo(ibs, verbose=True,
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
-        nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
+        nx2_aids = [list(set(aids_).intersection(valid_aids_set))
+                    for aids_ in nx2_aids]
     associated_nids = ut.compress(valid_nids, list(map(len, nx2_aids)))
 
     ibs.check_name_mapping_consistency(nx2_aids)
