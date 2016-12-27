@@ -792,6 +792,9 @@ dataset_summary_stats = (
             ibs, acfg_name_list=a, qaid_override=qaid_override,
             daid_override=daid_override, verbose=0)
 
+        all_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+        expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+
         # The image set consists X images taken of Y named animals.
 
 

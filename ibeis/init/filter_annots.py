@@ -1035,6 +1035,25 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
         #avail_aids = sorted(avail_aids)
 
+    if aidcfg.get('max_timestamp') is not None:
+        with VerbosityContext('max_timestamp'):
+            max_dt = aidcfg.get('max_timestamp')
+            import datetime
+            if isinstance(max_dt, (int, float)):
+                max_unixtime = max_dt
+            elif isinstance(max_dt, six.string_types):
+                if max_dt == 'now':
+                    max_dt = datetime.datetime.utcnow()
+                else:
+                    max_dt = max_dt.replace('/', '-')
+                    y, m, d = max_dt.split('-')
+                    max_dt = ut.date_to_datetime(datetime.date(y, m, d))
+            max_unixtime = ut.datetime_to_posixtime(max_dt)
+            unixtimes = np.array(ibs.annots(avail_aids).image_unixtimes_asfloat)
+            flag_list = np.logical_or(np.isnan(unixtimes), unixtimes <= max_unixtime)
+            ut.compress(avail_aids, flag_list)
+        #avail_aids = sorted(avail_aids)
+
     cfg_species = aidcfg.get('species')
     if isinstance(cfg_species, six.string_types) and cfg_species.lower() == 'none':
         cfg_species = None
