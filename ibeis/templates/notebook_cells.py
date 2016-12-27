@@ -762,15 +762,15 @@ def dataset_summary_stats_hacktest():
     import ibeis
     ibs = ibeis.opendb('WWF_Lynx_Copy')
     a = [
-        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
-        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
-        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
-        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=4,joinme=4',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=4,joinme=4',
 
-        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
-        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
-        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
-        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
+        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4',
     ]
     acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list=a, verbose=0)
@@ -792,10 +792,12 @@ dataset_summary_stats = (
             ibs, acfg_name_list=a, qaid_override=qaid_override,
             daid_override=daid_override, verbose=0)
 
-        all_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+        all_aids = ibs.get_valid_aids()
         expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
 
         # The image set consists X images taken of Y named animals.
+        n_images = len(ut.unique(ibs.annots(all_aids).gids))
+        n_names = len(ut.unique(ibs.annots(all_aids).nids))
 
 
         '''
