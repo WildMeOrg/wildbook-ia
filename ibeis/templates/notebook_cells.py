@@ -416,8 +416,27 @@ per_name_accuracy = (
             e='rank_cmc',
             db=db, a=a, t=t, group_queries=True, qaid_override=qaid_override, daid_override=daid_override)
         #testres.print_unique_annot_config_stats()
-        _ = testres.draw_func()
-        fix_figsize()
+        # _ = testres.draw_func()
+        # fix_figsize()
+        _ = testres.draw_func(cdfzoom=True, draw_icon=False, labelsize=16,
+                              ticksize=16, figtitlesize=20, legendsize=16,
+                              tickwidth=2, ticklength=5, gridlinewidth=1.5,
+                              gridlinestyle='-', linewidth=3, markersize=10,
+                              fontweight='normal', sep=' ')
+
+        import plottool as pt
+        ax = pt.gca()
+        ax.grid(True)
+        gridlines = ax.get_xgridlines() + ax.get_ygridlines()
+
+        ax.xaxis.set_tick_params(width=2, length=5)
+        ax.yaxis.set_tick_params(width=2, length=5)
+
+        for line in gridlines:
+            line.set_linestyle('-')
+            line.set_linewidth(1.5)
+
+        pt.set_figsize(w=12, h=8, dpi=128)
         # ENDBLOCK
         '''
     ),
@@ -735,3 +754,46 @@ per_encounter_stats = (
         # print(ut.dict_hist(num_encounters_pername))
         # Now find out how many encounter per individual
         '''))
+
+
+# HACK
+def dataset_summary_stats_hacktest():
+    """
+    import ibeis
+    ibs = ibeis.opendb('WWF_Lynx_Copy')
+    a = [
+        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
+        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
+        'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=4,joinme=4',
+
+        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
+        'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4',
+    ]
+    acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        ibs, acfg_name_list=a, verbose=0)
+
+    chosen_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+
+    from ibeis.other import dbinfo
+    dbinfo = dbinfo.get_dbinfo(ibs, aids=chosen_aids)
+
+    """
+    pass
+
+
+dataset_summary_stats = (
+    '# Dataset Summary Information',
+    ut.codeblock(
+        r'''
+        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+            ibs, acfg_name_list=a, qaid_override=qaid_override,
+            daid_override=daid_override, verbose=0)
+
+        # The image set consists X images taken of Y named animals.
+
+
+        '''
+    ))

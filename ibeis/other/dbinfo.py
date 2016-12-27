@@ -1013,7 +1013,7 @@ def get_dbinfo(ibs, verbose=True,
                with_header=True,
                short=False,
                tag='dbinfo',
-               aid_list=None):
+               aid_list=None, aids=None):
     """
 
     Returns dictionary of digestable database information
@@ -1107,6 +1107,8 @@ def get_dbinfo(ibs, verbose=True,
     """
     # TODO Database size in bytes
     # TODO: occurrence, contributors, etc...
+    if aids is not None:
+        aid_list = aids
 
     # Basic variables
     request_annot_subset = False

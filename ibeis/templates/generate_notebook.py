@@ -5,6 +5,18 @@ CommandLine:
     python -m ibeis --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
 
     python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1
+
+CommandLine:
+    # to connect to a notebook on a remote machine that does not have the
+    # appropriate port exposed you must start an SSH tunnel.
+    # Typically a jupyter-notebook runs on port 8888.
+    # Run this command on your local machine.
+    ssh -N -f -L localhost:<local_port>:localhost:<remote_port> <remote_user>@<remote_host>
+
+    E.G.
+    ssh -N -f -L localhost:8889:localhost:8888 joncrall@hyrule.cs.rpi.edu
+    # Now you can connect locally
+    firefox localhost:8889
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -69,8 +81,6 @@ def autogen_ipynb(ibs, launch=None, run=None):
         ut.startfile(output_fpath)
     elif launch:
         ut.cmd('jupyter-notebook', nb_fpath, detatch=True)
-        #ut.cmd('ipython-notebook', nb_fpath)
-        #ut.startfile(nb_fpath)
     else:
         print('notebook_str =\n%s' % (notebook_str,))
 
