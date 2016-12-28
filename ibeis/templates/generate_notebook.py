@@ -136,6 +136,7 @@ def get_default_cell_template_list(ibs):
         cells.hard_success_cases,
         cells.failure_type1_cases,
         cells.failure_type2_cases,
+        cells.total_failure_cases,
         cells.timedelta_distribution,
     ]
 

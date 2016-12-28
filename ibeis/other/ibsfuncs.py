@@ -4458,23 +4458,6 @@ def make_property_stats_dict(ibs, aid_list, prop_getter, key_order=None):
     return prop_to_num_annots
 
 
-# Quality and Viewpoint Stats
-# @register_ibs_method
-# def get_annot_qual_stats(ibs, aid_list):
-#     key_order = list(const.QUALITY_TEXT_TO_INT.keys())
-#     prop_getter = ibs.get_annot_quality_texts
-#     qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
-#     return qualtext2_nAnnots
-
-
-# @register_ibs_method
-# def get_annot_yaw_stats(ibs, aid_list):
-#     key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-#     prop_getter = ibs.get_annot_yaw_texts
-#     yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
-#     return yawtext2_nAnnots
-
-
 @register_ibs_method
 def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
     """

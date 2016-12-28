@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 python ~/code/ibeis/_scripts/setup_special_sklearn.py
+
+python -c "import utool, sklearn.ensemble; print(utool.get_func_kwargs(sklearn.ensemble.RandomForestClassifier.__init__))"
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import utool as ut
@@ -13,7 +15,7 @@ master = 'master'
 
 mixins = [
     # 'mbkm_fixup',
-    'progiter',
+    # 'progiter',
     'multiclass_mcc',
     'missing_values_rf',
 ]
@@ -21,18 +23,20 @@ mixins = [
 # dpath = os.getcwd()
 dpath = ut.truepath('~/code/scikit-learn')
 utrepo = ut.Repo(dpath=dpath)
+repo = utrepo
 
 gitrepo = utrepo.as_gitpython()
 
 # Checkout master, ensure its up to date, and recreate the combo branch
-utrepo.issue('git checkout ' + master)
+utrepo.checkout2(master)
 
-if True:
-    utrepo.issue('git pull')
+if False:
+    utrepo.pull2()
     utrepo.issue('git fetch --all')
 
     for branch in mixins:
-        utrepo.issue('git checkout ' + branch)
+        utrepo.checkout2(branch)
+        # utrepo.issue('git checkout ' + branch)
         # utrepo.reset_branch_to_remote(branch)
         utrepo.issue('git pull')
 
@@ -55,6 +59,6 @@ for branch in mixins:
 
 
 # # Recompile the
-utrepo.issue('python setup.py clean')
-utrepo.issue('python setup.py develop')
+# utrepo.issue('python setup.py clean')
+# utrepo.issue('python setup.py develop')
 # # utrepo.reset_branch_to_remote('speedup_kmpp')

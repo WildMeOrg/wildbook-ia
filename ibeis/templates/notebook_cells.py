@@ -685,6 +685,29 @@ failure_type1_cases = (
 )
 
 
+total_failure_cases = (
+    ut.codeblock(
+        r'''
+        # Total Failures
+
+        Shows cases where the groundtruth was not in the top 5
+        '''),
+    ut.codeblock(
+        r'''
+        # STARTBLOCK
+        testres = ibeis.run_experiment(
+            e='draw_cases',
+            db=db, a=a, t=t,
+            f=[':fail=True,index=0:3,sortasc=gtscore,max_pername=1'],
+            figsize=(30, 8),
+            **draw_case_kw)
+        _ = testres.draw_func()
+        # ENDBLOCK
+        '''),
+    COMMENT_SPACE
+)
+
+
 investigate_specific_case = (
     '# Cases: Custom Investigation',
     ut.codeblock(
@@ -761,44 +784,54 @@ def dataset_summary_stats_hacktest():
     """
     import ibeis
     ibs = ibeis.opendb('WWF_Lynx_Copy')
+    # import ibeis
+    # ibs = ibeis.opendb('WWF_Lynx')
     a = [
         'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
         'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
         'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
         'default:max_timestamp=now,minqual=good,require_timestamp=True,view=left,dcrossval_enc=4,joinme=4',
 
-        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
-        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
-        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
-        'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4',
+        # 'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+        # 'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+        # 'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
+        # 'default:max_timestamp=now,minqual=good,require_timestamp=True,view=right,dcrossval_enc=4,joinme=4',
     ]
     acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
         ibs, acfg_name_list=a, verbose=0)
 
-    chosen_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+    expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+    print(ut.dict_str(ibs.get_annot_stats_dict(expt_aids, strkeys=True, nl=2, use_hist=True)))
 
-    from ibeis.other import dbinfo
-    dbinfo = dbinfo.get_dbinfo(ibs, aids=chosen_aids)
-
+    # expt_qaids = sorted(set(ut.total_flatten(ut.take_column(expanded_aids_list, 0))))
+    # print(ut.dict_str(ibs.get_annot_stats_dict(expt_qaids, strkeys=True, nl=2, use_hist=True)))
     """
     pass
 
 
-dataset_summary_stats = (
-    '# Dataset Summary Information',
+lynx_curration_stats = (
+    '# Dataset Set Curation Info (lynx)',
     ut.codeblock(
         r'''
-        acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
-            ibs, acfg_name_list=a, qaid_override=qaid_override,
-            daid_override=daid_override, verbose=0)
-
         all_aids = ibs.get_valid_aids()
-        expt_aids = sorted(set(ut.total_flatten(expanded_aids_list)))
+        all_n_images = len(ut.unique(ibs.annots(all_aids).gids))
+        all_n_names = len(ut.unique(ibs.annots(all_aids).nids))
 
-        # The image set consists X images taken of Y named animals.
-        n_images = len(ut.unique(ibs.annots(all_aids).gids))
-        n_names = len(ut.unique(ibs.annots(all_aids).nids))
+        a_image = ['default:max_timestamp=now,require_timestamp=True']
+        _, imgfilt_aids = ibeis.expt.experiment_helpers.get_annotcfg_list(ibs, acfg_name_list=a_image)
+        imgs = ibs.images(set(ibs.annots(imgfilt_aids).gids))
+        single_aids = [x for x in imgs.aids if len(x) == 1]
+        imgfilt_aids = ut.flatten(single_aids)
+        imgfilt_n_images = len(ut.unique(ibs.annots(imgfilt_aids).gids))
+        imgfilt_n_names = len(ut.unique(ibs.annots(imgfilt_aids).nids))
 
+        img_removed = all_n_images - imgfilt_n_images
+
+        print('The original image set consists {} images taken of {} named animals.'.format(
+          all_n_images, all_n_names))
+        print('Controlling for time and ambiguous annots removes, {} images ({}%) resulting in in {} images and {} names'.format(
+            img_removed, img_removed / all_n_images, imgfilt_n_images, imgfilt_n_names
+        ))
 
         '''
     ))
