@@ -380,6 +380,7 @@ class ClfResult(object):
         confusion_df = pd.DataFrame(confusion, columns=[m for m in res.class_names],
                                     index=['gt ' + m for m in res.class_names])
         print(ut.hz_str('    ', confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))))
+        print('Precision/Recall Report:')
         print(report)
 
     def roc_score(res):

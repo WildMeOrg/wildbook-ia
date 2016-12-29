@@ -2,7 +2,11 @@
 """
 Tomorrow:
 
-allow random forests / whatever classifier to be trained according to one of the following ways:
+* Do 1-vs-Rest evaluation for multiclass labels
+   (so we can truely compare simple scores vs our classifiers)
+   (do this even if we do the next one-vs-rest step)
+
+* allow random forests / whatever classifier to be trained according to one of the following ways:
     * Multiclass - naitively output multiclass labels
     * One-vs-Rest - Use sklearns 1-v-Rest framework
     * One-vs-One - Use sklearns 1-v-1 framework
@@ -161,13 +165,14 @@ class OneVsOneProblem(object):
         self.evaluate_simple_scores(task_list)
 
         datakey_list = [
+            'learn(sum,glob,3,+view)',
             'learn(sum,glob,3)',
             'learn(all)',
             'learn(local)',
         ]
 
         cacher = ut.Cacher('pair_clf_v7', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
-                           appname='vsone_rf_train', enabled=0)
+                           appname='vsone_rf_train', enabled=1)
         data = cacher.tryload()
         if not data:
             ut.cprint('\n--- LEARNING CLASSIFIERS ---', 'blue')
@@ -179,21 +184,22 @@ class OneVsOneProblem(object):
             self.task_clfs, self.task_res_list, self.task_combo_res = data
 
         ut.cprint('\n--- EVALUATION LEARNED CLASSIFIERS ---', 'blue')
+        from utool.experimental.pandas_highlight import to_string_monkey
         for task_name in task_list:
-            self.report_classifier_accuracy(task_name, datakey_list)
-            # self.report_classifier_importance(task_name)
-
-        for task_name in task_list:
-            roc_scores = {}
-            for name in datakey_list:
-                combo_res = self.task_combo_res[task_name][name]
-                roc_scores[name] = combo_res.roc_score()
-            # best_data_key = 'learn(sum,glob,3)'
-            best_data_key = list(roc_scores.keys())[ut.argmax(roc_scores.values())]
+            print('task_name = %s' % (ut.repr2(task_name),))
             data_combo_res = self.task_combo_res[task_name]
+            roc_scores = {name: [data_combo_res[name].roc_score()] for name in datakey_list}
+            # df_auc = pd.DataFrame(ut.map_vals(lambda x: [x], roc_scores))
+            df_auc = pd.DataFrame(roc_scores)
+            # best_data_key = 'learn(sum,glob,3)'
+            best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
+            # best_data_key = list(roc_scores.keys())[ut.argmax(roc_scores.values())]
             combo_res = data_combo_res[best_data_key]
-            print('BEST REPORT task_name = %r' % (task_name,))
-            print('best_data_key = %r' % (best_data_key,))
+
+            print('ROC Scores per DataKey')
+            print(to_string_monkey(
+                df_auc, highlight_cols=np.arange(len(df_auc.columns))))
+            print('BEST DataKey = %r' % (best_data_key,))
             combo_res.print_report()
 
         # TODO: view failure / success cases
@@ -475,19 +481,24 @@ class OneVsOneProblem(object):
                 ]),
             ])
 
-            if False:
-                cols = set([])
-                cols.update(summary_cols)
-                cols.update(featinfo.select_columns([
-                    ('measure_type', '==', 'global'),
-                ]))
-                X_dict['learn(sum,glob,2)'] = featinfo.X[sorted(cols)]
-
             if 1:
                 cols = set([])
                 cols.update(summary_cols)
                 cols.update(global_cols)
                 X_dict['learn(sum,glob,3)'] = featinfo.X[sorted(cols)]
+
+            if 1:
+                cols = set([])
+                cols.update(summary_cols)
+                cols.update(global_cols)
+                cols.update(featinfo.select_columns([
+                    ('measure_type', '==', 'global'),
+                    # Add yaw back in if not_comp is explicitly labeled
+                    ('measure', 'in', [
+                        'yaw_1', 'yaw_2', 'yaw_delta'
+                    ]),
+                ]))
+                X_dict['learn(sum,glob,3,+view)'] = featinfo.X[sorted(cols)]
 
             # if 0:
             #     summary_cols_ = summary_cols.copy()
@@ -690,18 +701,6 @@ class OneVsOneProblem(object):
                 featinfo.print_margins('local_rank')
                 # ut.fix_embed_globals()
                 # pt.wordcloud(importances)
-
-    def report_classifier_accuracy(self, task_name, datakey_list):
-        print('CLASSIFIER ACCURACY FOR task_name = %r' % (task_name,))
-        roc_scores = {}
-        for name in datakey_list:
-            # X = self.X_dict[name]
-            combo_res = self.task_combo_res[task_name][name]
-            roc_scores[name] = [combo_res.roc_score()]
-        df_rf = pd.DataFrame(roc_scores)
-        from utool.experimental.pandas_highlight import to_string_monkey
-        print(to_string_monkey(
-            df_rf, highlight_cols=np.arange(len(df_rf.columns))))
 
 
 @ut.reloadable_class
