@@ -640,8 +640,14 @@ def localizer_precision_recall_algo_worker(tup):
             tp += tp_
             fp += fp_
             fn += fn_
-    pr = tp / (tp + fp)
-    re = tp / (tp + fn)
+    try:
+        pr = tp / (tp + fp)
+    except ZeroDivisionError:
+        pr = 0.0
+    try:
+        re = tp / (tp + fn)
+    except ZeroDivisionError:
+        re = 0.0
     return (conf, pr, re)
 
 
