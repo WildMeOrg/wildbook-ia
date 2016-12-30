@@ -111,6 +111,7 @@ class MultiTaskSamples(ut.NiceRepr):
         for task_name, labels in samples.items():
             labels.print_info()
         print('hist(all) = %s' % (ut.repr4(samples.make_histogram())))
+        print('len(all) = %s' % (len(samples)))
 
     def make_histogram(samples):
         """ label histogram """
@@ -157,36 +158,56 @@ class MultiClassLabels(ut.NiceRepr):
         labels.encoded_df = None
 
     @property
-    def target_type(samples):
-        return sklearn.utils.multiclass.type_of_target(samples.y_enc)
+    def target_type(labels):
+        return sklearn.utils.multiclass.type_of_target(labels.y_enc)
 
-    def gen_one_vs_rest_labels(samples):
-        if samples.target_type == 'binary':
-            yield samples
+    def one_vs_rest_task_names(labels):
+        return [labels.task_name + '(' + labels.class_names[k] + '-v-rest)'
+                for k in range(labels.n_classes)]
+
+    def gen_one_vs_rest_labels(labels):
+        """
+        >>> from ibeis.scripts.clf_helpers import *  # NOQA
+        >>> indicator = ut.odict([
+        >>>         ('state1', [0, 0, 0, 1]),
+        >>>         ('state2', [0, 0, 1, 0]),
+        >>>         ('state3', [1, 1, 0, 0]),
+        >>>     ])
+        >>> labels = MultiClassLabels.from_indicators(indicator, 'task1')
+        >>> sublabels = list(labels.gen_one_vs_rest_labels())
+        >>> sublabel = sublabels[0]
+        """
+        if labels.target_type == 'binary':
+            yield labels
             raise StopIteration()
-        for k in range(samples.n_classes):
-            class_name = samples.class_names[k]
-            task_name = samples.task_name + '(' + class_name + '-v-rest)'
-            indicator_df = samples.indicator_df[[class_name]]
+        task_names_1vR = labels.one_vs_rest_task_names()
+        for k in range(labels.n_classes):
+            class_name = labels.class_names[k]
+            task_name = task_names_1vR[k]
+            indicator_df = pd.DataFrame()
+            indicator_df['not-' + class_name] = 1 - labels.indicator_df[class_name]
+            indicator_df[class_name] = labels.indicator_df[class_name]
             # indicator = labels.encoded_df == k
             # indicator.rename(columns={indicator.columns[0]: class_name}, inplace=True)
             n_samples = len(indicator_df)
             sublabel = MultiClassLabels()
             sublabel.indicator_df = indicator_df
             sublabel.class_names = indicator_df.columns.values
-            if len(indicator_df.columns) == 1:
-                sublabel.encoded_df = pd.DataFrame(
-                    indicator_df.values.T[0],
-                    columns=[task_name]
-                )
-            else:
-                sublabel.encoded_df = pd.DataFrame(
-                    indicator_df.values.argmax(axis=1),
-                    columns=[task_name]
-                )
+            # if len(indicator_df.columns) == 1:
+            #     sublabel.encoded_df = pd.DataFrame(
+            #         indicator_df.values.T[0],
+            #         columns=[task_name]
+            #     )
+            # else:
+            sublabel.encoded_df = pd.DataFrame(
+                indicator_df.values.argmax(axis=1),
+                columns=[task_name]
+            )
             sublabel.task_name = task_name
             sublabel.n_samples = n_samples
             sublabel.n_classes = len(sublabel.class_names)
+            # if sublabel.n_classes == 1:
+            #     sublabel.n_classes = 2  # 1 column means binary case
             sublabel.classes_ = np.arange(sublabel.n_classes)
 
             # sublabel = MultiClassLabels.from_indicators(indicator, task_name=subname)
@@ -219,6 +240,8 @@ class MultiClassLabels(ut.NiceRepr):
         labels.task_name = task_name
         labels.n_samples = n_samples
         labels.n_classes = len(labels.class_names)
+        if labels.n_classes == 1:
+            labels.n_classes = 2  # 1 column means binary case
         labels.classes_ = np.arange(labels.n_classes)
         return labels
 
@@ -241,6 +264,7 @@ class MultiClassLabels(ut.NiceRepr):
 
     def print_info(labels):
         print('hist(%s) = %s' % (labels.task_name, ut.repr4(labels.make_histogram())))
+        print('len(%s) = %s' % (labels.task_name, len(labels)))
 
 
 @ut.reloadable_class
@@ -382,6 +406,123 @@ class ClfResult(object):
         print(ut.hz_str('    ', confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))))
         print('Precision/Recall Report:')
         print(report)
+
+    def report_thresholds(res):
+        y_test_bin = res.target_bin_df.values
+        clf_probs = res.probs_df.values
+
+        # The maximum allowed false positive rate
+        # We expect that we will make 1 error every 1,000 decisions
+        # thresh_df['foo'] = [1, 2, 3]
+        # thresh_df['foo'][res.class_names[k]] = 1
+
+        # for k in [2, 0, 1]:
+        for k in range(y_test_bin.shape[1]):
+            thresh_dict = ut.odict()
+            import vtool as vt
+            class_name = res.class_names[k]
+            probs, labels = clf_probs.T[k], y_test_bin.T[k]
+            confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            self = confusions  # NOQA
+
+            encoder = vt.ScoreNormalizer()
+            encoder.fit(probs, labels)
+            maxsep_thresh = encoder.inverse_normalize(encoder.learn_threshold2()).tolist()
+
+            threshes = ut.odict([
+                # (class_name + '@tpr=1', confusions.get_threshold_at_metric('tpr', 1)),
+                # (class_name + '@fpr=0', confusions.get_threshold_at_metric('fpr', 0)),
+                (class_name + '@fpr=.01', confusions.get_threshold_at_metric('fpr', .01)),
+                (class_name + '@fpr=.001', confusions.get_threshold_at_metric('fpr', .001)),
+                # (class_name + '@fpr=.0001', confusions.get_threshold_at_metric('fpr', .0001)),
+                (class_name + '@max(mcc)', confusions.get_threshold_at_metric_maximum('mcc')),
+                (class_name + '@max(acc)', confusions.get_threshold_at_metric_maximum('acc')),
+                # (class_name + '@max(mk)', confusions.get_threshold_at_metric_maximum('mk')),
+                # (class_name + '@max(bm)', confusions.get_threshold_at_metric_maximum('bm')),
+                (class_name + '@max(sep*)', maxsep_thresh),
+            ])
+            for key, thresh in threshes.items():
+                thresh_dict[key] = ut.odict()
+                thresh_dict[key]['thresh'] = thresh
+                for metric in ['fpr', 'tpr', 'mcc', 'acc', 'ppv', 'bm', 'mk']:
+                    thresh_dict[key][metric] = confusions.get_metric_at_threshold(metric, thresh)
+            thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
+            thresh_df = thresh_df.loc[list(threshes.keys())]
+            print('\n')
+            print('1vR Thresholds for ' + class_name)
+            print(thresh_df.to_string(float_format=lambda x: '%.4f' % (x,)))
+            # chosen_type = class_name + '@fpr=0'
+            # positive_thresholds[class_name] = thresh_df.loc[chosen_type]['thresh']
+
+        positive_thresholds = {}
+        # negative_thresholds = {}
+        # What is the lowest threshold such that something
+        for k in range(y_test_bin.shape[1]):
+            class_name = res.class_names[k]
+            probs, labels = clf_probs.T[k], y_test_bin.T[k]
+            confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            positive_thresholds[class_name] = confusions.get_threshold_at_metric('fpr', 0.0001, prefer_max=False)
+            # negative_thresholds[class_name] = confusions.get_threshold_at_metric('fnr', 0.1, prefer_max=True)
+            # negative_thresholds[class_name] = confusions.get_threshold_at_metric('fnr', 0.00001, prefer_max=True)
+            # negative_thresholds[class_name] = confusions.thresholds[np.where(confusions.tp > 0)[0][0]]
+            # negative_thresholds[class_name] = confusions.thresholds[np.where(confusions.fn > 0)[0][-1]]
+
+        print('positive_thresholds = %r' % (positive_thresholds,))
+        # print('negative_thresholds = %r' % (negative_thresholds,))
+        # Actually we need negative positive_thresholds?
+        # So if ALL probs are under positive_thresholds then its ok
+        # See how many automated decisions can be made
+        pos_ts = np.array(ut.take(positive_thresholds, res.class_names))
+        neg_ts = np.array([.5] * len(res.class_names))  # TODO, choose these
+
+        above_pos_thresh = clf_probs > pos_ts[None, :]
+        under_neg_thresh = clf_probs < neg_ts[None, :]
+        # auto_chosen = clf_probs > pos_ts[None, :]
+        # assert np.all(auto_chosen.sum(axis=1) <= 1)
+
+        # Choose samples where all but one class is under the negative
+        # threshold and that class is above a positive threshold
+        can_autodecide = ((above_pos_thresh.sum(axis=1) > 0) &
+                          (under_neg_thresh.sum(axis=1) >= len(res.class_names) - 1))
+        print('Can make automated decisions on %d/%d = %.2f%% of the data' % (
+            can_autodecide.sum(), len(can_autodecide), can_autodecide.sum() / len(can_autodecide)))
+
+        auto_probs = clf_probs[can_autodecide]
+        auto_truth_bin = y_test_bin[can_autodecide]
+        auto_truth_enc = auto_truth_bin.argmax(axis=1)
+        auto_pred_enc = auto_probs.argmax(axis=1)
+        print('Autoclassify Confusion Matrix:\n')
+        print(sklearn.metrics.confusion_matrix(auto_truth_enc, auto_pred_enc))
+        print('Autoclassify MCC: ' + str(sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
+        print('Autoclassify AUC(Macro): ' + str(sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
+
+        # print('hist of auto_truth labels' + str(ut.dict_hist(auto_pred_enc)))
+        # thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='columns')
+
+        # # ut.qt4ensure()
+        # # ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
+        # #                                          show_operating_point=True)
+        # # import plottool as pt
+        # # fnum = pt.ensure_fnum(k)
+        # # ROCInteraction.static_plot(fnum, None, name=str(k))
+        # if False:
+        #     X = probs
+        #     y = labels
+        #     encoder = vt.ScoreNormalizer()
+        #     encoder.fit(probs, labels)
+        #     learn_thresh = encoder.learn_threshold2()
+        #     encoder.inverse_normalize(learn_thresh)
+        # # encoder.visualize(fnum=k)
+        # pass
+
+    def one_vs_rest_roc_scores(res):
+        (y_test_enc_aug, y_test_bin_aug,
+         clf_probs_aug, sample_weight) = res.augment_if_needed()
+        for k in range(y_test_bin_aug.shape[1]):
+            class_k_truth = y_test_bin_aug.T[k]
+            class_k_probs = clf_probs_aug.T[k]
+            auc = sklearn.metrics.roc_auc_score(class_k_truth, class_k_probs)
+            yield auc
 
     def roc_score(res):
         (y_test_enc_aug, y_test_bin_aug,
