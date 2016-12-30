@@ -596,76 +596,69 @@ def view():
                          __wrapper_header__=False)
 
 
+@register_route('/view/viewpoints/', methods=['GET'])
+def view_viewpoints():
+    ibs = current_app.ibs
+
+    aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+
+    species_tag_list = sorted(list(set(species_list)))
+    species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
+    species_set = set(species_tag_list)
+    species_nice_dict = {
+        species_tag : ibs.get_species_nice(species_rowid)
+        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
+    }
+
+    viewpoint_dict = {}
+    for species, viewpoint in zip(species_list, viewpoint_list):
+        if species in species_set:
+            if species not in viewpoint_dict:
+                viewpoint_dict[species] = {}
+            if viewpoint not in viewpoint_dict[species]:
+                viewpoint_dict[species][viewpoint] = 0
+            viewpoint_dict[species][viewpoint] += 1
+
+    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    pie_values_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
+        )
+        for species in species_tag_list
+    ]
+
+    viewpoint_order_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
+    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
+    viewpoint_tag_dict = {
+        'zebra_grevys' : pie_right_list,
+        'zebra_plains' : pie_left_list,
+        'giraffe_masai' : pie_left_list,
+    }
+    pie_label_corrected_list = list(map(
+        str,
+        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
+    ))
+    pie_values_corrected_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
+        )
+        for species in species_tag_list
+    ]
+
+    # Get number of annotations per name as a histogram for each species
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'advanced',
+                         __wrapper_header__=False,
+                         **embedded)
+
+
 @register_route('/view/advanced/', methods=['GET'])
 def view_advanced():
-    def _date_list(gid_list):
-        unixtime_list = ibs.get_image_unixtime(gid_list)
-        datetime_list = [
-            ut.unixtime_to_datetimestr(unixtime)
-            if unixtime is not None else
-            'UNKNOWN'
-            for unixtime in unixtime_list
-        ]
-        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
-        return date_list
-
-    def filter_annots_imageset(aid_list):
-        try:
-            imgsetid = request.args.get('imgsetid', '')
-            imgsetid = int(imgsetid)
-            imgsetid_list = ibs.get_valid_imgsetids()
-            assert imgsetid in imgsetid_list
-        except:
-            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
-            return aid_list
-        imgsetids_list = ibs.get_annot_imgsetids(aid_list)
-        aid_list = [
-            aid
-            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
-            if imgsetid in imgsetid_list_
-        ]
-        return aid_list
-
-    def filter_annots_general(aid_list):
-        # Grevy's
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'good',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_grevys',
-            'view': ['right'],
-        }
-        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-
-        # Plains
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_plains',
-            'view': ['left'],
-        }
-        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-
-        # Masai
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'giraffe_masai',
-            'view': ['left'],
-        }
-        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-
-        aid_list = aid_list1 + aid_list2 + aid_list3
-
-        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        return aid_list
-
     ibs = current_app.ibs
 
     species_tag_list = ['zebra_grevys', 'zebra_plains', 'giraffe_masai']
@@ -1868,65 +1861,15 @@ def commit_current_query_object_names(query_object, ibs):
     Args:
         query_object (ibeis.AnnotInference):
         ibs (ibeis.IBEISController):  image analysis api
-
     """
-    # import networkx as nx
-    # import pandas as pd
-    # Get the graph and the current reviewed connected components
-    # graph = query_object.graph
-    num_names, num_inconsistent = query_object.relabel_using_reviews()
-
-    query_object.write_ibeis_staging_feedback()
+    # Ensure connected compoments are used to relabel names
+    query_object.relabel_using_reviews()
+    # Transfers any remaining internal feedback into staging
+    # TODO:  uncomment once buffer is dead
+    # query_object.write_ibeis_staging_feedback()
+    # Commit a delta of the current annotmatch
     query_object.write_ibeis_annotmatch_feedback()
     query_object.write_ibeis_name_assignment()
-
-    # Extract names out of the networkx graph
-    # node_to_label = nx.get_node_attributes(graph, 'name_label')
-    # unique_labels = set(node_to_label.values())
-    # new_names = query_object.ibs.make_next_name(num_names)
-    # to_newname = dict(zip(unique_labels, new_names))
-    # node_to_newname = {node: to_newname[name_label]
-    #                    for node, name_label in node_to_label.items()}
-    # aid_list = list(node_to_newname.keys())
-    # name_list = list(node_to_newname.values())
-    #print('aid_list = %r' % (aid_list,))
-    #print('name_list = %r' % (name_list,))
-
-    # # keep track of residual data
-    # changed_df = query_object.match_state_delta()
-
-    # # Set names
-    # vals = (len(aid_list), )
-    # print('COMMITTING IDENTIFICATION REVIEWS TO DATABASE AS NAMES: %d' % vals)
-    # ibs.set_annot_names(aid_list, name_list)
-
-    # # Add am rowids for nonexisting rows
-    # if len(changed_df) > 0:
-    #     # ut.embed()
-    #     is_add = np.array(pd.isnull(changed_df['am_rowid'].values))
-    #     add_df = changed_df.loc[is_add]
-    #     add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
-    #                                             add_df['aid2'].values)
-    #     changed_df.loc[is_add, 'am_rowid'] = add_ams
-    #     changed_df.set_index('am_rowid', drop=False, inplace=True)
-
-    #     # Set residual matching data
-    #     new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, changed_df['new_decision'])
-    #     am_rowids = changed_df['am_rowid'].values
-
-    #     ibs.set_annotmatch_truth(am_rowids, new_truth)
-
-    #     # Set tags from staging
-    #     # TODO: set tags from annotmatch
-    #     aid_1_list = ibs.get_annotmatch_aid1(am_rowids)
-    #     aid_2_list = ibs.get_annotmatch_aid2(am_rowids)
-    #     tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
-    #     tags_list = list(map(ut.flatten, tags_list))
-    #     tag_str_list = [
-    #         ';'.join(map(str, tag_list))
-    #         for tag_list in tags_list
-    #     ]
-    #     ibs.set_annotmatch_tag_text(am_rowids, tag_str_list)
 
 
 def precompute_current_review_match_images(ibs, query_object,
@@ -2016,48 +1959,21 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
 
     nids = [-aid for aid in aid_list] if debug_ignore_name_gt else None
 
+    # Initailize a graph with no edges.
     query_object = graph_iden.AnnotInference(ibs, aid_list, nids=nids,
                                              autoinit=True)
-
-    # Add some feedback
-    # if True:
+    # Load feedback from the staging database (does not change graph state)
     query_object.reset_feedback('staging')
-    # else:
-    #     # query_object.reset_feedback()
-    #     # tags_list = ibs.get_review_tags_from_tuple(aid_1_list, aid_2_list)
-    #     review_rowids_list = ibs.get_review_rowids_from_only(aid_list)
-    #     flat_rowids, offsets = ut.invertible_flatten2(review_rowids_list)
-    #     # Lookup data based on flattened rowids
-    #     flat_decisions = ibs.get_review_decision(flat_rowids)
-    #     flat_tags = ibs.get_review_tags(flat_rowids)
-    #     flat_aid_tuples = ibs.get_review_aid_tuple(flat_rowids)
-    #     # # Reshape to original grouping (Actually, no need)
-    #     # aids_groups = ut.unflatten2(flat_aid_tuples, offsets)
-    #     # decision_groups = ut.unflatten2(flat_decisions, offsets)
-    #     # tags_groups = ut.unflatten2(flat_tags, offsets)
-
-    #     # for tup in zip(aids_groups, decision_groups, tags_groups):
-    #     # for (aid1, aid2), decision, tags in zip(*tup):
-    #     zipped = zip(flat_aid_tuples, flat_decisions, flat_tags)
-    #     for (aid1, aid2), decision, tags in zipped:
-    #         # print('ADDING FEEDBACK: %r %r %r' % (aid1, aid2, decision, ))
-    #         try:
-    #             state = const.REVIEW_INT_TO_CODE[decision]
-    #             query_object.add_feedback(aid1, aid2, state, tags)
-    #         except ValueError:
-    #             pass
+    # Rectify inconsistent feedback and create decision edges
     query_object.apply_feedback_edges()
-
-    # Exec matching
+    # Exec matching (adds candidate edges using hotspotter and score them)
     query_object.exec_matching()
     query_object.apply_match_edges()
     query_object.apply_match_scores()
-
-    # # Show query objec graph
-    # query_object.show_graph(use_image=False)
-    # import plottool
-    # fig = plottool.gcf()
-    # fig.savefig('/Users/bluemellophone/Desktop/temp.png')
+    # Use connected compoments to relabel names on nodes
+    query_object.relabel_using_reviews()
+    # Create a priority on edge review ands determines inconsistencies
+    query_object.apply_review_inference()
 
     print('Precomputing match images')
     # view_orientation = request.args.get('view_orientation', 'vertical')
@@ -2097,9 +2013,8 @@ def load_identification_query_object(autoinit=False,
     while len(current_app.QUERY_OBJECT_FEEDBACK_BUFFER) > 0:
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
         print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
-        aid1, aid2, state = feedback
-        query_object.add_feedback(aid1, aid2, state)
-        query_object.apply_feedback_edges()
+        aid1, aid2, state, tags = feedback
+        query_object.add_feedback(aid1, aid2, state, tags, apply=True)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
 
     return query_object
@@ -2232,9 +2147,8 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                         annot_uuid_1 = ibs.get_annot_uuids(aid1)
                         annot_uuid_2 = ibs.get_annot_uuids(aid2)
 
-                    with ut.Timer('[web.routes.turk_identification] ... Lookup ChipMatch and get QueryRequest objects'):
-                        # lookup ChipMatch object
-                        qreq_ = query_object.qreq_
+                    # lookup ChipMatch object
+                    qreq_ = query_object.qreq_
 
                     with ut.Timer('[web.routes.turk_identification] ... Get scores'):
                         # Get score

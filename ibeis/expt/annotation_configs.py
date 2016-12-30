@@ -68,7 +68,7 @@ SUBINDEX_DEFAULTS_PARAM_INFO = [
 OTHER_DEFAULTS = {
     # forces a consistnet sample size across combinations
     'force_const_size'    : None,
-    'crossval_enc'    : False,
+    'crossval_enc'    : None,
     #'hack_extra' : None,  # hack param to make bigger db sizes
     #'hack_imageset': None,
     # Hack out errors in test data
@@ -84,6 +84,7 @@ INDEPENDENT_DEFAULTS = {
     #'species'             : None,
     # Timedelta Params
     'require_timestamp'   : None,
+    'max_timestamp'       : None,
     'contributor_contains'    : None,
     # Quality Params
     #'require_quality'     : None,  # if True unknown qualities are removed
@@ -176,6 +177,9 @@ __default_aidcfg = DEFAULT_AIDCFG
 
 def compress_aidcfg(acfg, filter_nones=False, filter_empty=False, force_noncommon=[]):
     r"""
+    Idea is to add a third subconfig named `common` that is the intersection of
+    `qcfg` and `dcfg`.
+
     Args:
         acfg (dict):
 
@@ -359,9 +363,10 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
         >>> # DISABLE_DOCTEST
         >>> from ibeis.expt.annotation_configs import *  # NOQA
         >>> import ibeis
-        >>> acfg_list = '?'
-        >>> expanded_aids_list = None
-        >>> ibs = None
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> a = ['default']
+        >>> acfg_list, expanded_aids_list = ibeis.expt.experiment_helpers.get_annotcfg_list(
+        >>>     ibs, acfg_name_list=a, verbose=0)
         >>> combined = False
         >>> result = print_acfg_list(acfg_list, expanded_aids_list, ibs, combined)
         >>> print(result)
@@ -403,7 +408,7 @@ def print_acfg_list(acfg_list, expanded_aids_list=None, ibs=None,
             if key not in seen_:
                 if ibs is not None:
                     seen_[key].append(acfgx)
-                    stats_, locals_ = ibs.get_annotconfig_stats(
+                    stats_ = ibs.get_annotconfig_stats(
                         qaids, daids, verbose=False, combined=combined,
                         **annotstats_kw)
                     hashids = (stats_['qaid_stats']['qhashid'],

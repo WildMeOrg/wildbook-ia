@@ -5,6 +5,18 @@ CommandLine:
     python -m ibeis --tf autogen_ipynb --ipynb --db <dbname> [-a <acfg>] [-t <pcfg>]
 
     python -m ibeis --tf autogen_ipynb --ipynb --db seaturtles -a default2:qhas_any=\(left,right\),sample_occur=True,occur_offset=[0,1,2],num_names=1
+
+CommandLine:
+    # to connect to a notebook on a remote machine that does not have the
+    # appropriate port exposed you must start an SSH tunnel.
+    # Typically a jupyter-notebook runs on port 8888.
+    # Run this command on your local machine.
+    ssh -N -f -L localhost:<local_port>:localhost:<remote_port> <remote_user>@<remote_host>
+
+    E.G.
+    ssh -N -f -L localhost:8889:localhost:8888 joncrall@hyrule.cs.rpi.edu
+    # Now you can connect locally
+    firefox localhost:8889
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
@@ -69,8 +81,6 @@ def autogen_ipynb(ibs, launch=None, run=None):
         ut.startfile(output_fpath)
     elif launch:
         ut.cmd('jupyter-notebook', nb_fpath, detatch=True)
-        #ut.cmd('ipython-notebook', nb_fpath)
-        #ut.startfile(nb_fpath)
     else:
         print('notebook_str =\n%s' % (notebook_str,))
 
@@ -91,7 +101,7 @@ def get_default_cell_template_list(ibs):
     info_cells = [
         cells.pipe_config_info,
         cells.annot_config_info,
-        cells.per_encounter_stats,
+        # cells.per_encounter_stats,
         cells.timestamp_distribution,
     ]
 
@@ -126,6 +136,7 @@ def get_default_cell_template_list(ibs):
         cells.hard_success_cases,
         cells.failure_type1_cases,
         cells.failure_type2_cases,
+        cells.total_failure_cases,
         cells.timedelta_distribution,
     ]
 
@@ -212,7 +223,7 @@ def make_ibeis_cell_list(ibs):
             ut.codeblock('''
             #'default:has_any=(query,),dpername=1,exclude_reference=True',
             #'default:is_known=True',
-            #'default:is_known=True,minqual=good,require_timestamp=True,crossval_enc=True,view=left'
+            #'default:is_known=True,minqual=good,require_timestamp=True,dcrossval_enc=1,view=left'
             #'default:qsame_imageset=True,been_adjusted=True,excluderef=True,qsize=10,dsize=20',
             #'default:require_timestamp=True,min_timedelta=3600',
             #'default:species=primary',
@@ -220,10 +231,10 @@ def make_ibeis_cell_list(ibs):
             #'timectrl:',
             #'timectrl:view=primary,minqual=good',
 
-            #'default:minqual=good,require_timestamp=True,view=left,crossval_enc=True,joinme=1',
-            #'default:minqual=good,require_timestamp=True,view=right,crossval_enc=True,joinme=1',
-            #'default:minqual=ok,require_timestamp=True,view=left,crossval_enc=True,joinme=2',
-            #'default:minqual=ok,require_timestamp=True,view=right,crossval_enc=True,joinme=2',
+            #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+            #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+            #'default:minqual=ok,require_timestamp=True,view=left,dcrossval_enc=1,joinme=2',
+            #'default:minqual=ok,require_timestamp=True,view=right,dcrossval_enc=1,joinme=2',
 
             ''')
         )

@@ -2333,7 +2333,7 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
         distinguish_unknowns (bool):
 
     Returns:
-        tuple: grouped_aids_, unique_nids
+        tuple: grouped_aids, unique_nids
 
     CommandLine:
         python -m ibeis.other.ibsfuncs --test-group_annots_by_name
@@ -2345,21 +2345,20 @@ def group_annots_by_name(ibs, aid_list, distinguish_unknowns=True, assume_unique
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()
         >>> distinguish_unknowns = True
-        >>> grouped_aids_, unique_nids = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
-        >>> result = str([aids.tolist() for aids in grouped_aids_])
+        >>> grouped_aids, unique_nids = group_annots_by_name(ibs, aid_list, distinguish_unknowns)
+        >>> result = str([aids.tolist() for aids in grouped_aids])
         >>> result += '\n' + str(unique_nids.tolist())
         >>> print(result)
         [[11], [9], [4], [1], [2, 3], [5, 6], [7], [8], [10], [12], [13]]
         [-11, -9, -4, -1, 1, 2, 3, 4, 5, 6, 7]
     """
-    import vtool as vt
     nid_list = ibs.get_annot_name_rowids(
         aid_list, distinguish_unknowns=distinguish_unknowns, assume_unique=assume_unique)
     nid_list = np.array(nid_list)
-    unique_nids, groupxs_list = vt.group_indices(nid_list)
     aid_list = np.array(aid_list)
-    grouped_aids_ = vt.apply_grouping(aid_list, groupxs_list)
-    return grouped_aids_, unique_nids
+    unique_nids, groupxs_list = vt.group_indices(nid_list)
+    grouped_aids = vt.apply_grouping(aid_list, groupxs_list)
+    return grouped_aids, unique_nids
 
 
 #def group_annots_by_known_names_nochecks(ibs, aid_list):
@@ -3203,12 +3202,12 @@ def get_annot_quality_viewpoint_subset(ibs, aid_list=None, annots_per_view=2,
 
     nid_list = np.array(ibs.get_annot_name_rowids(aid_list, distinguish_unknowns=True))
     unique_nids, groupxs_list = vt.group_indices(nid_list)
-    grouped_aids_ = vt.apply_grouping(np.array(aid_list), groupxs_list)
-    #aids = grouped_aids_[-6]
+    grouped_aids = vt.apply_grouping(np.array(aid_list), groupxs_list)
+    #aids = grouped_aids[-6]
     # for final settings because I'm too lazy to write
     new_aid_list = []
     new_flag_list = []
-    _iter = ut.ProgIter(zip(grouped_aids_, unique_nids),
+    _iter = ut.ProgIter(zip(grouped_aids, unique_nids),
                         nTotal=len(unique_nids),
                         #freq=100,
                         lbl='Picking best annots per viewpoint',
@@ -4434,58 +4433,29 @@ def _stat_str(dict_, multi=False, precision=2, **kwargs):
 
 
 @register_ibs_method
+def group_annots_by_prop(ibs, aids, getter_func):
+    # RECTIFY WITH make_property_stats_dict
+    # Make a dictionary that maps props into a dictionary of names to aids
+    annot_prop_list = getter_func(aids)
+    prop_to_aids = ut.group_items(aids, annot_prop_list)
+    return prop_to_aids
+
+
+@register_ibs_method
 def make_property_stats_dict(ibs, aid_list, prop_getter, key_order=None):
-    annot_prop_list = prop_getter(aid_list)
-    prop2_aids = ut.group_items(aid_list, annot_prop_list)
+    prop_to_aids = group_annots_by_prop(ibs, aid_list, prop_getter)
     if key_order is None:
-        key_order = set(annot_prop_list)
-    assert set(key_order) >= set(annot_prop_list), (
-        'bad keys: ' + str(set(annot_prop_list) - set(key_order)))
-    prop2_nAnnots = ut.odict([
-        (key, len(prop2_aids.get(key, []))) for key in key_order])
+        key_order = list(prop_to_aids.keys())
+    # assert set(key_order) >= set(annot_prop_list), (
+    #     'bad keys: ' + str(set(annot_prop_list) - set(key_order)))
+    prop_to_aids = ut.order_dict_by(prop_to_aids, key_order)
+    prop_to_num_annots = ut.map_vals(len, prop_to_aids)
+    # prop2_nAnnots = ut.odict([
+    #     (key, len(prop2_aids.get(key, []))) for key in key_order])
     # Filter 0's
-    prop2_nAnnots = ut.odict([
-        (key, val) for key, val in prop2_nAnnots.items() if val != 0])
-    return prop2_nAnnots
-
-
-# Quality and Viewpoint Stats
-@register_ibs_method
-def get_annot_qual_stats(ibs, aid_list):
-    key_order = list(const.QUALITY_TEXT_TO_INT.keys())
-    prop_getter = ibs.get_annot_quality_texts
-    qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
-    # annot_qualtext_list = ibs.get_annot_quality_texts(aid_list)
-    # qualtext2_aids = ut.group_items(aid_list, annot_qualtext_list)
-    # qual_keys = list(const.QUALITY_TEXT_TO_INT.keys())
-    # assert set(qual_keys) >= set(qualtext2_aids), (
-    #     'bad keys: ' + str(set(qualtext2_aids) - set(qual_keys)))
-    # qualtext2_nAnnots = ut.odict([(key, len(qualtext2_aids.get(key, []))) for key in qual_keys])
-    # # Filter 0's
-    # qualtext2_nAnnots = {key: val for key, val in six.iteritems(qualtext2_nAnnots) if val != 0}
-    return qualtext2_nAnnots
-
-
-@register_ibs_method
-def get_annot_yaw_stats(ibs, aid_list):
-    key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-    prop_getter = ibs.get_annot_yaw_texts
-    yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
-    # annot_yawtext_list = ibs.get_annot_yaw_texts(aid_list)
-    # yawtext2_aids = ut.group_items(aid_list, annot_yawtext_list)
-    #  Order keys
-    # yaw_keys = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
-    # assert set(yaw_keys) >= set(annot_yawtext_list), (
-    #     'bad keys: ' + str(set(annot_yawtext_list) - set(yaw_keys)))
-    # yawtext2_nAnnots = ut.odict(
-    #     [(key, len(yawtext2_aids.get(key, []))) for key in yaw_keys])
-    # # Filter 0's
-    # yawtext2_nAnnots = {
-    #     const.YAWALIAS.get(key, key): val
-    #     for key, val in six.iteritems(yawtext2_nAnnots) if val != 0
-    # }
-    # yawtext2_nAnnots = {key: val for key, val in six.iteritems(yawtext2_nAnnots) if val != 0}
-    return yawtext2_nAnnots
+    prop_to_num_annots = ut.odict([
+        (key, val) for key, val in prop_to_num_annots.items() if val != 0])
+    return prop_to_num_annots
 
 
 @register_ibs_method
@@ -4531,14 +4501,6 @@ def get_annot_intermediate_viewpoint_stats(ibs, aids, size=2):
 def group_annots_by_name_dict(ibs, aids):
     grouped_aids, nids = ibs.group_annots_by_name(aids)
     return dict(zip(nids, map(list, grouped_aids)))
-
-
-@register_ibs_method
-def group_annots_by_prop(ibs, aids, getter_func):
-    # Make a dictionary that maps props into a dictionary of names to aids
-    annot_prop_list = getter_func(aids)
-    prop2_aids = ut.group_items(aids, annot_prop_list)
-    return prop2_aids
 
 
 @register_ibs_method
@@ -4635,7 +4597,8 @@ def parse_annot_stats_filter_kws(ibs):
 
 # Indepdentent query / database stats
 @register_ibs_method
-def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwargs):
+def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
+                         use_hist=False, **kwargs):
     """ stats for a set of annots
 
     Args:
@@ -4651,6 +4614,12 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
 
     CommandLine:
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=False --old=False --per_name_vpedge=False
+
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_MTEST --use-hist --per_name_vpedge=False
+
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
@@ -4668,14 +4637,48 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
         >>> #default = True if ut.get_argflag('--all') else None
         >>> default = None if ut.get_argflag('--notall') else True
         >>> kwargs = ut.argparse_dict(dict(zip(kwkeys, [default] * len(kwkeys))))
+        >>> #ut.argparse_funckw(ibs.get_annot_stats_dict)
         >>> print('kwargs = %r' % (kwargs,))
-        >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, **kwargs)
-        >>> result = ('aid_stats_dict = %s' % (ut.dict_str(aid_stats_dict, strvals=True, nl=True),))
+        >>> old = ut.get_argval('--old', default=True)
+        >>> use_hist = ut.get_argval('--use_hist', default=True)
+        >>> aid_stats_dict = get_annot_stats_dict(ibs, aids, prefix, use_hist=use_hist, old=old, **kwargs)
+        >>> result = ('aid_stats_dict = %s' % (ut.repr2(aid_stats_dict, strkeys=True, strvals=True, nl=2, precision=2),))
         >>> print(result)
     """
     kwargs = kwargs.copy()
 
-    statwrap = _stat_str if old else ut.identity
+    class HackStatsDict(ut.DictLike):
+        # def __repr__(self):
+        #     return repr(self)
+        def __init__(self, dict_, **kwargs):
+            self.dict_ = dict_
+            self.keys = dict_.keys
+            self.kwargs = kwargs
+            self.getitem = dict_.__getitem__
+            self.delitem = dict_.__delitem__
+            self.setitem = dict_.__setitem__
+
+        def __str__(self):
+            return _stat_str(self, **self.kwargs)
+
+        def __repr__(self):
+            return repr(self.dict_)
+
+    statwrap = HackStatsDict
+
+    annots = ibs.annots(aids)
+
+    def stat_func(data, num_None=None):
+        if use_hist:
+            stats = ut.dict_hist(data)
+        else:
+            stats = ut.get_stats(data, use_nan=True, use_median=True)
+            if stats.get('num_nan', None) == 0:
+                del stats['num_nan']
+            if num_None is not None:
+                stats['num_None'] = num_None
+            stats = HackStatsDict(stats)
+        return stats
 
     def get_per_prop_stats(ibs, aids, getter_func):
         prop2_aids = ibs.group_annots_by_prop(aids, getter_func=getter_func)
@@ -4684,15 +4687,14 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
             # Dont count invalid properties
             num_None += len(prop2_aids[None])
             del prop2_aids[None]
-        if '____' in prop2_aids:
-            num_None += len(prop2_aids['____'])
-            del prop2_aids['____']
+        if ibs.const.UNKNOWN in prop2_aids:
+            num_None += len(prop2_aids[ibs.const.UNKNOWN])
+            del prop2_aids[ibs.const.UNKNOWN]
         num_aids_list = list(map(len, prop2_aids.values()))
-        num_aids_stats = ut.get_stats(num_aids_list, use_nan=True, use_median=True)
         # represent that Nones were removed
         # num_aids_list += ([np.nan] * num_None)
         # if num_None:
-        num_aids_stats['num_None'] = num_None
+        num_aids_stats = stat_func(num_aids_list, num_None)
         return num_aids_stats
 
     keyval_list = [
@@ -4721,10 +4723,9 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
              ibs.get_annot_hashid_uuid(aids, prefix=prefix.upper()))]
 
     if kwargs.pop('per_name', True or forceall):
-        keyval_list += [
-            (prefix + 'per_name',
-             statwrap(ut.get_stats(ibs.get_num_annots_per_name(aids)[0],
-                                    use_nan=True, use_median=True)))]
+        data = ibs.get_num_annots_per_name(aids)[0]
+        stats = stat_func(data)
+        keyval_list += [(prefix + 'per_name', stats)]
 
     # if kwargs.pop('per_name_dict', True or forceall):
     #     keyval_list += [
@@ -4733,13 +4734,19 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
     #                                 use_nan=True, use_median=True))]
 
     if kwargs.pop('per_qual', False or forceall):
+        key_order = list(const.QUALITY_TEXT_TO_INT.keys())
+        prop_getter = ibs.get_annot_quality_texts
+        qualtext2_nAnnots = ibs.make_property_stats_dict(aids, prop_getter, key_order)
         keyval_list += [(prefix + 'per_qual',
-                         statwrap(ibs.get_annot_qual_stats(aids)))]
+                         statwrap(qualtext2_nAnnots))]
 
     #if kwargs.pop('per_vp', False):
     if kwargs.pop('per_vp', True or forceall):
+        key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        prop_getter = ibs.get_annot_yaw_texts
+        yawtext2_nAnnots = ibs.make_property_stats_dict(aids, prop_getter, key_order)
         keyval_list += [(prefix + 'per_vp',
-                         statwrap(ibs.get_annot_yaw_stats(aids)))]
+                         statwrap(yawtext2_nAnnots))]
 
     if kwargs.pop('per_multiple', True or forceall):
         keyval_list += [(prefix + 'per_multiple',
@@ -4752,16 +4759,6 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
             (prefix + 'per_name_vpedge',
              statwrap(ibs.get_annot_intermediate_viewpoint_stats(aids), multi=True))]
 
-    if kwargs.pop('enc_per_name', True or forceall):
-        # Does not handle None encounters. They show up as just another encounter
-        name2_enctexts = ut.group_items(ibs.get_annot_encounter_text(aids), ibs.get_annot_names(aids))
-        encsets = ut.lmap(set, name2_enctexts.values())
-        nEncs_per_name = list(map(len, encsets))
-        keyval_list += [
-            (prefix + 'enc_per_name',
-             statwrap(ut.get_stats(nEncs_per_name, use_nan=True, use_median=True))
-             )]
-
     if kwargs.pop('per_enc', True or forceall):
         keyval_list += [
             (prefix + 'per_enc',
@@ -4771,6 +4768,16 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True, **kwarg
         keyval_list += [
             (prefix + 'aid_per_image',
              statwrap(get_per_prop_stats(ibs, aids, ibs.get_annot_image_rowids)))]
+
+    if kwargs.pop('enc_per_name', True or forceall):
+        # Does not handle None encounters. They show up as just another encounter
+        name_to_enc_ = ut.group_items(annots.encounter_text, annots.names)
+        name_to_enc = ut.map_vals(set, name_to_enc_)
+        name_to_num_enc = ut.map_vals(len, name_to_enc)
+        num_enc_per_name = list(name_to_num_enc.values())
+        stats = stat_func(num_enc_per_name)
+        keyval_list += [
+            (prefix + 'enc_per_name', stats)]
 
     if kwargs.pop('species_hist', False or forceall):
         keyval_list += [
@@ -4887,21 +4894,6 @@ def viewpoint_diff(ori1, ori2):
 
 
 @register_ibs_method
-def get_annot_per_name_stats(ibs, aid_list):
-    """  stats about this set of aids """
-    return ut.get_stats(ibs.get_num_annots_per_name(aid_list)[0], use_nan=True)
-
-
-@register_ibs_method
-def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
-    """
-    SeeAlso:
-        ibs.get_annotconfig_stats
-    """
-    ibs.get_annotconfig_stats(qaids, daids, verbose=True, **kwargs)
-
-
-@register_ibs_method
 def parse_annot_config_stats_filter_kws(ibs):
     #kwkeys = ibs.parse_annot_stats_filter_kws() + ['combined', 'combo_gt_info', 'combo_enc_info', 'combo_dists']
     kwkeys1 = ibs.parse_annot_stats_filter_kws()
@@ -4913,9 +4905,21 @@ def parse_annot_config_stats_filter_kws(ibs):
 
 
 @register_ibs_method
-def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
+def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
+    """
+    SeeAlso:
+        ibs.get_annotconfig_stats
+    """
+    annotconfig_stats = ibs.get_annotconfig_stats(qaids, daids, verbose=False, **kwargs)
+    stats_str2 = ut.dict_str(annotconfig_stats, strvals=True,
+                             newlines=True, explicit=False, nobraces=False)
+    print(stats_str2)
+
+
+@register_ibs_method
+def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
                           combo_gt_info=True, combo_enc_info=False,
-                          combo_dists=True,
+                          combo_dists=True, split_matchable_data=True,
                           **kwargs):
     r"""
     Gets statistics about a query / database set of annotations
@@ -4947,10 +4951,13 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> kwargs = {'per_enc': True, 'enc_per_name': True}
-        >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(defaultdb='testdb1')
-        >>> _ = get_annotconfig_stats(ibs, qaids, daids, **kwargs)
+        >>> ibs, qaids, daids = main_helpers.testdata_expanded_aids(
+        ...    defaultdb='testdb1', a='default:qsize=3')
+        >>> stat_dict = get_annotconfig_stats(ibs, qaids, daids, **kwargs)
+        >>> stats_str2 = ut.dict_str(stat_dict, strvals=True,
+        >>>                          newlines=True, explicit=False, nobraces=False)
+        >>> print(stats_str2)
     """
-    kwargs = kwargs.copy()
     import numpy as np
     import warnings
     with warnings.catch_warnings():
@@ -4962,14 +4969,14 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
         grouped_qaids = ibs.group_annots_by_name(qaids)[0]
         grouped_groundtruth_list = ibs.get_annot_groundtruth(
             ut.get_list_column(grouped_qaids, 0), daid_list=daids)
-        groundtruth_daids = ut.unique_unordered(ut.flatten(grouped_groundtruth_list))
-        hasgt_list = ibs.get_annot_has_groundtruth(qaids, daid_list=daids)
+        # groundtruth_daids = ut.unique_unordered(ut.flatten(grouped_groundtruth_list))
+        query_hasgt_list = ibs.get_annot_has_groundtruth(qaids, daid_list=daids)
         # The aids that should not match any query
-        nonquery_daids = np.setdiff1d(np.setdiff1d(daids, qaids), groundtruth_daids)
+        # nonquery_daids = np.setdiff1d(np.setdiff1d(daids, qaids), groundtruth_daids)
         # The query aids that should not get any match
-        unmatchable_queries = ut.compress(qaids, ut.not_list(hasgt_list))
+        unmatchable_queries = ut.compress(qaids, ut.not_list(query_hasgt_list))
         # The query aids that should not have a match
-        matchable_queries = ut.compress(qaids, hasgt_list)
+        matchable_queries = ut.compress(qaids, query_hasgt_list)
 
         # Find the daids that are in the same occurrence as the qaids
         if combo_enc_info:
@@ -4977,21 +4984,6 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
             data_encs = set(ibs.get_annot_encounter_text(daids))
             enc_intersect = query_encs.intersection(data_encs)
             enc_intersect.difference_update({None})
-            # import operator as op
-            # compare_nested_props(
-            #     ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_encounter_text, op.eq)
-
-        # Intersection on a per name basis
-        imposter_daid_per_name_stats = ibs.get_annot_per_name_stats(nonquery_daids)
-        genuine_daid_per_name_stats  = ibs.get_annot_per_name_stats(groundtruth_daids)
-        all_daid_per_name_stats = ibs.get_annot_per_name_stats(daids)
-        #imposter_daid_per_name_stats =
-        #ut.get_stats(ibs.get_num_annots_per_name(nonquery_daids)[0],
-        #             use_nan=True)
-        #genuine_daid_per_name_stats  =
-        #ut.get_stats(ibs.get_num_annots_per_name(groundtruth_daids)[0],
-        #             use_nan=True)
-        #all_daid_per_name_stats = ut.get_stats(ibs.get_num_annots_per_name(daids)[0], use_nan=True)
 
         # Compare the query yaws to the yaws of its correct matches in the database
         # For each name there will be nQaids:nid x nDaids:nid comparisons
@@ -4999,8 +4991,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
             ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_yaws, viewpoint_diff)
 
         # Compare the query qualities to the qualities of its correct matches in the database
-        gt_qualdists_list = compare_nested_props(
-            ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_qualities, ut.absdiff)
+        # gt_qualdists_list = compare_nested_props(
+        #     ibs, grouped_qaids, grouped_groundtruth_list, ibs.get_annot_qualities, ut.absdiff)
 
         # Compare timedelta differences
         gt_hourdelta_list = compare_nested_props(
@@ -5011,8 +5003,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
             import utool as ut
             return ut.flatten([arr.ravel() for arr in arr_list])
 
-        gt_viewdist_stats   = ut.get_stats(super_flatten(gt_viewdist_list), use_nan=True)
-        gt_qualdist_stats  = ut.get_stats(super_flatten(gt_qualdists_list), use_nan=True)
+        gt_viewdist_stats  = ut.get_stats(super_flatten(gt_viewdist_list), use_nan=True)
+        # gt_qualdist_stats  = ut.get_stats(super_flatten(gt_qualdists_list), use_nan=True)
         gt_hourdelta_stats = ut.get_stats(super_flatten(gt_hourdelta_list), use_nan=True)
 
         qaids2 = np.array(qaids).copy()
@@ -5028,6 +5020,17 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
 
         qaid_stats_dict = ibs.get_annot_stats_dict(qaids, 'q', **kwargs)
         daid_stats_dict = ibs.get_annot_stats_dict(daids, 'd', **kwargs)
+
+        if split_matchable_data:
+            # The aids that should not be matched by any query
+            data_hasgt_list = ibs.get_annot_has_groundtruth(daids, daid_list=qaids)
+            matchable_daids = ut.compress(daids, data_hasgt_list)
+            confusor_daids = ut.compress(daids, ut.not_list(data_hasgt_list))
+
+            matchable_daid_stats_dict = ibs.get_annot_stats_dict(matchable_daids, 'd', **kwargs)
+            confusor_daid_stats_dict  = ibs.get_annot_stats_dict(confusor_daids, 'd', **kwargs)
+
+            daid_stats_dict = ut.dict_subset(daid_stats_dict, ['num_daids', 'dhashid'])
 
         # Intersections between qaids and daids
         common_aids = np.intersect1d(daids, qaids)
@@ -5047,8 +5050,17 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
 
         annotconfig_stats_strs_list1 += [
             ('qaid_stats', qaid_stats_dict),
+        ]
+        annotconfig_stats_strs_list1 += [
             ('daid_stats', daid_stats_dict),
         ]
+        if split_matchable_data:
+            annotconfig_stats_strs_list1 += [
+                ('matchable_daid_stats', matchable_daid_stats_dict),
+                ('confusor_daid_stats', confusor_daid_stats_dict),
+            ]
+            matchable_daid_stats_dict = ibs.get_annot_stats_dict(matchable_daids, 'd', **kwargs)
+            confusor_daid_stats_dict  = ibs.get_annot_stats_dict(confusor_daids, 'd', **kwargs)
         if combined:
             combined_aids = np.unique((np.hstack((qaids, daids))))
             combined_aids.sort()
@@ -5071,18 +5083,6 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
                 ('num_name_intersect', (len(common_nids))),
             ]
 
-        if combo_gt_info:
-            annotconfig_stats_strs_list2 += [
-                # Number of aids per name for everything in the database
-                #('per_name_', _stat_str(all_daid_per_name_stats)),
-                # Number of aids in each name that should match to a query
-                # (not quite sure how to phrase what this is)
-                ('per_name_genuine', _stat_str(genuine_daid_per_name_stats)),
-                # Number of aids in each name that should not match to any query
-                # (not quite sure how to phrase what this is)
-                ('per_name_imposter', _stat_str(imposter_daid_per_name_stats)),
-            ]
-
         if combo_dists:
             annotconfig_stats_strs_list2 += [
                 # Distances between a query and its groundtruth
@@ -5094,20 +5094,14 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=True, combined=False,
         annotconfig_stats_strs1 = ut.odict(annotconfig_stats_strs_list1)
         annotconfig_stats_strs2 = ut.odict(annotconfig_stats_strs_list2)
 
-        annotconfig_stats_strs = ut.odict(list(annotconfig_stats_strs1.items()) +
+        annotconfig_stats = ut.odict(list(annotconfig_stats_strs1.items()) +
                                           list(annotconfig_stats_strs2.items()))
-        stats_str = ut.dict_str(annotconfig_stats_strs1, strvals=True,
-                                newlines=False, explicit=True, nobraces=True)
-        stats_str +=  '\n' + ut.dict_str(annotconfig_stats_strs2, strvals=True,
-                                         newlines=True, explicit=True,
-                                         nobraces=True)
-        #stats_str = ut.align(stats_str, ':')
-        stats_str2 = ut.dict_str(annotconfig_stats_strs, strvals=True,
-                                 newlines=True, explicit=False, nobraces=False)
         if verbose:
+            stats_str2 = ut.dict_str(annotconfig_stats, strvals=True,
+                                     newlines=True, explicit=False, nobraces=False)
             print('annot_config_stats = ' + stats_str2)
 
-        return annotconfig_stats_strs, locals()
+        return annotconfig_stats
 
 
 @register_ibs_method

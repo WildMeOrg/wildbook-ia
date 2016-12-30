@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+TODO:
+
+* Use depcache to compute match objects (ideally via the infr object)
+
+* Find thresholds to maximize score metric (mcc, auc)
+
+* Get end-to-end system test working with simulated reviewer
+
+* allow random forests / whatever classifier to be trained according to one of the following ways:
+    * Multiclass - naitively output multiclass labels
+    * One-vs-Rest - Use sklearns 1-v-Rest framework
+    * One-vs-One - Use sklearns 1-v-1 framework
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
 import numpy as np
@@ -10,6 +25,7 @@ import sklearn
 import sklearn.metrics
 import sklearn.model_selection
 import sklearn.ensemble
+from ibeis.scripts import clf_helpers
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -40,117 +56,174 @@ class VsOneAssignConfig(dt.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
+@ut.reloadable_class
 class OneVsOneProblem(object):
     """
     Keeps information about the one-vs-one pairwise classification problem
+
+    CommandLine:
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
         >>> self = OneVsOneProblem()
         >>> self.load_features()
+        >>> self.load_samples()
     """
     def __init__(self):
         import ibeis
         # ut.aug_sysargv('--db PZ_Master1')
         qreq_ = ibeis.testdata_qreq_(
             defaultdb='PZ_PB_RF_TRAIN',
-            a=':mingt=4,species=primary',
+            a=':mingt=3,species=primary',
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
-            t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
         )
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
         self.qreq_ = qreq_
         self.ibs = qreq_.ibs
 
+    def set_pandas_options(self):
+        import pandas as pd
+        # pd.options.display.max_rows = 10
+        pd.options.display.max_rows = 80
+        pd.options.display.max_columns = 40
+        pd.options.display.width = 160
+        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
+    def load_samples(self):
+        import copy
+        self.samples = AnnotPairSamples(
+            self.ibs, copy.deepcopy(self.raw_aid_pairs),
+            copy.deepcopy(self.raw_simple_scores),
+            copy.deepcopy(self.raw_X_dict))
+
+    def load_features(self):
+        qreq_ = self.qreq_
+        hyper_params = dt.Config.from_dict(dict(
+            subsample=None,
+            pair_sample=PairSampleConfig(),
+            vsone_assign=VsOneAssignConfig(),
+            pairwise_feats=PairFeatureConfig(), ),
+            tablename='HyperParams'
+        )
+        if qreq_.qparams.featweight_enabled:
+            hyper_params.vsone_assign['weight'] = 'fgweights'
+        else:
+            hyper_params.vsone_assign['weight'] = None
+
+        dbname = qreq_.ibs.get_dbname()
+        vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
+        features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
+        cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
+
+        cacher = ut.Cacher('pairwise_data_v7', cfgstr=cfgstr,
+                           appname='vsone_rf_train', enabled=1)
+        data = cacher.tryload()
+        if not data:
+            data = build_features(qreq_, hyper_params)
+            cacher.save(data)
+
+        aid_pairs, simple_scores, X_dict, y, match = data
+        self.raw_aid_pairs = aid_pairs
+        self.raw_X_dict = X_dict
+        self.raw_simple_scores = simple_scores
+        # Debuging match
+        self.match = match
+
     def evaluate_classifiers(self):
         """
-        python -m ibeis.scripts.script_vsone evaluate_classifiers
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1 --show
+        CommandLine:
+            python -m ibeis.scripts.script_vsone evaluate_classifiers
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1 --show
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> self = OneVsOneProblem()
             >>> self.evaluate_classifiers()
         """
-        import pandas as pd
-        # pd.options.display.max_rows = 10
-        pd.options.display.max_rows = 80
-        pd.options.display.max_columns = 40
-        pd.options.display.width = 160
+        self.set_pandas_options()
 
+        ut.cprint('\n--- LOADING DATA ---', 'blue')
         self.load_features()
-        self.load_labels()
+        self.load_samples()
 
-        # self.labels.print_info()
+        # self.samples.print_info()
+        ut.cprint('\n--- CURATING DATA ---', 'blue')
         self.reduce_dataset_size()
+        self.samples.print_info()
+        print('---------------')
+
+        ut.cprint('\n--- FEATURE INFO ---', 'blue')
         self.build_feature_subsets()
-        self.labels.print_info()
-
-        # _all_dfs = []
-        # self.load_multiclass_scores()
-        # df_simple = self.evaluate_simple_scores()
-        # _all_dfs.append(df_simple)
-
-        self.task_clfs = ut.ddict(dict)
-        self.task_res_list = ut.ddict(dict)
-        self.task_combo_res = ut.ddict(dict)
+        for data_key in self.samples.X_dict.keys():
+            print('\nINFO(samples.X_dict[%s])' % (data_key,))
+            print(ut.indent(AnnotPairFeatInfo(self.samples.X_dict[data_key]).get_infostr()))
 
         task_list = [
             'match_state',
             'photobomb_state'
         ]
 
-        self.datakey_list = [
+        ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
+        self.evaluate_simple_scores(task_list)
+
+        datakey_list = [
+            'learn(sum,glob,3,+view)',
             'learn(sum,glob,3)',
             'learn(all)',
             'learn(local)',
         ]
 
-        cacher = ut.Cacher('pair_clf_v2', cfgstr='tmp' + self.qreq_.get_cfgstr() + str(task_list),
-                           appname='vsone_rf_train', enabled=0)
-        data = cacher.tryload()
-        if not data:
-            task_prog = ut.ProgIter(task_list, label='task')
-            for task_name in task_prog:
-                task_prog.ensure_newline()
-                self.evaluate_task(task_name)
-            data = (self.task_clfs, self.task_res_list, self.task_combo_res)
-            cacher.save(data)
-        else:
-            self.task_clfs, self.task_res_list, self.task_combo_res = data
+        ut.cprint('\n--- LEARN CROSS-VALIDATED RANDOM FORESTS ---', 'blue')
+        self.evaluate_rf(task_list, datakey_list)
 
-        for task_name in task_list:
-            self.report_classifier_accuracy(task_name)
-            # self.report_classifier_importance(task_name)
+        selected_data_keys = []
 
+        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
+        from utool.experimental.pandas_highlight import to_string_monkey
         for task_name in task_list:
-            roc_scores = {}
-            for name in self.datakey_list:
-                combo_res = self.task_combo_res[task_name][name]
-                roc_scores[name] = combo_res.roc_score()
-            # best_data_key = 'learn(sum,glob,3)'
-            best_data_key = list(roc_scores.keys())[ut.argmax(roc_scores.values())]
+            print('task_name = %s' % (ut.repr2(task_name),))
             data_combo_res = self.task_combo_res[task_name]
-            combo_res = data_combo_res[best_data_key]
-            print('BEST REPORT task_name = %r' % (task_name,))
-            print('best_data_key = %r' % (best_data_key,))
-            combo_res.print_report()
 
-        import utool
-        utool.embed()
+            roc_scores_1vR = {datakey: list(data_combo_res[datakey].one_vs_rest_roc_scores()) for datakey in datakey_list}
+            df_auc_1vR = pd.DataFrame(roc_scores_1vR, index=self.samples.subtasks[task_name].one_vs_rest_task_names())
+            ut.cprint('ROC(1vR) Scores per DataKey', 'yellow')
+            print(to_string_monkey(df_auc_1vR, highlight_cols='all'))
+
+            roc_scores = {datakey: [data_combo_res[datakey].roc_score()] for datakey in datakey_list}
+            df_auc = pd.DataFrame(roc_scores)
+            ut.cprint('ROC(MacroAve) Scores per DataKey', 'yellow')
+            print(to_string_monkey(df_auc, highlight_cols='all'))
+
+            # best_data_key = 'learn(sum,glob,3)'
+            best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
+            selected_data_keys.append(best_data_key)
+            combo_res = data_combo_res[best_data_key]
+            print('BEST DataKey = %r' % (best_data_key,))
+
+            combo_res.print_report()
+            res = combo_res
+            res.report_thresholds()
+
+        # ut.cprint('\n--- FEATURE INFO ---', 'blue')
+        # for best_data_key in selected_data_keys:
+        #     print('data_key=(%s)' % (best_data_key,))
+        #     print(ut.indent(AnnotPairFeatInfo(self.samples.X_dict[best_data_key]).get_infostr()))
 
         # TODO: view failure / success cases
         # Need to show and potentially fix misclassified examples
         if False:
-            self.labels.aid_pairs
+            self.samples.aid_pairs
             combo_res.target_bin_df
             res = combo_res
-            labels = self.labels
-            meta = res.make_meta(labels).copy()
+            samples = self.samples
+            meta = res.make_meta(samples).copy()
             import ibeis
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
             attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
@@ -204,33 +277,86 @@ class OneVsOneProblem(object):
         # header = [col_to_nice.get(c, c) for c in table.columns]
         # print(tabulate.tabulate(table.values, header, tablefmt='orgtbl'))
 
-    def evaluate_task(self, task_name):
+    def evaluate_rf(self, task_list=None, datakey_list=None):
         """
+        Evaluates by learning classifiers using cross validation.
+        Do not use this to learn production classifiers.
+
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
-
-        TODO: use Markedness and Informedness
-        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
         """
-        X_dict = self.X_dict
-        task_labels = self.labels.subtasks[task_name]
-        dataset_prog = ut.ProgIter(self.datakey_list, label='X_set')
-        for name in dataset_prog:
-            X_df = X_dict[name]
-            clf_list, res_list = self.evaluate_single_rf(X_df, task_labels)
+        self.task_clfs = ut.ddict(dict)
+        self.task_res_list = ut.ddict(dict)
+        self.task_combo_res = ut.ddict(dict)
+        if task_list is None:
+            task_list = list(self.samples.subtasks.keys())
+        if datakey_list is None:
+            task_list = list(self.samples.X_dict.keys())
+        # try:
+        #     from sklearn.external.prog_iter import ProgIter
+        # except ImportError:
+        task_prog = ut.ProgIter(task_list, label='Task', freq=1, adjust=False)
+        # task_prog.set_extra('Task=' + ut.repr2(task_list[0]))
+        for task_name in task_prog:
+            task_prog.set_extra('Task=' + ut.repr2(task_name))
+            task_prog.display_message()
+            task_prog.ensure_newline()
+            labels = self.samples.subtasks[task_name]
+            dataset_prog = ut.ProgIter(datakey_list, label='Learn RF', freq=1, adjust=False)
+            annot_cfgstr = self.samples.make_annotpair_vhashid()
 
-            print('\nDataset Name = %r' % (name,))
-            print('Task Name = %r' % (task_name,))
-            combo_res = ClfResult.combine_results(res_list, task_labels)
-            # combo_res.print_report()
+            # dataset_prog.set_extra('Dataset=' + ut.repr2(datakey_list[0]))
+            for data_key in dataset_prog:
+                dataset_prog.set_extra('Dataset=' + ut.repr2(data_key))
+                dataset_prog.display_message()
+                dataset_prog.ensure_newline()
+                # print(' * Dataset/Task = %s, %s' % (ut.repr2(data_key), ut.repr2(task_name)))
+                cacher = ut.Cacher('rf_clf_v7', cfgstr='tmp' + task_name + '_' +
+                                   annot_cfgstr + '_' +
+                                   data_key + '_' + self.qreq_.get_cfgstr(),
+                                   appname='vsone_rf_train', enabled=1, verbose=1)
+                data = cacher.tryload()
+                if not data:
+                    X_df = self.samples.X_dict[data_key]
+                    clf_list, res_list = self.evaluate_single_rf(X_df, labels)
+                    data = (clf_list, res_list)
+                    cacher.save(data)
+                else:
+                    clf_list, res_list = data
 
-            self.task_clfs[task_name][name]      = clf_list
-            self.task_res_list[task_name][name]  = res_list
-            self.task_combo_res[task_name][name] = combo_res
+                combo_res = clf_helpers.ClfResult.combine_results(res_list,
+                                                                  labels)
+                # combo_res.print_report()
+                self.task_clfs[task_name][data_key] = clf_list
+                self.task_res_list[task_name][data_key]  = res_list
+                self.task_combo_res[task_name][data_key] = combo_res
+                dataset_prog.set_extra('')
+            task_prog.set_extra('')
 
-    def evaluate_single_rf(self, X_df, task_labels):
+    def get_rf_params(self):
+        rf_params = {
+            # 'max_depth': 4,
+            'bootstrap': True,
+            'class_weight': None,
+            'max_features': 'sqrt',
+            # 'max_features': None,
+            'missing_values': np.nan,
+            'min_samples_leaf': 5,
+            'min_samples_split': 2,
+            'n_estimators': 256,
+            'criterion': 'entropy',
+        }
+        rf_settings = {
+            'random_state': 3915904814,
+            'verbose': 0,
+            'n_jobs': -1,
+        }
+        rf_params.update(rf_settings)
+        return rf_params
+
+    def evaluate_single_rf(self, X_df, labels):
         """
         X_df = self.X_dict['learn(all)']
-        task_labels = self.labels.subtasks['photobomb_state']
+        labels = self.samples.subtasks['photobomb_state']
         """
         rf_params = self.get_rf_params()
 
@@ -240,7 +366,7 @@ class OneVsOneProblem(object):
         skf_list = self.get_crossval_idxs()
         for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
             X_train = X_df.values[train_idx]
-            y_train = task_labels.y_enc[train_idx]
+            y_train = labels.y_enc[train_idx]
 
             clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
             clf.fit(X_train, y_train)
@@ -251,63 +377,11 @@ class OneVsOneProblem(object):
 
             pred_classes = clf.classes_
 
-            res = ClfResult.make_single(test_idx, clf_probs, pred_classes, task_labels)
+            res = clf_helpers.ClfResult.make_single(test_idx, clf_probs,
+                                                    pred_classes, labels)
             res_list.append(res)
             clf_list.append(clf)
         return clf_list, res_list
-
-    def load_labels(self):
-        self.labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
-
-    def load_features(self):
-        qreq_ = self.qreq_
-        hyper_params = dt.Config.from_dict(dict(
-            subsample=None,
-            pair_sample=PairSampleConfig(),
-            vsone_assign=VsOneAssignConfig(),
-            pairwise_feats=PairFeatureConfig(), ),
-            tablename='HyperParams'
-        )
-        if qreq_.qparams.featweight_enabled:
-            hyper_params.vsone_assign['weight'] = 'fgweights'
-        else:
-            hyper_params.vsone_assign['weight'] = None
-
-        dbname = qreq_.ibs.get_dbname()
-        vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
-        features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
-        cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
-
-        cacher = ut.Cacher('pairwise_data_v5', cfgstr=cfgstr,
-                           appname='vsone_rf_train', enabled=1)
-        data = cacher.tryload()
-        if not data:
-            data = build_features(qreq_, hyper_params)
-        cacher.save(data)
-
-        aid_pairs, simple_scores, X_dict, y, match = data
-        self.aid_pairs = aid_pairs
-        self.raw_X_dict = X_dict
-        self.simple_scores = simple_scores
-        self.match = match
-
-    def load_multiclass_scores(self):
-        # convert simple scores to multiclass scores
-        import vtool as vt
-        self.multiclass_scores = {}
-        for key in self.simple_scores.keys():
-            scores = self.simple_scores[key].values
-            # Hack scores into the range 0 to 1
-            normer = vt.ScoreNormalizer(adjust=8, monotonize=True)
-            normer.fit(scores, y=self.labels.is_same())
-            normed_scores = normer.normalize_scores(scores)
-            # Create a dimension for each class
-            # but only populate two of the dimensions
-            class_idxs = ut.take(self.labels.text_to_class, ['nomatch', 'match'])
-            pred = np.zeros((len(scores), len(self.labels.class_names)))
-            pred[:, class_idxs[0]] = 1 - normed_scores
-            pred[:, class_idxs[1]] = normed_scores
-            self.multiclass_scores[key] = pred
 
     def reduce_dataset_size(self):
         """
@@ -317,75 +391,124 @@ class OneVsOneProblem(object):
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> self = OneVsOneProblem()
             >>> self.load_features()
-            >>> self.load_labels()
+            >>> self.load_samples()
+            >>> self.reduce_dataset_size()
         """
-        raw_X_dict = self.raw_X_dict
-        X = raw_X_dict['learn(all)']
+        import utool
+        with utool.embed_on_exception_context:
+            from six import next
+            labels = next(iter(self.samples.subtasks.values()))
+            ut.assert_eq(len(labels), len(self.samples))
 
         if True:
-            labels = self.labels
             # Remove singletons
-            unique_aids = np.unique(labels.aid_pairs)
+            unique_aids = np.unique(self.samples.aid_pairs)
             nids = self.ibs.get_annot_nids(unique_aids)
             singleton_nids = set([nid for nid, v in ut.dict_hist(nids).items() if v == 1])
             nid_flags = [nid in singleton_nids for nid in nids]
             singleton_aids = set(ut.compress(unique_aids, nid_flags))
-            flags = [not (a1 in singleton_aids or a2 in singleton_aids)
-                     for a1, a2 in labels.aid_pairs]
-            self.labels = labels.compress(flags)
+            mask = [not (a1 in singleton_aids or a2 in singleton_aids)
+                     for a1, a2 in self.samples.aid_pairs]
+            print('Removing %d pairs based on singleton' % (len(mask) - sum(mask)))
+            self.samples = samples2 = self.samples.compress(mask)
+            samples2.print_info()
+            print('---------------')
+            import utool
+            with utool.embed_on_exception_context:
+                from six import next
+                labels = next(iter(samples2.subtasks.values()))
+                ut.assert_eq(len(labels), len(samples2))
+            self.samples = samples2
 
-        if False:
+        if True:
             # Remove anything 1vM didn't get
-            mask = (self.simple_scores['score_lnbnn_1vM'] > 0).values
-            self.labels = self.labels.compress(mask)
-            simple_scores = self.simple_scores[mask]
-            self.labels.print_info()
-            X = X[mask]
-            raw_X_dict['learn(all)'] = X
+            mask = (self.samples.simple_scores['score_lnbnn_1vM'] > 0).values
+            print('Removing %d pairs based on LNBNN failure' % (len(mask) - sum(mask)))
+            self.samples = samples3 = self.samples.compress(mask)
+            samples3.print_info()
+            print('---------------')
+            import utool
+            with utool.embed_on_exception_context:
+                from six import next
+                labels = next(iter(samples3.subtasks.values()))
+                ut.assert_eq(len(labels), len(samples3))
+            self.samples = samples3
+
+        from sklearn.utils import random
 
         if False:
-            print('Reducing dataset size for class balance')
-            labels = self.labels
+            # Choose labels to balance
+            labels = self.samples.subtasks['match_state']
+            unique_labels, groupxs = ut.group_indices(labels.y_enc)
+            #
+            # unique_labels, groupxs = ut.group_indices(self.samples.encoded_1d())
+
+            # Take approximately the same number of examples from each class type
+            n_take = int(np.round(np.median(list(map(len, groupxs)))))
+            # rng = np.random.RandomState(0)
+            rng = random.check_random_state(0)
+            sample_idxs = [
+                random.choice(idxs, min(len(idxs), n_take), replace=False,
+                              random_state=rng)
+                for idxs in groupxs
+            ]
+            idxs = sorted(ut.flatten(sample_idxs))
+            mask = ut.index_to_boolmask(idxs, len(self.samples))
+            print('Removing %d pairs for class balance' % (len(mask) - sum(mask)))
+            self.samples = samples4 = self.samples.compress(mask)
+            samples4.print_info()
+            print('---------------')
+            import utool
+            with utool.embed_on_exception_context:
+                from six import next
+                labels = next(iter(samples4.subtasks.values()))
+                ut.assert_eq(len(labels), len(samples4))
+            self.samples = samples4
+            # print('hist(y) = ' + ut.repr4(self.samples.make_histogram()))
+
+            # print('Reducing dataset size for class balance')
+            # X = self.samples.X_dict['learn(all)']
             # Find the data with the most null / 0 values
             # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
-            nullness = pd.isnull(X).sum(axis=1)
-            nullness = nullness.reset_index(drop=True)
-            false_nullness = (nullness)[~labels.is_same()]
-            sortx = false_nullness.argsort()[::-1]
-            false_nullness_ = false_nullness.iloc[sortx]
+            # nullness = pd.isnull(X).sum(axis=1)
+            # nullness = nullness.reset_index(drop=True)
+            # false_nullness = (nullness)[~samples.is_same()]
+            # sortx = false_nullness.argsort()[::-1]
+            # false_nullness_ = false_nullness.iloc[sortx]
             # Remove a few to make training more balanced / faster
-            class_hist = labels.make_histogram()
-            num_remove = max(class_hist['match'] - class_hist['nomatch'], 0)
-            if num_remove > 0:
-                to_remove = false_nullness_.iloc[:num_remove]
-                mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(labels)))
-                self.labels = self.labels.compress(mask)
-                simple_scores = simple_scores[mask]
-                print('hist(y) = ' + ut.repr4(labels.make_histogram()))
-                X = X[mask]
-                raw_X_dict['learn(all)'] = X
+            # class_hist = self.samples.make_histogram()
+            # num_remove = max(class_hist['match'] - class_hist['nomatch'], 0)
+            # if num_remove > 0:
+            #     to_remove = false_nullness_.iloc[:num_remove]
+            #     mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(self.samples)))
+            #     self.samples = self.samples.compress(mask)
+            #     print('hist(y) = ' + ut.repr4(self.samples.make_histogram()))
 
-        if 0:
-            print('Reducing dataset size for development')
-            rng = np.random.RandomState(1851057325)
-            num = len(self.labels)
-            to_keep = rng.choice(np.arange(num), 1000)
-            mask = np.array(ut.index_to_boolmask(to_keep, num))
-            self.labels = self.labels.compress(mask)
-            simple_scores = simple_scores[mask]
-            class_hist = self.labels.make_histogram()
-            print('hist(y) = ' + ut.repr4(class_hist))
-            X = X[mask]
-            raw_X_dict['learn(all)'] = X
+        # if 0:
+        #     print('Random dataset size reduction for development')
+        #     rng = np.random.RandomState(1851057325)
+        #     num = len(self.samples)
+        #     to_keep = rng.choice(np.arange(num), 1000)
+        #     mask = np.array(ut.index_to_boolmask(to_keep, num))
+        #     self.samples = self.samples.compress(mask)
+        #     class_hist = self.samples.make_histogram()
+        #     print('hist(y) = ' + ut.repr4(class_hist))
+        import utool
+        with utool.embed_on_exception_context:
+            from six import next
+            labels = next(iter(self.samples.subtasks.values()))
+            ut.assert_eq(len(labels), len(self.samples))
 
     def build_feature_subsets(self):
         """
         Try to identify a useful subset of features to reduce problem
         dimensionality
         """
-        X_dict = self.raw_X_dict.copy()
+        X_dict = self.samples.X_dict
         X = X_dict['learn(all)']
-        featinfo = PairFeatInfo(X)
+        featinfo = AnnotPairFeatInfo(X)
+        # print('RAW FEATURE INFO (learn(all)):')
+        # print(ut.indent(featinfo.get_infostr()))
         if 1:
             measures_ignore = ['weighted_lnbnn', 'lnbnn', 'weighted_norm_dist',
                                'fgweights']
@@ -473,50 +596,64 @@ class OneVsOneProblem(object):
                 ]),
             ])
 
-            if False:
-                cols = set([])
-                cols.update(summary_cols)
-                cols.update(featinfo.select_columns([
-                    ('measure_type', '==', 'global'),
-                ]))
-                X_dict['learn(sum,glob,2)'] = featinfo.X[sorted(cols)]
-
             if 1:
                 cols = set([])
                 cols.update(summary_cols)
                 cols.update(global_cols)
                 X_dict['learn(sum,glob,3)'] = featinfo.X[sorted(cols)]
 
-            if 0:
-                summary_cols_ = summary_cols.copy()
-                summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
-                cols = set([])
-                cols.update(summary_cols_)
-                cols.update(global_cols)
-                X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
-
-            if 0:
+            if 1:
                 cols = set([])
                 cols.update(summary_cols)
                 cols.update(global_cols)
                 cols.update(featinfo.select_columns([
-                    ('measure_type', '==', 'local'),
-                    ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
-                    ('local_measure', 'in', ['weighted_ratio']),
-                    ('local_rank', '<', 20),
-                    ('local_rank', '>', 0),
+                    ('measure_type', '==', 'global'),
+                    # Add yaw back in if not_comp is explicitly labeled
+                    ('measure', 'in', [
+                        'yaw_1', 'yaw_2', 'yaw_delta'
+                    ]),
                 ]))
-                X_dict['learn(loc,sum,glob,5)'] = featinfo.X[sorted(cols)]
-        self.X_dict = X_dict
+                X_dict['learn(sum,glob,3,+view)'] = featinfo.X[sorted(cols)]
 
-    def evaluate_simple_scores(self):
-        score_dict = self.multiclass_scores.copy()
-        if False:
+            # if 0:
+            #     summary_cols_ = summary_cols.copy()
+            #     summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
+            #     cols = set([])
+            #     cols.update(summary_cols_)
+            #     cols.update(global_cols)
+            #     X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
+
+            # if 0:
+            #     cols = set([])
+            #     cols.update(summary_cols)
+            #     cols.update(global_cols)
+            #     cols.update(featinfo.select_columns([
+            #         ('measure_type', '==', 'local'),
+            #         ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
+            #         ('local_measure', 'in', ['weighted_ratio']),
+            #         ('local_rank', '<', 20),
+            #         ('local_rank', '>', 0),
+            #     ]))
+            #     X_dict['learn(loc,sum,glob,5)'] = featinfo.X[sorted(cols)]
+        self.samples.X_dict = X_dict
+
+    def evaluate_simple_scores(self, task_list=None):
+        """
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> self = OneVsOneProblem()
+            >>> self.set_pandas_options()
+            >>> self.load_features()
+            >>> self.load_samples()
+            >>> self.evaluate_simple_scores()
+        """
+        score_dict = self.samples.simple_scores.copy()
+        if True:
             # Remove scores that arent worth reporting
             for k in list(score_dict.keys())[:]:
                 ignore = [
                     'sum(norm_x', 'sum(norm_y',
                     'sum(sver_err', 'sum(scale', 'sum(match_dist)',
+                    'sum(weighted_norm_dist',
                 ]
                 if self.qreq_.qparams.featweight_enabled:
                     ignore.extend(['sum(norm_dist)', 'sum(ratio)', 'sum(lnbnn)',
@@ -525,52 +662,89 @@ class OneVsOneProblem(object):
                 if any(flags):
                     del score_dict[k]
 
-        # Sort AUC by values
-        simple_aucs = pd.DataFrame(dict([
-            (k, [sklearn.metrics.roc_auc_score(self.labels.y_bin, score_dict[k])])
-            for k in score_dict.keys()
-        ]))
-        simple_auc_dict = ut.dzip(simple_aucs.columns, simple_aucs.values[0])
-        simple_auc_dict = ut.sort_dict(simple_auc_dict, 'vals', reverse=True)
+        task_aucs = {}
+        if task_list is None:
+            task_list = list(self.samples.subtasks.keys())
 
-        # Simple printout of aucs
-        # we dont need cross validation because there is no learning here
-        print('\nAUC of simple scoring measures:')
-        print(ut.align(ut.repr4(simple_auc_dict, precision=8), ':'))
+        for task in task_list:
+            labels = self.samples.subtasks[task]
+            for sublabels in labels.gen_one_vs_rest_labels():
+                label_aucs = {}
+                for scoretype in score_dict.keys():
+                    scores = score_dict[scoretype].values
+                    import utool
+                    with utool.embed_on_exception_context:
+                        auc = sklearn.metrics.roc_auc_score(sublabels.y_enc, scores)
+                    label_aucs[scoretype] = auc
+                task_aucs[sublabels.task_name] = label_aucs
 
-        simple_auc_dict.values()
-        simple_keys = list(simple_auc_dict.keys())
-        simple_vals = list(simple_auc_dict.values())
-        idxs = ut.argsort(list(simple_auc_dict.values()))[::-1][0:2]
-        idx_ = simple_keys.index('score_lnbnn_1vM')
-        if idx_ in idxs:
-            idxs.remove(idx_)
-        idxs = [idx_] + idxs
-        best_simple_cols = ut.take(simple_keys, idxs)
-        best_simple_aucs = ut.take(simple_vals, idxs)
-        df_simple = pd.DataFrame([best_simple_aucs], columns=best_simple_cols)
-        return df_simple
+        ut.cprint('\nAUC of simple scoring measures:', 'yellow')
+        df_auc = pd.DataFrame.from_dict(task_aucs, orient='index')
+        from utool.experimental.pandas_highlight import to_string_monkey
+        print(to_string_monkey(
+            df_auc, highlight_cols='all'))
 
-    def get_rf_params(self):
-        rf_params = {
-            # 'max_depth': 4,
-            'bootstrap': True,
-            'class_weight': None,
-            'max_features': 'sqrt',
-            # 'max_features': None,
-            'missing_values': np.nan,
-            'min_samples_leaf': 5,
-            'min_samples_split': 2,
-            'n_estimators': 256,
-            'criterion': 'entropy',
-        }
-        rf_settings = {
-            'random_state': 3915904814,
-            'verbose': 0,
-            'n_jobs': -1,
-        }
-        rf_params.update(rf_settings)
-        return rf_params
+        from sklearn.metrics.classification import coo_matrix
+        def quick_cm(y_true, y_pred, labels, sample_weight):
+            n_labels = len(labels)
+            C = coo_matrix((sample_weight, (y_true, y_pred)),
+                           shape=(n_labels, n_labels)).toarray()
+            return C
+
+        def quick_mcc(C):
+            """ assumes y_true and y_pred are in index/encoded format """
+            t_sum = C.sum(axis=1)
+            p_sum = C.sum(axis=0)
+            n_correct = np.diag(C).sum()
+            n_samples = p_sum.sum()
+            cov_ytyp = n_correct * n_samples - np.dot(t_sum, p_sum)
+            cov_ypyp = n_samples ** 2 - np.dot(p_sum, p_sum)
+            cov_ytyt = n_samples ** 2 - np.dot(t_sum, t_sum)
+            mcc = cov_ytyp / np.sqrt(cov_ytyt * cov_ypyp)
+            return mcc
+
+        def mcc_hack():
+            sample_weight = np.ones(len(self.samples), dtype=np.int)
+            task_mccs = ut.ddict(dict)
+            # Determine threshold levels per score type
+            score_to_order = {}
+            for scoretype in score_dict.keys():
+                y_score = score_dict[scoretype].values
+                sortx = np.argsort(y_score, kind="mergesort")[::-1]
+                y_score = y_score[sortx]
+                distinct_value_indices = np.where(np.diff(y_score))[0]
+                threshold_idxs = np.r_[distinct_value_indices, y_score.size - 1]
+                thresh = y_score[threshold_idxs]
+                score_to_order[scoretype] = (sortx, y_score, thresh)
+
+            classes_ = np.array([0, 1], dtype=np.int)
+            for task in task_list:
+                labels = self.samples.subtasks[task]
+                for sublabels in labels.gen_one_vs_rest_labels():
+                    for scoretype in score_dict.keys():
+                        sortx, y_score, thresh = score_to_order[scoretype]
+                        y_true = sublabels.y_enc[sortx]
+                        mcc = -np.inf
+                        for t in thresh:
+                            y_pred = (y_score > t).astype(np.int)
+                            C1 = quick_cm(y_true, y_pred, classes_, sample_weight)
+                            mcc1 = quick_mcc(C1)
+                            if mcc1 < 0:
+                                C2 = quick_cm(y_true, 1 - y_pred, classes_, sample_weight)
+                                mcc1 = quick_mcc(C2)
+                            mcc = max(mcc1, mcc)
+                        # print('mcc = %r' % (mcc,))
+                        task_mccs[sublabels.task_name][scoretype] = mcc
+            return task_mccs
+
+        if 0:
+            with ut.Timer('mcc'):
+                task_mccs = mcc_hack()
+                print('\nMCC of simple scoring measures:')
+                df = pd.DataFrame.from_dict(task_mccs, orient='index')
+                from utool.experimental.pandas_highlight import to_string_monkey
+                print(to_string_monkey(
+                    df, highlight_cols=np.arange(len(df.columns))))
 
     def get_crossval_idxs(self):
         """
@@ -578,12 +752,12 @@ class OneVsOneProblem(object):
         """
         # ---------------
         # Setup cross-validation
-        labels = self.labels
+        samples = self.samples
         # xvalkw = dict(n_splits=10, shuffle=True,
         xvalkw = dict(n_splits=3, shuffle=True,
                       random_state=np.random.RandomState(42))
         skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-        skf_iter = skf.split(X=np.empty((len(labels), 0)), y=labels.encoded_1d())
+        skf_iter = skf.split(X=np.empty((len(samples), 0)), y=samples.encoded_1d())
         skf_list = list(skf_iter)
         return skf_list
 
@@ -603,7 +777,7 @@ class OneVsOneProblem(object):
                 ], axis=0)
                 importances = ut.dzip(X.columns, feature_importances)
 
-                featinfo = PairFeatInfo(X, importances)
+                featinfo = AnnotPairFeatInfo(X, importances)
 
                 # featinfo.print_margins('feature')
                 featinfo.print_margins('measure_type')
@@ -624,403 +798,138 @@ class OneVsOneProblem(object):
                 # ut.fix_embed_globals()
                 # pt.wordcloud(importances)
 
-    def report_classifier_accuracy(self, task_name):
-        print('CLASSIFIER ACCURACY FOR task_name = %r' % (task_name,))
-        roc_scores = {}
-        for name in self.datakey_list:
-            # X = self.X_dict[name]
-            combo_res = self.task_combo_res[task_name][name]
-            roc_scores[name] = [combo_res.roc_score()]
-        df_rf = pd.DataFrame(roc_scores)
-        from utool.experimental.pandas_highlight import to_string_monkey
-        print(to_string_monkey(
-            df_rf, highlight_cols=np.arange(len(df_rf.columns))))
 
-
-class ClfResult(object):
+@ut.reloadable_class
+class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     """
-    cls = ClfResult
-    """
-    def __init__(res):
-        pass
-
-    @classmethod
-    def make_single(ClfResult, test_idx, clf_probs, pred_classes, task_labels):
-        """
-        Make a result for a single cross validiation subset
-        """
-        res = ClfResult()
-
-        # Ensure shape corresponds with all classes
-        alignx = ut.list_alignment(pred_classes, task_labels.classes_, missing=True)
-        aligned_probs_ = ut.none_take(clf_probs.T, alignx)
-        aligned_probs_ = ut.replace_nones(aligned_probs_, np.zeros(len(clf_probs)))
-        aligned_probs = np.vstack(aligned_probs_).T
-
-        class_names = ut.lmap(str, task_labels.class_names)
-        res.class_names = class_names
-        index = pd.Series(test_idx, name='test_idx')
-
-        res.probs_df = pd.DataFrame(
-            aligned_probs, index=index,
-            columns=['p_' + n for n in class_names],
-        )
-        res.target_bin_df = pd.DataFrame(
-            data=task_labels.y_bin[test_idx], index=index,
-            columns=['is_' + n for n in class_names],
-        )
-        res.target_enc_df = pd.DataFrame(
-            data=task_labels.y_enc[test_idx], index=index,
-            columns=['class_idx'],
-        )
-        return res
-
-    @classmethod
-    def combine_results(cls, res_list, task_labels=None):
-        """
-        Combine results from cross validation runs into a single result
-        representing the performance of the entire dataset
-        """
-        # Ensure that res_lists are not overlapping
-        idx_sets = [set(_res.probs_df.index.values) for _res in res_list]
-        assert not any([s1.intersection(s2)
-                        for s1, s2 in ut.combinations(idx_sets, 2)])
-        # Combine them with pandas
-        res = cls()
-        res0 = res_list[0]
-        # res.labels = res0.labels
-        res.class_names = res0.class_names
-        res.probs_df = pd.concat([r.probs_df for r in res_list])
-        res.target_bin_df = pd.concat([r.target_bin_df for r in res_list])
-        res.target_enc_df = pd.concat([r.target_enc_df for r in res_list])
-
-        return res
-
-    def make_meta(res, labels):
-        """
-        labels = self.labels
-        """
-        meta = {}
-        meta['easiness'] = np.array(ut.ziptake(res.probs_df.values, res.target_enc_df.values)).ravel()
-        meta['hardness'] = 1 - meta['easiness']
-        meta['aid1'] = labels.aid_pairs.T[0].take(res.probs_df.index.values)
-        meta['aid2'] = labels.aid_pairs.T[1].take(res.probs_df.index.values)
-        meta['pred'] = res.probs_df.values.argmax(axis=1)
-        meta['target'] = res.target_enc_df.values.ravel()
-        meta['failed'] = meta['pred'] != meta['target']
-        meta = pd.DataFrame(meta)
-        res.meta = meta
-        res.meta.take(res.meta['easiness'].argsort())
-        return res.meta
-
-    def missing_classes(res):
-        # Find classes that were never predicted
-        unique_predictions = np.unique(res.probs_df.values.argmax(axis=1))
-        n_classes = len(res.class_names)
-        missing_classes = ut.index_complement(unique_predictions, n_classes)
-        return missing_classes
-
-    def augment_if_needed(res):
-        missing_classes = res.missing_classes()
-        n_classes = len(res.class_names)
-        y_test_enc_aug = res.target_enc_df.values
-        y_test_bin_aug = res.target_bin_df.values
-        clf_probs_aug = res.probs_df.values
-        sample_weight = np.ones(len(y_test_enc_aug))
-        n_missing = len(missing_classes)
-        # Check if augmentation is necessary
-        if n_missing > 0:
-            missing_bin = np.zeros((n_missing, n_classes))
-            missing_bin[(np.arange(n_missing), missing_classes)] = 1.0
-            missing_enc = np.array(missing_classes)[:, None]
-            y_test_enc_aug = np.vstack([y_test_enc_aug, missing_enc])
-            y_test_bin_aug = np.vstack([y_test_bin_aug, missing_bin])
-            clf_probs_aug = np.vstack([clf_probs_aug, missing_bin])
-            # make sample weights where dummies are significantly downweighted
-            sample_weight = np.hstack([sample_weight, np.full(n_missing, 1e-9)])
-        return y_test_enc_aug, y_test_bin_aug, clf_probs_aug, sample_weight
-
-    def print_report(res):
-        (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.augment_if_needed()
-
-        pred_enc = clf_probs_aug.argmax(axis=1)
-
-        p, r, f1, s = sklearn.metrics.precision_recall_fscore_support(
-            y_true=y_test_enc_aug, y_pred=pred_enc,
-            sample_weight=sample_weight,
-        )
-
-        # invp, invr, _, _ = sklearn.metrics.precision_recall_fscore_support(
-        #     y_true=1 - y_test_enc_aug, y_pred=1 - pred_enc,
-        #     sample_weight=sample_weight,
-        # )
-        report = sklearn.metrics.classification_report(
-            y_true=y_test_enc_aug, y_pred=pred_enc,
-            target_names=res.class_names,
-            sample_weight=sample_weight,
-        )
-        confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc,
-                                                     sample_weight=sample_weight)
-
-        mcc = sklearn.metrics.matthews_corrcoef(y_test_enc_aug, pred_enc,
-                                                sample_weight=sample_weight)
-        print('MCC = %r' % (mcc,))
-
-        print('Confusion Matrix:')
-        print(pd.DataFrame(confusion, columns=[m for m in res.class_names],
-                           index=['gt ' + m for m in res.class_names]))
-        print(report)
-
-    def roc_score(res):
-        (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.augment_if_needed()
-        auc_learn = sklearn.metrics.roc_auc_score(y_test_bin_aug, clf_probs_aug)
-        return auc_learn
-
-
-class MultiClassLabels(ut.NiceRepr):
-    """
-    Handles labels that encode mutually exclusive classes
-
-        import pandas as pd
-        pd.options.display.max_rows = 10
-        # pd.options.display.max_rows = 20
-        pd.options.display.max_columns = 40
-        pd.options.display.width = 160
-
-    """
-    def __init__(task_labels):
-        # Helper Info
-        task_labels.task_name = None
-        task_labels.class_names = None
-        task_labels.classes_ = None
-        task_labels.n_samples = None
-        task_labels.n_classes = None
-        # Core data
-        task_labels.indicator_df = None
-        task_labels.encoded_df = None
-
-    @property
-    def y_bin(task_labels):
-        return task_labels.indicator_df.values
-
-    @property
-    def y_enc(task_labels):
-        return task_labels.encoded_df.values.ravel()
-
-    @classmethod
-    def from_indicators(MultiClassLabels, indicator, task_name=None):
-        import six
-        task_labels = MultiClassLabels()
-        n_samples = len(six.next(six.itervalues(indicator)))
-        # if index is None:
-        #     index = pd.Series(np.arange(n_samples), name='index')
-        indicator_df = pd.DataFrame(indicator)
-        assert np.all(indicator_df.sum(axis=1).values), (
-            'states in the same task must be mutually exclusive')
-        task_labels.indicator_df = indicator_df
-        task_labels.class_names = indicator_df.columns.values
-        task_labels.encoded_df = pd.DataFrame(
-            indicator_df.values.argmax(axis=1),
-            columns=[task_name]
-        )
-        task_labels.task_name = task_name
-        task_labels.n_samples = n_samples
-        task_labels.n_classes = len(task_labels.class_names)
-        task_labels.classes_ = np.arange(task_labels.n_classes)
-        return task_labels
-
-    def __nice__(task_labels):
-        parts = []
-        if task_labels.task_name is not None:
-            parts.append(task_labels.task_name)
-        parts.append('nD=%r' % (task_labels.n_samples))
-        parts.append('nC=%r' % (task_labels.n_classes))
-        return ' '.join(parts)
-
-    def __len__(task_labels):
-        return task_labels.n_samples
-
-    def make_histogram(task_labels):
-        class_idx_hist = ut.dict_hist(task_labels.y_enc)
-        class_hist = ut.map_keys(
-            lambda idx: task_labels.class_names[idx], class_idx_hist)
-        return class_hist
-
-    def print_info(task_labels):
-        print('hist(%s) = %s' % (task_labels.task_name, ut.repr4(task_labels.make_histogram())))
-
-
-class MultiTaskLabels(ut.NiceRepr):
-    """
-    Handles a combination of non-mutually exclusive subclassification labels
-    """
-    def __init__(labels):
-        labels.subtasks = ut.odict()
-
-    def apply_indicators(labels, tasks_to_indicators):
-        labels.n_tasks = len(tasks_to_indicators)
-        for task_name, indicator in tasks_to_indicators.items():
-            task_labels = MultiClassLabels.from_indicators(
-                indicator, task_name=task_name)
-            labels.subtasks[task_name] = task_labels
-
-    @ut.memoize
-    def encoded_2d(labels):
-        encoded_2d = pd.concat([v.encoded_df for k, v in labels.items()], axis=1).values
-        return encoded_2d
-
-    def class_name_basis(labels):
-        """ corresponds with indexes returned from encoded1d """
-        class_name_basis = [(b, a) for a, b in ut.product(*[
-            v.class_names for k, v in labels.items()][::-1])]
-        return class_name_basis
-
-    @ut.memoize
-    def encoded_1d(labels):
-        """ Returns a unique label for each combination of labels """
-        # from sklearn.preprocessing import MultiLabelBinarizer
-        encoded_2d = labels.encoded_2d()
-        class_space = [v.n_classes for k, v in labels.items()]
-        offsets = np.array([1] + np.cumprod(class_space).tolist()[:-1])[None, :]
-        encoded_1d = (offsets * encoded_2d).sum(axis=1)
-        # e = MultiLabelBinarizer()
-        # bin_coeff = e.fit_transform(encoded_2d)
-        # bin_basis = (2 ** np.arange(bin_coeff.shape[1]))[None, :]
-        # # encoded_1d = (bin_coeff * bin_basis).sum(axis=1)
-        # encoded_1d = (bin_coeff * bin_basis[::-1]).sum(axis=1)
-        # # vt.unique_rows(sklearn.preprocessing.MultiLabelBinarizer().fit_transform(encoded_2d))
-        # [v.encoded_df.values for k, v in labels.items()]
-        # encoded_df_1d = pd.concat([v.encoded_df for k, v in labels.items()], axis=1)
-        return encoded_1d
-
-    def __nice__(labels):
-        return 'nS=%r, nT=%r' % (len(labels), labels.n_tasks)
-
-    def __len__(labels):
-        return labels.n_samples
-
-    def print_info(labels):
-        for task_name, task_labels in labels.items():
-            task_labels.print_info()
-        print('hist(all) = %s' % (ut.repr4(labels.make_histogram())))
-
-    def make_histogram(labels):
-        class_name_basis = labels.class_name_basis()
-        multi_task_idx_hist = ut.dict_hist(labels.encoded_1d())
-        multi_task_hist = ut.map_keys(
-            lambda k: class_name_basis[k], multi_task_idx_hist)
-        return multi_task_hist
-
-    def items(labels):
-        for task_name, task_labels in labels.subtasks.items():
-            yield task_name, task_labels
-
-    # def take(labels, idxs):
-    #     mask = ut.index_to_boolmask(idxs, len(labels))
-    #     return labels.compress(mask)
-
-
-class PairLabels(MultiTaskLabels):
-    """
-    Manages the different ways to assign labels to 1-v-1 classification labels
+    Manages the different ways to assign samples (i.e. feat-label pairs) to
+    1-v-1 classification
 
     CommandLine:
-        python -m ibeis.scripts.script_vsone PairLabels
+        python -m ibeis.scripts.script_vsone AnnotPairSamples
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
         >>> self = OneVsOneProblem()
         >>> self.load_features()
-        >>> labels = PairLabels(self.ibs, self.aid_pairs, self.simple_scores)
-        >>> print(labels)
-        >>> labels.print_info()
+        >>> samples = AnnotPairSamples(self.ibs, self.raw_aid_pairs, self.raw_simple_scores)
+        >>> print(samples)
+        >>> samples.print_info()
     """
-    def __init__(labels, ibs, aid_pairs, simple_scores):
-        super(PairLabels, labels).__init__()
-        labels.ibs = ibs
-        labels.aid_pairs = aid_pairs
-        labels.simple_scores = simple_scores
-        labels.annots1 = ibs.annots(aid_pairs.T[0], asarray=True)
-        labels.annots2 = ibs.annots(aid_pairs.T[1], asarray=True)
-        labels.n_samples = len(aid_pairs)
-        labels.apply_multi_task_multi_label()
+    def __init__(samples, ibs, aid_pairs, simple_scores, X_dict):
+        super(AnnotPairSamples, samples).__init__()
+        samples.ibs = ibs
+        samples.aid_pairs = aid_pairs
+        samples.simple_scores = simple_scores
+        samples.X_dict = X_dict
+        samples.annots1 = ibs.annots(aid_pairs.T[0], asarray=True)
+        samples.annots2 = ibs.annots(aid_pairs.T[1], asarray=True)
+        samples.n_samples = len(aid_pairs)
+        samples.apply_multi_task_multi_label()
+        # samples.apply_multi_task_binary_label()
 
-    def compress(labels, flags):
-        aid_pairs = labels.aid_pairs.compress(flags, axis=0)
-        simple_scores = labels.simple_scores[flags]
-        ibs = labels.ibs
-        new_labels = PairLabels(ibs, aid_pairs, simple_scores)
+    @ut.memoize
+    def make_annotpair_vhashid(samples):
+        qvuuids = samples.annots1.visual_uuids
+        dvuuids = samples.annots2.visual_uuids
+        vsone_uuids = [
+            ut.combine_uuids(uuids)
+            for uuids in ut.ProgIter(zip(qvuuids, dvuuids), length=len(qvuuids),
+                                     label='hashing ids')
+        ]
+        annot_pair_visual_hashid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
+        return annot_pair_visual_hashid
+
+    def compress(samples, flags):
+        assert len(flags) == len(samples), 'mask has incorrect size'
+        aid_pairs = samples.aid_pairs.compress(flags, axis=0)
+        simple_scores = samples.simple_scores[flags]
+        X_dict = ut.map_vals(lambda val: val[flags], samples.X_dict)
+        ibs = samples.ibs
+        new_labels = AnnotPairSamples(ibs, aid_pairs, simple_scores, X_dict)
         return new_labels
 
     @ut.memoize
-    def is_same(labels):
-        is_same = labels.annots1.nids == labels.annots2.nids
-        labels.simple_scores
+    def is_same(samples):
+        is_same = samples.annots1.nids == samples.annots2.nids
+        samples.simple_scores
         return is_same
 
     @ut.memoize
-    def is_photobomb(labels):
-        am_rowids = labels.ibs.get_annotmatch_rowid_from_edges(labels.aid_pairs)
-        am_tags = labels.ibs.get_annotmatch_case_tags(am_rowids)
+    def is_photobomb(samples):
+        am_rowids = samples.ibs.get_annotmatch_rowid_from_edges(samples.aid_pairs)
+        am_tags = samples.ibs.get_annotmatch_case_tags(am_rowids)
         is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
         return is_pb
 
     @ut.memoize
-    def is_comparable(labels):
+    def is_comparable(samples):
         # If we don't have actual comparability information just guess
         # Start off by guessing
-        is_comp_guess = labels.guess_if_comparable()
+        is_comp_guess = samples.guess_if_comparable()
         is_comp = is_comp_guess.copy()
 
         # But use information that we have
-        am_rowids = labels.ibs.get_annotmatch_rowid_from_edges(labels.aid_pairs)
-        truths = np.array(ut.replace_nones(labels.ibs.get_annotmatch_truth(am_rowids), np.nan))
-        is_notcomp_have = truths == labels.ibs.const.TRUTH_NOT_COMP
-        is_comp_have = (truths == labels.ibs.const.TRUTH_MATCH) | (truths == labels.ibs.const.TRUTH_NOT_MATCH)
+        am_rowids = samples.ibs.get_annotmatch_rowid_from_edges(samples.aid_pairs)
+        truths = np.array(ut.replace_nones(samples.ibs.get_annotmatch_truth(am_rowids), np.nan))
+        is_notcomp_have = truths == samples.ibs.const.TRUTH_NOT_COMP
+        is_comp_have = (truths == samples.ibs.const.TRUTH_MATCH) | (truths == samples.ibs.const.TRUTH_NOT_MATCH)
         is_comp[is_notcomp_have] = False
         is_comp[is_comp_have] = True
         # num_guess = (~(is_notcomp_have  | is_comp_have)).sum()
         # num_have = len(is_notcomp_have) - num_guess
         return is_comp
 
-    def guess_if_comparable(labels):
+    def guess_if_comparable(samples):
         """
         Takes a guess as to which annots are not comparable based on scores and
         viewpoints. If either viewpoints is null assume they are comparable.
         """
-        simple_scores = labels.simple_scores
+        simple_scores = samples.simple_scores
         key = 'sum(weighted_ratio)'
         if key not in simple_scores:
             key = 'sum(ratio)'
         scores = simple_scores[key].values
-        yaws1 = labels.annots1.yaws_asfloat
-        yaws2 = labels.annots2.yaws_asfloat
+        yaws1 = samples.annots1.yaws_asfloat
+        yaws2 = samples.annots2.yaws_asfloat
         dists = vt.ori_distance(yaws1, yaws2)
         tau = np.pi * 2
         is_comp = (scores > .1) | (dists < tau / 8.1) | np.isnan(dists)
         return is_comp
 
-    def apply_multi_task_multi_label(labels):
+    def apply_multi_task_multi_label(samples):
         # multioutput-multiclass / multi-task
         tasks_to_indicators = ut.odict([
             ('match_state', ut.odict([
-                ('nomatch', ~labels.is_same() & labels.is_comparable()),
-                ('match',    labels.is_same() & labels.is_comparable()),
-                ('notcomp', ~labels.is_comparable()),
+                ('nomatch', ~samples.is_same() & samples.is_comparable()),
+                ('match',    samples.is_same() & samples.is_comparable()),
+                ('notcomp', ~samples.is_comparable()),
             ])),
             ('photobomb_state', ut.odict([
-                (False, ~labels.is_photobomb()),
-                (True,   labels.is_photobomb()),
+                ('notpb', ~samples.is_photobomb()),
+                ('pb',   samples.is_photobomb()),
             ]))
         ])
-        labels.apply_indicators(tasks_to_indicators)
+        samples.apply_indicators(tasks_to_indicators)
 
-    def apply_single_task_multi_label(labels):
-        is_comp = labels.is_comparable()
-        is_same = labels.is_same()
-        is_pb   = labels.is_photobomb()
+    def apply_multi_task_binary_label(samples):
+        # multioutput-multiclass / multi-task
+        tasks_to_indicators = ut.odict([
+            ('match_state', ut.odict([
+                ('nomatch', ~samples.is_same() | ~samples.is_comparable()),
+                ('match',    samples.is_same() & samples.is_comparable()),
+            ])),
+            ('photobomb_state', ut.odict([
+                ('notpb', ~samples.is_photobomb()),
+                ('pb',   samples.is_photobomb()),
+            ]))
+        ])
+        samples.apply_indicators(tasks_to_indicators)
+
+    def apply_single_task_multi_label(samples):
+        is_comp = samples.is_comparable()
+        is_same = samples.is_same()
+        is_pb   = samples.is_photobomb()
         tasks_to_indicators = ut.odict([
             ('match_pb_state', ut.odict([
                 ('is_notcomp',       ~is_comp & ~is_pb),
@@ -1031,11 +940,11 @@ class PairLabels(MultiTaskLabels):
                 ('is_nomatch_pb',    ~is_same & is_comp & is_pb),
             ])),
         ])
-        labels.apply_indicators(tasks_to_indicators)
+        samples.apply_indicators(tasks_to_indicators)
 
 
 @ut.reloadable_class
-class PairFeatInfo(object):
+class AnnotPairFeatInfo(object):
     """
     Used to compute marginal importances over groups of features used in the
     pairwise one-vs-one scoring algorithm
@@ -1153,14 +1062,22 @@ class PairFeatInfo(object):
         if any(key.startswith(p) for p in featinfo._summary_keys):
             return 'summary'
 
+    def summary_measure(featinfo, key):
+        if any(key.startswith(p) for p in featinfo._summary_keys):
+            return featinfo.measure(key)
+
+    def local_measure(featinfo, key):
+        if key.startswith('loc'):
+            return featinfo.measure(key)
+
+    def global_measure(featinfo, key):
+        if key.startswith('global'):
+            return featinfo.measure(key)
+
     def summary_op(featinfo, key):
         for p in featinfo._summary_keys:
             if key.startswith(p):
                 return key[0:key.find('(')]
-
-    def summary_measure(featinfo, key):
-        if any(key.startswith(p) for p in featinfo._summary_keys):
-            return featinfo.measure(key)
 
     def local_sorter(featinfo, key):
         if key.startswith('loc'):
@@ -1170,13 +1087,64 @@ class PairFeatInfo(object):
         if key.startswith('loc'):
             return key[key.find(',') + 1:key.find(']')]
 
-    def local_measure(featinfo, key):
-        if key.startswith('loc'):
-            return featinfo.measure(key)
+    def get_infostr(featinfo):
+        """
+        Summarizes the types (global, local, summary) of features in X based on
+        standardized dimension names.
+        """
+        grouped_keys = ut.ddict(list)
+        for key in featinfo.X.columns:
+            type_ = featinfo.measure_type(key)
+            grouped_keys[type_].append(key)
 
-    def global_measure(featinfo, key):
-        if key.startswith('global'):
-            return featinfo.measure(key)
+        info_items = ut.odict([
+            ('global_measures', ut.lmap(featinfo.global_measure,
+                                        grouped_keys['global'])),
+
+            ('local_sorters', set(map(featinfo.local_sorter,
+                                       grouped_keys['local']))),
+            ('local_ranks', set(map(featinfo.local_rank,
+                                     grouped_keys['local']))),
+            ('local_measures', set(map(featinfo.local_measure,
+                                        grouped_keys['local']))),
+
+            ('summary_measures', set(map(featinfo.summary_measure,
+                                          grouped_keys['summary']))),
+            ('summary_ops', set(map(featinfo.summary_op,
+                                     grouped_keys['summary']))),
+        ])
+
+        import textwrap
+        def _wrap(list_):
+            unwrapped = ', '.join(sorted(list_))
+            indent = (' ' * 4)
+            lines_ = textwrap.wrap(unwrapped, width=80 - len(indent))
+            lines = ['    ' + line for line in lines_]
+            return lines
+
+        lines = []
+        for item  in info_items.items():
+            key, list_ = item
+            if len(list_):
+                title = key.replace('_', ' ').title()
+                if key.endswith('_measures'):
+                    groupid = key.replace('_measures', '')
+                    num = len(grouped_keys[groupid])
+                    title = title + ' (%d)' % (num,)
+                lines.append(title + ':')
+                if key == 'summary_measures':
+                    other = info_items['local_measures']
+                    if other.issubset(list_) and len(other) > 0:
+                        remain = list_ - other
+                        lines.extend(_wrap(['<same as local_measures>'] + list(remain)))
+                    else:
+                        lines.extend(_wrap(list_))
+                else:
+                    lines.extend(_wrap(list_))
+
+        infostr = '\n'.join(lines)
+        return infostr
+        # print(infostr)
 
 
 def build_features(qreq_, hyper_params):
@@ -1715,7 +1683,7 @@ def bigcache_vsone(qreq_, hyper_params):
 
     # Combine into a big cache for the entire 1-v-1 matching run
     big_uuid = ut.hashstr_arr27(vsone_uuids, '', pathsafe=True)
-    cacher = ut.Cacher('vsone_v2', cfgstr=str(big_uuid), appname='vsone_rf_train')
+    cacher = ut.Cacher('vsone_v7', cfgstr=str(big_uuid), appname='vsone_rf_train')
 
     cached_data = cacher.tryload()
     if cached_data is not None:

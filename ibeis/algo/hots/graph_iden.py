@@ -418,7 +418,6 @@ class _AnnotInfrIBEIS(object):
         """
         if infr.verbose > 0:
             print('[infr] write_ibeis_staging_feedback')
-
         if len(infr.internal_feedback) == 0:
             return
         aid_1_list = []
@@ -427,9 +426,7 @@ class _AnnotInfrIBEIS(object):
         timestamp_list = []
         tags_list = []
         user_confidence_list = []
-
         ibs = infr.ibs
-
         for (aid1, aid2), feedbacks in infr.internal_feedback.items():
             for feedback_item in feedbacks:
                 decision_key = feedback_item['decision']
@@ -444,7 +441,6 @@ class _AnnotInfrIBEIS(object):
                 confidence_int = infr.ibs.const.REVIEW_USER_CONFIDENCE_CODE.get(confidence_key, None)
                 user_confidence_list.append(confidence_int)
                 timestamp_list.append(timestamp)
-
         identity_list = None
         review_id_list = ibs.add_review(aid_1_list, aid_2_list, decision_list,
                                         identity_list=identity_list,
@@ -452,7 +448,6 @@ class _AnnotInfrIBEIS(object):
                                         tags_list=tags_list,
                                         timestamp_list=timestamp_list)
         assert len(ut.find_duplicate_items(review_id_list)) == 0
-
         # Copy internal feedback into external
         for edge, feedbacks in infr.internal_feedback.items():
             infr.external_feedback[edge].extend(feedbacks)
