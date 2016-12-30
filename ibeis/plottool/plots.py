@@ -27,32 +27,6 @@ def is_default_dark_bg():
     return not lightbg
 
 
-def demo_fonts():
-    r"""
-    CommandLine:
-        python -m plottool.plots demo_fonts --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.plots import *  # NOQA
-        >>> demo_fonts()
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> pt.present()
-        >>> ut.show_if_requested()
-    """
-    xdata = [1, 2, 3, 4, 5]
-    ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
-    kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
-    f = ['DejaVu Sans', 'Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
-         'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
-    f = ['DejaVu Sans', 'Verdana', 'Arial']
-    for count, family in enumerate(f):
-        multi_plot(xdata, ydata_list, title=family + ' ΣΣΣµµµ',
-                   xlabel='\nfdsΣΣΣµµµ', fontfamily=family, fnum=count,
-                   **kwargs)
-
-
 def multi_plot(xdata, ydata_list, **kwargs):
     r"""
     plots multiple lines, bars, etc...
@@ -82,6 +56,12 @@ def multi_plot(xdata, ydata_list, **kwargs):
             plot_kw_keys = ['label', 'color', 'marker', 'markersize',
                 'markeredgewidth', 'linewidth', 'linestyle']
             kind = ['bar', 'plot', ...]
+        if kind='plot':
+            spread
+        if kind='bar':
+            stacked, width
+
+
 
     References:
         matplotlib.org/examples/api/barchart_demo.html
@@ -145,7 +125,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     plot_kw_keys = ['label', 'color', 'marker', 'markersize',
                     'markeredgewidth', 'linewidth', 'linestyle', 'alpha']
     # hackish / extra args that dont go to plot, but help
-    extra_plot_kw_keys = ['spread_alpha', 'autolabel', 'edgecolor']
+    extra_plot_kw_keys = ['spread_alpha', 'autolabel', 'edgecolor', 'fill']
     plot_kw_keys += extra_plot_kw_keys
     plot_ks_vals = [parsekw_list(key, kwargs) for key in plot_kw_keys]
     plot_list_kw = dict([
@@ -255,6 +235,11 @@ def multi_plot(xdata, ydata_list, **kwargs):
                     barlbl = '%.3f' % (numlbl,)
                     ax.text(xpos, ypos, barlbl, ha=ha, va=va)
 
+        print('extra_kw = %r' % (extra_kw,))
+        if kind == 'plot' and extra_kw.get('fill', False):
+            ax.fill_between(_xdata, ydata_, alpha=plot_kw.get('alpha', 1.0),
+                            color=plot_kw.get('color', None))  # , zorder=0)
+
         if spread_list is not None:
             # Plots a spread around plot lines usually indicating standard
             # deviation
@@ -315,12 +300,12 @@ def multi_plot(xdata, ydata_list, **kwargs):
 
     # 'DejaVu Sans','Verdana', 'Arial'
     family = kwargs.get('fontfamily', None)
+    if family is None:
+        family = 'DejaVu Sans'
     weight = kwargs.get('fontweight', None)
     if weight is None:
         # weight = 'light'
         weight = 'normal'
-    if family is None:
-        family = 'DejaVu Sans'
 
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
@@ -350,6 +335,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
         'width': kwargs.get('tickwidth', None),
         'length': kwargs.get('ticklength', None),
     }
+    xtick_kw = ut.dict_filter_nones(xtick_kw)
+    ytick_kw = ut.dict_filter_nones(ytick_kw)
     ax.xaxis.set_tick_params(**xtick_kw)
     ax.yaxis.set_tick_params(**ytick_kw)
 
@@ -500,6 +487,32 @@ def multi_plot(xdata, ydata_list, **kwargs):
         pt.dark_background(force=use_darkbackground is True)
     # TODO: return better info
     return fig
+
+
+def demo_fonts():
+    r"""
+    CommandLine:
+        python -m plottool.plots demo_fonts --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.plots import *  # NOQA
+        >>> demo_fonts()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.present()
+        >>> ut.show_if_requested()
+    """
+    xdata = [1, 2, 3, 4, 5]
+    ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
+    kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
+    f = ['DejaVu Sans', 'Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
+         'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
+    f = ['DejaVu Sans', 'Verdana', 'Arial']
+    for count, family in enumerate(f):
+        multi_plot(xdata, ydata_list, title=family + ' ΣΣΣµµµ',
+                   xlabel='\nfdsΣΣΣµµµ', fontfamily=family, fnum=count,
+                   **kwargs)
 
 
 def plot_multiple_scores(known_nd_data, known_target_points, nd_labels,
@@ -1209,34 +1222,7 @@ def plot_score_histograms(scores_list,
         xvalues = [score_thresh] * len(ydomain)
         plt.plot(xvalues, ydomain, 'g-', label='score thresh=%.2f' % (score_thresh,))
 
-    # if False:
-    #     labelkw = {
-    #         'fontproperties': mpl.font_manager.FontProperties(
-    #             weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
-    #     }
-    #     #df2.set_xlabel('sorted ' +  score_label + ' indices')
-    #     ax.set_xlabel(score_label, **labelkw)
-    #     ax.set_ylabel(histnorm, **labelkw)
-
-    #     xlim = kwargs.get('xlim', None)
-    #     if xlim is not None:
-    #         ax.set_xlim(xlim)
-
-    #     #df2.dark_background()
-    #     titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
-    #     titlekw = {
-    #         'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
-    #     }
-    #     ax.set_title(title, **titlekw)
-
     df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
-
-    # use_darkbackground = kwargs.get('use_darkbackground', None)
-    # if use_darkbackground is None:
-    #     use_darkbackground = is_default_dark_bg()
-    # if use_darkbackground:
-    #     df2.dark_background()
-    #return fig
 
 
 def plot_probabilities(prob_list,
@@ -1299,24 +1285,15 @@ def plot_probabilities(prob_list,
 
     assert len(prob_list) == len(prob_lbls)
     assert len(prob_list) == len(prob_colors)
-    #labelx_list = [[lblx] * len(scores_) for lblx, scores_ in enumerate(prob_list)]
-    #agg_scores  = np.hstack()
-    #agg_labelx  = np.hstack(labelx_list)
-    #agg_sortx = agg_scores.argsort()
 
     if fnum is None:
         fnum = df2.next_fnum()
 
-    df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
-
-    for tup in zip(prob_list, prob_lbls, prob_colors):
-        density, label, color = tup
-        ydata = density
-        df2.plt.plot(xdata, ydata, color=color, label=label, alpha=.7)
-        if fill:
-            df2.plt.fill_between(xdata, ydata, color=color, alpha=.7)
-        #ut.embed()
-        #help(df2.plot)
+    # df2.figure(fnum=fnum, pnum=pnum, doclf=False, docla=False)
+    multi_plot(xdata, prob_list, label_list=prob_lbls, color_list=prob_colors,
+               alpha=.7, fnum=fnum, pnum=pnum, fill=fill,
+               marker='', xlabel='score value', ylabel='probability',
+               title=figtitle, use_legend=False)
 
     if prob_thresh is not None:
         df2.plt.plot(xdata, [prob_thresh] * len(xdata), 'g-', label='prob thresh')
@@ -1327,33 +1304,11 @@ def plot_probabilities(prob_list,
         ydomain = np.linspace(ydata_min, ydata_max, 10)
         df2.plt.plot([score_thresh] * len(ydomain), ydomain, 'g-',
                      label='score thresh=%.2f' % (score_thresh,))
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=kwargs.get('labelsize', custom_figure.LABEL_SIZE))
-    }
-
     ax = df2.gca()
-    #ax.set_xlim(xdata.min(), xdata.max())
-    ax.set_xlabel('score value', **labelkw)
-    ax.set_ylabel('probability', **labelkw)
-
-    use_darkbackground = kwargs.get('use_darkbackground', None)
-    if use_darkbackground is None:
-        use_darkbackground = is_default_dark_bg()
-    if use_darkbackground:
-        df2.dark_background()
-
-    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     if kwargs.get('remove_yticks', False):
         ax.set_yticks([])
-    titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
-    }
-    ax.set_title(figtitle, **titlekw)
-    #df2.legend(loc='upper left')
     if kwargs.get('use_legend', True):
         df2.legend(loc='best', size=kwargs.get('legendsize', custom_figure.LEGEND_SIZE))
-    #df2.iup()
 
 
 # Short alias
@@ -1494,7 +1449,9 @@ def plot_sorted_scores(scores_list,
         df2.dark_background()
     titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
     titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light', size=titlesize)
+        'fontproperties': mpl.font_manager.FontProperties(
+            family='DejaVu Sans',
+            weight='light', size=titlesize)
     }
     ax.set_title(figtitle, **titlekw)
     #df2.legend(loc='upper left')

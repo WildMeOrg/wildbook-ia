@@ -116,7 +116,12 @@ class ExpandableInteraction(abstract_interaction.AbstractInteraction):
                 inter = func
                 inter.plot(fnum=self.fnum, pnum=pnum)
             else:
-                func(fnum=self.fnum, pnum=pnum)
+                try:
+                    func(fnum=self.fnum, pnum=pnum)
+                except Exception as ex:
+                    ut.printex(ex, 'failed plotting', keys=[
+                        'func', 'fnum', 'pnum'])
+                    raise
             ax = pt.gca()
             pt.set_plotdat(ax, 'plot_func', func)
             pt.set_plotdat(ax, 'expandable_index', index)

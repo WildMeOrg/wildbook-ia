@@ -2214,10 +2214,11 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1):
         'invalid loc. try one of %r' % (LEGEND_LOCATION,))
     ax = gca()
     if fontproperties is None:
-        fontproperties = custom_constants.FONTS.legend
         prop = {}
         if size is not None:
             prop['size'] = size
+        prop['weight'] = 'normal'
+        prop['family'] = 'DejaVu Sans'
     else:
         prop = fontproperties
     legend = ax.legend(loc=loc, prop=prop)
