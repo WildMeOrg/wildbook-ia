@@ -5,8 +5,9 @@ import utool as ut
 import cv2
 try:
     from jpcnn.core.model import JPCNN_Auto_Model
-    from jpcnn.tpl import _lasagne, _theano
-    from jpcnn.tpl._theano import T
+    from jpcnn.tpl import _lasagne
+    # from jpcnn.tpl import _theano
+    # from jpcnn.tpl._theano import T
 except:
     JPCNN_Auto_Model = object
     pass
@@ -138,17 +139,17 @@ class Labeler_Model(JPCNN_Auto_Model):
     def label_order_mapping(model, label_list):
         return { key: index for index, key in enumerate(label_list) }
 
-    def _loss_function(model, prediction, target):
-        loss = _theano.T.nnet.categorical_crossentropy(prediction, target)
-        pred = T.argmax(prediction)
-        targ = T.argmax(target)
-        indices = T.and_(T.neq(pred, targ), T.eq(targ, 1.0))
-        loss_ = loss * 5.0
-        loss = T.where(indices, loss_, loss)
-        return loss
+    # def _loss_function(model, prediction, target):
+    #     loss = _theano.T.nnet.categorical_crossentropy(prediction, target)
+    #     pred = T.argmax(prediction)
+    #     targ = T.argmax(target)
+    #     indices = T.and_(T.neq(pred, targ), T.eq(targ, 1.0))
+    #     loss_ = loss * 5.0
+    #     loss = T.where(indices, loss_, loss)
+    #     return loss
 
-    def get_loss_function(model):
-        return model._loss_function
+    # def get_loss_function(model):
+    #     return model._loss_function
 
     def architecture(model, batch_size, in_width, in_height, in_channels,
                      out_classes):
