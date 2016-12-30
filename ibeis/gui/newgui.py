@@ -1211,6 +1211,10 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
                         ('Edit Annotation in Image',
                          lambda: ibswgt.spawn_edit_image_annotation_interaction_from_aid(aid, imgsetid)),
                     ]
+                    context_options += [
+                        ('Clone annotation\'s species to ImageSet',
+                         lambda: ibswgt.back.copy_species_to_imageset(aid, imgsetid)),
+                    ]
 
                 context_options += [
                     ('----', lambda: None),
