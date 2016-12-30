@@ -22,7 +22,7 @@ from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 #import warnings
 (print, rrr, profile) = ut.inject2(__name__, '[qreq]')
 
-VERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
+VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 
 
 def testdata_newqreq(defaultdb='testdb1'):
@@ -38,7 +38,7 @@ def testdata_newqreq(defaultdb='testdb1'):
 
 
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
-                            verbose=ut.NOT_QUIET, unique_species=None,
+                            verbose=None, unique_species=None,
                             use_memcache=True,
                             query_cfg=None, custom_nid_lookup=None):
     """
@@ -122,6 +122,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             cfg_list, recursive=True)
         qvaried, dvaried = varied_cfg_list
     """
+    if verbose is None:
+        verbose = int(ut.NOT_QUIET)
+        # verbose = VERBOSE_QREQ
     if verbose:
         print('[qreq] +--- New IBEIS QRequest --- ')
 
@@ -141,7 +144,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     # except Exception:
     #     piperoot = None
 
-    if VERBOSE_QREQ:
+    if verbose > 2:
         print('[qreq] piperoot = %r' % (piperoot,))
     if piperoot is not None and piperoot in ['smk']:
         from ibeis.algo.smk import smk_pipeline
@@ -156,7 +159,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         qreq_ = smk_pipeline.SMKRequest(ibs, qaid_list, daid_list, config)
     # HACK FOR DEPC REQUESTS including flukes
     elif query_cfg is not None and isinstance(query_cfg, dtool.Config):
-        if VERBOSE_QREQ:
+        if verbose > 2:
             print('[qreq] dtool.Config HACK')
         tablename = query_cfg.get_config_name()
         cfgdict = dict(query_cfg.parse_items())
@@ -166,14 +169,14 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
         # Hack to ensure that correct depcache style request gets called
-        if VERBOSE_QREQ:
+        if verbose > 2:
             print('[qreq] piperoot HACK')
         requestclass = ibs.depc_annot.requestclass_dict[piperoot]
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=piperoot)
     else:
-        if VERBOSE_QREQ:
+        if verbose > 2:
             print('[qreq] default hots config HACK')
 
         # <HACK>

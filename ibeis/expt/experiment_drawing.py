@@ -882,7 +882,7 @@ def temp_multidb_cmc():
 
 def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
                   group_queries=False, draw_icon=True,
-                  numranks=5, kind='cmc', cdfzoom=False):
+                  numranks=5, kind='cmc', cdfzoom=True, **kwargs):
     # numranks=3, kind='bar', cdfzoom=False):
     r"""
     Args:
@@ -895,7 +895,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     CommandLine:
         python -m ibeis draw_rank_cmc
-        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t invar --kind=cmc
+        python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a timectrl -t default --kind=cmc
 
         python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a :proot=smk,num_words=64000
         python -m ibeis draw_rank_cmc --db PZ_MTEST --show -a ctrl -t best:prescore_method=csum
@@ -947,15 +947,20 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(
         bins='dense', key=key, join_acfgs=join_acfgs)
 
-    #label_list = testres.get_short_cfglbls(join_acfgs=join_acfgs)
-    label_list = testres.get_varied_labels(shorten=True, join_acfgs=join_acfgs)
-    #label_list = [l1 + l2 for l1, l2 in zip(label_list, label_list2)]
+    # Do this twice, but no sep the first time
+    cfglbl_list = testres.get_varied_labels(shorten=True,
+                                            join_acfgs=join_acfgs)
+    cfglbl_to_score = ut.dzip(cfglbl_list, cfgx2_cumhist_percent.T[0])
+    cfglbl_to_score = ut.sort_dict(cfglbl_to_score, part='vals')
+    print('accuracy @rank1: ' + ut.repr4(cfglbl_to_score, strkeys=True,
+                                         precision=4))
 
+    cfglbl_list = testres.get_varied_labels(shorten=True,
+                                            join_acfgs=join_acfgs,
+                                            sep=kwargs.get('sep', ''))
     label_list = [
-        ('%6.2f%%' % (percent,)) +
-        #ut.scalar_str(percent, precision=2)
-        ' - ' + label
-        for percent, label in zip(cfgx2_cumhist_percent.T[0], label_list)]
+        ('%6.2f%%' % (percent,)) + ' - ' + label
+        for label, percent in zip(cfglbl_list, cfgx2_cumhist_percent.T[0])]
 
     cmap_seed = ut.get_argval('--prefix', type_=str, default=None)
     color_list = pt.distinct_colors(len(label_list), cmap_seed=cmap_seed)
@@ -1022,9 +1027,14 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         num_yticks=num_yticks, ymax=100, ymin=ymin, ypad=.5,
         xmin=xpad,
         kind=kind,
+        title=figtitle,
+        # figtitle=figtitle,
         #xpad=.05,
         #**FONTKW
     )
+    cumhistkw.update(kwargs)
+
+    # if not twoplots:
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
@@ -1037,6 +1047,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         pnum=pnum_(), **cumhistkw)
 
     if twoplots:
+        del cumhistkw['title']
         numranks2 = len(cfgx2_cumhist_percent.T)
         ax1 = pt.gca()
         pt.plot_rank_cumhist(
@@ -1048,16 +1059,14 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         #pt.zoom_effect01(ax1, ax2, 1, numranks2, fc='w')
         #pt.zoom_effect01(ax1, ax2, 1, numranks, fc='w')
         pt.zoom_effect01(ax1, ax2, 1, numranks, ec='k', fc='w')
-    #pt.set_figtitle(figtitle, size=14)
-    pt.set_figtitle(figtitle)
 
     icon = ibs.get_database_icon()
     # print('draw_icon = %r' % (draw_icon,))
     if draw_icon and icon is not None:
         #ax = pt.gca()
         #ax.get_xlim()
-        # pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
-        pt.overlay_icon(icon, bbox_alignment=(0, 1), as_artist=True, max_asize=(2, 4))
+        pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
+        # pt.overlay_icon(icon, bbox_alignment=(0, 1), as_artist=True, max_asize=(2, 4))
         pass
         #ax.get_ylim()
 
@@ -1070,7 +1079,6 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     if ut.get_argflag('--contextadjust') or True:
         pt.adjust_subplots(left=.05, bottom=.08, wspace=.0, hspace=.15)
         pt.adjust_subplots(use_argv=True)
-    #pt.set_figtitle(figtitle, size=10)
 
 
 @profile

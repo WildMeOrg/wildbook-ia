@@ -413,7 +413,7 @@ def submit_identification():
     # Notify any attached web QUERY_OBJECT
     try:
         state = const.REVIEW_INT_TO_CODE[decision]
-        feedback = (aid1, aid2, state, )
+        feedback = (aid1, aid2, state, tags_list)
         print('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
         current_app.QUERY_OBJECT_FEEDBACK_BUFFER.append(feedback)
     except ValueError:

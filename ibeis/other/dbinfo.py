@@ -1013,7 +1013,7 @@ def get_dbinfo(ibs, verbose=True,
                with_header=True,
                short=False,
                tag='dbinfo',
-               aid_list=None):
+               aid_list=None, aids=None):
     """
 
     Returns dictionary of digestable database information
@@ -1107,6 +1107,8 @@ def get_dbinfo(ibs, verbose=True,
     """
     # TODO Database size in bytes
     # TODO: occurrence, contributors, etc...
+    if aids is not None:
+        aid_list = aids
 
     # Basic variables
     request_annot_subset = False
@@ -1143,7 +1145,8 @@ def get_dbinfo(ibs, verbose=True,
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
-        gx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in gx2_aids]
+        gx2_aids = [list(set(aids_).intersection(valid_aids_set))
+                    for aids_ in gx2_aids]
 
     gx2_nAnnots = np.array(list(map(len, gx2_aids)))
     image_without_annots = len(np.where(gx2_nAnnots == 0)[0])
@@ -1157,7 +1160,8 @@ def get_dbinfo(ibs, verbose=True,
     if request_annot_subset:
         # remove annots not in this subset
         valid_aids_set = set(valid_aids)
-        nx2_aids = [list(set(aids).intersection(valid_aids_set)) for aids in nx2_aids]
+        nx2_aids = [list(set(aids_).intersection(valid_aids_set))
+                    for aids_ in nx2_aids]
     associated_nids = ut.compress(valid_nids, list(map(len, nx2_aids)))
 
     ibs.check_name_mapping_consistency(nx2_aids)
@@ -1353,11 +1357,23 @@ def get_dbinfo(ibs, verbose=True,
         sextext2_nAnnots = {key: val for key, val in six.iteritems(sextext2_nAnnots) if val != 0}
         return sextext2_nAnnots
 
+    def get_annot_qual_stats(ibs, aid_list):
+        key_order = list(const.QUALITY_TEXT_TO_INT.keys())
+        prop_getter = ibs.get_annot_quality_texts
+        qualtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+        return qualtext2_nAnnots
+
+    def get_annot_yaw_stats(ibs, aid_list):
+        key_order = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + [None]
+        prop_getter = ibs.get_annot_yaw_texts
+        yawtext2_nAnnots = ibs.make_property_stats_dict(aid_list, prop_getter, key_order)
+        return yawtext2_nAnnots
+
     if verbose:
         print('Checking Other Annot Stats')
 
-    qualtext2_nAnnots = ibs.get_annot_qual_stats(valid_aids)
-    yawtext2_nAnnots = ibs.get_annot_yaw_stats(valid_aids)
+    qualtext2_nAnnots = get_annot_qual_stats(ibs, valid_aids)
+    yawtext2_nAnnots = get_annot_yaw_stats(ibs, valid_aids)
     agetext2_nAnnots = get_annot_age_stats(valid_aids)
     sextext2_nAnnots = get_annot_sex_stats(valid_aids)
 
@@ -1373,8 +1389,8 @@ def get_dbinfo(ibs, verbose=True,
     contributor_tag_to_gids = ut.group_items(valid_gids, image_contributor_tags)
     contributor_tag_to_aids = ut.group_items(valid_aids, annot_contributor_tags)
 
-    contributor_tag_to_qualstats = {key: ibs.get_annot_qual_stats(aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
-    contributor_tag_to_viewstats = {key: ibs.get_annot_yaw_stats(aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_qualstats = {key: get_annot_qual_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
+    contributor_tag_to_viewstats = {key: get_annot_yaw_stats(ibs, aids) for key, aids in six.iteritems(contributor_tag_to_aids)}
 
     contributor_tag_to_nImages = {key: len(val) for key, val in six.iteritems(contributor_tag_to_gids)}
     contributor_tag_to_nAnnots = {key: len(val) for key, val in six.iteritems(contributor_tag_to_aids)}

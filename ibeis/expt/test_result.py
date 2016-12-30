@@ -391,11 +391,17 @@ class TestResult(ut.NiceRepr):
             [[7], [6], [5], [4], [0, 1, 2, 3]]
         """
         import itertools
+        # Group-ids for annotations are determined by joinme labels (used by xval)
         group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.cfgx2_acfg]
+        # Anything that does not have a joinme groupid is standalone and must
+        # be given a unique groupid
         gen_groupid = itertools.count(1)
-        group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
-                     for groupid in group_ids_]
-        groupxs = ut.group_indices(group_ids)[1]
+        acfg_group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
+                          for groupid in group_ids_]
+        # Ensure that different pipeline configs are in different groups
+        pcfg_group_ids = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg)
+        group_ids_ = list(zip(pcfg_group_ids, acfg_group_ids))
+        groupxs = ut.group_indices(group_ids_)[1]
         return groupxs
 
     def get_rank_histogram_bins(testres):
@@ -608,6 +614,9 @@ class TestResult(ut.NiceRepr):
             ('bar_l2_on=True', 'dist'),
             ('bar_l2_on=False,?', ''),
 
+            ('joinme=\d+,?', ''),
+            ('dcrossval_enc', 'denc_per_name'),
+
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
             ('affine_invariance', 'AI'),
@@ -733,7 +742,7 @@ class TestResult(ut.NiceRepr):
             cfg_lbls = group_lbls
         return cfg_lbls
 
-    def get_varied_labels(testres, shorten=False, join_acfgs=False):
+    def get_varied_labels(testres, shorten=False, join_acfgs=False, sep=''):
         """
         Returns labels indicating only the parameters that have been varied between
         different annot/pipeline configurations.
@@ -743,34 +752,48 @@ class TestResult(ut.NiceRepr):
         CommandLine:
             python -m ibeis --tf TestResult.make_figtitle  --prefix "Seperability " --db GIRM_Master1   -a timectrl -t Ell:K=2     --hargv=scores
             python -m ibeis --tf TestResult.make_figtitle
+            python -m ibeis TestResult.get_varied_labels
 
         Example:
             >>> # SLOW_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST',
-            >>>                                     t='default:K=[1,2]',
-            >>>                                     a='timectrl:qsize=[1,2],dsize=3')
-            >>> varied_lbls = testres.get_varied_labels()
-            >>> result = ('varied_lbls = %r' % (varied_lbls,))
+            >>> ibs, testres = ibeis.testdata_expts(
+            >>>     'PZ_MTEST', t='default:K=[1,2]',
+            >>>     #a=['timectrl:qsize=[1,2],dsize=[3,4]']
+            >>>     a=[
+            >>>        'default:qsize=[1,2],dsize=2,joinme=1,view=left',
+            >>>        'default:qsize=2,dsize=3,joinme=1,view=primary',
+            >>>        'default:qsize=[3,2],dsize=4,joinme=2,view=left',
+            >>>        'default:qsize=4,dsize=5,joinme=2,view=primary',
+            >>>       ]
+            >>> )
+            >>> # >>> ibs, testres = ibeis.testdata_expts(
+            >>> # >>>     'WWF_Lynx_Copy', t='default:K=1',
+            >>> # >>>     a=[
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=1,joinme=1',
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=2,joinme=2',
+            >>> # >>>         #'default:minqual=good,require_timestamp=True,view=left,dcrossval_enc=3,joinme=3',
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=1,joinme=1',
+            >>> # >>>         'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=2,joinme=2',
+            >>> # >>>         #'default:minqual=good,require_timestamp=True,view=right,dcrossval_enc=3,joinme=3',
+            >>> # >>>       ]
+            >>> # >>> )
+            >>> varied_lbls = testres.get_varied_labels(shorten=False, join_acfgs=True)
+            >>> result = ('varied_lbls = %s' % (ut.list_str(varied_lbls, strvals=True, nl=2),))
             >>> print(result)
+
             varied_lbls = [u'K=1+qsize=1', u'K=2+qsize=1', u'K=1+qsize=2', u'K=2+qsize=2']
         """
         from ibeis.expt import annotation_configs
-
         varied_acfgs = annotation_configs.get_varied_acfg_labels(
             testres.cfgx2_acfg, checkname=True)
-        #print('testres.cfgx2_acfg = %s' % (ut.repr3(testres.cfgx2_acfg),))
+        # print('varied_acfgs = %s' % (ut.repr2(varied_acfgs, nl=2),))
+        # print('testres.cfgx2_acfg = %s' % (ut.repr3(testres.cfgx2_acfg),))
         varied_pcfgs = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg, checkname=True)
-        print('varied_pcfgs = %r' % (varied_pcfgs,))
         #varied_acfgs = ut.get_varied_cfg_lbls(testres.cfgx2_acfg, checkname=True)
-        def combo_lbls(lbla, lblp):
-            parts = []
-            if lbla != ':' and lbla:
-                parts.append(lbla)
-            if lblp != ':' and lblp:
-                parts.append(lblp)
-            return '+'.join(parts)
+        name_sep = ':'
+        cfg_sep = '+'
 
         if join_acfgs:
             # Hack for the grouped config problem
@@ -778,14 +801,76 @@ class TestResult(ut.NiceRepr):
             groupxs = testres.get_cfgx_groupxs()
             grouped_acfgs = ut.apply_grouping(varied_acfgs, groupxs)
             grouped_pcfgs = ut.apply_grouping(varied_pcfgs, groupxs)
-            for part in grouped_acfgs:
-                part = [p if ':' in p else ':' + p for p in part]
-                cfgdict = cfghelpers.parse_cfgstr_list2(part, strict=False)[0][0]
-                new_acfg = ut.partition_varied_cfg_list([cfgdict])[0]
-                new_lbl = ut.get_cfg_lbl(new_acfg, with_name=False)
-                new_varied_acfgs.append(new_lbl)
+            for group in grouped_acfgs:
+                group = [p if name_sep in p else name_sep + p for p in group]
+                # Re-parse given back into dictionary form
+                cfgdicts_ = cfghelpers.parse_cfgstr_list2(group, strict=False)
+                # I forget why these are stored in a 2d-list
+                cfgdicts = ut.take_column(cfgdicts_, 0)
+                new_acfgs = ut.partition_varied_cfg_list(cfgdicts)
+                # Hack, just taking the first one that has agreement between
+                # joinme / crossvalidation runs
+                new_acfg = new_acfgs[0]
+                if True:
+                    # look at internal variance within xval runs
+                    internal_cfgs = new_acfgs[1]
+                    import pandas as pd
+                    intern_variations = pd.DataFrame.from_dict(internal_cfgs).to_dict(orient='list')
+
+                    op_prefixes = {
+                        'sum': (np.sum, 'Σ-', ''),
+                        'mean': (np.mean, 'µ-', ''),
+                        'set': (lambda x: '&'.join(set(map(six.text_type, x))), '', 's'),
+                    }
+                    known_modes = {
+                        'dsize': 'mean',
+                        'qsize': 'sum',
+                        'view': 'set',
+                    }
+                    for key in intern_variations.keys():
+                        if key.startswith('_'):
+                            continue
+                        mode = known_modes.get(key, None)
+                        vals = intern_variations[key]
+                        if mode is None:
+                            mode = 'set'
+                        if key == 'crossval_idx':
+                            new_acfg['folds'] = len(intern_variations['crossval_idx'])
+                        else:
+                            op, pref, suff = op_prefixes[mode]
+                            c = op(vals)
+                            if isinstance(c, six.string_types):
+                                new_acfg[pref + key + suff] = c
+                            else:
+                                new_acfg[pref + key + suff] = ut.repr2(c, precision=2)
+                    # if 'dsize' in intern_variations:
+                    #     new_acfg['µ-dsize'] = np.sum(intern_variations['dsize'])
+                    # if 'qsize' in intern_variations:
+                    #     new_acfg['Σ-qsize'] = np.sum(intern_variations['qsize'])
+                    # if 'view' in intern_variations:
+                    #     new_acfg['views'] = '&'.join(set(intern_variations['view']))
+                    # if 'crossval_idx' in intern_variations:
+                    #     new_acfg['folds'] = len(intern_variations['crossval_idx'])
+                new_varied_acfgs.append(new_acfg)
+
+            # Do one more dup check to remove the duplicate summaries
+            common_new_acfg = ut.partition_varied_cfg_list(new_varied_acfgs)[0]
+            for key in common_new_acfg.keys():
+                if not key.startswith('_'):
+                    for new_acfg in new_varied_acfgs:
+                        del new_acfg[key]
+
             varied_pcfgs = ut.take_column(grouped_pcfgs, 0)
-            varied_acfgs = new_varied_acfgs
+            varied_acfgs = [ut.get_cfg_lbl(new_acfg_, with_name=False, sep=sep)
+                            for new_acfg_ in new_varied_acfgs]
+
+        def combo_lbls(lbla, lblp):
+            parts = []
+            if lbla != name_sep and lbla:
+                parts.append(lbla)
+            if lblp != name_sep and lblp:
+                parts.append(lblp)
+            return (sep + cfg_sep).join(parts)
 
         varied_lbls = [combo_lbls(lbla, lblp) for lblp, lbla in zip(varied_acfgs, varied_pcfgs)]
         if shorten:
@@ -913,9 +998,8 @@ class TestResult(ut.NiceRepr):
                 daids = testres.cfgx2_daids[0]
                 title_aug += ' #daids=%r' % (len(testres.cfgx2_daids[0]),)
                 if testres.has_constant_qaids():
-                    locals_ = ibs.get_annotconfig_stats(
-                        testres.qaids, daids, verbose=False)[1]
-                    all_daid_per_name_stats = locals_['all_daid_per_name_stats']
+                    all_daid_per_name_stats = ut.get_stats(
+                        ibs.get_num_annots_per_name(daids)[0], use_nan=True)
                     if all_daid_per_name_stats['std'] == 0:
                         title_aug += ' dper_name=%s' % (
                             ut.scalar_str(all_daid_per_name_stats['mean'],
