@@ -52,6 +52,14 @@ ORIENTATION_DICT = {
     8: ORIENTATION_270,
 }
 
+ORIENTATION_DICT_INVERSE = {
+    ORIENTATION_UNDEFINED : 0,
+    ORIENTATION_000       : 1,
+    ORIENTATION_180       : 3,
+    ORIENTATION_090       : 6,
+    ORIENTATION_270       : 8,
+}
+
 
 @profile
 def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
