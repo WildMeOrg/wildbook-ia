@@ -20,14 +20,6 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
 
     """
     from vtool import exif
-    ORIENTATION_UNDEFINED = exif.ORIENTATION_UNDEFINED
-    ORIENTATION_000 = exif.ORIENTATION_000
-    ORIENTATION_DICT = exif.ORIENTATION_DICT
-
-    def find_code(tag):
-        for key, val in ORIENTATION_DICT.iteritems():
-            if val == tag:
-                return key
 
     def bbox_overlap(bbox1, bbox2):
         ax1 = bbox1[0]
@@ -42,24 +34,35 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
         overlap_y = max(0, min(ay2, by2) - max(ay1, by1))
         return overlap_x * overlap_y
 
-    ORIENTATION_UNDEFINED_KEY = find_code(ORIENTATION_UNDEFINED)
-    ORIENTATION_000_KEY = find_code(ORIENTATION_000)
-    good_orient_list = [ORIENTATION_UNDEFINED_KEY, ORIENTATION_000_KEY]
-    assert None not in good_orient_list
+    orient_dict = exif.ORIENTATION_DICT_INVERSE
+    good_orient_list = [
+        exif.ORIENTATION_UNDEFINED,
+        exif.ORIENTATION_000,
+    ]
+    good_orient_key_list = [
+        orient_dict.get(good_orient)
+        for good_orient in good_orient_list
+    ]
+    assert None not in good_orient_key_list
 
     gid_list = ibs.get_valid_gids()
     orient_list = ibs.get_image_orientation(gid_list)
-    flag_list = [ orient not in good_orient_list for orient in orient_list ]
+    flag_list = [ orient not in good_orient_key_list for orient in orient_list ]
 
     # Filter based on based gids
     gid_list = ut.filter_items(gid_list, flag_list)
     if len(gid_list) > 0:
-        print('Found %d images with abnormal orientations' % (len(gid_list), ))
+        args = (len(gid_list), )
+        print('Found %d images with non-standard orientations' % args)
         aids_list = ibs.get_image_aids(gid_list)
         size_list = ibs.get_image_sizes(gid_list)
         invalid_gid_list = []
         zipped = zip(gid_list, orient_list, aids_list, size_list)
-        for gid, orient, aid_list, (w, h) in zipped:
+        for gid, orient, aid_list, (w_, h_) in zipped:
+            image = ibs.get_images(gid)
+            h, w = image.shape[:2]
+            if h_ != h or w_ != w:
+                ibs._set_image_sizes(gid, w, h)
             image_bbox = (0, 0, w, h)
             verts_list = ibs.get_annot_rotated_verts(aid_list)
             invalid = False
@@ -72,6 +75,14 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     invalid = True
                     args = (gid, aid, overlap, area, overlap / area)
                     print('\tGID %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
+                    if orient == orient_dict.get(exif.ORIENTATION_090):
+                        pass
+                    elif orient == orient_dict.get(exif.ORIENTATION_180):
+                        pass
+                    elif orient == orient_dict.get(exif.ORIENTATION_270):
+                        pass
+                    else:
+                        raise ValueError('Unrecognized invalid orientation')
             if invalid:
                 invalid_gid_list.append(gid)
         args = (len(invalid_gid_list), invalid_gid_list)

@@ -596,76 +596,69 @@ def view():
                          __wrapper_header__=False)
 
 
+@register_route('/view/viewpoints/', methods=['GET'])
+def view_viewpoints():
+    ibs = current_app.ibs
+
+    aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+
+    species_tag_list = sorted(list(set(species_list)))
+    species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
+    species_set = set(species_tag_list)
+    species_nice_dict = {
+        species_tag : ibs.get_species_nice(species_rowid)
+        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
+    }
+
+    viewpoint_dict = {}
+    for species, viewpoint in zip(species_list, viewpoint_list):
+        if species in species_set:
+            if species not in viewpoint_dict:
+                viewpoint_dict[species] = {}
+            if viewpoint not in viewpoint_dict[species]:
+                viewpoint_dict[species][viewpoint] = 0
+            viewpoint_dict[species][viewpoint] += 1
+
+    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    pie_values_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
+        )
+        for species in species_tag_list
+    ]
+
+    viewpoint_order_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
+    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
+    viewpoint_tag_dict = {
+        'zebra_grevys' : pie_right_list,
+        'zebra_plains' : pie_left_list,
+        'giraffe_masai' : pie_left_list,
+    }
+    pie_label_corrected_list = list(map(
+        str,
+        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
+    ))
+    pie_values_corrected_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
+        )
+        for species in species_tag_list
+    ]
+
+    # Get number of annotations per name as a histogram for each species
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'advanced',
+                         __wrapper_header__=False,
+                         **embedded)
+
+
 @register_route('/view/advanced/', methods=['GET'])
 def view_advanced():
-    def _date_list(gid_list):
-        unixtime_list = ibs.get_image_unixtime(gid_list)
-        datetime_list = [
-            ut.unixtime_to_datetimestr(unixtime)
-            if unixtime is not None else
-            'UNKNOWN'
-            for unixtime in unixtime_list
-        ]
-        datetime_split_list = [ datetime.split(' ') for datetime in datetime_list ]
-        date_list = [ datetime_split[0] if len(datetime_split) == 2 else 'UNKNOWN' for datetime_split in datetime_split_list ]
-        return date_list
-
-    def filter_annots_imageset(aid_list):
-        try:
-            imgsetid = request.args.get('imgsetid', '')
-            imgsetid = int(imgsetid)
-            imgsetid_list = ibs.get_valid_imgsetids()
-            assert imgsetid in imgsetid_list
-        except:
-            print('ERROR PARSING IMAGESET ID FOR ANNOTATION FILTERING')
-            return aid_list
-        imgsetids_list = ibs.get_annot_imgsetids(aid_list)
-        aid_list = [
-            aid
-            for aid, imgsetid_list_ in zip(aid_list, imgsetids_list)
-            if imgsetid in imgsetid_list_
-        ]
-        return aid_list
-
-    def filter_annots_general(aid_list):
-        # Grevy's
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'good',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_grevys',
-            'view': ['right'],
-        }
-        aid_list1 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-
-        # Plains
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'zebra_plains',
-            'view': ['left'],
-        }
-        aid_list2 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-
-        # Masai
-        filter_kw = {
-            'multiple': None,
-            'minqual': 'ok',
-            'is_known': True,
-            'min_pername': 1,
-            'species': 'giraffe_masai',
-            'view': ['left'],
-        }
-        aid_list3 = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-
-        aid_list = aid_list1 + aid_list2 + aid_list3
-
-        # aid_list = ibs.filter_annots_general(aid_list, filter_kw=filter_kw)
-        return aid_list
-
     ibs = current_app.ibs
 
     species_tag_list = ['zebra_grevys', 'zebra_plains', 'giraffe_masai']

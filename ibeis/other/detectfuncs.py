@@ -709,20 +709,24 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
         {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
         {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
     ]
     name_list = [
-        'V1',
-        'V1 (GRID)',
+        # 'V1',
+        # 'V1 (GRID)',
         'V2',
         'V2 (GRID)',
         'V3',
         'V3 (GRID)',
+        'LYNX',
+        'LYNX (GRID)',
     ]
     color_list = [
         'y',
