@@ -10,6 +10,44 @@ import utool as ut
 TAU = np.pi * 2
 
 
+def argsubmax(ydata, xdata=None):
+    """
+    Finds a single submaximum value to subindex accuracy.
+    If xdata is not specified, submax_x is a fractional index.
+    Otherwise, submax_x is sub-xdata (essentially doing the index interpolation
+    for you)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+        >>> ydata = [ 0,  1,  2, 1.5,  0]
+        >>> xdata = [00, 10, 20,  30, 40]
+        >>> result1 = argsubmax(ydata, xdata=None)
+        >>> result2 = argsubmax(ydata, xdata=xdata)
+        >>> result = ut.repr2([result1, result2], precision=4, nl=1, nobr=True)
+        >>> print(result)
+        (2.1667, 2.0208),
+        (21.6667, 2.0208),
+
+    Example:
+        >>> from vtool.histogram import *  # NOQA
+        >>> hist_ = np.array([0, 1, 2, 3, 4])
+        >>> centers = None
+        >>> maxima_thresh=None
+        >>> argsubmax(hist_)
+        (4.0, 4.0)
+    """
+    if len(ydata) == 0:
+        raise IndexError('zero length array')
+    ydata = np.asarray(ydata)
+    xdata = None if xdata is None else np.asarray(xdata)
+    submaxima_x, submaxima_y = argsubmaxima(ydata, centers=xdata)
+    idx = submaxima_y.argmax()
+    submax_y = submaxima_y[idx]
+    submax_x = submaxima_x[idx]
+    return submax_x, submax_y
+
+
 def argsubmaxima(hist, centers=None, maxima_thresh=None, _debug=False):
     r"""
     Determines approximate maxima values to subindex accuracy.
@@ -42,12 +80,24 @@ def argsubmaxima(hist, centers=None, maxima_thresh=None, _debug=False):
         (array([ 3.0318792]), array([ 37.19208239]))
     """
     maxima_x, maxima_y, argmaxima = hist_argmaxima(hist, centers, maxima_thresh=maxima_thresh)
+    argmaxima = np.asarray(argmaxima)
     if _debug:
         print('Argmaxima: ')
         print(' * maxima_x = %r' % (maxima_x))
         print(' * maxima_y = %r' % (maxima_y))
         print(' * argmaxima = %r' % (argmaxima))
-    submaxima_x, submaxima_y = interpolate_submaxima(argmaxima, hist, centers)
+    flags = (argmaxima == 0) | (argmaxima == len(hist) - 1)
+    argmaxima_ = argmaxima[~flags]
+    submaxima_x_, submaxima_y_ = interpolate_submaxima(argmaxima_, hist, centers)
+    if np.any(flags):
+        endpts = argmaxima[flags]
+        submaxima_x = (np.hstack([submaxima_x_, centers[endpts]])
+                       if centers is not None else
+                       np.hstack([submaxima_x_, endpts]))
+        submaxima_y = np.hstack([submaxima_y_, hist[endpts]])
+    else:
+        submaxima_y = submaxima_y_
+        submaxima_x = submaxima_x_
     if _debug:
         print('Submaxima: ')
         print(' * submaxima_x = %r' % (submaxima_x))
@@ -191,11 +241,30 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>> pt.show_if_requested()
         np.array([ 0.15,  3.03,  5.11], dtype=np.float64),
         np.array([  9.2 ,  37.19,   0.  ], dtype=np.float64),
+
+    Example:
+        >>> hist_ = np.array([5])
+        >>> argmaxima = [0]
+
     """
+    if len(argmaxima) == 0:
+        return [], []
     argmaxima = np.asarray(argmaxima)
     neighbs = np.vstack((argmaxima - 1, argmaxima, argmaxima + 1))
+    # flags = (neighbs[2] > (len(hist_) - 1)) | (neighbs[0] < 0)
+    # neighbs = np.clip(neighbs, 0, len(hist_) - 1)
+    # if np.any(flags):
+    #     # Clip out of bounds positions
+    #     neighbs[0, flags] = neighbs[1, flags]
+    #     neighbs[2, flags] = neighbs[1, flags]
     y123 = hist_[neighbs]
     x123 = neighbs if centers is None else centers[neighbs]
+    # if np.any(flags):
+    #     # Make symetric values so maxima is found exactly in center
+    #     y123[0, flags] = y123[1, flags] - 1
+    #     y123[2, flags] = y123[1, flags] - 1
+    #     x123[0, flags] = x123[1, flags] - 1
+    #     x123[2, flags] = x123[1, flags] - 1
     # Fit parabola around points
     coeff_list = [np.polyfit(x123_, y123_, deg=2)
                   for (x123_, y123_) in zip(x123.T, y123.T)]

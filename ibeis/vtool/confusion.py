@@ -19,7 +19,7 @@ def testdata_scores_labels():
     return scores, labels
 
 
-def interpolate_replbounds(xdata, ydata, pt):
+def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
     """
     xdata = np.array([.1, .2, .3, .4, .5])
     ydata = np.array([.1, .2, .3, .4, .5])
@@ -44,6 +44,21 @@ def interpolate_replbounds(xdata, ydata, pt):
         python -m vtool.confusion --exec-interpolate_replbounds
 
     Example:
+        >>> from vtool.confusion import *  # NOQA
+        >>> scores, labels = testdata_scores_labels()
+        >>> self = get_confusion_metrics(scores, labels)
+        >>> xdata = self.tpr
+        >>> ydata = self.thresholds
+        >>> pt = 1.0
+        >>> #xdata = self.fpr
+        >>> #ydata = self.thresholds
+        >>> #pt = 0.0
+        >>> thresh = interpolate_replbounds(xdata, ydata, pt, prefer_max=True)
+        >>> print('thresh = %r' % (thresh,))
+        >>> thresh = interpolate_replbounds(xdata, ydata, pt, prefer_max=False)
+        >>> print('thresh = %r' % (thresh,))
+
+    Example:
         >>> # DISABLE_DOCTEST
         >>> from vtool.confusion import *  # NOQA
         >>> xdata = np.array([0.7,  0.8,  0.8,  0.9,  0.9, 0.9])
@@ -55,10 +70,14 @@ def interpolate_replbounds(xdata, ydata, pt):
         interp_vals = [ 22.5  17.   34. ]
     """
     if not ut.issorted(xdata):
-        raise AssertionError('need to sort xdata and ydata in function')
-        sortx = np.lexsort(np.vstack([np.arange(len(xdata)), xdata]))
-        xdata = xdata.take(sortx, axis=0)
-        ydata = ydata.take(sortx, axis=0)
+        if ut.issorted(xdata[::-1]):
+            xdata = xdata[::-1]
+            ydata = ydata[::-1]
+        else:
+            raise AssertionError('need to sort xdata and ydata in function')
+            sortx = np.lexsort(np.vstack([np.arange(len(xdata)), xdata]))
+            xdata = xdata.take(sortx, axis=0)
+            ydata = ydata.take(sortx, axis=0)
 
     is_scalar = not ut.isiterable(pt)
     #print('----')
@@ -81,6 +100,23 @@ def interpolate_replbounds(xdata, ydata, pt):
     interp_vals = np.empty(pt.shape, dtype=dtype)
     interp_vals[lower_mask] = ydata[argx_min]
     interp_vals[upper_mask] = ydata[argx_max]
+
+    # TODO: fix duplicate values depending on if higher or lower numbers are
+    # desirable
+    if True:
+        # Grouping should be ok because xdata should be sorted
+        # therefore groupxs are consecutive
+        import vtool as vt
+        unique_vals, groupxs = vt.group_indices(xdata)
+        grouped_ydata = vt.apply_grouping(ydata, groupxs)
+        if prefer_max:
+            sub_idxs = [idxs[np.argmax(ys)] for idxs, ys in zip(groupxs, grouped_ydata)]
+        else:
+            sub_idxs = [idxs[np.argmin(ys)] for idxs, ys in zip(groupxs, grouped_ydata)]
+        sub_idxs = np.array(sub_idxs)
+        xdata = xdata[sub_idxs]
+        ydata = ydata[sub_idxs]
+
     if np.any(interp_mask):
         # FIXME: allow assume_sorted = False
         func = scipy.interpolate.interp1d(xdata, ydata, kind='linear', assume_sorted=True)
@@ -103,13 +139,18 @@ def interpolate_replbounds(xdata, ydata, pt):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class ConfusionMetrics(object):
     """
+    References:
+        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
     Ignore:
         varname_list = 'tp, fp, fn, tn, fpr, tpr, ppv'.split(', ')
         lines = ['self.{varname} = {varname}'.format(varname=varname) for varname in varname_list]
         print(ut.indent('\n'.join(lines)))
 
     """
-    def __init__(self, thresholds, tp, fp, fn, tn, fpr, tpr, ppv):
+    def __init__(self, total, n_pos, n_neg, thresholds, tp, fp, fn, tn, fpr, tpr, ppv):
+        self.n_pos = n_pos
+        self.n_neg = n_neg
+        self.total = total
         self.thresholds = thresholds
         self.tp = tp
         self.fp = fp
@@ -118,6 +159,33 @@ class ConfusionMetrics(object):
         self.fpr = fpr
         self.tpr = tpr
         self.ppv = ppv
+
+    aliases = {
+        'tp': {'hit'},
+        'tn': {'reject'},
+        'fp': {'type1_error', 'false_alarm'},
+        'fn': {'type2_error', 'miss'},
+        'fpr': {'fallout'},
+        'fnr': {'miss_rate'},
+        'tpr': {'recall', 'sensitivity', 'hit_rate'},
+        'tnr': {'inv_recall, specificity'},
+        'ppv': {'precision'},
+        'npv': {'inv_precision'},
+        'mk': {'markedness'},
+        'bm': {'informedness'},
+    }
+
+    minimizing_metrics = {'fpr',
+                          'fnr',
+                          'fp',
+                          'fn'
+                         }
+
+    inv_aliases = {
+        alias_key: std_key
+        for std_key, alias_vals in aliases.items()
+        for alias_key in set.union(alias_vals, {std_key})
+    }
 
     # --------------
     # Construtors
@@ -192,7 +260,22 @@ class ConfusionMetrics(object):
         #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
         return interp_tpr
 
-    def get_threshold_at_metric(self, metric, value):
+    def get_threshold_at_metric_maximum(self, metric):
+        """
+        metric = 'mcc'
+        metric = 'fnr'
+        """
+        metric_values = getattr(self, metric)
+        if False:
+            idx = metric_values.argmax()
+            thresh = self.thresholds[idx]
+        else:
+            # interpolated version
+            import vtool as vt
+            thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
+        return thresh
+
+    def get_threshold_at_metric(self, metric, value, prefer_max=None):
         r"""
         Gets a threshold for a binary classifier using a target metric and value
 
@@ -221,8 +304,14 @@ class ConfusionMetrics(object):
             thresh = 22.5
         """
         # TODO: Use interpoloation here and make tpr vs fpr a smooth funciton
+        metric = self.inv_aliases[metric]
         metric_values = getattr(self, metric)
-        thresh = interpolate_replbounds(metric_values, self.thresholds, value)
+        # prefer_max = metric not in self.minimizing_metrics
+        if prefer_max is None:
+            prefer_max = metric not in {'fpr'}
+        # prefer_max = True
+        thresh = interpolate_replbounds(metric_values, self.thresholds, value,
+                                        prefer_max=prefer_max)
         #try:
         #    if metric_values[0] > metric_values[-1]:
         #        index = np.nonzero(metric_values <= value)[0][0]
@@ -262,16 +351,55 @@ class ConfusionMetrics(object):
             index = np.nonzero(self.thresholds <= thresh)[0][0]
         except IndexError:
             index = len(self.thresholds) - 1
-        value = self.__dict__[metric][index]
+        # value = self.__dict__[metric][index]
+        value = getattr(self, metric)[index]
         return value
 
     @property
+    def fallout(self):
+        """ fallout false positive rate """
+        # self.fp / self.n_neg
+        return self.fpr
+
+    @property
+    def fnr(self):
+        """ miss rate, false negative rate """
+        return self.fn / self.n_neg
+
+    @property
     def precision(self):
+        """ precision, positive predictive value, confidence """
+        # ppv = self.tp / (self.tp + self.fp)
+        # ppv[np.isnan(ppv)] = 1.0
         return self.ppv
 
     @property
+    def npv(self):
+        """ negative predictive value, inverse precision """
+        npv = self.tn / (self.tn + self.fn)
+        npv[np.isnan(npv)] = 1.0
+        return npv
+
+    @property
     def recall(self):
+        """ sensitivity, recall, hit rate, tpr """
+        # self.tp / self.n_pos
         return self.tpr
+
+    @property
+    def tnr(self):
+        """ true negative rate, inverse recall """
+        return self.tn / self.n_neg
+
+    @property
+    def bm(self):
+        """ bookmaker informedness """
+        return self.tpr + self.tnr - 1
+
+    @property
+    def mk(self):
+        """ markedness """
+        return self.ppv + self.npv - 1
 
     def get_ave_precision(self):
         precision = self.precision
@@ -289,8 +417,74 @@ class ConfusionMetrics(object):
         References:
             https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
         """
+        # TODO: change name to auc_score or something to show its not a per threshold metric
         import sklearn.metrics
         return sklearn.metrics.auc(self.fpr, self.tpr)
+
+    @property
+    def auc_trap(self):
+        # per threshold trapazoidal auc metric
+        return (self.tpr + self.tnr) / 2
+
+    @property
+    def acc(self):
+        """ accuracy """
+        return (self.tp + self.tn) / self.total
+
+    @property
+    def error(self):
+        """ error """
+        return (self.fp + self.fn) / self.total
+
+    @property
+    def sqrd_error(self):
+        """ squared error """
+        return np.sqrt(self.fpr ** 2 + self.fnr ** 2)
+
+    @property
+    def mcc(self):
+        """ matthews correlation coefficient
+
+        Also true that:
+            mcc == np.sqrt(self.bm * self.mk)
+        """
+        mcc_numer = (self.tp * self.tn - self.fp * self.fn)
+        mcc_denom = np.sqrt((self.tp + self.fp) *
+                            (self.tp + self.fn) *
+                            (self.tn + self.fp) *
+                            (self.tn + self.fn))
+        mcc = mcc_numer / mcc_denom
+        mcc[np.isnan(mcc)] = 0.0
+        return mcc
+
+    def plot_metrics(self):
+        import plottool as pt
+        metrics = [
+            'mcc',
+            'acc',
+            'auc_trap'
+            # 'ppv', 'tpr',
+            # 'acc', 'sqrd_error',
+            # 'auc_trap',
+            # 'mk', 'bm'
+        ]
+        metrics = [
+            'fnr',
+            'fpr',
+            'tpr',
+            'tnr',
+        ]
+        xdata = self.thresholds
+        ydata_list = [getattr(self, m) for m in metrics]
+        pt.multi_plot(xdata, ydata_list, label_list=metrics,
+                      xlabel='threshold', marker='',
+                      ylabel='metric', use_legend=True)
+
+    def show_mcc(self):
+        import plottool as pt
+        pt.multi_plot(self.thresholds, [self.mcc], xlabel='threshold', marker='',
+                      ylabel='MCC')
+        pass
 
 
 def interpolate_precision_recall(precision, recall, nSamples=11):
@@ -388,6 +582,7 @@ def get_confusion_metrics(scores, labels, verbose=False):
         scores = np.array(scores)
     if not isinstance(labels, np.ndarray):
         labels = np.array(labels)
+    # must be binary
     labels = labels.astype(np.bool)
     if verbose:
         print('[confusion] building confusion metrics.')
@@ -407,12 +602,16 @@ def get_confusion_metrics(scores, labels, verbose=False):
     # tp - count the number of true positives with score >= threshold[i]
     fp, tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(
         labels, scores, pos_label=1)
-    nGroundTruth = labels.sum()
-    fn = nGroundTruth - tp
-    tn = nGroundTruth - fp
 
-    fpr = fp / fp[-1]
-    tpr = tp / tp[-1]
+    total = len(labels)
+    n_pos = labels.sum()
+    n_neg = total - n_pos
+
+    fn = n_pos - tp
+    tn = n_neg - fp
+
+    fpr = fp / n_neg
+    tpr = tp / n_pos
 
     debug = False
     if debug:
@@ -422,16 +621,11 @@ def get_confusion_metrics(scores, labels, verbose=False):
         assert np.all(fpr_curve == fpr)
         assert np.all(tpr_curve == tpr)
 
-    def get_precision(tp, fp):
-        """ precision -- positive predictive value (PPV) """
-        precision = tp / (tp + fp)
-        #precision = np.nan_to_num(precision)
-        return precision
-
-    ppv = precision = get_precision(tp, fp)
+    ppv = precision = tp / (tp + fp)
     precision[np.isnan(precision)] = 1.0
 
-    confusions = ConfusionMetrics(thresholds, tp, fp, fn, tn, fpr, tpr, ppv)
+    confusions = ConfusionMetrics(total, n_pos, n_neg, thresholds, tp, fp, fn,
+                                  tn, fpr, tpr, ppv)
 
     return confusions
 
@@ -513,8 +707,8 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
     return ROCInteraction
 
 
-def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
-                   target_fpr=None, thresholds=None, color=None,
+def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
+                   target_fpr=None, thresholds=None, color=None, name=None,
                    show_operating_point=False):
     r"""
     Args:
@@ -542,7 +736,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
         >>> thresholds = confusions.thresholds
         >>> fnum = None
         >>> pnum = None
-        >>> marker = '-x'
+        >>> marker = 'x'
         >>> target_tpr = .85
         >>> target_fpr = None
         >>> color = None
@@ -601,14 +795,22 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='-', target_tpr=None,
     #    ave_p = np.nan
     #else:
     #    ave_p = p_interp.sum() / p_interp.size
-    title = 'Receiver operating characteristic\n' + 'AUC=%.3f' % (roc_auc,)
+    title = 'Receiver operating characteristic'
+    if name:
+        title += ' (%s)' % (name,)
+    title += '\n' + 'AUC=%.3f' % (roc_auc,)
     title += title_suffix
 
-    pt.plot2(fpr, tpr, marker=marker,
-             x_label='False Positive Rate',
-             y_label='True Positive Rate',
-             unitbox=True, flipx=False, color=color, fnum=fnum, pnum=pnum,
-             title=title)
+    pt.multi_plot(fpr, [tpr], marker=marker, color=color, fnum=fnum, pnum=pnum,
+                  title=title,
+                  xlabel='False Positive Rate',
+                  ylabel='True Positive Rate')
+
+    # pt.plot2(fpr, tpr, marker=marker,
+    #          x_label='False Positive Rate',
+    #          y_label='True Positive Rate',
+    #          unitbox=True, flipx=False, color=color, fnum=fnum, pnum=pnum,
+    #          title=title)
 
     if False:
         # Interp does not work right because of duplicate values
