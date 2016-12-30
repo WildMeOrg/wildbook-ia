@@ -4,10 +4,10 @@ controller functions for contributors, versions, configs, and other metadata
 """
 from __future__ import absolute_import, division, print_function
 import functools
-from six.moves import range, input, zip, map  # NOQA
+import utool as ut
+from six.moves import range, input, zip
 from ibeis import constants as const
 from ibeis.control import accessor_decors, controller_inject
-import utool as ut
 from ibeis.algo import Config
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, print_, profile = ut.inject2(__name__)

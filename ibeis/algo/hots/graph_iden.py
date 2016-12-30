@@ -1190,12 +1190,15 @@ class _AnnotInfrMatching(object):
             >>> result = infr.exec_vsone_subset(edges)
             >>> print(result)
         """
-        edges = list(edges)
+        edges = (edges.tolist() if isinstance(edges, np.ndarray)
+                 else list(edges))
+        edges = ut.lmap(tuple, edges)
         print('[infr] exec_vsone_subset')
         qaids = ut.take_column(edges, 0)
         daids = ut.take_column(edges, 1)
         match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
-                                       'match', config=config, recompute=True)
+                                       'match', config=config)
+        # recompute=True)
         # Hack: Postprocess matches to re-add annotation info in lazy-dict format
         from ibeis import core_annots
         config = ut.hashdict(config)
@@ -1208,7 +1211,9 @@ class _AnnotInfrMatching(object):
             match.config = config
             infr.vsone_matches[e_(qaid, daid)] = match
             edge_scores.append(match.fs.sum())
+        infr.graph.add_edges_from(edges)
         infr.set_edge_attrs('score', ut.dzip(edges, edge_scores))
+        return match_list
 
     def lookup_cm(infr, aid1, aid2):
         """

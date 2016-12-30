@@ -1213,7 +1213,7 @@ class VsOneConfig(dtool.Config):
     colnames=['score', 'match'], coltypes=[float, ChipMatch],
     requestclass=VsOneRequest,
     configclass=VsOneConfig,
-    chunksize=128,
+    chunksize=256,
     fname='vsone',
 )
 def compute_one_vs_one(depc, qaids, daids, config):
