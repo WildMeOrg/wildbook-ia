@@ -790,8 +790,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         samples.annots1 = ibs.annots(aid_pairs.T[0], asarray=True)
         samples.annots2 = ibs.annots(aid_pairs.T[1], asarray=True)
         samples.n_samples = len(aid_pairs)
-        # samples.apply_multi_task_multi_label()
-        samples.apply_multi_task_binary_label()
+        samples.apply_multi_task_multi_label()
+        # samples.apply_multi_task_binary_label()
 
     @ut.memoize
     def make_annotpair_vhashid(samples):
