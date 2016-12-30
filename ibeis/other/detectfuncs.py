@@ -642,11 +642,9 @@ def localizer_precision_recall_algo_worker(tup):
             fn += fn_
     try:
         pr = tp / (tp + fp)
-    except ZeroDivisionError:
-        pr = 0.0
-    try:
         re = tp / (tp + fn)
     except ZeroDivisionError:
+        pr = 1.0
         re = 0.0
     return (conf, pr, re)
 
