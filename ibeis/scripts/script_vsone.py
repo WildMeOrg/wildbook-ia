@@ -6,6 +6,8 @@ TODO:
 
 * Find thresholds to maximize score metric (mcc, auc)
 
+* Get end-to-end system test working with simulated reviewer
+
 * allow random forests / whatever classifier to be trained according to one of the following ways:
     * Multiclass - naitively output multiclass labels
     * One-vs-Rest - Use sklearns 1-v-Rest framework
