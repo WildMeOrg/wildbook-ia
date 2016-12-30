@@ -235,7 +235,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
                     barlbl = '%.3f' % (numlbl,)
                     ax.text(xpos, ypos, barlbl, ha=ha, va=va)
 
-        print('extra_kw = %r' % (extra_kw,))
+        # print('extra_kw = %r' % (extra_kw,))
         if kind == 'plot' and extra_kw.get('fill', False):
             ax.fill_between(_xdata, ydata_, alpha=plot_kw.get('alpha', 1.0),
                             color=plot_kw.get('color', None))  # , zorder=0)
