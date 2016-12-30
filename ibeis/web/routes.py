@@ -2170,15 +2170,15 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                                 ut.printex(ex, 'Failed to make review image', tb=True,
                                            keys=['cm.qaid', 'aid1', 'aid2'],
                                            iswarning=True)
-                                try:
-                                    image_clean = apis_query.ensure_review_image(
-                                        ibs, aid2, cm, qreq_,
-                                        view_orientation=view_orientation,
-                                        draw_matches=False)
-                                except KeyError:
-                                    image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
-                                    ut.printex(ex, 'Failed to make fallback review image', tb=True,
-                                               keys=['cm.qaid', 'aid1', 'aid2'])
+                            try:
+                                image_clean = apis_query.ensure_review_image(
+                                    ibs, aid2, cm, qreq_,
+                                    view_orientation=view_orientation,
+                                    draw_matches=False)
+                            except KeyError:
+                                image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+                                ut.printex(ex, 'Failed to make fallback review image', tb=True,
+                                           keys=['cm.qaid', 'aid1', 'aid2'])
 
                         with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
                             image_matches_src = appf.embed_image_html(image_matches)
