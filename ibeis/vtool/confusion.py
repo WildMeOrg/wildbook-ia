@@ -19,6 +19,542 @@ def testdata_scores_labels():
     return scores, labels
 
 
+def nan_to_num(arr, num):
+    arr[np.isnan(arr)] = num
+    return arr
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class ConfusionMetrics(object):
+    r"""
+    Can compute average percision using the PASCAL definition
+
+    References:
+        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
+        http://www.alta.asn.au/events/altss_w2003_proc/altss/courses/powers/Bookmaker-all/200302-ICCS-Bookmaker.pdfcs
+        http://www.cs.bris.ac.uk/Publications/Papers/1000704.pdf
+        http://en.wikipedia.org/wiki/Information_retrieval
+        http://en.wikipedia.org/wiki/Precision_and_recall
+        https://en.wikipedia.org/wiki/Confusion_matrix
+        http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html#sklearn.metrics.roc_curve
+
+    SeeAlso:
+        sklearn.metrics.ranking._binary_clf_curve
+
+    Notes:
+        From oxford:
+        Precision is defined as the ratio of retrieved positive images to the
+          total number retrieved.
+        Recall is defined as the ratio of the number of retrieved positive
+          images to the total number of positive images in the corpus.
+
+    Ignore:
+        varname_list = 'tp, fp, fn, tn, fpr, tpr, tpa'.split(', ')
+        lines = ['self.{varname} = {varname}'.format(varname=varname) for varname in varname_list]
+        print(ut.indent('\n'.join(lines)))
+
+    CommandLine:
+        python -m vtool.confusion ConfusionMetrics --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.confusion import *  # NOQA
+        >>> scores, labels = testdata_scores_labels()
+        >>> c = self = confusions = ConfusionMetrics().fit(scores, labels)
+        >>> assert np.all(c.n_pos == c.n_tp + c.n_fn)
+        >>> assert np.all(c.n_neg == c.n_tn + c.n_fp)
+        >>> assert np.all(np.isclose(c.rp + c.rn, 1.0))
+        >>> assert np.all(np.isclose(c.pp + c.pn, 1.0))
+        >>> assert np.all(np.isclose(c.fpr, 1 - c.tnr))
+        >>> assert np.all(np.isclose(c.fnr, 1 - c.tpr))
+        >>> assert np.all(np.isclose(c.tpr, c.tp / c.rp))
+        >>> assert np.all(np.isclose(c.tpa, c.tp / c.pp))
+        >>> assert np.all(np.isclose(c.jacc, c.tp / (c.tp + c.fn + c.fp)))
+        >>> assert np.all(np.isclose(c.mcc, np.sqrt(c.mk * c.bm)))
+        >>> assert np.all(np.isclose(
+        >>>     c.acc, (c.tpr + c.c * (1 - c.fpr)) / (1 + c.c)))
+        >>> assert np.all(np.isclose(c.ppv, c.recall * c.prev / c.bias))
+        >>> assert np.all(np.isclose(
+        >>>    c.wracc, 4 * c.c * (c.tpr - c.fpr) / (1 + c.c) ** 2))
+        >>> ut.quit_if_noshow()
+        >>> confusions.draw_roc_curve()
+        >>> ut.show_if_requested()
+    """
+    aliases = {
+        'n_tp': {'n_hit', 'n_true_pos'},
+        'n_tn': {'n_reject', 'n_true_neg'},
+        'n_fp': {'n_false_alarm', 'n_false_pos'},
+        'n_fn': {'n_miss', 'n_false_neg'},
+        # -----
+        'rp': {'real_pos', 'prev', 'prevalence'},
+        'rn': {'real_neg'},
+        'pp': {'pred_pos', 'bias'},
+        'pn': {'pred_neg'},
+        # -----
+        'cs': {'class_odds', 'skew'},
+        'cv': {'cost_ratio'},
+        'cn': {'cost_pos'},
+        'cn': {'cost_neg'},
+        # -----
+        'tp': {'true_pos', 'hit'},
+        'tn': {'true_neg', 'reject'},
+        'fp': {'false_pos', 'type1_error', 'false_alarm'},
+        'fn': {'false_neg', 'type2_error', 'miss'},
+        # -----
+        'fpr': {'false_pos_rate', 'fallout'},
+        'fnr': {'false_neg_rate', 'miss_rate'},
+        'tpr': {'true_pos_rate', 'recall', 'sensitivity', 'hit_rate'},
+        'tnr': {'true_neg_rate', 'inv_recall, specificity'},
+        # -----
+        'tpa': {'true_pos_acc', 'pos_predict_value', 'precision', 'ppv'},
+        'tna': {'true_neg_acc', 'neg_predict_value', 'inv_precision', 'npv'},
+        # -----
+        'mk': {'markedness'},
+        'bm': {'informedness', 'bookmaker_informedness'},
+        # -----
+        'mcc': {'matthews_correlation_coefficient'},
+        'jacc': {'jaccard_coefficient'},
+        'acc': {'accuracy', 'rand_accuracy', 'tea'},
+        'wracc': {'weighted_relative_accuracy'},
+    }
+
+    minimizing_metrics = {'fpr', 'fnr', 'fp', 'fn'}
+
+    inv_aliases = {
+        alias_key: std_key
+        for std_key, alias_vals in aliases.items()
+        for alias_key in set.union(alias_vals, {std_key})
+    }
+
+    def __init__(self):
+        # Scalars
+        self.n_pos = None
+        self.n_neg = None
+        self.n_samples = None
+
+        # Threshold based
+        self.thresholds = None
+        self.n_tp = None
+        self.n_fp = None
+        self.n_fn = None
+        self.n_tn = None
+
+        # Can be set to weight the cost of errors
+        self.cp = 1.0
+        self.cn = 1.0
+
+    # ----
+
+    @property
+    def cs(self):
+        """ class ratio """
+        return self.rn / self.rp
+
+    @property
+    def cv(self):
+        """ ratio of cost of making a mistake"""
+        return self.cn / self.cp
+
+    @property
+    def c(self):
+        return self.cs * self.cv
+
+    # -----
+
+    @property
+    def tp(self):
+        """ true positive probability """
+        return self.n_tp / self.n_samples
+
+    @property
+    def tn(self):
+        """ true negative probability """
+        return self.n_tn / self.n_samples
+
+    @property
+    def fp(self):
+        """ false positive probability """
+        return self.n_fp / self.n_samples
+
+    @property
+    def fn(self):
+        """ false negative probability """
+        return self.n_fn / self.n_samples
+
+    # ----
+
+    @property
+    def rp(self):
+        """ real positive probability """
+        # return (self.tp + self.fn)
+        return self.n_pos / self.n_samples
+
+    @property
+    def rn(self):
+        """ real negative probability """
+        # return (self.fp + self.tn)
+        return self.n_neg / self.n_samples
+
+    @property
+    def pp(self):
+        """ predicted positive probability """
+        return (self.tp + self.fp)
+
+    @property
+    def pn(self):
+        """ predicted negative probability """
+        return (self.fn + self.tn)
+
+    # ----
+
+    @property
+    def fpr(self):
+        """ fallout, false positive rate """
+        return self.n_fp / self.n_neg
+
+    @property
+    def fnr(self):
+        """ miss rate, false negative rate """
+        return self.n_fn / self.n_pos
+
+    @property
+    def tpr(self):
+        """ sensitivity, recall, hit rate, tpr """
+        return self.n_tp / self.n_pos
+
+    @property
+    def tnr(self):
+        """ true negative rate, inverse recall """
+        return self.n_tn / self.n_neg
+
+    # ----
+
+    @property
+    def tpa(self):
+        """ miss rate, false negative rate """
+        with np.errstate(invalid='ignore'):
+            return nan_to_num(self.n_tp / (self.n_tp + self.n_fp), 1.0)
+
+    @property
+    def tna(self):
+        """ negative predictive value, inverse precision """
+        with np.errstate(invalid='ignore'):
+            return nan_to_num(self.n_tn / (self.n_tn + self.n_fn), 1.0)
+
+    # ----
+
+    @property
+    def bm(self):
+        """ bookmaker informedness """
+        return self.tpr + self.tnr - 1
+
+    @property
+    def mk(self):
+        """ markedness """
+        return self.tpa + self.tna - 1
+
+    # ---- other measures
+
+    @property
+    def auc_trap(self):
+        # per threshold trapazoidal auc metric
+        return (self.tpr + self.tnr) / 2
+
+    @property
+    def acc(self):
+        """ accuracy """
+        return self.tp + self.tn
+
+    @property
+    def sqrd_error(self):
+        """ squared error """
+        return np.sqrt(self.fpr ** 2 + self.fnr ** 2)
+
+    @property
+    def mcc(self):
+        """ matthews correlation coefficient
+
+        Also true that:
+            mcc == np.sqrt(self.bm * self.mk)
+        """
+        mcc_numer = (self.tp * self.tn - self.fp * self.fn)
+        mcc_denom = np.sqrt((self.tp + self.fp) * (self.tp + self.fn) *
+                            (self.tn + self.fp) * (self.tn + self.fn))
+        with np.errstate(invalid='ignore'):
+            mcc = nan_to_num(mcc_numer / mcc_denom, 0.0)
+        return mcc
+
+    @property
+    def jacc(self):
+        """ jaccard coefficient """
+        return self.n_tp / (self.n_samples - self.n_tn)
+        # return self.tp / (self.tp + self.fn + self.fp)
+
+    @property
+    def wracc(self):
+        """ weighted relative accuracy """
+        return 4 * (self.recall - self.bias) * self.prev
+
+    # --- alias names currently needed for compatability
+
+    def __dir__(self):
+        attrs = dir(object)
+        attrs += list(self.__class__.__dict__.keys())
+        attrs += self.inv_aliases.keys()
+        return attrs
+
+    def __getattr__(self, attr):
+        try:
+            std_attr = self.inv_aliases[attr]
+        except KeyError:
+            raise AttributeError(attr)
+        return getattr(self, std_attr)
+
+    # @property
+    # def recall(self):
+    #     return self.tpr
+
+    # @property
+    # def precision(self):
+    #     return self.tpa
+
+    # @property
+    # def fallout(self):
+    #     return self.fpr
+
+    # --------------
+    # Construtors
+    # --------------
+
+    def fit(self, scores, labels, verbose=False):
+        import sklearn.metrics
+        scores = np.asarray(scores)
+        labels = np.asarray(labels)
+        # must be binary
+        labels = labels.astype(np.bool)
+        if verbose:
+            print('[confusion] building confusion metrics.')
+            print('[confusion]  * scores.shape=%r, scores.dtype=%r' %
+                  (scores.shape, scores.dtype))
+            print('[confusion]  * labels.shape=%r, labels.dtype=%r' %
+                  (labels.shape, labels.dtype))
+
+        # sklearn has much faster implementation
+        # n_fp - count the number of false positives with score >= threshold[i]
+        # n_tp - count the number of true positives with score >= threshold[i]
+        n_fp, n_tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(
+            labels, scores, pos_label=1)
+
+        n_samples = len(labels)
+        n_pos = labels.sum()
+        n_neg = n_samples - n_pos
+
+        # Scalars
+        self.n_samples = n_samples
+        self.n_pos = n_pos
+        self.n_neg = n_neg
+
+        # Threshold based
+        self.thresholds = thresholds
+        self.n_tp = n_tp
+        self.n_fp = n_fp
+        self.n_fn = n_pos - n_tp
+        self.n_tn = n_neg - n_fp
+        return self
+
+    @classmethod
+    def from_scores_and_labels(cls, scores, labels, verbose=False):
+        self = cls().fit(scores, labels, verbose=verbose)
+        return self
+
+    @classmethod
+    def from_tp_and_tn_scores(cls, tp_scores, tn_scores, verbose=False):
+        scores = np.hstack([tp_scores, tn_scores])
+        labels = np.array([True] * len(tp_scores) + [False] * len(tn_scores))
+        self = cls().fit(scores, labels, verbose=verbose)
+        return self
+
+    # -------------------------------
+    # Threshold-less Summary Measures
+    # -------------------------------
+
+    def get_ave_precision(self):
+        precision = self.precision
+        recall = self.recall
+        recall_domain, p_interp = interpolate_precision_recall(precision, recall)
+        return p_interp.sum() / p_interp.size
+
+    @property
+    def auc(self):
+        """
+        The AUC is a standard measure used to evaluate a binary classifier and
+          represents the probability that a random correct case will
+          receive a higher score than a random incorrect case.
+
+        References:
+            https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
+        """
+        # TODO: change name to represent it is a total measure
+        import sklearn.metrics
+        return sklearn.metrics.auc(self.fpr, self.tpr)
+
+    # ---------------------
+    # Threshold Choosers / Info
+    # ---------------------
+
+    def get_fpr_at_recall(self, target_recall):
+        indicies = np.where(self.recall >= target_recall)[0]
+        assert len(indicies) > 0, 'no recall at target level'
+        func = scipy.interpolate.interp1d(self.recall, self.fpr)
+        interp_fpr = func(target_recall)
+        ## interpolate to target recall
+        #right_index  = indicies[0]
+        #right_recall = self.recall[right_index]
+        #left_index   = right_index - 1
+        #left_recall  = self.recall[left_index]
+        #stepsize = right_recall - left_recall
+        #alpha = (target_recall - left_recall) / stepsize
+        #left_fpr   = self.fpr[left_index]
+        #right_fpr  = self.fpr[right_index]
+        #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
+        return interp_fpr
+
+    def get_recall_at_fpr(self, target_fpr):
+        indicies = np.where(self.fpr >= target_fpr)[0]
+        assert len(indicies) > 0, 'no false positives at target level'
+        func = scipy.interpolate.interp1d(self.fpr, self.tpr)
+        interp_tpr = func(target_fpr)
+        return interp_tpr
+
+    def get_threshold_at_metric_maximum(self, metric):
+        """
+        metric = 'mcc'
+        metric = 'fnr'
+        """
+        metric_values = getattr(self, metric)
+        if False:
+            idx = metric_values.argmax()
+            thresh = self.thresholds[idx]
+        else:
+            # interpolated version
+            import vtool as vt
+            thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
+        return thresh
+
+    def get_threshold_at_metric(self, metric, value, prefer_max=None):
+        r"""
+        Gets a threshold for a binary classifier using a target metric and value
+
+        Args:
+            metric (str): name of metric like tpr or fpr
+            value (float): corresponding numeric value
+
+        Returns:
+            float: thresh
+
+        CommandLine:
+            python -m vtool.confusion --exec-get_threshold_at_metric
+            python -m vtool.confusion --exec-interact_roc_factory --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.confusion import *  # NOQA
+            >>> scores, labels = testdata_scores_labels()
+            >>> self = ConfusionMetrics().fit(scores, labels)
+            >>> metric = 'tpr'
+            >>> value = .85
+            >>> thresh = self.get_threshold_at_metric(metric, value)
+            >>> print('%s = %r' % (metric, value,))
+            >>> result = ('thresh = %s' % (str(thresh),))
+            >>> print(result)
+            thresh = 22.5
+        """
+        # TODO: Use interpoloation here and make tpr vs fpr a smooth funciton
+        metric = self.inv_aliases[metric]
+        metric_values = getattr(self, metric)
+        # prefer_max = metric not in self.minimizing_metrics
+        if prefer_max is None:
+            prefer_max = metric not in {'fpr'}
+        thresh = interpolate_replbounds(metric_values, self.thresholds, value,
+                                        prefer_max=prefer_max)
+        return thresh
+
+    def get_metric_at_threshold(self, metric, thresh):
+        r"""
+        Args:
+            metric (str): name of a metric
+            thresh (float): desired threshold
+
+        Returns:
+            float : value - metric value
+
+        CommandLine:
+            python -m vtool.confusion --exec-get_metric_at_threshold
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.confusion import *  # NOQA
+            >>> scores, labels = testdata_scores_labels()
+            >>> self = ConfusionMetrics().fit(scores, labels)
+            >>> metric = 'tpr'
+            >>> thresh = .8
+            >>> (None, None) = self.get_metric_at_threshold(metric, thresh)
+            >>> result = ('(None, None) = %s' % (str((None, None)),))
+            >>> print(result)
+        """
+        # Assert decreasing
+        assert self.thresholds[0] > self.thresholds[-1]
+        try:
+            index = np.nonzero(self.thresholds <= thresh)[0][0]
+        except IndexError:
+            index = len(self.thresholds) - 1
+        # value = self.__dict__[metric][index]
+        value = getattr(self, metric)[index]
+        return value
+
+    # --------------
+    # Visualizations
+    # --------------
+
+    def draw_roc_curve(self, **kwargs):
+        return draw_roc_curve(self.fpr, self.tpr, **kwargs)
+
+    def draw_precision_recall_curve(self, nSamples=11, **kwargs):
+        precision = self.precision
+        recall = self.recall
+        recall_domain, p_interp = interpolate_precision_recall(precision, recall, nSamples)
+        return draw_precision_recall_curve(recall_domain, p_interp, **kwargs)
+
+    def plot_metrics(self):
+        import plottool as pt
+        metrics = [
+            'mcc',
+            'acc',
+            'auc_trap'
+            # 'tpa', 'tpr',
+            # 'acc', 'sqrd_error',
+            # 'auc_trap',
+            # 'mk', 'bm'
+        ]
+        metrics = [
+            'fnr',
+            'fpr',
+            'tpr',
+            'tnr',
+        ]
+        xdata = self.thresholds
+        ydata_list = [getattr(self, m) for m in metrics]
+        pt.multi_plot(xdata, ydata_list, label_list=metrics,
+                      xlabel='threshold', marker='',
+                      ylabel='metric', use_legend=True)
+
+    def show_mcc(self):
+        import plottool as pt
+        pt.multi_plot(self.thresholds, [self.mcc], xlabel='threshold', marker='',
+                      ylabel='MCC')
+        pass
+
+
 def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
     """
     xdata = np.array([.1, .2, .3, .4, .5])
@@ -46,7 +582,7 @@ def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
     Example:
         >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
-        >>> self = get_confusion_metrics(scores, labels)
+        >>> self = ConfusionMetrics().fit(scores, labels)
         >>> xdata = self.tpr
         >>> ydata = self.thresholds
         >>> pt = 1.0
@@ -136,357 +672,6 @@ def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
     return interp_vals
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class ConfusionMetrics(object):
-    """
-    References:
-        http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
-    Ignore:
-        varname_list = 'tp, fp, fn, tn, fpr, tpr, ppv'.split(', ')
-        lines = ['self.{varname} = {varname}'.format(varname=varname) for varname in varname_list]
-        print(ut.indent('\n'.join(lines)))
-
-    """
-    def __init__(self, total, n_pos, n_neg, thresholds, tp, fp, fn, tn, fpr, tpr, ppv):
-        self.n_pos = n_pos
-        self.n_neg = n_neg
-        self.total = total
-        self.thresholds = thresholds
-        self.tp = tp
-        self.fp = fp
-        self.fn = fn
-        self.tn = tn
-        self.fpr = fpr
-        self.tpr = tpr
-        self.ppv = ppv
-
-    aliases = {
-        'tp': {'hit'},
-        'tn': {'reject'},
-        'fp': {'type1_error', 'false_alarm'},
-        'fn': {'type2_error', 'miss'},
-        'fpr': {'fallout'},
-        'fnr': {'miss_rate'},
-        'tpr': {'recall', 'sensitivity', 'hit_rate'},
-        'tnr': {'inv_recall, specificity'},
-        'ppv': {'precision'},
-        'npv': {'inv_precision'},
-        'mk': {'markedness'},
-        'bm': {'informedness'},
-    }
-
-    minimizing_metrics = {'fpr',
-                          'fnr',
-                          'fp',
-                          'fn'
-                         }
-
-    inv_aliases = {
-        alias_key: std_key
-        for std_key, alias_vals in aliases.items()
-        for alias_key in set.union(alias_vals, {std_key})
-    }
-
-    # --------------
-    # Construtors
-    # --------------
-
-    @classmethod
-    def from_scores_and_labels(cls, scores, labels, verbose=False):
-        self = get_confusion_metrics(scores, labels, verbose=verbose)
-        return self
-
-    @classmethod
-    def get_confusion_metrics(cls, scores, labels, verbose=False):
-        self = get_confusion_metrics(scores, labels, verbose=verbose)
-        return self
-
-    @classmethod
-    def from_tp_and_tn_scores(cls, tp_scores, tn_scores, verbose=False):
-        scores = np.hstack([tp_scores, tn_scores])
-        labels = np.array([True] * len(tp_scores) + [False] * len(tn_scores))
-        self = get_confusion_metrics(scores, labels, verbose=verbose)
-        return self
-
-    # --------------
-    # Visualizations
-    # --------------
-
-    def draw_roc_curve(self, **kwargs):
-        return draw_roc_curve(self.fpr, self.tpr, **kwargs)
-
-    def draw_precision_recall_curve(self, nSamples=11, **kwargs):
-        precision = self.precision
-        recall = self.recall
-        recall_domain, p_interp = interpolate_precision_recall(precision, recall, nSamples)
-        return draw_precision_recall_curve(recall_domain, p_interp, **kwargs)
-
-    def get_fpr_at_95_recall(self):
-        target_recall = .95
-        fpr95 = self.get_fpr_at_recall(target_recall)
-        return fpr95
-
-    def get_fpr_at_recall(self, target_recall):
-        indicies = np.where(self.recall >= target_recall)[0]
-        assert len(indicies) > 0, 'no recall at target level'
-        func = scipy.interpolate.interp1d(self.recall, self.fpr)
-        interp_fpr = func(target_recall)
-        ## interpolate to target recall
-        #right_index  = indicies[0]
-        #right_recall = self.recall[right_index]
-        #left_index   = right_index - 1
-        #left_recall  = self.recall[left_index]
-        #stepsize = right_recall - left_recall
-        #alpha = (target_recall - left_recall) / stepsize
-        #left_fpr   = self.fpr[left_index]
-        #right_fpr  = self.fpr[right_index]
-        #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
-        return interp_fpr
-
-    def get_recall_at_fpr(self, target_fpr):
-        indicies = np.where(self.fpr >= target_fpr)[0]
-        assert len(indicies) > 0, 'no false positives at target level'
-        func = scipy.interpolate.interp1d(self.fpr, self.tpr)
-        interp_tpr = func(target_fpr)
-        ## interpolate to target recall
-        #right_index  = indicies[0]
-        #right_recall = self.recall[right_index]
-        #left_index   = right_index - 1
-        #left_recall  = self.recall[left_index]
-        #stepsize = right_recall - left_recall
-        #alpha = (target_recall - left_recall) / stepsize
-        #left_fpr   = self.fpr[left_index]
-        #right_fpr  = self.fpr[right_index]
-        #interp_fpp = (left_fpr * (1 - alpha)) + (right_fpr * (alpha))
-        return interp_tpr
-
-    def get_threshold_at_metric_maximum(self, metric):
-        """
-        metric = 'mcc'
-        metric = 'fnr'
-        """
-        metric_values = getattr(self, metric)
-        if False:
-            idx = metric_values.argmax()
-            thresh = self.thresholds[idx]
-        else:
-            # interpolated version
-            import vtool as vt
-            thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
-        return thresh
-
-    def get_threshold_at_metric(self, metric, value, prefer_max=None):
-        r"""
-        Gets a threshold for a binary classifier using a target metric and value
-
-        Args:
-            metric (str): tpr or fpr
-            value (float): corresponding numeric value
-
-        Returns:
-            float: thresh
-
-        CommandLine:
-            python -m vtool.confusion --exec-get_threshold_at_metric
-            python -m vtool.confusion --exec-interact_roc_factory --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from vtool.confusion import *  # NOQA
-            >>> scores, labels = testdata_scores_labels()
-            >>> self = get_confusion_metrics(scores, labels)
-            >>> metric = 'tpr'
-            >>> value = .85
-            >>> thresh = self.get_threshold_at_metric(metric, value)
-            >>> print('%s = %r' % (metric, value,))
-            >>> result = ('thresh = %s' % (str(thresh),))
-            >>> print(result)
-            thresh = 22.5
-        """
-        # TODO: Use interpoloation here and make tpr vs fpr a smooth funciton
-        metric = self.inv_aliases[metric]
-        metric_values = getattr(self, metric)
-        # prefer_max = metric not in self.minimizing_metrics
-        if prefer_max is None:
-            prefer_max = metric not in {'fpr'}
-        # prefer_max = True
-        thresh = interpolate_replbounds(metric_values, self.thresholds, value,
-                                        prefer_max=prefer_max)
-        #try:
-        #    if metric_values[0] > metric_values[-1]:
-        #        index = np.nonzero(metric_values <= value)[0][0]
-        #    else:
-        #        index = np.nonzero(metric_values >= value)[0][0]
-        #except IndexError:
-        #    index = len(self.thresholds) - 1
-        #thresh = self.thresholds[index]
-        return thresh
-
-    def get_metric_at_threshold(self, metric, thresh):
-        r"""
-        Args:
-            metric (str):
-            thresh (float):
-
-        Returns:
-            float : value
-
-        CommandLine:
-            python -m vtool.confusion --exec-get_metric_at_threshold
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from vtool.confusion import *  # NOQA
-            >>> scores, labels = testdata_scores_labels()
-            >>> self = get_confusion_metrics(scores, labels)
-            >>> metric = 'tpr'
-            >>> thresh = .8
-            >>> (None, None) = self.get_metric_at_threshold(metric, thresh)
-            >>> result = ('(None, None) = %s' % (str((None, None)),))
-            >>> print(result)
-        """
-        # Assert decreasing
-        assert self.thresholds[0] > self.thresholds[-1]
-        try:
-            index = np.nonzero(self.thresholds <= thresh)[0][0]
-        except IndexError:
-            index = len(self.thresholds) - 1
-        # value = self.__dict__[metric][index]
-        value = getattr(self, metric)[index]
-        return value
-
-    @property
-    def fallout(self):
-        """ fallout false positive rate """
-        # self.fp / self.n_neg
-        return self.fpr
-
-    @property
-    def fnr(self):
-        """ miss rate, false negative rate """
-        return self.fn / self.n_neg
-
-    @property
-    def precision(self):
-        """ precision, positive predictive value, confidence """
-        # ppv = self.tp / (self.tp + self.fp)
-        # ppv[np.isnan(ppv)] = 1.0
-        return self.ppv
-
-    @property
-    def npv(self):
-        """ negative predictive value, inverse precision """
-        npv = self.tn / (self.tn + self.fn)
-        npv[np.isnan(npv)] = 1.0
-        return npv
-
-    @property
-    def recall(self):
-        """ sensitivity, recall, hit rate, tpr """
-        # self.tp / self.n_pos
-        return self.tpr
-
-    @property
-    def tnr(self):
-        """ true negative rate, inverse recall """
-        return self.tn / self.n_neg
-
-    @property
-    def bm(self):
-        """ bookmaker informedness """
-        return self.tpr + self.tnr - 1
-
-    @property
-    def mk(self):
-        """ markedness """
-        return self.ppv + self.npv - 1
-
-    def get_ave_precision(self):
-        precision = self.precision
-        recall = self.recall
-        recall_domain, p_interp = interpolate_precision_recall(precision, recall)
-        return p_interp.sum() / p_interp.size
-
-    @property
-    def auc(self):
-        """
-        The AUC is a standard measure used to evaluate a binary classifier and
-          represents the probability that a random correct case will
-          receive a higher score than a random incorrect case.
-
-        References:
-            https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
-        """
-        # TODO: change name to auc_score or something to show its not a per threshold metric
-        import sklearn.metrics
-        return sklearn.metrics.auc(self.fpr, self.tpr)
-
-    @property
-    def auc_trap(self):
-        # per threshold trapazoidal auc metric
-        return (self.tpr + self.tnr) / 2
-
-    @property
-    def acc(self):
-        """ accuracy """
-        return (self.tp + self.tn) / self.total
-
-    @property
-    def error(self):
-        """ error """
-        return (self.fp + self.fn) / self.total
-
-    @property
-    def sqrd_error(self):
-        """ squared error """
-        return np.sqrt(self.fpr ** 2 + self.fnr ** 2)
-
-    @property
-    def mcc(self):
-        """ matthews correlation coefficient
-
-        Also true that:
-            mcc == np.sqrt(self.bm * self.mk)
-        """
-        mcc_numer = (self.tp * self.tn - self.fp * self.fn)
-        mcc_denom = np.sqrt((self.tp + self.fp) *
-                            (self.tp + self.fn) *
-                            (self.tn + self.fp) *
-                            (self.tn + self.fn))
-        mcc = mcc_numer / mcc_denom
-        mcc[np.isnan(mcc)] = 0.0
-        return mcc
-
-    def plot_metrics(self):
-        import plottool as pt
-        metrics = [
-            'mcc',
-            'acc',
-            'auc_trap'
-            # 'ppv', 'tpr',
-            # 'acc', 'sqrd_error',
-            # 'auc_trap',
-            # 'mk', 'bm'
-        ]
-        metrics = [
-            'fnr',
-            'fpr',
-            'tpr',
-            'tnr',
-        ]
-        xdata = self.thresholds
-        ydata_list = [getattr(self, m) for m in metrics]
-        pt.multi_plot(xdata, ydata_list, label_list=metrics,
-                      xlabel='threshold', marker='',
-                      ylabel='metric', use_legend=True)
-
-    def show_mcc(self):
-        import plottool as pt
-        pt.multi_plot(self.thresholds, [self.mcc], xlabel='threshold', marker='',
-                      ylabel='MCC')
-        pass
-
-
 def interpolate_precision_recall(precision, recall, nSamples=11):
     """
     Interpolates precision as a function of recall p_{interp}(r)
@@ -506,7 +691,7 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
         >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> nSamples = 11
-        >>> confusions = get_confusion_metrics(scores, labels)
+        >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> precision = confusions.precision
         >>> recall = confusions.recall
         >>> recall_domain, p_interp = interpolate_precision_recall(confusions.precision, recall, nSamples=11)
@@ -543,93 +728,6 @@ def interpolate_precision_recall(precision, recall, nSamples=11):
     return recall_domain, p_interp
 
 
-def get_confusion_metrics(scores, labels, verbose=False):
-    """
-    gets average percision using the PASCAL definition
-
-    FIXME: Use only the groundtruth that could have been matched in the
-    database. (shouldn't be an issue until we start using daid subsets)
-
-    References:
-        http://en.wikipedia.org/wiki/Information_retrieval
-        http://en.wikipedia.org/wiki/Precision_and_recall
-        http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_curve.html#sklearn.metrics.roc_curve
-
-    SeeAlso:
-        sklearn.metrics.ranking._binary_clf_curve
-
-    Notes:
-        From oxford:
-        Precision is defined as the ratio of retrieved positive images to the
-          total number retrieved.
-        Recall is defined as the ratio of the number of retrieved positive
-          images to the total number of positive images in the corpus.
-
-    CommandLine:
-        python -m vtool.confusion --exec-get_confusion_metrics --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.confusion import *  # NOQA
-        >>> scores, labels = testdata_scores_labels()
-        >>> confusions = get_confusion_metrics(scores, labels)
-        >>> ut.quit_if_noshow()
-        >>> confusions.draw_roc_curve()
-        >>> ut.show_if_requested()
-    """
-    import sklearn.metrics
-    if not isinstance(scores, np.ndarray):
-        scores = np.array(scores)
-    if not isinstance(labels, np.ndarray):
-        labels = np.array(labels)
-    # must be binary
-    labels = labels.astype(np.bool)
-    if verbose:
-        print('[confusion] building confusion metrics.')
-        print('[confusion]  * scores.shape=%r, scores.dtype=%r' %
-              (scores.shape, scores.dtype))
-        print('[confusion]  * labels.shape=%r, labels.dtype=%r' %
-              (labels.shape, labels.dtype))
-        #print('[confusion]  * size(scores) = %r' % (ut.get_object_size_str(scores),))
-        #print('[confusion]  * size(labels) = %r' % (ut.get_object_size_str(labels),))
-
-    # TODO
-    #sklearn.metrics.precision_recall_curve(labels, probs)
-    #sklearn.metrics.classification_report
-
-    # sklearn has much faster implementation
-    # fp - count the number of false positives with score >= threshold[i]
-    # tp - count the number of true positives with score >= threshold[i]
-    fp, tp, thresholds = sklearn.metrics.ranking._binary_clf_curve(
-        labels, scores, pos_label=1)
-
-    total = len(labels)
-    n_pos = labels.sum()
-    n_neg = total - n_pos
-
-    fn = n_pos - tp
-    tn = n_neg - fp
-
-    fpr = fp / n_neg
-    tpr = tp / n_pos
-
-    debug = False
-    if debug:
-        # TODO: if this breaks check implmentation in
-        fpr_curve, tpr_curve, thresholds = sklearn.metrics.roc_curve(
-            labels, scores, pos_label=1)
-        assert np.all(fpr_curve == fpr)
-        assert np.all(tpr_curve == tpr)
-
-    ppv = precision = tp / (tp + fp)
-    precision[np.isnan(precision)] = 1.0
-
-    confusions = ConfusionMetrics(total, n_pos, n_neg, thresholds, tp, fp, fn,
-                                  tn, fpr, tpr, ppv)
-
-    return confusions
-
-
 def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False):
     r"""
     Args:
@@ -643,7 +741,7 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
         >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
         >>> print('scores = %r' % (scores,))
-        >>> confusions = get_confusion_metrics(scores, labels)
+        >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> print(ut.make_csv_table(
         >>>   [confusions.fpr, confusions.tpr, confusions.thresholds],
         >>>   ['fpr', 'tpr', 'thresh']))
@@ -730,7 +828,7 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
         >>> # DISABLE_DOCTEST
         >>> from vtool.confusion import *  # NOQA
         >>> scores, labels = testdata_scores_labels()
-        >>> confusions = get_confusion_metrics(scores, labels)
+        >>> confusions = ConfusionMetrics().fit(scores, labels)
         >>> fpr = confusions.fpr
         >>> tpr = confusions.tpr
         >>> thresholds = confusions.thresholds
