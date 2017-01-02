@@ -25,11 +25,13 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import dtool as dt
+import copy
 from six.moves import zip, range  # NOQA
 import pandas as pd
 import sklearn
 import sklearn.metrics
 import sklearn.model_selection
+import sklearn.multiclass
 import sklearn.ensemble
 from ibeis.scripts import clf_helpers
 print, rrr, profile = ut.inject2(__name__)
@@ -104,7 +106,6 @@ class OneVsOneProblem(object):
         self.ibs = qreq_.ibs
 
     def set_pandas_options(self):
-        import pandas as pd
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
@@ -112,7 +113,6 @@ class OneVsOneProblem(object):
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
     def load_samples(self):
-        import copy
         self.samples = AnnotPairSamples(
             self.ibs, copy.deepcopy(self.raw_aid_pairs),
             copy.deepcopy(self.raw_simple_scores),
@@ -120,26 +120,21 @@ class OneVsOneProblem(object):
 
     def load_features(self):
         qreq_ = self.qreq_
-
         dbname = qreq_.ibs.get_dbname()
         vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
         hyper_params = self.hyper_params
         features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
         cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
-
         cacher = ut.Cacher('pairwise_data_v8', cfgstr=cfgstr,
                            appname='vsone_rf_train', enabled=1)
         data = cacher.tryload()
         if not data:
             data = build_features(qreq_, hyper_params)
             cacher.save(data)
-
         aid_pairs, simple_scores, X_dict, match = data
         self.raw_aid_pairs = aid_pairs
         self.raw_X_dict = X_dict
         self.raw_simple_scores = simple_scores
-        # Debuging match
-        self.match = match
 
     def evaluate_classifiers(self):
         """
@@ -169,22 +164,27 @@ class OneVsOneProblem(object):
 
         ut.cprint('\n--- FEATURE INFO ---', 'blue')
         self.build_feature_subsets()
-        for data_key in self.samples.X_dict.keys():
-            print('\nINFO(samples.X_dict[%s])' % (data_key,))
-            print(ut.indent(AnnotPairFeatInfo(self.samples.X_dict[data_key]).get_infostr()))
 
-        task_list = list(self.samples.subtasks.keys())
-        task_list = ut.setdiff(task_list, ['photobomb_state'])
-        # task_list = [
+        if 0:
+            for data_key in self.samples.X_dict.keys():
+                print('\nINFO(samples.X_dict[%s])' % (data_key,))
+                print(ut.indent(AnnotPairFeatInfo(self.samples.X_dict[data_key]).get_infostr()))
+
+        task_keys = list(self.samples.subtasks.keys())
+        # task_keys = ut.setdiff(task_keys, ['photobomb_state'])
+
+        data_keys = list(self.samples.X_dict.keys())
+        # clf_keys = ['RF', 'RF-OVR']
+        # clf_keys = ['RF', 'SVC']
+        clf_keys = ['RF']
+        # clf_keys = ['RF-OVR']
+
+        # task_keys = [
         #     'photobomb_state',
         #     'match_state',
         # ]
 
-        ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
-        self.evaluate_simple_scores(task_list)
-
-        datakey_list = list(self.samples.X_dict.keys())
-        # datakey_list = [
+        # data_keys = [
         #     'learn(sum,glob,3,+view)',
         #     'learn(sum,glob,3)',
         #     'learn(sum,glob)',
@@ -192,50 +192,81 @@ class OneVsOneProblem(object):
         #     # 'learn(local)',
         # ]
 
+        # Remove any tasks that cant be done
+        for task_key in task_keys[:]:
+            labels = self.samples.subtasks[task_key]
+            if len(labels.make_histogram()) < 2:
+                print('No data to train task_key = %r' % (task_key,))
+                task_keys.remove(task_key)
+
+        ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
+        self.evaluate_simple_scores(task_keys)
+
         ut.cprint('\n--- LEARN CROSS-VALIDATED RANDOM FORESTS ---', 'blue')
-        self.evaluate_rf(task_list, datakey_list)
+        self.learn_evaluation_classifiers(task_keys, clf_keys, data_keys)
 
         selected_data_keys = []
 
         ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
         from utool.experimental.pandas_highlight import to_string_monkey
-        for task_name in task_list:
-            print('task_name = %s' % (ut.repr2(task_name),))
-            data_combo_res = self.task_combo_res[task_name]
 
-            self.report_simple_scores(task_name)
+        # For each task / classifier type
+        for task_key in task_keys:
+            ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
+            self.report_simple_scores(task_key)
+            for clf_key in clf_keys:
+                # Combine results over datasets
+                print('clf_key = %s' % (ut.repr2(clf_key),))
+                data_combo_res = self.task_combo_res[task_key][clf_key]
+                df_auc_ovr = pd.DataFrame(dict([
+                    (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
+                    for datakey in data_keys
+                ]),
+                    index=self.samples.subtasks[task_key].one_vs_rest_task_names()
+                )
+                ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
+                print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
-            roc_scores_1vR = {datakey: list(data_combo_res[datakey].one_vs_rest_roc_scores()) for datakey in datakey_list}
-            df_auc_1vR = pd.DataFrame(roc_scores_1vR, index=self.samples.subtasks[task_name].one_vs_rest_task_names())
-            ut.cprint('ROC(1vR) Scores per DataKey', 'yellow')
-            print(to_string_monkey(df_auc_1vR, highlight_cols='all'))
+                if clf_key.endswith('-OVR'):
+                    # Report un-normalized ovr measures if they available
+                    ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,), 'yellow')
+                    df_auc_ovr_hat = pd.DataFrame(dict([
+                        (datakey, list(data_combo_res[datakey].roc_scores_ovr_hat()))
+                        for datakey in data_keys
+                    ]),
+                        index=self.samples.subtasks[task_key].one_vs_rest_task_names()
+                    )
+                    print(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
 
-            roc_scores = {datakey: [data_combo_res[datakey].roc_score()] for datakey in datakey_list}
-            df_auc = pd.DataFrame(roc_scores)
-            ut.cprint('ROC(MacroAve) Scores per DataKey', 'yellow')
-            print(to_string_monkey(df_auc, highlight_cols='all'))
+                roc_scores = {datakey: [data_combo_res[datakey].roc_score()]
+                              for datakey in data_keys}
+                df_auc = pd.DataFrame(roc_scores)
+                ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,), 'yellow')
+                print(to_string_monkey(df_auc, highlight_cols='all'))
 
-            # best_data_key = 'learn(sum,glob,3)'
-            best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
-            selected_data_keys.append(best_data_key)
-            combo_res = data_combo_res[best_data_key]
-            print('BEST DataKey = %r' % (best_data_key,))
+                # best_data_key = 'learn(sum,glob,3)'
+                best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
+                selected_data_keys.append(best_data_key)
+                combo_res = data_combo_res[best_data_key]
+                ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'darkgreen')
+                with ut.Indenter('[%s] ' % (best_data_key,)):
+                    combo_res.extended_clf_report()
+                res = combo_res
+                if 0:
+                    res.report_thresholds()
+                if 0:
+                    importance_datakeys = set([
+                        # 'learn(all)'
+                    ] + [best_data_key])
 
-            combo_res.print_report()
-            res = combo_res
-            res.report_thresholds()
-
-            importance_datakeys = set([
-                # 'learn(all)'
-            ] + [best_data_key])
-
-            for data_key in importance_datakeys:
-                self.report_classifier_importance(task_name, data_key)
+                    for data_key in importance_datakeys:
+                        self.report_classifier_importance(task_key, data_key)
 
         # ut.cprint('\n--- FEATURE INFO ---', 'blue')
         # for best_data_key in selected_data_keys:
         #     print('data_key=(%s)' % (best_data_key,))
-        #     print(ut.indent(AnnotPairFeatInfo(self.samples.X_dict[best_data_key]).get_infostr()))
+        #     print(ut.indent(AnnotPairFeatInfo(
+        #           self.samples.X_dict[best_data_key]).get_infostr()))
 
         # TODO: view failure / success cases
         # Need to show and potentially fix misclassified examples
@@ -261,108 +292,149 @@ class OneVsOneProblem(object):
             infr.start_qt_interface()
             return
 
-    def evaluate_rf(self, task_list=None, datakey_list=None):
+    def learn_evaluation_classifiers(self, task_keys=None, clf_keys=None, data_keys=None):
         """
         Evaluates by learning classifiers using cross validation.
         Do not use this to learn production classifiers.
 
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
-        self.task_clfs = ut.ddict(dict)
-        self.task_res_list = ut.ddict(dict)
-        self.task_combo_res = ut.ddict(dict)
-        if task_list is None:
-            task_list = list(self.samples.subtasks.keys())
-        if datakey_list is None:
-            task_list = list(self.samples.X_dict.keys())
-        # try:
-        #     from sklearn.external.prog_iter import ProgIter
-        # except ImportError:
-        task_prog = ut.ProgIter(task_list, label='Task', freq=1, adjust=False)
-        # task_prog.set_extra('Task=' + ut.repr2(task_list[0]))
-        for task_name in task_prog:
-            task_prog.set_extra('Task=' + ut.repr2(task_name))
-            task_prog.display_message()
-            task_prog.ensure_newline()
-            labels = self.samples.subtasks[task_name]
-            dataset_prog = ut.ProgIter(datakey_list, label='Learn RF', freq=1, adjust=False)
-            annot_cfgstr = self.samples.make_annotpair_vhashid()
+        self.task_clfs = ut.AutoVivification()
+        # self.task_res_list = ut.AutoVivification()
+        self.task_combo_res = ut.AutoVivification()
 
-            # dataset_prog.set_extra('Dataset=' + ut.repr2(datakey_list[0]))
+        if task_keys is None:
+            task_keys = list(self.samples.subtasks.keys())
+        if data_keys is None:
+            task_keys = list(self.samples.X_dict.keys())
+        if clf_keys is None:
+            clf_keys = ['RF']
+
+        Prog = ut.ProgPartial(freq=1, adjust=False, prehack='%s')
+
+        annot_cfgstr = self.samples.make_annotpair_vhashid()
+        cfg_prefix = annot_cfgstr + self.qreq_.get_cfgstr()
+
+        def cached_clf(task_key, data_key, clf_key):
+            # TODO: add in params to cfgstr
+            est_kw1, est_kw2, xval_kw = self.get_clf_params(clf_key)
+            param_id = ut.get_dict_hashid(est_kw1)
+            xval_id = ut.get_dict_hashid(xval_kw)
+            cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
+                               data_key, clf_key])
+            cacher = ut.Cacher('rf_clf_v8', cfgstr=cfgstr,
+                               appname='vsone_rf_train', enabled=1,
+                               verbose=1)
+            data = cacher.tryload()
+            if not data:
+                data = self.learn_single_evaulation_clf(task_key, data_key, clf_key)
+                cacher.save(data)
+            clf_list, res_list = data
+            labels = self.samples.subtasks[task_key]
+            combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
+            # combo_res.extended_clf_report()
+            self.task_clfs[task_key][clf_key][data_key] = clf_list
+            # self.task_res_list[task_key][clf_key][data_key]  = res_list
+            self.task_combo_res[task_key][clf_key][data_key] = combo_res
+
+        task_prog = Prog(task_keys, label='Task')
+        for task_key in task_prog:
+            dataset_prog = Prog(data_keys, label='Data')
             for data_key in dataset_prog:
-                dataset_prog.set_extra('Dataset=' + ut.repr2(data_key))
-                dataset_prog.display_message()
-                dataset_prog.ensure_newline()
-                # print(' * Dataset/Task = %s, %s' % (ut.repr2(data_key), ut.repr2(task_name)))
-                cacher = ut.Cacher('rf_clf_v8', cfgstr='tmp' + task_name + '_' +
-                                   annot_cfgstr + '_' +
-                                   data_key + '_' + self.qreq_.get_cfgstr(),
-                                   appname='vsone_rf_train', enabled=1, verbose=1)
-                data = cacher.tryload()
-                if not data:
-                    X_df = self.samples.X_dict[data_key]
-                    clf_list, res_list = self.evaluate_single_rf(X_df, labels)
-                    data = (clf_list, res_list)
-                    cacher.save(data)
-                else:
-                    clf_list, res_list = data
+                clf_prog = Prog(clf_keys, label='CLF')
+                for clf_key in clf_prog:
+                    cached_clf(task_key, data_key, clf_key)
 
-                combo_res = clf_helpers.ClfResult.combine_results(res_list,
-                                                                  labels)
-                # combo_res.print_report()
-                self.task_clfs[task_name][data_key] = clf_list
-                self.task_res_list[task_name][data_key]  = res_list
-                self.task_combo_res[task_name][data_key] = combo_res
-                dataset_prog.set_extra('')
-            task_prog.set_extra('')
+    def get_clf_params(self, clf_key):
+        est_type = clf_key.split('-')[0]
+        if est_type in {'RF', 'RandomForest'}:
+            est_kw1 = {
+                # 'max_depth': 4,
+                'bootstrap': True,
+                'class_weight': None,
+                'max_features': 'sqrt',
+                # 'max_features': None,
+                'missing_values': np.nan,
+                'min_samples_leaf': 5,
+                'min_samples_split': 2,
+                'n_estimators': 256,
+                'criterion': 'entropy',
+            }
+            est_kw2 = {
+                'random_state': 3915904814,
+                'verbose': 0,
+                'n_jobs': -1,
+            }
+        elif est_type in {'SVC', 'SVM'}:
+            est_kw1 = dict(kernel='linear')
+            est_kw2 = {}
 
-    def get_rf_params(self):
-        rf_params = {
-            # 'max_depth': 4,
-            'bootstrap': True,
-            'class_weight': None,
-            'max_features': 'sqrt',
-            # 'max_features': None,
-            'missing_values': np.nan,
-            'min_samples_leaf': 5,
-            'min_samples_split': 2,
-            'n_estimators': 256,
-            'criterion': 'entropy',
+        # xvalkw = dict(n_splits=10, shuffle=True,
+        xval_kw = {
+            # 'n_splits': 10,
+            'n_splits': 3,
+            'shuffle': True,
+            'random_state': 3953056901,
         }
-        rf_settings = {
-            'random_state': 3915904814,
-            'verbose': 0,
-            'n_jobs': -1,
-        }
-        rf_params.update(rf_settings)
-        return rf_params
+        return est_kw1, est_kw2, xval_kw
 
-    def evaluate_single_rf(self, X_df, labels):
+    def learn_single_evaulation_clf(self, task_key, data_key, clf_key):
         """
-        X_df = self.X_dict['learn(all)']
-        labels = self.samples.subtasks['photobomb_state']
+        Learns a cross-validated classifier on the dataset
+
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> self = OneVsOneProblem()
+            >>> self.load_features()
+            >>> self.load_samples()
+            >>> data_key = 'learn(all)'
+            >>> task_key = 'photobomb_state'
+            >>> task_key = 'match_state'
+            >>> clf_key = 'RF-OVR'
         """
-        rf_params = self.get_rf_params()
+        X_df = self.samples.X_dict['learn(all)']
+        labels = self.samples.subtasks[task_key]
+
+        tup = clf_key.split('-')
+        if len(tup) == 1:
+            multiclass_wrapper = ut.identity
+        else:
+            multiclass_wrapper = {
+                'OVR': sklearn.multiclass.OneVsRestClassifier,
+                'OVO': sklearn.multiclass.OneVsOneClassifier,
+            }[tup[1]]
+
+        est_type = tup[0]
+        if est_type in {'RF', 'RandomForest'}:
+            est_class = sklearn.ensemble.RandomForestClassifier
+        elif est_type in {'SVM', 'SVC'}:
+            est_class = sklearn.svm.SVC
+        else:
+            raise KeyError('est_type = %s' % (est_type,))
+
+        est_kw1, est_kw2, xval_kw = self.get_clf_params(est_type)
+        est_params = ut.merge_dicts(est_kw1, est_kw2)
+
+        def clf_new():
+            return multiclass_wrapper(est_class(**est_params))
 
         clf_list = []
         res_list = []
 
-        skf_list = self.get_crossval_idxs()
-        for train_idx, test_idx in ut.ProgIter(skf_list, label='skf'):
+        """ TODO: check xval label frequency """
+        skf = sklearn.model_selection.StratifiedKFold(**xval_kw)
+        skf_iter = skf.split(X=np.empty((len(self.samples), 0)),
+                             y=self.samples.encoded_1d())
+        skf_list = list(skf_iter)
+        skf_prog = ut.ProgIter(skf_list, label='skf')
+        for train_idx, test_idx in skf_prog:
             X_train = X_df.values[train_idx]
             y_train = labels.y_enc[train_idx]
 
-            clf = sklearn.ensemble.RandomForestClassifier(**rf_params)
+            clf = clf_new()
             clf.fit(X_train, y_train)
 
             # Evaluate on testing data
-            X_test = X_df.values[test_idx]
-            clf_probs = clf.predict_proba(X_test)
-
-            pred_classes = clf.classes_
-
-            res = clf_helpers.ClfResult.make_single(test_idx, clf_probs,
-                                                    pred_classes, labels)
+            res = clf_helpers.ClfResult.make_single(clf, X_df, test_idx, labels)
             res_list.append(res)
             clf_list.append(clf)
         return clf_list, res_list
@@ -378,11 +450,9 @@ class OneVsOneProblem(object):
             >>> self.load_samples()
             >>> self.reduce_dataset_size()
         """
-        import utool
-        with utool.embed_on_exception_context:
-            from six import next
-            labels = next(iter(self.samples.subtasks.values()))
-            ut.assert_eq(len(labels), len(self.samples))
+        from six import next
+        labels = next(iter(self.samples.subtasks.values()))
+        ut.assert_eq(len(labels), len(self.samples), verbose=False)
 
         if True:
             # Remove singletons
@@ -395,13 +465,10 @@ class OneVsOneProblem(object):
                      for a1, a2 in self.samples.aid_pairs]
             print('Removing %d pairs based on singleton' % (len(mask) - sum(mask)))
             self.samples = samples2 = self.samples.compress(mask)
-            samples2.print_info()
-            print('---------------')
-            import utool
-            with utool.embed_on_exception_context:
-                from six import next
-                labels = next(iter(samples2.subtasks.values()))
-                ut.assert_eq(len(labels), len(samples2))
+            # samples2.print_info()
+            # print('---------------')
+            labels = next(iter(samples2.subtasks.values()))
+            ut.assert_eq(len(labels), len(samples2), verbose=False)
             self.samples = samples2
 
         if True:
@@ -409,13 +476,10 @@ class OneVsOneProblem(object):
             mask = (self.samples.simple_scores['score_lnbnn_1vM'] > 0).values
             print('Removing %d pairs based on LNBNN failure' % (len(mask) - sum(mask)))
             self.samples = samples3 = self.samples.compress(mask)
-            samples3.print_info()
-            print('---------------')
-            import utool
-            with utool.embed_on_exception_context:
-                from six import next
-                labels = next(iter(samples3.subtasks.values()))
-                ut.assert_eq(len(labels), len(samples3))
+            # samples3.print_info()
+            # print('---------------')
+            labels = next(iter(samples3.subtasks.values()))
+            ut.assert_eq(len(labels), len(samples3), verbose=False)
             self.samples = samples3
 
         from sklearn.utils import random
@@ -440,13 +504,10 @@ class OneVsOneProblem(object):
             mask = ut.index_to_boolmask(idxs, len(self.samples))
             print('Removing %d pairs for class balance' % (len(mask) - sum(mask)))
             self.samples = samples4 = self.samples.compress(mask)
-            samples4.print_info()
-            print('---------------')
-            import utool
-            with utool.embed_on_exception_context:
-                from six import next
-                labels = next(iter(samples4.subtasks.values()))
-                ut.assert_eq(len(labels), len(samples4))
+            # samples4.print_info()
+            # print('---------------')
+            labels = next(iter(samples4.subtasks.values()))
+            ut.assert_eq(len(labels), len(samples4), verbose=False)
             self.samples = samples4
             # print('hist(y) = ' + ut.repr4(self.samples.make_histogram()))
 
@@ -477,11 +538,8 @@ class OneVsOneProblem(object):
         #     self.samples = self.samples.compress(mask)
         #     class_hist = self.samples.make_histogram()
         #     print('hist(y) = ' + ut.repr4(class_hist))
-        import utool
-        with utool.embed_on_exception_context:
-            from six import next
-            labels = next(iter(self.samples.subtasks.values()))
-            ut.assert_eq(len(labels), len(self.samples))
+        labels = next(iter(self.samples.subtasks.values()))
+        ut.assert_eq(len(labels), len(self.samples), verbose=False)
 
     def build_feature_subsets(self):
         """
@@ -641,7 +699,7 @@ class OneVsOneProblem(object):
             #     X_dict['learn(loc,sum,glob,5)'] = featinfo.X[sorted(cols)]
         self.samples.X_dict = X_dict
 
-    def evaluate_simple_scores(self, task_list=None):
+    def evaluate_simple_scores(self, task_keys=None):
         """
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> self = OneVsOneProblem()
@@ -671,32 +729,30 @@ class OneVsOneProblem(object):
                 if any(flags):
                     del score_dict[k]
 
-        if task_list is None:
-            task_list = list(self.samples.subtasks.keys())
+        if task_keys is None:
+            task_keys = list(self.samples.subtasks.keys())
 
         simple_aucs = {}
-        for task_name in task_list:
+        for task_key in task_keys:
             task_aucs = {}
-            labels = self.samples.subtasks[task_name]
+            labels = self.samples.subtasks[task_key]
             for sublabels in labels.gen_one_vs_rest_labels():
                 sublabel_aucs = {}
                 for scoretype in score_dict.keys():
                     scores = score_dict[scoretype].values
-                    import utool
-                    with utool.embed_on_exception_context:
-                        auc = sklearn.metrics.roc_auc_score(sublabels.y_enc, scores)
+                    auc = sklearn.metrics.roc_auc_score(sublabels.y_enc, scores)
                     sublabel_aucs[scoretype] = auc
-                # task_aucs[sublabels.task_name] = sublabel_aucs
-                task_aucs[sublabels.task_name.replace(task_name, '')] = sublabel_aucs
-            simple_aucs[task_name] = task_aucs
+                # task_aucs[sublabels.task_key] = sublabel_aucs
+                task_aucs[sublabels.task_name.replace(task_key, '')] = sublabel_aucs
+            simple_aucs[task_key] = task_aucs
         self.simple_aucs = simple_aucs
 
-    def report_simple_scores(self, task_name):
+    def report_simple_scores(self, task_key):
         force_keep = ['score_lnbnn_1vM']
         simple_aucs = self.simple_aucs
         from utool.experimental.pandas_highlight import to_string_monkey
         n_keep = 6
-        df_simple_auc = pd.DataFrame.from_dict(simple_aucs[task_name], orient='index')
+        df_simple_auc = pd.DataFrame.from_dict(simple_aucs[task_key], orient='index')
         # Take only a subset of the columns that scored well in something
         rankings = df_simple_auc.values.argsort(axis=1).argsort(axis=1)
         rankings = rankings.shape[1] - rankings - 1
@@ -706,38 +762,23 @@ class OneVsOneProblem(object):
         extra = np.setdiff1d(force_keep, np.intersect1d(keep_cols, force_keep))
         keep_cols = keep_cols[:len(keep_cols) - len(extra)].tolist() + extra.tolist()
         # Now print them
-        ut.cprint('\nAUC of simple scoring measures for %s' % (task_name,), 'yellow')
+        ut.cprint('\n[None] ROC-AUC of simple scoring measures for %s' % (task_key,), 'yellow')
         print(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
-    def get_crossval_idxs(self):
-        """
-        # TODO: check xval label frequency
-        """
-        # ---------------
-        # Setup cross-validation
-        samples = self.samples
-        # xvalkw = dict(n_splits=10, shuffle=True,
-        xvalkw = dict(n_splits=3, shuffle=True,
-                      random_state=np.random.RandomState(42))
-        skf = sklearn.model_selection.StratifiedKFold(**xvalkw)
-        skf_iter = skf.split(X=np.empty((len(samples), 0)), y=samples.encoded_1d())
-        skf_list = list(skf_iter)
-        return skf_list
-
-    def report_classifier_importance(self, task_name, data_key):
+    def report_classifier_importance(self, task_key, clf_key, data_key):
         ut.qt4ensure()
         import plottool as pt  # NOQA
 
         X = self.samples.X_dict[data_key]
         # Take average feature importance
-        ut.cprint('MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_name), 'yellow')
+        ut.cprint('MARGINAL IMPORTANCE INFO for %s on task %s' % (data_key, task_key), 'yellow')
         print(' Caption:')
         print(' * The NaN row ensures that `weight` always sums to 1')
         print(' * `num` indicates how many dimensions the row groups')
         print(' * `ave_w` is the average importance a single feature in the row')
         # with ut.Indenter('[%s] ' % (data_key,)):
         if True:
-            clf_list = self.task_clfs[task_name][data_key]
+            clf_list = self.task_clfs[task_key][clf_key][data_key]
             feature_importances = np.mean([
                 clf_.feature_importances_ for clf_ in clf_list
             ], axis=0)

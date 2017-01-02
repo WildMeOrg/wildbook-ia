@@ -33,7 +33,9 @@ def main():
     # dpath = os.getcwd()
     dpath = ut.truepath('~/code/scikit-learn')
     repo = ut.Repo(dpath=dpath)
-    # update_all(repo, master, mixins)
+
+    update_all(repo, master, mixins)
+
     REBASE_VERSION = True
     if REBASE_VERSION:
         ut.cprint('--- REBASE BRANCHES ON MASTER ---', 'blue')
@@ -74,7 +76,7 @@ def update_all(repo, master, mixins):
         repo.checkout2(branch)
         # repo.issue('git checkout ' + branch)
         # gitrepo = repo.as_gitpython()  # NOQA
-        # repo.reset_branch_to_remote(branch)
+        repo.reset_branch_to_remote(branch)
         repo.issue('git pull')
 
 

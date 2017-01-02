@@ -270,47 +270,64 @@ class MultiClassLabels(ut.NiceRepr):
 @ut.reloadable_class
 class ClfResult(object):
     """
-    cls = ClfResult
-
-    TODO: use Markedness and Informedness
-    http://www.flinders.edu.au/science_engineering/fms/School-CSEM/publications/tech_reps-research_artfcts/TRRA_2007.pdf
+    Handles evaluation statistics for a multiclass classifier trained on a
+    specific dataset with specific labels.
     """
     def __init__(res):
         pass
 
     @classmethod
-    def make_single(ClfResult, test_idx, clf_probs, pred_classes, labels):
+    def make_single(ClfResult, clf, X_df, test_idx, labels):
         """
         Make a result for a single cross validiation subset
         """
-        res = ClfResult()
-
-        # Ensure shape corresponds with all classes
-        alignx = ut.list_alignment(pred_classes, labels.classes_, missing=True)
-        aligned_probs_ = ut.none_take(clf_probs.T, alignx)
-        aligned_probs_ = ut.replace_nones(aligned_probs_, np.zeros(len(clf_probs)))
-        aligned_probs = np.vstack(aligned_probs_).T
-
-        class_names = ut.lmap(str, labels.class_names)
-        res.class_names = class_names
+        X_test = X_df.values[test_idx]
+        clf_probs = clf.predict_proba(X_test)
         index = pd.Series(test_idx, name='test_idx')
+        # Ensure shape corresponds with all classes
 
+        def align_cols(arr, arr_cols, target_cols):
+            alignx = ut.list_alignment(arr_cols, target_cols, missing=True)
+            aligned_arrT = ut.none_take(arr.T, alignx)
+            aligned_arrT = ut.replace_nones(aligned_arrT, np.zeros(len(arr)))
+            aligned_arr = np.vstack(aligned_arrT).T
+            return aligned_arr
+
+        res = ClfResult()
+        res.class_names = ut.lmap(str, labels.class_names)
         res.probs_df = pd.DataFrame(
-            aligned_probs, index=index,
-            columns=['p_' + n for n in class_names],
+            align_cols(clf_probs, clf.classes_, labels.classes_), index=index,
+            columns=['p_' + n for n in res.class_names],
         )
         res.target_bin_df = pd.DataFrame(
             data=labels.y_bin[test_idx], index=index,
-            columns=['is_' + n for n in class_names],
+            columns=['is_' + n for n in res.class_names],
         )
         res.target_enc_df = pd.DataFrame(
             data=labels.y_enc[test_idx], index=index,
             columns=['class_idx'],
         )
+
+        if hasattr(clf, 'estimators_'):
+            # The n-th estimator in the OVR classifier predicts the prob of the
+            # n-th class (as label 1).
+            probs_hat = np.hstack([est.predict_proba(X_test)[:, 1:2]
+                                   for est in clf.estimators_])
+            res.probhats_df = pd.DataFrame(
+                align_cols(probs_hat, clf.classes_, labels.classes_), index=index,
+                columns=['phat_' + n for n in res.class_names],
+            )
+            # In the OVR-case, ideally things will sum to 1, but when they
+            # don't normalization happens. An Z-value of more than 1 means
+            # overconfidence, and under 0 means underconfidence.
+            res.confidence_ratio = res.probhats_df.sum(axis=1)
+        else:
+            res.probhats_df = None
+
         return res
 
     @classmethod
-    def combine_results(cls, res_list, labels=None):
+    def combine_results(ClfResult, res_list, labels=None):
         """
         Combine results from cross validation runs into a single result
         representing the performance of the entire dataset
@@ -320,14 +337,21 @@ class ClfResult(object):
         assert not any([s1.intersection(s2)
                         for s1, s2 in ut.combinations(idx_sets, 2)])
         # Combine them with pandas
-        res = cls()
+        res = ClfResult()
         res0 = res_list[0]
         # res.samples = res0.samples
         res.class_names = res0.class_names
-        res.probs_df = pd.concat([r.probs_df for r in res_list])
-        res.target_bin_df = pd.concat([r.target_bin_df for r in res_list])
-        res.target_enc_df = pd.concat([r.target_enc_df for r in res_list])
-
+        # Combine all dataframe properties
+        combo_df_attrs = [
+            'probs_df',
+            'probhats_df',
+            'target_bin_df',
+            'target_enc_df',
+        ]
+        for attr in combo_df_attrs:
+            if getattr(res0, attr) is not None:
+                combo_attr = pd.concat([getattr(r, attr) for r in res_list])
+                setattr(res, attr, combo_attr)
         return res
 
     def make_meta(res, samples):
@@ -335,7 +359,8 @@ class ClfResult(object):
         samples = self.samples
         """
         meta = {}
-        meta['easiness'] = np.array(ut.ziptake(res.probs_df.values, res.target_enc_df.values)).ravel()
+        meta['easiness'] = np.array(ut.ziptake(res.probs_df.values,
+                                               res.target_enc_df.values)).ravel()
         meta['hardness'] = 1 - meta['easiness']
         meta['aid1'] = samples.aid_pairs.T[0].take(res.probs_df.index.values)
         meta['aid2'] = samples.aid_pairs.T[1].take(res.probs_df.index.values)
@@ -362,6 +387,12 @@ class ClfResult(object):
         clf_probs_aug = res.probs_df.values
         sample_weight = np.ones(len(y_test_enc_aug))
         n_missing = len(missing_classes)
+
+        if res.probhats_df is not None:
+            clf_probhats_aug = res.probhats_df.values
+        else:
+            clf_probhats_aug = None
+
         # Check if augmentation is necessary
         if n_missing > 0:
             missing_bin = np.zeros((n_missing, n_classes))
@@ -372,42 +403,148 @@ class ClfResult(object):
             clf_probs_aug = np.vstack([clf_probs_aug, missing_bin])
             # make sample weights where dummies are significantly downweighted
             sample_weight = np.hstack([sample_weight, np.full(n_missing, 1e-9)])
-        return y_test_enc_aug, y_test_bin_aug, clf_probs_aug, sample_weight
+
+            if res.probhats_df is not None:
+                clf_probhats_aug = np.vstack([clf_probhats_aug, missing_bin])
+
+        res.clf_probs = clf_probs_aug
+        res.clf_probhats = clf_probhats_aug
+        res.y_test_enc = y_test_enc_aug
+        res.y_test_bin = y_test_bin_aug
+        res.sample_weight = sample_weight
+
+    def extended_clf_report(res):
+        res.augment_if_needed()
+        pred_enc = res.clf_probs.argmax(axis=1)
+        y_pred = pred_enc
+        y_true = res.y_test_enc
+        sample_weight = res.sample_weight
+        confusion = cm = sklearn.metrics.confusion_matrix(  # NOQA
+            y_true, y_pred, sample_weight=sample_weight)
+
+        k = len(cm)
+        N = cm.sum()
+
+        real_total = cm.sum(axis=1)
+        pred_total = cm.sum(axis=0)
+
+        n_tps = np.diag(cm)
+        tprs = n_tps / real_total
+        tpas = n_tps / pred_total
+
+        rprob = real_total / N
+        pprob = pred_total / N
+
+        # bookmaker is analogous to recall
+        rprob_mat = np.tile(rprob, [k, 1]).T - (1 - np.eye(k))
+        bmcm = cm.T / rprob_mat
+        bms = np.sum(bmcm.T, axis=0) / N
+
+        # markedness is analogous to precision
+        pprob_mat = np.tile(pprob, [k, 1]).T - (1 - np.eye(k))
+        mkcm = cm / pprob_mat
+        mks = np.sum(mkcm.T, axis=0) / N
+
+        perclass_data = ut.odict([
+            ('precision', tpas),
+            ('recall', tprs),
+            ('markedness', mks),
+            ('bookmaker', bms),
+            ('mcc', np.sign(bms) * np.sqrt(np.abs(bms * mks))),
+            ('support', real_total),
+        ])
+        tpa = tpas.dot(rprob)
+        tpr = tprs.dot(rprob)
+        mk = mks.dot(rprob)
+        bm = bms.dot(pprob)
+
+        combined_data = ut.odict([
+            ('precision', tpa),
+            ('recall', tpr),
+            ('markedness', mk),
+            ('bookmaker', bm),
+            ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+            ('support', real_total.sum())
+        ])
+
+        index = pd.Series(res.class_names, name='class')
+
+        perclass_df = pd.DataFrame(perclass_data, index=index)
+        combined_df = pd.DataFrame(combined_data, index=['ave/sum'])
+        df = pd.concat([perclass_df, combined_df])
+
+        pred_id = ['p(%s)' % m for m in res.class_names]
+        real_id = ['r(%s)' % m for m in res.class_names]
+        confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
+        confusion_df = confusion_df.append(pd.DataFrame([confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
+        confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), ['-']])
+        cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
+        print('Confusion Matrix (real×pred) :')
+        print(ut.hz_str('    ', cfsm_str))
+
+        # ut.cprint('\nExtended Report', 'turquoise')
+        print('\nEvaluation Metric Report:')
+        precision = 2
+        float_format = '%.' + str(precision) + 'f'
+        ext_report = df.to_string(float_format=float_format)
+        print(ut.hz_str('    ', ext_report))
+
+        # FIXME: What is the difference between sklearn multiclass-MCC
+        # and BM * MK MCC?
+        mcc = sklearn.metrics.matthews_corrcoef(
+            res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
+        # These scales are chosen somewhat arbitrarily in the context of a
+        # computer vision application with relatively reasonable quality data
+        mcc_significance_scales = ut.odict([
+            (1.0, 'perfect'),
+            (0.9, 'very strong'),
+            (0.7, 'strong'),
+            (0.5, 'significant'),
+            (0.3, 'moderate'),
+            (0.2, 'weak'),
+            (0.0, 'negligible'),
+        ])
+        for k, v in mcc_significance_scales.items():
+            if np.abs(mcc) >= k:
+                print('classifier correlation is %s' % (v,))
+                break
+        print(('MCC\' = %.' + str(precision) + 'f') % (mcc,))
+
+        # import utool
+        # utool.embed()
 
     def print_report(res):
-        (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.augment_if_needed()
+        res.augment_if_needed()
+        pred_enc = res.clf_probs.argmax(axis=1)
 
-        pred_enc = clf_probs_aug.argmax(axis=1)
+        res.extended_clf_report()
 
-        p, r, f1, s = sklearn.metrics.precision_recall_fscore_support(
-            y_true=y_test_enc_aug, y_pred=pred_enc,
-            sample_weight=sample_weight,
-        )
-
-        # invp, invr, _, _ = sklearn.metrics.precision_recall_fscore_support(
-        #     y_true=1 - y_test_enc_aug, y_pred=1 - pred_enc,
-        #     sample_weight=sample_weight,
+        # p, r, f1, s = sklearn.metrics.precision_recall_fscore_support(
+        #     y_true=res.y_test_enc, y_pred=pred_enc,
+        #     sample_weight=res.sample_weight,
         # )
-        report = sklearn.metrics.classification_report(
-            y_true=y_test_enc_aug, y_pred=pred_enc,
-            target_names=res.class_names,
-            sample_weight=sample_weight,
-        )
-        confusion = sklearn.metrics.confusion_matrix(y_test_enc_aug, pred_enc,
-                                                     sample_weight=sample_weight)
 
-        mcc = sklearn.metrics.matthews_corrcoef(y_test_enc_aug, pred_enc,
-                                                sample_weight=sample_weight)
-        print('MCC = %.4f' % (mcc,))
-        print('Confusion Matrix:')
-        confusion_df = pd.DataFrame(confusion, columns=[m for m in res.class_names],
-                                    index=['gt ' + m for m in res.class_names])
-        print(ut.hz_str('    ', confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))))
+        report = sklearn.metrics.classification_report(
+            y_true=res.y_test_enc, y_pred=pred_enc,
+            target_names=res.class_names,
+            sample_weight=res.sample_weight,
+        )
+        # confusion = sklearn.metrics.confusion_matrix(
+        #     res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
+        # mcc = sklearn.metrics.matthews_corrcoef(
+        #     res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
+        # pred_id = [m for m in res.class_names]
+        # real_id = ['gt ' + m for m in res.class_names]
+        # confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
+        # cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
+        # print('MCC = %.4f' % (mcc,))
         print('Precision/Recall Report:')
         print(report)
+        # print('Confusion Matrix:')
+        # print(ut.hz_str('    ', cfsm_str))
 
     def report_thresholds(res):
+        import vtool as vt
         y_test_bin = res.target_bin_df.values
         clf_probs = res.probs_df.values
 
@@ -419,61 +556,64 @@ class ClfResult(object):
         # for k in [2, 0, 1]:
         for k in range(y_test_bin.shape[1]):
             thresh_dict = ut.odict()
-            import vtool as vt
             class_name = res.class_names[k]
             probs, labels = clf_probs.T[k], y_test_bin.T[k]
-            confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-            self = confusions  # NOQA
+            cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            self = cfms  # NOQA
 
             encoder = vt.ScoreNormalizer()
             encoder.fit(probs, labels)
             maxsep_thresh = encoder.inverse_normalize(encoder.learn_threshold2()).tolist()
 
             threshes = ut.odict([
-                # (class_name + '@tpr=1', confusions.get_threshold_at_metric('tpr', 1)),
-                # (class_name + '@fpr=0', confusions.get_threshold_at_metric('fpr', 0)),
-                (class_name + '@fpr=.01', confusions.get_threshold_at_metric('fpr', .01)),
-                (class_name + '@fpr=.001', confusions.get_threshold_at_metric('fpr', .001)),
-                # (class_name + '@fpr=.0001', confusions.get_threshold_at_metric('fpr', .0001)),
-                (class_name + '@max(mcc)', confusions.get_threshold_at_metric_maximum('mcc')),
-                (class_name + '@max(acc)', confusions.get_threshold_at_metric_maximum('acc')),
-                # (class_name + '@max(mk)', confusions.get_threshold_at_metric_maximum('mk')),
-                # (class_name + '@max(bm)', confusions.get_threshold_at_metric_maximum('bm')),
+                # (class_name + '@tpr=1', cfms.get_thresh_at_metric('tpr', 1)),
+                # (class_name + '@fpr=0', cfms.get_thresh_at_metric('fpr', 0)),
+                (class_name + '@fpr=.01', cfms.get_thresh_at_metric('fpr', .01)),
+                (class_name + '@fpr=.001', cfms.get_thresh_at_metric('fpr', .001)),
+                # (class_name + '@fpr=.0001', cfms.get_thresh_at_metric('fpr', .0001)),
+                (class_name + '@max(mcc)', cfms.get_thresh_at_metric_max('mcc')),
+                (class_name + '@max(acc)', cfms.get_thresh_at_metric_max('acc')),
+                # (class_name + '@max(mk)', cfms.get_thresh_at_metric_max('mk')),
+                # (class_name + '@max(bm)', cfms.get_thresh_at_metric_max('bm')),
                 (class_name + '@max(sep*)', maxsep_thresh),
             ])
             for key, thresh in threshes.items():
                 thresh_dict[key] = ut.odict()
                 thresh_dict[key]['thresh'] = thresh
                 for metric in ['fpr', 'tpr', 'mcc', 'acc', 'ppv', 'bm', 'mk']:
-                    thresh_dict[key][metric] = confusions.get_metric_at_threshold(metric, thresh)
+                    thresh_dict[key][metric] = cfms.get_metric_at_threshold(metric, thresh)
             thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
             thresh_df = thresh_df.loc[list(threshes.keys())]
             print('\n')
             print('1vR Thresholds for ' + class_name)
             print(thresh_df.to_string(float_format=lambda x: '%.4f' % (x,)))
             # chosen_type = class_name + '@fpr=0'
-            # positive_thresholds[class_name] = thresh_df.loc[chosen_type]['thresh']
+            # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
-        positive_thresholds = {}
-        # negative_thresholds = {}
+        pos_threshes = {}
+        # neg_threshes = {}
         # What is the lowest threshold such that something
         for k in range(y_test_bin.shape[1]):
             class_name = res.class_names[k]
             probs, labels = clf_probs.T[k], y_test_bin.T[k]
-            confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-            positive_thresholds[class_name] = confusions.get_threshold_at_metric('fpr', 0.0001, prefer_max=False)
-            # negative_thresholds[class_name] = confusions.get_threshold_at_metric('fnr', 0.1, prefer_max=True)
-            # negative_thresholds[class_name] = confusions.get_threshold_at_metric('fnr', 0.00001, prefer_max=True)
-            # negative_thresholds[class_name] = confusions.thresholds[np.where(confusions.tp > 0)[0][0]]
-            # negative_thresholds[class_name] = confusions.thresholds[np.where(confusions.fn > 0)[0][-1]]
+            cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            pos_threshes[class_name] = cfms.get_thresh_at_metric('fpr', 1E-4,
+                                                                 prefer_max=False)
+            # neg_threshes[class_name] = cfms.get_thresh_at_metric('fnr', 1E-1,
+            #                                                      prefer_max=True)
+            # neg_threshes[class_name] = cfms.get_thresh_at_metric('fnr', 1E-5,
+            #                                                      prefer_max=True)
+            # neg_threshes[class_name] = cfms.thresholds[np.where(cfms.tp > 0)[0][0]]
+            # neg_threshes[class_name] = cfms.thresholds[np.where(cfms.fn > 0)[0][-1]]
 
-        print('positive_thresholds = %r' % (positive_thresholds,))
-        # print('negative_thresholds = %r' % (negative_thresholds,))
-        # Actually we need negative positive_thresholds?
-        # So if ALL probs are under positive_thresholds then its ok
+        print('pos_threshes = %r' % (pos_threshes,))
+        # print('neg_threshes = %r' % (neg_threshes,))
+        # Actually we need negative pos_threshes?
+        # So if ALL probs are under pos_threshes then its ok
         # See how many automated decisions can be made
-        pos_ts = np.array(ut.take(positive_thresholds, res.class_names))
-        neg_ts = np.array([.5] * len(res.class_names))  # TODO, choose these
+        pos_ts = np.array(ut.take(pos_threshes, res.class_names))
+        # TODO, choose neg thresholds
+        neg_ts = np.array([.5] * len(res.class_names))
 
         above_pos_thresh = clf_probs > pos_ts[None, :]
         under_neg_thresh = clf_probs < neg_ts[None, :]
@@ -485,7 +625,8 @@ class ClfResult(object):
         can_autodecide = ((above_pos_thresh.sum(axis=1) > 0) &
                           (under_neg_thresh.sum(axis=1) >= len(res.class_names) - 1))
         print('Can make automated decisions on %d/%d = %.2f%% of the data' % (
-            can_autodecide.sum(), len(can_autodecide), can_autodecide.sum() / len(can_autodecide)))
+            can_autodecide.sum(), len(can_autodecide),
+            can_autodecide.sum() / len(can_autodecide)))
 
         auto_probs = clf_probs[can_autodecide]
         auto_truth_bin = y_test_bin[can_autodecide]
@@ -500,7 +641,7 @@ class ClfResult(object):
         # thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='columns')
 
         # # ut.qt4ensure()
-        # # ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
+        # # ROCInteraction = vt.interact_roc_factory(cfms, target_tpr,
         # #                                          show_operating_point=True)
         # # import plottool as pt
         # # fnum = pt.ensure_fnum(k)
@@ -515,19 +656,25 @@ class ClfResult(object):
         # # encoder.visualize(fnum=k)
         # pass
 
-    def one_vs_rest_roc_scores(res):
-        (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.augment_if_needed()
-        for k in range(y_test_bin_aug.shape[1]):
-            class_k_truth = y_test_bin_aug.T[k]
-            class_k_probs = clf_probs_aug.T[k]
+    def roc_scores_ovr_hat(res):
+        res.augment_if_needed()
+        for k in range(len(res.class_names)):
+            class_k_truth = res.y_test_bin.T[k]
+            class_k_probs = res.probhats_df.values.T[k]
+            auc = sklearn.metrics.roc_auc_score(class_k_truth, class_k_probs)
+            yield auc
+
+    def roc_scores_ovr(res):
+        res.augment_if_needed()
+        for k in range(res.y_test_bin.shape[1]):
+            class_k_truth = res.y_test_bin.T[k]
+            class_k_probs = res.clf_probs.T[k]
             auc = sklearn.metrics.roc_auc_score(class_k_truth, class_k_probs)
             yield auc
 
     def roc_score(res):
-        (y_test_enc_aug, y_test_bin_aug,
-         clf_probs_aug, sample_weight) = res.augment_if_needed()
-        auc_learn = sklearn.metrics.roc_auc_score(y_test_bin_aug, clf_probs_aug)
+        res.augment_if_needed()
+        auc_learn = sklearn.metrics.roc_auc_score(res.y_test_bin, res.clf_probs)
         return auc_learn
 
 
