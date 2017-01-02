@@ -109,14 +109,50 @@ class ConfusionMetrics(object):
         'tpa': {'true_pos_acc', 'pos_predict_value', 'precision', 'ppv'},
         'tna': {'true_neg_acc', 'neg_predict_value', 'inv_precision', 'npv'},
         # -----
-        'mk': {'markedness'},
-        'bm': {'informedness', 'bookmaker_informedness'},
+        'mk': {'markedness', 'deltaP', 'r_P'},
+        'bm': {'informedness', 'bookmaker_informedness', 'deltaP\'', 'r_R'},
         # -----
         'mcc': {'matthews_correlation_coefficient'},
         'jacc': {'jaccard_coefficient'},
-        'acc': {'accuracy', 'rand_accuracy', 'tea'},
+        'acc': {'accuracy', 'rand_accuracy', 'tea', 'ter'},
         'wracc': {'weighted_relative_accuracy'},
     }
+
+    # the same things are called by lots of different names
+    paper_alias = {
+        {'dtp', 'determinant'},
+        {'lr', 'liklihood-ratio'},
+        {'nlr', 'negative-liklihood-ratio'},
+        {'bmg', 'bookmarkG', 'bookmark_geometric_mean', 'mcc?'},
+        {'evenness_R', 'PrevG2'},
+        {'evenness_P', 'BiasG2'},
+        {'rh', 'real_harmonic_mean'},
+        {'ph', 'pred_harminic_mean'},
+    }
+
+    # And they related to each other in interesting ways
+    paper_relations = {
+        'N'      : ['A + B + C + D'],
+        'dtp'    : ['A * D - B * C'],
+        'mk'     : ['dtp / (bias * (1 - bias))',
+                    'dtp / biasG ** 2'],
+        'bm'     : ['dtp / (prev * (1 - prev))'],
+        'BiasG2' : ['bias * 1 - bias'],
+        'lr'     : ['tpr / (1 - tnr)'],
+        'nlr'    : ['tnr / (1 - tpr)'],
+        'BMG'    : ['dtp / evenness_G'],
+        'IBias'  : ['1 - Bias'],
+        'etp'    : ['rp * pp', 'expected_true_positives'],
+        'etn'    : ['rn * pn', 'expected_true_negatives'],
+        'rh' : ['2 * rp * rn / (rp + rn)', 'real_harmonic_mean'],
+        'ph' : ['2 * pp * pn / (pp + pn)', 'pred_harminic_mean'],
+        'dp'     : ['tp - etp', 'dtp', '-dtn', '-(tn - etn)'],
+        'deltap' : ['dtp - dtn', '2 * dp'],
+        'kappa': ['deltap / (deltap + (fp + fn) / 2)']
+    }
+
+    # ROC Plot: tpr vs fpr
+    # PN Plot: TP vs FP
 
     minimizing_metrics = {'fpr', 'fnr', 'fp', 'fn'}
 
