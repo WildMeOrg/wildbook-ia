@@ -120,14 +120,14 @@ class ConfusionMetrics(object):
 
     # the same things are called by lots of different names
     paper_alias = [
-        {'dtp', 'determinant'},
-        {'lr', 'liklihood-ratio'},
-        {'nlr', 'negative-liklihood-ratio'},
-        {'bmg', 'bookmarkG', 'bookmark_geometric_mean', 'mcc?'},
-        {'evenness_R', 'PrevG2'},
-        {'evenness_P', 'BiasG2'},
-        {'rh', 'real_harmonic_mean'},
-        {'ph', 'pred_harminic_mean'},
+        ['dtp', 'determinant'],
+        ['lr', 'liklihood-ratio'],
+        ['nlr', 'negative-liklihood-ratio'],
+        ['bmg', 'bookmarkG', 'bookmark_geometric_mean', 'mcc?'],
+        ['evenness_R', 'PrevG2'],
+        ['evenness_P', 'BiasG2'],
+        ['rh', 'real_harmonic_mean'],
+        ['ph', 'pred_harminic_mean'],
     ]
 
     # And they related to each other in interesting ways
@@ -462,7 +462,7 @@ class ConfusionMetrics(object):
         interp_tpr = func(target_fpr)
         return interp_tpr
 
-    def get_threshold_at_metric_maximum(self, metric):
+    def get_thresh_at_metric_max(self, metric):
         """
         metric = 'mcc'
         metric = 'fnr'
@@ -477,7 +477,7 @@ class ConfusionMetrics(object):
             thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
         return thresh
 
-    def get_threshold_at_metric(self, metric, value, prefer_max=None):
+    def get_thresh_at_metric(self, metric, value, prefer_max=None):
         r"""
         Gets a threshold for a binary classifier using a target metric and value
 
@@ -489,7 +489,7 @@ class ConfusionMetrics(object):
             float: thresh
 
         CommandLine:
-            python -m vtool.confusion --exec-get_threshold_at_metric
+            python -m vtool.confusion get_thresh_at_metric
             python -m vtool.confusion --exec-interact_roc_factory --show
 
         Example:
@@ -499,7 +499,7 @@ class ConfusionMetrics(object):
             >>> self = ConfusionMetrics().fit(scores, labels)
             >>> metric = 'tpr'
             >>> value = .85
-            >>> thresh = self.get_threshold_at_metric(metric, value)
+            >>> thresh = self.get_thresh_at_metric(metric, value)
             >>> print('%s = %r' % (metric, value,))
             >>> result = ('thresh = %s' % (str(thresh),))
             >>> print(result)
@@ -515,7 +515,7 @@ class ConfusionMetrics(object):
                                         prefer_max=prefer_max)
         return thresh
 
-    def get_metric_at_threshold(self, metric, thresh):
+    def get_metric_at_thresh(self, metric, thresh):
         r"""
         Args:
             metric (str): name of a metric
@@ -547,6 +547,9 @@ class ConfusionMetrics(object):
         # value = self.__dict__[metric][index]
         value = getattr(self, metric)[index]
         return value
+
+    get_threshold_at_metric = get_thresh_at_metric
+    get_metric_at_threshold = get_metric_at_thresh
 
     # --------------
     # Visualizations
