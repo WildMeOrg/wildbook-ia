@@ -119,7 +119,7 @@ class ConfusionMetrics(object):
     }
 
     # the same things are called by lots of different names
-    paper_alias = {
+    paper_alias = [
         {'dtp', 'determinant'},
         {'lr', 'liklihood-ratio'},
         {'nlr', 'negative-liklihood-ratio'},
@@ -128,7 +128,7 @@ class ConfusionMetrics(object):
         {'evenness_P', 'BiasG2'},
         {'rh', 'real_harmonic_mean'},
         {'ph', 'pred_harminic_mean'},
-    }
+    ]
 
     # And they related to each other in interesting ways
     paper_relations = {
