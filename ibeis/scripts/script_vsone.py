@@ -174,9 +174,9 @@ class OneVsOneProblem(object):
         # task_keys = ut.setdiff(task_keys, ['photobomb_state'])
 
         data_keys = list(self.samples.X_dict.keys())
-        # clf_keys = ['RF', 'RF-OVR']
+        clf_keys = ['RF', 'RF-OVR']
         # clf_keys = ['RF', 'SVC']
-        clf_keys = ['RF']
+        # clf_keys = ['RF']
         # clf_keys = ['RF-OVR']
 
         # task_keys = [
@@ -322,7 +322,7 @@ class OneVsOneProblem(object):
             xval_id = ut.get_dict_hashid(xval_kw)
             cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
                                data_key, clf_key])
-            cacher = ut.Cacher('rf_clf_v8', cfgstr=cfgstr,
+            cacher = ut.Cacher('rf_clf_v9', cfgstr=cfgstr,
                                appname='vsone_rf_train', enabled=1,
                                verbose=1)
             data = cacher.tryload()
@@ -390,8 +390,9 @@ class OneVsOneProblem(object):
             >>> task_key = 'photobomb_state'
             >>> task_key = 'match_state'
             >>> clf_key = 'RF-OVR'
+            >>> clf_key = 'RF'
         """
-        X_df = self.samples.X_dict['learn(all)']
+        X_df = self.samples.X_dict[data_key]
         labels = self.samples.subtasks[task_key]
 
         tup = clf_key.split('-')
