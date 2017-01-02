@@ -25,7 +25,7 @@ def main():
     master = 'master'
     mixins = [
         # 'mbkm_fixup',
-        'progiter',
+        # 'progiter',
         'multiclass_mcc',
         'missing_values_rf',
     ]
