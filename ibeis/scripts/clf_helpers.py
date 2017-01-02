@@ -294,35 +294,37 @@ class ClfResult(object):
             return aligned_arr
 
         res = ClfResult()
-        res.class_names = ut.lmap(str, labels.class_names)
-        res.probs_df = pd.DataFrame(
-            align_cols(clf_probs, clf.classes_, labels.classes_), index=index,
-            columns=['p_' + n for n in res.class_names],
-        )
-        res.target_bin_df = pd.DataFrame(
-            data=labels.y_bin[test_idx], index=index,
-            columns=['is_' + n for n in res.class_names],
-        )
-        res.target_enc_df = pd.DataFrame(
-            data=labels.y_enc[test_idx], index=index,
-            columns=['class_idx'],
-        )
-
-        if hasattr(clf, 'estimators_'):
-            # The n-th estimator in the OVR classifier predicts the prob of the
-            # n-th class (as label 1).
-            probs_hat = np.hstack([est.predict_proba(X_test)[:, 1:2]
-                                   for est in clf.estimators_])
-            res.probhats_df = pd.DataFrame(
-                align_cols(probs_hat, clf.classes_, labels.classes_), index=index,
-                columns=['phat_' + n for n in res.class_names],
+        import utool
+        with utool.embed_on_exception_context:
+            res.class_names = ut.lmap(str, labels.class_names)
+            res.probs_df = pd.DataFrame(
+                align_cols(clf_probs, clf.classes_, labels.classes_), index=index,
+                columns=['p_' + n for n in res.class_names],
             )
-            # In the OVR-case, ideally things will sum to 1, but when they
-            # don't normalization happens. An Z-value of more than 1 means
-            # overconfidence, and under 0 means underconfidence.
-            res.confidence_ratio = res.probhats_df.sum(axis=1)
-        else:
-            res.probhats_df = None
+            res.target_bin_df = pd.DataFrame(
+                data=labels.y_bin[test_idx], index=index,
+                columns=['is_' + n for n in res.class_names],
+            )
+            res.target_enc_df = pd.DataFrame(
+                data=labels.y_enc[test_idx], index=index,
+                columns=['class_idx'],
+            )
+
+            if hasattr(clf, 'estimators_') and labels.n_classes > 2:
+                # The n-th estimator in the OVR classifier predicts the prob of the
+                # n-th class (as label 1).
+                probs_hat = np.hstack([est.predict_proba(X_test)[:, 1:2]
+                                       for est in clf.estimators_])
+                res.probhats_df = pd.DataFrame(
+                    align_cols(probs_hat, clf.classes_, labels.classes_), index=index,
+                    columns=['phat_' + n for n in res.class_names],
+                )
+                # In the OVR-case, ideally things will sum to 1, but when they
+                # don't normalization happens. An Z-value of more than 1 means
+                # overconfidence, and under 0 means underconfidence.
+                res.confidence_ratio = res.probhats_df.sum(axis=1)
+            else:
+                res.probhats_df = None
 
         return res
 
@@ -352,6 +354,8 @@ class ClfResult(object):
             if getattr(res0, attr) is not None:
                 combo_attr = pd.concat([getattr(r, attr) for r in res_list])
                 setattr(res, attr, combo_attr)
+            else:
+                setattr(res, attr, None)
         return res
 
     def make_meta(res, samples):
@@ -561,31 +565,30 @@ class ClfResult(object):
             cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
             self = cfms  # NOQA
 
-            encoder = vt.ScoreNormalizer()
-            encoder.fit(probs, labels)
-            maxsep_thresh = encoder.inverse_normalize(encoder.learn_threshold2()).tolist()
+            # encoder = vt.ScoreNormalizer()
+            # encoder.fit(probs, labels)
+            # maxsep_thresh = encoder.inverse_normalize(encoder.learn_threshold2()).tolist()
 
             threshes = ut.odict([
                 # (class_name + '@tpr=1', cfms.get_thresh_at_metric('tpr', 1)),
                 # (class_name + '@fpr=0', cfms.get_thresh_at_metric('fpr', 0)),
                 (class_name + '@fpr=.01', cfms.get_thresh_at_metric('fpr', .01)),
-                (class_name + '@fpr=.001', cfms.get_thresh_at_metric('fpr', .001)),
+                (class_name + '@fpr=.001', cfms.get_thresh_at_metric('fpr', 1E-4)),
                 # (class_name + '@fpr=.0001', cfms.get_thresh_at_metric('fpr', .0001)),
-                (class_name + '@max(mcc)', cfms.get_thresh_at_metric_max('mcc')),
-                (class_name + '@max(acc)', cfms.get_thresh_at_metric_max('acc')),
+                # (class_name + '@max(mcc)', cfms.get_thresh_at_metric_max('mcc')),
+                # (class_name + '@max(acc)', cfms.get_thresh_at_metric_max('acc')),
                 # (class_name + '@max(mk)', cfms.get_thresh_at_metric_max('mk')),
                 # (class_name + '@max(bm)', cfms.get_thresh_at_metric_max('bm')),
-                (class_name + '@max(sep*)', maxsep_thresh),
+                # (class_name + '@max(sep*)', maxsep_thresh),
             ])
             for key, thresh in threshes.items():
                 thresh_dict[key] = ut.odict()
                 thresh_dict[key]['thresh'] = thresh
-                for metric in ['fpr', 'tpr', 'mcc', 'acc', 'ppv', 'bm', 'mk']:
+                for metric in ['fpr', 'tpr', 'tpa', 'bm', 'mk', 'mcc']:
                     thresh_dict[key][metric] = cfms.get_metric_at_threshold(metric, thresh)
             thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
             thresh_df = thresh_df.loc[list(threshes.keys())]
-            print('\n')
-            print('1vR Thresholds for ' + class_name)
+            print('\n1vR Thresholds for ' + class_name)
             print(thresh_df.to_string(float_format=lambda x: '%.4f' % (x,)))
             # chosen_type = class_name + '@fpr=0'
             # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
@@ -606,7 +609,7 @@ class ClfResult(object):
             # neg_threshes[class_name] = cfms.thresholds[np.where(cfms.tp > 0)[0][0]]
             # neg_threshes[class_name] = cfms.thresholds[np.where(cfms.fn > 0)[0][-1]]
 
-        print('pos_threshes = %r' % (pos_threshes,))
+        print('pos_threshes = %s' % (ut.repr2(pos_threshes, precision=4),))
         # print('neg_threshes = %r' % (neg_threshes,))
         # Actually we need negative pos_threshes?
         # So if ALL probs are under pos_threshes then its ok

@@ -2,23 +2,12 @@
 """
 TODO:
 
-* Use depcache to compute match objects (ideally via the infr object)
-
-* Find thresholds to maximize score metric (mcc, auc)
-
 * Get end-to-end system test working with simulated reviewer
 
 * Autoselect features:
     * Learn RF
     * prune bottom N features
     * loop until only X features remain
-
-
-* allow random forests / whatever classifier to be trained according to one of the following ways:
-    * Multiclass - naitively output multiclass labels
-    * One-vs-Rest - Use sklearns 1-v-Rest framework
-    * One-vs-One - Use sklearns 1-v-1 framework
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
@@ -70,7 +59,11 @@ class OneVsOneProblem(object):
     Keeps information about the one-vs-one pairwise classification problem
 
     CommandLine:
+        python -m ibeis.scripts.script_vsone evaluate_classifiers
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1 --show
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
@@ -138,13 +131,6 @@ class OneVsOneProblem(object):
 
     def evaluate_classifiers(self):
         """
-        CommandLine:
-            python -m ibeis.scripts.script_vsone evaluate_classifiers
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1 --show
-
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> self = OneVsOneProblem()
@@ -174,9 +160,9 @@ class OneVsOneProblem(object):
         # task_keys = ut.setdiff(task_keys, ['photobomb_state'])
 
         data_keys = list(self.samples.X_dict.keys())
-        clf_keys = ['RF', 'RF-OVR']
+        # clf_keys = ['RF', 'RF-OVR']
         # clf_keys = ['RF', 'SVC']
-        # clf_keys = ['RF']
+        clf_keys = ['RF']
         # clf_keys = ['RF-OVR']
 
         # task_keys = [
@@ -227,7 +213,7 @@ class OneVsOneProblem(object):
                 ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
                 print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
-                if clf_key.endswith('-OVR'):
+                if clf_key.endswith('-OVR') and self.samples.subtasks[task_key].n_classes > 2:
                     # Report un-normalized ovr measures if they available
                     ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,), 'yellow')
                     df_auc_ovr_hat = pd.DataFrame(dict([
@@ -252,7 +238,7 @@ class OneVsOneProblem(object):
                 with ut.Indenter('[%s] ' % (best_data_key,)):
                     combo_res.extended_clf_report()
                 res = combo_res
-                if 0:
+                if 1:
                     res.report_thresholds()
                 if 0:
                     importance_datakeys = set([
@@ -260,7 +246,7 @@ class OneVsOneProblem(object):
                     ] + [best_data_key])
 
                     for data_key in importance_datakeys:
-                        self.report_classifier_importance(task_key, data_key)
+                        self.report_classifier_importance(task_key, clf_key, data_key)
 
         # ut.cprint('\n--- FEATURE INFO ---', 'blue')
         # for best_data_key in selected_data_keys:
@@ -371,8 +357,8 @@ class OneVsOneProblem(object):
 
         # xvalkw = dict(n_splits=10, shuffle=True,
         xval_kw = {
-            # 'n_splits': 10,
-            'n_splits': 3,
+            'n_splits': 10,
+            # 'n_splits': 3,
             'shuffle': True,
             'random_state': 3953056901,
         }
@@ -455,7 +441,7 @@ class OneVsOneProblem(object):
         labels = next(iter(self.samples.subtasks.values()))
         ut.assert_eq(len(labels), len(self.samples), verbose=False)
 
-        if True:
+        if 0:
             # Remove singletons
             unique_aids = np.unique(self.samples.aid_pairs)
             nids = self.ibs.get_annot_nids(unique_aids)
@@ -472,7 +458,7 @@ class OneVsOneProblem(object):
             ut.assert_eq(len(labels), len(samples2), verbose=False)
             self.samples = samples2
 
-        if True:
+        if 0:
             # Remove anything 1vM didn't get
             mask = (self.samples.simple_scores['score_lnbnn_1vM'] > 0).values
             print('Removing %d pairs based on LNBNN failure' % (len(mask) - sum(mask)))
@@ -767,8 +753,11 @@ class OneVsOneProblem(object):
         print(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
     def report_classifier_importance(self, task_key, clf_key, data_key):
-        ut.qt4ensure()
-        import plottool as pt  # NOQA
+        # ut.qt4ensure()
+        # import plottool as pt  # NOQA
+
+        if clf_key != 'RF':
+            return
 
         X = self.samples.X_dict[data_key]
         # Take average feature importance
@@ -778,32 +767,32 @@ class OneVsOneProblem(object):
         print(' * `num` indicates how many dimensions the row groups')
         print(' * `ave_w` is the average importance a single feature in the row')
         # with ut.Indenter('[%s] ' % (data_key,)):
-        if True:
-            clf_list = self.task_clfs[task_key][clf_key][data_key]
-            feature_importances = np.mean([
-                clf_.feature_importances_ for clf_ in clf_list
-            ], axis=0)
-            importances = ut.dzip(X.columns, feature_importances)
 
-            featinfo = AnnotPairFeatInfo(X, importances)
+        clf_list = self.task_clfs[task_key][clf_key][data_key]
+        feature_importances = np.mean([
+            clf_.feature_importances_ for clf_ in clf_list
+        ], axis=0)
+        importances = ut.dzip(X.columns, feature_importances)
 
-            featinfo.print_margins('feature')
-            featinfo.print_margins('measure_type')
-            featinfo.print_margins('summary_op')
-            featinfo.print_margins('summary_measure')
-            featinfo.print_margins('global_measure')
-            # featinfo.print_margins([('measure_type', '==', 'summary'),
-            #                     ('summary_op', '==', 'sum')])
-            # featinfo.print_margins([('measure_type', '==', 'summary'),
-            #                     ('summary_op', '==', 'mean')])
-            # featinfo.print_margins([('measure_type', '==', 'summary'),
-            #                     ('summary_op', '==', 'std')])
-            # featinfo.print_margins([('measure_type', '==', 'global')])
-            featinfo.print_margins('local_measure')
-            featinfo.print_margins('local_sorter')
-            featinfo.print_margins('local_rank')
-            # ut.fix_embed_globals()
-            # pt.wordcloud(importances)
+        featinfo = AnnotPairFeatInfo(X, importances)
+
+        featinfo.print_margins('feature')
+        featinfo.print_margins('measure_type')
+        featinfo.print_margins('summary_op')
+        featinfo.print_margins('summary_measure')
+        featinfo.print_margins('global_measure')
+        # featinfo.print_margins([('measure_type', '==', 'summary'),
+        #                     ('summary_op', '==', 'sum')])
+        # featinfo.print_margins([('measure_type', '==', 'summary'),
+        #                     ('summary_op', '==', 'mean')])
+        # featinfo.print_margins([('measure_type', '==', 'summary'),
+        #                     ('summary_op', '==', 'std')])
+        # featinfo.print_margins([('measure_type', '==', 'global')])
+        featinfo.print_margins('local_measure')
+        featinfo.print_margins('local_sorter')
+        featinfo.print_margins('local_rank')
+        # ut.fix_embed_globals()
+        # pt.wordcloud(importances)
 
 
 @ut.reloadable_class
