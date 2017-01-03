@@ -19,6 +19,13 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 @ut.reloadable_class
+class ClfProblem(ut.NiceRepr):
+    pass
+    # TODO
+    # def learn_single_clf
+
+
+@ut.reloadable_class
 class MultiTaskSamples(ut.NiceRepr):
     """
     Handles samples (i.e. feature-label pairs) with a combination of
@@ -294,37 +301,37 @@ class ClfResult(object):
             return aligned_arr
 
         res = ClfResult()
-        import utool
-        with utool.embed_on_exception_context:
-            res.class_names = ut.lmap(str, labels.class_names)
-            res.probs_df = pd.DataFrame(
-                align_cols(clf_probs, clf.classes_, labels.classes_), index=index,
-                columns=['p_' + n for n in res.class_names],
-            )
-            res.target_bin_df = pd.DataFrame(
-                data=labels.y_bin[test_idx], index=index,
-                columns=['is_' + n for n in res.class_names],
-            )
-            res.target_enc_df = pd.DataFrame(
-                data=labels.y_enc[test_idx], index=index,
-                columns=['class_idx'],
-            )
+        res.task_key = labels.task_name
+        res.class_names = ut.lmap(str, labels.class_names)
 
-            if hasattr(clf, 'estimators_') and labels.n_classes > 2:
-                # The n-th estimator in the OVR classifier predicts the prob of the
-                # n-th class (as label 1).
-                probs_hat = np.hstack([est.predict_proba(X_test)[:, 1:2]
-                                       for est in clf.estimators_])
-                res.probhats_df = pd.DataFrame(
-                    align_cols(probs_hat, clf.classes_, labels.classes_), index=index,
-                    columns=['phat_' + n for n in res.class_names],
-                )
-                # In the OVR-case, ideally things will sum to 1, but when they
-                # don't normalization happens. An Z-value of more than 1 means
-                # overconfidence, and under 0 means underconfidence.
-                res.confidence_ratio = res.probhats_df.sum(axis=1)
-            else:
-                res.probhats_df = None
+        res.probs_df = pd.DataFrame(
+            align_cols(clf_probs, clf.classes_, labels.classes_), index=index,
+            columns=['p_' + n for n in res.class_names],
+        )
+        res.target_bin_df = pd.DataFrame(
+            data=labels.y_bin[test_idx], index=index,
+            columns=['is_' + n for n in res.class_names],
+        )
+        res.target_enc_df = pd.DataFrame(
+            data=labels.y_enc[test_idx], index=index,
+            columns=['class_idx'],
+        )
+
+        if hasattr(clf, 'estimators_') and labels.n_classes > 2:
+            # The n-th estimator in the OVR classifier predicts the prob of the
+            # n-th class (as label 1).
+            probs_hat = np.hstack([est.predict_proba(X_test)[:, 1:2]
+                                   for est in clf.estimators_])
+            res.probhats_df = pd.DataFrame(
+                align_cols(probs_hat, clf.classes_, labels.classes_), index=index,
+                columns=['phat_' + n for n in res.class_names],
+            )
+            # In the OVR-case, ideally things will sum to 1, but when they
+            # don't normalization happens. An Z-value of more than 1 means
+            # overconfidence, and under 0 means underconfidence.
+            res.confidence_ratio = res.probhats_df.sum(axis=1)
+        else:
+            res.probhats_df = None
 
         return res
 
@@ -341,7 +348,7 @@ class ClfResult(object):
         # Combine them with pandas
         res = ClfResult()
         res0 = res_list[0]
-        # res.samples = res0.samples
+        res.task_key = res0.task_key
         res.class_names = res0.class_names
         # Combine all dataframe properties
         combo_df_attrs = [
@@ -627,8 +634,8 @@ class ClfResult(object):
         # threshold and that class is above a positive threshold
         can_autodecide = ((above_pos_thresh.sum(axis=1) > 0) &
                           (under_neg_thresh.sum(axis=1) >= len(res.class_names) - 1))
-        print('Can make automated decisions on %d/%d = %.2f%% of the data' % (
-            can_autodecide.sum(), len(can_autodecide),
+        print('Can make automated %s decisions on %d/%d = %.2f%% of the data' % (
+            res.task_key, can_autodecide.sum(), len(can_autodecide),
             can_autodecide.sum() / len(can_autodecide)))
 
         auto_probs = clf_probs[can_autodecide]
@@ -639,6 +646,7 @@ class ClfResult(object):
         print(sklearn.metrics.confusion_matrix(auto_truth_enc, auto_pred_enc))
         print('Autoclassify MCC: ' + str(sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
         print('Autoclassify AUC(Macro): ' + str(sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
+        return pos_threshes
 
         # print('hist of auto_truth labels' + str(ut.dict_hist(auto_pred_enc)))
         # thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='columns')
