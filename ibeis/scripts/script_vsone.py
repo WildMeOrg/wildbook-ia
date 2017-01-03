@@ -357,8 +357,8 @@ class OneVsOneProblem(object):
 
         # xvalkw = dict(n_splits=10, shuffle=True,
         xval_kw = {
-            'n_splits': 10,
-            # 'n_splits': 3,
+            # 'n_splits': 10,
+            'n_splits': 2,
             'shuffle': True,
             'random_state': 3953056901,
         }

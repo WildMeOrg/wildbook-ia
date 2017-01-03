@@ -68,12 +68,10 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         try:
             http_server.listen(app.server_port)
         except socket.error:
-            while not ut.is_local_port_open(app.server_port):
-                app.server_port += 1
-            args = (app.server_port, )
-            message = 'The port specified for the IBEIS web interface is ' + \
-                      'not available. (Hint: port %d is available)' % args
-            raise RuntimeError(message)
+            fallback_port = ut.find_open_port(app.server_port)
+            raise RuntimeError(
+                (('The specified IBEIS web port %d is not available, '
+                  'but %d is') % (app.server_port, fallback_port)))
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()
 
