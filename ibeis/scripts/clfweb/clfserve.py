@@ -31,48 +31,59 @@ app = flask.Flask(__name__)
 app.task_data = task_data
 
 
+def ensure_task_table():
+    if not hasattr(app, 'DBTaskTable'):
+        class DBTaskTable(flask_table.Table):
+            allow_sort = True
+
+            def sort_url(self, col_key, reverse=False):
+                if reverse:
+                    direction = 'desc'
+                else:
+                    direction = 'asc'
+                return flask.url_for(ut.get_funcname(index), sort=col_key,
+                                     direction=direction)
+
+        col_nice_lookup = {}
+        columns = [
+            'index',
+            'dbname',
+            ('task', task_link),
+            # ('link', task_link)
+        ]
+        for tup in columns:
+            if isinstance(tup, tuple):
+                colname, link = tup
+                colnice = col_nice_lookup.get(colname, colname)
+                url_kwargs = {a: a for a in ut.get_func_argspec(link).args}
+                endpoint = ut.get_funcname(link)
+                link_kw = dict(name=colnice, attr=colname, endpoint=endpoint,
+                               url_kwargs=url_kwargs, allow_sort=True, show=True)
+                new_col = flask_table.LinkCol(**link_kw)
+            elif isinstance(tup, six.string_types):
+                colname = tup
+                colnice = col_nice_lookup.get(colname, colname)
+                new_col = flask_table.Col(name=colnice, attr=colname,
+                                          allow_sort=True, show=True)
+            else:
+                assert False, 'unkonown tup'
+            DBTaskTable.add_column(colname, new_col)
+        app.DBTaskTable = DBTaskTable
+    return app.DBTaskTable
+
+
 @app.route('/')
 def index():
+    DBTaskTable = ensure_task_table()
+
+    # DBTaskTable._cols['index'].show = not DBTaskTable._cols['index'].show
+
     sort = flask.request.args.get('sort', 'index')
     reverse = (flask.request.args.get('direction', 'asc') == 'desc')
-    class DBTaskTable(flask_table.Table):
-        allow_sort = True
 
-        def sort_url(self, col_key, reverse=False):
-            if reverse:
-                direction = 'desc'
-            else:
-                direction = 'asc'
-            return flask.url_for(ut.get_funcname(index), sort=col_key,
-                                 direction=direction)
-
-    col_nice_lookup = {}
-    columns = [
-        'index',
-        'dbname',
-        ('task', task_link),
-        # ('link', task_link)
-    ]
-    for tup in columns:
-        if isinstance(tup, tuple):
-            colname, link = tup
-            colnice = col_nice_lookup.get(colname, colname)
-            url_kwargs = {a: a for a in ut.get_func_argspec(link).args}
-            endpoint = ut.get_funcname(link)
-            link_kw = dict(name=colnice, attr=colname, endpoint=endpoint,
-                           url_kwargs=url_kwargs, allow_sort=True)
-            new_col = flask_table.LinkCol(**link_kw)
-        elif isinstance(tup, six.string_types):
-            colname = tup
-            colnice = col_nice_lookup.get(colname, colname)
-            new_col = flask_table.Col(name=colnice)
-        else:
-            assert False, 'unkonown tup'
-        DBTaskTable.add_column(colname, new_col)
-
-    print('task_data =\n%s' % (ut.repr4(task_data),))
+    # print('task_data =\n%s' % (ut.repr4(task_data),))
     sorted_data = sorted(task_data.values(), key=lambda x: x[sort], reverse=reverse)
-    print('sorted_data =\n%s' % (ut.repr4(sorted_data),))
+    # print('sorted_data =\n%s' % (ut.repr4(sorted_data),))
     table = DBTaskTable(sorted_data, sort_by=sort, sort_reverse=reverse)
     html = table.__html__()
     return html
@@ -96,6 +107,7 @@ def task_link(index):
 def run_clf_server():
     r"""
     CommandLine:
+        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/ibeis/ibeis/scripts/clfweb
         python -m clfserve run_clf_server
 
     Example:
