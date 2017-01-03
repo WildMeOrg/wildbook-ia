@@ -337,10 +337,13 @@ def get_undirected_edge_ids(directed_edges):
     return edgeid_list
 
 
-def to_undirected_edges(directed_edges):
+def to_undirected_edges(directed_edges, upper=False):
     assert len(directed_edges.shape) == 2 and directed_edges.shape[1] == 2
     #flipped = qaid_arr < daid_arr
-    flipped = directed_edges.T[0] < directed_edges.T[1]
+    if upper:
+        flipped = directed_edges.T[0] > directed_edges.T[1]
+    else:
+        flipped = directed_edges.T[0] < directed_edges.T[1]
     # standardize edge order
     edges_dupl = directed_edges.copy()
     edges_dupl[flipped, 0:2] = edges_dupl[flipped, 0:2][:, ::-1]
@@ -1067,12 +1070,9 @@ def intersect2d_flags(A, B):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
-        >>> # build test data
         >>> A = np.array([[609, 307], [ 95, 344], [  1, 690]])
         >>> B = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
-        >>> # execute function
         >>> (flag_list1, flag_list2) = intersect2d_flags(A, B)
-        >>> # verify results
         >>> result = str((flag_list1, flag_list2))
         >>> print(result)
         (array([False, False, False], dtype=bool), array([False, False, False, False, False], dtype=bool))
@@ -1083,36 +1083,155 @@ def intersect2d_flags(A, B):
     return flag_list1, flag_list2
 
 
-def flag_intersection(X_, C_):
-    if X_.size == 0 or C_.size == 0:
-        flags = np.full(X_.shape[0], False, dtype=np.bool)
+def flag_intersection(arr1, arr2):
+    r"""
+    Flags the rows in `arr1` that contain items in `arr2`
+
+    Returns:
+        ndarray: flags where len(flags) == len(arr1)
+
+    Example0:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([0, 1, 2, 3, 4, 5])
+        >>> arr2 = np.array([2, 6, 4])
+        >>> flags = flag_intersection(arr1, arr2)
+        >>> assert len(flags) == len(arr1)
+        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> print(result)
+        flags = np.array([False, False,  True, False,  True, False])
+
+    Example1:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5]])
+        >>> arr2 = np.array([[0, 2], [0, 6], [0, 4], [3, 0]])
+        >>> arr1, arr2 = vt.structure_rows(arr1, arr2)
+        >>> flags = flag_intersection(arr1, arr2)
+        >>> assert len(flags) == len(arr1)
+        >>> result = ('flags = %s' % (ut.repr2(flags),))
+        >>> print(result)
+        flags = np.array([False, False,  True, False,  True, False])
+
+    Example2:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([0, 1, 2, 3, 4, 5])
+        >>> arr2 = np.array([])
+        >>> flags = flag_intersection(arr1, arr2)
+        >>> assert len(flags) == len(arr1)
+        >>> flags = flag_intersection(np.array([]), np.array([2, 6, 4]))
+        >>> assert len(flags) == 0
+
+    Timeit:
+        >>> setup = ut.codeblock(
+        >>>     r'''
+                import vtool as vt
+                import numpy as np
+                rng = np.random.RandomState(0)
+                arr1 = rng.randint(0, 100, 100000).reshape(-1, 2)
+                arr2 = rng.randint(0, 100, 1000).reshape(-1, 2)
+                arr1_, arr2_ = vt.structure_rows(arr1, arr2)
+                ''')
+        >>> stmt_list = ut.codeblock(
+        >>>     '''
+                np.array([row in arr2_ for row in arr1_])
+                np.logical_or.reduce([arr1_ == row_ for row_ in arr2_]).ravel()
+                vt.iter_reduce_ufunc(np.logical_or, (arr1_ == row_ for row_ in arr2_)).ravel()
+                ''').split('\n')
+        >>> out = ut.timeit_compare(stmt_list, setup=setup, iterations=3)
+    """
+    if arr1.size == 0 or arr2.size == 0:
+        flags = np.full(arr1.shape[0], False, dtype=np.bool)
         #return np.empty((0,), dtype=np.bool)
     else:
-        flags = np.logical_or.reduce([X_ == c for c in C_]).T[0]
+        # flags = np.logical_or.reduce([arr1 == row for row in arr2]).T[0]
+        flags = iter_reduce_ufunc(np.logical_or, (arr1 == row_ for row_ in arr2)).ravel()
     return flags
 
 
-def intersect2d_structured_numpy(A, B, assume_unique=False):
+def structure_rows(*arrs):
+    r"""
+    CommandLine:
+        python -m vtool.other structure_rows
+
+    SeeAlso:
+        unstructure_rows
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.other import *  # NOQA
+        >>> arr1 = np.array([[609, 307], [ 95, 344], [  1, 690]])
+        >>> arr2 = np.array([[ 422, 1148], [ 422,  968], [ 481, 1148], [ 750, 1132], [ 759,  159]])
+        >>> arrs = (arr1, arr2)
+        >>> structured_arrs = structure_rows(*arrs)
+        >>> unstructured_arrs = unstructure_rows(*structured_arrs)
+        >>> assert np.all(unstructured_arrs[0] == arrs[0])
+        >>> assert np.all(unstructured_arrs[1] == arrs[1])
+        >>> union_ = np.union1d(*structured_arrs)
+        >>> union, = unstructure_rows(union_)
+        >>> assert len(union.shape) == 2
     """
+    arr0 = arrs[0]
+    ncols = arr0.shape[1]
+    dtype = {'names': ['f%d' % (i,) for i in range(ncols)],
+             'formats': ncols * [arr0.dtype]}
+    for arr in arrs:
+        assert len(arr.shape) == 2, 'arrays must be 2d'
+        assert arr.dtype == arr0.dtype, 'arrays must share the same dtype'
+        assert arr.shape[1] == ncols, 'arrays must share column shape'
+    structured_arrs = []
+    for arr in arrs:
+        arr_ = np.ascontiguousarray(arr).view(dtype)
+        structured_arrs.append(arr_)
+    return structured_arrs
+
+
+def unstructure_rows(*structured_arrs):
+    r"""
+    SeeAlso:
+        structure_rows
+    """
+    # TODO: assert arr.dtype.fields are all the same type
+    unstructured_arrs = [arr.view(arr.dtype.fields.values()[0][0])
+                         for arr in structured_arrs]
+    unstructured_arrs = []
+    for arr_ in structured_arrs:
+        dtype = list(arr_.dtype.fields.values())[0][0]
+        arr = arr_.view(dtype).reshape(-1, 2)
+        unstructured_arrs.append(arr)
+    return unstructured_arrs
+
+
+def intersect2d_structured_numpy(arr1, arr2, assume_unique=False):
+    """
+    Args:
+        arr1: unstructured 2d array
+        arr2: unstructured 2d array
+
+    Returns:
+        A_, B_, C_ - structured versions of arr1, and arr2, and their structured intersection
+
     References:
         http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
         http://stackoverflow.com/questions/8317022/get-intersecting-rows-across-two-2d-numpy-arrays
     """
-    nrows, ncols = A.shape
-    assert A.dtype == B.dtype, ('A and B must have the same dtypes.'
-                                'A.dtype=%r, B.dtype=%r' % (A.dtype, B.dtype))
-    [('f%d' % i, A.dtype) for i in range(ncols)]
-    #dtype = np.dtype([('f%d' % i, A.dtype) for i in range(ncols)])
+    ncols = arr1.shape[1]
+    assert arr1.dtype == arr2.dtype, (
+        'arr1 and arr2 must have the same dtypes.'
+        'arr1.dtype=%r, arr2.dtype=%r' % (arr1.dtype, arr2.dtype))
+    # [('f%d' % i, arr1.dtype) for i in range(ncols)]
+    #dtype = np.dtype([('f%d' % i, arr1.dtype) for i in range(ncols)])
     #dtype = {'names': ['f{}'.format(i) for i in range(ncols)],
-    #         'formats': ncols * [A.dtype]}
+    #         'formats': ncols * [arr1.dtype]}
     dtype = {'names': ['f%d' % (i,) for i in range(ncols)],
-             'formats': ncols * [A.dtype]}
+             'formats': ncols * [arr1.dtype]}
     #try:
-    A_ = np.ascontiguousarray(A).view(dtype)
-    B_ = np.ascontiguousarray(B).view(dtype)
+    A_ = np.ascontiguousarray(arr1).view(dtype)
+    B_ = np.ascontiguousarray(arr2).view(dtype)
     C_ = np.intersect1d(A_, B_, assume_unique=assume_unique)
-    #C = np.intersect1d(A.view(dtype),
-    #                   B.view(dtype),
+    #C = np.intersect1d(arr1.view(dtype),
+    #                   arr2.view(dtype),
     #                   assume_unique=assume_unique)
     #except ValueError:
     #    C = np.intersect1d(A.copy().view(dtype),

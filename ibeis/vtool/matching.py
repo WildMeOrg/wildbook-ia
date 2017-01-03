@@ -188,7 +188,8 @@ class PairwiseMatch(ut.NiceRepr):
             aid2 = match.annot2['aid']
             vsstr = '%s-vs-%s' % (aid1, aid2)
             parts.append(vsstr)
-        parts.append('None' if match.fm is None else str(len(match.fm)))
+        parts.append('None' if match.fm is None else
+                     six.text_type(len(match.fm)))
         return ' '.join(parts)
 
     def __len__(match):
@@ -383,12 +384,17 @@ class PairwiseMatch(ut.NiceRepr):
         return match_
 
     @profile
-    def _make_global_feature_vector(match):
+    def _make_global_feature_vector(match, global_keys=None):
         """ Global annotation properties and deltas """
         import vtool as vt
         feat = ut.odict([])
 
-        for k, v in match.global_measures.items():
+        if global_keys is None:
+            # FIXME: speed
+            global_keys = sorted(match.global_measures.keys())
+        global_measures = ut.dict_subset(match.global_measures, global_keys)
+
+        for k, v in global_measures.items():
             v1, v2 = v
             if v1 is None:
                 v1 = np.nan
@@ -417,43 +423,50 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     @profile
-    def _make_local_summary_feature_vector(match, keys=None, sum=True,
-                                           mean=True, std=True, med=False):
+    def _make_local_summary_feature_vector(match, local_keys=None,
+                                           summary_ops=None):
         """ Summary statistics of local features """
-        if keys is None:
+        if summary_ops is None:
+            summary_ops = {'sum', 'mean', 'std', 'len'}
+        if local_keys is None:
             local_measures = match.local_measures
         else:
-            local_measures = ut.dict_subset(match.local_measures, keys)
+            local_measures = ut.dict_subset(match.local_measures, local_keys)
         feat = ut.odict([])
-        feat['len(matches)'] = len(match.fm)
-        if sum:
+        if 'len' in summary_ops:
+            feat['len(matches)'] = len(match.fm)
+        if 'sum' in summary_ops:
             for k, vs in six.iteritems(local_measures):
                 feat['sum(%s)' % (k,)] = vs.sum()
-        if mean:
+        if 'mean' in summary_ops:
             for k, vs in six.iteritems(local_measures):
                 feat['mean(%s)' % (k,)] = np.mean(vs)
-        if std:
+        if 'std' in summary_ops:
             for k, vs in six.iteritems(local_measures):
                 feat['std(%s)' % (k,)] = np.std(vs)
-        if med:
+        if 'med' in summary_ops:
             for k, vs in six.iteritems(local_measures):
                 feat['med(%s)' % (k,)] = np.median(vs)
         return feat
 
     @profile
-    def _make_local_top_feature_vector(match, keys=None, sorters='ratio',
+    def _make_local_top_feature_vector(match, local_keys=None, sorters='ratio',
                                        indices=3):
         """ Selected subsets of top features """
-        if keys is None:
+        if local_keys is None:
             local_measures = match.local_measures
         else:
-            local_measures = ut.dict_subset(match.local_measures, keys)
+            local_measures = ut.dict_subset(match.local_measures, local_keys)
 
+        # Convert indices to an explicit list
         if isinstance(indices, int):
             indices = slice(indices)
         if isinstance(indices, slice):
+            # assert indices.stop is not None, 'indices must have maximum value'
             indices = list(range(*indices.indices(len(match.fm))))
-
+            # indices = list(range(*indices.indices(indices.stop)))
+        if len(indices) == 0:
+            return {}
         # TODO: some sorters might want descending orders
         sorters = ut.ensure_iterable(sorters)
         chosen_xs = [
@@ -469,18 +482,45 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     @profile
-    def make_feature_vector(match, keys=None, sum=True, mean=True, std=True,
-                            med=False, **kwargs):
+    def make_feature_vector(match, local_keys=None, global_keys=None,
+                            summary_ops=None, sorters='ratio', indices=3):
         """
         Constructs the pairwise feature vector that represents a match
+
+        Args:
+            local_keys (None): (default = None)
+            global_keys (None): (default = None)
+            summary_ops (None): (default = None)
+            sorters (str): (default = 'ratio')
+            indices (int): (default = 3)
+
+        Returns:
+            dict: feat
+
+        CommandLine:
+            python -m vtool.matching make_feature_vector
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from vtool.matching import *  # NOQA
+            >>> from vtool.inspect_matches import lazy_test_annot
+            >>> import vtool as vt
+            >>> annot1 = lazy_test_annot('easy1.png')
+            >>> annot2 = lazy_test_annot('easy2.png')
+            >>> match = vt.PairwiseMatch(annot1, annot2)
+            >>> match.apply_all({})
+            >>> feat = match.make_feature_vector(indices=[0, 1])
+            >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
+            >>> print(result)
         """
         feat = ut.odict([])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            feat.update(match._make_global_feature_vector())
+            feat.update(match._make_global_feature_vector(global_keys))
             feat.update(match._make_local_summary_feature_vector(
-                keys, sum=sum, mean=mean, std=std, med=med))
-            feat.update(match._make_local_top_feature_vector(keys, **kwargs))
+                local_keys, summary_ops))
+            feat.update(match._make_local_top_feature_vector(
+                local_keys, sorters=sorters, indices=indices))
         return feat
 
 
