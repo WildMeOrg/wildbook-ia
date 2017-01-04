@@ -505,6 +505,10 @@ class ConfusionMetrics(object):
             >>> print(result)
             thresh = 22.5
         """
+        if value == 'max':
+            return self.get_thresh_at_metric_max(metric)
+        # if value == 'min':
+        #     return self.get_thresh_at_metric_min(metric)
         # TODO: Use interpoloation here and make tpr vs fpr a smooth funciton
         metric = self.inv_aliases[metric]
         metric_values = getattr(self, metric)
