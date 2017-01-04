@@ -35,6 +35,40 @@ class ClfProblem(ut.NiceRepr):
     pass
     # TODO
     # def learn_single_clf
+    def get_xval_kw(self):
+        # xvalkw = dict(n_splits=10, shuffle=True,
+        xval_kw = {
+            # 'n_splits': 10,
+            'n_splits': 2,
+            'shuffle': True,
+            'random_state': 3953056901,
+        }
+        return xval_kw
+
+    def get_clf_params(self, clf_key):
+        est_type = clf_key.split('-')[0]
+        if est_type in {'RF', 'RandomForest'}:
+            est_kw1 = {
+                # 'max_depth': 4,
+                'bootstrap': True,
+                'class_weight': None,
+                'max_features': 'sqrt',
+                # 'max_features': None,
+                'missing_values': np.nan,
+                'min_samples_leaf': 5,
+                'min_samples_split': 2,
+                'n_estimators': 256,
+                'criterion': 'entropy',
+            }
+            est_kw2 = {
+                'random_state': 3915904814,
+                'verbose': 0,
+                'n_jobs': -1,
+            }
+        elif est_type in {'SVC', 'SVM'}:
+            est_kw1 = dict(kernel='linear')
+            est_kw2 = {}
+        return est_kw1, est_kw2
 
     def set_pandas_options(self):
         # pd.options.display.max_rows = 10
@@ -42,6 +76,126 @@ class ClfProblem(ut.NiceRepr):
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
+    def learn_evaluation_classifiers(self, task_keys=None, clf_keys=None,
+                                     data_keys=None, cfg_prefix=''):
+        """
+        Evaluates by learning classifiers using cross validation.
+        Do not use this to learn production classifiers.
+
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        """
+        self.task_clfs = ut.AutoVivification()
+        self.task_combo_res = ut.AutoVivification()
+
+        if task_keys is None:
+            task_keys = list(self.samples.subtasks.keys())
+        if data_keys is None:
+            task_keys = list(self.samples.X_dict.keys())
+        if clf_keys is None:
+            clf_keys = ['RF']
+
+        Prog = ut.ProgPartial(freq=1, adjust=False, prehack='%s')
+        task_prog = Prog(task_keys, label='Task')
+        for task_key in task_prog:
+            dataset_prog = Prog(data_keys, label='Data')
+            for data_key in dataset_prog:
+                clf_prog = Prog(clf_keys, label='CLF')
+                for clf_key in clf_prog:
+                    self._ensure_evaluation_clf(task_key, data_key, clf_key,
+                                                cfg_prefix)
+
+    def _ensure_evaluation_clf(self, task_key, data_key, clf_key, cfg_prefix):
+        """
+        Learns and caches an evaluation (cross-validated) classifier and tests
+        and caches the results.
+        """
+        # TODO: add in params used to construct features into the cfgstr
+        est_kw1, est_kw2 = self.get_clf_params(clf_key)
+        xval_kw = self.get_xval_kw()
+        param_id = ut.get_dict_hashid(est_kw1)
+        xval_id = ut.get_dict_hashid(xval_kw)
+        cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
+                           data_key, clf_key])
+
+        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=1)
+        cacher_clf = ut.Cacher('eval_clf_v11', cfgstr=cfgstr, **cacher_kw)
+        cacher_res = ut.Cacher('eval_res_v11', cfgstr=cfgstr, **cacher_kw)
+
+        clf_list = cacher_clf.tryload()
+        if not clf_list:
+            clf_list = self._train_evaluation_clf(task_key, data_key, clf_key)
+            cacher_clf.save(clf_list)
+
+        res_list = cacher_res.tryload()
+        if not res_list:
+            res_list = self._test_evaulation_clf(task_key, data_key, clf_list)
+            cacher_res.save(res_list)
+
+        labels = self.samples.subtasks[task_key]
+        combo_res = ClfResult.combine_results(res_list, labels)
+        self.task_clfs[task_key][clf_key][data_key] = clf_list
+        self.task_combo_res[task_key][clf_key][data_key] = combo_res
+
+    def _test_evaulation_clf(self, task_key, data_key, clf_list):
+        """ Test a cross-validated classifier on the dataset """
+        X_df = self.samples.X_dict[data_key]
+        labels = self.samples.subtasks[task_key]
+        xval_kw = self.get_xval_kw()
+
+        res_list = []
+        skf_list = self.samples.stratified_kfold_indices(**xval_kw)
+        skf_prog = ut.ProgIter(zip(clf_list, skf_list), length=len(skf_list),
+                               label='skf-test')
+        for clf, (train_idx, test_idx) in skf_prog:
+            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key)
+            res_list.append(res)
+        return res_list
+
+    def _train_evaluation_clf(self, task_key, data_key, clf_key):
+        """
+        Learns a cross-validated classifier on the dataset
+
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> self = OneVsOneProblem()
+            >>> self.load_features()
+            >>> self.load_samples()
+            >>> data_key = 'learn(all)'
+            >>> task_key = 'photobomb_state'
+            >>> task_key = 'match_state'
+            >>> clf_key = 'RF-OVR'
+            >>> clf_key = 'RF'
+        """
+        X_df = self.samples.X_dict[data_key]
+        labels = self.samples.subtasks[task_key]
+
+        tup = clf_key.split('-')
+        wrap_type = None if len(tup) == 1 else tup[1]
+        est_type = tup[0]
+        multiclass_wrapper = {
+            None: ut.identity,
+            'OVR': sklearn.multiclass.OneVsRestClassifier,
+            'OVO': sklearn.multiclass.OneVsOneClassifier,
+        }[wrap_type]
+        est_class = {
+            'RF': sklearn.ensemble.RandomForestClassifier,
+            'SVC': sklearn.svm.SVC,
+        }[est_type]
+
+        est_kw1, est_kw2 = self.get_clf_params(est_type)
+        xval_kw = self.get_xval_kw()
+        est_params = ut.merge_dicts(est_kw1, est_kw2)
+
+        clf_list = []
+        skf_list = self.samples.stratified_kfold_indices(**xval_kw)
+        skf_prog = ut.ProgIter(skf_list, label='skf-learn')
+        for train_idx, test_idx in skf_prog:
+            X_train = X_df.values[train_idx]
+            y_train = labels.y_enc[train_idx]
+            clf = multiclass_wrapper(est_class(**est_params))
+            clf.fit(X_train, y_train)
+            clf_list.append(clf)
+        return clf_list
 
 
 @ut.reloadable_class
