@@ -139,6 +139,9 @@ class _AnnotInfrHelpers(object):
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
         return data
 
+    def print_graph_info(infr):
+        print(ut.repr3(ut.graph_info(infr.simplify_graph())))
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrDummy(object):
@@ -1172,6 +1175,113 @@ class _AnnotInfrMatching(object):
         infr.qreq_  = infr.vsone_qreq_
         infr.cm_list = cm_list
 
+    def _exec_pairwise_match(infr, edges, config={}, prog_hook=None):
+        edges = ut.lmap(tuple, ut.aslist(edges))
+        print('[infr] exec_vsone_subset')
+        qaids = ut.take_column(edges, 0)
+        daids = ut.take_column(edges, 1)
+        # TODO: ensure feat/chip configs are resepected
+        match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
+                                       'match', config=config)
+        # recompute=True)
+        # Hack: Postprocess matches to re-add annotation info in lazy-dict format
+        from ibeis import core_annots
+        config = ut.hashdict(config)
+        configured_lazy_annots = core_annots.make_configured_annots(
+            infr.ibs, qaids, daids, config, config, preload=True)
+        for qaid, daid, match in zip(qaids, daids, match_list):
+            match.annot1 = configured_lazy_annots[config][qaid]
+            match.annot2 = configured_lazy_annots[config][daid]
+            match.config = config
+        return match_list
+
+    def _enrich_matches_lnbnn(infr, matches, inplace=False):
+        """
+        applies lnbnn scores to pairwise one-vs-one matches
+        """
+        from ibeis.algo.hots import nn_weights
+        qreq_ = infr.qreq_
+        qreq_.load_indexer()
+        indexer = qreq_.indexer
+        if not inplace:
+            matches_ = [match.copy() for match in matches]
+        else:
+            matches_ = matches
+        K = qreq_.qparams.K
+        Knorm = qreq_.qparams.Knorm
+        normalizer_rule  = qreq_.qparams.normalizer_rule
+
+        print('[inf] Stacking vecs for batch lnbnn matching')
+        offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
+        stacked_vecs = np.vstack([
+            match_.matched_vecs2()
+            for match_ in ut.ProgIter(matches_, label='stack matched vecs')
+        ])
+
+        vecs = stacked_vecs
+        num = (K + Knorm)
+        idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
+                                        label='lnbnn scoring')
+
+        idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
+        dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+        iter_ = zip(matches_, idx_list, dist_list)
+        prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+        for match_, neighb_idx, neighb_dist in prog:
+            qaid = match_.annot2['aid']
+            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
+            ndist = vt.take_col_per_row(neighb_dist, norm_k)
+            vdist = match_.local_measures['match_dist']
+            lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
+            lnbnn_clip_dist = np.clip(lnbnn_dist, 0, np.inf)
+            match_.local_measures['lnbnn_norm_dist'] = ndist
+            match_.local_measures['lnbnn'] = lnbnn_dist
+            match_.local_measures['lnbnn_clip'] = lnbnn_clip_dist
+            match_.fs = lnbnn_dist
+        return matches_
+
+    def _enriched_pairwise_matches(infr, edges, config={}, global_keys=None,
+                                   need_lnbnn=True, prog_hook=None):
+        if global_keys is None:
+            global_keys = ['yaw', 'qual', 'gps', 'time']
+        matches = infr._exec_pairwise_match(edges, config=config,
+                                            prog_hook=prog_hook)
+        print('[infr] enriching matches')
+        if need_lnbnn:
+            infr._enrich_matches_lnbnn(matches, inplace=True)
+        # Ensure matches know about relavent metadata
+        for match in matches:
+            vt.matching.ensure_metadata_normxy(match.annot1)
+            vt.matching.ensure_metadata_normxy(match.annot2)
+        for match in ut.ProgIter(matches, label='setup globals'):
+            match.add_global_measures(global_keys)
+        for match in ut.ProgIter(matches, label='setup locals'):
+            match.add_local_measures()
+        return matches
+
+    def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
+                                global_keys=None, need_lnbnn=True):
+        """
+        Construct matches and their pairwise features
+        """
+        import pandas as pd
+        # TODO: ensure feat/chip configs are resepected
+        matches = infr._enriched_pairwise_matches(edges, config=config,
+                                                  global_keys=global_keys,
+                                                  need_lnbnn=need_lnbnn)
+        # ---------------
+        # Try different feature constructions
+        print('[infr] building pairwise features')
+        pairwise_feats = pd.DataFrame([
+            m.make_feature_vector(**pairfeat_cfg)
+            for m in ut.ProgIter(matches, label='making pairwise feats')
+        ])
+        pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
+        # Re-order column names to be consistent
+        pairwise_feats = pairwise_feats.reindex_axis(
+            sorted(pairwise_feats.columns), axis=1)
+        return matches, pairwise_feats
+
     def exec_vsone_subset(infr, edges, config={}, prog_hook=None):
         r"""
         Args:
@@ -1190,29 +1300,14 @@ class _AnnotInfrMatching(object):
             >>> result = infr.exec_vsone_subset(edges)
             >>> print(result)
         """
-        edges = (edges.tolist() if isinstance(edges, np.ndarray)
-                 else list(edges))
-        edges = ut.lmap(tuple, edges)
-        print('[infr] exec_vsone_subset')
-        qaids = ut.take_column(edges, 0)
-        daids = ut.take_column(edges, 1)
-        match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
-                                       'match', config=config)
-        # recompute=True)
-        # Hack: Postprocess matches to re-add annotation info in lazy-dict format
-        from ibeis import core_annots
-        config = ut.hashdict(config)
-        configured_lazy_annots = core_annots.make_configured_annots(
-            infr.ibs, qaids, daids, config, config, preload=True)
-        edge_scores = []
-        for match, qaid, daid in zip(match_list, qaids, daids):
-            match.annot1 = configured_lazy_annots[config][qaid]
-            match.annot2 = configured_lazy_annots[config][daid]
-            match.config = config
-            infr.vsone_matches[e_(qaid, daid)] = match
-            edge_scores.append(match.fs.sum())
-        infr.graph.add_edges_from(edges)
-        infr.set_edge_attrs('score', ut.dzip(edges, edge_scores))
+        match_list = infr._exec_pairwise_match(edges, config=config,
+                                               prog_hook=prog_hook)
+        vsone_matches = {e_(u, v) for (u, v), match in zip(edges, match_list)}
+        infr.vsone_matches.update(vsone_matches)
+        edge_to_score = {e: match.fs.sum() for e, match in
+                         vsone_matches.items()}
+        infr.graph.add_edges_from(edge_to_score.keys())
+        infr.set_edge_attrs('score', edge_to_score)
         return match_list
 
     def lookup_cm(infr, aid1, aid2):

@@ -18,6 +18,18 @@ import sklearn.ensemble
 print, rrr, profile = ut.inject2(__name__)
 
 
+def voting_ensemble(clf_list, voting='hard'):
+    """
+    hack to construct a VotingClassifier from pretrained classifiers
+    TODO: contribute similar functionality to sklearn
+    """
+    estimators = [('clf%d' % count, clf) for count, clf in enumerate(clf_list)]
+    eclf = sklearn.ensemble.VotingClassifier(estimators=estimators,
+                                             voting=voting)
+    eclf.estimators_ = clf_list
+    return eclf
+
+
 @ut.reloadable_class
 class ClfProblem(ut.NiceRepr):
     pass
@@ -139,6 +151,14 @@ class MultiTaskSamples(ut.NiceRepr):
     # def take(samples, idxs):
     #     mask = ut.index_to_boolmask(idxs, len(samples))
     #     return samples.compress(mask)
+
+    def stratified_kfold_indices(samples, **xval_kw):
+        """ TODO: check xval label frequency """
+        skf = sklearn.model_selection.StratifiedKFold(**xval_kw)
+        skf_iter = skf.split(X=np.empty((len(samples), 0)),
+                             y=samples.encoded_1d())
+        skf_list = list(skf_iter)
+        return skf_list
 
 
 @ut.reloadable_class
@@ -275,16 +295,35 @@ class MultiClassLabels(ut.NiceRepr):
 
 
 @ut.reloadable_class
-class ClfResult(object):
+class ClfResult(ut.NiceRepr):
     """
     Handles evaluation statistics for a multiclass classifier trained on a
     specific dataset with specific labels.
     """
+
+    # Attributes that identify the task and data the classifier is evaluated on
+    _key_attrs = [
+        'task_key',
+        'data_key',
+        'class_names',
+    ]
+
+    # Attributes about results and labels of individual samples
+    _datafame_attrs = [
+        'probs_df',
+        'probhats_df',
+        'target_bin_df',
+        'target_enc_df',
+    ]
+
     def __init__(res):
         pass
 
+    def __nice__(res):
+        return '%s, %s' % (res.task_key, res.data_key)
+
     @classmethod
-    def make_single(ClfResult, clf, X_df, test_idx, labels):
+    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key):
         """
         Make a result for a single cross validiation subset
         """
@@ -302,6 +341,7 @@ class ClfResult(object):
 
         res = ClfResult()
         res.task_key = labels.task_name
+        res.data_key = data_key
         res.class_names = ut.lmap(str, labels.class_names)
 
         res.probs_df = pd.DataFrame(
@@ -343,21 +383,19 @@ class ClfResult(object):
         """
         # Ensure that res_lists are not overlapping
         idx_sets = [set(_res.probs_df.index.values) for _res in res_list]
-        assert not any([s1.intersection(s2)
-                        for s1, s2 in ut.combinations(idx_sets, 2)])
+        assert not any(s1 & s2 for s1, s2 in ut.combinations(idx_sets, 2)), (
+            'ClfResult dataframes must be disjoint')
         # Combine them with pandas
         res = ClfResult()
         res0 = res_list[0]
-        res.task_key = res0.task_key
-        res.class_names = res0.class_names
-        # Combine all dataframe properties
-        combo_df_attrs = [
-            'probs_df',
-            'probhats_df',
-            'target_bin_df',
-            'target_enc_df',
-        ]
-        for attr in combo_df_attrs:
+        # Transfer single attributes (which should all be the same)
+        for attr in ClfResult._key_attrs:
+            val = getattr(res0, attr)
+            setattr(res, attr, val)
+            assert all(getattr(r, attr) == val for r in res_list), (
+                'ClfResult with different key attributes are incompatible')
+        # Combine dataframe properties (which should all have disjoint indices)
+        for attr in ClfResult._datafame_attrs:
             if getattr(res0, attr) is not None:
                 combo_attr = pd.concat([getattr(r, attr) for r in res_list])
                 setattr(res, attr, combo_attr)
@@ -554,9 +592,23 @@ class ClfResult(object):
         # print('Confusion Matrix:')
         # print(ut.hz_str('    ', cfsm_str))
 
+    def get_pos_threshes(res, metric='fpr', value=1E-4, prefer_max=False):
+        import vtool as vt
+        y_test_bin = res.target_bin_df.values
+        clf_probs = res.probs_df.values
+        pos_threshes = {}
+        for k in range(y_test_bin.shape[1]):
+            class_name = res.class_names[k]
+            probs, labels = clf_probs.T[k], y_test_bin.T[k]
+            cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            pos_threshes[class_name] = cfms.get_thresh_at_metric(metric, value,
+                                                                 prefer_max=prefer_max)
+        return pos_threshes
+
     def report_thresholds(res):
         import vtool as vt
         y_test_bin = res.target_bin_df.values
+        # y_test_enc = y_test_bin.argmax(axis=1)
         clf_probs = res.probs_df.values
 
         # The maximum allowed false positive rate
@@ -600,21 +652,7 @@ class ClfResult(object):
             # chosen_type = class_name + '@fpr=0'
             # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
-        pos_threshes = {}
-        # neg_threshes = {}
-        # What is the lowest threshold such that something
-        for k in range(y_test_bin.shape[1]):
-            class_name = res.class_names[k]
-            probs, labels = clf_probs.T[k], y_test_bin.T[k]
-            cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-            pos_threshes[class_name] = cfms.get_thresh_at_metric('fpr', 1E-4,
-                                                                 prefer_max=False)
-            # neg_threshes[class_name] = cfms.get_thresh_at_metric('fnr', 1E-1,
-            #                                                      prefer_max=True)
-            # neg_threshes[class_name] = cfms.get_thresh_at_metric('fnr', 1E-5,
-            #                                                      prefer_max=True)
-            # neg_threshes[class_name] = cfms.thresholds[np.where(cfms.tp > 0)[0][0]]
-            # neg_threshes[class_name] = cfms.thresholds[np.where(cfms.fn > 0)[0][-1]]
+        pos_threshes = res.get_pos_threshes()
 
         print('pos_threshes = %s' % (ut.repr2(pos_threshes, precision=4),))
         # print('neg_threshes = %r' % (neg_threshes,))
@@ -634,29 +672,62 @@ class ClfResult(object):
         # threshold and that class is above a positive threshold
         can_autodecide = ((above_pos_thresh.sum(axis=1) > 0) &
                           (under_neg_thresh.sum(axis=1) >= len(res.class_names) - 1))
-        print('Can make automated %s decisions on %d/%d = %.2f%% of the data' % (
-            res.task_key, can_autodecide.sum(), len(can_autodecide),
-            can_autodecide.sum() / len(can_autodecide)))
+
+        perclass_autodecide_num_total = np.array([
+            (can_autodecide[y_test_bin.T[k]].sum(), y_test_bin.T[k].sum())
+            for k in range(y_test_bin.shape[1])
+        ])
+        num, total = perclass_autodecide_num_total.sum(axis=0)
+        print('Auto %r thresholds passed by %d/%d = %.2f%%' % (
+            res.task_key, num, total, num / total))
+        for k in range(y_test_bin.shape[1]):
+            num, total = perclass_autodecide_num_total[k]
+            print(' * %d/%d = %.2f%% of class %r' % (
+                num, total, num / total, res.class_names[k]))
 
         auto_probs = clf_probs[can_autodecide]
         auto_truth_bin = y_test_bin[can_autodecide]
         auto_truth_enc = auto_truth_bin.argmax(axis=1)
+
+        class_xs, groupxs = vt.group_indices(auto_truth_enc)
+
         auto_pred_enc = auto_probs.argmax(axis=1)
         print('Autoclassify Confusion Matrix:\n')
         print(sklearn.metrics.confusion_matrix(auto_truth_enc, auto_pred_enc))
         print('Autoclassify MCC: ' + str(sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
         print('Autoclassify AUC(Macro): ' + str(sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
-        return pos_threshes
+        # return pos_threshes
 
         # print('hist of auto_truth labels' + str(ut.dict_hist(auto_pred_enc)))
         # thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='columns')
 
-        # # ut.qt4ensure()
-        # # ROCInteraction = vt.interact_roc_factory(cfms, target_tpr,
-        # #                                          show_operating_point=True)
-        # # import plottool as pt
-        # # fnum = pt.ensure_fnum(k)
-        # # ROCInteraction.static_plot(fnum, None, name=str(k))
+    def ishow_roc(res):
+        import vtool as vt
+        import plottool as pt
+        y_test_bin = res.target_bin_df.values
+        clf_probs = res.probs_df.values
+        ut.qt4ensure()
+
+        # The maximum allowed false positive rate
+        # We expect that we will make 1 error every 1,000 decisions
+        # thresh_df['foo'] = [1, 2, 3]
+        # thresh_df['foo'][res.class_names[k]] = 1
+
+        # for k in [2, 0, 1]:
+        for k in range(y_test_bin.shape[1]):
+            if y_test_bin.shape[1] == 2 and k == 0:
+                # only show one in the binary case
+                continue
+            class_name = res.class_names[k]
+            probs, labels = clf_probs.T[k], y_test_bin.T[k]
+            confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+
+            ROCInteraction = vt.interact_roc_factory(confusions,
+                                                     show_operating_point=True)
+            fnum = pt.ensure_fnum(k)
+            # ROCInteraction.static_plot(fnum, None, name=class_name)
+            inter = ROCInteraction(fnum=fnum, pnum=None, name=class_name)
+            inter.start()
         # if False:
         #     X = probs
         #     y = labels
@@ -664,8 +735,8 @@ class ClfResult(object):
         #     encoder.fit(probs, labels)
         #     learn_thresh = encoder.learn_threshold2()
         #     encoder.inverse_normalize(learn_thresh)
-        # # encoder.visualize(fnum=k)
-        # pass
+        # encoder.visualize(fnum=k)
+        pass
 
     def roc_scores_ovr_hat(res):
         res.augment_if_needed()

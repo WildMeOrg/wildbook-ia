@@ -15,7 +15,7 @@ import numpy as np
 import vtool as vt
 import dtool as dt
 import copy
-from six.moves import zip, range  # NOQA
+from six.moves import zip
 import pandas as pd
 import sklearn
 import sklearn.metrics
@@ -43,6 +43,13 @@ class PairFeatureConfig(dt.Config):
     _param_info_list = [
         ut.ParamInfo('indices', slice(0, 26, 5)),
         ut.ParamInfo('summary_ops', {'sum', 'std', 'mean', 'len', 'med'}),
+        ut.ParamInfo('local_keys', None),
+        # ut.ParamInfo('local_keys', [...]),
+        ut.ParamInfo('sorters', [
+            'ratio', 'norm_dist', 'match_dist'
+            # 'lnbnn', 'lnbnn_norm_dist',
+        ]),
+
         # ut.ParamInfo('sum', True),
         # ut.ParamInfo('std', True),
         # ut.ParamInfo('mean', True),
@@ -92,6 +99,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         )
         if qreq_.qparams.featweight_enabled:
             hyper_params.vsone_assign['weight'] = 'fgweights'
+            hyper_params.pairwise_feats['sorters'] += [
+                'weighted_ratio',
+                # 'weighted_lnbnn',
+            ]
         else:
             hyper_params.vsone_assign['weight'] = None
         assert qreq_.qparams.can_match_samename is True
@@ -159,7 +170,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 print(ut.indent(AnnotPairFeatInfo(self.samples.X_dict[data_key]).get_infostr()))
 
         task_keys = list(self.samples.subtasks.keys())
-        task_keys = ut.setdiff(task_keys, ['photobomb_state'])
+        # task_keys = ut.setdiff(task_keys, ['photobomb_state'])
 
         data_keys = list(self.samples.X_dict.keys())
         # clf_keys = ['RF', 'RF-OVR']
@@ -288,33 +299,64 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def end_to_end(self):
         """
+        NOTE: the classifiers are always applied to unseen pairs.  However,
+        novel pairs may contain previously seen annotations.
+
         TODO: use photobomb and match_state classifier together the way they
         would be used in the end-to-end system.
         IE. Don't automatch anything that has a high photobomb probability
         """
+        # hack to load specific datas (paramatarize me)
+        clf_key = 'RF'
+        data_key = 'learn(sum,glob)'
+        task_list = ['match_state', 'photobomb_state']
+
+        # Create a new AnnotInference instance to go end-to-end
         import ibeis
         aids = np.unique(self.samples.aid_pairs)
         infr = ibeis.AnnotInference(ibs=self.qreq_.ibs, aids=aids,
                                     autoinit=True)
+        # Use one-vs-many to establish candidate edges to classify
         infr.exec_matching()
         infr.apply_match_edges()
-        infr.graph.edges()
 
-        # hack to load specific datas (paramatarize me)
-        task_key = 'match_state'
-        clf_key = 'RF'
-        data_key = 'learn(sum,glob)'
-        # data_key = selected_data_keys[task_key][0]
-        combo_res = self.task_combo_res[task_key][clf_key][data_key]
+        # Choose a classifier for each task
+        res_dict = dict([
+            (task_key, self.task_combo_res[task_key][clf_key][data_key])
+            for task_key in task_list
+        ])
+        assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
+            'inconsistent combined result indices')
 
-        # Determine which edges have probs evaluated and what edges need
-        # evaluation
+        # Get the operating points
+        # (FIXME this is influenced by re-using the training set)
+        operating_points = {
+            'match_state': ('fpr', 1E-4),
+            'photobomb_state': ('mcc', 'max'),
+        }
+        task_thresh = {}
+        for task_key in task_list:
+            metric, value = operating_points[task_key]
+            task_thresh[task_key] = res_dict[task_key].get_pos_threshes(metric, value)
+        print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
+
+        # Normalize and align combined result sample edges
+        combores_idx = next(iter(res_dict.values())).probs_df.index
         all_avail_edges = vt.to_undirected_edges(
-            self.samples.aid_pairs[combo_res.probs_df.index], upper=True)
+            self.samples.aid_pairs[combores_idx], upper=True)
         unique_idx = vt.unique_row_indexes(all_avail_edges)
-        test_idx = combo_res.probs_df.index[unique_idx]
+        test_idx   = combores_idx[unique_idx]
         test_edges = all_avail_edges[unique_idx]
         want_edges = np.array(list(infr.graph.edges()))
+        """
+        # multi-index test
+        uv_index = pd.MultiIndex.from_arrays(self.samples.aid_pairs.T, names=('u', 'v'))
+        z = res.probs_df.copy()
+        z.index = uv_index
+        want_edges = test_edges.copy()  # HACK
+        """
+
+        # Determine which edges need/have probabilities
         want_edges_, test_edges_ = vt.structure_rows(want_edges, test_edges)
         have_edges_ = np.intersect1d(want_edges_, test_edges_)
         need_edges_ = np.setdiff1d(want_edges_, have_edges_)
@@ -324,77 +366,135 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # Parse the data_key to build the appropriate feature
         featinfo = AnnotPairFeatInfo(self.samples.X_dict[data_key])
-        # print(featinfo.get_infostr())
         # Find the kwargs to make the desired feature subset
-        (global_keys, summary_ops, summary_measures,
-         sorters, indices) = featinfo.make_kw()
-        # todo: determine if lnbnn is actually used
-        need_lnbnn = True
+        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
+        # print(featinfo.get_infostr())
 
         # Construct the matches
-        print('Building matches')
         config = self.hyper_params.vsone_assign
-        matches = infr.exec_vsone_subset(need_edges, config=config)
-        if need_lnbnn:
-            # augment match correspondences with LNBNN scores
-            self.qreq_.load_indexer()
-            matches = batch_apply_lnbnn(matches, self.qreq_, inplace=True)
-        for match in ut.ProgIter(matches, label='setup globals'):
-            match.add_global_measures(global_keys)
-        for match in matches:
-            vt.matching.ensure_metadata_normxy(match.annot1)
-            vt.matching.ensure_metadata_normxy(match.annot2)
-        for match in ut.ProgIter(matches, label='setup locals'):
-            match.add_local_measures()
-        print('Building pairwise features')
-        pairwise_feats = pd.DataFrame([
-            m.make_feature_vector(sorters=sorters,
-                                  local_keys=summary_measures,
-                                  indices=indices, summary_ops=summary_ops)
-            for m in ut.ProgIter(matches, label='making pairwise feats')
-        ])
-        # Re-order column names to be consistent
-        pairwise_feats = pairwise_feats.reindex_axis(
-            sorted(pairwise_feats.columns), axis=1)
-
-        # Ensure ordering is right
-        old = self.samples.X_dict[data_key].columns
-        new = pairwise_feats.columns
-        assert np.all(old == new)
+        matches, X_need = infr._make_pairwise_features(
+            need_edges, config=config, pairfeat_cfg=pairfeat_cfg,
+            need_lnbnn=need_lnbnn)
+        assert np.all(featinfo.X.columns == X_need.columns), (
+            'inconsistent feature dimensions')
 
         # Make an ensemble of the evaluation classifiers
-        # (todo: load a classifier that hasn't seen any of this data)
-        print('Predicting probabilities')
-        clf_list = self.task_clfs[task_key][clf_key][data_key]
-        estimators = [('clf%d' % (count,), clf) for count, clf in enumerate(clf_list)]
-        eclf = sklearn.ensemble.VotingClassifier(estimators=estimators, voting='soft')
-        eclf.estimators_ = clf_list
-        eclf_probs = eclf.predict_proba(pairwise_feats.values)
+        # (todo: use a classifier that hasn't seen any of this data)
+        task_need_probs = {}
+        for task_key in task_list:
+            print('Predicting %s probabilities' % (task_key,))
+            clf_list = self.task_clfs[task_key][clf_key][data_key]
+            eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
+            task_need_probs[task_key] = eclf.predict_proba(X_need.values)
 
-        # Combine probabilities
-        have_probs = combo_res.clf_probs[have_idx]
+        # Combine probabilities --- get probabilites for each sample
         edges = np.vstack([have_edges, need_edges])
-        probs = np.vstack([have_probs, eclf_probs])
+        task_probs = {}
+        for task_key in task_list:
+            eclf_probs = task_need_probs[task_key]
+            have_probs = res_dict[task_key].clf_probs[have_idx]
+            task_probs[task_key] = np.vstack([have_probs, eclf_probs])
 
-        # Apply probabilities to edges
-        # (todo: standardize this within infr)
-        infr.set_edge_attrs('match_probs', ut.dzip(ut.lmap(tuple, edges), probs))
-        pos_threshes = combo_res.report_thresholds()
+        # Determine which edges pass positive review thresholds for each task
+        task_pos_flags = ut.AutoVivification()
+        for task_key in task_list:
+            res = res_dict[task_key]
+            for class_idx, class_name in enumerate(res.class_names):
+                thresh = task_thresh[task_key][class_name]
+                p_class = task_probs[task_key][:, class_idx]
+                task_pos_flags[task_key][class_name] = p_class > thresh
 
-        # Apply automatic reviews
-        auto_flags = {
-            'match': probs.T[0] > pos_threshes['match'],
-            'nomatch': probs.T[1] > pos_threshes['nomatch'],
-            'notcomp': probs.T[2] > pos_threshes['notcomp'],
+        # Define the primary task and which tasks confound it
+        # Restrict auto-decisions based on if the main task is likely to be confounded.
+        # (basically restrict based on photobombs)
+        primary_task = 'match_state'
+        task_confounders = {
+            'match_state': [('photobomb_state', ['pb'])],
         }
-        sum(map(sum, auto_flags.values()))
-        sum(map(len, auto_flags.values()))
-        for state, flags in auto_flags.items():
+        primary_pos_flags = task_pos_flags[primary_task]
+        is_positive = np.sum(primary_pos_flags.values(), axis=0)
+        assert all(f < 2 for f in ut.dict_hist(is_positive).keys()), (
+            'unsupported multilabel decision')
+
+        # Determine which classes are
+        # * very unlikely to be unconfounded
+        # * very likely to be unconfounded
+        # Either: be safe, don't decide on anything that *is* confounding, OR
+        # be even safer, don't decide on anything that *could* be confounding
+        task_confounder_flags = {}
+        primary_confounders = task_confounders[primary_task]
+        for task_key, confounding_classes in primary_confounders:
+            nonconfounding_classes = ut.setdiff(
+                task_pos_flags[task_key].keys(), confounding_classes)
+            likely = np.logical_or.reduce(
+                ut.take(task_pos_flags[task_key], confounding_classes))
+            unlikely = np.logical_and.reduce(
+                ut.take(task_pos_flags[task_key], nonconfounding_classes))
+            flags = likely if True else likely | ~unlikely
+            task_confounder_flags[task_key] = flags
+
+        # A sample is confounded in general if is confounded by any task
+        is_confounded = np.logical_or.reduce(task_confounder_flags.values())
+
+        # Automatic decisions are applied to positive and unconfounded samples
+        primary_auto_flags = dict([
+            (class_name, pos_flags & ~is_confounded)
+            for class_name, pos_flags in primary_pos_flags.items()
+        ])
+
+        print('Autodecision info after pos threshold')
+        print('#positive-decisions %s' % ut.map_vals(sum, primary_pos_flags))
+        print('# out of %s' % len(edges))
+        # print('Revoked autodecisions based on confounders: %s'  %
+        #       ut.repr2(ut.map_vals(lambda x: sum(x & is_confounded),
+        #                            primary_pos_flags)))
+        # print('OverFit? Hist (True=orig, False=unseen) ' + ut.repr2(
+        ut.fix_embed_globals()
+        task_key = 'match_state'
+        task_probs[task_key]
+        ut.map_dict_vals(
+            lambda x: ut.dict_hist(np.where(x)[0] < len(have_edges)),
+            primary_pos_flags)
+        # , nl=1))
+        print('Making #auto-decisions %s' % ut.map_dict_vals(
+            sum, primary_auto_flags))
+
+        # report number of names with (gt) split problems
+        # report number of merge problems (incorrect negative review)
+        # report number of remaining merges
+        # number of decisions that were part of the training data
+
+        ibs = self.qreq_.ibs
+        nid_edges = ibs.get_annot_nids(edges)
+        is_same = (nid_edges.T[0] == nid_edges.T[1])
+        sklearn.metrics.precision_recall_fscore_support(
+            is_same[primary_auto_flags['match']],
+            primary_auto_flags['match'][primary_auto_flags['match']],
+        )
+
+        # Cleanup (not necessary for script)
+        infr.remove_feedback()
+        infr.apply_feedback_edges()
+        # Apply probabilities to edges in infr
+        # (todo: standardize this within infr)
+        for task_key in task_list:
+            infr.set_edge_attrs('probs(%s)', ut.dzip(
+                ut.lmap(tuple, edges), task_probs[task_key]))
+        # Add automatic feedback
+        for state, flags in primary_auto_flags.items():
             for u, v in edges[flags]:
                 infr.add_feedback(u, v, state, apply=False)
         infr.apply_feedback_edges()
-        infr.relabel_using_reviews()
+        n_clusters, n_inconsistent = infr.relabel_using_reviews()
         infr.apply_review_inference()
+        print('n_clusters = %r' % (n_clusters,))
+        print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
+        print('n_aids = %r' % (len(ut.unique(infr.aids))))
+        print('n_inconsistent = %r' % (n_inconsistent,))
+
+        # TODO: simulated user script and report results
+        pass
 
     def learn_evaluation_classifiers(self, task_keys=None, clf_keys=None,
                                      data_keys=None, cfg_prefix=''):
@@ -425,26 +525,54 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                                 cfg_prefix)
 
     def _ensure_evaluation_clf(self, task_key, data_key, clf_key, cfg_prefix):
-        # TODO: add in params to cfgstr
-        est_kw1, est_kw2, xval_kw = self.get_clf_params(clf_key)
+        """
+        Learns and caches an evaluation (cross-validated) classifier and tests
+        and caches the results.
+        """
+        # TODO: add in params used to construct features into the cfgstr
+        est_kw1, est_kw2 = self.get_clf_params(clf_key)
+        xval_kw = self.get_xval_kw()
         param_id = ut.get_dict_hashid(est_kw1)
         xval_id = ut.get_dict_hashid(xval_kw)
         cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
                            data_key, clf_key])
-        cacher = ut.Cacher('rf_clf_v10', cfgstr=cfgstr,
-                           appname='vsone_rf_train', enabled=1,
-                           verbose=1)
-        data = cacher.tryload()
-        if not data:
-            data = self._learn_evaulation_clf(task_key, data_key, clf_key)
-            cacher.save(data)
-        clf_list, res_list = data
+
+        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=1)
+        cacher_clf = ut.Cacher('eval_clf_v11', cfgstr=cfgstr, **cacher_kw)
+        cacher_res = ut.Cacher('eval_res_v11', cfgstr=cfgstr, **cacher_kw)
+
+        clf_list = cacher_clf.tryload()
+        if not clf_list:
+            clf_list = self._train_evaluation_clf(task_key, data_key, clf_key)
+            cacher_clf.save(clf_list)
+
+        res_list = cacher_res.tryload()
+        if not res_list:
+            res_list = self._test_evaulation_clf(task_key, data_key, clf_list)
+            cacher_res.save(res_list)
+
         labels = self.samples.subtasks[task_key]
         combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
         self.task_clfs[task_key][clf_key][data_key] = clf_list
         self.task_combo_res[task_key][clf_key][data_key] = combo_res
 
-    def _learn_evaulation_clf(self, task_key, data_key, clf_key):
+    def _test_evaulation_clf(self, task_key, data_key, clf_list):
+        """ Test a cross-validated classifier on the dataset """
+        X_df = self.samples.X_dict[data_key]
+        labels = self.samples.subtasks[task_key]
+        xval_kw = self.get_xval_kw()
+
+        res_list = []
+        skf_list = self.samples.stratified_kfold_indices(**xval_kw)
+        skf_prog = ut.ProgIter(zip(clf_list, skf_list), length=len(skf_list),
+                               label='skf-test')
+        for clf, (train_idx, test_idx) in skf_prog:
+            res = clf_helpers.ClfResult.make_single(clf, X_df, test_idx,
+                                                    labels, data_key)
+            res_list.append(res)
+        return res_list
+
+    def _train_evaluation_clf(self, task_key, data_key, clf_key):
         """
         Learns a cross-validated classifier on the dataset
 
@@ -462,47 +590,42 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         labels = self.samples.subtasks[task_key]
 
         tup = clf_key.split('-')
-        if len(tup) == 1:
-            multiclass_wrapper = ut.identity
-        else:
-            multiclass_wrapper = {
-                'OVR': sklearn.multiclass.OneVsRestClassifier,
-                'OVO': sklearn.multiclass.OneVsOneClassifier,
-            }[tup[1]]
-
+        wrap_type = None if len(tup) == 1 else tup[1]
         est_type = tup[0]
-        if est_type in {'RF', 'RandomForest'}:
-            est_class = sklearn.ensemble.RandomForestClassifier
-        elif est_type in {'SVM', 'SVC'}:
-            est_class = sklearn.svm.SVC
-        else:
-            raise KeyError('est_type = %s' % (est_type,))
+        multiclass_wrapper = {
+            None: ut.identity,
+            'OVR': sklearn.multiclass.OneVsRestClassifier,
+            'OVO': sklearn.multiclass.OneVsOneClassifier,
+        }[wrap_type]
+        est_class = {
+            'RF': sklearn.ensemble.RandomForestClassifier,
+            'SVC': sklearn.svm.SVC,
+        }[est_type]
 
-        est_kw1, est_kw2, xval_kw = self.get_clf_params(est_type)
+        est_kw1, est_kw2 = self.get_clf_params(est_type)
+        xval_kw = self.get_xval_kw()
         est_params = ut.merge_dicts(est_kw1, est_kw2)
 
         clf_list = []
-        res_list = []
-
-        """ TODO: check xval label frequency """
-        skf = sklearn.model_selection.StratifiedKFold(**xval_kw)
-        skf_iter = skf.split(X=np.empty((len(self.samples), 0)),
-                             y=self.samples.encoded_1d())
-        skf_list = list(skf_iter)
-        skf_prog = ut.ProgIter(skf_list, label='skf')
+        skf_list = self.samples.stratified_kfold_indices(**xval_kw)
+        skf_prog = ut.ProgIter(skf_list, label='skf-learn')
         for train_idx, test_idx in skf_prog:
             X_train = X_df.values[train_idx]
             y_train = labels.y_enc[train_idx]
-
             clf = multiclass_wrapper(est_class(**est_params))
             clf.fit(X_train, y_train)
-
-            # Evaluate on testing data
-            res = clf_helpers.ClfResult.make_single(clf, X_df, test_idx,
-                                                    labels)
-            res_list.append(res)
             clf_list.append(clf)
-        return clf_list, res_list
+        return clf_list
+
+    def get_xval_kw(self):
+        # xvalkw = dict(n_splits=10, shuffle=True,
+        xval_kw = {
+            # 'n_splits': 10,
+            'n_splits': 2,
+            'shuffle': True,
+            'random_state': 3953056901,
+        }
+        return xval_kw
 
     def get_clf_params(self, clf_key):
         est_type = clf_key.split('-')[0]
@@ -527,15 +650,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         elif est_type in {'SVC', 'SVM'}:
             est_kw1 = dict(kernel='linear')
             est_kw2 = {}
-
-        # xvalkw = dict(n_splits=10, shuffle=True,
-        xval_kw = {
-            # 'n_splits': 10,
-            'n_splits': 2,
-            'shuffle': True,
-            'random_state': 3953056901,
-        }
-        return est_kw1, est_kw2, xval_kw
+        return est_kw1, est_kw2
 
     def reduce_dataset_size(self):
         """
@@ -1063,7 +1178,7 @@ class AnnotPairFeatInfo(object):
         featinfo.importances = importances
         featinfo._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
 
-    def make_kw(featinfo):
+    def make_pairfeat_cfg(featinfo):
         criteria = [('measure_type', '==', 'local')]
         indices = sorted(map(int, set(map(
             featinfo.local_rank, featinfo.select_columns(criteria)))))
@@ -1082,7 +1197,13 @@ class AnnotPairFeatInfo(object):
         summary_measures = sorted(set(map(
             featinfo.summary_measure, featinfo.select_columns(criteria))))
         summary_measures.remove('matches')
-        return global_keys, summary_ops, summary_measures, sorters, indices
+        pairfeat_cfg = {
+            'summary_ops': summary_ops,
+            'local_keys': summary_measures,
+            'sorters': sorters,
+            'indices': indices,
+        }
+        return pairfeat_cfg, global_keys
 
     def select_columns(featinfo, criteria, op='and'):
         """
@@ -1316,25 +1437,11 @@ def build_features(qreq_, hyper_params):
     # Keep only a random subset
     assert hyper_params.subsample is None
 
-    # NEW WAY TO DO MATCHING
     config = hyper_params.vsone_assign
-    # TODO: ensure feat/chip configs are resepected
-    matches = infr.exec_vsone_subset(aid_pairs, config=config)
+    pairfeat_cfg = hyper_params.pairwise_feats
 
-    # Ensure matches know about relavent metadata
-    for match in matches:
-        vt.matching.ensure_metadata_normxy(match.annot1)
-        vt.matching.ensure_metadata_normxy(match.annot2)
-    global_keys = ['yaw', 'qual', 'gps', 'time']
-    for match in ut.ProgIter(matches, label='setup globals'):
-        match.add_global_measures(global_keys)
-    for match in ut.ProgIter(matches, label='setup locals'):
-        match.add_local_measures()
-
-    if True:
-        # augment match correspondences with LNBNN scores
-        qreq_.load_indexer()
-        matches = batch_apply_lnbnn(matches, qreq_, inplace=True)
+    matches, pairwise_feats = infr._make_pairwise_features(
+        aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg)
 
     # Pass back just one match to play with
     for match in matches:
@@ -1343,18 +1450,17 @@ def build_features(qreq_, hyper_params):
 
     aid_pairs = np.array([(m.annot1['aid'], m.annot2['aid']) for m in matches])
     # ---------------
-    # Grab some simple scores
-    # m = matches[0]
+    # Construct simple scores to learning comparison
     simple_scores = pd.DataFrame([
         m._make_local_summary_feature_vector(summary_ops={'sum', 'len'})
-        for m in matches])
-    ADD_VSMANY_LNBNN_TO_SIMPLE_SCORES = True
-    if ADD_VSMANY_LNBNN_TO_SIMPLE_SCORES:
-        # Ensure that all annots exist in the graph
+        for m in ut.ProgIter(matches, 'make simple scores')])
+    if True:
+        # Add vsmany_lnbnn to simple scores
         expt_aids = ut.unique(ut.flatten(aid_pairs))
         infr.add_aids(expt_aids)
+        # Ensure that all annots exist in the graph
         infr.graph.add_edges_from(aid_pairs)
-        # TEST ORIGINAL LNBNN SCORE SEP
+        # test original lnbnn score sep
         infr.apply_match_scores()
         edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
         lnbnn_score_list = [0 if d is None else d.get('score', 0)
@@ -1363,33 +1469,7 @@ def build_features(qreq_, hyper_params):
         simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
     simple_scores[pd.isnull(simple_scores)] = 0
 
-    # ---------------
-    sorters = [
-        'ratio',
-        # 'lnbnn', 'lnbnn_norm_dist',
-        'norm_dist', 'match_dist'
-    ]
-    if qreq_.qparams.featweight_enabled:
-        sorters += [
-            'weighted_ratio',
-            # 'weighted_lnbnn',
-        ]
-
-    local_keys = sorted(match.local_measures.keys())
-    pairfeat_cfg = hyper_params.pairwise_feats
-
-    # Try different feature constructions
-    print('Building pairwise features')
-    pairwise_feats = pd.DataFrame([
-        m.make_feature_vector(sorters=sorters, local_keys=local_keys, **pairfeat_cfg)
-        for m in ut.ProgIter(matches, label='making pairwise feats')
-    ])
-    pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
-    # Re-order column names to be consistent
-    pairwise_feats = pairwise_feats.reindex_axis(sorted(pairwise_feats.columns), axis=1)
-
-    X_all = pairwise_feats.copy()
-    X_dict = {'learn(all)': X_all}
+    X_dict = {'learn(all)': pairwise_feats}
     return aid_pairs, simple_scores, X_dict, match
 
 
@@ -1426,47 +1506,6 @@ def demo_single_pairwise_feature_vector():
     # sorters = ['ratio', 'norm_dist', 'match_dist']
     match.make_feature_vector()
     return match
-
-
-def batch_apply_lnbnn(matches, qreq_, inplace=False):
-    from ibeis.algo.hots import nn_weights
-    indexer = qreq_.indexer
-    if not inplace:
-        matches_ = [match.copy() for match in matches]
-    else:
-        matches_ = matches
-    K = qreq_.qparams.K
-    Knorm = qreq_.qparams.Knorm
-    normalizer_rule  = qreq_.qparams.normalizer_rule
-
-    print('Stacking vecs for batch matching')
-    offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
-    stacked_vecs = np.vstack([
-        match_.matched_vecs2()
-        for match_ in ut.ProgIter(matches_, lablel='stacking matched vecs')
-    ])
-
-    vecs = stacked_vecs
-    num = (K + Knorm)
-    idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
-                                    label='lnbnn scoring')
-
-    idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
-    dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
-    iter_ = zip(matches_, idx_list, dist_list)
-    prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
-    for match_, neighb_idx, neighb_dist in prog:
-        qaid = match_.annot2['aid']
-        norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule)
-        ndist = vt.take_col_per_row(neighb_dist, norm_k)
-        vdist = match_.local_measures['match_dist']
-        lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
-        lnbnn_clip_dist = np.clip(lnbnn_dist, 0, np.inf)
-        match_.local_measures['lnbnn_norm_dist'] = ndist
-        match_.local_measures['lnbnn'] = lnbnn_dist
-        match_.local_measures['lnbnn_clip'] = lnbnn_clip_dist
-        match_.fs = lnbnn_dist
-    return matches_
 
 
 def photobomb_samples(ibs):
