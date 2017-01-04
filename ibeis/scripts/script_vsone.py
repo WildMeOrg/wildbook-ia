@@ -111,13 +111,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         self.qreq_ = qreq_
         self.ibs = qreq_.ibs
 
-    def set_pandas_options(self):
-        # pd.options.display.max_rows = 10
-        pd.options.display.max_rows = 20
-        pd.options.display.max_columns = 40
-        pd.options.display.width = 160
-        pd.options.display.float_format = lambda x: '%.4f' % (x,)
-
     def load_samples(self):
         self.samples = AnnotPairSamples(
             self.ibs, copy.deepcopy(self.raw_aid_pairs),
@@ -358,9 +351,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # Determine which edges need/have probabilities
         want_edges_, test_edges_ = vt.structure_rows(want_edges, test_edges)
-        have_edges_ = np.intersect1d(want_edges_, test_edges_)
-        need_edges_ = np.setdiff1d(want_edges_, have_edges_)
-        flags = vt.flag_intersection(test_edges_, have_edges_)
+        unordered_have_edges_ = np.intersect1d(want_edges_, test_edges_)
+        need_edges_ = np.setdiff1d(want_edges_, unordered_have_edges_)
+        flags = vt.flag_intersection(test_edges_, unordered_have_edges_)
+        # Re-order have_edges to agree with test_idx
+        have_edges_ = test_edges_[flags]
+        assert len(np.setxor1d(have_edges_, unordered_have_edges_)) == 0
         have_idx = test_idx[flags]
         need_edges, have_edges = vt.unstructure_rows(need_edges_, have_edges_)
 
@@ -389,12 +385,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             task_need_probs[task_key] = eclf.predict_proba(X_need.values)
 
         # Combine probabilities --- get probabilites for each sample
+        assert np.all(have_edges == vt.to_undirected_edges(
+            self.samples.aid_pairs[have_idx], upper=True))
         edges = np.vstack([have_edges, need_edges])
         task_probs = {}
         for task_key in task_list:
             eclf_probs = task_need_probs[task_key]
             have_probs = res_dict[task_key].clf_probs[have_idx]
             task_probs[task_key] = np.vstack([have_probs, eclf_probs])
+            assert len(have_probs) == len(have_edges)
+            assert len(eclf_probs), len(need_edges)
 
         # Determine which edges pass positive review thresholds for each task
         task_pos_flags = ut.AutoVivification()
@@ -413,24 +413,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             'match_state': [('photobomb_state', ['pb'])],
         }
         primary_pos_flags = task_pos_flags[primary_task]
-        is_positive = np.sum(primary_pos_flags.values(), axis=0)
-        assert all(f < 2 for f in ut.dict_hist(is_positive).keys()), (
-            'unsupported multilabel decision')
 
-        # Determine which classes are
-        # * very unlikely to be unconfounded
-        # * very likely to be unconfounded
+        # Determine classes that are very unlikely or likely to be confounded
         # Either: be safe, don't decide on anything that *is* confounding, OR
         # be even safer, don't decide on anything that *could* be confounding
         task_confounder_flags = {}
         primary_confounders = task_confounders[primary_task]
         for task_key, confounding_classes in primary_confounders:
+            pos_flags = task_pos_flags[task_key]
             nonconfounding_classes = ut.setdiff(
-                task_pos_flags[task_key].keys(), confounding_classes)
-            likely = np.logical_or.reduce(
-                ut.take(task_pos_flags[task_key], confounding_classes))
-            unlikely = np.logical_and.reduce(
-                ut.take(task_pos_flags[task_key], nonconfounding_classes))
+                pos_flags.keys(), confounding_classes)
+            likelies = ut.take(pos_flags, confounding_classes)
+            unlikelies = ut.take(pos_flags, nonconfounding_classes)
+            likely = np.logical_or.reduce(likelies)
+            unlikely = np.logical_and.reduce(unlikelies)
             flags = likely if True else likely | ~unlikely
             task_confounder_flags[task_key] = flags
 
@@ -439,9 +435,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # Automatic decisions are applied to positive and unconfounded samples
         primary_auto_flags = dict([
-            (class_name, pos_flags & ~is_confounded)
-            for class_name, pos_flags in primary_pos_flags.items()
+            (class_name, pos_flags_ & ~is_confounded)
+            for class_name, pos_flags_ in primary_pos_flags.items()
         ])
+
+        if __debug__:
+            is_positive = np.sum(primary_pos_flags.values(), axis=0)
+            assert all(f < 2 for f in ut.dict_hist(is_positive).keys()), (
+                'unsupported multilabel decision')
 
         print('Autodecision info after pos threshold')
         print('#positive-decisions %s' % ut.map_vals(sum, primary_pos_flags))
@@ -468,10 +469,15 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         ibs = self.qreq_.ibs
         nid_edges = ibs.get_annot_nids(edges)
         is_same = (nid_edges.T[0] == nid_edges.T[1])
-        sklearn.metrics.precision_recall_fscore_support(
-            is_same[primary_auto_flags['match']],
-            primary_auto_flags['match'][primary_auto_flags['match']],
-        )
+        assert np.all(self.samples.is_same()[have_idx] ==
+                       is_same[:len(have_edges)])
+
+        print(sklearn.metrics.classification_report(
+            is_same,
+            primary_auto_flags['match'],
+            # is_same[primary_auto_flags['match']],
+            # primary_auto_flags['match'][primary_auto_flags['match']],
+        ))
 
         # Cleanup (not necessary for script)
         infr.remove_feedback()

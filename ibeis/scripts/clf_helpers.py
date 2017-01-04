@@ -36,6 +36,13 @@ class ClfProblem(ut.NiceRepr):
     # TODO
     # def learn_single_clf
 
+    def set_pandas_options(self):
+        # pd.options.display.max_rows = 10
+        pd.options.display.max_rows = 20
+        pd.options.display.max_columns = 40
+        pd.options.display.width = 160
+        pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
 
 @ut.reloadable_class
 class MultiTaskSamples(ut.NiceRepr):
@@ -528,7 +535,7 @@ class ClfResult(ut.NiceRepr):
         confusion_df = confusion_df.append(pd.DataFrame([confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
         confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), ['-']])
         cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
-        print('Confusion Matrix (real×pred) :')
+        print('Confusion Matrix (real × pred) :')
         print(ut.hz_str('    ', cfsm_str))
 
         # ut.cprint('\nExtended Report', 'turquoise')
