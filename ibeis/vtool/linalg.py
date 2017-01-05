@@ -235,7 +235,8 @@ def shear_mat3x3(shear_x, shear_y, dtype=TRANSFORM_DTYPE):
 def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0, trig=np):
     """
     Args:
-        shear is angle in counterclockwise direction
+        theta (float): rotation angle (radians) in counterclockwise direction
+        shear (float): shear angle (radians) in counterclockwise directions
 
     References:
         https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
@@ -252,67 +253,97 @@ def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0, trig=np):
     return Aff
 
 
-def affine_around_mat3x3_old(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
-                             x2=None, y2=None, trig=np, dtype=TRANSFORM_DTYPE):
-    """
-    Executes an affine transform around point (x, y) in the input coordinate
-    system.
-
-    Specify x2 and y2 if change of coordinates (but not scale)?
-
-    >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
-    >>> from vtool.linalg import *  # NOQA
-    >>> import vtool as vt
-    >>> import sympy
-    >>> from sympy.abc import theta
-    >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = sympy.symbols(
-    >>>     'x, y, sx, sy, theta, shear, tx, ty, x2, y2')
-    >>> trig = sympy
-    >>> Aff = vt.sympy_mat(vt.affine_around_mat3x3_old(
-    >>>     x, y, sx, sy, theta, shear, tx, ty, x2, y2, trig=trig, dtype=None))
-    >>> print('-------')
-    >>> Aff = sympy.simplify(Aff)
-    >>> vt.evalprint('Aff')
-    >>> print('-------')
-    >>> print('Numpy')
-    >>> vt.sympy_numpy_repr(Aff)
-    """
-    x2 = x if x2 is None else x2
-    y2 = y if y2 is None else y2
-    # move to center location
-    tr1_ = translation_mat3x3(-x, -y, dtype=dtype)
-    # apply affine transform
-    Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty, trig=trig)
-    # move to original location
-    tr2_ = translation_mat3x3(x2, y2, dtype=dtype)
-    # combine transformations
-    Aff = tr2_.dot(Aff_).dot(tr1_)
-    return Aff
-
-
-def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
-                         x2=None, y2=None):
-    """
-    Combines a translate with affine3x3 with untranslate
+def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
+                         ty=0.0, x2=None, y2=None):
+    r"""
+    Executes an affine transform around center point (x, y).
+    Equivalent to translation.dot(affine).dot(inv(translation))
 
     Args:
         x (float): center x location in input space
-        y (float): center y location in input space
-        x2 (float, optional): center x location in output space if different
-            from input space (assumed the same if unspecified)
-        y2 (float, optional): center y location in output space if different
-            from input space (assumed the same if unspecified)
+        y (float):  center y location in input space
+        sx (float): x scale factor (default = 1)
+        sy (float): y scale factor (default = 1)
+        theta (float): counter-clockwise rotation angle in radians(default = 0)
+        shear (float): counter-clockwise shear angle in radians(default = 0)
+        tx (float): (default = 0)
+        ty (float): (default = 0)
+        x2 (float, optional): center y location in output space (default = x)
+        y2 (float, optional): center y location in output space (default = y)
+
+    CommandLine:
+        python -m vtool.linalg affine_around_mat3x3 --show
 
     Example:
         >>> from vtool.linalg import *  # NOQA
-        >>> tup = (256.0, 256.0, 1.5, 1.0, 0.7853981633974483, 0.2, 0, 100, 500.0, 500.0)
-        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = tup
-        >>> Aff1 = affine_around_mat3x3(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
-        >>> Aff2 = affine_around_mat3x3_old(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
-        >>> assert np.all(Aff2 == Aff1)
+        >>> import vtool as vt
+        >>> orig_pts = np.array(vt.verts_from_bbox([10, 10, 20, 20]))
+        >>> x, y = vt.bbox_center(vt.bbox_from_verts(orig_pts))
+        >>> sx, sy = 0.5, 1.0
+        >>> theta = 1 * np.pi / 4
+        >>> shear = .1 * np.pi / 4
+        >>> tx, ty = 5, 0
+        >>> x2, y2 = None, None
+        >>> Aff = affine_around_mat3x3(x, y, sx, sy, theta, shear,
+        >>>                            tx, ty, x2, y2)
+        >>> trans_pts = vt.transform_points_with_homography(Aff, orig_pts.T).T
+        >>> import plottool as pt
+        >>> pt.ensure_pylab_qt4()
+        >>> pt.plt.plot(x, y, 'bx', label='center')
+        >>> pt.plt.plot(orig_pts.T[0], orig_pts.T[1], 'b-', label='original')
+        >>> pt.plt.plot(trans_pts.T[0], trans_pts.T[1], 'r-', label='transformed')
+        >>> pt.plt.legend()
+        >>> pt.plt.title('Demo of affine_around_mat3x3')
+        >>> pt.plt.axis('equal')
+        >>> pt.plt.xlim(0, 40)
+        >>> pt.plt.ylim(0, 40)
+        >>> ut.show_if_requested()
 
-    %timeit affine_around_mat3x3_old(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
-    %timeit affine_around_mat3x3(x, y, sx, sy, theta, shear, tx, ty, x2, y2)
+    Timeit:
+        >>> from vtool.linalg import *  # NOQA
+        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = (
+        >>>     256.0, 256.0, 1.5, 1.0, 0.7853981633974483, 0.2, 0, 100,
+        >>>     500.0, 500.0)
+        >>> for timer in ut.Timerit(1000, 'old'):
+        >>>     with timer:
+        >>>         tr1_ = translation_mat3x3(-x, -y)
+        >>>         Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
+        >>>         tr2_ = translation_mat3x3(x2, y2)
+        >>>         Aff1 = tr2_.dot(Aff_).dot(tr1_)
+        >>> # 19.0697 µs
+        >>> for timer in ut.Timerit(1000, 'new'):
+        >>>     with timer:
+        >>>         Aff2 = affine_around_mat3x3(x, y, sx, sy, theta, shear,
+        >>>                                     tx, ty, x2, y2)
+        >>> # 11.0242 µs
+        >>> assert np.all(np.isclose(Aff2, Aff1))
+
+    Sympy:
+        >>> from vtool.linalg import *  # NOQA
+        >>> import vtool as vt
+        >>> import sympy
+        >>> # Shows the symbolic construction of the code
+        >>> # https://groups.google.com/forum/#!topic/sympy/k1HnZK_bNNA
+        >>> from sympy.abc import theta
+        >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = sympy.symbols(
+        >>>     'x, y, sx, sy, theta, shear, tx, ty, x2, y2')
+        >>> theta = sx = sy = tx = ty = 0
+        >>> # move to center xy, apply affine transform, move center xy2
+        >>> tr1_ = translation_mat3x3(-x, -y, dtype=None)
+        >>> Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty, trig=sympy)
+        >>> tr2_ = translation_mat3x3(x2, y2, dtype=None)
+        >>> # combine transformations
+        >>> Aff = vt.sympy_mat(tr2_.dot(Aff_).dot(tr1_))
+        >>> vt.evalprint('Aff')
+        >>> print('-------')
+        >>> print('Numpy')
+        >>> vt.sympy_numpy_repr(Aff)
+
+    Ignore:
+        # >>> import scipy.spatial
+        # >>> hull = scipy.spatial.ConvexHull(orig_pts)
+        # >>> x, y = orig_pts[hull.vertices, :].mean(axis=0)
+
     """
     x2 = x if x2 is None else x2
     y2 = y if y2 is None else y2

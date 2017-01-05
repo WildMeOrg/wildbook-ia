@@ -1157,7 +1157,7 @@ def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     y1, x1 = h1 / 2.0, w1 / 2.0
     y2, x2 = h2 / 2.0, w2 / 2.0
     # MOVE AFFINE AROUND w.r.t new dsize
-    Aff = ltool.affine_around_mat3x3_old(x1, y1, sx, sy, theta, shear, tx, ty, x2, y2)
+    Aff = ltool.affine_around_mat3x3(x1, y1, sx, sy, theta, shear, tx, ty, x2, y2)
     img_warped = cv2.warpAffine(img, Aff[0:2], dsize, dst=out,
                                 borderMode=borderMode, flags=flags, **kwargs)
     # Fix grayscale channel issues
