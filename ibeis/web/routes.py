@@ -21,7 +21,7 @@ CLASS_INJECT_KEY, register_ibs_method = (
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-GLOBAL_FEEDBACK_LIMIT = 100
+GLOBAL_FEEDBACK_LIMIT = 50
 GLOBAL_FEEDBACK_BUFFER = []
 GLOBAL_FEEDBACK_CONFIG_DICT = {
     'ranks_top': 3,
@@ -1946,7 +1946,17 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
 
     """
     from ibeis.algo.hots import graph_iden
-    aid_list = ibs.get_valid_aids()
+
+    if ibs.dbname == 'EWT_Cheetahs':
+        aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
+
+    # aid_list = ibs.get_valid_aids()
+    # wanted_set = set(['right', 'frontright', 'backright'])
+    # yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    # num_aids = len(aid_list)
+    # aid_list = [ aid for aid, yaw in zip(aid_list, yaw_list) if yaw in wanted_set ]
+    # print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
+
     nids = [-aid for aid in aid_list] if debug_ignore_name_gt else None
 
     # Initailize a graph with no edges.
@@ -2160,15 +2170,15 @@ def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_
                                 ut.printex(ex, 'Failed to make review image', tb=True,
                                            keys=['cm.qaid', 'aid1', 'aid2'],
                                            iswarning=True)
-                                try:
-                                    image_clean = apis_query.ensure_review_image(
-                                        ibs, aid2, cm, qreq_,
-                                        view_orientation=view_orientation,
-                                        draw_matches=False)
-                                except KeyError:
-                                    image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
-                                    ut.printex(ex, 'Failed to make fallback review image', tb=True,
-                                               keys=['cm.qaid', 'aid1', 'aid2'])
+                            try:
+                                image_clean = apis_query.ensure_review_image(
+                                    ibs, aid2, cm, qreq_,
+                                    view_orientation=view_orientation,
+                                    draw_matches=False)
+                            except KeyError:
+                                image_clean = np.zeros((100, 100, 3), dtype=np.uint8)
+                                ut.printex(ex, 'Failed to make fallback review image', tb=True,
+                                           keys=['cm.qaid', 'aid1', 'aid2'])
 
                         with ut.Timer('[web.routes.turk_identification] ... ... Embed images'):
                             image_matches_src = appf.embed_image_html(image_matches)
