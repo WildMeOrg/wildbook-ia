@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import utool as ut
 import vtool as vt
+import numpy as np
 
 
 def fix_annotation_orientation(ibs, min_percentage=0.95):
@@ -12,12 +13,12 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
         python -m ibeis.scripts.fix_annotation_orientation_issue fix_annotation_orientation
 
     Example:
-        >>> # SCRIPT
+        >>> # ENABLE_DOCTEST
         >>> import ibeis
         >>> from ibeis.scripts.fix_annotation_orientation_issue import *  # NOQA
         >>> ibs = ibeis.opendb()
-        >>> result = fix_annotation_orientation(ibs)
-
+        >>> unfixable_gid_list = fix_annotation_orientation(ibs)
+        >>> assert len(unfixable_gid_list) == 0
     """
     from vtool import exif
 
@@ -58,11 +59,12 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
         size_list = ibs.get_image_sizes(gid_list)
         invalid_gid_list = []
         zipped = zip(gid_list, orient_list, aids_list, size_list)
-        for gid, orient, aid_list, (w_, h_) in zipped:
+        for gid, orient, aid_list, (w, h) in zipped:
             image = ibs.get_images(gid)
-            h, w = image.shape[:2]
-            if h_ != h or w_ != w:
-                ibs._set_image_sizes(gid, w, h)
+            h_, w_ = image.shape[:2]
+            if h != h_ or w != w_:
+                ibs._set_image_sizes([gid], [w_], [h_])
+            orient_str = exif.ORIENTATION_DICT[orient]
             image_bbox = (0, 0, w, h)
             verts_list = ibs.get_annot_rotated_verts(aid_list)
             invalid = False
@@ -72,21 +74,75 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                 area = annot_bbox[2] * annot_bbox[3]
                 percentage = overlap / area
                 if percentage < min_percentage:
+                    args = (gid, orient_str, aid, overlap, area, percentage)
+                    print('\tInvalid GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
                     invalid = True
-                    args = (gid, aid, overlap, area, overlap / area)
-                    print('\tGID %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
-                    if orient == orient_dict.get(exif.ORIENTATION_090):
-                        pass
-                    elif orient == orient_dict.get(exif.ORIENTATION_180):
-                        pass
-                    elif orient == orient_dict.get(exif.ORIENTATION_270):
-                        pass
-                    else:
-                        raise ValueError('Unrecognized invalid orientation')
+                    # break
             if invalid:
                 invalid_gid_list.append(gid)
-        args = (len(invalid_gid_list), invalid_gid_list)
-        print('Found %d images with invalid annotations = %r' % args)
+
+        invalid_gid_list = list(set(invalid_gid_list))
+        unfixable_gid_list = []
+        if len(invalid_gid_list) > 0:
+            args = (len(invalid_gid_list), len(gid_list), invalid_gid_list, )
+            print('Found %d / %d images with invalid annotations = %r' % args)
+            orient_list = ibs.get_image_orientation(invalid_gid_list)
+            aids_list = ibs.get_image_aids(invalid_gid_list)
+            size_list = ibs.get_image_sizes(invalid_gid_list)
+            zipped = zip(invalid_gid_list, orient_list, aids_list, size_list)
+            for invalid_gid, orient, aid_list, (w, h) in zipped:
+                orient_str = exif.ORIENTATION_DICT[orient]
+                image_bbox = (0, 0, w, h)
+                args = (invalid_gid, len(aid_list), )
+                print('Fixing GID %r with %d annotations' % args)
+                theta = np.pi / 2.0
+                tx = 0.0
+                ty = 0.0
+                if orient == orient_dict.get(exif.ORIENTATION_090):
+                    theta *= 1.0
+                    tx = w
+                elif orient == orient_dict.get(exif.ORIENTATION_180):
+                    theta *= 2.0
+                    tx = w
+                    ty = h
+                elif orient == orient_dict.get(exif.ORIENTATION_270):
+                    theta *= -1.0
+                    ty = h
+                else:
+                    raise ValueError('Unrecognized invalid orientation')
+                H = np.array([[np.cos(theta), -np.sin(theta), tx ],
+                              [np.sin(theta),  np.cos(theta), ty ],
+                              [0.0,            0.0,           1.0]])
+                # print(H)
+                verts_list = ibs.get_annot_rotated_verts(aid_list)
+                for aid, vert_list in zip(aid_list, verts_list):
+                    vert_list = np.array(vert_list)
+                    # print(vert_list)
+                    vert_list = vert_list.T
+                    transformed_vert_list = vt.transform_points_with_homography(
+                        H,
+                        vert_list
+                    )
+                    transformed_vert_list = transformed_vert_list.T
+                    # print(transformed_vert_list)
+
+                    ibs.set_annot_verts([aid], [transformed_vert_list])
+                    current_theta = ibs.get_annot_thetas(aid)
+                    new_theta = current_theta + theta
+                    ibs.set_annot_thetas(aid, new_theta)
+
+                    fixed_vert_list = ibs.get_annot_rotated_verts(aid)
+                    fixed_annot_bbox = vt.bbox_from_verts(fixed_vert_list)
+                    fixed_overlap = bbox_overlap(image_bbox, fixed_annot_bbox)
+                    fixed_area = fixed_annot_bbox[2] * fixed_annot_bbox[3]
+                    fixed_percentage = fixed_overlap / fixed_area
+                    args = (invalid_gid, orient_str, aid, fixed_overlap, fixed_area, fixed_percentage)
+                    print('\tFixing GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
+                    if fixed_percentage < min_percentage:
+                        print('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid, ))
+                        unfixable_gid_list.append(gid)
+    print('Un-fixable gid_list = %r' % (unfixable_gid_list, ))
+    return unfixable_gid_list
 
 
 if __name__ == '__main__':
