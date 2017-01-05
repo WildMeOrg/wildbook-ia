@@ -1300,6 +1300,14 @@ class MainWindowBackend(GUIBACK_BASE):
         if show:
             back.show_image(gid, sel_aids=sel_aids, fnum=fnum, web=web)
 
+    def copy_species_to_imageset(back, aid, imgsetid=None, refresh=True):
+        species_rowid = back.ibs.get_annot_species_rowids(aid)
+        aid_list = back.ibs.get_imageset_aids(imgsetid)
+        species_rowid_list = [species_rowid] * len(aid_list)
+        back.ibs.set_annot_species_rowids(aid_list, species_rowid_list)
+        if refresh:
+            back.front.update_tables([gh.IMAGE_TABLE, gh.ANNOTATION_TABLE])
+
     def select_gid_from_aid(back, aid, imgsetid=None, show=True, web=False):
         gid = back.ibs.get_annot_gids(aid)
         back.select_gid(gid, imgsetid=imgsetid, show=show, web=web, sel_aids=[aid])

@@ -12,6 +12,20 @@ CommandLine:
     # Test that `missing_values_rf` is merged correctly
     python -c "import utool, sklearn.ensemble; print(utool.get_func_kwargs(sklearn.ensemble.RandomForestClassifier.__init__))"
     nosetests sklearn/ensemble/tests/test_forest.py
+
+TODO:
+    Ensure these remotes exist and do not conflict
+
+[remote "Erotemic"]
+    url = git@github.com:Erotemic/scikit-learn.git
+    fetch = +refs/heads/*:refs/remotes/Erotemic/*
+[remote "source"]
+    url = http://github.com/scikit-learn/scikit-learn.git
+    fetch = +refs/heads/*:refs/remotes/source/*
+[remote "raghavrv"]
+    url = http://github.com/raghavrv/scikit-learn.git
+    fetch = +refs/heads/*:refs/remotes/raghavrv/*
+
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 from os.path import join
@@ -25,7 +39,7 @@ def main():
     master = 'master'
     mixins = [
         # 'mbkm_fixup',
-        'progiter',
+        # 'progiter',
         'multiclass_mcc',
         'missing_values_rf',
     ]
@@ -33,7 +47,9 @@ def main():
     # dpath = os.getcwd()
     dpath = ut.truepath('~/code/scikit-learn')
     repo = ut.Repo(dpath=dpath)
-    # update_all(repo, master, mixins)
+
+    update_all(repo, master, mixins)
+
     REBASE_VERSION = True
     if REBASE_VERSION:
         ut.cprint('--- REBASE BRANCHES ON MASTER ---', 'blue')
@@ -74,7 +90,7 @@ def update_all(repo, master, mixins):
         repo.checkout2(branch)
         # repo.issue('git checkout ' + branch)
         # gitrepo = repo.as_gitpython()  # NOQA
-        # repo.reset_branch_to_remote(branch)
+        repo.reset_branch_to_remote(branch)
         repo.issue('git pull')
 
 
