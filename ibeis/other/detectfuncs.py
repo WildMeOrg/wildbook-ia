@@ -71,8 +71,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=
     if not use_existing_train_test:
         ibs.imageset_train_test_split(**kwargs)
 
-    train_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TRAIN_SET')))
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'), **kwargs)
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'), **kwargs)
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
@@ -528,10 +528,33 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
     return tp, fp, fn
 
 
-def general_parse_gt(ibs, test_gid_set=None):
-    if test_gid_set is None:
-        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+def general_get_imageset_gids(ibs, imageset_text, species_set=None, unique=False,
+                              **kwargs):
+    imageset_id = ibs.get_imageset_imgsetids_from_text(imageset_text)
+    test_gid_list = ibs.get_imageset_gids(imageset_id)
+    if species_set is not None:
+        species_set = set(species_set)
+        args = (len(test_gid_list), species_set, )
+        print('Filtering GIDs (%d) on species set: %r' % args)
+        aids_list = ibs.get_image_aids(test_gid_list)
+        species_list_list = ibs.unflatmap(ibs.get_annot_species_texts, aids_list)
+        species_set_list = map(set, species_list_list)
+        zipped = zip(test_gid_list, species_set_list)
+        test_gid_list = [
+            test_gid
+            for test_gid, species_set_ in zipped
+            if len(species_set_ & species_set) > 0
+        ]
+        print('    %d GIDs survived' % (len(test_gid_list), ))
+    if unique:
+        test_gid_list = list(set(test_gid_list))
+    return test_gid_list
+
+
+def general_parse_gt(ibs, test_gid_list=None, **kwargs):
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    uuid_list = ibs.get_image_uuids(test_gid_list)
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
 
     gt_dict = {}
@@ -555,15 +578,15 @@ def general_parse_gt(ibs, test_gid_set=None):
     return gt_dict
 
 
-def localizer_parse_pred(ibs, test_gid_set=None, **kwargs):
+def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     depc = ibs.depc_image
 
-    if test_gid_set is None:
-        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    results_list = depc.get_property('localizations', test_gid_set, None, config=kwargs)
-    size_list = ibs.get_image_sizes(test_gid_set)
+    results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
+    size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
     results_list = [
@@ -591,15 +614,15 @@ def localizer_parse_pred(ibs, test_gid_set=None, **kwargs):
 
 
 def localizer_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs):
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    # test_gid_set = ibs.get_valid_gids()
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    # test_gid_list = ibs.get_valid_gids()
+    uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
-    gt_dict = general_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
 
     print('\tGather Predictions')
-    pred_dict = localizer_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
@@ -659,15 +682,15 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
 def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    # test_gid_set = ibs.get_valid_gids()
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    # test_gid_list = ibs.get_valid_gids()
+    uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
-    gt_dict = general_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
 
     print('\tGather Predictions')
-    pred_dict = localizer_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     label_list = []
     prediction_list = []
@@ -713,24 +736,28 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
         {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
         {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
+        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
     ]
     name_list = [
-        # 'V1',
+        'V1',
         # 'V1 (GRID)',
         'V2',
-        'V2 (GRID)',
+        # 'V2 (GRID)',
         'V3',
         'V3 (GRID)',
-        'LYNX',
-        'LYNX (GRID)',
+        'V3 Whale Shark',
+        'V3 Whale Fluke',
+        # 'LYNX',
+        # 'LYNX (GRID)',
     ]
     color_list = [
         'y',
@@ -1201,10 +1228,10 @@ def labeler_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def detector_parse_gt(ibs, test_gid_set=None):
-    if test_gid_set is None:
-        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    uuid_list = ibs.get_image_uuids(test_gid_list)
     gid_list = ibs.get_image_gids_from_uuid(uuid_list)
 
     gt_dict = {}
@@ -1228,16 +1255,16 @@ def detector_parse_gt(ibs, test_gid_set=None):
     return gt_dict
 
 
-def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
+def detector_parse_pred(ibs, test_gid_list=None, **kwargs):
     depc = ibs.depc_image
 
-    if test_gid_set is None:
-        test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+    if test_gid_list is None:
+        test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    # depc.delete_property('detections', test_gid_set, config=kwargs)
-    results_list = depc.get_property('detections', test_gid_set, None, config=kwargs)
-    size_list = ibs.get_image_sizes(test_gid_set)
+    # depc.delete_property('detections', test_gid_list, config=kwargs)
+    results_list = depc.get_property('detections', test_gid_list, None, config=kwargs)
+    size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
     results_list = [
@@ -1266,15 +1293,15 @@ def detector_parse_pred(ibs, test_gid_set=None, **kwargs):
 
 
 def detector_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs):
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    # test_gid_set = ibs.get_valid_gids()
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    # test_gid_list = ibs.get_valid_gids()
+    uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
-    gt_dict = detector_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = detector_parse_gt(ibs, test_gid_list=test_gid_list)
 
     print('\tGather Predictions')
-    pred_dict = detector_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = detector_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     print('\tGenerate Curves...')
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
@@ -1330,15 +1357,15 @@ def detector_precision_recall_algo_plot(ibs, **kwargs):
 def detector_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
-    test_gid_set = ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))
-    # test_gid_set = ibs.get_valid_gids()
-    uuid_list = ibs.get_image_uuids(test_gid_set)
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    # test_gid_list = ibs.get_valid_gids()
+    uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
-    gt_dict = detector_parse_gt(ibs, test_gid_set=test_gid_set)
+    gt_dict = detector_parse_gt(ibs, test_gid_list=test_gid_list)
 
     print('\tGather Predictions')
-    pred_dict = detector_parse_pred(ibs, test_gid_set=test_gid_set, **kwargs)
+    pred_dict = detector_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     label_list = []
     prediction_list = []
@@ -1617,7 +1644,7 @@ def detect_write_detection_all(ibs):
     test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
     write_path = abspath(expanduser(join('~', 'Desktop')))
-    # gt_dict = detect_parse_gt(ibs_, test_gid_set=test_gid_list)
+    # gt_dict = detect_parse_gt(ibs_, test_gid_list=test_gid_list)
     for index, (test_gid, test_uuid, test_image) in enumerate(zip(test_gid_list, test_uuid_list, test_image_list)):
         height_old, width_old, channels_old = test_image.shape
         test_image = _resize(test_image, t_width=600)
