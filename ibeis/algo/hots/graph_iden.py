@@ -1260,27 +1260,32 @@ class _AnnotInfrMatching(object):
         return matches
 
     def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
-                                global_keys=None, need_lnbnn=True):
+                                global_keys=None, need_lnbnn=True,
+                                multi_index=True):
         """
         Construct matches and their pairwise features
         """
         import pandas as pd
         # TODO: ensure feat/chip configs are resepected
+        edges = ut.lmap(tuple, ut.aslist(edges))
         matches = infr._enriched_pairwise_matches(edges, config=config,
                                                   global_keys=global_keys,
                                                   need_lnbnn=need_lnbnn)
         # ---------------
         # Try different feature constructions
         print('[infr] building pairwise features')
-        pairwise_feats = pd.DataFrame([
+        X = pd.DataFrame([
             m.make_feature_vector(**pairfeat_cfg)
             for m in ut.ProgIter(matches, label='making pairwise feats')
         ])
-        pairwise_feats[pd.isnull(pairwise_feats)] = np.nan
-        # Re-order column names to be consistent
-        pairwise_feats = pairwise_feats.reindex_axis(
-            sorted(pairwise_feats.columns), axis=1)
-        return matches, pairwise_feats
+        if multi_index:
+            # Index features by edges
+            uv_index = pd.MultiIndex.from_tuples(edges, names=('aid1', 'aid2'))
+            X.index = uv_index
+        X[pd.isnull(X)] = np.nan
+        # Re-order column names to ensure dimensions are consistent
+        X = X.reindex_axis(sorted(X.columns), axis=1)
+        return matches, X
 
     def exec_vsone_subset(infr, edges, config={}, prog_hook=None):
         r"""
