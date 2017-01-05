@@ -141,6 +141,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                     if fixed_percentage < min_percentage:
                         print('\tWARNING: FIXING DID NOT CORRECT AID %r' % (aid, ))
                         unfixable_gid_list.append(gid)
+    print('Un-fixable gid_list = %r' % (unfixable_gid_list, ))
     return unfixable_gid_list
 
 
