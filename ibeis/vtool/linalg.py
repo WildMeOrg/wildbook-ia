@@ -89,25 +89,6 @@ def svd(M):
     return U, s, Vt
 
 
-def OLD_pdf_norm2d(x_, y_):
-    """  DEPRICATED """
-    import math
-    x = np.array([x_, y_])
-    sigma = np.eye(2)
-    mu = np.array([0, 0])
-    size = len(x)
-    if size == len(mu) and (size, size) == sigma.shape:
-        det = np.linalg.det(sigma)
-        if det == 0:
-            raise NameError('The covariance matrix cant be singular')
-    TAU = 2 * np.pi
-    norm_const = 1.0 / ( math.pow(TAU, float(size) / 2) * math.pow(det, 1.0 / 2))
-    x_mu = np.matrix(x - mu)
-    inv = np.linalg.inv(sigma)
-    result = math.pow(math.e, -0.5 * (x_mu * inv * x_mu.T))
-    return norm_const * result
-
-
 def gauss2d_pdf(x_, y_, sigma=None, mu=None):
     """
     Input: x and y coordinate of a 2D gaussian
@@ -143,7 +124,7 @@ def rotation_mat3x3(radians, sin=np.sin, cos=np.cos):
     References:
         https://en.wikipedia.org/wiki/Rotation_matrix
     """
-    # TODO: handle array impouts
+    # TODO: handle array inputs
     sin_ = sin(radians)
     cos_ = cos(radians)
     R = np.array(((cos_, -sin_,  0),
@@ -212,31 +193,15 @@ def shear_mat3x3(shear_x, shear_y, dtype=TRANSFORM_DTYPE):
     return shear
 
 
-#def affine_mat3x3_orig(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0):
-#    """
-#    Args:
-#        shear is angle in counterclockwise direction
-
-#    References:
-#        https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
-#    """
-#    sin1_ = np.sin(theta)
-#    cos1_ = np.cos(theta)
-#    sin2_ = np.sin(theta + shear)
-#    cos2_ = np.cos(theta + shear)
-#    Aff = np.array([
-#        [sx * cos1_, -sy * sin2_, tx],
-#        [sx * sin1_,  sy * cos2_, ty],
-#        [        0,            0,  1]
-#    ])
-#    return Aff
-
-
 def affine_mat3x3(sx=1, sy=1, theta=0, shear=0, tx=0, ty=0, trig=np):
-    """
+    r"""
     Args:
+        sx (float): x scale factor (default = 1)
+        sy (float): y scale factor (default = 1)
         theta (float): rotation angle (radians) in counterclockwise direction
         shear (float): shear angle (radians) in counterclockwise directions
+        tx (float): x-translation (default = 0)
+        ty (float): y-translation (default = 0)
 
     References:
         https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/_geometric.py
@@ -266,8 +231,8 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         sy (float): y scale factor (default = 1)
         theta (float): counter-clockwise rotation angle in radians(default = 0)
         shear (float): counter-clockwise shear angle in radians(default = 0)
-        tx (float): (default = 0)
-        ty (float): (default = 0)
+        tx (float): x-translation (default = 0)
+        ty (float): y-translation (default = 0)
         x2 (float, optional): center y location in output space (default = x)
         y2 (float, optional): center y location in output space (default = y)
 
@@ -352,77 +317,25 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
     return Aff
 
 
-#@ut.on_exception_report_input(force=True)
-#def scaleedoffset_mat3x3(offset, scale_factor):
-#    r"""
-#    Args:
-#        offset (tuple):
-#        scale_factor (scalar or tuple):
-#
-#    Returns:
-#        ndarray[ndims=2]: M
-#
-#    CommandLine:
-#        python -m vtool.linalg --test-scaleedoffset_mat3x3
-#
-#    Example:
-#        >>> # ENABLE_DOCTEST
-#        >>> from vtool.linalg import *  # NOQA
-#        >>> # build test data
-#        >>> offset = (11, 13)
-#        >>> scale_factor = (.3, .5)
-#        >>> # execute function
-#        >>> M = scaleedoffset_mat3x3(offset, scale_factor)
-#        >>> # verify results
-#        >>> result = ut.numpy_str(M, precision=2)
-#        >>> print(result)
-#        np.array([[  0.3,   0. ,  11. ],
-#                  [  0. ,   0.5,  13. ],
-#                  [  0. ,   0. ,   1. ]], dtype=np.float64)
-#    """
-#    try:
-#        sfx, sfy = scale_factor
-#    except TypeError:
-#        sfx = sfy = scale_factor
-#    #with ut.embed_on_exception_context:
-#    tx, ty = offset
-#    T = translation_mat3x3(tx, ty)
-#    S = scale_mat3x3(sfx, sfy)
-#    M = T.dot(S)
-#    return M
-
-
 # Ensure that a feature doesn't have multiple assignments
 # --------------------------------
 # Linear algebra functions on lower triangular matrices
 
 
-#PYX DEFINE
 def det_ltri(ltri):
-    #cdef det_ltri(FLOAT_2D ltri):
     """ Lower triangular determinant """
-    #PYX CDEF FLOAT_1D det
     det = ltri[0] * ltri[2]
     return det
 
 
-#PYX DEFINE
 def inv_ltri(ltri, det):
-    #cdef inv_ltri(FLOAT_2D ltri, FLOAT_1D det):
     """ Lower triangular inverse """
-    # PYX CDEF FLOAT_2D inv_ltri
     inv_ltri = np.array((ltri[2], -ltri[1], ltri[0]), dtype=ltri.dtype) / det
     return inv_ltri
 
 
-#PYX BEGIN
 def dot_ltri(ltri1, ltri2):
     """ Lower triangular dot product """
-    #cdef dot_ltri(FLOAT_2D ltri1, FLOAT_2D ltri2):
-    # PYX FLOAT_1D m11, m21, m22
-    # PYX FLOAT_1D n11, n21, n22
-    # PYX FLOAT_1D o11, o21, o22
-    # PYX FLOAT_2D ltri3
     # use m, n, and o as temporary matrixes
     m11, m21, m22 = ltri1
     n11, n21, n22 = ltri2
@@ -431,7 +344,6 @@ def dot_ltri(ltri1, ltri2):
     o22 = (m22 * n22)
     ltri3 = np.array((o11, o21, o22), dtype=ltri1.dtype)
     return ltri3
-# PYX END CDEF
 
 
 def whiten_xy_points(xy_m):
@@ -489,7 +401,7 @@ def add_homogenous_coordinate(_xys):
 
 
 def remove_homogenous_coordinate(_xyzs):
-    """
+    r"""
     normalizes 3d homogonous coordinates into 2d coordinates
 
     Args:
@@ -504,13 +416,10 @@ def remove_homogenous_coordinate(_xyzs):
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
         >>> _xyzs = np.array([[ 2.,   0.,  0.,  2.],
         ...                   [ 2.,   2.,  0.,  0.],
         ...                   [ 1.2,  1.,  1.,  2.]], dtype=np.float32)
-        >>> # execute function
         >>> _xys = remove_homogenous_coordinate(_xyzs)
-        >>> # verify results
         >>> result = ut.numpy_str(_xys, precision=3)
         >>> print(result)
         np.array([[ 1.667,  0.   ,  0.   ,  1.   ],
@@ -519,13 +428,10 @@ def remove_homogenous_coordinate(_xyzs):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.linalg import *  # NOQA
-        >>> # build test data
         >>> _xyzs = np.array([[ 140.,  167.,  185.,  185.,  194.],
         ...                   [ 121.,  139.,  156.,  155.,  163.],
         ...                   [  47.,   56.,   62.,   62.,   65.]])
-        >>> # execute function
         >>> _xys = remove_homogenous_coordinate(_xyzs)
-        >>> # verify results
         >>> result = np.array_repr(_xys, precision=3)
         >>> print(result)
         array([[ 2.979,  2.982,  2.984,  2.984,  2.985],
@@ -623,7 +529,6 @@ def random_affine_args(zoom_pdf=None,
                        txy_pdf=None,
                        rng=np.random):
     r"""
-
     TODO: allow for a pdf of ranges for each dimension
 
     If pdfs are tuples it is interpreted as a default (uniform) distribution between the
