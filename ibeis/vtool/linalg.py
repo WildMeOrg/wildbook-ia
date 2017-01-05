@@ -302,20 +302,17 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
     Timeit:
         >>> from vtool.linalg import *  # NOQA
         >>> x, y, sx, sy, theta, shear, tx, ty, x2, y2 = (
-        >>>     256.0, 256.0, 1.5, 1.0, 0.7853981633974483, 0.2, 0, 100,
-        >>>     500.0, 500.0)
-        >>> for timer in ut.Timerit(1000, 'old'):
+        >>>     256.0, 256.0, 1.5, 1.0, 0.78, 0.2, 0, 100, 500.0, 500.0)
+        >>> for timer in ut.Timerit(1000, 'old'):  # 19.0697 µs
         >>>     with timer:
         >>>         tr1_ = translation_mat3x3(-x, -y)
         >>>         Aff_ = affine_mat3x3(sx, sy, theta, shear, tx, ty)
         >>>         tr2_ = translation_mat3x3(x2, y2)
         >>>         Aff1 = tr2_.dot(Aff_).dot(tr1_)
-        >>> # 19.0697 µs
-        >>> for timer in ut.Timerit(1000, 'new'):
+        >>> for timer in ut.Timerit(1000, 'new'):  # 11.0242 µs
         >>>     with timer:
         >>>         Aff2 = affine_around_mat3x3(x, y, sx, sy, theta, shear,
         >>>                                     tx, ty, x2, y2)
-        >>> # 11.0242 µs
         >>> assert np.all(np.isclose(Aff2, Aff1))
 
     Sympy:
@@ -338,12 +335,6 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         >>> print('-------')
         >>> print('Numpy')
         >>> vt.sympy_numpy_repr(Aff)
-
-    Ignore:
-        # >>> import scipy.spatial
-        # >>> hull = scipy.spatial.ConvexHull(orig_pts)
-        # >>> x, y = orig_pts[hull.vertices, :].mean(axis=0)
-
     """
     x2 = x if x2 is None else x2
     y2 = y if y2 is None else y2
