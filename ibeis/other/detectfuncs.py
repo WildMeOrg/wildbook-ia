@@ -537,7 +537,7 @@ def general_get_imageset_gids(ibs, imageset_text, species_set=None, unique=False
         args = (len(test_gid_list), species_set, )
         print('Filtering GIDs (%d) on species set: %r' % args)
         aids_list = ibs.get_image_aids(test_gid_list)
-        species_list_list = ibs.unflatmap(ibs.get_annot_species_texts, aids_list)
+        species_list_list = ibs.unflat_map(ibs.get_annot_species_texts, aids_list)
         species_set_list = map(set, species_list_list)
         zipped = zip(test_gid_list, species_set_list)
         test_gid_list = [

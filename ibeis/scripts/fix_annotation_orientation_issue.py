@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import utool as ut
 import vtool as vt
+import numpy as np
 
 
 def fix_annotation_orientation(ibs, min_percentage=0.95):
@@ -62,7 +63,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
             image = ibs.get_images(gid)
             h, w = image.shape[:2]
             if h_ != h or w_ != w:
-                ibs._set_image_sizes(gid, w, h)
+                ibs._set_image_sizes([gid], [w], [h])
             image_bbox = (0, 0, w, h)
             verts_list = ibs.get_annot_rotated_verts(aid_list)
             invalid = False
@@ -72,21 +73,65 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                 area = annot_bbox[2] * annot_bbox[3]
                 percentage = overlap / area
                 if percentage < min_percentage:
+                    orient_str = exif.ORIENTATION_DICT[orient]
+                    args = (gid, orient_str, aid, overlap, area, overlap / area)
+                    print('\tInvalid GID %r, Orient %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
                     invalid = True
-                    args = (gid, aid, overlap, area, overlap / area)
-                    print('\tGID %r, AID %r: Overlap %0.2f, Area %0.2f (%0.2f %%)' % args)
-                    if orient == orient_dict.get(exif.ORIENTATION_090):
-                        pass
-                    elif orient == orient_dict.get(exif.ORIENTATION_180):
-                        pass
-                    elif orient == orient_dict.get(exif.ORIENTATION_270):
-                        pass
-                    else:
-                        raise ValueError('Unrecognized invalid orientation')
+                    # break
             if invalid:
                 invalid_gid_list.append(gid)
-        args = (len(invalid_gid_list), invalid_gid_list)
-        print('Found %d images with invalid annotations = %r' % args)
+
+        invalid_gid_list = list(set(invalid_gid_list))
+        if len(invalid_gid_list) > 0:
+            args = (len(invalid_gid_list), len(gid_list), invalid_gid_list, )
+            print('Found %d / %d images with invalid annotations = %r' % args)
+            orient_list = ibs.get_image_orientation(invalid_gid_list)
+            aids_list = ibs.get_image_aids(invalid_gid_list)
+            size_list = ibs.get_image_sizes(invalid_gid_list)
+            zipped = zip(invalid_gid_list, orient_list, aids_list, size_list)
+            for invalid_gid, orient, aid_list, (w_, h_) in zipped:
+                image_bbox = (0, 0, w, h)
+                args = (invalid_gid, len(aid_list), )
+                print('Fixing GID %r with %d annotations' % args)
+                theta = np.pi / 2.0
+                tx = 0.0
+                ty = 0.0
+                if orient == orient_dict.get(exif.ORIENTATION_090):
+                    theta *= 1.0
+                    tx = w
+                elif orient == orient_dict.get(exif.ORIENTATION_180):
+                    theta *= 2.0
+                    tx = w
+                    ty = h
+                elif orient == orient_dict.get(exif.ORIENTATION_270):
+                    theta *= -1.0
+                    ty = 2.0 * h
+                else:
+                    raise ValueError('Unrecognized invalid orientation')
+                H = np.array([[np.cos(theta), -np.sin(theta), tx ],
+                              [np.sin(theta),  np.cos(theta), ty ],
+                              [0.0,            0.0,           1.0]])
+                print(H)
+                verts_list = ibs.get_annot_rotated_verts(aid_list)
+                for aid, vert_list in zip(aid_list, verts_list):
+                    vert_list = np.array(vert_list)
+                    print(vert_list)
+                    vert_list = vert_list.T
+                    transformed_vert_list = vt.transform_points_with_homography(
+                        H,
+                        vert_list
+                    )
+                    transformed_vert_list = transformed_vert_list.T
+                    print(transformed_vert_list)
+
+                    # transformed_annot_bbox = vt.bbox_from_verts(transformed_vert_list)
+                    # overlap = bbox_overlap(image_bbox, transformed_annot_bbox)
+                    # area = transformed_annot_bbox[2] * transformed_annot_bbox[3]
+                    # percentage = overlap / area
+                    # assert percentage >= min_percentage, 'Post-fix overlap check failed'
+
+                    ibs.set_annot_verts([aid], [transformed_vert_list])
+                # break
 
 
 if __name__ == '__main__':

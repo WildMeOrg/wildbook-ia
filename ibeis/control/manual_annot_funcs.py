@@ -2606,6 +2606,11 @@ def set_annot_verts(ibs, aid_list, verts_list, delete_thumbs=True):
     from vtool import geometry
     nInput = len(aid_list)
     # Compute data to set
+    if isinstance(verts_list, np.ndarray):
+        verts_list = verts_list.tolist()
+    for index, vert_list in enumerate(verts_list):
+        if isinstance(vert_list, np.ndarray):
+            verts_list[index] = vert_list.tolist()
     num_verts_list   = list(map(len, verts_list))
     verts_as_strings = list(map(six.text_type, verts_list))
     id_iter1 = ((aid,) for aid in aid_list)
