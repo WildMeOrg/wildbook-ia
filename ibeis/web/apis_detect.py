@@ -14,6 +14,7 @@ from ibeis.web import appfuncs as appf
 
 
 try:
+    raise ImportError
     import jpcnn  # NOQA
     USE_LOCALIZATIONS = False
     print('[apis_detect] USING DETECTIONS FOR DETECTIONS')
@@ -316,7 +317,8 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
 @accessor_decors.default_decorator
 @accessor_decors.getter_1toM
 @register_api('/api/detect/cnn/yolo/', methods=['PUT', 'GET'])
-def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
+def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, model_tag=None,
+                    **kwargs):
     """
     Runs animal detection in each image. Adds annotations to the database
     as they are found.
@@ -362,6 +364,13 @@ def detect_cnn_yolo(ibs, gid_list, commit=True, testing=False, **kwargs):
         # 'labeler_sensitivity'    : 0.42,
         # 'detector_sensitivity'   : 0.08,
     }
+    if model_tag is not None:
+        config['config_filepath'] = model_tag
+        config['weight_filepath'] = model_tag
+    config_str_list = ['config_filepath', 'weight_filepath']
+    for config_str in config_str_list:
+        if config_str in kwargs:
+            config[config_str] = kwargs[config_str]
     if USE_LOCALIZATIONS:
         if testing:
             depc.delete_property('localizations', gid_list, config=config)
