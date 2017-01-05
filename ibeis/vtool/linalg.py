@@ -295,6 +295,14 @@ def affine_around_mat3x3(x, y, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
     """
     Combines a translate with affine3x3 with untranslate
 
+    Args:
+        x (float): center x location in input space
+        y (float): center y location in input space
+        x2 (float, optional): center x location in output space if different
+            from input space (assumed the same if unspecified)
+        y2 (float, optional): center y location in output space if different
+            from input space (assumed the same if unspecified)
+
     Example:
         >>> from vtool.linalg import *  # NOQA
         >>> tup = (256.0, 256.0, 1.5, 1.0, 0.7853981633974483, 0.2, 0, 100, 500.0, 500.0)
