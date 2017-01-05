@@ -377,7 +377,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Get the operating points
         # (FIXME this is influenced by re-using the training set)
         operating_points = {
-            'match_state': ('fpr', 1E-4),
+            # 'match_state': ('fpr', 1E-4),
+            'match_state': ('fpr', 1E-2),
             'photobomb_state': ('mcc', 'max'),
         }
         task_thresh = {}
@@ -438,11 +439,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         print('Autodecision info after pos threshold')
         print('Number positive-decisions\n%s' % primary_pos_flags.sum(axis=0))
-        print('Percent positive-decisions\n%s' % (
-            100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))
-        print('Total %s, Percent %.2f%%' % (primary_pos_flags.sum(axis=0).sum(),
-              100 * primary_pos_flags.sum(axis=0).sum() /
-              len(primary_pos_flags)))
+        # print('Percent positive-decisions\n%s' % (
+        #     100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))
+        # print('Total %s, Percent %.2f%%' % (primary_pos_flags.sum(axis=0).sum(),
+        #       100 * primary_pos_flags.sum(axis=0).sum() /
+        #       len(primary_pos_flags)))
         print('Revoked autodecisions based on confounders:\n%s'  %
                 primary_pos_flags.mul(is_confounded, axis=0).sum())
 
@@ -458,52 +459,49 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('Making #auto-decisions %s' % ut.map_dict_vals(
             sum, primary_auto_flags))
 
-        # report number of names with (gt) split problems
-        # report number of merge problems (incorrect negative review)
-        # report number of remaining merges
-        # number of decisions that were part of the training data
-
         ibs = self.qreq_.ibs
-        primary_probs = task_probs[primary_task]
+
+        task_key = 'photobomb_state'
+        probs = task_probs[task_key]
+        want_samples = AnnotPairSamples(ibs=ibs, index=probs.index)
+        labels = want_samples[task_key]
+        y_true = labels.encoded_df.loc[probs.index.tolist()]
+        y_pred = probs.idxmax(axis=1).apply(labels.lookup_class_idx)
+        target_names = probs.columns
+        sample_weight = None
+        print('----------------------')
+        print('Want Photobomb Report')
+        clf_helpers.classification_report2(
+            y_true, y_pred, sample_weight=sample_weight,
+            target_names=target_names)
+
         # Make labels for entire set
-        big_samples = AnnotPairSamples(ibs=ibs, index=primary_probs.index)
-        primary_labels = big_samples[primary_task]
+        primary_probs = task_probs[primary_task]
+        want_samples = AnnotPairSamples(ibs=ibs, index=primary_probs.index)
+        primary_labels = want_samples[primary_task]
         y_true_enc = primary_labels.encoded_df
         y_true = y_true_enc.loc[primary_probs.index.tolist()]
         y_pred = primary_probs.idxmax(axis=1).apply(
             primary_labels.lookup_class_idx)
         target_names = primary_probs.columns
         sample_weight = None
-        print('Without autoclassification')
-        clf_helpers.classification_report2(y_true, y_pred,
-                                           sample_weight=sample_weight,
-                                           target_names=target_names)
-        print('Only autoclassified')
+        print('----------------------')
+        print('Want Match Report')
+        clf_helpers.classification_report2(
+            y_true, y_pred, sample_weight=sample_weight,
+            target_names=target_names)
+        print('----------------------')
+        print('Autoclassification Report')
         auto_edges = is_auto[is_auto].index
-        clf_helpers.classification_report2(y_true.loc[auto_edges],
-                                           y_pred.loc[auto_edges],
-                                           target_names=target_names)
-        print('Only autoclassified and unseen')
-        auto_unseen_edges = is_auto[is_auto].index.intersection(need_edges)
-        clf_helpers.classification_report2(y_true.loc[auto_unseen_edges],
-                                           y_pred.loc[auto_unseen_edges],
-                                           target_names=target_names)
+        clf_helpers.classification_report2(
+            y_true.loc[auto_edges], y_pred.loc[auto_edges],
+            target_names=target_names)
+        print('----------------------')
 
-        import utool
-        utool.embed()
-        print('Completly unseen data')
-        clf_helpers.classification_report2(y_true.loc[need_edges],
-                                           y_pred.loc[need_edges],
-                                           target_names=target_names)
-
-        print('Completly unseen data')
-        clf_helpers.classification_report2(y_true.loc[need_edges],
-                                           y_pred.loc[need_edges],
-                                           target_names=target_names)
-        print('Test data')
-        clf_helpers.classification_report2(y_true.loc[have_edges],
-                                           y_pred.loc[have_edges],
-                                           target_names=target_names)
+        # report number of names with (gt) split problems
+        # report number of merge problems (incorrect negative review)
+        # report number of remaining merges
+        # number of decisions that were part of the training data
 
         # Apply probabilities to edges in infr
         # (todo: standardize this within infr)
@@ -514,11 +512,77 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.remove_feedback()
         infr.apply_feedback_edges()
         # Add automatic feedback
-        import utool
+        auto_decisions = primary_auto_flags[is_auto].idxmax(axis=1)
+        auto_decisions = auto_decisions.sort_values()
         with ut.Timer('apply-auto-feedback'):
-            decisions = primary_auto_flags[is_auto].idxmax(axis=1)
-            decisions = decisions.sort_values()
-            for (u, v), state in decisions.iteritems():
+            for (u, v), state in auto_decisions.iteritems():
+                infr.add_feedback(u, v, state, apply=False)
+        infr.apply_feedback_edges()
+        n_clusters, n_inconsistent = infr.relabel_using_reviews()
+        infr.apply_review_inference()
+        print('n_clusters = %r' % (n_clusters,))
+        print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
+        print('n_aids = %r' % (len(ut.unique(infr.aids))))
+        print('n_inconsistent = %r' % (n_inconsistent,))
+
+        # now the user cleans up the mess
+        e_ = ibeis.algo.hots.graph_iden.e_
+        merge_fixes = []
+        split_fixes = []
+        for cc in infr.inconsistent_compoments():
+            # print(ut.repr4(cc.node))
+            # Assume the user will fix these
+            import networkx as nx
+            edges = ut.lstarmap(e_, list(cc.edges()))
+            edge_states = np.array([
+                cc.edge[u][v].get('reviewed_state', 'unreviewed')
+                for u, v in edges
+            ])
+            node_to_nid = nx.get_node_attributes(cc, 'orig_name_label')
+            same_flags = (
+                np.diff(ut.unflat_take(node_to_nid, edges), axis=1) == 0).T[0]
+            split_edges = ut.compress(edges, (edge_states == 'match') & (~same_flags))
+            merge_edges = ut.compress(edges, (edge_states == 'nomatch') & (same_flags))
+            print('merge_edges = %r' % (len(merge_edges),))
+            print('split_edges = %r' % (len(split_edges),))
+            merge_fixes += merge_edges
+            split_fixes += split_edges
+        print('----')
+        print('merge_fixes = %r' % (len(merge_fixes),))
+        print('split_fixes = %r' % (len(split_fixes),))
+        flagged_edges = merge_fixes + split_fixes
+
+        y_bin_match = want_samples['match_state'].indicator_df
+        fixed_state = y_bin_match.loc[flagged_edges]
+
+        # pd.isnull(auto_decisions.loc[flagged_edges]).sum()
+        auto_truth = y_bin_match.loc[auto_decisions.index].idxmax(axis=1)
+        is_mistake = auto_decisions != auto_truth
+        mistake_uv = is_mistake[is_mistake].index
+        total_mistakes = is_mistake.sum()
+        print('User is able to discover %d/%d misclassifications' % (
+            len(flagged_edges), total_mistakes))
+        remaining_mistake_uv = mistake_uv.difference(flagged_edges)
+
+        print('Initial mistakes')
+        clf_helpers.classification_report2(
+            y_true=y_bin_match.loc[mistake_uv].idxmax(axis=1),
+            y_pred=auto_decisions.loc[mistake_uv]
+        )
+
+        print('Remaining mistakes')
+        clf_helpers.classification_report2(
+            y_true=y_bin_match.loc[remaining_mistake_uv].idxmax(axis=1),
+            y_pred=auto_decisions.loc[remaining_mistake_uv]
+        )
+
+        import utool
+        utool.embed()
+
+        # FIX MISTAKES
+        with ut.Timer('apply-auto-feedback'):
+            fixed_decisions = fixed_state.idxmax(axis=1)
+            for (u, v), state in fixed_decisions.iteritems():
                 infr.add_feedback(u, v, state, apply=False)
         infr.apply_feedback_edges()
         n_clusters, n_inconsistent = infr.relabel_using_reviews()

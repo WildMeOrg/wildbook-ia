@@ -20,8 +20,20 @@ print, rrr, profile = ut.inject2(__name__)
 
 def classification_report2(y_true, y_pred, target_names=None,
                                    sample_weight=None):
+    from sklearn.preprocessing import LabelEncoder
+
+    if target_names is None:
+        lb = LabelEncoder()
+        lb.fit(np.hstack([y_true, y_pred]))
+        y_true_ = lb.transform(y_true)
+        y_pred_ = lb.transform(y_pred)
+        target_names = lb.classes_
+    else:
+        y_true_ = y_true
+        y_pred_ = y_pred
+
     cm = sklearn.metrics.confusion_matrix(
-        y_true, y_pred, sample_weight=sample_weight)
+        y_true_, y_pred_, sample_weight=sample_weight)
     confusion = cm  # NOQA
 
     k = len(cm)
@@ -958,6 +970,7 @@ class ClfResult(ut.NiceRepr):
             for k in range(y_test_bin.shape[1])
         ])
         num, total = perclass_autodecide_num_total.sum(axis=0)
+        # TODO: put this in context of how true/false predictions
         print('Auto %r thresholds passed by %d/%d = %.2f%%' % (
             res.task_key, num, total, num / total))
         for k in range(y_test_bin.shape[1]):
