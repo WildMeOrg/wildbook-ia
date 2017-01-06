@@ -256,8 +256,8 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
     json_payload = {
         'resolver': {
             'renameIndividuals': {
-                'old': [_[0] for _ in combined_list],
-                'new': [_[1] for _ in combined_list],
+                'new': [_[0] for _ in combined_list],
+                'old': [_[1] for _ in combined_list],
             }
         }
     }
@@ -267,7 +267,6 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         status = False
     else:
         response = requests.post(url, json=json_payload)
-        ut.embed()
         response_json = response.json()
         status = response.status_code == 200 and response_json['success']
         if not status:
@@ -280,6 +279,7 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
                 error = name_response.get('error', '')
                 status = status or 'unknown MarkedIndividual' in error
                 status_list.append(status)
+    ut.embed()
     return status_list
 
 
