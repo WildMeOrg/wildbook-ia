@@ -2098,7 +2098,8 @@ def is_aid_unknown(ibs, aid_list):
 
 
 @register_ibs_method
-def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None):
+def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
+                                         notify_wildbook=True, assert_wildbook=True):
     """ actually sets the new consectuive names"""
     new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(
         imgsetid=imgsetid, location_text=location_text)
@@ -2116,7 +2117,21 @@ def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None)
 
     # Check to make sure new names dont conflict with other names
     _assert_no_name_conflicts(ibs, new_nid_list, new_name_list)
-    ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET)
+    ibs.set_name_texts(new_nid_list, new_name_list, verbose=ut.NOT_QUIET,
+                       notify_wildbook=notify_wildbook, assert_wildbook=assert_wildbook)
+
+
+def get_location_text(ibs, location_text, default_location_text):
+    if location_text is None:
+        # Check for Lewa server
+        comp_name = ut.get_computer_name()
+        db_name = ibs.dbname
+        is_lewa = comp_name in ['ibeis.cs.uic.edu'] or db_name in ['LEWA', 'lewa_grevys']
+        if is_lewa:
+            location_text = 'LWC'
+        else:
+            location_text = default_location_text
+    return location_text
 
 
 @register_ibs_method
@@ -2163,15 +2178,26 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         )
     """
     print('[ibs] get_consecutive_newname_list_via_species')
-    if location_text is None:
-        location_text = 'IBEIS'
+    location_text = get_location_text(ibs, location_text, 'IBEIS')
     ibs.delete_empty_nids()
     nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
     #name_list = ibs.get_name_texts(nid_list)
     aids_list = ibs.get_name_aids(nid_list)
+
     species_rowids_list = ibs.unflat_map(ibs.get_annot_species_rowids, aids_list)
     unique_species_rowids_list = list(map(ut.unique_ordered, species_rowids_list))
-    code_list = ibs.get_species_codes(ut.flatten(unique_species_rowids_list))
+    species_rowid_list = ut.flatten(unique_species_rowids_list)
+    try:
+        assert len(species_rowid_list) == len(nid_list)
+    except AssertionError:
+        print('WARNING: Names assigned to annotations with inconsistent species')
+        inconsistent_nid_list = []
+        for nid, unique_species_rowid_list in zip(nid_list, unique_species_rowids_list):
+            if len(unique_species_rowid_list) > 1:
+                inconsistent_nid_list.append(nid)
+        print('Inconsistent nid_list = %r' % (inconsistent_nid_list, ))
+        raise ValueError
+    code_list = ibs.get_species_codes(species_rowid_list)
 
     _code2_count = ut.ddict(lambda: 0)
     def get_next_index(code):
@@ -2283,14 +2309,12 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
     if species_text is None:
         # TODO: optionally specify qreq_ or qparams?
         species_text  = ibs.cfg.detect_cfg.species_text
-    if location_text is None:
-        location_text = ibs.cfg.other_cfg.location_for_names
+    location_text = get_location_text(ibs, location_text, ibs.cfg.other_cfg.location_for_names)
     if num is None:
         num_ = 1
     else:
         num_ = num
-    if ut.get_computer_name() == 'ibeis.cs.uic.edu':
-        location_text = 'LWC'
+    # Assign new names
     nid_list = ibs._get_all_known_name_rowids()
     names_used_list = set(ibs.get_name_texts(nid_list))
     base_index = len(nid_list)

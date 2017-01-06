@@ -113,7 +113,7 @@ def get_wildbook_ia_url(ibs, wb_target=None):
     status = response.status_code == 200
     #result_json = {"settings":{"IBEISIARestUrlAddAnnotations":"http://52.37.240.178:5000/api/annot/json/"},"iaURL":"http://52.37.240.178:5000/","iaEnabled":true,"timestamp":1466534267714}
     if not status:
-        raise Exception('Cou.ld not get IA status from wildbook')
+        raise Exception('Could not get IA status from wildbook')
     json_response = response.json()
     ia_url = json_response.get('iaURL')
     #print('response = %r' % (response,))
@@ -188,7 +188,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
         >>> # Signal what currently exists (should put them back to normal)
         >>> result = ibs.wildbook_signal_annot_name_changes(aid_list, wb_target, dryrun)
     """
-    print('[ibs.wildbook_signal_imgsetid_list] signaling annot name changes to wildbook')
+    print('[ibs.wildbook_signal_annot_name_changes] signaling annot name changes to wildbook')
     wb_url = ibs.get_wildbook_base_url(wb_target)
     try:
         ibs.assert_ia_available_for_wb(wb_target)
@@ -220,6 +220,62 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
                 print('Failed to push new names')
                 print(response.text)
         status_list.append(status)
+    return status_list
+
+
+@register_ibs_method
+@register_api('/api/wildbook/signal/name/', methods=['PUT'])
+def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
+                                 dryrun=False):
+    r"""
+    Args:
+        nid_list (int):  list of name ids
+        new_name_list (str):  list of corresponding names
+        wb_target (None): (default = None)
+        dryrun (bool): (default = False)
+
+    CommandLine:
+        python -m ibeis wildbook_signal_name_changes:0 --dryrun
+        python -m ibeis wildbook_signal_name_changes:1 --dryrun
+        python -m ibeis wildbook_signal_name_changes:1
+        python -m ibeis wildbook_signal_name_changes:2
+
+    Setup:
+        >>> wb_target = None
+        >>> dryrun = ut.get_argflag('--dryrun')
+    """
+    print('[ibs.wildbook_signal_name_changes] signaling name changes to wildbook')
+    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        ibs.assert_ia_available_for_wb(wb_target)
+    except Exception:
+        pass
+    current_name_list = ibs.get_annot_name_texts(nid_list)
+    url = wb_url + '/ia'
+    json_payload = {
+        'resolver': {
+            'renameIndividuals': {
+                'old': current_name_list,
+                'new': new_name_list,
+            }
+        }
+    }
+    status_list = []
+    print('[_send] URL=%r with json_payload=%r' % (url, json_payload))
+    if dryrun:
+        status = False
+    else:
+        response = requests.post(url, json=json_payload)
+        response_json = response.json
+        status = response.status_code == 200 and response_json['success']
+        if not status:
+            status_list = False
+            print('Failed to update names')
+            print(response.text)
+        else:
+            ut.embed()
+            for name_response in response_json['results']:
+                status_list.append(name_response['success'])
     return status_list
 
 

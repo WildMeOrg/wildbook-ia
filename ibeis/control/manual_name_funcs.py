@@ -197,7 +197,7 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
 @register_ibs_method
 @accessor_decors.ider
 # @register_api('/api/name/nids/empty/', methods=['GET'])
-def get_empty_nids(ibs):
+def get_empty_nids(ibs, _nid_list=None):
     r"""
     get name rowids that do not have any annotations (not including UNKONWN)
 
@@ -224,15 +224,46 @@ def get_empty_nids(ibs):
         >>> print(result)
         []
     """
-    _nid_list = ibs._get_all_known_name_rowids()
+    recursive = _nid_list is not None
+    recstr = '\t\t' if recursive else '\t'
+    if _nid_list is None:
+        _nid_list = ibs._get_all_known_name_rowids()
+    if len(_nid_list) == 0:
+        return []
+    args = (len(_nid_list), )
+    if recursive:
+        print('\tCHECKING %d NIDS FOR EMPTY (RECURSIVE)' % args)
+    else:
+        print('CHECKING %d NIDS FOR EMPTY' % args)
     nRois_list = ibs.get_name_num_annotations(_nid_list)
     # Filter names with rois
     isempty_list = (nRois <= 0 for nRois in nRois_list)
-    nid_list = list(ut.iter_compress(_nid_list, isempty_list))
+    empty_nid_list = list(ut.iter_compress(_nid_list, isempty_list))
     # Filter names with aliases (TODO: use transitivity to determine validity)
-    hasalias_list = [alias_text is not None for alias_text in ibs.get_name_alias_texts(nid_list)]
-    nid_list = list(ut.ifilterfalse_items(nid_list, hasalias_list))
-    return nid_list
+    alias_text_list = ibs.get_name_alias_texts(empty_nid_list)
+    hasalias_list = [alias_text is not None for alias_text in alias_text_list]
+    # Find nids with aliases and without alias
+    alias_nid_list = list(ut.ifilter_items(empty_nid_list, hasalias_list))
+    no_alias_nid_list = list(ut.ifilterfalse_items(empty_nid_list, hasalias_list))
+    # Find name texts and then nids of the original nids that have valid aliases
+    alias_text_list = ibs.get_name_alias_texts(alias_nid_list)
+    alias_nid_list = ibs.get_name_rowids_from_text(alias_text_list)
+    # Find the empty aliases, recursively
+    print('%sFound %d empty NIDs' % (recstr, len(empty_nid_list), ))
+    print('%sFound %d empty NIDs without an alias' % (recstr, len(no_alias_nid_list), ))
+    message = ' checking these recursively' if len(alias_nid_list) > 0 else ''
+    print('%sFound %d empty NIDs with an alias...%s' % (recstr, len(alias_nid_list), message, ))
+    empty_alias_nid_list = ibs.get_empty_nids(_nid_list=alias_nid_list)
+    # Compile the full list of nids without any associated annotations
+    empty_nid_list = empty_nid_list + no_alias_nid_list + empty_alias_nid_list
+    if not recursive:
+        print('\tFound %d empty NIDs with an alias that is recursively empty' % (len(empty_alias_nid_list), ))
+    empty_nid_list = list(set(empty_nid_list))
+    # Sanity check
+    nRois_list = ibs.get_name_num_annotations(empty_nid_list)
+    isempty_list = [nRois <= 0 for nRois in nRois_list]
+    assert isempty_list.count(True) == len(empty_nid_list)
+    return empty_nid_list
 
 
 @register_ibs_method
@@ -1076,7 +1107,8 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/name/text/', methods=['PUT'])
-def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
+def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
+                   notify_wildbook=False, assert_wildbook=False):
     r"""
     Changes the name text. Does not affect the animals of this name.
     Effectively just changes the TEXT UUID
@@ -1100,6 +1132,14 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False):
     """
     if verbose:
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
+    if notify_wildbook:
+        print('[ibs] notifying WildBook of name text changes')
+        status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
+        if assert_wildbook:
+            assert not status_list, 'The request to WB failed'
+            failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
+            msg = 'Failed to update WB nid_list = %r' % (failed_nid_list, )
+            assert len(failed_nid_list) == 0, msg
     ibsfuncs.assert_valid_names(name_text_list)
     #sanitize_name_texts(ibs, name_text_list):
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
