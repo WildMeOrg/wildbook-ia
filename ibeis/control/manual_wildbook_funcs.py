@@ -250,7 +250,7 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         ibs.assert_ia_available_for_wb(wb_target)
     except Exception:
         pass
-    current_name_list = ibs.get_annot_name_texts(nid_list)
+    current_name_list = ibs.get_name_texts(nid_list)
     url = wb_url + '/ia'
     json_payload = {
         'resolver': {
