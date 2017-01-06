@@ -266,14 +266,14 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         status = False
     else:
         response = requests.post(url, json=json_payload)
-        response_json = response.json
+        ut.embed()
+        response_json = response.json()
         status = response.status_code == 200 and response_json['success']
         if not status:
             status_list = False
             print('Failed to update names')
             print(response.text)
         else:
-            ut.embed()
             for name_response in response_json['results']:
                 status_list.append(name_response['success'])
     return status_list
