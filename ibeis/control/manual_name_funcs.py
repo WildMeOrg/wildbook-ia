@@ -1136,7 +1136,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         print('[ibs] notifying WildBook of name text changes')
         status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
         if assert_wildbook:
-            assert not status_list, 'The request to WB failed'
+            assert status_list, 'The request to WB failed'
             failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
             msg = 'Failed to update WB nid_list = %r' % (failed_nid_list, )
             assert len(failed_nid_list) == 0, msg
