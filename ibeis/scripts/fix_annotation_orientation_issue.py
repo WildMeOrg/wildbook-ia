@@ -51,6 +51,7 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
     flag_list = [ orient not in good_orient_key_list for orient in orient_list ]
 
     # Filter based on based gids
+    unfixable_gid_list = []
     gid_list = ut.filter_items(gid_list, flag_list)
     if len(gid_list) > 0:
         args = (len(gid_list), )
@@ -82,7 +83,6 @@ def fix_annotation_orientation(ibs, min_percentage=0.95):
                 invalid_gid_list.append(gid)
 
         invalid_gid_list = list(set(invalid_gid_list))
-        unfixable_gid_list = []
         if len(invalid_gid_list) > 0:
             args = (len(invalid_gid_list), len(gid_list), invalid_gid_list, )
             print('Found %d / %d images with invalid annotations = %r' % args)
