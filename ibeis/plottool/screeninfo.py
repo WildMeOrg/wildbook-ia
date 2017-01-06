@@ -7,13 +7,16 @@ import numpy as np
 try:
     import guitool
     from guitool.__PYQT__ import QtWidgets
+    from guitool.__PYQT__ import QtCore
 except ImportError:
     try:
         from PyQt4 import QtGui as QtWidgets
+        from PyQt4 import QtCore
     except ImportError:
         pass
     try:
         from PyQt5 import QtWidgets  # NOQA
+        from PyQt5 import QtCore  # NOQA
     except ImportError:
         pass
     print('Warning: guitool did not import correctly')
@@ -111,19 +114,18 @@ def get_resolution_info(monitor_num=0):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.screeninfo import *  # NOQA
-        >>> monitor_num = 0
+        >>> monitor_num = 1
         >>> for monitor_num in range(get_number_of_monitors()):
         >>>     info = get_resolution_info(monitor_num)
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
     ensure_app_is_running()
     import guitool as gt
-
-    app = gt.ensure_qapp()[0]
-    screen_resolution = app.desktop().screenGeometry()
-    width, height = screen_resolution.width(), screen_resolution.height()
-    print('height = %r' % (height,))
-    print('width = %r' % (width,))
+    app = gt.ensure_qapp()[0]  # NOQA
+    # screen_resolution = app.desktop().screenGeometry()
+    # width, height = screen_resolution.width(), screen_resolution.height()
+    # print('height = %r' % (height,))
+    # print('width = %r' % (width,))
 
     desktop = QtWidgets.QDesktopWidget()
     screen = desktop.screen(monitor_num)
@@ -131,13 +133,77 @@ def get_resolution_info(monitor_num=0):
     ppi_y = screen.logicalDpiY()
     dpi_x = screen.physicalDpiX()
     dpi_y = screen.physicalDpiY()
-    rect = desktop.availableGeometry(screen=monitor_num)
-    pixels_w = rect.width()
-    pixels_h = rect.height()
+    # This call is not rotated correctly
+    # rect = screen.screenGeometry()
 
-    pt = screen.pos()
+    # This call has bad offsets
+    rect = desktop.screenGeometry(screen=monitor_num)
+
+    # This call subtracts offsets weirdly
+    # desktop.availableGeometry(screen=monitor_num)
+
+    pixels_w = rect.width()
+    # for num in range(desktop.screenCount()):
+    # pass
+    pixels_h = rect.height()
+    # + rect.y()
+
+    """
+    I have two monitors (screens), after rotation effects they have
+    the geometry: (for example)
+        S1 = {x: 0, y=300, w: 1920, h:1080}
+        S2 = {x=1920, y=0, w: 1080, h:1920}
+
+    Here is a pictoral example
+    G--------------------------------------C-------------------
+    |                                      |                  |
+    A--------------------------------------|                  |
+    |                                      |                  |
+    |                                      |                  |
+    |                                      |                  |
+    |                 S1                   |                  |
+    |                                      |        S2        |
+    |                                      |                  |
+    |                                      |                  |
+    |                                      |                  |
+    |--------------------------------------B                  |
+    |                                      |                  |
+    |                                      |                  |
+    ----------------------------------------------------------D
+    Desired Info
+
+    G = (0, 0)
+    A = (S1.x, S1.y)
+    B = (S1.x + S1.w, S1.y + S1.h)
+
+    C = (S2.x, S2.y)
+    D = (S2.x + S1.w, S2.y + S2.h)
+
+    from PyQt4 import QtGui, QtCore
+    app = QtCore.QCoreApplication.instance()
+    if app is None:
+        import sys
+        app = QtGui.QApplication(sys.argv)
+    desktop = QtGui.QDesktopWidget()
+    rect1 = desktop.screenGeometry(screen=0)
+    rect2 = desktop.screenGeometry(screen=1)
+    """
+
+    # I want to get the relative positions of my monitors
+    # pt = screen.pos()
     # pt = screen.mapToGlobal(pt)
-    off_x, off_y = pt.x(), pt.y()
+    # pt = screen.mapToGlobal(screen.pos())
+    # Screen offsets seem bugged
+    # off_x = pt.x()
+    # off_y = pt.y()
+    # print(pt.x())
+    # print(pt.y())
+    # pt = screen.mapToGlobal(QtCore.QPoint(0, 0))
+    # print(pt.x())
+    # print(pt.y())
+    off_x = rect.x()
+    off_y = rect.y()
+    # pt.x(), pt.y()
 
     inches_w = (pixels_w / dpi_x)
     inches_h = (pixels_h / dpi_y)
