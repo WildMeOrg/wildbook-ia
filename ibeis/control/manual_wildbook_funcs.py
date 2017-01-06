@@ -284,6 +284,32 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
 
 
 @register_ibs_method
+def wildbook_get_existing_names(ibs, wb_target=None):
+    print('[ibs.wildbook_get_existing_names] getting existing names out of wildbook')
+    wb_url = ibs.get_wildbook_base_url(wb_target)
+    try:
+        ibs.assert_ia_available_for_wb(wb_target)
+    except Exception:
+        pass
+    url = wb_url + '/rest/org.ecocean.MarkedIndividual'
+    response = requests.get(url)
+    response_json = response.json()
+    ut.embed()
+    status = response.status_code == 200 and response_json['success']
+    if not status:
+        status_list = False
+        print('Failed to update names')
+        print(response.text)
+    else:
+        for name_response in response_json['results']:
+            status = name_response['success']
+            error = name_response.get('error', '')
+            status = status or 'unknown MarkedIndividual' in error
+            status_list.append(status)
+    return status_list
+
+
+@register_ibs_method
 @register_api('/api/wildbook/signal/imageset/', methods=['PUT'])
 def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
                                   set_shipped_flag=True,

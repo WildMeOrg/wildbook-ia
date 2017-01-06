@@ -2100,9 +2100,13 @@ def is_aid_unknown(ibs, aid_list):
 @register_ibs_method
 def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
                                          notify_wildbook=True, assert_wildbook=True):
-    """ actually sets the new consectuive names"""
+    wildbook_existing_name_list = []
+    if notify_wildbook:
+        wildbook_existing_name_list = ibs.wildbook_get_existing_names()
+    """ actually sets the new consecutive names"""
     new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(
-        imgsetid=imgsetid, location_text=location_text)
+        imgsetid=imgsetid, location_text=location_text,
+        wildbook_existing_name_list=wildbook_existing_name_list)
 
     def get_conflict_names(ibs, new_nid_list, new_name_list):
         other_nid_list = list(set(ibs.get_valid_nids()) - set(new_nid_list))
@@ -2135,7 +2139,8 @@ def get_location_text(ibs, location_text, default_location_text):
 
 
 @register_ibs_method
-def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=None):
+def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=None,
+                                             wildbook_existing_name_list=[]):
     """
     Just creates the nams, but does not set them
 
@@ -2202,6 +2207,8 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
     _code2_count = ut.ddict(lambda: 0)
     def get_next_index(code):
         _code2_count[code] += 1
+        while _code2_count[code] in wildbook_existing_name_list:
+            _code2_count[code] += 1
         return _code2_count[code]
 
     if imgsetid is not None:
