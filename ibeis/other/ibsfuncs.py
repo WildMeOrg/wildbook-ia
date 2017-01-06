@@ -2182,8 +2182,9 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
             ['IBEIS_UNKNOWN_Occurrence_1_0001', 'IBEIS_GZ_Occurrence_1_0001', 'IBEIS_PB_Occurrence_1_0001', 'IBEIS_UNKNOWN_Occurrence_1_0002'],
         )
     """
-    args = (len(wildbook_existing_name_list), )
-    print('[ibs] get_consecutive_newname_list_via_species with %d WB names' % args)
+    wildbook_existing_name_set = set(wildbook_existing_name_list)
+    args = (len(wildbook_existing_name_set), )
+    print('[ibs] get_consecutive_newname_list_via_species with %d existing WB names' % args)
     location_text = get_location_text(ibs, location_text, 'IBEIS')
     ibs.delete_empty_nids()
     nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
@@ -2208,20 +2209,26 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
     _code2_count = ut.ddict(lambda: 0)
     def get_next_index(code):
         _code2_count[code] += 1
-        while _code2_count[code] in wildbook_existing_name_list:
-            _code2_count[code] += 1
         return _code2_count[code]
 
-    if imgsetid is not None:
-        imgset_text = ibs.get_imageset_text(imgsetid)
-        imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
-        new_name_list = [
-            '%s_%s_%s_%04d' % (location_text, code, imgset_text, get_next_index(code))
-            for code in code_list]
-    else:
-        new_name_list = [
-            '%s_%s_%04d' % (location_text, code, get_next_index(code))
-            for code in code_list]
+    def get_new_name(code):
+        if imgsetid is not None:
+            imgset_text = ibs.get_imageset_text(imgsetid)
+            imgset_text = imgset_text.replace(' ', '_').replace('\'', '').replace('"', '')
+            args = (location_text, code, imgset_text, get_next_index(code), )
+            new_name = '%s_%s_%s_%04d' % args
+        else:
+            args = (location_text, code, get_next_index(code), )
+            new_name = '%s_%s_%04d' % args
+        return new_name
+
+    new_name_list = []
+    for code in code_list:
+        new_name = get_new_name(code)
+        while new_name in wildbook_existing_name_set:
+            new_name = get_new_name(code)
+        new_name_list.append(new_name)
+
     new_nid_list = nid_list
     assert len(new_nid_list) == len(new_name_list)
     return new_nid_list, new_name_list
