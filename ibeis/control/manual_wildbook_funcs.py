@@ -294,19 +294,12 @@ def wildbook_get_existing_names(ibs, wb_target=None):
     url = wb_url + '/rest/org.ecocean.MarkedIndividual'
     response = requests.get(url)
     response_json = response.json()
-    ut.embed()
-    status = response.status_code == 200 and response_json['success']
-    if not status:
-        status_list = False
-        print('Failed to update names')
-        print(response.text)
-    else:
-        for name_response in response_json['results']:
-            status = name_response['success']
-            error = name_response.get('error', '')
-            status = status or 'unknown MarkedIndividual' in error
-            status_list.append(status)
-    return status_list
+    try:
+        wildbook_existing_name_list = [_['individualID'] for _ in response_json]
+        wildbook_existing_name_list = list(set(wildbook_existing_name_list))
+    except:
+        wildbook_existing_name_list = []
+    return wildbook_existing_name_list
 
 
 @register_ibs_method

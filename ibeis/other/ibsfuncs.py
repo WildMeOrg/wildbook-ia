@@ -2182,7 +2182,8 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
             ['IBEIS_UNKNOWN_Occurrence_1_0001', 'IBEIS_GZ_Occurrence_1_0001', 'IBEIS_PB_Occurrence_1_0001', 'IBEIS_UNKNOWN_Occurrence_1_0002'],
         )
     """
-    print('[ibs] get_consecutive_newname_list_via_species')
+    args = (len(wildbook_existing_name_list), )
+    print('[ibs] get_consecutive_newname_list_via_species with %d WB names' % args)
     location_text = get_location_text(ibs, location_text, 'IBEIS')
     ibs.delete_empty_nids()
     nid_list = ibs.get_valid_nids(imgsetid=imgsetid)
