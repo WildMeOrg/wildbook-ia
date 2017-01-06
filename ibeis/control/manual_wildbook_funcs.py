@@ -251,12 +251,13 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
     except Exception:
         pass
     current_name_list = ibs.get_name_texts(nid_list)
+    combined_list = sorted(list(zip(new_name_list, current_name_list)), reverse=True)
     url = wb_url + '/ia'
     json_payload = {
         'resolver': {
             'renameIndividuals': {
-                'old': current_name_list,
-                'new': new_name_list,
+                'old': [_[0] for _ in combined_list],
+                'new': [_[1] for _ in combined_list],
             }
         }
     }
