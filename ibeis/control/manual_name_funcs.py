@@ -1138,7 +1138,8 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         if assert_wildbook:
             assert status_list, 'The request to WB failed'
             failed_nid_list = list(ut.ifilterfalse_items(name_rowid_list, status_list))
-            msg = 'Failed to update WB nid_list = %r' % (failed_nid_list, )
+            args = (len(failed_nid_list), failed_nid_list, )
+            msg = 'Failed to update %d WB names, nid_list = %r' % args
             assert len(failed_nid_list) == 0, msg
     ibsfuncs.assert_valid_names(name_text_list)
     #sanitize_name_texts(ibs, name_text_list):
