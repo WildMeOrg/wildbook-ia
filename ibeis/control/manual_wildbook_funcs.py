@@ -275,7 +275,10 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
             print(response.text)
         else:
             for name_response in response_json['results']:
-                status_list.append(name_response['success'])
+                status = name_response['success']
+                error = name_response.get('error', '')
+                status = status or 'unknown MarkedIndividual' in error
+                status_list.append(status)
     return status_list
 
 
