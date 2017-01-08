@@ -80,6 +80,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         >>> self.load_features()
         >>> self.load_samples()
     """
+    appname = 'vsone_rf_train'
+
     def __init__(self):
         import ibeis
         # ut.aug_sysargv('--db PZ_Master1')
@@ -119,7 +121,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
         cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
         cacher = ut.Cacher('pairwise_data_v11', cfgstr=cfgstr,
-                           appname='vsone_rf_train', enabled=1)
+                           appname=self.appname, enabled=1)
         data = cacher.tryload()
         if not data:
             data = build_features(qreq_, hyper_params)
@@ -279,236 +281,67 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             return
 
     def end_to_end(self, task_keys):
-        """
-        NOTE: the classifiers are always applied to unseen pairs.  However,
-        novel pairs may contain previously seen annotations.
+        r"""
+        NOTE:
+            the classifiers are always applied to unseen pairs.  However, novel
+            pairs may contain previously seen annotations.
 
-        TODO: use photobomb and match_state classifier together the way they
-        would be used in the end-to-end system.
-        IE. Don't automatch anything that has a high photobomb probability
+        TODO:
+            use photobomb and match_state classifier together the way they
+            would be used in the end-to-end system.  IE. Don't automatch
+            anything that has a high photobomb probability
         """
         # hack to load specific datas (paramatarize me)
         clf_key = 'RF'
         data_key = 'learn(sum,glob)'
         task_keys = ['match_state', 'photobomb_state']
-
         # Create a new AnnotInference instance to go end-to-end
         import ibeis
-        aids = np.unique(self.samples.aid_pairs)
+        aids = self.qreq_.ibs.get_valid_aids()
         infr = ibeis.AnnotInference(ibs=self.qreq_.ibs, aids=aids,
                                     autoinit=True)
         # Use one-vs-many to establish candidate edges to classify
         infr.exec_matching()
         infr.apply_match_edges()
 
-        # Choose a classifier for each task
-        res_dict = dict([
-            (task_key, self.task_combo_res[task_key][clf_key][data_key])
-            for task_key in task_keys
-        ])
-        assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
-            'inconsistent combined result indices')
-
-        # Normalize and align combined result sample edges
-        res0 = next(iter(res_dict.values()))
-        test_uv = np.array(res0.probs_df.index.tolist())
-        assert np.all(test_uv.T[0] < test_uv.T[1]), 'must be lower tri'
-        assert len(vt.unique_row_indexes(test_uv)) == len(test_uv), (
-            'not unique')
-        assert (sorted(ut.lmap(tuple, test_uv.tolist())) ==
-                sorted(ut.lmap(tuple, self.samples.aid_pairs.tolist())))
         want_edges = list(infr.graph.edges())
-        want_uv = np.array(want_edges)
-
-        # Determine which edges need/have probabilities
-        want_uv_, test_uv_ = vt.structure_rows(want_uv, test_uv)
-        unordered_have_uv_ = np.intersect1d(want_uv_, test_uv_)
-        need_uv_ = np.setdiff1d(want_uv_, unordered_have_uv_)
-        flags = vt.flag_intersection(test_uv_, unordered_have_uv_)
-        # Re-order have_edges to agree with test_idx
-        have_uv_ = test_uv_[flags]
-        assert len(np.setxor1d(have_uv_, unordered_have_uv_)) == 0
-        need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
-
-        # Convert to tuples for pandas lookup. bleh...
-        have_edges = ut.lmap(tuple, have_uv.tolist())
-        need_edges = ut.lmap(tuple, need_uv.tolist())
-        want_edges = ut.lmap(tuple, want_uv.tolist())
-        assert set(have_edges) & set(need_edges) == set([])
-        assert set(have_edges) | set(need_edges) == set(want_edges)
-
-        # Parse the data_key to build the appropriate feature
-        featinfo = AnnotPairFeatInfo(self.samples.X_dict[data_key])
-        # Find the kwargs to make the desired feature subset
-        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-        # print(featinfo.get_infostr())
-
-        # Construct the matches
-        # TODO: ensure the params are ALL the same including qreq_ params
-        config = self.hyper_params.vsone_assign
-        matches, X_need = infr._make_pairwise_features(
-            need_edges, config=config, pairfeat_cfg=pairfeat_cfg,
-            need_lnbnn=need_lnbnn)
-        assert np.all(featinfo.X.columns == X_need.columns), (
-            'inconsistent feature dimensions')
-
-        # Make an ensemble of the evaluation classifiers
-        # (todo: use a classifier that hasn't seen any of this data)
-        task_need_probs = {}
-        for task_key in task_keys:
-            print('Predicting %s probabilities' % (task_key,))
-            clf_list = self.task_clfs[task_key][clf_key][data_key]
-            labels = self.samples.subtasks[task_key]
-            eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
-            eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
-                                                      labels.class_names)
-            task_need_probs[task_key] = eclf_probs
-
-        # Combine probabilities --- get probabilites for each sample
-        edges = have_edges + need_edges
-        task_probs = {}
-        for task_key in task_keys:
-            eclf_probs = task_need_probs[task_key]
-            have_probs = res_dict[task_key].probs_df.loc[have_edges]
-            task_probs[task_key] = pd.concat([have_probs, eclf_probs])
-            assert have_probs.index.intersection(eclf_probs.index).size == 0
+        task_probs = self.get_independant_evaluation_probs(
+            task_keys, clf_key, data_key, infr, want_edges)
 
         # Get the operating points
         # (FIXME this is influenced by re-using the training set)
-        operating_points = {
-            # 'match_state': ('fpr', 1E-4),
-            'match_state': ('fpr', 1E-2),
-            'photobomb_state': ('mcc', 'max'),
-        }
-        task_thresh = {}
-        for task_key in task_keys:
-            metric, value = operating_points[task_key]
-            res = res_dict[task_key]
-            task_thresh[task_key] = res.get_pos_threshes(metric, value)
-        print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
 
-        # Determine which edges pass positive review thresholds for each task
-        task_pos_flags = {}
-        for task_key in task_keys:
-            res = res_dict[task_key]
-            perclass_thresh = {}
-            for class_idx, class_name in enumerate(res.class_names):
-                thresh = task_thresh[task_key][class_name]
-                p_class = task_probs[task_key][class_name]
-                perclass_thresh[class_name] = p_class > thresh
-            pos_flags_df = pd.concat(perclass_thresh.values(), axis=1)
-            task_pos_flags[task_key] = pos_flags_df
+        for target_fpr in [1E-4, 1E-2, .1, .3, .5, .9, 1.0]:
+            print('===================================')
+            print('target_fpr = %r' % (target_fpr,))
+            operating_points = {
+                # 'match_state': ('fpr', 1E-4),
+                # 'match_state': ('fpr', 1E-2),
+                'match_state': ('fpr', target_fpr),
+                'photobomb_state': ('mcc', 'max'),
+            }
+            primary_task = 'match_state'
+            primary_auto_flags = self.auto_decisions_at_threshold(
+                primary_task, task_probs, operating_points, task_keys, clf_key,
+                data_key)
+            self.test_auto_decisions(infr, primary_task, primary_auto_flags,
+                                     task_keys, task_probs)
 
-        # Define the primary task and which tasks confound it
-        # Restrict auto-decisions based on if the main task is likely to be confounded.
-        # (basically restrict based on photobombs)
-        primary_task = 'match_state'
-        task_confounders = {
-            'match_state': [('photobomb_state', ['pb'])],
-        }
-        primary_pos_flags = task_pos_flags[primary_task]
-
-        # Determine classes that are very unlikely or likely to be confounded
-        # Either: be safe, don't decide on anything that *is* confounding, OR
-        # be even safer, don't decide on anything that *could* be confounding
-        task_confounder_flags = pd.DataFrame()
-        primary_confounders = task_confounders[primary_task]
-        for task_key, confounding_classes in primary_confounders:
-            pos_flags = task_pos_flags[task_key]
-            nonconfounding_classes = pos_flags.columns.difference(
-                confounding_classes)
-            likely = pos_flags[confounding_classes].any(axis=1)
-            unlikely = pos_flags[nonconfounding_classes].any(axis=1)
-            flags = likely if True else likely | ~unlikely
-            task_confounder_flags[task_key] = flags
-
-        # A sample is confounded in general if is confounded by any task
-        is_confounded = task_confounder_flags.any(axis=1)
-        # Automatic decisions are applied to positive and unconfounded samples
-        primary_auto_flags = primary_pos_flags.__and__(~is_confounded, axis=0)
-
-        if __debug__:
-            is_positive = primary_pos_flags.sum(axis=1)
-            is_auto = primary_auto_flags.sum(axis=1)
-            assert all(f < 2 for f in ut.dict_hist(is_positive).keys()), (
-                'unsupported multilabel decision')
-            assert all(f < 2 for f in ut.dict_hist(is_auto).keys()), (
-                'unsupported multilabel decision')
+    def test_auto_decisions(self, infr, primary_task, primary_auto_flags,
+                            task_keys, task_probs):
         is_auto = primary_auto_flags.any(axis=1)
 
-        print('Autodecision info after pos threshold')
-        print('Number positive-decisions\n%s' % primary_pos_flags.sum(axis=0))
-        # print('Percent positive-decisions\n%s' % (
-        #     100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))
-        # print('Total %s, Percent %.2f%%' % (primary_pos_flags.sum(axis=0).sum(),
-        #       100 * primary_pos_flags.sum(axis=0).sum() /
-        #       len(primary_pos_flags)))
-        print('Revoked autodecisions based on confounders:\n%s'  %
-                primary_pos_flags.mul(is_confounded, axis=0).sum())
-
-        # print('OverFit? Hist (True=orig, False=unseen) ' + ut.repr2(
-        ut.fix_embed_globals()
-        task_key = 'match_state'
-        task_probs[task_key]
-
-        ut.map_dict_vals(
-            lambda x: ut.dict_hist(np.where(x)[0] < len(have_edges)),
-            primary_pos_flags)
-        # , nl=1))
-        print('Making #auto-decisions %s' % ut.map_dict_vals(
-            sum, primary_auto_flags))
-
-        ibs = self.qreq_.ibs
-
-        task_key = 'photobomb_state'
-        probs = task_probs[task_key]
-        want_samples = AnnotPairSamples(ibs=ibs, index=probs.index)
-        labels = want_samples[task_key]
-        y_true = labels.encoded_df.loc[probs.index.tolist()]
-        y_pred = probs.idxmax(axis=1).apply(labels.lookup_class_idx)
-        target_names = probs.columns
-        sample_weight = None
-        print('----------------------')
-        print('Want Photobomb Report')
-        clf_helpers.classification_report2(
-            y_true, y_pred, sample_weight=sample_weight,
-            target_names=target_names)
-
-        # Make labels for entire set
-        primary_probs = task_probs[primary_task]
-        want_samples = AnnotPairSamples(ibs=ibs, index=primary_probs.index)
-        primary_labels = want_samples[primary_task]
-        y_true_enc = primary_labels.encoded_df
-        y_true = y_true_enc.loc[primary_probs.index.tolist()]
-        y_pred = primary_probs.idxmax(axis=1).apply(
-            primary_labels.lookup_class_idx)
-        target_names = primary_probs.columns
-        sample_weight = None
-        print('----------------------')
-        print('Want Match Report')
-        clf_helpers.classification_report2(
-            y_true, y_pred, sample_weight=sample_weight,
-            target_names=target_names)
-        print('----------------------')
-        print('Autoclassification Report')
-        auto_edges = is_auto[is_auto].index
-        clf_helpers.classification_report2(
-            y_true.loc[auto_edges], y_pred.loc[auto_edges],
-            target_names=target_names)
-        print('----------------------')
-
-        # report number of names with (gt) split problems
-        # report number of merge problems (incorrect negative review)
-        # report number of remaining merges
-        # number of decisions that were part of the training data
+        want_samples = AnnotPairSamples(
+            ibs=infr.ibs, index=task_probs[primary_task].index)
+        # self.extra_report(task_probs, is_auto, want_samples)
 
         # Apply probabilities to edges in infr
         # (todo: standardize this within infr)
         for task_key in task_keys:
             infr.set_edge_attrs('probs(%s)', ut.dzip(
-                ut.lmap(tuple, edges), task_probs[task_key]))
-        # Cleanup (not necessary for script)
+                ut.lmap(tuple, task_probs[task_key].index.tolist()),
+                task_probs[task_key]))
+        # Cleanup (maybe not necessary for script)
         infr.remove_feedback()
         infr.apply_feedback_edges()
         # Add automatic feedback
@@ -526,13 +359,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('n_inconsistent = %r' % (n_inconsistent,))
 
         # now the user cleans up the mess
+        import ibeis
+        import networkx as nx
         e_ = ibeis.algo.hots.graph_iden.e_
         merge_fixes = []
         split_fixes = []
         for cc in infr.inconsistent_compoments():
             # print(ut.repr4(cc.node))
             # Assume the user will fix these
-            import networkx as nx
             edges = ut.lstarmap(e_, list(cc.edges()))
             edge_states = np.array([
                 cc.edge[u][v].get('reviewed_state', 'unreviewed')
@@ -558,26 +392,32 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # pd.isnull(auto_decisions.loc[flagged_edges]).sum()
         auto_truth = y_bin_match.loc[auto_decisions.index].idxmax(axis=1)
         is_mistake = auto_decisions != auto_truth
-        mistake_uv = is_mistake[is_mistake].index
+        # mistake_uv = is_mistake[is_mistake].index
         total_mistakes = is_mistake.sum()
         print('User is able to discover %d/%d misclassifications' % (
             len(flagged_edges), total_mistakes))
-        remaining_mistake_uv = mistake_uv.difference(flagged_edges)
+        # remaining_mistake_uv = mistake_uv.difference(flagged_edges)
+        # print('Initial mistakes')
+        # clf_helpers.classification_report2(
+        #     y_true=y_bin_match.loc[mistake_uv].idxmax(axis=1),
+        #     y_pred=auto_decisions.loc[mistake_uv]
+        # )
 
-        print('Initial mistakes')
-        clf_helpers.classification_report2(
-            y_true=y_bin_match.loc[mistake_uv].idxmax(axis=1),
-            y_pred=auto_decisions.loc[mistake_uv]
-        )
+        # print('Remaining mistakes')
+        # clf_helpers.classification_report2(
+        #     y_true=y_bin_match.loc[remaining_mistake_uv].idxmax(axis=1),
+        #     y_pred=auto_decisions.loc[remaining_mistake_uv]
+        # )
 
-        print('Remaining mistakes')
-        clf_helpers.classification_report2(
-            y_true=y_bin_match.loc[remaining_mistake_uv].idxmax(axis=1),
-            y_pred=auto_decisions.loc[remaining_mistake_uv]
-        )
+        # report number of names with (gt) split problems
+        # report number of merge problems (incorrect negative review)
+        # report number of remaining merges
+        # number of decisions that were part of the training data
 
-        import utool
-        utool.embed()
+        # * accept-threshold -vs- #mistakes
+        # * accept-threshold -vs- #discoverable mistakes
+        # * accept-threshold -vs- #undiscoverable mistakes
+        # * accept-threshold -vs- #user reviews
 
         # FIX MISTAKES
         with ut.Timer('apply-auto-feedback'):
@@ -594,6 +434,213 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # TODO: simulated user script and report results
         pass
+
+    def extra_report(self, task_probs, is_auto, want_samples):
+        task_key = 'photobomb_state'
+        probs = task_probs[task_key]
+        labels = want_samples[task_key]
+        y_true = labels.encoded_df.loc[probs.index.tolist()]
+        y_pred = probs.idxmax(axis=1).apply(labels.lookup_class_idx)
+        target_names = probs.columns
+        print('----------------------')
+        print('Want Photobomb Report')
+        clf_helpers.classification_report2(
+            y_true, y_pred, target_names=target_names)
+
+        # Make labels for entire set
+        task_key = 'match_state'
+        primary_probs = task_probs[task_key]
+        primary_labels = want_samples[task_key]
+        y_true_enc = primary_labels.encoded_df
+        y_true = y_true_enc.loc[primary_probs.index.tolist()]
+        y_pred = primary_probs.idxmax(axis=1).apply(
+            primary_labels.lookup_class_idx)
+        target_names = primary_probs.columns
+        print('----------------------')
+        print('Want Match Report')
+        clf_helpers.classification_report2(
+            y_true, y_pred, target_names=target_names)
+        print('----------------------')
+        print('Autoclassification Report')
+        auto_edges = is_auto[is_auto].index
+        clf_helpers.classification_report2(
+            y_true.loc[auto_edges], y_pred.loc[auto_edges],
+            target_names=target_names)
+        print('----------------------')
+
+    def auto_decisions_at_threshold(self, primary_task, task_probs,
+                                    operating_points, task_keys, clf_key,
+                                    data_key):
+        task_thresh = {}
+        for task_key in task_keys:
+            metric, value = operating_points[task_key]
+            res = self.task_combo_res[task_key][clf_key][data_key]
+            task_thresh[task_key] = res.get_pos_threshes(metric, value)
+        print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
+
+        # Determine which edges pass positive review thresholds for each task
+        task_pos_flags = {}
+        for task_key in task_keys:
+            res = self.task_combo_res[task_key][clf_key][data_key]
+            thresh = pd.Series(task_thresh[task_key])
+            probs = task_probs[task_key]
+            # Maximum liklihood state
+            ismax_flags = probs.values.argsort(axis=1) == (probs.shape[1] - 1)
+            # Is probability above threshold
+            pos_flags_df = probs > thresh
+            # Is maximum liklihood and above threshold
+            pos_flags_df = pos_flags_df & ismax_flags
+            task_pos_flags[task_key] = pos_flags_df
+            if __debug__:
+                assert all(f < 2 for f in
+                           ut.dict_hist(pos_flags_df.sum(axis=1)).keys()), (
+                               'unsupported multilabel decision')
+
+        # Define the primary task and which tasks confound it
+        # Restrict auto-decisions based on if the main task is likely to be
+        # confounded. (basically restrict based on photobombs)
+        task_confounders = {
+            'match_state': [('photobomb_state', ['pb'])],
+        }
+        primary_pos_flags = task_pos_flags[primary_task]
+
+        # Determine classes that are very unlikely or likely to be confounded
+        # Either: be safe, don't decide on anything that *is* confounding, OR
+        # be even safer, don't decide on anything that *could* be confounding
+        task_confounder_flags = pd.DataFrame()
+        primary_confounders = task_confounders[primary_task]
+        for task_key, confounding_classes in primary_confounders:
+            pos_flags = task_pos_flags[task_key]
+            nonconfounding_classes = pos_flags.columns.difference(
+                confounding_classes)
+            likely = pos_flags[confounding_classes].any(axis=1)
+            unlikely = pos_flags[nonconfounding_classes].any(axis=1)
+            flags = likely if True else likely | ~unlikely
+            task_confounder_flags[task_key] = flags
+
+        # A sample is confounded in general if is confounded by any task
+        is_confounded = task_confounder_flags.any(axis=1)
+        # Automatic decisions are applied to positive and unconfounded samples
+        primary_auto_flags = primary_pos_flags.__and__(~is_confounded, axis=0)
+
+        # if __debug__:
+        import utool
+        with utool.embed_on_exception_context:
+            is_positive = primary_pos_flags.sum(axis=1)
+            is_auto = primary_auto_flags.sum(axis=1)
+            assert all(f < 2 for f in ut.dict_hist(is_positive).keys()), (
+                'unsupported multilabel decision')
+            assert all(f < 2 for f in ut.dict_hist(is_auto).keys()), (
+                'unsupported multilabel decision')
+        print('Autodecision info after pos threshold')
+        print('Number positive-decisions\n%s' % primary_pos_flags.sum(axis=0))
+        # print('Percent positive-decisions\n%s' % (
+        #     100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))
+        # print('Total %s, Percent %.2f%%' % (primary_pos_flags.sum(axis=0).sum(),
+        #       100 * primary_pos_flags.sum(axis=0).sum() /
+        #       len(primary_pos_flags)))
+        print('Revoked autodecisions based on confounders:\n%s'  %
+                primary_pos_flags.__and__(is_confounded, axis=0).sum())
+        print('Making #auto-decisions %s' % ut.map_dict_vals(
+            sum, primary_auto_flags))
+        return primary_auto_flags
+
+    def get_independant_evaluation_probs(self, task_keys, clf_key, data_key,
+                                         infr, want_edges):
+        """
+        Note: Ideally we should use a completely independant dataset to test.
+        However, due to lack of labeled photobombs and notcomparable cases we
+        can cheat a little. A subset of want_edges were previously used in
+        training, but there is one classifier that never saw it. We use this
+        classifier to predict on that case. For completely unseen data we use
+        the average probability of all classifiers.
+
+        NOTE: Using the cross-validated training data to select thresholds
+        breaks these test independence assumptions. You really should use a
+        completely disjoint test set.
+        """
+        # Choose a classifier for each task
+        res_dict = dict([
+            (task_key, self.task_combo_res[task_key][clf_key][data_key])
+            for task_key in task_keys
+        ])
+        assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
+            'inconsistent combined result indices')
+
+        # Normalize and align combined result sample edges
+        res0 = next(iter(res_dict.values()))
+        train_uv = np.array(res0.probs_df.index.tolist())
+        assert np.all(train_uv.T[0] < train_uv.T[1]), (
+            'edges must be in lower triangular form')
+        assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
+            'edges must be unique')
+        assert (sorted(ut.lmap(tuple, train_uv.tolist())) ==
+                sorted(ut.lmap(tuple, self.samples.aid_pairs.tolist())))
+        want_uv = np.array(want_edges)
+
+        # Determine which edges need/have probabilities
+        want_uv_, train_uv_ = vt.structure_rows(want_uv, train_uv)
+        unordered_have_uv_ = np.intersect1d(want_uv_, train_uv_)
+        need_uv_ = np.setdiff1d(want_uv_, unordered_have_uv_)
+        flags = vt.flag_intersection(train_uv_, unordered_have_uv_)
+        # Re-order have_edges to agree with test_idx
+        have_uv_ = train_uv_[flags]
+        need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
+
+        # Convert to tuples for pandas lookup. bleh...
+        have_edges = ut.lmap(tuple, have_uv.tolist())
+        need_edges = ut.lmap(tuple, need_uv.tolist())
+        want_edges = ut.lmap(tuple, want_uv.tolist())
+        assert set(have_edges) & set(need_edges) == set([])
+        assert set(have_edges) | set(need_edges) == set(want_edges)
+
+        # Parse the data_key to build the appropriate feature
+        featinfo = AnnotPairFeatInfo(self.samples.X_dict[data_key])
+        # Find the kwargs to make the desired feature subset
+        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
+        # print(featinfo.get_infostr())
+
+        # Construct the matches
+        # TODO: ensure the params are ALL the same including qreq_ params
+        config = self.hyper_params.vsone_assign
+
+        # TODO: cache this
+        cfgstr = 'temp'
+        cacher = ut.Cacher('full_eval_feats', cfgstr, appname=self.appname)
+        data = cacher.tryload()
+        if not data:
+            print('Building need features')
+            matches, X_need = infr._make_pairwise_features(
+                need_edges, config=config, pairfeat_cfg=pairfeat_cfg,
+                need_lnbnn=need_lnbnn)
+            data = matches, X_need
+            cacher.save(data)
+        matches, X_need = data
+        assert np.all(featinfo.X.columns == X_need.columns), (
+            'inconsistent feature dimensions')
+
+        # Make an ensemble of the evaluation classifiers
+        # (todo: use a classifier that hasn't seen any of this data)
+        task_need_probs = {}
+        for task_key in task_keys:
+            print('Predicting %s probabilities' % (task_key,))
+            clf_list = self.task_clfs[task_key][clf_key][data_key]
+            labels = self.samples.subtasks[task_key]
+            eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
+            eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
+                                                      labels.class_names)
+            task_need_probs[task_key] = eclf_probs
+
+        # Combine probabilities --- get probabilites for each sample
+        # edges = have_edges + need_edges
+        task_probs = {}
+        for task_key in task_keys:
+            eclf_probs = task_need_probs[task_key]
+            have_probs = res_dict[task_key].probs_df.loc[have_edges]
+            task_probs[task_key] = pd.concat([have_probs, eclf_probs])
+            assert have_probs.index.intersection(eclf_probs.index).size == 0
+        return task_probs
 
     def reduce_dataset_size(self):
         """
@@ -960,7 +1007,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo.print_margins('local_measure')
         featinfo.print_margins('local_sorter')
         featinfo.print_margins('local_rank')
-        # ut.fix_embed_globals()
         # pt.wordcloud(importances)
 
 
