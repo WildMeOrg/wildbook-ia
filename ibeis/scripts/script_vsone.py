@@ -311,7 +311,46 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Get the operating points
         # (FIXME this is influenced by re-using the training set)
 
-        for target_fpr in [1E-4, 1E-2, .1, .3, .5, .9, 1.0]:
+        # TODO: pick out all threshold values first (remove thresholds less
+        # than .5)
+        # print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
+        import utool
+        utool.embed()
+
+        """
+        PROBLEM:
+            if we pick a fpr/thresh for match_state=match, then
+            what do we do for the other thresholds for that task?
+
+            For photobombs we can just fix that at max of MCC.
+
+            We could use fix the target FPR for each subtask. That
+            seems reasonable.
+        """
+
+        primary_task = 'match_state'
+        # target_fprs = [1E-4, 1E-2, .1, .3, .49]
+        primary_res = self.task_combo_res[primary_task][clf_key][data_key]
+        labels = primary_res.target_bin_df['match'].values
+        probs = primary_res.probs_df['match'].values
+        cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+
+        # thresh_list0 = np.linspace(0, 1.0, 10)
+        thresh_list0 = np.linspace(.51, 1.0, 10)
+        # gets the closest fpr (no interpolation)
+        fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
+        # interpolates back to appropriate threshold
+        thresh_list = [cfms.get_thresh_at_metric('fpr', fpr)
+                       for fpr in fpr_list0]
+        fpr_list = cfms.get_metric_at_threshold('fpr', thresh_list)
+        assert fpr_list0 == fpr_list, ('should map back correctly')
+
+        # primary_threshes = [
+        #     primary_res.get_pos_threshes('fpr', target_fpr)['match']
+        #     for target_fpr in target_fprs
+        # ]
+
+        for target_fpr in fpr_list:
             print('===================================')
             print('target_fpr = %r' % (target_fpr,))
             operating_points = {
@@ -320,9 +359,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 'match_state': ('fpr', target_fpr),
                 'photobomb_state': ('mcc', 'max'),
             }
-            primary_task = 'match_state'
+            task_thresh = {}
+            for task_key in task_keys:
+                metric, value = operating_points[task_key]
+                res = self.task_combo_res[task_key][clf_key][data_key]
+                thresh_df = res.get_pos_threshes(metric, value)
+                task_thresh[task_key] = thresh_df
             primary_auto_flags = self.auto_decisions_at_threshold(
-                primary_task, task_probs, operating_points, task_keys, clf_key,
+                primary_task, task_probs, task_thresh, task_keys, clf_key,
                 data_key)
             self.test_auto_decisions(infr, primary_task, primary_auto_flags,
                                      task_keys, task_probs)
@@ -469,32 +513,27 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('----------------------')
 
     def auto_decisions_at_threshold(self, primary_task, task_probs,
-                                    operating_points, task_keys, clf_key,
+                                    task_thresh, task_keys, clf_key,
                                     data_key):
-        task_thresh = {}
-        for task_key in task_keys:
-            metric, value = operating_points[task_key]
-            res = self.task_combo_res[task_key][clf_key][data_key]
-            task_thresh[task_key] = res.get_pos_threshes(metric, value)
+        # task_thresh = {}
+        # for task_key in task_keys:
+        #     metric, value = operating_points[task_key]
+        #     res = self.task_combo_res[task_key][clf_key][data_key]
+        #     task_thresh[task_key] = res.get_pos_threshes(metric, value)
         print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
 
-        # Determine which edges pass positive review thresholds for each task
+        # Find edges that pass positive thresh and have max liklihood
         task_pos_flags = {}
         for task_key in task_keys:
-            res = self.task_combo_res[task_key][clf_key][data_key]
             thresh = pd.Series(task_thresh[task_key])
             probs = task_probs[task_key]
-            # Maximum liklihood state
             ismax_flags = probs.values.argsort(axis=1) == (probs.shape[1] - 1)
-            # Is probability above threshold
             pos_flags_df = probs > thresh
-            # Is maximum liklihood and above threshold
             pos_flags_df = pos_flags_df & ismax_flags
-            task_pos_flags[task_key] = pos_flags_df
             if __debug__:
-                assert all(f < 2 for f in
-                           ut.dict_hist(pos_flags_df.sum(axis=1)).keys()), (
-                               'unsupported multilabel decision')
+                assert all(f < 2 for f in pos_flags_df.sum(axis=1).unique()), (
+                    'unsupported multilabel decision')
+            task_pos_flags[task_key] = pos_flags_df
 
         # Define the primary task and which tasks confound it
         # Restrict auto-decisions based on if the main task is likely to be
@@ -523,26 +562,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Automatic decisions are applied to positive and unconfounded samples
         primary_auto_flags = primary_pos_flags.__and__(~is_confounded, axis=0)
 
-        # if __debug__:
-        import utool
-        with utool.embed_on_exception_context:
-            is_positive = primary_pos_flags.sum(axis=1)
-            is_auto = primary_auto_flags.sum(axis=1)
-            assert all(f < 2 for f in ut.dict_hist(is_positive).keys()), (
-                'unsupported multilabel decision')
-            assert all(f < 2 for f in ut.dict_hist(is_auto).keys()), (
-                'unsupported multilabel decision')
-        print('Autodecision info after pos threshold')
-        print('Number positive-decisions\n%s' % primary_pos_flags.sum(axis=0))
-        # print('Percent positive-decisions\n%s' % (
-        #     100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))
-        # print('Total %s, Percent %.2f%%' % (primary_pos_flags.sum(axis=0).sum(),
-        #       100 * primary_pos_flags.sum(axis=0).sum() /
-        #       len(primary_pos_flags)))
-        print('Revoked autodecisions based on confounders:\n%s'  %
-                primary_pos_flags.__and__(is_confounded, axis=0).sum())
-        print('Making #auto-decisions %s' % ut.map_dict_vals(
-            sum, primary_auto_flags))
+        # print('Autodecision info after pos threshold')
+        # print('Number positive-decisions\n%s' % primary_pos_flags.sum(axis=0))
+        # # print('Percent positive-decisions\n%s' % (
+        # #     100 * primary_pos_flags.sum(axis=0) / len(primary_pos_flags)))
+        # # print('Total %s, Percent %.2f%%' % (primary_pos_flags.sum(axis=0).sum(),
+        # #       100 * primary_pos_flags.sum(axis=0).sum() /
+        # #       len(primary_pos_flags)))
+        # print('Revoked autodecisions based on confounders:\n%s'  %
+        #         primary_pos_flags.__and__(is_confounded, axis=0).sum())
+        # print('Making #auto-decisions %s' % ut.map_dict_vals(
+        #     sum, primary_auto_flags))
         return primary_auto_flags
 
     def get_independant_evaluation_probs(self, task_keys, clf_key, data_key,
