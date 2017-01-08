@@ -336,7 +336,9 @@ class ConfusionMetrics(object):
     def __dir__(self):
         attrs = dir(object)
         attrs += list(self.__class__.__dict__.keys())
+        attrs += list(self.__dict__.keys())
         attrs += self.inv_aliases.keys()
+        attrs = sorted(set(attrs))
         return attrs
 
     def __getattr__(self, attr):
@@ -531,6 +533,11 @@ class ConfusionMetrics(object):
         CommandLine:
             python -m vtool.confusion --exec-get_metric_at_threshold
 
+        Ignore:
+            >>> self = cfms
+            >>> metric = 'fpr'
+            >>> thresh = 0
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from vtool.confusion import *  # NOQA
@@ -538,18 +545,36 @@ class ConfusionMetrics(object):
             >>> self = ConfusionMetrics().fit(scores, labels)
             >>> metric = 'tpr'
             >>> thresh = .8
-            >>> (None, None) = self.get_metric_at_threshold(metric, thresh)
+            >>> thresh = [0, .1, .9, 1.0]
+            >>> value = self.get_metric_at_threshold(metric, thresh)
             >>> result = ('(None, None) = %s' % (str((None, None)),))
             >>> print(result)
         """
+        was_scalar = ut.isscalar(thresh)
+        if was_scalar:
+            thresh = [thresh]
+        else:
+            thresh = np.asarray(thresh)
         # Assert decreasing
         assert self.thresholds[0] > self.thresholds[-1]
-        try:
-            index = np.nonzero(self.thresholds <= thresh)[0][0]
-        except IndexError:
-            index = len(self.thresholds) - 1
-        # value = self.__dict__[metric][index]
-        value = getattr(self, metric)[index]
+        sortx = np.argsort(self.thresholds)
+        thresh_ = np.clip(thresh, self.thresholds[-1], self.thresholds[0])
+        r = np.searchsorted(self.thresholds, thresh_, side='left', sorter=sortx)
+        index_list = sortx[r]
+        # index_list = [np.where(self.thresholds <= t)[0][0] for t in thresh]
+        # sortx[r]
+        # index_list = []
+        # for t in thresh:
+        #     try:
+        #         index = np.nonzero(self.thresholds <= t)[0][0]
+        #     except IndexError:
+        #         print('warning: index error in get_metric_at_thresh t=%r' % (t,))
+        #         index = len(self.thresholds) - 1
+        #     index_list.append(index)
+        # # value = self.__dict__[metric][index]
+        value = [getattr(self, metric)[index] for index in index_list]
+        if was_scalar:
+            value = value[0]
         return value
 
     get_threshold_at_metric = get_thresh_at_metric
@@ -567,6 +592,19 @@ class ConfusionMetrics(object):
         recall = self.recall
         recall_domain, p_interp = interpolate_precision_recall(precision, recall, nSamples)
         return draw_precision_recall_curve(recall_domain, p_interp, **kwargs)
+
+    def plot_vs(self, x_metric, y_metric):
+        """
+        x_metric = 'thresholds'
+        y_metric = 'fpr'
+        """
+        import plottool as pt
+        pt.qt4ensure()
+        xdata = self.thresholds
+        ydata_list = [getattr(self, y_metric)]
+        pt.multi_plot(xdata, ydata_list, label_list=[y_metric],
+                      xlabel=x_metric, marker='',
+                      ylabel=y_metric, use_legend=True)
 
     def plot_metrics(self):
         import plottool as pt
