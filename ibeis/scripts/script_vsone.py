@@ -233,7 +233,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
                 selected_data_keys[task_key].append(best_data_key)
                 combo_res = data_combo_res[best_data_key]
-                ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,), 'darkgreen')
+                ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,),
+                          'darkgreen')
                 with ut.Indenter('[%s] ' % (best_data_key,)):
                     combo_res.extended_clf_report()
                 res = combo_res
@@ -245,7 +246,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     ] + [best_data_key])
 
                     for data_key in importance_datakeys:
-                        pblm.report_classifier_importance(task_key, clf_key, data_key)
+                        pblm.report_classifier_importance(task_key, clf_key,
+                                                          data_key)
 
         if 1:
             pblm.end_to_end(task_keys)
@@ -268,7 +270,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             aid_pairs = ut.lzip(meta['aid1'], meta['aid2'])
             attrs = meta.drop(['aid1', 'aid2'], 1).to_dict(orient='list')
             ibs = pblm.qreq_.ibs
-            infr = ibeis.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs, verbose=3)
+            infr = ibeis.AnnotInference.from_pairs(aid_pairs, attrs, ibs=ibs,
+                                                   verbose=3)
             infr.reset_feedback('staging')
             infr.reset_labels_to_ibeis()
             infr.apply_feedback_edges()
@@ -432,10 +435,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.apply_feedback_edges()
         # Add automatic feedback
         auto_decisions = primary_auto_flags[is_auto].idxmax(axis=1)
-        auto_decisions = auto_decisions.sort_values()
-        with ut.Timer('apply-auto-feedback'):
-            for (u, v), state in auto_decisions.iteritems():
-                infr.add_feedback(u, v, state, apply=False)
+        auto_decisions.name = primary_task
+        decision_df = pd.DataFrame(auto_decisions.sort_values())
+        # infr.add_feedback_df(auto_decisions)
+        # for (u, v), state in auto_decisions.iteritems():
+        #     infr.add_feedback(u, v, state, apply=False)
         infr.apply_feedback_edges()
         n_clusters, n_inconsistent = infr.relabel_using_reviews()
         auto_results['n_clusters'] = n_clusters
@@ -786,24 +790,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ut.assert_eq(len(labels), len(samples4), verbose=False)
             pblm.samples = samples4
             # print('hist(y) = ' + ut.repr4(pblm.samples.make_histogram()))
-
-            # print('Reducing dataset size for class balance')
-            # X = pblm.samples.X_dict['learn(all)']
-            # Find the data with the most null / 0 values
-            # nullness = (X == 0).sum(axis=1) + pd.isnull(X).sum(axis=1)
-            # nullness = pd.isnull(X).sum(axis=1)
-            # nullness = nullness.reset_index(drop=True)
-            # false_nullness = (nullness)[~samples.is_same()]
-            # sortx = false_nullness.argsort()[::-1]
-            # false_nullness_ = false_nullness.iloc[sortx]
-            # Remove a few to make training more balanced / faster
-            # class_hist = pblm.samples.make_histogram()
-            # num_remove = max(class_hist['match'] - class_hist['nomatch'], 0)
-            # if num_remove > 0:
-            #     to_remove = false_nullness_.iloc[:num_remove]
-            #     mask = ~np.array(ut.index_to_boolmask(to_remove.index, len(pblm.samples)))
-            #     pblm.samples = pblm.samples.compress(mask)
-            #     print('hist(y) = ' + ut.repr4(pblm.samples.make_histogram()))
 
         # if 0:
         #     print('Random dataset size reduction for development')
@@ -1161,51 +1147,24 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
 
     @ut.memoize
     def is_same(samples):
-        is_same = samples.annots1.nids == samples.annots2.nids
-        return is_same
+        # Hack to use infr implementation
+        from ibeis.algo.hots.graph_iden import AnnotInference
+        infr = AnnotInference(ibs=samples.ibs)
+        return infr.is_same(samples.aid_pairs)
 
     @ut.memoize
     def is_photobomb(samples):
-        am_rowids = samples.ibs.get_annotmatch_rowid_from_edges(samples.aid_pairs)
-        am_tags = samples.ibs.get_annotmatch_case_tags(am_rowids)
-        is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
-        return is_pb
+        # Hack to use infr implementation
+        from ibeis.algo.hots.graph_iden import AnnotInference
+        infr = AnnotInference(ibs=samples.ibs)
+        return infr.is_photobomb(samples.aid_pairs)
 
     @ut.memoize
     def is_comparable(samples):
-        # If we don't have actual comparability information just guess
-        # Start off by guessing
-        is_comp_guess = samples.guess_if_comparable()
-        is_comp = is_comp_guess.copy()
-
-        # But use information that we have
-        am_rowids = samples.ibs.get_annotmatch_rowid_from_edges(samples.aid_pairs)
-        truths = np.array(ut.replace_nones(samples.ibs.get_annotmatch_truth(am_rowids), np.nan))
-        is_notcomp_have = truths == samples.ibs.const.TRUTH_NOT_COMP
-        is_comp_have = (truths == samples.ibs.const.TRUTH_MATCH) | (truths == samples.ibs.const.TRUTH_NOT_MATCH)
-        is_comp[is_notcomp_have] = False
-        is_comp[is_comp_have] = True
-        # num_guess = (~(is_notcomp_have  | is_comp_have)).sum()
-        # num_have = len(is_notcomp_have) - num_guess
-        return is_comp
-
-    def guess_if_comparable(samples):
-        """
-        Takes a guess as to which annots are not comparable based on scores and
-        viewpoints. If either viewpoints is null assume they are comparable.
-        """
-        # simple_scores = samples.simple_scores
-        # key = 'sum(weighted_ratio)'
-        # if key not in simple_scores:
-        #     key = 'sum(ratio)'
-        # scores = simple_scores[key].values
-        yaws1 = samples.annots1.yaws_asfloat
-        yaws2 = samples.annots2.yaws_asfloat
-        dists = vt.ori_distance(yaws1, yaws2)
-        tau = np.pi * 2
-        is_comp = (dists < tau / 8.1) | np.isnan(dists)
-        # is_comp = (scores > .1) | (dists < tau / 8.1) | np.isnan(dists)
-        return is_comp
+        # Hack to use infr implementation
+        from ibeis.algo.hots.graph_iden import AnnotInference
+        infr = AnnotInference(ibs=samples.ibs)
+        return infr.is_comparable(samples.aid_pairs, allow_guess=True)
 
     def apply_multi_task_multi_label(samples):
         # multioutput-multiclass / multi-task
@@ -1276,7 +1235,8 @@ class AnnotPairFeatInfo(object):
         criteria = [('measure_type', '==', 'global')]
         global_measures = sorted(set(map(
             featinfo.global_measure, featinfo.select_columns(criteria))))
-        global_keys = sorted(set([key.split('_')[0] for key in global_measures]))
+        global_keys = sorted(set([key.split('_')[0]
+                                  for key in global_measures]))
         global_keys.remove('speed')  # hack
 
         criteria = [('measure_type', '==', 'summary')]

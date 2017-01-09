@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import time
 import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
@@ -144,6 +145,73 @@ class _AnnotInfrHelpers(object):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
+class _AnnotInfrGroundtruth(object):
+    """
+    Helps generate training labels
+    """
+
+    def guess_if_comparable(infr, aid_pairs):
+        """
+        Takes a guess as to which annots are not comparable based on scores and
+        viewpoints. If either viewpoints is null assume they are comparable.
+        """
+        # simple_scores = labels.simple_scores
+        # key = 'sum(weighted_ratio)'
+        # if key not in simple_scores:
+        #     key = 'sum(ratio)'
+        # scores = simple_scores[key].values
+        # yaws1 = labels.annots1.yaws_asfloat
+        # yaws2 = labels.annots2.yaws_asfloat
+        aid_pairs = np.array(aid_pairs)
+        ibs = infr.ibs
+        yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
+        yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
+        dists = vt.ori_distance(yaws1, yaws2)
+        tau = np.pi * 2
+        # scores = np.full(len(aid_pairs), np.nan)
+        comp_by_viewpoint = (dists < tau / 8.1) | np.isnan(dists)
+        # comp_by_score = (scores > .1)
+        # is_comp = comp_by_score | comp_by_viewpoint
+        is_comp_guess = comp_by_viewpoint
+        return is_comp_guess
+
+    def is_comparable(infr, aid_pairs, allow_guess=True):
+        # But use information that we have
+        ibs = infr.ibs
+        if allow_guess:
+            # If we don't have actual comparability information just guess
+            # Start off by guessing
+            is_comp_guess = infr.guess_if_comparable(aid_pairs)
+            is_comp = is_comp_guess.copy()
+        else:
+            is_comp = np.full(len(aid_pairs), np.nan)
+        # But use information that we have
+        am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
+        truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
+        truths = np.array(truths)
+        is_notcomp_have = truths == ibs.const.TRUTH_NOT_COMP
+        is_comp_have = ((truths == ibs.const.TRUTH_MATCH) |
+                        (truths == ibs.const.TRUTH_NOT_MATCH))
+        is_comp[is_notcomp_have] = False
+        is_comp[is_comp_have] = True
+        return is_comp
+
+    def is_photobomb(infr, aid_pairs):
+        ibs = infr.ibs
+        am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
+        am_tags = ibs.get_annotmatch_case_tags(am_rowids)
+        is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
+        return is_pb
+
+    def is_same(infr, aid_pairs):
+        aids1, aids2 = np.array(aid_pairs).T
+        nids1 = infr.ibs.get_annot_nids(aids1)
+        nids2 = infr.ibs.get_annot_nids(aids2)
+        is_same = (nids1 == nids2)
+        return is_same
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrDummy(object):
     def remove_dummy_edges(infr):
         if infr.verbose >= 2:
@@ -189,30 +257,6 @@ class _AnnotInfrDummy(object):
             print('[infr] adding %d clique edges' % (len(new_edges)))
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
-
-    def guess_if_comparable(infr, aid_pairs):
-        """
-        Takes a guess as to which annots are not comparable based on scores and
-        viewpoints. If either viewpoints is null assume they are comparable.
-        """
-        # simple_scores = labels.simple_scores
-        # key = 'sum(weighted_ratio)'
-        # if key not in simple_scores:
-        #     key = 'sum(ratio)'
-        # scores = simple_scores[key].values
-        # yaws1 = labels.annots1.yaws_asfloat
-        # yaws2 = labels.annots2.yaws_asfloat
-        aid_pairs = np.array(aid_pairs)
-        ibs = infr.ibs
-        yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
-        yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
-        dists = vt.ori_distance(yaws1, yaws2)
-        tau = np.pi * 2
-        scores = np.full(len(aid_pairs), np.nan)
-        comp_by_viewpoint = (dists < tau / 8.1) | np.isnan(dists)
-        comp_by_score = (scores > .1)
-        is_comp = comp_by_score | comp_by_viewpoint
-        return is_comp
 
     def find_mst_edges(infr):
         """
@@ -336,6 +380,8 @@ class _AnnotInfrIBEIS(object):
 
     def hack_write_ibeis_staging_onetime(infr):
         """
+        TODO: depricate
+
         CommandLine:
             python -m ibeis.algo.hots.graph_iden hack_write_ibeis_staging_onetime
 
@@ -378,7 +424,7 @@ class _AnnotInfrIBEIS(object):
                 decision_list.append(decision_int)
                 tags_list.append(tags)
 
-        identity_list = None
+        identity_list = [None] * len(aid_1_list)
         user_confidence_list = None
         r = ibs.add_review(aid_1_list, aid_2_list, decision_list,
                            identity_list=identity_list,
@@ -429,27 +475,37 @@ class _AnnotInfrIBEIS(object):
         timestamp_list = []
         tags_list = []
         user_confidence_list = []
+        identity_list = []
         ibs = infr.ibs
-        for (aid1, aid2), feedbacks in infr.internal_feedback.items():
-            for feedback_item in feedbacks:
-                decision_key = feedback_item['decision']
-                decision_int = ibs.const.REVIEW_MATCH_CODE[decision_key]
-                tags = feedback_item['tags']
-                timestamp = feedback_item.get('timestamp', None)
-                aid_1_list.append(aid1)
-                aid_2_list.append(aid2)
-                decision_list.append(decision_int)
-                tags_list.append(tags)
-                confidence_key = feedback_item.get('user_confidence', None)
-                confidence_int = infr.ibs.const.REVIEW_USER_CONFIDENCE_CODE.get(confidence_key, None)
-                user_confidence_list.append(confidence_int)
-                timestamp_list.append(timestamp)
-        identity_list = None
-        review_id_list = ibs.add_review(aid_1_list, aid_2_list, decision_list,
-                                        identity_list=identity_list,
-                                        user_confidence_list=user_confidence_list,
-                                        tags_list=tags_list,
-                                        timestamp_list=timestamp_list)
+        # for (aid1, aid2), feedbacks in infr.internal_feedback.items():
+        #     for feedback_item in feedbacks:
+        _iter = (
+            (aid1, aid2, feedback_item)
+            for (aid1, aid2), feedbacks in infr.internal_feedback.items()
+            for feedback_item in feedbacks
+        )
+        for aid1, aid2, feedback_item in _iter:
+            decision_key = feedback_item['decision']
+            tags = feedback_item['tags']
+            timestamp = feedback_item.get('timestamp', None)
+            confidence_key = feedback_item.get('user_confidence', None)
+            user_id = feedback_item.get('user_id', None)
+            decision_int = ibs.const.REVIEW_MATCH_CODE[decision_key]
+            confidence_int = infr.ibs.const.REVIEW_USER_CONFIDENCE_CODE.get(
+                    confidence_key, None)
+            aid_1_list.append(aid1)
+            aid_2_list.append(aid2)
+            decision_list.append(decision_int)
+            tags_list.append(tags)
+            user_confidence_list.append(confidence_int)
+            timestamp_list.append(timestamp)
+            identity_list.append(user_id)
+        review_id_list = ibs.add_review(
+                aid_1_list, aid_2_list, decision_list,
+                tags_list=tags_list,
+                identity_list=identity_list,
+                user_confidence_list=user_confidence_list,
+                timestamp_list=timestamp_list)
         assert len(ut.find_duplicate_items(review_id_list)) == 0
         # Copy internal feedback into external
         for edge, feedbacks in infr.internal_feedback.items():
@@ -459,7 +515,8 @@ class _AnnotInfrIBEIS(object):
 
     def write_ibeis_annotmatch_feedback(infr, edge_delta_df=None):
         """
-        Commits the current state in external and internal into the annotmatch table.
+        Commits the current state in external and internal into the annotmatch
+        table.
         """
         if infr.verbose > 0:
             print('[infr] write_ibeis_annotmatch_feedback')
@@ -476,7 +533,8 @@ class _AnnotInfrIBEIS(object):
         edge_delta_df.loc[is_add, 'am_rowid'] = add_ams
 
         # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE, edge_delta_df['new_decision'])
+        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE,
+                            edge_delta_df['new_decision'])
         new_tags = [';'.join(tags) for tags in edge_delta_df['new_tags']]
         am_rowids = edge_delta_df['am_rowid'].values
         ibs.set_annotmatch_truth(am_rowids, new_truth)
@@ -787,8 +845,10 @@ class _AnnotInfrIBEIS(object):
         # Concat the changed and added edges
         new_df = pd.concat([new_df_, add_df])
         # Combine into a single delta data frame
-        x1 = old_df.rename(columns={'decision': 'old_decision', 'tags': 'old_tags'})
-        x2 = new_df.rename(columns={'decision': 'new_decision', 'tags': 'new_tags'})
+        x1 = old_df.rename(columns={'decision': 'old_decision', 'tags':
+                                    'old_tags'})
+        x2 = new_df.rename(columns={'decision': 'new_decision', 'tags':
+                                    'new_tags'})
         x1.reset_index(inplace=True)
         x2.reset_index(inplace=True)
         merge_keys = ['aid1', 'aid2', 'am_rowid']
@@ -812,9 +872,12 @@ class _AnnotInfrFeedback(object):
         # 6: 'notcomp-photobomb',
     }
 
+    def add_feedback_df(infr, decision_df, user_id=None, verbose=None):
+        """ Adds multiple feedback at once (usually for auto reviewer) """
+
     @profile
     def add_feedback(infr, aid1, aid2, decision, tags=[], apply=False,
-                     user_confidence=None, verbose=None):
+                     user_id=None, user_confidence=None, verbose=None):
         """
         Public interface to add feedback for a single edge
 
@@ -834,23 +897,13 @@ class _AnnotInfrFeedback(object):
             >>> infr.add_feedback(5, 6, 'match')
             >>> infr.add_feedback(5, 6, 'nomatch', ['Photobomb'])
             >>> infr.add_feedback(1, 2, 'notcomp')
-            >>> feedback = infr.all_feedback()
-            >>> for item in (item for vals in feedback.values() for item in vals):
-            >>>     if 'timestamp' in item:
-            >>>         item['timestamp'] = 'removed'
-            >>> result = ut.repr2(feedback, nl=2)
-            >>> print(result)
-            {
-                (1, 2): [
-                    {'decision': 'notcomp', 'tags': [], 'timestamp': 'removed', 'user_confidence': None},
-                ],
-                (5, 6): [
-                    {'decision': 'match', 'tags': [], 'timestamp': 'removed', 'user_confidence': None},
-                    {'decision': 'nomatch', 'tags': ['Photobomb'], 'timestamp': 'removed', 'user_confidence': None},
-                ],
-            }
+            >>> feedback = infr.internal_feedback
+            >>> print(ut.repr2(feedback, nl=2))
+            >>> assert len(infr.external_feedback) == 0
+            >>> assert len(feedback) == 2
+            >>> assert len(feedback[(5, 6)]) == 2
+            >>> assert len(feedback[(1, 2)]) == 1
         """
-        import time
         if verbose is None:
             verbose = infr.verbose
         if verbose >= 1:
@@ -865,7 +918,8 @@ class _AnnotInfrFeedback(object):
         if decision == 'unreviewed':
             feedback_item = None
             if edge in infr.external_feedback:
-                raise ValueError('Can\'t unreview an edge that has been committed')
+                raise ValueError(
+                    "Can't unreview an edge that has been committed")
             if edge in infr.internal_feedback:
                 del infr.internal_feedback[edge]
         else:
@@ -874,8 +928,8 @@ class _AnnotInfrFeedback(object):
                 'tags': tags,
                 'timestamp': int(time.mktime(time.gmtime())),
                 'user_confidence': user_confidence,
+                'user_id': user_id,
             }
-            # infr.external_feedback[edge].append(feedback_item)
             infr.internal_feedback[edge].append(feedback_item)
         if apply:
             # Apply new results on the fly
@@ -957,7 +1011,8 @@ class _AnnotInfrFeedback(object):
         p_same_list = ut.take(p_same_lookup, decision_list)
 
         # Put pair orders in context of the graph
-        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list, tags_list, num_review_list)
+        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
+                                 tags_list, num_review_list)
 
     @profile
     def _dynamically_apply_feedback(infr, edge, feedback_item):
@@ -2414,7 +2469,8 @@ class _AnnotInfrRelabel(object):
 class AnnotInference(ut.NiceRepr,
                      _AnnotInfrHelpers, _AnnotInfrIBEIS, _AnnotInfrMatching,
                      _AnnotInfrFeedback, _AnnotInfrUpdates, _AnnotInfrRelabel,
-                     _AnnotInfrDummy, viz_graph_iden._AnnotInfrViz):
+                     _AnnotInfrDummy, _AnnotInfrGroundtruth,
+                     viz_graph_iden._AnnotInfrViz):
     """
     class for maintaining state of an identification
 
@@ -2534,7 +2590,7 @@ class AnnotInference(ut.NiceRepr,
     _graph_cls = nx.Graph
     # _graph_cls = nx.DiGraph
 
-    def __init__(infr, ibs, aids, nids=None, autoinit=False, verbose=False):
+    def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
         infr.verbose = verbose
         if infr.verbose >= 1:
             print('[infr] __init__')
