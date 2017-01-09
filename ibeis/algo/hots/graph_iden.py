@@ -3174,7 +3174,7 @@ class AnnotInference(ut.NiceRepr,
             # edges = infr.get_edges_for_review(randomness, rng)
             try:
                 edge, priority = infr.queue.pop()
-                aid1, aid2 = edge
+                aid1, aid2 = e_(*edge)
             except IndexError:
                 print('no more edges to reveiw')
                 raise StopIteration('no more to review!')

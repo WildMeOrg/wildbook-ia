@@ -463,7 +463,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             tags = []
             return state, tags
         rng = np.random.RandomState(0)
-        _iter = infr.generate_reviews(randomness=.1, rng=rng, **queue_params)
+        _iter = infr.generate_reviews(randomness=0, rng=rng, **queue_params)
         _iter2 = enumerate(_iter)
         prog = ut.ProgIter(_iter2, bs=False, adjust=False)
         for count, (aid1, aid2) in prog:
@@ -471,6 +471,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Make the next review decision
             state, tags = oracle_decision(aid1, aid2, primary_task_truth)
             infr.add_feedback(aid1, aid2, state, tags, apply=True)
+        auto_results['n_reviews'] = count
 
         # Assume the user will correct any inconsistent compoments
         import ibeis
