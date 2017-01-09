@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import time
 import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
@@ -150,6 +149,7 @@ class _AnnotInfrGroundtruth(object):
     Helps generate training labels
     """
 
+    @profile
     def guess_if_comparable(infr, aid_pairs):
         """
         Takes a guess as to which annots are not comparable based on scores and
@@ -162,7 +162,7 @@ class _AnnotInfrGroundtruth(object):
         # scores = simple_scores[key].values
         # yaws1 = labels.annots1.yaws_asfloat
         # yaws2 = labels.annots2.yaws_asfloat
-        aid_pairs = np.array(aid_pairs)
+        aid_pairs = np.asarray(aid_pairs)
         ibs = infr.ibs
         yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
         yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
@@ -175,6 +175,7 @@ class _AnnotInfrGroundtruth(object):
         is_comp_guess = comp_by_viewpoint
         return is_comp_guess
 
+    @profile
     def is_comparable(infr, aid_pairs, allow_guess=True):
         # But use information that we have
         ibs = infr.ibs
@@ -188,7 +189,7 @@ class _AnnotInfrGroundtruth(object):
         # But use information that we have
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
         truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
-        truths = np.array(truths)
+        truths = np.asarray(truths)
         is_notcomp_have = truths == ibs.const.TRUTH_NOT_COMP
         is_comp_have = ((truths == ibs.const.TRUTH_MATCH) |
                         (truths == ibs.const.TRUTH_NOT_MATCH))
@@ -986,6 +987,10 @@ class _AnnotInfrFeedback(object):
                 'reviewed_weight']
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
         # ut.nx_delete_edge_attr(infr.graph, 'is_reviewed', edges)
+
+    def _set_vsone_probs(infr, task_key, probs_df):
+        attr = 'vsone_probs(%s)' % (task_key,)
+        infr.set_edge_attrs(attr, probs_df.to_dict(orient='index'))
 
     @profile
     def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list,
