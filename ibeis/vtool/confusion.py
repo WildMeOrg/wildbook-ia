@@ -636,6 +636,7 @@ class ConfusionMetrics(object):
         pass
 
 
+@profile
 def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
     """
     xdata = np.array([.1, .2, .3, .4, .5])
