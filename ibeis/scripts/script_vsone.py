@@ -325,6 +325,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
             We could use fix the target FPR for each subtask. That
             seems reasonable.
+
+        TODO:
+            * Get predictions using user review in addition to the number of
+            reviews. Then comparare the ROC curves
+
+                * y_pred_auto @ threshold
+                * y_pred_user @ threshold
+                * n_user_reveiws @ threshold (approximate this)
+
+            * Find the number of matches that can't be made because the
+            candidate edges just don't exist.
         """
 
         primary_task = 'match_state'
@@ -334,7 +345,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         probs = primary_res.probs_df['match'].values
         cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
 
-        thresh_list0 = np.linspace(0, 1.0, 10)
+        thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.51, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
@@ -374,7 +385,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 data_key)
             auto_results = pblm.test_auto_decisions(
                 infr, primary_task, primary_auto_flags, task_keys, task_probs)
-            auto_results['fpr'] = auto_results
+            auto_results['fpr'] = target_fpr
             auto_results_list.append(auto_results)
 
         import plottool as pt
@@ -382,19 +393,21 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         xdata = thresh_list
         xlabel = 'thresh'
-        pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
         fnum = pt.ensure_fnum(1)
         fig = pt.figure(fnum=fnum, doclf=True)
 
+        ut.fix_embed_globals()
         def make_subplot(label_list, pnum_):
             ydata_list = [ut.take_column(auto_results_list, ylbl) for ylbl in
                           label_list]
             pt.multi_plot(xdata, ydata_list, label_list=label_list, xlabel=xlabel,
                           use_legend=True, fnum=fnum, pnum=pnum_())
 
+        pnum_ = pt.make_pnum_nextgen(nRows=3, nCols=2)
         make_subplot(['n_inconsistent'], pnum_)
         make_subplot(['n_clusters'], pnum_)
-        make_subplot(['n_mistakes', 'n_flagged'], pnum_)
+        make_subplot(['n_mistakes'], pnum_)
+        make_subplot(['n_flagged'], pnum_)
         make_subplot(['fpr'], pnum_)
 
         fig.canvas.manager.window.raise_()
