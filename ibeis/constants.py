@@ -271,9 +271,11 @@ HARD_NOTE_TAG = '<HARDCASE>'
 # HACK
 if ut.get_computer_name() == 'ibeis.cs.uic.edu':
     #_DEFAULT_WILDBOOK_TARGET = 'prod'
-    _DEFAULT_WILDBOOK_TARGET = 'lewa2'
+    # _DEFAULT_WILDBOOK_TARGET = 'lewa2'
+    _DEFAULT_WILDBOOK_TARGET = 'lewa3'
 elif ut.get_computer_name() == 'Leviathan':
-    _DEFAULT_WILDBOOK_TARGET = 'wildbook'
+    # _DEFAULT_WILDBOOK_TARGET = 'wildbook'
+    _DEFAULT_WILDBOOK_TARGET = 'lewa3'
 else:
     _DEFAULT_WILDBOOK_TARGET = 'ibeis'
 WILDBOOK_TARGET = ut.get_argval('--wildbook-target', type_=str, default=_DEFAULT_WILDBOOK_TARGET,
