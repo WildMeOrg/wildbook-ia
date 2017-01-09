@@ -283,6 +283,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             infr.start_qt_interface()
             return
 
+    @profile
     def end_to_end(pblm, task_keys):
         r"""
         NOTE:
@@ -311,13 +312,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         task_probs = pblm.get_independant_evaluation_probs(
             task_keys, clf_key, data_key, infr, want_edges)
 
+        primary_task = 'match_state'
+        index = task_probs[primary_task].index
+        primary_task_truth = infr.match_state_df(index)
+
+        # with ut.Timer('t3'):
+        #     index = task_probs[primary_task].index
+        #     want_samples = AnnotPairSamples(
+        #         ibs=infr.ibs, index=task_probs[primary_task].index)
+
         # Get the operating points
         # (FIXME this is influenced by re-using the training set)
 
         # TODO: pick out all threshold values first (remove thresholds less
         # than .5)
-        import utool
-        utool.embed()
 
         """
         PROBLEM:
@@ -341,7 +349,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             candidate edges just don't exist.
         """
 
-        primary_task = 'match_state'
         # target_fprs = [1E-4, 1E-2, .1, .3, .49]
         primary_res = pblm.task_combo_res[primary_task][clf_key][data_key]
         labels = primary_res.target_bin_df['match'].values
@@ -387,7 +394,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 primary_task, task_probs, task_thresh, task_keys, clf_key,
                 data_key)
             auto_results = pblm.test_auto_decisions(
-                infr, primary_task, primary_auto_flags, task_keys, task_probs)
+                infr, primary_task, primary_auto_flags, task_keys, task_probs,
+                primary_task_truth)
             auto_results['fpr'] = target_fpr
             auto_results_list.append(auto_results)
 
@@ -415,13 +423,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         fig.canvas.manager.window.raise_()
 
+    @profile
     def test_auto_decisions(pblm, infr, primary_task, primary_auto_flags,
-                            task_keys, task_probs):
+                            task_keys, task_probs, primary_task_truth):
         auto_results = {}
         is_auto = primary_auto_flags.any(axis=1)
-
-        want_samples = AnnotPairSamples(
-            ibs=infr.ibs, index=task_probs[primary_task].index)
         # pblm.extra_report(task_probs, is_auto, want_samples)
 
         # Apply probabilities to edges in infr
@@ -432,20 +438,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 task_probs[task_key]))
         # Cleanup (maybe not necessary for script)
         infr.remove_feedback()
-        infr.apply_feedback_edges()
+        infr._del_feedback_edges()
         # Add automatic feedback
         auto_decisions = primary_auto_flags[is_auto].idxmax(axis=1)
         auto_decisions.name = primary_task
         decision_df = pd.DataFrame(auto_decisions.sort_values())
-        # infr.add_feedback_df(auto_decisions)
-        # for (u, v), state in auto_decisions.iteritems():
-        #     infr.add_feedback(u, v, state, apply=False)
-        infr.apply_feedback_edges()
-        n_clusters, n_inconsistent = infr.relabel_using_reviews()
+        infr.add_feedback_df(decision_df, user_id='auto')
+        # Apply feedback edges is the bottleneck of the function
+        infr.apply_feedback_edges(safe=False)
+        n_clusters, n_inconsistent = infr.relabel_using_reviews(
+            rectify_names=False)
         auto_results['n_clusters'] = n_clusters
         auto_results['n_inconsistent'] = n_inconsistent
 
-        y_bin_match = want_samples['match_state'].indicator_df
+        y_bin_match = primary_task_truth
         auto_truth = y_bin_match.loc[auto_decisions.index].idxmax(axis=1)
         is_mistake = auto_decisions != auto_truth
         auto_results['n_mistakes'] = len(is_mistake)
