@@ -397,7 +397,7 @@ class ClfProblem(ut.NiceRepr):
     pass
     # TODO
     # def learn_single_clf
-    def get_xval_kw(self):
+    def get_xval_kw(pblm):
         # xvalkw = dict(n_splits=10, shuffle=True,
         xval_kw = {
             # 'n_splits': 10,
@@ -407,7 +407,7 @@ class ClfProblem(ut.NiceRepr):
         }
         return xval_kw
 
-    def get_clf_params(self, clf_key):
+    def get_clf_params(pblm, clf_key):
         est_type = clf_key.split('-')[0]
         if est_type in {'RF', 'RandomForest'}:
             est_kw1 = {
@@ -432,28 +432,28 @@ class ClfProblem(ut.NiceRepr):
             est_kw2 = {}
         return est_kw1, est_kw2
 
-    def set_pandas_options(self):
+    def set_pandas_options(pblm):
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
-    def set_pandas_options_low(self):
+    def set_pandas_options_low(pblm):
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 5
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
-    def set_pandas_options_normal(self):
+    def set_pandas_options_normal(pblm):
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 20
         pd.options.display.max_columns = 40
         pd.options.display.width = 160
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
-    def learn_evaluation_classifiers(self, task_keys=None, clf_keys=None,
+    def learn_evaluation_classifiers(pblm, task_keys=None, clf_keys=None,
                                      data_keys=None, cfg_prefix=''):
         """
         Evaluates by learning classifiers using cross validation.
@@ -461,13 +461,13 @@ class ClfProblem(ut.NiceRepr):
 
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
-        self.task_clfs = ut.AutoVivification()
-        self.task_combo_res = ut.AutoVivification()
+        pblm.task_clfs = ut.AutoVivification()
+        pblm.task_combo_res = ut.AutoVivification()
 
         if task_keys is None:
-            task_keys = list(self.samples.subtasks.keys())
+            task_keys = list(pblm.samples.subtasks.keys())
         if data_keys is None:
-            task_keys = list(self.samples.X_dict.keys())
+            task_keys = list(pblm.samples.X_dict.keys())
         if clf_keys is None:
             clf_keys = ['RF']
 
@@ -478,17 +478,17 @@ class ClfProblem(ut.NiceRepr):
             for data_key in dataset_prog:
                 clf_prog = Prog(clf_keys, label='CLF')
                 for clf_key in clf_prog:
-                    self._ensure_evaluation_clf(task_key, data_key, clf_key,
+                    pblm._ensure_evaluation_clf(task_key, data_key, clf_key,
                                                 cfg_prefix)
 
-    def _ensure_evaluation_clf(self, task_key, data_key, clf_key, cfg_prefix):
+    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key, cfg_prefix):
         """
         Learns and caches an evaluation (cross-validated) classifier and tests
         and caches the results.
         """
         # TODO: add in params used to construct features into the cfgstr
-        est_kw1, est_kw2 = self.get_clf_params(clf_key)
-        xval_kw = self.get_xval_kw()
+        est_kw1, est_kw2 = pblm.get_clf_params(clf_key)
+        xval_kw = pblm.get_xval_kw()
         param_id = ut.get_dict_hashid(est_kw1)
         xval_id = ut.get_dict_hashid(xval_kw)
         cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
@@ -500,35 +500,35 @@ class ClfProblem(ut.NiceRepr):
 
         clf_list = cacher_clf.tryload()
         if not clf_list:
-            clf_list = self._train_evaluation_clf(task_key, data_key, clf_key)
+            clf_list = pblm._train_evaluation_clf(task_key, data_key, clf_key)
             cacher_clf.save(clf_list)
 
         res_list = cacher_res.tryload()
         if not res_list:
-            res_list = self._test_evaulation_clf(task_key, data_key, clf_list)
+            res_list = pblm._test_evaulation_clf(task_key, data_key, clf_list)
             cacher_res.save(res_list)
 
-        labels = self.samples.subtasks[task_key]
+        labels = pblm.samples.subtasks[task_key]
         combo_res = ClfResult.combine_results(res_list, labels)
-        self.task_clfs[task_key][clf_key][data_key] = clf_list
-        self.task_combo_res[task_key][clf_key][data_key] = combo_res
+        pblm.task_clfs[task_key][clf_key][data_key] = clf_list
+        pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
 
-    def _train_evaluation_clf(self, task_key, data_key, clf_key):
+    def _train_evaluation_clf(pblm, task_key, data_key, clf_key):
         """
         Learns a cross-validated classifier on the dataset
 
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> self = OneVsOneProblem()
-            >>> self.load_features()
-            >>> self.load_samples()
+            >>> pblm = OneVsOneProblem()
+            >>> pblm.load_features()
+            >>> pblm.load_samples()
             >>> data_key = 'learn(all)'
             >>> task_key = 'photobomb_state'
             >>> task_key = 'match_state'
             >>> clf_key = 'RF-OVR'
             >>> clf_key = 'RF'
         """
-        X_df = self.samples.X_dict[data_key]
-        labels = self.samples.subtasks[task_key]
+        X_df = pblm.samples.X_dict[data_key]
+        labels = pblm.samples.subtasks[task_key]
         assert np.all(labels.encoded_df.index == X_df.index)
 
         tup = clf_key.split('-')
@@ -544,15 +544,15 @@ class ClfProblem(ut.NiceRepr):
             'SVC': sklearn.svm.SVC,
         }[est_type]
 
-        est_kw1, est_kw2 = self.get_clf_params(est_type)
-        xval_kw = self.get_xval_kw()
+        est_kw1, est_kw2 = pblm.get_clf_params(est_type)
+        xval_kw = pblm.get_xval_kw()
         est_params = ut.merge_dicts(est_kw1, est_kw2)
 
         clf_list = []
-        skf_list = self.samples.stratified_kfold_indices(**xval_kw)
+        skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
         skf_prog = ut.ProgIter(skf_list, label='skf-learn')
         for train_idx, test_idx in skf_prog:
-            assert X_df.iloc[train_idx].index.tolist() == ut.take(self.samples.index, train_idx)
+            assert X_df.iloc[train_idx].index.tolist() == ut.take(pblm.samples.index, train_idx)
             # train_uv = X_df.iloc[train_idx].index
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
@@ -563,14 +563,14 @@ class ClfProblem(ut.NiceRepr):
             clf_list.append(clf)
         return clf_list
 
-    def _test_evaulation_clf(self, task_key, data_key, clf_list):
+    def _test_evaulation_clf(pblm, task_key, data_key, clf_list):
         """ Test a cross-validated classifier on the dataset """
-        X_df = self.samples.X_dict[data_key]
-        labels = self.samples.subtasks[task_key]
-        xval_kw = self.get_xval_kw()
+        X_df = pblm.samples.X_dict[data_key]
+        labels = pblm.samples.subtasks[task_key]
+        xval_kw = pblm.get_xval_kw()
 
         res_list = []
-        skf_list = self.samples.stratified_kfold_indices(**xval_kw)
+        skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
         skf_prog = ut.ProgIter(zip(clf_list, skf_list), length=len(skf_list),
                                label='skf-test')
         for clf, (train_idx, test_idx) in skf_prog:
@@ -696,7 +696,7 @@ class ClfResult(ut.NiceRepr):
 
     def make_meta(res, samples):
         """
-        samples = self.samples
+        samples = pblm.samples
         """
         meta = {}
         meta['easiness'] = np.array(ut.ziptake(res.probs_df.values,
@@ -914,7 +914,6 @@ class ClfResult(ut.NiceRepr):
             class_name = res.class_names[k]
             probs, labels = clf_probs.T[k], y_test_bin.T[k]
             cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-            self = cfms  # NOQA
 
             # encoder = vt.ScoreNormalizer()
             # encoder.fit(probs, labels)
