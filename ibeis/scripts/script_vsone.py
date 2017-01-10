@@ -452,6 +452,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         is_mistake = auto_decisions != auto_truth
         auto_results['n_mistakes'] = len(is_mistake)
 
+        # Find a minimum set of discoverable reviews to make instead of going
+        # through the simulation.
+        # * For each groundtruth cc, find a MST of edges that exist in the
+        # candidates set (or minimum connected set if it is different, but I
+        # think its the same thing as MST).
+        # TODO: find a way to consider negative edges too
+
         queue_params = {
             'pos_diameter': None,
             'neg_diameter': None,
