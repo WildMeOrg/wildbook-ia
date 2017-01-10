@@ -283,6 +283,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             infr.start_qt_interface()
             return
 
+    @profile
     def end_to_end(pblm, task_keys):
         r"""
         NOTE:
@@ -311,13 +312,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         task_probs = pblm.get_independant_evaluation_probs(
             task_keys, clf_key, data_key, infr, want_edges)
 
+        primary_task = 'match_state'
+        index = task_probs[primary_task].index
+        primary_task_truth = infr.match_state_df(index)
+
+        # with ut.Timer('t3'):
+        #     index = task_probs[primary_task].index
+        #     want_samples = AnnotPairSamples(
+        #         ibs=infr.ibs, index=task_probs[primary_task].index)
+
         # Get the operating points
         # (FIXME this is influenced by re-using the training set)
 
         # TODO: pick out all threshold values first (remove thresholds less
         # than .5)
-        import utool
-        utool.embed()
 
         """
         PROBLEM:
@@ -341,15 +349,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             candidate edges just don't exist.
         """
 
-        primary_task = 'match_state'
         # target_fprs = [1E-4, 1E-2, .1, .3, .49]
         primary_res = pblm.task_combo_res[primary_task][clf_key][data_key]
         labels = primary_res.target_bin_df['match'].values
         probs = primary_res.probs_df['match'].values
         cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
 
-        thresh_list0 = np.linspace(0, 1.0, 20)
-        # thresh_list0 = np.linspace(.51, 1.0, 10)
+        # thresh_list0 = np.linspace(0, 1.0, 20)
+        thresh_list0 = np.linspace(.51, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
         # interpolates back to appropriate threshold
@@ -367,27 +374,26 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # ]
         auto_results_list = []
 
+        task_thresh = {}
+        task_key = 'photobomb_state'
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        thresh_df = res.get_pos_threshes('mcc', 'max')
+        task_thresh[task_key] = thresh_df
+
         for target_fpr in fpr_list:
             print('===================================')
+            thresh_df = primary_res.get_pos_threshes('fpr', target_fpr)
+            task_thresh[primary_task] = thresh_df
             print('target_fpr = %r' % (target_fpr,))
-            operating_points = {
-                # 'match_state': ('fpr', 1E-4),
-                # 'match_state': ('fpr', 1E-2),
-                'match_state': ('fpr', target_fpr),
-                'photobomb_state': ('mcc', 'max'),
-            }
-            task_thresh = {}
-            for task_key in task_keys:
-                metric, value = operating_points[task_key]
-                res = pblm.task_combo_res[task_key][clf_key][data_key]
-                thresh_df = res.get_pos_threshes(metric, value)
-                task_thresh[task_key] = thresh_df
+            print('thresh_df = %r' % (thresh_df,))
+
             # print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
             primary_auto_flags = pblm.auto_decisions_at_threshold(
                 primary_task, task_probs, task_thresh, task_keys, clf_key,
                 data_key)
             auto_results = pblm.test_auto_decisions(
-                infr, primary_task, primary_auto_flags, task_keys, task_probs)
+                infr, primary_task, primary_auto_flags, task_keys, task_probs,
+                primary_task_truth)
             auto_results['fpr'] = target_fpr
             auto_results_list.append(auto_results)
 
@@ -406,79 +412,173 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pt.multi_plot(xdata, ydata_list, label_list=label_list, xlabel=xlabel,
                           use_legend=True, fnum=fnum, pnum=pnum_())
 
-        pnum_ = pt.make_pnum_nextgen(nRows=3, nCols=2)
+        pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
         make_subplot(['n_inconsistent'], pnum_)
         make_subplot(['n_clusters'], pnum_)
         make_subplot(['n_mistakes'], pnum_)
-        make_subplot(['n_flagged'], pnum_)
+        # make_subplot(['n_flagged'], pnum_)
         make_subplot(['fpr'], pnum_)
 
         fig.canvas.manager.window.raise_()
+        ut.show_if_requested()
 
+    @profile
     def test_auto_decisions(pblm, infr, primary_task, primary_auto_flags,
-                            task_keys, task_probs):
+                            task_keys, task_probs, primary_task_truth):
         auto_results = {}
         is_auto = primary_auto_flags.any(axis=1)
-
-        want_samples = AnnotPairSamples(
-            ibs=infr.ibs, index=task_probs[primary_task].index)
         # pblm.extra_report(task_probs, is_auto, want_samples)
 
         # Apply probabilities to edges in infr
-        # (todo: standardize this within infr)
         for task_key in task_keys:
-            infr.set_edge_attrs('probs(%s)', ut.dzip(
-                ut.lmap(tuple, task_probs[task_key].index.tolist()),
-                task_probs[task_key]))
+            infr._set_vsone_probs(task_key, task_probs[task_key])
         # Cleanup (maybe not necessary for script)
         infr.remove_feedback()
-        infr.apply_feedback_edges()
+        infr._del_feedback_edges()
         # Add automatic feedback
         auto_decisions = primary_auto_flags[is_auto].idxmax(axis=1)
         auto_decisions.name = primary_task
         decision_df = pd.DataFrame(auto_decisions.sort_values())
-        # infr.add_feedback_df(auto_decisions)
-        # for (u, v), state in auto_decisions.iteritems():
-        #     infr.add_feedback(u, v, state, apply=False)
-        infr.apply_feedback_edges()
-        n_clusters, n_inconsistent = infr.relabel_using_reviews()
+        infr.add_feedback_df(decision_df, user_id='clf(RF-eval)')
+        # Apply feedback edges is the bottleneck of the function
+        infr.apply_feedback_edges(safe=False)
+        n_clusters, n_inconsistent = infr.relabel_using_reviews(
+            rectify_names=False)
         auto_results['n_clusters'] = n_clusters
         auto_results['n_inconsistent'] = n_inconsistent
 
-        y_bin_match = want_samples['match_state'].indicator_df
+        y_bin_match = primary_task_truth
         auto_truth = y_bin_match.loc[auto_decisions.index].idxmax(axis=1)
         is_mistake = auto_decisions != auto_truth
         auto_results['n_mistakes'] = len(is_mistake)
 
-        # now the user cleans up the mess
-        import ibeis
+        # Find a minimum set of discoverable reviews to make instead of going
+        # through the simulation.
+        # * For each groundtruth cc, find a MST of edges that exist in the
+        # candidates set (or minimum connected set if it is different, but I
+        # think its the same thing as MST).
+        # TODO: find a way to consider negative edges too
+        # Or, just figure out how many positive reviews you need
+        # to get before it petters out. Then look at that y_pred vs y_true
         import networkx as nx
-        e_ = ibeis.algo.hots.graph_iden.e_
-        merge_fixes = []
-        split_fixes = []
-        for cc in infr.inconsistent_compoments():
-            # print(ut.repr4(cc.node))
-            # Assume the user will fix these
-            edges = ut.lstarmap(e_, list(cc.edges()))
-            edge_states = np.array([
-                cc.edge[u][v].get('reviewed_state', 'unreviewed')
-                for u, v in edges
-            ])
-            node_to_nid = nx.get_node_attributes(cc, 'orig_name_label')
-            same_flags = (
-                np.diff(ut.unflat_take(node_to_nid, edges), axis=1) == 0).T[0]
-            split_edges = ut.compress(edges, (edge_states == 'match') & (~same_flags))
-            merge_edges = ut.compress(edges, (edge_states == 'nomatch') & (same_flags))
-            # print('merge_edges = %r' % (len(merge_edges),))
-            # print('split_edges = %r' % (len(split_edges),))
-            merge_fixes += merge_edges
-            split_fixes += split_edges
-        # print('----')
-        # print('merge_fixes = %r' % (len(merge_fixes),))
-        # print('split_fixes = %r' % (len(split_fixes),))
-        flagged_edges = merge_fixes + split_fixes
 
-        auto_results['n_flagged'] = len(flagged_edges)
+        primary_probs = task_probs[primary_task]
+
+        """
+        Goal:
+            * Determine predictions after user reviews
+            * Get y_user_and_auto_pred - Use these to evaluate various
+               auto-review thresholds based on how much a user must do and how
+               accurate the final product ends up being.
+            * Compare y_user_and_auto_pred against y_auto_pred.
+            * Compare n_reviews for each threshold level as well as accuracy.
+
+        Must:
+            * Handle inconsistencies remaining from auto-review
+            * Don't match edges that would never have been suggested in the
+              priortiy algorithm. (ie merge errors caused by auto-review, those
+              are perminent)
+            *
+
+        Method:
+            * Find all inconsistencies, assume user reviews and fixes them
+               - ideally should use the priority algorithm for this
+            * Then find a list of all positive reviews that will best match the
+              groundtruth (note it might not be possible to match the groundtruth
+              if candidate edges are missing)
+            * Find and remove the set of edges that would not be reviewed based
+              on negative auto-reviews.
+            * The remaning edges are the same edges that would be reviewed by
+              a perfect reviewer using the highest match priority algorithm.
+            * Review those in bulk for speed.
+        """
+
+        if True:
+            # Assume the user will correct any inconsistent compoments
+            import ibeis
+            e_ = ibeis.algo.hots.graph_iden.e_
+            merge_fixes = []
+            split_fixes = []
+            for cc in infr.inconsistent_compoments():
+                edges = ut.lstarmap(e_, list(cc.edges()))
+                edge_states = np.array([
+                    cc.edge[u][v].get('reviewed_state', 'unreviewed')
+                    for u, v in edges
+                ])
+                node_to_nid = nx.get_node_attributes(cc, 'orig_name_label')
+                same_flags = (
+                    np.diff(ut.unflat_take(node_to_nid, edges), axis=1) == 0).T[0]
+                split_edges = ut.compress(edges, (edge_states == 'match') &
+                                          (~same_flags))
+                merge_edges = ut.compress(edges, (edge_states == 'nomatch') &
+                                          (same_flags))
+                merge_fixes += merge_edges
+                split_fixes += split_edges
+            # print('----')
+            # print('merge_fixes = %r' % (len(merge_fixes),))
+            # print('split_fixes = %r' % (len(split_fixes),))
+            flagged_edges = merge_fixes + split_fixes
+            auto_results['n_flagged'] = len(flagged_edges)
+
+        def groundtruth_mst(infr):
+            graph = infr.graph
+            # node_to_orig = nx.get_node_attributes(graph, 'orig_name_label')
+            gt_clusters = ut.group_items(infr.aids,
+                                         infr.ibs.get_annot_nids(infr.aids))
+            gt_forests = []
+
+            # TODO: need to ensure that simulation handles inconsistencies
+            # first and takes care to not assign matches between predicted
+            # false negatives.
+            post_pred_probs = primary_probs.copy()
+            for col, sub in auto_decisions.groupby(auto_decisions):
+                post_pred_probs.loc[sub.index, col] = 1
+
+            post_pred_probs.loc[auto_decisions.index]
+            for nid, nodes in gt_clusters.items():
+                if len(nodes) == 1:
+                    continue
+                have_edges = list(ut.nx_edges_between(graph, nodes))
+                tmp = nx.from_edgelist(have_edges)
+                tmp.add_nodes_from(nodes)
+                nx.set_edge_attributes(
+                    tmp, 'weight',
+                    (1 - primary_probs.loc[have_edges]['match']).to_dict())
+                ccs = list(nx.connected_component_subgraphs(
+                    nx.minimum_spanning_tree(tmp)))
+                gt_forests.append(ccs)
+            ut.dict_hist(ut.lmap(len, gt_forests))
+            user_edges = [[list(t.edges()) for t in f]
+                          for f in gt_forests]
+
+            # n_have = len(have_edges)
+            # n_possible = len(list(ut.combinations(nodes, 2)))
+            # assert n_have <= n_possible
+            # if n_have < n_possible - 5:
+            #     break
+            pass
+
+        if False:
+            queue_params = {
+                'pos_diameter': None,
+                'neg_diameter': None,
+                # 'pos_diameter': 1,
+                # 'neg_diameter': 2,
+            }
+            def oracle_decision(aid1, aid2, primary_task_truth):
+                state = primary_task_truth.loc[(aid1, aid2)].idxmax()
+                tags = []
+                return state, tags
+            rng = np.random.RandomState(0)
+            _iter = infr.generate_reviews(randomness=0, rng=rng, **queue_params)
+            _iter2 = enumerate(_iter)
+            prog = ut.ProgIter(_iter2, bs=False, adjust=False)
+            for count, (aid1, aid2) in prog:
+                print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+                # Make the next review decision
+                state, tags = oracle_decision(aid1, aid2, primary_task_truth)
+                infr.add_feedback(aid1, aid2, state, tags, apply=True)
+            auto_results['n_reviews'] = count
 
         # fixed_state = y_bin_match.loc[flagged_edges]
 
@@ -622,6 +722,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
+    @profile
     def get_independant_evaluation_probs(pblm, task_keys, clf_key, data_key,
                                          infr, want_edges):
         """
@@ -681,42 +782,50 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Construct the matches
         # TODO: ensure the params are ALL the same including qreq_ params
         config = pblm.hyper_params.vsone_assign
-
-        # TODO: cache this
         cfgstr = 'temp'
-        cacher = ut.Cacher('full_eval_feats', cfgstr, appname=pblm.appname)
-        data = cacher.tryload()
-        if not data:
-            print('Building need features')
-            matches, X_need = infr._make_pairwise_features(
-                need_edges, config=config, pairfeat_cfg=pairfeat_cfg,
-                need_lnbnn=need_lnbnn)
-            data = matches, X_need
-            cacher.save(data)
-        matches, X_need = data
-        assert np.all(featinfo.X.columns == X_need.columns), (
-            'inconsistent feature dimensions')
+        cacher2 = ut.Cacher('full_eval_probs', cfgstr, appname=pblm.appname,
+                            verbose=2)
+        data2 = cacher2.tryload()
+        if not data2:
+            # TODO: cache this
+            cfgstr = 'temp'
+            cacher = ut.Cacher('full_eval_feats', cfgstr, appname=pblm.appname,
+                               verbose=2)
+            data = cacher.tryload()
+            if not data:
+                print('Building need features')
+                matches, X_need = infr._make_pairwise_features(
+                    need_edges, config=config, pairfeat_cfg=pairfeat_cfg,
+                    need_lnbnn=need_lnbnn)
+                data = matches, X_need
+                cacher.save(data)
+            matches, X_need = data
+            assert np.all(featinfo.X.columns == X_need.columns), (
+                'inconsistent feature dimensions')
 
-        # Make an ensemble of the evaluation classifiers
-        # (todo: use a classifier that hasn't seen any of this data)
-        task_need_probs = {}
-        for task_key in task_keys:
-            print('Predicting %s probabilities' % (task_key,))
-            clf_list = pblm.task_clfs[task_key][clf_key][data_key]
-            labels = pblm.samples.subtasks[task_key]
-            eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
-            eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
-                                                      labels.class_names)
-            task_need_probs[task_key] = eclf_probs
+            # Make an ensemble of the evaluation classifiers
+            # (todo: use a classifier that hasn't seen any of this data)
+            task_need_probs = {}
+            for task_key in task_keys:
+                print('Predicting %s probabilities' % (task_key,))
+                clf_list = pblm.task_clfs[task_key][clf_key][data_key]
+                labels = pblm.samples.subtasks[task_key]
+                eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
+                eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
+                                                          labels.class_names)
+                task_need_probs[task_key] = eclf_probs
 
-        # Combine probabilities --- get probabilites for each sample
-        # edges = have_edges + need_edges
-        task_probs = {}
-        for task_key in task_keys:
-            eclf_probs = task_need_probs[task_key]
-            have_probs = res_dict[task_key].probs_df.loc[have_edges]
-            task_probs[task_key] = pd.concat([have_probs, eclf_probs])
-            assert have_probs.index.intersection(eclf_probs.index).size == 0
+            # Combine probabilities --- get probabilites for each sample
+            # edges = have_edges + need_edges
+            task_probs = {}
+            for task_key in task_keys:
+                eclf_probs = task_need_probs[task_key]
+                have_probs = res_dict[task_key].probs_df.loc[have_edges]
+                task_probs[task_key] = pd.concat([have_probs, eclf_probs])
+                assert have_probs.index.intersection(eclf_probs.index).size == 0
+            data2 = task_probs
+            cacher2.save(data2)
+        task_probs = data2
         return task_probs
 
     def reduce_dataset_size(pblm):
