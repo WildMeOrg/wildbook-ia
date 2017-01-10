@@ -412,11 +412,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pt.multi_plot(xdata, ydata_list, label_list=label_list, xlabel=xlabel,
                           use_legend=True, fnum=fnum, pnum=pnum_())
 
-        pnum_ = pt.make_pnum_nextgen(nRows=3, nCols=2)
+        pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
         make_subplot(['n_inconsistent'], pnum_)
         make_subplot(['n_clusters'], pnum_)
         make_subplot(['n_mistakes'], pnum_)
-        make_subplot(['n_flagged'], pnum_)
+        # make_subplot(['n_flagged'], pnum_)
         make_subplot(['fpr'], pnum_)
 
         fig.canvas.manager.window.raise_()
@@ -458,55 +458,127 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # candidates set (or minimum connected set if it is different, but I
         # think its the same thing as MST).
         # TODO: find a way to consider negative edges too
-
-        queue_params = {
-            'pos_diameter': None,
-            'neg_diameter': None,
-            # 'pos_diameter': 1,
-            # 'neg_diameter': 2,
-        }
-        def oracle_decision(aid1, aid2, primary_task_truth):
-            state = primary_task_truth.loc[(aid1, aid2)].idxmax()
-            tags = []
-            return state, tags
-        rng = np.random.RandomState(0)
-        _iter = infr.generate_reviews(randomness=0, rng=rng, **queue_params)
-        _iter2 = enumerate(_iter)
-        prog = ut.ProgIter(_iter2, bs=False, adjust=False)
-        for count, (aid1, aid2) in prog:
-            print('remaining_reviews = %r' % (infr.remaining_reviews()),)
-            # Make the next review decision
-            state, tags = oracle_decision(aid1, aid2, primary_task_truth)
-            infr.add_feedback(aid1, aid2, state, tags, apply=True)
-        auto_results['n_reviews'] = count
-
-        # Assume the user will correct any inconsistent compoments
-        import ibeis
+        # Or, just figure out how many positive reviews you need
+        # to get before it petters out. Then look at that y_pred vs y_true
         import networkx as nx
-        e_ = ibeis.algo.hots.graph_iden.e_
-        merge_fixes = []
-        split_fixes = []
-        for cc in infr.inconsistent_compoments():
-            edges = ut.lstarmap(e_, list(cc.edges()))
-            edge_states = np.array([
-                cc.edge[u][v].get('reviewed_state', 'unreviewed')
-                for u, v in edges
-            ])
-            node_to_nid = nx.get_node_attributes(cc, 'orig_name_label')
-            same_flags = (
-                np.diff(ut.unflat_take(node_to_nid, edges), axis=1) == 0).T[0]
-            split_edges = ut.compress(edges, (edge_states == 'match') &
-                                      (~same_flags))
-            merge_edges = ut.compress(edges, (edge_states == 'nomatch') &
-                                      (same_flags))
-            merge_fixes += merge_edges
-            split_fixes += split_edges
-        # print('----')
-        # print('merge_fixes = %r' % (len(merge_fixes),))
-        # print('split_fixes = %r' % (len(split_fixes),))
-        flagged_edges = merge_fixes + split_fixes
 
-        auto_results['n_flagged'] = len(flagged_edges)
+        primary_probs = task_probs[primary_task]
+
+        """
+        Goal:
+            * Determine predictions after user reviews
+            * Get y_user_and_auto_pred - Use these to evaluate various
+               auto-review thresholds based on how much a user must do and how
+               accurate the final product ends up being.
+            * Compare y_user_and_auto_pred against y_auto_pred.
+            * Compare n_reviews for each threshold level as well as accuracy.
+
+        Must:
+            * Handle inconsistencies remaining from auto-review
+            * Don't match edges that would never have been suggested in the
+              priortiy algorithm. (ie merge errors caused by auto-review, those
+              are perminent)
+            *
+
+        Method:
+            * Find all inconsistencies, assume user reviews and fixes them
+               - ideally should use the priority algorithm for this
+            * Then find a list of all positive reviews that will best match the
+              groundtruth (note it might not be possible to match the groundtruth
+              if candidate edges are missing)
+            * Find and remove the set of edges that would not be reviewed based
+              on negative auto-reviews.
+            * The remaning edges are the same edges that would be reviewed by
+              a perfect reviewer using the highest match priority algorithm.
+            * Review those in bulk for speed.
+        """
+
+        if True:
+            # Assume the user will correct any inconsistent compoments
+            import ibeis
+            e_ = ibeis.algo.hots.graph_iden.e_
+            merge_fixes = []
+            split_fixes = []
+            for cc in infr.inconsistent_compoments():
+                edges = ut.lstarmap(e_, list(cc.edges()))
+                edge_states = np.array([
+                    cc.edge[u][v].get('reviewed_state', 'unreviewed')
+                    for u, v in edges
+                ])
+                node_to_nid = nx.get_node_attributes(cc, 'orig_name_label')
+                same_flags = (
+                    np.diff(ut.unflat_take(node_to_nid, edges), axis=1) == 0).T[0]
+                split_edges = ut.compress(edges, (edge_states == 'match') &
+                                          (~same_flags))
+                merge_edges = ut.compress(edges, (edge_states == 'nomatch') &
+                                          (same_flags))
+                merge_fixes += merge_edges
+                split_fixes += split_edges
+            # print('----')
+            # print('merge_fixes = %r' % (len(merge_fixes),))
+            # print('split_fixes = %r' % (len(split_fixes),))
+            flagged_edges = merge_fixes + split_fixes
+            auto_results['n_flagged'] = len(flagged_edges)
+
+        def groundtruth_mst(infr):
+            graph = infr.graph
+            # node_to_orig = nx.get_node_attributes(graph, 'orig_name_label')
+            gt_clusters = ut.group_items(infr.aids,
+                                         infr.ibs.get_annot_nids(infr.aids))
+            gt_forests = []
+
+            # TODO: need to ensure that simulation handles inconsistencies
+            # first and takes care to not assign matches between predicted
+            # false negatives.
+            post_pred_probs = primary_probs.copy()
+            for col, sub in auto_decisions.groupby(auto_decisions):
+                post_pred_probs.loc[sub.index, col] = 1
+
+            post_pred_probs.loc[auto_decisions.index]
+            for nid, nodes in gt_clusters.items():
+                if len(nodes) == 1:
+                    continue
+                have_edges = list(ut.nx_edges_between(graph, nodes))
+                tmp = nx.from_edgelist(have_edges)
+                tmp.add_nodes_from(nodes)
+                nx.set_edge_attributes(
+                    tmp, 'weight',
+                    (1 - primary_probs.loc[have_edges]['match']).to_dict())
+                ccs = list(nx.connected_component_subgraphs(
+                    nx.minimum_spanning_tree(tmp)))
+                gt_forests.append(ccs)
+            ut.dict_hist(ut.lmap(len, gt_forests))
+            user_edges = [[list(t.edges()) for t in f]
+                          for f in gt_forests]
+
+            # n_have = len(have_edges)
+            # n_possible = len(list(ut.combinations(nodes, 2)))
+            # assert n_have <= n_possible
+            # if n_have < n_possible - 5:
+            #     break
+            pass
+
+        if False:
+            queue_params = {
+                'pos_diameter': None,
+                'neg_diameter': None,
+                # 'pos_diameter': 1,
+                # 'neg_diameter': 2,
+            }
+            def oracle_decision(aid1, aid2, primary_task_truth):
+                state = primary_task_truth.loc[(aid1, aid2)].idxmax()
+                tags = []
+                return state, tags
+            rng = np.random.RandomState(0)
+            _iter = infr.generate_reviews(randomness=0, rng=rng, **queue_params)
+            _iter2 = enumerate(_iter)
+            prog = ut.ProgIter(_iter2, bs=False, adjust=False)
+            for count, (aid1, aid2) in prog:
+                print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+                # Make the next review decision
+                state, tags = oracle_decision(aid1, aid2, primary_task_truth)
+                infr.add_feedback(aid1, aid2, state, tags, apply=True)
+            auto_results['n_reviews'] = count
 
         # fixed_state = y_bin_match.loc[flagged_edges]
 
