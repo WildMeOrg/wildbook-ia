@@ -777,21 +777,20 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['zebra_plains', 'zebra_grevys'])},
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['giraffe_reticulated', 'giraffe_masai'])},
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['elephant_savannah'])},
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark', 'whale_fluke'])},
-
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'cheetah', 'weight_filepath' : 'cheetah'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'cheetah', 'weight_filepath' : 'cheetah'},
+        # {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['zebra_plains', 'zebra_grevys'])},
+        # {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['giraffe_reticulated', 'giraffe_masai'])},
+        # {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['elephant_savannah'])},
+        # {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark', 'whale_fluke'])},
+        {'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        # {'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        # {'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        # {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
+        # {'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        {'grid' : False, 'config_filepath' : 'cheetah', 'weight_filepath' : 'cheetah'},
+        {'grid' : True,  'config_filepath' : 'cheetah', 'weight_filepath' : 'cheetah'},
     ]
     name_list = [
         # 'V3 PZ+GZ',
@@ -821,7 +820,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     ret_list = []
     for index, color in enumerate(color_list):
         ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[index],
-                        color=color, **kwargs_list[index]))
+                        color=color, min_overlap=min_overlap, **kwargs_list[index]))
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
