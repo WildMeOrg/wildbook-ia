@@ -708,6 +708,9 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
 
     label_list = []
     prediction_list = []
+    tp_total = 0
+    fp_total = 0
+    fn_total = 0
     for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
         if test_uuid in pred_dict:
             gt_list = gt_dict[test_uuid]
@@ -718,6 +721,11 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
             ]
             tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
                                           **kwargs)
+
+            tp_total += tp
+            fp_total += fp
+            fn_total += fn
+
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -755,6 +763,9 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
                 output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
                 output_filepath = join(output_path, output_filename)
                 cv2.imwrite(output_filepath, test_image)
+
+    total = float(tp_total + fp_total + fn_total)
+    print('Annotation accuracy: %0.02f' % (tp_total / total))
 
     category_list = ['positive', 'negative']
     category_mapping = {
