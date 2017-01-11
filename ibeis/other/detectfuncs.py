@@ -777,16 +777,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        {'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        # {'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        # {'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
+        {'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        # {'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        # {'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
     ]
     name_list = [
         'V1',
@@ -811,7 +811,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     ret_list = []
     for index, color in enumerate(color_list):
         ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[index],
-                        color=color, **kwargs_list[index]))
+                        color=color, min_overlap=min_overlap, **kwargs_list[index]))
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
