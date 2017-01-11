@@ -730,7 +730,7 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
 
             if write_images:
                 print('Processing gid %r for localizer confusion matrix' % (test_gid, ))
-                ut.embed()
+                # ut.embed()
                 test_image = ibs.get_image_imgdata(test_gid)
                 test_image = _resize(test_image, t_width=600)
                 height_, width_, channels_ = test_image.shape
