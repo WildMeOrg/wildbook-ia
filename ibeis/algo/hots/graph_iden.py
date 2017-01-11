@@ -398,9 +398,10 @@ class _AnnotInfrDummy(object):
             extra_weight = comp_weight + time_delta_weight
 
             # print('time_deltas = %r' % (time_deltas,))
-            nx.set_edge_attributes(aug_graph, 'weight',
-                                   {edge: 10.0 + extra
-                                    for edge, extra in zip(candidate_mst_edges, extra_weight)})
+            nx.set_edge_attributes(
+                aug_graph, 'weight', {
+                    edge: 10.0 + extra for edge, extra in
+                    zip(candidate_mst_edges, extra_weight)})
         except Exception:
             print('FAILED WEIGHTING USING TIME')
             nx.set_edge_attributes(aug_graph, 'weight',
@@ -567,7 +568,8 @@ class _AnnotInfrIBEIS(object):
         aids = ut.take(infr.node_to_aid, nodes)
         old_names = infr.ibs.get_annot_name_texts(aids)
         # Indicate that unknown names should be replaced
-        old_names = [None if n == infr.ibs.const.UNKNOWN else n for n in old_names]
+        old_names = [None if n == infr.ibs.const.UNKNOWN else n
+                     for n in old_names]
         new_labels = ut.take(node_to_new_label, aids)
         # Recycle as many old names as possible
         label_to_name, needs_assign = infr._rectify_names(old_names, new_labels)
@@ -1763,6 +1765,83 @@ class _AnnotInfrPriority(object):
 
     PRIORITY_METRIC = 'normscore'
 
+    def _get_strong_positives(infr, graph, reviewed_positives, pos_diameter):
+        # Reconsider edges within connected components that are
+        # separated by a large distance over reviewed edges.
+        strong_positives = []
+        weak_positives = []
+        for nid, edges in reviewed_positives.items():
+            strong_edges = []
+            weak_edges = []
+            reviewed_subgraph = nx.Graph(edges)
+            aspl = nx.all_pairs_shortest_path_length(reviewed_subgraph)
+            for u, dist_dict in aspl:
+                for v, dist in dist_dict.items():
+                    if u <= v and graph.has_edge(u, v):
+                        if dist <= pos_diameter:
+                            strong_edges.append((u, v))
+                        else:
+                            weak_edges.append((u, v))
+            weak_positives.extend(weak_edges)
+            strong_positives.extend(strong_edges)
+        return strong_positives
+
+    def _get_strong_negatives(infr, graph, reviewed_positives, reviewed_negatives,
+                              negative, node_to_label, nid_to_cc,
+                              neg_diameter):
+        # FIXME: Change the forumlation of this problem to:
+        # Given two connected components, a set of potential edges,
+        # and a number K Find the minimum cost set of potential
+        # edges such that the maximum distance between two nodes in
+        # different components is less than K.
+
+        # distance_matrix = dict(nx.shortest_path_length(reviewed_subgraph))
+        # cc1 = nid_to_cc[nid1]
+        # cc2 = nid_to_cc[nid2]
+        # for u in cc1:
+        #     is_violated = np.array(list(ut.dict_subset(
+        #         distance_matrix[u], cc2).values())) > neg_diameter
+        strong_negatives = []
+        weak_negatives = []
+
+        # Reconsider edges between connected components that are
+        # separated by a large distance over reviewed edges.
+        for nid_edge, neg_edges in reviewed_negatives.items():
+            nid1, nid2 = nid_edge
+            pos_edges1 = reviewed_positives[nid1]
+            pos_edges2 = reviewed_positives[nid2]
+            edges = pos_edges2 + pos_edges1 + neg_edges
+            reviewed_subgraph = nx.Graph(edges)
+            strong_edges = []
+            weak_edges = []
+            unreviewed_neg_edges = negative[nid_edge]
+
+            for u, v in unreviewed_neg_edges:
+                # Ensure u corresponds to nid1 and v corresponds to nid2
+                if node_to_label[u] == nid2:
+                    u, v = v, u
+                # Is the distance from u to any node in cc[nid2] large?
+                splu = nx.shortest_path_length(reviewed_subgraph, source=u)
+                for v_, dist in splu:
+                    if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
+                        if dist > neg_diameter:
+                            weak_edges.append(e_(u, v_))
+                        else:
+                            strong_edges.append(e_(u, v_))
+                # Is the distance from v to any node in cc[nid1] large?
+                splv = nx.shortest_path_length(reviewed_subgraph, source=v)
+                for u_, dist in splv:
+                    if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
+                        if dist > neg_diameter:
+                            weak_edges.append(e_(u_, v))
+                        else:
+                            strong_edges.append(e_(u_, v))
+            strong_negatives.extend(strong_edges)
+            weak_negatives.extend(weak_edges)
+        return strong_negatives
+        # print('strong_edges.append = %r' % (strong_edges,))
+        # print('weak_edges.append = %r' % (weak_edges,))
+
     def _update_priority_queue(infr, graph, positive, negative,
                                reviewed_positives, reviewed_negatives,
                                node_to_label, nid_to_cc, suggested_fix_edges,
@@ -1807,81 +1886,17 @@ class _AnnotInfrPriority(object):
         neg_diameter = infr.queue_params['neg_diameter']
 
         if pos_diameter is not None:
-            # Reconsider edges within connected components that are
-            # separated by a large distance over reviewed edges.
-            strong_positives = []
-            weak_positives = []
-            for nid, edges in reviewed_positives.items():
-                strong_edges = []
-                weak_edges = []
-                reviewed_subgraph = nx.Graph(edges)
-                aspl = nx.all_pairs_shortest_path_length(reviewed_subgraph)
-                for u, dist_dict in aspl:
-                    for v, dist in dist_dict.items():
-                        if u <= v and graph.has_edge(u, v):
-                            if dist <= pos_diameter:
-                                strong_edges.append((u, v))
-                            else:
-                                weak_edges.append((u, v))
-                weak_positives.extend(weak_edges)
-                strong_positives.extend(strong_edges)
+            strong_positives = infr._get_strong_positives(
+                graph, reviewed_positives, pos_diameter)
             queue.delete_items(strong_positives)
         else:
             for edges in positive.values():
                 queue.delete_items(edges)
 
-        # FIXME: Change the forumlation of this problem to:
-        # Given two connected components, a set of potential edges,
-        # and a number K Find the minimum cost set of potential
-        # edges such that the maximum distance between two nodes in
-        # different components is less than K.
-
-        # distance_matrix = dict(nx.shortest_path_length(reviewed_subgraph))
-        # cc1 = nid_to_cc[nid1]
-        # cc2 = nid_to_cc[nid2]
-        # for u in cc1:
-        #     is_violated = np.array(list(ut.dict_subset(
-        #         distance_matrix[u], cc2).values())) > neg_diameter
         if neg_diameter is not None:
-            strong_negatives = []
-            weak_negatives = []
-
-            # Reconsider edges between connected components that are
-            # separated by a large distance over reviewed edges.
-            for nid_edge, neg_edges in reviewed_negatives.items():
-                nid1, nid2 = nid_edge
-                pos_edges1 = reviewed_positives[nid1]
-                pos_edges2 = reviewed_positives[nid2]
-                edges = pos_edges2 + pos_edges1 + neg_edges
-                reviewed_subgraph = nx.Graph(edges)
-                strong_edges = []
-                weak_edges = []
-                unreviewed_neg_edges = negative[nid_edge]
-
-                for u, v in unreviewed_neg_edges:
-                    # Ensure u corresponds to nid1 and v corresponds to nid2
-                    if node_to_label[u] == nid2:
-                        u, v = v, u
-                    # Is the distance from u to any node in cc[nid2] large?
-                    splu = nx.shortest_path_length(reviewed_subgraph, source=u)
-                    for v_, dist in splu:
-                        if v_ in nid_to_cc[nid2] and graph.has_edge(u, v_):
-                            if dist > neg_diameter:
-                                weak_edges.append(e_(u, v_))
-                            else:
-                                strong_edges.append(e_(u, v_))
-                    # Is the distance from v to any node in cc[nid1] large?
-                    splv = nx.shortest_path_length(reviewed_subgraph, source=v)
-                    for u_, dist in splv:
-                        if u_ in nid_to_cc[nid1] and graph.has_edge(u_, v):
-                            if dist > neg_diameter:
-                                weak_edges.append(e_(u_, v))
-                            else:
-                                strong_edges.append(e_(u_, v))
-                strong_negatives.extend(strong_edges)
-                weak_negatives.extend(weak_edges)
-            # print('strong_edges.append = %r' % (strong_edges,))
-            # print('weak_edges.append = %r' % (weak_edges,))
+            strong_negatives = infr._get_strong_negatives(
+                graph, reviewed_positives, reviewed_negatives, negative,
+                node_to_label, nid_to_cc, neg_diameter)
             queue.delete_items(strong_negatives)
         else:
             for edges in negative.values():
@@ -1957,6 +1972,9 @@ class _AnnotInfrPriority(object):
         for index in it.count():
             try:
                 edge, priority = infr.queue.pop()
+                # print('GENERATE:')
+                # print('  * edge = %r' % (edge,))
+                # print('  * priority = %r' % (priority,))
                 aid1, aid2 = e_(*edge)
             except IndexError:
                 print('no more edges to reveiw')
@@ -2042,8 +2060,9 @@ class _AnnotInfrUpdates(object):
         inconsistent_outgoing_notcomparable = {}  # NOQA
         inconsistent_outgoing_unreviewed = {}  # NOQA
 
-        # helper funcs
-        # bridges = ut.partial(ut.nx_edges_between, graph, assume_disjoint=True)
+        # CATEGORIZE EDGES
+
+        # Maybe this will go faster if we group by edges by name label first?
 
         # INCONSISTENT
         # are negative edges in connected components
@@ -2095,6 +2114,8 @@ class _AnnotInfrUpdates(object):
             name_edge = e_(nid1, nid2)
             if check_unseen(name_edge, seen_name_edges, notcomparable):
                 # TODO: update inconsistent_outgoing_noncomp here as well?
+                # FIXME: we should not mark the other CC edges as not-comparable
+                # not-comparable is non-transitive.
                 if nid1 != nid2 or (
                       check_unseen(nid1, positive, inconsistent) and
                       check_unseen(nid2, positive, inconsistent)):
@@ -2134,9 +2155,9 @@ class _AnnotInfrUpdates(object):
             ]
             subgraph = nx.Graph(reviewed_inconsistent)
             cc_error_edges = infr._find_possible_error_edges(subgraph)
+            cc_other_edges = ut.setdiff(cc_inconsistent_edges, cc_error_edges)
             suggested_fix_edges.extend(cc_error_edges)
-            other_error_edges.extend(ut.setdiff(subgraph.edges(),
-                                                cc_error_edges))
+            other_error_edges.extend(cc_other_edges)
 
         if infr.verbose >= 1 and inconsistent:
             print('[infr] found %d possible fixes' % len(suggested_fix_edges))
@@ -2253,21 +2274,36 @@ class _AnnotInfrUpdates(object):
         infr.set_edge_attrs('is_cut', _dz(negative_edges, [True]))
 
         # Update basic priorites
-        infr.set_edge_attrs('priority', infr.get_edge_attrs(
-                infr.PRIORITY_METRIC, inconsistent_outgoing_negative_edges,
-                default=.01))
-        infr.set_edge_attrs('priority', infr.get_edge_attrs(
-                infr.PRIORITY_METRIC, inconsistent_edges, default=.01))
-        infr.set_edge_attrs('priority', infr.get_edge_attrs(
-                infr.PRIORITY_METRIC, unreviewed_edges, default=.01))
-        infr.set_edge_attrs('priority', _dz(notcomparable_edges, [0]))
-        infr.set_edge_attrs('priority', _dz(positive_edges, [0]))
-        infr.set_edge_attrs('priority', _dz(negative_edges, [0]))
-        infr.set_edge_attrs('priority', _dz(suggested_fix_edges, [2]))
+        # FIXME: this must agree with queue
+        # infr.set_edge_attrs('priority', infr.get_edge_attrs(
+        #         infr.PRIORITY_METRIC, inconsistent_outgoing_negative_edges,
+        #         default=.01))
+        # infr.set_edge_attrs('priority', infr.get_edge_attrs(
+        #         infr.PRIORITY_METRIC, inconsistent_edges, default=.01))
+        # infr.set_edge_attrs('priority', infr.get_edge_attrs(
+        #         infr.PRIORITY_METRIC, unreviewed_edges, default=.01))
+        # infr.set_edge_attrs('priority', _dz(notcomparable_edges, [0]))
+        # infr.set_edge_attrs('priority', _dz(positive_edges, [0]))
+        # infr.set_edge_attrs('priority', _dz(negative_edges, [0]))
+        # infr.set_edge_attrs('priority', _dz(suggested_fix_edges, [2]))
+
+        # print('suggested_fix_edges = %r' % (sorted(suggested_fix_edges),))
+        # print('other_error_edges = %r' % (sorted(other_error_edges),))
+
+        # if suggested_fix_edges == [(352, 221)]:
+        #     # edge in other_error_edges
+        #     # edge in suggested_fix_edges
+        #     # edge in all_edges
+        #     # edge = (39, 257)
+        #     # for cat, edges in edge_categories.items():
+        #     #     if edge in edges:
+        #     #         print(cat)
+        #     import utool
+        #     utool.embed()
 
         if infr.queue is not None:
             if infr.verbose >= 1:
-                print('[infr] updateing priority queue')
+                print('[infr] updating priority queue')
             infr._update_priority_queue(graph, positive, negative,
                                         reviewed_positives, reviewed_negatives,
                                         node_to_label, nid_to_cc,
@@ -2309,7 +2345,8 @@ class _AnnotInfrUpdates(object):
                 maybe_error_edges.update(join_edgeset)
             else:
                 maybe_error_edges.update(cut_edgeset)
-        return list(maybe_error_edges)
+        maybe_error_edges_ = ut.lstarmap(e_, maybe_error_edges)
+        return maybe_error_edges_
 
     @profile
     def get_nomatch_ccs(infr, cc):

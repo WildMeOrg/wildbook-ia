@@ -361,7 +361,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.5, 1.0, 20)
-        thresh_list0 = np.linspace(.51, 1.0, 3)
+        thresh_list0 = np.linspace(.51, 1.0, 10)
         # thresh_list0 = np.linspace(.8, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
@@ -457,13 +457,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         sim.review_inconsistencies()
 
-        sim.rank_priority_edges()
+        # sim.rank_priority_edges()
+        sim.oracle_review()
 
         sim.results['n_clusters_real'] = len(ut.unique(infr.orig_name_labels))
 
-        sim.results['user_work'] = (
-            sim.results['n_pos_want'] + sim.results['n_incon_reviews'])
+        # sim.results['user_work'] = (
+        # sim.results['n_pos_want'] + sim.results['n_incon_reviews'])
 
+        sim.results['user_work'] = 1
+        sim.results['n_clusters_possible'] = 0
         return sim.results
 
         # pblm.extra_report(task_probs, is_auto, want_samples)

@@ -91,11 +91,29 @@ class InfrSimulation(object):
         # We can do better, but there might still be some superflous reviews
         n_superflouous = 0
         review_edges = infr.generate_reviews()
+
+        if False:
+            review_edges = infr.generate_reviews()
+            aid1, aid2 = next(review_edges)
+            d = infr.graph.edge[aid1][aid2]
+            print('d = %r' % (d,))
+
         for count, (aid1, aid2) in enumerate(ut.ProgIter(review_edges)):
             d = infr.graph.edge[aid1][aid2]
             if not d.get('maybe_error', False):
+                # print('Found edge (%r, %r) without error: %r' % (
+                #     aid1, aid2, d,))
+                if d.get('inferred_state') == 'inconsistent':
+                    # import utool
+                    # utool.embed()
+                    print('ERROR')
+                    import sys
+                    sys.exit(1)
                 # Stop once inconsistent compmoents stop coming up
                 break
+            else:
+                pass
+                # print('Fixing edge: %r' % (d,))
             prev_state = d['reviewed_state']
             state = primary_truth.loc[(aid1, aid2)].idxmax()
             if state == prev_state:
@@ -112,6 +130,13 @@ class InfrSimulation(object):
         print('count = %r' % (count,))
         sim.results['n_incon_reviews'] = count
         sim.results['n_incon_fixes'] = n_fixes
+
+        # Should have fixed everything
+        n_clusters, n_inconsistent = infr.relabel_using_reviews(rectify=False)
+        import utool
+        with utool.embed_on_exception_context:
+            print('n_inconsistent = %r' % (n_inconsistent,))
+            assert n_inconsistent == 0, 'should have fixed everything'
 
         if False:
             from ibeis.scripts import clf_helpers
@@ -149,15 +174,24 @@ class InfrSimulation(object):
         infr = sim.infr
 
         n_clusters, n_inconsistent = infr.relabel_using_reviews(rectify=False)
-        assert n_inconsistent == 0, 'must be zero here'
+        import utool
+        with utool.embed_on_exception_context:
+            assert n_inconsistent == 0, 'must be zero here'
 
         curr_decisions = infr.edge_attr_df('reviewed_state')
 
         # Choose weights proportional to the liklihood an edge will be reviewed
         # Give a negative weight to edges that are already reviewed.
         mwc_weights = primary_probs['match'].copy()
-        mwc_weights.loc[curr_decisions.index] = 2
-        mwc_weights = 1 - mwc_weights
+        # mwc_weights.loc[curr_decisions.index] = 2
+        for k, sub in curr_decisions.groupby(curr_decisions):
+            if k == 'match':
+                mwc_weights[sub.index] += 1
+            if k == 'notcomp':
+                mwc_weights[sub.index] += 1
+            if k == 'nomatch':
+                mwc_weights[sub.index] += 2
+        mwc_weights = 2 - mwc_weights
 
         sim.results['n_clusters_possible'] = 0
 
@@ -189,6 +223,13 @@ class InfrSimulation(object):
                 undiscovered_errors.append(remove_edges)
                 mwc.remove_edges_from(remove_edges)
             ccs = list(nx.connected_component_subgraphs(mwc))
+            if len(remove_edges) > 0:
+                # print(len(remove_edges))
+                if len(ccs) <= len(remove_edges):
+                    print('negatives not breaking things in two')
+                    # import utool
+                    # utool.embed()
+                # print(len(ccs))
             gt_forests.append(ccs)
         # ut.dict_hist(ut.lmap(len, gt_forests))
 
@@ -198,12 +239,14 @@ class InfrSimulation(object):
         minimal_positive_edges = list(set(minimal_positive_edges).difference(
             curr_decisions.index))
 
+        priority_edges = minimal_positive_edges
+
         # need to also get all negative edges I think to know what the set of
         # negative edges is you need sequential information because it depends
         # on the current set of known positive edges. For this reason we
         # primarilly measure how many positive reviews we do.
         # WE hack negative edges and assume they are mostly skipped
-        HACK_MIN_NEG_EDGES = True
+        HACK_MIN_NEG_EDGES = False
         if HACK_MIN_NEG_EDGES:
             import vtool as vt
             node_to_nid = dict(infr.graph.nodes(data='orig_name_label'))
@@ -229,8 +272,9 @@ class InfrSimulation(object):
             ])
             max_xs2 = ut.compress(max_xs, ~split_flags)
             minimal_negative_edges = ut.take(negative_edges, max_xs2)
+            priority_edges = priority_edges + minimal_negative_edges
 
-        priority_edges = minimal_positive_edges + minimal_negative_edges
+        # priority_edges = minimal_positive_edges + minimal_negative_edges
         priorites = infr._get_priorites(priority_edges)
         priority_edges = ut.sortedby(priority_edges, priorites)[::-1]
         priorites = priorites[priorites.argsort()[::-1]]
@@ -254,6 +298,15 @@ class InfrSimulation(object):
 
         # infr.relab()
         n_clusters, n_inconsistent = infr.relabel_using_reviews(rectify=False)
+        import utool
+        with utool.embed_on_exception_context:
+            print('n_inconsistent = %r' % (n_inconsistent,))
+            assert n_inconsistent == 0, 'should not create any inconsistencies'
+
+        if False:
+            undiscovered_errors
+            len(primary_truth.loc[user_edges].idxmax(axis=1))
+
         sim.results['n_user_clusters'] = n_clusters
         infr.apply_review_inference()
 
@@ -282,16 +335,36 @@ class InfrSimulation(object):
             'pos_diameter': None,
             'neg_diameter': None,
         }
+        infr = sim.infr
+        prev = infr.verbose
+        infr.verbose = 0
         # rng = np.random.RandomState(0)
         infr = sim.infr
         primary_truth = sim.primary_truth
         review_edges = infr.generate_reviews(**queue_params)
-        for count, (aid1, aid2) in enumerate(review_edges):
+        max_reviews = 200
+        for count, (aid1, aid2) in enumerate(ut.ProgIter(review_edges)):
             state = primary_truth.loc[(aid1, aid2)].idxmax()
             tags = []
             infr.add_feedback(aid1, aid2, state, tags, apply=True,
                               rectify=False, user_id='oracle',
                               user_confidence='absolutely_sure')
+            if count > max_reviews:
+                break
+        infr.verbose = prev
+
+        n_clusters, n_inconsistent = infr.relabel_using_reviews(rectify=False)
+        import utool
+        with utool.embed_on_exception_context:
+            assert n_inconsistent == 0, 'should not create any inconsistencies'
+
+        sim.results['n_user_clusters'] = n_clusters
+        infr.apply_review_inference()
+
+        curr_decisions = infr.edge_attr_df('reviewed_state')
+        curr_truth = primary_truth.loc[curr_decisions.index].idxmax(axis=1)
+        n_user_mistakes = curr_decisions != curr_truth
+        sim.results['n_user_mistakes'] = sum(n_user_mistakes)
 
 
 if __name__ == '__main__':

@@ -778,6 +778,41 @@ per_encounter_stats = (
         # Now find out how many encounter per individual
         '''))
 
+per_encounter_stats = (
+    '# Num Annots Per Name Histogram',
+    ut.codeblock(
+        r'''
+        a='default:is_known=True'
+        aids = ibeis.testdata_aids(ibs=ibs, a=a)
+        annots = ibs.annots(aids)
+        nid_to_aids = ut.group_items(annots.aids, annots.nids)
+        nid_to_nAids = ut.map_vals(len, nid_to_aids)
+        nAids_per_name_hist = ut.dict_hist(nid_to_nAids.values())
+
+        import plottool as pt
+        xdata = list(nAids_per_name_hist.keys())
+        ydata = list(nAids_per_name_hist.values())
+        fig = pt.multi_plot(xdata, [ydata], kind='bar',
+                            xlabel='#annotations per individual',
+                            ylabel='#individuals',
+                            title='Annotations per individual\n' + a)
+
+        encounters = annots.group(annots.encounter_text)[1]
+        encounter_names = [a_.nids[0] for a_ in encounters]
+        nid_to_encs = ut.group_items(encounters, encounter_names)
+        nid_to_nEncs = ut.map_vals(len, nid_to_encs)
+        nEncs_per_name_hist = ut.dict_hist(nid_to_nEncs.values())
+
+        import plottool as pt
+        xdata = list(nEncs_per_name_hist.keys())
+        ydata = list(nEncs_per_name_hist.values())
+        fig = pt.multi_plot(xdata, [ydata], kind='bar',
+                            xlabel='#encounters per individual',
+                            ylabel='#individuals',
+                            title='Encounters per individual\n' + a)
+        # STARTBLOCK
+        '''))
+
 
 # HACK
 def dataset_summary_stats_hacktest():
