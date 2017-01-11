@@ -750,8 +750,9 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
                     cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
 
                 status_str = 'success' if (fp + fn) == 0 else 'failure'
-                args = (status_str, test_gid, tp, fp, fn, )
-                output_filename = 'test_%s_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
+                status_val = tp - fp - fn
+                args = (status_str, status_val, test_gid, tp, fp, fn, )
+                output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
                 output_filepath = join(output_path, output_filename)
                 cv2.imwrite(output_filepath, test_image)
 
