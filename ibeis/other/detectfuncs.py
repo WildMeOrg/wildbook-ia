@@ -729,10 +729,10 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
                 prediction_list.append('negative')
 
             if write_images:
-                print('Processing gid %r for localizer confusion matrix' % (test_gid, ))
+                # print('Processing gid %r for localizer confusion matrix' % (test_gid, ))
                 # ut.embed()
                 test_image = ibs.get_image_imgdata(test_gid)
-                test_image = _resize(test_image, t_width=600)
+                test_image = _resize(test_image, t_width=600, verbose=False)
                 height_, width_, channels_ = test_image.shape
 
                 for gt in gt_list:
@@ -1669,8 +1669,9 @@ def background_train(ibs):
     return model_path
 
 
-def _resize(image, t_width=None, t_height=None):
-    print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+def _resize(image, t_width=None, t_height=None, verbose=True):
+    if verbose:
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
     height, width = image.shape[:2]
     if t_width is None and t_height is None:
         return image
