@@ -1,4 +1,4 @@
-/ -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
 from six.moves import zip, range, zip_longest
@@ -208,7 +208,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
                 baseoffset = (width * num_lines) / 2
                 lineoffset = (width * count)
                 offset = baseoffset - lineoffset  # Fixeme for more histogram bars
-                xdata_ = xdata_ - offset
+                xdata_ -= offset
             # width_key = 'height' if transpose else 'width'
             # plot_kw[width_key] = np.diff(xdata)
         objs = plot_func(xdata_, ydata_, **plot_kw)
