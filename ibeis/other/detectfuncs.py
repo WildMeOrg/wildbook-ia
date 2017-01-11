@@ -564,7 +564,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     for gid, uuid in zip(gid_list, uuid_list):
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
-        temp_list = []
+        gt_list = []
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
@@ -578,8 +578,8 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
-            temp_list.append(temp)
-        gt_dict[uuid] = temp_list
+            gt_list.append(temp)
+        gt_dict[uuid] = gt_list
     return gt_dict
 
 
@@ -661,12 +661,13 @@ def localizer_precision_recall_algo_worker(tup):
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
-            temp_list = [
+            gt_list = gt_dict[uuid_]
+            pred_list = [
                 pred
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp_, fp_, fn_ = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp_, fp_, fn_ = general_tp_fp_fn(gt_list, pred_list, **kwargs)
             tp += tp_
             fp += fp_
             fn += fn_
@@ -715,7 +716,8 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
                 for pred in pred_dict[test_uuid]
                 if pred['confidence'] >= conf
             ]
-            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, **kwargs)
+            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
+                                          **kwargs)
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -1284,7 +1286,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
     for gid, uuid in zip(gid_list, uuid_list):
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
-        temp_list = []
+        gt_list = []
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
@@ -1298,8 +1300,8 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
-            temp_list.append(temp)
-        gt_dict[uuid] = temp_list
+            gt_list.append(temp)
+        gt_dict[uuid] = gt_list
     return gt_dict
 
 
@@ -1381,12 +1383,12 @@ def detector_precision_recall_algo_worker(tup):
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
-            temp_list = [
+            pred_list = [
                 pred
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp_, fp_, fn_ = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp_, fp_, fn_ = general_tp_fp_fn(gt_dict[uuid_], pred_list, **kwargs)
             tp += tp_
             fp += fp_
             fn += fn_
@@ -1419,12 +1421,13 @@ def detector_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     prediction_list = []
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
-            temp_list = [
+            gt_list = gt_dict[uuid_]
+            pred_list = [
                 pred
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp, fp, fn = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, **kwargs)
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
