@@ -708,9 +708,6 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
 
     label_list = []
     prediction_list = []
-    tp_total = 0
-    fp_total = 0
-    fn_total = 0
     for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
         if test_uuid in pred_dict:
             gt_list = gt_dict[test_uuid]
@@ -721,11 +718,6 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
             ]
             tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
                                           **kwargs)
-
-            tp_total += tp
-            fp_total += fp
-            fn_total += fn
-
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -763,9 +755,6 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.
                 output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
                 output_filepath = join(output_path, output_filename)
                 cv2.imwrite(output_filepath, test_image)
-
-    total = float(tp_total + fp_total + fn_total)
-    print('Annotation accuracy: %0.02f' % (tp_total / total))
 
     category_list = ['positive', 'negative']
     category_mapping = {
@@ -1642,11 +1631,13 @@ def localizer_train(ibs, **kwargs):
 @register_ibs_method
 def labeler_train(ibs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
-    from ibeis.algo.detect.labeler.labeler import train_labeler
+    from ibeis_cnn.process import numpy_processed_directory2
+    from ibeis_cnn.models.labeler import train_labeler
     data_path = join(ibs.get_cachedir(), 'extracted')
-    get_cnn_labeler_training_images(ibs, data_path)
+    extracted_path = get_cnn_labeler_training_images(ibs, data_path)
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
-    model_path = train_labeler(output_path, source_path=data_path)
+    model_path = train_labeler(output_path, X_file, y_file)
     return model_path
 
 
@@ -1680,11 +1671,12 @@ def detector_train(ibs):
 def background_train(ibs):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.netrun import train_background
+    from ibeis_cnn.models.background import train_background
     data_path = join(ibs.get_cachedir(), 'extracted')
-    get_background_training_patches2(ibs, data_path, patch_size=50,
-                                     global_limit=500000)
-    id_file, X_file, y_file = numpy_processed_directory2(data_path)
+    extracted_path = get_background_training_patches2(ibs, data_path,
+                                                      patch_size=50,
+                                                      global_limit=500000)
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')
     model_path = train_background(output_path, X_file, y_file)
     return model_path
