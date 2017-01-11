@@ -20,6 +20,7 @@ class InfrSimulation(object):
 
         sim.results = {}
 
+    @profile
     def initialize(sim):
         """ reset state of infr back to only auto decisions """
         sim.results['n_incon_reviews'] = 0
@@ -59,9 +60,10 @@ class InfrSimulation(object):
         is_mistake = auto_decisions != auto_truth
         sim.results['n_auto_mistakes'] = sum(is_mistake)
 
+    @profile
     def review_inconsistencies(sim):
         """
-        Within each inconsistent compoment simulate the reviews that would be
+        Within each inconsistent component simulate the reviews that would be
         done to fix the issue.
 
             >>> sim.initialize()
@@ -75,7 +77,7 @@ class InfrSimulation(object):
         # In the worst case all edges in flagged ccs would need to be reviewed
         incon_edges = []
         n_worst_case = 0
-        for cc in infr.inconsistent_compoments():
+        for cc in infr.inconsistent_components():
             edges = ut.lstarmap(infr.e_, list(cc.edges()))
             reviewed_edges = list(infr.get_edges_where_ne(
                 'reviewed_state', 'unreviewed', edges=edges,
@@ -100,7 +102,7 @@ class InfrSimulation(object):
                 n_superflouous += 1
             tags = []
             infr.add_feedback(aid1, aid2, state, tags, apply=True,
-                              user_id='oracle',
+                              rectify=False, user_id='oracle',
                               user_confidence='absolutely_sure')
         n_reviews = count
         n_fixes = n_reviews - n_superflouous
@@ -122,10 +124,11 @@ class InfrSimulation(object):
 
         infr.verbose = prev
 
-        # for cc in infr.inconsistent_compoments():
+        # for cc in infr.inconsistent_components():
         #     cc_error_edges = infr._find_possible_error_edges(cc)
         #     pass
 
+    @profile
     def rank_priority_edges(sim):
         """
         Find the order of reviews that would be selected by the priority queue
@@ -202,6 +205,7 @@ class InfrSimulation(object):
         # WE hack negative edges and assume they are mostly skipped
         HACK_MIN_NEG_EDGES = True
         if HACK_MIN_NEG_EDGES:
+            import vtool as vt
             node_to_nid = dict(infr.graph.nodes(data='orig_name_label'))
             is_nomatch = sim.primary_truth['nomatch']
             negative_edges = is_nomatch[is_nomatch].index.tolist()
@@ -210,18 +214,18 @@ class InfrSimulation(object):
                                                                 negative_edges))
             # Group all negative edges between components
             groupxs = ut.group_indices(neg_nid_edges)[1]
-            import vtool as vt
-            grouped_scores = (
-                vt.apply_grouping(
-                    primary_probs.loc[negative_edges]['match'].values,
-                    groupxs))
+            grouped_scores = vt.apply_grouping(
+                primary_probs.loc[negative_edges]['match'].values,
+                groupxs)
             max_xs = [xs[s.argmax()] for xs, s in zip(groupxs, grouped_scores)]
 
             # Take only negative edges that don't produce inconsistencies
             # given our current decisions
+            split_flags = curr_decisions.loc[negative_edges] == 'match'
+
             split_flags = np.array([
                 np.any(flags) for flags in
-                vt.apply_grouping((curr_decisions.loc[negative_edges] == 'match'), groupxs)
+                vt.apply_grouping(split_flags.values, groupxs)
             ])
             max_xs2 = ut.compress(max_xs, ~split_flags)
             minimal_negative_edges = ut.take(negative_edges, max_xs2)
@@ -286,7 +290,7 @@ class InfrSimulation(object):
             state = primary_truth.loc[(aid1, aid2)].idxmax()
             tags = []
             infr.add_feedback(aid1, aid2, state, tags, apply=True,
-                              user_id='oracle',
+                              rectify=False, user_id='oracle',
                               user_confidence='absolutely_sure')
 
 

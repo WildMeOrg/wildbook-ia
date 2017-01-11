@@ -706,7 +706,7 @@ def case_nomatch_infr():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr2, 1, 7, 'inferred_state', None,
-          'negative review of an edge should not jump more than one compoment')
+          'negative review of an edge should not jump more than one component')
 
     check(infr2, 1, 9, 'inferred_state', 'diff',
           'negative review of an edge should cut within one jump')
@@ -1090,11 +1090,11 @@ def case_flag_merge():
 
 
 # TODO: inconsistent out of subgraph modification
-# should an inconsistent compoment (a compoment all of the same name
+# should an inconsistent component (a component all of the same name
 # but with at least one non-match edge) still be allowed to have infered
-# reviews outside the compoment? ...
-# I think yes because in the case the compoment is split the inferred
-# reviews should go away, and in the case of the compoment is merged
+# reviews outside the component? ...
+# I think yes because in the case the component is split the inferred
+# reviews should go away, and in the case of the component is merged
 # then they are fine.
 
 if __name__ == '__main__':

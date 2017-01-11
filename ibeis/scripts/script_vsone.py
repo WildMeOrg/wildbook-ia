@@ -283,7 +283,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             infr.reset_labels_to_ibeis()
             infr.apply_feedback_edges()
             infr.relabel_using_reviews()
-            # x = [c for c in infr.consistent_compoments()]
+            # x = [c for c in infr.consistent_components()]
             # cc = x[ut.argmax(ut.lmap(len, x))]
             # keep = list(cc.nodes())
             # infr.remove_aids(ut.setdiff(infr.aids, keep))
@@ -454,7 +454,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                             auto_decisions)
 
         sim.initialize()
+
         sim.review_inconsistencies()
+
         sim.rank_priority_edges()
 
         sim.results['n_clusters_real'] = len(ut.unique(infr.orig_name_labels))
@@ -508,12 +510,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
 
         # if False:
-        #     # Assume the user will correct any inconsistent compoments
+        #     # Assume the user will correct any inconsistent components
         #     import ibeis
         #     e_ = ibeis.algo.hots.graph_iden.e_
         #     merge_fixes = []
         #     split_fixes = []
-        #     for cc in infr.inconsistent_compoments():
+        #     for cc in infr.inconsistent_components():
         #         edges = ut.lstarmap(e_, list(cc.edges()))
         #         edge_states = np.array([
         #             cc.edge[u][v].get('reviewed_state', 'unreviewed')
