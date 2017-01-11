@@ -469,11 +469,14 @@ def general_confusion_matrix_algo(label_correct_list, label_predict_list,
 
 
 def general_intersection_over_union(bbox1, bbox2):
-    x_overlap = max(0.0,
-                    min(bbox1['xtl'] + bbox1['width'], bbox2['xtl'] + bbox2['width']) -
-                    max(bbox1['xtl'], bbox2['xtl']))
-    y_overlap = max(0.0, min(bbox1['ytl'] + bbox1['height'], bbox2['ytl'] + bbox2['height']) -
-                    max(bbox1['ytl'], bbox2['ytl']))
+    x_overlap = max(
+        0.0,
+        min(bbox1['xbr'], bbox2['xbr']) - max(bbox1['xtl'], bbox2['xtl'])
+    )
+    y_overlap = max(
+        0.0,
+        min(bbox1['ybr'], bbox2['ybr']) - max(bbox1['ytl'], bbox2['ytl'])
+    )
     intersection = float(x_overlap * y_overlap)
     union = (bbox1['width'] * bbox1['height']) + (bbox2['width'] * bbox2['height']) - intersection
     return intersection / union
@@ -561,20 +564,22 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     for gid, uuid in zip(gid_list, uuid_list):
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
-        temp_list = []
+        gt_list = []
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
+                'xbr'        : (bbox[0] + bbox[2]) / width,
+                'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
                 'species'    : ibs.get_annot_species_texts(aid),
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
-            temp_list.append(temp)
-        gt_dict[uuid] = temp_list
+            gt_list.append(temp)
+        gt_dict[uuid] = gt_list
     return gt_dict
 
 
@@ -594,6 +599,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
             {
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
+                'xbr'        : (bbox[0] + bbox[2]) / width,
+                'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
                 'theta'      : theta,  # round(theta, 4),
@@ -654,12 +661,13 @@ def localizer_precision_recall_algo_worker(tup):
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
-            temp_list = [
+            gt_list = gt_dict[uuid_]
+            pred_list = [
                 pred
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp_, fp_, fn_ = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp_, fp_, fn_ = general_tp_fp_fn(gt_list, pred_list, **kwargs)
             tp += tp_
             fp += fp_
             fn += fn_
@@ -679,12 +687,13 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
+def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.5,
+                                         write_images=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     # test_gid_list = ibs.get_valid_gids()
-    uuid_list = ibs.get_image_uuids(test_gid_list)
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
 
     print('\tGather Ground-Truth')
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
@@ -692,16 +701,23 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
+    if write_images:
+        output_folder = 'localizer-precision-recall-%0.2f-images' % (min_overlap, )
+        output_path = abspath(expanduser(join('~', 'Desktop', output_folder)))
+        ut.ensuredir(output_path)
+
     label_list = []
     prediction_list = []
-    for index, uuid_ in enumerate(uuid_list):
-        if uuid_ in pred_dict:
-            temp_list = [
+    for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
+        if test_uuid in pred_dict:
+            gt_list = gt_dict[test_uuid]
+            pred_list = [
                 pred
-                for pred in pred_dict[uuid_]
+                for pred in pred_dict[test_uuid]
                 if pred['confidence'] >= conf
             ]
-            tp, fp, fn = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
+                                          **kwargs)
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -711,6 +727,34 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
             for _ in range(int(fn)):
                 label_list.append('positive')
                 prediction_list.append('negative')
+
+            if write_images:
+                # print('Processing gid %r for localizer confusion matrix' % (test_gid, ))
+                # ut.embed()
+                test_image = ibs.get_image_imgdata(test_gid)
+                test_image = _resize(test_image, t_width=600, verbose=False)
+                height_, width_, channels_ = test_image.shape
+
+                for gt in gt_list:
+                    xtl = int(gt['xtl'] * width_)
+                    ytl = int(gt['ytl'] * height_)
+                    xbr = int(gt['xbr'] * width_)
+                    ybr = int(gt['ybr'] * height_)
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+
+                for pred in pred_list:
+                    xtl = int(pred['xtl'] * width_)
+                    ytl = int(pred['ytl'] * height_)
+                    xbr = int(pred['xbr'] * width_)
+                    ybr = int(pred['ybr'] * height_)
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+
+                status_str = 'success' if (fp + fn) == 0 else 'failure'
+                status_val = tp - fp - fn
+                args = (status_str, status_val, test_gid, tp, fp, fn, )
+                output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
+                output_filepath = join(output_path, output_filename)
+                cv2.imwrite(output_filepath, test_image)
 
     category_list = ['positive', 'negative']
     category_mapping = {
@@ -722,7 +766,8 @@ def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
 
 
 @register_ibs_method
-def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7), **kwargs):
+def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7),
+                                            write_images=False, **kwargs):
     import matplotlib.pyplot as plt
 
     fig_ = plt.figure(figsize=figsize)
@@ -736,16 +781,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     kwargs_list = [
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
-        {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
-        # {'min_overlap' : min_overlap, 'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
-        # {'min_overlap' : min_overlap, 'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        {'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        # {'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        {'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        # {'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
+        {'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
+        # {'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+        # {'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
     ]
     name_list = [
         'V1',
@@ -770,7 +815,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     ret_list = []
     for index, color in enumerate(color_list):
         ret_list.append(localizer_precision_recall_algo_plot(ibs, label=name_list[index],
-                        color=color, **kwargs_list[index]))
+                        color=color, min_overlap=min_overlap, **kwargs_list[index]))
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
@@ -791,8 +836,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     gca_ = plt.gca()
     gca_.grid(False)
     correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_name, best_color,
-                                                           conf=best_conf, fig_=fig_,
-                                                           axes_=axes_, **best_kwargs)
+                                                           conf=best_conf,
+                                                           min_overlap=min_overlap,
+                                                           write_images=write_images,
+                                                           fig_=fig_, axes_=axes_,
+                                                           **best_kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_name, best_conf, ), y=1.26)
@@ -824,8 +872,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         gca_ = plt.gca()
         gca_.grid(False)
         correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_name, best_color,
-                                                               conf=best_conf, fig_=fig_,
-                                                               axes_=axes_, **best_kwargs)
+                                                               conf=best_conf,
+                                                               min_overlap=min_overlap,
+                                                               fig_=fig_, axes_=axes_,
+                                                               **best_kwargs)
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
         plt.title('P-R Confusion Matrix (Algo: %s, OP = %0.02f)' % (best_name, best_conf, ), y=1.26)
@@ -841,7 +891,7 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
     for value in range(10):
         min_overlap = value / 10.0
         print('Processing: %r' % (min_overlap, ))
-        ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap)
+        ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap, **kwargs)
 
 
 @register_ibs_method
@@ -1238,20 +1288,22 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
     for gid, uuid in zip(gid_list, uuid_list):
         width, height = ibs.get_image_sizes(gid)
         aid_list = ibs.get_image_aids(gid)
-        temp_list = []
+        gt_list = []
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
+                'xbr'        : (bbox[0] + bbox[2]) / width,
+                'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
                 'species'    : ibs.get_annot_species_texts(aid),
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
-            temp_list.append(temp)
-        gt_dict[uuid] = temp_list
+            gt_list.append(temp)
+        gt_dict[uuid] = gt_list
     return gt_dict
 
 
@@ -1333,12 +1385,12 @@ def detector_precision_recall_algo_worker(tup):
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
-            temp_list = [
+            pred_list = [
                 pred
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp_, fp_, fn_ = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp_, fp_, fn_ = general_tp_fp_fn(gt_dict[uuid_], pred_list, **kwargs)
             tp += tp_
             fp += fp_
             fn += fn_
@@ -1371,12 +1423,13 @@ def detector_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
     prediction_list = []
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
-            temp_list = [
+            gt_list = gt_dict[uuid_]
+            pred_list = [
                 pred
                 for pred in pred_dict[uuid_]
                 if pred['confidence'] >= conf
             ]
-            tp, fp, fn = general_tp_fp_fn(gt_dict[uuid_], temp_list, **kwargs)
+            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, **kwargs)
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -1569,11 +1622,13 @@ def localizer_train(ibs, **kwargs):
 @register_ibs_method
 def labeler_train(ibs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
-    from ibeis.algo.detect.labeler.labeler import train_labeler
+    from ibeis_cnn.process import numpy_processed_directory2
+    from ibeis_cnn.models.labeler import train_labeler
     data_path = join(ibs.get_cachedir(), 'extracted')
-    get_cnn_labeler_training_images(ibs, data_path)
+    extracted_path = get_cnn_labeler_training_images(ibs, data_path)
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
-    model_path = train_labeler(output_path, source_path=data_path)
+    model_path = train_labeler(output_path, X_file, y_file)
     return model_path
 
 
@@ -1607,18 +1662,20 @@ def detector_train(ibs):
 def background_train(ibs):
     from ibeis_cnn.ingest_ibeis import get_background_training_patches2
     from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.netrun import train_background
+    from ibeis_cnn.models.background import train_background
     data_path = join(ibs.get_cachedir(), 'extracted')
-    get_background_training_patches2(ibs, data_path, patch_size=50,
-                                     global_limit=500000)
-    id_file, X_file, y_file = numpy_processed_directory2(data_path)
+    extracted_path = get_background_training_patches2(ibs, data_path,
+                                                      patch_size=50,
+                                                      global_limit=500000)
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'background')
     model_path = train_background(output_path, X_file, y_file)
     return model_path
 
 
-def _resize(image, t_width=None, t_height=None):
-    print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
+def _resize(image, t_width=None, t_height=None, verbose=True):
+    if verbose:
+        print('RESIZING WITH t_width = %r and t_height = %r' % (t_width, t_height, ))
     height, width = image.shape[:2]
     if t_width is None and t_height is None:
         return image

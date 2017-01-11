@@ -2202,8 +2202,8 @@ def get_consecutive_newname_list_via_species(ibs, imgsetid=None, location_text=N
         for nid, unique_species_rowid_list in zip(nid_list, unique_species_rowids_list):
             if len(unique_species_rowid_list) > 1:
                 inconsistent_nid_list.append(nid)
-        print('Inconsistent nid_list = %r' % (inconsistent_nid_list, ))
-        raise ValueError
+        message = 'Inconsistent nid_list = %r' % (inconsistent_nid_list, )
+        raise ValueError(message)
     code_list = ibs.get_species_codes(species_rowid_list)
 
     _code2_count = ut.ddict(lambda: 0)

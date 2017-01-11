@@ -8,8 +8,8 @@
 
   <div class="row" style="margin-top: 50px; text-align: center;">
     <div class="col-lg-1"></div>
-    <div class="col-lg-10">
-        <canvas id="canvasBar" height="30" style="margin-top: 40px;"></canvas>
+    <div class="col-lg-10" style="width: 2000px;">
+        <canvas id="canvasBar"></canvas>
         <div style="color: #999 !important; font-style: italic;">
           Breakdown of images by filter category
         </div>
@@ -96,7 +96,8 @@
 
   window.onload = function()
   {
-    Chart.defaults.global.defaultFontSize = 12;
+    Chart.defaults.global.defaultFontSize = 35;
+    Chart.defaults.global.responsive = true;
 
     var ctxBar = document.getElementById("canvasBar").getContext("2d");
     var linkBar = document.getElementById("linkBar");
@@ -105,6 +106,7 @@
       data: dataBar,
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         // animation: false,
         showAllTooltips: false,
         scales: {
@@ -115,7 +117,7 @@
                 stacked: true
             }]
         },
-        legend:{display: true,labels:{fontSize:12}},
+        legend:{display: true,labels:{fontSize:24}},
         animation: {
           onComplete: function(animationItem) {
 
