@@ -61,7 +61,7 @@ class InfrSimulation(object):
 
     def review_inconsistencies(sim):
         """
-        Within each inconsistent compoment simulate the reviews that would be
+        Within each inconsistent component simulate the reviews that would be
         done to fix the issue.
 
             >>> sim.initialize()
@@ -75,7 +75,7 @@ class InfrSimulation(object):
         # In the worst case all edges in flagged ccs would need to be reviewed
         incon_edges = []
         n_worst_case = 0
-        for cc in infr.inconsistent_compoments():
+        for cc in infr.inconsistent_components():
             edges = ut.lstarmap(infr.e_, list(cc.edges()))
             reviewed_edges = list(infr.get_edges_where_ne(
                 'reviewed_state', 'unreviewed', edges=edges,
@@ -122,7 +122,7 @@ class InfrSimulation(object):
 
         infr.verbose = prev
 
-        # for cc in infr.inconsistent_compoments():
+        # for cc in infr.inconsistent_components():
         #     cc_error_edges = infr._find_possible_error_edges(cc)
         #     pass
 

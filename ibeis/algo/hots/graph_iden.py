@@ -191,8 +191,7 @@ class _AnnotInfrGroundtruth(object):
         """
         ibs = infr.ibs
         if allow_guess:
-            # If we don't have actual comparability information just guess
-            # Start off by guessing
+            # Guess if comparability information is unavailable
             is_comp_guess = infr.guess_if_comparable(aid_pairs)
             is_comp = is_comp_guess.copy()
         else:
@@ -1148,7 +1147,7 @@ class _AnnotInfrFeedback(object):
         # Change names of nodes
         infr.relabel_using_reviews(graph=subgraph)
 
-        # Get a list of all known connected compoments
+        # Get a list of all known connected components
         extended_nodes = ut.flatten(infr.get_nomatch_ccs(relevant_nodes))
         extended_nodes += relevant_nodes
         # print('extended_nodes = %r' % (extended_nodes,))
@@ -1795,7 +1794,7 @@ class _AnnotInfrPriority(object):
         neg_diameter = infr.queue_params['neg_diameter']
 
         if pos_diameter is not None:
-            # Reconsider edges within connected compoments that are
+            # Reconsider edges within connected components that are
             # separated by a large distance over reviewed edges.
             strong_positives = []
             weak_positives = []
@@ -1819,10 +1818,10 @@ class _AnnotInfrPriority(object):
                 queue.delete_items(edges)
 
         # FIXME: Change the forumlation of this problem to:
-        # Given two connected compoments, a set of potential edges,
+        # Given two connected components, a set of potential edges,
         # and a number K Find the minimum cost set of potential
         # edges such that the maximum distance between two nodes in
-        # different compoments is less than K.
+        # different components is less than K.
 
         # distance_matrix = dict(nx.shortest_path_length(reviewed_subgraph))
         # cc1 = nid_to_cc[nid1]
@@ -1834,7 +1833,7 @@ class _AnnotInfrPriority(object):
             strong_negatives = []
             weak_negatives = []
 
-            # Reconsider edges between connected compoments that are
+            # Reconsider edges between connected components that are
             # separated by a large distance over reviewed edges.
             for nid_edge, neg_edges in reviewed_negatives.items():
                 nid1, nid2 = nid_edge
@@ -2032,11 +2031,12 @@ class _AnnotInfrUpdates(object):
 
         # helper funcs
         bridges = ut.partial(ut.nx_edges_between, graph, assume_disjoint=True)
+
         def check_unseen(name_edge, *to_check):
             return all(name_edge not in s for s in to_check)
 
         # INCONSISTENT
-        # are negative edges in connected compoments
+        # are negative edges in connected components
         for u, v in neg_edges:
             nid1, nid2 = node_to_label[u], node_to_label[v]
             if nid1 == nid2 and nid1 not in inconsistent:
@@ -2048,10 +2048,10 @@ class _AnnotInfrUpdates(object):
                 # TODO: should we grab all inconsistent outgoing edges here?
         seen_nids.update(inconsistent.keys())
         # NEGATIVE
-        # For each negative edge, get the compoments belonging to each
-        # endpoint. If the two compoments are the same then we have an
+        # For each negative edge, get the components belonging to each
+        # endpoint. If the two components are the same then we have an
         # inconsistent case Otherwise infer all other edges between the
-        # compoments are negative
+        # components are negative
         for u, v in neg_edges:
             nid1, nid2 = node_to_label[u], node_to_label[v]
             name_edge = e_(nid1, nid2)
@@ -2068,7 +2068,7 @@ class _AnnotInfrUpdates(object):
         seen_name_edges.update(negative.keys())
         seen_name_edges.update(inconsistent_outgoing_negatives.keys())
         # POSITIVE
-        # Then get each positive compoments and do positive inference only in
+        # Then get each positive components and do positive inference only in
         # those ccs also keep a grouping of reviewed positive edges
         for u, v in pos_edges:
             nid = node_to_label[u]
@@ -2080,15 +2080,16 @@ class _AnnotInfrUpdates(object):
                     within_cc_edges = [e_(*e) for e in bridges(cc)]
                     positive[nid] = within_cc_edges
         # NON-COMPARABLE
-        # Look at each not-comparable edge between two compoments not currently
+        # Look at each not-comparable edge between two components not currently
         # marked as either positive or negative
         for u, v in notcomp_edges:
             nid1, nid2 = node_to_label[u], node_to_label[v]
             name_edge = e_(nid1, nid2)
             if check_unseen(name_edge, seen_name_edges, notcomparable):
-                if nid1 != nid2 or (check_unseen(nid1, positive, inconsistent) and
-                                    check_unseen(nid2, positive, inconsistent)):
-                    # TODO: need to update inconsistent_outgoing_noncomp here as well?
+                # TODO: update inconsistent_outgoing_noncomp here as well?
+                if nid1 != nid2 or (
+                      check_unseen(nid1, positive, inconsistent) and
+                      check_unseen(nid2, positive, inconsistent)):
                     cc1 = nid_to_cc[nid1]
                     cc2 = nid_to_cc[nid2]
                     cross_cc_edges = [e_(*e) for e in bridges(cc1, cc2)]
@@ -2100,20 +2101,22 @@ class _AnnotInfrUpdates(object):
             nid1, nid2 = node_to_label[u], node_to_label[v]
             name_edge = e_(nid1, nid2)
             if check_unseen(name_edge, seen_name_edges, unreviewed):
-                if nid1 != nid2 or (check_unseen(nid1, positive, inconsistent) and
-                                    check_unseen(nid2, positive, inconsistent)):
-                    # TODO: need to update inconsistent_outgoing_unreviewed here as well?
+                # TODO: update inconsistent_outgoing_unreviewed here as well?
+                if nid1 != nid2 or (
+                      check_unseen(nid1, positive, inconsistent) and
+                      check_unseen(nid2, positive, inconsistent)):
                     cc1 = nid_to_cc[nid1]
                     cc2 = nid_to_cc[nid2]
                     cross_cc_edges = [e_(*e) for e in bridges(cc1, cc2)]
                     unreviewed[name_edge] = cross_cc_edges
         seen_name_edges.update(unreviewed.keys())
 
-        # Find possible fixes for inconsistent compoments
-        suggested_fix_edges = []
-        other_error_edges = []
+        # Find possible fixes for inconsistent components
         if infr.verbose >= 1 and inconsistent:
             print('[infr] searching for possible fixes')
+
+        suggested_fix_edges = []
+        other_error_edges = []
         for nid, cc_inconsistent_edges in inconsistent.items():
             # Find possible edges to fix in the reviewed subgarph
             reviewed_inconsistent = [
@@ -2123,7 +2126,9 @@ class _AnnotInfrUpdates(object):
             subgraph = nx.Graph(reviewed_inconsistent)
             cc_error_edges = infr._find_possible_error_edges(subgraph)
             suggested_fix_edges.extend(cc_error_edges)
-            other_error_edges.extend(ut.setdiff(subgraph.edges(), cc_error_edges))
+            other_error_edges.extend(ut.setdiff(subgraph.edges(),
+                                                cc_error_edges))
+
         if infr.verbose >= 1 and inconsistent:
             print('[infr] found %d possible fixes' % len(suggested_fix_edges))
 
@@ -2132,7 +2137,7 @@ class _AnnotInfrUpdates(object):
         negative_edges = ut.flatten(negative.values())
         notcomparable_edges = ut.flatten(notcomparable.values())
         # The only case where an edge is not listed in the previous lists
-        # should be when they are between compoments with absolutely no reviews
+        # should be when they are between components with absolutely no reviews
         unreviewed_edges = ut.flatten(unreviewed.values())
         inconsistent_outgoing_negative_edges = ut.flatten(
             inconsistent_outgoing_negatives.values())
@@ -2194,12 +2199,11 @@ class _AnnotInfrUpdates(object):
                 print('missing21 = %r' % (missing21,))
                 print(ut.repr4(ut.set_overlaps(graph.edges(), all_edges)))
 
-                # import utool
-                # utool.embed()
                 for u, v in missing12:
                     edge = graph.edge[u][v]
                     print('missing edge = %r' % ((u, v),))
-                    print('state = %r' % (edge.get('reviewed_state', 'unreviewed')))
+                    print('state = %r' % (edge.get('reviewed_state',
+                                                   'unreviewed')))
                     nid1 = node_to_label[u]
                     nid2 = node_to_label[v]
                     name_edge = e_(nid1, nid2)
@@ -2208,7 +2212,7 @@ class _AnnotInfrUpdates(object):
                     print('cat = %r' % (cat,))
 
                 print('ERROR: Not all edges accounted for. '
-                      'Is name labeling computed using connected compoments?')
+                      'Is name labeling computed using connected components?')
                 import utool
                 utool.embed()
                 raise AssertionError('edges not the same')
@@ -2218,7 +2222,8 @@ class _AnnotInfrUpdates(object):
         # Update the infered state
         infr.set_edge_attrs('inferred_state', _dz(
             inconsistent_outgoing_negative_edges, ['inconsistent_outgoing']))
-        infr.set_edge_attrs('inferred_state', _dz(inconsistent_edges, ['inconsistent']))
+        infr.set_edge_attrs('inferred_state', _dz(inconsistent_edges,
+                                                  ['inconsistent']))
         infr.set_edge_attrs('inferred_state', _dz(unreviewed_edges, [None]))
         infr.set_edge_attrs('inferred_state', _dz(notcomparable_edges, [None]))
         infr.set_edge_attrs('inferred_state', _dz(positive_edges, ['same']))
@@ -2229,7 +2234,8 @@ class _AnnotInfrUpdates(object):
         infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
 
         # Update the cut state
-        infr.set_edge_attrs('is_cut', _dz(inconsistent_outgoing_negative_edges, [True]))
+        infr.set_edge_attrs('is_cut', _dz(inconsistent_outgoing_negative_edges,
+                                          [True]))
         infr.set_edge_attrs('is_cut', _dz(inconsistent_edges, [False]))
         infr.set_edge_attrs('is_cut', _dz(unreviewed_edges, [False]))
         infr.set_edge_attrs('is_cut', _dz(notcomparable_edges, [False]))
@@ -2263,6 +2269,7 @@ class _AnnotInfrUpdates(object):
         if infr.verbose >= 3:
             print('[infr] finished review inference')
 
+    @profile
     def _find_possible_error_edges(infr, subgraph):
         inconsistent_edges = [
             edge for edge, state in
@@ -2275,7 +2282,7 @@ class _AnnotInfrUpdates(object):
         subgraph_.remove_edges_from(inconsistent_edges)
         subgraph_ = infr.simplify_graph(subgraph_)
 
-        ut.util_graph.nx_set_default_edge_attributes(subgraph_, 'num_reviews', 1)
+        ut.nx_set_default_edge_attributes(subgraph_, 'num_reviews', 1)
         for s, t in inconsistent_edges:
             cut_edgeset = ut.nx_mincut_edges_weighted(subgraph_, s, t,
                                                       capacity='num_reviews')
@@ -2345,9 +2352,9 @@ class _AnnotInfrRelabel(object):
         new_nid = infr.nid_counter
         return new_nid
 
-    def inconsistent_compoments(infr, graph=None):
+    def inconsistent_components(infr, graph=None):
         """
-        Return compoments without nomatch edges
+        Return components without nomatch edges
         """
         cc_subgraphs = infr.connected_component_reviewed_subgraphs(graph)
         inconsistent_subgraphs = []
@@ -2357,9 +2364,9 @@ class _AnnotInfrRelabel(object):
                 inconsistent_subgraphs.append(subgraph)
         return inconsistent_subgraphs
 
-    def consistent_compoments(infr, graph=None):
+    def consistent_components(infr, graph=None):
         """
-        Return compoments without nomatch edges
+        Return components without nomatch edges
         """
         cc_subgraphs = infr.connected_component_reviewed_subgraphs(graph)
         # inconsistent_subgraphs = []
@@ -2486,7 +2493,7 @@ class _AnnotInfrRelabel(object):
     @profile
     def relabel_using_reviews(infr, graph=None, rectify=True):
         r"""
-        Relabels nodes in graph based on poasitive-review connected compoments
+        Relabels nodes in graph based on poasitive-review connected components
 
         Args:
             graph (nx.Graph, optional): only edges in `graph` are relabeled

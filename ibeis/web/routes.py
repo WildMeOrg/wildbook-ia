@@ -1862,7 +1862,7 @@ def commit_current_query_object_names(query_object, ibs):
         query_object (ibeis.AnnotInference):
         ibs (ibeis.IBEISController):  image analysis api
     """
-    # Ensure connected compoments are used to relabel names
+    # Ensure connected components are used to relabel names
     query_object.relabel_using_reviews()
     # Transfers any remaining internal feedback into staging
     # TODO:  uncomment once buffer is dead
@@ -1970,7 +1970,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     query_object.exec_matching()
     query_object.apply_match_edges()
     query_object.apply_match_scores()
-    # Use connected compoments to relabel names on nodes
+    # Use connected components to relabel names on nodes
     query_object.relabel_using_reviews()
     # Create a priority on edge review ands determines inconsistencies
     query_object.apply_review_inference()
