@@ -884,6 +884,7 @@ class ClfResult(ut.NiceRepr):
         # print('Confusion Matrix:')
         # print(ut.hz_str('    ', cfsm_str))
 
+    @profile
     def get_pos_threshes(res, metric='fpr', value=1E-4, prefer_max=False):
         import vtool as vt
         y_test_bin = res.target_bin_df.values
