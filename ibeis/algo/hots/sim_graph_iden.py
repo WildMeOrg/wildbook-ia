@@ -330,6 +330,7 @@ class InfrSimulation(object):
         return user_edges
         # pass
 
+    @profile
     def oracle_review(sim):
         queue_params = {
             'pos_diameter': None,
