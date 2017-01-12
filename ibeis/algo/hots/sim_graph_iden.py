@@ -360,7 +360,7 @@ class InfrSimulation(object):
             assert n_inconsistent == 0, 'should not create any inconsistencies'
 
         sim.results['n_user_clusters'] = n_clusters
-        infr.apply_review_inference()
+        # infr.apply_review_inference()
 
         curr_decisions = infr.edge_attr_df('reviewed_state')
         curr_truth = primary_truth.loc[curr_decisions.index].idxmax(axis=1)
