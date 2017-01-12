@@ -25,25 +25,51 @@ def e_(u, v):
 
 
 @profile
-def bridges(graph, cc1, cc2=None):
-    if cc2 is None or cc2 is cc1:
-        both = set(cc1)
-        both_upper = both.copy()
-        for u in both:
-            neighbs = set(graph.adj[u])
-            neighbsBB_upper = neighbs.intersection(both_upper)
-            for v in neighbsBB_upper:
-                yield e_(u, v)
-            both_upper.remove(u)
-    else:
-        # assume cc1 and cc2 are disjoint
-        only1 = set(cc1)
-        only2 = set(cc2)
-        for u in only1:
-            neighbs = set(graph.adj[u])
-            neighbs12 = neighbs.intersection(only2)
-            for v in neighbs12:
-                yield e_(u, v)
+def bridges_inside(graph, both):
+    """ assume both is a set """
+    yielder = set([])
+    both_upper = both.copy()
+    graph_adj = graph.adj
+    for u in both:
+        neighbsBB_upper = both_upper.intersection(graph_adj[u])
+        for v in neighbsBB_upper:
+            yielder.add(e_(u, v))
+        both_upper.remove(u)
+    return yielder
+
+
+@profile
+def bridges_cross(graph, only1, only2):
+    """ assume only1 and only2 are sets and disjoint """
+    return {e_(u, v) for u in only1 for v in only2.intersection(graph.adj[u])}
+
+
+# @profile
+# def bridges(graph, cc1, cc2=None):
+#     if cc2 is None or cc2 is cc1:
+#         yielder = []
+#         both = set(cc1)
+#         both_upper = both.copy()
+#         for u in both:
+#             neighbs = set(graph.adj[u])
+#             neighbsBB_upper = neighbs.intersection(both_upper)
+#             for v in neighbsBB_upper:
+#                 yielder.append(e_(u, v))
+#                 # yield e_(u, v)
+#             both_upper.remove(u)
+#         return yielder
+#     else:
+#         yielder = []
+#         # assume cc1 and cc2 are disjoint
+#         only1 = set(cc1)
+#         only2 = set(cc2)
+#         for u in only1:
+#             neighbs = set(graph.adj[u])
+#             neighbs12 = neighbs.intersection(only2)
+#             for v in neighbs12:
+#                 yielder.append(e_(u, v))
+#                 # yield e_(u, v)
+#         return yielder
     # test2 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
     #                                                    assume_sparse=True,
     #                                                    assume_disjoint=True)]
@@ -1863,7 +1889,7 @@ class _AnnotInfrPriority(object):
         # print('strong_edges.append = %r' % (strong_edges,))
         # print('weak_edges.append = %r' % (weak_edges,))
 
-    def _update_priority_queue(infr, graph, positive_ccs, negative,
+    def _update_priority_queue(infr, graph, positive, negative,
                                reviewed_positives, reviewed_negatives,
                                node_to_label, nid_to_cc, suggested_fix_edges,
                                other_error_edges, unreviewed_edges):
@@ -1911,7 +1937,7 @@ class _AnnotInfrPriority(object):
                 graph, reviewed_positives, pos_diameter)
             queue.delete_items(strong_positives)
         else:
-            for edges in positive_ccs.values():
+            for edges in positive.values():
                 queue.delete_items(edges)
 
         if neg_diameter is not None:
@@ -2007,10 +2033,11 @@ class _AnnotInfrPriority(object):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrUpdates(object):
 
-    def _infer_edge_categories2(infr, graph, node_to_label, edge_to_review,
+    @profile
+    def _infer_edge_categories2(infr, graph, node_to_label, edge_to_reviewstate,
                                 nid_to_cc):
         # Group edges by review type
-        grouped_review_edges = ut.group_pairs(edge_to_review.items())
+        grouped_review_edges = ut.group_pairs(edge_to_reviewstate.items())
         neg_review_edges = grouped_review_edges.pop('nomatch', [])
         pos_review_edges = grouped_review_edges.pop('match', [])
         notcomp_review_edges = grouped_review_edges.pop('notcomp', [])
@@ -2020,22 +2047,24 @@ class _AnnotInfrUpdates(object):
             raise AssertionError('Reviewed state has unknown values: %r' % (
                 list(grouped_review_edges.keys())),)
 
-        ut.fix_embed_globals()
         def group_name_edges(edges):
+            nid_to_cc = collections.defaultdict(set)
             name_edges = (e_(node_to_label[u], node_to_label[v])
                           for u, v in edges)
-            return ut.group_items(edges, name_edges)
+            for edge, name_edge in zip(edges, name_edges):
+                nid_to_cc[name_edge].add(edge)
+            return nid_to_cc
 
         # Group edges by the names they are between
-        pos_ne_groups = group_name_edges(pos_review_edges)
-        neg_ne_groups = group_name_edges(neg_review_edges)
-        notcomp_ne_groups = group_name_edges(notcomp_review_edges)
+        pos_review_ne_groups = group_name_edges(pos_review_edges)
+        neg_review_ne_groups = group_name_edges(neg_review_edges)
+        notcomp_review_ne_groups = group_name_edges(notcomp_review_edges)
         unreviewed_ne_groups = group_name_edges(unreviewed_edges)
 
         # Infer status of name clusters
-        neg_ne = set(neg_ne_groups.keys())
-        pos_ne = set(pos_ne_groups.keys())
-        notcomp_ne = set(notcomp_ne_groups.keys())
+        pos_ne = set(pos_review_ne_groups.keys())
+        neg_ne = set(neg_review_ne_groups.keys())
+        notcomp_ne = set(notcomp_review_ne_groups.keys())
         unreviewed_ne = set(unreviewed_ne_groups.keys())
 
         assert all(n1 == n2 for n1, n2 in pos_ne), 'pos should have same lbl'
@@ -2062,77 +2091,68 @@ class _AnnotInfrUpdates(object):
         incon_internal_nids = set([n1 for n1, n2 in incon_internal_ne])
         incon_external_ne = set([])
         for _ne in [neg_ne, notcomp_ne, unreviewed_ne]:
-            incon_external_ne.update(set([
+            incon_external_ne.update({
                 (nid1, nid2) for nid1, nid2 in _ne
                 if nid1 in incon_internal_nids or nid2 in incon_internal_nids
-            ]))
+            })
         neg_ne.difference_update(incon_external_ne)
         notcomp_ne.difference_update(incon_external_ne)
         unreviewed_ne.difference_update(incon_external_ne)
 
         # Inference is made on a name(cc) based level now expand this inference
         # back onto the edges.
-        pos_edges = ut.flatten([list(bridges(graph, nid_to_cc[nid1])) for nid1, nid2 in pos_ne])
-        neg_edges = ut.flatten([list(bridges(graph, nid_to_cc[nid1], nid_to_cc[nid2])) for nid1, nid2 in neg_ne])
-        incon_internal_edges = ut.flatten([list(bridges(graph, nid_to_cc[nid1])) for nid1, nid2 in incon_internal_ne])
-        incon_external_edges = ut.flatten([list(bridges(graph, nid_to_cc[nid1], nid_to_cc[nid2])) for nid1, nid2 in incon_external_ne])
-        # notcomparable edges have no transitivity, keep only the ones that
-        # wern't overridden by something else
-        notcomp_edges = ut.flatten(ut.take(notcomp_ne_groups, notcomp_ne))
-        unreviewed_edges = set(ut.flatten([list(bridges(graph, nid_to_cc[nid1], nid_to_cc[nid2])) for nid1, nid2 in unreviewed_ne]))
-        unreviewed_edges.difference_update(set(notcomp_edges))
-
-        inferred_edges = {
-            'same': pos_edges,
-            'diff': neg_edges,
-            'notcomp': notcomp_edges,
-            'inconsistent_inter': incon_internal_edges,
-            'inconsistent_exter': incon_external_edges,
-            None: unreviewed_edges,
+        positive = {
+            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
+            for nid1, nid2 in pos_ne
         }
-        for k1, k2 in ut.combinations(inferred_edges.keys(), 2):
-            s1 = set(inferred_edges[k1])
-            s2 = set(inferred_edges[k2])
-            assert s1.isdisjoint(s2)
+        negative = {
+            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
+            for nid1, nid2 in neg_ne
+        }
+        inconsistent_internal = {
+            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
+            for nid1, nid2 in incon_internal_ne
+        }
+        inconsistent_external = {
+            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
+            for nid1, nid2 in incon_external_ne
+        }
+        # No bridges are formed for notcomparable edges. Just take
+        # the set of reviews
+        notcomparable = {
+            (nid1, nid2): notcomp_review_ne_groups[(nid1, nid2)]
+            for (nid1, nid2) in notcomp_ne
+        }
+        unreviewed = {
+            (nid1, nid2):
+                bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
+            for (nid1, nid2) in unreviewed_ne
+        }
+        # Removed not-comparable edges from unreviewed
+        for name_edge in unreviewed_ne.intersection(notcomp_ne):
+            unreviewed[name_edge].difference_update(notcomparable[name_edge])
 
-        assert (
-            set(ut.flatten(inferred_edges.values())) ==
-            set(it.starmap(e_, graph.edges()))
-        )
+        reviewed_positives = {n1: pos_review_ne_groups[(n1, n2)] for
+                              n1, n2 in pos_ne}
+        reviewed_negatives = {ne: neg_review_ne_groups[ne] for ne in neg_ne}
 
-        # return (
-        #     reviewed_positives,
-        #     reviewed_negatives,
-        #     positive_ccs,
-        #     negative,
-        #     inconsistent,
-        #     unreviewed,
-        #     notcomparable,
-        #     inconsistent_external,
-        # )
+        ne_categories = {
+            'positive': positive,
+            'negative': negative,
+            'unreviewed': unreviewed,
+            'notcomp': notcomparable,
+            'inconsistent_internal': inconsistent_internal,
+            'inconsistent_external': inconsistent_external,
+        }
+        return ne_categories, reviewed_positives, reviewed_negatives
 
-        # inferred_name_edges = {
-        #     'neg': neg_ne,
-        #     'pos': pos_ne,
-        #     # 'notcomp': notcomp_ne,
-        #     'unreview': unreviewed_ne,
-        #     'incon_internal': incon_internal_ne,
-        #     'incon_external': incon_external_ne,
-        # }
-        # # notcomp and unreview are allowed to have overlap
-        # for k1, k2 in ut.combinations(inferred_name_edges.keys(), 2):
-        #     # if 'notcomp' in k1 or 'notcomp' in k2:
-        #     #     continue
-        #     s1 = inferred_name_edges[k1]
-        #     s2 = inferred_name_edges[k2]
-        #     assert s1.isdisjoint(s2)
-
-    def _infer_edge_categories(infr, graph, node_to_label, edge_to_review,
+    @profile
+    def _infer_edge_categories(infr, graph, node_to_label, edge_to_reviewstate,
                                nid_to_cc):
         # import utool
         # utool.embed()
         # Group edges by review type
-        grouped_edges = ut.group_pairs(edge_to_review.items())
+        grouped_edges = ut.group_pairs(edge_to_reviewstate.items())
         neg_edges = grouped_edges.pop('nomatch', [])
         pos_edges = grouped_edges.pop('match', [])
         notcomp_edges = grouped_edges.pop('notcomp', [])
@@ -2149,7 +2169,7 @@ class _AnnotInfrUpdates(object):
         inconsistent = {}
         negative = {}
         notcomparable = {}
-        positive_ccs = {}
+        positive = {}
         unreviewed = {}
         inconsistent_external = {}
 
@@ -2171,7 +2191,7 @@ class _AnnotInfrUpdates(object):
             nid1, nid2 = node_to_label[u], node_to_label[v]
             if nid1 == nid2 and nid1 not in inconsistent:
                 cc = nid_to_cc[nid1]
-                cc_inconsistent_edges = list(bridges(graph, cc))
+                cc_inconsistent_edges = (bridges_inside(graph, cc))
                 inconsistent[nid1] = cc_inconsistent_edges
                 # TODO: should we grab all inconsistent outgoing edges here?
         seen_nids.update(inconsistent.keys())
@@ -2187,7 +2207,7 @@ class _AnnotInfrUpdates(object):
                                              inconsistent_external):
                 cc1 = nid_to_cc[nid1]
                 cc2 = nid_to_cc[nid2]
-                cross_cc_edges = list(bridges(graph, cc1, cc2))
+                cross_cc_edges = (bridges_cross(graph, cc1, cc2))
                 if nid1 in inconsistent or nid2 in inconsistent:
                     inconsistent_external[name_edge] = cross_cc_edges
                 else:
@@ -2204,9 +2224,9 @@ class _AnnotInfrUpdates(object):
             if nid not in inconsistent:
                 reviewed_positives[nid].append((u, v))
                 name_edge = (nid, nid)
-                if nid not in positive_ccs:
-                    within_cc_edges = list(bridges(graph, cc))
-                    positive_ccs[nid] = within_cc_edges
+                if nid not in positive:
+                    within_cc_edges = (bridges_inside(graph, cc))
+                    positive[nid] = within_cc_edges
         # NON-COMPARABLE
         # Look at each not-comparable edge between two components not currently
         # marked as either positive or negative
@@ -2218,11 +2238,11 @@ class _AnnotInfrUpdates(object):
                 # FIXME: we should not mark the other CC edges as not-comparable
                 # not-comparable is non-transitive.
                 if nid1 != nid2 or (
-                      check_unseen(nid1, positive_ccs, inconsistent) and
-                      check_unseen(nid2, positive_ccs, inconsistent)):
+                      check_unseen(nid1, positive, inconsistent) and
+                      check_unseen(nid2, positive, inconsistent)):
                     cc1 = nid_to_cc[nid1]
                     cc2 = nid_to_cc[nid2]
-                    cross_cc_edges = list(bridges(graph, cc1, cc2))
+                    cross_cc_edges = (bridges_cross(graph, cc1, cc2))
                     notcomparable[name_edge] = cross_cc_edges
         seen_name_edges.update(notcomparable.keys())
 
@@ -2232,41 +2252,82 @@ class _AnnotInfrUpdates(object):
             if check_unseen(name_edge, seen_name_edges, unreviewed):
                 # TODO: update inconsistent_outgoing_unreviewed here as well?
                 if nid1 != nid2 or (
-                      check_unseen(nid1, positive_ccs, inconsistent) and
-                      check_unseen(nid2, positive_ccs, inconsistent)):
+                      check_unseen(nid1, positive, inconsistent) and
+                      check_unseen(nid2, positive, inconsistent)):
                     cc1 = nid_to_cc[nid1]
                     cc2 = nid_to_cc[nid2]
-                    cross_cc_edges = list(bridges(graph, cc1, cc2))
+                    cross_cc_edges = (bridges_cross(graph, cc1, cc2))
                     unreviewed[name_edge] = cross_cc_edges
         seen_name_edges.update(unreviewed.keys())
-
-        incon_intern_edges                   = ut.flatten(inconsistent.values())
-        positive_edges                       = ut.flatten(positive_ccs.values())
-        negative_edges                       = ut.flatten(negative.values())
-        notcomparable_edges                  = ut.flatten(notcomparable.values())
-        unreviewed_edges                     = ut.flatten(unreviewed.values())
-        inconsistent_external_edges = ut.flatten(inconsistent_external.values())
 
         # notcomparable_edges = notcomparable_edges
         # The only case where an edge is not listed in the previous lists
         # should be when they are between components with absolutely no reviews
 
-        return (
-            reviewed_positives,
-            reviewed_negatives,
-            positive_ccs,
-            negative,
-            inconsistent,
-            unreviewed,
-            notcomparable,
-            inconsistent_external,
-            incon_intern_edges,
-            positive_edges,
-            negative_edges,
-            notcomparable_edges,
-            unreviewed_edges,
-            inconsistent_external_edges,
-        )
+        ne_categories = {
+            'positive': positive,
+            'negative': negative,
+            'unreviewed': unreviewed,
+            'notcomp': notcomparable,
+            'inconsistent_internal': inconsistent,
+            'inconsistent_external': inconsistent_external,
+        }
+        return (ne_categories, reviewed_positives, reviewed_negatives)
+
+    def _check_edge_categories(infr, graph, ne_categories, edge_categories,
+                               node_to_label):
+        name_edge_to_category = {
+            name_edge: cat
+            for cat, edges in ne_categories.items()
+            for name_edge in edges.keys()}
+
+        num_edges = sum(map(len, edge_categories.values()))
+        num_edges_real = graph.number_of_edges()
+
+        if num_edges != num_edges_real:
+            print('num_edges = %r' % (num_edges,))
+            print('num_edges_real = %r' % (num_edges_real,))
+            all_edges = ut.flatten(edge_categories.values())
+            dup_edges = ut.find_duplicate_items(all_edges)
+            if len(dup_edges) > 0:
+                # Check where the duplicates are if any
+                for k1, k2 in ut.combinations(edge_categories.keys(), 2):
+                    v1 = edge_categories[k1]
+                    v2 = edge_categories[k2]
+                    overlaps = ut.set_overlaps(v1, v2)
+                    if overlaps['isect'] != 0:
+                        print('%r-%r: %s' % (k1, k2, ut.repr4(overlaps)))
+                for k1 in edge_categories.keys():
+                    v1 = edge_categories[k1]
+                    dups = ut.find_duplicate_items(v1)
+                    if dups:
+                        print('%r, has %s dups' % (k1, len(dups)))
+            assert len(dup_edges) == 0, 'edge not same and duplicates'
+
+            edges = ut.lstarmap(e_, graph.edges())
+            missing12 = ut.setdiff(edges, all_edges)
+            missing21 = ut.setdiff(all_edges, edges)
+            print('missing12 = %r' % (missing12,))
+            print('missing21 = %r' % (missing21,))
+            print(ut.repr4(ut.set_overlaps(graph.edges(), all_edges)))
+
+            for u, v in missing12:
+                edge = graph.edge[u][v]
+                print('missing edge = %r' % ((u, v),))
+                print('state = %r' % (edge.get('reviewed_state',
+                                               'unreviewed')))
+                nid1 = node_to_label[u]
+                nid2 = node_to_label[v]
+                name_edge = e_(nid1, nid2)
+                print('name_edge = %r' % (name_edge,))
+                cat = name_edge_to_category.get(name_edge, None)
+                print('cat = %r' % (cat,))
+
+            print('ERROR: Not all edges accounted for. '
+                  'Is name labeling computed using connected components?')
+            import utool
+            utool.embed()
+            raise AssertionError('edges not the same')
 
     @profile
     def apply_review_inference(infr, graph=None):
@@ -2308,153 +2369,97 @@ class _AnnotInfrUpdates(object):
 
         # Get node -> name label
         node_to_label = nx.get_node_attributes(graph, 'name_label')
-        # Get edge -> reviewed_state
-        edge_to_review = {
-            e_(u, v): infr.graph.edge[u][v].get('reviewed_state', 'unreviewed')
-            for u, v in graph.edges()
-        }
 
         # Group nodes by name label
-        nid_to_cc = ut.invert_dict(node_to_label, unique_vals=False)
+        nid_to_cc = collections.defaultdict(set)
+        for item, groupid in node_to_label.items():
+            nid_to_cc[groupid].add(item)
+        # nid_to_cc = ut.invert_dict(node_to_label, unique_vals=False)
+        # nid_to_cc = ut.map_vals(set, nid_to_cc)
 
-        (
-            reviewed_positives,
-            reviewed_negatives,
-            positive_ccs,
-            negative,
-            inconsistent,
-            unreviewed,
-            notcomparable,
-            inconsistent_external,
-            incon_intern_edges,
-            positive_edges,
-            negative_edges,
-            notcomparable_edges,
-            unreviewed_edges,
-            inconsistent_external_edges,
-        ) = infr._infer_edge_categories(graph, node_to_label, edge_to_review,
-                                        nid_to_cc)
+        # Get edge -> reviewed_state
+        all_edges = [e_(u, v) for u, v in graph.edges()]
+        infr_graph_edge = infr.graph.edge
+        edge_to_reviewstate = {
+            (u, v): infr_graph_edge[u][v].get('reviewed_state', 'unreviewed')
+            for u, v in all_edges
+        }
+
+        # tup1 = infr._infer_edge_categories(graph, node_to_label,
+        #                                    edge_to_reviewstate, nid_to_cc)
+        tup2 = infr._infer_edge_categories2(graph, node_to_label,
+                                            edge_to_reviewstate, nid_to_cc)
+
+        # (ne_categories1, reviewed_positives1, reviewed_negatives1,) = tup1
+        # (ne_categories2, reviewed_positives2, reviewed_negatives2,) = tup2
+
+        # print('unreviewed1' + ut.repr4(ne_categories1['unreviewed']))
+        # print('unreviewed2' + ut.repr4(ne_categories2['unreviewed']))
+
+        # print('notcomp1' + ut.repr4(ne_categories1['notcomp']))
+        # print('notcomp2' + ut.repr4(ne_categories2['notcomp']))
+
+        # import utool
+        # utool.embed()
+
+        (ne_categories, reviewed_positives, reviewed_negatives,) = tup2
+        # (ne_categories, reviewed_positives, reviewed_negatives,) = tup1
 
         # Find possible fixes for inconsistent components
-        if infr.verbose >= 1 and inconsistent:
+        if infr.verbose >= 1 and ne_categories['inconsistent_internal']:
             print('[infr] found %d inconsistencies searching for fixes' %
-                  (len(inconsistent),))
+                  (len(ne_categories['inconsistent_internal']),))
 
         suggested_fix_edges = []
         other_error_edges = []
-        for nid, cc_inconsistent_edges in inconsistent.items():
+        for nid, cc_inconsistent_edges in ne_categories['inconsistent_internal'].items():
             # Find possible edges to fix in the reviewed subgarph
             reviewed_inconsistent = [
-                e + (graph.get_edge_data(*e),) for e in cc_inconsistent_edges
-                if edge_to_review.get(e, 'unreviewed') != 'unreviewed'
+                (u, v, infr_graph_edge[u][v].copy()) for (u, v) in cc_inconsistent_edges
+                if edge_to_reviewstate[(u, v)] != 'unreviewed'
             ]
             subgraph = nx.Graph(reviewed_inconsistent)
-            cc_error_edges = infr._find_possible_error_edges(subgraph)
+            cc_error_edges = infr._find_possible_error_edges(subgraph, copy=True)
             cc_other_edges = ut.setdiff(cc_inconsistent_edges, cc_error_edges)
             suggested_fix_edges.extend(cc_error_edges)
             other_error_edges.extend(cc_other_edges)
+            # just add one for now
+            # break
 
-        if infr.verbose >= 1 and inconsistent:
+        if infr.verbose >= 1 and ne_categories['inconsistent_internal']:
             print('[infr] found %d possible fixes' % len(suggested_fix_edges))
 
-        if __debug__:
-            name_edge_categories = {
-                'positive_ccs': positive_ccs,
-                'negative': negative,
-                'unreviewed': unreviewed,
-                'notcomparable': notcomparable,
-                'inconsistent_internal': inconsistent,
-                'inconsistent_external': inconsistent_external,
-            }
-            edge_categories = {
-                'positive_edges': positive_edges,
-                'negative_edges': negative_edges,
-                'unreviewed_edges': unreviewed_edges,
-                'notcomparable_edges': notcomparable_edges,
-                'incon_intern_edges': incon_intern_edges,
-                'inconsistent_external_edges': inconsistent_external_edges,
-            }
-            name_edge_to_category = {
-                name_edge: cat
-                for cat, edges in name_edge_categories.items()
-                for name_edge in edges.keys()}
+        edge_categories = {k: ut.flatten(v.values())
+                           for k, v in ne_categories.items()}
 
-            num_edges = sum(map(len, edge_categories.values()))
-            num_edges_real = graph.number_of_edges()
-
-            if num_edges != num_edges_real:
-                print('num_edges = %r' % (num_edges,))
-                print('num_edges_real = %r' % (num_edges_real,))
-                all_edges = (positive_edges + negative_edges +
-                             incon_intern_edges + notcomparable_edges +
-                             unreviewed_edges +
-                             inconsistent_external_edges)
-                dup_edges = ut.find_duplicate_items(all_edges)
-                if len(dup_edges) > 0:
-                    # Check where the duplicates are if any
-                    for k1, k2 in ut.combinations(edge_categories.keys(), 2):
-                        v1 = edge_categories[k1]
-                        v2 = edge_categories[k2]
-                        overlaps = ut.set_overlaps(v1, v2)
-                        if overlaps['isect'] != 0:
-                            print('%r-%r: %s' % (k1, k2, ut.repr4(overlaps)))
-                    for k1 in edge_categories.keys():
-                        v1 = edge_categories[k1]
-                        dups = ut.find_duplicate_items(v1)
-                        if dups:
-                            print('%r, has %s dups' % (k1, len(dups)))
-                assert len(dup_edges) == 0, 'edge not same and duplicates'
-
-                edges = ut.lstarmap(e_, graph.edges())
-                missing12 = ut.setdiff(edges, all_edges)
-                missing21 = ut.setdiff(all_edges, edges)
-                print('missing12 = %r' % (missing12,))
-                print('missing21 = %r' % (missing21,))
-                print(ut.repr4(ut.set_overlaps(graph.edges(), all_edges)))
-
-                for u, v in missing12:
-                    edge = graph.edge[u][v]
-                    print('missing edge = %r' % ((u, v),))
-                    print('state = %r' % (edge.get('reviewed_state',
-                                                   'unreviewed')))
-                    nid1 = node_to_label[u]
-                    nid2 = node_to_label[v]
-                    name_edge = e_(nid1, nid2)
-                    print('name_edge = %r' % (name_edge,))
-                    cat = name_edge_to_category.get(name_edge, None)
-                    print('cat = %r' % (cat,))
-
-                print('ERROR: Not all edges accounted for. '
-                      'Is name labeling computed using connected components?')
-                import utool
-                utool.embed()
-                raise AssertionError('edges not the same')
+        # if __debug__:
+        #     infr._check_edge_categories(graph, ne_categories, edge_categories,
+        #                                 node_to_label)
 
         # Update the attributes of all edges in the subgraph
 
         # Update the infered state
         infr.set_edge_attrs('inferred_state', _dz(
-            inconsistent_external_edges, ['inconsistent_external']))
-        infr.set_edge_attrs('inferred_state', _dz(incon_intern_edges,
-                                                  ['inconsistent_internal']))
-        infr.set_edge_attrs('inferred_state', _dz(unreviewed_edges, [None]))
-        infr.set_edge_attrs('inferred_state', _dz(notcomparable_edges, [None]))
-        infr.set_edge_attrs('inferred_state', _dz(positive_edges, ['same']))
-        infr.set_edge_attrs('inferred_state', _dz(negative_edges, ['diff']))
+            edge_categories['inconsistent_external'], ['inconsistent_external']))
+        infr.set_edge_attrs('inferred_state', _dz(
+            edge_categories['inconsistent_internal'], ['inconsistent_internal']))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['unreviewed'], [None]))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['notcomp'], ['notcomp']))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['positive'], ['same']))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['negative'], ['diff']))
 
         # Suggest possible fixes
-        all_edges = list(edge_to_review.keys())
         infr.set_edge_attrs('maybe_error', ut.dzip(all_edges, [False]))
         infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
 
         # Update the cut state
-        infr.set_edge_attrs('is_cut', _dz(inconsistent_external_edges,
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['inconsistent_external'],
                                           [True]))
-        infr.set_edge_attrs('is_cut', _dz(incon_intern_edges, [False]))
-        infr.set_edge_attrs('is_cut', _dz(unreviewed_edges, [False]))
-        infr.set_edge_attrs('is_cut', _dz(notcomparable_edges, [False]))
-        infr.set_edge_attrs('is_cut', _dz(positive_edges, [False]))
-        infr.set_edge_attrs('is_cut', _dz(negative_edges, [True]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['inconsistent_internal'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['unreviewed'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['notcomp'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['positive'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['negative'], [True]))
 
         # Update basic priorites
         # FIXME: this must agree with queue
@@ -2476,11 +2481,12 @@ class _AnnotInfrUpdates(object):
         if infr.queue is not None:
             if infr.verbose >= 1:
                 print('[infr] updating priority queue')
-            infr._update_priority_queue(graph, positive_ccs, negative,
+            infr._update_priority_queue(graph, ne_categories['positive'],
+                                        ne_categories['negative'],
                                         reviewed_positives, reviewed_negatives,
                                         node_to_label, nid_to_cc,
                                         suggested_fix_edges, other_error_edges,
-                                        unreviewed_edges)
+                                        edge_categories['unreviewed'])
         else:
             if infr.verbose >= 1:
                 print('[infr] no priority queue to update')
@@ -2488,7 +2494,7 @@ class _AnnotInfrUpdates(object):
             print('[infr] finished review inference')
 
     @profile
-    def _find_possible_error_edges(infr, subgraph):
+    def _find_possible_error_edges(infr, subgraph, copy=True):
         inconsistent_edges = [
             edge for edge, state in
             nx.get_edge_attributes(subgraph, 'reviewed_state').items()
@@ -2496,9 +2502,9 @@ class _AnnotInfrUpdates(object):
         ]
         maybe_error_edges = set([])
 
-        subgraph_ = subgraph.copy()
+        subgraph_ = infr.simplify_graph(subgraph, copy=copy)
+        # subgraph_ = subgraph.copy() if copy else subgraph
         subgraph_.remove_edges_from(inconsistent_edges)
-        subgraph_ = infr.simplify_graph(subgraph_)
 
         ut.nx_set_default_edge_attributes(subgraph_, 'num_reviews', 1)
         for s, t in inconsistent_edges:
