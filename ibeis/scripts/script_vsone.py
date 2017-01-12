@@ -70,6 +70,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     CommandLine:
         python -m ibeis.scripts.script_vsone evaluate_classifiers
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --profile
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1 --show
@@ -361,7 +362,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.5, 1.0, 20)
-        thresh_list0 = np.linspace(.51, 1.0, 10)
+        thresh_list0 = np.linspace(.51, 1.0, 3)
         # thresh_list0 = np.linspace(.8, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
