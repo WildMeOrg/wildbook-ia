@@ -670,8 +670,8 @@ class _AnnotInfrIBEIS(object):
             >>> result =('feedback = %s' % (ut.repr2(feedback, nl=1),))
             >>> print(result)
             feedback = {
-                (2, 3): [{'decision': 'nomatch', 'tags': ['photobomb']}],
-                (5, 6): [{'decision': 'nomatch', 'tags': ['photobomb']}],
+                (2, 3): [{'decision': 'match', 'tags': ['photobomb']}],
+                (5, 6): [{'decision': 'match', 'tags': ['photobomb']}],
             }
         """
         if infr.verbose >= 1:
@@ -821,9 +821,8 @@ class _AnnotInfrIBEIS(object):
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
             edge_delta_df =
-            edge_delta_df =
             Empty DataFrame
-            Columns: [aid1, aid2, am_rowid, old_decision, new_decision, old_tags, new_tags]
+            Columns: [am_rowid, old_decision, new_decision, old_tags, new_tags]
             Index: []
 
         Example:
@@ -1451,7 +1450,8 @@ class _AnnotInfrMatching(object):
         """
         match_list = infr._exec_pairwise_match(edges, config=config,
                                                prog_hook=prog_hook)
-        vsone_matches = {e_(u, v) for (u, v), match in zip(edges, match_list)}
+        vsone_matches = {e_(u, v): match
+                         for (u, v), match in zip(edges, match_list)}
         infr.vsone_matches.update(vsone_matches)
         edge_to_score = {e: match.fs.sum() for e, match in
                          vsone_matches.items()}

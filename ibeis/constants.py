@@ -289,13 +289,8 @@ class ZIPPED_URLS(object):
     PZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_plains.zip'  # DEPRICATE
     GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'
 
-if six.PY2:
-    __STR__ = unicode  # TODO: use six.text_type instead
-else:
-    __STR__ = str
 
-
-# FIXME; TRUTH_UNKNOWN value should be None
+# FIXME; TRUTH_UNKNOWN value should be None?
 TRUTH_UNKNOWN = 3
 TRUTH_NOT_COMP = 2
 TRUTH_MATCH = 1
