@@ -132,6 +132,7 @@ class InfrSimulation(object):
         sim.results['n_incon_fixes'] = n_fixes
 
         # Should have fixed everything
+        infr.apply_review_inference()
         n_clusters, n_inconsistent = infr.relabel_using_reviews(rectify=False)
         import utool
         with utool.embed_on_exception_context:

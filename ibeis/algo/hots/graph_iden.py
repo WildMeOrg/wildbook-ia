@@ -1129,7 +1129,9 @@ class _AnnotInfrFeedback(object):
         extended_subgraph = infr.graph.subgraph(extended_nodes)
 
         # This re-infers all attributes of the influenced sub-graph only
-        infr.apply_review_inference(graph=extended_subgraph)
+        import utool
+        with utool.embed_on_exception_context:
+            infr.apply_review_inference(graph=extended_subgraph)
 
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
@@ -2034,119 +2036,6 @@ class _AnnotInfrPriority(object):
 class _AnnotInfrUpdates(object):
 
     @profile
-    def _infer_edge_categories2(infr, graph, node_to_label, edge_to_reviewstate,
-                                nid_to_cc):
-        # Group edges by review type
-        grouped_review_edges = ut.group_pairs(edge_to_reviewstate.items())
-        neg_review_edges = grouped_review_edges.pop('nomatch', [])
-        pos_review_edges = grouped_review_edges.pop('match', [])
-        notcomp_review_edges = grouped_review_edges.pop('notcomp', [])
-        unreviewed_edges = grouped_review_edges.pop('unreviewed', [])
-
-        if grouped_review_edges:
-            raise AssertionError('Reviewed state has unknown values: %r' % (
-                list(grouped_review_edges.keys())),)
-
-        def group_name_edges(edges):
-            nid_to_cc = collections.defaultdict(set)
-            name_edges = (e_(node_to_label[u], node_to_label[v])
-                          for u, v in edges)
-            for edge, name_edge in zip(edges, name_edges):
-                nid_to_cc[name_edge].add(edge)
-            return nid_to_cc
-
-        # Group edges by the names they are between
-        pos_review_ne_groups = group_name_edges(pos_review_edges)
-        neg_review_ne_groups = group_name_edges(neg_review_edges)
-        notcomp_review_ne_groups = group_name_edges(notcomp_review_edges)
-        unreviewed_ne_groups = group_name_edges(unreviewed_edges)
-
-        # Infer status of name clusters
-        pos_ne = set(pos_review_ne_groups.keys())
-        neg_ne = set(neg_review_ne_groups.keys())
-        notcomp_ne = set(notcomp_review_ne_groups.keys())
-        unreviewed_ne = set(unreviewed_ne_groups.keys())
-
-        assert all(n1 == n2 for n1, n2 in pos_ne), 'pos should have same lbl'
-        incon_internal_ne = neg_ne.intersection(pos_ne)
-
-        # positive overrides notcomp and unreviewed
-        notcomp_ne.difference_update(pos_ne)
-        unreviewed_ne.difference_update(pos_ne)
-
-        # negative overrides notcomp and unreviewed
-        notcomp_ne.difference_update(neg_ne)
-        unreviewed_ne.difference_update(neg_ne)
-
-        # internal inconsistencies override all other categories
-        pos_ne.difference_update(incon_internal_ne)
-        neg_ne.difference_update(incon_internal_ne)
-        notcomp_ne.difference_update(incon_internal_ne)
-        unreviewed_ne.difference_update(incon_internal_ne)
-
-        # External inconsistentices are edges leaving inconsistent components
-        # internal_incon_ne = set([(n1, n2) for (n1, n2) in neg_ne if n1 == n2])
-        assert all(n1 == n2 for n1, n2 in incon_internal_ne), (
-            'incon_internal should have same lbl')
-        incon_internal_nids = set([n1 for n1, n2 in incon_internal_ne])
-        incon_external_ne = set([])
-        for _ne in [neg_ne, notcomp_ne, unreviewed_ne]:
-            incon_external_ne.update({
-                (nid1, nid2) for nid1, nid2 in _ne
-                if nid1 in incon_internal_nids or nid2 in incon_internal_nids
-            })
-        neg_ne.difference_update(incon_external_ne)
-        notcomp_ne.difference_update(incon_external_ne)
-        unreviewed_ne.difference_update(incon_external_ne)
-
-        # Inference is made on a name(cc) based level now expand this inference
-        # back onto the edges.
-        positive = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
-            for nid1, nid2 in pos_ne
-        }
-        negative = {
-            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
-            for nid1, nid2 in neg_ne
-        }
-        inconsistent_internal = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
-            for nid1, nid2 in incon_internal_ne
-        }
-        inconsistent_external = {
-            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
-            for nid1, nid2 in incon_external_ne
-        }
-        # No bridges are formed for notcomparable edges. Just take
-        # the set of reviews
-        notcomparable = {
-            (nid1, nid2): notcomp_review_ne_groups[(nid1, nid2)]
-            for (nid1, nid2) in notcomp_ne
-        }
-        unreviewed = {
-            (nid1, nid2):
-                bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
-            for (nid1, nid2) in unreviewed_ne
-        }
-        # Removed not-comparable edges from unreviewed
-        for name_edge in unreviewed_ne.intersection(notcomp_ne):
-            unreviewed[name_edge].difference_update(notcomparable[name_edge])
-
-        reviewed_positives = {n1: pos_review_ne_groups[(n1, n2)] for
-                              n1, n2 in pos_ne}
-        reviewed_negatives = {ne: neg_review_ne_groups[ne] for ne in neg_ne}
-
-        ne_categories = {
-            'positive': positive,
-            'negative': negative,
-            'unreviewed': unreviewed,
-            'notcomp': notcomparable,
-            'inconsistent_internal': inconsistent_internal,
-            'inconsistent_external': inconsistent_external,
-        }
-        return ne_categories, reviewed_positives, reviewed_negatives
-
-    @profile
     def _infer_edge_categories(infr, graph, node_to_label, edge_to_reviewstate,
                                nid_to_cc):
         # import utool
@@ -2273,6 +2162,119 @@ class _AnnotInfrUpdates(object):
             'inconsistent_external': inconsistent_external,
         }
         return (ne_categories, reviewed_positives, reviewed_negatives)
+
+    @profile
+    def _infer_edge_categories2(infr, graph, node_to_label, edge_to_reviewstate,
+                                nid_to_cc):
+        # Group edges by review type
+        grouped_review_edges = ut.group_pairs(edge_to_reviewstate.items())
+        neg_review_edges = grouped_review_edges.pop('nomatch', [])
+        pos_review_edges = grouped_review_edges.pop('match', [])
+        notcomp_review_edges = grouped_review_edges.pop('notcomp', [])
+        unreviewed_edges = grouped_review_edges.pop('unreviewed', [])
+
+        if grouped_review_edges:
+            raise AssertionError('Reviewed state has unknown values: %r' % (
+                list(grouped_review_edges.keys())),)
+
+        def group_name_edges(edges):
+            nid_to_cc = collections.defaultdict(set)
+            name_edges = (e_(node_to_label[u], node_to_label[v])
+                          for u, v in edges)
+            for edge, name_edge in zip(edges, name_edges):
+                nid_to_cc[name_edge].add(edge)
+            return nid_to_cc
+
+        # Group edges by the names they are between
+        pos_review_ne_groups = group_name_edges(pos_review_edges)
+        neg_review_ne_groups = group_name_edges(neg_review_edges)
+        notcomp_review_ne_groups = group_name_edges(notcomp_review_edges)
+        unreviewed_ne_groups = group_name_edges(unreviewed_edges)
+
+        # Infer status of name clusters
+        pos_ne = set(pos_review_ne_groups.keys())
+        neg_ne = set(neg_review_ne_groups.keys())
+        notcomp_ne = set(notcomp_review_ne_groups.keys())
+        unreviewed_ne = set(unreviewed_ne_groups.keys())
+
+        assert all(n1 == n2 for n1, n2 in pos_ne), 'pos should have same lbl'
+        incon_internal_ne = neg_ne.intersection(pos_ne)
+
+        # positive overrides notcomp and unreviewed
+        notcomp_ne.difference_update(pos_ne)
+        unreviewed_ne.difference_update(pos_ne)
+
+        # negative overrides notcomp and unreviewed
+        notcomp_ne.difference_update(neg_ne)
+        unreviewed_ne.difference_update(neg_ne)
+
+        # internal inconsistencies override all other categories
+        pos_ne.difference_update(incon_internal_ne)
+        neg_ne.difference_update(incon_internal_ne)
+        notcomp_ne.difference_update(incon_internal_ne)
+        unreviewed_ne.difference_update(incon_internal_ne)
+
+        # External inconsistentices are edges leaving inconsistent components
+        # internal_incon_ne = set([(n1, n2) for (n1, n2) in neg_ne if n1 == n2])
+        assert all(n1 == n2 for n1, n2 in incon_internal_ne), (
+            'incon_internal should have same lbl')
+        incon_internal_nids = set([n1 for n1, n2 in incon_internal_ne])
+        incon_external_ne = set([])
+        for _ne in [neg_ne, notcomp_ne, unreviewed_ne]:
+            incon_external_ne.update({
+                (nid1, nid2) for nid1, nid2 in _ne
+                if nid1 in incon_internal_nids or nid2 in incon_internal_nids
+            })
+        neg_ne.difference_update(incon_external_ne)
+        notcomp_ne.difference_update(incon_external_ne)
+        unreviewed_ne.difference_update(incon_external_ne)
+
+        # Inference is made on a name(cc) based level now expand this inference
+        # back onto the edges.
+        positive = {
+            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
+            for nid1, nid2 in pos_ne
+        }
+        negative = {
+            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
+            for nid1, nid2 in neg_ne
+        }
+        inconsistent_internal = {
+            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
+            for nid1, nid2 in incon_internal_ne
+        }
+        inconsistent_external = {
+            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
+            for nid1, nid2 in incon_external_ne
+        }
+        # No bridges are formed for notcomparable edges. Just take
+        # the set of reviews
+        notcomparable = {
+            (nid1, nid2): notcomp_review_ne_groups[(nid1, nid2)]
+            for (nid1, nid2) in notcomp_ne
+        }
+        unreviewed = {
+            (nid1, nid2):
+                bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
+            for (nid1, nid2) in unreviewed_ne
+        }
+        # Removed not-comparable edges from unreviewed
+        for name_edge in unreviewed_ne.intersection(notcomp_ne):
+            unreviewed[name_edge].difference_update(notcomparable[name_edge])
+
+        reviewed_positives = {n1: pos_review_ne_groups[(n1, n2)] for
+                              n1, n2 in pos_ne}
+        reviewed_negatives = {ne: neg_review_ne_groups[ne] for ne in neg_ne}
+
+        ne_categories = {
+            'positive': positive,
+            'negative': negative,
+            'unreviewed': unreviewed,
+            'notcomp': notcomparable,
+            'inconsistent_internal': inconsistent_internal,
+            'inconsistent_external': inconsistent_external,
+        }
+        return ne_categories, reviewed_positives, reviewed_negatives
 
     def _check_edge_categories(infr, graph, ne_categories, edge_categories,
                                node_to_label):
@@ -2406,20 +2408,27 @@ class _AnnotInfrUpdates(object):
         # (ne_categories, reviewed_positives, reviewed_negatives,) = tup1
 
         # Find possible fixes for inconsistent components
-        if infr.verbose >= 1 and ne_categories['inconsistent_internal']:
-            print('[infr] found %d inconsistencies searching for fixes' %
-                  (len(ne_categories['inconsistent_internal']),))
+        if infr.verbose >= 1:
+            if ne_categories['inconsistent_internal']:
+                print('[infr] found %d inconsistencies searching for fixes' %
+                      (len(ne_categories['inconsistent_internal']),))
+            else:
+                print('no inconsistencies')
 
         suggested_fix_edges = []
         other_error_edges = []
         for nid, cc_inconsistent_edges in ne_categories['inconsistent_internal'].items():
+            # ut.unflat_take(node_to_label, cc_inconsistent_edges)
             # Find possible edges to fix in the reviewed subgarph
             reviewed_inconsistent = [
                 (u, v, infr_graph_edge[u][v].copy()) for (u, v) in cc_inconsistent_edges
                 if edge_to_reviewstate[(u, v)] != 'unreviewed'
             ]
             subgraph = nx.Graph(reviewed_inconsistent)
-            cc_error_edges = infr._find_possible_error_edges(subgraph, copy=True)
+            cc_error_edges = infr._find_possible_error_edges(subgraph)
+            # import utool
+            # with utool.embed_on_exception_context:
+            assert len(cc_error_edges) > 0, 'no fixes found'
             cc_other_edges = ut.setdiff(cc_inconsistent_edges, cc_error_edges)
             suggested_fix_edges.extend(cc_error_edges)
             other_error_edges.extend(cc_other_edges)
@@ -2494,16 +2503,20 @@ class _AnnotInfrUpdates(object):
             print('[infr] finished review inference')
 
     @profile
-    def _find_possible_error_edges(infr, subgraph, copy=True):
+    def _find_possible_error_edges(infr, subgraph):
+        """
+            Args:
+                subgraph (nx.Graph): a subgraph of a positive compomenent
+                    with only reviewed edges.
+        """
         inconsistent_edges = [
             edge for edge, state in
             nx.get_edge_attributes(subgraph, 'reviewed_state').items()
             if state == 'nomatch'
         ]
         maybe_error_edges = set([])
-
-        subgraph_ = infr.simplify_graph(subgraph, copy=copy)
-        # subgraph_ = subgraph.copy() if copy else subgraph
+        # subgraph_ = infr.simplify_graph(subgraph, copy=copy)
+        subgraph_ = subgraph.copy()
         subgraph_.remove_edges_from(inconsistent_edges)
 
         ut.nx_set_default_edge_attributes(subgraph_, 'num_reviews', 1)
@@ -2519,6 +2532,8 @@ class _AnnotInfrUpdates(object):
                 subgraph.get_edge_data(u, v).get('num_reviews', 1)
                 for u, v in join_edgeset])
             # Determine if this is more likely a split or a join
+            # if len(cut_edgeset) == 0:
+            #     maybe_error_edges.update(join_edgeset)
             if join_edgeset_weight < cut_edgeset_weight:
                 maybe_error_edges.update(join_edgeset)
             else:
@@ -2535,7 +2550,7 @@ class _AnnotInfrUpdates(object):
         returned.
         """
         visited = set(cc)
-        visited_nodes = set([])
+        # visited_nodes = set([])
         nomatch_ccs = []
         for n1 in cc:
             for n2 in infr.graph.neighbors(n1):
@@ -2545,7 +2560,8 @@ class _AnnotInfrUpdates(object):
                     _state = infr.graph.edge[n1][n2].get('reviewed_state',
                                                          'unreviewed')
                     if _state == 'nomatch':
-                        cc2 = infr.get_annot_cc(n2, visited_nodes=visited_nodes)
+                        cc2 = infr.get_annot_cc(n2)
+                        # visited_nodes=visited_nodes)
                         nomatch_ccs.append(cc2)
                         visited.update(cc2)
         return nomatch_ccs
@@ -2650,6 +2666,156 @@ class _AnnotInfrRelabel(object):
         cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
         return cc_subgraphs
 
+    @profile
+    def reset_labels_to_ibeis(infr):
+        """ Sets to IBEIS de-facto labels if available """
+        nids = infr._rectify_nids(infr.aids, None)
+        nodes = ut.take(infr.aid_to_node, infr.aids)
+        infr.set_node_attrs('name_label', ut.dzip(nodes, nids))
+
+    def _rectify_names(infr, old_names, new_labels):
+        """
+        Finds the best assignment of old names based on the new groups each is
+        assigned to.
+
+        old_names  = [None, None, None, 1, 2, 3, 3, 4, 4, 4, 5, None]
+        new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
+        """
+        from ibeis.scripts import name_recitifer
+        newlabel_to_oldnames = ut.group_items(old_names, new_labels)
+        # Remove nones
+        unique_newlabels = list(newlabel_to_oldnames.keys())
+        grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
+        grouped_oldnames = [
+            [n for n in oldgroup if n is not None]
+            for oldgroup in grouped_oldnames_]
+        new_names = name_recitifer.find_consistent_labeling(grouped_oldnames)
+        new_flags = [
+            isinstance(n, six.string_types) and n.startswith('_extra_name')
+            for n in new_names
+        ]
+        label_to_name = ut.dzip(unique_newlabels, new_names)
+        needs_assign = ut.compress(unique_newlabels, new_flags)
+        return label_to_name, needs_assign
+
+    @profile
+    def relabel_using_reviews(infr, graph=None, rectify=True):
+        r"""
+        Relabels nodes in graph based on poasitive-review connected components
+
+        Args:
+            graph (nx.Graph, optional): only edges in `graph` are relabeled
+            rectify (bool, optional): if True names attempt to remain
+                consistent otherwise there are no restrictions on name labels
+                other than that they are distinct.
+        """
+        if infr.verbose >= 1:
+            print('[infr] relabel_using_reviews')
+        cc_subgraphs = infr.connected_component_reviewed_subgraphs(graph=graph)
+        # print('Relabeling')
+        # print([list(cc.nodes()) for cc in cc_subgraphs])
+        num_inconsistent = 0
+        num_names = len(cc_subgraphs)
+
+        if rectify:
+            # Determine which names can be reused
+            from ibeis.scripts import name_recitifer
+            if infr.verbose >= 2:
+                print('rectifying names')
+            grouped_oldnames_ = [
+                list(nx.get_node_attributes(subgraph, 'name_label').values())
+                for count, subgraph in enumerate(cc_subgraphs)
+            ]
+            # Make sure negatives dont get priority
+            grouped_oldnames = [
+                [n for n in group if len(group) == 1 or n > 0]
+                for group in grouped_oldnames_
+            ]
+            new_labels = name_recitifer.find_consistent_labeling(
+                grouped_oldnames)
+            new_flags = [
+                not isinstance(n, int) and n.startswith('_extra_name')
+                for n in new_labels
+            ]
+            if infr.verbose >= 2:
+                print('done rectifying')
+
+            for idx in ut.where(new_flags):
+                new_labels[idx] = infr._next_nid()
+
+            for idx, label in enumerate(new_labels):
+                if label < 0 and len(grouped_oldnames[idx]) > 1:
+                    # Remove negative ids for grouped items
+                    new_labels[idx] = infr._next_nid()
+        else:
+            # Don't bother rectifying names, they are just labels anyway
+            new_labels = {}
+            if graph is None:
+                # just re-index everything from 0
+                for count, subgraph in enumerate(cc_subgraphs):
+                    new_nid = count
+                    new_labels[count] = new_nid
+            else:
+                # try to reuse the names in the subgraph in whatever order
+                # otherwise get nids completely new to the infr object
+                # available_nids = list(set(nx.get_node_attributes(
+                #     graph, 'name_label').values()))
+                available_nids = []  # always use a new nid
+                for count, subgraph in enumerate(cc_subgraphs):
+                    if count < len(available_nids):
+                        new_nid = available_nids[count]
+                    else:
+                        new_nid = infr._next_nid()
+                    new_labels[count] = new_nid
+
+        for count, subgraph in enumerate(cc_subgraphs):
+            reviewed_states = nx.get_edge_attributes(subgraph, 'reviewed_state')
+            # Check for consistency
+            inconsistent_edges = [edge for edge, val in reviewed_states.items()
+                                  if val == 'nomatch']
+            if len(inconsistent_edges) > 0:
+                num_inconsistent += 1
+            new_nid = new_labels[count]
+            node_to_newlabel = ut.dzip(subgraph.nodes(), [new_nid])
+            # node_to_oldlabel = infr.get_node_attrs('name_label', nodes=subgraph.nodes())
+            infr.set_node_attrs('name_label', node_to_newlabel)
+        if infr.verbose >= 3:
+            print('[infr] done relabeling')
+        return num_names, num_inconsistent
+
+    def relabel_using_inference(infr, **kwargs):
+        """
+        Applies name labels based on graph inference and then cuts edges
+        """
+        if infr.verbose > 1:
+            print('[infr] relabel_using_inference')
+
+        infr.remove_dummy_edges()
+        infr.model = infr_model.InfrModel(infr.graph, infr.CUT_WEIGHT_KEY)
+        model = infr.model
+        thresh = infr.get_threshold()
+        model._update_weights(thresh=thresh)
+        labeling, params = model.run_inference2(max_labels=len(infr.aids))
+
+        infr.set_node_attrs('name_label', model.node_to_label)
+        infr.apply_cuts()
+        # infr.ensure_mst()
+
+    def get_threshold(infr):
+        # Only use the normalized scores to estimate a threshold
+        normscores = np.array(infr.get_edge_attrs('normscore').values())
+        if infr.verbose >= 1:
+            print('len(normscores) = %r' % (len(normscores),))
+        isvalid = ~np.isnan(normscores)
+        curve = np.sort(normscores[isvalid])
+        thresh = infr_model.estimate_threshold(curve, method=None)
+        if infr.verbose >= 1:
+            print('[estimate] thresh = %r' % (thresh,))
+        if thresh is None:
+            thresh = .5
+        infr.thresh = thresh
+        return thresh
+
     def connected_component_status(infr):
         r"""
         Returns:
@@ -2709,153 +2875,6 @@ class _AnnotInfrRelabel(object):
         if infr.verbose >= 3:
             print('[infr] done checking status')
         return status
-
-    @profile
-    def reset_labels_to_ibeis(infr):
-        """ Sets to IBEIS de-facto labels if available """
-        nids = infr._rectify_nids(infr.aids, None)
-        nodes = ut.take(infr.aid_to_node, infr.aids)
-        infr.set_node_attrs('name_label', ut.dzip(nodes, nids))
-
-    def _rectify_names(infr, old_names, new_labels):
-        """
-        Finds the best assignment of old names based on the new groups each is
-        assigned to.
-
-        old_names  = [None, None, None, 1, 2, 3, 3, 4, 4, 4, 5, None]
-        new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
-        """
-        from ibeis.scripts import name_recitifer
-        newlabel_to_oldnames = ut.group_items(old_names, new_labels)
-        # Remove nones
-        unique_newlabels = list(newlabel_to_oldnames.keys())
-        grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
-        grouped_oldnames = [
-            [n for n in oldgroup if n is not None]
-            for oldgroup in grouped_oldnames_]
-        new_names = name_recitifer.find_consistent_labeling(grouped_oldnames)
-        new_flags = [
-            isinstance(n, six.string_types) and n.startswith('_extra_name')
-            for n in new_names
-        ]
-        label_to_name = ut.dzip(unique_newlabels, new_names)
-        needs_assign = ut.compress(unique_newlabels, new_flags)
-        return label_to_name, needs_assign
-
-    @profile
-    def relabel_using_reviews(infr, graph=None, rectify=True):
-        r"""
-        Relabels nodes in graph based on poasitive-review connected components
-
-        Args:
-            graph (nx.Graph, optional): only edges in `graph` are relabeled
-            rectify (bool, optional): if True names attempt to remain
-                consistent otherwise there are no restrictions on name labels
-                other than that they are distinct.
-        """
-        if infr.verbose >= 1:
-            print('[infr] relabel_using_reviews')
-        cc_subgraphs = infr.connected_component_reviewed_subgraphs(graph=graph)
-        num_inconsistent = 0
-        num_names = len(cc_subgraphs)
-
-        if rectify:
-            # Determine which names can be reused
-            from ibeis.scripts import name_recitifer
-            if infr.verbose >= 2:
-                print('rectifying names')
-            grouped_oldnames_ = [
-                list(nx.get_node_attributes(subgraph, 'name_label').values())
-                for count, subgraph in enumerate(cc_subgraphs)
-            ]
-            # Make sure negatives dont get priority
-            grouped_oldnames = [
-                [n for n in group if len(group) == 1 or n > 0]
-                for group in grouped_oldnames_
-            ]
-            new_labels = name_recitifer.find_consistent_labeling(
-                grouped_oldnames)
-            new_flags = [
-                not isinstance(n, int) and n.startswith('_extra_name')
-                for n in new_labels
-            ]
-            if infr.verbose >= 2:
-                print('done rectifying')
-
-            for idx in ut.where(new_flags):
-                new_labels[idx] = infr._next_nid()
-
-            for idx, label in enumerate(new_labels):
-                if label < 0 and len(grouped_oldnames[idx]) > 1:
-                    # Remove negative ids for grouped items
-                    new_labels[idx] = infr._next_nid()
-        else:
-            # Don't bother rectifying names, they are just labels anyway
-            new_labels = {}
-            if graph is None:
-                # just re-index everything from 0
-                for count, subgraph in enumerate(cc_subgraphs):
-                    new_nid = count
-                    new_labels[count] = new_nid
-            else:
-                # try to reuse the names in the subgraph in whatever order
-                # otherwise get nids completely new to the infr object
-                available_nids = list(set(nx.get_node_attributes(
-                    graph, 'name_label')))
-                for count, subgraph in enumerate(cc_subgraphs):
-                    if count < len(available_nids):
-                        new_nid = available_nids[count]
-                    else:
-                        new_nid = infr._next_nid()
-                    new_labels[count] = new_nid
-
-        for count, subgraph in enumerate(cc_subgraphs):
-            reviewed_states = nx.get_edge_attributes(subgraph, 'reviewed_state')
-            # Check for consistency
-            inconsistent_edges = [edge for edge, val in reviewed_states.items()
-                                  if val == 'nomatch']
-            if len(inconsistent_edges) > 0:
-                #print('Inconsistent')
-                num_inconsistent += 1
-            new_nid = new_labels[count]
-            infr.set_node_attrs(
-                'name_label', ut.dzip(subgraph.nodes(), [new_nid]))
-        if infr.verbose >= 3:
-            print('[infr] done relabeling')
-        return num_names, num_inconsistent
-
-    def relabel_using_inference(infr, **kwargs):
-        """
-        Applies name labels based on graph inference and then cuts edges
-        """
-        if infr.verbose > 1:
-            print('[infr] relabel_using_inference')
-
-        infr.remove_dummy_edges()
-        infr.model = infr_model.InfrModel(infr.graph, infr.CUT_WEIGHT_KEY)
-        model = infr.model
-        thresh = infr.get_threshold()
-        model._update_weights(thresh=thresh)
-        labeling, params = model.run_inference2(max_labels=len(infr.aids))
-
-        infr.set_node_attrs('name_label', model.node_to_label)
-        infr.apply_cuts()
-        # infr.ensure_mst()
-
-    def get_threshold(infr):
-        # Only use the normalized scores to estimate a threshold
-        normscores = np.array(infr.get_edge_attrs('normscore').values())
-        if infr.verbose >= 1:
-            print('len(normscores) = %r' % (len(normscores),))
-        isvalid = ~np.isnan(normscores)
-        curve = np.sort(normscores[isvalid])
-        thresh = infr_model.estimate_threshold(curve, method=None)
-        if infr.verbose >= 1:
-            print('[estimate] thresh = %r' % (thresh,))
-        if thresh is None:
-            thresh = .5
-        infr.thresh = thresh
-        return thresh
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
