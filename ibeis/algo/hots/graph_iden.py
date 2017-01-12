@@ -1102,10 +1102,10 @@ class _AnnotInfrFeedback(object):
         # Change names of nodes
         infr.relabel_using_reviews(graph=subgraph, rectify=rectify)
 
-        # Get a list of all known connected components
-        extended_nodes = ut.flatten(infr.get_nomatch_ccs(relevant_nodes))
-        extended_nodes += relevant_nodes
-        # print('extended_nodes = %r' % (extended_nodes,))
+        # Include other components where there are transative consequences
+        nomatch_ccs = infr.get_nomatch_ccs(relevant_nodes)
+        extended_nodes = ut.flatten(nomatch_ccs)
+        extended_nodes.extend(relevant_nodes)
         extended_subgraph = infr.graph.subgraph(extended_nodes)
 
         # This re-infers all attributes of the influenced sub-graph only
@@ -2383,29 +2383,37 @@ class _AnnotInfrUpdates(object):
         returned.
         """
         visited = set(cc)
+        visited_nodes = set([])
         nomatch_ccs = []
         for n1 in cc:
             for n2 in infr.graph.neighbors(n1):
                 if n2 not in visited:
-                    data = infr.graph.get_edge_data(n1, n2)
-                    _state = data.get('reviewed_state', 'unreviewed')
+                    # data = infr.graph.get_edge_data(n1, n2)
+                    # _state = data.get('reviewed_state', 'unreviewed')
+                    _state = infr.graph.edge[n1][n2].get('reviewed_state',
+                                                         'unreviewed')
                     if _state == 'nomatch':
-                        cc2 = infr.get_annot_cc(n2)
+                        cc2 = infr.get_annot_cc(n2, visited_nodes=visited_nodes)
                         nomatch_ccs.append(cc2)
                         visited.update(cc2)
         return nomatch_ccs
 
     @profile
-    def get_annot_cc(infr, source):
+    def get_annot_cc(infr, source, visited_nodes=None):
         """
         Get the name_label cc connected to `source`
         """
         # Speed hack for BFS conditional
         G = infr.graph
         cc = set([source])
-        visited_nodes = set([source])
-        new_edges = iter([(source, n) for n in G.adj[source]])
-        queue = collections.deque([(source, new_edges)])
+        queue = collections.deque([])
+        # visited_nodes = set([source])
+        if visited_nodes is None:
+            visited_nodes = set([])
+        if source not in visited_nodes:
+            visited_nodes.add(source)
+            new_edges = iter([(source, n) for n in G.adj[source]])
+            queue.append((source, new_edges))
         while queue:
             parent, edges = queue[0]
             parent_attr = G.node[parent]['name_label']
