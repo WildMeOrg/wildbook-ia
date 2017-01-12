@@ -17,6 +17,19 @@ CommandLine:
     ssh -N -f -L localhost:8889:localhost:8888 joncrall@hyrule.cs.rpi.edu
     # Now you can connect locally
     firefox localhost:8889
+
+
+    # To allow remote jupyter-noteobok connections
+    jupyter notebook --generate-config
+
+    # Really need to do jupyter hub
+
+    need to set
+    c.NotebookApp.port = 8888
+    c.NotebookApp.open_browser = False
+    c.NotebookApp.ip = '*'
+
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
