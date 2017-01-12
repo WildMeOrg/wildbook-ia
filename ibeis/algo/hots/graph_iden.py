@@ -25,8 +25,16 @@ def e_(u, v):
 
 @profile
 def bridges(graph, cc1, cc2=None):
-    return [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-                                                     assume_disjoint=True)]
+    test1 =  [e_(u, v) for u, v in ut.nx_edges_between_sparse_disjoint(graph, cc1, cc2)]
+    test2 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
+                                                       assume_sparse=True,
+                                                       assume_disjoint=True)]
+    test3 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
+                                                       assume_sparse=False,
+                                                       assume_disjoint=True)]
+    assert sorted(test1) == sorted(test2)
+    assert sorted(test1) == sorted(test3)
+    return test1
 
 
 @profile
