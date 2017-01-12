@@ -7,7 +7,9 @@ import operator
 import utool as ut
 import vtool as vt
 import numpy as np
+import itertools as it
 from functools import partial
+from six import next
 from six.moves import zip, range, map, reduce
 from ibeis.expt import cfghelpers
 from ibeis.expt import experiment_helpers
@@ -351,8 +353,8 @@ class TestResult(ut.NiceRepr):
         return cfgx2_cumhist_percent, edges
 
     def get_cfgx_groupxs(testres):
-        """
-        Groupxs configurations specified to be joined
+        r"""
+        Returns the group indices of configurations specified to be joined.
 
         Ignore:
             a = [
@@ -388,20 +390,20 @@ class TestResult(ut.NiceRepr):
             >>> groupxs = testres.get_cfgx_groupxs()
             >>> result = groupxs
             >>> print(result)
-            [[7], [6], [5], [4], [0, 1, 2, 3]]
+            [[6], [4], [0, 2], [7], [5], [1, 3]]
         """
-        import itertools
-        # Group-ids for annotations are determined by joinme labels (used by xval)
-        group_ids_ = [acfg['qcfg']['joinme'] for acfg in testres.cfgx2_acfg]
+        # Group-ids for annotations are determined by joinme labels
+        # (used primarilly in cross-validation)
+        acfg_joinid = [acfg['qcfg']['joinme'] for acfg in testres.cfgx2_acfg]
         # Anything that does not have a joinme groupid is standalone and must
         # be given a unique groupid
-        gen_groupid = itertools.count(1)
-        acfg_group_ids = [groupid if groupid is not None else -1 * six.next(gen_groupid)
-                          for groupid in group_ids_]
+        gen_groupid = it.count(-1, step=-1)
+        acfg_groupids = [next(gen_groupid) if grpid is None else grpid
+                          for grpid in acfg_joinid]
         # Ensure that different pipeline configs are in different groups
-        pcfg_group_ids = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg)
-        group_ids_ = list(zip(pcfg_group_ids, acfg_group_ids))
-        groupxs = ut.group_indices(group_ids_)[1]
+        pcfg_groupids = ut.get_varied_cfg_lbls(testres.cfgx2_pcfg)
+        cfg_groupids = list(zip(pcfg_groupids, acfg_groupids))
+        groupxs = ut.group_indices(cfg_groupids)[1]
         return groupxs
 
     def get_rank_histogram_bins(testres):
@@ -416,6 +418,7 @@ class TestResult(ut.NiceRepr):
         return bins
 
     def get_X_LIST(testres):
+        """ DEPRICATE or refactor """
         #X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1])
         X_LIST = ut.get_argval('--rank-lt-list', type_=list, default=[1, 5])
         return X_LIST
@@ -428,13 +431,12 @@ class TestResult(ut.NiceRepr):
         X_LIST = testres.get_X_LIST()
         nLessX_dict = {int(X): np.zeros(testres.nConfig) for X in X_LIST}
         cfgx2_qx2_bestrank = testres.get_infoprop_list('qx2_bestranks')
-        #rank_mat = testres.rank_mat  # HACK
         for X in X_LIST:
             cfgx2_lessX_mask = [
                 np.logical_and(0 <= qx2_ranks, qx2_ranks < X)
                 for qx2_ranks in cfgx2_qx2_bestrank]
-            #lessX_ = np.logical_and(np.less(rank_mat, X), np.greater_equal(rank_mat, 0))
-            cfgx2_nLessX = np.array([lessX_.sum(axis=0) for lessX_ in cfgx2_lessX_mask])
+            cfgx2_nLessX = np.array([lessX_.sum(axis=0)
+                                     for lessX_ in cfgx2_lessX_mask])
             nLessX_dict[int(X)] = cfgx2_nLessX
         return nLessX_dict
 
@@ -447,13 +449,14 @@ class TestResult(ut.NiceRepr):
             list: varied_params
 
         CommandLine:
-            python -m ibeis --tf -get_all_varied_params
+            python -m ibeis TestResult.get_all_varied_params
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.expt.test_result import *  # NOQA
             >>> import ibeis
-            >>> testres = ibeis.testdata_expts('PZ_MTEST', t='default:K=[1,2]')[1]
+            >>> testres = ibeis.testdata_expts(
+            >>>     'PZ_MTEST', t='default:K=[1,2]')[1]
             >>> varied_params = testres.get_all_varied_params()
             >>> result = ('varied_params = %s' % (ut.repr2(varied_params),))
             >>> print(result)
@@ -479,7 +482,8 @@ class TestResult(ut.NiceRepr):
         key = 'dcfg_sample_size'
         """
         if key == 'len(daids)':
-            basis = sorted(list(set([len(daids) for daids in testres.cfgx2_daids])))
+            basis = sorted(list(set([len(daids)
+                                     for daids in testres.cfgx2_daids])))
         elif any([key in cfgdict for cfgdict in testres.varied_cfg_list]):
             basis = sorted(list(set([
                 cfgdict[key]

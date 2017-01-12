@@ -2949,10 +2949,10 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1_list = ibs.get_valid_aids()
         >>> aid2_list = ut.list_roll(ibs.get_valid_aids(), -1)
-        >>> truth = get_aidpair_truths(ibs, aid1_list, aid2_list)
-        >>> result = str(truth)
-        >>> print(result)
-        [3 1 3 3 1 0 0 2 2 2 2 0 2]
+        >>> truth_codes = get_aidpair_truths(ibs, aid1_list, aid2_list)
+        >>> print('truth_codes = %s' % ut.repr2(truth_codes))
+        >>> target = np.array([3, 1, 3, 3, 1, 0, 0, 3, 3, 3, 3, 0, 3])
+        >>> assert np.all(truth_codes == target)
     """
     nid1_list = np.array(ibs.get_annot_name_rowids(aid1_list))
     nid2_list = np.array(ibs.get_annot_name_rowids(aid2_list))
