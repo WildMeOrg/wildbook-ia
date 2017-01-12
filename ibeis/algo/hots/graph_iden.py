@@ -25,16 +25,32 @@ def e_(u, v):
 
 @profile
 def bridges(graph, cc1, cc2=None):
-    test1 =  [e_(u, v) for u, v in ut.nx_edges_between_sparse_disjoint(graph, cc1, cc2)]
-    test2 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-                                                       assume_sparse=True,
-                                                       assume_disjoint=True)]
-    test3 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-                                                       assume_sparse=False,
-                                                       assume_disjoint=True)]
-    assert sorted(test1) == sorted(test2)
-    assert sorted(test1) == sorted(test3)
-    return test1
+    if cc2 is None or cc2 is cc1:
+        both = set(cc1)
+        both_upper = both.copy()
+        for u in both:
+            neighbs = set(graph.adj[u])
+            neighbsBB_upper = neighbs.intersection(both_upper)
+            for v in neighbsBB_upper:
+                yield e_(u, v)
+            both_upper.remove(u)
+    else:
+        only1 = set(cc1)
+        only2 = set(cc2)
+        for u in only1:
+            neighbs = set(graph.adj[u])
+            neighbs12 = neighbs.intersection(only2)
+            for v in neighbs12:
+                yield e_(u, v)
+    # test2 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
+    #                                                    assume_sparse=True,
+    #                                                    assume_disjoint=True)]
+    # test3 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
+    #                                                    assume_sparse=False,
+    #                                                    assume_disjoint=True)]
+    # assert sorted(test1) == sorted(test2)
+    # assert sorted(test1) == sorted(test3)
+    # return test1
 
 
 @profile
@@ -2078,7 +2094,7 @@ class _AnnotInfrUpdates(object):
             nid1, nid2 = node_to_label[u], node_to_label[v]
             if nid1 == nid2 and nid1 not in inconsistent:
                 cc = nid_to_cc[nid1]
-                cc_inconsistent_edges = bridges(graph, cc)
+                cc_inconsistent_edges = list(bridges(graph, cc))
                 inconsistent[nid1] = cc_inconsistent_edges
                 # TODO: should we grab all inconsistent outgoing edges here?
         seen_nids.update(inconsistent.keys())
@@ -2094,7 +2110,7 @@ class _AnnotInfrUpdates(object):
                                              inconsistent_outgoing_negatives):
                 cc1 = nid_to_cc[nid1]
                 cc2 = nid_to_cc[nid2]
-                cross_cc_edges = bridges(graph, cc1, cc2)
+                cross_cc_edges = list(bridges(graph, cc1, cc2))
                 if nid1 in inconsistent or nid2 in inconsistent:
                     inconsistent_outgoing_negatives[name_edge] = cross_cc_edges
                 else:
@@ -2112,7 +2128,7 @@ class _AnnotInfrUpdates(object):
                 reviewed_positives[nid].append((u, v))
                 name_edge = (nid, nid)
                 if nid not in positive:
-                    within_cc_edges = bridges(graph, cc)
+                    within_cc_edges = list(bridges(graph, cc))
                     positive[nid] = within_cc_edges
         # NON-COMPARABLE
         # Look at each not-comparable edge between two components not currently
@@ -2129,7 +2145,7 @@ class _AnnotInfrUpdates(object):
                       check_unseen(nid2, positive, inconsistent)):
                     cc1 = nid_to_cc[nid1]
                     cc2 = nid_to_cc[nid2]
-                    cross_cc_edges = bridges(graph, cc1, cc2)
+                    cross_cc_edges = list(bridges(graph, cc1, cc2))
                     notcomparable[name_edge] = cross_cc_edges
         seen_name_edges.update(notcomparable.keys())
         # UNREVIEWED
@@ -2144,7 +2160,7 @@ class _AnnotInfrUpdates(object):
                       check_unseen(nid2, positive, inconsistent)):
                     cc1 = nid_to_cc[nid1]
                     cc2 = nid_to_cc[nid2]
-                    cross_cc_edges = bridges(graph, cc1, cc2)
+                    cross_cc_edges = list(bridges(graph, cc1, cc2))
                     unreviewed[name_edge] = cross_cc_edges
         seen_name_edges.update(unreviewed.keys())
 
