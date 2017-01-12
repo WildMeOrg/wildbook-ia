@@ -338,12 +338,16 @@ def get_imageset_fraction_imgs_reviewed(ibs, imgsetid_list):
     return fraction_imgs_reviewed_list
 
 
+def _percent_str(pcnt):
+    return 'undef' if pcnt is None else '%06.2f %%' % (pcnt * 100,)
+
+
 @register_ibs_method
 @accessor_decors.getter_1to1
 @accessor_decors.cache_getter(const.IMAGESET_TABLE, 'percent_names_with_exemplar_str', debug=False)  # HACK
 def get_imageset_percent_names_with_exemplar_str(ibs, imgsetid_list):
     fraction_exemplared_names_list = ibs.get_imageset_fraction_names_with_exemplar(imgsetid_list)
-    percent_exemplared_names_list_str = list(map(ut.percent_str, fraction_exemplared_names_list))
+    percent_exemplared_names_list_str = list(map(_percent_str, fraction_exemplared_names_list))
     return percent_exemplared_names_list_str
 
 
@@ -352,7 +356,7 @@ def get_imageset_percent_names_with_exemplar_str(ibs, imgsetid_list):
 @accessor_decors.cache_getter(const.IMAGESET_TABLE, 'percent_imgs_reviewed_str', debug=False)  # HACK
 def get_imageset_percent_imgs_reviewed_str(ibs, imgsetid_list):
     fraction_imgs_reviewed_list = ibs.get_imageset_fraction_imgs_reviewed(imgsetid_list)
-    percent_imgs_reviewed_str_list = list(map(ut.percent_str, fraction_imgs_reviewed_list))
+    percent_imgs_reviewed_str_list = list(map(_percent_str, fraction_imgs_reviewed_list))
     return percent_imgs_reviewed_str_list
 
 
@@ -361,7 +365,7 @@ def get_imageset_percent_imgs_reviewed_str(ibs, imgsetid_list):
 @accessor_decors.cache_getter(const.IMAGESET_TABLE, 'percent_annotmatch_reviewed_str', debug=False)  # HACK
 def get_imageset_percent_annotmatch_reviewed_str(ibs, imgsetid_list):
     fraction_annotmatch_reviewed_list = ibs.get_imageset_fraction_annotmatch_reviewed(imgsetid_list)
-    percent_annotmach_reviewed_str_list = list(map(ut.percent_str, fraction_annotmatch_reviewed_list))
+    percent_annotmach_reviewed_str_list = list(map(_percent_str, fraction_annotmatch_reviewed_list))
     return percent_annotmach_reviewed_str_list
 
 

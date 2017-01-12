@@ -103,7 +103,7 @@ class InfrSimulation(object):
             if not d.get('maybe_error', False):
                 # print('Found edge (%r, %r) without error: %r' % (
                 #     aid1, aid2, d,))
-                if d.get('inferred_state') == 'inconsistent':
+                if d.get('inferred_state') == 'inconsistent_internal':
                     # import utool
                     # utool.embed()
                     print('ERROR')

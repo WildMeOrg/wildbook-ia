@@ -10,13 +10,13 @@ Different columns can be hidden / shown by modifying this file
 TODO: need to cache the total number of annotations or something about
 imagesets on disk to help startuptime.
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
+import six
 from six.moves import zip, map, range
 from ibeis import constants as const
 import utool as ut
 from functools import partial
-#from ibeis.control import
-(print, rrr, profile) = ut.inject2(__name__, '[headers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 IMAGESET_TABLE  = const.IMAGESET_TABLE
 IMAGE_TABLE      = const.IMAGE_TABLE
@@ -34,7 +34,8 @@ THUMB_TABLE      = 'thumbs'
 
 def make_table_declarations(ibs):
     """
-    these used to be global variables, hopefully we can make them a little more configurable
+    these used to be global variables, hopefully we can make them a little more
+    configurable
     """
     # available tables
     TABLENAME_LIST = [
@@ -331,6 +332,11 @@ def partial_imap_1to1(func, si_func):
     return wrapper
 
 
+def _tupstr(tuple_):
+    """ maps each item in tuple to a string and doesnt include parens """
+    return ', '.join(list(map(six.text_type, tuple_)))
+
+
 def make_ibeis_headers_dict(ibs):
     declare_tup = make_table_declarations(ibs)
     (TABLENAME_LIST, TABLE_NICE, TABLE_COLNAMES,
@@ -395,7 +401,7 @@ def make_ibeis_headers_dict(ibs):
     getters[IMAGE_TABLE] = {
         'gid'          : ut.identity,
         'imgsetid'     : ibs.get_image_imgsetids,
-        'imagesettext' : partial_imap_1to1(ut.tupstr, ibs.get_image_imagesettext),
+        'imagesettext' : partial_imap_1to1(_tupstr, ibs.get_image_imagesettext),
         'reviewed'     : ibs.get_image_reviewed,
         'img_gname'    : ibs.get_image_gnames,
         'nAids'        : ibs.get_image_num_annotations,
@@ -406,7 +412,7 @@ def make_ibeis_headers_dict(ibs):
         'image_uuid'   : ibs.get_image_uuids,
         'ext'          : ibs.get_image_exts,
         'thumb'        : ibs.get_image_thumbtup,
-        'gps'          : partial_imap_1to1(ut.tupstr, ibs.get_image_gps),
+        'gps'          : partial_imap_1to1(_tupstr, ibs.get_image_gps),
         'orientation'  : ibs.get_image_orientation_str,
     }
     infer_unspecified_getters(IMAGE_TABLE, 'image')

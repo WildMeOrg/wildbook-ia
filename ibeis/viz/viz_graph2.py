@@ -1312,7 +1312,9 @@ class EdgeAPIHelper(object):
         if maybe_error:
             text_parts.append('(ERROR?)')
 
-        if state == 'inconsistent_outgoing':
+        if state == 'inconsistent_external':
+            text_parts.append('inconsistent')
+        elif state == 'inconsistent_internal':
             text_parts.append('inconsistent')
         else:
             text_parts.append(state)
@@ -1322,8 +1324,10 @@ class EdgeAPIHelper(object):
         else:
             text_parts.append(' nids=%r,%r' % (nid1, nid2))
 
-        if state == 'inconsistent_outgoing':
-            text_parts.append('(outgoing)')
+        if state == 'inconsistent_external':
+            text_parts.append('(external)')
+        elif state == 'inconsistent_internal':
+            text_parts.append('(internal)')
 
         text = ' '.join(text_parts)
         info = (state, text, maybe_error)
@@ -1346,7 +1350,7 @@ class EdgeAPIHelper(object):
             color = pt.WHITE
         elif state.startswith('inconsistent'):
             color = pt.ORANGE
-            if state == 'inconsistent_outgoing':
+            if state == 'inconsistent_external':
                 lighten_amount = .55
                 color = pt.lighten_rgb(color, lighten_amount)
             elif not maybe_error:
