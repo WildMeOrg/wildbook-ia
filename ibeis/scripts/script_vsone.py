@@ -362,7 +362,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.5, 1.0, 20)
-        thresh_list0 = np.linspace(.51, 1.0, 3)
+        # thresh_list0 = np.linspace(.51, 1.0, 3)
+        thresh_list0 = np.linspace(.8, 1.0, 2)
         # thresh_list0 = np.linspace(.8, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)

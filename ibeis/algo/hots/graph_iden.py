@@ -6,6 +6,7 @@ import utool as ut
 import vtool as vt  # NOQA
 import itertools as it
 import six
+import collections
 from ibeis.algo.hots import viz_graph_iden
 from ibeis.algo.hots import infr_model
 import networkx as nx
@@ -35,6 +36,7 @@ def bridges(graph, cc1, cc2=None):
                 yield e_(u, v)
             both_upper.remove(u)
     else:
+        # assume cc1 and cc2 are disjoint
         only1 = set(cc1)
         only2 = set(cc2)
         for u in only1:
@@ -2390,21 +2392,40 @@ class _AnnotInfrUpdates(object):
                     if _state == 'nomatch':
                         cc2 = infr.get_annot_cc(n2)
                         nomatch_ccs.append(cc2)
-                        visited.update(set(cc2))
+                        visited.update(cc2)
         return nomatch_ccs
 
     @profile
-    def get_annot_cc(infr, node):
+    def get_annot_cc(infr, source):
         """
-        Get the name_label cc connected to `node`
+        Get the name_label cc connected to `source`
         """
+        # Speed hack for BFS conditional
+        G = infr.graph
+        cc = set([source])
+        visited_nodes = set([source])
+        new_edges = iter([(source, n) for n in G.adj[source]])
+        queue = collections.deque([(source, new_edges)])
+        while queue:
+            parent, edges = queue[0]
+            parent_attr = G.node[parent]['name_label']
+            for edge in edges:
+                child = edge[1]
+                # only move forward if the child shares name_label
+                if child not in visited_nodes:
+                    visited_nodes.add(child)
+                    if parent_attr == G.node[child]['name_label']:
+                        cc.add(child)
+                        new_edges = iter([(child, n) for n in G.adj[child]])
+                        queue.append((child, new_edges))
+            queue.popleft()
         # def condition(G, child, edge):
         #     u, v = edge
         #     nid1 = G.node[u]['name_label']
         #     nid2 = G.node[v]['name_label']
         #     return nid1 == nid2
-        cc = set(ut.util_graph.bfs_same_attr_nodes(infr.graph, node,
-                                                   key='name_label'))
+        # cc = set(ut.util_graph.bfs_same_attr_nodes(infr.graph, node,
+        #                                            key='name_label'))
         # cc = set(ut.util_graph.bfs_conditional(
         #     infr.graph, node, yield_condition=condition,
         #     continue_condition=condition))
