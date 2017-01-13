@@ -9,76 +9,11 @@ import six
 import collections
 from ibeis.algo.hots import viz_graph_iden
 from ibeis.algo.hots import infr_model
+# from ibeis.algo.hots import graph_iden_utils
+from ibeis.algo.hots.graph_iden_utils import e_, _dz
+from ibeis.algo.hots.graph_iden_utils import bridges_inside, bridges_cross
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
-
-
-def _dz(a, b):
-    a = a.tolist() if isinstance(a, np.ndarray) else list(a)
-    b = b.tolist() if isinstance(b, np.ndarray) else list(b)
-    return ut.dzip(a, b)
-
-
-@profile
-def e_(u, v):
-    return (u, v) if u < v else (v, u)
-
-
-@profile
-def bridges_inside(graph, both):
-    """ assume both is a set """
-    yielder = set([])
-    both_upper = both.copy()
-    graph_adj = graph.adj
-    for u in both:
-        neighbsBB_upper = both_upper.intersection(graph_adj[u])
-        for v in neighbsBB_upper:
-            yielder.add(e_(u, v))
-        both_upper.remove(u)
-    return yielder
-
-
-@profile
-def bridges_cross(graph, only1, only2):
-    """ assume only1 and only2 are sets and disjoint """
-    return {e_(u, v) for u in only1 for v in only2.intersection(graph.adj[u])}
-
-
-# @profile
-# def bridges(graph, cc1, cc2=None):
-#     if cc2 is None or cc2 is cc1:
-#         yielder = []
-#         both = set(cc1)
-#         both_upper = both.copy()
-#         for u in both:
-#             neighbs = set(graph.adj[u])
-#             neighbsBB_upper = neighbs.intersection(both_upper)
-#             for v in neighbsBB_upper:
-#                 yielder.append(e_(u, v))
-#                 # yield e_(u, v)
-#             both_upper.remove(u)
-#         return yielder
-#     else:
-#         yielder = []
-#         # assume cc1 and cc2 are disjoint
-#         only1 = set(cc1)
-#         only2 = set(cc2)
-#         for u in only1:
-#             neighbs = set(graph.adj[u])
-#             neighbs12 = neighbs.intersection(only2)
-#             for v in neighbs12:
-#                 yielder.append(e_(u, v))
-#                 # yield e_(u, v)
-#         return yielder
-    # test2 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-    #                                                    assume_sparse=True,
-    #                                                    assume_disjoint=True)]
-    # test3 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-    #                                                    assume_sparse=False,
-    #                                                    assume_disjoint=True)]
-    # assert sorted(test1) == sorted(test2)
-    # assert sorted(test1) == sorted(test3)
-    # return test1
 
 
 def filter_between_ccs_neg(aids1, aids2, aid_to_nid, nid_to_aids, isneg_flags):
@@ -2570,6 +2505,21 @@ class _AnnotInfrUpdates(object):
     def get_annot_cc(infr, source, visited_nodes=None):
         """
         Get the name_label cc connected to `source`
+
+        TODO:
+            Currently instead of using BFS to find the connected compoments
+            each time dynamically maintain connected compoments as new
+            information is added.
+
+            The problem is "Dynamic Connectivity"
+
+            Union-find can be used as long as no edges are deleted
+
+            Refactor to a union-split-find data structure
+                https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
+                http://cs.stackexchange.com/questions/33595/what-is-the-most-efficient-algorithm-and-data-structure-for-maintaining-connecte
+                http://cs.stackexchange.com/questions/32077/
+                https://networkx.github.io/documentation/development/_modules/networkx/utils/union_find.html
         """
         # Speed hack for BFS conditional
         G = infr.graph

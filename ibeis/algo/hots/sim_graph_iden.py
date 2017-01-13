@@ -61,6 +61,27 @@ class InfrSimulation(object):
         sim.results['n_auto_mistakes'] = sum(is_mistake)
 
     @profile
+    def check_baseline_results(sim):
+        import networkx as nx
+        infr = sim.infr
+        n_clusters_possible = 0
+        gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
+        for nid, nodes in gt_clusters.items():
+            if len(nodes) == 1:
+                n_clusters_possible += 1
+                continue
+            cc_cand_edges = list(ut.nx_edges_between(infr.graph, nodes))
+            cc = ut.nx_from_node_edge(nodes, cc_cand_edges)
+            mst = nx.minimum_spanning_tree(cc)
+            n_clusters_possible += (
+                len(list(nx.connected_component_subgraphs(mst)))
+            )
+        real_nids = ut.unique(sim.infr.orig_name_labels)
+
+        sim.results['n_clusters_possible'] = n_clusters_possible
+        sim.results['n_clusters_real'] = len(real_nids)
+
+    @profile
     def review_inconsistencies(sim):
         """
         Within each inconsistent component simulate the reviews that would be
@@ -194,24 +215,14 @@ class InfrSimulation(object):
                 mwc_weights[sub.index] += 2
         mwc_weights = 2 - mwc_weights
 
-        sim.results['n_clusters_possible'] = 0
-
         undiscovered_errors = []
         gt_forests = []
         gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
         for nid, nodes in gt_clusters.items():
             if len(nodes) == 1:
-                sim.results['n_clusters_possible'] += 1
                 continue
-
             cc_cand_edges = list(ut.nx_edges_between(infr.graph, nodes))
             cc = ut.nx_from_node_edge(nodes, cc_cand_edges)
-            if True:
-                mst = nx.minimum_spanning_tree(cc)
-                sim.results['n_clusters_possible'] += (
-                    len(list(nx.connected_component_subgraphs(mst)))
-                )
-                pass
             cc_weights = mwc_weights.loc[cc_cand_edges]
             nx.set_edge_attributes(cc, 'weight', cc_weights.to_dict())
             # Minimum Spanning Compoment will contain the minimum possible

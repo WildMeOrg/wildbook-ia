@@ -362,8 +362,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.5, 1.0, 20)
-        thresh_list0 = np.linspace(.51, 1.0, 3)
-        # thresh_list0 = np.linspace(.6, 1.0, 3)
+        # thresh_list0 = np.linspace(.51, 1.0, 3)
+        thresh_list0 = np.linspace(.65, 1.0, 5)
         # thresh_list0 = np.linspace(.8, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
@@ -427,7 +427,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         make_subplot(['n_auto_inconsistent'], pnum_)
         make_subplot(['n_incon_reviews', 'n_incon_fixes'], pnum_)
 
-        make_subplot(['n_clusters_real', 'n_clusters_possible', 'n_user_clusters', 'n_auto_clusters'], pnum_)
+        make_subplot(['n_clusters_real', 'n_clusters_possible',
+                      'n_user_clusters', 'n_auto_clusters'], pnum_)
 
         make_subplot(['n_user_mistakes', 'n_auto_mistakes'], pnum_)
         # make_subplot(['user_work'], pnum_)
@@ -444,6 +445,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     @profile
     def test_auto_decisions(pblm, infr, primary_task, primary_auto_flags,
                             task_keys, task_probs, primary_truth):
+        """
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        """
 
         from ibeis.algo.hots import sim_graph_iden
 
@@ -457,18 +461,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         sim.initialize()
 
+        sim.check_baseline_results()
+
         sim.review_inconsistencies()
 
         # sim.rank_priority_edges()
         sim.oracle_review()
 
-        sim.results['n_clusters_real'] = len(ut.unique(infr.orig_name_labels))
-
         # sim.results['user_work'] = (
         # sim.results['n_pos_want'] + sim.results['n_incon_reviews'])
 
         sim.results['user_work'] = 1
-        sim.results['n_clusters_possible'] = 0
         return sim.results
 
         # pblm.extra_report(task_probs, is_auto, want_samples)
