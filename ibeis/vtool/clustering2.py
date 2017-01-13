@@ -1501,10 +1501,10 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> import vtool as vt
         >>> #
         >>> mcut_labels = vt.unsupervised_multicut_labeling(cost_matrix, thresh=vt.eps)
-        >>> diff = ut.compare_groupings(
-        >>>     list(ut.group_items(aids, name_labels).values()),
-        >>>     list(ut.group_items(aids, mcut_labels).values()))
-        >>> print('diff = %r' % (diff,))
+        >>> #diff = ut.compare_groupings(
+        >>> #    list(ut.group_items(aids, name_labels).values()),
+        >>> #    list(ut.group_items(aids, mcut_labels).values()))
+        >>> #print('diff = %r' % (diff,))
         >>> #
         >>> nx.set_node_attributes(graph, 'label', node_name_lbls)
         >>> node_mcut_lbls = dict(zip(aids, mcut_labels))
