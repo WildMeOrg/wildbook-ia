@@ -5,6 +5,79 @@ import numpy as np
 print, rrr, profile = ut.inject2(__name__)
 
 
+def compare_groups(true_groups, pred_groups):
+    r"""
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> true_groups = [
+        >>>    [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8], [9, 10, 11],
+        >>>    [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
+        >>> ]
+        >>> pred_groups = [
+        >>>    [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11], [7], [8, 9], [10],
+        >>>    [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
+        >>> ]
+        >>> result = compare_groups(groups1, groups2)
+        >>> print(result)
+        >>> print(ut.repr4(result))
+    """
+    true = {tuple(sorted(_group)) for _group in true_groups}
+    pred = {tuple(sorted(_group)) for _group in pred_groups}
+    common_sets = list(true.intersection(pred))
+    true.difference_update(common_sets)
+    pred.difference_update(common_sets)
+    true_sets = list(map(set, true))
+    pred_sets = list(map(set, pred))
+
+    merge_sets = []
+    split_sets = []
+    hybrid_sets = []
+    for p in pred_sets:
+        flag = True
+        if any(p.issubset(t) for t in true_sets):
+            flag = 0
+            merge_sets.append(p)
+        if any(p.issuperset(t) for t in true_sets):
+            flag = 0
+            split_sets.append(p)
+        if flag:
+            hybrid_sets.append(p)
+
+    true_conn = {t: set(ts) for ts in true for t in ts}
+    merge_conn = {m: set(ms) for ms in merge_sets for m in ms}
+    pure_merges = []
+    for ms in merge_sets:
+        m = list(ms)[0]
+        others = true_conn[m]
+        need = others - ms
+        if all(n in merge_conn for n in need):
+            pure_merges.append(ms)
+
+    pure_splits = []
+    for ss in map(set, split_sets):
+        true_parts = {tuple(sorted(true_conn[s])) for s in ss}
+        if set(ut.flatten(true_parts)) == ss:
+            pure_splits.append(ss)
+
+    # Find number of consistent groups
+    # Find number of pure splits
+    # Find number of pure merges
+    # Find number of pure hybrid split-merges
+    # subpartition to
+    # find predictions that can be fixed by pure merge
+    # find predictions that can be fixed by pure split
+    result = {
+        'pure_splits': pure_splits,
+        'pure_merges': pure_merges,
+        'common': common_sets,
+        'split': split_sets,
+        'merge': merge_sets,
+        'hyrbid': hybrid_sets,
+    }
+    return result
+
+
 @ut.reloadable_class
 class InfrSimulation(object):
     """
