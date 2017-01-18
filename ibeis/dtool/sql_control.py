@@ -478,6 +478,8 @@ class SQLDatabaseController(object):
         # schema auto-generation
         # Ensure that a version number exists
         db.get_db_version(ensure=True)
+        # Ensure that an init UUID exists
+        db.get_db_init_uuid(ensure=True)
 
     def get_db_version(db, ensure=True):
         version = db.get_metadata_val('database_version', default=None)
@@ -491,6 +493,46 @@ class SQLDatabaseController(object):
                 return [None] * len(x)
             db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
         return version
+
+    def get_db_init_uuid(db, ensure=True):
+        """
+        Get the database initialization (creation) UUID
+
+        CommandLine:
+            python -m dtool.sql_control get_db_init_uuid
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> import uuid
+            >>> from dtool.sql_control import *  # NOQA
+            >>> # Check random database gets new UUID on init
+            >>> db = SQLDatabaseController(sqldb_fname=':memory:')
+            >>> uuid_ = db.get_db_init_uuid()
+            >>> print('New Database: %r is valid' % (uuid_, ))
+            >>> assert isinstance(uuid_, uuid.UUID)
+            >>> # Check existing database keeps UUID
+            >>> sqldb_dpath = ut.ensure_app_resource_dir('dtool')
+            >>> sqldb_fname = u'test_database.sqlite3'
+            >>> readonly = False
+            >>> db1 = SQLDatabaseController(sqldb_dpath, sqldb_fname)
+            >>> uuid_1 = db1.get_db_init_uuid()
+            >>> db2 = SQLDatabaseController(sqldb_dpath, sqldb_fname)
+            >>> uuid_2 = db2.get_db_init_uuid()
+            >>> print('Existing Database: %r == %r' % (uuid_1, uuid_2, ))
+            >>> assert uuid_1 == uuid_2
+        """
+        import uuid
+        db_init_uuid_str = db.get_metadata_val('database_init_uuid', default=None)
+        if db_init_uuid_str is None and ensure:
+            db_init_uuid_str = six.text_type(uuid.uuid4())
+            colnames = ['metadata_key', 'metadata_value']
+            params_iter = zip(['database_init_uuid'], [db_init_uuid_str])
+            # We don't care to find any, because we know there is no version
+            def get_rowid_from_superkey(x):
+                return [None] * len(x)
+            db.add_cleanly(METADATA_TABLE, colnames, params_iter, get_rowid_from_superkey)
+        db_init_uuid = uuid.UUID(db_init_uuid_str)
+        return db_init_uuid
 
     def _copy_to_memory(db):
         """

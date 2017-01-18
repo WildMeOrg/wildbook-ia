@@ -475,9 +475,7 @@ class _TableDebugHelper(object):
             >>> rowids = depc.get_rowids('spam', [1, 2])
             >>> table.print_configs()
         """
-        text = table.db.get_table_csv(CONFIG_TABLE,
-                                      params_iter=[(table.tablename,)],
-                                      andwhere_colnames=(CONFIG_TABLENAME,))
+        text = table.db.get_table_csv(CONFIG_TABLE)
         print(text)
 
     def print_csv(table, truncate=True):
