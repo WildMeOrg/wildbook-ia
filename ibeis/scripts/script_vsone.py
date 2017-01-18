@@ -423,7 +423,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pt.multi_plot(xdata, ydata_list, label_list=label_list, xlabel=xlabel,
                           use_legend=True, fnum=fnum, pnum=pnum_())
 
-        pnum_ = pt.make_pnum_nextgen(nRows=3, nCols=2)
+        pnum_ = pt.make_pnum_nextgen(nRows=4, nCols=2)
         make_subplot(['n_auto_inconsistent'], pnum_)
         make_subplot(['n_incon_reviews', 'n_incon_fixes'], pnum_)
 
@@ -431,6 +431,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                       'n_user_clusters', 'n_auto_clusters'], pnum_)
 
         make_subplot(['n_user_mistakes', 'n_auto_mistakes'], pnum_)
+        make_subplot(['common', 'common1', 'common2'], pnum_)
+        make_subplot(['common3', 'common4', 'common>4'], pnum_)
+        make_subplot(['hyrbid', 'merge', 'split', 'pure_merges', 'pure_splits'], pnum_)
         # make_subplot(['user_work'], pnum_)
         # make_subplot(['n_flagged'], pnum_)
         make_subplot(['auto_fpr'], pnum_)

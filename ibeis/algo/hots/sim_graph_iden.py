@@ -452,6 +452,23 @@ class InfrSimulation(object):
         n_user_mistakes = curr_decisions != curr_truth
         sim.results['n_user_mistakes'] = sum(n_user_mistakes)
 
+        gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
+        curr_clusters = ut.group_pairs(infr.gen_node_attrs('name_label'))
+
+        compare_results = compare_groups(list(gt_clusters.values()), list(curr_clusters.values()))
+        sim.results.update(ut.map_vals(len, compare_results))
+
+        common_per_num = ut.group_items(compare_results['common'], map(len, compare_results['common']))
+        greater = []
+        for i in common_per_num.keys():
+            if i > 4:
+                greater.append(i)
+        common_per_num['>4'] = ut.flatten(ut.take(common_per_num, greater))
+        ut.delete_keys(common_per_num, greater)
+
+        for k, v in common_per_num.items():
+            sim.results['common' + str(k)] = len(v)
+
 
 if __name__ == '__main__':
     r"""
