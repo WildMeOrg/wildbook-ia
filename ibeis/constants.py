@@ -6,7 +6,7 @@ string name changes)
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 # import utool
-import six
+# import six
 import numpy as np
 from collections import OrderedDict
 import math
@@ -91,6 +91,7 @@ class PATH_NAMES(object):
     _ibsdb      = '_ibsdb'
     cache       = '_ibeis_cache'
     backups     = '_ibeis_backups'
+    logs        = '_ibeis_logs'
     chips       = 'chips'
     figures     = 'figures'
     flann       = 'flann'
@@ -116,6 +117,7 @@ class REL_PATHS(object):
     figures     = join(_ibsdb, PATH_NAMES.figures)
     cache       = join(_ibsdb, PATH_NAMES.cache)
     backups     = join(_ibsdb, PATH_NAMES.backups)
+    logs        = join(_ibsdb, PATH_NAMES.logs)
     #chips       = join(_ibsdb, PATH_NAMES.chips)
     images      = join(_ibsdb, PATH_NAMES.images)
     trees       = join(_ibsdb, PATH_NAMES.trees)

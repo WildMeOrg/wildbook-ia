@@ -5001,7 +5001,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
     import numpy as np
     import warnings
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) imageseted')
+        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
         warnings.filterwarnings('ignore', r'Mean of empty slice')
         warnings.filterwarnings('ignore', r'Degrees of freedom <= 0 for slice.')
 

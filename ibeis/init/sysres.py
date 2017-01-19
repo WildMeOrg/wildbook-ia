@@ -133,7 +133,7 @@ def set_logdir(log_dir):
     ut.start_logging(appname=__APPNAME__)
 
 
-def get_logdir():
+def get_logdir_global():
     return _ibeis_cache_read(LOGDIR_CACHEID, default=ut.get_logging_dir(appname='ibeis'))
 
 

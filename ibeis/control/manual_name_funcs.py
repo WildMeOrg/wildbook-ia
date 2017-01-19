@@ -18,6 +18,7 @@ import vtool as vt
 from ibeis.control import accessor_decors, controller_inject  # NOQA
 import utool as ut
 from ibeis.control.controller_inject import make_ibs_register_decorator
+import os
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -1108,7 +1109,8 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
 @accessor_decors.setter
 @register_api('/api/name/text/', methods=['PUT'])
 def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
-                   notify_wildbook=False, assert_wildbook=False):
+                   notify_wildbook=False, assert_wildbook=False,
+                   update_json_log=True):
     r"""
     Changes the name text. Does not affect the animals of this name.
     Effectively just changes the TEXT UUID
@@ -1127,7 +1129,7 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         >>> ibs = ibeis.opendb('testdb1')
         >>> nid_list = ibs.get_valid_nids()[0:2]
         >>> name_list = ibs.get_name_texts(nid_list)
-        >>> # result = set_name_texts(ibs, nid_list, name_list)
+        >>> result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)
     """
     if verbose:
@@ -1142,11 +1144,48 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
             msg = 'Failed to update %d WB names, nid_list = %r' % args
             assert len(failed_nid_list) == 0, msg
     ibsfuncs.assert_valid_names(name_text_list)
+    old_name_text_list = ibs.get_name_texts(name_rowid_list)
     #sanitize_name_texts(ibs, name_text_list):
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, nid_list, ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     #ibs.set_lblannot_values(nid_list, name_list)
     val_list = ((value,) for value in name_text_list)
     ibs.db.set(const.NAME_TABLE, (NAME_TEXT,), val_list, name_rowid_list)
+    # Database updated, log name changes
+    if update_json_log:
+        import time
+        json_log_path = ibs.get_logdir_local()
+        json_log_filename = 'names.updates.json'
+        json_log_filepath = os.path.join(json_log_path, json_log_filename)
+        print('Logging name changes to: %r' % (json_log_filepath, ))
+        # Log has never been made, create one
+        if not os.path.exists(json_log_filepath):
+            json_dict = {
+                'updates': [],
+            }
+            json_str = ut.to_json(json_dict, pretty=True)
+            with open(json_log_filepath, 'w') as json_log_file:
+                json_log_file.write(json_str)
+        # Get current log state
+        with open(json_log_filepath, 'r') as json_log_file:
+            json_str = json_log_file.read()
+        json_dict = ut.from_json(json_str)
+        db_name = ibs.get_db_name()
+        db_init_uuid = ibs.get_db_init_uuid()
+        # Zip all the updates together and write to updates list in dictionary
+        zipped = zip(name_rowid_list, old_name_text_list, name_text_list)
+        for name_rowid, old_name_text, new_name_text in zipped:
+            json_dict['updates'].append({
+                'time_unixtime': time.time(),
+                'db_name': db_name,
+                'db_init_uuid': db_init_uuid,
+                'name_rowid': name_rowid,
+                'name_old_text': old_name_text,
+                'name_new_text': new_name_text,
+            })
+        # Write new log state
+        json_str = ut.to_json(json_dict, pretty=True)
+        with open(json_log_filepath, 'w') as json_log_file:
+            json_log_file.write(json_str)
 
 
 @register_ibs_method

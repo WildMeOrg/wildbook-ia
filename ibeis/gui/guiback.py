@@ -2730,24 +2730,30 @@ class MainWindowBackend(GUIBACK_BASE):
     @slot_()
     @backreport
     def view_app_files_dir(back):
-        print('[back] view_model_dir')
+        print('[back] view_app_files_dir')
         ut.view_directory(ut.get_app_resource_dir('ibeis'))
         pass
 
     @slot_()
     @backreport
-    def view_log_dir(back):
-        print('[back] view_model_dir')
-        ut.view_directory(back.ibs.get_logdir())
+    def view_log_dir_local(back):
+        print('[back] view_log_dir_local')
+        ut.view_directory(back.ibs.get_logdir_local())
 
     @slot_()
     @backreport
-    def view_logs(back):
-        print('[back] view_model_dir')
+    def view_log_dir_global(back):
+        print('[back] view_log_dir_global')
+        ut.view_directory(back.ibs.get_logdir_global())
+
+    @slot_()
+    @backreport
+    def view_logs_global(back):
+        print('[back] view_logs_global')
         log_fpath = ut.get_current_log_fpath()
         log_text = back.ibs.get_current_log_text()
         gt.msgbox('Click show details to view logs from log_fpath=%r' % (log_fpath,), detailed_msg=log_text)
-        #ut.startfile(back.ibs.get_logdir())
+        #ut.startfile(back.ibs.get_logdir_global())
 
     @slot_()
     @backreport

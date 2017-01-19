@@ -620,6 +620,26 @@ def get_image_imagesettext_json(ibs, image_uuid_list):
     return ibs.get_image_imagesettext(gid_list)
 
 
+@register_api('/api/image/imageset/rowid/json/', methods=['PUT'])
+def set_image_imgsetids_json(ibs, image_uuid_list, imageset_rowid_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
+
+
+@register_api('/api/image/imageset/uuid/json/', methods=['PUT'])
+def set_image_imgset_uuids_json(ibs, image_uuid_list, imageset_uuid_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
+
+
+@register_api('/api/image/imageset/text/json/', methods=['PUT'])
+def set_image_imagesettext_json(ibs, image_uuid_list, imageset_text_list):
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
+    return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
+
+
 @register_api('/api/image/annot/rowid/json/', methods=['GET'])
 def get_image_aids_json(ibs, image_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)

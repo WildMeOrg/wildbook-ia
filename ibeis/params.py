@@ -108,7 +108,9 @@ def parse_args():
         parser2.add_str(('--logdir', '--set-logdir'), None,
                         help='sets the default logging directory')
         parser2.add_flag('--get-logdir', help='gets the current logging directory')
-        parser2.add_flag(('--view-logdir', '--vld'), help='views the current logging directory')
+        parser2.add_flag(('--view-logdir', '--vld'), help='views the current (local and global) logging directories')
+        parser2.add_flag(('--view-logdir-local', '--vldl'), help='views the current local logging directory')
+        parser2.add_flag(('--view-logdir-global', '--vldg'), help='views the current global logging directory')
         parser2.add_flag('--force-incremental-db-update',
                          help='ignores the current database schema and forces an incremental update for new databases')
         parser2.add_flag('--dump-autogen-schema',

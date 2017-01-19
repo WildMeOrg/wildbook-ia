@@ -52,9 +52,15 @@ def preload_commands(dbdir, **kwargs):
     if params.args.logdir is not None:
         sysres.set_logdir(params.args.logdir)
     if params.args.get_logdir:
-        print(' Current log dir = %s' % (sysres.get_logdir(),))
+        print(' Current local  log dir = %s' % (sysres.get_logdir_local(),))
+        print(' Current global log dir = %s' % (sysres.get_logdir_global(),))
     if params.args.view_logdir:
-        ut.view_directory(sysres.get_logdir())
+        ut.view_directory(sysres.get_logdir_local())
+        ut.view_directory(sysres.get_logdir_global())
+    if params.args.view_logdir_local:
+        ut.view_directory(sysres.get_logdir_local())
+    if params.args.view_logdir_global:
+        ut.view_directory(sysres.get_logdir_local())
     if ut.get_argflag('--vwd'):
         vwd()
     if ut.get_argflag('--vdq'):
