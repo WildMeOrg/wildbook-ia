@@ -314,12 +314,15 @@ def setup_help_menu(mainwin, back):
     menu.addSeparator()
     # ---
     menu.newAction(
-        text='View Logs',
-        triggered=back.view_logs)
+        text='View Global Logs',
+        triggered=back.view_logs_global)
     mainwin.viewDirectoryMenu = menu.newMenu('View Directories')
     mainwin.viewDirectoryMenu.newAction(
-        text='View Log Directory',
-        triggered=back.view_log_dir)
+        text='View Local Log Directory',
+        triggered=back.view_log_dir_local)
+    mainwin.viewDirectoryMenu.newAction(
+        text='View Global Log Directory',
+        triggered=back.view_log_dir_global)
     mainwin.viewDirectoryMenu.newAction(
         text='View Database Directory',
         triggered=back.view_database_dir)

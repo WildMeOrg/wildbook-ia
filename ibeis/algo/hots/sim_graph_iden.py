@@ -5,6 +5,79 @@ import numpy as np
 print, rrr, profile = ut.inject2(__name__)
 
 
+def compare_groups(true_groups, pred_groups):
+    r"""
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from utool.util_alg import *  # NOQA
+        >>> true_groups = [
+        >>>    [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8], [9, 10, 11],
+        >>>    [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
+        >>> ]
+        >>> pred_groups = [
+        >>>    [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11], [7], [8, 9], [10],
+        >>>    [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
+        >>> ]
+        >>> result = compare_groups(groups1, groups2)
+        >>> print(result)
+        >>> print(ut.repr4(result))
+    """
+    true = {tuple(sorted(_group)) for _group in true_groups}
+    pred = {tuple(sorted(_group)) for _group in pred_groups}
+    common_sets = list(true.intersection(pred))
+    true.difference_update(common_sets)
+    pred.difference_update(common_sets)
+    true_sets = list(map(set, true))
+    pred_sets = list(map(set, pred))
+
+    merge_sets = []
+    split_sets = []
+    hybrid_sets = []
+    for p in pred_sets:
+        flag = True
+        if any(p.issubset(t) for t in true_sets):
+            flag = 0
+            merge_sets.append(p)
+        if any(p.issuperset(t) for t in true_sets):
+            flag = 0
+            split_sets.append(p)
+        if flag:
+            hybrid_sets.append(p)
+
+    true_conn = {t: set(ts) for ts in true for t in ts}
+    merge_conn = {m: set(ms) for ms in merge_sets for m in ms}
+    pure_merges = []
+    for ms in merge_sets:
+        m = list(ms)[0]
+        others = true_conn[m]
+        need = others - ms
+        if all(n in merge_conn for n in need):
+            pure_merges.append(ms)
+
+    pure_splits = []
+    for ss in map(set, split_sets):
+        true_parts = {tuple(sorted(true_conn[s])) for s in ss}
+        if set(ut.flatten(true_parts)) == ss:
+            pure_splits.append(ss)
+
+    # Find number of consistent groups
+    # Find number of pure splits
+    # Find number of pure merges
+    # Find number of pure hybrid split-merges
+    # subpartition to
+    # find predictions that can be fixed by pure merge
+    # find predictions that can be fixed by pure split
+    result = {
+        'pure_splits': pure_splits,
+        'pure_merges': pure_merges,
+        'common': common_sets,
+        'split': split_sets,
+        'merge': merge_sets,
+        'hyrbid': hybrid_sets,
+    }
+    return result
+
+
 @ut.reloadable_class
 class InfrSimulation(object):
     """
@@ -61,6 +134,27 @@ class InfrSimulation(object):
         sim.results['n_auto_mistakes'] = sum(is_mistake)
 
     @profile
+    def check_baseline_results(sim):
+        import networkx as nx
+        infr = sim.infr
+        n_clusters_possible = 0
+        gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
+        for nid, nodes in gt_clusters.items():
+            if len(nodes) == 1:
+                n_clusters_possible += 1
+                continue
+            cc_cand_edges = list(ut.nx_edges_between(infr.graph, nodes))
+            cc = ut.nx_from_node_edge(nodes, cc_cand_edges)
+            mst = nx.minimum_spanning_tree(cc)
+            n_clusters_possible += (
+                len(list(nx.connected_component_subgraphs(mst)))
+            )
+        real_nids = ut.unique(sim.infr.orig_name_labels)
+
+        sim.results['n_clusters_possible'] = n_clusters_possible
+        sim.results['n_clusters_real'] = len(real_nids)
+
+    @profile
     def review_inconsistencies(sim):
         """
         Within each inconsistent component simulate the reviews that would be
@@ -103,7 +197,7 @@ class InfrSimulation(object):
             if not d.get('maybe_error', False):
                 # print('Found edge (%r, %r) without error: %r' % (
                 #     aid1, aid2, d,))
-                if d.get('inferred_state') == 'inconsistent':
+                if d.get('inferred_state') == 'inconsistent_internal':
                     # import utool
                     # utool.embed()
                     print('ERROR')
@@ -132,6 +226,7 @@ class InfrSimulation(object):
         sim.results['n_incon_fixes'] = n_fixes
 
         # Should have fixed everything
+        infr.apply_review_inference()
         n_clusters, n_inconsistent = infr.relabel_using_reviews(rectify=False)
         import utool
         with utool.embed_on_exception_context:
@@ -193,24 +288,14 @@ class InfrSimulation(object):
                 mwc_weights[sub.index] += 2
         mwc_weights = 2 - mwc_weights
 
-        sim.results['n_clusters_possible'] = 0
-
         undiscovered_errors = []
         gt_forests = []
         gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
         for nid, nodes in gt_clusters.items():
             if len(nodes) == 1:
-                sim.results['n_clusters_possible'] += 1
                 continue
-
             cc_cand_edges = list(ut.nx_edges_between(infr.graph, nodes))
             cc = ut.nx_from_node_edge(nodes, cc_cand_edges)
-            if True:
-                mst = nx.minimum_spanning_tree(cc)
-                sim.results['n_clusters_possible'] += (
-                    len(list(nx.connected_component_subgraphs(mst)))
-                )
-                pass
             cc_weights = mwc_weights.loc[cc_cand_edges]
             nx.set_edge_attributes(cc, 'weight', cc_weights.to_dict())
             # Minimum Spanning Compoment will contain the minimum possible
@@ -366,6 +451,23 @@ class InfrSimulation(object):
         curr_truth = primary_truth.loc[curr_decisions.index].idxmax(axis=1)
         n_user_mistakes = curr_decisions != curr_truth
         sim.results['n_user_mistakes'] = sum(n_user_mistakes)
+
+        gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
+        curr_clusters = ut.group_pairs(infr.gen_node_attrs('name_label'))
+
+        compare_results = compare_groups(list(gt_clusters.values()), list(curr_clusters.values()))
+        sim.results.update(ut.map_vals(len, compare_results))
+
+        common_per_num = ut.group_items(compare_results['common'], map(len, compare_results['common']))
+        greater = []
+        for i in common_per_num.keys():
+            if i > 4:
+                greater.append(i)
+        common_per_num['>4'] = ut.flatten(ut.take(common_per_num, greater))
+        ut.delete_keys(common_per_num, greater)
+
+        for k, v in common_per_num.items():
+            sim.results['common' + str(k)] = len(v)
 
 
 if __name__ == '__main__':

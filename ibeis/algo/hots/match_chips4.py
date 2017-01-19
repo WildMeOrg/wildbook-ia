@@ -218,7 +218,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True, batch
                 for fpath in fpath_iter
             ]
             assert all([qaid == cm.qaid for qaid, cm in zip(qaids_hit, cm_hit_list)]), (
-                'inconsistent')
+                'inconsistent qaid and cm.qaid')
             qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
         except chip_match.NeedRecomputeError:
             print('NeedRecomputeError: Some cached chips need to recompute')

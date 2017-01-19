@@ -604,11 +604,12 @@ def synthetic_infr(ccs, edges):
 
     G.add_edges_from(edges)
     infr = graph_iden.AnnotInference.from_netx(G)
+
     infr.relabel_using_reviews()
-    # infr.apply_cuts()
     infr.apply_review_inference()
+
     infr.apply_weights()
-    infr.graph.graph['dark_background'] = True
+    infr.graph.graph['dark_background'] = False
     infr.graph.graph['ignore_labels'] = True
     infr.set_node_attrs('width', 40)
     infr.set_node_attrs('height', 40)
@@ -619,6 +620,9 @@ def synthetic_infr(ccs, edges):
 
 
 def do_infr_test(ccs, edges, new_edges):
+    """
+    Creates a graph with `ccs` + `edges` and then adds `new_edges`
+    """
     import networkx as nx
     import plottool as pt
 
@@ -635,7 +639,9 @@ def do_infr_test(ccs, edges, new_edges):
         infr.set_node_attrs('shape', 'circle')
         infr.show(pnum=(2, 1, 1), fnum=fnum, show_unreviewed_edges=True,
                   show_reviewed_cuts=True,
-                  show_inferred_diff=True, groupby='name_label')
+                  splines='spline',
+                  show_inferred_diff=True, groupby='name_label',
+                  show_labels=True)
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
@@ -652,7 +658,7 @@ def do_infr_test(ccs, edges, new_edges):
     # Postshow
     if ut.show_was_requested():
         infr2.show(pnum=(2, 1, 2), fnum=fnum, show_unreviewed_edges=True,
-                   show_inferred_diff=True)
+                   show_inferred_diff=True, show_labels=True)
         pt.gca().set_aspect('equal')
         pt.set_title('post-review')
         fig2 = pt.gcf()
@@ -662,6 +668,9 @@ def do_infr_test(ccs, edges, new_edges):
     _errors = []
     def check(infr, u, v, key, val, msg):
         data = infr.get_edge_data(u, v)
+        if data is None:
+            assert infr.graph.has_edge(u, v), (
+                'uv=%r, %r does not exist'  % (u, v))
         got = data.get(key)
         if got != val:
             msg1 = 'key=%s %r!=%r, ' % (key, got, val)
@@ -770,7 +779,7 @@ def case_inconsistent():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
     # Make sure the previously inferred edge is no longer inferred
     check(infr1, 4, 1, 'inferred_state', 'diff', 'should initially be an inferred diff')
-    check(infr2, 4, 1, 'inferred_state', 'inconsistent', 'should not be inferred after incon')
+    check(infr2, 4, 1, 'inferred_state', 'inconsistent_internal', 'should not be inferred after incon')
     check(infr2, 4, 3, 'maybe_error', True, 'need to have a maybe split')
     after()
 
@@ -832,7 +841,7 @@ def case_override_inference():
     # inconsistent case is introduced
     check(infr2, 1, 4, 'maybe_error', False, 'should not split inferred edge')
     check(infr2, 4, 5, 'maybe_error', True, 'split me')
-    check(infr2, 5, 2, 'inferred_state', 'inconsistent', 'inference should be overriden')
+    check(infr2, 5, 2, 'inferred_state', 'inconsistent_internal', 'inference should be overriden')
     after()
 
 
@@ -896,7 +905,7 @@ def case_incon_removes_inference():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr1, 2, 5, 'inferred_state', 'diff', 'should be preinferred')
-    check(infr2, 2, 5, 'inferred_state', 'inconsistent', 'should be uninferred on incon')
+    check(infr2, 2, 5, 'inferred_state', 'inconsistent_internal', 'should be uninferred on incon')
     after()
 
 
@@ -965,9 +974,9 @@ def case_notcomp_remove_infr():
     ]
     new_edges = [(1, 4, {'reviewed_state': 'notcomp'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr2, 1, 4, 'inferred_state', None, 'can not infer match here!')
-    check(infr2, 2, 5, 'inferred_state', None, 'can not infer match here!')
-    check(infr2, 3, 6, 'inferred_state', None, 'can not infer match here!')
+    check(infr2, 1, 4, 'inferred_state', 'notcomp', 'can not infer match here!')
+    check(infr2, 2, 5, 'inferred_state', 'notcomp', 'can not infer match here!')
+    check(infr2, 3, 6, 'inferred_state', 'notcomp', 'can not infer match here!')
     after()
 
 
@@ -1087,6 +1096,123 @@ def case_flag_merge():
     check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second')
     check(infr2, 1, 4, 'maybe_error', False, 'nomatch edge should flag second')
     after()
+
+
+def case_all_types():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden case_all_types --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> case_all_types()
+    """
+    # A case where a review between two ccs modifies state outside of
+    # the subgraph of ccs
+    ccs = []
+    # Define edges within components
+    edges = [
+        # Inconsistent component
+        (11, 12, {'reviewed_state': 'match'}),
+        (12, 13, {'reviewed_state': 'match'}),
+        (11, 13, {'reviewed_state': 'nomatch'}),
+        (11, 14, {'reviewed_state': 'match'}),
+        (12, 14, {'reviewed_state': 'match'}),
+        (13, 14, {}),
+        (11, 15, {'reviewed_state': 'match'}),
+        (12, 15, {'reviewed_state': 'notcomp'}),
+
+        # Positive component (with notcomp)
+        (21, 22, {'reviewed_state': 'match'}),
+        (22, 23, {'reviewed_state': 'match'}),
+        (21, 23, {'reviewed_state': 'notcomp'}),
+        (21, 24, {'reviewed_state': 'match'}),
+        (22, 24, {'reviewed_state': 'match'}),
+        (23, 24, {}),
+
+        # Positive component (with unreview)
+        (31, 32, {'reviewed_state': 'match'}),
+        (32, 33, {'reviewed_state': 'match'}),
+        (31, 33, {'reviewed_state': 'match'}),
+        (31, 34, {'reviewed_state': 'match'}),
+        (32, 34, {'reviewed_state': 'match'}),
+        (33, 34, {}),
+
+        # Positive component
+        (41, 42, {'reviewed_state': 'match'}),
+        (42, 43, {'reviewed_state': 'match'}),
+        (41, 43, {'reviewed_state': 'match'}),
+
+        # Positive component (extra)
+        (51, 52, {'reviewed_state': 'match'}),
+        (52, 53, {'reviewed_state': 'match'}),
+        (51, 53, {'reviewed_state': 'match'}),
+
+        # Positive component (isolated)
+        (61, 62, {'reviewed_state': 'match'}),
+    ]
+    # Define edges between components
+    edges += [
+        # 1 - 2
+        (11, 21, {}),
+        (12, 22, {}),
+        # 1 - 3
+        (11, 31, {}),
+        (12, 32, {'reviewed_state': 'nomatch'}),
+        (13, 33, {}),
+        # 1 - 4
+        (11, 41, {}),
+        (12, 42, {'reviewed_state': 'notcomp'}),
+        (13, 43, {}),
+        # 1 - 5
+        (11, 51, {'reviewed_state': 'notcomp'}),
+        (12, 52, {'reviewed_state': 'nomatch'}),
+        (13, 53, {}),
+
+        # 2 - 3
+        (21, 31, {'reviewed_state': 'notcomp'}),
+        (22, 32, {}),
+        # 2 - 4
+        (21, 41, {}),
+        (22, 42, {}),
+        # 2 - 5
+        (21, 51, {'reviewed_state': 'notcomp'}),
+        (22, 52, {'reviewed_state': 'nomatch'}),
+
+        # 3 - 4
+        (31, 41, {'reviewed_state': 'nomatch'}),
+        (32, 42, {}),
+    ]
+    # Ensure that the nomatch edge comes back as potentially in error
+    # new_edges = [(2, 5, {'reviewed_state': 'match'})]
+    new_edges = []
+    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    errors = []
+    for u, v, d in infr2.graph.edges(data=True):
+        state = d.get('inferred_state', '')
+        if u < 20 or v < 20:
+            if state is not None and 'inconsistent' not in state:
+                print('u, v, state = %r, %r, %r' % (u, v, state))
+                err = AssertionError('all of cc0 should be incon')
+                print(err)
+                errors.append(err)
+        else:
+            if state is not None and 'inconsistent' in state:
+                print('u, v, state = %r, %r, %r' % (u, v, state))
+                err = AssertionError('outside of cc0 should not be incon')
+                print(err)
+                errors.append(err)
+    check(infr1, 13, 14, 'inferred_state', 'inconsistent_internal',
+          'notcomp edge should be incon')
+    check(infr1, 21, 31, 'inferred_state', 'notcomp', 'notcomp edge should remain notcomp')
+    check(infr1, 22, 32, 'inferred_state', None, 'notcomp edge should transfer knowledge')
+    check(infr1, 12, 42, 'inferred_state', 'inconsistent_external',
+          'inconsistency should override notcomp')
+    # check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first')
+    # check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second')
+    # check(infr2, 1, 4, 'maybe_error', False, 'nomatch edge should flag second')
+    after(errors)
 
 
 # TODO: inconsistent out of subgraph modification

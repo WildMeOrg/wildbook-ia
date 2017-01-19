@@ -178,10 +178,10 @@ class _AnnotInfrViz(object):
         return ['color', 'framewidth', 'image', 'label',
                 'pos', 'shape', 'size', 'height', 'width', 'zorder']
 
-    def simplify_graph(infr, graph=None):
+    def simplify_graph(infr, graph=None, copy=True):
         if graph is None:
             graph = infr.graph
-        simple = graph.copy()
+        simple = graph.copy() if copy else graph
         ut.nx_delete_edge_attr(simple, infr.visual_edge_attrs)
         ut.nx_delete_node_attr(simple, infr.visual_node_attrs + ['pin'])
         return simple

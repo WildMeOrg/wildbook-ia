@@ -2936,7 +2936,8 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         aid2_list (list):
 
     Returns:
-        list[bool]: truth
+        list[int]: truth_codes - see ibies.constants.TRUTH_INT_TO_TEXT for code
+            definitions
 
     CommandLine:
         python -m ibeis.other.ibsfuncs --test-get_aidpair_truths
@@ -2948,19 +2949,19 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid1_list = ibs.get_valid_aids()
         >>> aid2_list = ut.list_roll(ibs.get_valid_aids(), -1)
-        >>> truth = get_aidpair_truths(ibs, aid1_list, aid2_list)
-        >>> result = str(truth)
-        >>> print(result)
-        [2 1 2 2 1 0 0 2 2 2 2 0 2]
+        >>> truth_codes = get_aidpair_truths(ibs, aid1_list, aid2_list)
+        >>> print('truth_codes = %s' % ut.repr2(truth_codes))
+        >>> target = np.array([3, 1, 3, 3, 1, 0, 0, 3, 3, 3, 3, 0, 3])
+        >>> assert np.all(truth_codes == target)
     """
     nid1_list = np.array(ibs.get_annot_name_rowids(aid1_list))
     nid2_list = np.array(ibs.get_annot_name_rowids(aid2_list))
     isunknown1_list = np.array(ibs.is_nid_unknown(nid1_list))
     isunknown2_list = np.array(ibs.is_nid_unknown(nid2_list))
     any_unknown = np.logical_or(isunknown1_list, isunknown2_list)
-    truth_list = np.array((nid1_list == nid2_list), dtype=np.int32)
-    truth_list[any_unknown] = const.TRUTH_UNKNOWN
-    return truth_list
+    truth_codes = np.array((nid1_list == nid2_list), dtype=np.int32)
+    truth_codes[any_unknown] = const.TRUTH_UNKNOWN
+    return truth_codes
 
 
 @register_ibs_method
@@ -5000,7 +5001,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
     import numpy as np
     import warnings
     with warnings.catch_warnings():
-        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) imageseted')
+        warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
         warnings.filterwarnings('ignore', r'Mean of empty slice')
         warnings.filterwarnings('ignore', r'Degrees of freedom <= 0 for slice.')
 

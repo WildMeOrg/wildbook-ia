@@ -305,7 +305,7 @@ def main(gui=True, dbdir=None, defaultdb='cache',
             back = _init_gui(activate=kwargs.get('activate', True))
             back.connect_ibeis_control(ibs)
     except Exception as ex:
-        print('[main()] IBEIS LOAD imageseted exception: %s %s' % (type(ex), ex))
+        print('[main()] IBEIS LOAD encountered exception: %s %s' % (type(ex), ex))
         raise
     main_commands.postload_commands(ibs, back)  # POSTLOAD CMDS
     main_locals = {'ibs': ibs, 'back': back}

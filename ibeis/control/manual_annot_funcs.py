@@ -17,6 +17,7 @@ from ibeis.other import ibsfuncs
 from ibeis.control.controller_inject import make_ibs_register_decorator
 from collections import namedtuple
 from ibeis.web import routes_ajax
+import requests
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -2380,7 +2381,8 @@ def set_annot_exemplar_flags(ibs, aid_list, flag_list):
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [NAME_ROWID], rowidx=0)
 @accessor_decors.cache_invalidator(const.IMAGESET_TABLE, ['percent_names_with_exemplar_str'])
 # @register_api('/api/annot/name/rowid/', methods=['PUT'])
-def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
+def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
+                          assert_wildbook=False):
     r"""
     name_rowid_list -> annot.name_rowid[aid_list]
 
@@ -2412,6 +2414,12 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list):
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['____', 'easy'])
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])
     """
+    if notify_wildbook:
+        try:
+            ibs.wildbook_signal_annot_name_changes(aid_list)
+        except requests.exceptions.ConnectionError:
+            if assert_wildbook:
+                raise IOError('Cannot connect to WB for name updates')
     #ibsfuncs.assert_lblannot_rowids_are_type(ibs, name_rowid_list,
     #ibs.lbltype_ids[const.INDIVIDUAL_KEY])
     id_iter = aid_list

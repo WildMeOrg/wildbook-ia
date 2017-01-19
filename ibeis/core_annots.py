@@ -1642,6 +1642,7 @@ if testmode:
 class LabelerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('labeler_sensitivity', 0.2),
+        ut.ParamInfo('labeler_weight_filepath', None),
     ]
     _sub_config_list = [
         ChipConfig
@@ -1683,7 +1684,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
     """
-    from ibeis.algo.detect.labeler.labeler import label_chip_list
+    OLD = True
     print('[ibs] Process Annotation Labels')
     print('config = %r' % (config,))
     # Get controller
@@ -1694,7 +1695,11 @@ def compute_labels_annotations(depc, aid_list, config=None):
         'resize_dim' : 'wh',
     }
     chip_list = depc.get_property('chips', aid_list, 'img', config=config)
-    result_list = label_chip_list(chip_list)
+    if OLD:
+        from ibeis.algo.detect.labeler.labeler import label_chip_list
+        result_list = label_chip_list(chip_list)
+    else:
+        result_list = ibs.generate_chip_label_list(chip_list, **config)
     # yield detections
     for result in result_list:
         yield result

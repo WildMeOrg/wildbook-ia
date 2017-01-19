@@ -798,6 +798,7 @@ class IBEISController(BASE_CLASS):
         ibs.trashdir    = join(ibs.dbdir, REL_PATHS.trashdir)
         ibs.cachedir    = join(ibs.dbdir, REL_PATHS.cache)
         ibs.backupdir   = join(ibs.dbdir, REL_PATHS.backups)
+        ibs.logsdir     = join(ibs.dbdir, REL_PATHS.logs)
         ibs.chipdir     = join(ibs.dbdir, REL_PATHS.chips)
         ibs.imgdir      = join(ibs.dbdir, REL_PATHS.images)
         ibs.uploadsdir  = join(ibs.dbdir, REL_PATHS.uploads)
@@ -819,6 +820,7 @@ class IBEISController(BASE_CLASS):
         ut.ensuredir(ibs._ibsdb)
         ut.ensuredir(ibs.cachedir,    verbose=_verbose)
         ut.ensuredir(ibs.backupdir,   verbose=_verbose)
+        ut.ensuredir(ibs.logsdir,     verbose=_verbose)
         ut.ensuredir(ibs.workdir,     verbose=_verbose)
         ut.ensuredir(ibs.imgdir,      verbose=_verbose)
         ut.ensuredir(ibs.chipdir,     verbose=_verbose)
@@ -845,7 +847,26 @@ class IBEISController(BASE_CLASS):
         """
         return ibs.dbname
 
-    def get_logdir(ibs):
+    def get_db_name(ibs):
+        """ Alias for ibs.get_dbname(). """
+        return ibs.get_dbname()
+
+    @register_api('/api/core/db/uuid/init/', methods=['GET'])
+    def get_db_init_uuid(ibs):
+        """
+        Returns:
+            UUID: The SQLDatabaseController's initialization UUID
+
+        RESTful:
+            Method: GET
+            URL:    /api/core/db/uuid/init/
+        """
+        return ibs.db.get_db_init_uuid()
+
+    def get_logdir_local(ibs):
+        return ibs.logsdir
+
+    def get_logdir_global(ibs, local=False):
         return ut.get_logging_dir(appname='ibeis')
 
     def get_dbdir(ibs):
