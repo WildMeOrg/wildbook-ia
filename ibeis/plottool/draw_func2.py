@@ -4210,6 +4210,14 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
                 "lambda u: (sign(u) * abs(u)**$alpha * greater_equal(u, $thresh) + 1) / 2" \
                 "lambda u: sign((u+1)/2) * abs((u+1)/2)**$alpha * greater_equal(u, $thresh)"
 
+        python -m plottool plot_func --show --range=4,100 \
+                --func \
+                "lambda n: log2(n)"\
+                "lambda n: log2(log2(n))"\
+                "lambda n: log2(n)/log2(log2(n))"\
+                "lambda n: log2(n) ** 2"\
+                "lambda n: n"\
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
