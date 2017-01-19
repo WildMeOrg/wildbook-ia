@@ -220,7 +220,12 @@ def translate_ibeis_webreturn(rawreturn, success=True, code=None, message=None,
     return response
 
 
-def _process_input(multidict):
+def _process_input(multidict=None):
+    if multidict is None:
+        return {}
+    if isinstance(multidict, dict):
+        from werkzeug.datastructures import ImmutableMultiDict
+        multidict = ImmutableMultiDict([ item for item in multidict.iteritems() ])
     kwargs2 = {}
     for (arg, value) in multidict.iterlists():
         if len(value) > 1:
@@ -563,8 +568,10 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
+                        kwargs4 = _process_input(flask.request.get_json())
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
+                        kwargs.update(kwargs4)
                         jQuery_callback = None
                         if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
                             jQuery_callback = str(kwargs.pop('callback', None))
