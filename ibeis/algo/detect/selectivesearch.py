@@ -152,7 +152,7 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     subtractor = np.array((1, 1, 0, 0))[np.newaxis, :]
     results_list = [boxes - subtractor for boxes in boxes_list]
 
-    if len(subtractor) != len(gpath_list):
+    if len(results_list) != len(gpath_list):
         raise ValueError('Matlab selective search did not return valid data')
     # Remove temporary file, and return.
     os.remove(temp_filepath)
