@@ -70,17 +70,19 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>> })
         >>> # exec(ut.execstr_dict(config), globals())
         >>> downsample = False
-        >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
-        >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
-        >>> print(result)
+        >>> results_list = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
+        >>> results_list = list(results_list)
+        >>> print('result lens = %r' % (map(len, list(results_list))))
+        >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
         >>> kwargs = config = LocalizerConfig(**{
         >>>     'algo': 'selective-search-rcnn',
         >>> })
         >>> # exec(ut.execstr_dict(config), globals())
         >>> downsample = False
-        >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, **config)
-        >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
-        >>> print(result)
+        >>> results_list = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
+        >>> results_list = list(results_list)
+        >>> print('result lens = %r' % (map(len, list(results_list))))
+        >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()
