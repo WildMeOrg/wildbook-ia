@@ -270,6 +270,14 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
+        >>> config = {'algo': 'selective-search'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'selective-search-rcnn'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
     """
     def package_to_numpy(key_list, result_list, score):
         temp = [
