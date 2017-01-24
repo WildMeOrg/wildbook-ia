@@ -101,12 +101,12 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         orient_list = ibs.get_image_orientation(gid_list)
     # Run detection
     results_iter = detect(gpath_list, **kwargs)
+    ut.embed()
     # Upscale the results
     _iter = zip(downsample_list, gid_list, orient_list, results_iter)
     for downsample, gid, orient, (gpath, result_list) in _iter:
         # Upscale the results back up to the original image size
         for result in result_list:
-            ut.embed()
             if downsample is not None and downsample != 1.0:
                 for key in ['xtl', 'ytl', 'width', 'height']:
                     result[key] = int(result[key] * downsample)
@@ -137,8 +137,6 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     if verbose:
         print('Calling: %s' % (matlab_command_str, ))
 
-    input('Continue?')
-
     # Execute command in MATLAB.
     bash_command = 'matlab -nojvm -r "try; %s; catch; exit; end; exit"'
     bash_str = bash_command % (matlab_command_str, )
@@ -147,7 +145,7 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
         process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)
         process_return_code = process_id.wait()
         if process_return_code != 0:
-            raise Exception('Matlab script did not exit successfully!')
+            raise RuntimeError('Matlab selective search did not exit successfully')
 
     # Read the results and undo Matlab's 1-based indexing.
     boxes_list = list(scipy.io.loadmat(temp_filepath)['all_boxes'][0])
@@ -157,5 +155,5 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     # Remove temporary file, and return.
     os.remove(temp_filepath)
     if len(results_list) != len(gpath_list):
-        raise Exception('Something went wrong computing the windows!')
+        raise ValueError('Matlab selective search did not return valid data')
     return results_list
