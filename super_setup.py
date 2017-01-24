@@ -156,7 +156,9 @@ Some submodles require C++ libraries. Build them using the following Command.
 
 Register these packages with the python enviroment.
 
-    python super_setup.py develop
+    ~python super_setup.py develop~
+    # Actually this command instead
+    pip install -e .
 
  --- /USAGE ---
 ''')
@@ -224,6 +226,8 @@ def ensure_utool(CODE_DIR, pythoncmd):
     syscmd('git pull')
     print('installing utool for development')
     cmdstr = '{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd)
+    # TODO: use pip instead
+    # cmdstr = '{pythoncmd} -m pip install .'.format(pythoncmd=pythoncmd)
     in_virtual_env = hasattr(sys, 'real_prefix')
     if not WIN32 and not in_virtual_env:
         cmdstr = 'sudo ' + cmdstr
@@ -435,6 +439,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         cd {repo_dir}/src/python
         # But the setup script is generated during build
         python {repo_dir}/build/src/python/setup.py develop
+        # python -m pip install -e {repo_dir}/build/src/python
 
         python -c "import pyflann; print(pyflann.__file__)"
         python -c "import pyflann; print(pyflann)"
@@ -689,6 +694,8 @@ def execute_commands(tpl_rman, ibeis_rman):
         _rman = ibeis_rman.only_with_pysetup()
         _rman.issue('{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd),
                     sudo=not ut.in_virtual_env())
+        # _rman.issue('{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd),
+        #             sudo=not ut.in_virtual_env())
 
     if GET_ARGFLAG('--clean'):
         _rman = ibeis_rman.only_with_pysetup()
