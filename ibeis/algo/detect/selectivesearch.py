@@ -68,16 +68,16 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>> kwargs = config = LocalizerConfig(**{
         >>>     'algo': 'selective-search',
         >>> })
-        >>> exec(ut.execstr_dict(config), globals())
-        >>> downsample = False
-        >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, **config)
+        >>> # exec(ut.execstr_dict(config), globals())
+        >>> downsample = True
+        >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
         >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
         >>> print(result)
         >>> kwargs = config = LocalizerConfig(**{
         >>>     'algo': 'selective-search-rcnn',
         >>> })
-        >>> exec(ut.execstr_dict(config), globals())
-        >>> downsample = False
+        >>> # exec(ut.execstr_dict(config), globals())
+        >>> downsample = True
         >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, **config)
         >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
         >>> print(result)
@@ -132,9 +132,9 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     # temporary results file.
     temp_file, temp_filepath = tempfile.mkstemp(suffix='.mat')
     os.close(temp_file)
+    gpath_str = '{%s}' % (','.join([ '"%s"' for gpath in gpath_list ]))
+    matlab_command_str = '%s(%s, "%s")' % (matlab_command, gpath_str, temp_filepath)
     if verbose:
-        gpath_str = '{%s}' % (','.join(map(str, gpath_list)))
-        matlab_command_str = '%s(%s, %r)' % (matlab_command, gpath_str, temp_filepath)
         print('Calling: %s' % (matlab_command_str, ))
 
     # Execute command in MATLAB.
