@@ -31,7 +31,7 @@ if not ut.get_argflag('--no-selective-search'):
 VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
-def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
+def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs):
     """
     Args:
         gid_list (list of int): the list of IBEIS image_rowids that need detection
@@ -65,21 +65,15 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
-        >>> kwargs = config = LocalizerConfig(**{
-        >>>     'algo': 'selective-search',
-        >>> })
-        >>> # exec(ut.execstr_dict(config), globals())
+        >>> config = {'matlab_command': 'selective_search', 'verbose': True}
         >>> downsample = False
-        >>> results_list = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
+        >>> results_list = detect_gid_list(ibs, gid_list, downsample, **config)
         >>> results_list = list(results_list)
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
-        >>> kwargs = config = LocalizerConfig(**{
-        >>>     'algo': 'selective-search-rcnn',
-        >>> })
-        >>> # exec(ut.execstr_dict(config), globals())
+        >>> config = {'matlab_command': 'selective_search_rcnn', 'verbose': True}
         >>> downsample = False
-        >>> results_list = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
+        >>> results_list = detect_gid_list(ibs, gid_list, downsample, **config)
         >>> results_list = list(results_list)
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
@@ -102,7 +96,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         downsample_list = [None] * len(gpath_list)
         orient_list = ibs.get_image_orientation(gid_list)
     # Run detection
-    results_iter = detect(gpath_list, **kwargs)
+    results_iter = detect(gpath_list, verbose=verbose, **kwargs)
     # Upscale the results
     _iter = zip(downsample_list, gid_list, orient_list, results_iter)
     for downsample, gid, orient, (gpath, result_list) in _iter:
