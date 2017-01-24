@@ -101,7 +101,6 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         orient_list = ibs.get_image_orientation(gid_list)
     # Run detection
     results_iter = detect(gpath_list, **kwargs)
-    ut.embed()
     # Upscale the results
     _iter = zip(downsample_list, gid_list, orient_list, results_iter)
     for downsample, gid, orient, (gpath, result_list) in _iter:
@@ -159,20 +158,23 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
 
     # Pack results
     results_list_ = []
-    for results in results_list:
-        xtl = int(np.around(results[0]))
-        ytl = int(np.around(results[1]))
-        xbr = int(np.around(results[2]))
-        ybr = int(np.around(results[3]))
-        result_dict = {
-            'xtl'        : xtl,
-            'ytl'        : ytl,
-            'width'      : xbr - xtl,
-            'height'     : ybr - ytl,
-            'class'      : None,
-            'confidence' : 1.0,
-        }
-        results_list_.append(result_dict)
+    for result_list in results_list:
+        result_list_ = []
+        for result in result_list:
+            xtl = int(np.around(result[0]))
+            ytl = int(np.around(result[1]))
+            xbr = int(np.around(result[2]))
+            ybr = int(np.around(result[3]))
+            result_dict = {
+                'xtl'        : xtl,
+                'ytl'        : ytl,
+                'width'      : xbr - xtl,
+                'height'     : ybr - ytl,
+                'class'      : None,
+                'confidence' : 1.0,
+            }
+            result_list_.append(result_dict)
+        results_list_.append(result_list_)
 
     results_list = zip(gpath_list, results_list_)
     return results_list
