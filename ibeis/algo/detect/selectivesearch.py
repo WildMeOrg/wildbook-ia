@@ -69,7 +69,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>>     'algo': 'selective-search',
         >>> })
         >>> # exec(ut.execstr_dict(config), globals())
-        >>> downsample = True
+        >>> downsample = False
         >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, verbose=True, **config)
         >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
         >>> print(result)
@@ -77,7 +77,7 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         >>>     'algo': 'selective-search-rcnn',
         >>> })
         >>> # exec(ut.execstr_dict(config), globals())
-        >>> downsample = True
+        >>> downsample = False
         >>> (gid, gpath, result_list) = detect_gid_list(ibs, gid_list, downsample, **config)
         >>> result = ('(gid, gpath, result_list) = %s' % (ut.repr2((gid, gpath, result_list)),))
         >>> print(result)
@@ -152,8 +152,27 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     subtractor = np.array((1, 1, 0, 0))[np.newaxis, :]
     results_list = [boxes - subtractor for boxes in boxes_list]
 
+    if len(subtractor) != len(gpath_list):
+        raise ValueError('Matlab selective search did not return valid data')
     # Remove temporary file, and return.
     os.remove(temp_filepath)
-    if len(results_list) != len(gpath_list):
-        raise ValueError('Matlab selective search did not return valid data')
+
+    # Pack results
+    results_list_ = []
+    for results in results_list:
+        xtl = int(np.around(results[0]))
+        ytl = int(np.around(results[1]))
+        xbr = int(np.around(results[2]))
+        ybr = int(np.around(results[3]))
+        result_dict = {
+            'xtl'        : xtl,
+            'ytl'        : ytl,
+            'width'      : xbr - xtl,
+            'height'     : ybr - ytl,
+            'class'      : None,
+            'confidence' : 1.0,
+        }
+        results_list_.append(result_dict)
+
+    results_list = zip(gpath_list, results_list_)
     return results_list
