@@ -22,9 +22,9 @@ if not ut.get_argflag('--no-selective-search'):
     try:
         assert exists(SCRIPT_PATH)
     except AssertionError as ex:
+        print('WARNING Failed to find selective search. '
+              'Selective Search is unavailable')
         if ut.SUPER_STRICT:
-            print('WARNING Failed to find selective search. '
-                  'Selective Search is unavailable')
             raise
 
 
@@ -56,11 +56,11 @@ def detect_gid_list(ibs, gid_list, downsample=False, **kwargs):
         tuple: (gid, gpath, result_list)
 
     CommandLine:
-        python -m ibeis.algo.detect.yolo detect_gid_list --show
+        python -m ibeis.algo.detect.selectivesearch detect_gid_list --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.yolo import *  # NOQA
+        >>> from ibeis.algo.detect.selectivesearch import *  # NOQA
         >>> from ibeis.core_images import LocalizerConfig
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
