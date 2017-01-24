@@ -132,10 +132,12 @@ def detect(gpath_list, matlab_command='selective_search', verbose=VERBOSE_SS, **
     # temporary results file.
     temp_file, temp_filepath = tempfile.mkstemp(suffix='.mat')
     os.close(temp_file)
-    gpath_str = '{%s}' % (','.join([ '"%s"' for gpath in gpath_list ]))
-    matlab_command_str = '%s(%s, "%s")' % (matlab_command, gpath_str, temp_filepath)
+    gpath_str = '{%s}' % (','.join([ '%r' % (gpath, ) for gpath in gpath_list ]))
+    matlab_command_str = '%s(%s, %r)' % (matlab_command, gpath_str, temp_filepath)
     if verbose:
         print('Calling: %s' % (matlab_command_str, ))
+
+    input('Continue?')
 
     # Execute command in MATLAB.
     bash_command = 'matlab -nojvm -r "try; %s; catch; exit; end; exit"'
