@@ -218,7 +218,7 @@ def wildbook_signal_annot_name_changes(ibs, aid_list=None, wb_target=None,
             status = response.status_code == 200
             if not status:
                 print('Failed to push new names')
-                print(response.text)
+                # print(response.text)
         status_list.append(status)
     return status_list
 
@@ -272,7 +272,7 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
         if not status:
             status_list = False
             print('Failed to update names')
-            print(response.text)
+            # print(response.text)
         else:
             for name_response in response_json['results']:
                 status = name_response['success']

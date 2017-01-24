@@ -16,9 +16,9 @@ if not ut.get_argflag('--no-pyrf'):
     try:
         import pyrf
     except ImportError as ex:
+        print('WARNING Failed to import pyrf. '
+              'Randomforest detection is unavailable')
         if ut.SUPER_STRICT:
-            print('WARNING Failed to import pyrf. '
-                  'Randomforest detection is unavailable')
             raise
 
 VERBOSE_RF = ut.get_argflag('--verbrf') or ut.VERBOSE

@@ -12,9 +12,9 @@ if not ut.get_argflag('--no-pydarknet'):
     try:
         import pydarknet
     except ImportError as ex:
+        print('WARNING Failed to import pydarknet. '
+              'PyDarknet YOLO detection is unavailable')
         if ut.SUPER_STRICT:
-            print('WARNING Failed to import pydarknet. '
-                  'PyDarknet YOLO detection is unavailable')
             raise
 
 
