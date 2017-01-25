@@ -214,12 +214,12 @@ def compute_classifications(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'rf', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', 'darknet']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'rf', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
-        ut.ParamInfo('class_filepath', None, hideif=lambda cfg: cfg['algo'] != 'yolo' or cfg['class_filepath']),
+        ut.ParamInfo('class_filepath', None, hideif=lambda cfg: cfg['algo'] not in ['yolo', 'faster-rcnn'] or cfg['class_filepath']),
         ut.ParamInfo('grid', False),
     ]
     _sub_config_list = [
@@ -261,7 +261,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()[0:1]
+        >>> gid_list = ibs.get_valid_gids()
         >>> config = {'algo': 'yolo'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -316,21 +316,22 @@ def compute_localizations(depc, gid_list, config=None):
         base_key_list[6] = (config['species'], )  # class == species
         detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
     ######################################################################################
-    elif config['algo'] in ['faster-rcnn']:
-        from ibeis.algo.detect import faster_rcnn
-        print('[ibs] detecting using CNN Faster R-CNN')
-        detect_gen = faster_rcnn.detect_gid_list(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['selective-search', 'selective-search-rcnn']:
+    elif config['algo'] in ['selective-search']:
         from ibeis.algo.detect import selectivesearch
         print('[ibs] detecting using Selective Search')
-        matlab_command = 'selective_search' if config['algo'] == 'selective-search' else 'selective_search_rcnn'
+        matlab_command = 'selective_search'
         detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
     ######################################################################################
-    elif config['algo'] in ['darknet']:
-        from ibeis.algo.detect import yolo_darknet
-        print('[ibs] detecting using CNN YOLO (Darknet)')
-        detect_gen = yolo_darknet.detect_gid_list(ibs, gid_list, **config)
+    elif config['algo'] in ['selective-search-rcnn']:
+        from ibeis.algo.detect import selectivesearch
+        print('[ibs] detecting using Selective Search (R-CNN)')
+        matlab_command = 'selective_search_rcnn'
+        detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
+    ######################################################################################
+    elif config['algo'] in ['faster-rcnn']:
+        from ibeis.algo.detect import fasterrcnn
+        print('[ibs] detecting using CNN Faster R-CNN')
+        detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
