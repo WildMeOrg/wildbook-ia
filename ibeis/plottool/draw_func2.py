@@ -1165,6 +1165,37 @@ def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
 
 
 def get_num_rc(nSubplots=None, nRows=None, nCols=None):
+    r"""
+    Gets a constrained row column plot grid
+
+    Args:
+        nSubplots (None): (default = None)
+        nRows (None): (default = None)
+        nCols (None): (default = None)
+
+    Returns:
+        tuple: (nRows, nCols)
+
+    CommandLine:
+        python -m plottool.draw_func2 get_num_rc
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> cases = [
+        >>>     dict(nRows=None, nCols=None, nSubplots=None),
+        >>>     dict(nRows=2, nCols=None, nSubplots=5),
+        >>>     dict(nRows=None, nCols=2, nSubplots=5),
+        >>>     dict(nRows=None, nCols=None, nSubplots=5),
+        >>> ]
+        >>> for kw in cases:
+        >>>     print('----')
+        >>>     size = get_num_rc(**kw)
+        >>>     if kw['nSubplots'] is not None:
+        >>>         assert size[0] * size[1] >= kw['nSubplots']
+        >>>     print('**kw = %s' % (ut.repr2(kw),))
+        >>>     print('size = %r' % (size,))
+    """
     if nSubplots is None:
         if nRows is None:
             nRows = 1
@@ -4217,6 +4248,11 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
                 "lambda n: log2(n)/log2(log2(n))"\
                 "lambda n: log2(n) ** 2"\
                 "lambda n: n"\
+
+        python -m plottool plot_func --show --range=4,1000000 \
+                --func \
+                "lambda n: log2(n)"\
+                "lambda n: n ** (1/3)"
 
     Example:
         >>> # DISABLE_DOCTEST
