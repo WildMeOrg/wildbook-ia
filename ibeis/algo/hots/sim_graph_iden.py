@@ -9,45 +9,55 @@ def compare_groups(true_groups, pred_groups):
     r"""
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from utool.util_alg import *  # NOQA
+        >>> from ibeis.algo.hots.sim_graph_iden import *  # NOQA
         >>> true_groups = [
-        >>>    [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8], [9, 10, 11],
-        >>>    [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
+        >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
+        >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
         >>> ]
         >>> pred_groups = [
-        >>>    [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11], [7], [8, 9], [10],
-        >>>    [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
+        >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
+        >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
         >>> ]
-        >>> result = compare_groups(groups1, groups2)
+        >>> result = compare_groups(true_groups, pred_groups)
         >>> print(result)
         >>> print(ut.repr4(result))
     """
     true = {tuple(sorted(_group)) for _group in true_groups}
     pred = {tuple(sorted(_group)) for _group in pred_groups}
-    common_sets = list(true.intersection(pred))
-    true.difference_update(common_sets)
-    pred.difference_update(common_sets)
+
+    # Find the groups that are exactly the same
+    common = list(true.intersection(pred))
+
+    true.difference_update(common)
+    pred.difference_update(common)
     true_sets = list(map(set, true))
     pred_sets = list(map(set, pred))
 
-    merge_sets = []
-    split_sets = []
-    hybrid_sets = []
+    merges = []
+    splits = []
+    hybrid = []
     for p in pred_sets:
         flag = True
+        # Find sets where a perdicted set is part of a true set
+        # (ie it needs to be merged with at least one other predicted set)
         if any(p.issubset(t) for t in true_sets):
             flag = 0
-            merge_sets.append(p)
+            merges.append(p)
+        # Find sets where a perdicted set completely contains a true set but is
+        # bigger (ie it needs to have part of it split out)
         if any(p.issuperset(t) for t in true_sets):
             flag = 0
-            split_sets.append(p)
+            splits.append(p)
         if flag:
-            hybrid_sets.append(p)
+            hybrid.append(p)
 
     true_conn = {t: set(ts) for ts in true for t in ts}
-    merge_conn = {m: set(ms) for ms in merge_sets for m in ms}
+    merge_conn = {m: set(ms) for ms in merges for m in ms}
+
+    # pred_sets = set(map(frozenset, pred_sets))
+
     pure_merges = []
-    for ms in merge_sets:
+    for ms in merges:
         m = list(ms)[0]
         others = true_conn[m]
         need = others - ms
@@ -55,7 +65,7 @@ def compare_groups(true_groups, pred_groups):
             pure_merges.append(ms)
 
     pure_splits = []
-    for ss in map(set, split_sets):
+    for ss in map(set, splits):
         true_parts = {tuple(sorted(true_conn[s])) for s in ss}
         if set(ut.flatten(true_parts)) == ss:
             pure_splits.append(ss)
@@ -70,11 +80,67 @@ def compare_groups(true_groups, pred_groups):
     result = {
         'pure_splits': pure_splits,
         'pure_merges': pure_merges,
-        'common': common_sets,
-        'split': split_sets,
-        'merge': merge_sets,
-        'hyrbid': hybrid_sets,
+        'common': common,
+        'splits': splits,
+        'merges': merges,
+        'hybrid': hybrid,
     }
+
+    if False:
+        merges = set(map(frozenset, merges))
+        pure_merges = set(map(frozenset, pure_merges))
+        splits = set(map(frozenset, splits))
+        pure_splits = set(map(frozenset, pure_splits))
+        hybrid = set(map(frozenset, hybrid))
+        merges - pure_merges
+        splits - pure_splits
+
+        def add_clique(graph, nodes):
+            edge_list = ut.combinations(nodes, 2)
+            graph.add_edges_from(edge_list)
+            return edge_list
+
+        # connected compoment lookups
+        pred_conn = {p: frozenset(ps) for ps in pred for p in ps}
+        true_conn = {t: frozenset(ts) for ts in true for t in ts}
+
+        # How many predictions can be merged into perfect pieces?
+        # For each true sets, find if it can be made via merging pred sets
+        pure_predict_merges = []
+        pure_true_merges = []
+        for ts in true_sets:
+            ccs = set([pred_conn.get(t, frozenset()) for t in ts])
+            if frozenset.union(*ccs) == ts:
+                # This is a pure merge
+                pure_predict_merges.append(ccs)
+                pure_true_merges.append(ts)
+
+        # How many predictions can be split into perfect pieces?
+        pure_true_splits = []
+        pure_predict_splits = []
+        for ps in pred_sets:
+            ccs = set([true_conn.get(p, frozenset()) for p in ps])
+            if frozenset.union(*ccs) == ps:
+                # This is a pure merge
+                pure_true_splits.append(ccs)
+                pure_predict_splits.append(ps)
+
+        other_preds = set(map(frozenset, pred_sets)).difference(set(pure_predict_splits + ut.flatten(pure_predict_merges)))
+
+        import networkx as nx
+        pgraph = nx.Graph()
+        for p in pred_sets:
+            add_clique(pgraph, p)
+        tgraph = nx.Graph()
+        for t in true_sets:
+            add_clique(tgraph, t)
+        import plottool as pt
+        ut.qt4ensure()
+        pt.show_nx(pgraph)
+        pt.show_nx(tgraph)
+
+
+
     return result
 
 
@@ -374,7 +440,7 @@ class InfrSimulation(object):
         # true_ranks = np.where(primary_truth.loc[priority_edges]['match'])[0]
 
         # User will only review so many pairs for us
-        max_user_reviews = 200
+        max_user_reviews = 100
         user_edges = priority_edges[:max_user_reviews]
 
         infr.add_feedback_df(
@@ -458,16 +524,21 @@ class InfrSimulation(object):
         compare_results = compare_groups(list(gt_clusters.values()), list(curr_clusters.values()))
         sim.results.update(ut.map_vals(len, compare_results))
 
-        common_per_num = ut.group_items(compare_results['common'], map(len, compare_results['common']))
+        common_per_num = ut.group_items(compare_results['common'],
+                                        map(len, compare_results['common']))
         greater = []
         for i in common_per_num.keys():
             if i > 4:
                 greater.append(i)
         common_per_num['>4'] = ut.flatten(ut.take(common_per_num, greater))
         ut.delete_keys(common_per_num, greater)
+        import six
 
         for k, v in common_per_num.items():
-            sim.results['common' + str(k)] = len(v)
+            if isinstance(k, six.string_types):
+                sim.results['common@' + k] = len(v)
+            else:
+                sim.results['common@' + str(k)] = len(v)
 
 
 if __name__ == '__main__':
