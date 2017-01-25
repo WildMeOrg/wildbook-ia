@@ -363,7 +363,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.5, 1.0, 20)
         # thresh_list0 = np.linspace(.51, 1.0, 3)
-        thresh_list0 = np.linspace(.65, 1.0, 5)
+        # thresh_list0 = np.linspace(.65, 1.0, 5)
+        thresh_list0 = np.linspace(.7, 1.0, 4)
         # thresh_list0 = np.linspace(.8, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
@@ -414,36 +415,53 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         xdata = thresh_list
         xlabel = 'thresh'
         fnum = pt.ensure_fnum(1)
-        fig = pt.figure(fnum=fnum, doclf=True)
+        # fig = pt.figure(fnum=fnum, doclf=True)
 
         ut.fix_embed_globals()
-        def make_subplot(label_list, pnum_):
+        def mkplot(label_list, **kw):
             ydata_list = [ut.take_column(auto_results_list, ylbl) for ylbl in
                           label_list]
-            pt.multi_plot(xdata, ydata_list, label_list=label_list, xlabel=xlabel,
-                          use_legend=True, fnum=fnum, pnum=pnum_())
+            def subplot_partial(pnum, fnum=fnum):
+                return pt.multi_plot(
+                    xdata, ydata_list, label_list=label_list, xlabel=xlabel,
+                    use_legend=True, fnum=fnum, pnum=pnum, ymin=0, **kw)
+            return subplot_partial
 
-        pnum_ = pt.make_pnum_nextgen(nRows=4, nCols=2)
-        make_subplot(['n_auto_inconsistent'], pnum_)
-        make_subplot(['n_incon_reviews', 'n_incon_fixes'], pnum_)
+        n_clusters_real = auto_results_list[0]['n_clusters_real']
 
-        make_subplot(['n_clusters_real', 'n_clusters_possible',
-                      'n_user_clusters', 'n_auto_clusters'], pnum_)
+        inter = pt.ExpandableInteraction(fnum=fnum, nCols=2)
+        # inter += mkplot(['n_auto_inconsistent'])
+        inter += mkplot(['common', 'n_clusters_real'])
+        inter += mkplot(['common@1', 'common@2', 'common@3', 'common@4',
+                         'common@>4'], ymax=n_clusters_real)
+        inter += mkplot(['merges', 'pure_merges'])
+        inter += mkplot(['splits', 'pure_splits'])
+        inter += mkplot(['hybrid'])
+        inter.start()
 
-        make_subplot(['n_user_mistakes', 'n_auto_mistakes'], pnum_)
-        make_subplot(['common', 'common1', 'common2'], pnum_)
-        make_subplot(['common3', 'common4', 'common>4'], pnum_)
-        make_subplot(['hyrbid', 'merge', 'split', 'pure_merges', 'pure_splits'], pnum_)
+        # pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
+        # make_subplot(['n_auto_inconsistent'], pnum_)
+        # make_subplot(['n_incon_reviews', 'n_incon_fixes'], pnum_)
+
+        # make_subplot(['n_clusters_real', 'n_clusters_possible',
+        #               'n_user_clusters', 'n_auto_clusters'], pnum_)
+
+        # make_subplot(['n_user_mistakes', 'n_auto_mistakes'], pnum_)
+        # make_subplot(['common', 'common=1', 'common=2'], pnum_)
+        # make_subplot(['common=3', 'common=4', 'common>4'], pnum_)
+        # make_subplot(['hybrid', 'merge', 'split', 'pure_merges', 'pure_splits'], pnum_)
         # make_subplot(['user_work'], pnum_)
         # make_subplot(['n_flagged'], pnum_)
-        make_subplot(['auto_fpr'], pnum_)
+        # make_subplot(['auto_fpr'], pnum_)
 
         pt.set_figtitle('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
 
-        fig.canvas.manager.window.raise_()
+        # fig.canvas.manager.window.raise_()
         print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
         print('n_aids = %r' % (len(ut.unique(infr.aids))))
         ut.show_if_requested()
+        import utool
+        utool.embed()
 
     @profile
     def test_auto_decisions(pblm, infr, primary_task, primary_auto_flags,
