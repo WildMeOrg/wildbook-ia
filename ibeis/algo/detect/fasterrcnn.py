@@ -42,29 +42,39 @@ if not ut.get_argflag('--no-faster-rcnn'):
             raise
 
 
-CLASS_LIST = ['__background__', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
-              'bus', 'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
-              'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train',
-              'tvmonitor']
-
-
 VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'vgg-ilsvrc' : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-    'zf-ilsvrc'  : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-vgg-ilsvrc' : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-zf-ilsvrc'  : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
 
-    'vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    'zf-pascal'  : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-zf-pascal'  : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
 
-    'default'    : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    None         : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'default'               : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    None                    : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 }
 
 
 def _parse_weight_from_cfg(url):
     return url.replace('.prototxt', '.caffemodel')
+
+
+def _parse_classes_from_cfg(url):
+    return url.replace('.prototxt', '.classes')
+
+
+def _parse_class_list(classes_filepath):
+    # Load classes from file into the class list
+    assert exists(classes_filepath)
+    class_list = []
+    with open(classes_filepath) as classes:
+        for line in classes.readlines():
+            line = line.strip()
+            if len(line) > 0:
+                class_list.append(line)
+    return class_list
 
 
 def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs):
@@ -149,7 +159,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, config_filepath, weight_filepath, sensitivity,
+def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensitivity,
            verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0, nms_sensitivity=0.2,
            **kwargs):
     """
@@ -180,6 +190,12 @@ def detect(gpath_list, config_filepath, weight_filepath, sensitivity,
         weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
                                             check_hash=True)
 
+    if class_filepath is None:
+        class_url = _parse_classes_from_cfg(config_url)
+        class_filepath = ut.grab_file_url(class_url, appname='ibeis',
+                                          check_hash=True, verbose=verbose)
+    class_list = _parse_class_list(class_filepath)
+
     # Need to convert unicode strings to Python strings to support Boost Python
     # call signatures in caffe
     prototxt_filepath = str(config_filepath)  # alias to Caffe nomenclature
@@ -209,7 +225,7 @@ def detect(gpath_list, config_filepath, weight_filepath, sensitivity,
 
         # Compile results
         result_list_ = []
-        for class_index, class_name in enumerate(CLASS_LIST[1:]):
+        for class_index, class_name in enumerate(class_list[1:]):
             class_index += 1  # because we skipped background
             class_boxes = bbox_list[:, 4 * class_index: 4 * (class_index + 1)]
             class_scores = score_list[:, class_index]
