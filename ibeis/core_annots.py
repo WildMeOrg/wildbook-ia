@@ -1684,7 +1684,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
     """
-    OLD = True
+    OLD = False
     print('[ibs] Process Annotation Labels')
     print('config = %r' % (config,))
     # Get controller
