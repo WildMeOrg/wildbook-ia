@@ -260,7 +260,7 @@ def process_detection_html(ibs, **kwargs):
 @register_ibs_method
 @accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
+def detect_cnn_yolo_json(ibs, gid_list, config={}):
     """
     Runs animal detection in each image and returns json-ready formatted
         results, does not return annotations
@@ -287,7 +287,7 @@ def detect_cnn_yolo_json(ibs, gid_list, **kwargs):
     image_uuid_list = ibs.get_image_uuids(gid_list)
     ibs.assert_valid_gids(gid_list)
     # Get detections from depc
-    aids_list = ibs.detect_cnn_yolo(gid_list, **kwargs)
+    aids_list = ibs.detect_cnn_yolo(gid_list, **config)
     results_list = [
         [
             {

@@ -116,13 +116,13 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
         >>> gid_list = ibs.get_valid_gids()
-        >>> config = {'matlab_command': 'faster_rcnn', 'verbose': True}
+        >>> config = {'verbose': True}
         >>> downsample = False
         >>> results_list = detect_gid_list(ibs, gid_list, downsample, **config)
         >>> results_list = list(results_list)
         >>> print('result lens = %r' % (map(len, list(results_list))))
         >>> print('result[0] = %r' % (len(list(results_list[0][2]))))
-        >>> config = {'matlab_command': 'faster_rcnn_rcnn', 'verbose': True}
+        >>> config = {'verbose': True}
         >>> downsample = False
         >>> results_list = detect_gid_list(ibs, gid_list, downsample, **config)
         >>> results_list = list(results_list)

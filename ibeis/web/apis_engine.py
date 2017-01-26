@@ -398,7 +398,7 @@ def start_identify_annots_query(ibs,
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/detect/cnn/yolo/', methods=['POST'])
-def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=None):
+def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=None, **kwargs):
     """
     REST:
         Method: GET
@@ -421,7 +421,7 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=
 
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
-    args = (gid_list,)
+    args = (gid_list, kwargs, )
     jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, *args)
 
     #if callback_url is not None:
