@@ -38,8 +38,13 @@ if not ut.get_argflag('--no-faster-rcnn'):
     except AssertionError as ex:
         print('WARNING Failed to find faster r-cnn. '
               'Faster R-CNN is unavailable')
-        if ut.SUPER_STRICT:
-            raise
+        # if ut.SUPER_STRICT:
+        #     raise
+    except ImportError as ex:
+        print('WARNING Failed to import faster r-cnn. '
+              'Faster R-CNN is unavailable')
+        # if ut.SUPER_STRICT:
+        #     raise
 
 
 VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
