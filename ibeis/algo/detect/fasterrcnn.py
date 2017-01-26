@@ -149,8 +149,8 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         yield (gid, gpath, result_list)
 
 
-def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
-           use_gpu=True, use_gpu_id=0, sensitivity=0.8, nms_sensitivity=0.2,
+def detect(gpath_list, config_filepath, weight_filepath, sensitivity,
+           verbose=VERBOSE_SS, use_gpu=True, use_gpu_id=0, nms_sensitivity=0.2,
            **kwargs):
     """
     Args:
@@ -195,7 +195,6 @@ def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
     else:
         caffe.set_mode_cpu()
 
-    ut.embed()
     net = caffe.Net(prototxt_filepath, caffemodel_filepath, caffe.TEST)
 
     # Warm-up network on a dummy image
@@ -203,38 +202,43 @@ def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
     for i in xrange(2):
         _, _ = im_detect(net, im)
 
-    results_list = []
+    results_list_ = []
     for gpath in gpath_list:
         image = cv2.imread(gpath)
         score_list, bbox_list = im_detect(net, image)
 
-        for cls_ind, cls in enumerate(CLASS_LIST[1:]):
-            cls_ind += 1  # because we skipped background
-            cls_boxes = bbox_list[:, 4 * cls_ind: 4 * (cls_ind + 1)]
-            cls_scores = score_list[:, cls_ind]
-            dets = np.hstack((cls_boxes,
-                              cls_scores[:, np.newaxis])).astype(np.float32)
-            keep = nms(dets, nms_sensitivity)
-            dets = dets[keep, :]
-
-    # Pack results
-    results_list_ = []
-    for result_list in results_list:
+        # Compile results
         result_list_ = []
-        for result in result_list:
-            xtl = int(np.around(result[0]))
-            ytl = int(np.around(result[1]))
-            xbr = int(np.around(result[2]))
-            ybr = int(np.around(result[3]))
-            result_dict = {
-                'xtl'        : xtl,
-                'ytl'        : ytl,
-                'width'      : xbr - xtl,
-                'height'     : ybr - ytl,
-                'class'      : None,
-                'confidence' : 1.0,
-            }
-            result_list_.append(result_dict)
+        for class_index, class_name in enumerate(CLASS_LIST[1:]):
+            class_index += 1  # because we skipped background
+            class_boxes = bbox_list[:, 4 * class_index: 4 * (class_index + 1)]
+            class_scores = score_list[:, class_index]
+            dets_list = np.hstack((
+                class_boxes,
+                class_scores[:, np.newaxis])
+            )
+            dets_list = dets_list.astype(np.float32)
+            # Perform NMS
+            keep_list = nms(dets_list, nms_sensitivity)
+            dets_list = dets_list[keep_list, :]
+            # Perform sensitivity check
+            keep_list = np.where(dets_list[:, -1] >= sensitivity)[0]
+            dets_list = dets_list[keep_list, :]
+            for (xtl, ytl, xbr, ybr, conf) in dets_list:
+                xtl = int(np.around(xtl))
+                ytl = int(np.around(ytl))
+                xbr = int(np.around(xbr))
+                ybr = int(np.around(ybr))
+                confidence = float(conf)
+                result_dict = {
+                    'xtl'        : xtl,
+                    'ytl'        : ytl,
+                    'width'      : xbr - xtl,
+                    'height'     : ybr - ytl,
+                    'class'      : class_name,
+                    'confidence' : confidence,
+                }
+                result_list_.append(result_dict)
         results_list_.append(result_list_)
 
     results_list = zip(gpath_list, results_list_)
