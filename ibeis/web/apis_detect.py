@@ -96,13 +96,17 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
 
 
 @register_route('/test/review/detect/cnn/yolo/', methods=['GET'])
-def review_detection_test():
+def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
+                          callback_method='POST'):
     ibs = current_app.ibs
-    results_dict = ibs.detection_yolo_test()
-    image_uuid = results_dict['image_uuid_list'][0]
-    result_list = results_dict['results_list'][0]
-    callback_url = request.args.get('callback_url', url_for('process_detection_html'))
-    callback_method = request.args.get('callback_method', 'POST')
+    if image_uuid is None or result_list is None:
+        results_dict = ibs.detection_yolo_test()
+        image_uuid = results_dict['image_uuid_list'][0]
+        result_list = results_dict['results_list'][0]
+    if callback_url is None:
+        callback_url = request.args.get('callback_url', url_for('process_detection_html'))
+    if callback_method is None:
+        callback_method = request.args.get('callback_method', 'POST')
     template_html = review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method, include_jquery=True)
     template_html = '''
         <script src="http://code.jquery.com/jquery-2.2.1.min.js" ia-dependency="javascript"></script>
