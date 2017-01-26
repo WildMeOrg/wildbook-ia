@@ -363,7 +363,7 @@ def compute_localizations(depc, gid_list, config=None):
         print('[ibs] detecting using CNN Faster R-CNN')
         detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
-    if config['algo'] in ['darknet']:
+    elif config['algo'] in ['darknet']:
         from ibeis.algo.detect import darknet
         print('[ibs] detecting using Darknet CNN YOLO')
         detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
