@@ -362,9 +362,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # thresh_list0 = np.linspace(0, 1.0, 20)
         # thresh_list0 = np.linspace(.5, 1.0, 20)
-        # thresh_list0 = np.linspace(.51, 1.0, 3)
+        thresh_list0 = np.linspace(.51, 1.0, 10)
         # thresh_list0 = np.linspace(.65, 1.0, 5)
-        thresh_list0 = np.linspace(.7, 1.0, 4)
+        # thresh_list0 = np.linspace(.7, 1.0, 4)
         # thresh_list0 = np.linspace(.8, 1.0, 10)
         # gets the closest fpr (no interpolation)
         fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
@@ -434,19 +434,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         inter += mkplot(['common', 'n_clusters_real'])
         inter += mkplot(['common@1', 'common@2', 'common@3', 'common@4',
                          'common@>4'], ymax=n_clusters_real)
-        inter += mkplot(['merges', 'pure_merges'])
-        inter += mkplot(['splits', 'pure_splits'])
-        inter += mkplot(['hybrid'])
+        inter += mkplot(['true_merges', 'true_splits_flat', 'true_hybrid'])
+        inter += mkplot(['pred_merges_flat', 'pred_splits', 'pred_hybrid'])
+        inter += mkplot(['n_incon_reviews', 'n_incon_fixes'])
+        inter += mkplot(['n_user_mistakes', 'n_auto_mistakes'])
         inter.start()
 
         # pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
-        # make_subplot(['n_auto_inconsistent'], pnum_)
-        # make_subplot(['n_incon_reviews', 'n_incon_fixes'], pnum_)
-
         # make_subplot(['n_clusters_real', 'n_clusters_possible',
         #               'n_user_clusters', 'n_auto_clusters'], pnum_)
 
-        # make_subplot(['n_user_mistakes', 'n_auto_mistakes'], pnum_)
         # make_subplot(['common', 'common=1', 'common=2'], pnum_)
         # make_subplot(['common=3', 'common=4', 'common>4'], pnum_)
         # make_subplot(['hybrid', 'merge', 'split', 'pure_merges', 'pure_splits'], pnum_)

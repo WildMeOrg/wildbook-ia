@@ -22,125 +22,58 @@ def compare_groups(true_groups, pred_groups):
         >>> print(result)
         >>> print(ut.repr4(result))
     """
-    true = {tuple(sorted(_group)) for _group in true_groups}
-    pred = {tuple(sorted(_group)) for _group in pred_groups}
+    true = {frozenset(_group) for _group in true_groups}
+    pred = {frozenset(_group) for _group in pred_groups}
 
     # Find the groups that are exactly the same
-    common = list(true.intersection(pred))
+    common = true.intersection(pred)
 
-    true.difference_update(common)
-    pred.difference_update(common)
-    true_sets = list(map(set, true))
-    pred_sets = list(map(set, pred))
+    true_sets = true.difference(common)
+    pred_sets = pred.difference(common)
 
-    merges = []
-    splits = []
-    hybrid = []
-    for p in pred_sets:
-        flag = True
-        # Find sets where a perdicted set is part of a true set
-        # (ie it needs to be merged with at least one other predicted set)
-        if any(p.issubset(t) for t in true_sets):
-            flag = 0
-            merges.append(p)
-        # Find sets where a perdicted set completely contains a true set but is
-        # bigger (ie it needs to have part of it split out)
-        if any(p.issuperset(t) for t in true_sets):
-            flag = 0
-            splits.append(p)
-        if flag:
-            hybrid.append(p)
+    # connected compoment lookups
+    pred_conn = {p: frozenset(ps) for ps in pred for p in ps}
+    true_conn = {t: frozenset(ts) for ts in true for t in ts}
 
-    true_conn = {t: set(ts) for ts in true for t in ts}
-    merge_conn = {m: set(ms) for ms in merges for m in ms}
+    # How many predictions can be merged into perfect pieces?
+    # For each true sets, find if it can be made via merging pred sets
+    predict_merges = []
+    true_merges = []
+    for ts in true_sets:
+        ccs = set([pred_conn.get(t, frozenset()) for t in ts])
+        if frozenset.union(*ccs) == ts:
+            # This is a pure merge
+            predict_merges.append(ccs)
+            true_merges.append(ts)
 
-    # pred_sets = set(map(frozenset, pred_sets))
+    # How many predictions can be split into perfect pieces?
+    true_splits = []
+    predict_splits = []
+    for ps in pred_sets:
+        ccs = set([true_conn.get(p, frozenset()) for p in ps])
+        if frozenset.union(*ccs) == ps:
+            # This is a pure merge
+            true_splits.append(ccs)
+            predict_splits.append(ps)
 
-    pure_merges = []
-    for ms in merges:
-        m = list(ms)[0]
-        others = true_conn[m]
-        need = others - ms
-        if all(n in merge_conn for n in need):
-            pure_merges.append(ms)
+    pred_merges_flat = ut.flatten(predict_merges)
+    true_splits_flat = ut.flatten(true_splits)
 
-    pure_splits = []
-    for ss in map(set, splits):
-        true_parts = {tuple(sorted(true_conn[s])) for s in ss}
-        if set(ut.flatten(true_parts)) == ss:
-            pure_splits.append(ss)
+    pred_hybrid = frozenset(map(frozenset, pred_sets)).difference(
+        set(predict_splits + pred_merges_flat))
 
-    # Find number of consistent groups
-    # Find number of pure splits
-    # Find number of pure merges
-    # Find number of pure hybrid split-merges
-    # subpartition to
-    # find predictions that can be fixed by pure merge
-    # find predictions that can be fixed by pure split
+    true_hybrid = frozenset(map(frozenset, true_sets)).difference(
+        set(true_merges + true_splits_flat))
+
     result = {
-        'pure_splits': pure_splits,
-        'pure_merges': pure_merges,
         'common': common,
-        'splits': splits,
-        'merges': merges,
-        'hybrid': hybrid,
+        'true_splits_flat': true_splits_flat,
+        'true_merges': true_merges,
+        'true_hybrid': true_hybrid,
+        'pred_splits': predict_splits,
+        'pred_merges_flat': pred_merges_flat,
+        'pred_hybrid': pred_hybrid,
     }
-
-    if False:
-        merges = set(map(frozenset, merges))
-        pure_merges = set(map(frozenset, pure_merges))
-        splits = set(map(frozenset, splits))
-        pure_splits = set(map(frozenset, pure_splits))
-        hybrid = set(map(frozenset, hybrid))
-        merges - pure_merges
-        splits - pure_splits
-
-        def add_clique(graph, nodes):
-            edge_list = ut.combinations(nodes, 2)
-            graph.add_edges_from(edge_list)
-            return edge_list
-
-        # connected compoment lookups
-        pred_conn = {p: frozenset(ps) for ps in pred for p in ps}
-        true_conn = {t: frozenset(ts) for ts in true for t in ts}
-
-        # How many predictions can be merged into perfect pieces?
-        # For each true sets, find if it can be made via merging pred sets
-        pure_predict_merges = []
-        pure_true_merges = []
-        for ts in true_sets:
-            ccs = set([pred_conn.get(t, frozenset()) for t in ts])
-            if frozenset.union(*ccs) == ts:
-                # This is a pure merge
-                pure_predict_merges.append(ccs)
-                pure_true_merges.append(ts)
-
-        # How many predictions can be split into perfect pieces?
-        pure_true_splits = []
-        pure_predict_splits = []
-        for ps in pred_sets:
-            ccs = set([true_conn.get(p, frozenset()) for p in ps])
-            if frozenset.union(*ccs) == ps:
-                # This is a pure merge
-                pure_true_splits.append(ccs)
-                pure_predict_splits.append(ps)
-
-        other_preds = set(map(frozenset, pred_sets)).difference(set(pure_predict_splits + ut.flatten(pure_predict_merges)))
-
-        import networkx as nx
-        pgraph = nx.Graph()
-        for p in pred_sets:
-            add_clique(pgraph, p)
-        tgraph = nx.Graph()
-        for t in true_sets:
-            add_clique(tgraph, t)
-        import plottool as pt
-        ut.qt4ensure()
-        pt.show_nx(pgraph)
-        pt.show_nx(tgraph)
-
-
-
     return result
 
 
@@ -494,7 +427,7 @@ class InfrSimulation(object):
         infr = sim.infr
         primary_truth = sim.primary_truth
         review_edges = infr.generate_reviews(**queue_params)
-        max_reviews = 200
+        max_reviews = 1000
         for count, (aid1, aid2) in enumerate(ut.ProgIter(review_edges)):
             state = primary_truth.loc[(aid1, aid2)].idxmax()
             tags = []
@@ -521,7 +454,10 @@ class InfrSimulation(object):
         gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
         curr_clusters = ut.group_pairs(infr.gen_node_attrs('name_label'))
 
-        compare_results = compare_groups(list(gt_clusters.values()), list(curr_clusters.values()))
+        compare_results = compare_groups(
+            list(gt_clusters.values()),
+            list(curr_clusters.values())
+        )
         sim.results.update(ut.map_vals(len, compare_results))
 
         common_per_num = ut.group_items(compare_results['common'],
