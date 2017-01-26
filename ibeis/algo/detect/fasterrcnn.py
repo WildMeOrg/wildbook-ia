@@ -180,8 +180,10 @@ def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
         weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
                                             check_hash=True)
 
-    prototxt_filepath = config_filepath  # alias to Caffe nomenclature
-    caffemodel_filepath = weight_filepath  # alias to Caffe nomenclature
+    # Need to convert unicode strings to Python strings to support Boost Python
+    # call signatures in caffe
+    prototxt_filepath = str(config_filepath)  # alias to Caffe nomenclature
+    caffemodel_filepath = str(weight_filepath)  # alias to Caffe nomenclature
 
     assert exists(prototxt_filepath), 'Specified prototxt file not found'
     assert exists(caffemodel_filepath), 'Specified caffemodel file not found'
@@ -192,6 +194,8 @@ def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
         cfg.GPU_ID = use_gpu_id
     else:
         caffe.set_mode_cpu()
+
+    ut.embed()
     net = caffe.Net(prototxt_filepath, caffemodel_filepath, caffe.TEST)
 
     # Warm-up network on a dummy image
@@ -203,8 +207,6 @@ def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
     for gpath in gpath_list:
         image = cv2.imread(gpath)
         score_list, bbox_list = im_detect(net, image)
-
-        ut.embed()
 
         for cls_ind, cls in enumerate(CLASS_LIST[1:]):
             cls_ind += 1  # because we skipped background
