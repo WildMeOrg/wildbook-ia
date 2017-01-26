@@ -41,17 +41,30 @@ if not ut.get_argflag('--no-faster-rcnn'):
         if ut.SUPER_STRICT:
             raise
 
+
 CLASS_LIST = ['__background__', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
               'bus', 'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
               'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train',
               'tvmonitor']
 
-# NETS = {'vgg16': ('VGG16',
-#                   'VGG16_faster_rcnn_final.caffemodel'),
-#         'zf': ('ZF',
-#                   'ZF_faster_rcnn_final.caffemodel')}
 
 VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
+
+
+CONFIG_URL_DICT = {
+    'vgg-ilsvrc' : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'zf-ilsvrc'  : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+
+    'vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'zf-pascal'  : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
+
+    'default'    : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    None         : 'https://lev.cs.rpi.edu/public/models/detect.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+}
+
+
+def _parse_weight_from_cfg(url):
+    return url.replace('.prototxt', '.caffemodel')
 
 
 def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs):
@@ -149,6 +162,23 @@ def detect(gpath_list, config_filepath, weight_filepath, verbose=VERBOSE_SS,
         iter
     """
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
+
+    # Get correct config if specified with shorthand
+    config_url = None
+    if config_filepath in CONFIG_URL_DICT:
+        config_url = CONFIG_URL_DICT[config_filepath]
+        config_filepath = ut.grab_file_url(config_url, appname='ibeis',
+                                           check_hash=True)
+
+    # Get correct weights if specified with shorthand
+    if weight_filepath in CONFIG_URL_DICT:
+        if weight_filepath is None and config_url is not None:
+            config_url_ = config_url
+        else:
+            config_url_ = CONFIG_URL_DICT[weight_filepath]
+        weight_url = _parse_weight_from_cfg(config_url_)
+        weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
+                                            check_hash=True)
 
     prototxt_filepath = config_filepath  # alias to Caffe nomenclature
     caffemodel_filepath = weight_filepath  # alias to Caffe nomenclature
