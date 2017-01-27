@@ -197,8 +197,6 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     temp_file, temp_filepath = tempfile.mkstemp(suffix='.txt')
     os.close(temp_file)
 
-    ut.embed()
-
     # Execute command for each image
     results_list_ = []
     for gpath in gpath_list:
@@ -218,17 +216,20 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             if process_return_code != 0:
                 raise RuntimeError('Darknet did not exit successfully')
 
+        ut.embed()
+
         # Load the temporary file and load it's contents
         with open(temp_filepath, 'r') as temp_file:
-            line_list = temp_file.readlines()
+            temps_str = temp_file.read()
 
+        temps_list = temps_str.split('\n\n')
         # Parse results from output file
         result_list_ = []
-        for line in line_list:
-            line = line.strip()
-            if len(line) == 0:
+        for temp_str in temps_list:
+            temp_str = temp_str.strip()
+            if len(temp_str) == 0:
                 continue
-            result = line.split(' ')
+            result = temp_str.split('\n')
             gpath_ = result[0]
             assert gpath == gpath_
             xtl = int(np.around(float(result[1])))
