@@ -216,8 +216,6 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             if process_return_code != 0:
                 raise RuntimeError('Darknet did not exit successfully')
 
-        ut.embed()
-
         # Load the temporary file and load it's contents
         with open(temp_filepath, 'r') as temp_file:
             temps_str = temp_file.read()
