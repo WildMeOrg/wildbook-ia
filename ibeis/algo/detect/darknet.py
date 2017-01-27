@@ -231,10 +231,10 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             result = line.split(' ')
             gpath_ = result[0]
             assert gpath == gpath_
-            xtl = int(np.around(result[1]))
-            ytl = int(np.around(result[2]))
-            xbr = int(np.around(result[3]))
-            ybr = int(np.around(result[4]))
+            xtl = int(np.around(float(result[1])))
+            ytl = int(np.around(float(result[2])))
+            xbr = int(np.around(float(result[3])))
+            ybr = int(np.around(float(result[4])))
             class_ = result[5]
             conf = float(result[6])
             result_dict = {
