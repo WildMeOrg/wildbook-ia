@@ -298,10 +298,6 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> config = {'algo': 'fast-rcnn', 'config_filepath': 'pretrained-fast-vgg-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
         >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -360,10 +356,10 @@ def compute_localizations(depc, gid_list, config=None):
         matlab_command = 'selective_search_rcnn'
         detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
     ######################################################################################
-    elif config['algo'] in ['fast-rcnn']:
-        from ibeis.algo.detect import fasterrcnn
-        print('[ibs] detecting using CNN Fast R-CNN')
-        detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
+    # elif config['algo'] in ['fast-rcnn']:
+    #     from ibeis.algo.detect import fasterrcnn
+    #     print('[ibs] detecting using CNN Fast R-CNN')
+    #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['faster-rcnn']:
         from ibeis.algo.detect import fasterrcnn
