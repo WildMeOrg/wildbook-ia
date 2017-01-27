@@ -22,7 +22,7 @@ if not ut.get_argflag('--no-selective-search'):
     try:
         assert exists(SCRIPT_PATH)
     except AssertionError as ex:
-        print('WARNING Failed to find selective search. '
+        print('WARNING Failed to find selective_search_ijcv_with_python. '
               'Selective Search is unavailable')
         # if ut.SUPER_STRICT:
         #     raise

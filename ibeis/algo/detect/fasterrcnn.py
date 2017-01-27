@@ -36,12 +36,12 @@ if not ut.get_argflag('--no-faster-rcnn'):
         from fast_rcnn.test import im_detect
         from fast_rcnn.nms_wrapper import nms
     except AssertionError as ex:
-        print('WARNING Failed to find faster r-cnn. '
+        print('WARNING Failed to find py-faster-rcnn. '
               'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
     except ImportError as ex:
-        print('WARNING Failed to import faster r-cnn. '
+        print('WARNING Failed to import fast_rcnn. '
               'Faster R-CNN is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
@@ -51,14 +51,16 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'pretrained-vgg-ilsvrc' : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-    'pretrained-zf-ilsvrc'  : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-fast-vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 
-    'pretrained-vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    'pretrained-zf-pascal'  : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-vgg-pascal'      : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-zf-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
 
-    'default'               : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    None                    : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-vgg-ilsvrc'      : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+    'pretrained-zf-ilsvrc'       : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
+
+    'default'                    : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    None                         : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 }
 
 
