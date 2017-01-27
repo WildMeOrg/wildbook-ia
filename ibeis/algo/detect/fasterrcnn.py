@@ -51,7 +51,7 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'pretrained-fast-vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    # 'pretrained-fast-vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
 
     'pretrained-vgg-pascal'      : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
     'pretrained-zf-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
