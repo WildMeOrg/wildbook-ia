@@ -214,12 +214,12 @@ def compute_classifications(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'rf', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'darknet', 'rf', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
-        ut.ParamInfo('class_filepath', None, hideif=lambda cfg: cfg['algo'] not in ['yolo', 'faster-rcnn'] or cfg['class_filepath']),
+        ut.ParamInfo('class_filepath', None, hideif=lambda cfg: cfg['algo'] not in ['yolo', 'darknet', 'faster-rcnn'] or cfg['class_filepath']),
         ut.ParamInfo('grid', False),
     ]
     _sub_config_list = [
@@ -261,24 +261,29 @@ def compute_localizations(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()
-        >>> config = {'algo': 'yolo', 'config_filepath': 'pretrained-v1-pascal'}
+        >>> gid_list = ibs.get_valid_gids()[:16]
+        >>>
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-
-        >>> config = {'algo': 'yolo', 'config_filepath': 'pretrained-v2-pascal'}
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-large-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> config = {'algo': 'yolo', 'config_filepath': 'pretrained-v2-large-pascal'}
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> config = {'algo': 'yolo', 'config_filepath': 'pretrained-tiny-pascal'}
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-large-coco'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
+        >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-tiny-coco'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>>
         >>> config = {'algo': 'yolo'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -330,9 +335,9 @@ def compute_localizations(depc, gid_list, config=None):
     base_key_list[4] = (0.0, )  # Theta
 
     ######################################################################################
-    if config['algo'] in ['yolo', 'cnn']:
+    if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
         from ibeis.algo.detect import yolo
-        print('[ibs] detecting using CNN YOLO')
+        print('[ibs] detecting using PyDarknet CNN YOLO')
         detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
     elif config['algo'] in ['rf']:
@@ -358,6 +363,10 @@ def compute_localizations(depc, gid_list, config=None):
         print('[ibs] detecting using CNN Faster R-CNN')
         detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
+    elif config['algo'] in ['darknet']:
+        from ibeis.algo.detect import darknet
+        print('[ibs] detecting using Darknet CNN YOLO')
+        detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 

@@ -24,8 +24,8 @@ if not ut.get_argflag('--no-selective-search'):
     except AssertionError as ex:
         print('WARNING Failed to find selective search. '
               'Selective Search is unavailable')
-        if ut.SUPER_STRICT:
-            raise
+        # if ut.SUPER_STRICT:
+        #     raise
 
 
 VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE

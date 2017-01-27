@@ -381,7 +381,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     primary_res.get_pos_threshes('fpr', target_fpr)['match']
         #     for target_fpr in target_fprs
         # ]
-        auto_results_list = []
 
         task_thresh = {}
         task_key = 'photobomb_state'
@@ -392,22 +391,28 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
         print('n_aids = %r' % (len(ut.unique(infr.aids))))
 
-        for target_fpr in fpr_list:
-            print('===================================')
-            thresh_df = primary_res.get_pos_threshes('fpr', target_fpr)
-            task_thresh[primary_task] = thresh_df
-            print('target_fpr = %r' % (target_fpr,))
-            print('thresh_df = %r' % (thresh_df,))
+        result_cacher = ut.Cacher('auto_results', cfgstr='1',
+                                  appname=pblm.appname, enabled=1)
+        auto_results_list = result_cacher.tryload()
+        if auto_results_list is None:
+            auto_results_list = []
+            for target_fpr in fpr_list:
+                print('===================================')
+                thresh_df = primary_res.get_pos_threshes('fpr', target_fpr)
+                task_thresh[primary_task] = thresh_df
+                print('target_fpr = %r' % (target_fpr,))
+                print('thresh_df = %r' % (thresh_df,))
 
-            # print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
-            primary_auto_flags = pblm.auto_decisions_at_threshold(
-                primary_task, task_probs, task_thresh, task_keys, clf_key,
-                data_key)
-            auto_results = pblm.test_auto_decisions(
-                infr, primary_task, primary_auto_flags, task_keys, task_probs,
-                primary_truth)
-            auto_results['auto_fpr'] = target_fpr
-            auto_results_list.append(auto_results)
+                # print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
+                primary_auto_flags = pblm.auto_decisions_at_threshold(
+                    primary_task, task_probs, task_thresh, task_keys, clf_key,
+                    data_key)
+                auto_results = pblm.test_auto_decisions(
+                    infr, primary_task, primary_auto_flags, task_keys, task_probs,
+                    primary_truth)
+                auto_results['auto_fpr'] = target_fpr
+                auto_results_list.append(auto_results)
+            result_cacher.save(auto_results_list)
 
         import plottool as pt
         pt.qt4ensure()
@@ -426,35 +431,42 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     xdata, ydata_list, label_list=label_list, xlabel=xlabel,
                     use_legend=True, fnum=fnum, pnum=pnum, ymin=0, **kw)
             return subplot_partial
+        import utool
+        utool.embed()
 
-        n_clusters_real = auto_results_list[0]['n_clusters_real']
+        n_names_real = auto_results_list[0]['n_names_real']
+        # max_reviews = auto_results_list[0]['max_reviews']
+        max_reviews = 1000
 
         inter = pt.ExpandableInteraction(fnum=fnum, nCols=2)
         # inter += mkplot(['n_auto_inconsistent'])
-        inter += mkplot(['common', 'n_clusters_real'])
-        inter += mkplot(['common@1', 'common@2', 'common@3', 'common@4',
-                         'common@>4'], ymax=n_clusters_real)
+        inter += mkplot(
+            ['n_names_common', 'common@1',
+             'n_names_real', 'real@1'],
+            color_list=pt.distinct_colors(2) + pt.distinct_colors(2),
+            linestyle_list=['--'] * 2 + ['-'] * 2,
+        )
+        inter += mkplot(
+            ['common@2', 'common@3', 'common@>3',
+             'real@2', 'real@3', 'real@>3'],
+            color_list=pt.distinct_colors(3) + pt.distinct_colors(3),
+            linestyle_list=['--'] * 3 + ['-'] * 3,
+            # ymax=n_names_real
+        )
         inter += mkplot(['true_merges', 'true_splits_flat', 'true_hybrid'])
         inter += mkplot(['pred_merges_flat', 'pred_splits', 'pred_hybrid'])
-        inter += mkplot(['n_incon_reviews', 'n_incon_fixes'])
-        inter += mkplot(['n_user_mistakes', 'n_auto_mistakes'])
+        # inter += mkplot(['n_incon_reviews', 'n_incon_fixes'])
+        # inter += mkplot(['n_user_mistakes', 'n_auto_mistakes'])
         inter.start()
 
-        # pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
-        # make_subplot(['n_clusters_real', 'n_clusters_possible',
-        #               'n_user_clusters', 'n_auto_clusters'], pnum_)
-
-        # make_subplot(['common', 'common=1', 'common=2'], pnum_)
-        # make_subplot(['common=3', 'common=4', 'common>4'], pnum_)
-        # make_subplot(['hybrid', 'merge', 'split', 'pure_merges', 'pure_splits'], pnum_)
-        # make_subplot(['user_work'], pnum_)
-        # make_subplot(['n_flagged'], pnum_)
         # make_subplot(['auto_fpr'], pnum_)
 
-        pt.set_figtitle('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
+        pt.set_figtitle('n_names_real=%r, max_reviews=%r' % (n_names_real,
+                                                               max_reviews))
 
         # fig.canvas.manager.window.raise_()
-        print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
+        print('max_reviews = %r' % (max_reviews,))
+        print('n_names_real = %r' % (n_names_real,))
         print('n_aids = %r' % (len(ut.unique(infr.aids))))
         ut.show_if_requested()
         import utool
@@ -488,147 +500,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # sim.results['user_work'] = (
         # sim.results['n_pos_want'] + sim.results['n_incon_reviews'])
-
-        sim.results['user_work'] = 1
         return sim.results
 
-        # pblm.extra_report(task_probs, is_auto, want_samples)
 
-        # Find a minimum set of discoverable reviews to make instead of going
-        # through the simulation.
-        # * For each groundtruth cc, find a MST of edges that exist in the
-        # candidates set (or minimum connected set if it is different, but I
-        # think its the same thing as MST).
-        # TODO: find a way to consider negative edges too
-        # Or, just figure out how many positive reviews you need
-        # to get before it petters out. Then look at that y_pred vs y_true
-        # import networkx as nx
-
-        # primary_probs = task_probs[primary_task]
-
-        """
-        Goal:
-            * Determine predictions after user reviews
-            * Get y_user_and_auto_pred - Use these to evaluate various
-               auto-review thresholds based on how much a user must do and how
-               accurate the final product ends up being.
-            * Compare y_user_and_auto_pred against y_auto_pred.
-            * Compare n_reviews for each threshold level as well as accuracy.
-
-        Must:
-            * Handle inconsistencies remaining from auto-review
-            * Don't match edges that would never have been suggested in the
-              priortiy algorithm. (ie merge errors caused by auto-review, those
-              are perminent)
-            *
-
-        Method:
-            * Find all inconsistencies, assume user reviews and fixes them
-               - ideally should use the priority algorithm for this
-            * Then find a list of all positive reviews that will best match the
-              groundtruth (note it might not be possible to match the groundtruth
-              if candidate edges are missing)
-            * Find and remove the set of edges that would not be reviewed based
-              on negative auto-reviews.
-            * The remaning edges are the same edges that would be reviewed by
-              a perfect reviewer using the highest match priority algorithm.
-            * Review those in bulk for speed.
-        """
-
-        # if False:
-        #     # Assume the user will correct any inconsistent components
-        #     import ibeis
-        #     e_ = ibeis.algo.hots.graph_iden.e_
-        #     merge_fixes = []
-        #     split_fixes = []
-        #     for cc in infr.inconsistent_components():
-        #         edges = ut.lstarmap(e_, list(cc.edges()))
-        #         edge_states = np.array([
-        #             cc.edge[u][v].get('reviewed_state', 'unreviewed')
-        #             for u, v in edges
-        #         ])
-        #         node_to_nid = nx.get_node_attributes(cc, 'orig_name_label')
-        #         same_flags = (
-        #             np.diff(ut.unflat_take(node_to_nid, edges), axis=1) == 0).T[0]
-        #         split_edges = ut.compress(edges, (edge_states == 'match') &
-        #                                   (~same_flags))
-        #         merge_edges = ut.compress(edges, (edge_states == 'nomatch') &
-        #                                   (same_flags))
-        #         merge_fixes += merge_edges
-        #         split_fixes += split_edges
-        #     # print('----')
-        #     # print('merge_fixes = %r' % (len(merge_fixes),))
-        #     # print('split_fixes = %r' % (len(split_fixes),))
-        #     flagged_edges = merge_fixes + split_fixes
-        #     auto_results['n_flagged'] = len(flagged_edges)
-
-        # if False:
-        #     queue_params = {
-        #         'pos_diameter': None,
-        #         'neg_diameter': None,
-        #         # 'pos_diameter': 1,
-        #         # 'neg_diameter': 2,
-        #     }
-        #     def oracle_decision(aid1, aid2, primary_truth):
-        #         state = primary_truth.loc[(aid1, aid2)].idxmax()
-        #         tags = []
-        #         return state, tags
-        #     rng = np.random.RandomState(0)
-        #     _iter = infr.generate_reviews(randomness=0, rng=rng, **queue_params)
-        #     _iter2 = enumerate(_iter)
-        #     prog = ut.ProgIter(_iter2, bs=False, adjust=False)
-        #     for count, (aid1, aid2) in prog:
-        #         print('remaining_reviews = %r' % (infr.remaining_reviews()),)
-        #         # Make the next review decision
-        #         state, tags = oracle_decision(aid1, aid2, primary_truth)
-        #         infr.add_feedback(aid1, aid2, state, tags, apply=True)
-        #     auto_results['n_reviews'] = count
-
-        # fixed_state = primary_truth.loc[flagged_edges]
-
-        # pd.isnull(auto_decisions.loc[flagged_edges]).sum()
-        # mistake_uv = is_mistake[is_mistake].index
-        # total_mistakes = is_mistake.sum()
-        # print('User is able to discover %d/%d misclassifications' % (
-        #     len(flagged_edges), total_mistakes))
-        # remaining_mistake_uv = mistake_uv.difference(flagged_edges)
-        # print('Initial mistakes')
-        # clf_helpers.classification_report2(
-        #     y_true=primary_truth.loc[mistake_uv].idxmax(axis=1),
-        #     y_pred=auto_decisions.loc[mistake_uv]
-        # )
-
-        # print('Remaining mistakes')
-        # clf_helpers.classification_report2(
-        #     y_true=primary_truth.loc[remaining_mistake_uv].idxmax(axis=1),
-        #     y_pred=auto_decisions.loc[remaining_mistake_uv]
-        # )
-
-        # report number of names with (gt) split problems
-        # report number of merge problems (incorrect negative review)
-        # report number of remaining merges
-        # number of decisions that were part of the training data
-
-        # * accept-threshold -vs- #mistakes
-        # * accept-threshold -vs- #discoverable mistakes
-        # * accept-threshold -vs- #undiscoverable mistakes
-        # * accept-threshold -vs- #user reviews
-
-        # FIX MISTAKES
-        # with ut.Timer('apply-auto-feedback'):
-        #     fixed_decisions = fixed_state.idxmax(axis=1)
-        #     for (u, v), state in fixed_decisions.iteritems():
-        #         infr.add_feedback(u, v, state, apply=False)
-        # infr.apply_feedback_edges()
-        # n_clusters, n_inconsistent = infr.relabel_using_reviews()
-        # infr.apply_review_inference()
-        # print('n_clusters = %r' % (n_clusters,))
-        # print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
-        # print('n_aids = %r' % (len(ut.unique(infr.aids))))
-        # print('n_inconsistent = %r' % (n_inconsistent,))
-
-        # TODO: simulated user script and report results
-        # return auto_results
 
     def extra_report(pblm, task_probs, is_auto, want_samples):
         task_key = 'photobomb_state'
