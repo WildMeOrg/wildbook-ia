@@ -194,7 +194,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             data_file.write(data_str)
 
     # Form the temporary results file that the code will write to
-    temp_file, temp_filepath = tempfile.mkstemp(suffix='.csv')
+    temp_file, temp_filepath = tempfile.mkstemp(suffix='.txt')
     os.close(temp_file)
 
     ut.embed()
@@ -202,9 +202,9 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     # Execute command for each image
     results_list_ = []
     for gpath in gpath_list:
-        # Clear the contents of the file
-        with open(temp_filepath, 'w'):
-            pass
+        # # Clear the contents of the file (C code should do this instead)
+        # with open(temp_filepath, 'w'):
+        #     pass
 
         # Run darknet on image
         bash_args = (data_filepath, config_filepath, weight_filepath, gpath, temp_filepath, sensitivity, )
@@ -229,17 +229,21 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             if len(line) == 0:
                 continue
             result = line.split(' ')
-            xtl = int(np.around(result[0]))
-            ytl = int(np.around(result[1]))
-            xbr = int(np.around(result[2]))
-            ybr = int(np.around(result[3]))
+            gpath_ = result[0]
+            assert gpath == gpath_
+            xtl = int(np.around(result[1]))
+            ytl = int(np.around(result[2]))
+            xbr = int(np.around(result[3]))
+            ybr = int(np.around(result[4]))
+            class_ = result[5]
+            conf = float(result[6])
             result_dict = {
                 'xtl'        : xtl,
                 'ytl'        : ytl,
                 'width'      : xbr - xtl,
                 'height'     : ybr - ytl,
-                'class'      : None,
-                'confidence' : 1.0,
+                'class'      : class_,
+                'confidence' : conf,
             }
             result_list_.append(result_dict)
         results_list_.append(result_list_)
