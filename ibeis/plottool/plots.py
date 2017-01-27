@@ -35,7 +35,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
     this file.  Any function not using this should probably find a way to use
     it. It is pretty general and relatively clean.
 
-
     Args:
         xdata (ndarray): can also be a list of arrays
         ydata_list (list of ndarrays): can also be a single array
@@ -60,8 +59,6 @@ def multi_plot(xdata, ydata_list, **kwargs):
             spread
         if kind='bar':
             stacked, width
-
-
 
     References:
         matplotlib.org/examples/api/barchart_demo.html
