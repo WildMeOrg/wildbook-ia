@@ -493,11 +493,11 @@ def compute_features(depc, gid_list, config=None):
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
-    config = {
+    thumbnail_config = {
         'draw_annots' : False,
         'thumbsize'   : (500, 500),
     }
-    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=thumbnail_config,
                               read_extern=False, ensure=True)
 
     target_size = (224, 224)
