@@ -19,14 +19,15 @@ if not ut.get_argflag('--no-ssd'):
         assert exists(SCRIPT_PATH)
 
         def add_path(path):
-            if path not in sys.path:
-                sys.path.insert(0, path)
+            # if path not in sys.path:
+            sys.path.insert(0, path)
 
         # Add pycaffe to PYTHONPATH
         pycaffe_path = join(SCRIPT_PATH, 'python')
         add_path(pycaffe_path)
 
         import caffe
+        reload(caffe)
         from google.protobuf import text_format
         from caffe.proto import caffe_pb2
     except AssertionError as ex:
