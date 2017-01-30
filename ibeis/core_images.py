@@ -531,6 +531,7 @@ def compute_features(depc, gid_list, config=None):
         image_array = np.expand_dims(image_array, axis=0)
         image_array = preprocess_input(image_array)
         features = model.predict(image_array)
+        features = features.flatten()
         yield (features, )
 
 
