@@ -268,7 +268,6 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
 
     results_list_ = []
     for gpath in gpath_list:
-
         image = caffe.io.load_image(gpath)
         transformed_image = transformer.preprocess('data', image)
         net.blobs['data'].data[...] = transformed_image
@@ -297,15 +296,16 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         top_ymin = det_ymin[top_indices]
         top_xmax = det_xmax[top_indices]
         top_ymax = det_ymax[top_indices]
+        height, width = image.shape[:2]
 
         # Compile results
         result_list_ = []
         zipped = zip(top_xmin, top_ymin, top_xmax, top_ymax, top_labels, top_conf)
         for (xmin, ymin, xmax, ymax, label, conf) in zipped:
-            xtl = int(np.around(xmin))
-            ytl = int(np.around(ymin))
-            xbr = int(np.around(xmax))
-            ybr = int(np.around(ymax))
+            xtl = int(np.around(xmin * width))
+            ytl = int(np.around(ymin * height))
+            xbr = int(np.around(xmax * width))
+            ybr = int(np.around(ymax * height))
             confidence = float(conf)
             result_dict = {
                 'xtl'        : xtl,
