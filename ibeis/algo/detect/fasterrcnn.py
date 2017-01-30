@@ -20,8 +20,8 @@ if not ut.get_argflag('--no-faster-rcnn'):
         assert exists(SCRIPT_PATH)
 
         def add_path(path):
-            if path not in sys.path:
-                sys.path.insert(0, path)
+            # if path not in sys.path:
+            sys.path.insert(0, path)
 
         # Add pycaffe to PYTHONPATH
         pycaffe_path = join(SCRIPT_PATH, 'caffe-fast-rcnn', 'python')
@@ -32,6 +32,7 @@ if not ut.get_argflag('--no-faster-rcnn'):
         add_path(lib_path)
 
         import caffe
+        reload(caffe)
         from fast_rcnn.config import cfg
         from fast_rcnn.test import im_detect
         from fast_rcnn.nms_wrapper import nms
