@@ -187,8 +187,7 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
             for i in range(len(item_list)):
                 if label == item_list[i].label:
                     found = True
-                    # name_list.append(item_list[i].display_name)
-                    name_list.append(item_list[i].label)
+                    name_list.append(item_list[i].display_name)
                     break
             assert found
         return name_list
@@ -269,9 +268,8 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
 
     results_list_ = []
     for gpath in gpath_list:
-        ut.embed()
 
-        image = caffe.io.load_image('examples/images/fish-bike.jpg')
+        image = caffe.io.load_image(gpath)
         transformed_image = transformer.preprocess('data', image)
         net.blobs['data'].data[...] = transformed_image
 
