@@ -1,48 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Interface to Faster R-CNN object proposals.
+Interface to Darknet object proposals.
 """
 from __future__ import absolute_import, division, print_function
 import utool as ut
 import vtool as vt
 from six.moves import zip
+import tempfile
+import subprocess
+import shlex
+import os
 from os.path import abspath, dirname, expanduser, join, exists  # NOQA
 import numpy as np
-import sys
-import cv2
-(print, rrr, profile) = ut.inject2(__name__, '[faster r-cnn]')
+(print, rrr, profile) = ut.inject2(__name__, '[darknet]')
 
 # SCRIPT_PATH = abspath(dirname(__file__))
-SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'py-faster-rcnn')))
+SCRIPT_PATH = abspath(expanduser(join('~', 'code', 'darknet')))
 
-if not ut.get_argflag('--no-faster-rcnn'):
+if not ut.get_argflag('--no-darknet'):
     try:
         assert exists(SCRIPT_PATH)
-
-        def add_path(path):
-            if path not in sys.path:
-                sys.path.insert(0, path)
-
-        # Add pycaffe to PYTHONPATH
-        pycaffe_path = join(SCRIPT_PATH, 'caffe-fast-rcnn', 'python')
-        add_path(pycaffe_path)
-
-        # Add caffe lib path to PYTHONPATH
-        lib_path = join(SCRIPT_PATH, 'lib')
-        add_path(lib_path)
-
-        import caffe
-        from fast_rcnn.config import cfg
-        from fast_rcnn.test import im_detect
-        from fast_rcnn.nms_wrapper import nms
     except AssertionError as ex:
-        print('WARNING Failed to find py-faster-rcnn. '
-              'Faster R-CNN is unavailable')
-        # if ut.SUPER_STRICT:
-        #     raise
-    except ImportError as ex:
-        print('WARNING Failed to import fast_rcnn. '
-              'Faster R-CNN is unavailable')
+        print('WARNING Failed to find darknet. '
+              'Darknet is unavailable')
         # if ut.SUPER_STRICT:
         #     raise
 
@@ -51,25 +31,29 @@ VERBOSE_SS = ut.get_argflag('--verbdss') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    # 'pretrained-fast-vgg-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.fastrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    # 'pretrained-v1-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v1.pascal.cfg',
+    'pretrained-v2-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.pascal.cfg',
+    'pretrained-v2-large-pascal' : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.pascal.cfg',
+    'pretrained-tiny-pascal'     : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.tiny.pascal.cfg',
 
-    'pretrained-vgg-pascal'      : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    'pretrained-zf-pascal'       : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'pretrained-v2-large-coco'   : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.coco.cfg',
+    'pretrained-tiny-coco'       : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.tiny.coco.cfg',
 
-    'pretrained-vgg-ilsvrc'      : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-    'pretrained-zf-ilsvrc'       : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.zf.ilsvrc.prototxt',  # Trained on ILSVRC 2014
-
-    'default'                    : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
-    None                         : 'https://lev.cs.rpi.edu/public/models/pretrained.fasterrcnn.vgg16.pascal.prototxt',  # Trained on PASCAL VOC 2007
+    'default'                    : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.coco.cfg',
+    None                         : 'https://lev.cs.rpi.edu/public/models/pretrained.darknet.v2.large.coco.cfg',
 }
 
 
 def _parse_weight_from_cfg(url):
-    return url.replace('.prototxt', '.caffemodel')
+    return url.replace('.cfg', '.weights')
+
+
+def _parse_data_from_cfg(url):
+    return url.replace('.cfg', '.data')
 
 
 def _parse_classes_from_cfg(url):
-    return url.replace('.prototxt', '.classes')
+    return url.replace('.cfg', '.classes')
 
 
 def _parse_class_list(classes_filepath):
@@ -94,7 +78,7 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
             True:  ibs.get_image_detectpaths() is used
             False: ibs.get_image_paths() is used
 
-    Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings
+    Kwargs (optional): refer to the Darknet documentation for configuration settings
 
     Args:
         ibs (ibeis.IBEISController):  image analysis api
@@ -109,11 +93,11 @@ def detect_gid_list(ibs, gid_list, downsample=True, verbose=VERBOSE_SS, **kwargs
         tuple: (gid, gpath, result_list)
 
     CommandLine:
-        python -m ibeis.algo.detect.fasterrcnn detect_gid_list --show
+        python -m ibeis.algo.detect.darknet detect_gid_list --show
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.detect.fasterrcnn import *  # NOQA
+        >>> from ibeis.algo.detect.darknet import *  # NOQA
         >>> from ibeis.core_images import LocalizerConfig
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
@@ -173,13 +157,11 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     Args:
         gpath_list (list of str): the list of image paths that need proposal candidates
 
-    Kwargs (optional): refer to the Faster R-CNN documentation for configuration settings
+    Kwargs (optional): refer to the Darknet documentation for configuration settings
 
     Returns:
         iter
     """
-    cfg.TEST.HAS_RPN = True  # Use RPN for proposals
-
     # Get correct config if specified with shorthand
     config_url = None
     if config_filepath in CONFIG_URL_DICT:
@@ -197,72 +179,79 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
         weight_filepath = ut.grab_file_url(weight_url, appname='ibeis',
                                             check_hash=True)
 
-    if class_filepath is None:
+    data_url = _parse_data_from_cfg(config_url)
+    data_filepath = ut.grab_file_url(data_url, appname='ibeis',
+                                      check_hash=True, verbose=verbose)
+    with open(data_filepath, 'r') as data_file:
+        data_str = data_file.read()
+    names_tag = '_^_NAMES_^_'
+    if names_tag in data_str:
         class_url = _parse_classes_from_cfg(config_url)
         class_filepath = ut.grab_file_url(class_url, appname='ibeis',
                                           check_hash=True, verbose=verbose)
-    class_list = _parse_class_list(class_filepath)
+        data_str = data_str.replace(names_tag, class_filepath)
+        with open(data_filepath, 'w') as data_file:
+            data_file.write(data_str)
 
-    # Need to convert unicode strings to Python strings to support Boost Python
-    # call signatures in caffe
-    prototxt_filepath = str(config_filepath)  # alias to Caffe nomenclature
-    caffemodel_filepath = str(weight_filepath)  # alias to Caffe nomenclature
+    # Form the temporary results file that the code will write to
+    temp_file, temp_filepath = tempfile.mkstemp(suffix='.txt')
+    os.close(temp_file)
 
-    assert exists(prototxt_filepath), 'Specified prototxt file not found'
-    assert exists(caffemodel_filepath), 'Specified caffemodel file not found'
-
-    if use_gpu:
-        caffe.set_mode_gpu()
-        caffe.set_device(use_gpu_id)
-        cfg.GPU_ID = use_gpu_id
-    else:
-        caffe.set_mode_cpu()
-
-    net = caffe.Net(prototxt_filepath, caffemodel_filepath, caffe.TEST)
-
-    # Warm-up network on a dummy image
-    im = 128 * np.ones((300, 500, 3), dtype=np.uint8)
-    for i in xrange(2):
-        _, _ = im_detect(net, im)
-
+    # Execute command for each image
     results_list_ = []
     for gpath in gpath_list:
-        image = cv2.imread(gpath)
-        score_list, bbox_list = im_detect(net, image)
+        # # Clear the contents of the file (C code should do this instead)
+        # with open(temp_filepath, 'w'):
+        #     pass
 
-        # Compile results
+        # Run darknet on image
+        bash_args = (data_filepath, config_filepath, weight_filepath, gpath, temp_filepath, sensitivity, )
+        bash_str = './darknet detector test %s %s %s %s %s -thresh %0.5f' % bash_args
+        if verbose:
+            print('Calling: %s' % (bash_str, ))
+        bash_list = shlex.split(bash_str)
+        with open('/dev/null', 'w') as null:
+            process_id = subprocess.Popen(bash_list, stdout=null, cwd=SCRIPT_PATH)
+            process_return_code = process_id.wait()
+            if process_return_code != 0:
+                raise RuntimeError('Darknet did not exit successfully')
+
+        # Load the temporary file and load it's contents
+        with open(temp_filepath, 'r') as temp_file:
+            temps_str = temp_file.read()
+
+        temps_list = temps_str.split('\n\n')
+        # Parse results from output file
         result_list_ = []
-        for class_index, class_name in enumerate(class_list[1:]):
-            class_index += 1  # because we skipped background
-            class_boxes = bbox_list[:, 4 * class_index: 4 * (class_index + 1)]
-            class_scores = score_list[:, class_index]
-            dets_list = np.hstack((
-                class_boxes,
-                class_scores[:, np.newaxis])
-            )
-            dets_list = dets_list.astype(np.float32)
-            # Perform NMS
-            keep_list = nms(dets_list, nms_sensitivity)
-            dets_list = dets_list[keep_list, :]
-            # Perform sensitivity check
-            keep_list = np.where(dets_list[:, -1] >= sensitivity)[0]
-            dets_list = dets_list[keep_list, :]
-            for (xtl, ytl, xbr, ybr, conf) in dets_list:
-                xtl = int(np.around(xtl))
-                ytl = int(np.around(ytl))
-                xbr = int(np.around(xbr))
-                ybr = int(np.around(ybr))
-                confidence = float(conf)
-                result_dict = {
-                    'xtl'        : xtl,
-                    'ytl'        : ytl,
-                    'width'      : xbr - xtl,
-                    'height'     : ybr - ytl,
-                    'class'      : class_name,
-                    'confidence' : confidence,
-                }
-                result_list_.append(result_dict)
+        for temp_str in temps_list:
+            temp_str = temp_str.strip()
+            if len(temp_str) == 0:
+                continue
+            result = temp_str.split('\n')
+            gpath_ = result[0]
+            assert gpath == gpath_
+            xtl = int(np.around(float(result[1])))
+            ytl = int(np.around(float(result[2])))
+            xbr = int(np.around(float(result[3])))
+            ybr = int(np.around(float(result[4])))
+            class_ = result[5]
+            conf = float(result[6])
+            result_dict = {
+                'xtl'        : xtl,
+                'ytl'        : ytl,
+                'width'      : xbr - xtl,
+                'height'     : ybr - ytl,
+                'class'      : class_,
+                'confidence' : conf,
+            }
+            result_list_.append(result_dict)
         results_list_.append(result_list_)
+
+    if len(results_list_) != len(gpath_list):
+        raise ValueError('Darknet did not return valid data')
+
+    # Remove temporary file, and return.
+    os.remove(temp_filepath)
 
     results_list = zip(gpath_list, results_list_)
     return results_list

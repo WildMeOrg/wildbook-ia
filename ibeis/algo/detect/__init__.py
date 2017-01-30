@@ -7,6 +7,7 @@ from ibeis.algo.detect import randomforest
 from ibeis.algo.detect import yolo
 from ibeis.algo.detect import selectivesearch
 from ibeis.algo.detect import fasterrcnn
+from ibeis.algo.detect import darknet
 from ibeis.algo.detect import background
 from ibeis.algo.detect import classifier
 from ibeis.algo.detect import labeler
@@ -69,6 +70,7 @@ def reload_subs(verbose=True):
     get_rrr(yolo)(verbose=verbose)
     get_rrr(selectivesearch)(verbose=verbose)
     get_rrr(fasterrcnn)(verbose=verbose)
+    get_rrr(darknet)(verbose=verbose)
     get_reload_subs(background)(verbose=verbose)
     get_reload_subs(classifier)(verbose=verbose)
     get_reload_subs(labeler)(verbose=verbose)
@@ -87,6 +89,7 @@ IMPORT_TUPLES = [
     ('yolo', None),
     ('selectivesearch', None),
     ('fasterrcnn', None),
+    ('darknet', None),
     ('background', None, True),
     ('classifier', None, True),
     ('labeler', None, True),
