@@ -135,32 +135,48 @@ class InfrSimulation(object):
     def check_baseline_results(sim):
         import networkx as nx
         infr = sim.infr
-        n_clusters_possible = 0
-        gt_clusters = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
-        for nid, nodes in gt_clusters.items():
+        n_names_possible = 0
+        real_groups = ut.group_pairs(infr.gen_node_attrs('orig_name_label'))
+        possible_clusters = []
+        for nid, nodes in real_groups.items():
             if len(nodes) == 1:
-                n_clusters_possible += 1
+                possible_clusters.append(nodes)
+                n_names_possible += 1
                 continue
             cc_cand_edges = list(ut.nx_edges_between(infr.graph, nodes))
             cc = ut.nx_from_node_edge(nodes, cc_cand_edges)
             mst = nx.minimum_spanning_tree(cc)
-            n_clusters_possible += (
-                len(list(nx.connected_component_subgraphs(mst)))
-            )
+            ccs = list(nx.connected_components(mst))
+            possible_clusters.extend(ccs)
+            n_names_possible += (len(ccs))
+
+        sumafter = 3
+
+        best_possible_compare_results = compare_groups(
+            list(real_groups.values()),
+            list(possible_clusters)
+        )
+        possible_per_num = ut.map_vals(
+            len, ut.group_items(best_possible_compare_results['common'],
+                                map(len, best_possible_compare_results['common'])))
+        greater = [i for i in possible_per_num.keys() if i > sumafter]
+        possible_per_num['>%s' % sumafter] = sum(ut.take(possible_per_num, greater))
+        ut.delete_keys(possible_per_num, greater)
+        for k, v in possible_per_num.items():
+            sim.results['possible@' + str(k)] = v
+        sim.results['possible'] = len(best_possible_compare_results['common'])
 
         # Measure the number of real names in the test (per number of annots)
-        real_groups = ut.group_items(sim.infr.aids, sim.infr.orig_name_labels)
         real_per_num = ut.dict_hist(map(len, real_groups.values()))
-        sumafter = 3
         greater = [i for i in real_per_num.keys() if i > sumafter]
         real_per_num['>%s' % sumafter] = sum(ut.take(real_per_num, greater))
         ut.delete_keys(real_per_num, greater)
         for k, v in real_per_num.items():
             sim.results['real@' + str(k)] = v
 
-        real_nids = ut.unique(sim.infr.orig_name_labels)
-        sim.results['n_clusters_possible'] = n_clusters_possible
-        sim.results['n_names_real'] = len(real_nids)
+        sim.results['n_names_possible'] = n_names_possible
+        sim.results['n_names_real'] = len(real_groups)
+        sim.results['real'] = len(real_groups)
 
     @profile
     def review_inconsistencies(sim):
