@@ -254,7 +254,7 @@ def compute_localizations(depc, gid_list, config=None):
         python -m ibeis.core_images compute_localizations --show
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -462,7 +462,7 @@ def compute_features(depc, gid_list, config=None):
         python -m ibeis.core_images compute_features --show
 
     Example:
-        >>> # SLOW_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from ibeis.core_images import *  # NOQA
         >>> import ibeis
         >>> defaultdb = 'PZ_MTEST'
@@ -531,9 +531,7 @@ def compute_features(depc, gid_list, config=None):
         image_array = np.expand_dims(image_array, axis=0)
         image_array = preprocess_input(image_array)
         features = model.predict(image_array)
-        print(features)
-        ut.embed()
-        yield features
+        yield (features, )
 
 
 class LabelerConfig(dtool.Config):
