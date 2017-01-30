@@ -391,7 +391,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
         print('n_aids = %r' % (len(ut.unique(infr.aids))))
 
-        result_cacher = ut.Cacher('auto_results', cfgstr='1',
+        result_cacher = ut.Cacher('auto_results', cfgstr='2',
                                   appname=pblm.appname, enabled=1)
         auto_results_list = result_cacher.tryload()
         if auto_results_list is None:
@@ -422,6 +422,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         fnum = pt.ensure_fnum(1)
         # fig = pt.figure(fnum=fnum, doclf=True)
 
+        import pandas as pd
+
+        ydata_df = pd.DataFrame.from_dict(auto_results_list)
+        ydata_df['real'] = ydata_df['n_names_real']
+        common = ['common', 'common@1', 'common@2', 'common@3', 'common@>3']
+        real   = ['real', 'real@1', 'real@2', 'real@3', 'real@>3']
+        common_percents = ydata_df[common] / ydata_df[real].values * 100
+
+        common_percents.rename(
+            columns={c: c + ' (%d)' % (ydata_df[c.replace('common', 'real')][0],)
+                     for c in common_percents.columns},
+            inplace=True,
+        )
+
         ut.fix_embed_globals()
         def mkplot(label_list, **kw):
             ydata_list = [ut.take_column(auto_results_list, ylbl) for ylbl in
@@ -440,19 +454,24 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         inter = pt.ExpandableInteraction(fnum=fnum, nCols=2)
         # inter += mkplot(['n_auto_inconsistent'])
-        inter += mkplot(
-            ['n_names_common', 'common@1',
-             'n_names_real', 'real@1'],
-            color_list=pt.distinct_colors(2) + pt.distinct_colors(2),
-            linestyle_list=['--'] * 2 + ['-'] * 2,
-        )
-        inter += mkplot(
-            ['common@2', 'common@3', 'common@>3',
-             'real@2', 'real@3', 'real@>3'],
-            color_list=pt.distinct_colors(3) + pt.distinct_colors(3),
-            linestyle_list=['--'] * 3 + ['-'] * 3,
-            # ymax=n_names_real
-        )
+        inter.append_partial(
+            pt.multi_plot, xdata, ut.take(common_percents, common_percents.columns),
+            label_list=common_percents.columns)
+        inter.start()
+
+        # inter += mkplot(
+        #     ['n_names_common', 'common@1',
+        #      'n_names_real', 'real@1'],
+        #     color_list=pt.distinct_colors(2) + pt.distinct_colors(2),
+        #     linestyle_list=['--'] * 2 + ['-'] * 2,
+        # )
+        # inter += mkplot(
+        #     ['common@2', 'common@3', 'common@>3',
+        #      'real@2', 'real@3', 'real@>3'],
+        #     color_list=pt.distinct_colors(3) + pt.distinct_colors(3),
+        #     linestyle_list=['--'] * 3 + ['-'] * 3,
+        #     # ymax=n_names_real
+        # )
         inter += mkplot(['true_merges', 'true_splits_flat', 'true_hybrid'])
         inter += mkplot(['pred_merges_flat', 'pred_splits', 'pred_hybrid'])
         # inter += mkplot(['n_incon_reviews', 'n_incon_fixes'])
@@ -501,8 +520,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # sim.results['user_work'] = (
         # sim.results['n_pos_want'] + sim.results['n_incon_reviews'])
         return sim.results
-
-
 
     def extra_report(pblm, task_probs, is_auto, want_samples):
         task_key = 'photobomb_state'

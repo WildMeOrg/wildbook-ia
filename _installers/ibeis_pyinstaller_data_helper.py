@@ -96,6 +96,8 @@ def get_path_extensions():
         'flann/src/python',
         #'pygist',
         'ibeis',
+        'ibeis_cnn',
+        'pydarknet',
         'hesaff',
         'detecttools'
     ]
@@ -129,6 +131,7 @@ def get_hidden_imports():
         'pandas',
         'pandas.hashtable',
         'statsmodels',
+        'theano',
     ]
     return hiddenimports
 
@@ -168,6 +171,11 @@ def get_data_list():
     libpyrf_fname = 'libpyrf' + LIB_EXT
     libpyrf_src = realpath(join(root_dir, '..', 'pyrf', 'pyrf', libpyrf_fname))
     libpyrf_dst = join(ibsbuild, 'pyrf', 'lib', libpyrf_fname)
+    DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
+
+    libpyrf_fname = 'libpydarknet' + LIB_EXT
+    libpyrf_src = realpath(join(root_dir, '..', 'pydarknet', 'pydarknet', libpyrf_fname))
+    libpyrf_dst = join(ibsbuild, 'pydarknet', 'lib', libpyrf_fname)
     DATATUP_LIST.append((libpyrf_dst, libpyrf_src))
 
     # FLANN
@@ -214,13 +222,14 @@ def get_data_list():
         libbsddb_src = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload/_bsddb.so'
         libbsddb_dst = join(ibsbuild, '_bsddb.so')
         DATATUP_LIST.append((libbsddb_dst, libbsddb_src))
-        #libgomp_src = '/opt/local/lib/libgomp.dylib'
-        libgomp_src = '/opt/local/lib/gcc48/libgomp.dylib'
+        # libgomp_src = '/opt/local/lib/libgomp.dylib'
+        # libgomp_src = '/opt/local/lib/gcc48/libgomp.dylib'
+        libgomp_src = '/opt/local/lib/libgcc/libgomp.1.dylib'
         BINARYTUP_LIST.append(('libgomp.1.dylib', libgomp_src, 'BINARY'))
 
         # very hack
-        libiomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
-        BINARYTUP_LIST.append(('libiomp5.dylib', libiomp_src, 'BINARY'))
+        # libiomp_src = '/Users/bluemellophone/code/libomp_oss/exports/mac_32e/lib.thin/libiomp5.dylib'
+        # BINARYTUP_LIST.append(('libiomp5.dylib', libiomp_src, 'BINARY'))
 
     if LINUX:
         libgomp_src = ut.search_in_dirs('libgomp.so.1', linux_lib_dpaths)
@@ -241,7 +250,7 @@ def get_data_list():
     #              'darwin': '.2.4.dylib',
     #              'linux2': '.so.2.4'}[PLATFORM]
 
-    target_cv_version = '3.0.0'
+    target_cv_version = '3.1.0'
 
     OPENCV_EXT = {'win32': target_cv_version.replace('.', '') + '.dll',
                   'darwin': '.' + target_cv_version + '.dylib',

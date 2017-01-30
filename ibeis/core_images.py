@@ -214,12 +214,12 @@ def compute_classifications(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
         ut.ParamInfo('sensitivity', 0.0),
-        ut.ParamInfo('species', 'zebra_plains', hideif='zebra_plains'),
+        ut.ParamInfo('species', 'zebra_plains'),
         ut.ParamInfo('config_filepath', None),
         ut.ParamInfo('weight_filepath', None),
-        ut.ParamInfo('class_filepath', None, hideif=lambda cfg: cfg['algo'] not in ['yolo', 'darknet', 'faster-rcnn'] or cfg['class_filepath']),
+        ut.ParamInfo('class_filepath', None),
         ut.ParamInfo('grid', False),
     ]
     _sub_config_list = [
@@ -306,6 +306,14 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
+        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-ilsvrc'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-ilsvrc'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
     """
     def package_to_numpy(key_list, result_list, score):
         temp = [
@@ -370,6 +378,12 @@ def compute_localizations(depc, gid_list, config=None):
         from ibeis.algo.detect import darknet
         print('[ibs] detecting using Darknet CNN YOLO')
         detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
+    elif config['algo'] in ['ssd']:
+        from ibeis.algo.detect import ssd
+        print('[ibs] detecting using CNN SSD')
+        detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
+    ######################################################################################
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 

@@ -5,6 +5,9 @@ from os.path import join, exists, realpath, abspath  # NOQA
 import utool as ut  # NOQA
 # import utool
 
+sys.setrecursionlimit(5000)
+
+
 # Pyinstaller Variables (enumerated for readability, not needed)
 #Analysis = Analysis  # NOQA
 
@@ -90,7 +93,7 @@ exe_name = {'win32':  'build/IBEISApp.exe',
 print('[installer] Running Analysis')
 a = Analysis(  # NOQA
     #['main.py'],
-    ['ibeis/__main__.py'],
+    ['../ibeis/__main__.py'],
     pathex=pathex,
     hiddenimports=hiddenimports,
     hookspath=None,
