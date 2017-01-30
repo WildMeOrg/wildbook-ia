@@ -236,6 +236,24 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
 
     net = caffe.Net(prototxt_filepath, caffemodel_filepath, caffe.TEST)
 
+    # Determine input size from prototext
+    with open(prototxt_filepath, 'r') as prototxt_file:
+        # load all lines
+        line_list = prototxt_file.readlines()
+        # look for dim size lines
+        line_list = [line for line in line_list if 'dim:' in line]
+        line_list = line_list[:4]
+        # Get last line
+        line = line_list[-1]
+        line_ = line.strip().split(' ')
+        # Filter empty spaces
+        line_ = [ _ for _ in line_ if len(_) > 0]
+        # Get last value on line, which should be the image size
+        image_resize = int(line_[-1])
+        # Check to make sure
+        assert image_resize in [300, 500, 512]
+        print('FOUND image_resize = %r' % (image_resize, ))
+
     # Input preprocessing: 'data' is the name of the input blob == net.inputs[0]
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
     transformer.set_transpose('data', (2, 0, 1))
@@ -246,7 +264,6 @@ def detect(gpath_list, config_filepath, weight_filepath, class_filepath, sensiti
     # The reference model has channels in BGR order instead of RGB
     transformer.set_channel_swap('data', (2, 1, 0))
     # Set batch size to 1 and set testing image size
-    image_resize = 300
     net.blobs['data'].reshape(1, 3, image_resize, image_resize)
 
     results_list_ = []

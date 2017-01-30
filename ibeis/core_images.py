@@ -262,6 +262,40 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
+        >>>
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-coco'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-coco'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-ilsvrc'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-500-ilsvrc'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>>
         >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
