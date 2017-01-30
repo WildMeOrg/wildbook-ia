@@ -150,7 +150,7 @@ def build_pyinstaller():
         pathcmd = 'export PYTHONPATH=%s%s$PYTHONPATH && ' % (utool_python_path, os.pathsep)
     else:
         pathcmd = ''
-    installcmd = 'pyinstaller --runtime-hook rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y'
+    installcmd = '/opt/local/Library/Frameworks/Python.framework/Versions/2.7/bin/pyinstaller --runtime-hook _installers/rthook_pyqt4.py _installers/pyinstaller-ibeis.spec -y'
     output, err, ret = ut.cmd(pathcmd + installcmd)
     if ret != 0:
         raise AssertionError('Pyinstalled failed with return code = %r' % (ret,))
