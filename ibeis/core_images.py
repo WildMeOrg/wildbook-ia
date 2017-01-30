@@ -262,40 +262,6 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>>
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-coco'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-coco'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-ilsvrc'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-500-ilsvrc'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
-        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> print(detects)
-        >>>
         >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -345,6 +311,38 @@ def compute_localizations(depc, gid_list, config=None):
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
         >>> config = {'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-ilsvrc'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-coco'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-512-coco'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-300-ilsvrc'}
+        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
+        >>> config = {'algo': 'ssd', 'config_filepath': 'pretrained-500-ilsvrc'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
@@ -425,6 +423,117 @@ def compute_localizations(depc, gid_list, config=None):
     for gid, gpath, result_list in detect_gen:
         score = 0.0
         yield package_to_numpy(base_key_list, result_list, score)
+
+
+class FeatureConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='features', parents=['images'],
+    colnames=['vector'],
+    coltypes=[np.ndarray],
+    configclass=FeatureConfig,
+    fname='detectcache',
+    chunksize=256,
+)
+def compute_features(depc, gid_list, config=None):
+    r"""
+    Computes features on images using pre-trained state-of-the-art models in
+    Keras
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (np.ndarray, ): tup
+
+    CommandLine:
+        ibeis compute_features
+
+    CommandLine:
+        python -m ibeis.core_images compute_features --show
+
+    Example:
+        >>> # SLOW_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> print(depc.get_tablenames())
+        >>> gid_list = ibs.get_valid_gids()[:16]
+        >>> config = {'algo': 'vgg16'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'algo': 'vgg19'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'algo': 'resnet'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'algo': 'inception'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+    """
+    from keras.preprocessing import image as preprocess_image
+    print('[ibs] Preprocess Features')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    ibs.assert_valid_gids(gid_list)
+    config = {
+        'draw_annots' : False,
+        'thumbsize'   : (500, 500),
+    }
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=config,
+                              read_extern=False, ensure=True)
+
+    target_size = (224, 224)
+    ######################################################################################
+    if config['algo'] in ['vgg', 'vgg16']:
+        from keras.applications.vgg16 import VGG16 as MODEL_CLASS
+        from keras.applications.vgg16 import preprocess_input
+    ######################################################################################
+    elif config['algo'] in ['vgg19']:
+        from keras.applications.vgg19 import VGG19 as MODEL_CLASS
+        from keras.applications.vgg19 import preprocess_input
+    ######################################################################################
+    elif config['algo'] in ['resnet']:
+        from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
+        from keras.applications.resnet50 import preprocess_input
+    ######################################################################################
+    elif config['algo'] in ['inception']:
+        from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
+        from keras.applications.inception_v3 import preprocess_input
+        target_size = (299, 299)
+    ######################################################################################
+    else:
+        raise ValueError('specified feature algo is not supported in config = %r' % (config, ))
+
+    # Build model
+    model = MODEL_CLASS(include_top=False)
+
+    for thumbpath in thumbpath_list:
+        image = preprocess_image.load_img(thumbpath, target_size=target_size)
+        image_array = preprocess_image.img_to_array(image)
+        image_array = np.expand_dims(image_array, axis=0)
+        image_array = preprocess_input(image_array)
+        features = model.predict(image_array)
+        print(features)
+        ut.embed()
+        yield features
 
 
 class LabelerConfig(dtool.Config):
