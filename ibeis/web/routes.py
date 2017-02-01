@@ -1949,6 +1949,8 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
 
     if ibs.dbname == 'EWT_Cheetahs':
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
+    else:
+        aid_list = ibs.get_valid_aids()
 
     # aid_list = ibs.get_valid_aids()
     # wanted_set = set(['right', 'frontright', 'backright'])
@@ -2061,7 +2063,8 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
 
 @register_route('/turk/identification/', methods=['GET'])
 def turk_identification(aid1=None, aid2=None, use_engine=False,
-                        global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
+                        global_feedback_limit=GLOBAL_FEEDBACK_LIMIT,
+                        **kwargs):
     """
     CommandLine:
         python -m ibeis.web.routes turk_identification --db PZ_Master1
@@ -2127,8 +2130,8 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                 print('Reviews list len    = %r' % (len(review_aid1_list), ))
                 progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
 
-                aid1 = request.args.get('aid1', None)
-                aid2 = request.args.get('aid2', None)
+                # aid1 = request.args.get('aid1', None)
+                # aid2 = request.args.get('aid2', None)
                 replace_review_rowid = int(request.args.get('replace_review_rowid', -1))
                 choice = aid1 is not None and aid2 is not None
 
