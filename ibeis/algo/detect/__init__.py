@@ -5,16 +5,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.algo.detect import grabmodels
 from ibeis.algo.detect import randomforest
 from ibeis.algo.detect import yolo
-from ibeis.algo.detect import selectivesearch
-from ibeis.algo.detect import ssd
-from ibeis.algo.detect import fasterrcnn
-from ibeis.algo.detect import darknet
+# from ibeis.algo.detect import selectivesearch
+# from ibeis.algo.detect import ssd
+# from ibeis.algo.detect import fasterrcnn
+# from ibeis.algo.detect import darknet
 from ibeis.algo.detect import background
 from ibeis.algo.detect import classifier
 from ibeis.algo.detect import labeler
 from ibeis.algo.detect import orientation
 import utool
-print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.detect]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 def reassign_submodule_attributes(verbose=True):
