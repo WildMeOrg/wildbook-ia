@@ -14,7 +14,7 @@ from ibeis.algo.detect import classifier
 from ibeis.algo.detect import labeler
 from ibeis.algo.detect import orientation
 import utool
-print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.detect]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 def reassign_submodule_attributes(verbose=True):
