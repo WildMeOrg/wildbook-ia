@@ -2060,7 +2060,8 @@ def check_engine_identification_query_object(global_feedback_limit=GLOBAL_FEEDBA
 
 
 @register_route('/turk/identification/', methods=['GET'])
-def turk_identification(use_engine=False, global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
+def turk_identification(aid1=None, aid2=None, use_engine=False,
+                        global_feedback_limit=GLOBAL_FEEDBACK_LIMIT):
     """
     CommandLine:
         python -m ibeis.web.routes turk_identification --db PZ_Master1

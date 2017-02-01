@@ -428,6 +428,7 @@ def compute_localizations(depc, gid_list, config=None):
 class FeatureConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
+        ut.ParamInfo('flatten', True),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -531,6 +532,8 @@ def compute_features(depc, gid_list, config=None):
         image_array = np.expand_dims(image_array, axis=0)
         image_array = preprocess_input(image_array)
         features = model.predict(image_array)
+        if config['flatten']:
+            features = features.flatten()
         yield (features, )
 
 

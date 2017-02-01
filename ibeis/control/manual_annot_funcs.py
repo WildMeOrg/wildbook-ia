@@ -1646,6 +1646,29 @@ def get_annot_notes(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/annot/metadata/', methods=['GET'])
+def get_annot_metadata(ibs, gid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): annot metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_metadata_json',), gid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 def get_annot_num_groundtruth(ibs, aid_list, is_exemplar=None, noself=True,
                               daid_list=None):
     r"""
@@ -2560,6 +2583,52 @@ def set_annot_notes(ibs, aid_list, notes_list):
     id_iter = ((aid,) for aid in aid_list)
     val_iter = ((notes,) for notes in notes_list)
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_NOTE,), val_iter, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/metadata/', methods=['PUT'])
+def set_annot_metadata(ibs, gid_list, metadata_dict_list):
+    r"""
+    Sets the annot's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/metadata/
+
+    CommandLine:
+        python -m ibeis.control.manual_annot_funcs --test-set_annot_metadata
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> import random
+        >>> # build test data
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> gid_list = ibs.get_valid_gids()[0:1]
+        >>> metadata_dict_list = [
+        >>>     {'test': random.uniform(0.0, 1.0)},
+        >>> ]
+        >>> print(ut.list_str(metadata_dict_list))
+        >>> ibs.set_annot_metadata(gid_list, metadata_dict_list)
+        >>> # verify results
+        >>> metadata_dict_list_ = ibs.get_annot_metadata(gid_list)
+        >>> print(ut.list_str(metadata_dict_list_))
+        >>> assert metadata_dict_list == metadata_dict_list_
+        >>> metadata_str_list = [ut.to_json(metadata_dict) for metadata_dict in metadata_dict_list]
+        >>> print(ut.list_str(metadata_str_list))
+        >>> metadata_str_list_ = ibs.get_annot_metadata(gid_list, return_raw=True)
+        >>> print(ut.list_str(metadata_str_list_))
+        >>> assert metadata_str_list == metadata_str_list_
+    """
+    id_iter = ((gid,) for gid in gid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_metadata_json',), val_list, id_iter)
 
 
 @register_ibs_method

@@ -17,10 +17,10 @@ try:
     raise ImportError
     import jpcnn  # NOQA
     USE_LOCALIZATIONS = False
-    print('[apis_detect] USING DETECTIONS FOR DETECTIONS')
+    # print('[apis_detect] USING DETECTIONS FOR DETECTIONS')
 except ImportError:
     USE_LOCALIZATIONS = True
-    print('[apis_detect] USING LOCALIZATIONS FOR DETECTIONS')
+    # print('[apis_detect] USING LOCALIZATIONS FOR DETECTIONS')
 
 
 CLASS_INJECT_KEY, register_ibs_method = (

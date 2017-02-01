@@ -1417,6 +1417,16 @@ def update_1_5_5(db, ibs=None):
                     drop_columns=['config_rowid'],
                     dependsmap={})
 
+
+def update_1_6_0(db, ibs=None):
+    db.modify_table(const.IMAGE_TABLE, (
+        (None, 'image_metadata_json', 'TEXT', None),
+    ))
+
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (None, 'annot_metadata_json', 'TEXT', None),
+    ))
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1461,6 +1471,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.3',    (None,                 update_1_5_3,       None                )),
     ('1.5.4',    (None,                 update_1_5_4,       None                )),
     ('1.5.5',    (None,                 update_1_5_5,       None                )),
+    ('1.6.0',    (None,                 update_1_6_0,       None                )),
 ])
 """
 SeeAlso:
