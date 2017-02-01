@@ -632,6 +632,7 @@ def view_viewpoints():
     ]
 
     viewpoint_order_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
+    pie_left_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
     pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
     viewpoint_tag_dict = {
         'zebra_grevys' : pie_right_list,
@@ -1950,7 +1951,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     if ibs.dbname == 'EWT_Cheetahs':
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
     else:
-        aid_list = ibs.get_valid_aids()
+        aid_list = ibs.get_valid_aids(is_exemplar=True)
 
     # aid_list = ibs.get_valid_aids()
     # wanted_set = set(['right', 'frontright', 'backright'])

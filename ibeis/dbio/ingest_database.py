@@ -1491,8 +1491,17 @@ def ingest_coco_style_db(dbdir, dryrun=False):
         aid_list = ibs.add_annots(gid_list_, image_annot_bbox_list,
                                   species_list=image_annot_species_list)
 
+        seen_set = set([])
+        flag_list = []
+        for aid in aid_list:
+            flag_list.append(aid not in seen_set)
+            seen_set.add(aid)
+        print('Duplicates: %d' % (flag_list.count(False), ))
+        aid_list = ut.filter_items(aid_list, flag_list)
+
         print('Adding Metadata')
         image_annot_metadata_list = ut.flatten(image_annot_metadata_list_list)
+        image_annot_metadata_list = ut.filter_items(image_annot_metadata_list, flag_list)
         ibs.set_annot_metadata(aid_list, image_annot_metadata_list)
 
 
