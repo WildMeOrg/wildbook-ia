@@ -1520,29 +1520,22 @@ def _make_review_image_info(ibs, gid):
 
 
 @register_route('/turk/detection/', methods=['GET'])
-def turk_detection():
+def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwargs):
 
     ibs = current_app.ibs
-    refer_aid = request.args.get('refer_aid', None)
-    imgsetid = request.args.get('imgsetid', '')
-    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
 
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     reviewed_list = appf.imageset_image_processed(ibs, gid_list)
     progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
 
     imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
-    gid = request.args.get('gid', '')
-    if len(gid) > 0:
-        gid = int(gid)
-    else:
+    if gid is None:
         gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
         if len(gid_list_) == 0:
             gid = None
         else:
             # gid = gid_list_[0]
             gid = random.choice(gid_list_)
-    previous = request.args.get('previous', None)
     finished = gid is None
     review = 'review' in request.args.keys()
     display_instructions = request.cookies.get('ia-detection_instructions_seen', 1) == 0

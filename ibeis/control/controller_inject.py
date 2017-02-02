@@ -302,7 +302,7 @@ def translate_ibeis_webcall(func, *args, **kwargs):
             args = tuple()
             kwargs = dict()
     """
-    #print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
+    print('Calling: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
     ibs = flask.current_app.ibs
     funcstr = ut.func_str(func, (ibs,) + args, kwargs=kwargs, truncate=True)
     print('[TRANSLATE] Calling: %s' % (funcstr,))
@@ -692,7 +692,6 @@ def get_ibeis_flask_route(__name__):
                 def translated_call(**kwargs):
                     #debug = {'kwargs': kwargs}
                     try:
-                        #print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
@@ -704,6 +703,9 @@ def get_ibeis_flask_route(__name__):
                         if 'callback' in kwargs and 'jQuery' in kwargs['callback']:
                             jQuery_callback = str(kwargs.pop('callback', None))
                             kwargs.pop('_', None)
+
+                        args = ()
+                        print('Processing: %r with args: %r and kwargs: %r' % (func, args, kwargs, ))
 
                         result = func(**kwargs)
                     except Exception as ex:
