@@ -1618,23 +1618,10 @@ def classifier_train(ibs, species_list):
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_classifier_binary_training_images(ibs, data_path, species_list)
+    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list, dest_path=data_path)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier')
     model_path = train_classifier(output_path, X_file, y_file)
-    return model_path
-
-
-@register_ibs_method
-def labeler_train(ibs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
-    from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.models.labeler import train_labeler
-    data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_labeler_training_images(ibs, data_path)
-    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
-    output_path = join(ibs.get_cachedir(), 'training', 'labeler')
-    model_path = train_labeler(output_path, X_file, y_file)
     return model_path
 
 

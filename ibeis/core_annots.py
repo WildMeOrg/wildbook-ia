@@ -1641,7 +1641,6 @@ if testmode:
 
 class LabelerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('labeler_sensitivity', 0.2),
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
     _sub_config_list = [
