@@ -601,7 +601,7 @@ class Classifier2Config(dtool.Config):
 
 
 @register_preproc(
-    tablename='classifier2', parents=['localizations'],
+    tablename='localizations_classifier', parents=['localizations'],
     colnames=['score', 'class'],
     coltypes=[float, str],
     configclass=Classifier2Config,
@@ -685,7 +685,7 @@ class LabelerConfig(dtool.Config):
 
 
 @register_preproc(
-    tablename='labeler', parents=['localizations'],
+    tablename='localizations_labeler', parents=['localizations'],
     colnames=['score', 'species', 'viewpoint', 'quality', 'orientation', 'probs'],
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
