@@ -153,7 +153,7 @@ def draw_thumb_helper(tup):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier_sensitivity', None),
+        ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -195,7 +195,7 @@ def compute_classifications(depc, gid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """
-    from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
+    OLD = False
     print('[ibs] Process Image Classifications')
     print('config = %r' % (config,))
     # Get controller
@@ -206,7 +206,11 @@ def compute_classifications(depc, gid_list, config=None):
         'thumbsize'   : (192, 192),
     }
     thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
-    result_list = classify_thumbnail_list(thumbnail_list)
+    if OLD:
+        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
+        result_list = classify_thumbnail_list(thumbnail_list)
+    else:
+        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     # yield detections
     for result in result_list:
         yield result
@@ -537,9 +541,146 @@ def compute_features(depc, gid_list, config=None):
         yield (features, )
 
 
+def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
+    depc = ibs.depc_image
+    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
+    assert len(gid_list_) == len(loc_id_list)
+
+    # Grab the localizations
+    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
+    gids_list   = [
+        np.array([gid] * len(bbox_list))
+        for gid, bbox_list in zip(gid_list_, bboxes_list)
+    ]
+
+    # Flatten all of these lists for efficiency
+    bbox_list      = ut.flatten(bboxes_list)
+    theta_list     = ut.flatten(thetas_list)
+    gid_list       = ut.flatten(gids_list)
+    bbox_size_list = ut.take_column(bbox_list, [2, 3])
+    newsize_list   = [target_size] * len(bbox_list)
+    # Checks
+    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
+    invalid_bboxes = ut.compress(bbox_list, invalid_flags)
+    assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+
+    # Build transformation from image to chip
+    M_list = [
+        vt.get_image_to_chip_transform(bbox, new_size, theta)
+        for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
+    ]
+
+    # Extract "chips"
+    flags = cv2.INTER_LANCZOS4
+    borderMode = cv2.BORDER_CONSTANT
+    warpkw = dict(flags=flags, borderMode=borderMode)
+
+    last_gid = None
+    chip_list = []
+    for gid, new_size, M in zip(gid_list, newsize_list, M_list):
+        if gid != last_gid:
+            img = ibs.get_image_imgdata(gid)
+            last_gid = gid
+        chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
+        # cv2.imshow('', chip)
+        # cv2.waitKey()
+        assert chip.shape[0] == 128 and chip.shape[1] == 128
+        chip_list.append(chip)
+
+    return gid_list_, gid_list, chip_list
+
+
+class Classifier2Config(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('classifier_weight_filepath', None),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='classifier2', parents=['localizations'],
+    colnames=['score', 'class'],
+    coltypes=[float, str],
+    configclass=Classifier2Config,
+    fname='detectcache',
+    chunksize=1024,
+)
+def compute_classifications_localizations(depc, loc_id_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        loc_id_list (list):  list of localization rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_labels_localizations
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:100]
+        >>> depc.delete_property('labeler', gid_list)
+        >>> results = depc.get_property('labeler', gid_list, None)
+        >>> results = depc.get_property('labeler', gid_list, 'species')
+        >>> print(results)
+    """
+    print('[ibs] Process Localization Labels')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+
+    gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
+                                                                 target_size=(192, 192))
+
+    # Get the results from the algorithm
+    OLD = False
+    if OLD:
+        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
+        result_list = classify_thumbnail_list(thumbnail_list)
+    else:
+        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+    assert len(gid_list) == len(result_list)
+
+    # Group the results
+    group_dict = {}
+    for gid, result in zip(gid_list, result_list):
+        if gid not in group_dict:
+            group_dict[gid] = []
+        group_dict[gid].append(result)
+    assert len(gid_list_) == len(group_dict.keys())
+
+    # Return the results
+    for gid in gid_list_:
+        result_list = group_dict[gid]
+        zipped_list = zip(*result_list)
+        ret_tuple = (
+            np.array(zipped_list[0]),
+            np.array(zipped_list[1]),
+            np.array(zipped_list[2]),
+            np.array(zipped_list[3]),
+            np.array(zipped_list[4]),
+            list(zipped_list[5]),
+        )
+        # print(ret_tuple[:-1])
+        # print('-------')
+        yield ret_tuple
+
+
 class LabelerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('labeler_sensitivity', None),
+        ut.ParamInfo('labeler_weight_filepath', None),
     ]
 
 
@@ -579,60 +720,21 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         >>> results = depc.get_property('labeler', gid_list, 'species')
         >>> print(results)
     """
-    from ibeis.algo.detect.labeler.labeler import label_chip_list
     print('[ibs] Process Localization Labels')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
-    depc = ibs.depc_image
 
-    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
-    assert len(gid_list_) == len(loc_id_list)
-
-    # Grab the localizations
-    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
-    thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
-    gids_list   = [
-        np.array([gid] * len(bbox_list))
-        for gid, bbox_list in zip(gid_list_, bboxes_list)
-    ]
-
-    # Flatten all of these lists for efficiency
-    bbox_list      = ut.flatten(bboxes_list)
-    theta_list     = ut.flatten(thetas_list)
-    gid_list       = ut.flatten(gids_list)
-    bbox_size_list = ut.take_column(bbox_list, [2, 3])
-    newsize_list   = [(128, 128)] * len(bbox_list)
-    # Checks
-    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
-    invalid_bboxes = ut.compress(bbox_list, invalid_flags)
-    assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
-
-    # Build transformation from image to chip
-    M_list = [
-        vt.get_image_to_chip_transform(bbox, new_size, theta)
-        for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
-    ]
-
-    # Extract "chips"
-    flags = cv2.INTER_LANCZOS4
-    borderMode = cv2.BORDER_CONSTANT
-    warpkw = dict(flags=flags, borderMode=borderMode)
-
-    last_gid = None
-    chip_list = []
-    for gid, new_size, M in zip(gid_list, newsize_list, M_list):
-        if gid != last_gid:
-            img = ibs.get_image_imgdata(gid)
-            last_gid = gid
-        chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
-        # cv2.imshow('', chip)
-        # cv2.waitKey()
-        assert chip.shape[0] == 128 and chip.shape[1] == 128
-        chip_list.append(chip)
+    gid_list_, gid_list, chip_list = get_localization_chips(ibs, loc_id_list,
+                                                            target_size=(128, 128))
 
     # Get the results from the algorithm
-    result_list = label_chip_list(chip_list)
+    OLD = False
+    if OLD:
+        from ibeis.algo.detect.labeler.labeler import label_chip_list
+        result_list = label_chip_list(chip_list)
+    else:
+        result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
 
     # Group the results
@@ -664,6 +766,7 @@ class DetectorConfig(dtool.Config):
     _param_info_list = [
         # ut.ParamInfo('classifier_sensitivity',    0.82),
         ut.ParamInfo('classifier_sensitivity',    0.01),
+        ut.ParamInfo('classifier_weight_filepath', None),
         ut.ParamInfo('localizer_config_filepath', None),
         ut.ParamInfo('localizer_weight_filepath', None),
         ut.ParamInfo('localizer_grid',            False),
@@ -671,6 +774,7 @@ class DetectorConfig(dtool.Config):
         ut.ParamInfo('localizer_sensitivity',     0.10),
         # ut.ParamInfo('labeler_sensitivity',       0.42),
         ut.ParamInfo('labeler_sensitivity',       0.10),
+        ut.ParamInfo('labeler_weight_filepath', None),
     ]
     _sub_config_list = [
         ThumbnailConfig,
