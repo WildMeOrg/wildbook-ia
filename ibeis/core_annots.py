@@ -1649,7 +1649,7 @@ class ClassifierConfig(dtool.Config):
 
 
 @derived_attribute(
-    tablename='classifier', parents=['images'],
+    tablename='classifier', parents=['annotations'],
     colnames=['score', 'class'],
     coltypes=[float, str],
     configclass=ClassifierConfig,
