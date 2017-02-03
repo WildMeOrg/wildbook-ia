@@ -629,10 +629,12 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
         result_list = ut.util_parallel.generate(get_localization_chips_worker, arg_iter,
                                                 ordered=True)
-        ut.embed()
+        # Compute results
+        result_list = list(result_list)
+        # Extract results
         gids_list = ut.take_column(result_list, 0)
         chips_list = ut.take_column(result_list, 1)
-
+        # Flatten results
         gid_list = ut.flatten(gids_list)
         chip_list = ut.flatten(chips_list)
         assert len(gid_list) == len(chip_list)
@@ -655,7 +657,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=128,
+    chunksize=256,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""
@@ -733,7 +735,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=128,
+    chunksize=256,
 )
 def compute_localizations_labels(depc, loc_id_list, config=None):
     r"""
