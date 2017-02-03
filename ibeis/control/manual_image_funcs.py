@@ -440,7 +440,7 @@ def localize_images(ibs, gid_list_=None):
             uri_ = urlparse.urlsplit(uri)
             uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
             uri_ = uri_._replace(path=uri_path)
-            uri2 = uri_.geturl()
+            uri = uri_.geturl()
         if isproto(uri, s3_proto):
             s3_dict = ut.s3_str_decode_to_dict(uri)
             ut.grab_s3_contents(loc_gpath, **s3_dict)
