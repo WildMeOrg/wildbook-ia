@@ -1639,9 +1639,73 @@ if testmode:
         pass
 
 
+class ClassifierConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('classifier_weight_filepath', None),
+    ]
+    _sub_config_list = [
+        ChipConfig
+    ]
+
+
+@derived_attribute(
+    tablename='classifier', parents=['annotations'],
+    colnames=['score', 'class'],
+    coltypes=[float, str],
+    configclass=ClassifierConfig,
+    fname='chipcache4',
+    chunksize=1024,
+)
+def compute_classifications(depc, aid_list, config=None):
+    r"""
+    Extracts the detections for a given input annotation
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_classifications
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> # depc.delete_property('classifier', gid_list)
+        >>> results = depc.get_property('classifier', gid_list, None)
+        >>> print(results)
+    """
+    OLD = False
+    print('[ibs] Process Image Classifications')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    depc = ibs.depc_annot
+    config = {
+        'dim_size' : (128, 128),
+        'resize_dim' : 'wh',
+    }
+    chip_list = depc.get_property('chips', aid_list, 'img', config=config)
+    if OLD:
+        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
+        result_list = classify_thumbnail_list(chip_list)
+    else:
+        result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
+    # yield detections
+    for result in result_list:
+        yield result
+
+
 class LabelerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('labeler_sensitivity', 0.2),
         ut.ParamInfo('labeler_weight_filepath', None),
     ]
     _sub_config_list = [
