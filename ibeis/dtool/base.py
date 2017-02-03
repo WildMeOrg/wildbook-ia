@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import functools
+import operator as op
 import utool as ut
 import numpy as np
 import copy
@@ -48,11 +50,24 @@ class StackedConfig(ut.DictLike, ut.HashComparable):
             raise KeyError(ex)
 
 
-class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
+# @six.add_metaclass(ut.HashComparableMetaclass)
+@functools.total_ordering
+class Config(ut.NiceRepr, ut.DictLike):
     r"""
     Base class for heirarchical config
     need to overwrite get_param_info_list
 
+    CommandLine:
+        python -m dtool.base Config
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from dtool.base import *  # NOQA
+        >>> cfg1 = Config.from_dict({'a': 1, 'b': 2})
+        >>> cfg2 = Config.from_dict({'a': 2, 'b': 2})
+        >>> # Must be hashable and orderable
+        >>> hash(cfg1)
+        >>> cfg1 > cfg2
 
     """
     def __init__(cfg, **kwargs):
@@ -71,6 +86,14 @@ class Config(ut.NiceRepr, ut.DictLike, ut.HashComparable):
 
     def __nice__(cfg):
         return cfg.get_cfgstr(with_name=False)
+
+    def __lt__(self, other):
+        """ hash comparable broke in python3 """
+        return ut.compare_instance(op.lt, self, other)
+
+    def __eq__(self, other):
+        """ hash comparable broke in python3 """
+        return ut.compare_instance(op.eq, self, other)
 
     def __hash__(cfg):
         """ Needed for comparison operators """

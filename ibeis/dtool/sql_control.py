@@ -2586,7 +2586,7 @@ class SQLDatabaseController(object):
                     superkey_index = superkey_colnames_list.index(primary_superkey)
                     superkey_paramx = superkey_paramxs_list[superkey_index]
                     superkey_colnames = superkey_colnames_list[superkey_index]
-            elif len(superkey_colnames) == 1:
+            elif len(superkey_colnames_list) == 1:
                 superkey_paramx = superkey_paramxs_list[0]
                 superkey_colnames = superkey_colnames_list[0]
             else:
