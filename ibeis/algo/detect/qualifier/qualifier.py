@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 from __future__ import absolute_import, division, print_function
 import ibeis
 from os.path import isfile, join, exists, expanduser
