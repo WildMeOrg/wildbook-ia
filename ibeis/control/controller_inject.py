@@ -227,7 +227,7 @@ def _process_input(multidict=None):
         from werkzeug.datastructures import ImmutableMultiDict
         multidict = ImmutableMultiDict([item for item in multidict.items()])
     kwargs2 = {}
-    for (arg, value) in multidict.iterlists():
+    for (arg, value) in multidict.lists():
         if len(value) > 1:
             raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
         # value = str(value[0])
