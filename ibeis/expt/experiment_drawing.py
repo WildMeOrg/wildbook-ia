@@ -8,7 +8,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.expt import draw_helpers
-from six.moves import map, range
+from six.moves import map, range, reduce
 print, rrr, profile = ut.inject2(__name__)
 
 

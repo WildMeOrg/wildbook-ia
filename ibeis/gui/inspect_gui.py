@@ -166,10 +166,18 @@ class QueryResultsWidget(gt.APIItemWidget):
             editable=False, enabled=False
         )
         qres_wgt.layout().setSpacing(0)
-        qres_wgt.layout().setMargin(0)
+        qres_wgt_layout = qres_wgt.layout()
+        if hasattr(qres_wgt_layout, 'setMargin'):
+            qres_wgt_layout.setMargin(0)
+        else:
+            qres_wgt_layout.setContentsMargins(0, 0, 0, 0)
         bottom_bar = gt.newWidget(qres_wgt, orientation=Qt.Horizontal, spacing=0, margin=0)
         bottom_bar.layout().setSpacing(0)
-        bottom_bar.layout().setMargin(0)
+        bottom_bar_layout = bottom_bar.layout()
+        if hasattr(bottom_bar_layout, 'setMargin'):
+            bottom_bar_layout.setMargin(0)
+        else:
+            bottom_bar_layout.setContentsMargins(0, 0, 0, 0)
         lbl.setMinimumSize(0, 0)
         lbl.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
         #lbl.setSizePolicy(gt.newSizePolicy())
