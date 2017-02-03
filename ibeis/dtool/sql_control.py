@@ -564,14 +564,17 @@ class SQLDatabaseController(object):
         db.cur = db.connection.cursor()
 
     def backup(db, backup_filepath):
+        """
+        backup_filepath = dst_fpath
+        """
         # Create a brand new conenction to lock out current thread and any others
         connection, uri = db._create_connection()
         # Start Exclusive transaction, lock out all other writers from making database changes
         connection.isolation_level = 'EXCLUSIVE'
         connection.execute('BEGIN EXCLUSIVE')
         # Assert the database file exists, and copy to backup path
-        if exists(uri):
-            ut.copy(uri, backup_filepath)
+        if exists(db.fpath):
+            ut.copy(db.fpath, backup_filepath)
         else:
             raise IOError('Could not backup the database as the URI does not exist: %r' % (uri, ))
         # Commit the transaction, releasing the lock
