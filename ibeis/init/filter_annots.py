@@ -1746,7 +1746,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
     if sample_size is not None:
         # BUG: Should sample annots while preserving name size
-        if sample_size > avail_aids:
+        if sample_size > len(avail_aids):
             print('Warning sample size too large')
         rng = np.random.RandomState(SEED2)
         # Randomly sample names rather than annotations this makes sampling a

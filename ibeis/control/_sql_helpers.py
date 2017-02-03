@@ -483,7 +483,7 @@ def get_nth_test_schema_version(schema_spec, n=-1):
     cachedir = ut.ensure_app_resource_dir('ibeis_test')
     db_fname = 'test_%s.sqlite3' % dbname
     ut.delete(join(cachedir, db_fname))
-    db = SQLDatabaseController(cachedir, db_fname, text_factory=unicode)
+    db = SQLDatabaseController(cachedir, db_fname, text_factory=six.text_type)
     ensure_correct_version(
         None, db, version_expected, schema_spec, dobackup=False)
     return db
