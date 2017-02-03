@@ -742,9 +742,12 @@ def execute_commands(tpl_rman, ibeis_rman):
         script.exec_()
 
     if GET_ARGFLAG('--dcnn'):
-        tpl_rman['pylearn2'].python_develop()
-        tpl_rman['theano'].python_develop()
-        tpl_rman['lasagne'].python_develop()
+        tpl_rman['theano'].issue('pip install -e .')
+        tpl_rman['pylearn2'].issue('pip install -e .')
+        tpl_rman['lasagne'].issue('pip install -e .')
+        # tpl_rman['pylearn2'].python_develop()
+        # tpl_rman['theano'].python_develop()
+        # tpl_rman['lasagne'].python_develop()
 
     #_===
 
@@ -789,10 +792,10 @@ def execute_commands(tpl_rman, ibeis_rman):
     # Like install, but better if you are developing
     if GET_ARGFLAG('--develop'):
         _rman = ibeis_rman.only_with_pysetup()
-        _rman.issue('{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd),
+        # # _rman.issue('{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd),
+        #               # sudo=not ut.in_virtual_env())
+        _rman.issue('{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd),
                     sudo=not ut.in_virtual_env())
-        # _rman.issue('{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd),
-        #             sudo=not ut.in_virtual_env())
 
     if GET_ARGFLAG('--clean'):
         _rman = ibeis_rman.only_with_pysetup()

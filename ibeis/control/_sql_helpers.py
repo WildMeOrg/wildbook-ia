@@ -175,6 +175,14 @@ def copy_database(src_fpath, dst_fpath):
 
 
 def database_backup(db_dir, db_fname, backup_dir, max_keep=MAX_KEEP, manual=True):
+    """
+        >>> db_dir = ibs.get_ibsdir()
+        >>> db_fname = ibs.sqldb_fname
+        >>> backup_dir = ibs.backupdir
+        >>> max_keep = MAX_KEEP
+        >>> manual = False
+
+    """
     fname, ext = splitext(db_fname)
     src_fpath = join(db_dir, db_fname)
     #now = datetime.datetime.now()
@@ -346,7 +354,10 @@ def update_schema_version(ibs, db, schema_spec, version, version_target,
         if compare_string_versions(version, legacy_version) == -1:
             func(db)
     db_versions = schema_spec.VALID_VERSIONS
-    valid_versions = sorted(db_versions.keys(), compare_string_versions)
+    import functools
+    _key = functools.cmp_to_key(compare_string_versions)
+    valid_versions = sorted(db_versions.keys(), key=_key)
+    print('valid_versions = %r' % (valid_versions,))
     try:
         start_index = valid_versions.index(version) + 1
     except IndexError:
