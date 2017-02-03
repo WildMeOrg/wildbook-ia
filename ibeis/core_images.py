@@ -634,6 +634,8 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         # Extract results
         gids_list = ut.take_column(result_list, 0)
         chips_list = ut.take_column(result_list, 1)
+        # Explicitly garbage collect large list of chips
+        result_list = None
         # Flatten results
         gid_list = ut.flatten(gids_list)
         chip_list = ut.flatten(chips_list)
@@ -703,6 +705,9 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
     else:
         result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     assert len(gid_list) == len(result_list)
+
+    # Release thumbnails
+    thumbnail_list = None
 
     # Group the results
     group_dict = {}
@@ -781,6 +786,9 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
     else:
         result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
+
+    # Release chips
+    chip_list = None
 
     # Group the results
     group_dict = {}
