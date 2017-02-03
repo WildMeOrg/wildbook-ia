@@ -955,7 +955,7 @@ def view_advanced3():
         temp_list = []
         for car in contrib_dict[dataset_tag]:
             letter_dict = contrib_dict[dataset_tag][car]
-            combined_list = list([ (_[1], _[0]) for _ in letter_dict.iteritems()])
+            combined_list = list([(_[1], _[0]) for _ in letter_dict.items()])
             combined_list = sorted(combined_list, reverse=True)
             letter_list = [_[1] for _ in combined_list]
             total = sum(letter_dict.values())

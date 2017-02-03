@@ -1266,7 +1266,7 @@ def filter_annots_intragroup(ibs, avail_aids, aidcfg, prefix='',
         multiprop2_aids = ut.hierarchical_group_items(avail_aids, [nid_list, imgsetid_list])
         qaid_list = []
         # TODO: sampling using different enouncters
-        for imgsetid, nid2_aids in multiprop2_aids.iteritems():
+        for imgsetid, nid2_aids in multiprop2_aids.items():
             if len(nid2_aids) == 1:
                 pass
             else:

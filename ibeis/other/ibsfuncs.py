@@ -436,7 +436,7 @@ def assert_images_are_unique(ibs, gid_list=None, verbose=True):
         divergent = 0
         counter = 0
         global_delete_gid_list = []
-        for key, gid_gpath_list_ in hash_histogram.iteritems():
+        for key, gid_gpath_list_ in hash_histogram.items():
             if len(gid_gpath_list_) >= 2:
                 gid_list   = [_[0] for _ in gid_gpath_list_]
                 gpath_list = [_[1] for _ in gid_gpath_list_]
@@ -6004,7 +6004,7 @@ def compute_ggr_imagesets(ibs, gid_list=None, min_diff=86400, individual=False):
         if not found:
             imageset_dict['7'].append(gid)
 
-    for zone, gid_list in sorted(imageset_dict.iteritems()):
+    for zone, gid_list in sorted(imageset_dict.items()):
         imageset_str = 'GGR Special Zone %s' % (zone, )
         imageset_id = ibs.add_imagesets(imageset_str)
         args = (imageset_str, imageset_id, len(gid_list), )

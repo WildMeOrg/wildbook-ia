@@ -245,7 +245,7 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
     print('Processing train/test imagesets...')
     global_train_list = []
     global_test_list = []
-    for distro, gid_list_ in distro_dict.iteritems():
+    for distro, gid_list_ in distro_dict.items():
         total = len(gid_list_)
         shuffle(gid_list_)
         split_index = total * (1.0 - train_split) + 1E-9  # weird
@@ -570,7 +570,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
                     del assignment_dict[key]
             tp = len(assignment_dict.keys())
         if check_species or check_viewpoint:
-            for gt, pred in assignment_dict.iteritems():
+            for gt, pred in assignment_dict.items():
                 # print(gt_list[gt]['species'], pred_list[pred]['species'])
                 # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
                 if gt_list[gt]['species'] != pred_list[pred]['species']:
