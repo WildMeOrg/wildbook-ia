@@ -659,7 +659,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=256,
+    chunksize=128,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""
@@ -740,7 +740,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=256,
+    chunksize=128,
 )
 def compute_localizations_labels(depc, loc_id_list, config=None):
     r"""
