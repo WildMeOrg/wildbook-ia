@@ -295,10 +295,6 @@ def compute_chip(depc, aid_list, config=None):
     print('config = %r' % (config,))
 
     ibs = depc.controller
-    chip_dpath = ibs.get_chipdir() + '2'
-
-    ut.ensuredir(chip_dpath)
-
     #ext = config['ext']
     pad = config['pad']
     dim_size = config['dim_size']
@@ -307,13 +303,6 @@ def compute_chip(depc, aid_list, config=None):
 
     #cfghashid = config.get_hashid()
     #avuuid_list = ibs.get_annot_visual_uuids(aid_list)
-
-    # TODO: just hash everything together
-    #_fmt = 'chip_aid_{aid}_avuuid_{avuuid}_{cfghashid}{ext}'
-    #cfname_list = [_fmt.format(aid=aid, avuuid=avuuid, ext=ext, cfghashid=cfghashid)
-    #               for aid, avuuid in zip(aid_list, avuuid_list)]
-    #cfpath_list = [ut.unixjoin(chip_dpath, chip_fname)
-    #               for chip_fname in cfname_list]
 
     #gfpath_list = ibs.get_annot_image_paths(aid_list)
     gid_list    = ibs.get_annot_gids(aid_list)

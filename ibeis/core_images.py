@@ -216,6 +216,118 @@ def compute_classifications(depc, gid_list, config=None):
         yield result
 
 
+class FeatureConfig(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
+        ut.ParamInfo('flatten', True),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='features', parents=['images'],
+    colnames=['vector'],
+    coltypes=[np.ndarray],
+    configclass=FeatureConfig,
+    fname='detectcache',
+    chunksize=256,
+)
+def compute_features(depc, gid_list, config=None):
+    r"""
+    Computes features on images using pre-trained state-of-the-art models in
+    Keras
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (np.ndarray, ): tup
+
+    CommandLine:
+        ibeis compute_features
+
+    CommandLine:
+        python -m ibeis.core_images compute_features --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> print(depc.get_tablenames())
+        >>> gid_list = ibs.get_valid_gids()[:16]
+        >>> config = {'algo': 'vgg16'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'algo': 'vgg19'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'algo': 'resnet'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'algo': 'inception'}
+        >>> depc.delete_property('features', gid_list, config=config)
+        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> print(features)
+    """
+    from keras.preprocessing import image as preprocess_image
+    print('[ibs] Preprocess Features')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    ibs.assert_valid_gids(gid_list)
+    thumbnail_config = {
+        'draw_annots' : False,
+        'thumbsize'   : (500, 500),
+    }
+    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=thumbnail_config,
+                              read_extern=False, ensure=True)
+
+    target_size = (224, 224)
+    ######################################################################################
+    if config['algo'] in ['vgg', 'vgg16']:
+        from keras.applications.vgg16 import VGG16 as MODEL_CLASS
+        from keras.applications.vgg16 import preprocess_input
+    ######################################################################################
+    elif config['algo'] in ['vgg19']:
+        from keras.applications.vgg19 import VGG19 as MODEL_CLASS
+        from keras.applications.vgg19 import preprocess_input
+    ######################################################################################
+    elif config['algo'] in ['resnet']:
+        from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
+        from keras.applications.resnet50 import preprocess_input
+    ######################################################################################
+    elif config['algo'] in ['inception']:
+        from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
+        from keras.applications.inception_v3 import preprocess_input
+        target_size = (299, 299)
+    ######################################################################################
+    else:
+        raise ValueError('specified feature algo is not supported in config = %r' % (config, ))
+
+    # Build model
+    model = MODEL_CLASS(include_top=False)
+
+    for thumbpath in thumbpath_list:
+        image = preprocess_image.load_img(thumbpath, target_size=target_size)
+        image_array = preprocess_image.img_to_array(image)
+        image_array = np.expand_dims(image_array, axis=0)
+        image_array = preprocess_input(image_array)
+        features = model.predict(image_array)
+        if config['flatten']:
+            features = features.flatten()
+        yield (features, )
+
+
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
@@ -429,116 +541,34 @@ def compute_localizations(depc, gid_list, config=None):
         yield package_to_numpy(base_key_list, result_list, score)
 
 
-class FeatureConfig(dtool.Config):
-    _param_info_list = [
-        ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
-        ut.ParamInfo('flatten', True),
+def get_localization_chips_worker(tup):
+    gid, img, bbox_list, theta_list, target_size = tup
+    target_size_list = [target_size] * len(bbox_list)
+
+    # Build transformation from image to chip
+    M_list = [
+        vt.get_image_to_chip_transform(bbox, new_size, theta)
+        for bbox, theta, new_size in zip(bbox_list, theta_list, target_size_list)
     ]
-    _sub_config_list = [
-        ThumbnailConfig
-    ]
 
+    # Extract "chips"
+    flags = cv2.INTER_LANCZOS4
+    borderMode = cv2.BORDER_CONSTANT
+    warpkw = dict(flags=flags, borderMode=borderMode)
 
-@register_preproc(
-    tablename='features', parents=['images'],
-    colnames=['vector'],
-    coltypes=[np.ndarray],
-    configclass=FeatureConfig,
-    fname='detectcache',
-    chunksize=256,
-)
-def compute_features(depc, gid_list, config=None):
-    r"""
-    Computes features on images using pre-trained state-of-the-art models in
-    Keras
+    def _compute_localiation_chip(tup):
+        new_size, M = tup
+        chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
+        # cv2.imshow('', chip)
+        # cv2.waitKey()
+        msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
+        assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
+        return chip
 
-    Args:
-        depc (ibeis.depends_cache.DependencyCache):
-        gid_list (list):  list of image rowids
-        config (dict): (default = None)
-
-    Yields:
-        (np.ndarray, ): tup
-
-    CommandLine:
-        ibeis compute_features
-
-    CommandLine:
-        python -m ibeis.core_images compute_features --show
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.core_images import *  # NOQA
-        >>> import ibeis
-        >>> defaultdb = 'PZ_MTEST'
-        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
-        >>> depc = ibs.depc_image
-        >>> print(depc.get_tablenames())
-        >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'algo': 'vgg16'}
-        >>> depc.delete_property('features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
-        >>> print(features)
-        >>> config = {'algo': 'vgg19'}
-        >>> depc.delete_property('features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
-        >>> print(features)
-        >>> config = {'algo': 'resnet'}
-        >>> depc.delete_property('features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
-        >>> print(features)
-        >>> config = {'algo': 'inception'}
-        >>> depc.delete_property('features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
-        >>> print(features)
-    """
-    from keras.preprocessing import image as preprocess_image
-    print('[ibs] Preprocess Features')
-    print('config = %r' % (config,))
-    # Get controller
-    ibs = depc.controller
-    ibs.assert_valid_gids(gid_list)
-    thumbnail_config = {
-        'draw_annots' : False,
-        'thumbsize'   : (500, 500),
-    }
-    thumbpath_list = depc.get('thumbnails', gid_list, 'img', config=thumbnail_config,
-                              read_extern=False, ensure=True)
-
-    target_size = (224, 224)
-    ######################################################################################
-    if config['algo'] in ['vgg', 'vgg16']:
-        from keras.applications.vgg16 import VGG16 as MODEL_CLASS
-        from keras.applications.vgg16 import preprocess_input
-    ######################################################################################
-    elif config['algo'] in ['vgg19']:
-        from keras.applications.vgg19 import VGG19 as MODEL_CLASS
-        from keras.applications.vgg19 import preprocess_input
-    ######################################################################################
-    elif config['algo'] in ['resnet']:
-        from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
-        from keras.applications.resnet50 import preprocess_input
-    ######################################################################################
-    elif config['algo'] in ['inception']:
-        from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
-        from keras.applications.inception_v3 import preprocess_input
-        target_size = (299, 299)
-    ######################################################################################
-    else:
-        raise ValueError('specified feature algo is not supported in config = %r' % (config, ))
-
-    # Build model
-    model = MODEL_CLASS(include_top=False)
-
-    for thumbpath in thumbpath_list:
-        image = preprocess_image.load_img(thumbpath, target_size=target_size)
-        image_array = preprocess_image.img_to_array(image)
-        image_array = np.expand_dims(image_array, axis=0)
-        image_array = preprocess_input(image_array)
-        features = model.predict(image_array)
-        if config['flatten']:
-            features = features.flatten()
-        yield (features, )
+    arg_list = zip(target_size_list, M_list)
+    chip_list = [_compute_localiation_chip(tup_) for tup_ in arg_list]
+    gid_list = [gid] * len(chip_list)
+    return gid_list, chip_list
 
 
 def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
@@ -549,45 +579,67 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
     # Grab the localizations
     bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
-    gids_list   = [
-        np.array([gid] * len(bbox_list))
-        for gid, bbox_list in zip(gid_list_, bboxes_list)
-    ]
+    target_size_list = [target_size] * len(bboxes_list)
 
-    # Flatten all of these lists for efficiency
-    bbox_list      = ut.flatten(bboxes_list)
-    theta_list     = ut.flatten(thetas_list)
-    gid_list       = ut.flatten(gids_list)
-    bbox_size_list = ut.take_column(bbox_list, [2, 3])
-    newsize_list   = [target_size] * len(bbox_list)
-    # Checks
-    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
-    invalid_bboxes = ut.compress(bbox_list, invalid_flags)
-    assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+    OLD = False
+    if OLD:
+        gids_list = [
+            np.array([gid] * len(bbox_list))
+            for gid, bbox_list in zip(gid_list_, bboxes_list)
+        ]
+        # Flatten all of these lists for efficiency
+        bbox_list      = ut.flatten(bboxes_list)
+        theta_list     = ut.flatten(thetas_list)
+        gid_list       = ut.flatten(gids_list)
+        bbox_size_list = ut.take_column(bbox_list, [2, 3])
+        newsize_list   = [target_size] * len(bbox_list)
 
-    # Build transformation from image to chip
-    M_list = [
-        vt.get_image_to_chip_transform(bbox, new_size, theta)
-        for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
-    ]
+        # Checks
+        invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
+        invalid_bboxes = ut.compress(bbox_list, invalid_flags)
+        assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
 
-    # Extract "chips"
-    flags = cv2.INTER_LANCZOS4
-    borderMode = cv2.BORDER_CONSTANT
-    warpkw = dict(flags=flags, borderMode=borderMode)
+        # Build transformation from image to chip
+        M_list = [
+            vt.get_image_to_chip_transform(bbox, new_size, theta)
+            for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
+        ]
 
-    last_gid = None
-    chip_list = []
-    for gid, new_size, M in zip(gid_list, newsize_list, M_list):
-        if gid != last_gid:
-            img = ibs.get_image_imgdata(gid)
-            last_gid = gid
-        chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
-        # cv2.imshow('', chip)
-        # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
-        assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
-        chip_list.append(chip)
+        # Extract "chips"
+        flags = cv2.INTER_LANCZOS4
+        borderMode = cv2.BORDER_CONSTANT
+        warpkw = dict(flags=flags, borderMode=borderMode)
+
+        last_gid = None
+        chip_list = []
+        arg_list = zip(gid_list, newsize_list, M_list)
+        for tup in ut.ProgIter(arg_list, lbl='computing localization chips', bs=True):
+            gid, new_size, M = tup
+            if gid != last_gid:
+                img = ibs.get_image_imgdata(gid)
+                last_gid = gid
+            chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
+            # cv2.imshow('', chip)
+            # cv2.waitKey()
+            msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
+            assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
+            chip_list.append(chip)
+    else:
+        img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
+        arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
+        result_list = ut.util_parallel.generate(get_localization_chips_worker, arg_iter,
+                                                ordered=True)
+        # Compute results
+        result_list = list(result_list)
+        # Extract results
+        gids_list = ut.take_column(result_list, 0)
+        chips_list = ut.take_column(result_list, 1)
+        # Explicitly garbage collect large list of chips
+        result_list = None
+        # Flatten results
+        gid_list = ut.flatten(gids_list)
+        chip_list = ut.flatten(chips_list)
+        assert len(gid_list) == len(chip_list)
 
     return gid_list_, gid_list, chip_list
 
@@ -607,9 +659,9 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=512,
+    chunksize=128,
 )
-def compute_classifications_localizations(depc, loc_id_list, config=None):
+def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""
     Extracts the detections for a given input image
 
@@ -622,7 +674,7 @@ def compute_classifications_localizations(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_labels_localizations
+        ibeis compute_localizations_classifications
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -653,6 +705,9 @@ def compute_classifications_localizations(depc, loc_id_list, config=None):
     else:
         result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     assert len(gid_list) == len(result_list)
+
+    # Release thumbnails
+    thumbnail_list = None
 
     # Group the results
     group_dict = {}
@@ -685,9 +740,9 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=128,
 )
-def compute_labels_localizations(depc, loc_id_list, config=None):
+def compute_localizations_labels(depc, loc_id_list, config=None):
     r"""
     Extracts the detections for a given input image
 
@@ -700,7 +755,7 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
         (float, str): tup
 
     CommandLine:
-        ibeis compute_labels_localizations
+        ibeis compute_localizations_labels
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -731,6 +786,9 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
     else:
         result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
+
+    # Release chips
+    chip_list = None
 
     # Group the results
     group_dict = {}
