@@ -403,7 +403,8 @@ def localize_images(ibs, gid_list_=None):
 
     """
     #from os.path import isabs
-    from six.moves import urllib
+    import six
+    import urllib
     import urlparse
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
@@ -439,14 +440,18 @@ def localize_images(ibs, gid_list_=None):
             # Ensure that the Unicode string is properly encoded for web requests
             uri_ = urlparse.urlsplit(uri)
             uri_ = uri_.path.encode('utf8')
-            uri_ = urllib.quote(uri_)
+            if six.PY2:
+                _quote = urllib.quote
+            else:
+                _quote = six.moves.urllib.parse.quote
+            uri_ = _quote(uri_)
             uri_ = uri_._replace(path=uri_)
             uri = uri_.geturl()
         if isproto(uri, s3_proto):
             s3_dict = ut.s3_str_decode_to_dict(uri)
             ut.grab_s3_contents(loc_gpath, **s3_dict)
         if isproto(uri, url_protos):
-            urllib.request.urlretrieve(uri, filename=loc_gpath)
+            six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
     # Copy images to local directory
     #needs_copy_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
     #                           for gp, lgp in zip(abs_uri_list, loc_gpath_list)]
