@@ -665,18 +665,11 @@ def compute_classifications_localizations(depc, loc_id_list, config=None):
     # Return the results
     for gid in gid_list_:
         result_list = group_dict[gid]
-        ut.embed()
         zipped_list = zip(*result_list)
         ret_tuple = (
             np.array(zipped_list[0]),
             np.array(zipped_list[1]),
-            np.array(zipped_list[2]),
-            np.array(zipped_list[3]),
-            np.array(zipped_list[4]),
-            list(zipped_list[5]),
         )
-        # print(ret_tuple[:-1])
-        # print('-------')
         yield ret_tuple
 
 
@@ -759,8 +752,6 @@ def compute_labels_localizations(depc, loc_id_list, config=None):
             np.array(zipped_list[4]),
             list(zipped_list[5]),
         )
-        # print(ret_tuple[:-1])
-        # print('-------')
         yield ret_tuple
 
 
