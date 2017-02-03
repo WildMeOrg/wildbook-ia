@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 TODO:
@@ -164,6 +164,18 @@ Register these packages with the python enviroment.
 ''')
 
 
+def get_plat_specifier():
+    """
+    Standard platform specifier used by distutils
+    """
+    import distutils
+    plat_name = distutils.util.get_platform()
+    plat_specifier = ".%s-%s" % (plat_name, sys.version[0:3])
+    if hasattr(sys, 'gettotalrefcount'):
+        plat_specifier += '-pydebug'
+    return plat_specifier
+
+
 def import_module_from_fpath(module_fpath):
     """ imports module from a file path """
     import platform
@@ -290,7 +302,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             ibeis_rman.add_repos([
                 'https://github.com/Erotemic/guitool.git',
             ])
-            tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5')))
+            tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
     if WITH_CUSTOM_TPL:
         flann_repo = ut.Repo('https://github.com/Erotemic/flann.git', CODE_DIR, modname='pyflann')
@@ -371,22 +383,24 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     """
     import utool as ut
 
-    if PY2:
-        script_fmtdict = {
-            'pyversion'         : 'python2.7',
-            'pypkg_var'         : 'PYTHON2_PACKAGES_PATH',
-            'build_dname'       : 'build27',
-            'cv_pyon_var'       : 'BUILD_opencv_python3',
-            'cv_pyoff_var'      : 'BUILD_opencv_python2',
-        }
-    elif PY3:
-        script_fmtdict = {
-            'pyversion'         : 'python3.4',
-            'pypkg_var'         : 'PYTHON3_PACKAGES_PATH',
-            'build_dname'       : 'build34',
-            'cv_pyon_var'       : 'BUILD_opencv_python3',
-            'cv_pyoff_var'      : 'BUILD_opencv_python2',
-        }
+    major = str(sys.version_info.major)
+    minor = str(sys.version_info.minor)
+    majorminor = [major, minor]
+    pyoff = '2' if sys.version_info.major == 3 else '3'
+    plat_spec = get_plat_specifier()
+    # build_dname = 'build' + ''.join(majorminor)
+    build_dname = 'cmake_builds/build' + plat_spec
+
+    script_fmtdict = {
+        'pyversion'         : 'python' + '.'.join(majorminor),
+        'pypkg_var'         : 'PYTHON' + major + '_PACKAGES_PATH',
+        'build_dname'       : build_dname,
+        'cv_pyon_var'       : 'BUILD_opencv_python' + majorminor[0],
+        'cv_pyoff_var'      : 'BUILD_opencv_python' + pyoff,
+        'plat_spec'         : plat_spec,
+        'source_dpath'      : '../..',
+        'libext'            : ut.get_lib_ext(),
+    }
 
     # define bash variables for different combinations of python distros and
     # virtual environments
@@ -405,6 +419,9 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             export _SUDO=""
         fi
         export PYTHON_PACKAGES_PATH=${pypkg_var}
+
+        echo "LOCAL_PREFIX = $LOCAL_PREFIX"
+        echo "{pypkg_var} = ${pypkg_var}"
         # ENDBLOCK bash
         '''
     ).format(**script_fmtdict)
@@ -419,14 +436,23 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # STARTBLOCK bash
         {python_bash_setup}
 
+        cd {repo_dir}
+        mkdir -p {build_dname}
+        cd {build_dname}
+
         cmake -G "Unix Makefiles" \
             -DCMAKE_BUILD_TYPE="Release" \
             -DPYTHON_EXECUTABLE=$PYTHON_EXECUTABLE \
+            -DBUILD_EXAMPLES=Off \
+            -DBUILD_TESTS=Off \
             -DBUILD_PYTHON_BINDINGS=On \
             -DBUILD_MATLAB_BINDINGS=Off \
             -DBUILD_CUDA_LIB=Off\
             -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX\
-            ..
+            {source_dpath}
+
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS
 
         # ENDBLOCK bash
         ''').format(repo_dir=ibeis_rman['pyflann'].dpath, **script_fmtdict)
@@ -437,15 +463,63 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # STARTBLOCK bash
         # The pyflann source lives here
         cd {repo_dir}/src/python
-        # But the setup script is generated during build
-        python {repo_dir}/build/src/python/setup.py develop
-        # python -m pip install -e {repo_dir}/build/src/python
+        # Need to run build to move the libs to the build directory
+        python setup.py build
+        # Use pip to editable install
+        pip install -e {repo_dir}/src/python
 
-        python -c "import pyflann; print(pyflann.__file__)"
-        python -c "import pyflann; print(pyflann)"
+        # Old way of doing it
+        # But the setup script is generated during build
+        # python {repo_dir}/build/src/python/setup.py develop
+
+        python -c "import pyflann; print(pyflann.__file__)" --verb-flann
+        python -c "import pyflann; print(pyflann)" --verb-flann
         # ENDBLOCK bash
         ''').format(repo_dir=ibeis_rman['pyflann'].dpath)
     )
+
+    #===================
+    # HESAFF
+    #===================
+
+    ibeis_rman['hesaff'].add_script('build', ut.codeblock(
+        r"""
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd $CODE_DIR/hesaff
+        mkdir -p {build_dname}
+        cd {build_dname}
+
+        echo 'Configuring with cmake'
+        if [[ '$OSTYPE' == 'darwin'* ]]; then
+            cmake -G "Unix Makefiles" \
+                -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+                -DCMAKE_C_COMPILER=clang2 \
+                -DCMAKE_CXX_COMPILER=clang2++ \
+                -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+                -DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV \
+                {source_dpath}
+        else
+            cmake -G "Unix Makefiles" \
+                -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
+                -DOpenCV_DIR=$LOCAL_PREFIX/share/OpenCV \
+                {source_dpath}
+        fi
+
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS
+
+        export MAKE_EXITCODE=$?
+        echo "MAKE_EXITCODE=$MAKE_EXITCODE"
+
+        # Move the compiled library into the source folder
+        if [[ $MAKE_EXITCODE == 0 ]]; then
+            #make VERBOSE=1
+            cp -v libhesaff{libext} {source_dpath}/pyhesaff/libhesaff{plat_spec}{libext}
+        fi
+
+        # ENDBLOCK
+        """).format(**script_fmtdict))
 
     #===================
     # OPENCV SETUP SCRIPTS
@@ -464,9 +538,6 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         mkdir -p {build_dname}
         cd {build_dname}
 
-        echo "LOCAL_PREFIX = $LOCAL_PREFIX"
-        echo "PYTHON3_PACKAGES_PATH = $PYTHON3_PACKAGES_PATH"
-
         cmake -G "Unix Makefiles" \
             -D WITH_OPENMP=ON \
             -D CMAKE_BUILD_TYPE=RELEASE \
@@ -475,7 +546,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             -D {pypkg_var}=${pypkg_var} \
             -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
             -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
-            ..
+            -D WITH_CUDA=Off \
+            {source_dpath}
             # -D CXX_FLAGS="-std=c++11" \ %TODO
 
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
@@ -512,32 +584,38 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         fmtdict = {
             'sys_dist_packages': ut.get_global_dist_packages_dir(),
             'venv_site_packages': ut.get_site_packages_dir(),
+            'pyqt'              : 'PyQt4' if PY2 else 'PyQt5',
+            'debian-python-qt'  : 'python-qt4' if PY2 else 'python-qt5',
         }
         # sys_dist_packages = ut.get_global_dist_packages_dir()
-        # sys_pyqt_dir = sys_dist_packages + '/PyQt4'
+        # sys_pyqt_dir = sys_dist_packages + '/{pyqt}'
         # Allows us to use a system qt install in a virtual environment.
         system_to_venv = ut.codeblock(
             r'''
             # STARTBLOCK bash
+            # Creates a symlink to the global PyQt in a virtual env
             export GLOBAL_DIST_PACKAGES="{sys_dist_packages}"
             export VENV_DIST_PACKAGES="{venv_site_packages}"
-            if [ -d $GLOBAL_DIST_PACKAGES/PyQt4 ]; then
+            if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
+                echo "have qt"
+                ls $GLOBAL_DIST_PACKAGES/{pyqt}
+                ls $VENV_DIST_PACKAGES/{pyqt}
             else
                 # Ensure PyQt is installed first (FIXME make this work for non-debian systems)
-                sudo apt-get install python-qt4
+                sudo apt-get install {debian-python-qt}
             fi
-            if [ -d $GLOBAL_DIST_PACKAGES/PyQt4 ]; then
+            if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
                 # Install system pyqt packages to virtual envirment via symlink
-                ln -s $GLOBAL_DIST_PACKAGES/PyQt4/ $VENV_DIST_PACKAGES/PyQt4
+                ln -s $GLOBAL_DIST_PACKAGES/{pyqt}/ $VENV_DIST_PACKAGES/{pyqt}
                 ln -s $GLOBAL_DIST_PACKAGES/sip*.so $VENV_DIST_PACKAGES/
                 ln -s $GLOBAL_DIST_PACKAGES/sip*.py $VENV_DIST_PACKAGES/
             else
-                echo "QT4 DOES NOT SEEM TO BE INSTALLED ON THE SYSTEM"
+                echo "{pyqt} DOES NOT SEEM TO BE INSTALLED ON THE SYSTEM"
             fi
             # ENDBLOCK bash
             ''').format(**fmtdict)
         # TODO: add custom build alternative
-        tpl_rman['PyQt4'].add_script('system_to_venv', system_to_venv)
+        tpl_rman['PyQt'].add_script('system_to_venv', system_to_venv)
 
 
 #-----------
@@ -625,6 +703,25 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     ibeis_rman.ensure()
 
+    if GET_ARGFLAG('--dump-scripts'):
+        dpath = '_super_scripts/' + 'scripts' + get_plat_specifier()
+        ut.ensuredir(dpath)
+        dumps = [
+            (tpl_rman, 'cv2', 'build'),
+            (tpl_rman, 'cv2', 'install'),
+            (ibeis_rman, 'flann', 'build'),
+            (ibeis_rman, 'flann', 'install'),
+            (ibeis_rman, 'hesaff', 'build'),
+            (tpl_rman, 'PyQt', 'system_to_venv'),
+        ]
+
+        for rman, mod, sname in dumps:
+            from os.path import join
+            script = rman[mod].get_script(sname).text
+            suffix = get_plat_specifier()
+            sh_fpath = join(dpath, mod + '_' + sname + suffix + '.sh')
+            ut.write_to(sh_fpath, script)
+
     # HACKED IN SCRIPTS WHILE IM STILL FIGURING OUT TPL DEPS
     if GET_ARGFLAG('--opencv'):
         cv_repo = tpl_rman['cv2']
@@ -635,7 +732,7 @@ def execute_commands(tpl_rman, ibeis_rman):
         script.exec_()
 
     if GET_ARGFLAG('--pyqt'):
-        script = tpl_rman['PyQt4'].get_script('system_to_venv')
+        script = tpl_rman['PyQt'].get_script('system_to_venv')
         script.exec_()
 
     if GET_ARGFLAG('--flann'):
@@ -843,16 +940,17 @@ def get_sysinfo():
     (DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
     python_version = platform.python_version()
 
-    PY3 = '--py3' in sys.argv
-    PY2 = not PY3
-    assert PY3 or python_version.startswith('2.7'), \
-        'IBEIS currently supports python 2.7,  Instead got python=%r. use --py3 to override' % python_version
+    PY2 = python_version.startswith('2.7')
+    PY3 = python_version.startswith('3')
+    # '--py3' in sys.argv
+    # assert PY3 or
+    #     'IBEIS currently supports python 2.7,  Instead got python=%r. use --py3 to override' % python_version
 
-    # Default to python 2.7. Windows is werid
-    if PY2:
-        pythoncmd = 'python' if WIN32 else 'python2.7'
-    elif PY3:
-        pythoncmd = 'python3'
+    pythoncmd = sys.executable
+    # if PY2:
+    #     pythoncmd = 'python' if WIN32 else 'python2.7'
+    # elif PY3:
+    #     pythoncmd = 'python3'
     return CODE_DIR, pythoncmd, WIN32, PY2, PY3
 
 
