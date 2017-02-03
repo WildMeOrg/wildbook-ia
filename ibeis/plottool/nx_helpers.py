@@ -28,6 +28,7 @@ import six
 import dtool
 import numpy as np
 import utool as ut
+from six.moves import reduce
 (print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
 
 
