@@ -607,7 +607,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=128,
 )
 def compute_classifications_localizations(depc, loc_id_list, config=None):
     r"""
