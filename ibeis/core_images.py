@@ -328,57 +328,6 @@ def compute_features(depc, gid_list, config=None):
         yield (features, )
 
 
-def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
-    depc = ibs.depc_image
-    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
-    assert len(gid_list_) == len(loc_id_list)
-
-    # Grab the localizations
-    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
-    thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
-    gids_list   = [
-        np.array([gid] * len(bbox_list))
-        for gid, bbox_list in zip(gid_list_, bboxes_list)
-    ]
-
-    # Flatten all of these lists for efficiency
-    bbox_list      = ut.flatten(bboxes_list)
-    theta_list     = ut.flatten(thetas_list)
-    gid_list       = ut.flatten(gids_list)
-    bbox_size_list = ut.take_column(bbox_list, [2, 3])
-    newsize_list   = [target_size] * len(bbox_list)
-    # Checks
-    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
-    invalid_bboxes = ut.compress(bbox_list, invalid_flags)
-    assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
-
-    # Build transformation from image to chip
-    M_list = [
-        vt.get_image_to_chip_transform(bbox, new_size, theta)
-        for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
-    ]
-
-    # Extract "chips"
-    flags = cv2.INTER_LANCZOS4
-    borderMode = cv2.BORDER_CONSTANT
-    warpkw = dict(flags=flags, borderMode=borderMode)
-
-    last_gid = None
-    chip_list = []
-    for gid, new_size, M in zip(gid_list, newsize_list, M_list):
-        if gid != last_gid:
-            img = ibs.get_image_imgdata(gid)
-            last_gid = gid
-        chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
-        # cv2.imshow('', chip)
-        # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
-        assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
-        chip_list.append(chip)
-
-    return gid_list_, gid_list, chip_list
-
-
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
@@ -592,6 +541,105 @@ def compute_localizations(depc, gid_list, config=None):
         yield package_to_numpy(base_key_list, result_list, score)
 
 
+def get_localization_chips_worker(tup):
+    gid, img, bbox_list, theta_list, target_size = tup
+    target_size_list = [target_size] * len(bbox_list)
+
+    # Build transformation from image to chip
+    M_list = [
+        vt.get_image_to_chip_transform(bbox, new_size, theta)
+        for bbox, theta, new_size in zip(bbox_list, theta_list, target_size_list)
+    ]
+
+    # Extract "chips"
+    flags = cv2.INTER_LANCZOS4
+    borderMode = cv2.BORDER_CONSTANT
+    warpkw = dict(flags=flags, borderMode=borderMode)
+
+    def _compute_localiation_chip(tup):
+        new_size, M = tup
+        chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
+        # cv2.imshow('', chip)
+        # cv2.waitKey()
+        msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
+        assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
+        return chip
+
+    arg_list = zip(target_size_list, M_list)
+    chip_list = [_compute_localiation_chip(tup_) for tup_ in arg_list]
+    gid_list = [gid] * len(chip_list)
+    return gid_list, chip_list
+
+
+def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
+    depc = ibs.depc_image
+    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
+    assert len(gid_list_) == len(loc_id_list)
+
+    # Grab the localizations
+    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
+    target_size_list = [target_size] * len(bboxes_list)
+
+    OLD = True
+    if OLD:
+        gids_list = [
+            np.array([gid] * len(bbox_list))
+            for gid, bbox_list in zip(gid_list_, bboxes_list)
+        ]
+        # Flatten all of these lists for efficiency
+        bbox_list      = ut.flatten(bboxes_list)
+        theta_list     = ut.flatten(thetas_list)
+        gid_list       = ut.flatten(gids_list)
+        bbox_size_list = ut.take_column(bbox_list, [2, 3])
+        newsize_list   = [target_size] * len(bbox_list)
+
+        # Checks
+        invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
+        invalid_bboxes = ut.compress(bbox_list, invalid_flags)
+        assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+
+        # Build transformation from image to chip
+        M_list = [
+            vt.get_image_to_chip_transform(bbox, new_size, theta)
+            for bbox, theta, new_size in zip(bbox_list, theta_list, newsize_list)
+        ]
+
+        # Extract "chips"
+        flags = cv2.INTER_LANCZOS4
+        borderMode = cv2.BORDER_CONSTANT
+        warpkw = dict(flags=flags, borderMode=borderMode)
+
+        last_gid = None
+        chip_list = []
+        arg_list = zip(gid_list, newsize_list, M_list)
+        for tup in ut.ProgIter(arg_list, lbl='computing localization chips', bs=True):
+            gid, new_size, M = tup
+            if gid != last_gid:
+                img = ibs.get_image_imgdata(gid)
+                last_gid = gid
+            chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
+            # cv2.imshow('', chip)
+            # cv2.waitKey()
+            msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
+            assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
+            chip_list.append(chip)
+    else:
+        img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
+        arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
+        result_list = ut.util_parallel.generate(get_localization_chips_worker, arg_iter,
+                                                ordered=True, verbose=False,
+                                                quiet=True)
+        gids_list = ut.take_column(result_list, 0)
+        chips_list = ut.take_column(result_list, 0)
+
+        gid_list = ut.flatten(gids_list)
+        chip_list = ut.flatten(chips_list)
+        assert len(gid_list) == len(chip_list)
+
+    return gid_list_, gid_list, chip_list
+
+
 class Classifier2Config(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', None),
@@ -607,7 +655,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=512,
+    chunksize=128,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""
@@ -685,7 +733,7 @@ class LabelerConfig(dtool.Config):
     coltypes=[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, list],
     configclass=LabelerConfig,
     fname='detectcache',
-    chunksize=512,
+    chunksize=128,
 )
 def compute_localizations_labels(depc, loc_id_list, config=None):
     r"""
