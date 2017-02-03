@@ -168,6 +168,7 @@ def get_plat_specifier():
     """
     Standard platform specifier used by distutils
     """
+    import setuptools  # NOQA
     import distutils
     plat_name = distutils.util.get_platform()
     plat_specifier = ".%s-%s" % (plat_name, sys.version[0:3])
