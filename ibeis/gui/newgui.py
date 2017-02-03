@@ -830,6 +830,7 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         return index
 
     def set_selection_status(ibswgt, key, ids):
+        ids = list(ids)
         text = repr(ids)
         index = ibswgt.tablename_to_status_widget_index[key]
 

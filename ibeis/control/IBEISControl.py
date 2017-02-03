@@ -112,7 +112,10 @@ for modname in ut.ProgIter(AUTOLOAD_PLUGIN_MODNAMES, 'loading plugins',
     try:
         ut.import_modname(modname)
     except ImportError as ex:
-        ut.printex(ex, 'Unable to load plugin: %r' % (modname,), iswarning=True)
+        if 'ibeis_cnn' in modname:
+            ut.printex(ex, 'Unable to load plugin: %r' % (modname,), iswarning=True)
+        else:
+            raise
 
 
 # NOTE: new plugin code needs to be hacked in here currently
@@ -557,6 +560,8 @@ class IBEISController(BASE_CLASS):
                 ut.printex(ex, (
                     'Failed making daily backup. '
                     'Run with --nobackup to disable'))
+                import utool
+                utool.embed()
                 raise
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
