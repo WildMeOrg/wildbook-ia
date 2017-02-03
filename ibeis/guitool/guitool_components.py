@@ -1116,7 +1116,10 @@ class GuitoolWidget(WIDGET_BASE):
         if spacing is not None:
             layout.setSpacing(spacing)
         if margin is not None:
-            layout.setMargin(margin)
+            if hasattr(layout, 'setMargin'):
+                layout.setMargin(margin)
+            else:
+                layout.setContentsMargins(margin, margin, margin, margin)
         self.setLayout(layout)
         self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)

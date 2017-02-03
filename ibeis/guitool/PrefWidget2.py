@@ -13,6 +13,7 @@ import traceback
 from guitool.__PYQT__ import QtCore, QtGui  # NOQA
 from guitool.__PYQT__ import QtWidgets
 from guitool.__PYQT__ import QVariantHack
+from guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 from guitool.__PYQT__.QtCore import Qt, QAbstractItemModel, QModelIndex, QObject
 from guitool.__PYQT__ import _fromUtf8, _encoding, _translate  # NOQA
 import utool as ut
@@ -42,7 +43,7 @@ def qindexstr(index):
     return 'QIndex(%r, %r)' % (index.row(), index.column())
 
 #DELEGATE_BASE = QtWidgets.QAbstractItemDelegate
-#DELEGATE_BASE = QtWidgets.QItemDelegate
+# DELEGATE_BASE = QtWidgets.QItemDelegate
 DELEGATE_BASE = QtWidgets.QStyledItemDelegate
 
 
@@ -205,26 +206,31 @@ class ConfigValueDelegate(DELEGATE_BASE):
         #http://doc.qt.io/qt-4.8/style-reference.html
 
     """
-    def __init__(self, parent):
-        super(ConfigValueDelegate, self).__init__(parent)
+    # def __init__(self, parent):
+    #     super(ConfigValueDelegate, self).__init__(parent)
 
     def paint(self, painter, option, index):
+        version4 = GUITOOL_PYQT_VERSION == 4
+        # if GUITOOL_PYQT_VERSION:
+        #     return super(ConfigValueDelegate, self).paint(painter, option, index)
         # Get Item Data
         # value = index.data(QtCore.Qt.DisplayRole).toInt()[0]
         leafNode = index.internalPointer()
-        if (VERBOSE_CONFIG and False):
-            print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
-            leafNode.print_tree()
-            # print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
+        # if (VERBOSE_CONFIG and False):
+        #     print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
+        #     leafNode.print_tree()
+        #     # print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
         if leafNode.is_combo:
             #print('[DELEGATE] * painting editor for %s at %s' % (leafNode, qindexstr(index)))
             #painter.save()
             curent_value = six.text_type(index.model().data(index))
             style = QtWidgets.QApplication.style()
             opt = QtWidgets.QStyleOptionComboBox()
+
             opt.currentText = curent_value
             opt.rect = option.rect
             opt.editable = False
+            opt.frame = True
 
             if leafNode.qt_is_editable():
                 opt.state |= style.State_On
@@ -236,7 +242,7 @@ class ConfigValueDelegate(DELEGATE_BASE):
 
             style.drawComplexControl(control, opt, painter)
             style.drawControl(element, opt, painter)
-        elif (leafNode is not None and leafNode.is_spin):
+        elif (leafNode is not None and leafNode.is_spin) and version4:
             # fill style options with item data
             style = QtWidgets.QApplication.style()
             opt = QtWidgets.QStyleOptionSpinBox()
@@ -362,7 +368,15 @@ class ConfigValueDelegate(DELEGATE_BASE):
         # For combo boxes
         if VERBOSE_CONFIG:
             print('[DELEGATE] Commit Data with combo_idx=%r' % (combo_idx,))
-        self.commitData.emit(self.sender())
+        if GUITOOL_PYQT_VERSION == 4:
+            self.commitData.emit(self.sender())
+        else:
+            sender = self.sender()
+            print('sender = %r' % (sender,))
+            self.commitData
+            print('self.commitData = %r' % (self.commitData,))
+            self.commitData.emit(sender)
+            # super(ConfigValueDelegate, self).commitData.emit()
 
     def updateEditorGeometry(self, editor, option, index):
         if VERBOSE_CONFIG:
@@ -912,6 +926,7 @@ class EditConfigWidget(QtWidgets.QWidget):
         >>> widget.resize(400, 500)
         >>> guitool.qtapp_loop(qwin=widget, freq=10)
     """
+    # data_changed(key)
     data_changed = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None, config=None, user_mode=False,
@@ -1029,19 +1044,19 @@ class EditConfigWidget(QtWidgets.QWidget):
         print('Defaulting')
         self.rootNode._reset_to_default()
         self.refresh_layout()
-        self.data_changed.emit()
+        self.data_changed.emit('')
 
     def reset_to_original(self):
         print('Defaulting')
         self.rootNode._reset_to_original()
         self.refresh_layout()
-        self.data_changed.emit()
+        self.data_changed.emit('')
 
     def set_to_external(self, cfg):
         print('Setting to external')
         self.rootNode._set_to_external(cfg)
         self.refresh_layout()
-        self.data_changed.emit()
+        self.data_changed.emit('')
 
     def print_internals(self):
         print('Print Internals')

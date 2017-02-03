@@ -5,6 +5,8 @@ import utool as ut
 ut.noinject(__name__, '[__PYQT__.__init__]')
 from . import _internal
 
+GUITOOL_PYQT_VERSION = _internal.GUITOOL_PYQT_VERSION
+
 if _internal.GUITOOL_PYQT_VERSION == 4:
     from PyQt4 import *
 elif _internal.GUITOOL_PYQT_VERSION == 5:

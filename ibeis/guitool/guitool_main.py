@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 import sys
 from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__ import QtWidgets  # NOQA
+from guitool.__PYQT__ import GUITOOL_PYQT_VERSION  # NOQA
 import utool as ut
 ut.noinject(__name__, '[guitool.main]', DEBUG=False)
 
@@ -53,9 +54,19 @@ def ensure_qtapp():
         if not QUIET:
             print('[guitool] Init new QApplication')
         QAPP = GuitoolApplication(sys.argv)
-        QAPP.setStyle('plastique')
+        if GUITOOL_PYQT_VERSION == 4:
+            QAPP.setStyle('plastique')
+        else:
+            # http://stackoverflow.com/questions/38154702/how-to-install-new-qstyle-for-pyqt
+            # QAPP.setStyle('Windows')
+            # QAPP.setStyle('WindowsXP')
+            # QAPP.setStyle('WindowsVista')
+            # available_styles = QtWidgets.QStyleFactory().keys()
+            # print('available_styles = %r' % (available_styles,))
+            # QAPP.setStyle('Fusion')
+            QAPP.setStyle('GTK+')
         #QAPP.setStyle('windows')
-        #QAPP.setStyle('cleanlooks')
+        # QAPP.setStyle('cleanlooks')
         #QAPP.setStyle('motif')
         #QAPP.setDesktopSettingsAware(True)
         #QAPP.setStyle('cde')
