@@ -607,7 +607,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=128,
+    chunksize=512,
 )
 def compute_classifications_localizations(depc, loc_id_list, config=None):
     r"""
@@ -637,7 +637,7 @@ def compute_classifications_localizations(depc, loc_id_list, config=None):
         >>> results = depc.get_property('labeler', gid_list, 'species')
         >>> print(results)
     """
-    print('[ibs] Process Localization Labels')
+    print('[ibs] Process Localization Classifications')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
