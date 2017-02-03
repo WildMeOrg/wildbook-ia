@@ -404,7 +404,12 @@ def localize_images(ibs, gid_list_=None):
     """
     #from os.path import isabs
     import six
-    import urlparse
+    if six.PY2:
+        import urlparse
+        urlsplit = urlparse.urlsplit
+    else:
+        import urllib
+        urlsplit = urllib.parse.urlsplit
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
@@ -437,7 +442,7 @@ def localize_images(ibs, gid_list_=None):
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
         if isproto(uri, valid_protos):
             # Ensure that the Unicode string is properly encoded for web requests
-            uri_ = urlparse.urlsplit(uri)
+            uri_ = urlsplit(uri)
             uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
             uri_ = uri_._replace(path=uri_path)
             uri = uri_.geturl()
