@@ -585,7 +585,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         chip = cv2.warpAffine(img, M[0:2], tuple(new_size), **warpkw)
         # cv2.imshow('', chip)
         # cv2.waitKey()
-        assert chip.shape[0] == 128 and chip.shape[1] == 128
+        assert chip.shape[0] == target_size and chip.shape[1] == target_size
         chip_list.append(chip)
 
     return gid_list_, gid_list, chip_list
