@@ -581,7 +581,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
     target_size_list = [target_size] * len(bboxes_list)
 
-    OLD = True
+    OLD = False
     if OLD:
         gids_list = [
             np.array([gid] * len(bbox_list))
