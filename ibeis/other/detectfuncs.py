@@ -424,8 +424,8 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
     label = '%s [OP = %0.02f]' % (label, best_conf, )
-    plt.plot(x_list, y_list, '%s-' % (color, ), label=label)
-    plt.plot(best_x_list, best_y_list, '%so' % (color, ))
+    plt.plot(x_list, y_list, color=color, linestyle='-', label=label)
+    plt.plot(best_x_list, best_y_list, color=color, marker='o')
     area = np.trapz(y_list, x=x_list)
     if len(best_conf_list) > 1:
         print('WARNING: %r' % (best_conf_list, ))
@@ -641,7 +641,10 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
+    print(kwargs)
     results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
+    print(len(results_list))
+    raw_input()
     size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
@@ -737,7 +740,7 @@ def localizer_precision_recall_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-def localizer_confusion_matrix_algo_plot(ibs, label, color, conf, min_overlap=0.5,
+def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overlap=0.5,
                                          write_images=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
 
@@ -831,16 +834,31 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_ylim([0.0, 1.01])
 
     config_list = [
-        {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
+        # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         # {'label': 'V1 (GRID)',      'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
-        {'label': 'V2',             'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
+        # {'label': 'V2',             'grid' : False, 'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
         # {'label': 'V2 (GRID)',      'grid' : True,  'config_filepath' : 'v2', 'weight_filepath' : 'v2'},
-        {'label': 'V3',             'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'label': 'V3 (GRID)',      'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        # {'label': 'V3',             'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        # {'label': 'V3 (GRID)',      'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
         # {'label': 'V3 Whale Shark', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_shark'])},
         # {'label': 'V3 Whale Fluke', 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+
+        {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal'},
+        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal'},
+        {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal'},
+
+        {'label': 'SS1', 'algo': 'selective-search', 'grid': False},
+        {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False},
+
+        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal'},
+        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal'},
+
+        {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal'},
+        {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal'},
+        {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus'},
+        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus'},
     ]
 
     color_list = pt.distinct_colors(len(config_list), randomize=False)
@@ -853,12 +871,12 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     index = np.argmax(area_list)
-    best_name = config_list[index]['name']
+    best_label = config_list[index]['label']
     best_color = color_list[index]
     best_config = config_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_name, best_area, ), y=1.13)
+    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
 
     # Display graph of the overall highest area
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -868,15 +886,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_name, best_color,
-                                                           conf=best_conf,
+    correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
                                                            min_overlap=min_overlap,
                                                            write_images=write_images,
                                                            fig_=fig_, axes_=axes_,
                                                            **best_config)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    args = (best_name, best_conf, )
+    args = (best_label, best_conf, )
     plt.title('P-R Confusion Matrix for Highest mAP\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # Show best that is greater than the best_pr
@@ -897,7 +914,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         axes_ = plt.subplot(131)
         plt.plot([best_re], [best_pr], 'yo')
 
-        best_name = config_list[best_index]['name']
+        best_label = config_list[best_index]['label']
         best_color = color_list[index]
         best_config = config_list[best_index]
 
@@ -905,14 +922,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         axes_.set_aspect(1)
         gca_ = plt.gca()
         gca_.grid(False)
-        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_name, best_color,
-                                                               conf=best_conf,
+        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
                                                                min_overlap=min_overlap,
                                                                fig_=fig_, axes_=axes_,
                                                                **best_config)
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
-        args = (min_recall, best_name, best_conf, )
+        args = (min_recall, best_label, best_conf, )
         plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # plt.show()
@@ -929,124 +945,126 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
         ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap, **kwargs)
 
 
-# @register_ibs_method
-# def classifier_precision_recall_algo(ibs, **kwargs):
-#     depc = ibs.depc_image
-#     # category_set = set(['zebra_plains', 'zebra_grevys'])
-#     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     species_set_list = [
-#         set(ibs.get_annot_species_texts(aid_list))
-#         for aid_list in aids_list
-#     ]
-#     label_list = [
-#         'negative' if len(species_set & category_set) == 0 else 'positive'
-#         for species_set in species_set_list
-#     ]
-#     prediction_list = depc.get_property('classifier', test_gid_set, 'class')
-#     confidence_list = depc.get_property('classifier', test_gid_set, 'score')
-#     confidence_list = [
-#         confidence if prediction == 'positive' else 1.0 - confidence
-#         for prediction, confidence  in zip(prediction_list, confidence_list)
-#     ]
-#     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+@register_ibs_method
+def classifier_precision_recall_algo(ibs, category_set, **kwargs):
+    depc = ibs.depc_image
+    # category_set = set(['zebra_plains', 'zebra_grevys'])
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    aids_list = ibs.get_image_aids(test_gid_set)
+    species_set_list = [
+        set(ibs.get_annot_species_texts(aid_list))
+        for aid_list in aids_list
+    ]
+    label_list = [
+        'negative' if len(species_set & category_set) == 0 else 'positive'
+        for species_set in species_set_list
+    ]
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class')
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score')
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
-# def classifier_precision_recall_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     print('Processing Precision-Recall for: %r' % (label, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+def classifier_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
 
 
-# def classifier_roc_algo_plot(ibs, **kwargs):
-#     label = kwargs['label']
-#     kwargs['invert'] = True
-#     print('Processing ROC for: %r' % (label, ))
-#     conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
-#     return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+def classifier_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    kwargs['invert'] = True
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
 
 
-# def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, **kwargs):
-#     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
-#     depc = ibs.depc_image
-#     # category_set = set(['zebra_plains', 'zebra_grevys'])
-#     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     species_set_list = [
-#         set(ibs.get_annot_species_texts(aid_list))
-#         for aid_list in aids_list
-#     ]
-#     label_list = [
-#         'negative' if len(species_set & category_set) == 0 else 'positive'
-#         for species_set in species_set_list
-#     ]
-#     confidence_list = depc.get_property('classifier', test_gid_set, 'score')
-#     prediction_list = [
-#         'positive' if confidence >= conf else 'negative'
-#         for confidence in confidence_list
-#     ]
+def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    depc = ibs.depc_image
+    # category_set = set(['zebra_plains', 'zebra_grevys'])
+    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    aids_list = ibs.get_image_aids(test_gid_set)
+    species_set_list = [
+        set(ibs.get_annot_species_texts(aid_list))
+        for aid_list in aids_list
+    ]
+    label_list = [
+        'negative' if len(species_set & category_set) == 0 else 'positive'
+        for species_set in species_set_list
+    ]
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score')
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
 
-#     category_list = ['positive', 'negative']
-#     category_mapping = {
-#         'positive': 0,
-#         'negative': 1,
-#     }
-#     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-#                                          category_mapping, **kwargs)
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
 
 
-# @register_ibs_method
-# def classifier_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
-#     import matplotlib.pyplot as plt
+@register_ibs_method
+def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16), **kwargs):
+    import matplotlib.pyplot as plt
 
-#     fig_ = plt.figure(figsize=figsize)
+    fig_ = plt.figure(figsize=figsize)
 
-#     axes_ = plt.subplot(221)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('Recall')
-#     axes_.set_ylabel('Precision')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-#     area, best_conf1, _ = classifier_precision_recall_algo_plot(ibs, label='V1', color='r')
-#     plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
+    category_set = set(species_list)
 
-#     axes_ = plt.subplot(222)
-#     axes_.set_autoscalex_on(False)
-#     axes_.set_autoscaley_on(False)
-#     axes_.set_xlabel('False-Positive Rate')
-#     axes_.set_ylabel('True-Positive Rate')
-#     axes_.set_xlim([0.0, 1.01])
-#     axes_.set_ylim([0.0, 1.01])
-#     area, best_conf2, _ = classifier_roc_algo_plot(ibs, label='V1', color='r')
-#     plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
-#     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-#                borderaxespad=0.0)
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area, best_conf1, _ = classifier_precision_recall_algo_plot(ibs, label='V1', color='r', category_set=category_set, **kwargs)
+    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
-#     axes_ = plt.subplot(223)
-#     axes_.set_aspect(1)
-#     gca_ = plt.gca()
-#     gca_.grid(False)
-#     correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_)
-#     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-#     axes_.set_ylabel('Ground-Truth')
-#     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area, best_conf2, _ = classifier_roc_algo_plot(ibs, label='V1', color='r', category_set=category_set, **kwargs)
+    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
-#     axes_ = plt.subplot(224)
-#     axes_.set_aspect(1)
-#     gca_ = plt.gca()
-#     gca_.grid(False)
-#     correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_)
-#     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-#     axes_.set_ylabel('Ground-Truth')
-#     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    axes_ = plt.subplot(223)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
 
-#     fig_filename = 'classifier-precision-recall-roc.png'
-#     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
-#     plt.savefig(fig_path, bbox_inches='tight')
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+
+    fig_filename = 'classifier-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
 
 
 def labeler_tp_tn_fp_fn(ibs, category_list, samples=10000, **kwargs):
@@ -1605,8 +1623,8 @@ def detector_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7)
 
 
 @register_ibs_method
-def detector_metric_graphs(ibs):
-    ibs.classifier_precision_recall_algo_display()
+def detector_metric_graphs(ibs, species_list=[]):
+    ibs.classifier_precision_recall_algo_display(species_list)
     ibs.localizer_precision_recall_algo_display()
     ibs.labeler_precision_recall_algo_display()
     ibs.detector_precision_recall_algo_display()
@@ -1617,11 +1635,18 @@ def classifier_train(ibs, species_list):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
+    from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
     extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list, dest_path=data_path)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier')
     model_path = train_classifier(output_path, X_file, y_file)
+    # Add the species_list to the model
+    model_state = ut.load_cPkl(model_path)
+    assert 'species_list' not in model_state
+    model_state['species_list'] = species_list
+    save_model(model_state, model_path)
+    # Return model path
     return model_path
 
 
