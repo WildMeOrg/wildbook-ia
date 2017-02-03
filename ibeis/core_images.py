@@ -604,10 +604,10 @@ class Classifier2Config(dtool.Config):
 @register_preproc(
     tablename='localizations_classifier', parents=['localizations'],
     colnames=['score', 'class'],
-    coltypes=[float, str],
+    coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=1024,
+    chunksize=128,
 )
 def compute_classifications_localizations(depc, loc_id_list, config=None):
     r"""
@@ -665,6 +665,7 @@ def compute_classifications_localizations(depc, loc_id_list, config=None):
     # Return the results
     for gid in gid_list_:
         result_list = group_dict[gid]
+        ut.embed()
         zipped_list = zip(*result_list)
         ret_tuple = (
             np.array(zipped_list[0]),
