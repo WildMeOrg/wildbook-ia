@@ -17,7 +17,7 @@ import six
 import types
 import functools
 import re
-from six.moves import zip, range, map
+from six.moves import zip, range, map, reduce
 from os.path import split, join, exists
 import numpy as np
 import vtool as vt
@@ -2423,8 +2423,8 @@ def group_annots_by_known_names(ibs, aid_list, checks=True):
         >>> aid_list = ibs.get_valid_aids()
         >>> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
         >>> known_aids_list, unknown_aids = group_annots_by_known_names(ibs, aid_list)
-        >>> result = str(known_aids_list) + '\n'
-        >>> result += str(unknown_aids)
+        >>> result = ut.repr2(sorted(known_aids_list)) + '\n'
+        >>> result += ut.repr2(unknown_aids)
         >>> print(result)
         [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
         [11, 9, 4, 1]
@@ -2878,8 +2878,8 @@ def get_dominant_species(ibs, aid_list):
         zebra_plains
     """
     hist_ = ut.dict_hist(ibs.get_annot_species_texts(aid_list))
-    keys = hist_.keys()
-    vals = hist_.values()
+    keys = list(hist_.keys())
+    vals = list(hist_.values())
     species_text = keys[ut.list_argmax(vals)]
     return species_text
 

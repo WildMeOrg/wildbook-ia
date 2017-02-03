@@ -668,12 +668,12 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
     # Very inefficient but does what I want
     group_to_idxs = ut.dzip(*ut.group_indices(groups))
     freq = ut.dict_hist(groups)
-    g = list(freq.keys())[ut.argmax(freq.values())]
+    g = list(freq.keys())[ut.argmax(list(freq.values()))]
     size = freq[g]
     new_splits = [[] for _ in range(size)]
     while True:
         try:
-            g = list(freq.keys())[ut.argmax(freq.values())]
+            g = list(freq.keys())[ut.argmax(list(freq.values()))]
             if freq[g] == 0:
                 raise StopIteration()
             group_idxs = group_to_idxs[g]
