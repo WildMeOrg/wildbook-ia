@@ -403,7 +403,8 @@ def localize_images(ibs, gid_list_=None):
 
     """
     #from os.path import isabs
-    from six.moves import urllib, urlparse
+    from six.moves import urllib
+    import urlparse
     if gid_list_ is None:
         print('WARNING: you are localizing all gids')
         gid_list_  = ibs.get_valid_gids()
