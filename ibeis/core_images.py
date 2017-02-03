@@ -634,6 +634,8 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         # Extract results
         gids_list = ut.take_column(result_list, 0)
         chips_list = ut.take_column(result_list, 1)
+        # Explicitly garbage collect large list of chips
+        result_list = None
         # Flatten results
         gid_list = ut.flatten(gids_list)
         chip_list = ut.flatten(chips_list)
