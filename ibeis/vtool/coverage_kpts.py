@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip, range, map  # NOQA
+from six.moves import zip, range, map, reduce  # NOQA
 #import six
 #from six import next
 import cv2
