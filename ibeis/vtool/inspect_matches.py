@@ -245,8 +245,7 @@ class MatchInspector(INSPECT_BASE):
 
         match.apply_all(cfgdict)
 
-        summary = match._make_local_summary_feature_vector(
-            sum=True, mean=False, std=False, med=False)
+        summary = match._make_local_summary_feature_vector(summary_ops={'sum'})
         self.infobox.setText('<pre>' + ut.align(ut.repr4(summary), ':') + '</pre>')
 
         self.mpl_widget.clf()
