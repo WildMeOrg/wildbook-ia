@@ -1,3 +1,4 @@
+setuptools>=34.1.0
 Cython>=0.24
 Pillow>=3.3.0
 Pygments>=2.1.3
