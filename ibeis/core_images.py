@@ -629,8 +629,9 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
         arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
         result_list = ut.util_parallel.generate(get_localization_chips_worker, arg_iter,
                                                 ordered=True)
+        ut.embed()
         gids_list = ut.take_column(result_list, 0)
-        chips_list = ut.take_column(result_list, 0)
+        chips_list = ut.take_column(result_list, 1)
 
         gid_list = ut.flatten(gids_list)
         chip_list = ut.flatten(chips_list)
