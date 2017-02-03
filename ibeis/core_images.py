@@ -706,6 +706,9 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     assert len(gid_list) == len(result_list)
 
+    # Release thumbnails
+    thumbnail_list = None
+
     # Group the results
     group_dict = {}
     for gid, result in zip(gid_list, result_list):
@@ -783,6 +786,9 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
     else:
         result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
+
+    # Release chips
+    chip_list = None
 
     # Group the results
     group_dict = {}
