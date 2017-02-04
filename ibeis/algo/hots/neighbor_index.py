@@ -71,6 +71,8 @@ def get_support_data(qreq_, daid_list):
         fxs_list = vt.zipcompress(fxs_list, flags_list, axis=0)
 
     if qreq_.qparams.fg_on:
+        # I've found that the call to get_annot_fgweights is different on
+        # different machines.  Something must be configured differently.
         fgws_list = qreq_.ibs.get_annot_fgweights(
             daid_list, config2_=config2_, ensure=True)
         fgws_list = vt.ziptake(fgws_list, fxs_list, axis=0)

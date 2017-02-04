@@ -610,6 +610,8 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
         >>> #print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
     """
+    qenc_per_name = int(qenc_per_name)
+    denc_per_name = int(denc_per_name)
     assert qenc_per_name == 1, 'can only do one qenc right now'
 
     annots = ibs.annots(aids)
@@ -642,7 +644,9 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
             if i < len(idxs):
                 # Choose the database encounters from anything not chosen as a query
                 d_choices = ut.where(ut.not_list(ut.index_to_boolmask([i], len(idxs))))
-                js = rng.choice(d_choices, size=denc_per_name, replace=False)
+                import utool
+                with utool.embed_on_exception_context:
+                    js = rng.choice(d_choices, size=denc_per_name, replace=False)
                 encx_split[nid] = (idxs[i:i + 1], idxs[js])
         crossval_idx_samples.append(encx_split)
 

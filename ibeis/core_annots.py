@@ -484,6 +484,8 @@ class ProbchipConfig(dtool.Config):
     }
     _param_info_list = [
         #ut.ParamInfo('preserve_aspect', True, hideif=True),
+
+        # TODO: Need to specify hte hash of the CNN lastest detector
         ut.ParamInfo('fw_detector', 'cnn', 'detector='),
         ut.ParamInfo('fw_dim_size', 256, 'sz'),
         ut.ParamInfo('smooth_thresh', 20, 'thresh='),
