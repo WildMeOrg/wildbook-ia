@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip
+from six.moves import zip, range
 import dtool
 import utool as ut
 import vtool as vt
@@ -307,7 +307,7 @@ class InvertedAnnots(InvertedAnnotsExtras):
         table = depc[tablename]
         input_tuple = (aids, [vocab_rowid] * len(aids))
         tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config,
-                                     _hack_rootmost=True)
+                                     _hack_rootmost=True, _debug=False)
         # input_tuple = (aids, [vocab_aids])
         # tbl_rowids = depc.get_rowids(tablename, input_tuple, config=config)
         print('Reading data')
@@ -688,7 +688,9 @@ def residual_worker(argtup):
 
 
 def testdata_inva():
-    # from ibeis.algo.smk.inverted_index import *  # NOQA
+    """
+    from ibeis.algo.smk.inverted_index import *  # NOQA
+    """
     import ibeis
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_MTEST', a='default',
