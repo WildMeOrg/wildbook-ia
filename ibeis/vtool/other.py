@@ -1104,6 +1104,7 @@ def flag_intersection(arr1, arr2):
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from vtool.other import *  # NOQA
+        >>> import vtool as vt
         >>> arr1 = np.array([[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5]])
         >>> arr2 = np.array([[0, 2], [0, 6], [0, 4], [3, 0]])
         >>> arr1, arr2 = vt.structure_rows(arr1, arr2)
@@ -1193,7 +1194,7 @@ def unstructure_rows(*structured_arrs):
         structure_rows
     """
     # TODO: assert arr.dtype.fields are all the same type
-    unstructured_arrs = [arr.view(arr.dtype.fields.values()[0][0])
+    unstructured_arrs = [arr.view(list(arr.dtype.fields.values())[0][0])
                          for arr in structured_arrs]
     unstructured_arrs = []
     for arr_ in structured_arrs:

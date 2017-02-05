@@ -1487,16 +1487,16 @@ def embed_in_square_image(img, target_size, img_origin=(.5, .5),
 
     ## Find start slice in the target image
     target_diff = np.floor(target_origin_abs - img_origin_abs)
-    target_rc_start = np.maximum(target_diff, 0)
+    target_rc_start = np.maximum(target_diff, 0).astype(np.int)
 
-    img_rc_start = -(target_diff - target_rc_start)
+    img_rc_start = (-(target_diff - target_rc_start)).astype(np.int)
     img_clip_rc_low = img_rc - img_rc_start
 
     end_hang = np.maximum((target_rc_start + img_clip_rc_low) - target_rc, 0)
     img_clip_rc = img_clip_rc_low - end_hang
 
-    img_rc_end = img_rc_start + img_clip_rc
-    target_rc_end = target_rc_start + img_clip_rc
+    img_rc_end = (img_rc_start + img_clip_rc).astype(np.int)
+    target_rc_end = (target_rc_start + img_clip_rc).astype(np.int)
 
     img_rc_slice = [slice(b, e) for (b, e) in zip(img_rc_start, img_rc_end)]
     target_rc_slice = [slice(b, e) for (b, e) in zip(target_rc_start, target_rc_end)]
@@ -1910,7 +1910,7 @@ def perlin_noise(size, scale=32.0, rng=np.random):
 
             rng.shuffle(self.P)
 
-            self.idx_ar = np.indices(2 * np.ones(self.order),
+            self.idx_ar = np.indices(2 * np.ones(self.order, dtype=np.int8),
                                      dtype=np.int8).reshape(self.order, -1).T
             self.drop = np.poly1d((-6, 15, -10, 0, 0, 1.0))
 

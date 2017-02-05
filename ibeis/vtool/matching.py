@@ -855,7 +855,7 @@ def assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K, Knorm=None,
         >>> result = ut.list_str(assigntup, precision=3, nobr=True)
         >>> print(result)
         >>> assert len(fm.shape) == 2 and fm.shape[1] == 2
-        >>> assert ut.allsame(map(len, assigntup))
+        >>> assert ut.allsame(list(map(len, assigntup)))
     """
     # Infer the valid internal query feature indexes and ranks
     index_dtype = fx2_to_fx1.dtype
