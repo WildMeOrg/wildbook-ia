@@ -289,6 +289,7 @@ class _CoreDependencyCache(object):
             from_root = ut.reverse_path(to_root, root, child_to_parents)
             dependency_levels_ = ut.get_levels(from_root)
             dependency_levels = ut.longest_levels(dependency_levels_)
+            dependency_levels = list(map(sorted, dependency_levels))
         except Exception as ex:
             ut.printex(ex, 'error getting dependencies',
                        keys=['tablename', 'root', 'children_to_parents',

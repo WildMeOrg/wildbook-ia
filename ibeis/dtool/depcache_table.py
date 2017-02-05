@@ -2242,7 +2242,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         colnames = ('mask', 'size')
 
         CommandLine:
-            python -m dtool.depcache_table --test-get_row_data
+            python -m dtool.depcache_table --test-get_row_data:0
             python -m dtool.depcache_table --test-get_row_data:1
 
         Example:
@@ -2252,28 +2252,23 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             >>> depc = testdata_depc()
             >>> table = depc['chip']
             >>> exec(ut.execstr_funckw(table.get_row_data), globals())
-            >>> tbl_rowids = depc.get_rowids('chip', [1, 2, 3])
-            >>> #tbl_rowids += [None]
-            >>> #colnames = ('size_1', 'size', 'chip', 'chip' + EXTERN_SUFFIX)
+            >>> tbl_rowids = depc.get_rowids('chip', [1, 2, 3], _debug=True, recompute=True)
             >>> colnames = ('size_1', 'size', 'chip' + EXTERN_SUFFIX, 'chip')
-            >>> _debug = True
-            >>> read_extern = True
-            >>> num_retries = 1
-            >>> kwargs = dict(read_extern=read_extern,
-            >>>               num_retries=num_retries, _debug=_debug)
+            >>> kwargs = dict(read_extern=True, num_retries=1, _debug=True)
             >>> prop_list = table.get_row_data(tbl_rowids, colnames, **kwargs)
-            >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # take small data
+            >>> prop_list0 = ut.take_column(prop_list, [0, 1, 2]) # data subset
             >>> result = (ut.repr2(prop_list0, nl=1))
+            >>> print(result)
+            >>> #_debug, num_retries, read_extern = True, 1, True
             >>> prop_gen = table.get_row_data(tbl_rowids, colnames, eager=False)
             >>> prop_list2 = list(prop_gen)
             >>> assert len(prop_list2) == len(prop_list), 'inconsistent lens'
             >>> assert all([ut.lists_eq(prop_list2[1], prop_list[1]) for x in range(len(prop_list))]), 'inconsistent vals'
             >>> chips = table.get_row_data(tbl_rowids, 'chip', eager=False)
-            >>> print(result)
             [
-                [372, (545, 372), 'chip_chip_id=1_pyrappzicqoskdjq.png'],
-                [2453, (1707, 2453), 'chip_chip_id=2_pyrappzicqoskdjq.png'],
-                [390, (520, 390), 'chip_chip_id=3_pyrappzicqoskdjq.png'],
+                [2453, (1707, 2453), 'chip_chip_id=1_pyrappzicqoskdjq.png'],
+                [250, (300, 250), 'chip_chip_id=2_pyrappzicqoskdjq.png'],
+                [372, (545, 372), 'chip_chip_id=3_pyrappzicqoskdjq.png'],
             ]
 
 

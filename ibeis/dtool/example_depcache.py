@@ -257,8 +257,9 @@ def testdata_depc(fname=None):
             chip = vt.imread(chip_fpath)
             size = vt.get_size(chip)
             #size = (w, h)
-            #print('* chip_fpath = %r' % (chip_fpath,))
-            #print('* size = %r' % (size,))
+            print('Dummpy preproc chip yeilds')
+            print('* chip_fpath = %r' % (chip_fpath,))
+            print('* size = %r' % (size,))
             #yield size, chip_fpath
             yield size, chip
 
@@ -296,7 +297,8 @@ def testdata_depc(fname=None):
         ut.assert_all_not_None(chip_rowids, 'chip_rowids')
         # This is in here to attempt to trigger a failure of the chips dont
         # exist and the feature cache is called.
-        chip_fpath_list = depc.get_native('chip', chip_rowids, 'chip', read_extern=False)
+        chip_fpath_list = depc.get_native('chip', chip_rowids, 'chip',
+                                          read_extern=False)
         print('computing featurse from chip_fpath_list = %r' % (chip_fpath_list,))
 
         for rowid in chip_rowids:

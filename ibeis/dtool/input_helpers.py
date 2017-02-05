@@ -346,7 +346,11 @@ class RootMostInput(ut.HashComparable):
         bfs_iter = ut.bfs_conditional(
             rmi.exi_graph, rmi.node, reverse=True, yield_nodes=True,
             yield_condition=yield_condition,
-            continue_condition=continue_condition)
+            continue_condition=continue_condition,
+            # visited_nodes={rmi.node}
+            yield_source=False
+        )
+        bfs_iter = list(bfs_iter)
         parent_level = [RootMostInput(node, rmi.sink, rmi.exi_graph) for node in bfs_iter]
         return parent_level
 
@@ -358,10 +362,14 @@ class RootMostInput(ut.HashComparable):
         """
         Returns order of computation from this input node to the sink
         """
-        node_order = list(ut.nx_all_nodes_between(rmi.exi_graph, rmi.node, rmi.sink))
-        node_rank = ut.nx_dag_node_rank(rmi.exi_graph.reverse(), node_order)
-        sortx = ut.argsort(node_rank)[::-1]
-        node_order = ut.take(node_order, sortx)
+        # graph, source, target = rmi.exi_graph, rmi.node, rmi.sink
+        node_order_ = list(ut.nx_all_nodes_between(rmi.exi_graph, rmi.node, rmi.sink))
+        node_rank = ut.nx_dag_node_rank(rmi.exi_graph.reverse(), node_order_)
+        node_names = list(map(str, node_order_))
+        # lexsort via names to break ties for consistent ordering
+        sortx = ut.argsort(node_rank, node_names)[::-1]
+        # sortx = ut.argsort(node_rank)[::-1]
+        node_order = ut.take(node_order_, sortx)
         return node_order
 
     def __hash__(rmi):
@@ -563,8 +571,9 @@ class TableInput(ut.NiceRepr):
             >>> index = 'indexer'
             >>> inputs2 = inputs.expand_input(index)
             >>> print('(post-expand) inputs2 = %r' % (inputs2,))
-            >>> assert 'indexer' in str(inputs)
-            >>> assert 'indexer' not in str(inputs2)
+            >>> assert 'indexer' in str(inputs), 'missing indexer1'
+            >>> assert 'indexer' not in str(inputs2), (
+            >>>     '(2) unexpected indexer in %s' % (inputs2,))
         """
         if isinstance(index, six.string_types):
             index_list = ut.where([rmi.tablename == index
@@ -595,6 +604,9 @@ class TableInput(ut.NiceRepr):
 
     def flat_compute_order(inputs):
         """
+        CommandLine:
+            python -m dtool.input_helpers flat_compute_order
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from dtool.input_helpers import *  # NOQA
@@ -604,7 +616,7 @@ class TableInput(ut.NiceRepr):
             >>> flat_compute_order = inputs.flat_compute_order()
             >>> result = ut.repr2(flat_compute_order)
             >>> print(result)
-            [chip[t, t:1, 1:1], probchip[t, t:1, 1:1], feat[t, t:1]]
+            [probchip[t, t:1, 1:1], chip[t, t:1, 1:1], feat[t, t:1]]
         """
         # Compute the order in which all noes must be evaluated
         import networkx as nx  # NOQA
@@ -721,7 +733,8 @@ class TableInput(ut.NiceRepr):
             >>> from dtool.example_depcache2 import *  # NOQA
             >>> depc = testdata_depc3()
             >>> import plottool as pt
-            >>> table = depc['smk_match']
+            >>> # table = depc['smk_match']
+            >>> table = depc['neighbs']
             >>> inputs = table.rootmost_inputs
             >>> print('inputs = %r' % (inputs,))
             >>> from plottool.interactions import ExpandableInteraction
