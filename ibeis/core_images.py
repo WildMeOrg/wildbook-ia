@@ -580,10 +580,14 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
 
     # Grab the localizations
     bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    len_list = [len(bbox_list) for bbox_list in bboxes_list]
+    avg = sum(len_list) / len(len_list)
+    args = (len(loc_id_list), min(len_list), avg, max(len_list), sum(len_list), )
+    print('Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)' % (args, ))
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
     target_size_list = [target_size] * len(bboxes_list)
 
-    OLD = False
+    OLD = True
     if OLD:
         gids_list = [
             np.array([gid] * len(bbox_list))
