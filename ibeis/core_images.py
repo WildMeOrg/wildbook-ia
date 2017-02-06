@@ -33,6 +33,7 @@ Needed Tables:
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from six.moves import zip
 import dtool
 import utool as ut
 import numpy as np
@@ -112,7 +113,8 @@ def compute_thumbnails(depc, gid_list, config=None):
         thetas_list = [ [] for aids in aids_list ]
 
     # Execute all tasks in parallel
-    args_list = zip(thumbsize_list, gpath_list, orient_list, bboxes_list, thetas_list)
+    args_list = list(zip(thumbsize_list, gpath_list, orient_list, bboxes_list,
+                         thetas_list))
     genkw = {
         'ordered': False,
         'chunksize': 256,
@@ -565,7 +567,7 @@ def get_localization_chips_worker(tup):
         assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
         return chip
 
-    arg_list = zip(target_size_list, M_list)
+    arg_list = list(zip(target_size_list, M_list))
     chip_list = [_compute_localiation_chip(tup_) for tup_ in arg_list]
     gid_list = [gid] * len(chip_list)
     return gid_list, chip_list
@@ -578,10 +580,14 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
 
     # Grab the localizations
     bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    len_list = [len(bbox_list) for bbox_list in bboxes_list]
+    avg = sum(len_list) / len(len_list)
+    args = (len(loc_id_list), min(len_list), avg, max(len_list), sum(len_list), )
+    print('Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)' % (args, ))
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
     target_size_list = [target_size] * len(bboxes_list)
 
-    OLD = False
+    OLD = True
     if OLD:
         gids_list = [
             np.array([gid] * len(bbox_list))
@@ -612,7 +618,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
 
         last_gid = None
         chip_list = []
-        arg_list = zip(gid_list, newsize_list, M_list)
+        arg_list = list(zip(gid_list, newsize_list, M_list))
         for tup in ut.ProgIter(arg_list, lbl='computing localization chips', bs=True):
             gid, new_size, M = tup
             if gid != last_gid:
@@ -626,7 +632,8 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
             chip_list.append(chip)
     else:
         img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
-        arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
+        arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
+                            target_size_list))
         result_list = ut.util_parallel.generate(get_localization_chips_worker, arg_iter,
                                                 ordered=True)
         # Compute results
@@ -720,7 +727,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
     # Return the results
     for gid in gid_list_:
         result_list = group_dict[gid]
-        zipped_list = zip(*result_list)
+        zipped_list = list(zip(*result_list))
         ret_tuple = (
             np.array(zipped_list[0]),
             np.array(zipped_list[1]),
@@ -801,7 +808,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
     # Return the results
     for gid in gid_list_:
         result_list = group_dict[gid]
-        zipped_list = zip(*result_list)
+        zipped_list = list(zip(*result_list))
         ret_tuple = (
             np.array(zipped_list[0]),
             np.array(zipped_list[1]),
@@ -936,7 +943,8 @@ def compute_detections(depc, gid_list, config=None):
         viewpoint_list = viewpoints_list[index]
         conf_list = confses_list[index]
         score_list = scores_list[index]
-        zipped = zip(bbox_list, theta_list, species_list, viewpoint_list, conf_list, score_list)
+        zipped = list(zip(bbox_list, theta_list, species_list, viewpoint_list,
+                          conf_list, score_list))
         zipped = [
             [bbox, theta, species, viewpoint, conf * score]
             for bbox, theta, species, viewpoint, conf, score in zipped

@@ -889,9 +889,9 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
         >>> ibs = ibeis.opendb('testdb1')
         >>> name_rowid_list = ibs._get_all_known_name_rowids()
         >>> name_text_list = get_name_texts(ibs, name_rowid_list)
-        >>> result = str(name_text_list)
+        >>> result = ut.repr2(name_text_list)
         >>> print(result)
-        [u'easy', u'hard', u'jeff', u'lena', u'occl', u'polar', u'zebra']
+        ['easy', 'hard', 'jeff', 'lena', 'occl', 'polar', 'zebra']
     """
     # FIXME: Use standalone name table
     # TODO:

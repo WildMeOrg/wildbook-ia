@@ -2581,7 +2581,7 @@ class ChipMatch(_ChipMatchVisualization,
         Convert json string back to ChipMatch object
 
         CommandLine:
-            # FIXME; util_test is broken with classmethods
+            # FIXME: util_test is broken with classmethods
             python -m ibeis.algo.hots.chip_match --test-from_json --show
 
         Example:
@@ -2679,7 +2679,12 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # result = ('json_str = \n%s' % (str(json_str),))
             >>> # print(result)
         """
-        json_str = ut.to_json(cm.__dict__)
+        data = cm.__dict__.copy()
+        # can't encode dictionaries with integer keys
+        # this means you need to rebuild indexes on reconstruction
+        ut.delete_dict_keys(data, ['daid2_idx', 'nid2_nidx'])
+        # print('data = %r' % (list(data.keys()),))
+        json_str = ut.to_json(data)
         return json_str
 
     # --- IO

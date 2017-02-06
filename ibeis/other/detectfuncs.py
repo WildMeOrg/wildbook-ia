@@ -245,7 +245,7 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
     print('Processing train/test imagesets...')
     global_train_list = []
     global_test_list = []
-    for distro, gid_list_ in distro_dict.iteritems():
+    for distro, gid_list_ in distro_dict.items():
         total = len(gid_list_)
         shuffle(gid_list_)
         split_index = total * (1.0 - train_split) + 1E-9  # weird
@@ -303,6 +303,7 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
             total = threshold
         if total not in distro_dict:
             distro_dict[total] = 0
+        total = '%s' % (total, ) if total < threshold else '%s+' % (total, )
         distro_dict[total] += 1
         for aid in aid_list:
             species = ibs.get_annot_species_texts(aid)
@@ -570,7 +571,7 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
                     del assignment_dict[key]
             tp = len(assignment_dict.keys())
         if check_species or check_viewpoint:
-            for gt, pred in assignment_dict.iteritems():
+            for gt, pred in assignment_dict.items():
                 # print(gt_list[gt]['species'], pred_list[pred]['species'])
                 # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
                 if gt_list[gt]['species'] != pred_list[pred]['species']:
@@ -641,10 +642,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    print(kwargs)
     results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
-    print(len(results_list))
-    raw_input()
     size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
@@ -694,8 +692,8 @@ def localizer_precision_recall_algo(ibs, samples=500, force_serial=True, **kwarg
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_iter,
-                            nTasks=len(conf_list), ordered=True, verbose=False,
-                            quiet=True, chunksize=64, force_serial=force_serial)
+                            nTasks=len(conf_list), ordered=True,
+                            chunksize=50, force_serial=force_serial)
 
     conf_list_ = [-1.0]
     pr_list = [1.0]
@@ -845,20 +843,20 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
-        {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal'},
-        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal'},
-        {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal'},
+        {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : set(['zebra'])},
 
-        {'label': 'SS1', 'algo': 'selective-search', 'grid': False},
-        {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False},
+        {'label': 'SS1', 'algo': 'selective-search', 'grid': False, 'species_set' : set(['zebra'])},
+        # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : set(['zebra'])},
 
-        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal'},
-        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal'},
+        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : set(['zebra'])},
 
-        {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal'},
-        {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal'},
-        {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus'},
-        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus'},
+        {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : set(['zebra'])},
+        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra'])},
     ]
 
     color_list = pt.distinct_colors(len(config_list), randomize=False)
@@ -945,11 +943,10 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
         ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap, **kwargs)
 
 
-@register_ibs_method
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
     depc = ibs.depc_image
-    # category_set = set(['zebra_plains', 'zebra_grevys'])
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
         set(ibs.get_annot_species_texts(aid_list))
@@ -959,8 +956,8 @@ def classifier_precision_recall_algo(ibs, category_set, **kwargs):
         'negative' if len(species_set & category_set) == 0 else 'positive'
         for species_set in species_set_list
     ]
-    prediction_list = depc.get_property('classifier', test_gid_set, 'class')
-    confidence_list = depc.get_property('classifier', test_gid_set, 'score')
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
     confidence_list = [
         confidence if prediction == 'positive' else 1.0 - confidence
         for prediction, confidence  in zip(prediction_list, confidence_list)
@@ -986,8 +983,8 @@ def classifier_roc_algo_plot(ibs, **kwargs):
 def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
-    # category_set = set(['zebra_plains', 'zebra_grevys'])
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
         set(ibs.get_annot_species_texts(aid_list))
@@ -997,7 +994,12 @@ def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, category_set,
         'negative' if len(species_set & category_set) == 0 else 'positive'
         for species_set in species_set_list
     ]
-    confidence_list = depc.get_property('classifier', test_gid_set, 'score')
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
     prediction_list = [
         'positive' if confidence >= conf else 'negative'
         for confidence in confidence_list
@@ -1019,6 +1021,8 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     fig_ = plt.figure(figsize=figsize)
 
     category_set = set(species_list)
+
+    kwargs['classifier_weight_filepath'] = 'coco_zebra'
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -1085,6 +1089,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=10000, **kwargs):
 
     depc = ibs.depc_annot
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
     # Get annot species and yaws
@@ -1125,7 +1130,6 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=10000, **kwargs):
     return label_dict
 
 
-@register_ibs_method
 def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
 
     global_conf_dict = {}
@@ -1187,11 +1191,11 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
     print('Processing Confusion Matrix for: %r' % (label, ))
     depc = ibs.depc_annot
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
     species_list = ibs.get_annot_species_texts(aid_list)
     yaw_list = ibs.get_annot_yaw_texts(aid_list)
-    # category_set = set(['zebra_plains', 'zebra_grevys'])
     label_list = [
         '%s:%s' % (species, yaw, ) if species in category_list else 'ignore'
         for species, yaw in zip(species_list, yaw_list)
@@ -1221,6 +1225,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
 
     if category_list is None:
         test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+        test_gid_set = list(test_gid_set)
         aids_list = ibs.get_image_aids(test_gid_set)
         aid_list = ut.flatten(aids_list)
         species_list = ibs.get_annot_species_texts(aid_list)
@@ -1400,8 +1405,8 @@ def detector_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs
     kwargs_list    = [ kwargs    for _ in conf_list ]
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(detector_precision_recall_algo_worker, arg_iter,
-                            nTasks=len(conf_list), ordered=True, verbose=False,
-                            quiet=True, chunksize=64, force_serial=force_serial)
+                            nTasks=len(conf_list), ordered=True,
+                            chunksize=50, force_serial=force_serial)
 
     conf_list_ = [-1.0]
     pr_list = [1.0]

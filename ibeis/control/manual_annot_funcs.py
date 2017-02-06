@@ -380,7 +380,7 @@ def add_annots(ibs, gid_list, bbox_list=None, theta_list=None,
         >>> result += str(postvalid)
         >>> print(result)
         [UUID('30f7639b-5161-a561-2c4f-41aed64e5b65'), UUID('5ccbb26d-104f-e655-cf2b-cf92e0ad2fd2')]
-        [UUID('3e3e9c98-e47c-f153-7101-f3d4fdadfb90'), UUID('dbf3b1a2-2188-75b4-07d4-0ef7e4787d23')]
+        [UUID('68160c90-4b82-dc96-dafa-b12948739577'), UUID('03e74d19-1bf7-bc43-a291-8ee06a44da2e')]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
         # semantic uuids change when hashing is different
@@ -1313,10 +1313,10 @@ def get_annot_hashid_semantic_uuid(ibs, aid_list, prefix='', pathsafe=False):
         >>> result += ('semantic_uuid_hashid = %s' % (str(semantic_uuid_hashid),))
         >>> print(result)
         [
-            UUID('0a41bee7-1760-0995-c220-f4b5ddf189ba'),
-            UUID('8150d84c-2ec3-c9ff-3e0f-30a8274a2392'),
+            UUID('4f30b2cd-f22b-4b9b-5801-93d0b0a9ef27'),
+            UUID('4f1c511a-e145-1b87-8aeb-ae0f7656a4b9'),
         ]
-        semantic_uuid_hashid = _SUUIDS((2)gqxovcbwzimfzovy)
+        semantic_uuid_hashid = _SUUIDS((2)cnxdmohuthekuwlt)
     """
     semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
     label = ''.join(('_', prefix, 'SUUIDS'))
@@ -1413,7 +1413,7 @@ def get_annot_semantic_uuids(ibs, aid_list):
         >>> annot_semantic_uuid_list = ibs.get_annot_semantic_uuids(aid_list)
         >>> assert len(aid_list) == len(annot_semantic_uuid_list)
         >>> result = annot_semantic_uuid_list
-        [UUID('0a41bee7-1760-0995-c220-f4b5ddf189ba')]
+        [UUID('4f30b2cd-f22b-4b9b-5801-93d0b0a9ef27')]
     """
     id_iter = aid_list
     colnames = (ANNOT_SEMANTIC_UUID,)
@@ -2185,7 +2185,7 @@ def get_annot_images(ibs, aid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:1]
         >>> image_list = ibs.get_annot_images(aid_list)
-        >>> result = str(map(np.shape, image_list))
+        >>> result = str(list(map(np.shape, image_list)))
         >>> print(result)
         [(715, 1047, 3)]
     """
@@ -2264,9 +2264,9 @@ def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
         >>> ibs = ibeis.opendb('testdb1')
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> semantic_infotup = ibs.get_annot_semantic_uuid_info(aid_list)
-        >>> result = str(list(zip(*semantic_infotup))[1])
+        >>> result = ut.repr2(list(zip(*semantic_infotup))[1])
         >>> print(result)
-        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, 3.141592653589793, u'easy', u'zebra_plains')
+        (UUID('d8903434-942f-e0f5-d6c2-0dcbe3137bf7'), ((0, 0), (1035, 0), (1035, 576), (0, 576)), 0.0, 3.141592653589793, 'easy', 'zebra_plains')
 
     """
     # Semantic info depends on visual info
@@ -2314,10 +2314,11 @@ def update_annot_visual_uuids(ibs, aid_list):
         aid_list (list):  list of annotation rowids
 
     CommandLine:
-        python -m ibeis.control.manual_annot_funcs --exec-update_annot_visual_uuids --db PZ_Master1
-        python -m ibeis --tf update_annot_visual_uuids --db PZ_Master1
-        python -m ibeis --tf update_annot_visual_uuids --db PZ_Master0
-        python -m ibeis --tf update_annot_visual_uuids --db PZ_MTEST
+        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids --db PZ_Master1
+        python -m ibeis.control.manual_annot_funcs update_annot_visual_uuids
+        python -m ibeis update_annot_visual_uuids --db PZ_Master1
+        python -m ibeis update_annot_visual_uuids --db PZ_Master0
+        python -m ibeis update_annot_visual_uuids --db PZ_MTEST
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -2327,9 +2328,11 @@ def update_annot_visual_uuids(ibs, aid_list):
         >>> aid_list = ibs._get_all_aids()[0:1]
         >>> update_annot_visual_uuids(ibs, aid_list)
         >>> result = ibs.get_annot_visual_uuids(aid_list)[0]
+        >>> print(result)
         8687dcb6-1f1f-fdd3-8b72-8f36f9f41905
     """
     visual_infotup = ibs.get_annot_visual_uuid_info(aid_list)
+    print('visual_infotup = %r' % (visual_infotup,))
     assert len(visual_infotup) == 3, 'len=%r' % (len(visual_infotup),)
     annot_visual_uuid_list = [ut.augment_uuid(*tup) for tup in zip(*visual_infotup)]
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VISUAL_UUID,), annot_visual_uuid_list, aid_list)

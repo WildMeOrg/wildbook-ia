@@ -882,7 +882,7 @@ class ClfProblem(object):
         target = problem.ds.target
         target_labels = problem.ds.target_labels
 
-        rng = np.random.RandomState(043)
+        rng = np.random.RandomState(43)
         train_sample = []
         test_sample = []
         for label in target_labels:
