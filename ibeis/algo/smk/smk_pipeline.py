@@ -138,6 +138,45 @@ class SMKRequest(mc5.EstimatorRequest):
         #    # TODO: add vocab, inva, features
         qreq_.cachedir = ut.ensuredir((ibs.cachedir, 'smk'))
 
+    def dump_vectors(qreq_):
+        """
+        Example:
+            >>> from ibeis.algo.smk.smk_pipeline import *  # NOQA
+            >>> import ibeis
+            >>> ibs, aid_list = ibeis.testdata_aids(defaultdb='PZ_MTEST', a='default:mingt=2,pername=2')
+            >>> qaids = aid_list[0:2]
+            >>> daids = aid_list[:]
+            >>> config = {'nAssign': 1, 'num_words': 8000,
+            >>>           'sv_on': True}
+            >>> qreq_ = SMKRequest(ibs, qaids, daids, config)
+            >>> qreq_.ensure_data()
+        """
+        inva = qreq_.dinva
+        X = qreq_.dinva.get_annot(qreq_.daids[0])
+        n_words = inva.wx_list[-1] + 1
+        n_dims = X.agg_rvecs.shape[1]
+        n_annots = len(qreq_.daids)
+        X.agg_rvecs.dtype
+        vlads = np.zeros((n_annots, n_words, n_dims), dtype=np.float32)
+        ids_ = list(zip(qreq_.dnids, qreq_.daids))
+        for count, (nid, aid) in enumerate(ut.ProgIter(ids_, label='vlad')):
+            # X.rrr()
+            X = qreq_.dinva.get_annot(aid)
+            out = vlads[count]
+            out[X.wx_list] = X.agg_rvecs
+            # X.to_dense(out=out)
+        # Flatten out
+        vlads.shape = (n_annots, n_words * n_dims)
+        ut.print_object_size(vlads)
+        fname = 'vlad_%d_d%d_%s' % (n_annots, n_words * n_dims, qreq_.ibs.get_dbname())
+        fpath = ut.truepath('~/' + fname + '.mat')
+        import scipy.io
+        mdict = {
+            'vlads': vlads,
+            'nids': qreq_.dnids,
+        }
+        scipy.io.savemat(fpath, mdict)
+
     def ensure_data(qreq_):
         """
             >>> import ibeis

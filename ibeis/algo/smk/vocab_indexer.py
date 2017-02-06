@@ -257,12 +257,14 @@ def compute_vocab(depc, fid_list, config):
                 max_no_improvement=10,
                 reassignment_ratio=0.01,
             )
+            print('minibatch_params = %s' % (ut.repr4(minibatch_params),))
             clusterer = sklearn.cluster.MiniBatchKMeans(
-                compute_labels=False, random_state=rng, verbose=1,
+                compute_labels=False, random_state=rng, verbose=2,
                 **minibatch_params)
             try:
                 clusterer.fit(train_vecs)
-            except (Exception, KeyboardInterrupt):
+            except (Exception, KeyboardInterrupt) as ex:
+                ut.printex(ex, tb=True)
                 if ut.is_developer():
                     ut.embed()
                 else:
