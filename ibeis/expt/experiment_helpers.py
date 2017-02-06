@@ -219,9 +219,9 @@ def parse_acfg_combo_list(acfg_name_list):
         >>> acfg_list = ut.flatten(acfg_combo_list)
         >>> printkw = dict()
         >>> annotation_configs.print_acfg_list(acfg_list, **printkw)
-        >>> result = list(acfg_list[0].keys())
+        >>> result = ut.repr2(sorted(acfg_list[0].keys()))
         >>> print(result)
-        [u'qcfg', u'dcfg']
+        ['dcfg', 'qcfg']
 
     Example:
         >>> # ENABLE_DOCTEST

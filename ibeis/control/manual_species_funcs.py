@@ -418,8 +418,9 @@ def get_species_texts(ibs, species_rowid_list):
         >>> ibs = ibeis.opendb('testdb1')
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_texts(ibs, species_rowid_list)
+        >>> result = ut.repr2(result)
         >>> print(result)
-        [u'zebra_plains', u'zebra_grevys', u'bear_polar']
+        ['zebra_plains', 'zebra_grevys', 'bear_polar']
     """
     # FIXME: use standalone species table
     #species_text_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)
@@ -455,8 +456,9 @@ def get_species_nice(ibs, species_rowid_list):
         >>> ibs._clean_species()
         >>> species_rowid_list = ibs._get_all_species_rowids()
         >>> result = get_species_nice(ibs, species_rowid_list)
+        >>> result = ut.repr2(result)
         >>> print(result)
-        [u'Zebra (Plains)', u"Zebra (Grevy's)", u'Polar Bear']
+        ['Zebra (Plains)', "Zebra (Grevy's)", 'Polar Bear']
     """
     # FIXME: use standalone species table
     #species_nice_list = ibs.get_lblannot_values(species_rowid_list, const.SPECIES_KEY)

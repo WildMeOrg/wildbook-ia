@@ -104,7 +104,7 @@ def cache_getter(tblname, colname=None, cfgkeys=None, force=False, debug=False):
         >>> rowid_list2 = rowid_list[::3]
         >>> rowid_list3 = rowid_list[1::2]
         >>> kwargs = {}
-        >>> getter_func = ibs.get_name_aids.im_func
+        >>> getter_func = ut.get_method_func(ibs.get_name_aids)
         >>> wrp_getter_cacher = cache_getter(tblname, colname, force=True, debug=False)(getter_func)
         >>> ### Test Getter (caches)
         >>> val_list1 = getter_func(ibs, rowid_list1)

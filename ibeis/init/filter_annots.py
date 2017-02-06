@@ -610,6 +610,8 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
         >>> #print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
     """
+    qenc_per_name = int(qenc_per_name)
+    denc_per_name = int(denc_per_name)
     assert qenc_per_name == 1, 'can only do one qenc right now'
 
     annots = ibs.annots(aids)
@@ -642,7 +644,9 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
             if i < len(idxs):
                 # Choose the database encounters from anything not chosen as a query
                 d_choices = ut.where(ut.not_list(ut.index_to_boolmask([i], len(idxs))))
-                js = rng.choice(d_choices, size=denc_per_name, replace=False)
+                import utool
+                with utool.embed_on_exception_context:
+                    js = rng.choice(d_choices, size=denc_per_name, replace=False)
                 encx_split[nid] = (idxs[i:i + 1], idxs[js])
         crossval_idx_samples.append(encx_split)
 
@@ -668,12 +672,12 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
     # Very inefficient but does what I want
     group_to_idxs = ut.dzip(*ut.group_indices(groups))
     freq = ut.dict_hist(groups)
-    g = list(freq.keys())[ut.argmax(freq.values())]
+    g = list(freq.keys())[ut.argmax(list(freq.values()))]
     size = freq[g]
     new_splits = [[] for _ in range(size)]
     while True:
         try:
-            g = list(freq.keys())[ut.argmax(freq.values())]
+            g = list(freq.keys())[ut.argmax(list(freq.values()))]
             if freq[g] == 0:
                 raise StopIteration()
             group_idxs = group_to_idxs[g]
@@ -1746,7 +1750,7 @@ def sample_annots(ibs, avail_aids, aidcfg, prefix='', verbose=VERB_TESTDATA):
 
     if sample_size is not None:
         # BUG: Should sample annots while preserving name size
-        if sample_size > avail_aids:
+        if sample_size > len(avail_aids):
             print('Warning sample size too large')
         rng = np.random.RandomState(SEED2)
         # Randomly sample names rather than annotations this makes sampling a

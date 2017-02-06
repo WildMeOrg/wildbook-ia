@@ -457,7 +457,7 @@ class TestResult(ut.NiceRepr):
             >>> import ibeis
             >>> testres = ibeis.testdata_expts(
             >>>     'PZ_MTEST', t='default:K=[1,2]')[1]
-            >>> varied_params = testres.get_all_varied_params()
+            >>> varied_params = sorted(testres.get_all_varied_params())
             >>> result = ('varied_params = %s' % (ut.repr2(varied_params),))
             >>> print(result)
             varied_params = ['K', '_cfgindex']
