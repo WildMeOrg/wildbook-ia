@@ -145,6 +145,14 @@ the pull command will update the packages as well.
     python super_setup.py pull
 
 ****
+# Step 3.5 - Grab and Build Extern libraries with scripts
+
+         python super_setup.py --opencv
+         python super_setup.py --dcnn
+         python super_setup.py --flann
+         python super_setup.py --pyqt
+
+****
 # Step 4 - Build C++ components.
 
 Some submodles require C++ libraries. Build them using the following Command.
@@ -584,12 +592,13 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         {python_bash_setup}
         # Checkout opencv core
         cd $CODE_DIR
-        git clone https://github.com/Itseez/opencv.git
-        cd opencv
+        export REPO_DIR=$CODE_DIR/opencv
+        # git clone https://github.com/Itseez/opencv.git
+        cd $REPO_DIR
         # Checkout opencv extras
         git clone https://github.com/Itseez/opencv_contrib.git
-        mkdir -p {build_dname}
-        cd {build_dname}
+        mkdir -p $REPO_DIR/{build_dname}
+        cd $REPO_DIR/{build_dname}
 
         cmake -G "Unix Makefiles" \
             -D WITH_OPENMP=ON \
@@ -598,9 +607,9 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             -D {cv_pyon_var}=On \
             -D {pypkg_var}=${pypkg_var} \
             -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-            -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
+            -D OPENCV_EXTRA_MODULES_PATH=$REPO_DIR/opencv_contrib/modules \
             -D WITH_CUDA=Off \
-            {source_dpath}
+            $REPO_DIR
             # -D CXX_FLAGS="-std=c++11" \ %TODO
 
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
@@ -773,13 +782,16 @@ def execute_commands(tpl_rman, ibeis_rman):
     # HACKED IN SCRIPTS WHILE IM STILL FIGURING OUT TPL DEPS
     if GET_ARGFLAG('--opencv'):
         # There is now a pypi for opencv! Yay
-        ut.cmd('pip install python-opencv')
-        # cv_repo = tpl_rman['cv2']
-        # script = cv_repo.get_script('build')
-        # script.exec_()
-        # cv_repo = tpl_rman['cv2']
-        # script = cv_repo.get_script('install')
-        # script.exec_()
+        # ut.cmd('pip install opencv-python')
+        # Bummer, but we need opencv source for pyhessaff
+        # we should just make a wheel for pyhessaff
+        cv_repo = tpl_rman['cv2']
+        cv_repo.clone()
+        script = cv_repo.get_script('build')
+        script.exec_()
+        cv_repo = tpl_rman['cv2']
+        script = cv_repo.get_script('install')
+        script.exec_()
 
     if GET_ARGFLAG('--pyqt'):
         script = tpl_rman['PyQt'].get_script('system_to_venv')
