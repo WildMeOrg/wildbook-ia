@@ -124,8 +124,9 @@ class EstimatorRequest(ut.NiceRepr):
 
     @ut.accepts_numpy
     def get_qreq_annot_nids(qreq_, aids):
-        # Hack uses own internal state to grab name rowids
-        # instead of using ibeis.
+        # uses own internal state to grab name rowids instead of using ibeis.
+        if not hasattr(qreq_, 'aid_to_idx'):
+            qreq_.ensure_nids()
         idxs = ut.take(qreq_.aid_to_idx, aids)
         nids = ut.take(qreq_.unique_nids, idxs)
         return nids
@@ -135,6 +136,18 @@ class EstimatorRequest(ut.NiceRepr):
         # Hack uses own internal state to grab name rowids
         # instead of using ibeis.
         return qreq_.ibs.get_annot_gids(aids)
+
+    @property
+    def dnids(qreq_):
+        """ TODO: save dnids in qreq_ state """
+        #return qreq_.dannots.nids
+        return qreq_.get_qreq_annot_nids(qreq_.daids)
+
+    @property
+    def qnids(qreq_):
+        """ TODO: save qnids in qreq_ state """
+        #return qreq_.qannots.nids
+        return qreq_.get_qreq_annot_nids(qreq_.qaids)
 
     @property
     def extern_query_config2(qreq_):

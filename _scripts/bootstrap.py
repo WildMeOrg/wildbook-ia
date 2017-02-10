@@ -104,6 +104,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'gfortran',  # need a fortran compiler for numpy (avoid mixing g77 and gfortran!)
         # gfortran may need to be removed for apple
         'cmake',
+        # 'cmake-qt-gui',
         'ffmpeg',  # need -dev / -devel versions of all these as well / libav
         'libpng',
         'libjpg',
@@ -112,6 +113,7 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'libeigen3-dev',
         'graphviz',
         'graphviz-dev',
+        'libv4l-dev',  # for opencv
         'libgraphviz-dev',
         'libtiff',  # 'libtiff4-dev', libtiff5-dev
         'littlecms',  # libcms?
@@ -121,12 +123,12 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
         'fftw3',
         'atlas',
         'libgeos-dev',  # for shapely
-        'python-qt4',
-        'python-tk',  # for %paste in IPython
         'pkg-config',  # recommended for Matplotlib
         'libffi-dev',  # requests secure dependencies
         'libssl-dev',  # requests secure dependencies
         #'jasper',  # hyrule cannot handle this
+        # 'python-qt4',
+        'python-tk',  # for %paste in IPython
     ]
 
     if util_cplat_packages.APPLE:
@@ -145,8 +147,8 @@ def bootstrap_sysreq(dry=DRYRUN, justpip=False, with_optional=OPTIONAL):
             #'libjpeg-dev',
             #'zlib1g-dev',
             'python-dev',
-            'libopencv-dev',
-            'python-opencv'
+            # 'libopencv-dev',
+            # 'python-opencv'
         ])
 
     if util_cplat_packages.FEDORA_FAMILY:

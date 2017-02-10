@@ -464,6 +464,16 @@ class SingleAnnot(ut.NiceRepr):
         X.wx_set = set(X.wx_list)
         return X
 
+    def to_dense(X, inva=None, out=None):
+        if out is None:
+            assert inva is not None
+            n_words = inva.wx_list[-1] + 1
+            n_dims = X.agg_rvecs.shape[1]
+            out = np.zeros((n_words * n_dims), dtype=np.float32)
+        # out[X.wx_list] = X.Phis_flags(range(len(X.wx_list)))[0]
+        out[X.wx_list] = X.agg_rvecs
+        return out
+
     @property
     def words(X):
         return X.wx_set
@@ -481,6 +491,7 @@ class SingleAnnot(ut.NiceRepr):
         return maws
 
     def phis_flags_list(X, idxs):
+        """ get subset of non-aggregated residual vectors """
         phis_list = ut.take(X.rvecs_list, idxs)
         flags_list = ut.take(X.flags_list, idxs)
         if X.int_rvec:
@@ -488,6 +499,7 @@ class SingleAnnot(ut.NiceRepr):
         return phis_list, flags_list
 
     def Phis_flags(X, idxs):
+        """ get subset of aggregated residual vectors """
         Phis = X.agg_rvecs.take(idxs, axis=0)
         flags = X.agg_flags.take(idxs, axis=0)
         if X.int_rvec:

@@ -145,6 +145,14 @@ the pull command will update the packages as well.
     python super_setup.py pull
 
 ****
+# Step 3.5 - Grab and Build Extern libraries with scripts
+
+         python super_setup.py --opencv
+         python super_setup.py --dcnn
+         python super_setup.py --flann
+         python super_setup.py --pyqt
+
+****
 # Step 4 - Build C++ components.
 
 Some submodles require C++ libraries. Build them using the following Command.
@@ -162,6 +170,58 @@ Register these packages with the python enviroment.
 
  --- /USAGE ---
 ''')
+
+
+def define_argparse():
+    """ todo, find a way to use this effectively """
+    import argparse
+    parser = argparse.ArgumentParser(description='IBEIS super setup')
+    # parser.add_argument('command', help='command to run')
+
+    def add_flag(group, name, help=None):
+        group.add_argument(name.replace('--', ''), action='store_true',
+                           default=False, help=help)
+
+    # subparsers = parser.add_subparsers()
+    # subparsers.add_parser('pull', help='pulls IBEIS repos')
+    # subparsers.add_parser('ensure', help='ensures checkouts of IBEIS repos')
+    # sub = subparsers.add_parser('move-wildme', help='changes to the wildme repos')
+    # sub.add_argument('--fmt', dest='fmt', action='store',
+    #                  choices=['ssh', 'https'], help='url type')
+
+    ## Setup options for parser_a
+
+    ## Add nargs="*" for zero or more other commands
+    # parser.add_argument('extra', nargs = "*", help = 'Other commands')
+
+    # parser.add_argument('command', action='store_true', default=False,
+    #                     help='outputs commands to install prereqs')
+
+    g1 = parser.add_argument_group('setup')
+    add_flag(g1, 'bootstrap', help='outputs commands to install prereqs')
+    add_flag(g1, 'ensure', help='ensures that all repos are checked out')
+    add_flag(g1, 'build', help='builds python packages')
+    add_flag(g1, 'develop', help='installs packages in developer mode')
+    add_flag(g1, 'dcnn', help='setup dcnn packages')
+
+    g4 = parser.add_argument_group('maintenance')
+    add_flag(g4, 'pull', help='pulls all IBIES repos')
+
+    g3 = parser.add_argument_group('extern')
+    add_flag(g3, 'no_qt')
+    add_flag(g3, 'no_gui')
+    add_flag(g3, 'ignore_opencv')
+
+    g2 = parser.add_argument_group('utils')
+    add_flag(g2, 'move_wildme',
+             help='changes to the wildme repos')
+    args = parser.parse_args()
+    return args
+
+
+# args = define_argparse()
+# print('args = %r' % (args,))
+# sys.exit(1)
 
 
 def get_plat_specifier():
@@ -532,12 +592,13 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         {python_bash_setup}
         # Checkout opencv core
         cd $CODE_DIR
-        git clone https://github.com/Itseez/opencv.git
-        cd opencv
+        export REPO_DIR=$CODE_DIR/opencv
+        # git clone https://github.com/Itseez/opencv.git
+        cd $REPO_DIR
         # Checkout opencv extras
         git clone https://github.com/Itseez/opencv_contrib.git
-        mkdir -p {build_dname}
-        cd {build_dname}
+        mkdir -p $REPO_DIR/{build_dname}
+        cd $REPO_DIR/{build_dname}
 
         cmake -G "Unix Makefiles" \
             -D WITH_OPENMP=ON \
@@ -546,9 +607,9 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             -D {cv_pyon_var}=On \
             -D {pypkg_var}=${pypkg_var} \
             -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
-            -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
+            -D OPENCV_EXTRA_MODULES_PATH=$REPO_DIR/opencv_contrib/modules \
             -D WITH_CUDA=Off \
-            {source_dpath}
+            $REPO_DIR
             # -D CXX_FLAGS="-std=c++11" \ %TODO
 
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
@@ -586,7 +647,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             'sys_dist_packages': ut.get_global_dist_packages_dir(),
             'venv_site_packages': ut.get_site_packages_dir(),
             'pyqt'              : 'PyQt4' if PY2 else 'PyQt5',
-            'debian-python-qt'  : 'python-qt4' if PY2 else 'python-qt5',
+            'debian-python-qt'  : 'python-qt4' if PY2 else 'qt5-default python3-pyqt5',
+            'pip-python-qt'  : 'python-qt4' if PY2 else 'python-qt5'
         }
         # sys_dist_packages = ut.get_global_dist_packages_dir()
         # sys_pyqt_dir = sys_dist_packages + '/{pyqt}'
@@ -604,6 +666,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             else
                 # Ensure PyQt is installed first (FIXME make this work for non-debian systems)
                 sudo apt-get install {debian-python-qt}
+                pip install {pip-python-qt}
             fi
             if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
                 # Install system pyqt packages to virtual envirment via symlink
@@ -613,6 +676,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             else
                 echo "{pyqt} DOES NOT SEEM TO BE INSTALLED ON THE SYSTEM"
             fi
+            echo "testing"
+            python -c "import {pyqt}; print({pyqt})"
             # ENDBLOCK bash
             ''').format(**fmtdict)
         # TODO: add custom build alternative
@@ -627,6 +692,35 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
 def GET_ARGFLAG(arg, *args, **kwargs):
     import utool as ut
     return arg.lstrip('--') in sys.argv or ut.get_argflag(arg, *args, **kwargs)
+
+
+def move_wildme(ibeis_rman, fmt):
+    wildme_user = 'WildbookOrg'
+    wildme_remote = 'wildme'
+    for repo in ibeis_rman.repos:
+        gitrepo = repo.as_gitpython()
+        wildme_url = repo._new_remote_url(host='github.com', user=wildme_user, fmt=fmt)
+        remotes = repo.remotes
+        print('Checking %s for move to wildme' % (repo,))
+
+        incorrect_version = repo._ensure_remote_exists(wildme_remote, wildme_url)
+
+        if 'origin' in remotes:
+            try:
+                origin = remotes['origin']
+                origin_user = origin['username']
+                if origin_user != wildme_user or incorrect_version:
+                    if origin_user not in remotes:
+                        # first add a remote that is the original origin
+                        origin_url = origin['url']
+                        print('  * Create remote %r: %r' % (origin_user, origin_url,))
+                        gitrepo.create_remote(origin_user, origin_url)
+                    # change origin to use wildme url
+                    gitorigin = gitrepo.remote('origin')
+                    print('  * Change origin url to %r' % (wildme_url,))
+                    gitorigin.set_url(wildme_url)
+            except:
+                print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
 
 
 def execute_commands(tpl_rman, ibeis_rman):
@@ -653,49 +747,8 @@ def execute_commands(tpl_rman, ibeis_rman):
     wildme_ssh_flags = GET_ARGFLAG('--move-wildme') or GET_ARGFLAG('--move-wildme-ssh')
     wildme_https_flags = GET_ARGFLAG('--move-wildme-https') or GET_ARGFLAG('--move-wildme-http')
     if wildme_ssh_flags or wildme_https_flags:
-        wildme_user = 'WildbookOrg'
-        wildme_remote = 'wildme'
-        for repo in ibeis_rman.repos:
-            gitrepo = repo.as_gitpython()
-            fmt = 'ssh' if wildme_ssh_flags else 'https'
-            wildme_url = repo._new_remote_url(host='github.com', user=wildme_user, fmt=fmt)
-            remotes = repo.remotes
-            print('Checking %s for move to wildme' % (repo,))
-
-            incorrect_version = repo._ensure_remote_exists(wildme_remote, wildme_url)
-
-            # incorrect_version = False
-            # if wildme_remote in remotes:
-            #     # Check correct version (SSH or HTTPS)
-            #     wildme_remote_ = remotes[wildme_remote]
-            #     wildme_url_ = wildme_remote_['url']
-            #     is_ssh = '@' in wildme_url_
-            #     incorrect_version = (is_ssh and wildme_https_flags) or (not is_ssh and wildme_ssh_flags)
-            #     if incorrect_version:
-            #         print('  * Deleting remote %r: %r' % (wildme_remote, wildme_url_))
-            #         gitrepo.delete_remote(wildme_remote)
-
-            # # Ensure there is a remote under the wildme name
-            # if wildme_remote not in remotes or incorrect_version:
-            #     print('  * Create remote %r: %r' % (wildme_remote, wildme_url))
-            #     gitrepo.create_remote(wildme_remote, wildme_url)
-
-            if 'origin' in remotes:
-                try:
-                    origin = remotes['origin']
-                    origin_user = origin['username']
-                    if origin_user != wildme_user or incorrect_version:
-                        if origin_user not in remotes:
-                            # first add a remote that is the original origin
-                            origin_url = origin['url']
-                            print('  * Create remote %r: %r' % (origin_user, origin_url,))
-                            gitrepo.create_remote(origin_user, origin_url)
-                        # change origin to use wildme url
-                        gitorigin = gitrepo.remote('origin')
-                        print('  * Change origin url to %r' % (wildme_url,))
-                        gitorigin.set_url(wildme_url)
-                except:
-                    print('\tWARNING: COULD NOT MIGRATE REPO = %r' % (repo, ))
+        fmt = 'ssh' if wildme_ssh_flags else 'https'
+        move_wildme(ibeis_rman, fmt)
 
     # Commands on global git repos
     if GET_ARGFLAG('--status'):
@@ -723,9 +776,17 @@ def execute_commands(tpl_rman, ibeis_rman):
             sh_fpath = join(dpath, mod + '_' + sname + suffix + '.sh')
             ut.write_to(sh_fpath, script)
 
+    if GET_ARGFLAG('--requirements'):
+        ut.cmd('pip install -r requirements.txt')
+
     # HACKED IN SCRIPTS WHILE IM STILL FIGURING OUT TPL DEPS
     if GET_ARGFLAG('--opencv'):
+        # There is now a pypi for opencv! Yay
+        # ut.cmd('pip install opencv-python')
+        # Bummer, but we need opencv source for pyhessaff
+        # we should just make a wheel for pyhessaff
         cv_repo = tpl_rman['cv2']
+        cv_repo.clone()
         script = cv_repo.get_script('build')
         script.exec_()
         cv_repo = tpl_rman['cv2']
@@ -743,6 +804,9 @@ def execute_commands(tpl_rman, ibeis_rman):
         script.exec_()
 
     if GET_ARGFLAG('--dcnn'):
+        tpl_rman['theano'].clone()
+        tpl_rman['pylearn2'].clone()
+        tpl_rman['lasagne'].clone()
         tpl_rman['theano'].issue('pip install -e .')
         tpl_rman['pylearn2'].issue('pip install -e .')
         tpl_rman['lasagne'].issue('pip install -e .')
@@ -906,7 +970,7 @@ def execute_commands(tpl_rman, ibeis_rman):
         try:
             from six.moves import input
         except ImportError:
-            input = raw_input
+            input = raw_input  # NOQA
         # General global git command
         gg_cmd = GET_ARGVAL('--gg', None)  # global command
         if gg_cmd is not None:
