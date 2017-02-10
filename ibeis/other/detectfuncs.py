@@ -636,17 +636,18 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     return gt_dict
 
 
-def _get_localizations(depc, gid_list, algo, config_filepath=None):
-    config = {'algo': algo, 'config_filepath': config_filepath}
+def _get_localizations(depc, gid_list, algo, config_filepath=None, masking=False, **kwargs):
+    config1 = {'algo': algo, 'config_filepath': config_filepath}
+    config2 = {'algo': algo, 'config_filepath': config_filepath, 'classifier_masking': masking}
     # depc.delete_property('localizations_classifier', gid_list, config=config)
     return [
-        depc.get_property('localizations', gid_list, 'score',   config=config),
-        depc.get_property('localizations', gid_list, 'bboxes',  config=config),
-        depc.get_property('localizations', gid_list, 'thetas',  config=config),
-        depc.get_property('localizations', gid_list, 'confs',   config=config),
-        depc.get_property('localizations', gid_list, 'classes', config=config),
-        depc.get_property('localizations_classifier', gid_list, 'class', config=config),
-        depc.get_property('localizations_classifier', gid_list, 'score', config=config),
+        depc.get_property('localizations', gid_list, 'score',   config=config1),
+        depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
+        depc.get_property('localizations', gid_list, 'thetas',  config=config1),
+        depc.get_property('localizations', gid_list, 'confs',   config=config1),
+        depc.get_property('localizations', gid_list, 'classes', config=config1),
+        depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
+        depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
     ]
 
 
@@ -658,28 +659,28 @@ def _get_all_localizations(depc, gid_list, **kwargs):
 
     # Get Localizations
     if limited:
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal', **kwargs)
     else:
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal', **kwargs)
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal', **kwargs)
+        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal', **kwargs)
 
-    # metadata['SS1']    = _get_localizations(depc, gid_list, 'selective-search')
-    # metadata['SS2']    = _get_localizations(depc, gid_list, 'selective-search-rcnn')
-
-    if limited:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-    else:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+    # metadata['SS1']    = _get_localizations(depc, gid_list, 'selective-search', **kwargs)
+    # metadata['SS2']    = _get_localizations(depc, gid_list, 'selective-search-rcnn', **kwargs)
 
     if limited:
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal', **kwargs)
     else:
-        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
-        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
-        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal', **kwargs)
+        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal', **kwargs)
+
+    if limited:
+        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus', **kwargs)
+    else:
+        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal', **kwargs)
+        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal', **kwargs)
+        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus', **kwargs)
+        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus', **kwargs)
 
     # Get Combined
     metadata['COMBINED'] = []
@@ -999,6 +1000,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
         # {'label': 'SS1', 'algo': 'selective-search', 'grid': False, 'species_set' : set(['zebra'])},
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : set(['zebra'])},
+
+        {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True},
+        {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'masking': True},
+
 
         # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
         {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra'])},
