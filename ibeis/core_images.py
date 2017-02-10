@@ -851,21 +851,22 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         group_dict[gid].append(result)
     assert len(gid_list_) == len(group_dict.keys())
 
+    # We need to perform a difference calculation to see how much the masking
+    # caused a deviation from the un-masked image
+    config_ = dict(config)
+    key_list = ['thumbnail_cfg', 'classifier_masking']
+    for key in key_list:
+        config_.pop(key)
+    class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
+    score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
+
     # Return the results
-    for gid in gid_list_:
+    for gid, class_, score_ in zip(gid_list_, class_list_, score_list_):
         result_list = group_dict[gid]
         zipped_list = list(zip(*result_list))
         score_list = np.array(zipped_list[0])
         class_list = np.array(zipped_list[1])
         if masking:
-            # We need to perform a difference calculation to see how much
-            # the masking caused a deviation from the un-masked image
-            config_ = dict(config)
-            key_list = ['thumbnail_cfg', 'classifier_masking']
-            for key in key_list:
-                config_.pop(key)
-            class_ = depc.get_property('classifier', [gid], 'class', config=config_)[0]
-            score_ = depc.get_property('classifier', [gid], 'score', config=config_)[0]
             score_ = score_ if class_ == 'positive' else 1.0 - score_
             score_list = score_ - score_list
             class_list = np.array(['positive'] * len(score_list))
