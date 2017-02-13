@@ -907,7 +907,7 @@ class Feature2Config(dtool.Config):
     coltypes=[np.ndarray],
     configclass=Feature2Config,
     fname='featcache',
-    chunksize=4,
+    chunksize=8,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
     r"""
@@ -1008,8 +1008,6 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     # Release thumbnails
     thumbnail_list = None
 
-    ut.embed()
-
     inference_iter = ut.ProgIter(image_array, lbl='forward inference', bs=True)
     result_list = [
         model.predict(image_array_)
@@ -1028,11 +1026,13 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     assert len(gid_list_) == len(group_dict.keys())
 
     # Return the results
-    for gid in zip(gid_list_):
+    group_iter = ut.ProgIter(gid_list_, lbl='grouping results', bs=True)
+    for gid in group_iter:
         result_list = group_dict[gid]
         if config['flatten']:
             result_list = [_.flatten() for _ in result_list]
         result_list = np.vstack(result_list)
+        print(result_list.shape)
         # Return tuple values
         ret_tuple = (result_list, )
         return ret_tuple
