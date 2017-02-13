@@ -215,12 +215,11 @@ def compute_classifications(depc, gid_list, config=None):
             result_list = classify_thumbnail_list(thumbnail_list)
         else:
             result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
-    elif config['classifier_algo'] in ['svm']:
-        config = {
-            'algo': 'vgg16'
-        }
-        vector_list = depc.get_property('features', gid_list, 'vector', config=config)
-        pass
+    # elif config['classifier_algo'] in ['svm']:
+    #     config = {
+    #         'algo': 'vgg16'
+    #     }
+    #     vector_list = depc.get_property('features', gid_list, 'vector', config=config)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
@@ -244,7 +243,7 @@ class FeatureConfig(dtool.Config):
     colnames=['vector'],
     coltypes=[np.ndarray],
     configclass=FeatureConfig,
-    fname='detectcache',
+    fname='featcache',
     chunksize=256,
 )
 def compute_features(depc, gid_list, config=None):
@@ -391,7 +390,6 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> print(detects)
         >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -479,7 +477,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> # config = {'algo': '_COMBINED'}
         >>> # depc.delete_property('localizations', gid_list, config=config)
         >>> # detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-
+        >>> # print(detects)
     """
     def package_to_numpy(key_list, result_list, score):
         temp = [
@@ -551,62 +549,62 @@ def compute_localizations(depc, gid_list, config=None):
         print('[ibs] detecting using CNN SSD')
         detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
-    # elif config['algo'] in ['_COMBINED']:
-    #     COMBINED = True
+    elif config['algo'] in ['_COMBINED']:
+        COMBINED = True
 
-    #     def _get_localizations(depc, gid_list, algo, config_filepath=None):
-    #         config = {'algo': algo, 'config_filepath': config_filepath}
-    #         return [
-    #             depc.get_property('localizations', gid_list, 'score',   config=config),
-    #             depc.get_property('localizations', gid_list, 'bboxes',  config=config),
-    #             depc.get_property('localizations', gid_list, 'thetas',  config=config),
-    #             depc.get_property('localizations', gid_list, 'confs',   config=config),
-    #             depc.get_property('localizations', gid_list, 'classes', config=config),
-    #         ]
+        def _get_localizations(depc, gid_list, algo, config_filepath=None):
+            config = {'algo': algo, 'config_filepath': config_filepath}
+            return [
+                depc.get_property('localizations', gid_list, 'score',   config=config),
+                depc.get_property('localizations', gid_list, 'bboxes',  config=config),
+                depc.get_property('localizations', gid_list, 'thetas',  config=config),
+                depc.get_property('localizations', gid_list, 'confs',   config=config),
+                depc.get_property('localizations', gid_list, 'classes', config=config),
+            ]
 
-    #     metadata = {}
+        metadata = {}
 
-    #     # Get Localizations
-    #     metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-    #     metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-    #     metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        # Get Localizations
+        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
+        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
 
-    #     metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-    #     metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
+        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
 
-    #     metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
-    #     metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
-    #     metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
-    #     metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
+        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
+        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
+        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
+        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
 
-    #     detect_gen = None
-    #     # Get Combined
-    #     metadata['_COMBINED'] = []
-    #     for key in metadata:
-    #         if len(metadata['_COMBINED']) == 0:
-    #             # Initializing combined list, simply append
-    #             metadata['_COMBINED'] = list(metadata[key])
-    #         else:
-    #             # Combined already initialized, hstack new metadata
-    #             current = metadata['_COMBINED']
-    #             detect = metadata[key]
-    #             for index in range(len(current)):
-    #                 # print(index, current[index].shape, detect[index].shape)
-    #                 new = []
-    #                 for image in range(len(detect[index])):
-    #                     # print(current[index][image].shape, detect[index][image].shape)
-    #                     if index == 0:
-    #                         temp = 0.0
-    #                     elif len(current[index][image].shape) == 1:
-    #                         temp = np.hstack((current[index][image], detect[index][image]))
-    #                     else:
-    #                         temp = np.vstack((current[index][image], detect[index][image]))
-    #                     new.append(temp)
-    #                 metadata['_COMBINED'][index] = np.array(new)
+        detect_gen = None
+        # Get Combined
+        metadata['_COMBINED'] = []
+        for key in metadata:
+            if len(metadata['_COMBINED']) == 0:
+                # Initializing combined list, simply append
+                metadata['_COMBINED'] = list(metadata[key])
+            else:
+                # Combined already initialized, hstack new metadata
+                current = metadata['_COMBINED']
+                detect = metadata[key]
+                for index in range(len(current)):
+                    # print(index, current[index].shape, detect[index].shape)
+                    new = []
+                    for image in range(len(detect[index])):
+                        # print(current[index][image].shape, detect[index][image].shape)
+                        if index == 0:
+                            temp = 0.0
+                        elif len(current[index][image].shape) == 1:
+                            temp = np.hstack((current[index][image], detect[index][image]))
+                        else:
+                            temp = np.vstack((current[index][image], detect[index][image]))
+                        new.append(temp)
+                    metadata['_COMBINED'][index] = np.array(new)
 
-    #     results_list = list(zip(*metadata['_COMBINED']))
-    #     for results in results_list:
-    #         yield results
+        results_list = list(zip(*metadata['_COMBINED']))
+        for results in results_list:
+            yield results
     # ######################################################################################
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
@@ -891,6 +889,153 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             class_list,
         )
         yield ret_tuple
+
+
+class Feature2Config(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('feature2_algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
+        ut.ParamInfo('flatten', True),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='localizations_features', parents=['localizations'],
+    colnames=['vector'],
+    coltypes=[np.ndarray],
+    configclass=Feature2Config,
+    fname='featcache',
+    chunksize=8,
+)
+def compute_localizations_features(depc, loc_id_list, config=None):
+    r"""
+    Computes features on images using pre-trained state-of-the-art models in
+    Keras
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (np.ndarray, ): tup
+
+    CommandLine:
+        ibeis compute_localizations_features
+
+    CommandLine:
+        python -m ibeis.core_images compute_localizations_features --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> print(depc.get_tablenames())
+        >>> gid_list = ibs.get_valid_gids()[:16]
+        >>> config = {'algo': '_COMBINED', 'feature2_algo': 'vgg16'}
+        >>> depc.delete_property('localizations_features', gid_list, config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'feature2_algo': 'vgg19', 'algo': '_COMBINED'}
+        >>> depc.delete_property('localizations_features', gid_list, config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'feature2_algo': 'resnet', 'algo': '_COMBINED'}
+        >>> depc.delete_property('localizations_features', gid_list, config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
+        >>> print(features)
+        >>> config = {'feature2_algo': 'inception', 'algo': '_COMBINED'}
+        >>> depc.delete_property('localizations_features', gid_list, config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
+        >>> print(features)
+    """
+    from PIL import Image
+    from keras.preprocessing import image as preprocess_image
+
+    print('[ibs] Preprocess Features')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    target_size = (224, 224)
+    ######################################################################################
+    if config['feature2_algo'] in ['vgg', 'vgg16']:
+        from keras.applications.vgg16 import VGG16 as MODEL_CLASS
+        from keras.applications.vgg16 import preprocess_input
+    ######################################################################################
+    elif config['feature2_algo'] in ['vgg19']:
+        from keras.applications.vgg19 import VGG19 as MODEL_CLASS
+        from keras.applications.vgg19 import preprocess_input
+    ######################################################################################
+    elif config['feature2_algo'] in ['resnet']:
+        from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
+        from keras.applications.resnet50 import preprocess_input
+    ######################################################################################
+    elif config['feature2_algo'] in ['inception']:
+        from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
+        from keras.applications.inception_v3 import preprocess_input
+        target_size = (299, 299)
+    ######################################################################################
+    else:
+        raise ValueError('specified feature algo is not supported in config = %r' % (config, ))
+
+    # Load chips
+    gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
+                                                                 target_size=target_size)
+
+    # Build model
+    model = MODEL_CLASS(include_top=False)
+
+    # Define Preprocess
+    def _preprocess(thumbnail):
+        thumbnail = cv2.cvtColor(thumbnail, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(thumbnail)
+        # Process PIL image
+        image_array = preprocess_image.img_to_array(image)
+        image_array = np.expand_dims(image_array, axis=0)
+        image_array = preprocess_input(image_array)
+        return image_array
+
+    thumbnail_iter = ut.ProgIter(thumbnail_list, lbl='preprocessing chips', bs=True)
+    image_array = [
+        _preprocess(thumbnail)
+        for thumbnail in thumbnail_iter
+    ]
+    # Release thumbnails
+    thumbnail_list = None
+
+    inference_iter = ut.ProgIter(image_array, lbl='forward inference', bs=True)
+    result_list = [
+        model.predict(image_array_)
+        for image_array_ in inference_iter
+    ]
+
+    # Release image_array
+    image_array = None
+
+    # Group the results
+    group_dict = {}
+    for gid, result in zip(gid_list, result_list):
+        if gid not in group_dict:
+            group_dict[gid] = []
+        group_dict[gid].append(result)
+    assert len(gid_list_) == len(group_dict.keys())
+
+    # Return the results
+    group_iter = ut.ProgIter(gid_list_, lbl='grouping results', bs=True)
+    for gid in group_iter:
+        result_list = group_dict[gid]
+        if config['flatten']:
+            result_list = [_.flatten() for _ in result_list]
+        result_list = np.vstack(result_list)
+        print(result_list.shape)
+        # Return tuple values
+        ret_tuple = (result_list, )
+        return ret_tuple
 
 
 class LabelerConfig(dtool.Config):
