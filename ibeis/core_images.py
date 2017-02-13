@@ -987,6 +987,9 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
                                                                  target_size=target_size)
 
+    # Build model
+    model = MODEL_CLASS(include_top=False)
+
     # Define Preprocess
     def _preprocess(thumbnail):
         thumbnail = cv2.cvtColor(thumbnail, cv2.COLOR_BGR2RGB)
@@ -997,15 +1000,15 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         image_array = preprocess_input(image_array)
         return image_array
 
-    # Build model
-    model = MODEL_CLASS(include_top=False)
+    ut.embed()
 
-    print('Preprocess image thumbnails')
-    image_array = [_preprocess(thumbnail) for thumbnail in thumbnail_list]
+    thumbnail_iter = ut.ProgIter(thumbnail_list, lbl='preprocessing localization chips', bs=True)
+    image_array = [
+        _preprocess(thumbnail)
+        for thumbnail in thumbnail_iter
+    ]
     # Release thumbnails
     thumbnail_list = None
-
-    ut.embed()
 
     print('Forward inference')
     result_list = []
@@ -1013,7 +1016,6 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         # Loaded thumbnail in CV2 format, convert to PIL
         features_ = model.predict(image_array)
         result_list.append(features_)
-
 
     # Group the results
     group_dict = {}
