@@ -620,8 +620,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
         make -j$NCPUS
         # ENDBLOCK
-        """).format(**script_fmtdict,
-                    repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath)))
+        """).format(repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath),
+                    **script_fmtdict))
 
     tpl_rman['cv2'].add_script('install', ut.codeblock(
         r"""
@@ -671,8 +671,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
 
         # pip uninstall pygpu
         # ENDBLOCK
-        """).format(**script_fmtdict,
-                    repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath)))
+        """).format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
+                    **script_fmtdict))
 
     #===================
     # PYQT SETUP SCRIPTS
