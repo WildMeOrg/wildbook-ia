@@ -907,7 +907,7 @@ class Feature2Config(dtool.Config):
     coltypes=[np.ndarray],
     configclass=Feature2Config,
     fname='featcache',
-    chunksize=128,
+    chunksize=8,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
     r"""
@@ -987,25 +987,33 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
                                                                  target_size=target_size)
 
-    # Build model
-    model = MODEL_CLASS(include_top=False)
-
-    result_list = []
-    for thumbnail in thumbnail_list:
-        # Loaded thumbnail in CV2 format, convert to PIL
+    # Define Preprocess
+    def _preprocess(thumbnail):
         thumbnail = cv2.cvtColor(thumbnail, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(thumbnail)
         # Process PIL image
         image_array = preprocess_image.img_to_array(image)
         image_array = np.expand_dims(image_array, axis=0)
         image_array = preprocess_input(image_array)
-        features_ = model.predict(image_array)
-        if config['flatten']:
-            features_ = features_.flatten()
-        result_list.append(features_)
+        return image_array
 
+    # Build model
+    model = MODEL_CLASS(include_top=False)
+
+    print('Preprocess image thumbnails')
+    image_array = [_preprocess(thumbnail) for thumbnail in thumbnail_list]
     # Release thumbnails
     thumbnail_list = None
+
+    ut.embed()
+
+    print('Forward inference')
+    result_list = []
+    for thumbnail in thumbnail_list:
+        # Loaded thumbnail in CV2 format, convert to PIL
+        features_ = model.predict(image_array)
+        result_list.append(features_)
+
 
     # Group the results
     group_dict = {}
@@ -1018,6 +1026,8 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     # Return the results
     for gid in zip(gid_list_):
         result_list = group_dict[gid]
+        if config['flatten']:
+            result_list = [_.flatten() for _ in result_list]
         result_list = np.vstack(result_list)
         # Return tuple values
         ret_tuple = (result_list, )
