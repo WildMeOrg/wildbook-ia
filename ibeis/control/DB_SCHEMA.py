@@ -30,6 +30,7 @@ import utool as ut
 profile = ut.profile
 
 
+ANNOTMATCH_TABLE     = 'annotmatch'
 NAME_TABLE_v121     = const.NAME_TABLE_v121
 NAME_TABLE_v130     = const.NAME_TABLE_v130
 ANNOT_VISUAL_UUID   = 'annot_visual_uuid'
@@ -1427,6 +1428,29 @@ def update_1_6_0(db, ibs=None):
         (None, 'annot_metadata_json', 'TEXT', None),
     ))
 
+
+def update_1_6_1(db, ibs=None):
+    assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
+        'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    db.modify_table(
+        'annotmatch',
+        colmap_list=[
+            ('annotmatch_truth', 'annotmatch_truth', 'INTEGER', None)
+        ]
+    )
+
+
+def post_1_6_1(db, ibs=None, verbose=False):
+    # Find annotmatch rowids that have an old value of 2
+    ams = db.get_where_eq('annotmatch', colnames=('annotmatch_rowid',),
+                          params_iter=[(2,)], unpack_scalars=False,
+                          where_colnames=('annotmatch_truth',))[0]
+    print('No-Op, but would deleting %d old unknown values' % (len(ams)))
+    assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
+        'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    if False:
+        db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1472,6 +1496,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.4',    (None,                 update_1_5_4,       None                )),
     ('1.5.5',    (None,                 update_1_5_5,       None                )),
     ('1.6.0',    (None,                 update_1_6_0,       None                )),
+    ('1.6.1',    (None,                 update_1_6_1,       post_1_6_1          )),
 ])
 """
 SeeAlso:

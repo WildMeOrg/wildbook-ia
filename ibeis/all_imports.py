@@ -99,10 +99,6 @@ import vtool as vt
 import plottool
 import guitool
 
-import pyrf
-import pyhesaff
-import pyflann
-
 # VTool
 import vtool
 from vtool import chip as ctool
@@ -127,8 +123,7 @@ from plottool import viz_keypoints
 from plottool import viz_image2
 from plottool import fig_presenter
 
-(print, rrr, profile) = utool.inject2(
-    __name__, '[all_imports]', DEBUG=False)
+(print, rrr, profile) = utool.inject2(__name__)
 
 def find_unregisterd():
     import sys
