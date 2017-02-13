@@ -388,6 +388,9 @@ def setup_developer_menu(mainwin, back):
         shortcut='Ctrl+Shift+I',
         triggered=back.dev_mode)
     menu.newAction(
+        text='Graph Interface',
+        triggered=back.make_qt_graph_interface)
+    menu.newAction(
         text='Set Work Directory',
         triggered=back.set_workdir)
     menu.newAction(

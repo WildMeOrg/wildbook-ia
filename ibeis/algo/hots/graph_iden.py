@@ -1426,12 +1426,18 @@ class _AnnotInfrMatching(object):
         # TODO: keep chip matches in dictionary by default?
         aid2_idx = ut.make_index_lookup(
             [cm.qaid for cm in infr.cm_list])
-        try:
+        switch_order = False
+
+        if aid1 in aid2_idx:
             idx = aid2_idx[aid1]
             cm = infr.cm_list[idx]
             if aid2 not in cm.daid2_idx:
-                raise KeyError('switch order')
-        except KeyError:
+                switch_order = True
+                # raise KeyError('switch order')
+        else:
+            switch_order = True
+
+        if switch_order:
             # switch order
             aid1, aid2 = aid2, aid1
             idx = aid2_idx[aid1]

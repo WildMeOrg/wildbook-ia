@@ -183,6 +183,9 @@ def postload_commands(ibs, back):
         model = view.model()
         view._set_sort(model.col_name_list.index('nAids'), col_sort_reverse=True)
 
+    if ut.get_argflag('--graph'):
+        back.make_qt_graph_interface()
+
     screengrab_fpath = ut.get_argval('--screengrab')
     if screengrab_fpath:
         from guitool.__PYQT__.QtGui import QPixmap
@@ -193,6 +196,7 @@ def postload_commands(ibs, back):
         #ut.embed()
         timer2 = guitool.__PYQT__.QtCore.QTimer()
         done = [1000]
+
         def delayed_screenshot_func():
             if done[0] == 500:
                 #back.mainwin.menubar.triggered.emit(back.mainwin.menuFile)

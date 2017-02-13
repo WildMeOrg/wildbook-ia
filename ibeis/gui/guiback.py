@@ -3409,6 +3409,15 @@ class MainWindowBackend(GUIBACK_BASE):
             ut.startfile(screengrab_fpath)
 
     @slot_()
+    def make_qt_graph_interface(back):
+        from ibeis.viz import viz_graph2
+        imgsetid = back.get_selected_imgsetid()
+        aids = back.ibs.get_valid_aids(imgsetid=imgsetid)
+        if len(aids) == 0:
+            raise AssertionError('Choose an imageset with annotations')
+        back.graph_iden_win = viz_graph2.make_qt_graph_interface(aids=aids, ibs=back.ibs)
+
+    @slot_()
     def reconnect_controller(back):
         back.connect_ibeis_control(back.ibs)
 

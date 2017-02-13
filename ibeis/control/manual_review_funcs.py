@@ -7,7 +7,7 @@ sh Tgen.sh --key review --invert --Tcfg with_getters=True with_setters=False --m
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six  # NOQA
-from six.moves import range, zip, map  # NOQA
+from six.moves import zip, map, reduce
 #import numpy as np
 #import vtool as vt
 import numpy as np

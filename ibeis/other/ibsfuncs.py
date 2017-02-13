@@ -4677,7 +4677,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> aids = ibs.get_valid_aids()
+        >>> aids = ibeis.testdata_aids(ibs=ibs)
         >>> prefix = ''
         >>> kwkeys = ut.parse_func_kwarg_keys(get_annot_stats_dict)
         >>> #default = True if ut.get_argflag('--all') else None
@@ -5171,6 +5171,7 @@ def get_dbname_alias(ibs):
     convinience for plots
     """
     dbname = ibs.get_dbname()
+
     return const.DBNAME_ALIAS.get(dbname, dbname)
 
 
