@@ -474,6 +474,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         export PYTHON_EXECUTABLE=$(which {pyversion})
 
         if [[ "$VIRTUAL_ENV" == ""  ]]; then
+            # If there is no virtual environment install to system
+            # TODO: add support for mac conventions
             export LOCAL_PREFIX=/usr/local
             export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/dist-packages
             export PYTHON_PACKAGES_PATH=${pypkg_var}
@@ -667,7 +669,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
 
         # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
         # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
-        DEVICE="cpu" python -c "import pygpu;pygpu.test()"
+        cd ~
+        DEVICE="cuda" python -c "import pygpu;pygpu.test()"
 
         # pip uninstall pygpu
         # ENDBLOCK
