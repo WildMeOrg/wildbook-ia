@@ -1032,10 +1032,9 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         if config['flatten']:
             result_list = [_.flatten() for _ in result_list]
         result_list = np.vstack(result_list)
-        print(result_list.shape)
         # Return tuple values
         ret_tuple = (result_list, )
-        return ret_tuple
+        yield ret_tuple
 
 
 class LabelerConfig(dtool.Config):
