@@ -907,7 +907,7 @@ class Feature2Config(dtool.Config):
     coltypes=[np.ndarray],
     configclass=Feature2Config,
     fname='featcache',
-    chunksize=8,
+    chunksize=4,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
     r"""
@@ -937,7 +937,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'algo': '_COMBINED', 'feature2_algo': 'vgg16'}
+        >>> config = {'feature2_algo': 'vgg16', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
