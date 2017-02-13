@@ -47,10 +47,10 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def init_signals_and_slots(self):
         # https://doc.qt.io/archives/qtjambi-4.5.2_01/com/trolltech/qt/core/Qt.ConnectionType.html
-        # connection_type = QtCore.Qt.AutoConnection
+        connection_type = QtCore.Qt.AutoConnection
         # connection_type = QtCore.Qt.BlockingQueuedConnection
         # connection_type = QtCore.Qt.DirectConnection
-        connection_type = QtCore.Qt.QueuedConnection
+        # connection_type = QtCore.Qt.QueuedConnection
         self.signal_graph_update.connect(self.on_graph_update, type=connection_type)
 
     def initialize(graph_widget, use_image, self_parent):
@@ -406,10 +406,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def init_signals_and_slots(self):
         # https://doc.qt.io/archives/qtjambi-4.5.2_01/com/trolltech/qt/core/Qt.ConnectionType.html
-        # connection_type = QtCore.Qt.AutoConnection
+        connection_type = QtCore.Qt.AutoConnection
         # connection_type = QtCore.Qt.BlockingQueuedConnection
         # connection_type = QtCore.Qt.DirectConnection
-        connection_type = QtCore.Qt.QueuedConnection
+        # connection_type = QtCore.Qt.QueuedConnection
         self.signal_state_update.connect(self.update_state,
                                          type=connection_type)
 
@@ -1300,12 +1300,15 @@ class EdgeAPIHelper(object):
         elif inferred_state.startswith('inconsistent'):
             state = inferred_state
         else:
-            inferred_truth = {'same': True, 'diff': False}[inferred_state]
-            name_truth = (nid1 == nid2)
-            if name_truth != inferred_truth:
-                state = 'disagree'
+            if inferred_state == 'notcomp':
+                state = 'notcomp'
             else:
-                state = 'same' if nid1 == nid2 else 'diff'
+                inferred_truth = {'same': True, 'diff': False}[inferred_state]
+                name_truth = (nid1 == nid2)
+                if name_truth != inferred_truth:
+                    state = 'disagree'
+                else:
+                    state = 'same' if nid1 == nid2 else 'diff'
 
         text_parts = []
 
@@ -1397,7 +1400,10 @@ class EdgeAPIHelper(object):
         #sibs, qaid2_cm, qaids, daids, index, qreq_=None,
         #                   thumbsize=(128, 128), match_thumbtup_cache={}):
         aid1, aid2 = edge
-        cm, aid1, aid2 = self.infr.lookup_cm(aid1, aid2)
+        try:
+            cm, aid1, aid2 = self.infr.lookup_cm(aid1, aid2)
+        except KeyError:
+            return None
         from ibeis.gui import id_review_api
         if cm is None:
             # HACK: check if a PairwiseMatch exists
