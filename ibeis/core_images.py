@@ -155,6 +155,7 @@ def draw_thumb_helper(tup):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -203,16 +204,26 @@ def compute_classifications(depc, gid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
-    config = {
-        'draw_annots' : False,
-        'thumbsize'   : (192, 192),
-    }
-    thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
-    if OLD:
-        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
-        result_list = classify_thumbnail_list(thumbnail_list)
+    if config['classifier_algo'] in ['cnn']:
+        config = {
+            'draw_annots' : False,
+            'thumbsize'   : (192, 192),
+        }
+        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
+        if OLD:
+            from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
+            result_list = classify_thumbnail_list(thumbnail_list)
+        else:
+            result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+    elif config['classifier_algo'] in ['svm']:
+        config = {
+            'algo': 'vgg16'
+        }
+        vector_list = depc.get_property('features', gid_list, 'vector', config=config)
+        pass
     else:
-        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+        raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
+
     # yield detections
     for result in result_list:
         yield result
@@ -332,7 +343,7 @@ def compute_features(depc, gid_list, config=None):
 
 class LocalizerConfig(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn']),
+        ut.ParamInfo('algo', 'yolo', valid_values=['yolo', 'ssd', 'darknet', 'rf', 'fast-rcnn', 'faster-rcnn', 'selective-search', 'selective-search-rcnn', '_COMBINED']),
         ut.ParamInfo('sensitivity', 0.0),
         ut.ParamInfo('species', 'zebra_plains'),
         ut.ParamInfo('config_filepath', None),
@@ -380,6 +391,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
+        >>> print(detects)
         >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -464,6 +476,10 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
+        >>> # config = {'algo': '_COMBINED'}
+        >>> # depc.delete_property('localizations', gid_list, config=config)
+        >>> # detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+
     """
     def package_to_numpy(key_list, result_list, score):
         temp = [
@@ -481,6 +497,7 @@ def compute_localizations(depc, gid_list, config=None):
             np.array([ _[6]   for _ in temp ]),
         )
 
+    COMBINED = False
     print('[ibs] Preprocess Localizations')
     print('config = %r' % (config,))
     # Get controller
@@ -534,13 +551,71 @@ def compute_localizations(depc, gid_list, config=None):
         print('[ibs] detecting using CNN SSD')
         detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
     ######################################################################################
+    # elif config['algo'] in ['_COMBINED']:
+    #     COMBINED = True
+
+    #     def _get_localizations(depc, gid_list, algo, config_filepath=None):
+    #         config = {'algo': algo, 'config_filepath': config_filepath}
+    #         return [
+    #             depc.get_property('localizations', gid_list, 'score',   config=config),
+    #             depc.get_property('localizations', gid_list, 'bboxes',  config=config),
+    #             depc.get_property('localizations', gid_list, 'thetas',  config=config),
+    #             depc.get_property('localizations', gid_list, 'confs',   config=config),
+    #             depc.get_property('localizations', gid_list, 'classes', config=config),
+    #         ]
+
+    #     metadata = {}
+
+    #     # Get Localizations
+    #     metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
+    #     metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
+    #     metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+
+    #     metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
+    #     metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+
+    #     metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
+    #     metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
+    #     metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
+    #     metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
+
+    #     detect_gen = None
+    #     # Get Combined
+    #     metadata['_COMBINED'] = []
+    #     for key in metadata:
+    #         if len(metadata['_COMBINED']) == 0:
+    #             # Initializing combined list, simply append
+    #             metadata['_COMBINED'] = list(metadata[key])
+    #         else:
+    #             # Combined already initialized, hstack new metadata
+    #             current = metadata['_COMBINED']
+    #             detect = metadata[key]
+    #             for index in range(len(current)):
+    #                 # print(index, current[index].shape, detect[index].shape)
+    #                 new = []
+    #                 for image in range(len(detect[index])):
+    #                     # print(current[index][image].shape, detect[index][image].shape)
+    #                     if index == 0:
+    #                         temp = 0.0
+    #                     elif len(current[index][image].shape) == 1:
+    #                         temp = np.hstack((current[index][image], detect[index][image]))
+    #                     else:
+    #                         temp = np.vstack((current[index][image], detect[index][image]))
+    #                     new.append(temp)
+    #                 metadata['_COMBINED'][index] = np.array(new)
+
+    #     results_list = list(zip(*metadata['_COMBINED']))
+    #     for results in results_list:
+    #         yield results
+    # ######################################################################################
     else:
         raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
 
-    # yield detections
-    for gid, gpath, result_list in detect_gen:
-        score = 0.0
-        yield package_to_numpy(base_key_list, result_list, score)
+    if not COMBINED:
+        # yield detections
+        for gid, gpath, result_list in detect_gen:
+            score = 0.0
+            yield package_to_numpy(base_key_list, result_list, score)
 
 
 def get_localization_chips_worker(tup):
@@ -583,9 +658,8 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
     len_list = [len(bbox_list) for bbox_list in bboxes_list]
     avg = sum(len_list) / len(len_list)
     args = (len(loc_id_list), min(len_list), avg, max(len_list), sum(len_list), )
-    print('Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)' % (args, ))
+    print('Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)' % args)
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
-    target_size_list = [target_size] * len(bboxes_list)
 
     OLD = True
     if OLD:
@@ -631,6 +705,7 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
             assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
             chip_list.append(chip)
     else:
+        target_size_list = [target_size] * len(bboxes_list)
         img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
         arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
                             target_size_list))
@@ -651,9 +726,67 @@ def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
     return gid_list_, gid_list, chip_list
 
 
+def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
+    depc = ibs.depc_image
+    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
+    assert len(gid_list_) == len(loc_id_list)
+
+    # Grab the localizations
+    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    len_list = [len(bbox_list) for bbox_list in bboxes_list]
+    avg = sum(len_list) / len(len_list)
+    args = (len(loc_id_list), min(len_list), avg, max(len_list), sum(len_list), )
+    print('Extracting %d localization masks (min: %d, avg: %0.02f, max: %d, total: %d)' % args)
+    thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
+
+    gids_list = [
+        np.array([gid] * len(bbox_list))
+        for gid, bbox_list in zip(gid_list_, bboxes_list)
+    ]
+    # Flatten all of these lists for efficiency
+    bbox_list      = ut.flatten(bboxes_list)
+    theta_list     = ut.flatten(thetas_list)
+    verts_list     = vt.geometry.scaled_verts_from_bbox_gen(bbox_list, theta_list)
+    gid_list       = ut.flatten(gids_list)
+    bbox_size_list = ut.take_column(bbox_list, [2, 3])
+    newsize_list   = [target_size] * len(bbox_list)
+
+    # Checks
+    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
+    invalid_bboxes = ut.compress(bbox_list, invalid_flags)
+    assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+
+    # Extract "masks"
+    flags = {'interpolation': cv2.INTER_LANCZOS4}
+    last_gid = None
+    mask_list = []
+    arg_list = list(zip(gid_list, newsize_list, verts_list))
+    for tup in ut.ProgIter(arg_list, lbl='computing localization masks', bs=True):
+        gid, new_size, vert_list = tup
+        if gid != last_gid:
+            img = ibs.get_image_imgdata(gid)
+            last_gid = gid
+
+        # Copy the image, mask out the patch
+        img_ = np.copy(img)
+        vert_list_ = np.array(vert_list, dtype=np.int32 )
+        cv2.fillConvexPoly(img_, vert_list_, (128, 128, 128))
+
+        # Resize the image
+        mask = cv2.resize(img_, tuple(new_size), **flags)
+        # cv2.imshow('', mask)
+        # cv2.waitKey()
+        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, target_size, )
+        assert mask.shape[0] == target_size[0] and mask.shape[1] == target_size[1], msg
+        mask_list.append(mask)
+
+    return gid_list_, gid_list, mask_list
+
+
 class Classifier2Config(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_weight_filepath', None),
+        ut.ParamInfo('classifier_masking', False, hideif=False),  # True will classify localization chip as whole-image, False will classify whole image with localization masked out.
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -690,10 +823,10 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> defaultdb = 'PZ_MTEST'
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
-        >>> gid_list = ibs.get_valid_gids()[0:100]
-        >>> depc.delete_property('labeler', gid_list)
-        >>> results = depc.get_property('labeler', gid_list, None)
-        >>> results = depc.get_property('labeler', gid_list, 'species')
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> config = {'algo': 'yolo', 'classifier_masking': True}
+        >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
     """
     print('[ibs] Process Localization Classifications')
@@ -701,8 +834,13 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
     # Get controller
     ibs = depc.controller
 
-    gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
-                                                                 target_size=(192, 192))
+    masking = config.get('classifier_masking', False)
+    if masking:
+        gid_list_, gid_list, thumbnail_list = get_localization_masks(ibs, loc_id_list,
+                                                                     target_size=(192, 192))
+    else:
+        gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
+                                                                     target_size=(192, 192))
 
     # Get the results from the algorithm
     OLD = False
@@ -724,13 +862,33 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         group_dict[gid].append(result)
     assert len(gid_list_) == len(group_dict.keys())
 
+    if masking:
+        # We need to perform a difference calculation to see how much the masking
+        # caused a deviation from the un-masked image
+        config_ = dict(config)
+        key_list = ['thumbnail_cfg', 'classifier_masking']
+        for key in key_list:
+            config_.pop(key)
+        class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
+        score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
+    else:
+        class_list_ = [None] * len(gid_list_)
+        score_list_ = [None] * len(gid_list_)
+
     # Return the results
-    for gid in gid_list_:
+    for gid, class_, score_ in zip(gid_list_, class_list_, score_list_):
         result_list = group_dict[gid]
         zipped_list = list(zip(*result_list))
+        score_list = np.array(zipped_list[0])
+        class_list = np.array(zipped_list[1])
+        if masking:
+            score_ = score_ if class_ == 'positive' else 1.0 - score_
+            score_list = score_ - score_list
+            class_list = np.array(['positive'] * len(score_list))
+        # Return tuple values
         ret_tuple = (
-            np.array(zipped_list[0]),
-            np.array(zipped_list[1]),
+            score_list,
+            class_list,
         )
         yield ret_tuple
 
