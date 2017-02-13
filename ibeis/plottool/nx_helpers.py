@@ -356,8 +356,7 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
 
     elif layout == 'agraph':
         # PREFERED LAYOUT WITH MOST CONTROL
-        _, layout_info = nx_agraph_layout(graph, verbose=verbose,
-                                          **layoutkw)
+        _, layout_info = nx_agraph_layout(graph, verbose=verbose, **layoutkw)
     else:
         raise ValueError('Undefined layout = %r' % (layout,))
     return layout_info
@@ -365,6 +364,7 @@ def get_nx_layout(graph, layout, layoutkw=None, verbose=None):
 
 def apply_graph_layout_attrs(graph, layout_info):
     import networkx as nx
+
     def noneish(v):
         isNone = v is None
         isNoneStr = isinstance(v, six.string_types) and v.lower() == 'none'
