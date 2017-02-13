@@ -581,13 +581,14 @@ class APIItemModel(API_MODEL_BASE):
                 #data = getter((row_id,), **kwargs)[0]
                 data = getter(row_id, **kwargs)
             except Exception as ex:
+                qtindex_rc = (qtindex.row(), qtindex.column())  # NOQA
                 ut.printex(
                     ex,
                     '[api_item_model] problem getting in column %r' % (col,),
-                    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex'],
+                    keys=['model.name', 'getter', 'row_id', 'col', 'qtindex',
+                          'qtindex_rc'],
                     iswarning=True
                 )
-                print('qtindex = %r' % (qtype.qindexinfo(qtindex),))
                 #getting from: %r' % ut.util_str.get_callable_name(getter))
                 raise
             model.cache[cachekey] = data
@@ -648,20 +649,30 @@ class APIItemModel(API_MODEL_BASE):
 
         #model.lazy_checks()
         if qindex.isValid():
-            node = qindex.internalPointer()
-            #<HACK>
-            if not isinstance(node, _atn.TreeNode):
-                print("WARNING: tried to access parent of %r type object" % type(node))
-                return QtCore.QModelIndex()
-            #assert node.__dict__, "node.__dict__=%r" % node.__dict__
-            #</HACK>
-            parent_node = node.get_parent()
-            parent_id = parent_node.get_id()
-            if parent_id == -1 or parent_id is None:
-                return QtCore.QModelIndex()
-            row = parent_node.get_row()
-            col = model.col_level_list.index(parent_node.get_level())
-            return model.createIndex(row, col, parent_node)
+            try:
+                node = qindex.internalPointer()
+                #<HACK>
+                if not isinstance(node, _atn.TreeNode):
+                    print("WARNING: tried to access parent of %r type object" % type(node))
+                    return QtCore.QModelIndex()
+                #assert node.__dict__, "node.__dict__=%r" % node.__dict__
+                #</HACK>
+                parent_node = node.get_parent()
+                parent_id = parent_node.get_id()
+                if parent_id == -1 or parent_id is None:
+                    return QtCore.QModelIndex()
+                row = parent_node.get_row()
+                col = model.col_level_list.index(parent_node.get_level())
+                return model.createIndex(row, col, parent_node)
+            except Exception as ex:
+                import utool
+                with utool.embed_on_exception_context:
+                    qindex_rc = (qindex.row(), qindex.column())  # NOQA
+                    ut.printex(ex, 'failed to do parenty things',
+                               keys=['qindex_rc', 'model.name'], tb=True)
+                import utool
+                utool.embed()
+                raise
         return QtCore.QModelIndex()
 
     @default_method_decorator

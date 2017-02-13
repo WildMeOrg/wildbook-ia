@@ -78,7 +78,7 @@ class TreeNode(TREE_NODE_BASE):
             return self.parent_node
         except AttributeError as ex:
             import utool as ut
-            ut.printex(ex)
+            ut.printex(ex, 'Error getting parent', tb=True)
             #print(ex)
             #print('[tree_node] dir(self)=')
             #print(dir(self))
