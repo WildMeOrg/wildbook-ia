@@ -937,21 +937,21 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'feature2_algo': 'vgg16', 'algo': '_COMBINED'}
+        >>> config = {'algo': '_COMBINED', 'feature2_algo': 'vgg16'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
         >>> config = {'feature2_algo': 'vgg19', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
         >>> config = {'feature2_algo': 'resnet', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
         >>> config = {'feature2_algo': 'inception', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
-        >>> features = depc.get_property('features', gid_list, 'vector', config=config)
+        >>> features = depc.get_property('localizations_features', gid_list, 'vector', config=config)
         >>> print(features)
     """
     from PIL import Image
@@ -963,19 +963,19 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     ibs = depc.controller
     target_size = (224, 224)
     ######################################################################################
-    if config['algo'] in ['vgg', 'vgg16']:
+    if config['feature2_algo'] in ['vgg', 'vgg16']:
         from keras.applications.vgg16 import VGG16 as MODEL_CLASS
         from keras.applications.vgg16 import preprocess_input
     ######################################################################################
-    elif config['algo'] in ['vgg19']:
+    elif config['feature2_algo'] in ['vgg19']:
         from keras.applications.vgg19 import VGG19 as MODEL_CLASS
         from keras.applications.vgg19 import preprocess_input
     ######################################################################################
-    elif config['algo'] in ['resnet']:
+    elif config['feature2_algo'] in ['resnet']:
         from keras.applications.resnet50 import ResNet50 as MODEL_CLASS  # NOQA
         from keras.applications.resnet50 import preprocess_input
     ######################################################################################
-    elif config['algo'] in ['inception']:
+    elif config['feature2_algo'] in ['inception']:
         from keras.applications.inception_v3 import InceptionV3 as MODEL_CLASS  # NOQA
         from keras.applications.inception_v3 import preprocess_input
         target_size = (299, 299)
