@@ -907,7 +907,7 @@ class Feature2Config(dtool.Config):
     coltypes=[np.ndarray],
     configclass=Feature2Config,
     fname='featcache',
-    chunksize=8,
+    chunksize=4,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
     r"""
@@ -1000,9 +1000,7 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         image_array = preprocess_input(image_array)
         return image_array
 
-    ut.embed()
-
-    thumbnail_iter = ut.ProgIter(thumbnail_list, lbl='preprocessing localization chips', bs=True)
+    thumbnail_iter = ut.ProgIter(thumbnail_list, lbl='preprocessing chips', bs=True)
     image_array = [
         _preprocess(thumbnail)
         for thumbnail in thumbnail_iter
@@ -1010,12 +1008,16 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     # Release thumbnails
     thumbnail_list = None
 
-    print('Forward inference')
-    result_list = []
-    for thumbnail in thumbnail_list:
-        # Loaded thumbnail in CV2 format, convert to PIL
-        features_ = model.predict(image_array)
-        result_list.append(features_)
+    ut.embed()
+
+    inference_iter = ut.ProgIter(image_array, lbl='forward inference', bs=True)
+    result_list = [
+        model.predict(image_array_)
+        for image_array_ in inference_iter
+    ]
+
+    # Release image_array
+    image_array = None
 
     # Group the results
     group_dict = {}
