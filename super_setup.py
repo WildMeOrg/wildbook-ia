@@ -662,8 +662,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         cd {repo_dpath}
         python setup.py build_ext -L $LOCAL_PREFIX/lib -I $LOCAL_PREFIX/include
         python setup.py build
-        python setup.py install
-        pip install -e {repo_dpath}
+        # python setup.py install
+        $_SUDO pip install -e {repo_dpath}
 
         # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
         # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
