@@ -385,7 +385,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
         tpl_rman.add_repos([
             'https://github.com/Theano/Theano.git',
             'https://github.com/lisa-lab/pylearn2.git',
-            'https://github.com/Erotemic/Lasagne.git',
+            'https://github.com/Lasagne/Lasagne.git',
+        ])
+        tpl_rman.add_repos([
+            'https://github.com/Theano/libgpuarray.git',
         ])
 
     if WITH_PYRF:
@@ -473,13 +476,14 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         if [[ "$VIRTUAL_ENV" == ""  ]]; then
             export LOCAL_PREFIX=/usr/local
             export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/dist-packages
+            export PYTHON_PACKAGES_PATH=${pypkg_var}
             export _SUDO="sudo"
         else
             export LOCAL_PREFIX=$VIRTUAL_ENV/local
             export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/site-packages
+            export PYTHON_PACKAGES_PATH=${pypkg_var}
             export _SUDO=""
         fi
-        export PYTHON_PACKAGES_PATH=${pypkg_var}
 
         echo "LOCAL_PREFIX = $LOCAL_PREFIX"
         echo "{pypkg_var} = ${pypkg_var}"
@@ -592,7 +596,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         {python_bash_setup}
         # Checkout opencv core
         cd $CODE_DIR
-        export REPO_DIR=$CODE_DIR/opencv
+        # export REPO_DIR=$CODE_DIR/opencv
+        export REPO_DIR={repo_dpath}
         # git clone https://github.com/Itseez/opencv.git
         cd $REPO_DIR
         # Checkout opencv extras
@@ -615,7 +620,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)
         make -j$NCPUS
         # ENDBLOCK
-        """).format(**script_fmtdict))
+        """).format(**script_fmtdict,
+                    repo_dpath=ut.unexpanduser(tpl_rman['cv2'].dpath)))
 
     tpl_rman['cv2'].add_script('install', ut.codeblock(
         r"""
@@ -637,6 +643,36 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         python -c "import cv2; print(cv2.xfeatures2d)"
         # ENDBLOCK
         """).format(**script_fmtdict))
+
+    tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
+        r"""
+        # STARTBLOCK bash
+        {python_bash_setup}
+        cd {repo_dpath}
+        mkdir -p {repo_dpath}/{build_dname}
+        cd {repo_dpath}/{build_dname}
+
+        # First build the C library
+        cmake {repo_dpath} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX
+        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+        make -j$NCPUS
+        $_SUDO make install
+
+        # Now build the python libarary
+        cd {repo_dpath}
+        python setup.py build_ext -L $LOCAL_PREFIX/lib -I $LOCAL_PREFIX/include
+        python setup.py build
+        python setup.py install
+        pip install -e {repo_dpath}
+
+        # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
+        # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
+        DEVICE="cpu" python -c "import pygpu;pygpu.test()"
+
+        # pip uninstall pygpu
+        # ENDBLOCK
+        """).format(**script_fmtdict,
+                    repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath)))
 
     #===================
     # PYQT SETUP SCRIPTS
@@ -763,6 +799,7 @@ def execute_commands(tpl_rman, ibeis_rman):
         dumps = [
             (tpl_rman, 'cv2', 'build'),
             (tpl_rman, 'cv2', 'install'),
+            (tpl_rman, 'libgpuarray', 'build'),
             (ibeis_rman, 'flann', 'build'),
             (ibeis_rman, 'flann', 'install'),
             (ibeis_rman, 'hesaff', 'build'),
@@ -801,6 +838,11 @@ def execute_commands(tpl_rman, ibeis_rman):
         script = ibeis_rman['flann'].get_script('build')
         script.exec_()
         script = ibeis_rman['flann'].get_script('install')
+        script.exec_()
+
+    if GET_ARGFLAG('--libgpuarray'):
+        tpl_rman['libgpuarray'].clone()
+        script = tpl_rman['libgpuarray'].get_script('build')
         script.exec_()
 
     if GET_ARGFLAG('--dcnn'):

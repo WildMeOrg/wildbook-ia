@@ -141,7 +141,7 @@ def reg_std_version_check(version, modname):
 
 reg_std_version_check('1.5.3', 'pynmea2')
 #reg_std_version_check(None, 'wget')
-reg_std_version_check(None, 'pygco')
+# reg_std_version_check(None, 'pygco')
 reg_std_version_check('6.0.8', 'pip')
 reg_std_version_check('1.1.1', 'utool')
 reg_std_version_check('0.12.3', 'skimage')
@@ -272,6 +272,7 @@ def lasagne_version():
 
 @checkinfo('4.9.1')  # 4.10.1 on windows
 def PyQt4_version():
+    # FIXME, pyqt5 is also ok
     from PyQt4 import QtCore
     return module_stdinfo_dict(QtCore, 'PYQT_VERSION_STR')
 
