@@ -155,6 +155,7 @@ def draw_thumb_helper(tup):
 
 class ClassifierConfig(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
         ut.ParamInfo('classifier_weight_filepath', None),
     ]
     _sub_config_list = [
@@ -203,16 +204,26 @@ def compute_classifications(depc, gid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
-    config = {
-        'draw_annots' : False,
-        'thumbsize'   : (192, 192),
-    }
-    thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
-    if OLD:
-        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
-        result_list = classify_thumbnail_list(thumbnail_list)
+    if config['classifier_algo'] in ['cnn']:
+        config = {
+            'draw_annots' : False,
+            'thumbsize'   : (192, 192),
+        }
+        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
+        if OLD:
+            from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
+            result_list = classify_thumbnail_list(thumbnail_list)
+        else:
+            result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+    elif config['classifier_algo'] in ['svm']:
+        config = {
+            'algo': 'vgg16'
+        }
+        vector_list = depc.get_property('features', gid_list, 'vector', config=config)
+        pass
     else:
-        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+        raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
+
     # yield detections
     for result in result_list:
         yield result
@@ -851,14 +862,18 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         group_dict[gid].append(result)
     assert len(gid_list_) == len(group_dict.keys())
 
-    # We need to perform a difference calculation to see how much the masking
-    # caused a deviation from the un-masked image
-    config_ = dict(config)
-    key_list = ['thumbnail_cfg', 'classifier_masking']
-    for key in key_list:
-        config_.pop(key)
-    class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
-    score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
+    if masking:
+        # We need to perform a difference calculation to see how much the masking
+        # caused a deviation from the un-masked image
+        config_ = dict(config)
+        key_list = ['thumbnail_cfg', 'classifier_masking']
+        for key in key_list:
+            config_.pop(key)
+        class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
+        score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
+    else:
+        class_list_ = [None] * len(gid_list_)
+        score_list_ = [None] * len(gid_list_)
 
     # Return the results
     for gid, class_, score_ in zip(gid_list_, class_list_, score_list_):

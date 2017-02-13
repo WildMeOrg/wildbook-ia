@@ -245,13 +245,17 @@ class Annots(BASE):
         aid_pairs = list(it.combinations(aids, 2))
         return aid_pairs
 
-    def get_am_rowids(self):
+    def get_am_rowids(self, internal=True):
+        """
+        if `internal is True` returns am rowids only between
+        annotations in this Annots object, otherwise returns
+        any am rowid that contains any aid in this Annots object.
+        """
         ibs = self._ibs
-        edges = self.get_aidpairs()
-        aids1 = ut.take_column(edges, 0)
-        aids2 = ut.take_column(edges, 1)
-        ams = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1, aids2)
-        ams = ut.filter_Nones(ams)
+        if internal:
+            ams = ibs.get_annotmatch_rowids_between(self.aids, self.aids)
+        else:
+            ams = ut.flatten(ibs.get_annotmatch_rowids_from_aid(self.aids))
         return ams
 
     def get_am_rowids_and_pairs(self):
