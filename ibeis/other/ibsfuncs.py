@@ -4653,6 +4653,11 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         dict: aid_stats_dict
 
     CommandLine:
+        python -m ibeis get_annot_stats_dict --db WWF_Lynx --all
+        python -m ibeis get_annot_stats_dict --db EWT_Cheetahs --all
+        python -m ibeis get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
+        python -m ibeis get_annot_stats_dict --db PZ_Master1 --all
+
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=False --old=False --per_name_vpedge=False
@@ -4839,7 +4844,8 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         truths = ibs.get_annotmatch_truth(am_rowids)
         truths = np.array(ut.replace_nones(truths, np.nan))
         match_state = ut.odict([
-            ('unknown', (truths == ibs.const.TRUTH_UNKNOWN).sum() + np.isnan(truths).sum()),
+            ('None', np.isnan(truths).sum()),
+            ('unknown', (truths == ibs.const.TRUTH_UNKNOWN).sum()),
             ('incomp', (truths == ibs.const.TRUTH_NOT_COMP).sum()),
             ('nomatch', (truths == ibs.const.TRUTH_NOT_MATCH).sum()),
             ('match', (truths == ibs.const.TRUTH_MATCH).sum()),
