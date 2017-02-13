@@ -1067,8 +1067,13 @@ class SQLDatabaseController(object):
         return db.executeone(operation, params, eager=eager, **kwargs)
 
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
-                                   unpack_scalars=True, eager=True, **kwargs):
+                                   unpack_scalars=True, eager=True,
+                                   dryrun=False, **kwargs):
         operation = operation_fmt.format(**fmtdict)
+        if dryrun:
+            print('Dry Run')
+            print(operation)
+            return
         return db.executemany(operation, params_iter, unpack_scalars=unpack_scalars,
                               eager=eager, **kwargs)
 
