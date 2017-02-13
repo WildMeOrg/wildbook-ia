@@ -659,28 +659,28 @@ def _get_all_localizations(depc, gid_list, **kwargs):
 
     # Get Localizations
     if limited:
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal', **kwargs)
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
     else:
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal', **kwargs)
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal', **kwargs)
-        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal', **kwargs)
+        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
+        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
 
     # metadata['SS1']    = _get_localizations(depc, gid_list, 'selective-search', **kwargs)
     # metadata['SS2']    = _get_localizations(depc, gid_list, 'selective-search-rcnn', **kwargs)
 
     if limited:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal', **kwargs)
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
     else:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal', **kwargs)
-        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal', **kwargs)
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
+        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
 
     if limited:
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus', **kwargs)
+        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
     else:
-        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal', **kwargs)
-        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal', **kwargs)
-        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus', **kwargs)
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus', **kwargs)
+        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
+        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
+        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
+        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
 
     # Get Combined
     metadata['COMBINED'] = []
@@ -789,14 +789,43 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
             for confidence_list in confidences_list
         ]
 
-    conf_thresh = kwargs.get('conf_thresh', 0.0)
-    if conf_thresh > 0.0:
+    # Filter by confidence or index
+    if kwargs.get('thresh', False):
+        conf_thresh = kwargs.get('conf_thresh', 0.0)
+        index_thresh = kwargs.get('index_thresh', np.inf)
         print('Filtering with conf_thresh = %0.02f' % (conf_thresh, ))
+        print('Filtering with index_thresh = %s' % (index_thresh, ))
+        count_old = 0
+        count_new = 0
+        keeps_list_ = []
+        for confidence_list, keep_list in zip(confidences_list, keeps_list):
+            temp_list = []
+            count_old += keep_list.count(True)
+            for index, (conf, keep) in enumerate(zip(confidence_list, keep_list)):
+                keep = keep and conf >= conf_thresh and index < index_thresh
+                temp_list.append(keep)
+            count_new += temp_list.count(True)
+            keeps_list_.append(temp_list)
+        count_diff = count_old - count_new
+        args = (count_old, count_new, count_diff, 100.0 * count_diff / count_old, )
+        print('[thresh] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
+        # Alias
+        keeps_list = keeps_list_
+
     # species_set = kwargs.get('species_set', None)
     size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
-    zipped = zip(keeps_list, confidences_list, size_list, zipped_list)
+    zipped = zip(confidences_list, keeps_list, size_list, zipped_list)
+
+    def _compile(confidence_list_, keep_list_, zipped_):
+        zipped = zip(confidence_list_, keep_list_, *zipped_[0][1:])
+        zipped = list(zipped)
+        temp_list = [ (_[0], index) for index, _ in enumerate(zipped) ]
+        temp_list = sorted(temp_list, reverse=True)
+        index_list = [ _[1] for _ in temp_list ]
+        return ut.take(zipped, index_list)
+
     results_list = [
         [
             {
@@ -811,11 +840,11 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
                 # 'class'      : class_,
                 'species'    : class_,
             }
-            for keep_, conf_, bbox, theta, conf, class_ in zip(keep_list_, confidence_list_, *zipped_[0][1:])
-            if keep_ and conf_ >= conf_thresh
+            for conf_, keep_, bbox, theta, conf, class_ in _compile(confidence_list_, keep_list_, zipped_)
+            if keep_
             # if species_set is None or class_ in species_set
         ]
-        for keep_list_, confidence_list_, (width, height), zipped_ in zipped
+        for confidence_list_, keep_list_, (width, height), zipped_ in zipped
     ]
 
     pred_dict = {
@@ -1005,16 +1034,16 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'SS1', 'algo': 'selective-search', 'grid': False, 'species_set' : set(['zebra'])},
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : set(['zebra'])},
 
-        {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
-        {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        {'label': 'YOLO1^', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'classifier_masking': True},
-        {'label': 'YOLO1^ 0.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.0, 'classifier_masking': True},
-        {'label': 'YOLO1^ 0.1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.1, 'classifier_masking': True},
-        {'label': 'YOLO1^ 0.3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.3, 'classifier_masking': True},
-        {'label': 'YOLO1^ 0.5', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.5, 'classifier_masking': True},
-        {'label': 'YOLO1^ 0.7', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.7, 'classifier_masking': True},
-        {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.9, 'classifier_masking': True},
-        {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 1.0, 'classifier_masking': True},
+        # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
+        # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True},
+        # {'label': 'YOLO1^', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.0, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.1, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.3, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.5', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.5, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.7', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.7, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.9, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
         # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
         # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra'])},
@@ -1025,8 +1054,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : set(['zebra'])},
         # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra'])},
-        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
-        # {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1},
+        {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
+        {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
+        {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 1000},
+        {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 1000},
+
+        {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1},
+        {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
+        {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
 
         # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'limited': True},
         # {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'limited': True},

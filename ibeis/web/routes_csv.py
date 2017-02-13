@@ -69,7 +69,7 @@ def get_image_info():
             contributor_list.append('UNKNOWN')
 
     zipped_list = zip(gid_list, gname_list, datetime_list_, lat_list, lon_list,
-                      party_list, contributor_list)
+                      party_list, contributor_list, note_list)
     aids_list = ibs.get_image_aids(gid_list)
     names_list = [ ibs.get_annot_name_texts(aid_list) for aid_list in aids_list ]
     combined_list = [
@@ -84,7 +84,7 @@ def get_image_info():
     else:
         name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
     combined_str = '\n'.join(combined_list)
-    combined_str = 'GID,FILENAME,TIMESTAMP,GPSLAT,GPSLON,PARTY,CONTRIBUTOR,%s\n' % (name_header_str, ) + combined_str
+    combined_str = 'GID,FILENAME,TIMESTAMP,GPSLAT,GPSLON,PARTY,CONTRIBUTOR,NOTES,%s\n' % (name_header_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 

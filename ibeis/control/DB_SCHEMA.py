@@ -1430,8 +1430,9 @@ def update_1_6_0(db, ibs=None):
 
 
 def update_1_6_1(db, ibs=None):
-    assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-        'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    # if ibs is not None:
+    #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
+    #         'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
     db.modify_table(
         'annotmatch',
         colmap_list=[
@@ -1445,11 +1446,12 @@ def post_1_6_1(db, ibs=None, verbose=False):
     ams = db.get_where_eq('annotmatch', colnames=('annotmatch_rowid',),
                           params_iter=[(2,)], unpack_scalars=False,
                           where_colnames=('annotmatch_truth',))[0]
-    print('No-Op, but would deleting %d old unknown values' % (len(ams)))
-    assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-        'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
-    if False:
-        db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
+    print('Setting %d old unknown values to NULL' % (len(ams)))
+    # if ibs is not None:
+    #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
+    #         'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    # if False:
+    db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
 
 # ========================
 # Valid Versions & Mapping
