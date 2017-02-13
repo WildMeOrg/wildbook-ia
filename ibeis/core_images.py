@@ -390,7 +390,6 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> print(detects)
         >>> config = {'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal'}
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
@@ -478,7 +477,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> # config = {'algo': '_COMBINED'}
         >>> # depc.delete_property('localizations', gid_list, config=config)
         >>> # detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-
+        >>> # print(detects)
     """
     def package_to_numpy(key_list, result_list, score):
         temp = [
@@ -894,7 +893,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
 
 class Feature2Config(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
+        ut.ParamInfo('feature2_algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
         ut.ParamInfo('flatten', True),
     ]
     _sub_config_list = [
@@ -938,19 +937,19 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         >>> depc = ibs.depc_image
         >>> print(depc.get_tablenames())
         >>> gid_list = ibs.get_valid_gids()[:16]
-        >>> config = {'algo': 'vgg16'}
+        >>> config = {'feature2_algo': 'vgg16', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'algo': 'vgg19'}
+        >>> config = {'feature2_algo': 'vgg19', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'algo': 'resnet'}
+        >>> config = {'feature2_algo': 'resnet', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
-        >>> config = {'algo': 'inception'}
+        >>> config = {'feature2_algo': 'inception', 'algo': '_COMBINED'}
         >>> depc.delete_property('localizations_features', gid_list, config=config)
         >>> features = depc.get_property('features', gid_list, 'vector', config=config)
         >>> print(features)
