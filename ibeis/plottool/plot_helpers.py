@@ -138,6 +138,26 @@ def qt4ensure():
         #IPython.get_ipython().magic('pylab qt4')
         IPython.get_ipython().magic('pylab qt4 --no-import-all')
 
+def qtensure():
+    import guitool as gt
+    if ut.inIPython():
+        import IPython
+        if gt.__PYQT__.GUITOOL_PYQT_VERSION == 5:
+            """
+            sudo apt-get install python3-pyqt5.qtsvg
+            """
+            # import os
+            # os.environ['QT_API'] = 'pyqt5'
+            # import matplotlib
+            # matplotlib.use('Qt5Agg')
+            import IPython
+            # IPython.get_ipython().magic('matplotlib qt5')
+            #IPython.get_ipython().magic('pylab qt4')
+            IPython.get_ipython().magic('pylab qt5 --no-import-all')
+        else:
+            #IPython.get_ipython().magic('pylab qt4')
+            IPython.get_ipython().magic('pylab qt4 --no-import-all')
+
 
 ensure_pylab_qt4 = qt4ensure
 
