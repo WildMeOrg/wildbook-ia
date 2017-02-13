@@ -476,10 +476,17 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         if [[ "$VIRTUAL_ENV" == ""  ]]; then
             # If there is no virtual environment install to system
             # TODO: add support for mac conventions
-            export LOCAL_PREFIX=/usr/local
-            export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/dist-packages
-            export PYTHON_PACKAGES_PATH=${pypkg_var}
-            export _SUDO="sudo"
+            if [[ '$OSTYPE' == 'darwin'* ]]; then
+                export LOCAL_PREFIX=/opt/local
+                export {pypkg_var}=$($PYTHON_EXECUTABLE -c "import site; print(site.getsitepackages()[0])")
+                export PYTHON_PACKAGES_PATH=${pypkg_var}
+                export _SUDO="sudo"
+            else
+                export LOCAL_PREFIX=/usr/local
+                export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/dist-packages
+                export PYTHON_PACKAGES_PATH=${pypkg_var}
+                export _SUDO="sudo"
+            fi
         else
             export LOCAL_PREFIX=$VIRTUAL_ENV/local
             export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/site-packages
