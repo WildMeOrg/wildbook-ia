@@ -243,7 +243,7 @@ class FeatureConfig(dtool.Config):
     colnames=['vector'],
     coltypes=[np.ndarray],
     configclass=FeatureConfig,
-    fname='detectcache',
+    fname='featcache',
     chunksize=256,
 )
 def compute_features(depc, gid_list, config=None):
@@ -906,7 +906,7 @@ class Feature2Config(dtool.Config):
     colnames=['vector'],
     coltypes=[np.ndarray],
     configclass=Feature2Config,
-    fname='detectcache',
+    fname='featcache',
     chunksize=128,
 )
 def compute_localizations_features(depc, loc_id_list, config=None):
