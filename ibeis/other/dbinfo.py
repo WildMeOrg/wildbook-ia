@@ -1029,6 +1029,10 @@ def get_dbinfo(ibs, verbose=True,
     Returns:
         dict:
 
+    SeeAlso:
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --use-hist=True --old=False --per_name_vpedge=False
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_PB_RF_TRAIN --all
+
     CommandLine:
         python -m ibeis.other.dbinfo --exec-get_dbinfo:0
         python -m ibeis.other.dbinfo --test-get_dbinfo:1

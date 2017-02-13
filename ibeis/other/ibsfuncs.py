@@ -4663,6 +4663,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --per_name_vpedge=True
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_ALL --min_name_hourdist=True --all
+        python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db GZ_Master1 --all
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db PZ_Master1 --min_name_hourdist=True --all
         python -m ibeis.other.ibsfuncs --exec-get_annot_stats_dict --db NNP_MasterGIRM_core --min_name_hourdist=True --all
 
@@ -4832,6 +4833,20 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
     if kwargs.pop('match_tag_hist', False or forceall):
         keyval_list += [
             (prefix + 'match_tags', ut.dict_hist(ut.flatten(ibs.get_annot_annotmatch_tags(aids))))]
+
+    if kwargs.pop('match_state', False or forceall):
+        am_rowids = annots.get_am_rowids(internal=True)
+        truths = ibs.get_annotmatch_truth(am_rowids)
+        truths = np.array(ut.replace_nones(truths, np.nan))
+        match_state = ut.odict([
+            ('unknown', (truths == ibs.const.TRUTH_UNKNOWN).sum() + np.isnan(truths).sum()),
+            ('incomp', (truths == ibs.const.TRUTH_NOT_COMP).sum()),
+            ('nomatch', (truths == ibs.const.TRUTH_NOT_MATCH).sum()),
+            ('match', (truths == ibs.const.TRUTH_MATCH).sum()),
+        ])
+        keyval_list += [
+            (prefix + 'match_state', match_state)
+        ]
 
     if kwargs.pop('min_name_hourdist', False or forceall):
         grouped_aids = ibs.group_annots_by_name(aids)[0]
