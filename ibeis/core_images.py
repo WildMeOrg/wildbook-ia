@@ -329,7 +329,8 @@ def compute_features(depc, gid_list, config=None):
     # Build model
     model = MODEL_CLASS(include_top=False)
 
-    for thumbpath in thumbpath_list:
+    thumbpath_iter = ut.ProgIter(thumbpath_list, lbl='forward inference', bs=True)
+    for thumbpath in thumbpath_iter:
         image = preprocess_image.load_img(thumbpath, target_size=target_size)
         image_array = preprocess_image.img_to_array(image)
         image_array = np.expand_dims(image_array, axis=0)
