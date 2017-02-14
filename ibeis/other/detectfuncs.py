@@ -391,7 +391,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
 
-def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_limit=0.9):
+def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_limit=0.90):
     best_length = np.inf
     best_conf_list = []
     best_x_list = []
@@ -418,7 +418,7 @@ def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_
     return best_conf_list, best_x_list, best_y_list
 
 
-def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b', invert=False, x_limit=0.9, **kwargs):
+def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b', invert=False, x_limit=0.90, **kwargs):
     import matplotlib.pyplot as plt
     best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
     best_conf = best_conf_list[0]
@@ -740,11 +740,17 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         val = min(1.0, max(0.0, val))
         return val
 
-    # Get confidences for boxes
+    # Establish primitives
     confidences_list = [
         result_list[3]
         for result_list in results_list
     ]
+    keeps_list = [
+        [True] * len(confidence_list)
+        for confidence_list in confidences_list
+    ]
+
+    # Get new confidences for boxes
     if kwargs.get('classify', False):
         # Get the new confidences
         if kwargs.get('algo', None) == '_COMBINED':
@@ -783,14 +789,9 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         count_diff = count_old - count_new
         args = (count_old, count_new, count_diff, 100.0 * count_diff / count_old, )
         print('[nms] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
-    else:
-        keeps_list = [
-            [True] * len(confidence_list)
-            for confidence_list in confidences_list
-        ]
 
     # Filter by confidence or index
-    if kwargs.get('thresh', False):
+    if kwargs.get('post-thresh', False):
         conf_thresh = kwargs.get('conf_thresh', 0.0)
         index_thresh = kwargs.get('index_thresh', np.inf)
         print('Filtering with conf_thresh = %0.02f' % (conf_thresh, ))
@@ -801,7 +802,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         for confidence_list, keep_list in zip(confidences_list, keeps_list):
             temp_list = []
             count_old += keep_list.count(True)
-            for index, (conf, keep) in enumerate(zip(confidence_list, keep_list)):
+            zipped = list(zip(confidence_list, keep_list))
+            for index, (conf, keep) in enumerate(sorted(zipped, reverse=True)):
                 keep = keep and conf >= conf_thresh and index < index_thresh
                 temp_list.append(keep)
             count_new += temp_list.count(True)
@@ -822,7 +824,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         zipped = zip(confidence_list_, keep_list_, *zipped_[0][1:])
         zipped = list(zipped)
         temp_list = [ (_[0], index) for index, _ in enumerate(zipped) ]
-        temp_list = sorted(temp_list, reverse=True)
+        # temp_list = sorted(temp_list, reverse=True)
         index_list = [ _[1] for _ in temp_list ]
         return ut.take(zipped, index_list)
 
@@ -1046,23 +1048,39 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
         # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
-        # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : set(['zebra'])},
-        # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : set(['zebra'])},
+        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : set(['zebra'])},
-        # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra'])},
-        {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
-        {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
-        {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 1000},
-        {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 1000},
+        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra'])},
 
-        {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1},
-        {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
-        {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
+        # {'label': 'COMBINED` 1000', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED` 500', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED` 100', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 100},
+        # {'label': 'COMBINED` 50', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 50},
+        # {'label': 'COMBINED` 10', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 10},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
+
+        # {'label': 'COMBINED`* 1000', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED`* 500', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`* 100', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 100},
+        # {'label': 'COMBINED`* 50', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 50},
+        # {'label': 'COMBINED`* 10', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 10},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+
+        {'label': 'COMBINED`5* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
+        {'label': 'COMBINED`10* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 500},
+
+        # {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1},
+        # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
 
         # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'limited': True},
         # {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'limited': True},
@@ -1885,17 +1903,11 @@ def detector_metric_graphs(ibs, species_list=[]):
     ibs.detector_precision_recall_algo_display()
 
 
-@register_ibs_method
-def classifier_train_svm(ibs, species_list):
-    from sklearn import svm
-    # import pickle
-
-    # Load data
-    print('Loading pre-trained features for images')
+def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
     depc = ibs.depc_image
-    train_gid_set = general_get_imageset_gids(ibs, 'TRAIN_SET')
+    train_gid_set = general_get_imageset_gids(ibs, dataset_tag)
     config = {
-        'algo': 'vgg16',
+        'algo': 'resnet',
     }
     data_list = depc.get_property('features', train_gid_set, 'vector', config=config)
     data_list = np.array(data_list)
@@ -1914,14 +1926,102 @@ def classifier_train_svm(ibs, species_list):
     ]
     label_list = np.array(label_list)
 
+    # Return values
+    return train_gid_set, data_list, label_list
+
+
+@register_ibs_method
+def classifier_train_svm(ibs, species_list, output_path=None):
+    from sklearn import svm
+
+    # Load data
+    print('Loading pre-trained features for images')
+
+    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
+    train_gid_set, data_list, label_list = vals
+
     print('Train SVM model using features and target labels')
     # Train new model using data and labels
     model = svm.SVC()
     model.fit(data_list, label_list)
 
-    # pickle.dumps(model)
-    # clf2 = pickle.loads(s)
-    # clf2.predict(X[0:1])
+    # Save model pickle
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    species_list_str = '.'.join(species_list)
+    output_filepath = join(output_path, 'classifier.svm.%s.pkl' % (species_list_str, ))
+    ut.save_cPkl(output_filepath, model)
+
+    # Load model pickle
+    model_ = ut.load_cPkl(output_filepath)
+
+    # Test accuracy
+    vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
+    train_gid_set, data_list, label_list = vals
+    label_list_ = model_.predict(data_list)
+    score_list_ = model_.decision_function(data_list)  # NOQA
+    tp, tn, fp, fn = 0, 0, 0, 0
+    for label_, label in zip(label_list_, label_list):
+        if label == 1 and label == label_:
+            tp += 1
+        elif label == 0 and label == label_:
+            tn += 1
+        elif label == 1 and label != label_:
+            fn += 1
+        elif label == 0 and label != label_:
+            fp += 1
+        else:
+            raise ValueError
+
+    pos, neg = tp + fn, tn + fp
+    correct = tp + tn
+    total = tp + tn + fp + fn
+    accuracy = correct / total
+    print('Accuracy: %0.02f' % (accuracy, ))
+    print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
+    print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
+    print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
+    print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+
+
+@register_ibs_method
+def classifier_get_training_localizations(ibs, species_list, model_path=None,
+                                          limit=10):
+    # Get default model file
+    if model_path is None:
+        model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    species_list_str = '.'.join(species_list)
+    model_path = join(model_path, 'classifier.svm.%s.pkl' % (species_list_str, ))
+
+    # Load model pickle
+    model = ut.load_cPkl(model_path)
+
+    ut.embed()
+
+    # Get scores
+    vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
+    train_gid_set, data_list, label_list = vals
+    score_list_ = model.decision_function(data_list)  # NOQA
+
+    # Extract gids of interest
+    comb_list = sorted(list(zip(score_list_, train_gid_set)), reverse=True)
+    comb_list = comb_list[:limit]
+    test_gid_list = [_[1] for _ in comb_list]
+
+    print('\tGather Ground-Truth')
+    config = {
+        'algo'         : '_COMBINED',
+        'species_set'  : set(['zebra']),
+        'classify'     : True,
+        'nms'          : True,
+        'nms_thresh'   : 0.1,
+        'thresh'       : True,
+        'index_thresh' : 500,
+    },
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **config)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **config)
 
 
 @register_ibs_method
