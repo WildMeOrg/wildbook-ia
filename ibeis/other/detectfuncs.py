@@ -835,11 +835,11 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     # Reformat results for json
     zipped = zip(confidences_list, keeps_list, features_list, size_list, zipped_list)
 
-    def _compile(confidence_list_, keep_list_, zipped_):
-        zipped = zip(confidence_list_, keep_list_, *zipped_[0][1:])
+    def _compile(confidence_list_, keep_list_, feature_list_, zipped_):
+        zipped = zip(confidence_list_, keep_list_, feature_list_, *zipped_[0][1:])
         zipped = list(zipped)
         temp_list = [ (_[0], index) for index, _ in enumerate(zipped) ]
-        # temp_list = sorted(temp_list, reverse=True)
+        temp_list = sorted(temp_list, reverse=True)
         index_list = [ _[1] for _ in temp_list ]
         return ut.take(zipped, index_list)
 
