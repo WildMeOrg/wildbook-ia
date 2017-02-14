@@ -25,6 +25,9 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
+SAMPLES = 1000
+
+
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
@@ -350,7 +353,7 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
 #     plt.show()
 
 
-def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=10000, **kwargs):
+def general_precision_recall_algo(ibs, label_list, confidence_list, category='positive', samples=SAMPLES, **kwargs):
     def errors(zipped, conf):
         error_list = [0, 0, 0, 0]
         for index, (label, confidence) in enumerate(zipped):
@@ -639,6 +642,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_masking=False, **kwargs):
     config1 = {'algo': algo, 'config_filepath': config_filepath}
     config2 = {'algo': algo, 'config_filepath': config_filepath, 'classifier_masking': classifier_masking}
+    config3 = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
     # depc.delete_property('localizations_classifier', gid_list, config=config)
     return [
         depc.get_property('localizations', gid_list, 'score',   config=config1),
@@ -648,6 +652,7 @@ def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_ma
         depc.get_property('localizations', gid_list, 'classes', config=config1),
         depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
         depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
+        depc.get_property('localizations_features', gid_list, 'vector', config=config3),
     ]
 
 
@@ -710,6 +715,7 @@ def _get_all_localizations(depc, gid_list, **kwargs):
         list(zip(*metadata['COMBINED'][:5])),
         metadata['COMBINED'][5],
         metadata['COMBINED'][6],
+        metadata['COMBINED'][7],
     ]
 
     return metadata
@@ -729,17 +735,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     else:
         results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
 
-    def _compute_conf(conf, pred_, conf_):
-        conf_ = conf_ if pred_ == 'positive' else 1.0 - conf_
-        p = kwargs.get('p', None)
-        if p is None:
-            conf_ = max(0.0, conf_)
-            val = conf_ * conf
-        else:
-            val = p * conf_ + (1.0 - p) * conf
-        val = min(1.0, max(0.0, val))
-        return val
-
     # Establish primitives
     confidences_list = [
         result_list[3]
@@ -749,9 +744,36 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         [True] * len(confidence_list)
         for confidence_list in confidences_list
     ]
+    features_list = [
+        [None] * len(confidence_list)
+        for confidence_list in confidences_list
+    ]
+
+    # Get features
+    if kwargs.get('features', False):
+        if kwargs.get('algo', None) == '_COMBINED':
+            # metadata = _get_all_localizations(depc, test_gid_list)  # ALREADY HAVE METADATA
+            features_list = metadata['COMBINED'][3]
+        else:
+            algo = kwargs.get('algo', None)
+            config_filepath = kwargs.get('config_filepath', None)
+            config_ = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
+            features_list = depc.get_property('localizations_features', test_gid_list, 'vector', config=config_)
 
     # Get new confidences for boxes
     if kwargs.get('classify', False):
+
+        def _compute_conf(conf, pred_, conf_):
+            conf_ = conf_ if pred_ == 'positive' else 1.0 - conf_
+            p = kwargs.get('p', None)
+            if p is None:
+                conf_ = max(0.0, conf_)
+                val = conf_ * conf
+            else:
+                val = p * conf_ + (1.0 - p) * conf
+            val = min(1.0, max(0.0, val))
+            return val
+
         # Get the new confidences
         if kwargs.get('algo', None) == '_COMBINED':
             # metadata = _get_all_localizations(depc, test_gid_list)  # ALREADY HAVE METADATA
@@ -818,7 +840,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
-    zipped = zip(confidences_list, keeps_list, size_list, zipped_list)
+    zipped = zip(confidences_list, keeps_list, features_list, size_list, zipped_list)
 
     def _compile(confidence_list_, keep_list_, zipped_):
         zipped = zip(confidence_list_, keep_list_, *zipped_[0][1:])
@@ -841,12 +863,13 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
                 'confidence' : conf_,   # round(conf, 4),
                 # 'class'      : class_,
                 'species'    : class_,
+                'feature'    : feature_,
             }
-            for conf_, keep_, bbox, theta, conf, class_ in _compile(confidence_list_, keep_list_, zipped_)
+            for conf_, keep_, feature_, bbox, theta, conf, class_ in _compile(confidence_list_, keep_list_, feature_list_, zipped_)
             if keep_
             # if species_set is None or class_ in species_set
         ]
-        for confidence_list_, keep_list_, (width, height), zipped_ in zipped
+        for confidence_list_, keep_list_, feature_list_, (width, height), zipped_ in zipped
     ]
 
     pred_dict = {
@@ -856,7 +879,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     return pred_dict
 
 
-def localizer_precision_recall_algo(ibs, samples=500, force_serial=True, **kwargs):
+def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=True, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -1021,6 +1044,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
+    species_set = set(['zebra'])
+
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
         # {'label': 'V1 (GRID)',      'grid' : True,  'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -1033,95 +1058,96 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
-        # {'label': 'SS1', 'algo': 'selective-search', 'grid': False, 'species_set' : set(['zebra'])},
-        # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : set(['zebra'])},
+        # {'label': 'SS1', 'algo': 'selective-search', 'grid': False, 'species_set' : species_set},
+        # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
-        # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
-        # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'YOLO1^', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 0.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.0, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 0.1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.1, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 0.3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.3, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 0.5', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.5, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 0.7', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.7, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.9, 'classifier_masking': True},
-        # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True, 'p': 1.0, 'classifier_masking': True},
+        # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
+        # {'label': 'YOLO1^', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.0, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.1, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.3, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.5', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.5, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.7', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.7, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.9, 'classifier_masking': True},
+        # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
-        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra'])},
-        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra'])},
-        # # {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : set(['zebra'])},
-        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : set(['zebra'])},
-        # # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : set(['zebra'])},
-        # # {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : set(['zebra'])},
-        # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : set(['zebra'])},
-        # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : set(['zebra'])},
-        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra'])},
+        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set},
+        # # {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
+        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        # # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
+        # # {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
+        # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
+        # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
+        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        # {'label': 'COMBINED` 1000', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 1000},
-        # {'label': 'COMBINED` 500', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED` 100', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 100},
-        # {'label': 'COMBINED` 50', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 50},
-        # {'label': 'COMBINED` 10', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 10},
-        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
+        # {'label': 'COMBINED` 1000', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED` 500', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED` 100', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 100},
+        # {'label': 'COMBINED` 50', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 50},
+        # {'label': 'COMBINED` 10', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 10},
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
-        # {'label': 'COMBINED`* 1000', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 1000},
-        # {'label': 'COMBINED`* 500', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`* 100', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 100},
-        # {'label': 'COMBINED`* 50', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 50},
-        # {'label': 'COMBINED`* 10', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 10},
-        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+        # {'label': 'COMBINED`* 1000', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED`* 500', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`* 100', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 100},
+        # {'label': 'COMBINED`* 50', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 50},
+        # {'label': 'COMBINED`* 10', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 10},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
 
-        {'label': 'COMBINED`5* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
-        {'label': 'COMBINED`10* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
-        # {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`5* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`10* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
 
-        # {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1},
-        # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
-        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
+        # {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 500},
 
-        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'limited': True},
-        # {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'limited': True},
+        # {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1},
+        # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
-        # {'label': 'COMBINED !0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'conf_thresh': 0.1},
-        # {'label': 'COMBINED !0.5', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'conf_thresh': 0.5},
-        # {'label': 'COMBINED !0.9', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'conf_thresh': 0.9},
-        # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
-        # {'label': 'COMBINED ~0.5', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.5},
-        # {'label': 'COMBINED ~0.9', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.9},
+        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : species_set, 'limited': True},
+        # {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'limited': True},
 
-        # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # # {'label': 'YOLO3*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # # {'label': 'FRCNN2*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # # {'label': 'SSD1*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # # {'label': 'SSD2*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : set(['zebra']), 'classify': True},
-        # # {'label': 'SSD3*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'SSD4*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
-        # {'label': 'COMBINED* !0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'conf_thresh': 0.1},
-        # {'label': 'COMBINED* !0.5', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'conf_thresh': 0.5},
-        # {'label': 'COMBINED* !0.9', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'conf_thresh': 0.9},
-        # {'label': 'COMBINED* ~0.01', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.01},
-        # {'label': 'COMBINED* ~0.05', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.05},
-        # {'label': 'COMBINED* ~0.5', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.5},
-        # {'label': 'COMBINED* ~0.9', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.9},
+        # {'label': 'COMBINED !0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'conf_thresh': 0.1},
+        # {'label': 'COMBINED !0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'conf_thresh': 0.5},
+        # {'label': 'COMBINED !0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'conf_thresh': 0.9},
+        # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1},
+        # {'label': 'COMBINED ~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.5},
+        # {'label': 'COMBINED ~0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.9},
 
-        # {'label': 'COMBINED 0.0', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.0},
-        # {'label': 'COMBINED 0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.1},
-        # {'label': 'COMBINED 0.2', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.2},
-        # {'label': 'COMBINED 0.3', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.3},
-        # {'label': 'COMBINED 0.4', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.4},
-        # {'label': 'COMBINED 0.5', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.5},
-        # {'label': 'COMBINED 0.6', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.6},
-        # {'label': 'COMBINED 0.7', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.7},
-        # {'label': 'COMBINED 0.8', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.8},
-        # {'label': 'COMBINED 0.9', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 0.9},
-        # {'label': 'COMBINED 1.0', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'p': 1.0},
-        # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+        # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
+        # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'YOLO3*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set, 'classify': True},
+        # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'FRCNN2*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'SSD1*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'SSD2*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'SSD3*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set, 'classify': True},
+        # {'label': 'SSD4*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set, 'classify': True},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
+        # {'label': 'COMBINED* !0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'conf_thresh': 0.1},
+        # {'label': 'COMBINED* !0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'conf_thresh': 0.5},
+        # {'label': 'COMBINED* !0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'conf_thresh': 0.9},
+        # {'label': 'COMBINED* ~0.01', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.01},
+        # {'label': 'COMBINED* ~0.05', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.05},
+        # {'label': 'COMBINED* ~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.5},
+        # {'label': 'COMBINED* ~0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.9},
+
+        # {'label': 'COMBINED 0.0', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.0},
+        # {'label': 'COMBINED 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.1},
+        # {'label': 'COMBINED 0.2', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.2},
+        # {'label': 'COMBINED 0.3', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.3},
+        # {'label': 'COMBINED 0.4', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.4},
+        # {'label': 'COMBINED 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.5},
+        # {'label': 'COMBINED 0.6', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.6},
+        # {'label': 'COMBINED 0.7', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.7},
+        # {'label': 'COMBINED 0.8', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.8},
+        # {'label': 'COMBINED 0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 0.9},
+        # {'label': 'COMBINED 1.0', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'p': 1.0},
+        # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     ]
 
     color_list = pt.distinct_colors(len(config_list), randomize=False)
@@ -1142,7 +1168,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     best_config = config_list[index]
     best_area = area_list[index]
     best_conf = conf_list[index]
-    plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
+    # plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
+    plt.title('Precision-Recall Curves (Zebra Only)', y=1.13)
 
     # Display graph of the overall highest area
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -1159,8 +1186,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
                                                            **best_config)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    args = (best_label, best_conf, )
-    plt.title('P-R Confusion Matrix for Highest mAP\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    args = (best_area, best_label, best_conf, )
+    plt.title('Confusion Matrix for Highest mAP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # Show best that is greater than the best_pr
     best_index = None
@@ -1170,7 +1197,12 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     tup_list  = [ ret[2] for ret in ret_list ]
     for index, tup in enumerate(tup_list):
         for conf, re, pr in zip(*tup):
-            if pr > best_pr:
+            # if pr > best_pr:
+            #     best_index = index
+            #     best_conf = conf
+            #     best_pr = pr
+            #     best_re = re
+            if re > best_re:
                 best_index = index
                 best_conf = conf
                 best_pr = pr
@@ -1194,8 +1226,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
                                                                **best_config)
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
-        args = (min_recall, best_label, best_conf, )
-        plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+        # args = (min_recall, best_label, best_conf, )
+        # plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+        args = (best_re, best_label, best_conf, )
+        plt.title('Confusion Matrix for Highest Recall %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # plt.show()
     fig_filename = 'localizer-precision-recall-%0.2f.png' % (min_overlap, )
@@ -1339,7 +1373,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def labeler_tp_tn_fp_fn(ibs, category_list, samples=10000, **kwargs):
+def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
     # from ibeis.algo.detect.labeler.model import label_list as category_list
 
     def labeler_tp_tn_fp_fn_(zipped, conf, category):
@@ -1653,7 +1687,7 @@ def detector_parse_pred(ibs, test_gid_list=None, **kwargs):
     return pred_dict
 
 
-def detector_precision_recall_algo(ibs, samples=1000, force_serial=True, **kwargs):
+def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=True, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -1986,7 +2020,8 @@ def classifier_train_svm(ibs, species_list, output_path=None):
 
 @register_ibs_method
 def classifier_get_training_localizations(ibs, species_list, model_path=None,
-                                          limit=10):
+                                          limit=10, min_overlap=0.25):
+    import random
     # Get default model file
     if model_path is None:
         model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
@@ -1995,8 +2030,6 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
 
     # Load model pickle
     model = ut.load_cPkl(model_path)
-
-    ut.embed()
 
     # Get scores
     vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
@@ -2012,6 +2045,8 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
     config = {
         'algo'         : '_COMBINED',
         'species_set'  : set(species_list),
+        # 'features'     : True,
+        'features'     : False,
         'classify'     : True,
         'nms'          : True,
         'nms_thresh'   : 0.1,
@@ -2022,6 +2057,36 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
 
     print('\tGather Predictions')
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **config)
+
+    pos_list = []
+    neg_list = []
+    for image_uuid in gt_dict:
+        gt_list = gt_dict[image_uuid]
+        gt_list_ = [random.choice(gt_list)]
+        pred_list = pred_dict[image_uuid]
+
+        overlap = general_overlap(gt_list_, pred_list)
+        num_gt, num_pred = overlap.shape
+
+        if num_gt == 0 or num_pred == 0:
+            continue
+        else:
+            pos_idx_list = np.where(overlap >= min_overlap)[1]
+            neg_idx_list = np.where(overlap < min_overlap)[1]
+
+            num_pos = len(pos_idx_list)
+            num_neg = len(neg_idx_list)
+
+            # Randomly sample negative chips to get new candidates
+            # Most of the time (like almost always will happen)
+            if num_neg > num_pos:
+                np.random.shuffle(neg_idx_list)
+                neg_idx_list = neg_idx_list[:num_pos]
+
+            pos_list += [pred_list[idx] for idx in pos_idx_list]
+            neg_list += [pred_list[idx] for idx in neg_idx_list]
+
+    ut.embed()
 
 
 @register_ibs_method
