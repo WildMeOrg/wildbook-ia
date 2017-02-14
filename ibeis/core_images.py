@@ -638,13 +638,43 @@ def get_localization_chips_worker(tup):
         # cv2.imshow('', chip)
         # cv2.waitKey()
         msg = 'Chip shape %r does not agree with target size %r' % (chip.shape, target_size, )
-        assert chip.shape[0] == target_size[0] and chip.shape[1] == target_size[1], msg
+        assert chip.shape[0] == new_size[0] and chip.shape[1] == new_size[1], msg
         return chip
 
     arg_list = list(zip(target_size_list, M_list))
     chip_list = [_compute_localiation_chip(tup_) for tup_ in arg_list]
     gid_list = [gid] * len(chip_list)
     return gid_list, chip_list
+
+
+def get_localization_masks_worker(tup):
+    gid, img, bbox_list, theta_list, target_size = tup
+    target_size_list = [target_size] * len(bbox_list)
+    verts_list = vt.geometry.scaled_verts_from_bbox_gen(bbox_list, theta_list)
+
+    # Extract "masks"
+    interpolation = cv2.INTER_LANCZOS4
+    warpkw = dict(interpolation=interpolation)
+    fill_pixel_value = (128, 128, 128)  # Grey-scale medium
+
+    def _compute_localiation_mask(tup):
+        new_size, vert_list = tup
+        # Copy the image, mask out the patch
+        img_ = np.copy(img)
+        vert_list_ = np.array(vert_list, dtype=np.int32)
+        cv2.fillConvexPoly(img_, vert_list_, fill_pixel_value)
+        # Resize the image
+        mask = cv2.resize(img_, tuple(new_size), **warpkw)
+        # cv2.imshow('', mask)
+        # cv2.waitKey()
+        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, new_size, )
+        assert mask.shape[0] == new_size[0] and mask.shape[1] == new_size[1], msg
+        return mask
+
+    arg_list = list(zip(target_size_list, verts_list))
+    mask_list = [_compute_localiation_mask(tup_) for tup_ in arg_list]
+    gid_list = [gid] * len(mask_list)
+    return gid_list, mask_list
 
 
 def get_localization_chips(ibs, loc_id_list, target_size=(128, 128)):
@@ -738,48 +768,168 @@ def get_localization_masks(ibs, loc_id_list, target_size=(128, 128)):
     print('Extracting %d localization masks (min: %d, avg: %0.02f, max: %d, total: %d)' % args)
     thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
 
-    gids_list = [
-        np.array([gid] * len(bbox_list))
-        for gid, bbox_list in zip(gid_list_, bboxes_list)
-    ]
-    # Flatten all of these lists for efficiency
-    bbox_list      = ut.flatten(bboxes_list)
-    theta_list     = ut.flatten(thetas_list)
-    verts_list     = vt.geometry.scaled_verts_from_bbox_gen(bbox_list, theta_list)
-    gid_list       = ut.flatten(gids_list)
-    bbox_size_list = ut.take_column(bbox_list, [2, 3])
-    newsize_list   = [target_size] * len(bbox_list)
+    OLD = True
+    if OLD:
+        gids_list = [
+            np.array([gid] * len(bbox_list))
+            for gid, bbox_list in zip(gid_list_, bboxes_list)
+        ]
+        # Flatten all of these lists for efficiency
+        bbox_list      = ut.flatten(bboxes_list)
+        theta_list     = ut.flatten(thetas_list)
+        verts_list     = vt.geometry.scaled_verts_from_bbox_gen(bbox_list, theta_list)
+        gid_list       = ut.flatten(gids_list)
+        bbox_size_list = ut.take_column(bbox_list, [2, 3])
+        newsize_list   = [target_size] * len(bbox_list)
 
-    # Checks
-    invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
-    invalid_bboxes = ut.compress(bbox_list, invalid_flags)
-    assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
+        # Checks
+        invalid_flags = [w == 0 or h == 0 for (w, h) in bbox_size_list]
+        invalid_bboxes = ut.compress(bbox_list, invalid_flags)
+        assert len(invalid_bboxes) == 0, 'invalid bboxes=%r' % (invalid_bboxes,)
 
-    # Extract "masks"
-    flags = {'interpolation': cv2.INTER_LANCZOS4}
-    last_gid = None
-    mask_list = []
-    arg_list = list(zip(gid_list, newsize_list, verts_list))
-    for tup in ut.ProgIter(arg_list, lbl='computing localization masks', bs=True):
-        gid, new_size, vert_list = tup
-        if gid != last_gid:
-            img = ibs.get_image_imgdata(gid)
-            last_gid = gid
+        # Extract "masks"
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
 
-        # Copy the image, mask out the patch
-        img_ = np.copy(img)
-        vert_list_ = np.array(vert_list, dtype=np.int32 )
-        cv2.fillConvexPoly(img_, vert_list_, (128, 128, 128))
+        last_gid = None
+        mask_list = []
+        arg_list = list(zip(gid_list, newsize_list, verts_list))
+        for tup in ut.ProgIter(arg_list, lbl='computing localization masks', bs=True):
+            gid, new_size, vert_list = tup
+            if gid != last_gid:
+                img = ibs.get_image_imgdata(gid)
+                last_gid = gid
 
-        # Resize the image
-        mask = cv2.resize(img_, tuple(new_size), **flags)
-        # cv2.imshow('', mask)
-        # cv2.waitKey()
-        msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, target_size, )
-        assert mask.shape[0] == target_size[0] and mask.shape[1] == target_size[1], msg
-        mask_list.append(mask)
+            # Copy the image, mask out the patch
+            img_ = np.copy(img)
+            vert_list_ = np.array(vert_list, dtype=np.int32 )
+            cv2.fillConvexPoly(img_, vert_list_, (128, 128, 128))
+
+            # Resize the image
+            mask = cv2.resize(img_, tuple(new_size), **warpkw)
+            # cv2.imshow('', mask)
+            # cv2.waitKey()
+            msg = 'Chip shape %r does not agree with target size %r' % (mask.shape, target_size, )
+            assert mask.shape[0] == target_size[0] and mask.shape[1] == target_size[1], msg
+            mask_list.append(mask)
+    else:
+        target_size_list = [target_size] * len(bboxes_list)
+        img_list = [ibs.get_image_imgdata(gid) for gid in gid_list_]
+        arg_iter = list(zip(gid_list_, img_list, bboxes_list, thetas_list,
+                            target_size_list))
+        result_list = ut.util_parallel.generate(get_localization_masks_worker, arg_iter,
+                                                ordered=True)
+        # Compute results
+        result_list = list(result_list)
+        # Extract results
+        gids_list = ut.take_column(result_list, 0)
+        chips_list = ut.take_column(result_list, 1)
+        # Explicitly garbage collect large list of chips
+        result_list = None
+        # Flatten results
+        gid_list = ut.flatten(gids_list)
+        chip_list = ut.flatten(chips_list)
+        assert len(gid_list) == len(chip_list)
 
     return gid_list_, gid_list, mask_list
+
+
+ChipListImgType = dtool.ExternType(
+    ut.partial(ut.load_cPkl, verbose=False),
+    ut.partial(ut.save_cPkl, verbose=False),
+    extkey='ext'
+)
+
+
+class Chip2Config(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('localization_chip_target_size', (128, 128)),
+        ut.ParamInfo('localization_chip_masking', False),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='localizations_chips', parents=['localizations'],
+    colnames=['chips'],
+    coltypes=[ChipListImgType],
+    configclass=Chip2Config,
+    fname='chipcache4',
+    chunksize=128,
+)
+def compute_localizations_chips(depc, loc_id_list, config=None):
+    r"""
+    Extracts the detections for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        loc_id_list (list):  list of localization rowids
+        config (dict): (default = None)
+
+    Yields:
+        (float, str): tup
+
+    CommandLine:
+        ibeis compute_localizations_chips
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> config = {'algo': '_COMBINED', 'localization_chip_masking': True}
+        >>> # depc.delete_property('localizations_chips', gid_list, config=config)
+        >>> results = depc.get_property('localizations_chips', gid_list, None, config=config)
+        >>> print(results)
+        >>> config = {'algo': '_COMBINED', 'localization_chip_masking': False}
+        >>> # depc.delete_property('localizations_chips', gid_list, config=config)
+        >>> results = depc.get_property('localizations_chips', gid_list, None, config=config)
+        >>> print(results)
+    """
+    print('[ibs] Process Localization Chips')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+
+    masking = config['localization_chip_masking']
+    target_size = config['localization_chip_target_size']
+    target_size_list = [target_size] * len(loc_id_list)
+
+    gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
+    assert len(gid_list_) == len(loc_id_list)
+
+    # Grab the localizations
+    bboxes_list = depc.get_native('localizations', loc_id_list, 'bboxes')
+    thetas_list = depc.get_native('localizations', loc_id_list, 'thetas')
+    len_list = [len(bbox_list) for bbox_list in bboxes_list]
+    avg = sum(len_list) / len(len_list)
+    args = (len(loc_id_list), min(len_list), avg, max(len_list), sum(len_list), )
+
+    # Create image iterator
+    img_list = (ibs.get_image_imgdata(gid) for gid in gid_list_)
+
+    if masking:
+        print('Extracting %d localization masks (min: %d, avg: %0.02f, max: %d, total: %d)' % args)
+        worker_func = get_localization_masks_worker
+    else:
+        print('Extracting %d localization chips (min: %d, avg: %0.02f, max: %d, total: %d)' % args)
+        worker_func = get_localization_chips_worker
+
+    arg_iter = zip(gid_list_, img_list, bboxes_list, thetas_list, target_size_list)
+    result_list = ut.util_parallel.generate(worker_func, arg_iter, ordered=True,
+                                            nTasks=len(gid_list_), force_serial=True)
+
+    # Return the results
+    for gid, chip_list in result_list:
+        ret_tuple = (
+            chip_list,
+        )
+        yield ret_tuple
 
 
 class Classifier2Config(dtool.Config):
