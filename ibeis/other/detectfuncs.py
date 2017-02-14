@@ -644,6 +644,10 @@ def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_ma
     config2 = {'algo': algo, 'config_filepath': config_filepath, 'classifier_masking': classifier_masking}
     config3 = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
     # depc.delete_property('localizations_classifier', gid_list, config=config)
+    if kwargs.get('features', False):
+        features_list = depc.get_property('localizations_features', gid_list, 'vector', config=config3)
+    else:
+        features_list = None
     return [
         depc.get_property('localizations', gid_list, 'score',   config=config1),
         depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
@@ -652,7 +656,7 @@ def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_ma
         depc.get_property('localizations', gid_list, 'classes', config=config1),
         depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
         depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
-        depc.get_property('localizations_features', gid_list, 'vector', config=config3),
+        features_list,
     ]
 
 
