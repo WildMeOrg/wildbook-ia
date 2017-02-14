@@ -801,7 +801,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         for confidence_list, keep_list in zip(confidences_list, keeps_list):
             temp_list = []
             count_old += keep_list.count(True)
-            for index, (conf, keep) in enumerate(zip(confidence_list, keep_list)):
+            zipped = list(zip(confidence_list, keep_list))
+            for index, (conf, keep) in enumerate(sorted(zipped, reverse=True)):
                 keep = keep and conf >= conf_thresh and index < index_thresh
                 temp_list.append(keep)
             count_new += temp_list.count(True)
@@ -822,7 +823,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         zipped = zip(confidence_list_, keep_list_, *zipped_[0][1:])
         zipped = list(zipped)
         temp_list = [ (_[0], index) for index, _ in enumerate(zipped) ]
-        temp_list = sorted(temp_list, reverse=True)
+        # temp_list = sorted(temp_list, reverse=True)
         index_list = [ _[1] for _ in temp_list ]
         return ut.take(zipped, index_list)
 
@@ -1054,15 +1055,30 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : set(['zebra'])},
         # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : set(['zebra'])},
         # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : set(['zebra'])},
-        {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
-        {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
-        {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 1000},
-        {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 1000},
+
+        # {'label': 'COMBINED` 1000', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED` 500', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED` 100', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 100},
+        # {'label': 'COMBINED` 50', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 50},
+        # {'label': 'COMBINED` 10', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 10},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
+
+        # {'label': 'COMBINED`* 1000', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED`* 500', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`* 100', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 100},
+        # {'label': 'COMBINED`* 50', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 50},
+        # {'label': 'COMBINED`* 10', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 10},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+
+        {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
+        {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
+        {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'thresh': True, 'index_thresh': 500},
 
         {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1},
-        {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
-        {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
+        # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'nms': True, 'nms_thresh': 0.1},
+        # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : set(['zebra'])},
 
         # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'limited': True},
         # {'label': 'COMBINED`* ~0.1', 'algo': '_COMBINED', 'species_set' : set(['zebra']), 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'limited': True},
