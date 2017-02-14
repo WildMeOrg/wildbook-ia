@@ -642,12 +642,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_masking=False, **kwargs):
     config1 = {'algo': algo, 'config_filepath': config_filepath}
     config2 = {'algo': algo, 'config_filepath': config_filepath, 'classifier_masking': classifier_masking}
-    config3 = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
     # depc.delete_property('localizations_classifier', gid_list, config=config)
-    if kwargs.get('features', False):
-        features_list = depc.get_property('localizations_features', gid_list, 'vector', config=config3)
-    else:
-        features_list = None
     return [
         depc.get_property('localizations', gid_list, 'score',   config=config1),
         depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
@@ -656,7 +651,6 @@ def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_ma
         depc.get_property('localizations', gid_list, 'classes', config=config1),
         depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
         depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
-        features_list,
     ]
 
 
@@ -719,7 +713,6 @@ def _get_all_localizations(depc, gid_list, **kwargs):
         list(zip(*metadata['COMBINED'][:5])),
         metadata['COMBINED'][5],
         metadata['COMBINED'][6],
-        metadata['COMBINED'][7],
     ]
 
     return metadata
@@ -755,14 +748,10 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
     # Get features
     if kwargs.get('features', False):
-        if kwargs.get('algo', None) == '_COMBINED':
-            # metadata = _get_all_localizations(depc, test_gid_list)  # ALREADY HAVE METADATA
-            features_list = metadata['COMBINED'][3]
-        else:
-            algo = kwargs.get('algo', None)
-            config_filepath = kwargs.get('config_filepath', None)
-            config_ = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
-            features_list = depc.get_property('localizations_features', test_gid_list, 'vector', config=config_)
+        algo = kwargs.get('algo', None)
+        config_filepath = kwargs.get('config_filepath', None)
+        config_ = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
+        features_list = depc.get_property('localizations_features', test_gid_list, 'vector', config=config_)
 
     # Get new confidences for boxes
     if kwargs.get('classify', False):
