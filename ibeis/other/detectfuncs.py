@@ -791,7 +791,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         print('[nms] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
 
     # Filter by confidence or index
-    if kwargs.get('post-thresh', False):
+    if kwargs.get('thresh', False):
         conf_thresh = kwargs.get('conf_thresh', 0.0)
         index_thresh = kwargs.get('index_thresh', np.inf)
         print('Filtering with conf_thresh = %0.02f' % (conf_thresh, ))
@@ -2011,13 +2011,13 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
     print('\tGather Ground-Truth')
     config = {
         'algo'         : '_COMBINED',
-        'species_set'  : set(['zebra']),
+        'species_set'  : set(species_list),
         'classify'     : True,
         'nms'          : True,
         'nms_thresh'   : 0.1,
         'thresh'       : True,
         'index_thresh' : 500,
-    },
+    }
     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **config)
 
     print('\tGather Predictions')
