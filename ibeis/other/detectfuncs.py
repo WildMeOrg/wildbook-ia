@@ -119,8 +119,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=
     if not use_existing_train_test:
         ibs.imageset_train_test_split(**kwargs)
 
-    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'), **kwargs)
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'), **kwargs)
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
