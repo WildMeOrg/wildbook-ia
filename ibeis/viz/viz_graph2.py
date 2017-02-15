@@ -47,9 +47,9 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def init_signals_and_slots(self):
         # https://doc.qt.io/archives/qtjambi-4.5.2_01/com/trolltech/qt/core/Qt.ConnectionType.html
-        connection_type = QtCore.Qt.AutoConnection
+        # connection_type = QtCore.Qt.AutoConnection
         # connection_type = QtCore.Qt.BlockingQueuedConnection
-        # connection_type = QtCore.Qt.DirectConnection
+        connection_type = QtCore.Qt.DirectConnection
         # connection_type = QtCore.Qt.QueuedConnection
         self.signal_graph_update.connect(self.on_graph_update, type=connection_type)
 
@@ -406,9 +406,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
     def init_signals_and_slots(self):
         # https://doc.qt.io/archives/qtjambi-4.5.2_01/com/trolltech/qt/core/Qt.ConnectionType.html
-        connection_type = QtCore.Qt.AutoConnection
+        # connection_type = QtCore.Qt.AutoConnection
         # connection_type = QtCore.Qt.BlockingQueuedConnection
-        # connection_type = QtCore.Qt.DirectConnection
+        connection_type = QtCore.Qt.DirectConnection
         # connection_type = QtCore.Qt.QueuedConnection
         self.signal_state_update.connect(self.update_state,
                                          type=connection_type)
