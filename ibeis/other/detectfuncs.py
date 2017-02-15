@@ -1976,7 +1976,7 @@ def classifier_train_svm(ibs, species_list, output_path=None):
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     species_list_str = '.'.join(species_list)
-    output_filepath = join(output_path, 'classifier.svm.%s.pkl' % (species_list_str, ))
+    output_filepath = join(output_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
     ut.save_cPkl(output_filepath, model)
 
     # Load model pickle
@@ -2019,7 +2019,7 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
     if model_path is None:
         model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     species_list_str = '.'.join(species_list)
-    model_path = join(model_path, 'classifier.svm.%s.pkl' % (species_list_str, ))
+    model_path = join(model_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
 
     # Load model pickle
     model = ut.load_cPkl(model_path)
@@ -2038,8 +2038,8 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
     config = {
         'algo'         : '_COMBINED',
         'species_set'  : set(species_list),
-        # 'features'     : True,
         'features'     : True,
+        # 'features'     : False,
         'classify'     : True,
         'nms'          : True,
         'nms_thresh'   : 0.1,
@@ -2079,7 +2079,7 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
             pos_list += [pred_list[idx] for idx in pos_idx_list]
             neg_list += [pred_list[idx] for idx in neg_idx_list]
 
-    ut.embed()
+    return pos_list, neg_list
 
 
 @register_ibs_method
