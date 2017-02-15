@@ -2008,8 +2008,8 @@ class Spoiler(WIDGET_BASE):
         # By having the minimum and maximum height simultaniously
         self.toggleAnimation = QtCore.QParallelAnimationGroup()
         self.spoiler_animations = [
-            QtCore.QPropertyAnimation(self, 'minimumHeight'),
-            QtCore.QPropertyAnimation(self, 'maximumHeight'),
+            QtCore.QPropertyAnimation(self, six.b('minimumHeight')),
+            QtCore.QPropertyAnimation(self, six.b('maximumHeight')),
         ]
         self.content_animations = [
             #QtCore.QPropertyAnimation(self.contentWidget, 'maximumHeight')
@@ -2086,7 +2086,7 @@ class Spoiler(WIDGET_BASE):
 
             self.contentWidget = contentWidgetNew
             self.content_animations = [
-                QtCore.QPropertyAnimation(self.contentWidget, 'maximumHeight')
+                QtCore.QPropertyAnimation(self.contentWidget, six.b('maximumHeight'))
             ]
             for animation in self.content_animations:
                 self.toggleAnimation.addAnimation(animation)

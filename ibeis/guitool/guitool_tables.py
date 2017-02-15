@@ -7,7 +7,7 @@ from guitool.guitool_delegates import ComboDelegate, ButtonDelegate
 from guitool import qtype
 from six.moves import range, map
 import utool
-(print, rrr, profile) = utool.inject2(__name__, '[guitbls]')
+(print, rrr, profile) = utool.inject2(__name__)
 
 
 class ColumnListTableView(QtWidgets.QTableView):
@@ -349,16 +349,20 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
                           show=True, raise_=True, on_click=None):
     widget = ColumnListTableWidget(col_data_list, col_name_list,
                                    col_edit_list=col_edit_list)
+
     def on_doubleclick(index):
         # This is actually a release
         #print('DoubleClicked: ' + str(qtype.qindexinfo(index)))
         pass
+
     def on_pressed(index):
         #print('Pressed: ' + str(qtype.qindexinfo(index)))
         pass
+
     def on_activated(index):
         #print('Activated: ' + str(qtype.qindexinfo(index)))
         pass
+
     if on_click is not None:
         widget.view.clicked.connect(on_click)
     widget.view.doubleClicked.connect(on_doubleclick)
@@ -379,6 +383,8 @@ def make_listtable_widget(col_data_list, col_name_list, col_edit_list=None,
     #widget.show()
     #widget.raise_()
     #sys.exit(app.exec_())
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

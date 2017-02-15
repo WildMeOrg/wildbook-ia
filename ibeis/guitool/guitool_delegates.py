@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore, QtGui
 from guitool.__PYQT__ import QtWidgets
+from guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 import utool as ut
 ut.noinject(__name__, '[guitool.delegates]', DEBUG=False)
 
@@ -44,10 +45,13 @@ class ComboDelegate(APIDelegate):
     def createEditor(self, parent, option, index):
         combo = QtWidgets.QComboBox(parent)
         combo.addItems(['option1', 'option2', 'option3'])
-        #self.connect(combo.currentIndexChanged, self.currentIndexChanged)
         # FIXME: Change to newstyle signal slot
-        self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"),
-                     self, QtCore.SLOT("currentIndexChanged()"))
+        if GUITOOL_PYQT_VERSION == 5:
+            self.connect(combo.currentIndexChanged, self.currentIndexChanged)
+        else:
+            # I believe this particular option is broken in pyqt4
+            self.connect(combo, QtCore.SIGNAL("currentIndexChanged(int)"),
+                         self, QtCore.SLOT("currentIndexChanged()"))
         return combo
 
     def setEditorData(self, editor, index):
@@ -91,7 +95,8 @@ class ButtonDelegate(APIDelegate):
                 )
             )
 
-DELEGATE_MAP = {
-    'BUTTON': ButtonDelegate,
-    'COMBO': ComboDelegate,
-}
+
+# DELEGATE_MAP = {
+#     'BUTTON': ButtonDelegate,
+#     'COMBO': ComboDelegate,
+# }
