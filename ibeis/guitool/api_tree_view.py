@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 from guitool.__PYQT__ import QtCore
+from guitool.__PYQT__ import GUITOOL_PYQT_VERSION
 from guitool.__PYQT__ import QtWidgets
 from guitool.guitool_decorators import signal_, slot_
 import utool as ut
@@ -67,6 +68,8 @@ class APITreeView(API_VIEW_BASE):
             >>> # ENABLE_DOCTEST
             >>> # TODO figure out how to test these
             >>> from guitool.api_tree_view import *  # NOQA
+            >>> import guitool as gt
+            >>> app = gt.ensure_qapp()
             >>> view = APITreeView()
             >>> view._init_header_behavior()
         """
@@ -81,10 +84,14 @@ class APITreeView(API_VIEW_BASE):
         # DO NOT USE RESIZETOCONTENTS. IT MAKES THINGS VERY SLOW
         #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         #horizontalHeader.setResizeMode(QtWidgets.QHeaderView.Stretch)
-        header.setResizeMode(QtWidgets.QHeaderView.Interactive)
-        #horizontalHeader.setCascadingSectionResizes(True)
-        # Columns moveable
-        header.setMovable(True)
+        if GUITOOL_PYQT_VERSION == 4:
+            header.setResizeMode(QtWidgets.QHeaderView.Interactive)
+            #horizontalHeader.setCascadingSectionResizes(True)
+            # Columns moveable
+            header.setMovable(True)
+        else:
+            header.setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            header.setSectionsMovable(True)
 
     #---------------
     # Qt Overrides
@@ -170,6 +177,7 @@ def testdata_tree_view():
 
     wgt.menubar = gt.newMenubar(wgt)
     wgt.menuFile = wgt.menubar.newMenu('Dev')
+
     def wgt_embed(wgt):
         view = wgt.view  # NOQA
         import utool

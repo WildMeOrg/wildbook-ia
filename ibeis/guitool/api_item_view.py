@@ -335,9 +335,12 @@ def keyPressEvent(view, event):
         >>> view._init_header_behavior()
         >>> # Try to simulate an event for testing
         >>> wgt.show()
-        >>> from guitool.__PYQT__ import QtTest
+        >>> from guitool.__PYQT__ import QtTest, GUITOOL_PYQT_VERSION
         >>> QTest = QtTest.QTest
-        >>> QTest.qWaitForWindowShown(wgt)
+        >>> if GUITOOL_PYQT_VERSION == 4:
+        >>>     QTest.qWaitForWindowShown(wgt)
+        >>> else:
+        >>>     QTest.qWaitForWindowActive(wgt)
         >>> qtindex = view.model().index(1, 2)
         >>> point = view.visualRect(qtindex).center()
         >>> #point = wgt.visibleRegion().boundingRect().center()

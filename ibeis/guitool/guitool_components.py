@@ -114,6 +114,7 @@ def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
         #tab.setLayout(QtWidgets.QVBoxLayout())
         # tab.setSizePolicy(*cfg_size_policy)
         #_inject_new_widget_methods(tab)
+
         def setTabText(tab, text):
             #tabwgt = tab.parent()
             index = tabwgt.indexOf(tab)
@@ -963,6 +964,7 @@ def _inject_new_widget_methods(self):
     import guitool as gt
     from guitool import PrefWidget2
     # Creates addNewWidget and newWidget
+
     def _make_new_widget_func(widget_cls):
         def new_widget_maker(*args, **kwargs):
             kwargs = kwargs.copy()
@@ -1123,8 +1125,6 @@ class GuitoolWidget(WIDGET_BASE):
         self.setLayout(layout)
         self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
-        #self.addWidget = self._guitool_layout.addWidget
-        #self.addLayout = self._guitool_layout.addLayout
         _inject_new_widget_methods(self)
         self.initialize(**kwargs)
 
@@ -1149,7 +1149,6 @@ class GuitoolWidget(WIDGET_BASE):
         dlg.setWindowTitle(widget.windowTitle())
 
         if DEBUG_WIDGET:
-            # debug code
             dlg.setStyleSheet("background-color: rgb(255,0,0); margin:0px; border:1px solid rgb(0, 255, 0); ")
         return dlg
 
@@ -1159,18 +1158,8 @@ class GuitoolWidget(WIDGET_BASE):
     def addLayout(self, *args, **kwargs):
         return self._guitool_layout.addLayout(*args, **kwargs)
 
-    #def addWidget(self, widget, *args, **kwargs):
-    #    #self._guitool_layout.addWidget(widget, *args, **kwargs)
-    #    self.layout().addWidget(widget, *args, **kwargs)
-    #    return widget
-
-    #def addNewWidget(self, *args, **kwargs):
-    #    new_widget = self.newWidget(*args, **kwargs)
-    #    return self.addWidget(new_widget)
-
     def closeEvent(self, event):
         self.closed.emit()
-        #event.accept()
         super(GuitoolWidget, self).closeEvent(event)
 
 
@@ -1378,6 +1367,7 @@ class ConfigConfirmWidget(GuitoolWidget):
                 options = ['Confirm']
                 if default is None:
                     default = options[0]
+
             def _make_option_clicked(opt):
                 def _wrap():
                     return self.confirm(opt)
@@ -2172,8 +2162,10 @@ class SimpleTree(QtCore.QObject):
             if changed:
                 self.callbacks[item] = changed
             # Inject helper method
+
             def isChecked():
                 return item.checkState(column) == QtCore.Qt.Checked
+
             def setChecked(flag):
                 return item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
             item.isChecked = isChecked
@@ -2189,8 +2181,10 @@ class SimpleTree(QtCore.QObject):
             if changed:
                 self.callbacks[item] = changed
             # Inject helper method
+
             def isChecked():
                 return item.checkState(column) == QtCore.Qt.Checked
+
             def setChecked(flag):
                 return item.setCheckState(column, Qt.Checked if checked else Qt.Unchecked)
             item.isChecked = isChecked
