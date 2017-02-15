@@ -133,19 +133,19 @@ if DOELSE:
     from guitool import qtype
     from guitool import stripe_proxy_model
     from guitool import filter_proxy_model
-    from guitool.guitool_main import (GuitoolApplication, IS_ROOT_WINDOW, QAPP, 
-                                      QUIET, VERBOSE, activate_qwindow, 
-                                      ensure_qapp, ensure_qtapp, 
-                                      exit_application, get_qtapp, init_qtapp, 
-                                      ping_python_interpreter, 
-                                      pyqtRemoveInputHook, qtapp_loop, 
-                                      qtapp_loop_nonblocking, 
+    from guitool.guitool_main import (GUITOOL_PYQT_VERSION, GuitoolApplication, 
+                                      IS_ROOT_WINDOW, QAPP, QUIET, VERBOSE, 
+                                      activate_qwindow, ensure_qapp, 
+                                      ensure_qtapp, exit_application, 
+                                      get_qtapp, ping_python_interpreter, 
+                                      qtapp_loop, qtapp_loop_nonblocking, 
                                       remove_pyqt_input_hook,) 
-    from guitool.guitool_components import (ALIGN_DICT, ConfigConfirmWidget, 
-                                            DEBUG_WIDGET, GuiProgContext, 
-                                            GuitoolWidget, PROG_TEXT, ProgHook, 
-                                            ResizableTextEdit, Spoiler, 
-                                            WIDGET_BASE, adjust_font, 
+    from guitool.guitool_components import (ALIGN_DICT, BlockSignals, 
+                                            ConfigConfirmWidget, DEBUG_WIDGET, 
+                                            GuiProgContext, GuitoolWidget, 
+                                            PROG_TEXT, ProgHook, 
+                                            ResizableTextEdit, SimpleTree, 
+                                            Spoiler, WIDGET_BASE, adjust_font, 
                                             fix_child_attr_heirarchy, 
                                             fix_child_size_heirarchy, 
                                             getAvailableFonts, get_nested_attr, 
@@ -159,8 +159,9 @@ if DOELSE:
                                             newQPoint, newScrollArea, 
                                             newSizePolicy, newSplitter, 
                                             newTabWidget, newTextEdit, 
-                                            newWidget, print_widget_heirarchy, 
-                                            prop_text_map, 
+                                            newToolbar, newWidget, 
+                                            print_widget_heirarchy, 
+                                            prop_text_map, rectify_qt_const, 
                                             walk_widget_heirarchy,) 
     from guitool.guitool_dialogs import (ResizableMessageBox, SELDIR_CACHEID, 
                                          are_you_sure, build_nested_qmenu, 
@@ -179,9 +180,11 @@ if DOELSE:
                                       make_option_dict, make_word_hotlinks,) 
     from guitool.api_item_model import (APIItemModel, API_MODEL_BASE, 
                                         ChangeLayoutContext, QVariantHack, 
+                                        VERBOSE_MODEL, 
                                         default_method_decorator, 
                                         simple_thumbnail_widget, updater,) 
-    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE,) 
+    from guitool.api_tree_view import (APITreeView, API_VIEW_BASE, 
+                                       testdata_tree_view,) 
     from guitool.api_table_view import (APITableView,) 
     from guitool.qtype import (ItemDataRoles, LOCALE, QLocale, QString, 
                                QT_BUTTON_TYPES, QT_COMBO_TYPES, 
@@ -199,9 +202,10 @@ if DOELSE:
     print, rrr, profile = utool.inject2(__name__, '[guitool]')
     
     
-    def reassign_submodule_attributes(verbose=True):
+    def reassign_submodule_attributes(verbose=1):
         """
-        why reloading all the modules doesnt do this I don't know
+        Updates attributes in the __init__ modules with updated attributes
+        in the submodules.
         """
         import sys
         if verbose and '--quiet' not in sys.argv:
@@ -227,19 +231,16 @@ if DOELSE:
                 setattr(guitool, attr, getattr(submod, attr))
     
     
-    def reload_subs(verbose=True):
+    def reload_subs(verbose=1):
         """ Reloads guitool and submodules """
         if verbose:
-            print('Reloading submodules')
-        rrr(verbose=verbose)
+            print('Reloading guitool submodules')
+        rrr(verbose > 1)
         def wrap_fbrrr(mod):
             def fbrrr(*args, **kwargs):
                 """ fallback reload """
-                if verbose:
-                    print('No fallback relaod for mod=%r' % (mod,))
-                # Breaks ut.Pref (which should be depricated anyway)
-                # import imp
-                # imp.reload(mod)
+                if verbose > 0:
+                    print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
             return fbrrr
         def get_rrr(mod):
             if hasattr(mod, 'rrr'):
@@ -248,18 +249,18 @@ if DOELSE:
                 return wrap_fbrrr(mod)
         def get_reload_subs(mod):
             return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
-        get_rrr(guitool_main)(verbose=verbose)
-        get_rrr(guitool_components)(verbose=verbose)
-        get_rrr(guitool_dialogs)(verbose=verbose)
-        get_rrr(guitool_decorators)(verbose=verbose)
-        get_rrr(guitool_misc)(verbose=verbose)
-        get_rrr(api_item_model)(verbose=verbose)
-        get_rrr(api_tree_view)(verbose=verbose)
-        get_rrr(api_table_view)(verbose=verbose)
-        get_rrr(qtype)(verbose=verbose)
-        get_rrr(stripe_proxy_model)(verbose=verbose)
-        get_rrr(filter_proxy_model)(verbose=verbose)
-        rrr(verbose=verbose)
+        get_rrr(guitool_main)(verbose > 1)
+        get_rrr(guitool_components)(verbose > 1)
+        get_rrr(guitool_dialogs)(verbose > 1)
+        get_rrr(guitool_decorators)(verbose > 1)
+        get_rrr(guitool_misc)(verbose > 1)
+        get_rrr(api_item_model)(verbose > 1)
+        get_rrr(api_tree_view)(verbose > 1)
+        get_rrr(api_table_view)(verbose > 1)
+        get_rrr(qtype)(verbose > 1)
+        get_rrr(stripe_proxy_model)(verbose > 1)
+        get_rrr(filter_proxy_model)(verbose > 1)
+        rrr(verbose > 1)
         try:
             # hackish way of propogating up the new reloaded submodule attributes
             reassign_submodule_attributes(verbose=verbose)

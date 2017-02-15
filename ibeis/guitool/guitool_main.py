@@ -86,7 +86,7 @@ def ensure_qtapp():
         pass
     return QAPP, IS_ROOT_WINDOW
 
-init_qtapp = ensure_qtapp
+
 ensure_qapp = ensure_qtapp
 
 
@@ -115,9 +115,12 @@ def qtapp_loop_nonblocking(qwin=None, **kwargs):
     #from IPython.lib.inputhook import enable_qt4
     import IPython.lib.guisupport
     if not QUIET:
-        print('[guitool] Starting ipython qt4 hook')
+        print('[guitool] Starting ipython qt hook')
     #enable_qt4()
-    IPython.lib.guisupport.start_event_loop_qt4(QAPP)
+    if GUITOOL_PYQT_VERSION == 4:
+        IPython.lib.guisupport.start_event_loop_qt4(QAPP)
+    else:
+        IPython.lib.guisupport.start_event_loop_qt5(QAPP)
 
 
 #if '__PYQT__' in sys.modules:
@@ -166,6 +169,7 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
         if not ipy:
             old_excepthook = sys.excepthook
+
             def qt_excepthook(type_, value, traceback):
                 print('QT EXCEPTION HOOK')
                 old_excepthook(type_, value, traceback)
@@ -174,7 +178,9 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
                 sys.exit(1)
             #sys.excepthook = qt_excepthook
             try:
-                QAPP.exec_()
+                retcode = QAPP.exec_()
+                print('QAPP retcode = %r' % (retcode,))
+                QAPP.exit(retcode)
             except Exception as ex:
                 print('QException: %r' % ex)
                 raise
@@ -190,6 +196,7 @@ def ping_python_interpreter(frequency=420):  # 4200):
     if not QUIET and VERBOSE:
         print('[guitool] pinging python interpreter for ctrl+c freq=%r' % frequency)
     timer = QtCore.QTimer()
+
     def ping_func():
         #print('lub dub')
         return None
