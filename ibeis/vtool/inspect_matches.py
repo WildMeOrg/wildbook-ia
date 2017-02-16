@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function
 import utool as ut
-#import numpy as np
 (print, rrr, profile) = ut.inject2(__name__)
 try:
     import guitool as gt
@@ -108,7 +107,7 @@ class MatchInspector(INSPECT_BASE):
         >>> self = MatchInspector(match=match)
         >>> self.show()
         >>> ut.quit_if_noshow()
-        >>> self.update()
+        >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
 
     Example:
@@ -126,9 +125,16 @@ class MatchInspector(INSPECT_BASE):
         >>> self = MatchInspector(match=match)
         >>> self.show()
         >>> ut.quit_if_noshow()
-        >>> self.update()
+        >>> #self.update()
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
+
+    def showEvent(self, event):
+        super(MatchInspector, self).showEvent(event)
+        # ut.cprint('[viz_graph] showEvent', 'green')
+        # Fire initialize event after we show the GUI
+        self.update()
+        # QtCore.QTimer.singleShot(50, self.init_inference)
 
     def set_match(self, match=None, on_context=None):
         self.match = match
@@ -136,14 +142,13 @@ class MatchInspector(INSPECT_BASE):
         self.update()
 
     def initialize(self, match, on_context=None):
+        from plottool import abstract_interaction
+        from guitool.__PYQT__ import QtCore
         self.match = match
         self.on_context = on_context
         self._setup_configs()
         self._setup_layout()
-        from plottool import abstract_interaction
         abstract_interaction.register_interaction(self)
-
-        from guitool.__PYQT__ import QtCore
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.execContextMenu)
 
