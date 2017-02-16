@@ -1,0 +1,458 @@
+{% extends "layout.html" %}
+{% block content_custom_css %}
+<style>
+
+</style>
+{% endblock %}
+{% block content %}
+
+  <div class="row" style="margin-top: 50px; text-align: center;">
+    <div class="col-lg-1"></div>
+    <div class="col-lg-10">
+        <canvas id="canvasPie" height="150"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Number of images taken per Viewpoint
+        </div>
+        <a id="linkPie" href="#" download="annotations-per-viewpoint.png">Download Chart</a>
+
+        <canvas id="canvasPieCorrected" height="150" style="margin-top: 40px;></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Number of images taken per Viewpoint (Corrected)
+        </div>
+        <a id="linkPieCorrected" href="#" download="annotations-per-viewpoint-corrected.png">Download Chart</a>
+        <canvas id="canvasPieImages" height="300" style="margin-top: 40px; max-width: 500px;></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Number of images taken per Viewpoint (Corrected)
+        </div>
+        <a id="linkPieImages" href="#" download="images-used-viewpoint.png">Download Chart</a>
+
+        <canvas id="canvasBar" height="150" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Histogram for number of sightings per name
+        </div>
+        <a id="linkBar" href="#" download="sightings-histogram-linear.png">Download Chart</a>
+
+        <canvas id="canvasBarLog"  height="150" style="margin-top: 40px;"></canvas>
+        <div style="color: #999 !important; font-style: italic;">
+          Histogram for number of sightings per name
+        </div>
+        <a id="linkBarLog" href="#" download="sightings-histogram-log.png">Download Chart</a>
+    </div>
+    <div class="col-lg-1"></div>
+  </div>
+
+{% endblock %}
+
+{% block content_custom_javascript %}
+<script type="text/javascript">
+
+  var dataBar = {
+    {% autoescape false %}
+    labels: {{ bar_label_list }},
+    {% endautoescape %}
+    datasets: [
+      {
+          label: "GZGC",
+          backgroundColor: "rgba(253,180,92,0.5)",
+          borderColor: "rgba(253,180,92,0.8)",
+          hoverBackgroundColor: "rgba(253,180,92,0.75)",
+          hoverBorderColor: "rgba(253,180,92,1)",
+          data: {{ bar_values_dict['zebra_plains'] }}
+      },
+      {
+          label: "GGR",
+          backgroundColor: "rgba(247,70,74,0.5)",
+          borderColor: "rgba(247,70,74,0.8)",
+          hoverBackgroundColor: "rgba(247,70,74,0.75)",
+          hoverBorderColor: "rgba(247,70,74,1)",
+          data: {{ bar_values_dict['zebra_grevys'] }}
+      },
+    ]
+  };
+
+  var dataPie = {
+    {% autoescape false %}
+    labels: {{ pie_label_list }},
+    {% endautoescape %}
+    datasets: [
+      {% for (species, pie_value_list) in pie_values_list %}
+      {
+        label: "{{ species }}",
+        backgroundColor: [
+          "rgba(92,184,92,0.5)",
+          "rgba(253,180,92,0.5)",
+          "rgba(247,70,74,0.5)",
+          "rgba(249,125,190,0.5)",
+          "rgba(180,180,180,0.5)",
+          "rgba(151,187,205,0.5)",
+          "rgba(180,92,253,0.5)",
+          "rgba(77,83,96,0.5)",
+        ],
+
+        // borderColor: [
+        //   "rgba(92,184,92,0.8)",
+        //   "rgba(253,180,92,0.8)",
+        //   "rgba(247,70,74,0.8)",
+        //   "rgba(249,125,190,0.8)",
+        //   "rgba(180,180,180,0.8)",
+        //   "rgba(151,187,205,0.8)",
+        //   "rgba(180,92,253,0.8)",
+        //   "rgba(77,83,96,0.8)",
+        // ],
+
+        hoverBackgroundColor: [
+          "rgba(92,184,92,0.75)",
+          "rgba(253,180,92,0.75)",
+          "rgba(247,70,74,0.75)",
+          "rgba(249,125,190,0.75)",
+          "rgba(180,180,180,0.75)",
+          "rgba(151,187,205,0.75)",
+          "rgba(180,92,253,0.75)",
+          "rgba(77,83,96,0.75)",
+        ],
+
+        // hoverBorderColor: [
+        //  "rgba(92,184,92,1.0)",
+        //  "rgba(253,180,92,1.0)",
+        //  "rgba(247,70,74,1.0)",
+        //  "rgba(249,125,190,1.0)",
+        //  "rgba(180,180,180,1.0)",
+        //  "rgba(151,187,205,1.0)",
+        //  "rgba(180,92,253,1.0)",
+        //  "rgba(77,83,96,1.0)",
+        // ],
+        data: {{ pie_value_list }},
+      },
+      {% endfor %}
+    ]
+  };
+
+  var dataPieCorrected = {
+    {% autoescape false %}
+    labels: {{ pie_label_corrected_list }},
+    {% endautoescape %}
+    datasets: [
+      {% for (species, pie_value_list) in pie_values_corrected_list %}
+      {
+        label: "{{ species }}",
+        backgroundColor: [
+          "rgba(92,184,92,0.5)",
+          "rgba(253,180,92,0.5)",
+          "rgba(247,70,74,0.5)",
+          "rgba(249,125,190,0.5)",
+          "rgba(180,180,180,0.5)",
+          "rgba(151,187,205,0.5)",
+          "rgba(180,92,253,0.5)",
+          "rgba(77,83,96,0.5)",
+        ],
+
+        // borderColor: [
+        //   "rgba(92,184,92,0.8)",
+        //   "rgba(253,180,92,0.8)",
+        //   "rgba(247,70,74,0.8)",
+        //   "rgba(249,125,190,0.8)",
+        //   "rgba(180,180,180,0.8)",
+        //   "rgba(151,187,205,0.8)",
+        //   "rgba(180,92,253,0.8)",
+        //   "rgba(77,83,96,0.8)",
+        // ],
+
+        hoverBackgroundColor: [
+          "rgba(92,184,92,0.75)",
+          "rgba(253,180,92,0.75)",
+          "rgba(247,70,74,0.75)",
+          "rgba(249,125,190,0.75)",
+          "rgba(180,180,180,0.75)",
+          "rgba(151,187,205,0.75)",
+          "rgba(180,92,253,0.75)",
+          "rgba(77,83,96,0.75)",
+        ],
+
+        // hoverBorderColor: [
+        //  "rgba(92,184,92,1.0)",
+        //  "rgba(253,180,92,1.0)",
+        //  "rgba(247,70,74,1.0)",
+        //  "rgba(249,125,190,1.0)",
+        //  "rgba(180,180,180,1.0)",
+        //  "rgba(151,187,205,1.0)",
+        //  "rgba(180,92,253,1.0)",
+        //  "rgba(77,83,96,1.0)",
+        // ],
+        data: {{ pie_value_list }},
+      },
+      {% endfor %}
+    ]
+  };
+
+  var dataPieImages = {
+    {% autoescape false %}
+    labels: {{ pie_label_images_list }},
+    {% endautoescape %}
+    datasets: [
+      {% for (dataset_tag, pie_value_list) in pie_values_images_list %}
+      {
+        label: "{{ dataset_tag }}",
+        backgroundColor: [
+          "rgba(92,184,92,0.5)",
+          "rgba(253,180,92,0.5)",
+          "#777777",
+        ],
+
+        // borderColor: [
+        //   "rgba(92,184,92,0.8)",
+        //   "rgba(253,180,92,0.8)",
+        //   "rgba(77,83,96,0.8)",
+        // ],
+
+        hoverBackgroundColor: [
+          "rgba(92,184,92,0.75)",
+          "rgba(253,180,92,0.75)",
+          "rgba(77,83,96,0.75)",
+        ],
+
+        // hoverBorderColor: [
+        //  "rgba(92,184,92,1.0)",
+        //  "rgba(253,180,92,1.0)",
+        //  "rgba(77,83,96,1.0)",
+        // ],
+        data: {{ pie_value_list }},
+      },
+      {% endfor %}
+    ]
+  };
+
+  window.onload = function(){
+    Chart.defaults.global.defaultFontSize = 30;
+
+    var ctxBar = document.getElementById("canvasBar").getContext("2d");
+    var linkBar = document.getElementById("linkBar");
+    var chartBar = new Chart(ctxBar, {
+      type: 'bar',
+      data: dataBar,
+      options: {
+        responsive: true,
+        // animation: false,
+        showTooltips: false,
+        legend:{display: true,labels:{fontSize:30}},
+        animation: {
+          onComplete: function(animationItem) {
+
+            // var ctx = this.chart.ctx;
+            // ctx.font = this.scale.font;
+            // ctx.fillStyle = this.scale.textColor
+            // ctx.textAlign = "center";
+            // ctx.textBaseline = "bottom";
+
+            // this.datasets.forEach(function (dataset) {
+            //     dataset.bars.forEach(function (bar) {
+            //         ctx.fillText(bar.value, bar.x, bar.y - 5);
+            //     });
+            // })
+
+            ctx = animationItem.chartInstance
+            linkBar.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        }
+      }
+    });
+
+    var ctxBarLog = document.getElementById("canvasBarLog").getContext("2d");
+    var linkBarLog = document.getElementById("linkBarLog");
+    var chartBarLog = new Chart(ctxBarLog, {
+      type: 'bar',
+      data: dataBar,
+      options: {
+        responsive: true,
+        // animation: false,
+        showTooltips: false,
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkBarLog.href = ctx.toBase64Image('image/png').replace('data:image/png', 'data:application/octet-stream');
+          }
+        },
+        legend:{display: true,labels:{fontSize:30}},
+        scales: {
+            yAxes: [{
+                type: 'logarithmic',
+                ticks: {
+                    min: 1,
+                    max: 1000,
+                }
+            }]
+        }
+      }
+    });
+
+    var ctxPie = document.getElementById("canvasPie").getContext("2d");
+    var linkPie = document.getElementById("linkPie")
+    var chartPie = new Chart(ctxPie,{
+      type: "pie",
+      data: dataPie,
+      options: {
+        cutoutPercentage: 25,
+        showAllTooltips: false,
+        tooltips: {
+            // titleFontColor: "#333",
+            // bodyFontColor: "#333",
+            // backgroundColor: "transparent",
+            titleFontSize: 10,
+            bodyFontSize: 10,
+            titleMarginBottom: 0,
+            callbacks: {
+                title: function (tooltipItem, data) {
+                  tooltipItem = tooltipItem[0]
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+                  return amount;
+                  // return data.labels[tooltipItem[0].index];
+                },
+                label: function (tooltipItem, data) {
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+                  var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
+                  return percentage;
+                },
+            }
+        },
+        legend:{display: true,labels:{fontSize:30}},
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkPie.href = ctx.toBase64Image("image/png").replace("data:image/png", "data:application/octet-stream");
+          }
+        }
+      }
+    });
+
+    var ctxPieCorrected = document.getElementById("canvasPieCorrected").getContext("2d");
+    var linkPieCorrected = document.getElementById("linkPieCorrected")
+    var chartPieCorrected = new Chart(ctxPieCorrected,{
+      type: "pie",
+      data: dataPieCorrected,
+      options: {
+        cutoutPercentage: 25,
+        showAllTooltips: false,
+        tooltips: {
+            // titleFontColor: "#333",
+            // bodyFontColor: "#333",
+            // backgroundColor: "transparent",
+            titleFontSize: 10,
+            bodyFontSize: 10,
+            titleMarginBottom: 0,
+            callbacks: {
+                title: function (tooltipItem, data) {
+                  tooltipItem = tooltipItem[0]
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+                  return amount;
+                  // return data.labels[tooltipItem[0].index];
+                },
+                label: function (tooltipItem, data) {
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+                  var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
+                  return percentage;
+                },
+            }
+        },
+        legend:{display: true,labels:{fontSize:30}},
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkPieCorrected.href = ctx.toBase64Image("image/png").replace("data:image/png", "data:application/octet-stream");
+          }
+        }
+      }
+    });
+
+    var ctxPieImages = document.getElementById("canvasPieImages").getContext("2d");
+    var linkPieImages = document.getElementById("linkPieImages")
+    var chartPieImages = new Chart(ctxPieImages,{
+      type: "pie",
+      data: dataPieImages,
+      options: {
+        cutoutPercentage: 25,
+        showAllTooltips: true,
+        tooltips: {
+            // titleFontColor: "#333",
+            // bodyFontColor: "#333",
+            // backgroundColor: "transparent",
+            titleFontSize: 20,
+            bodyFontSize: 0,
+            // titleMarginBottom: 0,
+            callbacks: {
+                title: function (tooltipItem, data) {
+                  tooltipItem = tooltipItem[0]
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+                  return amount;
+                  // return data.labels[tooltipItem[0].index];
+                },
+                label: function (tooltipItem, data) {
+                  var amount = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                  var total = eval(data.datasets[tooltipItem.datasetIndex].data.join("+"));
+                  var percentage = parseFloat(amount * 100 / total).toFixed(2) + "%";
+                  return '';
+                  return percentage;
+                },
+            }
+        },
+        legend:{display: true,labels:{fontSize:30}},
+        animation: {
+          onComplete: function(animationItem) {
+            ctx = animationItem.chartInstance
+            linkPieImages.href = ctx.toBase64Image("image/png").replace("data:image/png", "data:application/octet-stream");
+          }
+        }
+      }
+    });
+  };
+
+  Chart.pluginService.register({
+    beforeRender: function (chart) {
+        if (chart.config.options.showAllTooltips) {
+            // create an array of tooltips
+            // we can"t use the chart tooltip because there is only one tooltip per chart
+            chart.pluginTooltips = [];
+            chart.config.data.datasets.forEach(function (dataset, i) {
+                chart.getDatasetMeta(i).data.forEach(function (sector, j) {
+                    chart.pluginTooltips.push(new Chart.Tooltip({
+                        _chart: chart.chart,
+                        _chartInstance: chart,
+                        _data: chart.data,
+                        _options: chart.options.tooltips,
+                        _active: [sector]
+                    }, chart));
+                });
+            });
+
+            // turn off normal tooltips
+            chart.options.tooltips.enabled = false;
+        }
+    },
+    afterDraw: function (chart, easing) {
+        if (chart.config.options.showAllTooltips) {
+            // we don"t want the permanent tooltips to animate, so don"t do anything till the animation runs atleast once
+            if (!chart.allTooltipsOnce) {
+                if (easing !== 1)
+                    return;
+                chart.allTooltipsOnce = true;
+            }
+
+            // turn on tooltips
+            chart.options.tooltips.enabled = true;
+            Chart.helpers.each(chart.pluginTooltips, function (tooltip) {
+                tooltip.initialize();
+                tooltip.update();
+                // we don"t actually need this since we are not animating tooltips
+                tooltip.pivot();
+                tooltip.transition(easing).draw();
+            });
+            chart.options.tooltips.enabled = false;
+        }
+    }
+});
+
+</script>
+{% endblock %}

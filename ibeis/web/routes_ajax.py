@@ -13,7 +13,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 @register_route('/ajax/cookie/', methods=['GET'])
-def set_cookie():
+def set_cookie(**kwargs):
     response = make_response('true')
     response.set_cookie(request.args['name'], request.args['value'])
     print('[web] Set Cookie: %r -> %r' % (request.args['name'], request.args['value'], ))
@@ -42,7 +42,7 @@ def image_src(gid=None, thumbnail=False, fresh=False, **kwargs):
 
 
 @register_route('/ajax/annot/src/<aid>/', methods=['GET'])
-def annotation_src(aid=None):
+def annotation_src(aid=None, **kwargs):
     ibs = current_app.ibs
     gpath = ibs.get_annot_chip_fpath(aid)
     image = vt.imread(gpath)

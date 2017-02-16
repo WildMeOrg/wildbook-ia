@@ -12,7 +12,6 @@ import utool as ut
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 @register_api('/api/imageset/json/', methods=['POST'])

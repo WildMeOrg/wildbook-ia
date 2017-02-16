@@ -5,7 +5,7 @@ from six.moves import cStringIO as StringIO
 import flask
 import random
 from ibeis.constants import TAU
-from flask import request, current_app
+from flask import request, current_app, url_for
 from os.path import join, dirname, abspath  # NOQA
 from datetime import datetime
 from datetime import date
@@ -22,8 +22,10 @@ TARGET_WIDTH = 1200.0
 TARGET_HEIGHT = 800.0
 PAGE_SIZE = 500
 VALID_TURK_MODES = [
+    ('turk_annotation', 'Annotation'),
     ('turk_viewpoint', 'Viewpoint'),
     ('turk_quality', 'Quality'),
+    ('turk_demographics', 'Demographics'),
 ]
 
 
@@ -31,16 +33,22 @@ class NavbarClass(object):
     def __init__(nav):
         nav.item_list = [
             ('root', 'Home'),
-            ('view', 'View'),
+            ('view_imagesets', 'ImageSets'),
+            ('view_images', 'Images'),
+            ('view_annotations', 'Annotations'),
+            ('view_names', 'Names'),
+            # ('action', 'Action'),
             ('turk', 'Turk'),
-            ('api_root',  'API'),
-            ('group_review',  'Group Review'),
+            # ('api_root',  'API'),
+            # ('group_review',  'Group Review'),
         ]
 
     def __iter__(nav):
-        _link = flask.request.path.strip('/').split('/')
+        _link = request.path
         for link, nice in nav.item_list:
-            yield link == _link[0], link, nice
+            active = _link == url_for(link)
+            print(_link, link, url_for(link))
+            yield active, link, nice
 
 
 def resize_via_web_parameters(image):
@@ -282,7 +290,7 @@ def imageset_annot_quality_processed(ibs, aid_list):
     return annots_reviewed
 
 
-def imageset_annot_additional_processed(ibs, aid_list, nid_list):
+def imageset_annot_demographics_processed(ibs, aid_list, nid_list):
     sex_list = ibs.get_annot_sex(aid_list)
     age_list = ibs.get_annot_age_months_est(aid_list)
     annots_reviewed = [

@@ -5,7 +5,7 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 import random
 import math
-from flask import request, current_app, url_for
+from flask import request, redirect, current_app, url_for
 from ibeis.control import controller_inject
 from ibeis import constants as const
 from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
@@ -48,6 +48,85 @@ def root(**kwargs):
 
 @register_route('/view/', methods=['GET'])
 def view(**kwargs):
+    ibs = current_app.ibs
+
+    ibs.update_all_image_special_imageset()
+    imgsetids_list = ibs.get_valid_imgsetids()
+    gid_list = ibs.get_valid_gids()
+    aid_list = ibs.get_valid_aids()
+    nid_list = ibs.get_valid_nids()
+
+    return appf.template('view',
+                         num_imgsetids=len(imgsetids_list),
+                         num_gids=len(gid_list),
+                         num_aids=len(aid_list),
+                         num_nids=len(nid_list))
+
+
+@register_route('/view/viewpoints/', methods=['GET'])
+def view_viewpoints(**kwargs):
+    ibs = current_app.ibs
+
+    aid_list = ibs.get_valid_aids()
+    species_list = ibs.get_annot_species_texts(aid_list)
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+
+    species_tag_list = sorted(list(set(species_list)))
+    species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
+    species_set = set(species_tag_list)
+    species_nice_dict = {
+        species_tag : ibs.get_species_nice(species_rowid)
+        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
+    }
+
+    viewpoint_dict = {}
+    for species, viewpoint in zip(species_list, viewpoint_list):
+        if species in species_set:
+            if species not in viewpoint_dict:
+                viewpoint_dict[species] = {}
+            if viewpoint not in viewpoint_dict[species]:
+                viewpoint_dict[species][viewpoint] = 0
+            viewpoint_dict[species][viewpoint] += 1
+
+    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
+    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    pie_values_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
+        )
+        for species in species_tag_list
+    ]
+
+    viewpoint_order_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
+    pie_left_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
+    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
+    viewpoint_tag_dict = {
+        'zebra_grevys' : pie_right_list,
+        'zebra_plains' : pie_left_list,
+        'giraffe_masai' : pie_left_list,
+    }
+    pie_label_corrected_list = list(map(
+        str,
+        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
+    ))
+    pie_values_corrected_list = [
+        (
+            species_nice_dict[species],
+            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
+        )
+        for species in species_tag_list
+    ]
+
+    # Get number of annotations per name as a histogram for each species
+    embedded = dict(globals(), **locals())
+    return appf.template('view', 'viewpoints',
+                         __wrapper_header__=False,
+                         **embedded)
+
+
+@register_route('/view/advanced/0/', methods=['GET'])
+def view_advanced0(**kwargs):
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
         datetime_list = [
@@ -538,7 +617,7 @@ def view(**kwargs):
     if 'Core' in path_dict:
         path_dict.pop('Core')
 
-    return appf.template('view',
+    return appf.template('view', 'advanced0',
                          line_index_list=index_list,
                          line_label_list=label_list,
                          line_value_list=value_list,
@@ -596,70 +675,8 @@ def view(**kwargs):
                          __wrapper_header__=False)
 
 
-@register_route('/view/viewpoints/', methods=['GET'])
-def view_viewpoints(**kwargs):
-    ibs = current_app.ibs
-
-    aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species_texts(aid_list)
-    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
-
-    species_tag_list = sorted(list(set(species_list)))
-    species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
-    species_set = set(species_tag_list)
-    species_nice_dict = {
-        species_tag : ibs.get_species_nice(species_rowid)
-        for species_tag, species_rowid in zip(species_tag_list, species_rowid_list)
-    }
-
-    viewpoint_dict = {}
-    for species, viewpoint in zip(species_list, viewpoint_list):
-        if species in species_set:
-            if species not in viewpoint_dict:
-                viewpoint_dict[species] = {}
-            if viewpoint not in viewpoint_dict[species]:
-                viewpoint_dict[species][viewpoint] = 0
-            viewpoint_dict[species][viewpoint] += 1
-
-    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
-    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
-    pie_values_list = [
-        (
-            species_nice_dict[species],
-            [viewpoint_dict[species][_] for _ in viewpoint_tag_list]
-        )
-        for species in species_tag_list
-    ]
-
-    viewpoint_order_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
-    pie_left_list = ['left', 'frontleft', 'front', 'frontright', 'right', 'backright', 'back', 'backleft']
-    pie_right_list = ['right', 'backright', 'back', 'backleft', 'left', 'frontleft', 'front', 'frontright']
-    viewpoint_tag_dict = {
-        'zebra_grevys' : pie_right_list,
-        'zebra_plains' : pie_left_list,
-        'giraffe_masai' : pie_left_list,
-    }
-    pie_label_corrected_list = list(map(
-        str,
-        ['Correct', '+45', '+90', '+135', '+180', '+225', '+270', '+315']
-    ))
-    pie_values_corrected_list = [
-        (
-            species_nice_dict[species],
-            [viewpoint_dict[species][_] for _ in viewpoint_tag_dict[species]]
-        )
-        for species in species_tag_list
-    ]
-
-    # Get number of annotations per name as a histogram for each species
-    embedded = dict(globals(), **locals())
-    return appf.template('view', 'advanced',
-                         __wrapper_header__=False,
-                         **embedded)
-
-
-@register_route('/view/advanced/', methods=['GET'])
-def view_advanced(**kwargs):
+@register_route('/view/advanced/1/', methods=['GET'])
+def view_advanced1(**kwargs):
     ibs = current_app.ibs
 
     species_tag_list = ['zebra_grevys', 'zebra_plains', 'giraffe_masai']
@@ -781,12 +798,12 @@ def view_advanced(**kwargs):
 
     # Get number of annotations per name as a histogram for each species
     embedded = dict(globals(), **locals())
-    return appf.template('view', 'advanced',
+    return appf.template('view', 'advanced1',
                          __wrapper_header__=False,
                          **embedded)
 
 
-@register_route('/view/advanced2/', methods=['GET'])
+@register_route('/view/advanced/2/', methods=['GET'])
 def view_advanced2(**kwargs):
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
@@ -913,7 +930,7 @@ def view_advanced2(**kwargs):
                          **embedded)
 
 
-@register_route('/view/advanced3/', methods=['GET'])
+@register_route('/view/advanced/3/', methods=['GET'])
 def view_advanced3(**kwargs):
 
     ibs = current_app.ibs
@@ -1000,7 +1017,7 @@ def view_advanced3(**kwargs):
                          **embedded)
 
 
-@register_route('/view/advanced4/', methods=['GET'])
+@register_route('/view/advanced/4/', methods=['GET'])
 def view_advanced4(**kwargs):
 
     def _date_list(gid_list):
@@ -1200,6 +1217,7 @@ def view_advanced4(**kwargs):
 def view_imagesets(**kwargs):
     ibs = current_app.ibs
     filtered = True
+    ibs.update_all_image_special_imageset()
     imgsetid = request.args.get('imgsetid', '')
     if len(imgsetid) > 0:
         imgsetid_list = imgsetid.strip().split(',')
@@ -1223,7 +1241,9 @@ def view_imagesets(**kwargs):
     annot_processed_viewpoint_list = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_viewpoint_list ]
     annot_processed_quality_list   = [ annots_reviewed.count(True) for annots_reviewed in annots_reviewed_quality_list ]
     reviewed_list = [ all(images_reviewed) and all(annots_reviewed_viewpoint) and all(annot_processed_quality) for images_reviewed, annots_reviewed_viewpoint, annot_processed_quality in zip(images_reviewed_list, annots_reviewed_viewpoint_list, annots_reviewed_quality_list) ]
+    is_normal_list = ut.not_list(ibs.is_special_imageset(imgsetid_list))
     imageset_list = zip(
+        is_normal_list,
         imgsetid_list,
         ibs.get_imageset_text(imgsetid_list),
         ibs.get_imageset_num_gids(imgsetid_list),
@@ -1235,7 +1255,7 @@ def view_imagesets(**kwargs):
         datetime_list,
         reviewed_list,
     )
-    imageset_list.sort(key=lambda t: t[7])
+    imageset_list.sort(key=lambda t: t[0])
     return appf.template('view', 'imagesets',
                          filtered=filtered,
                          imgsetid_list=imgsetid_list,
@@ -1479,6 +1499,47 @@ def view_names(**kwargs):
                          page_next=page_next)
 
 
+@register_route('/action/', methods=['GET'])
+def action(**kwargs):
+    ibs = current_app.ibs
+
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    job_id_list = ibs.get_job_id_list()
+    job_action_list = [None] * len(job_id_list)
+    job_status_list = [
+        ibs.get_job_status(job_id)['jobstatus']
+        for job_id in job_id_list
+    ]
+    action_list = zip(job_action_list, job_action_list, job_status_list)
+
+    return appf.template('action', None,
+                         imgsetid=imgsetid,
+                         action_list=action_list,
+                         num_actions=len(action_list))
+
+
+@register_route('/action/detect/', methods=['GET'])
+def action_detect(**kwargs):
+    ibs = current_app.ibs
+
+    gid_list = ibs.get_valid_gids()
+    image_uuid_list = ibs.get_image_uuids(gid_list)
+    ibs.start_detect_image(image_uuid_list)
+
+    return redirect(url_for('action'))
+
+
+@register_route('/action/identify/', methods=['GET'])
+def action_identification(**kwargs):
+    ibs = current_app.ibs
+
+    ibs.start_web_query_all()
+
+    return redirect(url_for('action'))
+
+
 @register_route('/turk/', methods=['GET'])
 def turk(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
@@ -1526,7 +1587,10 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     reviewed_list = appf.imageset_image_processed(ibs, gid_list)
-    progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+    try:
+        progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(gid_list), )
+    except ZeroDivisionError:
+        progress = '100.0'
 
     imagesettext = None if imgsetid is None else ibs.get_imageset_text(imgsetid)
     if gid is None:
@@ -2122,7 +2186,10 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
                 print('len(query_aid_list) = %r' % (len(query_object.aids), ))
                 print('Estimated remaining = %r' % (status_remaining, ))
                 print('Reviews list len    = %r' % (len(review_aid1_list), ))
-                progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
+                try:
+                    progress = '%0.02f' % (100.0 * (1.0 - (status_remaining / len(query_object.aids))), )
+                except ZeroDivisionError:
+                    progress = '100.0'
 
                 # aid1 = request.args.get('aid1', None)
                 # aid2 = request.args.get('aid2', None)
@@ -2339,8 +2406,8 @@ def turk_quality(**kwargs):
                          review=review)
 
 
-@register_route('/turk/additional/', methods=['GET'])
-def turk_additional(**kwargs):
+@register_route('/turk/demographics/', methods=['GET'])
+def turk_demographics(**kwargs):
     ibs = current_app.ibs
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
@@ -2348,7 +2415,7 @@ def turk_additional(**kwargs):
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     aid_list = ut.flatten(ibs.get_image_aids(gid_list))
     nid_list = ibs.get_annot_nids(aid_list)
-    reviewed_list = appf.imageset_annot_additional_processed(ibs, aid_list, nid_list)
+    reviewed_list = appf.imageset_annot_demographics_processed(ibs, aid_list, nid_list)
     try:
         progress = '%0.2f' % (100.0 * reviewed_list.count(True) / len(aid_list), )
     except ZeroDivisionError:
@@ -2390,7 +2457,7 @@ def turk_additional(**kwargs):
 
     review = 'review' in request.args.keys()
     finished = aid is None
-    display_instructions = request.cookies.get('ia-additional_instructions_seen', 1) == 0
+    display_instructions = request.cookies.get('ia-demographics_instructions_seen', 1) == 0
     if not finished:
         gid       = ibs.get_annot_gids(aid)
         gpath     = ibs.get_annot_chip_fpath(aid)
@@ -2430,7 +2497,7 @@ def turk_additional(**kwargs):
         if len(imgset_text_list) == 1:
             region_str = imgset_text_list[0]
 
-    return appf.template('turk', 'additional',
+    return appf.template('turk', 'demographics',
                          imgsetid=imgsetid,
                          gid=gid,
                          aid=aid,
