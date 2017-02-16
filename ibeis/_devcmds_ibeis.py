@@ -14,7 +14,6 @@ import utool
 import vtool.keypoint as ktool
 from ibeis import sysres
 from ibeis.other import ibsfuncs
-from ibeis.viz import interact
 from ibeis.dbio import ingest_hsdb
 
 
@@ -80,6 +79,7 @@ def vdd(ibs=None, qaid_list=None):
 
 @devcmd('show')
 def show_aids(ibs, qaid_list):
+    from ibeis.viz import interact
     for aid in qaid_list:
         interact.ishow_chip(ibs, aid, fnum=df2.next_fnum())
 
@@ -125,6 +125,7 @@ def sver_aids(ibs, qaid_list, daid_list=None):
         python dev.py -w --show -t sver --db PZ_MTEST --qaid 1
 
     """
+    from ibeis.viz import interact
     if daid_list is None:
         daid_list = ibs.get_valid_aids()
     cm_list = ibs.query_chips(qaid_list, daid_list)

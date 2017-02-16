@@ -877,7 +877,11 @@ class _AnnotInfrFeedback(object):
         if isinstance(decision_df, pd.Series):
             decisions = decision_df
         elif isinstance(decision_df, pd.DataFrame):
-            decisions = decision_df['match_state']
+            if 'decision' in decision_df:
+                assert 'match_state' not in decision_df
+                decisions = decision_df['decision']
+            else:
+                decisions = decision_df['match_state']
         else:
             raise ValueError(type(decision_df))
         index = decisions.index

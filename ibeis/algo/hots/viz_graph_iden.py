@@ -6,7 +6,6 @@ import utool as ut
 import vtool as vt  # NOQA
 import six
 import networkx as nx
-import plottool as pt
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -21,6 +20,7 @@ class _AnnotInfrViz(object):
     """ contains plotting related code """
 
     def _get_truth_colors(infr):
+        import plottool as pt
         truth_colors = {
             # 'match': pt.TRUE_GREEN,
             'match': pt.TRUE_BLUE,
@@ -31,6 +31,7 @@ class _AnnotInfrViz(object):
         return truth_colors
 
     def _get_cmap(infr):
+        import plottool as pt
         # return pt.plt.cm.RdYlBu
         if hasattr(infr, '_cmap'):
             return infr._cmap
@@ -205,6 +206,7 @@ class _AnnotInfrViz(object):
                             **kwargs
                             # hide_unreviewed_inferred=True
                             ):
+        import plottool as pt
 
         if infr.verbose >= 3:
             print('[infr] update_visual_attrs')
@@ -420,6 +422,7 @@ class _AnnotInfrViz(object):
     @profile
     def show_graph(infr, use_image=False, with_colorbar=False, pnum=(1, 1, 1),
                    **kwargs):
+        import plottool as pt
         # kwargs['fontsize'] = kwargs.get('fontsize', 8)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
