@@ -22,11 +22,9 @@ print, rrr, profile = ut.inject2(__name__)
 
 # Create dectorator to inject functions in this module into the IBEISController
 CLASS_INJECT_KEY, register_ibs_method = controller_inject.make_ibs_register_decorator(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 def testdata_ibs(defaultdb='testdb1'):

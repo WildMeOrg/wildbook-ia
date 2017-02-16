@@ -56,11 +56,11 @@
       {% endif %}
 
       <br/>
-      <form method="post" action="{{ url_for('submit_additional') }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}">
-        <input type="text" name="additional-aid" value="{{ aid }}" style="display: none;" readonly>
+      <form method="post" action="{{ url_for('submit_demographics') }}?imgsetid={{ imgsetid }}&refer={{ REFER_DST_ENCODED }}">
+        <input type="text" name="demographics-aid" value="{{ aid }}" style="display: none;" readonly>
         Sex: <span id="label-sex"></span> | Age: <span id="label-age"></span>
         <br/>
-        <input type="range" name="additional-sex-value" id="slider-additional-sex" value="{% if value_sex %}{{ value_sex }}{% else %}1{% endif %}" min="1" max="3" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="demographics-sex-value" id="slider-demographics-sex" value="{% if value_sex %}{{ value_sex }}{% else %}1{% endif %}" min="1" max="3" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand" style="height: 50px;">
           <div class="col-custom-span col-custom-span-3">
             Unknown
@@ -73,7 +73,7 @@
           </div>
         </div>
 
-        <input type="range" name="additional-age-value" id="slider-additional-age" value="{% if value_age %}{{ value_age }}{% else %}1{% endif %}" min="1" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="demographics-age-value" id="slider-demographics-age" value="{% if value_age %}{{ value_age }}{% else %}1{% endif %}" min="1" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand" style="height: 50px;">
           <div class="col-custom-span col-custom-span-7">
             Unknown
@@ -99,10 +99,10 @@
         </div>
         <br/>
         {% if previous %}
-          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_additional') }}?imgsetid={{ imgsetid }}&aid={{ previous }}">Previous {{ previous }}</a>
+          <a class="btn btn-default pull-left" id="turk-previous" href="{{ url_for('turk_demographics') }}?imgsetid={{ imgsetid }}&aid={{ previous }}">Previous {{ previous }}</a>
         {% endif %}
-        <input type="submit" name="additional-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
-        <!-- <input type="submit" name="additional-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')"> -->
+        <input type="submit" name="demographics-submit" id="turk-submit-accept" class="btn btn-primary pull-right" value="Accept">
+        <!-- <input type="submit" name="demographics-submit" id="turk-submit-delete" class="btn btn-danger pull-right" value="Delete" onclick="return confirm('Are you sure you want to delete this annotation?')"> -->
       </form
       <br/>
     </div>
@@ -116,11 +116,11 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Additional Turking Instructions</h4>
+          <h4 class="modal-title" id="myModalLabel">Demographics Turking Instructions</h4>
         </div>
         <div class="modal-body">
             <div style="text-align: center; margin-bottom: 30px;" id="biologist-approval">
-              <img src="{{ url_for('static', filename='images/example-additional1.jpg') }}"/>
+              <img src="{{ url_for('static', filename='images/example-demographics1.jpg') }}"/>
               <h3>Are you Dr. Dan Rubenstein or a Princeton biologist with experience on sexing and aging equine species?</h3>
               <br/>
 
@@ -141,7 +141,7 @@
           </ul>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-additional_instructions_seen', '1');">Got it!</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-demographics_instructions_seen', '1');">Got it!</button>
         </div>
       </div>
     </div>
@@ -159,7 +159,7 @@
   {% endif %}
 {% endblock %}
 {% block content_custom_javascript %}
-<script src="{{ url_for('static', filename='javascript/turk-additional.js') }}"></script>
+<script src="{{ url_for('static', filename='javascript/turk-demographics.js') }}"></script>
 <script type="text/javascript">
   var loading = [];
   var requests = [];

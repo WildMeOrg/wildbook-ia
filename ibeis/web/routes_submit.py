@@ -303,13 +303,13 @@ def submit_quality(**kwargs):
                                 dst_ag=dst_ag, previous=aid))
 
 
-@register_route('/submit/additional/', methods=['POST'])
-def submit_additional(**kwargs):
+@register_route('/submit/demographics/', methods=['POST'])
+def submit_demographics(**kwargs):
     ibs = current_app.ibs
-    method = request.form.get('additional-submit', '')
+    method = request.form.get('demographics-submit', '')
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
-    aid = int(request.form['additional-aid'])
+    aid = int(request.form['demographics-aid'])
     turk_id = request.cookies.get('ia-turk_id', -1)
 
     if method.lower() == 'delete':
@@ -317,8 +317,8 @@ def submit_additional(**kwargs):
         print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
         aid = None  # Reset AID to prevent previous
     else:
-        sex = int(request.form['additional-sex-value'])
-        age = int(request.form['additional-age-value'])
+        sex = int(request.form['demographics-sex-value'])
+        age = int(request.form['demographics-age-value'])
         age_min = None
         age_max = None
         # Sex
@@ -365,7 +365,7 @@ def submit_additional(**kwargs):
     if len(refer) > 0:
         return redirect(appf.decode_refer_url(refer))
     else:
-        return redirect(url_for('turk_additional', imgsetid=imgsetid, previous=aid))
+        return redirect(url_for('turk_demographics', imgsetid=imgsetid, previous=aid))
 
 
 @register_route('/submit/identification/', methods=['POST'])
