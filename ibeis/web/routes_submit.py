@@ -16,7 +16,7 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 @register_route('/submit/detection/', methods=['POST'])
-def submit_detection():
+def submit_detection(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('detection-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -88,7 +88,7 @@ def submit_detection():
 
 
 @register_route('/submit/viewpoint/', methods=['POST'])
-def submit_viewpoint():
+def submit_viewpoint(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('viewpoint-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -171,7 +171,7 @@ def submit_viewpoint():
 
 
 @register_route('/submit/annotation/', methods=['POST'])
-def submit_annotation():
+def submit_annotation(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('ia-annotation-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -271,7 +271,7 @@ def submit_annotation():
 
 
 @register_route('/submit/quality/', methods=['POST'])
-def submit_quality():
+def submit_quality(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('quality-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -304,7 +304,7 @@ def submit_quality():
 
 
 @register_route('/submit/additional/', methods=['POST'])
-def submit_additional():
+def submit_additional(**kwargs):
     ibs = current_app.ibs
     method = request.form.get('additional-submit', '')
     imgsetid = request.args.get('imgsetid', '')
@@ -369,7 +369,7 @@ def submit_additional():
 
 
 @register_route('/submit/identification/', methods=['POST'])
-def submit_identification():
+def submit_identification(**kwargs):
     from ibeis.web.apis_query import process_graph_match_html
     ibs = current_app.ibs
 
@@ -428,7 +428,7 @@ def submit_identification():
 
 
 @register_route('/submit/group_review/', methods=['POST'])
-def group_review_submit():
+def group_review_submit(**kwargs):
     """
     CommandLine:
         python -m ibeis.web.app --exec-group_review_submit

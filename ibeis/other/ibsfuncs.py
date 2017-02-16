@@ -158,12 +158,13 @@ def filter_junk_annotations(ibs, aid_list):
 
 
 @register_ibs_method
-def compute_all_chips(ibs, **kwargs):
+def compute_all_chips(ibs, aid_list=None, **kwargs):
     """
     Executes lazy evaluation of all chips
     """
     print('[ibs] compute_all_chips')
-    aid_list = ibs.get_valid_aids(**kwargs)
+    if aid_list is None:
+        aid_list = ibs.get_valid_aids(**kwargs)
     cid_list = ibs.depc_annot.get_rowids('chips', aid_list)
     return cid_list
 

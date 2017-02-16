@@ -13,14 +13,7 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
 
 
-try:
-    raise ImportError
-    import jpcnn  # NOQA
-    USE_LOCALIZATIONS = False
-    # print('[apis_detect] USING DETECTIONS FOR DETECTIONS')
-except ImportError:
-    USE_LOCALIZATIONS = True
-    # print('[apis_detect] USING LOCALIZATIONS FOR DETECTIONS')
+USE_LOCALIZATIONS = False
 
 
 CLASS_INJECT_KEY, register_ibs_method = (

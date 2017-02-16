@@ -119,8 +119,8 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=
     if not use_existing_train_test:
         ibs.imageset_train_test_split(**kwargs)
 
-    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET'), **kwargs)
-    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'), **kwargs)
+    train_gid_set = set(general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET', **kwargs))
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
@@ -1037,7 +1037,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    species_set = set(['zebra'])
+    # species_set = set(['zebra'])
+    # species_set = set(['giraffe'])
+    # species_set = set(['elephant'])
+    species_set = None
 
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -1162,7 +1165,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     best_area = area_list[index]
     best_conf = conf_list[index]
     # plt.title('Precision-Recall Curve (Best: %s, mAP = %0.02f)' % (best_label, best_area, ), y=1.13)
-    plt.title('Precision-Recall Curves (Zebra Only)', y=1.13)
+    plt.title('Precision-Recall Curves', y=1.13)
 
     # Display graph of the overall highest area
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
@@ -1367,7 +1370,6 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
 
 
 def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
-    # from ibeis.algo.detect.labeler.model import label_list as category_list
 
     def labeler_tp_tn_fp_fn_(zipped, conf, category):
         error_list = [0, 0, 0, 0]
@@ -1482,7 +1484,6 @@ def labeler_roc_algo_plot(ibs, **kwargs):
 
 
 def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwargs):
-    # from ibeis.algo.detect.labeler.model import label_list as category_list
     print('Processing Confusion Matrix for: %r' % (label, ))
     depc = ibs.depc_annot
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1516,7 +1517,6 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
 def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 16),
                                           **kwargs):
     import matplotlib.pyplot as plt
-    # from ibeis.algo.detect.labeler.model import label_list
 
     if category_list is None:
         test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1958,7 +1958,7 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 
 @register_ibs_method
-def classifier_train_svm(ibs, species_list, output_path=None):
+def classifier_train_image_svm(ibs, species_list, output_path=None):
     from sklearn import svm
 
     # Load data
@@ -2013,7 +2013,7 @@ def classifier_train_svm(ibs, species_list, output_path=None):
 
 @register_ibs_method
 def classifier_get_training_localizations(ibs, species_list, model_path=None,
-                                          limit=10, min_overlap=0.25):
+                                          limit=10, min_overlap=0.5):
     import random
     # Get default model file
     if model_path is None:
@@ -2083,6 +2083,45 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
 
 
 @register_ibs_method
+def classifier_train_localization_svm(ibs, species_list, output_path=None, limit=10,
+                                      **kwargs):
+    from sklearn import svm
+
+    # Load data
+    print('Loading pre-trained features for filtered localizations')
+
+    pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
+                                                                   limit=limit,
+                                                                   **kwargs)
+
+    # Compile data and label list
+    data_list = []
+    label_list = []
+    for pos in pos_list:
+        data_list.append(pos['feature'])
+        label_list.append(1)
+    for neg in neg_list:
+        data_list.append(neg['feature'])
+        label_list.append(0)
+
+    data_list = np.array(data_list)
+    label_list = np.array(label_list)
+
+    print('Train SVM model using features and target labels')
+    # Train new model using data and labels
+    model = svm.SVC()
+    model.fit(data_list, label_list)
+
+    # Save model pickle
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    species_list_str = '.'.join(species_list)
+    args = (species_list_str, limit, )
+    output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.pkl' % args)
+    ut.save_cPkl(output_filepath, model)
+
+
+@register_ibs_method
 def classifier_train(ibs, species_list):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
@@ -2115,27 +2154,29 @@ def localizer_train(ibs, **kwargs):
 
 
 @register_ibs_method
-def labeler_train(ibs):
+def labeler_train(ibs, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_labeler_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.labeler import train_labeler
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_labeler_training_images(ibs, data_path)
+    extracted_path = get_cnn_labeler_training_images(ibs, data_path, **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'labeler')
     model_path = train_labeler(output_path, X_file, y_file)
     return model_path
 
 
-@register_ibs_method
-def qualifier_train(ibs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_qualifier_training_images
-    from ibeis.algo.detect.qualifier.qualifier import train_qualifier
-    data_path = join(ibs.get_cachedir(), 'extracted')
-    get_cnn_qualifier_training_images(ibs, data_path)
-    output_path = join(ibs.get_cachedir(), 'training', 'qualifier')
-    model_path = train_qualifier(output_path, source_path=data_path)
-    return model_path
+# @register_ibs_method
+# def qualifier_train(ibs, **kwargs):
+#     from ibeis_cnn.ingest_ibeis import get_cnn_qualifier_training_images
+#     from ibeis_cnn.process import numpy_processed_directory2
+#     from ibeis_cnn.models.qualifier import train_qualifier
+#     data_path = join(ibs.get_cachedir(), 'extracted')
+#     extracted_path = get_cnn_qualifier_training_images(ibs, data_path, **kwargs)
+#     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
+#     output_path = join(ibs.get_cachedir(), 'training', 'qualifier')
+#     model_path = train_qualifier(output_path, X_file, y_file)
+#     return model_path
 
 
 @register_ibs_method

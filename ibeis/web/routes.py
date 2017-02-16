@@ -42,12 +42,12 @@ GLOBAL_FEEDBACK_CONFIG_DICT = {
 
 
 @register_route('/', methods=['GET'])
-def root():
+def root(**kwargs):
     return appf.template(None)
 
 
 @register_route('/view/', methods=['GET'])
-def view():
+def view(**kwargs):
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
         datetime_list = [
@@ -597,7 +597,7 @@ def view():
 
 
 @register_route('/view/viewpoints/', methods=['GET'])
-def view_viewpoints():
+def view_viewpoints(**kwargs):
     ibs = current_app.ibs
 
     aid_list = ibs.get_valid_aids()
@@ -659,7 +659,7 @@ def view_viewpoints():
 
 
 @register_route('/view/advanced/', methods=['GET'])
-def view_advanced():
+def view_advanced(**kwargs):
     ibs = current_app.ibs
 
     species_tag_list = ['zebra_grevys', 'zebra_plains', 'giraffe_masai']
@@ -787,7 +787,7 @@ def view_advanced():
 
 
 @register_route('/view/advanced2/', methods=['GET'])
-def view_advanced2():
+def view_advanced2(**kwargs):
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
         datetime_list = [
@@ -914,7 +914,7 @@ def view_advanced2():
 
 
 @register_route('/view/advanced3/', methods=['GET'])
-def view_advanced3():
+def view_advanced3(**kwargs):
 
     ibs = current_app.ibs
 
@@ -1001,7 +1001,7 @@ def view_advanced3():
 
 
 @register_route('/view/advanced4/', methods=['GET'])
-def view_advanced4():
+def view_advanced4(**kwargs):
 
     def _date_list(gid_list):
         unixtime_list = ibs.get_image_unixtime(gid_list)
@@ -1197,7 +1197,7 @@ def view_advanced4():
 
 
 @register_route('/view/imagesets/', methods=['GET'])
-def view_imagesets():
+def view_imagesets(**kwargs):
     ibs = current_app.ibs
     filtered = True
     imgsetid = request.args.get('imgsetid', '')
@@ -1259,7 +1259,7 @@ def image_view_api(gid=None, thumbnail=False, fresh=False, **kwargs):
 
 
 @register_route('/view/images/', methods=['GET'])
-def view_images():
+def view_images(**kwargs):
     ibs = current_app.ibs
     filtered = True
     imgsetid_list = []
@@ -1324,7 +1324,7 @@ def view_images():
 
 
 @register_route('/view/annotations/', methods=['GET'])
-def view_annotations():
+def view_annotations(**kwargs):
     ibs = current_app.ibs
     filtered = True
     imgsetid_list = []
@@ -1394,7 +1394,7 @@ def view_annotations():
 
 
 @register_route('/view/names/', methods=['GET'])
-def view_names():
+def view_names(**kwargs):
     ibs = current_app.ibs
     filtered = True
     aid_list = []
@@ -1480,7 +1480,7 @@ def view_names():
 
 
 @register_route('/turk/', methods=['GET'])
-def turk():
+def turk(**kwargs):
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
     return appf.template('turk', None, imgsetid=imgsetid)
@@ -1596,7 +1596,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
 
 @register_route('/turk/detection/dynamic/', methods=['GET'])
-def turk_detection_dynamic():
+def turk_detection_dynamic(**kwargs):
     ibs = current_app.ibs
     gid = request.args.get('gid', None)
 
@@ -1644,7 +1644,7 @@ def turk_detection_dynamic():
 
 
 @register_route('/turk/annotation/', methods=['GET'])
-def turk_annotation():
+def turk_annotation(**kwargs):
     """
     CommandLine:
         python -m ibeis.web.app --exec-turk_annotation --db PZ_Master1
@@ -1735,7 +1735,7 @@ def turk_annotation():
 
 
 @register_route('/turk/annotation/dynamic/', methods=['GET'])
-def turk_annotation_dynamic():
+def turk_annotation_dynamic(**kwargs):
     ibs = current_app.ibs
     aid = request.args.get('aid', None)
     imgsetid = request.args.get('imgsetid', None)
@@ -1784,7 +1784,7 @@ def turk_annotation_dynamic():
 
 
 @register_route('/turk/viewpoint/', methods=['GET'])
-def turk_viewpoint():
+def turk_viewpoint(**kwargs):
     """
     CommandLine:
         python -m ibeis.web.app --exec-turk_viewpoint --db PZ_Master1
@@ -2269,7 +2269,7 @@ def turk_identification(aid1=None, aid2=None, use_engine=False,
 
 
 @register_route('/turk/quality/', methods=['GET'])
-def turk_quality():
+def turk_quality(**kwargs):
     """
     PZ Needs Tags:
         17242
@@ -2340,7 +2340,7 @@ def turk_quality():
 
 
 @register_route('/turk/additional/', methods=['GET'])
-def turk_additional():
+def turk_additional(**kwargs):
     ibs = current_app.ibs
     imgsetid = request.args.get('imgsetid', '')
     imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
@@ -2449,7 +2449,7 @@ def turk_additional():
 
 
 @register_route('/group_review/', methods=['GET'])
-def group_review():
+def group_review(**kwargs):
     prefill = request.args.get('prefill', '')
     if len(prefill) > 0:
         ibs = current_app.ibs
@@ -2490,7 +2490,7 @@ def sightings(html_encode=True):
 
 
 @register_route('/api/', methods=['GET'], __api_prefix_check__=False)
-def api_root():
+def api_root(**kwargs):
     rules = current_app.url_map.iter_rules()
     rule_dict = {}
     for rule in rules:
@@ -2503,10 +2503,10 @@ def api_root():
             if len(methods) > 1:
                 print('methods = %r' % (methods,))
             method = list(methods)[0]
-            if method not in rule_dict.keys():
+            if method not in rule_dict.keys(**kwargs):
                 rule_dict[method] = []
             rule_dict[method].append((method, url, ))
-    for method in rule_dict.keys():
+    for method in rule_dict.keys(**kwargs):
         rule_dict[method].sort()
     url = '%s/api/core/dbname/' % (current_app.server_url, )
     app_auth = controller_inject.get_url_authorization(url)
@@ -2519,12 +2519,12 @@ def api_root():
 
 
 @register_route('/upload/', methods=['GET'])
-def upload():
+def upload(**kwargs):
     return appf.template(None, 'upload')
 
 
 @register_route('/dbinfo/', methods=['GET'])
-def dbinfo():
+def dbinfo(**kwargs):
     try:
         ibs = current_app.ibs
         dbinfo_str = ibs.get_dbinfo_str()
@@ -2535,7 +2535,7 @@ def dbinfo():
 
 
 @register_route('/counts/', methods=['GET'])
-def wb_counts():
+def wb_counts(**kwargs):
     fmt_str = '''<p># Annotations: <b>%d</b></p>
 <p># MediaAssets (images): <b>%d</b></p>
 <p># MarkedIndividuals: <b>%d</b></p>
@@ -2582,12 +2582,12 @@ def wb_counts():
 
 
 @register_route('/test/counts.jsp', methods=['GET'], __api_postfix_check__=False)
-def wb_counts_alias1():
+def wb_counts_alias1(**kwargs):
     return wb_counts()
 
 
 @register_route('/gzgc/counts.jsp', methods=['GET'], __api_postfix_check__=False)
-def wb_counts_alias2():
+def wb_counts_alias2(**kwargs):
     return wb_counts()
 
 
