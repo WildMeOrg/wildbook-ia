@@ -1674,7 +1674,6 @@ def compute_classifications(depc, aid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """
-    OLD = False
     print('[ibs] Process Image Classifications')
     print('config = %r' % (config,))
     # Get controller
@@ -1685,11 +1684,7 @@ def compute_classifications(depc, aid_list, config=None):
         'resize_dim' : 'wh',
     }
     chip_list = depc.get_property('chips', aid_list, 'img', config=config)
-    if OLD:
-        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
-        result_list = classify_thumbnail_list(chip_list)
-    else:
-        result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
+    result_list = ibs.generate_thumbnail_class_list(chip_list, **config)
     # yield detections
     for result in result_list:
         yield result
@@ -1739,7 +1734,6 @@ def compute_labels_annotations(depc, aid_list, config=None):
         >>> results = depc.get_property('labeler', aid_list, None)
         >>> print(results)
     """
-    OLD = False
     print('[ibs] Process Annotation Labels')
     print('config = %r' % (config,))
     # Get controller
@@ -1750,11 +1744,7 @@ def compute_labels_annotations(depc, aid_list, config=None):
         'resize_dim' : 'wh',
     }
     chip_list = depc.get_property('chips', aid_list, 'img', config=config)
-    if OLD:
-        from ibeis.algo.detect.labeler.labeler import label_chip_list
-        result_list = label_chip_list(chip_list)
-    else:
-        result_list = ibs.generate_chip_label_list(chip_list, **config)
+    result_list = ibs.generate_chip_label_list(chip_list, **config)
     # yield detections
     for result in result_list:
         yield result
