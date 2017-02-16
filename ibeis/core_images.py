@@ -198,7 +198,6 @@ def compute_classifications(depc, gid_list, config=None):
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
     """
-    OLD = False
     print('[ibs] Process Image Classifications')
     print('config = %r' % (config,))
     # Get controller
@@ -210,11 +209,7 @@ def compute_classifications(depc, gid_list, config=None):
             'thumbsize'   : (192, 192),
         }
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
-        if OLD:
-            from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
-            result_list = classify_thumbnail_list(thumbnail_list)
-        else:
-            result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     # elif config['classifier_algo'] in ['svm']:
     #     config = {
     #         'algo': 'vgg16'
@@ -992,12 +987,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
                                                                      target_size=(192, 192))
 
     # Get the results from the algorithm
-    OLD = False
-    if OLD:
-        from ibeis.algo.detect.classifier.classifier import classify_thumbnail_list
-        result_list = classify_thumbnail_list(thumbnail_list)
-    else:
-        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+    result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     assert len(gid_list) == len(result_list)
 
     # Release thumbnails
@@ -1239,12 +1229,7 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
                                                             target_size=(128, 128))
 
     # Get the results from the algorithm
-    OLD = False
-    if OLD:
-        from ibeis.algo.detect.labeler.labeler import label_chip_list
-        result_list = label_chip_list(chip_list)
-    else:
-        result_list = ibs.generate_chip_label_list(chip_list, **config)
+    result_list = ibs.generate_chip_label_list(chip_list, **config)
     assert len(gid_list) == len(result_list)
 
     # Release chips

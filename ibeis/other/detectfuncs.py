@@ -1370,7 +1370,6 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
 
 
 def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
-    # from ibeis.algo.detect.labeler.model import label_list as category_list
 
     def labeler_tp_tn_fp_fn_(zipped, conf, category):
         error_list = [0, 0, 0, 0]
@@ -1485,7 +1484,6 @@ def labeler_roc_algo_plot(ibs, **kwargs):
 
 
 def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwargs):
-    # from ibeis.algo.detect.labeler.model import label_list as category_list
     print('Processing Confusion Matrix for: %r' % (label, ))
     depc = ibs.depc_annot
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1519,7 +1517,6 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
 def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 16),
                                           **kwargs):
     import matplotlib.pyplot as plt
-    # from ibeis.algo.detect.labeler.model import label_list
 
     if category_list is None:
         test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -2169,15 +2166,17 @@ def labeler_train(ibs, **kwargs):
     return model_path
 
 
-@register_ibs_method
-def qualifier_train(ibs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_qualifier_training_images
-    from ibeis.algo.detect.qualifier.qualifier import train_qualifier
-    data_path = join(ibs.get_cachedir(), 'extracted')
-    get_cnn_qualifier_training_images(ibs, data_path)
-    output_path = join(ibs.get_cachedir(), 'training', 'qualifier')
-    model_path = train_qualifier(output_path, source_path=data_path)
-    return model_path
+# @register_ibs_method
+# def qualifier_train(ibs, **kwargs):
+#     from ibeis_cnn.ingest_ibeis import get_cnn_qualifier_training_images
+#     from ibeis_cnn.process import numpy_processed_directory2
+#     from ibeis_cnn.models.qualifier import train_qualifier
+#     data_path = join(ibs.get_cachedir(), 'extracted')
+#     extracted_path = get_cnn_qualifier_training_images(ibs, data_path, **kwargs)
+#     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
+#     output_path = join(ibs.get_cachedir(), 'training', 'qualifier')
+#     model_path = train_qualifier(output_path, X_file, y_file)
+#     return model_path
 
 
 @register_ibs_method
