@@ -414,7 +414,10 @@ def remerge_subset(ibs1, ibs2):
     aids1 = ibs1.annots(ibs1.get_annot_aids_from_uuid(annot_uuids), asarray=True)
     aids2 = ibs2.annots(ibs2.get_annot_aids_from_uuid(annot_uuids), asarray=True)
     import numpy as np
+
     to_aids2 = dict(zip(aids1, aids2))
+    to_aids1 = dict(zip(aids2, aids1))
+
     # Step 1) Update individual annot properties
     # These annots need updates
     np.where(aids1.visual_uuids != aids2.visual_uuids)
@@ -426,6 +429,9 @@ def remerge_subset(ibs1, ibs2):
     infr2 = graph_iden.AnnotInference(aids=aids2.aids, ibs=ibs2)
 
     fb1 = infr1.read_ibeis_annotmatch_feedback()
+    # feedback = fb1
+    # fb1_df = infr1._pandas_feedback_format(fb1)
+
     # fb1_df = infr1._pandas_feedback_format(fb1)
     # fb2_df = infr2._pandas_feedback_format(
     #     infr2.read_ibeis_annotmatch_feedback())
@@ -435,6 +441,40 @@ def remerge_subset(ibs1, ibs2):
     fb1_df_t = infr2._pandas_feedback_format(fb1_t)
     infr2.reset_feedback()
     infr2.add_feedback_df(fb1_df_t)
+
+    delta = infr2.match_state_delta()
+
+    # Print some info about the delta
+    def _to_tup(x):
+        return tuple(x) if isinstance(x, list) else x
+    changetype_list = list(zip(
+        delta['old_decision'], delta['new_decision'],
+        map(_to_tup, delta['old_tags']),
+        map(_to_tup, delta['new_tags'])))
+    changetype_hist = ut.dict_hist(changetype_list, ordered=True)
+    print(ut.align(ut.repr4(changetype_hist), ':'))
+
+    import pandas as pd
+    pd.options.display.max_rows = 20
+    pd.options.display.max_columns = 40
+    pd.options.display.width = 160
+    pd.options.display.float_format = lambda x: '%.4f' % (x,)
+
+    from ibeis.gui import inspect_gui
+    a, b = 86,    6265
+    c, d = to_aids1[a], to_aids1[b]
+    inspect_gui.show_vsone_tuner(ibs2, a, b)
+    inspect_gui.show_vsone_tuner(ibs1, to_aids1[a], to_aids1[b])
+    am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],
+                                             [to_aids1[b]])
+    am2 = ibs2.get_annotmatch_rowids_between([a], [b])
+    print(ibs1.db.get_table_csv('annotmatch', rowids=am1))
+    print(ibs2.db.get_table_csv('annotmatch', rowids=am2))
+
+    inspect_gui.show_vsone_tuner(ibs2, 8, 242)
+    inspect_gui.show_vsone_tuner(ibs2, 86, 103)
+    inspect_gui.show_vsone_tuner(ibs2, 86, 6265)
+
 
 
 def check_database_overlap(ibs1, ibs2):
