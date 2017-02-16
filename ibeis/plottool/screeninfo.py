@@ -5,7 +5,7 @@ import sys
 import utool as ut
 import numpy as np
 try:
-    import guitool
+    import guitool as gt
     from guitool.__PYQT__ import QtWidgets
     from guitool.__PYQT__ import QtCore
 except ImportError:
@@ -49,11 +49,6 @@ GNOME3_SIZES = {
 
 for key in GNOME3_SIZES:
     GNOME3_SIZES[key] += 5
-
-
-def ensure_app_is_running():
-    #print('[screeninfo] Ensuring that qtapp is running')
-    app, is_root = guitool.init_qtapp()
 
 
 def infer_monitor_specs(res_w, res_h, inches_diag):
@@ -119,9 +114,8 @@ def get_resolution_info(monitor_num=0):
         >>>     info = get_resolution_info(monitor_num)
         >>>     print('monitor(%d).info = %s' % (monitor_num, ut.repr3(info, precision=3)))
     """
-    ensure_app_is_running()
     import guitool as gt
-    app = gt.ensure_qapp()[0]  # NOQA
+    app = gt.ensure_qtapp()[0]  # NOQA
     # screen_resolution = app.desktop().screenGeometry()
     # width, height = screen_resolution.width(), screen_resolution.height()
     # print('height = %r' % (height,))
@@ -239,7 +233,7 @@ def get_resolution_info(monitor_num=0):
 
 
 def get_number_of_monitors():
-    ensure_app_is_running()
+    gt.ensure_qtapp()
     desktop = QtWidgets.QDesktopWidget()
     return desktop.numScreens()
 
@@ -263,7 +257,7 @@ def get_monitor_geom(monitor_num=0):
         >>> result = ('geom = %s' % (ut.repr2(geom),))
         >>> print(result)
     """
-    ensure_app_is_running()
+    gt.ensure_qtapp()
     desktop = QtWidgets.QDesktopWidget()
     rect = desktop.availableGeometry(screen=monitor_num)
     geom = (rect.x(), rect.y(), rect.width(), rect.height())
@@ -271,7 +265,7 @@ def get_monitor_geom(monitor_num=0):
 
 
 def get_monitor_geometries():
-    ensure_app_is_running()
+    gt.ensure_qtapp()
     monitor_geometries = {}
     desktop = QtWidgets.QDesktopWidget()
     for screenx in range(desktop.numScreens()):
