@@ -444,6 +444,27 @@ def remerge_subset(ibs1, ibs2):
 
     delta = infr2.match_state_delta()
 
+    """
+    TODO:
+        Task 1:
+            first transfer all singleton (non-name) properties
+            of names from ibs1 to ibs2 (
+                this includes bounding box, quality, viewpoint,
+                unary_tags, orientation
+            )
+
+        Task 2:
+            Build AnnotInfr for ibs2 then add all decision from
+            ibs1 to the internal feedback dict.
+
+            Ensure that all other (esp old name-id related) edges are correctly
+            placed, then overrite with new vals (
+                make sure implicit vals do not cuase conflicts with new
+                explicit vals, but old explicit vals should cause a conflict).
+            Then just commit to staging and then commit to annotmatch and
+            re-infer the names.
+    """
+
     # Print some info about the delta
     def _to_tup(x):
         return tuple(x) if isinstance(x, list) else x
