@@ -8,7 +8,7 @@ from guitool.__PYQT__.QtCore import Qt
 import utool as ut
 from guitool import guitool_dialogs
 import weakref
-(print, rrr, profile) = ut.inject2(__name__, '[guitool_components]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 DEBUG_WIDGET = ut.get_argflag('--debugwidget')
 

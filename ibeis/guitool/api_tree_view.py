@@ -123,7 +123,7 @@ def testdata_tree_view():
     r"""
     CommandLine:
         python -m guitool.api_tree_view testdata_tree_view
-        --show
+        python -m guitool.api_tree_view testdata_tree_view --show
 
     Example:
         >>> # DISABLE_DOCTEST

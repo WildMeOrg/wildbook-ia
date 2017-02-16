@@ -168,14 +168,13 @@ def qtapp_loop(qwin=None, ipy=False, enable_activate_qwin=True, frequency=420,
         if not QUIET:
             print('[guitool.qtapp_loop()] qapp.exec_()  # runing main loop')
         if not ipy:
-            old_excepthook = sys.excepthook
-
-            def qt_excepthook(type_, value, traceback):
-                print('QT EXCEPTION HOOK')
-                old_excepthook(type_, value, traceback)
-                #QAPP.quit()
-                exit_application()
-                sys.exit(1)
+            # old_excepthook = sys.excepthook
+            # def qt_excepthook(type_, value, traceback):
+            #     print('QT EXCEPTION HOOK')
+            #     old_excepthook(type_, value, traceback)
+            #     #QAPP.quit()
+            #     exit_application()
+            #     sys.exit(1)
             #sys.excepthook = qt_excepthook
             try:
                 retcode = QAPP.exec_()
