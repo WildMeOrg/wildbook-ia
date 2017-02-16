@@ -103,7 +103,8 @@ def blocking_slot(*types_):
     the decorated function is processing.
     """
     def wrap_bslot(func):
-        @slot_(*types_)
+        # @slot_(*types_)
+        @QtCore.pyqtSlot(*types_)
         @backblock
         @functools.wraps(func)
         def wrapped_bslot(*args, **kwargs):
@@ -1428,7 +1429,10 @@ class MainWindowBackend(GUIBACK_BASE):
             #view.resizeRowsToContents() Too slow to use
         back.front.update_tables()
 
-    @blocking_slot(int)
+    # @blocking_slot(int)
+    # @QtCore.pyqtSlot(int)
+    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot(int)
     def delete_image(back, gid_list=None):
         """ Action -> Delete Images"""
         print('[back] delete_image, gid_list = %r' % (gid_list, ))

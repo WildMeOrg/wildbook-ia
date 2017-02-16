@@ -14,8 +14,11 @@ BASE_TYPE = type
 
 
 @register_ibs_method
-def annots(ibs, aids=None, **kwargs):
+def annots(ibs, aids=None, uuids=None, **kwargs):
     """ Makes an Annots object """
+    if uuids is not None:
+        assert aids is None, 'specify one primary key'
+        aids = ibs.get_annot_aids_from_uuid(uuids)
     if aids is None:
         aids = ibs.get_valid_aids()
     elif aids.__class__.__name__ == 'Annots':

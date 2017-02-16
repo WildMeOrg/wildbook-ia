@@ -155,6 +155,27 @@ if six.PY2:
 INSTALL_REQUIRES += INSTALL_OPTIONAL
 
 
+def parse_version():
+    """ Statically parse the version number from __init__.py """
+    from os.path import dirname, join
+    import ast
+    repo_dpath = dirname(__file__)
+    # file_fpath = join(repo_dpath, 'ibeis', '__init__.py')
+    version_varname = 'VERSION_CURRENT'
+    file_fpath = join(repo_dpath, 'ibeis', 'control', 'DB_SCHEMA_CURRENT.py')
+    with open(file_fpath) as file_:
+        sourcecode = file_.read()
+    pt = ast.parse(sourcecode)
+    class VersionVisitor(ast.NodeVisitor):
+        def visit_Assign(self, node):
+            for target in node.targets:
+                if target.id == version_varname:
+                    self.version = node.value.s
+    visitor = VersionVisitor()
+    visitor.visit(pt)
+    return visitor.version
+
+
 @setman.register_command
 def autogen_explicit_imports():
     """
@@ -176,7 +197,8 @@ if __name__ == '__main__':
         author='Jon Crall, Jason Parham',
         author_email='erotemic@gmail.com',
         packages=util_setup.find_packages(),
-        version=util_setup.parse_package_for_version('ibeis'),
+        # version=util_setup.parse_package_for_version('ibeis'),
+        version=parse_version(),
         license=util_setup.read_license('LICENSE'),
         long_description=util_setup.parse_readme('README.md'),
         ext_modules=util_setup.find_ext_modules(),
@@ -185,9 +207,15 @@ if __name__ == '__main__':
         clutter_patterns=CLUTTER_PATTERNS,
         clutter_dirs=CLUTTER_DIRS,
         install_requires=INSTALL_REQUIRES,
-        scripts=[
-            '_scripts/ibeis'
-        ],
+        # scripts=[
+        #     '_scripts/ibeis'
+        # ],
+        entry_points={
+            'console_scripts': [
+                # Register specific python functions as command line scripts
+                'ibeis=ibeis.__main__:run_ibeis',
+            ],
+        },
         #cython_files=CYTHON_FILES,
     )
 
