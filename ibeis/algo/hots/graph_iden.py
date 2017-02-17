@@ -874,6 +874,7 @@ class _AnnotInfrFeedback(object):
             verbose = infr.verbose
         if verbose >= 1:
             print('[infr] add_feedback_df()')
+        tags_list = [None] * len(decision_df)
         if isinstance(decision_df, pd.Series):
             decisions = decision_df
         elif isinstance(decision_df, pd.DataFrame):
@@ -882,6 +883,8 @@ class _AnnotInfrFeedback(object):
                 decisions = decision_df['decision']
             else:
                 decisions = decision_df['match_state']
+            if 'tags' in decision_df:
+                tags_list = decision_df['tags']
         else:
             raise ValueError(type(decision_df))
         index = decisions.index
@@ -890,10 +893,12 @@ class _AnnotInfrFeedback(object):
         timestamp = ut.get_timestamp('int', isutc=True)
         user_confidence = None
         uv_iter = it.starmap(e_, index.tolist())
-        for edge, decision in zip(uv_iter, decisions):
+        for edge, decision, tags in zip(uv_iter, decisions, tags_list):
+            if tags is None:
+                tags = []
             infr.internal_feedback[edge].append({
                 'decision': decision,
-                'tags': [],
+                'tags': tags,
                 'timestamp': timestamp,
                 'user_confidence': user_confidence,
                 'user_id': user_id,
