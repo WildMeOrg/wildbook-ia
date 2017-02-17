@@ -1186,6 +1186,38 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
         ibs = ibswgt.back.ibs
         back = ibswgt.back
 
+        col = qtindex.column()
+        setter_func = model.col_setter_list[col]
+        if setter_func is not None:
+            # Make a copy of the list
+            id_list_ = id_list[:]
+            clone_highlight = len(id_list_) > 1
+            if not clone_highlight:
+                id_list_ = [ _.get_id() for _ in model.level_index_list ]
+            # Getter and current value
+            getter_func = model.col_getter_list[col]
+            current_id = model._get_row_id(qtindex)
+            current_value = getter_func(current_id)
+            current_list = [current_value] * len(id_list_)
+            # Add to context menus
+
+            def _setter_refresh(id_list_, current_list, tablename):
+                setter_func(id_list_, current_list)
+                ibswgt.update_tables(tblnames=[tablename], clear_view_selection=False)
+
+            if clone_highlight:
+                context_options += [
+                    ('Clone selected value to highlighted rows',
+                     lambda: _setter_refresh(id_list_, current_list, model.name),),
+                    ('----', lambda: None),
+                ]
+            else:
+                context_options += [
+                    ('Clone selected value to all rows',
+                     lambda: _setter_refresh(id_list_, current_list, model.name),),
+                    ('----', lambda: None),
+                ]
+
         def build_annot_context_options(ibswgt, ibs, aid_list, imgsetid, **kwargs):
             context_options = []
             if len(aid_list) == 1:
