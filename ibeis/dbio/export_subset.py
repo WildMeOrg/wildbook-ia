@@ -449,7 +449,7 @@ def remerge_subset():
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
         print('Found %d annots that need updated properties' % len(changed_idxs))
         print('changing unary attributes: %r' % (to_change,))
-        if ut.are_you_sure('apply change'):
+        if False and ut.are_you_sure('apply change'):
             for key, idxs in to_change.items():
                 subaids1 = aids1.take(idxs)
                 subaids2 = aids2.take(idxs)
@@ -484,6 +484,8 @@ def remerge_subset():
     infr2.apply_feedback_edges()
 
     delta = infr2.match_state_delta()
+    print('delta = %r' % (delta,))
+    return
 
     """
     TODO:
