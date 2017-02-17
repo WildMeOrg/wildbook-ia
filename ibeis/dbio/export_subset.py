@@ -473,6 +473,7 @@ def remerge_subset(ibs1, ibs2):
     fb1_t = {(to_aids2[u], to_aids2[v]): val
              for (u, v), val in fb1.items()}
     fb1_df_t = infr2._pandas_feedback_format(fb1_t)
+
     infr2.reset_feedback()
     infr2.add_feedback_df(fb1_df_t)
 
