@@ -67,6 +67,7 @@ def setup_menus(mainwin, back=None):
     setup_web_menu(mainwin, back)
     setup_help_menu(mainwin, back)
     setup_developer_menu(mainwin, back)
+    setup_zebra_menu(mainwin, back)
 
 
 def setup_file_menu(mainwin, back):
@@ -562,6 +563,16 @@ def setup_depricated_menu(mainwin, back):
         text='Developer Reload',
         shortcut='Ctrl+Shift+R',
         triggered=back.dev_reload)
+
+
+def setup_zebra_menu(mainwin, back):
+    mainwin.menuDev = mainwin.menubar.newMenu('Zebra')
+    menu = mainwin.menuDev
+    menu.newAction(
+        name='processImagesetAsCameraTrapImages',
+        text='Process ImageSet as Camera Trap Images',
+        triggered=back.filter_imageset_as_camera_trap)
+
 
 if __name__ == '__main__':
     """
