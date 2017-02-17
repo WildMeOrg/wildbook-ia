@@ -1976,6 +1976,7 @@ def classifier_train_image_svm(ibs, species_list, output_path=None):
     # Save model pickle
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    ut.ensuredir(output_path)
     species_list_str = '.'.join(species_list)
     output_filepath = join(output_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
     ut.save_cPkl(output_filepath, model)
@@ -2086,27 +2087,40 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
 @register_ibs_method
 def classifier_visualize_training_localizations(ibs, species_list, output_path=None, limit=10,
                                                 **kwargs):
+
+    def _draw(image_dict, list_, color):
+        for _ in list_:
+            gid, xbr, ybr, xtl, ytl = _['gid'], _['xbr'], _['ybr'], _['xtl'], _['ytl']
+            cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), color, 4)
+
     # Load data
     print('Loading pre-trained features for filtered localizations')
     gid_list, pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
                                                                              limit=limit,
                                                                              **kwargs)
 
+    ut.embed()
+
+    # Get output path
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop', 'output')))
+    ut.ensuredir(output_path)
 
     # Get images and a dictionary based on their gids
     image_list = ibs.get_image_imgdata(gid_list)
     image_dict = { gid: image for gid, image in zip(gid_list, image_list) }
 
-    for pos in pos_list:
-        gid, xbr, ybr, xtl, ytl = pos['gid'], pos['xbr'], pos['ybr'], pos['xtl'], pos['ytl']
-        cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), (0, 255, 0), 4)
+    # Draw positives
+    list_ = pos_list
+    color = (0, 255, 0)
+    _draw(image_dict, list_, color)
 
-    for neg in neg_list:
-        gid, xbr, ybr, xtl, ytl = pos['gid'], pos['xbr'], pos['ybr'], pos['xtl'], pos['ytl']
-        cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), (0, 0, 255), 4)
+    # Draw negatives
+    list_ = neg_list
+    color = (0, 0, 255)
+    _draw(image_dict, list_, color)
 
+    # Write images to disk
     for gid in image_dict:
         output_filename = 'localizations_gid_%d.png' % (gid, )
         output_filepath = join(output_path, output_filename)
@@ -2146,6 +2160,7 @@ def classifier_train_localization_svm(ibs, species_list, output_path=None, limit
     # Save model pickle
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    ut.ensuredir(output_path)
     species_list_str = '.'.join(species_list)
     counter = 1
     args = (species_list_str, limit, counter, )
