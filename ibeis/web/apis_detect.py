@@ -90,7 +90,7 @@ def detect_random_forest(ibs, gid_list, species, commit=True, **kwargs):
 
 @register_route('/test/review/detect/cnn/yolo/', methods=['GET'])
 def review_detection_test(image_uuid=None, result_list=None, callback_url=None,
-                          callback_method='POST'):
+                          callback_method='POST', **kwargs):
     ibs = current_app.ibs
     if image_uuid is None or result_list is None:
         results_dict = ibs.detection_yolo_test()

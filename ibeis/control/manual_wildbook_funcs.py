@@ -48,10 +48,11 @@ from ibeis.control import wildbook_manager as wb_man  # NOQA
 from ibeis.control.controller_inject import make_ibs_register_decorator
 print, rrr, profile = ut.inject2(__name__)
 
+
 CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
+
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 #PREFERED_BROWSER = 'chrome'

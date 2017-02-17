@@ -142,7 +142,6 @@ except ImportError:
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers

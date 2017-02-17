@@ -449,7 +449,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
 
 @register_route('/test/review/query/chip/', methods=['GET'])
-def review_query_chips_test():
+def review_query_chips_test(**kwargs):
     """
     CommandLine:
         python -m ibeis.web.apis_query review_query_chips_test --show

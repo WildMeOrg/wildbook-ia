@@ -173,6 +173,39 @@ def close_job_manager(ibs):
 
 
 @register_ibs_method
+@register_api('/api/engine/job/', methods=['GET', 'POST'], __api_plural_check__=False)
+def get_job_id_list(ibs):
+    """
+    Web call that returns the list of job ids
+
+    CommandLine:
+        # Run Everything together
+        python -m ibeis.web.job_engine --exec-get_job_status
+
+        # Start job queue in its own process
+        python -m ibeis.web.job_engine job_engine_tester --bg
+        # Start web server in its own process
+        ./main.py --web --fg
+        pass
+        # Run foreground process
+        python -m ibeis.web.job_engine --exec-get_job_status:0 --fg
+
+    Example:
+        >>> # WEB_DOCTEST
+        >>> from ibeis.web.job_engine import *  # NOQA
+        >>> import ibeis
+        >>> web_ibs = ibeis.opendb_bg_web('testdb1')  # , domain='http://52.33.105.88')
+        >>> # Test get status of a job id that does not exist
+        >>> response = web_ibs.send_ibeis_request('/api/engine/job/', jobid='badjob')
+        >>> web_ibs.terminate2()
+
+    """
+    status = ibs.job_manager.jobiface.get_job_id_list()
+    jobid_list = status['jobid_list']
+    return jobid_list
+
+
+@register_ibs_method
 @register_api('/api/engine/job/status/', methods=['GET', 'POST'], __api_plural_check__=False)
 def get_job_status(ibs, jobid):
     """
@@ -473,6 +506,22 @@ class JobInterface(object):
                 print('Got reply: %s' % ( reply_notify))
             jobid = reply_notify['jobid']
             return jobid
+
+    def get_job_id_list(jobiface):
+        with ut.Indenter('[client %d] ' % (jobiface.id_)):
+            print = partial(ut.colorprint, color='teal')
+            if jobiface.verbose >= 1:
+                print('----')
+                print('Request list of job ids')
+            pair_msg = dict(action='job_id_list')
+            # CALLS: collector_request_status
+            jobiface.collect_deal_sock.send_json(pair_msg)
+            if jobiface.verbose >= 3:
+                print('... waiting for collector reply')
+            reply = jobiface.collect_deal_sock.recv_json()
+            if jobiface.verbose >= 2:
+                print('got reply = %s' % (ut.repr2(reply, truncate=True),))
+        return reply
 
     def get_job_status(jobiface, jobid):
         with ut.Indenter('[client %d] ' % (jobiface.id_)):
@@ -911,6 +960,9 @@ def on_collect_request(collect_request, collecter_data, awaiting_data, shelve_pa
             reply['jobstatus'] = 'unknown'
         reply['status'] = 'ok'
         reply['jobid'] = jobid
+    elif action == 'job_id_list':
+        reply['status'] = 'ok'
+        reply['jobid_list'] = collecter_data.keys()
     elif action == 'job_result':
         # From a Client
         jobid = collect_request['jobid']

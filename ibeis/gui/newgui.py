@@ -1038,21 +1038,21 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
     # SLOTS
     #------------
 
-    @slot_(str)
+    @slot_()
     def select_annot_text_editing_finished(ibswgt):
         tablename = gh.ANNOTATION_TABLE
         index = ibswgt.tablename_to_status_widget_index[tablename]
         text = ibswgt.status_widget_list[index].text()
         ibswgt.select_table_indicies_from_text(tablename, text)
 
-    @slot_(str)
+    @slot_()
     def select_name_text_editing_finished(ibswgt):
         tablename = gh.NAMES_TREE
         index = ibswgt.tablename_to_status_widget_index[tablename]
         text = ibswgt.status_widget_list[index].text()
         ibswgt.select_table_indicies_from_text(tablename, text)
 
-    @slot_(str)
+    @slot_()
     def select_image_text_editing_finished(ibswgt):
         tablename = gh.IMAGE_TABLE
         index = ibswgt.tablename_to_status_widget_index[tablename]

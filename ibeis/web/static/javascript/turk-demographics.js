@@ -8,24 +8,24 @@ function is_biologist()
 
 function update_label()
 {
-  var additional_sex_strs = [];
-  additional_sex_strs[3] = 'Male';
-  additional_sex_strs[2] = 'Female';
-  additional_sex_strs[1] = 'Unknown';
+  var demographics_sex_strs = [];
+  demographics_sex_strs[3] = 'Male';
+  demographics_sex_strs[2] = 'Female';
+  demographics_sex_strs[1] = 'Unknown';
 
-  var additional_age_strs = [];
-  additional_age_strs[7] = '36+ Months';
-  additional_age_strs[6] = '24-36 Months';
-  additional_age_strs[5] = '12-24 Months';
-  additional_age_strs[4] = '6-12 Months';
-  additional_age_strs[3] = '3-6 Months';
-  additional_age_strs[2] = '0-3 Months';
-  additional_age_strs[1] = 'Unknown';
+  var demographics_age_strs = [];
+  demographics_age_strs[7] = '36+ Months';
+  demographics_age_strs[6] = '24-36 Months';
+  demographics_age_strs[5] = '12-24 Months';
+  demographics_age_strs[4] = '6-12 Months';
+  demographics_age_strs[3] = '3-6 Months';
+  demographics_age_strs[2] = '0-3 Months';
+  demographics_age_strs[1] = 'Unknown';
 
-  value_sex = parseFloat( $("#slider-additional-sex").val() );
-  value_age = parseFloat( $("#slider-additional-age").val() );
-  $("#label-sex").html(additional_sex_strs[value_sex]);
-  $("#label-age").html(additional_age_strs[value_age]);
+  value_sex = parseFloat( $("#slider-demographics-sex").val() );
+  value_age = parseFloat( $("#slider-demographics-age").val() );
+  $("#label-sex").html(demographics_sex_strs[value_sex]);
+  $("#label-age").html(demographics_age_strs[value_age]);
 }
 
 $(window).keydown(function(event) {
@@ -44,19 +44,19 @@ $(window).keydown(function(event) {
   else if(key == 85 || key == 56 || key == 56 || key == 104)
   {
     // 'U' & 8 for 'Unknown'
-    $("#slider-additional-sex").val(1);
+    $("#slider-demographics-sex").val(1);
     update_label();
   }
   else if(key == 70 || key == 57 || key == 57 || key == 105)
   {
     // 'F' & 9 for 'Female'
-    $("#slider-additional-sex").val(2);
+    $("#slider-demographics-sex").val(2);
     update_label();
   }
   else if(key == 77 || key == 48 || key == 48 || key == 48)
   {
     // 'M' & 0 for 'Male'
-    $("#slider-additional-sex").val(3);
+    $("#slider-demographics-sex").val(3);
     update_label();
   }
   else if(key == 80)
@@ -77,7 +77,7 @@ $(window).keydown(function(event) {
     // 56 == numeric key 8
     // 57 == numeric key 9
     value = key - 49; // offset by 49 so that the number one is the value of 0
-    $("#slider-additional-age").val(value + 1); // subtract 2 to get into the range [-1, -5]
+    $("#slider-demographics-age").val(value + 1); // subtract 2 to get into the range [-1, -5]
     update_label();
   }
   else if(97 <= key && key <= 104)
@@ -93,7 +93,7 @@ $(window).keydown(function(event) {
     // 104 == number pad key 8
     // 105 == number pad key 9
     value = key - 97; // offset by 97 so that the number one is the value of 0
-    $("#slider-additional-age").val(value + 1); // subtract 2 to get into the range [-1, -5]
+    $("#slider-demographics-age").val(value + 1); // subtract 2 to get into the range [-1, -5]
     update_label();
   }
 });

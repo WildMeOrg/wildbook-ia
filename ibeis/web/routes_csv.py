@@ -13,7 +13,7 @@ from ibeis.web import routes
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def get_associations_dict(ibs):
+def get_associations_dict(ibs, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
@@ -41,7 +41,7 @@ def get_associations_dict(ibs):
 
 
 @register_route('/csv/princeton/associations/list/', methods=['GET'])
-def download_associations_list():
+def download_associations_list(**kwargs):
     ibs = current_app.ibs
     filename = 'associations.list.csv'
     assoc_dict = get_associations_dict(ibs)
@@ -71,7 +71,7 @@ def download_associations_list():
 
 
 @register_route('/csv/princeton/associations/matrix/', methods=['GET'])
-def download_associations_matrix():
+def download_associations_matrix(**kwargs):
     ibs = current_app.ibs
     filename = 'associations.matrix.csv'
     assoc_dict = get_associations_dict(ibs)
@@ -102,14 +102,14 @@ def download_associations_matrix():
 
 
 @register_route('/csv/princeton/sightings/', methods=['GET'])
-def download_sightings():
+def download_sightings(**kwargs):
     filename = 'sightings.csv'
     sightings = routes.sightings(html_encode=False)
     return appf.send_csv_file(sightings, filename)
 
 
 @register_route('/csv/princeton/images/', methods=['GET'])
-def get_image_info():
+def get_image_info(**kwargs):
     import datetime
     ibs = current_app.ibs
     filename = 'images.csv'
@@ -156,7 +156,7 @@ def get_image_info():
 
 
 @register_route('/csv/princeton/demographics/', methods=['GET'])
-def get_demographic_info():
+def get_demographic_info(**kwargs):
     ibs = current_app.ibs
     filename = 'demographics.csv'
     nid_list = sorted(ibs.get_valid_nids())
@@ -203,7 +203,7 @@ def get_demographic_info():
 
 
 @register_route('/csv/nids_with_gids/', methods=['GET'])
-def get_nid_with_gids_csv():
+def get_nid_with_gids_csv(**kwargs):
     ibs = current_app.ibs
     filename = 'nids_with_gids.csv'
     combined_dict = ibs.get_name_nids_with_gids()
@@ -213,7 +213,7 @@ def get_nid_with_gids_csv():
     ]
     combined_str = '\n'.join(combined_list)
     max_length = 0
-    for aid_list in combined_dict.values():
+    for aid_list in combined_dict.values(**kwargs):
         max_length = max(max_length, len(aid_list[1]))
     if max_length == 1:
         gid_header_str = 'GID'
@@ -224,7 +224,7 @@ def get_nid_with_gids_csv():
 
 
 @register_route('/csv/gids_with_aids/', methods=['GET'])
-def get_gid_with_aids_csv():
+def get_gid_with_aids_csv(**kwargs):
     ibs = current_app.ibs
     combined_dict = ibs.get_image_gids_with_aids()
     filename = 'gids_with_aids.csv'
@@ -234,7 +234,7 @@ def get_gid_with_aids_csv():
     ]
     combined_str = '\n'.join(combined_list)
     max_length = 0
-    for aid_list in combined_dict.values():
+    for aid_list in combined_dict.values(**kwargs):
         max_length = max(max_length, len(aid_list))
     if max_length == 1:
         aid_header_str = 'AID'
@@ -245,7 +245,7 @@ def get_gid_with_aids_csv():
 
 
 @register_route('/csv/image/', methods=['GET'])
-def get_gid_list_csv():
+def get_gid_list_csv(**kwargs):
     filename = 'gids.csv'
     ibs = current_app.ibs
     gid_list = ibs.get_valid_gids()
@@ -255,7 +255,7 @@ def get_gid_list_csv():
 
 
 @register_route('/csv/annot/', methods=['GET'])
-def get_aid_list_csv():
+def get_aid_list_csv(**kwargs):
     filename = 'aids.csv'
     ibs = current_app.ibs
     aid_list = ibs.get_valid_aids()

@@ -25,7 +25,6 @@ CLASS_INJECT_KEY, register_ibs_method = make_ibs_register_decorator(__name__)
 
 
 register_api   = controller_inject.get_ibeis_flask_api(__name__)
-register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
 ANNOT_AGE_MONTHS_EST_MAX = 'annot_age_months_est_max'
