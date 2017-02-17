@@ -431,7 +431,7 @@ def remerge_subset(ibs1, ibs2):
         'age_months_est_max', 'age_months_est_min', 'sex'
     ]
     to_change = {}
-    for key in unary_props:
+    for key in annot_unary_props:
         prop1 = getattr(aids1, key)
         prop2 = getattr(aids2, key)
         diff_idxs = set(np.where(prop1 != prop2)[0])
@@ -448,12 +448,12 @@ def remerge_subset(ibs1, ibs2):
             # prop2 = getattr(subaids2, key)
             setattr(subaids2, key, prop1)
     else:
-        print('nothing to change')
+        print('Annot properties are in sync. Nothing to change')
 
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1)
-    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2)
+    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=1)
     infr2.initialize_graph()
 
     fb1 = infr1.read_ibeis_annotmatch_feedback()

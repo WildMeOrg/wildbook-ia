@@ -36,6 +36,7 @@ def _annot_groups(ibs, aids_list=None, config=None):
 ANNOT_BASE_ATTRS = [
     'aid',
     'parent_aid',
+    'multiple',
 
     'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
     'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
