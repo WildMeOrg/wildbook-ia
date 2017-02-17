@@ -411,8 +411,10 @@ def remerge_subset(ibs1, ibs2):
     )
 
     annot_uuids = ut.flatten(isect_gids1.annot_uuids)
-    aids1 = ibs1.annots(ibs1.get_annot_aids_from_uuid(annot_uuids), asarray=True)
-    aids2 = ibs2.annots(ibs2.get_annot_aids_from_uuid(annot_uuids), asarray=True)
+    # aids1 = ibs1.annots(ibs1.get_annot_aids_from_uuid(annot_uuids), asarray=True)
+    # aids2 = ibs2.annots(ibs2.get_annot_aids_from_uuid(annot_uuids), asarray=True)
+    aids1 = ibs1.annots(uuids=annot_uuids, asarray=True)
+    aids2 = ibs2.annots(uuids=annot_uuids, asarray=True)
     import numpy as np
 
     to_aids2 = dict(zip(aids1, aids2))
@@ -420,8 +422,8 @@ def remerge_subset(ibs1, ibs2):
 
     # Step 1) Update individual annot properties
     # These annots need updates
-    np.where(aids1.visual_uuids != aids2.visual_uuids)
-    np.where(aids1.semantic_uuids != aids2.semantic_uuids)
+    # np.where(aids1.visual_uuids != aids2.visual_uuids)
+    # np.where(aids1.semantic_uuids != aids2.semantic_uuids)
 
     annot_unary_props = [
         # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
@@ -435,24 +437,24 @@ def remerge_subset(ibs1, ibs2):
         diff_idxs = set(np.where(prop1 != prop2)[0])
         if diff_idxs:
             to_change[key] = diff_idxs
-        print('key = %r' % (key,))
-        print('diff_idxs = %r' % (diff_idxs,))
     if to_change:
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
         print('Found %d annots that need updated properties' % len(changed_idxs))
         print('changing unary attributes: %r' % (to_change,))
         for key, idxs in to_change.items():
-            subxs1 = aids1.take(idxs)
-            subxs2 = aids2.take(idxs)
+            subaids1 = aids1.take(idxs)
+            subaids2 = aids2.take(idxs)
+            prop1 = getattr(subaids1, key)
+            # prop2 = getattr(subaids2, key)
+            setattr(subaids2, key, prop1)
     else:
         print('nothing to change')
-
-    aids1
 
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1)
-    infr2 = graph_iden.AnnotInference(aids=aids2.aids, ibs=ibs2)
+    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2)
+    infr2.initialize_graph()
 
     fb1 = infr1.read_ibeis_annotmatch_feedback()
     # feedback = fb1
@@ -468,17 +470,13 @@ def remerge_subset(ibs1, ibs2):
     infr2.reset_feedback()
     infr2.add_feedback_df(fb1_df_t)
 
+    infr = infr2
+    infr2.apply_feedback_edges()
+
     delta = infr2.match_state_delta()
 
     """
     TODO:
-        Task 1:
-            first transfer all singleton (non-name) properties
-            of names from ibs1 to ibs2 (
-                this includes bounding box, quality, viewpoint,
-                unary_tags, orientation
-            )
-
         Task 2:
             Build AnnotInfr for ibs2 then add all decision from
             ibs1 to the internal feedback dict.
