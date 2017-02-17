@@ -38,6 +38,7 @@ ANNOT_BASE_ATTRS = [
     'parent_aid',
     'multiple',
     'age_months_est_max', 'age_months_est_min', 'sex',
+    'sex_text',
 
     'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
     'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',

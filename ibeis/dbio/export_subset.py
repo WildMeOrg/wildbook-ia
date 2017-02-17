@@ -436,6 +436,11 @@ def remerge_subset(ibs1, ibs2):
         prop2 = getattr(aids2, key)
         diff_idxs = set(np.where(prop1 != prop2)[0])
         if diff_idxs:
+            diff_prop1 = ut.take(prop1, diff_idxs)
+            diff_prop2 = ut.take(prop2, diff_idxs)
+            print('key = %r' % (key,))
+            print('diff_prop1 = %r' % (diff_prop1,))
+            print('diff_prop2 = %r' % (diff_prop2,))
             to_change[key] = diff_idxs
     if to_change:
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
