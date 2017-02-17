@@ -1512,7 +1512,7 @@ def action(**kwargs):
         ibs.get_job_status(job_id)['jobstatus']
         for job_id in job_id_list
     ]
-    action_list = zip(job_action_list, job_action_list, job_status_list)
+    action_list = zip(job_id_list, job_action_list, job_status_list)
 
     return appf.template('action', None,
                          imgsetid=imgsetid,
