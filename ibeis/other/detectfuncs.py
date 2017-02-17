@@ -2116,8 +2116,13 @@ def classifier_train_localization_svm(ibs, species_list, output_path=None, limit
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     species_list_str = '.'.join(species_list)
-    args = (species_list_str, limit, )
-    output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.pkl' % args)
+    counter = 1
+    args = (species_list_str, limit, counter, )
+    output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.%d.pkl' % args)
+    while exists(output_filepath):
+        counter += 1
+        args = (species_list_str, limit, counter, )
+        output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.%d.pkl' % args)
     ut.save_cPkl(output_filepath, model)
 
 
