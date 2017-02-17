@@ -458,8 +458,8 @@ def remerge_subset(ibs1, ibs2):
 
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
-    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1)
-    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=1)
+    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
+    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
     infr2.initialize_graph()
 
     fb1 = infr1.read_ibeis_annotmatch_feedback()
