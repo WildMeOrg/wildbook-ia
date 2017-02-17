@@ -392,10 +392,13 @@ def slow_merge_test():
     # ibs_dst.print_annotation_table()
 
 
-def remerge_subset(ibs1, ibs2):
+def remerge_subset():
     """
     Assumes ibs1 is an updated subset of ibs2.
     Re-merges ibs1 back into ibs2.
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset remerge_subset
     """
     import ibeis
     ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
