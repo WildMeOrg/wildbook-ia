@@ -423,12 +423,29 @@ def remerge_subset(ibs1, ibs2):
     np.where(aids1.visual_uuids != aids2.visual_uuids)
     np.where(aids1.semantic_uuids != aids2.semantic_uuids)
 
-    unary_props = ['yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
+    annot_unary_props = [
+        # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
+        'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
+        'age_months_est_max', 'age_months_est_min', 'sex'
+    ]
+    to_change = {}
     for key in unary_props:
         prop1 = getattr(aids1, key)
         prop2 = getattr(aids2, key)
         diff_idxs = set(np.where(prop1 != prop2)[0])
+        if diff_idxs:
+            to_change[key] = diff_idxs
+        print('key = %r' % (key,))
         print('diff_idxs = %r' % (diff_idxs,))
+    if to_change:
+        changed_idxs = ut.unique(ut.flatten(to_change.values()))
+        print('Found %d annots that need updated properties' % len(changed_idxs))
+        print('changing unary attributes: %r' % (to_change,))
+        for key, idxs in to_change.items():
+            subxs1 = aids1.take(idxs)
+            subxs2 = aids2.take(idxs)
+    else:
+        print('nothing to change')
 
     aids1
 

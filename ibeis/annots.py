@@ -70,10 +70,11 @@ ANNOT_BASE_ATTRS = [
 ANNOT_SETTABLE_ATTRS = [
     'age_months_est_max', 'age_months_est_min',
     'bboxes', 'thetas', 'verts',
-    'quality_texts', 'yaw_texts', 'yaws'
+    'quality_texts', 'yaw_texts', 'yaws',
     'sex', 'sex_texts', 'species',
     'exemplar_flags',
     'multiple',
+    'case_tags',
     'detect_confidence', 'reviewed',
     'name_texts', 'names',
     'notes',
