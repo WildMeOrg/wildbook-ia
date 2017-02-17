@@ -2089,8 +2089,15 @@ def classifier_visualize_training_localizations(ibs, species_list, output_path=N
                                                 **kwargs):
 
     def _draw(image_dict, list_, color):
+        import cv2
         for _ in list_:
-            gid, xbr, ybr, xtl, ytl = _['gid'], _['xbr'], _['ybr'], _['xtl'], _['ytl']
+            vals = _['gid'], _['xbr'], _['ybr'], _['xtl'], _['ytl']
+            gid, xbr, ybr, xtl, ytl = vals
+            height, width = image_dict[gid].shape[:2]
+            xbr = int(xbr * width)
+            ybr = int(ybr * height)
+            xtl = int(xtl * width)
+            ytl = int(ytl * height)
             cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), color, 4)
 
     # Load data
@@ -2124,7 +2131,7 @@ def classifier_visualize_training_localizations(ibs, species_list, output_path=N
     for gid in image_dict:
         output_filename = 'localizations_gid_%d.png' % (gid, )
         output_filepath = join(output_path, output_filename)
-        cv2.imwrite(image_dict[gid], output_filepath)
+        cv2.imwrite(output_filepath, image_dict[gid])
 
 
 @register_ibs_method
