@@ -2620,7 +2620,7 @@ class MainWindowBackend(GUIBACK_BASE):
 
         # Run detection
         aids_list = ibs.detect_cnn_yolo(pos_gid_list)
-        aids_list = ibs.get_image_aids(ibs.get_valid_gids())
+        # aids_list = ibs.get_image_aids(pos_gid_list)
         species_list_list = map(ibs.get_annot_species_texts, aids_list)
         species_set_list = map(set, species_list_list)
         wanted_set = set(['zebra_grevys', 'zebra_plains'])
