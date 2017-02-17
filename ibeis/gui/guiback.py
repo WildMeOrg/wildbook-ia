@@ -3067,7 +3067,10 @@ class MainWindowBackend(GUIBACK_BASE):
                                options=[
                                    'Directory',
                                    'Files',
-                                   'Smart XML'],
+                                   'Smart XML',
+                                   'Encounters (1)',
+                                   'Encounters (2)',
+                               ],
                                use_cache=False, default='Directory')
         if ans == 'Directory':
             back.import_images_from_dir()
@@ -3075,6 +3078,10 @@ class MainWindowBackend(GUIBACK_BASE):
             back.import_images_from_file()
         elif ans == 'Smart XML':
             back.import_images_from_dir_with_smart()
+        elif ans == 'Encounters (1)':
+            back.import_images_from_encounters_1()
+        elif ans == 'Encounters (2)':
+            back.import_images_from_encounters_2()
         elif ans is None:
             pass
         else:
@@ -3154,9 +3161,17 @@ class MainWindowBackend(GUIBACK_BASE):
                                                 directory=defaultdir,
                                                 name_filter=name_filter,
                                                 single_file=True)
-                # xml_path_list = ['/Users/bluemellophone/Desktop/LWC_000261.xml']
-                assert len(xml_path_list) == 1, "Must specity one Patrol XML file"
-                smart_xml_fpath = xml_path_list[0]
+                try:
+                    assert len(xml_path_list) == 1, "Must specity one Patrol XML file"
+                    smart_xml_fpath = xml_path_list[0]
+                    assert len(smart_xml_fpath) > 0, "Must specity a valid Patrol XML file"
+                except AssertionError as e:
+                    back.ibs.delete_images(gid_list)
+                    print(('[back] ERROR: Parsing Patrol XML file failed, '
+                           'rolling back by deleting %d images...') %
+                          (len(gid_list, )))
+                    raise e
+
             back.ibs.compute_occurrences_smart(gid_list, smart_xml_fpath)
         if refresh:
             back.update_special_imagesets_()
@@ -3171,6 +3186,168 @@ class MainWindowBackend(GUIBACK_BASE):
             co_wgt = clock_offset_gui.ClockOffsetWidget(back.ibs, gid_list)
             co_wgt.show()
         return gid_list
+
+    @blocking_slot()
+    def import_images_from_encounters(back, level=1, dir_list=None, size_filter=None, refresh=True,
+                                      clock_offset=False, return_dir=False, defaultdir=None):
+        import os
+        """ File -> Import Images From Encounters"""
+        print('[back] import_images_from_encounters')
+        assert level in [1, 2]
+        if dir_list is None:
+            if level == 1:
+                prompt = 'Select folder(s) of encounter(s) (1 level - folders with only images)'
+            if level == 2:
+                prompt = 'Select folder(s) of encounter(s) (2 levels - folders of folders with only images)'
+            dir_list = gt.select_directories(prompt, directory=defaultdir)
+        if dir_list is None or len(dir_list) == 0:
+            return
+
+        # We need to check that the first directory is not a subdirectory of the others
+        if len(dir_list) >= 2:
+            subdir1 = dir_list[0]
+            subdir2, _ = os.path.split(dir_list[1])
+            if subdir1 == subdir2:
+                dir_list = dir_list[1:]
+
+        # Check the folders for invalid values
+        invalid_list = []
+        warning_set = set([])
+        for index, dir_ in enumerate(dir_list):
+            for root, subdirs, files in os.walk(dir_):
+                images = ut.list_images(root, recursive=False)
+                print(level, root, len(subdirs), len(files), len(images))
+                try:
+                    # Assert structure
+                    if level == 1:
+                        assert len(subdirs) == 0
+                        assert len(images) > 0
+                    if level == 2:
+                        assert len(images) == 0
+                        assert len(subdirs) > 0
+
+                        # Check subdirectories for level 1 structure
+                        for subdir in subdirs:
+                            for root_, subdirs_, files_ in os.walk(subdir):
+                                images_ = ut.list_images(root, recursive=False)
+                                print(1, root, len(subdirs), len(files), len(images_))
+                                try:
+                                    assert len(subdirs_) == 0
+                                    assert len(images_) > 0
+                                except AssertionError:
+                                    invalid_list.append(join(root, root_))
+                                # Combined a warning set of non-image files
+                                for file_ in set(files_) - set(images_):
+                                    if len(file_.strip('.')) == 0:
+                                        warning_set.add(join(root, file_))
+                                # Only look at the root path
+                                break
+                except AssertionError:
+                    invalid_list.append(root)
+                # Combined a warning set of non-image files
+                for file_ in set(files) - set(images):
+                    if len(file_.strip('.')) == 0:
+                        warning_set.add(file_)
+                # Only look at the root path
+                break
+
+        # If invalid, give user input information
+        invalid = len(invalid_list) > 0
+        if invalid:
+            if level == 1:
+                raise IOError('''
+                    [guiback] The following encounter folder structures (1 level) are not valid: %r
+                    [guiback]     * The selected folders must contain images
+                    [guiback]     * The selected folders must NOT contain any sub-folders
+                    [guiback]     * The selected folders must NOT be empty
+                ''' % (invalid_list, ))
+            if level == 2:
+                raise IOError('''
+                    [guiback] The following encounter folder structures (2 levels) are not valid: %r
+                    [guiback]     * The selected folders must NOT contain images
+                    [guiback]     * The selected folders must contain sub-folders
+                    [guiback]     * The selected folders must NOT be empty
+                    [guiback]     * The sub-folders in the selected folders must contain images
+                    [guiback]     * The sub-folders in the selected folders must NOT contain any sub-folders
+                    [guiback]     * The sub-folders in the selected folders must NOT be empty
+                ''' % (invalid_list, ))
+        print('[guiback] Encounters are valid, continue with import')
+
+        # print any warning files
+        if len(warning_set) > 0:
+            warning_list = list(sorted(warning_set))
+            args = (warning_list, )
+            print('[guiback] WARNING: Some files in the encounters will not be imported: %r' % args)
+
+        # Compile the list of images now that the encounter's structure have been verified
+        gpath_list = []
+        for dir_ in dir_list:
+            gpath_list_ = ut.list_images(dir_, fullpath=True, recursive=True)
+            gpath_list += gpath_list_
+
+        # Check that the encounters behave as expected
+        if size_filter is not None:
+            raise NotImplementedError('Can someone implement the size filter?')
+
+        # Add images to ibs
+        ibs = back.ibs
+        gid_list = back.ibs.add_images(gpath_list, location_for_names=ibs.cfg.other_cfg.location_for_names)
+
+        # Add imagesets for newly added images
+        imageset_text_list = []
+        for gpath in gpath_list:
+            base, gname = os.path.split(gpath)
+            base, level1 = os.path.split(base)
+            if level == 1:
+                imageset_text = level1
+            if level == 2:
+                base, level2 = os.path.split(base)
+                imageset_text = '%s  (+)  %s' % (level2, level1, )
+            imageset_text_list.append(imageset_text)
+        ibs.set_image_imagesettext(gid_list, imageset_text_list)
+
+        # Refresh GUI and return
+        back._process_new_images(refresh, gid_list, clock_offset=clock_offset)
+        if return_dir:
+            return gid_list, dir_list
+        else:
+            return gid_list
+
+    @blocking_slot()
+    def import_images_from_encounters_1(back, dir_list=None, size_filter=None,
+                                        refresh=True, defaultdir=None):
+        """ File -> Import Images From Encounters (1 level)
+
+        Args:
+            dir_ (None): (default = None)
+            size_filter (None): (default = None)
+            refresh (bool): (default = True)
+
+        Returns:
+            list: gid_list
+        """
+        print('[back] import_images_from_encounters_1')
+        gid_list, add_dir_ = back.import_images_from_encounters(
+            level=1, dir_list=dir_list, size_filter=size_filter, refresh=False,
+            clock_offset=False, return_dir=True, defaultdir=defaultdir)
+
+    @blocking_slot()
+    def import_images_from_encounters_2(back, dir_list=None, size_filter=None,
+                                        refresh=True, defaultdir=None):
+        """ File -> Import Images From Encounters (2 levels)
+
+        Args:
+            dir_ (None): (default = None)
+            size_filter (None): (default = None)
+            refresh (bool): (default = True)
+
+        Returns:
+            list: gid_list
+        """
+        print('[back] import_images_from_encounters_2')
+        gid_list, add_dir_ = back.import_images_from_encounters(
+            level=2, dir_list=dir_list, size_filter=size_filter, refresh=False,
+            clock_offset=False, return_dir=True, defaultdir=defaultdir)
 
     @blocking_slot()
     def import_images_as_annots_from_file(back, gpath_list=None, refresh=True):

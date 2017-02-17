@@ -318,12 +318,13 @@ class _AnnotInfrDummy(object):
     def find_mst_edges(infr):
         """
         Find a set of edges that need to be inserted in order to complete the
-        given labeling
+        given labeling. Respects the current edges that exist.
         """
         import networkx as nx
         # Find clusters by labels
         node_to_label = infr.get_node_attrs('name_label')
-        label_to_nodes = ut.group_items(node_to_label.keys(), node_to_label.values())
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
 
         aug_graph = infr.graph.copy().to_undirected()
 
@@ -893,7 +894,9 @@ class _AnnotInfrFeedback(object):
         timestamp = ut.get_timestamp('int', isutc=True)
         user_confidence = None
         uv_iter = it.starmap(e_, index.tolist())
-        for edge, decision, tags in zip(uv_iter, decisions, tags_list):
+        _iter = zip(uv_iter, decisions, tags_list)
+        prog = ut.ProgIter(_iter, enabled=verbose, label='adding feedback')
+        for edge, decision, tags in prog:
             if tags is None:
                 tags = []
             infr.internal_feedback[edge].append({

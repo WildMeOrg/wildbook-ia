@@ -897,6 +897,8 @@ def remove_all_annot_case_tags(ibs, aid_list):
 def get_annot_case_tags(ibs, aid_list):
     r"""
     returns list of tags. Use instead of get_annot_tag_text
+    TODO:
+        rename to get_annot_unary_tags
 
     Args:
         ibs (IBEISController):  ibeis controller object

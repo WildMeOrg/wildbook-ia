@@ -36,6 +36,9 @@ def _annot_groups(ibs, aids_list=None, config=None):
 ANNOT_BASE_ATTRS = [
     'aid',
     'parent_aid',
+    'multiple',
+    'age_months_est_max', 'age_months_est_min', 'sex',
+    'sex_texts',
 
     'uuids', 'hashid_uuid', 'visual_uuids', 'hashid_visual_uuid',
     'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
@@ -70,10 +73,11 @@ ANNOT_BASE_ATTRS = [
 ANNOT_SETTABLE_ATTRS = [
     'age_months_est_max', 'age_months_est_min',
     'bboxes', 'thetas', 'verts',
-    'quality_texts', 'yaw_texts', 'yaws'
+    'quality_texts', 'yaw_texts', 'yaws',
     'sex', 'sex_texts', 'species',
     'exemplar_flags',
     'multiple',
+    'case_tags',
     'detect_confidence', 'reviewed',
     'name_texts', 'names',
     'notes',
@@ -145,6 +149,7 @@ class _AnnotPropInjector(BASE_TYPE):
             'qual': 'qualities',
             'name': 'names',
             'nid': 'nids',
+            'unary_tags': 'case_tags',
             # DEPRICATE
             'rchip': 'chips',
             'rchip_fpath': 'chip_fpath',
