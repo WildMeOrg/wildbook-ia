@@ -833,7 +833,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     size_list = ibs.get_image_sizes(test_gid_list)
     zipped_list = zip(results_list)
     # Reformat results for json
-    zipped = zip(confidences_list, keeps_list, features_list, size_list, zipped_list)
+    zipped = zip(confidences_list, keeps_list, features_list, size_list, test_gid_list, zipped_list)
 
     def _compile(confidence_list_, keep_list_, feature_list_, zipped_):
         zipped = zip(confidence_list_, keep_list_, feature_list_, *zipped_[0][1:])
@@ -846,6 +846,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     results_list = [
         [
             {
+                'gid'        : test_gid,
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
                 'xbr'        : (bbox[0] + bbox[2]) / width,
@@ -862,7 +863,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
             if keep_
             # if species_set is None or class_ in species_set
         ]
-        for confidence_list_, keep_list_, feature_list_, (width, height), zipped_ in zipped
+        for confidence_list_, keep_list_, feature_list_, (width, height), test_gid, zipped_ in zipped
     ]
 
     pred_dict = {
@@ -2079,7 +2080,37 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
             pos_list += [pred_list[idx] for idx in pos_idx_list]
             neg_list += [pred_list[idx] for idx in neg_idx_list]
 
-    return pos_list, neg_list
+    return test_gid_list, pos_list, neg_list
+
+
+@register_ibs_method
+def classifier_visualize_training_localizations(ibs, species_list, output_path=None, limit=10,
+                                                **kwargs):
+    # Load data
+    print('Loading pre-trained features for filtered localizations')
+    gid_list, pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
+                                                                             limit=limit,
+                                                                             **kwargs)
+
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'output')))
+
+    # Get images and a dictionary based on their gids
+    image_list = ibs.get_image_imgdata(gid_list)
+    image_dict = { gid: image for gid, image in zip(gid_list, image_list) }
+
+    for pos in pos_list:
+        gid, xbr, ybr, xtl, ytl = pos['gid'], pos['xbr'], pos['ybr'], pos['xtl'], pos['ytl']
+        cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), (0, 255, 0), 4)
+
+    for neg in neg_list:
+        gid, xbr, ybr, xtl, ytl = pos['gid'], pos['xbr'], pos['ybr'], pos['xtl'], pos['ytl']
+        cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), (0, 0, 255), 4)
+
+    for gid in image_dict:
+        output_filename = 'localizations_gid_%d.png' % (gid, )
+        output_filepath = join(output_path, output_filename)
+        cv2.imwrite(image_dict[gid], output_filepath)
 
 
 @register_ibs_method
@@ -2090,9 +2121,9 @@ def classifier_train_localization_svm(ibs, species_list, output_path=None, limit
     # Load data
     print('Loading pre-trained features for filtered localizations')
 
-    pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
-                                                                   limit=limit,
-                                                                   **kwargs)
+    gid_list, pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
+                                                                             limit=limit,
+                                                                             **kwargs)
 
     # Compile data and label list
     data_list = []
