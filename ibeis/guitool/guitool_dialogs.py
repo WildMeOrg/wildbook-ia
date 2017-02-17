@@ -178,8 +178,9 @@ def user_question(msg):
     return msgbox
 
 
-def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True):
-    qdlg = QtWidgets.QFileDialog()
+def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True,
+                  _dialog_class_=QtWidgets.QFileDialog):
+    qdlg = _dialog_class_()
     sidebar_urls = qdlg.sidebarUrls()[:]
     if use_sidebar_cwd:
         sidebar_urls.append(QtCore.QUrl.fromLocalFile(os.getcwd()))
@@ -192,8 +193,22 @@ def newFileDialog(directory_, other_sidebar_dpaths=[], use_sidebar_cwd=True):
     return qdlg
 
 
-def newDirectoryDialog(caption='Select Directory', directory=None,
-                       other_sidebar_dpaths=[], use_sidebar_cwd=True):
+class QDirectoriesDialog(QtWidgets.QFileDialog):
+    def __init__(self, *args):
+        super(QDirectoriesDialog, self).__init__(*args)
+        print('USING QDirectoriesDialog')
+        self.setOption(self.DontUseNativeDialog, True)
+        self.setFileMode(self.DirectoryOnly)
+
+        list_view_list = self.findChildren(QtWidgets.QListView, 'listView')
+        tree_view_list = self.findChildren(QtWidgets.QTreeView)
+        for view in list_view_list + tree_view_list:
+            view.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+            # view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+
+
+def newDirectoryDialog(caption, directory=None, other_sidebar_dpaths=[],
+                       use_sidebar_cwd=True, single_directory=True):
     # hack to fix the dialog window on ubuntu
     if 'ubuntu' in platform.platform().lower():
         qopt = QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontUseNativeDialog
@@ -206,9 +221,15 @@ def newDirectoryDialog(caption='Select Directory', directory=None,
         'options': qopt,
         'directory': directory
     }
-    qdlg = newFileDialog(directory, other_sidebar_dpaths, use_sidebar_cwd)
-    qdlg.getExistingDirectory(None, **qtkw)
-    return qdlg
+    _dialog_class_ = QtWidgets.QFileDialog if single_directory else QDirectoriesDialog
+    qdlg = newFileDialog(directory, other_sidebar_dpaths, use_sidebar_cwd,
+                         _dialog_class_=_dialog_class_)
+    if single_directory:
+        dpath_list = [ str(qdlg.getExistingDirectory(None, **qtkw)) ]
+    else:
+        qdlg.exec_()
+        dpath_list = qdlg.selectedFiles()
+    return qdlg, dpath_list
 
 
 def select_directory(caption='Select Directory', directory=None,
@@ -247,17 +268,10 @@ def select_directory(caption='Select Directory', directory=None,
     else:
         directory_ = directory
     # hack to fix the dialog window on ubuntu
-    if 'ubuntu' in platform.platform().lower():
-        qopt = QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontUseNativeDialog
-    else:
-        qopt = QtWidgets.QFileDialog.ShowDirsOnly
-    qtkw = {
-        'caption': caption,
-        'options': qopt,
-        'directory': directory_
-    }
-    qdlg = newFileDialog(directory_, other_sidebar_dpaths, use_sidebar_cwd)
-    dpath = str(qdlg.getExistingDirectory(None, **qtkw))
+    qdlg, dpath_list = newDirectoryDialog(caption, directory_, other_sidebar_dpaths,
+                                          use_sidebar_cwd)
+    assert len(dpath_list) <= 1
+    dpath = None if len(dpath_list) == 0 else dpath_list[0]
     print('[gt] dialog returned dpath = %r' % dpath)
     if dpath == '' or dpath is None:
         dpath = None
@@ -267,6 +281,55 @@ def select_directory(caption='Select Directory', directory=None,
         _guitool_cache_write(SELDIR_CACHEID, dirname(dpath))
     print('[gt] Selected Directory: %r' % dpath)
     return dpath
+
+
+def select_directories(caption='Select Folder(s)', directory=None,
+                       other_sidebar_dpaths=[], use_sidebar_cwd=True):
+    r"""
+    Args:
+        caption (str): (default = 'Select Directory')
+        directory (None): default directory to start in (default = None)
+        other_sidebar_dpaths (list): (default = [])
+        use_sidebar_cwd (bool): (default = True)
+
+    Returns:
+        str: dpath
+
+    CommandLine:
+        python -m guitool.guitool_dialogs --test-select_directory
+
+    Example:
+        >>> # GUI_DOCTEST
+        >>> from guitool.guitool_dialogs import *  # NOQA
+        >>> import guitool
+        >>> guitool.ensure_qtapp()
+        >>> # build test data
+        >>> caption = 'Select Directory'
+        >>> directory = None  # os.path.dirname(guitool.__file__)
+        >>> # execute function
+        >>> other_sidebar_dpaths = [os.path.dirname(ut.__file__)]
+        >>> dpath = select_directory(caption, directory, other_sidebar_dpaths)
+        >>> # verify results
+        >>> result = str(dpath)
+        >>> print(result)
+    """
+    print('[gt] select_directory(caption=%r, directory=%r)' % (caption, directory))
+    if directory is None:
+        directory_ = _guitool_cache_read(SELDIR_CACHEID, default='.')
+    else:
+        directory_ = directory
+    qdlg, dpath_list = newDirectoryDialog(caption, directory_, other_sidebar_dpaths,
+                                          use_sidebar_cwd, single_directory=False)
+    print('[gt] dialog returned dpath_list = %r' % dpath_list)
+    if dpath_list is None or len(dpath_list) == 0:
+        dpath_list = []
+        print('[gt] Cancel Select')
+        return dpath_list
+    else:
+        for dpath in dpath_list:
+            _guitool_cache_write(SELDIR_CACHEID, dirname(dpath))
+    print('[gt] Selected Directories: %r' % dpath_list)
+    return dpath_list
 
 
 def select_images(caption='Select images:', directory=None):
