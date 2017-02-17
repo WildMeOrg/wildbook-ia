@@ -428,7 +428,7 @@ def remerge_subset(ibs1, ibs2):
     annot_unary_props = [
         # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
         'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
-        'age_months_est_max', 'age_months_est_min', 'sex_texts'
+        'age_months_est_max', 'age_months_est_min', # 'sex_texts'
     ]
     to_change = {}
     for key in annot_unary_props:
@@ -458,8 +458,8 @@ def remerge_subset(ibs1, ibs2):
 
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
-    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1)
-    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=1)
+    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
+    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
     infr2.initialize_graph()
 
     fb1 = infr1.read_ibeis_annotmatch_feedback()
@@ -473,6 +473,7 @@ def remerge_subset(ibs1, ibs2):
     fb1_t = {(to_aids2[u], to_aids2[v]): val
              for (u, v), val in fb1.items()}
     fb1_df_t = infr2._pandas_feedback_format(fb1_t)
+
     infr2.reset_feedback()
     infr2.add_feedback_df(fb1_df_t)
 
