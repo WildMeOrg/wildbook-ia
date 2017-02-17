@@ -636,6 +636,8 @@ class _AnnotInfrIBEIS(object):
         ibs = infr.ibs
         annots = ibs.annots(infr.aids)
         am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
+        if infr.verbose >= 2:
+            print('[infr] * checking split and joins')
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
 
@@ -649,8 +651,13 @@ class _AnnotInfrIBEIS(object):
         is_split = np.array(is_split).astype(np.bool)
         is_merge = np.array(is_merge).astype(np.bool)
 
+        if infr.verbose >= 2:
+            print('[infr] * checking truth')
+
         # Use explicit truth state to mark truth
         truth = np.array(ibs.get_annotmatch_truth(am_rowids))
+        if infr.verbose >= 2:
+            print('[infr] * checking tags')
         tags_list = ibs.get_annotmatch_case_tags(am_rowids)
         # Hack, if we didnt set it, it probably means it matched
         need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
@@ -665,6 +672,9 @@ class _AnnotInfrIBEIS(object):
         # truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
         truth[is_split] = ibs.const.TRUTH_NOT_MATCH
         truth[is_merge] = ibs.const.TRUTH_MATCH
+
+        if infr.verbose >= 2:
+            print('[infr] * making feedback dict')
 
         # CHANGE OF FORMAT
         int_to_key = ut.invert_dict(ibs.const.REVIEW_MATCH_CODE)

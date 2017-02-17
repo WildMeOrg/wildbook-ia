@@ -392,10 +392,13 @@ def slow_merge_test():
     # ibs_dst.print_annotation_table()
 
 
-def remerge_subset(ibs1, ibs2):
+def remerge_subset():
     """
     Assumes ibs1 is an updated subset of ibs2.
     Re-merges ibs1 back into ibs2.
+
+    CommandLine:
+        python -m ibeis.dbio.export_subset remerge_subset
     """
     import ibeis
     ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
@@ -428,7 +431,7 @@ def remerge_subset(ibs1, ibs2):
     annot_unary_props = [
         # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
         'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
-        'age_months_est_max', 'age_months_est_min', 'sex_texts'
+        'age_months_est_max', 'age_months_est_min', # 'sex_texts'
     ]
     to_change = {}
     for key in annot_unary_props:
@@ -446,7 +449,7 @@ def remerge_subset(ibs1, ibs2):
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
         print('Found %d annots that need updated properties' % len(changed_idxs))
         print('changing unary attributes: %r' % (to_change,))
-        if ut.are_you_sure('apply change'):
+        if False and ut.are_you_sure('apply change'):
             for key, idxs in to_change.items():
                 subaids1 = aids1.take(idxs)
                 subaids2 = aids2.take(idxs)
@@ -458,8 +461,8 @@ def remerge_subset(ibs1, ibs2):
 
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
-    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1)
-    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=1)
+    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
+    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
     infr2.initialize_graph()
 
     fb1 = infr1.read_ibeis_annotmatch_feedback()
@@ -473,6 +476,7 @@ def remerge_subset(ibs1, ibs2):
     fb1_t = {(to_aids2[u], to_aids2[v]): val
              for (u, v), val in fb1.items()}
     fb1_df_t = infr2._pandas_feedback_format(fb1_t)
+
     infr2.reset_feedback()
     infr2.add_feedback_df(fb1_df_t)
 
@@ -480,6 +484,8 @@ def remerge_subset(ibs1, ibs2):
     infr2.apply_feedback_edges()
 
     delta = infr2.match_state_delta()
+    print('delta = %r' % (delta,))
+    return
 
     """
     TODO:
