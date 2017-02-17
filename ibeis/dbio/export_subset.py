@@ -428,7 +428,7 @@ def remerge_subset(ibs1, ibs2):
     annot_unary_props = [
         # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
         'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
-        'age_months_est_max', 'age_months_est_min', 'sex'
+        'age_months_est_max', 'age_months_est_min', 'sex_texts'
     ]
     to_change = {}
     for key in annot_unary_props:
