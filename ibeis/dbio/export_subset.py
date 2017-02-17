@@ -441,12 +441,13 @@ def remerge_subset(ibs1, ibs2):
         changed_idxs = ut.unique(ut.flatten(to_change.values()))
         print('Found %d annots that need updated properties' % len(changed_idxs))
         print('changing unary attributes: %r' % (to_change,))
-        for key, idxs in to_change.items():
-            subaids1 = aids1.take(idxs)
-            subaids2 = aids2.take(idxs)
-            prop1 = getattr(subaids1, key)
-            # prop2 = getattr(subaids2, key)
-            setattr(subaids2, key, prop1)
+        if ut.are_you_sure('apply change'):
+            for key, idxs in to_change.items():
+                subaids1 = aids1.take(idxs)
+                subaids2 = aids2.take(idxs)
+                prop1 = getattr(subaids1, key)
+                # prop2 = getattr(subaids2, key)
+                setattr(subaids2, key, prop1)
     else:
         print('Annot properties are in sync. Nothing to change')
 
