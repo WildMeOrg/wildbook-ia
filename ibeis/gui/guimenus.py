@@ -82,7 +82,7 @@ def setup_file_menu(mainwin, back):
     menu.newAction(
         name='actionOpen_Database',
         text='Open Database',
-        tooltip='Opens a different database directory.',
+        tooltip='Opens a different database folder.',
         shortcut='Ctrl+O',
         triggered=back.open_database)
     menu.addSeparator()
@@ -121,6 +121,15 @@ def setup_file_menu(mainwin, back):
         name='actionImport_Img_dir_with_smart',
         text='Import Images (select directory) with smart Patrol XML',
         triggered=back.import_images_from_dir_with_smart)
+    menu.addSeparator()
+    menu.newAction(
+        name='actionImport_Img_dir_from_encouters_1',
+        text='Import Images (select folder(s)) from Encounters (1 level)',
+        triggered=back.import_images_from_encounters_1)
+    menu.newAction(
+        name='actionImport_Img_dir_from_encouters_2',
+        text='Import Images (select folder(s)) from Encounters (2 levels)',
+        triggered=back.import_images_from_encounters_2)
     menu.addSeparator()
     menu.newAction(
         name='actionQuit',
