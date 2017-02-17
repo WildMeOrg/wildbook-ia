@@ -3216,7 +3216,6 @@ class MainWindowBackend(GUIBACK_BASE):
         for index, dir_ in enumerate(dir_list):
             for root, subdirs, files in os.walk(dir_):
                 images = ut.list_images(root, recursive=False)
-                print(level, root, len(subdirs), len(files), len(images))
                 try:
                     # Assert structure
                     if level == 1:
@@ -3230,7 +3229,6 @@ class MainWindowBackend(GUIBACK_BASE):
                         for subdir in subdirs:
                             for root_, subdirs_, files_ in os.walk(subdir):
                                 images_ = ut.list_images(root, recursive=False)
-                                print(1, root, len(subdirs), len(files), len(images_))
                                 try:
                                     assert len(subdirs_) == 0
                                     assert len(images_) > 0
