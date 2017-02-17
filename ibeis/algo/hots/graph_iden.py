@@ -905,7 +905,8 @@ class _AnnotInfrFeedback(object):
         user_confidence = None
         uv_iter = it.starmap(e_, index.tolist())
         _iter = zip(uv_iter, decisions, tags_list)
-        prog = ut.ProgIter(_iter, enabled=verbose, label='adding feedback')
+        prog = ut.ProgIter(_iter, nTotal=len(tags_list), enabled=verbose,
+                           label='adding feedback')
         for edge, decision, tags in prog:
             if tags is None:
                 tags = []
@@ -1101,7 +1102,7 @@ class _AnnotInfrFeedback(object):
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
 
     @profile
-    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list,
+    def _set_feedback_edges(infr, edges, review_states, p_same_list, tags_list,
                             n_reviews_list):
         if infr.verbose >= 3:
             print('[infr] _set_feedback_edges')
@@ -1112,7 +1113,7 @@ class _AnnotInfrFeedback(object):
 
         # use UTC timestamps
         timestamp = ut.get_timestamp('int', isutc=True)
-        infr.set_edge_attrs('reviewed_state', _dz(edges, review_state))
+        infr.set_edge_attrs('reviewed_state', _dz(edges, review_states))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
         infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
@@ -1132,6 +1133,7 @@ class _AnnotInfrFeedback(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
+            >>> infr.add_feedback(1, 2, 'unknown', tags=[])
             >>> infr.apply_feedback_edges()
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
@@ -1146,7 +1148,6 @@ class _AnnotInfrFeedback(object):
             # strict superset of previous feedback
             infr._del_feedback_edges()
         # Transforms dictionary feedback into numpy array
-        # all_feedback = infr.all_feedback()
         feedback_edges = []
         num_review_list = []
         decision_list = []
@@ -1154,17 +1155,14 @@ class _AnnotInfrFeedback(object):
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
             feedback_item = infr._rectify_feedback_item(vals)
+            decision = feedback_item['decision']
+            if decision == 'unknown':
+                continue
             feedback_edges.append(edge)
             num_review_list.append(len(vals))
-            decision_list.append(feedback_item['decision'])
+            decision_list.append(decision)
             tags_list.append(feedback_item['tags'])
-        # feedback_edges = list(all_feedback.keys())
-        # num_review_list = [len(all_feedback[edge]) for edge in feedback_edges]
-        # Take most recent review
-        # rectified_feedback = infr._rectify_feedback(all_feedback)
-        # feedback_list = ut.take(rectified_feedback, feedback_edges)
-        # decision_list = ut.dict_take_column(feedback_list, 'decision')
-        # tags_list = ut.dict_take_column(feedback_list, 'tags')
+
         p_same_lookup = {
             'match': infr._compute_p_same(1.0, 0.0),
             'nomatch': infr._compute_p_same(0.0, 0.0),
