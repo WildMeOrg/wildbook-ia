@@ -905,7 +905,8 @@ class _AnnotInfrFeedback(object):
         user_confidence = None
         uv_iter = it.starmap(e_, index.tolist())
         _iter = zip(uv_iter, decisions, tags_list)
-        prog = ut.ProgIter(_iter, enabled=verbose, label='adding feedback')
+        prog = ut.ProgIter(_iter, nTotal=len(tags_list), enabled=verbose,
+                           label='adding feedback')
         for edge, decision, tags in prog:
             if tags is None:
                 tags = []
@@ -1147,7 +1148,6 @@ class _AnnotInfrFeedback(object):
             # strict superset of previous feedback
             infr._del_feedback_edges()
         # Transforms dictionary feedback into numpy array
-        # all_feedback = infr.all_feedback()
         feedback_edges = []
         num_review_list = []
         decision_list = []
@@ -1155,20 +1155,14 @@ class _AnnotInfrFeedback(object):
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
             feedback_item = infr._rectify_feedback_item(vals)
-            match_state = feedback_item['decision']
-            if match_state == 'unknown':
+            decision = feedback_item['decision']
+            if decision == 'unknown':
                 continue
             feedback_edges.append(edge)
             num_review_list.append(len(vals))
-            decision_list.append(match_state)
+            decision_list.append(decision)
             tags_list.append(feedback_item['tags'])
-        # feedback_edges = list(all_feedback.keys())
-        # num_review_list = [len(all_feedback[edge]) for edge in feedback_edges]
-        # Take most recent review
-        # rectified_feedback = infr._rectify_feedback(all_feedback)
-        # feedback_list = ut.take(rectified_feedback, feedback_edges)
-        # decision_list = ut.dict_take_column(feedback_list, 'decision')
-        # tags_list = ut.dict_take_column(feedback_list, 'tags')
+
         p_same_lookup = {
             'match': infr._compute_p_same(1.0, 0.0),
             'nomatch': infr._compute_p_same(0.0, 0.0),
