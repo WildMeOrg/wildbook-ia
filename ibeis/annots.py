@@ -145,6 +145,7 @@ class _AnnotPropInjector(BASE_TYPE):
             'qual': 'qualities',
             'name': 'names',
             'nid': 'nids',
+            'unary_tags': 'case_tags',
             # DEPRICATE
             'rchip': 'chips',
             'rchip_fpath': 'chip_fpath',

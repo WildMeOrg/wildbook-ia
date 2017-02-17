@@ -423,6 +423,15 @@ def remerge_subset(ibs1, ibs2):
     np.where(aids1.visual_uuids != aids2.visual_uuids)
     np.where(aids1.semantic_uuids != aids2.semantic_uuids)
 
+    unary_props = ['yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
+    for key in unary_props:
+        prop1 = getattr(aids1, key)
+        prop2 = getattr(aids2, key)
+        diff_idxs = set(np.where(prop1 != prop2)[0])
+        print('diff_idxs = %r' % (diff_idxs,))
+
+    aids1
+
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1)
