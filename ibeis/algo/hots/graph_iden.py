@@ -1101,7 +1101,7 @@ class _AnnotInfrFeedback(object):
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
 
     @profile
-    def _set_feedback_edges(infr, edges, review_state, p_same_list, tags_list,
+    def _set_feedback_edges(infr, edges, review_states, p_same_list, tags_list,
                             n_reviews_list):
         if infr.verbose >= 3:
             print('[infr] _set_feedback_edges')
@@ -1112,7 +1112,7 @@ class _AnnotInfrFeedback(object):
 
         # use UTC timestamps
         timestamp = ut.get_timestamp('int', isutc=True)
-        infr.set_edge_attrs('reviewed_state', _dz(edges, review_state))
+        infr.set_edge_attrs('reviewed_state', _dz(edges, review_states))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
         infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
@@ -1132,6 +1132,7 @@ class _AnnotInfrFeedback(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
+            >>> infr.add_feedback(1, 2, 'unknown', tags=[])
             >>> infr.apply_feedback_edges()
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
@@ -1154,9 +1155,12 @@ class _AnnotInfrFeedback(object):
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
             feedback_item = infr._rectify_feedback_item(vals)
+            match_state = feedback_item['decision']
+            if match_state == 'unknown':
+                continue
             feedback_edges.append(edge)
             num_review_list.append(len(vals))
-            decision_list.append(feedback_item['decision'])
+            decision_list.append(match_state)
             tags_list.append(feedback_item['tags'])
         # feedback_edges = list(all_feedback.keys())
         # num_review_list = [len(all_feedback[edge]) for edge in feedback_edges]
