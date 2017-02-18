@@ -483,11 +483,15 @@ def remerge_subset():
     infr = infr2
     infr2.apply_feedback_edges()
 
-    delta = infr2.match_state_delta()
-    print('delta = %r' % (delta,))
+    # delta = infr2.match_state_delta()
+    # print('delta = %r' % (delta,))
 
-    mst_edges = infr2.find_mst_edges()
-    set(infr2.graph.edges()).intersection(mst_edges)
+    infr2.review_dummy_edges()
+    infr2.relabel_using_reviews()
+    infr2.apply_review_inference()
+
+    # mst_edges = infr2.find_mst_edges()
+    # set(infr2.graph.edges()).intersection(mst_edges)
 
     return
 

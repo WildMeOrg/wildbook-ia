@@ -51,15 +51,18 @@ def reasign_names1(ibs, aid_list=None, old_img2_names=None, common_prefix=''):
         def get_name_from_gname(gname):
             from os.path import splitext
             gname_, ext = splitext(gname)
-            assert gname_.startswith(common_prefix), 'prefix assumption is invalidated'
+            assert gname_.startswith(common_prefix), (
+                'prefix assumption is invalidated')
             gname_ = gname_[len(common_prefix):]
             return gname_
         # Create mapping from image name to the desired "name" for the image.
         old_img2_names = {gname: get_name_from_gname(gname)
                           for gname in ut.flatten(grouped_imgnames)}
 
-    # Make the name of the individual associated with that annotation be the file name prefix
-    grouped_oldnames = [ut.take(old_img2_names, gnames) for gnames in grouped_imgnames]
+    # Make the name of the individual associated with that annotation be the
+    # file name prefix
+    grouped_oldnames = [ut.take(old_img2_names, gnames)
+                        for gnames in grouped_imgnames]
 
     # The task is now to map each name in unique_nids to one of these names
     # subject to the contraint that each name can only be used once.  This is
@@ -81,8 +84,9 @@ def reasign_names2(ibs, gname_name_pairs, aid_list=None):
 
     Notes:
         * Given a list of pairs:  image file names (full path), animal name.
-        * Go through all the images in the database and create a dictionary that
-          associates the file name (full path) of the image in the database with the
+        * Go through all the images in the database and create a dictionary
+        that associates the file name (full path) of the image in the database
+        with the
           annotation or annotations associated with that image.
         * Go through the list of pairs:
           For each image file name, look up in the dictionary the image file
@@ -169,9 +173,8 @@ def find_consistent_labeling(grouped_oldnames):
                 name 0 and all annots in the second group are assigned the name
                 1.
 
-    Notes:
-        # Install module containing the Hungarian algorithm for matching
-        pip install munkres
+    References:
+        http://stackoverflow.com/questions/1398822/assignment-problem-numpy
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -200,22 +203,15 @@ def find_consistent_labeling(grouped_oldnames):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
-        >>> grouped_oldnames = [[], ['a', 'a'], [], ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
+        >>> grouped_oldnames = [[], ['a', 'a'], [],
+        >>>                     ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> print(new_names)
         [u'_extra_name0', u'a', u'_extra_name1', u'b', u'_extra_name2']
     """
     import numpy as np
-    # Don't use munkres, it is pure python and very slow
-    # Use scipy instead
-    # http://stackoverflow.com/questions/1398822/the-assignment-problem-a-numpy-function
-    # try:
-    #     import munkres
-    # except ImportError:
-    #     print('Need to install Hungrian algorithm bipartite matching solver.')
-    #     print('Run:')
-    #     print('pip install munkres')
-    #     raise
+    import scipy.optimize
+
     unique_old_names = ut.unique(ut.flatten(grouped_oldnames))
     num_new_names = len(grouped_oldnames)
     num_old_names = len(unique_old_names)
@@ -259,10 +255,8 @@ def find_consistent_labeling(grouped_oldnames):
     # Convert to minimization problem
     big_value = (profit_matrix.max()) - (profit_matrix.min())
     cost_matrix = big_value - profit_matrix
-    # m = munkres.Munkres()
-    # indexes = m.compute(cost_matrix)
 
-    import scipy.optimize
+    # Don't use munkres, it is pure python and very slow. Use scipy instead
     indexes = list(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
 
     # Map output to be aligned with input
