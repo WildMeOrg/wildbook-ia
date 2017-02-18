@@ -2696,8 +2696,8 @@ class _AnnotInfrRelabel(object):
         if rectify:
             # Determine which names can be reused
             from ibeis.scripts import name_recitifer
-            if infr.verbose >= 2:
-                print('rectifying names')
+            if infr.verbose >= 3:
+                print('grouping names for rectification')
             grouped_oldnames_ = [
                 list(nx.get_node_attributes(subgraph, 'name_label').values())
                 for count, subgraph in enumerate(cc_subgraphs)
@@ -2707,14 +2707,17 @@ class _AnnotInfrRelabel(object):
                 [n for n in group if len(group) == 1 or n > 0]
                 for group in grouped_oldnames_
             ]
+            if infr.verbose >= 2:
+                print('begin rectification of %d grouped old names' % (
+                    len(grouped_oldnames)))
             new_labels = name_recitifer.find_consistent_labeling(
                 grouped_oldnames)
+            if infr.verbose >= 2:
+                print('done rectifying new names')
             new_flags = [
                 not isinstance(n, int) and n.startswith('_extra_name')
                 for n in new_labels
             ]
-            if infr.verbose >= 2:
-                print('done rectifying')
 
             for idx in ut.where(new_flags):
                 new_labels[idx] = infr._next_nid()
