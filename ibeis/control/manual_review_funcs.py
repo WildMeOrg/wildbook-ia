@@ -355,7 +355,7 @@ def get_review_decision(ibs, review_rowid_list):
 def get_review_decision_str(ibs, review_rowid_list):
     review_decision_list = ibs.get_review_decision(review_rowid_list)
     review_decision_str_list = [
-        const.REVIEW_INT_TO_NICE.get(review_decision)
+        const.REVIEW.INT_TO_NICE.get(review_decision)
         for review_decision in review_decision_list
     ]
     return review_decision_str_list
@@ -493,10 +493,11 @@ def get_review_decisions_str_from_tuple(ibs, aid_1_list, aid_2_list, **kwargs):
         Method: GET
         URL:    /api/review/identities/str/tuple/
     """
-    review_decisions_list = ibs.get_review_decisions_from_tuple(aid_1_list, aid_2_list, **kwargs)
+    review_decisions_list = ibs.get_review_decisions_from_tuple(
+        aid_1_list, aid_2_list, **kwargs)
     review_decision_str_list = [
         [
-            const.REVIEW_INT_TO_NICE.get(review_decision)
+            const.REVIEW.INT_TO_NICE.get(review_decision)
             for review_decision in review_decision_list
         ]
         for review_decision_list in review_decisions_list

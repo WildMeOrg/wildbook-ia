@@ -7,7 +7,7 @@ from plottool.viz_featrow import draw_feat_row
 from ibeis.viz import viz_helpers as vh
 import plottool as pt  # NOQA
 import six  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[viz_nndesc]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def get_annotfeat_nn_index(ibs, qaid, qfx, qreq_=None):
@@ -131,7 +131,7 @@ def show_top_featmatches(qreq_, cm_list):
     annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams)
               for aid in aids}
 
-    label_lists = ibs.get_aidpair_truths(aid1s, aid2s) == ibs.const.TRUTH_MATCH
+    label_lists = ibs.get_aidpair_truths(aid1s, aid2s) == ibs.const.REVIEW.MATCH
     patch_size = 64
 
     def extract_patches(annots, aid, fxs):

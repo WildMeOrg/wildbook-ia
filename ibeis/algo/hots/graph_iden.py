@@ -194,9 +194,9 @@ class _AnnotInfrGroundtruth(object):
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
         truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
         truths = np.asarray(truths)
-        is_notcomp_have = truths == ibs.const.TRUTH_NOT_COMP
-        is_comp_have = ((truths == ibs.const.TRUTH_MATCH) |
-                        (truths == ibs.const.TRUTH_NOT_MATCH))
+        is_notcomp_have = truths == ibs.const.REVIEW.NOT_COMP
+        is_comp_have = ((truths == ibs.const.REVIEW.MATCH) |
+                        (truths == ibs.const.REVIEW.NON_MATCH))
         is_comp[is_notcomp_have] = False
         is_comp[is_comp_have] = True
         return is_comp
@@ -423,7 +423,7 @@ class _AnnotInfrDummy(object):
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
             infr.add_feedback(u, v, 'match', user_confidence='guessing',
-                              verbose=False)
+                              user_id='mst', verbose=False)
         infr.apply_feedback_edges()
         # if len(edges):
         #     nx.set_edge_attributes(infr.graph, 'reviewed_state', _dz(edges, ['match']))
@@ -483,8 +483,8 @@ class _AnnotInfrIBEIS(object):
             timestamp = feedback_item.get('timestamp', None)
             confidence_key = feedback_item.get('user_confidence', None)
             user_id = feedback_item.get('user_id', None)
-            decision_int = ibs.const.REVIEW_MATCH_CODE[decision_key]
-            confidence_int = infr.ibs.const.REVIEW_USER_CONFIDENCE_CODE.get(
+            decision_int = ibs.const.REVIEW.MATCH_CODE[decision_key]
+            confidence_int = infr.ibs.const.REVIEW.USER_CONFIDENCE_CODE.get(
                     confidence_key, None)
             aid_1_list.append(aid1)
             aid_2_list.append(aid2)
@@ -526,7 +526,7 @@ class _AnnotInfrIBEIS(object):
         edge_delta_df.loc[is_add, 'am_rowid'] = add_ams
 
         # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW_MATCH_CODE,
+        new_truth = ut.take(ibs.const.REVIEW.MATCH_CODE,
                             edge_delta_df['new_decision'])
         new_tags = [';'.join(tags) for tags in edge_delta_df['new_tags']]
         am_rowids = edge_delta_df['am_rowid'].values
@@ -599,7 +599,7 @@ class _AnnotInfrIBEIS(object):
                                       review_ids)
 
         feedback = ut.ddict(list)
-        int_to_key = ut.invert_dict(ibs.const.REVIEW_MATCH_CODE)
+        int_to_key = ut.invert_dict(ibs.const.REVIEW.MATCH_CODE)
         for data in review_data:
             aid1, aid2, count, decision_int, timestamp, tags = data
             edge = e_(aid1, aid2)
@@ -669,15 +669,15 @@ class _AnnotInfrIBEIS(object):
 
         # Add information from relevant tags
         truth = np.array(truth, dtype=np.int)
-        # truth[is_pb] = ibs.const.TRUTH_NOT_MATCH
-        truth[is_split] = ibs.const.TRUTH_NOT_MATCH
-        truth[is_merge] = ibs.const.TRUTH_MATCH
+        # truth[is_pb] = ibs.const.REVIEW.NON_MATCH
+        truth[is_split] = ibs.const.REVIEW.NON_MATCH
+        truth[is_merge] = ibs.const.REVIEW.MATCH
 
         if infr.verbose >= 2:
             print('[infr] * making feedback dict')
 
         # CHANGE OF FORMAT
-        int_to_key = ut.invert_dict(ibs.const.REVIEW_MATCH_CODE)
+        int_to_key = ut.invert_dict(ibs.const.REVIEW.MATCH_CODE)
         feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
             edge = e_(aid1, aid2)

@@ -292,21 +292,6 @@ class ZIPPED_URLS(object):
     GZ_DISTINCTIVE = 'https://lev.cs.rpi.edu/public/models/distinctivness_zebra_grevys.zip'
 
 
-# FIXME; TRUTH_UNKNOWN value should be None?
-TRUTH_UNKNOWN = 3
-TRUTH_NOT_COMP = 2
-TRUTH_MATCH = 1
-TRUTH_NOT_MATCH = 0
-
-
-TRUTH_INT_TO_TEXT = {
-    TRUTH_UNKNOWN   : 'Unknown',
-    TRUTH_NOT_COMP  : 'Not Comparable',
-    TRUTH_NOT_MATCH : 'Not Matched',
-    TRUTH_MATCH     : 'Matched',
-}
-
-
 # Turn off features at Lewa :(
 SIMPLIFY_INTERFACE = (ut.get_computer_name() == 'ibeis.cs.uic.edu') or ut.get_argflag('--simplify')
 
@@ -348,30 +333,42 @@ SPECIES_WITH_DETECTORS = (
 )
 
 
-REVIEW_NON_MATCH = 0
-REVIEW_MATCH = 1
-REVIEW_NOT_COMPARABLE = 2
-REVIEW_UNKNOWN = 3
+class REVIEW(object):
+    """
+    Enumerated types of review codes and texts
+    """
+    # Not comparared yet.
+    UNREVIEWED = None
+    # Visually comparable and the different
+    NON_MATCH = 0
+    # Visually comparable and the same
+    MATCH = 1
+    # Not comparable means it is actually impossible to determine.
+    NOT_COMPARABLE = 2
+    # Unknown means that it was reviewed, but we just can't figure it out.
+    UNKNOWN = 3
 
-REVIEW_MATCH_CODE = {
-    'nomatch' : REVIEW_NON_MATCH,
-    'match'   : REVIEW_MATCH,
-    'notcomp' : REVIEW_NOT_COMPARABLE,
-    'unknown' : REVIEW_UNKNOWN,
-}
+    MATCH_CODE = {
+        'unreviewed' : UNREVIEWED,
+        'nomatch'    : NON_MATCH,
+        'match'      : MATCH,
+        'notcomp'    : NOT_COMPARABLE,
+        'unknown'    : UNKNOWN,
+    }
 
-REVIEW_INT_TO_NICE = {
-    REVIEW_NON_MATCH      : 'Non Match',
-    REVIEW_MATCH          : 'Match',
-    REVIEW_NOT_COMPARABLE : 'Not Comparable',
-}
+    INT_TO_CODE = ut.invert_dict(MATCH_CODE)
 
-REVIEW_INT_TO_CODE = ut.invert_dict(REVIEW_MATCH_CODE)
+    INT_TO_NICE = {
+        UNREVIEWED     : 'Unreviewed',
+        NON_MATCH      : 'Non-Match',
+        MATCH          : 'Match',
+        NOT_COMPARABLE : 'Incomparable',
+        UNKNOWN        : 'Unknown',
+    }
 
-
-REVIEW_USER_CONFIDENCE_CODE = {
-    'guessing': 1,
-    'not_sure': 2,
-    'pretty_sure': 3,
-    'absolutely_sure': 4,
-}
+    USER_CONFIDENCE_CODE = {
+        'guessing': 1,
+        'not_sure': 2,
+        'pretty_sure': 3,
+        'absolutely_sure': 4,
+    }

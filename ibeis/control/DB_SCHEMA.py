@@ -1432,7 +1432,7 @@ def update_1_6_0(db, ibs=None):
 def update_1_6_1(db, ibs=None):
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-    #         'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    #         'this is a hacked state. to fix bug where REVIEW.UNKNOWN was 2')
     db.modify_table(
         'annotmatch',
         colmap_list=[
@@ -1449,7 +1449,7 @@ def post_1_6_1(db, ibs=None, verbose=False):
     print('Setting %d old unknown values to NULL' % (len(ams)))
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-    #         'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    #         'this is a hacked state. to fix bug where REVIEW.UNKNOWN was 2')
     # if False:
     db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
 

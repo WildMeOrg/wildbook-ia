@@ -383,17 +383,19 @@ def submit_identification(**kwargs):
     annot_uuid_1, annot_uuid_2, state, tag_list = process_graph_match_html(ibs)
 
     # Add state to staging database
+    # FIXME:
+    # photobomb and scenerymatch tags should be disjoint from match-state
     if state == 'matched':
-        decision = const.REVIEW_MATCH
+        decision = const.REVIEW.MATCH
     elif state == 'notmatched':
-        decision = const.REVIEW_NON_MATCH
+        decision = const.REVIEW.NON_MATCH
     elif state == 'notcomparable':
-        decision = const.REVIEW_NOT_COMPARABLE
+        decision = const.REVIEW.NOT_COMPARABLE
     elif state == 'photobomb':
-        decision = const.REVIEW_NON_MATCH
+        decision = const.REVIEW.NON_MATCH
         tag_list = ['photobomb']
     elif state == 'scenerymatch':
-        decision = const.REVIEW_NON_MATCH
+        decision = const.REVIEW.NON_MATCH
         tag_list = ['scenerymatch']
     else:
         raise ValueError()
@@ -412,7 +414,7 @@ def submit_identification(**kwargs):
 
     # Notify any attached web QUERY_OBJECT
     try:
-        state = const.REVIEW_INT_TO_CODE[decision]
+        state = const.REVIEW.INT_TO_CODE[decision]
         feedback = (aid1, aid2, state, tags_list)
         print('Adding %r to QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
         current_app.QUERY_OBJECT_FEEDBACK_BUFFER.append(feedback)

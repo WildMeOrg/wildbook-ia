@@ -485,6 +485,10 @@ def remerge_subset():
 
     delta = infr2.match_state_delta()
     print('delta = %r' % (delta,))
+
+    mst_edges = infr2.find_mst_edges()
+    set(infr2.graph.edges()).intersection(mst_edges)
+
     return
 
     """
