@@ -234,11 +234,13 @@ def find_consistent_labeling(grouped_oldnames):
         conflict_groups = []
         orig_idxs = []
         assignment = [None] * len(grouped_oldnames)
+        ntrivial = 0
         for idx, group in enumerate(grouped_oldnames):
             if set(group).intersection(conflicts):
                 orig_idxs.append(idx)
                 conflict_groups.append(group)
             else:
+                ntrivial += 1
                 if len(group) > 0:
                     h = ut.dict_hist(group)
                     hitems = list(h.items())
@@ -247,6 +249,9 @@ def find_consistent_labeling(grouped_oldnames):
                     assignment[idx] = g
                 else:
                     assignment[idx] = None
+
+        print('rectify %d non-trivial groups' % (len(conflict_groups),))
+        print('rectify %d trivial groups' % (ntrivial,))
 
         grouped_oldnames_ = conflict_groups
     else:
