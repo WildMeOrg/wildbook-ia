@@ -203,6 +203,14 @@ def find_consistent_labeling(grouped_oldnames):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> grouped_oldnames = [['a', 'b'], ['e'], ['a', 'a', 'b'], [], ['a'], ['d']]
+        >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> print(new_names)
+        [u'a', u'b', u'e']
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [[], ['a', 'a'], [],
         >>>                     ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
@@ -213,7 +221,41 @@ def find_consistent_labeling(grouped_oldnames):
     import scipy.optimize
 
     unique_old_names = ut.unique(ut.flatten(grouped_oldnames))
-    num_new_names = len(grouped_oldnames)
+
+    if 1:
+        # TODO: find names that are only used once, and just ignore those for
+        # optimization.
+        unique_set = set(unique_old_names)
+        oldname_sets = list(map(set, grouped_oldnames))
+        usage_hist = ut.dict_hist(ut.flatten(oldname_sets))
+        conflicts = {k for k, v in usage_hist.items() if v > 1}
+        nonconflicts = {k for k, v in usage_hist.items() if v == 1}
+
+        conflict_groups = []
+        orig_idxs = []
+        assignment = [None] * len(grouped_oldnames)
+        for idx, group in enumerate(grouped_oldnames):
+            if set(group).intersection(conflicts):
+                orig_idxs.append(idx)
+                conflict_groups.append(group)
+            else:
+                if len(group) > 0:
+                    h = ut.dict_hist(group)
+                    hitems = list(h.items())
+                    hvals = [i[1] for i in hitems]
+                    g = hitems[ut.argmax(hvals)][0]
+                    assignment[idx] = g
+                else:
+                    assignment[idx] = None
+
+        grouped_oldnames_ = conflict_groups
+    else:
+        orig_idxs = None
+        grouped_oldnames_ = grouped_oldnames
+
+
+    unique_old_names = ut.unique(ut.flatten(grouped_oldnames_))
+    num_new_names = len(grouped_oldnames_)
     num_old_names = len(unique_old_names)
     extra_oldnames = []
 
@@ -237,7 +279,7 @@ def find_consistent_labeling(grouped_oldnames):
     profit_matrix = -np.ones((total, total), dtype=np.int) * (2 * total)
     # Populate assignment profit matrix
     oldname2_idx = ut.make_index_lookup(assignable_names)
-    name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames]
+    name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames_]
     # Initialize base profit for using a previously used name
     for rowx, name_freq in enumerate(name_freq_list):
         for name, freq in name_freq.items():
@@ -261,6 +303,18 @@ def find_consistent_labeling(grouped_oldnames):
 
     # Map output to be aligned with input
     rx2_cx = dict(indexes)
-    assignment = [assignable_names[rx2_cx[rx]]
-                  for rx in range(num_new_names)]
+    assignment_ = [assignable_names[rx2_cx[rx]]
+                   for rx in range(num_new_names)]
+
+    # Reintegrate trivial values
+    if orig_idxs is None:
+        assignment = assignment_
+    else:
+        for idx, g in zip(orig_idxs, assignment_):
+            assignment[idx] = g
+    num_extra
+    for idx, val in enumerate(assignment):
+        if val is None:
+            assignment[idx] = '_extra_name%d' % (num_extra,)
+            num_extra += 1
     return assignment
