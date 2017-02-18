@@ -144,7 +144,46 @@ def reasign_names2(ibs, gname_name_pairs, aid_list=None):
     return changed_pairs
 
 
-def find_consistent_labeling(grouped_oldnames):
+def testdata_oldnames(n_incon_groups=10, n_con_groups=2, n_per_con=5,
+                      n_per_incon=5, con_sep=4, n_empty_groups=0):
+    import numpy as np
+    rng = np.random.RandomState(42)
+
+    rng.randint(1, con_sep + 1)
+
+    n_incon_labels = rng.randint(0, n_incon_groups + 1)
+    incon_labels = list(range(n_incon_labels))
+    con_labels = list(range(n_incon_labels, n_incon_labels + n_con_groups))
+
+    # Build up inconsistent groups that may share labels with other groups
+    n_per_incon_list = [rng.randint(min(2, n_per_incon), n_per_incon + 1)
+                        for _ in range(n_incon_groups)]
+    incon_groups = [
+        rng.choice(incon_labels, n, replace=True).tolist()
+        for n in n_per_incon_list
+    ]
+
+    # Build up consistent groups that may have multiple lables, but does not
+    # share labels with any other group
+    con_groups = []
+    offset = n_incon_labels + 1
+    for _ in range(n_con_groups):
+        this_n_per = rng.randint(1, n_per_con + 1)
+        this_n_avail = rng.randint(1, con_sep + 1)
+        this_avail_labels = list(range(offset, offset + this_n_avail))
+        this_labels = rng.choice(this_avail_labels, this_n_per, replace=True)
+        con_groups.append(this_labels.tolist())
+        offset += this_n_avail
+
+    empty_groups = [[] for _ in range(n_empty_groups)]
+
+    grouped_oldnames = incon_groups + con_groups + empty_groups
+    # rng.shuffle(grouped_oldnames)
+    return grouped_oldnames
+
+
+
+def find_consistent_labeling(grouped_oldnames, verbose=False):
     """
     Solves a a maximum bipirtite matching problem to find a consistent
     name assignment.
@@ -177,12 +216,41 @@ def find_consistent_labeling(grouped_oldnames):
         http://stackoverflow.com/questions/1398822/assignment-problem-numpy
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b'], ['b', 'c'], ['c', 'a', 'a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> print(new_names)
         [u'b', u'c', u'a']
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> grouped_oldnames = testdata_oldnames(25, 15,  5, n_per_incon=5)
+        >>> new_names = find_consistent_labeling(grouped_oldnames, verbose=1)
+        >>> grouped_oldnames = testdata_oldnames(0, 15,  5, n_per_incon=1)
+        >>> new_names = find_consistent_labeling(grouped_oldnames, verbose=1)
+        >>> grouped_oldnames = testdata_oldnames(0, 0, 0, n_per_incon=1)
+        >>> new_names = find_consistent_labeling(grouped_oldnames, verbose=1)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> ydata = []
+        >>> xdata = list(range(10, 750, 50))
+        >>> for x in xdata:
+        >>>     print('x = %r' % (x,))
+        >>>     grouped_oldnames = testdata_oldnames(x, 15,  5, n_per_incon=5)
+        >>>     t = ut.Timerit(3, verbose=1)
+        >>>     for timer in t:
+        >>>         with timer:
+        >>>             new_names = find_consistent_labeling(grouped_oldnames)
+        >>>     ydata.append(t.ave_secs)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.qtensure()
+        >>> pt.multi_plot(xdata, [ydata])
+        >>> ut.show_if_requested()
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -222,102 +290,98 @@ def find_consistent_labeling(grouped_oldnames):
 
     unique_old_names = ut.unique(ut.flatten(grouped_oldnames))
 
-    if 1:
-        # TODO: find names that are only used once, and just ignore those for
-        # optimization.
-        unique_set = set(unique_old_names)
-        oldname_sets = list(map(set, grouped_oldnames))
-        usage_hist = ut.dict_hist(ut.flatten(oldname_sets))
-        conflicts = {k for k, v in usage_hist.items() if v > 1}
-        nonconflicts = {k for k, v in usage_hist.items() if v == 1}
+    # TODO: find names that are only used once, and just ignore those for
+    # optimization.
+    unique_set = set(unique_old_names)
+    oldname_sets = list(map(set, grouped_oldnames))
+    usage_hist = ut.dict_hist(ut.flatten(oldname_sets))
+    conflicts = {k for k, v in usage_hist.items() if v > 1}
+    nonconflicts = {k for k, v in usage_hist.items() if v == 1}
 
-        conflict_groups = []
-        orig_idxs = []
-        assignment = [None] * len(grouped_oldnames)
-        ntrivial = 0
-        for idx, group in enumerate(grouped_oldnames):
-            if set(group).intersection(conflicts):
-                orig_idxs.append(idx)
-                conflict_groups.append(group)
+    conflict_groups = []
+    orig_idxs = []
+    assignment = [None] * len(grouped_oldnames)
+    ntrivial = 0
+    for idx, group in enumerate(grouped_oldnames):
+        if set(group).intersection(conflicts):
+            orig_idxs.append(idx)
+            conflict_groups.append(group)
+        else:
+            ntrivial += 1
+            if len(group) > 0:
+                h = ut.dict_hist(group)
+                hitems = list(h.items())
+                hvals = [i[1] for i in hitems]
+                maxval = max(hvals)
+                g = min([k for k, v in hitems if v == maxval])
+                assignment[idx] = g
             else:
-                ntrivial += 1
-                if len(group) > 0:
-                    h = ut.dict_hist(group)
-                    hitems = list(h.items())
-                    hvals = [i[1] for i in hitems]
-                    g = hitems[ut.argmax(hvals)][0]
-                    assignment[idx] = g
-                else:
-                    assignment[idx] = None
+                assignment[idx] = None
 
+    if verbose:
         print('rectify %d non-trivial groups' % (len(conflict_groups),))
         print('rectify %d trivial groups' % (ntrivial,))
 
+    num_extra = 0
+
+    if len(conflict_groups) > 0:
         grouped_oldnames_ = conflict_groups
-    else:
-        orig_idxs = None
-        grouped_oldnames_ = grouped_oldnames
-
-
-    unique_old_names = ut.unique(ut.flatten(grouped_oldnames_))
-    num_new_names = len(grouped_oldnames_)
-    num_old_names = len(unique_old_names)
-    extra_oldnames = []
-
-    # Create padded dummy values.  This accounts for the case where it is
-    # impossible to uniquely map to the old db
-    num_extra = num_new_names - num_old_names
-    if num_extra > 0:
-        extra_oldnames = ['_extra_name%d' % (count,) for count in
-                          range(num_extra)]
-    elif num_extra < 0:
-        pass
-    else:
+        unique_old_names = ut.unique(ut.flatten(grouped_oldnames_))
+        num_new_names = len(grouped_oldnames_)
+        num_old_names = len(unique_old_names)
         extra_oldnames = []
-    assignable_names = unique_old_names + extra_oldnames
 
-    total = len(assignable_names)
+        # Create padded dummy values.  This accounts for the case where it is
+        # impossible to uniquely map to the old db
+        num_extra = num_new_names - num_old_names
+        if num_extra > 0:
+            extra_oldnames = ['_extra_name%d' % (count,) for count in
+                              range(num_extra)]
+        elif num_extra < 0:
+            pass
+        else:
+            extra_oldnames = []
+        assignable_names = unique_old_names + extra_oldnames
 
-    # Allocate assignment matrix
-    # Start with a large negative value indicating
-    # that you must select from your assignments only
-    profit_matrix = -np.ones((total, total), dtype=np.int) * (2 * total)
-    # Populate assignment profit matrix
-    oldname2_idx = ut.make_index_lookup(assignable_names)
-    name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames_]
-    # Initialize base profit for using a previously used name
-    for rowx, name_freq in enumerate(name_freq_list):
-        for name, freq in name_freq.items():
-            colx = oldname2_idx[name]
-            profit_matrix[rowx, colx] = 1
-    # Now add in the real profit
-    for rowx, name_freq in enumerate(name_freq_list):
-        for name, freq in name_freq.items():
-            colx = oldname2_idx[name]
-            profit_matrix[rowx, colx] += freq
-    # Set a small profit for using an extra name
-    extra_colxs = ut.take(oldname2_idx, extra_oldnames)
-    profit_matrix[:, extra_colxs] = 1
+        total = len(assignable_names)
 
-    # Convert to minimization problem
-    big_value = (profit_matrix.max()) - (profit_matrix.min())
-    cost_matrix = big_value - profit_matrix
+        # Allocate assignment matrix
+        # Start with a large negative value indicating
+        # that you must select from your assignments only
+        profit_matrix = -np.ones((total, total), dtype=np.int) * (2 * total)
+        # Populate assignment profit matrix
+        oldname2_idx = ut.make_index_lookup(assignable_names)
+        name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames_]
+        # Initialize base profit for using a previously used name
+        for rowx, name_freq in enumerate(name_freq_list):
+            for name, freq in name_freq.items():
+                colx = oldname2_idx[name]
+                profit_matrix[rowx, colx] = 1
+        # Now add in the real profit
+        for rowx, name_freq in enumerate(name_freq_list):
+            for name, freq in name_freq.items():
+                colx = oldname2_idx[name]
+                profit_matrix[rowx, colx] += freq
+        # Set a small profit for using an extra name
+        extra_colxs = ut.take(oldname2_idx, extra_oldnames)
+        profit_matrix[:, extra_colxs] = 1
 
-    # Don't use munkres, it is pure python and very slow. Use scipy instead
-    indexes = list(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
+        # Convert to minimization problem
+        big_value = (profit_matrix.max()) - (profit_matrix.min())
+        cost_matrix = big_value - profit_matrix
 
-    # Map output to be aligned with input
-    rx2_cx = dict(indexes)
-    assignment_ = [assignable_names[rx2_cx[rx]]
-                   for rx in range(num_new_names)]
+        # Don't use munkres, it is pure python and very slow. Use scipy instead
+        indexes = list(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
 
-    # Reintegrate trivial values
-    if orig_idxs is None:
-        assignment = assignment_
-    else:
+        # Map output to be aligned with input
+        rx2_cx = dict(indexes)
+        assignment_ = [assignable_names[rx2_cx[rx]]
+                       for rx in range(num_new_names)]
+
+        # Reintegrate trivial values
         for idx, g in zip(orig_idxs, assignment_):
             assignment[idx] = g
-    num_extra
+
     for idx, val in enumerate(assignment):
         if val is None:
             assignment[idx] = '_extra_name%d' % (num_extra,)

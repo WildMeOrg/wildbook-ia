@@ -2711,7 +2711,7 @@ class _AnnotInfrRelabel(object):
                 print('begin rectification of %d grouped old names' % (
                     len(grouped_oldnames)))
             new_labels = name_recitifer.find_consistent_labeling(
-                grouped_oldnames)
+                grouped_oldnames, verbose=infr.verbose >= 3)
             if infr.verbose >= 2:
                 print('done rectifying new names')
             new_flags = [
