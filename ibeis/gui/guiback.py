@@ -2563,6 +2563,78 @@ class MainWindowBackend(GUIBACK_BASE):
         return species2_expanded_aids
 
     @blocking_slot()
+    def filter_imageset_as_camera_trap(back, refresh=True, score_thresh=0.30):
+        ibs = back.ibs
+        imgsetid = back.get_selected_imgsetid()
+        gid_list = ibs.get_imageset_gids(imgsetid)
+        aid_list = ut.flatten(ibs.get_image_aids(gid_list))
+
+        imgset_name = ibs.get_imageset_text(imgsetid)
+        imgset_dest_name = '%s (FILTERED)' % (imgset_name, )
+
+        confirm_kw = dict(use_msg=ut.codeblock(
+            '''
+            This action will process the current ImageSet and search for the images (%d total) which contain zebras.
+
+            Note: this process is meant for images from sources like camera traps and aerial drones, where the vast majority of the images have no zebras in them.  If you expect the majority of your images to contain zebras, run the standard Detect for better detection accuracy (but will be slower).
+
+            This operation will find Plains and Grevy's zebras.
+
+            Warning: performing this operation will delete all current annotations (%d total) on all images in the current ImageSet. This operation will also de-associate any metadata (e.g. names) from the annotations.  This operation will not delete or modify any images, annotations, or names outside this ImageSet.
+
+            Selecting YES will remove this ImageSet's annotations, perform a filtering classification for zebras, run the detection pipeline, and create (or will empty if currently exists) an ImageSet named:
+
+            \t %r
+
+            This new ImageSet will contain the images where zebras were detected.
+            ''') % (len(gid_list), len(aid_list), imgset_dest_name, )
+            , title='Process ImageSet?',
+            default='Yes')
+        if not back.are_you_sure(**confirm_kw):
+            raise guiexcept.UserCancel
+
+        depc = ibs.depc_image
+
+        ibs.delete_annots(aid_list)
+        # imgset_rowid_list = ibs.get_imageset_imgsetids_from_text(['POSITIVE_SET', 'NEGATIVE_SET'])
+        imgset_rowid_list = ibs.get_imageset_imgsetids_from_text([imgset_dest_name])
+        for imgset_rowid in imgset_rowid_list:
+            imgset_rowid_list_ = [imgset_rowid] * len(gid_list)
+            ibs.unrelate_images_and_imagesets(gid_list, imgset_rowid_list_)
+
+        config = {'classifier_weight_filepath': 'coco_zebra'}
+        class_list = depc.get_property('classifier', gid_list, 'class', config=config)
+        score_list = depc.get_property('classifier', gid_list, 'score', config=config)
+        score_list_ = [
+            score_ if class_ == 'positive' else 1.0 - score_
+            for class_, score_ in zip(class_list, score_list)
+        ]
+        flag_list = [ score_ >= score_thresh for score_ in score_list_ ]
+        print('%d / %d' % (flag_list.count(True), len(flag_list), ))
+
+        pos_gid_list = ut.compress(gid_list, flag_list)
+        # neg_gid_list = ut.compress(gid_list, ut.not_list(flag_list))
+        # ibs.set_image_imagesettext(pos_gid_list, ['POSITIVE_SET'] * len(pos_gid_list))
+        # ibs.set_image_imagesettext(neg_gid_list, ['NEGATIVE_SET'] * len(neg_gid_list))
+        ibs.set_image_imagesettext(pos_gid_list, [imgset_dest_name] * len(pos_gid_list))
+
+        # Run detection
+        aids_list = ibs.detect_cnn_yolo(pos_gid_list)
+        # aids_list = ibs.get_image_aids(pos_gid_list)
+        species_list_list = map(ibs.get_annot_species_texts, aids_list)
+        species_set_list = map(set, species_list_list)
+        wanted_set = set(['zebra_grevys', 'zebra_plains'])
+        flag_list = [
+            len(wanted_set & species_set) == 0
+            for species_set in species_set_list
+        ]
+        print('%d / %d' % (flag_list.count(True), len(flag_list), ))
+        nothing_gid_list = ut.compress(pos_gid_list, flag_list)
+        imgset_rowid_list_ = [imgset_rowid_list[0]] * len(nothing_gid_list)
+        ibs.unrelate_images_and_imagesets(nothing_gid_list, imgset_rowid_list_)
+        # ibs.set_image_imagesettext(nothing_gid_list, ['NEGATIVE_SET'] * len(nothing_gid_list))
+
+    @blocking_slot()
     def commit_to_wb_step(back, refresh=True, dry=False):
         """
         Step 6) Commit
