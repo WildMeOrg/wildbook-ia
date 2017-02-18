@@ -4847,7 +4847,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         match_state = ut.odict([
             ('None', np.isnan(truths).sum()),
             ('unknown', (truths == ibs.const.REVIEW.UNKNOWN).sum()),
-            ('incomp', (truths == ibs.const.REVIEW.NOT_COMP).sum()),
+            ('incomp', (truths == ibs.const.REVIEW.NOT_COMPARABLE).sum()),
             ('nomatch', (truths == ibs.const.REVIEW.NON_MATCH).sum()),
             ('match', (truths == ibs.const.REVIEW.MATCH).sum()),
         ])

@@ -194,7 +194,7 @@ class _AnnotInfrGroundtruth(object):
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
         truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
         truths = np.asarray(truths)
-        is_notcomp_have = truths == ibs.const.REVIEW.NOT_COMP
+        is_notcomp_have = truths == ibs.const.REVIEW.NOT_COMPARABLE
         is_comp_have = ((truths == ibs.const.REVIEW.MATCH) |
                         (truths == ibs.const.REVIEW.NON_MATCH))
         is_comp[is_notcomp_have] = False

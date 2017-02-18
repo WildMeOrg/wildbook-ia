@@ -1630,7 +1630,7 @@ class _ChipMatchDebugger(object):
             str: varinfo
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_rawinfostr --show --cex
+            python -m ibeis.algo.hots.chip_match get_rawinfostr
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1703,7 +1703,7 @@ class _ChipMatchDebugger(object):
             'cm.daid2_idx',
         ]
         attrs_ = [attr.replace('cm.', '') for attr in attr_order]
-        unspecified_attrs = ut.setdiff(cm.__dict__.keys(), attrs_)
+        unspecified_attrs = sorted(set(cm.__dict__.keys()) - set(attrs_))
 
         append('ChipMatch:')
         for attr in attr_order:
