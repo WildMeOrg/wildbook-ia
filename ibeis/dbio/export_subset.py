@@ -392,6 +392,290 @@ def slow_merge_test():
     # ibs_dst.print_annotation_table()
 
 
+def fix_bidirectional_annotmatch(ibs):
+    import ibeis
+    infr = ibeis.AnnotInference(ibs=ibs, aids='all', verbose=5)
+    infr.initialize_graph()
+    annots = ibs.annots()
+    aid_to_nid = ut.dzip(annots.aids, annots.nids)
+
+    # Delete bidirectional annotmatches
+    annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+    df = annotmatch.set_index(['annot_rowid1', 'annot_rowid2'])
+
+    # Find entires that have both directions
+    pairs1 = annotmatch[['annot_rowid1', 'annot_rowid2']].values
+    f_edges = {tuple(p) for p in pairs1}
+    b_edges = {tuple(p[::-1]) for p in pairs1}
+    isect_edges = {tuple(sorted(p)) for p in b_edges.intersection(f_edges)}
+    print('Found %d bidirectional edges' % len(isect_edges))
+    isect_edges1 = list(isect_edges)
+    isect_edges2 = [p[::-1] for p in isect_edges]
+
+    import pandas as pd
+    extra_ = {}
+    fixme_edges = []
+    d1 = df.loc[isect_edges1].reset_index(drop=False)
+    d2 = df.loc[isect_edges2].reset_index(drop=False)
+    flags = d1['annotmatch_truth'] != d2['annotmatch_truth']
+    from ibeis.tag_funcs import _parse_tags
+    for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
+        v1, v2 = r1[1], r2[1]
+        aid1 = v1['annot_rowid1']
+        aid2 = v1['annot_rowid2']
+        truth_real = (ibs.const.REVIEW.MATCH
+                      if aid_to_nid[aid1] == aid_to_nid[aid2] else
+                      ibs.const.REVIEW.NON_MATCH)
+        truth1 = v1['annotmatch_truth']
+        truth2 = v2['annotmatch_truth']
+        t1 = _parse_tags(v1['annotmatch_tag_text'])
+        t2 = _parse_tags(v2['annotmatch_tag_text'])
+        newtag = ut.union_ordered(t1, t2)
+        fixme_flag = False
+        if not pd.isnull(truth1):
+            if truth_real != truth1:
+                fixme_flag = True
+        if not pd.isnull(truth2):
+            if truth_real != truth2:
+                fixme_flag = True
+        if fixme_flag:
+            print('--')
+            print('t1, t2 = %r, %r' % (t1, t2))
+            print('newtag = %r' % (newtag,))
+            print('truth_real, truth1, truth2 = %r, %r, %r' % (
+                truth_real, truth1, truth2,))
+            print('aid1, aid2 = %r, %r' % (aid1, aid2))
+            fixme_edges.append((aid1, aid2))
+        else:
+            extra_[(aid1, aid2)] = (truth_real, newtag)
+
+    if len(fixme_edges) > 0:
+        # need to manually fix these edges
+        fix_infr = ibeis.AnnotInference.from_pairs(fixme_edges, ibs=ibs, verbose=5)
+        feedback = fix_infr.read_ibeis_annotmatch_feedback(only_existing_edges=True)
+        fix_infr.external_feedback = feedback
+        fix_infr.apply_feedback_edges()
+        fix_infr.start_qt_interface(loop=False)
+
+    def mark_custom():
+        pass
+
+    # extra_.update(custom_)
+    new_pairs = extra_.keys()
+    new_truths = ut.take_column(ut.dict_take(extra_, new_pairs), 0)
+    new_tags = ut.take_column(ut.dict_take(extra_, new_pairs), 1)
+    new_tag_texts = [';'.join(t) for t in new_tags]
+    aids1, aids2 = ut.listT(new_pairs)
+
+    # Delete the old
+    ibs.delete_annotmatch((d1['annotmatch_rowid'].values.tolist() +
+                           d2['annotmatch_rowid'].values.tolist()))
+
+    # Add the new
+    ams = ibs.add_annotmatch_undirected(aids1, aids2)
+    ibs.set_annotmatch_truth(ams, new_truths)
+    ibs.set_annotmatch_tag_text(ams, new_tag_texts)
+
+    if False:
+        import guitool as gt
+        gt.ensure_qapp()
+        ut.qtensure()
+        from ibeis.gui import inspect_gui
+        inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
+
+
+def fix_annotmatch_pzmaster1():
+    """
+    PZ_Master1 had annotmatch rowids that did not agree with the current name
+    labeling. Looking at the inconsistencies in the graph interface was too
+    cumbersome, because over 3000 annots were incorrectly grouped together.
+
+    This function deletes any annotmatch rowid that is not consistent with the
+    current labeling so we can go forward with using the new AnnotInference
+    object
+    """
+    import ibeis
+    ibs = ibeis.opendb('PZ_Master1')
+    infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(), verbose=5)
+    infr.initialize_graph()
+    annots = ibs.annots()
+    aid_to_nid = ut.dzip(annots.aids, annots.nids)
+
+    if False:
+        infr.reset_feedback()
+        infr.review_dummy_edges()
+        infr.apply_feedback_edges()
+        infr.relabel_using_reviews()
+        infr.start_qt_interface()
+
+    # Get annotmatch rowids that agree with current labeling
+    if False:
+        annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+        import pandas as pd
+        flags1 = pd.isnull(annotmatch['annotmatch_truth'])
+        flags2 = annotmatch['annotmatch_tag_text'] == ''
+        bad_part = annotmatch[flags1 & flags2]
+        rowids = bad_part.index.tolist()
+        ibs.delete_annotmatch(rowids)
+
+    if False:
+        # Delete bidirectional annotmatches
+        annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+        df = annotmatch.set_index(['annot_rowid1', 'annot_rowid2'])
+
+        # Find entires that have both directions
+        pairs1 = annotmatch[['annot_rowid1', 'annot_rowid2']].values
+        f_edges = {tuple(p) for p in pairs1}
+        b_edges = {tuple(p[::-1]) for p in pairs1}
+        isect_edges = {tuple(sorted(p)) for p in b_edges.intersection(f_edges)}
+        isect_edges1 = list(isect_edges)
+        isect_edges2 = [p[::-1] for p in isect_edges]
+
+        # cols = ['annotmatch_truth', 'annotmatch_tag_text']
+        import pandas as pd
+
+        custom_ = {
+            (559, 4909): (False, ['photobomb']),
+            (7918, 8041): (False, ['photobomb']),
+            (6634, 6754): (False, ['photobomb']),
+            (3707, 3727): (False, ['photobomb']),
+            (86, 103): (False, ['photobomb']),
+        }
+        extra_ = {
+        }
+
+        fixme_edges = []
+
+        d1 = df.loc[isect_edges1].reset_index(drop=False)
+        d2 = df.loc[isect_edges2].reset_index(drop=False)
+        flags = d1['annotmatch_truth'] != d2['annotmatch_truth']
+        from ibeis.tag_funcs import _parse_tags
+        for f, r1, r2 in zip(flags, d1.iterrows(), d2.iterrows()):
+            v1, v2 = r1[1], r2[1]
+            aid1 = v1['annot_rowid1']
+            aid2 = v1['annot_rowid2']
+            truth_real = (ibs.const.REVIEW.MATCH
+                          if aid_to_nid[aid1] == aid_to_nid[aid2] else
+                          ibs.const.REVIEW.NON_MATCH)
+            truth1 = v1['annotmatch_truth']
+            truth2 = v2['annotmatch_truth']
+            t1 = _parse_tags(v1['annotmatch_tag_text'])
+            t2 = _parse_tags(v2['annotmatch_tag_text'])
+            newtag = ut.union_ordered(t1, t2)
+            if (aid1, aid2) in custom_:
+                continue
+            fixme_flag = False
+            if not pd.isnull(truth1):
+                if truth_real != truth1:
+                    fixme_flag = True
+            if not pd.isnull(truth2):
+                if truth_real != truth2:
+                    fixme_flag = True
+            if fixme_flag:
+                print('newtag = %r' % (newtag,))
+                print('truth_real = %r' % (truth_real,))
+                print('truth1 = %r' % (truth1,))
+                print('truth2 = %r' % (truth2,))
+                print('aid1 = %r' % (aid1,))
+                print('aid2 = %r' % (aid2,))
+                fixme_edges.append((aid1, aid2))
+            else:
+                extra_[(aid1, aid2)] = (truth_real, newtag)
+
+        extra_.update(custom_)
+        new_pairs = extra_.keys()
+        new_truths = ut.take_column(ut.dict_take(extra_, new_pairs), 0)
+        new_tags = ut.take_column(ut.dict_take(extra_, new_pairs), 1)
+        new_tag_texts = [';'.join(t) for t in new_tags]
+        aids1, aids2 = ut.listT(new_pairs)
+
+        # Delete the old
+        ibs.delete_annotmatch((d1['annotmatch_rowid'].values.tolist() +
+                               d2['annotmatch_rowid'].values.tolist()))
+
+        # Add the new
+        ams = ibs.add_annotmatch_undirected(aids1, aids2)
+        ibs.set_annotmatch_truth(ams, new_truths)
+        ibs.set_annotmatch_tag_text(ams, new_tag_texts)
+
+        if False:
+            import guitool as gt
+            gt.ensure_qapp()
+            ut.qtensure()
+            from ibeis.gui import inspect_gui
+            inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
+
+        # pairs2 = pairs1.T[::-1].T
+        # idx1, idx2 = ut.isect_indices(list(map(tuple, pairs1)),
+        #                               list(map(tuple, pairs2)))
+        # r_edges = list(set(map(tuple, map(sorted, pairs1[idx1]))))
+        # unique_pairs = list(set(map(tuple, map(sorted, pairs1[idx1]))))
+        # df = annotmatch.set_index(['annot_rowid1', 'annot_rowid2'])
+
+    x = ut.ddict(list)
+    annotmatch = ibs.db.get_table_as_pandas('annotmatch')
+    import ubelt as ub
+    _iter = annotmatch.iterrows()
+    prog = ub.ProgIter(_iter, length=len(annotmatch))
+    for k, m in prog:
+        aid1 = m['annot_rowid1']
+        aid2 = m['annot_rowid2']
+        if m['annotmatch_truth'] == ibs.const.REVIEW.MATCH:
+            if aid_to_nid[aid1] == aid_to_nid[aid2]:
+                x['agree1'].append(k)
+            else:
+                x['disagree1'].append(k)
+        elif m['annotmatch_truth'] == ibs.const.REVIEW.NON_MATCH:
+            if aid_to_nid[aid1] == aid_to_nid[aid2]:
+                x['disagree2'].append(k)
+            else:
+                x['agree2'].append(k)
+
+    ub.map_vals(len, x)
+    ut.dict_hist(annotmatch.loc[x['disagree1']]['annotmatch_tag_text'])
+
+    disagree1 = annotmatch.loc[x['disagree1']]
+    pb_disagree1 =  disagree1[disagree1['annotmatch_tag_text'] == 'photobomb']
+    aids1 = pb_disagree1['annot_rowid1'].values.tolist()
+    aids2 = pb_disagree1['annot_rowid2'].values.tolist()
+    aid_pairs = list(zip(aids1, aids2))
+    infr = ibeis.AnnotInference.from_pairs(aid_pairs, ibs=ibs, verbose=5)
+    if False:
+        feedback = infr.read_ibeis_annotmatch_feedback(only_existing_edges=True)
+        infr.external_feedback = feedback
+        infr.apply_feedback_edges()
+        infr.start_qt_interface(loop=False)
+
+    # Delete these values
+    if False:
+        nonpb_disagree1 = disagree1[disagree1['annotmatch_tag_text'] != 'photobomb']
+        disagree2 = annotmatch.loc[x['disagree2']]
+        ibs.delete_annotmatch(nonpb_disagree1['annotmatch_rowid'])
+        ibs.delete_annotmatch(disagree2['annotmatch_rowid'])
+
+    # ut.dict_hist(disagree1['annotmatch_tag_text'])
+    import networkx as nx
+    graph = nx.Graph()
+    graph.add_edges_from(zip(pb_disagree1['annot_rowid1'], pb_disagree1['annot_rowid2']))
+    list(nx.connected_components(graph))
+
+    set(annotmatch.loc[x['disagree2']]['annotmatch_tag_text'])
+
+    # aid1, aid2 = 2585, 1875
+    # # pd.unique(annotmatch['annotmatch_truth'])
+    # from ibeis.gui import inspect_gui
+    # inspect_gui.show_vsone_tuner(ibs, aid1, aid2)
+    # from vtool import inspect_matches
+
+    # aid1, aid2 = 2108, 2040
+
+    # pd.unique(annotmatch['annotmatch_tag_text'])
+
+    infr.reset_feedback()
+    infr.apply_feedback_edges()
+    infr.relabel_using_reviews()
+
+
 def remerge_subset():
     """
     Assumes ibs1 is an updated subset of ibs2.
@@ -431,7 +715,7 @@ def remerge_subset():
     annot_unary_props = [
         # 'yaws', 'bboxes', 'thetas', 'qual', 'species', 'unary_tags']
         'yaws', 'bboxes', 'thetas', 'qual', 'species', 'case_tags', 'multiple',
-        'age_months_est_max', 'age_months_est_min', # 'sex_texts'
+        'age_months_est_max', 'age_months_est_min',  # 'sex_texts'
     ]
     to_change = {}
     for key in annot_unary_props:
@@ -462,26 +746,34 @@ def remerge_subset():
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
-    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
-    infr2.initialize_graph()
-
+    if False:
+        import ibeis
+        ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
+        from ibeis.algo.hots import graph_iden
+        infr1 = graph_iden.AnnotInference(aids='all', ibs=ibs1, verbose=3)
+        infr1.initialize_graph()
+        infr1.reset_feedback('staging')
+        # infr1.reset_feedback('annotmatch')
+        infr1.apply_feedback_edges()
+        infr1.relabel_using_reviews()
+        infr1.apply_review_inference()
+        infr1.start_qt_interface(loop=False)
     fb1 = infr1.read_ibeis_annotmatch_feedback()
-    # feedback = fb1
-    # fb1_df = infr1._pandas_feedback_format(fb1)
 
-    # fb1_df = infr1._pandas_feedback_format(fb1)
-    # fb2_df = infr2._pandas_feedback_format(
-    #     infr2.read_ibeis_annotmatch_feedback())
+    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2,
+                                      verbose=3)
+    infr2.initialize_graph()
+    infr2.reset_feedback()
+
     # map into ibs2 aids
     fb1_t = {(to_aids2[u], to_aids2[v]): val
              for (u, v), val in fb1.items()}
     fb1_df_t = infr2._pandas_feedback_format(fb1_t)
-
-    infr2.reset_feedback()
     infr2.add_feedback_df(fb1_df_t)
 
     infr = infr2
     infr2.apply_feedback_edges()
+    infr2.relabel_using_reviews(rectify=False)
 
     # delta = infr2.match_state_delta()
     # print('delta = %r' % (delta,))
@@ -494,7 +786,6 @@ def remerge_subset():
     # set(infr2.graph.edges()).intersection(mst_edges)
 
     return
-
     """
     TODO:
         Task 2:

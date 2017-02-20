@@ -73,7 +73,7 @@ def static_doctest_modnames():
         'ibeis.control.controller_inject',
         'ibeis.control.manual_lblimage_funcs', 'ibeis.control.IBEISControl',
         'ibeis.control.manual_feat_funcs', 'ibeis.control.wildbook_manager',
-        'ibeis.control._autogen_annotmatch_funcs',
+        'ibeis.control.manual_annotmatch_funcs',
         'ibeis.control.manual_gsgrelate_funcs',
         'ibeis.control.manual_meta_funcs',
         'ibeis.control.manual_lblannot_funcs',

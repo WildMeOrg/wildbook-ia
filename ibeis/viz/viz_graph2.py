@@ -39,6 +39,99 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 }
 
 
+class CustomReviewDialog(gt.GuitoolWidget):
+    r"""
+
+    ibeis CustomReviewDialog --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> import guitool as gt
+        >>> gt.ensure_qapp()
+        >>> win = CustomReviewDialog(aid1=1, aid2=2)
+        >>> gt.qtapp_loop(qwin=win, freq=10)
+        >>> print(win.feedback_dict())
+    """
+    def initialize(self, aid1, aid2, edge_data=None):
+        # from guitool.__PYQT__ import QtWidgets
+        import ibeis
+        if edge_data is not None:
+            reviewed_tags = edge_data.get('reviewed_tags', [])
+            match_state = edge_data.get('reviewed_state', 'unreviewed')
+            default_conf = edge_data.get('user_confidence', 'unspecified')
+            print('edge_data = %r' % (edge_data,))
+            default_match_state = ibeis.const.REVIEW.CODE_TO_NICE[match_state]
+        else:
+            default_conf = 'unspecified'
+            default_match_state = None
+            reviewed_tags = []
+
+        self.aid1 = aid1
+        self.aid2 = aid2
+
+        match_state_options = list(ibeis.const.REVIEW.INT_TO_NICE.values())
+        user_conf_options = list(ibeis.const.REVIEW.USER_CONFIDENCE_CODE.keys())
+
+        self.addNewLabel('Review Aids (%r, %r)' % (aid1, aid2))
+        self.row1 = self.newHWidget(verticalStretch=1000)
+        self.row1.addNewLabel('Match State:')
+        self.match_state_combo = self.row1.addNewComboBox(
+            options=match_state_options,
+            default=default_match_state)
+
+        self.row2 = self.newHWidget(verticalStretch=1000)
+        self.row2.addNewLabel('Confidence:')
+        self.user_conf_rb = gt.RadioButtonGroup(self,
+                                                options=user_conf_options,
+                                                default=default_conf)
+        # self.user_conf_combo = self.row2.addNewComboBox(
+        #     options=user_conf_options, default=default_conf)
+
+        self.tag_checkboxes = []
+        for tag in ['photobomb', 'scenerymatch']:
+            checked = tag in reviewed_tags
+            checkbox = self.addNewCheckBox(tag, checked=checked)
+            self.tag_checkboxes.append(checkbox)
+
+        self.button_row = self.newHWidget(verticalStretch=1000)
+        self.button_row.setObjectName('button_row')
+        # self.button_row.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
+        #                                             QtWidgets.QSizePolicy.Maximum))
+        self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
+
+        self.confirm_button = self.button_row.addNewButton(
+            'Confirm', pressed=self.confirm)
+        self.cancel_button = self.button_row.addNewButton(
+            'Cancel', pressed=self.cancel)
+        self.was_confirmed = False
+
+    def cancel(self):
+        self.was_confirmed = False
+        self.close()
+
+    def confirm(self):
+        self.was_confirmed = True
+        self.close()
+
+    def feedback_dict(self):
+        import ibeis
+        decision_nice = self.match_state_combo.currentText()
+        decision_code = ibeis.const.REVIEW.NICE_TO_CODE[decision_nice]
+        tags = [check.text() for check in self.tag_checkboxes
+                if check.checkState()]
+        user_confidence = self.user_conf_rb.currentText()
+        review = {
+            'aid1': self.aid1,
+            'aid2': self.aid2,
+            'decision': decision_code,
+            'tags': tags,
+            'user_confidence': user_confidence,
+            'user_id': 'qt-custom',
+        }
+        return review
+
+
 class DevGraphWidget(gt.GuitoolWidget):
     signal_graph_update = QtCore.pyqtSignal()
 
@@ -765,7 +858,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = statetags[1].split(';') if len(statetags) > 1 else []
         assert state in valid_states
         for aid1, aid2 in pairs:
-            self.infr.add_feedback(aid1, aid2, state, tags=tags, apply=True)
+            self.infr.add_feedback(aid1, aid2, state, tags=tags,
+                                   user_id='qt-mark', apply=True)
         self.emit_state_update(disable_global_update=True)
 
     def make_mark_state_funcs(self, selection_func):
@@ -826,6 +920,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         return aids
 
     def get_node_options(self, aids):
+        """
+        Context-menu options for annotation nodes
+        """
         from ibeis.viz.interact import interact_chip
         options = []
         if len(aids) == 1:
@@ -838,12 +935,32 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             options += self.get_edge_options(aid_pairs)
         return options
 
+    def custom_review(self, aid_pairs):
+        assert len(aid_pairs) == 1
+        aid1, aid2 = aid_pairs[0]
+        # import utool
+        # utool.embed()
+        edge_data = self.infr.get_edge_data(aid1, aid2)
+        dlg = CustomReviewDialog.as_dialog(self, aid1=aid1, aid2=aid2,
+                                           edge_data=edge_data)
+        dlg.resize(400, 300)
+        dlg.exec_()
+        if dlg.widget.was_confirmed:
+            feedback = dlg.widget.feedback_dict()
+            self.infr.add_feedback(apply=True, **feedback)
+
     def get_edge_options(self, aid_pairs):
+        """
+        Context-menu options for annotation edges
+        """
         options = []
         if len(aid_pairs) > 0:
             options += self.make_mark_state_funcs(lambda: aid_pairs)
 
         if len(aid_pairs) == 1:
+            options += [
+                ('&Custom Review', lambda: self.custom_review(aid_pairs)),
+            ]
             from ibeis.gui import inspect_gui
             ibs = self.infr.ibs
             aid1, aid2 = aid_pairs[0]

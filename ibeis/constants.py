@@ -357,7 +357,6 @@ class REVIEW(object):
     }
 
     INT_TO_CODE = ut.invert_dict(MATCH_CODE)
-
     INT_TO_NICE = {
         UNREVIEWED     : 'Unreviewed',
         NON_MATCH      : 'Non-Match',
@@ -366,9 +365,16 @@ class REVIEW(object):
         UNKNOWN        : 'Unknown',
     }
 
-    USER_CONFIDENCE_CODE = {
-        'guessing': 1,
-        'not_sure': 2,
-        'pretty_sure': 3,
-        'absolutely_sure': 4,
-    }
+    CODE_TO_INT = MATCH_CODE
+    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
+
+    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
+    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
+
+    USER_CONFIDENCE_CODE = ut.odict([
+        ('unspecified', None),
+        ('guessing', 1),
+        ('not_sure', 2),
+        ('pretty_sure', 3),
+        ('absolutely_sure', 4),
+    ])

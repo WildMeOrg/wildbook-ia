@@ -22,7 +22,7 @@ import guitool as gt
 import utool as ut
 from ibeis.gui import id_review_api
 from ibeis.gui import guiexcept
-(print, rrr, profile) = ut.inject2(__name__, '[inspect_gui]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 USE_FILTER_PROXY = False
