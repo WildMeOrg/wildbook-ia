@@ -371,10 +371,13 @@ class REVIEW(object):
     NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
     NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
-    USER_CONFIDENCE_CODE = ut.odict([
+
+class CONFIDENCE(object):
+    CODE_TO_INT = ut.odict([
         ('unspecified', None),
         ('guessing', 1),
         ('not_sure', 2),
         ('pretty_sure', 3),
         ('absolutely_sure', 4),
     ])
+    INT_TO_CODE = ut.invert_dict(CODE_TO_INT)

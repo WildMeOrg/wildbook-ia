@@ -71,7 +71,7 @@ class CustomReviewDialog(gt.GuitoolWidget):
         self.aid2 = aid2
 
         match_state_options = list(ibeis.const.REVIEW.INT_TO_NICE.values())
-        user_conf_options = list(ibeis.const.REVIEW.USER_CONFIDENCE_CODE.keys())
+        user_conf_options = list(ibeis.const.CONFIDENCE.CODE_TO_INT.keys())
 
         self.addNewLabel('Review Aids (%r, %r)' % (aid1, aid2))
         self.row1 = self.newHWidget(verticalStretch=1000)

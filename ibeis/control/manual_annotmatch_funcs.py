@@ -35,7 +35,7 @@ def testdata_annotmatch(defaultdb='testdb1'):
     #config2_ = query_config.QueryParams(cfgdict=dict())
     return ibs, config2_
 
-# AUTOGENED CONSTANTS:
+
 ANNOTMATCH_CONFIDENCE         = 'annotmatch_confidence'
 ANNOTMATCH_PAIRWISE_PROB      = 'annotmatch_pairwise_prob'
 ANNOTMATCH_POSIXTIME_MODIFIED = 'annotmatch_posixtime_modified'

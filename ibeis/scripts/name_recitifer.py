@@ -182,6 +182,87 @@ def testdata_oldnames(n_incon_groups=10, n_con_groups=2, n_per_con=5,
     return grouped_oldnames
 
 
+def simple_munkres(part_oldnames):
+    """
+    CommandLine:
+        python -m ibeis.scripts.name_recitifer simple_munkres
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> part_oldnames = [['a', 'b'], ['b', 'c'], ['c', 'a', 'a']]
+        >>> new_names = simple_munkres(part_oldnames)
+        >>> result = ut.repr2(new_names)
+        >>> print(new_names)
+        ['b', 'c', 'a']
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> part_oldnames = [[], ['a', 'a'], [],
+        >>>                  ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
+        >>> new_names = simple_munkres(part_oldnames)
+        >>> result = ut.repr2(new_names)
+        >>> print(new_names)
+        [None, 'a', None, 'b', None]
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.name_recitifer import *  # NOQA
+        >>> grouped_oldnames = [['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
+        >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> result = ut.repr2(new_names)
+        >>> print(new_names)
+        ['a', 'b', 'e']
+    """
+    import utool
+    with utool.embed_on_exception_context:
+        import numpy as np
+        import scipy.optimize
+        unique_old_names = ut.unique(ut.flatten(part_oldnames))
+        num_new_names = len(part_oldnames)
+        num_old_names = len(unique_old_names)
+
+        # Create padded dummy values.  This accounts for the case where it is
+        # impossible to uniquely map to the old db
+        num_pad = max(num_new_names - num_old_names, 0)
+        total = num_old_names + num_pad
+        shape = (total, total)
+
+        # Allocate assignment matrix.
+        # rows are new-names and cols are old-names.
+        # Initially the profit of any assignment is effectively -inf
+        # This effectively marks all assignments as invalid
+        profit_matrix = np.full(shape, -2 * total, dtype=np.int)
+        # Overwrite valid assignments with positive profits
+        oldname2_idx = ut.make_index_lookup(unique_old_names)
+        name_freq_list = [ut.dict_hist(names) for names in part_oldnames]
+        # Initialize profit of a valid assignment as 1 + freq
+        # This incentivizes using a previously used name
+        for rowx, name_freq in enumerate(name_freq_list):
+            for name, freq in name_freq.items():
+                colx = oldname2_idx[name]
+                profit_matrix[rowx, colx] = freq + 1
+        # Set a much smaller profit for using an extra name
+        # This allows the solution to always exist
+        profit_matrix[:, num_old_names:total] = 1
+
+        # Convert to minimization problem
+        big_value = (profit_matrix.max()) - (profit_matrix.min())
+        cost_matrix = big_value - profit_matrix
+
+        # Use scipy implementation of munkres algorithm.
+        rx2_cx = dict(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
+
+        # Each row (new-name) has now been assigned a column (old-name)
+        # Map this back to the input-space (using None to indicate extras)
+        cx2_name = dict(enumerate(unique_old_names))
+
+        assignment_ = [cx2_name.get(rx2_cx[rx], None)
+                       for rx in range(num_new_names)]
+        return assignment_
+
+
 def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
                              verbose=False):
     r"""
@@ -215,13 +296,9 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
     References:
         http://stackoverflow.com/questions/1398822/assignment-problem-numpy
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.scripts.name_recitifer import *  # NOQA
-        >>> grouped_oldnames = [['a', 'b'], ['b', 'c'], ['c', 'a', 'a']]
-        >>> new_names = find_consistent_labeling(grouped_oldnames)
-        >>> print(new_names)
-        [u'b', u'c', u'a']
+    CommandLine:
+        python -m ibeis.scripts.name_recitifer find_consistent_labeling
+
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -237,7 +314,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> ydata = []
-        >>> xdata = list(range(10, 750, 50))
+        >>> xdata = list(range(10, 150, 50))
         >>> for x in xdata:
         >>>     print('x = %r' % (x,))
         >>>     grouped_oldnames = testdata_oldnames(x, 15,  5, n_per_incon=5)
@@ -253,41 +330,42 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>> ut.show_if_requested()
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        [u'a', u'b', u'e']
+        ['a', 'b', 'e']
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b'], ['a', 'a', 'b'], ['a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        [u'a', u'b', u'e']
+        ['a', 'b', 'e']
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b'], ['e'], ['a', 'a', 'b'], [], ['a'], ['d']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        [u'a', u'b', u'e']
+        ['a', 'b', 'e']
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [[], ['a', 'a'], [],
         >>>                     ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'], ['a']]
         >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        [u'_extra_name0', u'a', u'_extra_name1', u'b', u'_extra_name2']
+        ['_extra_name0', 'a', '_extra_name1', 'b', '_extra_name2']
     """
-    import numpy as np
-    import scipy.optimize
-
     unique_old_names = ut.unique(ut.flatten(grouped_oldnames))
     n_old_names = len(unique_old_names)
     n_new_names = len(grouped_oldnames)
@@ -353,68 +431,36 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         print('  * n_trivial_ignored = %r' % (n_trivial_ignored,))
         print('rectify %d non-trivial groups' % (n_nontrivial,))
 
-    num_extra = 0
+    # Partition nontrivial_oldnames into smaller disjoint sets
+    nontrivial_oldnames_sets = list(map(set, nontrivial_oldnames))
+    import networkx as nx
+    g = nx.Graph()
+    g.add_nodes_from(range(len(nontrivial_oldnames_sets)))
+    for u, group1 in enumerate(nontrivial_oldnames_sets):
+        rest = nontrivial_oldnames_sets[u + 1:]
+        for v, group2 in enumerate(rest, start=u + 1):
+            if group1.intersection(group2):
+                g.add_edge(u, v)
+    nontrivial_partition = list(nx.connected_components(g))
+    if verbose:
+        print('  * partitioned non-trivial into %d subgroups' %
+              (len(nontrivial_partition)))
+        part_size_stats = ut.get_stats(map(len, nontrivial_partition))
+        stats_str = ut.repr2(part_size_stats, precision=2, strkeys=True)
+        print('  * partition size stats = %s'  % (stats_str,))
 
     # Rectify nontrivial cases
-    if len(nontrivial_oldnames) > 0:
-        grouped_oldnames_ = nontrivial_oldnames
-        unique_old_names = ut.unique(ut.flatten(grouped_oldnames_))
-        num_new_names = len(grouped_oldnames_)
-        num_old_names = len(unique_old_names)
-        extra_oldnames = []
+    for part_idxs in ut.ProgIter(nontrivial_partition,
+                                 labels='rectify parts', enabled=verbose):
+        part_oldnames = ut.take(nontrivial_oldnames, part_idxs)
+        part_newidxs  = ut.take(nontrivial_new_idxs, part_idxs)
+        # Rectify this part
+        assignment_ = simple_munkres(part_oldnames)
+        for new_idx, new_name in zip(part_newidxs, assignment_):
+            assignment[new_idx] = new_name
 
-        # Create padded dummy values.  This accounts for the case where it is
-        # impossible to uniquely map to the old db
-        num_extra = num_new_names - num_old_names
-        if num_extra > 0:
-            extra_oldnames = ['%s%d' % (extra_prefix, count,) for count in
-                              range(num_extra)]
-        elif num_extra < 0:
-            pass
-        else:
-            extra_oldnames = []
-        assignable_names = unique_old_names + extra_oldnames
-
-        total = len(assignable_names)
-
-        # Allocate assignment matrix
-        # Start with a large negative value indicating
-        # that you must select from your assignments only
-        profit_matrix = -np.ones((total, total), dtype=np.int) * (2 * total)
-        # Populate assignment profit matrix
-        oldname2_idx = ut.make_index_lookup(assignable_names)
-        name_freq_list = [ut.dict_hist(names) for names in grouped_oldnames_]
-        # Initialize base profit for using a previously used name
-        for rowx, name_freq in enumerate(name_freq_list):
-            for name, freq in name_freq.items():
-                colx = oldname2_idx[name]
-                profit_matrix[rowx, colx] = 1
-        # Now add in the real profit
-        for rowx, name_freq in enumerate(name_freq_list):
-            for name, freq in name_freq.items():
-                colx = oldname2_idx[name]
-                profit_matrix[rowx, colx] += freq
-        # Set a small profit for using an extra name
-        extra_colxs = ut.take(oldname2_idx, extra_oldnames)
-        profit_matrix[:, extra_colxs] = 1
-
-        # Convert to minimization problem
-        big_value = (profit_matrix.max()) - (profit_matrix.min())
-        cost_matrix = big_value - profit_matrix
-
-        # Don't use munkres, it is pure python and very slow. Use scipy instead
-        indexes = list(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
-
-        # Map output to be aligned with input
-        rx2_cx = dict(indexes)
-        assignment_ = [assignable_names[rx2_cx[rx]]
-                       for rx in range(num_new_names)]
-
-        # Reintegrate trivial values
-        for idx, g in zip(nontrivial_new_idxs, assignment_):
-            assignment[idx] = g
-
-    # Simply add the prefix to any unassigned name
+    # Any unassigned name is now given a new unique label with a prefix
+    num_extra = 0
     for idx, val in enumerate(assignment):
         if val is None:
             assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
@@ -526,3 +572,15 @@ def find_consistent_labeling_old(grouped_oldnames, extra_prefix='_extra_name',
             assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
             num_extra += 1
     return assignment
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.name_recitifer
+        python -m ibeis.scripts.name_recitifer --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

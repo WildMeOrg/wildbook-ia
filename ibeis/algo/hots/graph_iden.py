@@ -488,8 +488,8 @@ class _AnnotInfrIBEIS(object):
             timestamp = feedback_item.get('timestamp', None)
             confidence_key = feedback_item.get('user_confidence', None)
             user_id = feedback_item.get('user_id', None)
-            decision_int = ibs.const.REVIEW.MATCH_CODE[decision_key]
-            confidence_int = infr.ibs.const.REVIEW.USER_CONFIDENCE_CODE.get(
+            decision_int = ibs.const.REVIEW.CODE_TO_INT[decision_key]
+            confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
                     confidence_key, None)
             aid_1_list.append(aid1)
             aid_2_list.append(aid2)
@@ -521,22 +521,25 @@ class _AnnotInfrIBEIS(object):
         if infr.verbose > 0:
             print('[infr] write_ibeis_annotmatch_feedback %r' % (len(edge_delta_df)))
         ibs = infr.ibs
-        edge_delta_df = edge_delta_df.reset_index()
+        edge_delta_df_ = edge_delta_df.reset_index()
         # Find the rows not yet in the annotmatch table
-        is_add = edge_delta_df['am_rowid'].isnull().values
-        add_df = edge_delta_df.loc[is_add]
+        is_add = edge_delta_df_['am_rowid'].isnull().values
+        add_df = edge_delta_df_.loc[is_add]
         # Assign then a new annotmatch rowid
         add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
                                                 add_df['aid2'].values)
-        edge_delta_df.loc[is_add, 'am_rowid'] = add_ams
+        edge_delta_df_.loc[is_add, 'am_rowid'] = add_ams
 
         # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW.MATCH_CODE,
-                            edge_delta_df['new_decision'])
-        new_tags = [';'.join(tags) for tags in edge_delta_df['new_tags']]
-        am_rowids = edge_delta_df['am_rowid'].values
+        new_truth = ut.take(ibs.const.REVIEW.CODE_TO_INT,
+                            edge_delta_df_['new_decision'])
+        new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
+        new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
+                                edge_delta_df_['new_user_confidence'], None)
+        am_rowids = edge_delta_df_['am_rowid'].values
         ibs.set_annotmatch_truth(am_rowids, new_truth)
         ibs.set_annotmatch_tag_text(am_rowids, new_tags)
+        ibs.set_annotmatch_confidence(am_rowids, new_conf)
 
     def write_ibeis_name_assignment(infr, name_delta_df=None):
         if name_delta_df is None:
@@ -551,6 +554,8 @@ class _AnnotInfrIBEIS(object):
         """
         Rectifies internal name_labels with the names stored in the name table.
         """
+        if infr.verbose >= 3:
+            print('[infr] constructing name delta')
         import pandas as pd
         graph = infr.graph
         node_to_new_label = nx.get_node_attributes(graph, 'name_label')
@@ -562,7 +567,8 @@ class _AnnotInfrIBEIS(object):
                      for n in old_names]
         new_labels = ut.take(node_to_new_label, aids)
         # Recycle as many old names as possible
-        label_to_name, needs_assign = infr._rectify_names(old_names, new_labels)
+        label_to_name, needs_assign = infr._rectify_names(
+            old_names, new_labels)
         # Overwrite names of labels with temporary names
         needed_names = infr.ibs.make_next_name(len(needs_assign))
         for unassigned_label, new in zip(needs_assign, needed_names):
@@ -579,6 +585,8 @@ class _AnnotInfrIBEIS(object):
         )
         changed_flags = name_delta_df_['old_name'] != name_delta_df_['new_name']
         name_delta_df = name_delta_df_[changed_flags]
+        if infr.verbose >= 3:
+            print('[infr] finished making name delta')
         return name_delta_df
 
     def read_ibeis_staging_feedback(infr):
@@ -599,21 +607,25 @@ class _AnnotInfrIBEIS(object):
 
         from ibeis.control.manual_review_funcs import (
             REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-            REVIEW_TIMESTAMP, REVIEW_TAGS)
+            REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP, REVIEW_TAGS)
+
         colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-                    REVIEW_TIMESTAMP, REVIEW_TAGS)
+                    REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP, REVIEW_TAGS)
         review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, colnames,
                                       review_ids)
 
         feedback = ut.ddict(list)
-        int_to_key = ut.invert_dict(ibs.const.REVIEW.MATCH_CODE)
+        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
+        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
+
         for data in review_data:
-            aid1, aid2, count, decision_int, timestamp, tags = data
+            (aid1, aid2, count, decision_int, conf_int, timestamp, tags) = data
             edge = e_(aid1, aid2)
             feedback_item = {
-                'decision': int_to_key[decision_int],
+                'decision': lookup_truth[decision_int],
                 'timestamp': timestamp,
                 'tags': [] if not tags else tags.split(';'),
+                'user_confidence': lookup_conf[conf_int],
             }
             feedback[edge].append(feedback_item)
         return feedback
@@ -664,6 +676,7 @@ class _AnnotInfrIBEIS(object):
         if infr.verbose >= 2:
             print('[infr] * checking tags')
         tags_list = ibs.get_annotmatch_case_tags(am_rowids)
+        confidence_list = ibs.get_annotmatch_confidence(am_rowids)
         # Hack, if we didnt set it, it probably means it matched
         # FIXME: allow for truth to not be set.
         need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
@@ -693,13 +706,16 @@ class _AnnotInfrIBEIS(object):
             print('[infr] * making feedback dict')
 
         # CHANGE OF FORMAT
-        int_to_key = ibs.const.REVIEW.INT_TO_CODE
+        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
+        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
+
         feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
             edge = e_(aid1, aid2)
             feedback_item = {
-                'decision': int_to_key[truth[count]],
+                'decision': lookup_truth[truth[count]],
                 'tags': tags_list[count],
+                'user_confidence': lookup_conf[confidence_list[count]],
             }
             feedback[edge].append(feedback_item)
         if infr.verbose >= 1:
@@ -717,12 +733,13 @@ class _AnnotInfrIBEIS(object):
         rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
         decision = ut.dict_take_column(rectified_feedback, 'decision')
         tags = ut.dict_take_column(rectified_feedback, 'tags')
+        confidence = ut.dict_take_column(rectified_feedback, 'user_confidence')
         df = pd.DataFrame([])
         df['decision'] = decision
         df['aid1'] = aids1
         df['aid2'] = aids2
         df['tags'] = tags
-        df['user_confidence'] = None
+        df['user_confidence'] = confidence
         df['am_rowid'] = am_rowids
         df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
         return df
@@ -843,6 +860,8 @@ class _AnnotInfrIBEIS(object):
             107  109        NaN          NaN      notcomp      NaN       []
         """
         import pandas as pd
+        from six.moves import reduce
+        import operator as op
         # Ensure input is in the expected format
         new_index = new_feedback.index
         old_index = old_feedback.index
@@ -854,10 +873,18 @@ class _AnnotInfrIBEIS(object):
         isect_edges = new_index.intersection(old_index)
         isect_new = new_feedback.loc[isect_edges]
         isect_old = old_feedback.loc[isect_edges]
+
+        # If any important column is different we mark the row as changed
+        data_columns = ['decision', 'tags', 'user_confidence']
+        important_columns = ['decision', 'tags']
+        other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
-            decision_changed = isect_new['decision'] != isect_old['decision']
-            tags_changed = isect_new['tags'] != isect_old['tags']
-            is_changed = tags_changed | decision_changed
+            changed_gen = (isect_new[c] != isect_old[c]
+                           for c in important_columns)
+            is_changed = reduce(op.or_, changed_gen)
+            # decision_changed = isect_new['decision'] != isect_old['decision']
+            # tags_changed = isect_new['tags'] != isect_old['tags']
+            # is_changed = tags_changed | decision_changed
             new_df_ = isect_new[is_changed]
             old_df = isect_old[is_changed]
         else:
@@ -868,18 +895,24 @@ class _AnnotInfrIBEIS(object):
         add_df = new_feedback.loc[add_edges]
         # Concat the changed and added edges
         new_df = pd.concat([new_df_, add_df])
+        # Prepare the data frames for merging
+        old_colmap = {c: 'old_' + c for c in data_columns}
+        new_colmap = {c: 'new_' + c for c in data_columns}
+        prep_old = old_df.rename(columns=old_colmap).reset_index()
+        prep_new = new_df.rename(columns=new_colmap).reset_index()
+        # defer to new values for non-important columns
+        for col in other_columns:
+            oldcol = 'old_' + col
+            if oldcol in prep_old:
+                del prep_old[oldcol]
         # Combine into a single delta data frame
-        x1 = old_df.rename(columns={'decision': 'old_decision', 'tags':
-                                    'old_tags'})
-        x2 = new_df.rename(columns={'decision': 'new_decision', 'tags':
-                                    'new_tags'})
-        x1.reset_index(inplace=True)
-        x2.reset_index(inplace=True)
         merge_keys = ['aid1', 'aid2', 'am_rowid']
-        x3 = x1.merge(x2, how='outer', left_on=merge_keys, right_on=merge_keys)
+        merged_df = prep_old.merge(
+            prep_new, how='outer', left_on=merge_keys, right_on=merge_keys)
+        # Reorder the columns
         col_order = ['old_decision', 'new_decision', 'old_tags', 'new_tags']
-        edge_delta_df = x3.reindex(columns=(
-            ut.setdiff(x3.columns.values, col_order) + col_order))
+        edge_delta_df = merged_df.reindex(columns=(
+            ut.setdiff(merged_df.columns.values, col_order) + col_order))
         edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
         return edge_delta_df
 
@@ -953,7 +986,7 @@ class _AnnotInfrFeedback(object):
             decision (str): decision from `infr.truth_texts`
             tags (list of str): specify Photobomb / Scenery / etc
             user_id (str): id of agent who did the review
-            user_confidence (str): See ibs.const.REVIEW_USER_CONFIDENCE_CODE
+            user_confidence (str): See ibs.const.CONFIDENCE
             apply (bool): if True feedback is dynamically applied
 
         CommandLine:
@@ -2679,6 +2712,8 @@ class _AnnotInfrRelabel(object):
         old_names  = [None, None, None, 1, 2, 3, 3, 4, 4, 4, 5, None]
         new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
         """
+        if infr.verbose >= 3:
+            print('rectifying name lists')
         from ibeis.scripts import name_recitifer
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
         # Remove nones
@@ -2687,7 +2722,8 @@ class _AnnotInfrRelabel(object):
         grouped_oldnames = [
             [n for n in oldgroup if n is not None]
             for oldgroup in grouped_oldnames_]
-        new_names = name_recitifer.find_consistent_labeling(grouped_oldnames)
+        new_names = name_recitifer.find_consistent_labeling(
+            grouped_oldnames, verbose=infr.verbose >= 3)
         new_flags = [
             isinstance(n, six.string_types) and n.startswith('_extra_name')
             for n in new_names

@@ -445,7 +445,7 @@ def fix_bidirectional_annotmatch(ibs):
             print('truth_real, truth1, truth2 = %r, %r, %r' % (
                 truth_real, truth1, truth2,))
             print('aid1, aid2 = %r, %r' % (aid1, aid2))
-            fixme_edges.append((aid1, aid2))
+            fixme_edges.append(tuple(sorted((aid1, aid2))))
         else:
             extra_[(aid1, aid2)] = (truth_real, newtag)
 
@@ -453,12 +453,21 @@ def fix_bidirectional_annotmatch(ibs):
         # need to manually fix these edges
         fix_infr = ibeis.AnnotInference.from_pairs(fixme_edges, ibs=ibs, verbose=5)
         feedback = fix_infr.read_ibeis_annotmatch_feedback(only_existing_edges=True)
+        infr = fix_infr
+
         fix_infr.external_feedback = feedback
         fix_infr.apply_feedback_edges()
         fix_infr.start_qt_interface(loop=False)
+        # DELETE OLD EDGES TWICE
+        ams = ibs.get_annotmatch_rowid_from_edges(fixme_edges)
+        ibs.delete_annotmatch(ams)
+        ams = ibs.get_annotmatch_rowid_from_edges(fixme_edges)
+        ibs.delete_annotmatch(ams)
 
-    def mark_custom():
-        pass
+        # MANUALLY CALL THIS ONCE FINISHED
+        # TO ONLY CHANGE ANNOTMATCH EDGES
+        infr.write_ibeis_staging_feedback()
+        infr.write_ibeis_annotmatch_feedback()
 
     # extra_.update(custom_)
     new_pairs = extra_.keys()
@@ -681,6 +690,9 @@ def remerge_subset():
     Assumes ibs1 is an updated subset of ibs2.
     Re-merges ibs1 back into ibs2.
 
+    TODO: annotmatch table must have non-directional edges for this to work.
+    I.e. u < v
+
     CommandLine:
         python -m ibeis.dbio.export_subset remerge_subset
     """
@@ -747,19 +759,18 @@ def remerge_subset():
     from ibeis.algo.hots import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
     if False:
-        import ibeis
+        # import ibeis
         ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
         from ibeis.algo.hots import graph_iden
         infr1 = graph_iden.AnnotInference(aids='all', ibs=ibs1, verbose=3)
         infr1.initialize_graph()
-        infr1.reset_feedback('staging')
-        # infr1.reset_feedback('annotmatch')
+        # infr1.reset_feedback('staging')
+        infr1.reset_feedback('annotmatch')
         infr1.apply_feedback_edges()
         infr1.relabel_using_reviews()
         infr1.apply_review_inference()
         infr1.start_qt_interface(loop=False)
     fb1 = infr1.read_ibeis_annotmatch_feedback()
-
     infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2,
                                       verbose=3)
     infr2.initialize_graph()
@@ -773,14 +784,19 @@ def remerge_subset():
 
     infr = infr2
     infr2.apply_feedback_edges()
+    infr2.review_dummy_edges()
+    # infr2.inconsistent_components()
     infr2.relabel_using_reviews(rectify=False)
+    infr.apply_review_inference()
+
+    infr2.start_qt_interface(loop=False)
 
     # delta = infr2.match_state_delta()
     # print('delta = %r' % (delta,))
 
-    infr2.review_dummy_edges()
-    infr2.relabel_using_reviews()
-    infr2.apply_review_inference()
+    # infr2.review_dummy_edges()
+    # infr2.relabel_using_reviews()
+    # infr2.apply_review_inference()
 
     # mst_edges = infr2.find_mst_edges()
     # set(infr2.graph.edges()).intersection(mst_edges)
