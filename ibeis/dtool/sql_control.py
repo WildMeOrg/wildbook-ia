@@ -2099,9 +2099,14 @@ class SQLDatabaseController(object):
         exclude_columns = 'annotmatch_confidence annotmatch_pairwise_prob annotmatch_posixtime_modified annotmatch_reviewed annotmatch_reviewer config_hashid'.split(' ')
         print(db.get_table_as_pandas(tablename, rowids, exclude_columns=exclude_columns))
         """
-        column_list, column_names = db.get_table_column_data(tablename, rowids=rowids, exclude_columns=exclude_columns)
+        if rowids is None:
+            rowids = db.get_all_rowids(tablename)
+        column_list, column_names = db.get_table_column_data(
+            tablename, rowids=rowids, exclude_columns=exclude_columns)
         import pandas as pd
-        return pd.DataFrame(ut.dzip(column_names, column_list))
+        index = pd.Index(rowids, name='rowid')
+        df = pd.DataFrame(ut.dzip(column_names, column_list), index=index)
+        return df
 
     def get_table_column_data(db, tablename, exclude_columns=[], rowids=None):
         """
