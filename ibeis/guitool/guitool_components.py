@@ -1368,7 +1368,7 @@ class ConfigConfirmWidget(GuitoolWidget):
                 if default is None:
                     default = options[0]
 
-            def _make_option_clicked(opt):
+            def _make_option_pressed(opt):
                 def _wrap():
                     return self.confirm(opt)
                 return _wrap
@@ -1376,11 +1376,11 @@ class ConfigConfirmWidget(GuitoolWidget):
             self.default_button = None
             for opt in options:
                 button = self.button_row.addNewButton(
-                    opt, clicked=_make_option_clicked(opt))
+                    opt, pressed=_make_option_pressed(opt))
                 if opt == default:
                     self.default_button = button
 
-            button = self.button_row.addNewButton('Cancel', clicked=self.cancel)
+            button = self.button_row.addNewButton('Cancel', pressed=self.cancel)
             if self.default_button is None:
                 self.default_button = button
             # button.setDefault(True)
@@ -1758,6 +1758,23 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
     return combo
 
 
+class RadioButtonGroup(object):
+    def __init__(self, parent=None, options=[], default=None):
+        self.rb_widget = parent.newHWidget()
+        self.radio_buttons = []
+        for option in options:
+            rb = QtWidgets.QRadioButton(option)
+            if option == default:
+                rb.setChecked(True)
+            self.rb_widget.addWidget(rb)
+            self.radio_buttons.append(rb)
+
+    def currentText(self):
+        for rb in self.radio_buttons:
+            if rb.isChecked():
+                return rb.text()
+
+
 def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=True,
                 enabled=True, bgcolor=None, fgcolor=None):
     """ wrapper around QtWidgets.QCheckBox
@@ -1772,7 +1789,8 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=Tru
             check.stateChanged.connect(check.stateChangedCustom)
 
         def stateChangedCustom(check, state):
-            check.changed(state == 2)
+            if check.changed is not None:
+                check.changed(state == 2)
 
     if text is None:
         text = ut.get_funcname(changed)
@@ -1784,8 +1802,8 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=Tru
         'changed': changed,
     }
     check = CustomCheckBox(**check_kwargs)
-    if changed is None:
-        enabled = False
+    # if changed is None:
+    #     enabled = False
     check.setVisible(visible)
     check.setEnabled(enabled)
     return check
