@@ -1103,7 +1103,7 @@ class _AnnotMatchConvenienceGetter(object):
         if cm.qnid <= 0:
             isunknown_list[:] = True
         truth_list = np.array((cm.qnid == _top_nids), dtype=np.int32)
-        truth_list[isunknown_list] = ibs.const.TRUTH_UNKNOWN
+        truth_list[isunknown_list] = ibs.const.REVIEW.UNKNOWN
 
         # truth_list = ibs.get_aidpair_truths([cm.qaid] * len(_top_aids), _top_aids)
         flag_list = truth_list == truth
@@ -1114,10 +1114,10 @@ class _AnnotMatchConvenienceGetter(object):
         return top_truth_aids
 
     def get_top_gf_aids(cm, ibs, ntop=None):
-        return cm.get_top_truth_aids(ibs, ibs.const.TRUTH_NOT_MATCH, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.NON_MATCH, ntop)
 
     def get_top_gt_aids(cm, ibs, ntop=None):
-        return cm.get_top_truth_aids(ibs, ibs.const.TRUTH_MATCH, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.MATCH, ntop)
 
     #------------------
     # Getter Functions
@@ -1630,7 +1630,7 @@ class _ChipMatchDebugger(object):
             str: varinfo
 
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --exec-get_rawinfostr --show --cex
+            python -m ibeis.algo.hots.chip_match get_rawinfostr
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -1703,7 +1703,7 @@ class _ChipMatchDebugger(object):
             'cm.daid2_idx',
         ]
         attrs_ = [attr.replace('cm.', '') for attr in attr_order]
-        unspecified_attrs = ut.setdiff(cm.__dict__.keys(), attrs_)
+        unspecified_attrs = sorted(set(cm.__dict__.keys()) - set(attrs_))
 
         append('ChipMatch:')
         for attr in attr_order:

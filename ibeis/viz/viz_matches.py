@@ -247,7 +247,7 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
     #truth = 1 if np.all(name_equality) else (2 if np.any(name_equality) else 0)
     truth = get_multitruth(ibs, aid_list)
     if any(ibs.is_aid_unknown(aid_list[1:])) or ibs.is_aid_unknown(aid_list[0]):
-        truth = ibs.const.TRUTH_UNKNOWN
+        truth = ibs.const.REVIEW.UNKNOWN
     truth_color = vh.get_truth_color(truth)
 
     name_annot_scores = kwargs.get('name_annot_scores', None)

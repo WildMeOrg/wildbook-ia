@@ -551,7 +551,7 @@ def split_analysis(ibs):
                 state_hist['match'] = 0
             hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())
 
-            subgraphs = infr.connected_component_reviewed_subgraphs()
+            subgraphs = infr.positive_connected_compoments()
             subgraph_sizes = [len(g) for g in subgraphs]
 
             info = ut.odict([

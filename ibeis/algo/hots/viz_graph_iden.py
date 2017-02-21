@@ -459,15 +459,20 @@ class _AnnotInfrViz(object):
         if infr.graph.graph.get('dark_background', None):
             pt.dark_background(force=True)
 
-    def start_qt_interface(infr):
+    def start_qt_interface(infr, loop=True):
         import guitool as gt
         from ibeis.viz.viz_graph2 import AnnotGraphWidget
         from plottool import abstract_interaction
+        import plottool as pt
+        pt.qtensure()
         gt.ensure_qtapp()
-        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
+        # win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
+        win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=None)
         abstract_interaction.register_interaction(win)
-        # win.show()
-        gt.qtapp_loop(qwin=win, freq=10)
+        if loop:
+            gt.qtapp_loop(qwin=win, freq=10)
+        else:
+            win.show()
         return win
 
     show = show_graph

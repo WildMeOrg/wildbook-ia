@@ -610,7 +610,7 @@ def get_annotmatch_case_tags(ibs, annotmatch_rowids):
     """
     standard, other = get_cate_categories()
     annotmatch_tag_texts_list = ibs.get_annotmatch_tag_text(annotmatch_rowids)
-    tags_list = [[] if note is None else _parse_note(note) for note in annotmatch_tag_texts_list]
+    tags_list = [[] if note is None else _parse_tags(note) for note in annotmatch_tag_texts_list]
     #NEW = False
     #if NEW:
     #    # hack for faster tag parsing
@@ -718,7 +718,7 @@ def set_annotmatch_prop(ibs, prop, annotmatch_rowids, flags):
         raise NotImplementedError('Unknown prop=%r not in %r' % (prop, ANNOTMATCH_PROPS_OTHER_SET))
 
 
-def _parse_note(note):
+def _parse_tags(note):
     """ convert a note into tags """
     return [tag.strip() for tag in note.split(';') if len(tag) > 0]
 
@@ -751,7 +751,7 @@ def set_annotmatch_other_prop(ibs, prop, annotmatch_rowids, flags):
 @profile
 def get_textformat_tag_flags(prop, text_list):
     """ general text tag getter hack """
-    tags_list = [None if note is None else _parse_note(note)
+    tags_list = [None if note is None else _parse_tags(note)
                  for note in text_list]
     if ut.isiterable(prop):
         props_ = [p.lower() for p in prop]
@@ -772,7 +772,7 @@ def set_textformat_tag_flags(prop, text_list, flags):
     """ general text tag setter hack """
     prop = prop.lower()
     ensured_text = ['' if note is None else note for note in text_list]
-    tags_list = [_parse_note(note) for note in ensured_text]
+    tags_list = [_parse_tags(note) for note in ensured_text]
     # Remove from all
     new_tags_list = [_remove_tag(tags, prop) for tags in tags_list]
     # then add to specified ones
@@ -855,7 +855,7 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
         tag_list = [tag_list] * len(aid_list)
     tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
     text_list = ibs.get_annot_tag_text(aid_list)
-    orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
     new_tags_list = [ut.unique(t1 + t2) for t1, t2 in zip(tags_list, orig_tags_list)]
     new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
@@ -868,7 +868,7 @@ def remove_annot_case_tags(ibs, aid_list, tag_list):
         tag_list = [tag_list] * len(aid_list)
     tags_list = [ut.ensure_iterable(tag) for tag in tag_list]
     text_list = ibs.get_annot_tag_text(aid_list)
-    orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
     new_tags_list = [ut.setdiff(t2, t1) for t1, t2 in zip(tags_list, orig_tags_list)]
     new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
@@ -882,7 +882,7 @@ def overwrite_annot_case_tags(ibs, aid_list, tag_list):
     """
     assert all([ut.isiterable(tag) for tag in tag_list])
     #text_list = ibs.get_annot_tag_text(aid_list)
-    #orig_tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    #orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
     new_tags_list = tag_list
     new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
@@ -913,7 +913,7 @@ def get_annot_case_tags(ibs, aid_list):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.tag_funcs import *  # NOQA
-        >>> from ibeis.tag_funcs import _parse_note # NOQA
+        >>> from ibeis.tag_funcs import _parse_tags # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='testdb1')
         >>> aid_list = ibs.get_valid_aids()
@@ -962,7 +962,7 @@ def get_annot_case_tags(ibs, aid_list):
         aid_list = ut.compress(aid_list, flags)
         notes_list = ut.compress(notes_list, flags)
 
-        old_tags_list = [_parse_note(note) for note in notes_list]
+        old_tags_list = [_parse_tags(note) for note in notes_list]
 
         old_tags = list(set(ut.flatten(old_tags_list)))
         old_tags = sorted([tag for tag in old_tags if not re.match(r'\d\d*', tag)])
@@ -979,7 +979,7 @@ def get_annot_case_tags(ibs, aid_list):
 
     """
     text_list = ibs.get_annot_tag_text(aid_list)
-    tags_list = [[] if note is None else _parse_note(note) for note in text_list]
+    tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
     return tags_list
 
 

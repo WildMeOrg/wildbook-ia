@@ -2782,7 +2782,7 @@ def get_annot_bbox_area(ibs, aid_list):
 @register_ibs_method
 def get_match_text(ibs, aid1, aid2):
     truth = ibs.get_match_truth(aid1, aid2)
-    text = const.TRUTH_INT_TO_TEXT.get(truth, None)
+    text = const.REVIEW.INT_TO_NICE.get(truth, None)
     return text
 
 
@@ -2937,7 +2937,7 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         aid2_list (list):
 
     Returns:
-        list[int]: truth_codes - see ibies.constants.TRUTH_INT_TO_TEXT for code
+        list[int]: truth_codes - see ibies.constants.REVIEW.INT_TO_CODE for code
             definitions
 
     CommandLine:
@@ -2961,7 +2961,7 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
     isunknown2_list = np.array(ibs.is_nid_unknown(nid2_list))
     any_unknown = np.logical_or(isunknown1_list, isunknown2_list)
     truth_codes = np.array((nid1_list == nid2_list), dtype=np.int32)
-    truth_codes[any_unknown] = const.TRUTH_UNKNOWN
+    truth_codes[any_unknown] = const.REVIEW.UNKNOWN
     return truth_codes
 
 
@@ -4846,10 +4846,10 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         truths = np.array(ut.replace_nones(truths, np.nan))
         match_state = ut.odict([
             ('None', np.isnan(truths).sum()),
-            ('unknown', (truths == ibs.const.TRUTH_UNKNOWN).sum()),
-            ('incomp', (truths == ibs.const.TRUTH_NOT_COMP).sum()),
-            ('nomatch', (truths == ibs.const.TRUTH_NOT_MATCH).sum()),
-            ('match', (truths == ibs.const.TRUTH_MATCH).sum()),
+            ('unknown', (truths == ibs.const.REVIEW.UNKNOWN).sum()),
+            ('incomp', (truths == ibs.const.REVIEW.NOT_COMPARABLE).sum()),
+            ('nomatch', (truths == ibs.const.REVIEW.NON_MATCH).sum()),
+            ('match', (truths == ibs.const.REVIEW.MATCH).sum()),
         ])
         keyval_list += [
             (prefix + 'match_state', match_state)

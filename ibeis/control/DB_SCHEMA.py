@@ -1432,7 +1432,7 @@ def update_1_6_0(db, ibs=None):
 def update_1_6_1(db, ibs=None):
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-    #         'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    #         'this is a hacked state. to fix bug where REVIEW.UNKNOWN was 2')
     db.modify_table(
         'annotmatch',
         colmap_list=[
@@ -1449,9 +1449,21 @@ def post_1_6_1(db, ibs=None, verbose=False):
     print('Setting %d old unknown values to NULL' % (len(ams)))
     # if ibs is not None:
     #     assert ibs.get_dbname() in ['PZ_PB_RF_TRAIN', 'WWF_Lynx', 'EWT_Cheetahs'], (
-    #         'this is a hacked state. to fix bug where TRUTH_UNKNOWN was 2')
+    #         'this is a hacked state. to fix bug where REVIEW.UNKNOWN was 2')
     # if False:
     db.set('annotmatch', ('annotmatch_truth',), [None] * len(ams), ams)
+
+
+def update_1_6_2(db, ibs=None):
+    # All confidences thusfar have had no meaning. Change the column to an integer
+    # to user the USER_CONFIDENCE_CODES and reset all values to None
+    db.modify_table(
+        'annotmatch',
+        colmap_list=[
+            ('annotmatch_confidence', 'annotmatch_confidence', 'INTEGER', lambda val: None)
+        ]
+    )
+
 
 # ========================
 # Valid Versions & Mapping
@@ -1499,6 +1511,7 @@ VALID_VERSIONS = ut.odict([
     ('1.5.5',    (None,                 update_1_5_5,       None                )),
     ('1.6.0',    (None,                 update_1_6_0,       None                )),
     ('1.6.1',    (None,                 update_1_6_1,       post_1_6_1          )),
+    ('1.6.2',    (None,                 update_1_6_2,       None                )),
 ])
 """
 SeeAlso:

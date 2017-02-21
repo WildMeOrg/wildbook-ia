@@ -33,8 +33,8 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
     Returns:
         list: annotmatch_rowid_list
     """
-    from ibeis.control import _autogen_annotmatch_funcs
-    colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
+    from ibeis.control import manual_annotmatch_funcs
+    colnames = (manual_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid1_list)
     if True:
@@ -43,8 +43,8 @@ def get_annotmatch_rowids_from_aid1(ibs, aid1_list, eager=True, nInput=None):
             '''
             CREATE INDEX IF NOT EXISTS aid1_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid1});
             '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
-                       annot_rowid1=_autogen_annotmatch_funcs.ANNOT_ROWID1)).fetchall()
-    where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID1]
+                       annot_rowid1=manual_annotmatch_funcs.ANNOT_ROWID1)).fetchall()
+    where_colnames = [manual_annotmatch_funcs.ANNOT_ROWID1]
     annotmatch_rowid_list = ibs.db.get_where_eq(
         ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
@@ -60,7 +60,7 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
     # This one is slow because aid2 is the second part of the index
     Returns a list of the aids that were reviewed as candidate matches to the input aid
     """
-    from ibeis.control import _autogen_annotmatch_funcs
+    from ibeis.control import manual_annotmatch_funcs
     if nInput is None:
         nInput = len(aid2_list)
     if True:
@@ -69,11 +69,11 @@ def get_annotmatch_rowids_from_aid2(ibs, aid2_list, eager=True, nInput=None,
             '''
             CREATE INDEX IF NOT EXISTS aid2_to_am ON {ANNOTMATCH_TABLE} ({annot_rowid2});
             '''.format(ANNOTMATCH_TABLE=ibs.const.ANNOTMATCH_TABLE,
-                       annot_rowid2=_autogen_annotmatch_funcs.ANNOT_ROWID2)).fetchall()
-    colnames = (_autogen_annotmatch_funcs.ANNOTMATCH_ROWID,)
+                       annot_rowid2=manual_annotmatch_funcs.ANNOT_ROWID2)).fetchall()
+    colnames = (manual_annotmatch_funcs.ANNOTMATCH_ROWID,)
     # FIXME: col_rowid is not correct
     params_iter = zip(aid2_list)
-    where_colnames = [_autogen_annotmatch_funcs.ANNOT_ROWID2]
+    where_colnames = [manual_annotmatch_funcs.ANNOT_ROWID2]
     annotmatch_rowid_list = ibs.db.get_where_eq(
         ibs.const.ANNOTMATCH_TABLE, colnames, params_iter, where_colnames,
         eager=eager, nInput=nInput, unpack_scalars=False)
@@ -106,7 +106,7 @@ def get_annotmatch_rowids_from_aid(ibs, aid_list, eager=True, nInput=None,
         >>> result = ('annotmatch_rowid_list = %s' % (str(annotmatch_rowid_list),))
         >>> print(result)
     """
-    #from ibeis.control import _autogen_annotmatch_funcs
+    #from ibeis.control import manual_annotmatch_funcs
     if nInput is None:
         nInput = len(aid_list)
     if nInput == 0:
@@ -139,6 +139,9 @@ def get_annotmatch_rowid_from_undirected_superkey(ibs, aids1, aids2):
 
 @register_ibs_method
 def get_annotmatch_rowid_from_edges(ibs, aid_pairs):
+    """
+    Edegs are undirected
+    """
     aid_pairs = np.array(aid_pairs)
     aids1 = aid_pairs.T[0]
     aids2 = aid_pairs.T[1]
@@ -172,11 +175,16 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2):
         # Strategy 1: get all existing rows and see what intersects
         # This is better when the enumerated set of rows would be larger than
         # the database size
-        am_rowids1 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids1))
-        am_rowids2 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids2))
-        am_rowids1 = ut.filter_Nones(am_rowids1)
-        am_rowids2 = ut.filter_Nones(am_rowids2)
-        ams = ut.isect(am_rowids1, am_rowids2)
+        unflat_rowids1 = ibs.get_annotmatch_rowids_from_aid(aids1)
+        unflat_rowids2 = ibs.get_annotmatch_rowids_from_aid(aids2)
+        am_rowids1 = {r for r in ut.iflatten(unflat_rowids1) if r is not None}
+        am_rowids2 = {r for r in ut.iflatten(unflat_rowids2) if r is not None}
+        ams = sorted(am_rowids1.intersection(am_rowids2))
+        # am_rowids1 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids1))
+        # am_rowids2 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids2))
+        # am_rowids1 = ut.filter_Nones(am_rowids1)
+        # am_rowids2 = ut.filter_Nones(am_rowids2)
+        # ams = ut.isect(am_rowids1, am_rowids2)
     else:
         # Strategy 2: enumerate what rows could exist and see what does exist
         # This is better when the enumerated set of rows would be smaller than
@@ -356,10 +364,11 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
     """ denote that this match was reviewed and keep whatever status it is given """
     isunknown1, isunknown2 = ibs.is_aid_unknown([aid1, aid2])
     if isunknown1 or isunknown2:
-        truth = ibs.const.TRUTH_UNKNOWN
+        truth = ibs.const.REVIEW.UNKNOWN
     else:
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-        truth = ibs.const.TRUTH_MATCH if (nid1 == nid2) else ibs.const.TRUTH_NOT_MATCH
+        truth = (ibs.const.REVIEW.MATCH if (nid1 == nid2) else
+                 ibs.const.REVIEW.NON_MATCH)
 
     # Ensure a row exists for this pair
     annotmatch_rowids = ibs.add_annotmatch_undirected([aid1], [aid2])
@@ -440,7 +449,7 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
     if nid1 == nid2:
         print('...images already matched')
         #truth = get_annot_pair_truth([aid1], [aid2])[0]
-        #if truth != ibs.const.TRUTH_MATCH:
+        #if truth != ibs.const.REVIEW.MATCH:
         status = None
         ibs.set_annot_pair_as_reviewed(aid1, aid2)
         if logger is not None:

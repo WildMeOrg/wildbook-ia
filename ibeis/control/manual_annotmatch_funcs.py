@@ -35,7 +35,7 @@ def testdata_annotmatch(defaultdb='testdb1'):
     #config2_ = query_config.QueryParams(cfgdict=dict())
     return ibs, config2_
 
-# AUTOGENED CONSTANTS:
+
 ANNOTMATCH_CONFIDENCE         = 'annotmatch_confidence'
 ANNOTMATCH_PAIRWISE_PROB      = 'annotmatch_pairwise_prob'
 ANNOTMATCH_POSIXTIME_MODIFIED = 'annotmatch_posixtime_modified'
@@ -64,7 +64,7 @@ def _get_all_annotmatch_rowids(ibs):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> ibs._get_all_annotmatch_rowids()
     """
@@ -134,7 +134,7 @@ def delete_annotmatch(ibs, annotmatch_rowid_list, config2_=None):
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()[:2]
         >>> num_deleted = ibs.delete_annotmatch(annotmatch_rowid_list)
@@ -173,7 +173,7 @@ def get_annotmatch_aid1(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -207,7 +207,7 @@ def get_annotmatch_aid2(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -241,7 +241,7 @@ def get_annotmatch_confidence(ibs, annotmatch_rowid_list, eager=True, nInput=Non
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -275,7 +275,7 @@ def get_annotmatch_config_hashid(ibs, annotmatch_rowid_list, eager=True, nInput=
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -309,7 +309,7 @@ def get_annotmatch_pairwise_prob(ibs, annotmatch_rowid_list, eager=True, nInput=
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -343,7 +343,7 @@ def get_annotmatch_posixtime_modified(ibs, annotmatch_rowid_list, eager=True, nI
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -377,7 +377,7 @@ def get_annotmatch_reviewed(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -411,7 +411,7 @@ def get_annotmatch_reviewer(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -445,7 +445,7 @@ def get_annotmatch_rowid(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -502,7 +502,7 @@ def get_annotmatch_tag_text(ibs, annotmatch_rowid_list, eager=True, nInput=None)
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -536,7 +536,7 @@ def get_annotmatch_truth(ibs, annotmatch_rowid_list, eager=True, nInput=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.control._autogen_annotmatch_funcs import *  # NOQA
+        >>> from ibeis.control.manual_annotmatch_funcs import *  # NOQA
         >>> ibs, config2_ = testdata_annotmatch()
         >>> annotmatch_rowid_list = ibs._get_all_annotmatch_rowids()
         >>> eager = True
@@ -713,8 +713,8 @@ def set_annotmatch_truth(ibs, annotmatch_rowid_list, annotmatch_truth_list, dupl
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.control._autogen_annotmatch_funcs
-        python -m ibeis.control._autogen_annotmatch_funcs --allexamples
+        python -m ibeis.control.manual_annotmatch_funcs
+        python -m ibeis.control.manual_annotmatch_funcs --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()
