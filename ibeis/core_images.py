@@ -990,7 +990,6 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
-        >>> depc = ibs.depc_image
         >>> gid_list = list(set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))))
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': None}
         >>> # depc.delete_property('localizations_classifier', gid_list, config=config)

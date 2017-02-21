@@ -86,7 +86,8 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     # Generate parallelized wrapper
     vectors_list = [ vector_list for i in range(len(weight_filepath_list)) ]
     args_list = zip(weight_filepath_list, vectors_list)
-    classify_iter = ut.generate(classify_helper, args_list, nTasks=len(args_list))
+    classify_iter = ut.generate(classify_helper, args_list, nTasks=len(args_list),
+                                force_serial=False)
 
     # Classify with SVM for each image vector
     for score_dict_, class_dict_ in classify_iter:
