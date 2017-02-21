@@ -321,6 +321,7 @@ class APIItemModel(API_MODEL_BASE):
         """
         #with ut.Timer('[gt] update_rows (%s)' % (model.name,)):
         if True:
+            # flag = model.blockSignals(True)
             if VERBOSE_MODEL:
                 print('[APIItemModel] +-----------')
                 print('[APIItemModel] _update_rows')
@@ -330,7 +331,10 @@ class APIItemModel(API_MODEL_BASE):
                 return
             #old_root = model.root_node  # NOQA
             if rebuild_structure:
+                # print('Rebuilging api_item_model internal structure')
+                model.beginResetModel()  # I think this is preventing a segfault
                 model.root_node = _atn.build_internal_structure(model)
+                model.endResetModel()
             if VERBOSE_MODEL:
                 print('[APIItemModel] lazy_update_rows')
             model.level_index_list = []
@@ -386,6 +390,7 @@ class APIItemModel(API_MODEL_BASE):
             else:
                 model.num_rows_loaded = model.num_rows_total
             # emit the numerr of rows and the name of for the view to display
+            # model.blockSignals(flag)
             model._rows_updated.emit(model.name, model.num_rows_total)
             if VERBOSE_MODEL:
                 print('[APIItemModel] finished _update_rows')
@@ -642,6 +647,11 @@ class APIItemModel(API_MODEL_BASE):
         since indexes belonging to your model will simply call your
         implementation, leading to infinite recursion.
 
+        FIXME:
+            seems to segfault in here
+            https://riverbankcomputing.com/pipermail/pyqt/2016-February/036977.html
+            https://gist.github.com/estan/c051d1f798c4c46caa7d
+
         Returns:
             the parent of the model item with the given index. If the item has
             no parent, an invalid QModelIndex is returned.
@@ -652,6 +662,7 @@ class APIItemModel(API_MODEL_BASE):
             try:
                 node = qindex.internalPointer()
                 #<HACK>
+                # A segfault happens in isinstance when updating rows?
                 if not isinstance(node, _atn.TreeNode):
                     print("WARNING: tried to access parent of %r type object" % type(node))
                     return QtCore.QModelIndex()
