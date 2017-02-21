@@ -75,24 +75,25 @@ class CustomReviewDialog(gt.GuitoolWidget):
 
         self.addNewLabel('Review Aids (%r, %r)' % (aid1, aid2))
         self.row1 = self.newHWidget(verticalStretch=1000)
-        self.row1.addNewLabel('Match State:')
+        self.row1.addNewLabel('Match State:', align='left')
         self.match_state_combo = self.row1.addNewComboBox(
             options=match_state_options,
             default=default_match_state)
 
+        self.checkbox_row = self.newHWidget(verticalStretch=1000)
+        self.tag_checkboxes = []
+        for tag in ['photobomb', 'scenerymatch']:
+            checked = tag in reviewed_tags
+            checkbox = self.checkbox_row.addNewCheckBox(tag, checked=checked)
+            self.tag_checkboxes.append(checkbox)
+
         self.row2 = self.newHWidget(verticalStretch=1000)
-        self.row2.addNewLabel('Confidence:')
+        self.row2.addNewLabel('Confidence:', align='left')
         self.user_conf_rb = gt.RadioButtonGroup(self,
                                                 options=user_conf_options,
                                                 default=default_conf)
         # self.user_conf_combo = self.row2.addNewComboBox(
         #     options=user_conf_options, default=default_conf)
-
-        self.tag_checkboxes = []
-        for tag in ['photobomb', 'scenerymatch']:
-            checked = tag in reviewed_tags
-            checkbox = self.addNewCheckBox(tag, checked=checked)
-            self.tag_checkboxes.append(checkbox)
 
         self.button_row = self.newHWidget(verticalStretch=1000)
         self.button_row.setObjectName('button_row')
