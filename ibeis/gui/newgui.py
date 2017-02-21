@@ -1202,6 +1202,9 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             # Add to context menus
 
             def _setter_refresh(id_list_, current_list, tablename):
+                args = (current_list[0], len(id_list_), )
+                if not back.are_you_sure('Confirm cloning value %s to %d rows?' % args):
+                    return
                 setter_func(id_list_, current_list)
                 ibswgt.update_tables(tblnames=[tablename], clear_view_selection=False)
 
