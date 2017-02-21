@@ -460,11 +460,12 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
             assignment[new_idx] = new_name
 
     # Any unassigned name is now given a new unique label with a prefix
-    num_extra = 0
-    for idx, val in enumerate(assignment):
-        if val is None:
-            assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
-            num_extra += 1
+    if extra_prefix is not None:
+        num_extra = 0
+        for idx, val in enumerate(assignment):
+            if val is None:
+                assignment[idx] = '%s%d' % (extra_prefix, num_extra,)
+                num_extra += 1
     return assignment
 
 

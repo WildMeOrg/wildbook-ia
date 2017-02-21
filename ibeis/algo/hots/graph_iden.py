@@ -315,6 +315,63 @@ class _AnnotInfrDummy(object):
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
 
+    def find_mst_edges2(infr):
+        """
+        nid = 5977
+        """
+        import networkx as nx
+        # Find clusters by labels
+        name_attr = 'name_label'
+        # name_attr = 'orig_name_label'
+        node_to_label = infr.get_node_attrs(name_attr)
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+
+        aug_graph = infr.simplify_graph()
+
+        new_edges = []
+        prog = ut.ProgIter(list(label_to_nodes.keys()),
+                           label='finding mst edges',
+                           enabled=infr.verbose > 0)
+        for nid in prog:
+            nodes = label_to_nodes[nid]
+            # We want to make this CC connected
+            target_cc = aug_graph.subgraph(nodes)
+            positive_edges = [
+                e_(*e) for e, v in nx.get_edge_attributes(target_cc, 'reviewed_state').items()
+                if v == 'match'
+            ]
+            tmp = nx.Graph()
+            tmp.add_nodes_from(nodes)
+            tmp.add_edges_from(positive_edges)
+            # Need to find a way to connect these components
+            sub_ccs = list(nx.connected_components(tmp))
+            candidate_edges = []
+
+            # TODO: prioritize based on comparability
+            for c1, c2 in ut.combinations(sub_ccs, 2):
+                for u, v in ut.product(c1, c2):
+                    if not target_cc.has_edge(u, v):
+                        # Once we find one edge we've completed the connection
+                        candidate_edges.append((u, v))
+                        break
+
+            # Find the MST of the candidates to eliminiate complexity
+            # (mostly handles singletons, when CCs are big this wont matter)
+            candidate_graph = nx.Graph(candidate_edges)
+            mst_edges = list(nx.minimum_spanning_tree(candidate_graph).edges())
+            new_edges.extend(mst_edges)
+
+            target_cc.add_edges_from(mst_edges)
+            assert nx.is_connected(target_cc)
+
+        for edge in new_edges:
+            assert not infr.graph.has_edge(*edge)
+
+        return new_edges
+
+        # aug_graph = infr.graph.copy()
+
     def find_mst_edges(infr):
         """
         Find a set of edges that need to be inserted in order to complete the
@@ -353,6 +410,7 @@ class _AnnotInfrDummy(object):
                                if not aug_graph.has_edge(*edge)]
         # randomness prevents chains and visually looks better
         rng = np.random.RandomState(42)
+
         def _randint():
             return 0
             return rng.randint(0, 100)
@@ -396,7 +454,7 @@ class _AnnotInfrDummy(object):
             # Only add edges not in the original graph
             for edge in mst_sub_graph.edges():
                 if not infr.has_edge(edge):
-                    new_edges.append(edge)
+                    new_edges.append(e_(*edge))
         return new_edges
 
     def ensure_mst(infr):
@@ -414,14 +472,18 @@ class _AnnotInfrDummy(object):
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
 
-    def review_dummy_edges(infr):
+    def review_dummy_edges(infr, method=1):
         """
         Creates just enough dummy reviews to maintain a consistent labeling if
         relabel_using_reviews is called. (if the existing edges are consistent).
         """
         if infr.verbose >= 1:
             print('[infr] review_dummy_edges')
-        new_edges = infr.find_mst_edges()
+        if method == 2:
+            new_edges = infr.find_mst_edges2()
+        else:
+            new_edges = infr.find_mst_edges()
+
         if infr.verbose >= 1:
             print('[infr] reviewing %s dummy edges' % (len(new_edges),))
         # TODO apply set of new edges in bulk
@@ -550,7 +612,7 @@ class _AnnotInfrIBEIS(object):
         new_name_list = name_delta_df['new_name'].values
         infr.ibs.set_annot_names(aid_list, new_name_list)
 
-    def get_ibeis_name_delta(infr):
+    def get_ibeis_name_delta(infr, ignore_unknown=True):
         """
         Rectifies internal name_labels with the names stored in the name table.
         """
@@ -567,13 +629,26 @@ class _AnnotInfrIBEIS(object):
                      for n in old_names]
         new_labels = ut.take(node_to_new_label, aids)
         # Recycle as many old names as possible
-        label_to_name, needs_assign = infr._rectify_names(
+        label_to_name, needs_assign, unknown_labels = infr._rectify_names(
             old_names, new_labels)
+        if ignore_unknown:
+            label_to_name = ut.delete_dict_keys(label_to_name, unknown_labels)
+            needs_assign = ut.setdiff(needs_assign, unknown_labels)
+        if infr.verbose >= 3:
+            print('[infr] had %d unknown labels' % (len(unknown_labels)))
+            print('ignore_unknown = %r' % (ignore_unknown,))
+            print('[infr] need to make %d new names' % (len(needs_assign)))
         # Overwrite names of labels with temporary names
         needed_names = infr.ibs.make_next_name(len(needs_assign))
         for unassigned_label, new in zip(needs_assign, needed_names):
             label_to_name[unassigned_label] = new
         # Assign each node to the rectified label
+        if ignore_unknown:
+            unknown_labels_ = set(unknown_labels)
+            node_to_new_label = {
+                node: label for node, label in node_to_new_label.items()
+                if label not in unknown_labels_
+            }
         aid_list = ut.take(infr.node_to_aid, node_to_new_label.keys())
         new_name_list = ut.take(label_to_name, node_to_new_label.values())
         old_name_list = infr.ibs.get_annot_name_texts(aid_list)
@@ -2716,21 +2791,26 @@ class _AnnotInfrRelabel(object):
             print('rectifying name lists')
         from ibeis.scripts import name_recitifer
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
-        # Remove nones
         unique_newlabels = list(newlabel_to_oldnames.keys())
         grouped_oldnames_ = ut.take(newlabel_to_oldnames, unique_newlabels)
+        # Mark annots that are unknown and still grouped by themselves
+        still_unknown = [len(g) == 1 and g[0] is None for g in grouped_oldnames_]
+        # Remove nones for name rectifier
         grouped_oldnames = [
             [n for n in oldgroup if n is not None]
             for oldgroup in grouped_oldnames_]
         new_names = name_recitifer.find_consistent_labeling(
-            grouped_oldnames, verbose=infr.verbose >= 3)
-        new_flags = [
-            isinstance(n, six.string_types) and n.startswith('_extra_name')
-            for n in new_names
-        ]
+            grouped_oldnames, verbose=infr.verbose >= 3, extra_prefix=None)
+
+        unknown_labels = ut.compress(unique_newlabels, still_unknown)
+
+        new_flags = [n is None for n in new_names]
+        #     isinstance(n, six.string_types) and n.startswith('_extra_name')
+        #     for n in new_names
+        # ]
         label_to_name = ut.dzip(unique_newlabels, new_names)
         needs_assign = ut.compress(unique_newlabels, new_flags)
-        return label_to_name, needs_assign
+        return label_to_name, needs_assign, unknown_labels
 
     def _rectified_relabel(infr, cc_subgraphs):
         # Determine which names can be reused

@@ -758,18 +758,6 @@ def remerge_subset():
     # Step 2) Update annotmatch - pairwise relationships
     from ibeis.algo.hots import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
-    if False:
-        # import ibeis
-        ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
-        from ibeis.algo.hots import graph_iden
-        infr1 = graph_iden.AnnotInference(aids='all', ibs=ibs1, verbose=3)
-        infr1.initialize_graph()
-        # infr1.reset_feedback('staging')
-        infr1.reset_feedback('annotmatch')
-        infr1.apply_feedback_edges()
-        infr1.relabel_using_reviews()
-        infr1.apply_review_inference()
-        infr1.start_qt_interface(loop=False)
     fb1 = infr1.read_ibeis_annotmatch_feedback()
     infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2,
                                       verbose=3)
@@ -784,13 +772,64 @@ def remerge_subset():
 
     infr = infr2
     infr2.apply_feedback_edges()
-    infr2.review_dummy_edges()
+    infr2.review_dummy_edges(method=2)
+
     # infr2.inconsistent_components()
-    infr2.relabel_using_reviews(rectify=False)
+    infr2.relabel_using_reviews(rectify=True)
     infr.apply_review_inference()
+
+    name_delta = infr2.get_ibeis_name_delta()
+
+    # Fix any inconsistency
+    infr2.start_qt_interface(loop=False)
+
+    if False:
+        test_nodes = [5344, 5430, 5349, 5334, 5383, 2280, 2265, 2234, 5399,
+                      5338, 2654]
+        import networkx as nx
+        nx.is_connected(infr2.graph.subgraph(test_nodes))
+        # infr = graph_iden.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
+
+        # randomly sample some new labels to verify
+        import guitool as gt
+        from ibeis.gui import inspect_gui
+        gt.ensure_qapp()
+        ut.qtensure()
+        old_groups = ut.group_items(name_delta.index.tolist(), name_delta['old_name'])
+        del old_groups['____']
+
+        new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
+
+        from ibeis.algo.hots import sim_graph_iden
+        c = sim_graph_iden.compare_groups(
+            list(new_groups.values()),
+            list(old_groups.values()),
+        )
+        ut.map_vals(len, c)
+        for aids in c['pred_splits']:
+            old_nids = ibs2.get_annot_nids(aids)
+            new_nids = ut.take_column(infr2.gen_node_attrs('name_label', aids), 1)
+            split_aids = ut.take_column(ut.group_items(aids, new_nids).values(), 0)
+            aid1, aid2 = split_aids[0:2]
+
+            if False:
+                inspect_gui.show_vsone_tuner(ibs2, aid1, aid2)
 
     infr2.start_qt_interface(loop=False)
 
+
+    if False:
+        # import ibeis
+        ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
+        from ibeis.algo.hots import graph_iden
+        infr1 = graph_iden.AnnotInference(aids='all', ibs=ibs1, verbose=3)
+        infr1.initialize_graph()
+        # infr1.reset_feedback('staging')
+        infr1.reset_feedback('annotmatch')
+        infr1.apply_feedback_edges()
+        infr1.relabel_using_reviews()
+        infr1.apply_review_inference()
+        infr1.start_qt_interface(loop=False)
     # delta = infr2.match_state_delta()
     # print('delta = %r' % (delta,))
 
@@ -817,36 +856,34 @@ def remerge_subset():
     """
 
     # Print some info about the delta
-    def _to_tup(x):
-        return tuple(x) if isinstance(x, list) else x
-    changetype_list = list(zip(
-        delta['old_decision'], delta['new_decision'],
-        map(_to_tup, delta['old_tags']),
-        map(_to_tup, delta['new_tags'])))
-    changetype_hist = ut.dict_hist(changetype_list, ordered=True)
-    print(ut.align(ut.repr4(changetype_hist), ':'))
+    # def _to_tup(x):
+    #     return tuple(x) if isinstance(x, list) else x
+    # changetype_list = list(zip(
+    #     delta['old_decision'], delta['new_decision'],
+    #     map(_to_tup, delta['old_tags']),
+    #     map(_to_tup, delta['new_tags'])))
+    # changetype_hist = ut.dict_hist(changetype_list, ordered=True)
+    # print(ut.align(ut.repr4(changetype_hist), ':'))
 
-    import pandas as pd
-    pd.options.display.max_rows = 20
-    pd.options.display.max_columns = 40
-    pd.options.display.width = 160
-    pd.options.display.float_format = lambda x: '%.4f' % (x,)
+    # import pandas as pd
+    # pd.options.display.max_rows = 20
+    # pd.options.display.max_columns = 40
+    # pd.options.display.width = 160
+    # pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
-    from ibeis.gui import inspect_gui
-    a, b = 86,    6265
-    c, d = to_aids1[a], to_aids1[b]
-    inspect_gui.show_vsone_tuner(ibs2, a, b)
-    inspect_gui.show_vsone_tuner(ibs1, to_aids1[a], to_aids1[b])
-    am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],
-                                             [to_aids1[b]])
-    am2 = ibs2.get_annotmatch_rowids_between([a], [b])
-    print(ibs1.db.get_table_csv('annotmatch', rowids=am1))
-    print(ibs2.db.get_table_csv('annotmatch', rowids=am2))
+    # a, b = 86,    6265
+    # c, d = to_aids1[a], to_aids1[b]
+    # inspect_gui.show_vsone_tuner(ibs2, a, b)
+    # inspect_gui.show_vsone_tuner(ibs1, to_aids1[a], to_aids1[b])
+    # am1 = ibs1.get_annotmatch_rowids_between([to_aids1[a]],
+    #                                          [to_aids1[b]])
+    # am2 = ibs2.get_annotmatch_rowids_between([a], [b])
+    # print(ibs1.db.get_table_csv('annotmatch', rowids=am1))
+    # print(ibs2.db.get_table_csv('annotmatch', rowids=am2))
 
-    inspect_gui.show_vsone_tuner(ibs2, 8, 242)
-    inspect_gui.show_vsone_tuner(ibs2, 86, 103)
-    inspect_gui.show_vsone_tuner(ibs2, 86, 6265)
-
+    # inspect_gui.show_vsone_tuner(ibs2, 8, 242)
+    # inspect_gui.show_vsone_tuner(ibs2, 86, 103)
+    # inspect_gui.show_vsone_tuner(ibs2, 86, 6265)
 
 
 def check_database_overlap(ibs1, ibs2):
