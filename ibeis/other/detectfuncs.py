@@ -662,20 +662,20 @@ def _get_all_localizations(depc, gid_list, **kwargs):
 
     # Get Localizations
     if limited:
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
+        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
     else:
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
+        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
 
     # metadata['SS1']    = _get_localizations(depc, gid_list, 'selective-search', **kwargs)
     # metadata['SS2']    = _get_localizations(depc, gid_list, 'selective-search-rcnn', **kwargs)
 
     if limited:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
+        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
     else:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
 
     if limited:
         metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
@@ -745,6 +745,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         [None] * len(confidence_list)
         for confidence_list in confidences_list
     ]
+
+    ut.embed()
 
     # Get features
     if kwargs.get('features', False):
@@ -1038,10 +1040,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    # species_set = set(['zebra'])
+    species_set = set(['zebra'])
     # species_set = set(['giraffe'])
     # species_set = set(['elephant'])
-    species_set = None
+    # species_set = None
 
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -1069,15 +1071,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.9, 'classifier_masking': True},
         # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
-        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
-        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set},
-        # # {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
-        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
-        # # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
+        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
+        # # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        # {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set},
+        # # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
+        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
         # # {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
         # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
         # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
-        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+        # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
         # {'label': 'COMBINED` 1000', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 1000},
         # {'label': 'COMBINED` 500', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 500},
@@ -1115,11 +1117,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED ~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.5},
         # {'label': 'COMBINED ~0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.9},
 
-        # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
-        # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set, 'classify': True},
-        # # {'label': 'YOLO3*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set, 'classify': True},
-        # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set, 'classify': True},
-        # # {'label': 'FRCNN2*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
+        # {'label': 'YOLO3*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set, 'classify': True},
+        # {'label': 'FRCNN2*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set, 'classify': True},
         # # {'label': 'SSD1*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set, 'classify': True},
         # # {'label': 'SSD2*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set, 'classify': True},
         # # {'label': 'SSD3*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set, 'classify': True},
