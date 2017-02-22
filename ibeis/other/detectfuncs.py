@@ -783,6 +783,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
             # else:
             #     conf_ = conf_ if pred_ == 'positive' else 1.0 - conf_
             # conf_ = min(MAX_CONF, max(MIN_CONF, conf_))
+            ut.embed()
             assert MIN_CONF <= conf_ and conf_ <= MAX_CONF
             # Combine
             p = kwargs.get('p', None)
