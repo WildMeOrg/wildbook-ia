@@ -2259,13 +2259,14 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
         #         the next round
+        reviewed_gid_list += round_gid_list
         config_localizations['classifier_weight_filepath'] = svm_model_path
 
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
         if precompute:
-            depc.get_property('localizations_classifier', test_gid_list, config=config_localizations)
+            depc.get_rowids('localizations_classifier', test_gid_list, config=config_localizations)
 
 
 @register_ibs_method
