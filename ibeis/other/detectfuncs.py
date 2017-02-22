@@ -2044,7 +2044,7 @@ def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
     pos_list = []
     neg_list = []
     for image_uuid in gt_dict:
-        print('--- Processing user interaction for image %r' % (image_uuid, ))
+        # print('--- Processing user interaction for image %r' % (image_uuid, ))
         # Get the gt and prediction list
         gt_list = gt_dict[image_uuid]
         pred_list = pred_dict[image_uuid]
@@ -2155,6 +2155,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
             'feature2_algo': 'resnet',
         }
         depc.get_rowids('localizations_features', sorted_gid_list_, config=config_features)
+        depc.get_rowids('localizations_features', test_gid_list, config=config_features)
 
     ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
@@ -2222,7 +2223,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ut.ensuredir(svm_model_path)
 
         # Train models, one-by-one
-        for current_ensemble in range(ensemble):
+        for current_ensemble in range(1, ensemble + 1):
             # Mine for a new set of (static) positives and (random) negatives
             pos_list, neg_list = _bootstrap_mine(gt_dict, pred_dict, scheme,
                                                  reviewed_idx_dict, **kwargs)
@@ -2263,7 +2264,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
-        depc.get_property('localizations_classifier', test_gid_list, config=config_localizations)
+        if precompute:
+            depc.get_property('localizations_classifier', test_gid_list, config=config_localizations)
 
 
 @register_ibs_method
