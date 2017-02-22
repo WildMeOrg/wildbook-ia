@@ -999,7 +999,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>>
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
         >>> depc.delete_property('localizations_classifier', gid_list, config=config)
-        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list[:4], None, config=config)
         >>> print(results)
         >>>
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'}
@@ -1110,14 +1110,12 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         assert len(gid_list_) == len(score_dict.keys())
         assert len(gid_list_) == len(class_dict.keys())
 
-        ut.embed()
-
         for gid_ in gid_list_:
             score_list = score_dict[gid_]
             class_list = class_dict[gid_]
             ret_tuple = (
-                score_list,
-                class_list,
+                np.array(score_list),
+                np.array(class_list),
             )
             yield ret_tuple
 
