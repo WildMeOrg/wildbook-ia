@@ -2209,9 +2209,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
             'classifier_algo': 'svm',
             'classifier_weight_filepath': classifier_weight_filepath,
             'nms'          : True,
-            'nms_thresh'   : 0.10,
+            'nms_thresh'   : 0.25,
             'thresh'       : True,
-            'index_thresh' : 0.10,
+            'index_thresh' : 0.25,
         }
         pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config2)
 
@@ -2222,7 +2222,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         args = (species_list_str, limit, )
         svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d')
         ut.delete(svm_model_path)
-        ut.ensuredir()
+        ut.ensuredir(svm_model_path)
 
         # Train models, one-by-one
         for current_ensemble in range(ensemble):
