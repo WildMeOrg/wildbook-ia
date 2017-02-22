@@ -572,10 +572,12 @@ def compute_localizations(depc, gid_list, config=None):
 
         metadata = {}
 
+        metadata['SS1']     = _get_localizations(depc, gid_list, 'selective-search')
+
         # Get Localizations
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
+        # metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
 
         metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
         metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')

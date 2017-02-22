@@ -38,10 +38,15 @@ def classify_helper(tup, verbose=VERBOSE_SVM):
     score_dict = { index: [] for index in index_list }
     class_dict = { index: [] for index in index_list }
     # Load models
-    model = ut.load_cPkl(weight_filepath_, verbose=verbose)
+    model_tup = ut.load_cPkl(weight_filepath_, verbose=verbose)
+    model, scaler = model_tup
+    # Normalize
+    vector_list = scaler.transform(vector_list)
     # calculate decisions and predictions
-    score_list = model.decision_function(vector_list)
+    # score_list = model.decision_function(vector_list)
+    score_list = model.predict_proba(vector_list)
     class_list = model.predict(vector_list)
+    # Zip together results
     zipped = zip(index_list, score_list, class_list)
     for index, score_, class_ in zipped:
         score_dict[index].append(score_)
