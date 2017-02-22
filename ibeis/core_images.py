@@ -956,7 +956,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=64,
+    chunksize=32,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""
@@ -998,8 +998,8 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> print(results)
         >>>
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
-        >>> depc.delete_property('localizations_classifier', gid_list, config=config)
-        >>> results = depc.get_property('localizations_classifier', gid_list[:4], None, config=config)
+        >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'}
