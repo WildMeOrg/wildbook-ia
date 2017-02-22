@@ -2034,7 +2034,7 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
     return train_gid_set, data_list, label_list
 
 
-def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
+def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
                     min_overlap=0.75, max_overlap=0.25):
     import random
     ##################################################################################
@@ -2050,8 +2050,8 @@ def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
         pred_list = pred_dict[image_uuid]
 
         # If never seen this image before, pick a new selection of GT bboxes
-        image_uuid_str = '%s' % (image_uuid, )
-        if image_uuid_str not in reviewed_idx_dict:
+        image_gid = ibs.get_image_gids_from_uuid(image_uuid)
+        if image_gid not in reviewed_gid_dict:
             # Simulate the user selecting the gt bounding box(es)
             index_list = list(range(len(gt_list)))
             if scheme == 1:
@@ -2062,10 +2062,10 @@ def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
                 index_list_ = index_list[:]
             else:
                 raise ValueError
-            reviewed_idx_dict[image_uuid_str] = index_list_
+            reviewed_gid_dict[image_gid] = index_list_
 
         # Filter based on picked bboxes for gt
-        picked_index_list = reviewed_idx_dict[image_uuid_str]
+        picked_index_list = reviewed_gid_dict[image_gid]
         gt_list_ = [
             gt_list[picked_index]
             for picked_index in picked_index_list
@@ -2173,8 +2173,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         'index_thresh' : 0.25,
     }
 
-    reviewed_gid_list = []
-    reviewed_idx_dict = {}
+    reviewed_gid_dict = {}
     for current_round in range(rounds):
         print('------------------------------------------------------')
         print('Current Round %r' % (current_round, ))
@@ -2185,7 +2184,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         temp_index = 0
         while len(round_gid_list) < N and temp_index < len(sorted_gid_list):
             temp_gid = sorted_gid_list[temp_index]
-            if temp_gid not in reviewed_gid_list:
+            if temp_gid not in reviewed_gid_dict:
                 round_gid_list.append(temp_gid)
             temp_index += 1
 
@@ -2195,6 +2194,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 5: add any images reviewed from a previous round
 
+        reviewed_gid_list = reviewed_gid_dict.keys()
         args = (len(reviewed_gid_list), reviewed_gid_list, )
         print('Adding %d previously reviewed gids: %r' % args)
 
@@ -2225,8 +2225,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # Train models, one-by-one
         for current_ensemble in range(1, ensemble + 1):
             # Mine for a new set of (static) positives and (random) negatives
-            pos_list, neg_list = _bootstrap_mine(gt_dict, pred_dict, scheme,
-                                                 reviewed_idx_dict, **kwargs)
+            pos_list, neg_list = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
+                                                 reviewed_gid_dict, **kwargs)
 
             # Compile feature data and label list
             data_list = []
@@ -2259,7 +2259,6 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
         #         the next round
-        reviewed_gid_list += round_gid_list
         config_localizations['classifier_weight_filepath'] = svm_model_path
 
         ##################################################################################
