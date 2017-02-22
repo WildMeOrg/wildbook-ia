@@ -2143,6 +2143,18 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     sorted_gid_list = [comb[1] for comb in comb_list]
 
     ######################################################################################
+    # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
+    #
+    needed = N * rounds
+    needed = min(needed, len(sorted_gid_list))
+    sorted_gid_list_ = sorted_gid_list[:needed]
+    config_features = {
+        'algo' : '_COMBINED',
+        'feature2_algo': 'resnet',
+    }
+    depc.get_rowids('localizations_features', sorted_gid_list_, config=config_features)
+
+    ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
     # The initial classifier is the whole image classifier
     classifier_weight_filepath = wic_model_filepath
