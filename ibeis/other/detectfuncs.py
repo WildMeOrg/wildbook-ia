@@ -2050,7 +2050,8 @@ def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
         pred_list = pred_dict[image_uuid]
 
         # If never seen this image before, pick a new selection of GT bboxes
-        if image_uuid not in reviewed_idx_dict:
+        image_uuid_str = '%s' % (image_uuid, )
+        if image_uuid_str not in reviewed_idx_dict:
             # Simulate the user selecting the gt bounding box(es)
             index_list = list(range(len(gt_list)))
             if scheme == 1:
@@ -2061,10 +2062,10 @@ def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
                 index_list_ = index_list[:]
             else:
                 raise ValueError
-            reviewed_idx_dict[image_uuid] == index_list_
+            reviewed_idx_dict[image_uuid_str] = index_list_
 
         # Filter based on picked bboxes for gt
-        picked_index_list = reviewed_idx_dict[image_uuid]
+        picked_index_list = reviewed_idx_dict[image_uuid_str]
         gt_list_ = [
             gt_list[picked_index]
             for picked_index in picked_index_list
@@ -2220,7 +2221,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
         limit = len(round_gid_list)
         args = (species_list_str, limit, )
-        svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d')
+        svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
         ut.delete(svm_model_path)
         ut.ensuredir(svm_model_path)
 
