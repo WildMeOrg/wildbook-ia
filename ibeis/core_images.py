@@ -990,6 +990,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
+        >>> depc = ibs.depc_image
         >>> gid_list = list(set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))))
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': None}
         >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
@@ -997,6 +998,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> print(results)
         >>>
         >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
+        >>> depc.delete_property('localizations_classifier', gid_list, config=config)
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
         >>>
@@ -1107,6 +1109,8 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             class_dict[gid].append(class_)
         assert len(gid_list_) == len(score_dict.keys())
         assert len(gid_list_) == len(class_dict.keys())
+
+        ut.embed()
 
         for gid_ in gid_list_:
             score_list = score_dict[gid_]
