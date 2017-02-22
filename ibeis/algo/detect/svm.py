@@ -45,6 +45,8 @@ def classify_helper(tup, verbose=VERBOSE_SVM):
     # calculate decisions and predictions
     # score_list = model.decision_function(vector_list)
     score_list = model.predict_proba(vector_list)
+    # Take only the positive probability
+    score_list = score_list[:, 1]
     class_list = model.predict(vector_list)
     # Zip together results
     zipped = zip(index_list, score_list, class_list)
