@@ -38,14 +38,10 @@ def classify_helper(tup, verbose=VERBOSE_SVM):
     score_dict = { index: [] for index in index_list }
     class_dict = { index: [] for index in index_list }
     # Load models
-    print(0)
     model = ut.load_cPkl(weight_filepath_, verbose=verbose)
     # calculate decisions and predictions
-    print(1)
     score_list = model.decision_function(vector_list)
-    print(2)
     class_list = model.predict(vector_list)
-    print(3)
     zipped = zip(index_list, score_list, class_list)
     for index, score_, class_ in zipped:
         score_dict[index].append(score_)
@@ -92,7 +88,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     args_list = zip(weight_filepath_list, vectors_list)
     nTasks = len(weight_filepath_list)
     classify_iter = ut.generate(classify_helper, args_list, nTasks=nTasks,
-                                chunksize=1, force_serial=False)
+                                chunksize=1, ordered=False, force_serial=False)
 
     # Classify with SVM for each image vector
     for score_dict_, class_dict_ in classify_iter:
