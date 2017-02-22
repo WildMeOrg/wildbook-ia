@@ -2159,7 +2159,18 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
     # The initial classifier is the whole image classifier
-    classifier_weight_filepath = wic_model_filepath
+    config_localizations = {
+        'algo'         : '_COMBINED',
+        'species_set'  : set(species_list),
+        'features'     : True,
+        'classify'     : True,
+        'classifier_algo': 'svm',
+        'classifier_weight_filepath': wic_model_filepath,
+        'nms'          : True,
+        'nms_thresh'   : 0.25,
+        'thresh'       : True,
+        'index_thresh' : 0.25,
+    }
 
     reviewed_gid_list = []
     reviewed_idx_dict = {}
@@ -2193,28 +2204,13 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # Step 6: gather gt (simulate user interaction)
 
         print('\tGather Ground-Truth')
-        config1 = {
-            'species_set'  : set(species_list),
-        }
-        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config1)
+        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config_localizations)
 
         ##################################################################################
         # Step 7: gather predictions from all algorithms combined
 
         print('\tGather Predictions')
-        config2 = {
-            'algo'         : '_COMBINED',
-            'species_set'  : set(species_list),
-            'features'     : True,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': classifier_weight_filepath,
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
-        }
-        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config2)
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config_localizations)
 
         ##################################################################################
         # Step 8: train SVM ensemble using fresh mined data for each ensemble
@@ -2262,17 +2258,12 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
         #         the next round
-        classifier_weight_filepath = svm_model_path
+        config_localizations['classifier_weight_filepath'] = svm_model_path
 
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
-        config3 = {
-            'algo'         : '_COMBINED',
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': classifier_weight_filepath,
-        }
-        depc.get_property('localizations_classifier', test_gid_list, config=config3)
+        depc.get_property('localizations_classifier', test_gid_list, config=config_localizations)
 
 
 @register_ibs_method
