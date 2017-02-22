@@ -2102,7 +2102,7 @@ def _bootstrap_mine(gt_dict, pred_dict, scheme, reviewed_idx_dict,
 
 @register_ibs_method
 def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
-              output_path=None, **kwargs):
+              output_path=None, precompute=True, **kwargs):
     from sklearn import svm, preprocessing
 
     # Establish variables
@@ -2146,14 +2146,15 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     ######################################################################################
     # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
     #
-    needed = N * rounds
-    needed = min(needed, len(sorted_gid_list))
-    sorted_gid_list_ = sorted_gid_list[:needed]
-    config_features = {
-        'algo' : '_COMBINED',
-        'feature2_algo': 'resnet',
-    }
-    depc.get_rowids('localizations_features', sorted_gid_list_, config=config_features)
+    if precompute:
+        needed = N * rounds
+        needed = min(needed, len(sorted_gid_list))
+        sorted_gid_list_ = sorted_gid_list[:needed]
+        config_features = {
+            'algo' : '_COMBINED',
+            'feature2_algo': 'resnet',
+        }
+        depc.get_rowids('localizations_features', sorted_gid_list_, config=config_features)
 
     ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
