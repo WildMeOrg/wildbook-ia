@@ -13,21 +13,21 @@ VERBOSE_SVM = ut.get_argflag('--verbsvm') or ut.VERBOSE
 
 
 CONFIG_URL_DICT = {
-    'localizer-zebra-10'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.10.zip',
-    'localizer-zebra-20'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.20.zip',
-    'localizer-zebra-30'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.30.zip',
-    'localizer-zebra-40'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.40.zip',
-    'localizer-zebra-50'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.50.zip',
-    'localizer-zebra-60'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.60.zip',
-    'localizer-zebra-70'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.70.zip',
-    'localizer-zebra-80'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.80.zip',
-    'localizer-zebra-90'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.90.zip',
-    'localizer-zebra-100' : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.100.zip',
+    # 'localizer-zebra-10'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.10.zip',
+    # 'localizer-zebra-20'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.20.zip',
+    # 'localizer-zebra-30'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.30.zip',
+    # 'localizer-zebra-40'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.40.zip',
+    # 'localizer-zebra-50'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.50.zip',
+    # 'localizer-zebra-60'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.60.zip',
+    # 'localizer-zebra-70'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.70.zip',
+    # 'localizer-zebra-80'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.80.zip',
+    # 'localizer-zebra-90'  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.90.zip',
+    # 'localizer-zebra-100' : 'https://lev.cs.rpi.edu/public/models/classifier.svm.localization.zebra.100.zip',
 
-    'image-zebra'         : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
+    # 'image-zebra'         : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
 
-    'default'             : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
-    None                  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
+    # 'default'             : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
+    # None                  : 'https://lev.cs.rpi.edu/public/models/classifier.svm.image.zebra.pkl',
 }
 
 
@@ -38,10 +38,15 @@ def classify_helper(tup, verbose=VERBOSE_SVM):
     score_dict = { index: [] for index in index_list }
     class_dict = { index: [] for index in index_list }
     # Load models
-    model = ut.load_cPkl(weight_filepath_, verbose=verbose)
+    model_tup = ut.load_cPkl(weight_filepath_, verbose=verbose)
+    model, scaler = model_tup
+    # Normalize
+    vector_list = scaler.transform(vector_list)
     # calculate decisions and predictions
-    score_list = model.decision_function(vector_list)
+    # score_list = model.decision_function(vector_list)
+    score_list = model.predict_proba(vector_list)
     class_list = model.predict(vector_list)
+    # Zip together results
     zipped = zip(index_list, score_list, class_list)
     for index, score_, class_ in zipped:
         score_dict[index].append(score_)
