@@ -79,7 +79,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     if is_ensemble:
         weight_filepath_list = sorted([
             join(weight_filepath, filename) for filename in listdir(weight_filepath)
-            if isfile(join(weight_filepath, filename)) and '.10.pkl' not in filename
+            if isfile(join(weight_filepath, filename))
         ])
     else:
         weight_filepath_list = [weight_filepath]
