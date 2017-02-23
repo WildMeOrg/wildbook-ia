@@ -2145,30 +2145,11 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     comb_list = sorted(list(zip(score_list_, train_gid_set)), reverse=True)
     sorted_gid_list = [comb[1] for comb in comb_list]
 
-    ######################################################################################
-    # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
-    #
-    if precompute:
-        needed = N * rounds
-        needed = min(needed, len(sorted_gid_list))
-        sorted_gid_list_ = sorted_gid_list[:needed]
-        config_features = {
-            'algo' : '_COMBINED',
-            'feature2_algo': 'resnet',
-        }
-        depc.get_rowids('localizations_features', sorted_gid_list_, config=config_features)
-
-    # Precompute test features
-    if precompute and precompute_test:
-        depc.get_rowids('localizations_features', test_gid_list, config=config_features)
-
-    ######################################################################################
-    # Step 3: for each bootstrapping round, ask user for input
-    # The initial classifier is the whole image classifier
-    config_localizations = {
+    config = {
         'algo'         : '_COMBINED',
         'species_set'  : set(species_list),
         'features'     : True,
+        'feature2_algo': 'resnet',
         'classify'     : True,
         'classifier_algo': 'svm',
         'classifier_weight_filepath': wic_model_filepath,
@@ -2177,6 +2158,23 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         'thresh'       : True,
         'index_thresh' : 0.25,
     }
+
+    ######################################################################################
+    # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
+    #
+    if precompute:
+        needed = N * rounds
+        needed = min(needed, len(sorted_gid_list))
+        sorted_gid_list_ = sorted_gid_list[:needed]
+        depc.get_rowids('localizations_features', sorted_gid_list_, config=config)
+
+    # Precompute test features
+    if precompute and precompute_test:
+        depc.get_rowids('localizations_features', test_gid_list, config=config)
+
+    ######################################################################################
+    # Step 3: for each bootstrapping round, ask user for input
+    # The initial classifier is the whole image classifier
 
     reviewed_gid_dict = {}
     for current_round in range(rounds):
@@ -2210,16 +2208,16 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # Step 6: gather gt (simulate user interaction)
 
         print('\tGather Ground-Truth')
-        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config_localizations)
+        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
 
         ##################################################################################
         # Step 7: gather predictions from all algorithms combined
 
         print('\tDelete Old Classifications')
-        depc.delete_property('localizations_classifier', round_gid_list, config=config_localizations)
+        depc.delete_property('localizations_classifier', round_gid_list, config=config)
 
         print('\tGather Predictions')
-        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config_localizations)
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
 
         ##################################################################################
         # Step 8: train SVM ensemble using fresh mined data for each ensemble
@@ -2267,13 +2265,13 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
         #         the next round
-        config_localizations['classifier_weight_filepath'] = svm_model_path
+        config['classifier_weight_filepath'] = svm_model_path
 
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
         if precompute and precompute_test:
-            depc.get_rowids('localizations_classifier', test_gid_list, config=config_localizations)
+            depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
 
 @register_ibs_method
