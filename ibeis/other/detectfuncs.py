@@ -2110,6 +2110,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     assert scheme in [1, 2], 'Invalid scheme'
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models-bootstrap')))
+    # ut.delete(output_path)
     ut.ensuredir(output_path)
 
     # Get the test images for later
@@ -2210,6 +2211,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 7: gather predictions from all algorithms combined
 
+        print('\tDelete Old Classifications')
+        depc.delete_property('localizations_classifier', round_gid_list, config=config_localizations)
+
         print('\tGather Predictions')
         pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config_localizations)
 
@@ -2264,7 +2268,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
-        if precompute:
+        if False and precompute:
             depc.get_rowids('localizations_classifier', test_gid_list, config=config_localizations)
 
 
