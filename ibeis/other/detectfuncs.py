@@ -2102,10 +2102,11 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
 
 @register_ibs_method
 def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
-              output_path=None, precompute=True, **kwargs):
+              output_path=None, precompute=True, precompute_test=False, **kwargs):
     from sklearn import svm, preprocessing
 
     # Establish variables
+
     species_list_str = '.'.join(species_list)
     assert scheme in [1, 2], 'Invalid scheme'
     if output_path is None:
@@ -2156,6 +2157,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
             'feature2_algo': 'resnet',
         }
         depc.get_rowids('localizations_features', sorted_gid_list_, config=config_features)
+
+    # Precompute test features
+    if precompute and precompute_test:
         depc.get_rowids('localizations_features', test_gid_list, config=config_features)
 
     ######################################################################################
@@ -2268,7 +2272,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
-        if False and precompute:
+        if precompute and precompute_test:
             depc.get_rowids('localizations_classifier', test_gid_list, config=config_localizations)
 
 
