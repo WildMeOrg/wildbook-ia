@@ -2181,9 +2181,10 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     species_list_str = '.'.join(species_list)
     assert scheme in [1, 2], 'Invalid scheme'
     if output_path is None:
-        species_list_str = '+'.join(species_list)
-        args = (N, rounds, scheme, species_list_str, )
-        output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
+        # species_list_str = '+'.join(species_list)
+        # args = (N, rounds, scheme, species_list_str, )
+        # output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
+        output_path_ = 'models-bootstrap'
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', output_path_)))
     print('Using output_path = %r' % (output_path, ))
     if recompute:
