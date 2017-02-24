@@ -2158,6 +2158,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         'thresh'       : True,
         'index_thresh' : 0.25,
     }
+    config_list = [config.copy()]
 
     ######################################################################################
     # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
@@ -2266,12 +2267,16 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
         #         the next round
         config['classifier_weight_filepath'] = svm_model_path
+        config_list.append(config.copy())
 
         ##################################################################################
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
         if precompute and precompute_test:
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
+    # Return the list of used configs
+    return config_list
 
 
 @register_ibs_method
