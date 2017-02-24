@@ -2305,8 +2305,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         ##################################################################################
         # Step 7: gather predictions from all algorithms combined
 
-        print('\tDelete Old Classifications')
-        depc.delete_property('localizations_classifier', round_gid_list, config=config)
+        if not is_svm_model_trained:
+            print('\tDelete Old Classifications')
+            depc.delete_property('localizations_classifier', round_gid_list, config=config)
 
         print('\tGather Predictions')
         pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
