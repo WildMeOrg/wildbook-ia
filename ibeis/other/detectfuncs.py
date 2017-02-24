@@ -2175,7 +2175,7 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
 
 @register_ibs_method
 def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
-              output_path=None, precompute=True, precompute_test=False,
+              output_path=None, precompute=True, precompute_test=True,
               recompute=False, visualize=True, **kwargs):
     from sklearn import svm, preprocessing
 
@@ -2200,11 +2200,11 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
     wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path, dryrun=True)
     is_wic_model_trained = exists(wic_model_filepath)
+    ######################################################################################
+    # Step 1: train whole-image classifier
+    #         this will compute and cache any ResNet features that
+    #         haven't been computed
     if not is_wic_model_trained:
-        ######################################################################################
-        # Step 1: train whole-image classifier
-        #         this will compute and cache any ResNet features that
-        #         haven't been computed
         wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
 
     # Load model pickle
@@ -2336,6 +2336,32 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                                                                 output_path=output_visualize_path,
                                                                 values=values)
 
+                # Get the confidences of the selected positives and negatives
+                pos_conf_list = []
+                neg_conf_list = []
+                for pos in mined_pos_list:
+                    pos_conf_list.append(pos['confidence'])
+                for neg in mined_neg_list:
+                    neg_conf_list.append(neg['confidence'])
+
+                pos_conf_list = np.array(pos_conf_list)
+                args = (
+                    np.min(pos_conf_list),
+                    np.mean(pos_conf_list),
+                    np.std(pos_conf_list),
+                    np.max(pos_conf_list),
+                )
+                print('Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+                neg_conf_list = np.array(neg_conf_list)
+                args = (
+                    np.min(neg_conf_list),
+                    np.mean(neg_conf_list),
+                    np.std(neg_conf_list),
+                    np.max(neg_conf_list),
+                )
+                print('Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+
+                # Train new models
                 if not VISUALIZE_CATCHUP:
                     # Compile feature data and label list
                     data_list = []
