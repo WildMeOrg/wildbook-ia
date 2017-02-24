@@ -2035,22 +2035,11 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 
 @register_ibs_method
-def classifier_train_image_svm(ibs, species_list, output_path=None):
+def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False):
     from sklearn import svm, preprocessing
 
     # Load data
     print('Loading pre-trained features for images')
-
-    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
-    train_gid_set, data_list, label_list = vals
-
-    print('Train SVM scaler using features')
-    # Train new scaler and model using data and labels
-    scaler = preprocessing.StandardScaler().fit(data_list)
-    data_list = scaler.transform(data_list)
-    print('Train SVM model using features and target labels')
-    model = svm.SVC(probability=True)
-    model.fit(data_list, label_list)
 
     # Save model pickle
     if output_path is None:
@@ -2058,43 +2047,56 @@ def classifier_train_image_svm(ibs, species_list, output_path=None):
     ut.ensuredir(output_path)
     species_list_str = '.'.join(species_list)
     output_filepath = join(output_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
-    model_tup = (model, scaler, )
-    ut.save_cPkl(output_filepath, model_tup)
 
-    # Load model pickle
-    model_tup_ = ut.load_cPkl(output_filepath)
-    model_, scaler_ = model_tup_
+    if not dryrun:
+        vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
+        train_gid_set, data_list, label_list = vals
 
-    # Test accuracy
-    vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
-    train_gid_set, data_list, label_list = vals
-    # Normalize data
-    data_list = scaler_.transform(data_list)
-    label_list_ = model_.predict(data_list)
-    # score_list_ = model_.decision_function(data_list)  # NOQA
-    score_list_ = model_.predict_proba(data_list)  # NOQA
-    tp, tn, fp, fn = 0, 0, 0, 0
-    for label_, label in zip(label_list_, label_list):
-        if label == 1 and label == label_:
-            tp += 1
-        elif label == 0 and label == label_:
-            tn += 1
-        elif label == 1 and label != label_:
-            fn += 1
-        elif label == 0 and label != label_:
-            fp += 1
-        else:
-            raise ValueError
+        print('Train SVM scaler using features')
+        # Train new scaler and model using data and labels
+        scaler = preprocessing.StandardScaler().fit(data_list)
+        data_list = scaler.transform(data_list)
+        print('Train SVM model using features and target labels')
+        model = svm.SVC(probability=True)
+        model.fit(data_list, label_list)
 
-    pos, neg = tp + fn, tn + fp
-    correct = tp + tn
-    total = tp + tn + fp + fn
-    accuracy = correct / total
-    print('Accuracy: %0.02f' % (accuracy, ))
-    print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
-    print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
-    print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
-    print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+        model_tup = (model, scaler, )
+        ut.save_cPkl(output_filepath, model_tup)
+
+        # Load model pickle
+        model_tup_ = ut.load_cPkl(output_filepath)
+        model_, scaler_ = model_tup_
+
+        # Test accuracy
+        vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
+        train_gid_set, data_list, label_list = vals
+        # Normalize data
+        data_list = scaler_.transform(data_list)
+        label_list_ = model_.predict(data_list)
+        # score_list_ = model_.decision_function(data_list)  # NOQA
+        score_list_ = model_.predict_proba(data_list)  # NOQA
+        tp, tn, fp, fn = 0, 0, 0, 0
+        for label_, label in zip(label_list_, label_list):
+            if label == 1 and label == label_:
+                tp += 1
+            elif label == 0 and label == label_:
+                tn += 1
+            elif label == 1 and label != label_:
+                fn += 1
+            elif label == 0 and label != label_:
+                fp += 1
+            else:
+                raise ValueError
+
+        pos, neg = tp + fn, tn + fp
+        correct = tp + tn
+        total = tp + tn + fp + fn
+        accuracy = correct / total
+        print('Accuracy: %0.02f' % (accuracy, ))
+        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
+        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
+        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
+        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
 
     return output_filepath
 
@@ -2171,7 +2173,7 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
 @register_ibs_method
 def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
               output_path=None, precompute=True, precompute_test=False,
-              visualize=False, **kwargs):
+              recompute=False, visualize=False, **kwargs):
     from sklearn import svm, preprocessing
 
     # Establish variables
@@ -2180,18 +2182,22 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     assert scheme in [1, 2], 'Invalid scheme'
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models-bootstrap')))
-    # ut.delete(output_path)
+    if recompute:
+        ut.delete(output_path)
     ut.ensuredir(output_path)
 
     # Get the test images for later
     depc = ibs.depc_image
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
 
-    ######################################################################################
-    # Step 1: train whole-image classifier
-    #         this will compute and cache any ResNet features that
-    #         haven't been computed
-    wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
+    wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path, dryrun=True)
+    is_wic_model_trained = exists(wic_model_filepath)
+    if not is_wic_model_trained:
+        ######################################################################################
+        # Step 1: train whole-image classifier
+        #         this will compute and cache any ResNet features that
+        #         haven't been computed
+        wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
 
     # Load model pickle
     model_tup = ut.load_cPkl(wic_model_filepath)
@@ -2241,7 +2247,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
     # Precompute test features
     if precompute and precompute_test:
         # depc.get_rowids('localizations_features', test_gid_list, config=config)
-        depc.delete_property('localizations_classifier', test_gid_list, config=config)
+        if not is_wic_model_trained:
+            depc.delete_property('localizations_classifier', test_gid_list, config=config)
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     ######################################################################################
@@ -2276,69 +2283,76 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # All gids that have been reviewed
         round_gid_list = reviewed_gid_list + round_gid_list
 
-        ##################################################################################
-        # Step 6: gather gt (simulate user interaction)
-
-        print('\tGather Ground-Truth')
-        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
-
-        ##################################################################################
-        # Step 7: gather predictions from all algorithms combined
-
-        print('\tDelete Old Classifications')
-        depc.delete_property('localizations_classifier', round_gid_list, config=config)
-
-        print('\tGather Predictions')
-        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
-
-        ##################################################################################
-        # Step 8: train SVM ensemble using fresh mined data for each ensemble
-
+        # Get model ensemble path
         limit = len(round_gid_list)
         args = (species_list_str, limit, )
         svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
-        ut.delete(svm_model_path)
-        ut.ensuredir(svm_model_path)
 
-        # Train models, one-by-one
-        for current_ensemble in range(1, ensemble + 1):
-            # Mine for a new set of (static) positives and (random) negatives
-            values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
-                                     reviewed_gid_dict, **kwargs)
-            mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
+        is_svm_model_trained = exists(svm_model_path)
+        if not is_svm_model_trained:
+            ut.ensuredir(svm_model_path)
 
-            if visualize:
-                classifier_visualize_training_localizations(ibs, None,
-                                                            output_path=None,
-                                                            values=values)
+            ##################################################################################
+            # Step 6: gather gt (simulate user interaction)
 
-            # Compile feature data and label list
-            data_list = []
-            label_list = []
-            for pos in mined_pos_list:
-                data_list.append(pos['feature'])
-                label_list.append(1)
-            for neg in mined_neg_list:
-                data_list.append(neg['feature'])
-                label_list.append(0)
+            print('\tGather Ground-Truth')
+            gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
 
-            data_list = np.array(data_list)
-            label_list = np.array(label_list)
+            ##################################################################################
+            # Step 7: gather predictions from all algorithms combined
 
-            print('Train Ensemble SVM (%d)' % (current_ensemble, ))
-            # Train scaler
-            scaler = preprocessing.StandardScaler().fit(data_list)
-            data_list = scaler.transform(data_list)
-            # Train model
-            model = svm.SVC(probability=True)
-            model.fit(data_list, label_list)
+            print('\tDelete Old Classifications')
+            depc.delete_property('localizations_classifier', round_gid_list, config=config)
 
-            # Save model pickle
-            args = (species_list_str, limit, current_ensemble, )
-            svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
-            svm_model_filepath = join(svm_model_path, svm_model_filename)
-            model_tup = (model, scaler, )
-            ut.save_cPkl(svm_model_filepath, model_tup)
+            print('\tGather Predictions')
+            pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
+
+            ##################################################################################
+            # Step 8: train SVM ensemble using fresh mined data for each ensemble
+
+            # Train models, one-by-one
+            for current_ensemble in range(1, ensemble + 1):
+                # Mine for a new set of (static) positives and (random) negatives
+                values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
+                                         reviewed_gid_dict, **kwargs)
+                mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
+
+                if visualize:
+                    output_visualize_path = join(svm_model_path, 'visualize')
+                    ut.ensuredir(output_visualize_path)
+                    output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
+                    ut.ensuredir(output_visualize_path)
+                    classifier_visualize_training_localizations(ibs, None,
+                                                                output_path=output_visualize_path,
+                                                                values=values)
+
+                # Compile feature data and label list
+                data_list = []
+                label_list = []
+                for pos in mined_pos_list:
+                    data_list.append(pos['feature'])
+                    label_list.append(1)
+                for neg in mined_neg_list:
+                    data_list.append(neg['feature'])
+                    label_list.append(0)
+
+                data_list = np.array(data_list)
+                label_list = np.array(label_list)
+
+                print('Train Ensemble SVM (%d)' % (current_ensemble, ))
+                # Train scaler
+                scaler = preprocessing.StandardScaler().fit(data_list)
+                data_list = scaler.transform(data_list)
+                # Train model
+                model = svm.SVC(probability=True)
+                model.fit(data_list, label_list)
+
+                # Save model pickle
+                args = (species_list_str, limit, current_ensemble, )
+                svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
+                svm_model_filepath = join(svm_model_path, svm_model_filename)
+                model_tup = (model, scaler, )
+                ut.save_cPkl(svm_model_filepath, model_tup)
 
         ##################################################################################
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
@@ -2350,7 +2364,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         # Step 9: get the test images and classify (cache) their proposals using
         #         the new model ensemble
         if precompute and precompute_test:
-            depc.delete_property('localizations_classifier', test_gid_list, config=config)
+            if not is_svm_model_trained:
+                depc.delete_property('localizations_classifier', test_gid_list, config=config)
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     # Return the list of used configs
