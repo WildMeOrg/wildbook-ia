@@ -374,7 +374,7 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     if WITH_CNN:
         ibeis_rman.add_repos([
-            'https://github.com/WildbookOrg/ibeis_cnn.git@next',
+            'https://github.com/WildbookOrg/ibeis_cnn.git',
             'https://github.com/WildbookOrg/pydarknet.git',
         ])
         if WITH_FLUKEMATCH:
