@@ -11,7 +11,7 @@ git config --global push.default current
 export CODE_DIR=~/code
 mkdir $CODE_DIR
 cd $CODE_DIR
-git clone https://github.com/Erotemic/ibeis.git
+git clone https://github.com/WildbookOrg/ibeis.git
 cd ibeis
 
 python super_setup.py --bootstrap
@@ -285,7 +285,7 @@ def ensure_utool(CODE_DIR, pythoncmd):
     WIN32 = sys.platform.startswith('win32')
     #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
     UTOOL_BRANCH = 'next'
-    UTOOL_REPO = 'https://github.com/Erotemic/utool.git'
+    UTOOL_REPO = 'https://github.com/WildbookOrg/utool.git'
     print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
     cwdpath = os.path.realpath(os.getcwd())
     usr_code_dir = os.path.expanduser(CODE_DIR)
@@ -332,8 +332,8 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     # IBEIS project repos
     #-----------
     # if True:
-    #     jon_repo_base = 'https://github.com/Erotemic'
-    #     jason_repo_base = 'https://github.com/bluemellophone'
+    #     jon_repo_base = 'https://github.com/WildbookOrg'
+    #     jason_repo_base = 'https://github.com/WildbookOrg'
     # else:
     #     jon_repo_base = 'https://github.com/wildme'
     #     jason_repo_base = 'https://github.com/wildme'
@@ -342,11 +342,11 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
     #     jason_repo_base = 'git@hyrule.cs.rpi.edu
 
     ibeis_rman = ut.RepoManager([
-        'https://github.com/Erotemic/utool.git',
-        # 'https://github.com/Erotemic/sandbox_utools.git',
-        'https://github.com/Erotemic/vtool.git',
-        'https://github.com/Erotemic/dtool.git',
-        'https://github.com/bluemellophone/detecttools.git',
+        'https://github.com/WildbookOrg/utool.git',
+        # 'https://github.com/WildbookOrg/sandbox_utools.git',
+        'https://github.com/WildbookOrg/vtool.git',
+        'https://github.com/WildbookOrg/dtool.git',
+        'https://github.com/WildbookOrg/detecttools.git',
     ], CODE_DIR, label='core', pythoncmd=pythoncmd)
 
     tpl_rman = ut.RepoManager([], CODE_DIR, label='tpl', pythoncmd=pythoncmd)
@@ -356,26 +356,26 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     if WITH_GUI:
         ibeis_rman.add_repos([
-            'https://github.com/Erotemic/plottool.git',
+            'https://github.com/WildbookOrg/plottool.git',
         ])
 
         if WITH_QT:
             ibeis_rman.add_repos([
-                'https://github.com/Erotemic/guitool.git',
+                'https://github.com/WildbookOrg/guitool.git',
             ])
             tpl_rman.add_repo(ut.Repo(modname=('PyQt4', 'PyQt5', 'PyQt')))
 
     if WITH_CUSTOM_TPL:
-        flann_repo = ut.Repo('https://github.com/Erotemic/flann.git', CODE_DIR, modname='pyflann')
+        flann_repo = ut.Repo('https://github.com/WildbookOrg/flann.git', CODE_DIR, modname='pyflann')
         ibeis_rman.add_repo(flann_repo)
         ibeis_rman.add_repos([
-            'https://github.com/Erotemic/hesaff.git',
+            'https://github.com/WildbookOrg/hesaff.git',
         ])
 
     if WITH_CNN:
         ibeis_rman.add_repos([
-            'https://github.com/bluemellophone/ibeis_cnn.git@next',
-            'https://github.com/bluemellophone/pydarknet.git',
+            'https://github.com/WildbookOrg/ibeis_cnn.git@next',
+            'https://github.com/WildbookOrg/pydarknet.git',
         ])
         if WITH_FLUKEMATCH:
             ibeis_rman.add_repos([
@@ -393,20 +393,20 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
 
     if WITH_PYRF:
         ibeis_rman.add_repos([
-            'https://github.com/bluemellophone/pyrf.git',
+            'https://github.com/WildbookOrg/pyrf.git',
         ])
 
     if False:
         # Depricated
         ibeis_rman.add_repos([
-            #'https://github.com/bluemellophone/pybing.git',
+            #'https://github.com/WildbookOrg/pybing.git',
             #'https://github.com/aweinstock314/cyth.git',
             #'https://github.com/hjweide/pygist',
         ])
 
     # Add main repo (Must be checked last due to dependency issues)
     ibeis_rman.add_repos([
-        'https://github.com/Erotemic/ibeis.git',
+        'https://github.com/WildbookOrg/ibeis.git',
     ])
 
     #-----------
