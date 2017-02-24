@@ -2292,45 +2292,44 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         limit = len(round_gid_list)
         args = (species_list_str, limit, )
         svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
-
         is_svm_model_trained = exists(svm_model_path)
-        if not is_svm_model_trained:
-            ut.ensuredir(svm_model_path)
 
-            ##################################################################################
-            # Step 6: gather gt (simulate user interaction)
+        ut.ensuredir(svm_model_path)
 
-            print('\tGather Ground-Truth')
-            gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
+        ##################################################################################
+        # Step 6: gather gt (simulate user interaction)
 
-            ##################################################################################
-            # Step 7: gather predictions from all algorithms combined
+        print('\tGather Ground-Truth')
+        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
 
-            print('\tDelete Old Classifications')
-            depc.delete_property('localizations_classifier', round_gid_list, config=config)
+        ##################################################################################
+        # Step 7: gather predictions from all algorithms combined
 
-            print('\tGather Predictions')
-            pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
+        print('\tDelete Old Classifications')
+        depc.delete_property('localizations_classifier', round_gid_list, config=config)
 
-            ##################################################################################
-            # Step 8: train SVM ensemble using fresh mined data for each ensemble
+        print('\tGather Predictions')
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
 
-            # Train models, one-by-one
-            for current_ensemble in range(1, ensemble + 1):
-                # Mine for a new set of (static) positives and (random) negatives
-                values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
-                                         reviewed_gid_dict, **kwargs)
-                mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
+        ##################################################################################
+        # Step 8: train SVM ensemble using fresh mined data for each ensemble
 
-                if visualize:
-                    output_visualize_path = join(svm_model_path, 'visualize')
-                    ut.ensuredir(output_visualize_path)
-                    output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
-                    ut.ensuredir(output_visualize_path)
-                    classifier_visualize_training_localizations(ibs, None,
-                                                                output_path=output_visualize_path,
-                                                                values=values)
+        # Train models, one-by-one
+        for current_ensemble in range(1, ensemble + 1):
+            # Mine for a new set of (static) positives and (random) negatives
+            values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
+                                     reviewed_gid_dict, **kwargs)
+            mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
 
+            if visualize:
+                output_visualize_path = join(svm_model_path, 'visualize')
+                ut.ensuredir(output_visualize_path)
+                output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
+                ut.ensuredir(output_visualize_path)
+                classifier_visualize_training_localizations(ibs, None,
+                                                            output_path=output_visualize_path,
+                                                            values=values)
+            if not is_svm_model_trained:
                 # Compile feature data and label list
                 data_list = []
                 label_list = []
