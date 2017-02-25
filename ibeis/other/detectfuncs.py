@@ -2297,99 +2297,97 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
         is_svm_model_trained = exists(svm_model_path)
 
-        VISUALIZE_CATCHUP = False
-        if not is_svm_model_trained or VISUALIZE_CATCHUP:
-            ut.ensuredir(svm_model_path)
+        ut.ensuredir(svm_model_path)
 
-            ##################################################################################
-            # Step 6: gather gt (simulate user interaction)
+        ##################################################################################
+        # Step 6: gather gt (simulate user interaction)
 
-            print('\tGather Ground-Truth')
-            gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
+        print('\tGather Ground-Truth')
+        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
 
-            ##################################################################################
-            # Step 7: gather predictions from all algorithms combined
+        ##################################################################################
+        # Step 7: gather predictions from all algorithms combined
 
+        if not is_svm_model_trained:
+            print('\tDelete Old Classifications')
+            depc.delete_property('localizations_classifier', round_gid_list, config=config)
+
+        print('\tGather Predictions')
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
+
+        ##################################################################################
+        # Step 8: train SVM ensemble using fresh mined data for each ensemble
+
+        # Train models, one-by-one
+        for current_ensemble in range(1, ensemble + 1):
+            # Mine for a new set of (static) positives and (random) negatives
+            values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
+                                     reviewed_gid_dict, **kwargs)
+            mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
+
+            if visualize:
+                output_visualize_path = join(svm_model_path, 'visualize')
+                ut.ensuredir(output_visualize_path)
+                output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
+                ut.ensuredir(output_visualize_path)
+                classifier_visualize_training_localizations(ibs, None,
+                                                            output_path=output_visualize_path,
+                                                            values=values)
+
+            # Get the confidences of the selected positives and negatives
+            pos_conf_list = []
+            neg_conf_list = []
+            for pos in mined_pos_list:
+                pos_conf_list.append(pos['confidence'])
+            for neg in mined_neg_list:
+                neg_conf_list.append(neg['confidence'])
+
+            pos_conf_list = np.array(pos_conf_list)
+            args = (
+                np.min(pos_conf_list),
+                np.mean(pos_conf_list),
+                np.std(pos_conf_list),
+                np.max(pos_conf_list),
+            )
+            print('Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+            neg_conf_list = np.array(neg_conf_list)
+            args = (
+                np.min(neg_conf_list),
+                np.mean(neg_conf_list),
+                np.std(neg_conf_list),
+                np.max(neg_conf_list),
+            )
+            print('Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+
+            # Train new models
             if not is_svm_model_trained:
-                print('\tDelete Old Classifications')
-                depc.delete_property('localizations_classifier', round_gid_list, config=config)
-
-            print('\tGather Predictions')
-            pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
-
-            ##################################################################################
-            # Step 8: train SVM ensemble using fresh mined data for each ensemble
-
-            # Train models, one-by-one
-            for current_ensemble in range(1, ensemble + 1):
-                # Mine for a new set of (static) positives and (random) negatives
-                values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
-                                         reviewed_gid_dict, **kwargs)
-                mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
-
-                if visualize:
-                    output_visualize_path = join(svm_model_path, 'visualize')
-                    ut.ensuredir(output_visualize_path)
-                    output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
-                    ut.ensuredir(output_visualize_path)
-                    classifier_visualize_training_localizations(ibs, None,
-                                                                output_path=output_visualize_path,
-                                                                values=values)
-
-                # Get the confidences of the selected positives and negatives
-                pos_conf_list = []
-                neg_conf_list = []
+                # Compile feature data and label list
+                data_list = []
+                label_list = []
                 for pos in mined_pos_list:
-                    pos_conf_list.append(pos['confidence'])
+                    data_list.append(pos['feature'])
+                    label_list.append(1)
                 for neg in mined_neg_list:
-                    neg_conf_list.append(neg['confidence'])
+                    data_list.append(neg['feature'])
+                    label_list.append(0)
 
-                pos_conf_list = np.array(pos_conf_list)
-                args = (
-                    np.min(pos_conf_list),
-                    np.mean(pos_conf_list),
-                    np.std(pos_conf_list),
-                    np.max(pos_conf_list),
-                )
-                print('Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
-                neg_conf_list = np.array(neg_conf_list)
-                args = (
-                    np.min(neg_conf_list),
-                    np.mean(neg_conf_list),
-                    np.std(neg_conf_list),
-                    np.max(neg_conf_list),
-                )
-                print('Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+                data_list = np.array(data_list)
+                label_list = np.array(label_list)
 
-                # Train new models
-                if not VISUALIZE_CATCHUP:
-                    # Compile feature data and label list
-                    data_list = []
-                    label_list = []
-                    for pos in mined_pos_list:
-                        data_list.append(pos['feature'])
-                        label_list.append(1)
-                    for neg in mined_neg_list:
-                        data_list.append(neg['feature'])
-                        label_list.append(0)
+                print('Train Ensemble SVM (%d)' % (current_ensemble, ))
+                # Train scaler
+                scaler = preprocessing.StandardScaler().fit(data_list)
+                data_list = scaler.transform(data_list)
+                # Train model
+                model = svm.SVC(probability=True)
+                model.fit(data_list, label_list)
 
-                    data_list = np.array(data_list)
-                    label_list = np.array(label_list)
-
-                    print('Train Ensemble SVM (%d)' % (current_ensemble, ))
-                    # Train scaler
-                    scaler = preprocessing.StandardScaler().fit(data_list)
-                    data_list = scaler.transform(data_list)
-                    # Train model
-                    model = svm.SVC(probability=True)
-                    model.fit(data_list, label_list)
-
-                    # Save model pickle
-                    args = (species_list_str, limit, current_ensemble, )
-                    svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
-                    svm_model_filepath = join(svm_model_path, svm_model_filename)
-                    model_tup = (model, scaler, )
-                    ut.save_cPkl(svm_model_filepath, model_tup)
+                # Save model pickle
+                args = (species_list_str, limit, current_ensemble, )
+                svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
+                svm_model_filepath = join(svm_model_path, svm_model_filename)
+                model_tup = (model, scaler, )
+                ut.save_cPkl(svm_model_filepath, model_tup)
 
         ##################################################################################
         # Step 8: update the bootstrapping algorithm to use the new ensemble during
