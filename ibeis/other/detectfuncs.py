@@ -2297,7 +2297,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
         is_svm_model_trained = exists(svm_model_path)
 
-        VISUALIZE_CATCHUP = True
+        VISUALIZE_CATCHUP = False
         if not is_svm_model_trained or VISUALIZE_CATCHUP:
             ut.ensuredir(svm_model_path)
 
