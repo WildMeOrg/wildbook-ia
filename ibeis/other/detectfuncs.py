@@ -1178,7 +1178,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 1',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1193,7 +1193,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 2',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1208,7 +1208,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 3',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1223,7 +1223,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 4',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1238,7 +1238,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 5',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1253,7 +1253,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 6',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1268,7 +1268,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 7',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1283,7 +1283,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 8',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1298,7 +1298,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 9',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
@@ -1313,7 +1313,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'WIC',
+            'label'        : 'LOC-E 10',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'features'     : True,
