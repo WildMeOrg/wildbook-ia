@@ -25,7 +25,7 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
-SAMPLES = 500
+SAMPLES = 50
 
 
 # Must import class before injection
@@ -1185,7 +1185,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1200,7 +1200,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1215,7 +1215,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1230,7 +1230,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1245,7 +1245,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1260,7 +1260,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1275,7 +1275,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1290,7 +1290,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1305,7 +1305,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
@@ -1320,7 +1320,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100/',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100',
             'nms'          : True,
             'nms_thresh'   : 0.25,
             'thresh'       : True,
