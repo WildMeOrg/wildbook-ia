@@ -25,7 +25,7 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
-SAMPLES = 50
+SAMPLES = 100
 
 
 # Must import class before injection
@@ -640,30 +640,30 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     return gt_dict
 
 
-def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_masking=False,
-                       classifier_algo='cnn', classifier_weight_filepath=None, **kwargs):
-    config1 = {
-        'algo': algo,
-        'config_filepath': config_filepath
-    }
-    # config2 = {
-    #     'algo': algo,
-    #     # 'config_filepath': config_filepath,
-    #     'classifier_algo': classifier_algo,
-    #     # 'classifier_masking': classifier_masking,
-    #     'classifier_weight_filepath': classifier_weight_filepath,
-    # }
-    # ut.embed()
-    # depc.delete_property('localizations_classifier', gid_list, config=config)
-    return [
-        depc.get_property('localizations', gid_list, 'score',   config=config1),
-        depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
-        depc.get_property('localizations', gid_list, 'thetas',  config=config1),
-        depc.get_property('localizations', gid_list, 'confs',   config=config1),
-        depc.get_property('localizations', gid_list, 'classes', config=config1),
-        # depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
-        # depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
-    ]
+# def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_masking=False,
+#                        classifier_algo='cnn', classifier_weight_filepath=None, **kwargs):
+#     config1 = {
+#         'algo': algo,
+#         'config_filepath': config_filepath
+#     }
+#     # config2 = {
+#     #     'algo': algo,
+#     #     # 'config_filepath': config_filepath,
+#     #     'classifier_algo': classifier_algo,
+#     #     # 'classifier_masking': classifier_masking,
+#     #     'classifier_weight_filepath': classifier_weight_filepath,
+#     # }
+#     # ut.embed()
+#     # depc.delete_property('localizations_classifier', gid_list, config=config)
+#     return [
+#         depc.get_property('localizations', gid_list, 'score',   config=config1),
+#         depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
+#         depc.get_property('localizations', gid_list, 'thetas',  config=config1),
+#         depc.get_property('localizations', gid_list, 'confs',   config=config1),
+#         depc.get_property('localizations', gid_list, 'classes', config=config1),
+#         # depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
+#         # depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
+#     ]
 
 
 # def _get_all_localizations(depc, gid_list, **kwargs):
@@ -1178,10 +1178,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1193,10 +1193,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1208,10 +1208,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1223,10 +1223,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1238,10 +1238,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1253,10 +1253,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1268,10 +1268,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1283,10 +1283,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1298,10 +1298,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -1328,10 +1328,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
         },
 
         # {'label': 'COMBINED`* 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.5},
