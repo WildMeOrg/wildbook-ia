@@ -2492,7 +2492,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
             xtl = int(xtl * width)
             ytl = int(ytl * height)
             image = image_dict[gid]
-            cv2.rectangle(image, (xtl, ytl), (xbr, xtl), color, 4)
+            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 4)
             # Get chips
             chip = image[ytl: ybr, xtl: xbr, :]
             chip = cv2.resize(chip, (192, 192), **warpkw)
@@ -2541,8 +2541,6 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
                                  reviewed_gid_dict, **kwargs)
 
     mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
-
-    ut.embed()
 
     print('Prepare images')
     # Get images and a dictionary based on their gids
