@@ -2527,7 +2527,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
         # Load data
         print('Loading pre-trained features for filtered localizations')
         train_gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-        train_gid_list = train_gid_list[:50]
+        train_gid_list = train_gid_list[:10]
 
         config = {
             'algo'         : '_COMBINED',
