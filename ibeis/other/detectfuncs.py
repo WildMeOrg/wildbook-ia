@@ -2497,6 +2497,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
             chip = image[ytl: ybr, xtl: xbr, :]
             chip = cv2.resize(chip, (192, 192), **warpkw)
             chip_list.append(chip)
+        return chip_list
 
     def _write_chips(chip_list, output_path_fmt_str):
         for index, chip in enumerate(chip_list):
