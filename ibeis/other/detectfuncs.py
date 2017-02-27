@@ -837,13 +837,20 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         keeps_list = []
         for result_list, confidence_list in zip(results_list, confidences_list):
             bbox_list = result_list[1]
-            score_list = confidence_list.reshape((-1, 1))
-            dets_list = np.hstack((bbox_list, score_list))
-            keep_indices_list = nms(dets_list, nms_thresh)
-            count_old_list.append(len(dets_list))
+            coord_list = []
+            for xtl, ytl, width, height in bbox_list:
+                xbr = xtl + width
+                ybr = ytl + height
+                coord_list.append([xtl, ytl, xbr, ybr])
+            coord_list = np.vstack(coord_list)
+            # score_list = confidence_list.reshape((-1, 1))
+            # dets_list = np.hstack((bbox_list, score_list))
+            ut.embed()
+            keep_indices_list = nms(coord_list, confidence_list, nms_thresh)
+            count_old_list.append(len(coord_list))
             count_new_list.append(len(keep_indices_list))
             keep_indices_set = set(keep_indices_list)
-            keep_list = [ index in keep_indices_set for index in range(len(dets_list)) ]
+            keep_list = [ index in keep_indices_set for index in range(len(coord_list)) ]
             keeps_list.append(keep_list)
         count_old = sum(count_old_list)
         count_old_avg = count_old / len(count_old_list)
@@ -1000,10 +1007,10 @@ def localizer_precision_recall_algo_worker(tup):
     return (conf, pr, re)
 
 
-def nms(dets, thresh, use_cpu=True):
+def nms(dets, scores, thresh, use_cpu=True):
     # Interface into Faster R-CNN's Python native NMS algorithm by Girshick et al.
     from ibeis.algo.detect.nms.py_cpu_nms import py_cpu_nms
-    return py_cpu_nms(dets, thresh)
+    return py_cpu_nms(dets, scores, thresh)
 
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
@@ -1307,9 +1314,9 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90',
             'nms'          : True,
-            'nms_thresh'   : 0.25,
+            # 'nms_thresh'   : 0.25,
             'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'index_thresh' : 0.25,
         },
 
         {
@@ -2607,10 +2614,12 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': classifier_weight_filepath,
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            'thresh'       : True,
-            'index_thresh' : 0.25,
+            # 'nms'          : True,
+            # 'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+            'nms'          : False,
+            'thresh'       : False,
         }
 
         print('\tGather Ground-Truth')
