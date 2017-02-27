@@ -671,8 +671,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         for confidence_list in confidences_list
     ]
 
-    # ut.embed()
-
     # Get features
     if kwargs.get('features', False):
         config_features = {
@@ -756,7 +754,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
             coord_list = np.vstack(coord_list)
             # score_list = confidence_list.reshape((-1, 1))
             # dets_list = np.hstack((bbox_list, score_list))
-            ut.embed()
             keep_indices_list = nms(coord_list, confidence_list, nms_thresh)
             count_old_list.append(len(coord_list))
             count_new_list.append(len(keep_indices_list))
@@ -871,16 +868,6 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=True, **k
                             nTasks=len(conf_list), ordered=True,
                             chunksize=50, force_serial=force_serial)
 
-    # from multiprocessing import Pool
-    # pool = Pool()
-    # try:
-    #     pr_re_gen = pool.map(localizer_precision_recall_algo_worker, arg_iter)
-    # finally:
-    #     pool.close()
-    #     pool.join()
-
-    # ut.embed()
-
     conf_list_ = [-1.0]
     pr_list = [1.0]
     re_list = [0.0]
@@ -972,8 +959,6 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
                 prediction_list.append('negative')
 
             if write_images:
-                # print('Processing gid %r for localizer confusion matrix' % (test_gid, ))
-                # ut.embed()
                 test_image = ibs.get_image_imgdata(test_gid)
                 test_image = _resize(test_image, t_width=600, verbose=False)
                 height_, width_, channels_ = test_image.shape
@@ -2586,136 +2571,6 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
         output_filename = 'localizations_gid_%d.png' % (gid, )
         output_filepath = join(output_path, output_filename)
         cv2.imwrite(output_filepath, image_dict[gid])
-
-
-# @register_ibs_method
-# def classifier_get_training_localizations(ibs, species_list, model_path=None,
-#                                           limit=10, min_overlap=0.75, max_overlap=0.25):
-#     import random  # NOQA
-#     # Get default model file
-#     if model_path is None:
-#         model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
-#     species_list_str = '.'.join(species_list)
-#     model_path = join(model_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
-
-#     # Load model pickle
-#     model_tup = ut.load_cPkl(model_path)
-#     model, scaler = model_tup
-
-#     # Get scores
-#     vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
-#     train_gid_set, data_list, label_list = vals
-#     # Normalize data
-#     data_list = scaler.transform(data_list)
-#     # score_list_ = model.decision_function(data_list)  # NOQA
-#     score_list_ = model.predict_proba(data_list)
-#     score_list_ = score_list_[:, 1]
-
-#     ut.embed()
-
-#     # Extract gids of interest
-#     comb_list = sorted(list(zip(score_list_, train_gid_set)), reverse=True)
-#     comb_list = comb_list[:limit]
-#     test_gid_list = [comb[1] for comb in comb_list]
-
-#     print('\tGather Ground-Truth')
-#     config = {
-#         'algo'         : '_COMBINED',
-#         'species_set'  : set(species_list),
-#         'features'     : True,
-#         # 'features'     : False,
-#         'classify'     : True,
-#         'classifier_algo': 'svm',
-#         'classifier_weight_filepath': None,
-#         'nms'          : True,
-#         'nms_thresh'   : 0.25,
-#         'thresh'       : True,
-#         'index_thresh' : 0.25,
-#     }
-#     gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **config)
-
-#     print('\tGather Predictions')
-#     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **config)
-
-#     pos_list = []
-#     neg_list = []
-#     for image_uuid in gt_dict:
-#         pred_list = pred_dict[image_uuid]
-#         gt_list = gt_dict[image_uuid]
-#         # gt_list_ = [random.choice(gt_list)]
-#         gt_list_ = gt_list
-
-#         overlap = general_overlap(gt_list_, pred_list)
-#         num_gt, num_pred = overlap.shape
-
-#         if num_gt == 0 or num_pred == 0:
-#             continue
-#         else:
-#             pos_idx_list = np.where(overlap >= min_overlap)[1]
-#             neg_idx_list = np.where(overlap <= max_overlap)[1]
-
-#             num_pos = len(pos_idx_list)
-#             num_neg = len(neg_idx_list)
-
-#             # Randomly sample negative chips to get new candidates
-#             # Most of the time (like almost always will happen)
-#             if num_neg > num_pos:
-#                 np.random.shuffle(neg_idx_list)
-#                 neg_idx_list = neg_idx_list[:num_pos]
-
-#             gt_list += gt_list_
-#             pos_list += [pred_list[idx] for idx in pos_idx_list]
-#             neg_list += [pred_list[idx] for idx in neg_idx_list]
-
-#     return test_gid_list, gt_list, pos_list, neg_list
-
-
-# @register_ibs_method
-# def classifier_train_localization_svm(ibs, species_list, output_path=None, limit=10,
-#                                       **kwargs):
-#     from sklearn import svm, preprocessing
-
-#     # Load data
-#     print('Loading pre-trained features for filtered localizations')
-
-#     values = ibs.classifier_get_training_localizations(species_list, limit=limit, **kwargs)
-#     gid_list, gt_list, pos_list, neg_list = values
-
-#     # Compile data and label list
-#     data_list = []
-#     label_list = []
-#     for pos in pos_list:
-#         data_list.append(pos['feature'])
-#         label_list.append(1)
-#     for neg in neg_list:
-#         data_list.append(neg['feature'])
-#         label_list.append(0)
-
-#     data_list = np.array(data_list)
-#     label_list = np.array(label_list)
-
-#     print('Train SVM scaler using features')
-#     # Train new scaler and model using data and labels
-#     scaler = preprocessing.StandardScaler().fit(data_list)
-#     data_list = scaler.transform(data_list)
-#     print('Train SVM model using features and target labels')
-#     model = svm.SVC(probability=True)
-#     model.fit(data_list, label_list)
-
-#     # Save model pickle
-#     if output_path is None:
-#         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
-#     ut.ensuredir(output_path)
-#     species_list_str = '.'.join(species_list)
-#     counter = 1
-#     args = (species_list_str, limit, counter, )
-#     output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.%d.pkl' % args)
-#     while exists(output_filepath):
-#         counter += 1
-#         args = (species_list_str, limit, counter, )
-#         output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.%d.pkl' % args)
-#     model_tup = (model, scaler, )
-#     ut.save_cPkl(output_filepath, model_tup)
 
 
 @register_ibs_method
