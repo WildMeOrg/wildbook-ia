@@ -483,7 +483,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
         >>> config = {'algo': '_COMBINED'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> # depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
     """
