@@ -640,95 +640,6 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     return gt_dict
 
 
-# def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_masking=False,
-#                        classifier_algo='cnn', classifier_weight_filepath=None, **kwargs):
-#     config1 = {
-#         'algo': algo,
-#         'config_filepath': config_filepath
-#     }
-#     # config2 = {
-#     #     'algo': algo,
-#     #     # 'config_filepath': config_filepath,
-#     #     'classifier_algo': classifier_algo,
-#     #     # 'classifier_masking': classifier_masking,
-#     #     'classifier_weight_filepath': classifier_weight_filepath,
-#     # }
-#     # ut.embed()
-#     # depc.delete_property('localizations_classifier', gid_list, config=config)
-#     return [
-#         depc.get_property('localizations', gid_list, 'score',   config=config1),
-#         depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
-#         depc.get_property('localizations', gid_list, 'thetas',  config=config1),
-#         depc.get_property('localizations', gid_list, 'confs',   config=config1),
-#         depc.get_property('localizations', gid_list, 'classes', config=config1),
-#         # depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
-#         # depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
-#     ]
-
-
-# def _get_all_localizations(depc, gid_list, **kwargs):
-
-#     metadata = {}
-
-#     limited = kwargs.get('limited', False)
-
-#     # Get Localizations
-#     if limited:
-#         metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-#     else:
-#         metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
-#         metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-
-#     # metadata['SS1']    = _get_localizations(depc, gid_list, 'selective-search', **kwargs)
-#     # metadata['SS2']    = _get_localizations(depc, gid_list, 'selective-search-rcnn', **kwargs)
-
-#     if limited:
-#         metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-#     else:
-#         metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
-#         metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-
-#     if limited:
-#         metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
-#     else:
-#         metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
-#         metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
-#         metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
-#         metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
-
-#     # Get Combined
-#     metadata['COMBINED'] = []
-#     for key in metadata:
-#         if len(metadata['COMBINED']) == 0:
-#             # Initializing combined list, simply append
-#             metadata['COMBINED'] = list(metadata[key])
-#         else:
-#             # Combined already initialized, hstack new metadata
-#             current = metadata['COMBINED']
-#             detect = metadata[key]
-#             for index in range(len(current)):
-#                 # print(index, current[index].shape, detect[index].shape)
-#                 new = []
-#                 for image in range(len(detect[index])):
-#                     # print(current[index][image].shape, detect[index][image].shape)
-#                     if index == 0:
-#                         temp = 0.0
-#                     elif len(current[index][image].shape) == 1:
-#                         temp = np.hstack((current[index][image], detect[index][image]))
-#                     else:
-#                         temp = np.vstack((current[index][image], detect[index][image]))
-#                     new.append(temp)
-#                 metadata['COMBINED'][index] = np.array(new)
-
-#     metadata['COMBINED'] = [
-#         list(zip(*metadata['COMBINED'][:5])),
-#         # metadata['COMBINED'][5],
-#         # metadata['COMBINED'][6],
-#     ]
-
-#     return metadata
-
-
 def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     depc = ibs.depc_image
 
@@ -2406,9 +2317,9 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         'classifier_algo': 'svm',
         'classifier_weight_filepath': wic_model_filepath,
         'nms'          : True,
-        'nms_thresh'   : 0.25,
-        'thresh'       : True,
-        'index_thresh' : 0.25,
+        'nms_thresh'   : 0.50,
+        # 'thresh'       : True,
+        # 'index_thresh' : 0.25,
     }
     config_list = [config.copy()]
 
@@ -2584,6 +2495,9 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
     def _draw(image_dict, list_, color):
         import cv2
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
+        chip_list = []
         for _ in list_:
             vals = _['gid'], _['xbr'], _['ybr'], _['xtl'], _['ytl']
             gid, xbr, ybr, xtl, ytl = vals
@@ -2592,7 +2506,16 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
             ybr = int(ybr * height)
             xtl = int(xtl * width)
             ytl = int(ytl * height)
-            cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), color, 4)
+            image = image_dict[gid]
+            cv2.rectangle(image, (xtl, ytl), (xbr, xtl), color, 4)
+            # Get chips
+            chip = image[ytl: ybr, xtl: xbr, :]
+            chip = cv2.resize(chip, (192, 192), **warpkw)
+            chip_list.append(chip)
+
+    def _write_chips(chip_list, output_path_fmt_str):
+        for index, chip in enumerate(chip_list):
+            cv2.imwrite(output_path_fmt_str, chip)
 
     # Get output path
     if output_path is None:
@@ -2643,12 +2566,14 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
     # Draw positives
     list_ = mined_pos_list
     color = (0, 255, 0)
-    _draw(image_dict, list_, color)
+    chip_list = _draw(image_dict, list_, color)
+    _write_chips(chip_list, join(output_path, 'chips_pos_%05d.png'))
 
     # Draw negatives
     list_ = mined_neg_list
     color = (0, 0, 255)
-    _draw(image_dict, list_, color)
+    chip_list = _draw(image_dict, list_, color)
+    _write_chips(chip_list, join(output_path, 'chips_neg_%05d.png'))
 
     # Draw positives
     list_ = mined_gt_list

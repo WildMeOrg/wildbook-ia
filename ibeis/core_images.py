@@ -483,7 +483,7 @@ def compute_localizations(depc, gid_list, config=None):
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
         >>> config = {'algo': '_COMBINED'}
-        >>> depc.delete_property('localizations', gid_list, config=config)
+        >>> # depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
     """
@@ -591,7 +591,7 @@ def compute_localizations(depc, gid_list, config=None):
         # Get Combined
         metadata['_COMBINED'] = []
         for key in sorted(metadata.keys()):
-            if key == 'COMBINED':
+            if key == '_COMBINED':
                 continue
             if len(metadata['_COMBINED']) == 0:
                 # Initializing combined list, simply append
