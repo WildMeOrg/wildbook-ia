@@ -2501,7 +2501,7 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
     def _write_chips(chip_list, output_path_fmt_str):
         for index, chip in enumerate(chip_list):
-            cv2.imwrite(output_path_fmt_str, chip)
+            cv2.imwrite(output_path_fmt_str % (index, ), chip)
 
     # Get output path
     if output_path is None:
@@ -2553,13 +2553,17 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
     list_ = mined_pos_list
     color = (0, 255, 0)
     chip_list = _draw(image_dict, list_, color)
-    _write_chips(chip_list, join(output_path, 'chips_pos_%05d.png'))
+    pos_path = join(output_path, 'positives')
+    ut.ensuredir(pos_path)
+    _write_chips(chip_list, join(pos_path, 'chips_pos_%05d.png'))
 
     # Draw negatives
     list_ = mined_neg_list
     color = (0, 0, 255)
     chip_list = _draw(image_dict, list_, color)
-    _write_chips(chip_list, join(output_path, 'chips_neg_%05d.png'))
+    neg_path = join(output_path, 'negatives')
+    ut.ensuredir(neg_path)
+    _write_chips(chip_list, join(neg_path, 'chips_neg_%05d.png'))
 
     # Draw positives
     list_ = mined_gt_list
