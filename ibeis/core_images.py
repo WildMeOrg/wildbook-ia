@@ -591,7 +591,7 @@ def compute_localizations(depc, gid_list, config=None):
         # Get Combined
         metadata['_COMBINED'] = []
         for key in sorted(metadata.keys()):
-            if key == 'COMBINED':
+            if key == '_COMBINED':
                 continue
             if len(metadata['_COMBINED']) == 0:
                 # Initializing combined list, simply append
