@@ -751,12 +751,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         # Alias
         keeps_list = keeps_list_
 
-    # species_set = kwargs.get('species_set', None)
-    size_list = ibs.get_image_sizes(test_gid_list)
-    zipped_list = zip(results_list)
-    # Reformat results for json
-    zipped = zip(confidences_list, keeps_list, features_list, size_list, test_gid_list, zipped_list)
-
     def _compile(confidence_list_, keep_list_, feature_list_, zipped_):
         zipped = zip(confidence_list_, keep_list_, feature_list_, *zipped_[0][1:])
         zipped = list(zipped)
@@ -765,6 +759,11 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         index_list = [ _[1] for _ in temp_list ]
         return ut.take(zipped, index_list)
 
+    # species_set = kwargs.get('species_set', None)
+    size_list = ibs.get_image_sizes(test_gid_list)
+    zipped_list = zip(results_list)
+    # Reformat results for json
+    zipped = zip(confidences_list, keeps_list, features_list, size_list, test_gid_list, zipped_list)
     results_list = [
         [
             {
@@ -816,7 +815,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_iter,
                             nTasks=len(conf_list), ordered=True,
-                            chunksize=10, force_serial=force_serial)
+                            chunksize=50, force_serial=force_serial)
 
     conf_list_ = [-1.0]
     pr_list = [1.0]
@@ -1816,7 +1815,7 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(detector_precision_recall_algo_worker, arg_iter,
                             nTasks=len(conf_list), ordered=True,
-                            chunksize=10, force_serial=force_serial)
+                            chunksize=50, force_serial=force_serial)
 
     conf_list_ = [-1.0]
     pr_list = [1.0]
