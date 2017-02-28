@@ -25,7 +25,7 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
-SAMPLES = 500
+SAMPLES = 1000
 CHUNK_SIZE = SAMPLES // ut.num_cpus()
 FORCE_SERIAL = False
 
