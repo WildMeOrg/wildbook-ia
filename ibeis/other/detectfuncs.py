@@ -373,11 +373,16 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     for conf in conf_list:
         conf_dict[conf] = errors(zipped, conf)
 
-    conf_list_ = [-1.0]
-    pr_list = [1.0]
-    re_list = [0.0]
-    tpr_list = [0.0]
-    fpr_list = [0.0]
+    # conf_list_ = [-1.0]
+    # pr_list = [1.0]
+    # re_list = [0.0]
+    # tpr_list = [0.0]
+    # fpr_list = [0.0]
+    conf_list_ = []
+    pr_list = []
+    re_list = []
+    tpr_list = []
+    fpr_list = []
     for conf in sorted(conf_dict.keys(), reverse=True):
         error_list = conf_dict[conf]
         tp, tn, fp, fn = error_list
@@ -806,9 +811,12 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
                             nTasks=len(conf_list), ordered=True,
                             chunksize=50, force_serial=force_serial)
 
-    conf_list_ = [-1.0]
-    pr_list = [1.0]
-    re_list = [0.0]
+    # conf_list_ = [-1.0]
+    # pr_list = [1.0]
+    # re_list = [0.0]
+    conf_list_ = []
+    pr_list = []
+    re_list = []
     for conf, pr, re in pr_re_gen:
         conf_list_.append(conf)
         pr_list.append(pr)
@@ -964,7 +972,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
-        # {'label': 'SS1', 'algo': 'selective-search', 'grid': False, 'species_set' : species_set},
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
         # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
@@ -978,14 +985,17 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.9, 'classifier_masking': True},
         # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
-        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
-        # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
-        # # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
-        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
-        # # {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
-        # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
-        # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
-        # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+        {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
+        {'label': 'YOLO1', 'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
+        {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
+        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        {'label': 'SSD1', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
+        {'label': 'SSD2', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
+        {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
+        {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1000,11 +1010,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 3 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'},
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
-
-        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
-        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
-        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         # {
         #     'label'        : 'WIC',
@@ -1542,11 +1547,16 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
                 zipped_ = zip(cur_list, new_list)
                 global_conf_dict[conf] = [cur + new for cur, new in zipped_]
 
-    conf_list_ = [-1.0]
-    pr_list = [1.0]
-    re_list = [0.0]
-    tpr_list = [0.0]
-    fpr_list = [0.0]
+    # conf_list_ = [-1.0]
+    # pr_list = [1.0]
+    # re_list = [0.0]
+    # tpr_list = [0.0]
+    # fpr_list = [0.0]
+    conf_list_ = []
+    pr_list = []
+    re_list = []
+    tpr_list = []
+    fpr_list = []
     for conf in sorted(global_conf_dict.keys(), reverse=True):
         error_list = global_conf_dict[conf]
         tp, tn, fp, fn = error_list
@@ -1806,9 +1816,12 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
                             nTasks=len(conf_list), ordered=True,
                             chunksize=50, force_serial=force_serial)
 
-    conf_list_ = [-1.0]
-    pr_list = [1.0]
-    re_list = [0.0]
+    # conf_list_ = [-1.0]
+    # pr_list = [1.0]
+    # re_list = [0.0]
+    conf_list_ = []
+    pr_list = []
+    re_list = []
     for conf, pr, re in pr_re_gen:
         conf_list_.append(conf)
         pr_list.append(pr)
