@@ -26,7 +26,7 @@ from ibeis import annotmatch_funcs  # NOQA
 
 
 SAMPLES = 500
-CHUNK_SIZE = SAMPLES // 8
+CHUNK_SIZE = SAMPLES // ut.num_cpus()
 FORCE_SERIAL = False
 
 # Must import class before injection
