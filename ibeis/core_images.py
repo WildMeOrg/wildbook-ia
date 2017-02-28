@@ -560,6 +560,21 @@ def compute_localizations(depc, gid_list, config=None):
     elif config['algo'] in ['_COMBINED']:
         COMBINED = True
 
+        config_list = [
+            # {'algo': 'selective-search', 'config_filepath': None},                          # SS1
+            {'algo': 'darknet',          'config_filepath': 'pretrained-tiny-pascal'},      # YOLO1
+            {'algo': 'darknet',          'config_filepath': 'pretrained-v2-pascal'},        # YOLO2
+            {'algo': 'faster-rcnn',      'config_filepath': 'pretrained-zf-pascal'},        # FRCNN1
+            {'algo': 'faster-rcnn',      'config_filepath': 'pretrained-vgg-pascal'},       # FRCNN2
+            {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal'},       # SSD1
+            {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal'},       # SSD1
+            {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal-plus'},  # SSD
+            {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal-plus'},  # SSD4
+        ]
+        print(config_list)
+
+        ut.embed()
+
         def _get_localizations(depc, gid_list, algo, config_filepath=None):
             config = {'algo': algo, 'config_filepath': config_filepath}
             return [

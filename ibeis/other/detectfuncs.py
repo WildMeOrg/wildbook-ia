@@ -817,7 +817,10 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     conf_list_ = []
     pr_list = []
     re_list = []
-    for conf, pr, re in pr_re_gen:
+    for values in pr_re_gen:
+        if values is None:
+            continue
+        conf, pr, re = values
         conf_list_.append(conf)
         pr_list.append(pr)
         re_list.append(re)
@@ -846,8 +849,7 @@ def localizer_precision_recall_algo_worker(tup):
         pr = tp / (tp + fp)
         re = tp / (tp + fn)
     except ZeroDivisionError:
-        pr = 1.0
-        re = 0.0
+        return None
     return (conf, pr, re)
 
 
