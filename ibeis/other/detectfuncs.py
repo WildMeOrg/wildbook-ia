@@ -671,8 +671,6 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         for confidence_list in confidences_list
     ]
 
-    ut.embed()
-
     # Get features
     if kwargs.get('features', False):
         config_features = {
@@ -786,6 +784,11 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         ]
         for confidence_list_, keep_list_, feature_list_, (width, height), test_gid, zipped_ in zipped
     ]
+
+    size_list = [ len(_) for _ in results_list]
+    print(sum(size_list) / len(size_list))
+
+    ut.embed()
 
     pred_dict = {
         uuid_ : result_list
