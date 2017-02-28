@@ -629,6 +629,7 @@ def set_image_imgsetids_json(ibs, image_uuid_list, imageset_rowid_list):
 def set_image_imgset_uuids_json(ibs, image_uuid_list, imageset_uuid_list):
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
+    ut.embed()
     return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
 
 
