@@ -2298,6 +2298,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
             depc.delete_property('localizations_classifier', test_gid_list, config=config)
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
+    return
+
     ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
     # The initial classifier is the whole image classifier
