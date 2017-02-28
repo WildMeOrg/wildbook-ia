@@ -503,64 +503,15 @@ def compute_localizations(depc, gid_list, config=None):
             np.array([ _[6]   for _ in temp ]),
         )
 
-    COMBINED = False
     print('[ibs] Preprocess Localizations')
     print('config = %r' % (config,))
     # Get controller
     ibs = depc.controller
     ibs.assert_valid_gids(gid_list)
-    base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
-    # Temporary for all detectors
-    base_key_list[4] = (0.0, )  # Theta
 
-    ######################################################################################
-    if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
-        from ibeis.algo.detect import yolo
-        print('[ibs] detecting using PyDarknet CNN YOLO')
-        detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['rf']:
-        from ibeis.algo.detect import randomforest
-        print('[ibs] detecting using Random Forests')
-        base_key_list[6] = (config['species'], )  # class == species
-        detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['selective-search']:
-        from ibeis.algo.detect import selectivesearch
-        print('[ibs] detecting using Selective Search')
-        matlab_command = 'selective_search'
-        detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
-    ######################################################################################
-    elif config['algo'] in ['selective-search-rcnn']:
-        from ibeis.algo.detect import selectivesearch
-        print('[ibs] detecting using Selective Search (R-CNN)')
-        matlab_command = 'selective_search_rcnn'
-        detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
-    ######################################################################################
-    # elif config['algo'] in ['fast-rcnn']:
-    #     from ibeis.algo.detect import fasterrcnn
-    #     print('[ibs] detecting using CNN Fast R-CNN')
-    #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['faster-rcnn']:
-        from ibeis.algo.detect import fasterrcnn
-        print('[ibs] detecting using CNN Faster R-CNN')
-        detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['darknet']:
-        from ibeis.algo.detect import darknet
-        print('[ibs] detecting using Darknet CNN YOLO')
-        detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['ssd']:
-        from ibeis.algo.detect import ssd
-        print('[ibs] detecting using CNN SSD')
-        detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
-    ######################################################################################
-    elif config['algo'] in ['_COMBINED']:
-        COMBINED = True
-
-        config_list = [
+    if config['algo'] in ['_COMBINED']:
+        # Combined list of algorithm configs
+        config_dict_list = [
             # {'algo': 'selective-search', 'config_filepath': None},                          # SS1
             {'algo': 'darknet',          'config_filepath': 'pretrained-tiny-pascal'},      # YOLO1
             {'algo': 'darknet',          'config_filepath': 'pretrained-v2-pascal'},        # YOLO2
@@ -571,72 +522,80 @@ def compute_localizations(depc, gid_list, config=None):
             {'algo': 'ssd',              'config_filepath': 'pretrained-300-pascal-plus'},  # SSD
             {'algo': 'ssd',              'config_filepath': 'pretrained-512-pascal-plus'},  # SSD4
         ]
-        print(config_list)
 
-        ut.embed()
-
-        def _get_localizations(depc, gid_list, algo, config_filepath=None):
-            config = {'algo': algo, 'config_filepath': config_filepath}
-            return [
-                depc.get_property('localizations', gid_list, 'score',   config=config),
-                depc.get_property('localizations', gid_list, 'bboxes',  config=config),
-                depc.get_property('localizations', gid_list, 'thetas',  config=config),
-                depc.get_property('localizations', gid_list, 'confs',   config=config),
-                depc.get_property('localizations', gid_list, 'classes', config=config),
-            ]
-
-        metadata = {}
-
-        metadata['SS1']     = _get_localizations(depc, gid_list, 'selective-search')
-
-        # Get Localizations
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-        # metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
-        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-
-        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
-        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
-        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
-
-        detect_gen = None
-        # Get Combined
-        metadata['_COMBINED'] = []
-        for key in sorted(metadata.keys()):
-            if key == '_COMBINED':
-                continue
-            if len(metadata['_COMBINED']) == 0:
-                # Initializing combined list, simply append
-                metadata['_COMBINED'] = list(metadata[key])
-            else:
-                # Combined already initialized, hstack new metadata
-                current = metadata['_COMBINED']
-                detect = metadata[key]
-                for index in range(len(current)):
-                    # print(index, current[index].shape, detect[index].shape)
-                    new = []
-                    for image in range(len(detect[index])):
-                        # print(current[index][image].shape, detect[index][image].shape)
-                        if index == 0:
-                            temp = 0.0
-                        elif len(current[index][image].shape) == 1:
-                            temp = np.hstack((current[index][image], detect[index][image]))
-                        else:
-                            temp = np.vstack((current[index][image], detect[index][image]))
-                        new.append(temp)
-                    metadata['_COMBINED'][index] = np.array(new)
-
-        results_list = list(zip(*metadata['_COMBINED']))
-        for results in results_list:
-            yield results
-    # ######################################################################################
+        colname_list = ['score', 'bboxes', 'thetas', 'confs', 'classes']
+        for gid in gid_list:
+            accum_list = []
+            for colname in colname_list:
+                if colname == 'score':
+                    accum_value = 0.0
+                else:
+                    len_list = []
+                    temp_list = []
+                    for config_dict in config_dict_list:
+                        temp = depc.get_property('localizations', gid, colname, config=config_dict)
+                        len_list.append(len(temp))
+                        temp_list.append(temp)
+                    if colname == 'bboxes':
+                        accum_value = np.vstack(temp_list)
+                    else:
+                        accum_value = np.hstack(temp_list)
+                    assert len(accum_value) == sum(len_list)
+                accum_list.append(accum_value)
+            yield tuple(accum_list)
     else:
-        raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
+        # Normal computations
+        base_key_list = ['xtl', 'ytl', 'width', 'height', 'theta', 'confidence', 'class']
+        # Temporary for all detectors
+        base_key_list[4] = (0.0, )  # Theta
 
-    if not COMBINED:
+        ######################################################################################
+        if config['algo'] in ['pydarknet', 'yolo', 'cnn']:
+            from ibeis.algo.detect import yolo
+            print('[ibs] detecting using PyDarknet CNN YOLO')
+            detect_gen = yolo.detect_gid_list(ibs, gid_list, **config)
+        ######################################################################################
+        elif config['algo'] in ['rf']:
+            from ibeis.algo.detect import randomforest
+            print('[ibs] detecting using Random Forests')
+            base_key_list[6] = (config['species'], )  # class == species
+            detect_gen = randomforest.detect_gid_list_with_species(ibs, gid_list, **config)
+        ######################################################################################
+        elif config['algo'] in ['selective-search']:
+            from ibeis.algo.detect import selectivesearch
+            print('[ibs] detecting using Selective Search')
+            matlab_command = 'selective_search'
+            detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
+        ######################################################################################
+        elif config['algo'] in ['selective-search-rcnn']:
+            from ibeis.algo.detect import selectivesearch
+            print('[ibs] detecting using Selective Search (R-CNN)')
+            matlab_command = 'selective_search_rcnn'
+            detect_gen = selectivesearch.detect_gid_list(ibs, gid_list, matlab_command=matlab_command, **config)
+        ######################################################################################
+        # elif config['algo'] in ['fast-rcnn']:
+        #     from ibeis.algo.detect import fasterrcnn
+        #     print('[ibs] detecting using CNN Fast R-CNN')
+        #     detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
+        ######################################################################################
+        elif config['algo'] in ['faster-rcnn']:
+            from ibeis.algo.detect import fasterrcnn
+            print('[ibs] detecting using CNN Faster R-CNN')
+            detect_gen = fasterrcnn.detect_gid_list(ibs, gid_list, **config)
+        ######################################################################################
+        elif config['algo'] in ['darknet']:
+            from ibeis.algo.detect import darknet
+            print('[ibs] detecting using Darknet CNN YOLO')
+            detect_gen = darknet.detect_gid_list(ibs, gid_list, **config)
+        ######################################################################################
+        elif config['algo'] in ['ssd']:
+            from ibeis.algo.detect import ssd
+            print('[ibs] detecting using CNN SSD')
+            detect_gen = ssd.detect_gid_list(ibs, gid_list, **config)
+        # ######################################################################################
+        else:
+            raise ValueError('specified detection algo is not supported in config = %r' % (config, ))
+
         # yield detections
         for gid, gpath, result_list in detect_gen:
             score = 0.0
