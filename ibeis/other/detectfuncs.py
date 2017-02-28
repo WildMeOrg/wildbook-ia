@@ -655,6 +655,10 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
+    if kwargs['algo'] == '_COMBINED':
+        # depc.delete_property('localizations', test_gid_list, config=kwargs)
+        ut.embed()
+
     size_list = ibs.get_image_sizes(test_gid_list)
     bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
     thetas_list = depc.get_property('localizations', test_gid_list, 'thetas',  config=kwargs)
