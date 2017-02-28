@@ -25,8 +25,8 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
-SAMPLES = 500
-
+SAMPLES = 100
+FORCE_SERIAL = False
 
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -845,7 +845,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     return pred_dict
 
 
-def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=True, **kwargs):
+def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERIAL, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
@@ -1063,61 +1063,62 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
-        # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
-        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
-        # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
-
+        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
-        {
-            'label'        : 'WIC',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'WIC ~0.25',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC ~0.25',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'WIC ~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC ~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'WIC ~0.75',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.75,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC ~0.75',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.75,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
+
+        ###################
 
         # {
         #     'label'        : 'LOC-E 1',
@@ -1844,7 +1845,7 @@ def detector_parse_pred(ibs, test_gid_list=None, **kwargs):
     return pred_dict
 
 
-def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=True, **kwargs):
+def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERIAL, **kwargs):
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
