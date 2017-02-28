@@ -232,7 +232,7 @@ def _process_input(multidict=None):
             raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
         # value = str(value[0])
         value = value[0]
-        ut.embed()
+        # ut.embed()
         if ',' in value and '[' not in value and ']' not in value:
             value = '[%s]' % (value, )
         if value in ['True', 'False']:
@@ -241,8 +241,9 @@ def _process_input(multidict=None):
             converted = ut.from_json(value)
         except Exception:
             # try making string and try again...
-            value = '"%s"' % (value, )
-            converted = ut.from_json(value)
+            # value = '"%s"' % (value, )
+            # converted = ut.from_json(value)
+            converted = value
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
             if isinstance(converted, str) and ',' in converted:
                 converted = converted.strip().split(',')
