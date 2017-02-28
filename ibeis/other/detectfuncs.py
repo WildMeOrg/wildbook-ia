@@ -1063,14 +1063,27 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
+        # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         {
             'label'        : 'WIC',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'WIC ~0.25',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
             'classify'     : True,
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
@@ -1081,154 +1094,160 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         },
 
         {
-            'label'        : 'LOC-E 1',
+            'label'        : 'WIC ~0.5',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
             'nms'          : True,
-            'nms_thresh'   : 0.25,
+            'nms_thresh'   : 0.50,
             # 'thresh'       : True,
             # 'index_thresh' : 0.25,
         },
 
         {
-            'label'        : 'LOC-E 2',
+            'label'        : 'WIC ~0.75',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
             'nms'          : True,
-            'nms_thresh'   : 0.25,
+            'nms_thresh'   : 0.75,
             # 'thresh'       : True,
             # 'index_thresh' : 0.25,
         },
 
-        {
-            'label'        : 'LOC-E 3',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 1',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 4',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 2',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 3',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 6',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 4',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 7',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 8',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 6',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 9',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 7',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'LOC-E 10',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'features'     : True,
-            'feature2_algo': 'resnet',
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'LOC-E 8',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
+
+        # {
+        #     'label'        : 'LOC-E 9',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
+
+        # {
+        #     'label'        : 'LOC-E 10',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
         # {'label': 'COMBINED`* 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED`* 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.1},
@@ -2477,9 +2496,19 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
                                                 species_list=['zebra'], scheme=2,
                                                 output_path=None, values=None,
                                                 **kwargs):
-
     def _draw(image_dict, list_, color):
-        import cv2
+        for _ in list_:
+            vals = _['gid'], _['xbr'], _['ybr'], _['xtl'], _['ytl']
+            gid, xbr, ybr, xtl, ytl = vals
+            height, width = image_dict[gid].shape[:2]
+            xbr = int(xbr * width)
+            ybr = int(ybr * height)
+            xtl = int(xtl * width)
+            ytl = int(ytl * height)
+            image = image_dict[gid]
+            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 4)
+
+    def _write_chips(chip_list, output_path_fmt_str):
         interpolation = cv2.INTER_LANCZOS4
         warpkw = dict(interpolation=interpolation)
         chip_list = []
@@ -2492,16 +2521,11 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
             xtl = int(xtl * width)
             ytl = int(ytl * height)
             image = image_dict[gid]
-            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 4)
             # Get chips
             chip = image[ytl: ybr, xtl: xbr, :]
             chip = cv2.resize(chip, (192, 192), **warpkw)
             chip_list.append(chip)
         return chip_list
-
-    def _write_chips(chip_list, output_path_fmt_str):
-        for index, chip in enumerate(chip_list):
-            cv2.imwrite(output_path_fmt_str % (index, ), chip)
 
     # Get output path
     if output_path is None:
