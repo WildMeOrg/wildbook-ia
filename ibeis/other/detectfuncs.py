@@ -434,7 +434,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
     label = '%s [OP = %0.02f]' % (label, best_conf, )
-    linestyle = '--' if kwargs.get('classify', False) else '-'
+    linestyle = '--' if kwargs.get('classify', False) or kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
     plt.plot(best_x_list, best_y_list, color=color, marker='o')
     area = np.trapz(y_list, x=x_list)
@@ -998,7 +998,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
         {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set, 'line_dotted': True},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1255,7 +1255,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     ]
 
-    color_list = pt.distinct_colors(len(config_list), randomize=False)
+    color_list = pt.distinct_colors(len(config_list) - 1, randomize=False)
+    color_list = list(color_list) + ['#333333']
+    ut.embed()
+
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
 
@@ -2298,7 +2301,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
             depc.delete_property('localizations_classifier', test_gid_list, config=config)
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
-    return
+    # return
 
     ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
