@@ -1074,7 +1074,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> graph = depc.make_graph(reduced=ut.get_argflag('--reduced'))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
             >>> #pt.show_nx(ut.nx_transitive_reduction(graph))
@@ -1091,7 +1091,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             >>> graph = depc.make_graph(reduced=True)
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> import networkx as nx
             >>> #pt.show_nx(nx.dag.transitive_closure(graph))
             >>> #pt.show_nx(ut.nx_transitive_reduction(graph))
@@ -1268,7 +1268,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
         import plottool as pt
         graph = depc.make_graph(reduced=reduced)
         if ut.is_developer():
-            ut.ensure_pylab_qt4()
+            ut.ensureqt()
         kwargs['layout'] = 'agraph'
         pt.show_nx(graph, **kwargs)
 

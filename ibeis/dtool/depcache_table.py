@@ -1106,7 +1106,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache2 import * # NOQA
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> depc = testdata_depc3()
             >>> tablename = ut.get_argval('--table', default='vsone')
             >>> table = depc[tablename]
@@ -1130,7 +1130,7 @@ class _TableGeneralHelper(ut.NiceRepr):
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache2 import *  # NOQA
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> depc = testdata_depc3()
             >>> #tablename = 'multitest_score'
             >>> tablename = 'smk_match'

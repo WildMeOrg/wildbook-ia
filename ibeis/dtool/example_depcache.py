@@ -627,7 +627,7 @@ def dummy_example_depcacahe():
     test_getters(depc)
 
     #import plottool as pt
-    # pt.ensure_pylab_qt4()
+    # pt.ensureqt()
 
     graph = depc.make_graph()  # NOQA
     #pt.show_nx(graph)

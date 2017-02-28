@@ -207,7 +207,7 @@ def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
         multi_rowids = (1, 2, 3, 4, 5)
         root_rowids = [[multi_rowids]]
         import plottool as pt
-        pt.ensure_pylab_qt4()
+        pt.ensureqt()
 
         from dtool.depcache_control import *  # NOQA
         from dtool.example_depcache import testdata_depc
@@ -217,7 +217,7 @@ def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
         tablename = 'neighbs'
         table = depc[tablename]  # NOQA
         import plottool as pt
-        pt.ensure_pylab_qt4()
+        pt.ensureqt()
         _debug = depc._debug = True
         depc.get_rowids(tablename, root_rowids, config, _debug=_debug)
 
@@ -249,7 +249,7 @@ def get_rowids(depc, tablename, root_rowids, config=None, ensure=True,
         >>> depc = testdata_depc()
         >>> exec(ut.execstr_funckw(depc.get_rowids), globals())
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> #pt.show_nx(depc.graph)
 
     GridExample0:

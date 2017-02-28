@@ -798,7 +798,7 @@ def get_rootmost_inputs(exi_graph, table):
         >>> from dtool.input_helpers import *  # NOQA
         >>> from dtool.example_depcache2 import *  # NOQA
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> depc = testdata_depc3()
         >>> tablename = 'smk_match'
         >>> table = depc[tablename]

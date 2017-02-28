@@ -410,7 +410,7 @@ class AlgoRequest(BaseRequest, ut.NiceRepr):
             >>> from dtool.depcache_control import *  # NOQA
             >>> from dtool.example_depcache import testdata_depc
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> depc = testdata_depc()
             >>> tablename = 'neighbs'
             >>> tablename = 'multitest_score'
