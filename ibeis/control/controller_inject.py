@@ -569,8 +569,11 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
-                        ut.embed()
-                        kwargs4 = _process_input(flask.request.get_json())
+                        try:
+                            # kwargs4 = _process_input(flask.request.get_json())
+                            kwargs4 = ut.from_json(flask.request.data)
+                        except:
+                            kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
                         kwargs.update(kwargs4)
@@ -697,7 +700,11 @@ def get_ibeis_flask_route(__name__):
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
-                        kwargs4 = _process_input(flask.request.get_json())
+                        try:
+                            # kwargs4 = _process_input(flask.request.get_json())
+                            kwargs4 = ut.from_json(flask.request.data)
+                        except:
+                            kwargs4 = {}
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
                         kwargs.update(kwargs4)
