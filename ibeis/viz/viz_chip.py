@@ -8,6 +8,46 @@ from ibeis.viz import viz_image
 (print,  rrr, profile) = ut.inject2(__name__, '[viz_chip]')
 
 
+def HARDCODE_SHOW_PB_PAIR():
+    """
+    python -m ibeis.viz.viz_chip HARDCODE_SHOW_PB_PAIR --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.viz.viz_chip import *  # NOQA
+        >>> import plottool as pt
+        >>> HARDCODE_SHOW_PB_PAIR()
+        >>> pt.show_if_requested()
+    """
+    # TODO: generalize into testdata_annotmatches which filters ams propertly
+    # Then a function to show these ams
+    import ibeis
+    import ibeis.viz
+    has_any = ut.get_argval('--has_any', default=['photobomb'])
+    index = ut.get_argval('--index', default=0)
+
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    ams = ibs._get_all_annotmatch_rowids()
+    tags = ibs.get_annotmatch_case_tags(ams)
+    flags = ut.filterflags_general_tags(tags, has_any=has_any)
+    selected_ams = ut.compress(ams, flags)
+    aid_pairs = ibs.get_annotmatch_aids(selected_ams)
+    aid1, aid2 = aid_pairs[index]
+    import plottool as pt
+    fnum = 1
+    if ut.get_argflag('--match'):
+        request = ibs.depc_annot.new_request('vsone', [aid1], [aid2])
+        res_list2 = request.execute()
+        match = res_list2[0]
+        match.show_single_annotmatch(qreq_=request, vert=False,
+                                     colorbar_=False, notitle=True,
+                                     draw_lbl=False, draw_border=False)
+    else:
+        chip1, chip2 = ibs.get_annot_chips([aid1, aid2])
+        pt.imshow(chip1, pnum=(1, 2, 1), fnum=fnum)
+        pt.imshow(chip2, pnum=(1, 2, 2), fnum=fnum)
+
+
 def testdata_showchip():
     import ibeis
     ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -31,7 +71,7 @@ def testdata_showchip():
     return ibs, aid_list, kwargs, config2_
 
 
-def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None):
+def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None, vert=True):
     r"""
     CommandLine:
         python -m ibeis.viz.viz_chip --test-show_many_chips
@@ -53,7 +93,7 @@ def show_many_chips(ibs, aid_list, config2_=None, fnum=None, pnum=None):
     in_image = False
     chip_list = vh.get_chips(ibs, aid_list, in_image=in_image, config2_=config2_)
     import vtool as vt
-    stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True)
+    stacked_chips = vt.stack_image_recurse(chip_list, modifysize=True, vert=vert)
     pt.imshow(stacked_chips, fnum=None, pnum=None)
 
 

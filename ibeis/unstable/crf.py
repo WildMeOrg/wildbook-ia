@@ -51,7 +51,7 @@ def crftest():
     if False:
         import vtool as vt
         import plottool as pt
-        pt.ensure_pylab_qt4()
+        pt.ensureqt()
         xdata = np.linspace(0, 100, 1000)
         tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
         fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
