@@ -128,7 +128,7 @@ if DOELSE:
     from plottool import interact_matches
     from plottool import nx_helpers
     from plottool.plot_helpers import (SIFT_OR_VECFIELD, del_plotdat, draw,
-                                       ensure_pylab_qt4, get_bbox_centers,
+                                       ensureqt, get_bbox_centers,
                                        get_plotdat, get_plotdat_dict,
                                        get_square_row_cols, kp_info, qt4ensure,
                                        set_plotdat,)

@@ -159,7 +159,7 @@ def qtensure():
             IPython.get_ipython().magic('pylab qt4 --no-import-all')
 
 
-ensure_pylab_qt4 = qt4ensure
+ensureqt = qt4ensure
 
 #==========================#
 #  --- TESTING FUNCS ---   #
