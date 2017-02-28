@@ -26,7 +26,7 @@ from ibeis import annotmatch_funcs  # NOQA
 
 
 SAMPLES = 500
-CHUNK_SIZE = SAMPLES // 8
+CHUNK_SIZE = SAMPLES // ut.num_cpus()
 FORCE_SERIAL = False
 
 # Must import class before injection
@@ -2297,6 +2297,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
         if not is_wic_model_trained:
             depc.delete_property('localizations_classifier', test_gid_list, config=config)
         depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
+    return
 
     ######################################################################################
     # Step 3: for each bootstrapping round, ask user for input
