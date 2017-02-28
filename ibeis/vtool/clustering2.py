@@ -1452,7 +1452,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         >>> import networkx as nx
         >>> import plottool as pt
         >>> rng = np.random.RandomState(443284320)
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> #
         >>> def make_test_costmatrix(name_labels, view_labels, separation=2):
         >>>     is_same = name_labels == name_labels[:, None]
@@ -1559,7 +1559,7 @@ def unsupervised_multicut_labeling(cost_matrix, thresh=0):
         var_indicies = np.array([varx1, varx2])
         gm.addFactor(potts_func_id, var_indicies)
 
-    #pt.ensure_pylab_qt4()
+    #pt.ensureqt()
     #opengm.visualizeGm(gm=gm)
 
     # Not sure what parameters are allowed to be passed here.

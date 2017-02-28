@@ -338,7 +338,7 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             >>> exec(ut.execstr_dict(locals_))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
-            >>> pt.ensure_pylab_qt4()
+            >>> pt.ensureqt()
             >>> #pt.plot(xdata[0:-2], np.diff(np.diff(closeness)))
             >>> #maxima_x, maxima_y, argmaxima = vt.hist_argmaxima(closeness)
             >>> fnum = 100

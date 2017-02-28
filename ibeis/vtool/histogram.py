@@ -226,7 +226,7 @@ def interpolate_submaxima(argmaxima, hist_, centers=None):
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> pt.figure(fnum=pt.ensure_fnum(None))
         >>> pt.plot(centers, hist_, '-')
         >>> pt.plot(centers[argmaxima], hist_[argmaxima], 'o', label='argmaxima')

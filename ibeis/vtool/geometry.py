@@ -228,7 +228,7 @@ def closest_point_on_line_segment(p, e1, e2):
         >>> p_list = rng.rand(64, 2) * 20 + 5
         >>> close_pts = np.array([closest_point_on_vert_segments(p, verts) for p in p_list])
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
         >>> for x, y in list(zip(p_list, close_pts)):
@@ -295,7 +295,7 @@ def closest_point_on_line(p, e1, e2):
         >>>     close_pts.append(candidates[dists.argmin()])
         >>> close_pts = np.array(close_pts)
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> pt.plt.plot(p_list.T[0], p_list.T[1], 'ro', label='original point')
         >>> pt.plt.plot(close_pts.T[0], close_pts.T[1], 'rx', label='closest point on shape')
         >>> for x, y in list(zip(p_list, close_pts)):

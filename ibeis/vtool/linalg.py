@@ -253,7 +253,7 @@ def affine_around_mat3x3(x, y, sx=1.0, sy=1.0, theta=0.0, shear=0.0, tx=0.0,
         >>>                            tx, ty, x2, y2)
         >>> trans_pts = vt.transform_points_with_homography(Aff, orig_pts.T).T
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> pt.plt.plot(x, y, 'bx', label='center')
         >>> pt.plt.plot(orig_pts.T[0], orig_pts.T[1], 'b-', label='original')
         >>> pt.plt.plot(trans_pts.T[0], trans_pts.T[1], 'r-', label='transformed')
