@@ -232,6 +232,7 @@ def _process_input(multidict=None):
             raise WebException('Cannot specify a parameter more than once: %r' % (arg, ))
         # value = str(value[0])
         value = value[0]
+        ut.embed()
         if ',' in value and '[' not in value and ']' not in value:
             value = '[%s]' % (value, )
         if value in ['True', 'False']:

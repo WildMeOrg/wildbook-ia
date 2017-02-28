@@ -998,7 +998,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
         {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set, 'line_dotted': True},
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
