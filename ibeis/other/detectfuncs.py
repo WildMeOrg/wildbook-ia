@@ -576,9 +576,9 @@ def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
             tp = len(assignment_dict.keys())
         if check_species or check_viewpoint:
             for gt, pred in assignment_dict.items():
-                # print(gt_list[gt]['species'], pred_list[pred]['species'])
+                # print(gt_list[gt]['class'], pred_list[pred]['class'])
                 # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
-                if gt_list[gt]['species'] != pred_list[pred]['species']:
+                if gt_list[gt]['class'] != pred_list[pred]['class']:
                     tp -= 1
                 elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
                     tp -= 1
@@ -631,7 +631,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
-                'species'    : ibs.get_annot_species_texts(aid),
+                'class'      : ibs.get_annot_species_texts(aid),
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
@@ -643,47 +643,36 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
 def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     depc = ibs.depc_image
 
+    if 'feature2_algo' not in kwargs:
+        kwargs['feature2_algo'] = 'resnet'
+
     if test_gid_list is None:
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    # # Get bounding boxes
-    # if kwargs.get('algo', None) == '_COMBINED':
-    #     metadata = _get_all_localizations(depc, test_gid_list, **kwargs)
-    #     results_list = metadata['COMBINED'][0]
-    # else:
-    #     results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
+    size_list = ibs.get_image_sizes(test_gid_list)
+    bboxes_list = depc.get_property('localizations', test_gid_list, 'bboxes',  config=kwargs)
+    thetas_list = depc.get_property('localizations', test_gid_list, 'thetas',  config=kwargs)
+    confss_list = depc.get_property('localizations', test_gid_list, 'confs',   config=kwargs)
+    classs_list = depc.get_property('localizations', test_gid_list, 'classes', config=kwargs)
 
-    results_list = depc.get_property('localizations', test_gid_list, None,
-                                     config=kwargs)
+    length_list = [ len(bbox_list) for bbox_list in bboxes_list ]
 
     # Establish primitives
-    confidences_list = [
-        result_list[3]
-        for result_list in results_list
-    ]
-    keeps_list = [
-        [True] * len(confidence_list)
-        for confidence_list in confidences_list
-    ]
-    features_list = [
-        [None] * len(confidence_list)
-        for confidence_list in confidences_list
-    ]
+    test_gids_list = [ [test_gid] * length for test_gid, length in zip(test_gid_list, length_list) ]
+    sizes_list = [ [size] * length for size, length in zip(size_list, length_list) ]
+    keeps_list = [ [True] * length for length in length_list ]
+    features_list = [ [True] * length for length in length_list ]
 
     # Get features
     if kwargs.get('features', False):
-        config_features = {
-            'algo': kwargs.get('algo', None),
-            'config_filepath': kwargs.get('config_filepath', None),
-            'feature2_algo': 'resnet'
-        }
         features_list = depc.get_property('localizations_features', test_gid_list,
-                                          'vector', config=config_features)
+                                          'vector', config=kwargs)
 
-    # Get new confidences for boxes
+    # Get updated confidences for boxes
     if kwargs.get('classify', False):
-        confidences_list = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
+        confss_list = depc.get_property('localizations_classifier', test_gid_list,
+                                        'score', config=kwargs)
 
     # Apply NMS
     if kwargs.get('nms', False):
@@ -692,22 +681,24 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         count_old_list = []
         count_new_list = []
         keeps_list = []
-        for result_list, confidence_list in zip(results_list, confidences_list):
-            bbox_list = result_list[1]
+        for bbox_list, confs_list in zip(bboxes_list, confss_list):
+            # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
             coord_list = []
             for xtl, ytl, width, height in bbox_list:
                 xbr = xtl + width
                 ybr = ytl + height
                 coord_list.append([xtl, ytl, xbr, ybr])
             coord_list = np.vstack(coord_list)
-            # score_list = confidence_list.reshape((-1, 1))
-            # dets_list = np.hstack((bbox_list, score_list))
-            keep_indices_list = nms(coord_list, confidence_list, nms_thresh)
+            # Perform NMS
+            keep_indices_list = nms(coord_list, confs_list, nms_thresh)
+            # Analytics
             count_old_list.append(len(coord_list))
             count_new_list.append(len(keep_indices_list))
             keep_indices_set = set(keep_indices_list)
+            # Keep track of which indices to keep
             keep_list = [ index in keep_indices_set for index in range(len(coord_list)) ]
             keeps_list.append(keep_list)
+        # Print analytics
         count_old = sum(count_old_list)
         count_old_avg = count_old / len(count_old_list)
         count_new = sum(count_new_list)
@@ -727,41 +718,43 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         count_old_list = []
         count_new_list = []
         keeps_list_ = []
-        for confidence_list, keep_list in zip(confidences_list, keeps_list):
-            temp_list = []
-            count_old_list.append(keep_list.count(True))
-            zipped = list(zip(confidence_list, keep_list))
+        for confs_list, keep_list in zip(confss_list, keeps_list):
+            # Find percentage threshold for this image
             index_thresh_ = int(len(keep_list) * index_thresh)
+            # Analytics
+            count_old_list.append(keep_list.count(True))
+            temp_list = []
+            zipped = list(zip(confs_list, keep_list))
             for index, (conf, keep) in enumerate(sorted(zipped, reverse=True)):
                 keep = keep and conf >= conf_thresh and index < index_thresh_
                 temp_list.append(keep)
-            count_new_list.append(temp_list.count(True))
             keeps_list_.append(temp_list)
+            # Analytics
+            count_new_list.append(temp_list.count(True))
+        keeps_list = keeps_list_
+        # Print analytics
         count_old = sum(count_old_list)
         count_old_avg = count_old / len(count_old_list)
         count_new = sum(count_new_list)
         count_new_avg = count_new / len(count_new_list)
         count_diff = count_old - count_new
         args = (count_old, count_new, count_diff, 100.0 * count_diff / count_old, )
-        print('[nms] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
+        print('[thresh] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
         args = (count_old_avg, count_new_avg, )
-        print('[nms] %0.02f old avg. -> %0.02f new avg.' % args)
+        print('[thresh] %0.02f old avg. -> %0.02f new avg.' % args)
         # Alias
-        keeps_list = keeps_list_
 
-    def _compile(confidence_list_, keep_list_, feature_list_, zipped_):
-        zipped = zip(confidence_list_, keep_list_, feature_list_, *zipped_[0][1:])
-        zipped = list(zipped)
-        temp_list = [ (_[0], index) for index, _ in enumerate(zipped) ]
-        temp_list = sorted(temp_list, reverse=True)
-        index_list = [ _[1] for _ in temp_list ]
-        return ut.take(zipped, index_list)
-
-    # species_set = kwargs.get('species_set', None)
-    size_list = ibs.get_image_sizes(test_gid_list)
-    zipped_list = zip(results_list)
     # Reformat results for json
-    zipped = zip(confidences_list, keeps_list, features_list, size_list, test_gid_list, zipped_list)
+    zipped_list_list = zip(
+        keeps_list,
+        test_gids_list,
+        sizes_list,
+        bboxes_list,
+        thetas_list,
+        confss_list,
+        classs_list,
+        features_list
+    )
     results_list = [
         [
             {
@@ -772,23 +765,16 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
                 'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
-                'theta'      : theta,  # round(theta, 4),
-                'confidence' : conf_,   # round(conf, 4),
-                # 'class'      : class_,
-                'species'    : class_,
-                'feature'    : feature_,
+                'theta'      : theta,
+                'confidence' : conf,
+                'class'      : class_,
+                'feature'    : feature,
             }
-            for conf_, keep_, feature_, bbox, theta, conf, class_ in _compile(confidence_list_, keep_list_, feature_list_, zipped_)
+            for keep_, test_gid, (width, height), bbox, theta, conf, class_, feature in zip(*zipped_list)
             if keep_
-            # if species_set is None or class_ in species_set
         ]
-        for confidence_list_, keep_list_, feature_list_, (width, height), test_gid, zipped_ in zipped
+        for zipped_list in zipped_list_list
     ]
-
-    size_list = [ len(_) for _ in results_list]
-    print(sum(size_list) / len(size_list))
-
-    ut.embed()
 
     pred_dict = {
         uuid_ : result_list
@@ -1612,7 +1598,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
         for species, yaw in zip(species_list, yaw_list)
     ]
     conf_list = depc.get_property('labeler', aid_list, 'score')
-    species_list = depc.get_property('labeler', aid_list, 'species')
+    species_list = depc.get_property('labeler', aid_list, 'class')
     yaw_list = depc.get_property('labeler', aid_list, 'viewpoint')
     prediction_list = [
         '%s:%s' % (species, yaw, ) if species in category_list else 'ignore'
@@ -1750,7 +1736,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'ybr'        : (bbox[1] + bbox[3]) / height,
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
-                'species'    : ibs.get_annot_species_texts(aid),
+                'class'      : ibs.get_annot_species_texts(aid),
                 'viewpoint'  : ibs.get_annot_yaw_texts(aid),
                 'confidence' : 1.0,
             }
@@ -1781,10 +1767,10 @@ def detector_parse_pred(ibs, test_gid_list=None, **kwargs):
                 'height'     : bbox[3] / height,
                 'theta'      : theta,  # round(theta, 4),
                 'confidence' : conf,   # round(conf, 4),
-                'species'    : species_,
+                'class'      : class_,
                 'viewpoint'  : viewpoint,
             }
-            for bbox, theta, species_, viewpoint, conf in zip(*zipped[0][1:])
+            for bbox, theta, class_, viewpoint, conf in zip(*zipped[0][1:])
         ]
         for zipped, (width, height), test_gid in zip(zipped_list, size_list, test_gid_list)
     ]
