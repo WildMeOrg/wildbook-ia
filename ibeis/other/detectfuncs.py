@@ -671,6 +671,8 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         for confidence_list in confidences_list
     ]
 
+    ut.embed()
+
     # Get features
     if kwargs.get('features', False):
         config_features = {
@@ -683,59 +685,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
     # Get new confidences for boxes
     if kwargs.get('classify', False):
-
-        def _compute_conf(conf, pred_, conf_, MIN_CONF=0.0, MAX_CONF=1.0):
-            # Normalize conf_
-            # if True:
-            #     # print(conf_, MIN_CONF, MAX_CONF)
-            #     conf_ = (conf_ - MIN_CONF) / (MAX_CONF - MIN_CONF)
-            # else:
-            #     conf_ = conf_ if pred_ == 'positive' else 1.0 - conf_
-            # conf_ = min(MAX_CONF, max(MIN_CONF, conf_))
-            assert MIN_CONF <= conf_ and conf_ <= MAX_CONF
-            # Combine
-            p = kwargs.get('p', None)
-            if p is None:
-                val = conf_
-            elif p == 'mult':
-                val = conf_ * conf
-            else:
-                val = p * conf_ + (1.0 - p) * conf
-            # val = min(MAX_CONF, max(MIN_CONF, val))
-            assert MIN_CONF <= val and val <= MAX_CONF
-            return val
-
-        # Get the new confidences
-        # if kwargs.get('algo', None) == '_COMBINED':
-        #     # metadata = _get_all_localizations(depc, test_gid_list)  # ALREADY HAVE METADATA
-        #     predictions_list_ = metadata['COMBINED'][1]
-        #     confidences_list_ = metadata['COMBINED'][2]
-        # else:
-        #     predictions_list_ = depc.get_property('localizations_classifier', test_gid_list, 'class', config=kwargs)
-        #     confidences_list_ = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
-        predictions_list_ = depc.get_property('localizations_classifier', test_gid_list, 'class', config=kwargs)
-        confidences_list_ = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
-        # Compute new confidences
-        zipped = zip(confidences_list, predictions_list_, confidences_list_)
-        # temp_list = np.hstack([np.array(_) for _ in confidences_list_])
-        # MIN_CONF = np.min(temp_list)
-        # MAX_CONF = np.max(temp_list)
-        # print('Found MIN_CONF: %0.02f - MAX_CONF: %0.02f' % (MIN_CONF, MAX_CONF, ))
-        # # Threshold +/- 25% from 0
-        # # DOMAIN_CONF = MAX_CONF - MIN_CONF
-        # # OFFSET_CONF = DOMAIN_CONF * 0.25
-        # MIN_CONF *= 0.75
-        # MAX_CONF *= 0.75
-        # assert MIN_CONF < 0.0 and 0.0 < MAX_CONF, 'confidence range is invalid'
-        # print('Using MIN_CONF: %0.02f - MAX_CONF: %0.02f' % (MIN_CONF, MAX_CONF, ))
-        MIN_CONF = 0.0
-        MAX_CONF = 1.0
-        confidences_list = [
-            np.array([
-                _compute_conf(confidence, prediction_, confidence_, MIN_CONF, MAX_CONF)
-                for confidence, prediction_, confidence_ in zip(confidence_list, prediction_list_, confidence_list_)
-            ]) for confidence_list, prediction_list_, confidence_list_ in zipped
-        ]
+        confidences_list = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
 
     # Apply NMS
     if kwargs.get('nms', False):
@@ -866,7 +816,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_iter,
                             nTasks=len(conf_list), ordered=True,
-                            chunksize=50, force_serial=force_serial)
+                            chunksize=10, force_serial=force_serial)
 
     conf_list_ = [-1.0]
     pr_list = [1.0]
@@ -1866,7 +1816,7 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(detector_precision_recall_algo_worker, arg_iter,
                             nTasks=len(conf_list), ordered=True,
-                            chunksize=50, force_serial=force_serial)
+                            chunksize=10, force_serial=force_serial)
 
     conf_list_ = [-1.0]
     pr_list = [1.0]
