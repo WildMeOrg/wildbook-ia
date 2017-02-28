@@ -25,7 +25,7 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
-SAMPLES = 100
+SAMPLES = 500
 
 
 # Must import class before injection
