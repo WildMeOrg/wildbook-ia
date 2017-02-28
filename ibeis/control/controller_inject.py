@@ -240,12 +240,8 @@ def _process_input(multidict=None):
             converted = ut.from_json(value)
         except Exception:
             # try making string and try again...
-            ut.embed()
-            if '__UUID__' in value:
-                value = '"%s"' % (value, )
-                converted = ut.from_json(value)
-            else:
-                converted = value
+            value = '"%s"' % (value, )
+            converted = ut.from_json(value)
         if arg.endswith('_list') and not isinstance(converted, (list, tuple)):
             if isinstance(converted, str) and ',' in converted:
                 converted = converted.strip().split(',')
@@ -573,6 +569,7 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
                         # Pipe web input into Python web call
                         kwargs2 = _process_input(flask.request.args)
                         kwargs3 = _process_input(flask.request.form)
+                        ut.embed()
                         kwargs4 = _process_input(flask.request.get_json())
                         kwargs.update(kwargs2)
                         kwargs.update(kwargs3)
