@@ -1243,7 +1243,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         >>> #print(score_list1)
         >>> #assert np.all(score_list1 == score_list2)
         >>> ut.quit_if_noshow()
-        >>> ut.ensure_pylab_qt4()
+        >>> ut.ensureqt()
         >>> match = res_list2[0]
         >>> match.print_inspect_str(request)
         >>> #match.show_analysis(qreq_=request)
@@ -1365,7 +1365,7 @@ def compute_one_vs_one(depc, qaids, daids, config):
         match.set_cannonical_name_score([score], [score])
 
         if False:
-            ut.ensure_pylab_qt4()
+            ut.ensureqt()
             ibs, depc, aid_list = testdata_core(size=3)
             request = depc.new_request('vsone', aid_list, aid_list, {'dim_size': 450})
             match.ishow_analysis(request)

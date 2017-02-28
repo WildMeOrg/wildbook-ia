@@ -670,7 +670,7 @@ def testdata_nnindexer(dbname='testdb1', with_indexer=True, use_memcache=True):
         >>> nnindexer, qreq_, ibs = testdata_nnindexer('PZ_Master1')
         >>> S = np.cov(nnindexer.idx2_vec.T)
         >>> import plottool as pt
-        >>> pt.ensure_pylab_qt4()
+        >>> pt.ensureqt()
         >>> pt.plt.imshow(S)
 
     Example:

@@ -611,7 +611,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
 #         >>> ibs, aids = ibeis.testdata_aids('wd_peter2', 'timectrl:pername=2,view=left,view_ext=0,exclude_reference=True')
 #         >>> ibs, aids = ibeis.testdata_aids('PZ_MTEST', 'timectrl:pername=4,view=left,view_ext=0,exclude_reference=True')
 #     """
-#     ut.ensure_pylab_qt4()
+#     ut.ensureqt()
 
 #     # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=False))
 #     # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict())
@@ -722,7 +722,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
 #     fnum = 1
 #     #_pnumiter = pt.make_pnum_nextgen(nSubplots=score_mat.size)
 #     nRows, nCols = pt.get_square_row_cols(score_mat.size, fix=True)
-#     ut.ensure_pylab_qt4()
+#     ut.ensureqt()
 #     inter = ExpandableInteraction(fnum, nRows=nRows, nCols=nCols)
 
 #     # Show matches in off-diagonal

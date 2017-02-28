@@ -4,7 +4,7 @@ import utool as ut
 import plottool as pt
 import plottool.plot_helpers as ph
 from ibeis.viz import viz_helpers as vh
-(print, rrr, profile) = ut.inject2(__name__, '[viz_matches]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def _get_annot_pair_info(ibs, aid1, aid2, qreq_, draw_fmatches, **kwargs):

@@ -17,7 +17,7 @@ def multidb_montage():
     import plottool as pt
     import vtool as vt
     import numpy as np
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     ibs1 = ibeis.opendb('PZ_MTEST')
     ibs2 = ibeis.opendb('GZ_ALL')
     ibs3 = ibeis.opendb('GIRM_Master1')
@@ -77,7 +77,7 @@ def double_depcache_graph():
     import ibeis
     import networkx as nx
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     # pt.plt.xkcd()
     ibs = ibeis.opendb('testdb1')
     reduced = True
@@ -218,7 +218,7 @@ def general_identify_flow():
     """
     import networkx as nx
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     # pt.plt.xkcd()
 
     graph = nx.DiGraph()
@@ -380,7 +380,7 @@ def graphcut_flow():
         >>> ut.show_if_requested()
     """
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     import networkx as nx
     # pt.plt.xkcd()
 
@@ -513,7 +513,7 @@ def merge_viewpoint_graph():
         [backright[0], right_aids[0]][::-1],
         [backleft[0], left_aids[0]][::-1],
     ])
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     graph = graph = view_graph  # NOQA
     #graph = graph.to_undirected()
 
@@ -581,7 +581,7 @@ def setcover_example():
     import plottool as pt
     from ibeis.viz import viz_graph
     import networkx as nx
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     ibs = ibeis.opendb(defaultdb='testdb2')
 
     if False:
@@ -682,7 +682,7 @@ def intraoccurrence_connected():
     import plottool as pt
     from ibeis.viz import viz_graph
     import networkx as nx
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     ibs = ibeis.opendb(defaultdb='PZ_Master1')
     nid2_aid = {
         #4880: [3690, 3696, 3703, 3706, 3712, 3721],
@@ -1048,7 +1048,7 @@ def event_space():
     plt.show()
 
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     from matplotlib_subsets import treesets_rectangles
     tree = (
         (120, 'Same', None), [
