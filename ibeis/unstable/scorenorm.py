@@ -65,7 +65,7 @@ def compare_score_pdfs(testres):
     #from ibeis.init import main_helpers
     import utool as ut
     #import plottool as pt
-    ut.ensure_pylab_qt4()
+    ut.ensureqt()
 
     testres.draw_annot_scoresep(f='fail=False')
     #pt.adjust_subplots(bottom=.25, top=.8)

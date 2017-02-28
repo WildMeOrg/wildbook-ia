@@ -204,7 +204,7 @@ def classify_k(cfg={}):
 def show_toy_distributions(toy_params):
     import vtool as vt
     import plottool as pt
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     xdata = np.linspace(0, 8, 1000)
     tp_pdf = vt.gauss_func1d(xdata, **toy_params[True])
     fp_pdf = vt.gauss_func1d(xdata, **toy_params[False])
@@ -572,7 +572,7 @@ def learn_prob_score(num_scores=5, pad=55, ret_enc=False, use_cache=None):
 
     if False:
         import plottool as pt
-        pt.ensure_pylab_qt4()
+        pt.ensureqt()
         encoder.visualize()
         #show_toy_distributions()
 

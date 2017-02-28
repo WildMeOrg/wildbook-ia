@@ -147,7 +147,7 @@ def show_top_featmatches(qreq_, cm_list):
     data_lists = vt.multigroup_lookup(annots, [aid1s, aid2s], fms.T, extract_patches)
 
     import plottool as pt  # NOQA
-    pt.ensure_pylab_qt4()
+    pt.ensureqt()
     import ibeis_cnn
     inter = ibeis_cnn.draw_results.interact_patches(
         label_lists, data_lists, flat_metadata_top, chunck_sizes=(2, 4),
