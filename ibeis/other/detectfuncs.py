@@ -26,6 +26,7 @@ from ibeis import annotmatch_funcs  # NOQA
 
 
 SAMPLES = 100
+CHUNK_SIZE = 25
 FORCE_SERIAL = False
 
 # Must import class before injection
@@ -813,7 +814,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SER
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(localizer_precision_recall_algo_worker, arg_iter,
                             nTasks=len(conf_list), ordered=True,
-                            chunksize=50, force_serial=force_serial)
+                            chunksize=CHUNK_SIZE, force_serial=force_serial)
 
     # conf_list_ = [-1.0]
     # pr_list = [1.0]
@@ -991,7 +992,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.9, 'classifier_masking': True},
         # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
-        {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
+        # {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
         {'label': 'YOLO1', 'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
         {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
         {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
@@ -1820,7 +1821,7 @@ def detector_precision_recall_algo(ibs, samples=SAMPLES, force_serial=FORCE_SERI
     arg_iter = zip(conf_list, uuid_list_list, gt_dict_list, pred_dict_list, kwargs_list)
     pr_re_gen = ut.generate(detector_precision_recall_algo_worker, arg_iter,
                             nTasks=len(conf_list), ordered=True,
-                            chunksize=50, force_serial=force_serial)
+                            chunksize=CHUNK_SIZE, force_serial=force_serial)
 
     # conf_list_ = [-1.0]
     # pr_list = [1.0]
