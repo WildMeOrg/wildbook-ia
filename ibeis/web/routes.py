@@ -43,7 +43,13 @@ GLOBAL_FEEDBACK_CONFIG_DICT = {
 
 @register_route('/', methods=['GET'])
 def root(**kwargs):
-    return appf.template(None)
+    ibs = current_app.ibs
+
+    dbname = ibs.dbname
+    dbdir = ibs.dbdir
+
+    embedded = dict(globals(), **locals())
+    return appf.template(None, **embedded)
 
 
 @register_route('/view/', methods=['GET'])

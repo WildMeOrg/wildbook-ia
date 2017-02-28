@@ -25,7 +25,7 @@ from ibeis import annotmatch_funcs  # NOQA
 (print, rrr, profile) = ut.inject2(__name__, '[other.detectfuncs]')
 
 
-SAMPLES = 1000
+SAMPLES = 100
 
 
 # Must import class before injection
@@ -624,6 +624,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
+                'gid'        : gid,
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
                 'xbr'        : (bbox[0] + bbox[2]) / width,
@@ -639,85 +640,6 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
     return gt_dict
 
 
-def _get_localizations(depc, gid_list, algo, config_filepath=None, classifier_masking=False, **kwargs):
-    config1 = {'algo': algo, 'config_filepath': config_filepath}
-    config2 = {'algo': algo, 'config_filepath': config_filepath, 'classifier_masking': classifier_masking}
-    # depc.delete_property('localizations_classifier', gid_list, config=config)
-    return [
-        depc.get_property('localizations', gid_list, 'score',   config=config1),
-        depc.get_property('localizations', gid_list, 'bboxes',  config=config1),
-        depc.get_property('localizations', gid_list, 'thetas',  config=config1),
-        depc.get_property('localizations', gid_list, 'confs',   config=config1),
-        depc.get_property('localizations', gid_list, 'classes', config=config1),
-        depc.get_property('localizations_classifier', gid_list, 'class', config=config2),
-        depc.get_property('localizations_classifier', gid_list, 'score', config=config2),
-    ]
-
-
-def _get_all_localizations(depc, gid_list, **kwargs):
-
-    metadata = {}
-
-    limited = kwargs.get('limited', False)
-
-    # Get Localizations
-    if limited:
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-    else:
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
-
-    # metadata['SS1']    = _get_localizations(depc, gid_list, 'selective-search', **kwargs)
-    # metadata['SS2']    = _get_localizations(depc, gid_list, 'selective-search-rcnn', **kwargs)
-
-    if limited:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-    else:
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
-
-    if limited:
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
-    else:
-        metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
-        metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
-        metadata['SSD3']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal-plus')
-        metadata['SSD4']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal-plus')
-
-    # Get Combined
-    metadata['COMBINED'] = []
-    for key in metadata:
-        if len(metadata['COMBINED']) == 0:
-            # Initializing combined list, simply append
-            metadata['COMBINED'] = list(metadata[key])
-        else:
-            # Combined already initialized, hstack new metadata
-            current = metadata['COMBINED']
-            detect = metadata[key]
-            for index in range(len(current)):
-                # print(index, current[index].shape, detect[index].shape)
-                new = []
-                for image in range(len(detect[index])):
-                    # print(current[index][image].shape, detect[index][image].shape)
-                    if index == 0:
-                        temp = 0.0
-                    elif len(current[index][image].shape) == 1:
-                        temp = np.hstack((current[index][image], detect[index][image]))
-                    else:
-                        temp = np.vstack((current[index][image], detect[index][image]))
-                    new.append(temp)
-                metadata['COMBINED'][index] = np.array(new)
-
-    metadata['COMBINED'] = [
-        list(zip(*metadata['COMBINED'][:5])),
-        metadata['COMBINED'][5],
-        metadata['COMBINED'][6],
-    ]
-
-    return metadata
-
-
 def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     depc = ibs.depc_image
 
@@ -725,12 +647,15 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     uuid_list = ibs.get_image_uuids(test_gid_list)
 
-    # Get bounding boxes
-    if kwargs.get('algo', None) == '_COMBINED':
-        metadata = _get_all_localizations(depc, test_gid_list, **kwargs)
-        results_list = metadata['COMBINED'][0]
-    else:
-        results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
+    # # Get bounding boxes
+    # if kwargs.get('algo', None) == '_COMBINED':
+    #     metadata = _get_all_localizations(depc, test_gid_list, **kwargs)
+    #     results_list = metadata['COMBINED'][0]
+    # else:
+    #     results_list = depc.get_property('localizations', test_gid_list, None, config=kwargs)
+
+    results_list = depc.get_property('localizations', test_gid_list, None,
+                                     config=kwargs)
 
     # Establish primitives
     confidences_list = [
@@ -748,38 +673,66 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
     # Get features
     if kwargs.get('features', False):
-        algo = kwargs.get('algo', None)
-        config_filepath = kwargs.get('config_filepath', None)
-        config_ = {'algo': algo, 'config_filepath': config_filepath, 'feature2_algo': 'resnet'}
-        features_list = depc.get_property('localizations_features', test_gid_list, 'vector', config=config_)
+        config_features = {
+            'algo': kwargs.get('algo', None),
+            'config_filepath': kwargs.get('config_filepath', None),
+            'feature2_algo': 'resnet'
+        }
+        features_list = depc.get_property('localizations_features', test_gid_list,
+                                          'vector', config=config_features)
 
     # Get new confidences for boxes
     if kwargs.get('classify', False):
 
-        def _compute_conf(conf, pred_, conf_):
-            conf_ = conf_ if pred_ == 'positive' else 1.0 - conf_
+        def _compute_conf(conf, pred_, conf_, MIN_CONF=0.0, MAX_CONF=1.0):
+            # Normalize conf_
+            # if True:
+            #     # print(conf_, MIN_CONF, MAX_CONF)
+            #     conf_ = (conf_ - MIN_CONF) / (MAX_CONF - MIN_CONF)
+            # else:
+            #     conf_ = conf_ if pred_ == 'positive' else 1.0 - conf_
+            # conf_ = min(MAX_CONF, max(MIN_CONF, conf_))
+            assert MIN_CONF <= conf_ and conf_ <= MAX_CONF
+            # Combine
             p = kwargs.get('p', None)
             if p is None:
-                conf_ = max(0.0, conf_)
+                val = conf_
+            elif p == 'mult':
                 val = conf_ * conf
             else:
                 val = p * conf_ + (1.0 - p) * conf
-            val = min(1.0, max(0.0, val))
+            # val = min(MAX_CONF, max(MIN_CONF, val))
+            assert MIN_CONF <= val and val <= MAX_CONF
             return val
 
         # Get the new confidences
-        if kwargs.get('algo', None) == '_COMBINED':
-            # metadata = _get_all_localizations(depc, test_gid_list)  # ALREADY HAVE METADATA
-            predictions_list_ = metadata['COMBINED'][1]
-            confidences_list_ = metadata['COMBINED'][2]
-        else:
-            predictions_list_ = depc.get_property('localizations_classifier', test_gid_list, 'class', config=kwargs)
-            confidences_list_ = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
+        # if kwargs.get('algo', None) == '_COMBINED':
+        #     # metadata = _get_all_localizations(depc, test_gid_list)  # ALREADY HAVE METADATA
+        #     predictions_list_ = metadata['COMBINED'][1]
+        #     confidences_list_ = metadata['COMBINED'][2]
+        # else:
+        #     predictions_list_ = depc.get_property('localizations_classifier', test_gid_list, 'class', config=kwargs)
+        #     confidences_list_ = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
+        predictions_list_ = depc.get_property('localizations_classifier', test_gid_list, 'class', config=kwargs)
+        confidences_list_ = depc.get_property('localizations_classifier', test_gid_list, 'score', config=kwargs)
         # Compute new confidences
         zipped = zip(confidences_list, predictions_list_, confidences_list_)
+        # temp_list = np.hstack([np.array(_) for _ in confidences_list_])
+        # MIN_CONF = np.min(temp_list)
+        # MAX_CONF = np.max(temp_list)
+        # print('Found MIN_CONF: %0.02f - MAX_CONF: %0.02f' % (MIN_CONF, MAX_CONF, ))
+        # # Threshold +/- 25% from 0
+        # # DOMAIN_CONF = MAX_CONF - MIN_CONF
+        # # OFFSET_CONF = DOMAIN_CONF * 0.25
+        # MIN_CONF *= 0.75
+        # MAX_CONF *= 0.75
+        # assert MIN_CONF < 0.0 and 0.0 < MAX_CONF, 'confidence range is invalid'
+        # print('Using MIN_CONF: %0.02f - MAX_CONF: %0.02f' % (MIN_CONF, MAX_CONF, ))
+        MIN_CONF = 0.0
+        MAX_CONF = 1.0
         confidences_list = [
             np.array([
-                _compute_conf(confidence, prediction_, confidence_ )
+                _compute_conf(confidence, prediction_, confidence_, MIN_CONF, MAX_CONF)
                 for confidence, prediction_, confidence_ in zip(confidence_list, prediction_list_, confidence_list_)
             ]) for confidence_list, prediction_list_, confidence_list_ in zipped
         ]
@@ -788,44 +741,63 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     if kwargs.get('nms', False):
         nms_thresh = kwargs.get('nms_thresh', 0.2)
         print('Filtering with nms_thresh = %0.02f' % (nms_thresh, ))
-        count_old = 0
-        count_new = 0
+        count_old_list = []
+        count_new_list = []
         keeps_list = []
         for result_list, confidence_list in zip(results_list, confidences_list):
             bbox_list = result_list[1]
-            score_list = confidence_list.reshape((-1, 1))
-            dets_list = np.hstack((bbox_list, score_list))
-            keep_indices_list = nms(dets_list, nms_thresh)
-            count_old += len(dets_list)
-            count_new += len(keep_indices_list)
+            coord_list = []
+            for xtl, ytl, width, height in bbox_list:
+                xbr = xtl + width
+                ybr = ytl + height
+                coord_list.append([xtl, ytl, xbr, ybr])
+            coord_list = np.vstack(coord_list)
+            # score_list = confidence_list.reshape((-1, 1))
+            # dets_list = np.hstack((bbox_list, score_list))
+            keep_indices_list = nms(coord_list, confidence_list, nms_thresh)
+            count_old_list.append(len(coord_list))
+            count_new_list.append(len(keep_indices_list))
             keep_indices_set = set(keep_indices_list)
-            keep_list = [ index in keep_indices_set for index in range(len(dets_list)) ]
+            keep_list = [ index in keep_indices_set for index in range(len(coord_list)) ]
             keeps_list.append(keep_list)
+        count_old = sum(count_old_list)
+        count_old_avg = count_old / len(count_old_list)
+        count_new = sum(count_new_list)
+        count_new_avg = count_new / len(count_new_list)
         count_diff = count_old - count_new
         args = (count_old, count_new, count_diff, 100.0 * count_diff / count_old, )
         print('[nms] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
+        args = (count_old_avg, count_new_avg, )
+        print('[nms] %0.02f old avg. -> %0.02f new avg.' % args)
 
     # Filter by confidence or index
     if kwargs.get('thresh', False):
         conf_thresh = kwargs.get('conf_thresh', 0.0)
-        index_thresh = kwargs.get('index_thresh', np.inf)
+        index_thresh = kwargs.get('index_thresh', 1.0)
         print('Filtering with conf_thresh = %0.02f' % (conf_thresh, ))
         print('Filtering with index_thresh = %s' % (index_thresh, ))
-        count_old = 0
-        count_new = 0
+        count_old_list = []
+        count_new_list = []
         keeps_list_ = []
         for confidence_list, keep_list in zip(confidences_list, keeps_list):
             temp_list = []
-            count_old += keep_list.count(True)
+            count_old_list.append(keep_list.count(True))
             zipped = list(zip(confidence_list, keep_list))
+            index_thresh_ = int(len(keep_list) * index_thresh)
             for index, (conf, keep) in enumerate(sorted(zipped, reverse=True)):
-                keep = keep and conf >= conf_thresh and index < index_thresh
+                keep = keep and conf >= conf_thresh and index < index_thresh_
                 temp_list.append(keep)
-            count_new += temp_list.count(True)
+            count_new_list.append(temp_list.count(True))
             keeps_list_.append(temp_list)
+        count_old = sum(count_old_list)
+        count_old_avg = count_old / len(count_old_list)
+        count_new = sum(count_new_list)
+        count_new_avg = count_new / len(count_new_list)
         count_diff = count_old - count_new
         args = (count_old, count_new, count_diff, 100.0 * count_diff / count_old, )
-        print('[thresh] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
+        print('[nms] %d old -> %d new (%d, %0.02f%% suppressed)' % args)
+        args = (count_old_avg, count_new_avg, )
+        print('[nms] %0.02f old avg. -> %0.02f new avg.' % args)
         # Alias
         keeps_list = keeps_list_
 
@@ -910,6 +882,7 @@ def localizer_precision_recall_algo(ibs, samples=SAMPLES, force_serial=True, **k
 
 def localizer_precision_recall_algo_worker(tup):
     conf, uuid_list, gt_dict, pred_dict, kwargs = tup
+    # print('Started %s' % (conf, ))
     tp, fp, fn = 0.0, 0.0, 0.0
     for index, uuid_ in enumerate(uuid_list):
         if uuid_ in pred_dict:
@@ -932,10 +905,10 @@ def localizer_precision_recall_algo_worker(tup):
     return (conf, pr, re)
 
 
-def nms(dets, thresh, use_cpu=True):
+def nms(dets, scores, thresh, use_cpu=True):
     # Interface into Faster R-CNN's Python native NMS algorithm by Girshick et al.
     from ibeis.algo.detect.nms.py_cpu_nms import py_cpu_nms
-    return py_cpu_nms(dets, thresh)
+    return py_cpu_nms(dets, scores, thresh)
 
 
 def localizer_precision_recall_algo_plot(ibs, **kwargs):
@@ -986,8 +959,6 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
                 prediction_list.append('negative')
 
             if write_images:
-                # print('Processing gid %r for localizer confusion matrix' % (test_gid, ))
-                # ut.embed()
                 test_image = ibs.get_image_imgdata(test_gid)
                 test_image = _resize(test_image, t_width=600, verbose=False)
                 height_, width_, channels_ = test_image.shape
@@ -1038,10 +1009,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    # species_set = set(['zebra'])
+    species_set = set(['zebra'])
     # species_set = set(['giraffe'])
     # species_set = set(['elephant'])
-    species_set = None
+    # species_set = None
 
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -1069,36 +1040,208 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'YOLO1^ 0.9', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 0.9, 'classifier_masking': True},
         # {'label': 'YOLO1^ 1.0', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True, 'p': 1.0, 'classifier_masking': True},
 
-        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
-        {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set},
-        # # {'label': 'YOLO3', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
-        {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
-        # # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
+        # # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
+        # {'label': 'YOLO2', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        # # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
+        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
         # # {'label': 'SSD1', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
         # # {'label': 'SSD2', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
         # # {'label': 'SSD3', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
-        {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+        # {'label': 'SSD4', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        # {'label': 'COMBINED` 1000', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 1000},
-        # {'label': 'COMBINED` 500', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED` 100', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 100},
-        # {'label': 'COMBINED` 50', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 50},
-        # {'label': 'COMBINED` 10', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 10},
+        # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
+        # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
+        # {'label': 'COMBINED` 0.05', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.05},
+        # {'label': 'COMBINED` 0.01', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.01},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
+        # {'label': 'COMBINED 0', 'algo': '_COMBINED', 'species_set' : species_set},
+        # {'label': 'COMBINED 2 None', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': None, 'classifier_algo': 'svm', 'classifier_weight_filepath': None},
+        # {'label': 'COMBINED 3 None', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': None, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'},
+        # {'label': 'COMBINED 4 None', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': None, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
+        # {'label': 'COMBINED 2 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': None},
+        # {'label': 'COMBINED 3 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'},
+        # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
+        # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
+
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
-        # {'label': 'COMBINED`* 1000', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 1000},
-        # {'label': 'COMBINED`* 500', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`* 100', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 100},
-        # {'label': 'COMBINED`* 50', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 50},
-        # {'label': 'COMBINED`* 10', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 10},
+        {
+            'label'        : 'WIC',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 1',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 2',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 3',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 4',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.40',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 5',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.50',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 6',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.60',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 7',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.70',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 8',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.80',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 9',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.90',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        {
+            'label'        : 'LOC-E 10',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.100',
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        },
+
+        # {'label': 'COMBINED`* 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.5},
+        # {'label': 'COMBINED`* 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.1},
+        # {'label': 'COMBINED`* 0.05', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.05},
+        # {'label': 'COMBINED`* 0.01', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.01},
         # {'label': 'COMBINED*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
 
-        # {'label': 'COMBINED`5* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`10* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 1000},
+        # {'label': 'COMBINED`0.1* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.1},
+        # {'label': 'COMBINED`0.5* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.5},
 
-        # {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 500},
-        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 500},
+        # {'label': 'COMBINED` ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.1},
+        # {'label': 'COMBINED`*', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'thresh': True, 'index_thresh': 0.1},
+        # {'label': 'COMBINED`', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
 
         # {'label': 'COMBINED* ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True, 'nms': True, 'nms_thresh': 0.1},
         # {'label': 'COMBINED ~0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1},
@@ -1115,11 +1258,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED ~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.5},
         # {'label': 'COMBINED ~0.9', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.9},
 
-        # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
-        # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-large-pascal', 'species_set' : species_set, 'classify': True},
-        # # {'label': 'YOLO3*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set, 'classify': True},
-        # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set, 'classify': True},
-        # # {'label': 'FRCNN2*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'YOLO1*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'YOLO2*', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set, 'classify': True},
+        # # {'label': 'FRCNN1*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set, 'classify': True},
+        # {'label': 'FRCNN2*', 'algo': 'faster-rcnn', 'grid': False, 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set, 'classify': True},
         # # {'label': 'SSD1*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set, 'classify': True},
         # # {'label': 'SSD2*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set, 'classify': True},
         # # {'label': 'SSD3*', 'algo': 'ssd', 'grid': False, 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set, 'classify': True},
@@ -1629,6 +1771,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
         for aid in aid_list:
             bbox = ibs.get_annot_bboxes(aid)
             temp = {
+                'gid'        : gid,
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
                 'xbr'        : (bbox[0] + bbox[2]) / width,
@@ -1659,6 +1802,7 @@ def detector_parse_pred(ibs, test_gid_list=None, **kwargs):
     results_list = [
         [
             {
+                'gid'        : test_gid,
                 'xtl'        : bbox[0] / width,
                 'ytl'        : bbox[1] / height,
                 'width'      : bbox[2] / width,
@@ -1670,7 +1814,7 @@ def detector_parse_pred(ibs, test_gid_list=None, **kwargs):
             }
             for bbox, theta, species_, viewpoint, conf in zip(*zipped[0][1:])
         ]
-        for zipped, (width, height) in zip(zipped_list, size_list)
+        for zipped, (width, height), test_gid in zip(zipped_list, size_list, test_gid_list)
     ]
 
     pred_dict = {
@@ -1959,19 +2103,11 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 
 @register_ibs_method
-def classifier_train_image_svm(ibs, species_list, output_path=None):
-    from sklearn import svm
+def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False):
+    from sklearn import svm, preprocessing
 
     # Load data
     print('Loading pre-trained features for images')
-
-    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
-    train_gid_set, data_list, label_list = vals
-
-    print('Train SVM model using features and target labels')
-    # Train new model using data and labels
-    model = svm.SVC()
-    model.fit(data_list, label_list)
 
     # Save model pickle
     if output_path is None:
@@ -1979,87 +2115,100 @@ def classifier_train_image_svm(ibs, species_list, output_path=None):
     ut.ensuredir(output_path)
     species_list_str = '.'.join(species_list)
     output_filepath = join(output_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
-    ut.save_cPkl(output_filepath, model)
 
-    # Load model pickle
-    model_ = ut.load_cPkl(output_filepath)
+    if not dryrun:
+        vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
+        train_gid_set, data_list, label_list = vals
 
-    # Test accuracy
-    vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
-    train_gid_set, data_list, label_list = vals
-    label_list_ = model_.predict(data_list)
-    score_list_ = model_.decision_function(data_list)  # NOQA
-    tp, tn, fp, fn = 0, 0, 0, 0
-    for label_, label in zip(label_list_, label_list):
-        if label == 1 and label == label_:
-            tp += 1
-        elif label == 0 and label == label_:
-            tn += 1
-        elif label == 1 and label != label_:
-            fn += 1
-        elif label == 0 and label != label_:
-            fp += 1
-        else:
-            raise ValueError
+        print('Train SVM scaler using features')
+        # Train new scaler and model using data and labels
+        scaler = preprocessing.StandardScaler().fit(data_list)
+        data_list = scaler.transform(data_list)
+        print('Train SVM model using features and target labels')
+        model = svm.SVC(probability=True)
+        model.fit(data_list, label_list)
 
-    pos, neg = tp + fn, tn + fp
-    correct = tp + tn
-    total = tp + tn + fp + fn
-    accuracy = correct / total
-    print('Accuracy: %0.02f' % (accuracy, ))
-    print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
-    print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
-    print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
-    print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+        model_tup = (model, scaler, )
+        ut.save_cPkl(output_filepath, model_tup)
+
+        # Load model pickle
+        model_tup_ = ut.load_cPkl(output_filepath)
+        model_, scaler_ = model_tup_
+
+        # Test accuracy
+        vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
+        train_gid_set, data_list, label_list = vals
+        # Normalize data
+        data_list = scaler_.transform(data_list)
+        label_list_ = model_.predict(data_list)
+        # score_list_ = model_.decision_function(data_list)  # NOQA
+        score_list_ = model_.predict_proba(data_list)  # NOQA
+        tp, tn, fp, fn = 0, 0, 0, 0
+        for label_, label in zip(label_list_, label_list):
+            if label == 1 and label == label_:
+                tp += 1
+            elif label == 0 and label == label_:
+                tn += 1
+            elif label == 1 and label != label_:
+                fn += 1
+            elif label == 0 and label != label_:
+                fp += 1
+            else:
+                raise ValueError
+
+        pos, neg = tp + fn, tn + fp
+        correct = tp + tn
+        total = tp + tn + fp + fn
+        accuracy = correct / total
+        print('Accuracy: %0.02f' % (accuracy, ))
+        print('\t TP: % 4d (%0.02f %%)' % (tp, tp / pos, ))
+        print('\t FN: % 4d (%0.02f %%)' % (fn, fn / neg, ))
+        print('\t TN: % 4d (%0.02f %%)' % (tn, tn / neg, ))
+        print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
+
+    return output_filepath
 
 
-@register_ibs_method
-def classifier_get_training_localizations(ibs, species_list, model_path=None,
-                                          limit=10, min_overlap=0.5):
+def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
+                    min_overlap=0.75, max_overlap=0.25):
     import random
-    # Get default model file
-    if model_path is None:
-        model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
-    species_list_str = '.'.join(species_list)
-    model_path = join(model_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
-
-    # Load model pickle
-    model = ut.load_cPkl(model_path)
-
-    # Get scores
-    vals = get_classifier_svm_data_labels(ibs, 'TEST_SET', species_list)
-    train_gid_set, data_list, label_list = vals
-    score_list_ = model.decision_function(data_list)  # NOQA
-
-    # Extract gids of interest
-    comb_list = sorted(list(zip(score_list_, train_gid_set)), reverse=True)
-    comb_list = comb_list[:limit]
-    test_gid_list = [_[1] for _ in comb_list]
-
-    print('\tGather Ground-Truth')
-    config = {
-        'algo'         : '_COMBINED',
-        'species_set'  : set(species_list),
-        'features'     : True,
-        # 'features'     : False,
-        'classify'     : True,
-        'nms'          : True,
-        'nms_thresh'   : 0.1,
-        'thresh'       : True,
-        'index_thresh' : 500,
-    }
-    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **config)
-
-    print('\tGather Predictions')
-    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **config)
-
-    pos_list = []
-    neg_list = []
+    ##################################################################################
+    # Step 7.5: gather SVM training data from overlap images
+    #           note that this step randomly subsamples new negatives, so
+    #           each SVM in the ensemble is given a different set of negatives
+    mined_gid_list = []
+    mined_gt_list = []
+    mined_pos_list = []
+    mined_neg_list = []
     for image_uuid in gt_dict:
+        # print('--- Processing user interaction for image %r' % (image_uuid, ))
+        # Get the gt and prediction list
         gt_list = gt_dict[image_uuid]
-        gt_list_ = [random.choice(gt_list)]
         pred_list = pred_dict[image_uuid]
 
+        # If never seen this image before, pick a new selection of GT bboxes
+        image_gid = ibs.get_image_gids_from_uuid(image_uuid)
+        if image_gid not in reviewed_gid_dict:
+            # Simulate the user selecting the gt bounding box(es)
+            index_list = list(range(len(gt_list)))
+            if scheme == 1:
+                # Pick a random bbox
+                index_list_ = [random.choice(index_list)]
+            elif scheme == 2:
+                # Pick all gt boxes
+                index_list_ = index_list[:]
+            else:
+                raise ValueError
+            reviewed_gid_dict[image_gid] = index_list_
+
+        # Filter based on picked bboxes for gt
+        picked_index_list = reviewed_gid_dict[image_gid]
+        gt_list_ = [
+            gt_list[picked_index]
+            for picked_index in picked_index_list
+        ]
+
+        # Calculate overlap
         overlap = general_overlap(gt_list_, pred_list)
         num_gt, num_pred = overlap.shape
 
@@ -2067,7 +2216,7 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
             continue
         else:
             pos_idx_list = np.where(overlap >= min_overlap)[1]
-            neg_idx_list = np.where(overlap < min_overlap)[1]
+            neg_idx_list = np.where(overlap <= max_overlap)[1]
 
             num_pos = len(pos_idx_list)
             num_neg = len(neg_idx_list)
@@ -2078,18 +2227,262 @@ def classifier_get_training_localizations(ibs, species_list, model_path=None,
                 np.random.shuffle(neg_idx_list)
                 neg_idx_list = neg_idx_list[:num_pos]
 
-            pos_list += [pred_list[idx] for idx in pos_idx_list]
-            neg_list += [pred_list[idx] for idx in neg_idx_list]
+            mined_gid_list.append(image_gid)
+            mined_gt_list += gt_list_
+            mined_pos_list += [pred_list[idx] for idx in pos_idx_list]
+            mined_neg_list += [pred_list[idx] for idx in neg_idx_list]
 
-    return test_gid_list, pos_list, neg_list
+    args = (len(mined_pos_list), len(mined_neg_list), len(mined_gid_list), )
+    print('Mined %d positive, %d negative from %d images' % args)
+
+    return mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list
 
 
 @register_ibs_method
-def classifier_visualize_training_localizations(ibs, species_list, output_path=None, limit=10,
+def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
+              output_path=None, precompute=True, precompute_test=True,
+              recompute=False, visualize=True, **kwargs):
+    from sklearn import svm, preprocessing
+
+    # Establish variables
+
+    species_list_str = '.'.join(species_list)
+    assert scheme in [1, 2], 'Invalid scheme'
+    if output_path is None:
+        # species_list_str = '+'.join(species_list)
+        # args = (N, rounds, scheme, species_list_str, )
+        # output_path_ = 'models-bootstrap-%s-%s-%s-%s' % args
+        output_path_ = 'models-bootstrap'
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', output_path_)))
+    print('Using output_path = %r' % (output_path, ))
+    if recompute:
+        ut.delete(output_path)
+    ut.ensuredir(output_path)
+
+    # Get the test images for later
+    depc = ibs.depc_image
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+
+    wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path, dryrun=True)
+    is_wic_model_trained = exists(wic_model_filepath)
+    ######################################################################################
+    # Step 1: train whole-image classifier
+    #         this will compute and cache any ResNet features that
+    #         haven't been computed
+    if not is_wic_model_trained:
+        wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
+
+    # Load model pickle
+    model_tup = ut.load_cPkl(wic_model_filepath)
+    model, scaler = model_tup
+
+    ######################################################################################
+    # Step 2: sort all test images based on whole image classifier
+    #         establish a review ordering based on classification probability
+
+    # Get scores
+    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
+    train_gid_set, data_list, label_list = vals
+    # Normalize data
+    data_list = scaler.transform(data_list)
+    # score_list_ = model.decision_function(data_list)  # NOQA
+    score_list_ = model.predict_proba(data_list)
+    score_list_ = score_list_[:, 1]
+
+    # Sort gids by scores (initial ranking)
+    comb_list = sorted(list(zip(score_list_, train_gid_set)), reverse=True)
+    sorted_gid_list = [comb[1] for comb in comb_list]
+
+    config = {
+        'algo'         : '_COMBINED',
+        'species_set'  : set(species_list),
+        'features'     : True,
+        'feature2_algo': 'resnet',
+        'classify'     : True,
+        'classifier_algo': 'svm',
+        'classifier_weight_filepath': wic_model_filepath,
+        'nms'          : True,
+        'nms_thresh'   : 0.50,
+        # 'thresh'       : True,
+        # 'index_thresh' : 0.25,
+    }
+    config_list = [config.copy()]
+
+    ######################################################################################
+    # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
+    #
+    if precompute:
+        needed = N * rounds
+        needed = min(needed, len(sorted_gid_list))
+        sorted_gid_list_ = sorted_gid_list[:needed]
+        depc.get_rowids('localizations_features', sorted_gid_list_, config=config)
+
+    # Precompute test features
+    if precompute and precompute_test:
+        # depc.get_rowids('localizations_features', test_gid_list, config=config)
+        if not is_wic_model_trained:
+            depc.delete_property('localizations_classifier', test_gid_list, config=config)
+        depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
+    ######################################################################################
+    # Step 3: for each bootstrapping round, ask user for input
+    # The initial classifier is the whole image classifier
+
+    reviewed_gid_dict = {}
+    for current_round in range(rounds):
+        print('------------------------------------------------------')
+        print('Current Round %r' % (current_round, ))
+
+        ##################################################################################
+        # Step 4: gather the (unreviewed) images to review for this round
+        round_gid_list = []
+        temp_index = 0
+        while len(round_gid_list) < N and temp_index < len(sorted_gid_list):
+            temp_gid = sorted_gid_list[temp_index]
+            if temp_gid not in reviewed_gid_dict:
+                round_gid_list.append(temp_gid)
+            temp_index += 1
+
+        args = (len(round_gid_list), round_gid_list, )
+        print('Found %d unreviewed gids: %r' % args)
+
+        ##################################################################################
+        # Step 5: add any images reviewed from a previous round
+
+        reviewed_gid_list = reviewed_gid_dict.keys()
+        args = (len(reviewed_gid_list), reviewed_gid_list, )
+        print('Adding %d previously reviewed gids: %r' % args)
+
+        # All gids that have been reviewed
+        round_gid_list = reviewed_gid_list + round_gid_list
+
+        # Get model ensemble path
+        limit = len(round_gid_list)
+        args = (species_list_str, limit, )
+        svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
+        is_svm_model_trained = exists(svm_model_path)
+
+        ut.ensuredir(svm_model_path)
+
+        ##################################################################################
+        # Step 6: gather gt (simulate user interaction)
+
+        print('\tGather Ground-Truth')
+        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
+
+        ##################################################################################
+        # Step 7: gather predictions from all algorithms combined
+
+        if not is_svm_model_trained:
+            print('\tDelete Old Classifications')
+            depc.delete_property('localizations_classifier', round_gid_list, config=config)
+
+        print('\tGather Predictions')
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
+
+        ##################################################################################
+        # Step 8: train SVM ensemble using fresh mined data for each ensemble
+
+        # Train models, one-by-one
+        for current_ensemble in range(1, ensemble + 1):
+            # Mine for a new set of (static) positives and (random) negatives
+            values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
+                                     reviewed_gid_dict, **kwargs)
+            mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
+
+            if visualize:
+                output_visualize_path = join(svm_model_path, 'visualize')
+                ut.ensuredir(output_visualize_path)
+                output_visualize_path = join(output_visualize_path, '%s' % (current_ensemble, ))
+                ut.ensuredir(output_visualize_path)
+                classifier_visualize_training_localizations(ibs, None,
+                                                            output_path=output_visualize_path,
+                                                            values=values)
+
+            # Get the confidences of the selected positives and negatives
+            pos_conf_list = []
+            neg_conf_list = []
+            for pos in mined_pos_list:
+                pos_conf_list.append(pos['confidence'])
+            for neg in mined_neg_list:
+                neg_conf_list.append(neg['confidence'])
+
+            pos_conf_list = np.array(pos_conf_list)
+            args = (
+                np.min(pos_conf_list),
+                np.mean(pos_conf_list),
+                np.std(pos_conf_list),
+                np.max(pos_conf_list),
+            )
+            print('Positive Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+            neg_conf_list = np.array(neg_conf_list)
+            args = (
+                np.min(neg_conf_list),
+                np.mean(neg_conf_list),
+                np.std(neg_conf_list),
+                np.max(neg_conf_list),
+            )
+            print('Negative Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+
+            # Train new models
+            if not is_svm_model_trained:
+                # Compile feature data and label list
+                data_list = []
+                label_list = []
+                for pos in mined_pos_list:
+                    data_list.append(pos['feature'])
+                    label_list.append(1)
+                for neg in mined_neg_list:
+                    data_list.append(neg['feature'])
+                    label_list.append(0)
+
+                data_list = np.array(data_list)
+                label_list = np.array(label_list)
+
+                print('Train Ensemble SVM (%d)' % (current_ensemble, ))
+                # Train scaler
+                scaler = preprocessing.StandardScaler().fit(data_list)
+                data_list = scaler.transform(data_list)
+                # Train model
+                model = svm.SVC(probability=True)
+                model.fit(data_list, label_list)
+
+                # Save model pickle
+                args = (species_list_str, limit, current_ensemble, )
+                svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
+                svm_model_filepath = join(svm_model_path, svm_model_filename)
+                model_tup = (model, scaler, )
+                ut.save_cPkl(svm_model_filepath, model_tup)
+
+        ##################################################################################
+        # Step 8: update the bootstrapping algorithm to use the new ensemble during
+        #         the next round
+        config['classifier_weight_filepath'] = svm_model_path
+        config_list.append(config.copy())
+
+        ##################################################################################
+        # Step 9: get the test images and classify (cache) their proposals using
+        #         the new model ensemble
+        if precompute and precompute_test:
+            if not is_svm_model_trained:
+                depc.delete_property('localizations_classifier', test_gid_list, config=config)
+            depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
+    # Return the list of used configs
+    return config_list
+
+
+@register_ibs_method
+def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
+                                                species_list=['zebra'], scheme=2,
+                                                output_path=None, values=None,
                                                 **kwargs):
 
     def _draw(image_dict, list_, color):
         import cv2
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
+        chip_list = []
         for _ in list_:
             vals = _['gid'], _['xbr'], _['ybr'], _['xtl'], _['ytl']
             gid, xbr, ybr, xtl, ytl = vals
@@ -2098,85 +2491,89 @@ def classifier_visualize_training_localizations(ibs, species_list, output_path=N
             ybr = int(ybr * height)
             xtl = int(xtl * width)
             ytl = int(ytl * height)
-            cv2.rectangle(image_dict[gid], (xtl, ytl), (xbr, ybr), color, 4)
+            image = image_dict[gid]
+            cv2.rectangle(image, (xtl, ytl), (xbr, ybr), color, 4)
+            # Get chips
+            chip = image[ytl: ybr, xtl: xbr, :]
+            chip = cv2.resize(chip, (192, 192), **warpkw)
+            chip_list.append(chip)
+        return chip_list
 
-    # Load data
-    print('Loading pre-trained features for filtered localizations')
-    gid_list, pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
-                                                                             limit=limit,
-                                                                             **kwargs)
-
-    ut.embed()
+    def _write_chips(chip_list, output_path_fmt_str):
+        for index, chip in enumerate(chip_list):
+            cv2.imwrite(output_path_fmt_str % (index, ), chip)
 
     # Get output path
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'Desktop', 'output')))
+        output_path = abspath(expanduser(join('~', 'Desktop', 'output-bootstrap')))
+    ut.delete(output_path)
     ut.ensuredir(output_path)
 
+    if values is None:
+        # Load data
+        print('Loading pre-trained features for filtered localizations')
+        train_gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
+        train_gid_list = train_gid_list[:10]
+
+        config = {
+            'algo'         : '_COMBINED',
+            'species_set'  : set(species_list),
+            'features'     : True,
+            'feature2_algo': 'resnet',
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': classifier_weight_filepath,
+            'nms'          : True,
+            'nms_thresh'   : 0.50,
+            # 'thresh'       : True,
+            # 'index_thresh' : 0.25,
+        }
+
+        print('\tGather Ground-Truth')
+        gt_dict = general_parse_gt(ibs, test_gid_list=train_gid_list, **config)
+
+        print('\tGather Predictions')
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=train_gid_list, **config)
+
+        print('Mine proposals')
+        reviewed_gid_dict = {}
+        values = _bootstrap_mine(ibs, gt_dict, pred_dict, scheme,
+                                 reviewed_gid_dict, **kwargs)
+
+    mined_gid_list, mined_gt_list, mined_pos_list, mined_neg_list = values
+
+    print('Prepare images')
     # Get images and a dictionary based on their gids
-    image_list = ibs.get_image_imgdata(gid_list)
-    image_dict = { gid: image for gid, image in zip(gid_list, image_list) }
+    image_list = ibs.get_image_imgdata(mined_gid_list)
+    image_dict = { gid: image for gid, image in zip(mined_gid_list, image_list) }
 
     # Draw positives
-    list_ = pos_list
+    list_ = mined_pos_list
     color = (0, 255, 0)
-    _draw(image_dict, list_, color)
+    chip_list = _draw(image_dict, list_, color)
+    pos_path = join(output_path, 'positives')
+    ut.ensuredir(pos_path)
+    _write_chips(chip_list, join(pos_path, 'chips_pos_%05d.png'))
 
     # Draw negatives
-    list_ = neg_list
+    list_ = mined_neg_list
     color = (0, 0, 255)
+    chip_list = _draw(image_dict, list_, color)
+    neg_path = join(output_path, 'negatives')
+    ut.ensuredir(neg_path)
+    _write_chips(chip_list, join(neg_path, 'chips_neg_%05d.png'))
+
+    # Draw positives
+    list_ = mined_gt_list
+    color = (255, 0, 0)
     _draw(image_dict, list_, color)
 
+    print('Write images to %r' % (output_path, ))
     # Write images to disk
     for gid in image_dict:
         output_filename = 'localizations_gid_%d.png' % (gid, )
         output_filepath = join(output_path, output_filename)
         cv2.imwrite(output_filepath, image_dict[gid])
-
-
-@register_ibs_method
-def classifier_train_localization_svm(ibs, species_list, output_path=None, limit=10,
-                                      **kwargs):
-    from sklearn import svm
-
-    # Load data
-    print('Loading pre-trained features for filtered localizations')
-
-    gid_list, pos_list, neg_list = ibs.classifier_get_training_localizations(species_list,
-                                                                             limit=limit,
-                                                                             **kwargs)
-
-    # Compile data and label list
-    data_list = []
-    label_list = []
-    for pos in pos_list:
-        data_list.append(pos['feature'])
-        label_list.append(1)
-    for neg in neg_list:
-        data_list.append(neg['feature'])
-        label_list.append(0)
-
-    data_list = np.array(data_list)
-    label_list = np.array(label_list)
-
-    print('Train SVM model using features and target labels')
-    # Train new model using data and labels
-    model = svm.SVC()
-    model.fit(data_list, label_list)
-
-    # Save model pickle
-    if output_path is None:
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
-    ut.ensuredir(output_path)
-    species_list_str = '.'.join(species_list)
-    counter = 1
-    args = (species_list_str, limit, counter, )
-    output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.%d.pkl' % args)
-    while exists(output_filepath):
-        counter += 1
-        args = (species_list_str, limit, counter, )
-        output_filepath = join(output_path, 'classifier.svm.localization.%s.%d.%d.pkl' % args)
-    ut.save_cPkl(output_filepath, model)
 
 
 @register_ibs_method

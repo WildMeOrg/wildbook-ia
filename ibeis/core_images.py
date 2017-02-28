@@ -197,6 +197,15 @@ def compute_classifications(depc, gid_list, config=None):
         >>> # depc.delete_property('classifier', gid_list)
         >>> results = depc.get_property('classifier', gid_list, None)
         >>> print(results)
+        >>> depc = ibs.depc_image
+        >>> config = {'classifier_algo': 'svm'}
+        >>> depc.delete_property('classifier', gid_list, config=config)
+        >>> results = depc.get_property('classifier', gid_list, None, config=config)
+        >>> print(results)
+        >>> config = {'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
+        >>> depc.delete_property('classifier', gid_list, config=config)
+        >>> results = depc.get_property('classifier', gid_list, None, config=config)
+        >>> print(results)
     """
     print('[ibs] Process Image Classifications')
     print('config = %r' % (config,))
@@ -204,17 +213,20 @@ def compute_classifications(depc, gid_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_image
     if config['classifier_algo'] in ['cnn']:
-        config = {
+        config_ = {
             'draw_annots' : False,
             'thumbsize'   : (192, 192),
         }
-        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config)
-        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
-    # elif config['classifier_algo'] in ['svm']:
-    #     config = {
-    #         'algo': 'vgg16'
-    #     }
-    #     vector_list = depc.get_property('features', gid_list, 'vector', config=config)
+        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
+        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config_)
+    elif config['classifier_algo'] in ['svm']:
+        from ibeis.algo.detect.svm import classify
+        config_ = {
+            'algo': 'resnet'
+        }
+        vector_list = depc.get_property('features', gid_list, 'vector', config=config_)
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        result_list = classify(vector_list, weight_filepath=classifier_weight_filepath)
     else:
         raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
 
@@ -470,10 +482,10 @@ def compute_localizations(depc, gid_list, config=None):
         >>> depc.delete_property('localizations', gid_list, config=config)
         >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
         >>> print(detects)
-        >>> # config = {'algo': '_COMBINED'}
+        >>> config = {'algo': '_COMBINED'}
         >>> # depc.delete_property('localizations', gid_list, config=config)
-        >>> # detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
-        >>> # print(detects)
+        >>> detects = depc.get_property('localizations', gid_list, 'bboxes', config=config)
+        >>> print(detects)
     """
     def package_to_numpy(key_list, result_list, score):
         temp = [
@@ -560,13 +572,15 @@ def compute_localizations(depc, gid_list, config=None):
 
         metadata = {}
 
-        # Get Localizations
-        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
-        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
-        metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['SS1']     = _get_localizations(depc, gid_list, 'selective-search')
 
-        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
-        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+        # Get Localizations
+        metadata['YOLO1']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-tiny-pascal')
+        metadata['YOLO2']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-pascal')
+        # metadata['YOLO3']  = _get_localizations(depc, gid_list, 'darknet', 'pretrained-v2-large-pascal')
+
+        metadata['FRCNN1'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-zf-pascal')
+        metadata['FRCNN2'] = _get_localizations(depc, gid_list, 'faster-rcnn', 'pretrained-vgg-pascal')
 
         metadata['SSD1']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-300-pascal')
         metadata['SSD2']   = _get_localizations(depc, gid_list, 'ssd', 'pretrained-512-pascal')
@@ -576,7 +590,9 @@ def compute_localizations(depc, gid_list, config=None):
         detect_gen = None
         # Get Combined
         metadata['_COMBINED'] = []
-        for key in metadata:
+        for key in sorted(metadata.keys()):
+            if key == '_COMBINED':
+                continue
             if len(metadata['_COMBINED']) == 0:
                 # Initializing combined list, simply append
                 metadata['_COMBINED'] = list(metadata[key])
@@ -929,11 +945,12 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
 
 class Classifier2Config(dtool.Config):
     _param_info_list = [
+        ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
         ut.ParamInfo('classifier_weight_filepath', None),
         ut.ParamInfo('classifier_masking', False, hideif=False),  # True will classify localization chip as whole-image, False will classify whole image with localization masked out.
     ]
     _sub_config_list = [
-        ThumbnailConfig
+        ThumbnailConfig,
     ]
 
 
@@ -943,7 +960,7 @@ class Classifier2Config(dtool.Config):
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
     fname='detectcache',
-    chunksize=128,
+    chunksize=16,
 )
 def compute_localizations_classifications(depc, loc_id_list, config=None):
     r"""
@@ -968,8 +985,32 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> config = {'algo': 'yolo'}
+        >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
+        >>> print(results)
         >>> config = {'algo': 'yolo', 'classifier_masking': True}
         >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
+        >>> print(results)
+        >>>
+        >>> depc = ibs.depc_image
+        >>> gid_list = list(set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET'))))
+        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': None}
+        >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
+        >>> print(results)
+        >>>
+        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-10'}
+        >>> # depc.delete_property('localizations_classifier', gid_list, config=config)
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
+        >>> print(results)
+        >>>
+        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'}
+        >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
+        >>> print(results)
+        >>>
+        >>> config = {'algo': '_COMBINED', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'}
         >>> results = depc.get_property('localizations_classifier', gid_list, None, config=config)
         >>> print(results)
     """
@@ -979,57 +1020,108 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
     ibs = depc.controller
 
     masking = config.get('classifier_masking', False)
-    if masking:
-        gid_list_, gid_list, thumbnail_list = get_localization_masks(ibs, loc_id_list,
-                                                                     target_size=(192, 192))
-    else:
-        gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
-                                                                     target_size=(192, 192))
 
     # Get the results from the algorithm
-    result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
-    assert len(gid_list) == len(result_list)
-
-    # Release thumbnails
-    thumbnail_list = None
-
-    # Group the results
-    group_dict = {}
-    for gid, result in zip(gid_list, result_list):
-        if gid not in group_dict:
-            group_dict[gid] = []
-        group_dict[gid].append(result)
-    assert len(gid_list_) == len(group_dict.keys())
-
-    if masking:
-        # We need to perform a difference calculation to see how much the masking
-        # caused a deviation from the un-masked image
-        config_ = dict(config)
-        key_list = ['thumbnail_cfg', 'classifier_masking']
-        for key in key_list:
-            config_.pop(key)
-        class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
-        score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
-    else:
-        class_list_ = [None] * len(gid_list_)
-        score_list_ = [None] * len(gid_list_)
-
-    # Return the results
-    for gid, class_, score_ in zip(gid_list_, class_list_, score_list_):
-        result_list = group_dict[gid]
-        zipped_list = list(zip(*result_list))
-        score_list = np.array(zipped_list[0])
-        class_list = np.array(zipped_list[1])
+    if config['classifier_algo'] in ['cnn']:
         if masking:
-            score_ = score_ if class_ == 'positive' else 1.0 - score_
-            score_list = score_ - score_list
-            class_list = np.array(['positive'] * len(score_list))
-        # Return tuple values
-        ret_tuple = (
-            score_list,
-            class_list,
-        )
-        yield ret_tuple
+            gid_list_, gid_list, thumbnail_list = get_localization_masks(ibs, loc_id_list,
+                                                                         target_size=(192, 192))
+        else:
+            gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
+                                                                         target_size=(192, 192))
+
+        # Generate thumbnail classifications
+        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
+
+        # Assert the length is the same
+        assert len(gid_list) == len(result_list)
+
+        # Release thumbnails
+        thumbnail_list = None
+
+        # Group the results
+        group_dict = {}
+        for gid, result in zip(gid_list, result_list):
+            if gid not in group_dict:
+                group_dict[gid] = []
+            group_dict[gid].append(result)
+        assert len(gid_list_) == len(group_dict.keys())
+
+        if masking:
+            # We need to perform a difference calculation to see how much the masking
+            # caused a deviation from the un-masked image
+            config_ = dict(config)
+            key_list = ['thumbnail_cfg', 'classifier_masking']
+            for key in key_list:
+                config_.pop(key)
+            class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
+            score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
+        else:
+            class_list_ = [None] * len(gid_list_)
+            score_list_ = [None] * len(gid_list_)
+
+        # Return the results
+        for gid, class_, score_ in zip(gid_list_, class_list_, score_list_):
+            result_list = group_dict[gid]
+            zipped_list = list(zip(*result_list))
+            score_list = np.array(zipped_list[0])
+            class_list = np.array(zipped_list[1])
+            if masking:
+                score_ = score_ if class_ == 'positive' else 1.0 - score_
+                score_list = score_ - score_list
+                class_list = np.array(['positive'] * len(score_list))
+            # Return tuple values
+            ret_tuple = (
+                score_list,
+                class_list,
+            )
+            yield ret_tuple
+    elif config['classifier_algo'] in ['svm']:
+        assert not masking
+        from ibeis.algo.detect.svm import classify
+        # From localizations get gids
+        config_ = {
+            'algo': '_COMBINED',
+            'feature2_algo': 'resnet',
+        }
+        gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
+        assert len(gid_list_) == len(loc_id_list)
+
+        # Get features
+        vectors_list = depc.get_property('localizations_features', gid_list_, 'vector', config=config_)
+        vectors_list_ = np.vstack(vectors_list)
+        # Get gid_list
+        shape_list = [ vector_list.shape[0] for vector_list in vectors_list ]
+        gids_list = [ [gid_] * shape for gid_, shape in zip(gid_list_, shape_list) ]
+        gid_list = ut.flatten(gids_list)
+
+        # Stack vectors and classify
+        classifier_weight_filepath = config['classifier_weight_filepath']
+        result_list = classify(vectors_list_, weight_filepath=classifier_weight_filepath,
+                               verbose=True)
+
+        # Group the results
+        score_dict = {}
+        class_dict = {}
+        for index, (gid, result) in enumerate(zip(gid_list, result_list)):
+            if gid not in score_dict:
+                score_dict[gid] = []
+            if gid not in class_dict:
+                class_dict[gid] = []
+            score_, class_ = result
+            score_dict[gid].append(score_)
+            class_dict[gid].append(class_)
+        assert len(gid_list_) == len(score_dict.keys())
+        assert len(gid_list_) == len(class_dict.keys())
+
+        for gid_ in gid_list_:
+            score_list = score_dict[gid_]
+            class_list = class_dict[gid_]
+            ret_tuple = (
+                np.array(score_list),
+                np.array(class_list),
+            )
+            yield ret_tuple
 
 
 class Feature2Config(dtool.Config):
