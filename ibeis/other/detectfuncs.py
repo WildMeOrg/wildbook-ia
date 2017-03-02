@@ -1473,14 +1473,20 @@ def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, category_set,
 
 
 @register_ibs_method
-def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16), **kwargs):
+def classifier_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     import matplotlib.pyplot as plt
 
     fig_ = plt.figure(figsize=figsize)
 
-    category_set = set(species_list)
+    # label = 'V1'
+    # species_list = ['zebra']
+    # kwargs['classifier_weight_filepath'] = 'coco_zebra'
 
-    kwargs['classifier_weight_filepath'] = 'coco_zebra'
+    label = 'V3'
+    species_list = ['zebra_plains', 'zebra_grevys']
+    kwargs['classifier_weight_filepath'] = 'v3_zebra'
+
+    category_set = set(species_list)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -1489,7 +1495,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf1, _ = classifier_precision_recall_algo_plot(ibs, label='V1', color='r', category_set=category_set, **kwargs)
+    area, best_conf1, _ = classifier_precision_recall_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
     plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1501,7 +1507,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_ylabel('True-Positive Rate')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf2, _ = classifier_roc_algo_plot(ibs, label='V1', color='r', category_set=category_set, **kwargs)
+    area, best_conf2, _ = classifier_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
     plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1510,7 +1516,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
@@ -1519,7 +1525,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
@@ -2244,6 +2250,10 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
     # Fit PCA
     pca_model = IncrementalPCA(n_components=dims)
     pca_model.fit(data_list)
+
+    print(pca_model.explained_variance_ratio_)
+    print(pca_model.explained_variance_ratio_.cumsum())
+    print(pca_model.explained_variance_ratio_.sum())
 
     # Transform data to smaller vectors
     data_list_ = pca_model.transform(data_list)
