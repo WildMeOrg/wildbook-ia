@@ -979,12 +979,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
-        {'label': 'V3',      'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'label': 'V3 PZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
-        {'label': 'V3 GZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
-        {'label': 'V3 GIR',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_reticulated'])},
-        {'label': 'V3 GIRM', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_masai'])},
-        {'label': 'V3 ELPH', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['elephant_savannah'])},
+        {'label': 'V3',          'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'label': 'V3 PZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
+        {'label': 'V3 GZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
+        {'label': 'V3 KENYA',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains', 'zebra_grevys', 'giraffe_reticulated', 'giraffe_masai', 'elephant_savannah', 'antelope', 'dog_wild', 'lion', 'hippopotamus'])},
+        {'label': 'V3 DOMESTIC', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['bird', 'horse_domestic', 'cow_domestic', 'sheep_domestic', 'dog_domestic', 'cat_domestic', 'unspecified_animal'])},
+        {'label': 'V3 OCEAN',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['lionfish', 'turtle_sea', 'whale_shark', 'whale_fluke'])},
+        {'label': 'V3 PERSON',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['person'])},
+        {'label': 'V3 VEHICLE',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['car', 'bicycle', 'motorcycle', 'truck', 'boat', 'bus', 'train', 'airplane'])},
 
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
@@ -2251,9 +2253,8 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
     pca_model = IncrementalPCA(n_components=dims)
     pca_model.fit(data_list)
 
-    print(pca_model.explained_variance_ratio_)
-    print(pca_model.explained_variance_ratio_.cumsum())
-    print(pca_model.explained_variance_ratio_.sum())
+    pca_quality = pca_model.explained_variance_ratio_.sum() * 100.0
+    print('PCA Variance Quality: %0.04f %%' % (pca_quality, ))
 
     # Transform data to smaller vectors
     data_list_ = pca_model.transform(data_list)
