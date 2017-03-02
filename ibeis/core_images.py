@@ -1335,7 +1335,7 @@ class DetectorConfig(dtool.Config):
         #
         ut.ParamInfo('labeler_weight_filepath',    'v3'),
         #
-        ut.ParamInfo('classifier_sensitivity',     0.01),
+        ut.ParamInfo('classifier_sensitivity',     0.79),
         ut.ParamInfo('localizer_sensitivity',      0.10),
         ut.ParamInfo('labeler_sensitivity',        0.10),
     ]
