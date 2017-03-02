@@ -1015,11 +1015,27 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
         {
-            'label'        : 'WIC ~0.5',
+            'label'        : 'WIC ~0.75',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'nms'          : True,
             'nms_thresh'   : 0.75,
+        },
+
+        {
+            'label'        : 'WIC ~0.50',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'nms'          : True,
+            'nms_thresh'   : 0.50,
+        },
+
+        {
+            'label'        : 'WIC ~0.25',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'nms'          : True,
+            'nms_thresh'   : 0.25,
         },
 
         # {
@@ -1263,8 +1279,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     ]
 
-    color_list = pt.distinct_colors(len(config_list) - 1, randomize=False)
-    color_list += [(0.2, 0.2, 0.2)]
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
+
+    # color_list = pt.distinct_colors(len(config_list) - 1, randomize=False)
+    # color_list += [(0.2, 0.2, 0.2)]
 
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
