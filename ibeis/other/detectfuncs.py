@@ -965,7 +965,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # species_set = set(['zebra'])
     # species_set = set(['giraffe'])
     # species_set = set(['elephant'])
-    species_set = None
+    # species_set = None
 
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
@@ -979,12 +979,12 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
-        # {'label': 'V3',      'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        # {'label': 'V3 PZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
-        # {'label': 'V3 GZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
-        # {'label': 'V3 GIR',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_reticulated'])},
-        # {'label': 'V3 GIRM', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_masai'])},
-        # {'label': 'V3 ELPH', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['elephant_savannah'])},
+        {'label': 'V3',      'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'label': 'V3 PZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
+        {'label': 'V3 GZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
+        {'label': 'V3 GIR',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_reticulated'])},
+        {'label': 'V3 GIRM', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_masai'])},
+        {'label': 'V3 ELPH', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['elephant_savannah'])},
 
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
@@ -1001,15 +1001,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
         # {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
         # {'label': 'YOLO1', 'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
-        {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        # {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
         # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
-        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
         # {'label': 'SSD1', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
         # {'label': 'SSD2', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
         # {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
-        {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+        # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1042,14 +1042,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         #     'nms_thresh'   : 0.75,
         # },
 
-        {
-            'label'        : 'COMBINED ~0.50',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
-        },
+        # {
+        #     'label'        : 'COMBINED ~0.50',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
 
         # {
         #     'label'        : 'COMBINED ~0.25',
@@ -2202,7 +2202,7 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
     import numpy as np
     import random
 
-    def _get_data(gid_list):
+    def _get_data(depc, gid_list, global_limit):
         config = {
             'algo'         : '_COMBINED',
             'features'     : True,
@@ -2224,17 +2224,16 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
         features_list = None
         return data_list
 
-    ut.embed()
-
-    depc = ibs.depc_image
+    # ut.embed()
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
-    gid_list = random.shuffle(gid_list)
+    random.shuffle(gid_list)
     print('Using %d images' % (len(gid_list), ))
 
     # Get data
-    data_list = _get_data(gid_list)
+    depc = ibs.depc_image
+    data_list = _get_data(depc, gid_list, global_limit)
     print(data_list.shape)
 
     # Normalize data
