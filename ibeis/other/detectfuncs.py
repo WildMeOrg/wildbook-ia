@@ -1025,44 +1025,44 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             # 'index_thresh' : 0.25,
         },
 
-        {
-            'label'        : 'WIC ~0.25',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC ~0.25',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'WIC ~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC ~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
-        {
-            'label'        : 'WIC ~0.75',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.75,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC ~0.75',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.75,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
         ###################
 
@@ -2560,13 +2560,15 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
 
 @register_ibs_method
-def classifier_train(ibs, species_list):
+def classifier_train(ibs, species_list, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
     from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list, dest_path=data_path)
+    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list,
+                                                               dest_path=data_path,
+                                                               **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier')
     model_path = train_classifier(output_path, X_file, y_file)
