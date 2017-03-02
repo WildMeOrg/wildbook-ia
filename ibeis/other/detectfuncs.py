@@ -2194,7 +2194,8 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     return output_filepath
 
 
-def _bootstrap_pca(ibs, dims=64, **kwargs):
+@register_ibs_method
+def bootstrap_pca(ibs, dims=64, **kwargs):
     import numpy as np
     from sklearn.decomposition import PCA
     from annoy import AnnoyIndex
