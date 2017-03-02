@@ -677,6 +677,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
+        depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
         confss_list = depc.get_property('localizations_classifier', test_gid_list,
                                         'score', config=kwargs)
 
@@ -990,13 +991,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
         # {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
         # {'label': 'YOLO1', 'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
-        # {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
         # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
-        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
         # {'label': 'SSD1', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
         # {'label': 'SSD2', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
         # {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
-        # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+        {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
@@ -1014,29 +1015,38 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
-        {
-            'label'        : 'WIC ~0.75',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'nms'          : True,
-            'nms_thresh'   : 0.75,
-        },
+        # {
+        #     'label'        : 'WIC`',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        # },
+
+        # {
+        #     'label'        : 'COMBINED ~0.75',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.75,
+        # },
 
         {
-            'label'        : 'WIC ~0.50',
+            'label'        : 'COMBINED ~0.50',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'nms'          : True,
             'nms_thresh'   : 0.50,
         },
 
-        {
-            'label'        : 'WIC ~0.25',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-        },
+        # {
+        #     'label'        : 'COMBINED ~0.25',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        # },
 
         # {
         #     'label'        : 'WIC',
