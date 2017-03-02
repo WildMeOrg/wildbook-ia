@@ -2194,6 +2194,48 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     return output_filepath
 
 
+def _bootstrap_pca(ibs, dims=64, **kwargs):
+    import numpy as np
+    from sklearn.decomposition import PCA
+    from annoy import AnnoyIndex
+    from sklearn import preprocessing
+
+    ut.embed()
+
+    depc = ibs.depc_image
+
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    test_gid_list = test_gid_list[:50]
+
+    config = {
+        'algo'         : '_COMBINED',
+        'features'     : True,
+        'feature2_algo': 'resnet',
+    }
+    features_list = depc.get_rowids('localizations_features', test_gid_list,
+                                    config=config)
+    data_list = np.vstack(features_list)
+    print(data_list.shape)
+
+    # Scale data
+    scaler = preprocessing.StandardScaler().fit(data_list)
+    data_list = scaler.transform(data_list)
+    # Fit PCA
+    pca_model = PCA(n_components=dims)
+    pca_model.fit(data_list)
+
+    ann_model = AnnoyIndex(dims)  # Length of item vector that will be indexed
+    for index, feature in enumerate(data_list):
+        ann_model.add_item(index, feature)
+
+    ann_model.build(10)  # 10 trees
+    # ann_model.save('test.ann')
+
+    # u = AnnoyIndex(f)
+    # u.load('test.ann') # super fast, will just mmap the file
+    # print(u.get_nns_by_item(0, 1000)) # will find the 1000 nearest neighbors
+
+
 def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
                     min_overlap=0.75, max_overlap=0.25):
     import random
