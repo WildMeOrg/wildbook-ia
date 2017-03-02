@@ -427,7 +427,8 @@ def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_
     return best_conf_list, best_x_list, best_y_list
 
 
-def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b', invert=False, x_limit=0.90, **kwargs):
+def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
+                           invert=False, x_limit=0.90, plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
     best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
     best_conf = best_conf_list[0]
@@ -436,7 +437,8 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     label = '%s [OP = %0.02f]' % (label, best_conf, )
     linestyle = '--' if kwargs.get('classify', False) or kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
-    plt.plot(best_x_list, best_y_list, color=color, marker='o')
+    if plot_point:
+        plt.plot(best_x_list, best_y_list, color=color, marker='o')
     area = np.trapz(y_list, x=x_list)
     if len(best_conf_list) > 1:
         print('WARNING: %r' % (best_conf_list, ))
@@ -945,7 +947,8 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
 
 @register_ibs_method
 def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7),
-                                            write_images=False, min_recall=0.9, **kwargs):
+                                            write_images=False, min_recall=0.9,
+                                            plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -976,6 +979,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
+        # {'label': 'V3',      'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        # {'label': 'V3 PZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
+        # {'label': 'V3 GZ',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
+        # {'label': 'V3 GIR',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_reticulated'])},
+        # {'label': 'V3 GIRM', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['giraffe_masai'])},
+        # {'label': 'V3 ELPH', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['elephant_savannah'])},
+
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
         # {'label': 'YOLO1', 'algo': 'darknet', 'grid': False, 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
@@ -991,13 +1001,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
 
         # {'label': 'SS1', 'algo': 'selective-search', 'species_set' : species_set},
         # {'label': 'YOLO1', 'algo': 'darknet', 'config_filepath': 'pretrained-tiny-pascal', 'species_set' : species_set},
-        # {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
+        {'label': 'YOLO2', 'algo': 'darknet', 'config_filepath': 'pretrained-v2-pascal', 'species_set' : species_set},
         # {'label': 'FRCNN1', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-zf-pascal', 'species_set' : species_set},
-        # {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
+        {'label': 'FRCNN2', 'algo': 'faster-rcnn', 'config_filepath': 'pretrained-vgg-pascal', 'species_set' : species_set},
         # {'label': 'SSD1', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal', 'species_set' : species_set},
         # {'label': 'SSD2', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal', 'species_set' : species_set},
         # {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
-        # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
+        {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
@@ -1015,14 +1025,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
-        {
-            'label'        : 'WIC',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-        },
+        # {
+        #     'label'        : 'WIC',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        # },
 
         # {
         #     'label'        : 'COMBINED ~0.75',
@@ -1032,13 +1042,13 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         #     'nms_thresh'   : 0.75,
         # },
 
-        # {
-        #     'label'        : 'COMBINED ~0.50',
-        #     'algo'         : '_COMBINED',
-        #     'species_set'  : species_set,
-        #     'nms'          : True,
-        #     'nms_thresh'   : 0.50,
-        # },
+        {
+            'label'        : 'COMBINED ~0.50',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'nms'          : True,
+            'nms_thresh'   : 0.50,
+        },
 
         # {
         #     'label'        : 'COMBINED ~0.25',
@@ -1289,17 +1299,19 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     ]
 
-    color_list = pt.distinct_colors(len(config_list), randomize=False)
+    # color_list = pt.distinct_colors(len(config_list), randomize=False)
 
-    # color_list = pt.distinct_colors(len(config_list) - 1, randomize=False)
-    # color_list += [(0.2, 0.2, 0.2)]
+    color_list = pt.distinct_colors(len(config_list) - 2, randomize=False)
+    color_list += [(0.2, 0.2, 0.2)]
+    color_list += [(0.2, 0.2, 0.2)]
 
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
 
     ret_list = [
         localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
-                                             x_limit=min_recall, **config)
+                                             x_limit=min_recall, plot_point=plot_point,
+                                             **config)
         for color, config in zip(color_list, config_list)
     ]
 
@@ -1332,47 +1344,47 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     args = (best_area, best_label, best_conf, )
     plt.title('Confusion Matrix for Highest mAP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
-    # Show best that is greater than the best_pr
-    best_index = None
-    best_conf = None
-    best_pr = 0.0
-    best_re = 0.0
-    tup_list  = [ ret[2] for ret in ret_list ]
-    for index, tup in enumerate(tup_list):
-        for conf, re, pr in zip(*tup):
-            # if pr > best_pr:
-            #     best_index = index
-            #     best_conf = conf
-            #     best_pr = pr
-            #     best_re = re
-            if re > best_re:
-                best_index = index
-                best_conf = conf
-                best_pr = pr
-                best_re = re
+    # # Show best that is greater than the best_pr
+    # best_index = None
+    # best_conf = None
+    # best_pr = 0.0
+    # best_re = 0.0
+    # tup_list  = [ ret[2] for ret in ret_list ]
+    # for index, tup in enumerate(tup_list):
+    #     for conf, re, pr in zip(*tup):
+    #         # if pr > best_pr:
+    #         #     best_index = index
+    #         #     best_conf = conf
+    #         #     best_pr = pr
+    #         #     best_re = re
+    #         if re > best_re:
+    #             best_index = index
+    #             best_conf = conf
+    #             best_pr = pr
+    #             best_re = re
 
-    if best_index is not None:
-        axes_ = plt.subplot(131)
-        plt.plot([best_re], [best_pr], 'yo')
+    # if best_index is not None:
+    #     axes_ = plt.subplot(131)
+    #     plt.plot([best_re], [best_pr], 'yo')
 
-        best_label = config_list[best_index]['label']
-        best_color = color_list[index]
-        best_config = config_list[best_index]
+    #     best_label = config_list[best_index]['label']
+    #     best_color = color_list[index]
+    #     best_config = config_list[best_index]
 
-        axes_ = plt.subplot(133)
-        axes_.set_aspect(1)
-        gca_ = plt.gca()
-        gca_.grid(False)
-        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
-                                                               min_overlap=min_overlap,
-                                                               fig_=fig_, axes_=axes_,
-                                                               **best_config)
-        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-        axes_.set_ylabel('Ground-Truth')
-        # args = (min_recall, best_label, best_conf, )
-        # plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
-        args = (best_re, best_label, best_conf, )
-        plt.title('Confusion Matrix for Highest Recall %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    #     axes_ = plt.subplot(133)
+    #     axes_.set_aspect(1)
+    #     gca_ = plt.gca()
+    #     gca_.grid(False)
+    #     correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
+    #                                                            min_overlap=min_overlap,
+    #                                                            fig_=fig_, axes_=axes_,
+    #                                                            **best_config)
+    #     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    #     axes_.set_ylabel('Ground-Truth')
+    #     # args = (min_recall, best_label, best_conf, )
+    #     # plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    #     args = (best_re, best_label, best_conf, )
+    #     plt.title('Confusion Matrix for Highest Recall %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # plt.show()
     fig_filename = 'localizer-precision-recall-%0.2f.png' % (min_overlap, )
