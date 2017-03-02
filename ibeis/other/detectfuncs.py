@@ -1048,6 +1048,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'species_set'  : species_set,
             'nms'          : True,
             'nms_thresh'   : 0.50,
+            'line_dotted'  : True,
         },
 
         # {
