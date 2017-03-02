@@ -1302,11 +1302,11 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     ]
 
-    # color_list = pt.distinct_colors(len(config_list), randomize=False)
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
 
-    color_list = pt.distinct_colors(len(config_list) - 2, randomize=False)
-    color_list += [(0.2, 0.2, 0.2)]
-    color_list += [(0.2, 0.2, 0.2)]
+    # color_list = pt.distinct_colors(len(config_list) - 2, randomize=False)
+    # color_list += [(0.2, 0.2, 0.2)]
+    # color_list += [(0.2, 0.2, 0.2)]
 
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
@@ -1321,6 +1321,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     index = np.argmax(area_list)
+    index = 0
     best_label = config_list[index]['label']
     best_color = color_list[index]
     best_config = config_list[index]
@@ -1690,6 +1691,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
 def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 16),
                                           **kwargs):
     import matplotlib.pyplot as plt
+    import plottool as pt
 
     if category_list is None:
         test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1702,15 +1704,14 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     print('Compiling raw numbers...')
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, **kwargs)
 
-    category_color_list = [
-        (None          , 'b', 'All'),
-        (':'           , 'y', 'Zebras'),
-        ('zebra_plains', 'r', 'Plains Only'),
-        ('zebra_grevys', 'g', 'Grevy\'s Only'),
-        ('ignore'      , 'k', 'Ignore Only'),
+    config_list = [
+        {'label': 'All', 'category_list': None},
+        {'label': 'Zebras', 'category_list': None},
+        {'label': 'Plains Only', 'category_list': None},
+        {'label': 'Grevy\'s Only', 'category_list': None},
+        {'label': 'Ignore Only', 'category_list': None},
     ]
-
-    label_list = None  # TODO
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
 
     fig_ = plt.figure(figsize=figsize)  # NOQA
 
@@ -1723,9 +1724,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     axes_.set_ylim([0.0, 1.01])
     area_list = []
     conf_list = []
-    for category, color, label_ in category_color_list:
-        category_list = [ label for label in label_list if category is None or category in label ]
-        area, conf, _ = labeler_precision_recall_algo_plot(ibs, category_list=category_list, label=label_, color=color, label_dict=label_dict)
+    for color, config in zip(color_list, config_list):
+        area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
+                                                           color=color, **config)
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
@@ -1743,9 +1744,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     axes_.set_ylim([0.0, 1.01])
     area_list = []
     conf_list = []
-    for category, color, label_ in category_color_list:
-        category_list = [ label for label in label_list if category is None or category in label ]
-        area, conf, _ = labeler_roc_algo_plot(ibs, category_list=category_list, label=label_, color=color, label_dict=label_dict)
+    for color, config in zip(color_list, config_list):
+        area, conf, _ = labeler_roc_algo_plot(ibs, label_dict=label_dict,
+                                              color=color, **config)
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
@@ -1754,13 +1755,13 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
                borderaxespad=0.0)
 
     fuzzy_dict = {}
-    for index1, label1 in enumerate(label_list):
+    for index1, label1 in enumerate(category_list):
         if label1 == 'ignore':
             fuzzy_list = []
         else:
             species, viewpoint = label1.strip().split(':')
             fuzzy_list = []
-            for index2, label2 in enumerate(label_list):
+            for index2, label2 in enumerate(category_list):
                 if species in label2:
                     fuzzy_list.append(index2)
         fuzzy_dict[index1] = set(fuzzy_list)
@@ -2226,6 +2227,7 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
                                              'vector', config=config)
             total += len(feature_list)
             features_list.append(feature_list)
+        print('Used %d images to mine %d features' % (len(features_list), total, ))
         data_list = np.vstack(features_list)
         if len(data_list) > global_limit:
             data_list = data_list[:global_limit]
@@ -2237,7 +2239,6 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
     random.shuffle(gid_list)
-    print('Using %d images' % (len(gid_list), ))
 
     # Get data
     depc = ibs.depc_image
