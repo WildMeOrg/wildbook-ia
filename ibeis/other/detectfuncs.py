@@ -1510,7 +1510,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
     ]
     flag_list = ut.not_list(flag_list)
     if False in flag_list:
-        aid_list = ut.compress(yaw_list, )
+        aid_list = ut.compress(aid_list, flag_list)
         # Get new species and yaws
         yaw_list = ibs.get_annot_yaw_texts(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)

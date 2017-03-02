@@ -218,7 +218,7 @@ def compute_classifications(depc, gid_list, config=None):
             'thumbsize'   : (192, 192),
         }
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
-        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config_)
+        result_list = ibs.generate_thumbnail_class_list(thumbnail_list, **config)
     elif config['classifier_algo'] in ['svm']:
         from ibeis.algo.detect.svm import classify
         config_ = {
@@ -1326,17 +1326,18 @@ def compute_localizations_labels(depc, loc_id_list, config=None):
 
 class DetectorConfig(dtool.Config):
     _param_info_list = [
-        # ut.ParamInfo('classifier_sensitivity',    0.82),
-        ut.ParamInfo('classifier_sensitivity',    0.01),
-        ut.ParamInfo('classifier_weight_filepath', None),
-        ut.ParamInfo('localizer_config_filepath', None),
-        ut.ParamInfo('localizer_weight_filepath', None),
-        ut.ParamInfo('localizer_grid',            False),
-        # ut.ParamInfo('localizer_sensitivity',     0.16),
-        ut.ParamInfo('localizer_sensitivity',     0.10),
-        # ut.ParamInfo('labeler_sensitivity',       0.42),
-        ut.ParamInfo('labeler_sensitivity',       0.10),
-        ut.ParamInfo('labeler_weight_filepath', None),
+        ut.ParamInfo('classifier_weight_filepath', 'v3_zebra'),
+        #
+        ut.ParamInfo('localizer_algo',             None),
+        ut.ParamInfo('localizer_config_filepath',  'v3'),
+        ut.ParamInfo('localizer_weight_filepath',  None),
+        ut.ParamInfo('localizer_grid',             False),
+        #
+        ut.ParamInfo('labeler_weight_filepath',    'v3'),
+        #
+        ut.ParamInfo('classifier_sensitivity',     0.01),
+        ut.ParamInfo('localizer_sensitivity',      0.10),
+        ut.ParamInfo('labeler_sensitivity',        0.10),
     ]
     _sub_config_list = [
         ThumbnailConfig,
@@ -1408,6 +1409,7 @@ def compute_detections(depc, gid_list, config=None):
     gid_set_ = set(gid_list_)
     # Get the localizations for the good gids and add formal annotations
     localizer_config = {
+        'algo'            : config['localizer_algo'],
         'config_filepath' : config['localizer_config_filepath'],
         'weight_filepath' : config['localizer_weight_filepath'],
         'grid'            : config['localizer_grid'],
