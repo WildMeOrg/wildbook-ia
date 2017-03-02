@@ -962,10 +962,10 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    species_set = set(['zebra'])
+    # species_set = set(['zebra'])
     # species_set = set(['giraffe'])
     # species_set = set(['elephant'])
-    # species_set = None
+    species_set = None
 
     config_list = [
         # {'label': 'V1',             'grid' : False, 'config_filepath' : 'v1', 'weight_filepath' : 'v1'},
