@@ -2195,38 +2195,63 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
 
 
 @register_ibs_method
-def bootstrap_pca(ibs, dims=64, **kwargs):
-    import numpy as np
-    from sklearn.decomposition import PCA
+def bootstrap_pca(ibs, dims=64, global_limit=1000000, **kwargs):
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import IncrementalPCA
     from annoy import AnnoyIndex
-    from sklearn import preprocessing
+    import numpy as np
+    import random
+
+    def _get_data(gid_list):
+            config = {
+            'algo'         : '_COMBINED',
+            'features'     : True,
+            'feature2_algo': 'resnet',
+        }
+        total = 0
+        features_list = []
+        for gid in gid_list:
+            print(gid, total)
+            if total >= global_limit:
+                break
+            feature_list = depc.get_property('localizations_features', gid,
+                                             'vector', config=config)
+            total += len(feature_list)
+            features_list.append(feature_list)
+        data_list = np.vstack(features_list)
+        if len(data_list) > global_limit:
+            data_list = data_list[:global_limit]
+        features_list = None
+        return data_list
 
     ut.embed()
 
     depc = ibs.depc_image
 
-    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
-    test_gid_list = test_gid_list[:50]
+    # gid_list = ibs.get_valid_gids()
+    gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    gid_list = random.shuffle(gid_list)
+    print('Using %d images' % (len(gid_list), ))
 
-    config = {
-        'algo'         : '_COMBINED',
-        'features'     : True,
-        'feature2_algo': 'resnet',
-    }
-    features_list = depc.get_rowids('localizations_features', test_gid_list,
-                                    config=config)
-    data_list = np.vstack(features_list)
+    # Get data
+    data_list = _get_data(gid_list)
     print(data_list.shape)
 
-    # Scale data
-    scaler = preprocessing.StandardScaler().fit(data_list)
+    # Normalize data
+    scaler = StandardScaler()
+    scaler.fit(data_list)
     data_list = scaler.transform(data_list)
+
     # Fit PCA
-    pca_model = PCA(n_components=dims)
+    pca_model = IncrementalPCA(n_components=dims, batch_size=)
     pca_model.fit(data_list)
 
+    # Transform data to smaller vectors
+    data_list_ = pca_model.transform(data_list)
+
     ann_model = AnnoyIndex(dims)  # Length of item vector that will be indexed
-    for index, feature in enumerate(data_list):
+    data_iter = ut.ProgIter(data_list_, lbl='add vectors to ANN model', bs=True)
+    for index, feature in enumerate(data_iter):
         ann_model.add_item(index, feature)
 
     ann_model.build(10)  # 10 trees
