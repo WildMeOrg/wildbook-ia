@@ -2195,7 +2195,7 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
 
 
 @register_ibs_method
-def bootstrap_pca(ibs, dims=64, global_limit=1000000, **kwargs):
+def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import IncrementalPCA
     from annoy import AnnoyIndex
@@ -2203,7 +2203,7 @@ def bootstrap_pca(ibs, dims=64, global_limit=1000000, **kwargs):
     import random
 
     def _get_data(gid_list):
-            config = {
+        config = {
             'algo'         : '_COMBINED',
             'features'     : True,
             'feature2_algo': 'resnet',
@@ -2243,7 +2243,7 @@ def bootstrap_pca(ibs, dims=64, global_limit=1000000, **kwargs):
     data_list = scaler.transform(data_list)
 
     # Fit PCA
-    pca_model = IncrementalPCA(n_components=dims, batch_size=)
+    pca_model = IncrementalPCA(n_components=dims)
     pca_model.fit(data_list)
 
     # Transform data to smaller vectors
