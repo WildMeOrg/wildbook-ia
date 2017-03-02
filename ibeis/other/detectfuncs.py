@@ -27,7 +27,7 @@ from ibeis import annotmatch_funcs  # NOQA
 
 SAMPLES = 1000
 CHUNK_SIZE = SAMPLES // ut.num_cpus()
-FORCE_SERIAL = False
+FORCE_SERIAL = True
 
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -1015,15 +1015,23 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
         {
-            'label'        : 'WIC',
+            'label'        : 'WIC ~0.5',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
+            'nms'          : True,
+            'nms_thresh'   : 0.75,
         },
+
+        # {
+        #     'label'        : 'WIC',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
         # {
         #     'label'        : 'WIC ~0.25',
