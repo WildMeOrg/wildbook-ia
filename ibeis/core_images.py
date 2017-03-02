@@ -1330,7 +1330,7 @@ class DetectorConfig(dtool.Config):
         #
         ut.ParamInfo('localizer_algo',             None),
         ut.ParamInfo('localizer_config_filepath',  'v3'),
-        ut.ParamInfo('localizer_weight_filepath',  None),
+        ut.ParamInfo('localizer_weight_filepath',  'v3'),
         ut.ParamInfo('localizer_grid',             False),
         #
         ut.ParamInfo('labeler_weight_filepath',    'v3'),
