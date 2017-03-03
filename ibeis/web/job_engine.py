@@ -55,6 +55,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 import utool as ut
+import json
 import time
 import zmq
 import uuid  # NOQA
@@ -563,6 +564,10 @@ class JobInterface(object):
         except TypeError as ex:
             ut.printex(ex, keys=['json_result'], iswarning=True)
             result = json_result
+        except Exception as ex:
+            ut.printex(ex, 'Failed to unpack result', keys=['json_result'])
+            result = reply['json_result']
+            # raise
             # raise
         #print('Job %r result = %s' % (jobid, ut.repr2(result, truncate=True),))
         return result
