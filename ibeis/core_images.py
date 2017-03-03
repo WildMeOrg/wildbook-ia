@@ -1194,6 +1194,8 @@ def compute_localizations_features(depc, loc_id_list, config=None):
     gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
                                                                  target_size=target_size)
 
+    ut.embed()
+
     # Build model
     model = MODEL_CLASS(include_top=False)
 

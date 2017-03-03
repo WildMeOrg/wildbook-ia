@@ -56,7 +56,7 @@ import cv2
 from ibeis.control.controller_inject import register_preprocs, register_subprops
 from ibeis.algo.hots.chip_match import ChipMatch
 from ibeis.algo.hots import neighbor_index
-(print, rrr, profile) = ut.inject2(__name__, '[core_annots]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 derived_attribute = register_preprocs['annot']

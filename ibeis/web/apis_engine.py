@@ -37,6 +37,12 @@ def ensure_simple_server(port=5832):
     return bgserver
 
 
+def ensure_uuid_list(list_):
+    if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
+        list_ = list(map(uuid.UUID, list_))
+    return list_
+
+
 @register_ibs_method
 @accessor_decors.default_decorator
 @register_api('/api/engine/uuid/check/', methods=['GET', 'POST'])
@@ -201,11 +207,6 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
     #import ibeis
     #from ibeis.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
-    def ensure_uuid_list(list_):
-        if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
-            list_ = list(map(uuid.UUID, list_))
-        return list_
-
     qannot_uuid_list = ensure_uuid_list(qannot_uuid_list)
     dannot_uuid_list = ensure_uuid_list(dannot_uuid_list)
 
@@ -346,10 +347,6 @@ def start_identify_annots_query(ibs,
     #import ibeis
     #from ibeis.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
-    def ensure_uuid_list(list_):
-        if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
-            list_ = list(map(uuid.UUID, list_))
-        return list_
 
     qannot_uuid_list = ensure_uuid_list(query_annot_uuid_list)
     dannot_uuid_list = ensure_uuid_list(database_annot_uuid_list)
@@ -414,15 +411,61 @@ def start_detect_image(ibs, image_uuid_list, callback_url=None, callback_method=
     #import ibeis
     #from ibeis.web import apis_engine
     #ibs.load_plugin_module(apis_engine)
-    def ensure_uuid_list(list_):
-        if list_ is not None and len(list_) > 0 and isinstance(list_[0], six.string_types):
-            list_ = list(map(uuid.UUID, list_))
-        return list_
-
     image_uuid_list = ensure_uuid_list(image_uuid_list)
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     args = (gid_list, kwargs, )
     jobid = ibs.job_manager.jobiface.queue_job('detect_cnn_yolo_json', callback_url, callback_method, *args)
+
+    #if callback_url is not None:
+    #    #import requests
+    #    #requests.
+    #    #callback_url
+    return jobid
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
+@register_api('/api/engine/classify/whaleshark/injury/', methods=['POST'])
+def start_predict_ws_injury_interim_svm(ibs, annot_uuid_list, callback_url=None, callback_method=None, **kwargs):
+    """
+    REST:
+        Method: POST
+        URL: /api/engine/classify/whaleshark/injury/
+
+    Args:
+        annot_uuid_list (list) : list of annot uuids to detect on.
+        callback_url (url) : url that will be called when detection succeeds or fails
+
+    CommandLine:
+        python -m ibeis.web.apis_engine start_predict_ws_injury_interim_svm
+
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.web.apis_engine import *  # NOQA
+        >>> from ibeis.web import apis_engine
+        >>> import ibeis
+        >>> ibs, qaids, daids = ibeis.testdata_expanded_aids(
+        >>>     defaultdb='WS_ALL', a=['default:qsize=2,dsize=10'])
+        >>> annot_uuid_list = ibs.get_annot_uuids(qaids)
+        >>> ibs.initialize_job_manager()
+        >>> jobid = ibs.start_predict_ws_injury_interim_svm(annot_uuid_list)
+        >>> result = ibs.wait_for_job_result(jobid, timeout=None, freq=2)
+        >>> print(result)
+        >>> import utool as ut
+        >>> #print(ut.to_json(result))
+        >>> ibs.close_job_manager()
+    """
+    # Check UUIDs
+    ibs.web_check_uuids([], annot_uuid_list)
+
+    #import ibeis
+    #from ibeis.web import apis_engine
+    #ibs.load_plugin_module(apis_engine)
+    annot_uuid_list = ensure_uuid_list(annot_uuid_list)
+    annots = ibs.annots(uuids=annot_uuid_list)
+    args = (annots.aids,)
+    jobid = ibs.job_manager.jobiface.queue_job('predict_ws_injury_interim_svm', callback_url, callback_method, *args)
 
     #if callback_url is not None:
     #    #import requests

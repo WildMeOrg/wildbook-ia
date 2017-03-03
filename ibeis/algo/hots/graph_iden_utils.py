@@ -110,23 +110,38 @@ def e_(u, v):
 
 
 @profile
-def bridges_inside(graph, both):
-    """ assume both is a set """
-    yielder = set([])
-    both_upper = both.copy()
+def bridges_inside(graph, nodes):
+    """
+    Finds edges within a set of nodes
+    Running time is O(len(nodes) ** 2)
+
+    Args:
+        graph (nx.Graph): an undirected graph
+        nodes1 (set): a set of nodes
+    """
+    result = set([])
+    upper = nodes.copy()
     graph_adj = graph.adj
-    for u in both:
-        neighbsBB_upper = both_upper.intersection(graph_adj[u])
-        for v in neighbsBB_upper:
-            yielder.add(e_(u, v))
-        both_upper.remove(u)
-    return yielder
+    for u in nodes:
+        for v in upper.intersection(graph_adj[u]):
+            result.add(e_(u, v))
+        upper.remove(u)
+    return result
 
 
 @profile
-def bridges_cross(graph, only1, only2):
-    """ assume only1 and only2 are sets and disjoint """
-    return {e_(u, v) for u in only1 for v in only2.intersection(graph.adj[u])}
+def bridges_cross(graph, nodes1, nodes2):
+    """
+    Finds edges between two sets of disjoint nodes.
+    Running time is O(len(nodes1) * len(nodes2))
+
+    Args:
+        graph (nx.Graph): an undirected graph
+        nodes1 (set): set of nodes disjoint from `nodes2`
+        nodes2 (set): set of nodes disjoint from `nodes1`.
+    """
+    return {e_(u, v) for u in nodes1
+            for v in nodes2.intersection(graph.adj[u])}
 
 
 # @profile

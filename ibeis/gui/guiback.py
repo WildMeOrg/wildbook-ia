@@ -1806,6 +1806,9 @@ class MainWindowBackend(GUIBACK_BASE):
         detector = back.ibs.cfg.detect_cfg.detector
 
         review_in_web = True
+        review_in_web_mode = 'detections'
+        # review_in_web_mode = 'annotations'
+        assert review_in_web_mode in ['detections', 'annotations']
         if True:
             # TODO better confirm dialog
             import dtool
@@ -1905,8 +1908,12 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if review_in_web:
             # back.user_info(msg='Detection has finished. Launching web review')
-            url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
-            # url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            if review_in_web_mode == 'annotations':
+                url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            elif review_in_web_mode == 'detections':
+                url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+            else:
+                raise ValueError('invalid value for review_in_web_mode')
             print('[guiback] Opening... %r' % (url, ))
             import webbrowser
             back.start_web_server_parallel(browser=False)

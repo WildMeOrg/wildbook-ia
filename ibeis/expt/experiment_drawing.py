@@ -1,4 +1,4 @@
-#zR -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 ./dev.py -t custom:affine_invariance=False,adapteq=True,fg_on=False --db Elephants_drop1_ears --allgt --index=0:10 --guiview  # NOQA
 """
@@ -1038,7 +1038,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
-        num_xticks=numranks,
+        num_xticks=min(numranks, (numranks // 20) + 2),
         #legend_alpha=.85,
         legend_alpha=.92,
         #legendsize=12,

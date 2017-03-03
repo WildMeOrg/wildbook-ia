@@ -1321,7 +1321,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     index = np.argmax(area_list)
-    index = 0
+    # index = 0
     best_label = config_list[index]['label']
     best_color = color_list[index]
     best_config = config_list[index]
@@ -2204,14 +2204,18 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
 
 
 @register_ibs_method
-def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
+def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
+                  output_path=None, **kwargs):
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import IncrementalPCA
     from annoy import AnnoyIndex
     import numpy as np
     import random
 
-    def _get_data(depc, gid_list, global_limit):
+    def _get_data(depc, gid_list, limit=None, shuffle=False):
+        gid_list_ = gid_list[:]
+        if shuffle:
+            random.shuffle(gid_list_)
         config = {
             'algo'         : '_COMBINED',
             'features'     : True,
@@ -2219,9 +2223,9 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
         }
         total = 0
         features_list = []
-        for gid in gid_list:
-            print(gid, total)
-            if total >= global_limit:
+        gid_iter = ut.ProgIter(gid_list_, lbl='collect feature vectors', bs=True)
+        for gid in gid_iter:
+            if limit is not None and total >= limit:
                 break
             feature_list = depc.get_property('localizations_features', gid,
                                              'vector', config=config)
@@ -2229,20 +2233,20 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
             features_list.append(feature_list)
         print('Used %d images to mine %d features' % (len(features_list), total, ))
         data_list = np.vstack(features_list)
-        if len(data_list) > global_limit:
-            data_list = data_list[:global_limit]
+        if len(data_list) > limit:
+            data_list = data_list[:limit]
         features_list = None
-        return data_list
+        return total, data_list
 
     # ut.embed()
 
     # gid_list = ibs.get_valid_gids()
-    gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
-    random.shuffle(gid_list)
+    gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
+    gid_list = gid_list[:200]
 
     # Get data
     depc = ibs.depc_image
-    data_list = _get_data(depc, gid_list, global_limit)
+    total, data_list = _get_data(depc, gid_list, pca_limit, True)
     print(data_list.shape)
 
     # Normalize data
@@ -2257,20 +2261,44 @@ def bootstrap_pca(ibs, dims=64, global_limit=500000, **kwargs):
     pca_quality = pca_model.explained_variance_ratio_.sum() * 100.0
     print('PCA Variance Quality: %0.04f %%' % (pca_quality, ))
 
-    # Transform data to smaller vectors
-    data_list_ = pca_model.transform(data_list)
-
+    # Fit ANN for PCA's vectors
+    global_total = 0
     ann_model = AnnoyIndex(dims)  # Length of item vector that will be indexed
-    data_iter = ut.ProgIter(data_list_, lbl='add vectors to ANN model', bs=True)
-    for index, feature in enumerate(data_iter):
-        ann_model.add_item(index, feature)
+    ann_rounds = np.ceil(float(len(gid_list)) / ann_batch)
+    for ann_round in ann_rounds:
+        start_index = ann_round * ann_batch
+        stop_index = (ann_round + 1) * ann_batch
+        assert start_index < len(gid_list)
+        stop_index = min(stop_index, len(gid_list) - 1)
+        print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
 
-    ann_model.build(10)  # 10 trees
-    # ann_model.save('test.ann')
+        # Slice gids and get feature data
+        gid_list_ = gid_list[start_index, stop_index]
+        total, data_list = _get_data(depc, gid_list_)
+        global_total += total
 
-    # u = AnnoyIndex(f)
-    # u.load('test.ann') # super fast, will just mmap the file
-    # print(u.get_nns_by_item(0, 1000)) # will find the 1000 nearest neighbors
+        # Scaler
+        data_list = scaler.transform(data_list)
+
+        # Transform data to smaller vectors
+        data_list_ = pca_model.transform(data_list)
+
+        data_iter = ut.ProgIter(data_list_, lbl='add vectors to ANN model', bs=True)
+        for index, feature in enumerate(data_iter):
+            ann_model.add_item(index, feature)
+
+    # Build forest
+    print('Build ANN model using %d feature vectors' % (global_total, ))
+    trees = global_total // 100000
+    ann_model.build(trees)
+
+    # Save forest
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'output-ann')))
+    forest_filename = 'forest.ann'
+    forest_filepath = join(output_path, forest_filename)
+    print('Saving ANN model to: %r' % (forest_filepath, ))
+    ann_model.save(forest_filepath)
 
 
 def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,

@@ -9,7 +9,7 @@ import sklearn.metrics
 from sklearn import preprocessing
 from ibeis_cnn.models import abstract_models
 from os.path import join
-(print, rrr, profile) = ut.inject2(__name__, '[classify_shark]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def shark_net(dry=False):
@@ -479,52 +479,6 @@ def get_shark_dataset(target_type='binary', data_type='chip'):
     return dataset
 
 
-#def get_sharks_dataset(target_type=None, data_type='hog'):
-#    """
-#    Ignore:
-#        # Binarize into multi-class labels
-#        # http://stackoverflow.com/questions/10526579/use-scikit-learn-to-classify-into-multiple-categories
-#        #menc = preprocessing.MultiLabelBinarizer()
-#        #menc.fit(annot_tags)
-#        #target = menc.transform(annot_tags)
-#        #enc = menc
-#        # henc = preprocessing.OneHotEncoder()
-#        # henc.fit(menc.transform(annot_tags))
-#        # target = henc.transform(menc.transform(annot_tags))
-#        # target = np.array([int('healthy' not in tags) for tags in annots.case_tags])
-
-#    CommandLine:
-#        python -m ibeis.scripts.classify_shark get_sharks_dataset
-#        python -m ibeis.scripts.classify_shark get_sharks_dataset --show --monitor
-
-#    Example:
-#        >>> target_type = 'binary'
-#        >>> data_type = 'chip'
-#        >>> from ibeis.scripts.classify_shark import *  # NOQA
-#        >>> get_sharks_dataset(target_type, data_type)
-#    """
-
-#    data = None
-#    tup = get_shark_labels_and_metadata(target_type)
-#    ibs, annots, target, target_names, config, metadata, enc = tup
-#    data = np.array([h.ravel() for h in annots.hog_hog])
-#    # Build scipy / scikit data standards
-#    ds = sklearn.datasets.base.Bunch(
-#        ibs=ibs,
-#        #data=data,
-#        name='sharks',
-#        DESCR='injured-vs-healthy whale sharks',
-#        target_names=target_names,
-#        target_labels=enc.transform(target_names),
-#        config=config,
-#        target=target,
-#        enc=enc,
-#        data=data,
-#        **metadata
-#    )
-#    return ds
-
-
 def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     """
     >>> from ibeis.scripts.classify_shark import *  # NOQA
@@ -555,26 +509,6 @@ def get_shark_labels_and_metadata(target_type=None, ibs=None, config=None):
     #TARGET_TYPE = 'multiclass3'
     if target_type is None:
         target_type = TARGET_TYPE
-
-    #def cleanup_tags(orig_case_tags, tag_vocab):
-    #    regex_map = [
-    #        ('injur-trunc', 'injur-trunc'),
-    #        ('trunc', 'injur-trunc'),
-    #        ('healthy', 'healthy'),
-    #        (['injur-unknown', 'other_injury'], 'injur-other'),
-    #        ('nicks', 'injur-nicks'),
-    #        ('scar', 'injur-scar'),
-    #        ('bite', 'injur-bite'),
-    #        (['primary', 'secondary', 'pose:novel'], None),
-    #    ]
-    #    alias_map = ut.build_alias_map(regex_map, tag_vocab)
-    #    unmapped = list(set(tag_vocab) - set(alias_map.keys()))
-    #    case_tags = ut.alias_tags(orig_case_tags, alias_map)
-    #    print('unmapped = %r' % (unmapped,))
-    #    return case_tags
-    #case_tags = cleanup_tags(orig_case_tags, tag_vocab)
-    #print('Cleaned tags')
-    #print(ut.repr3(ut.dict_hist(ut.flatten(case_tags))))
 
     from ibeis.scripts import getshark
     category_tags = getshark.get_injur_categories(all_annots)
@@ -851,28 +785,7 @@ class ClfProblem(object):
         X_test = data.take(test_idx, axis=0)
         y_true = target.take(test_idx, axis=0)
 
-        if len(clf.classes_) == 2:
-            # Adapt _ovr_decision_function for 2-class case
-            # This is simply a linear scaling into a probability based on the
-            # other members of this query.
-            X = clf._validate_for_predict(X_test)
-            X = clf._compute_kernel(X)
-            _dec2 = clf._dense_decision_function(X)
-            dec2 = -_dec2
-
-            n_samples = dec2.shape[0]
-            n_classes = len(clf.classes_)
-            final = np.zeros((n_samples, n_classes))
-            confidence_max = max(np.abs(dec2.max()), np.abs(dec2.min()))
-            norm_conf = ((dec2.T[0] / confidence_max) + 1) / 2
-            final.T[0] = 1 - norm_conf
-            final.T[1] = norm_conf
-            # output comparable to multiclass version
-            y_conf = final
-        else:
-            # Get notion of confidence / probability of decision
-            y_conf = clf.decision_function(X_test)
-
+        y_conf = predict_svc_ovr(X_test)
         y_pred = y_conf.argmax(axis=1)
 
         result = ClfSingleResult(problem.ds, test_idx, y_true, y_pred, y_conf)
@@ -994,6 +907,55 @@ def set_model_state(clf, model_state):
             assert np.all(val == val2)
 
 
+def predict_svc_ovr(clf, data):
+    if len(clf.classes_) == 2:
+        X = clf._validate_for_predict(data)
+        X = clf._compute_kernel(X)
+        _dec2 = clf._dense_decision_function(X)
+        dec2 = -_dec2
+
+        n_samples = dec2.shape[0]
+        n_classes = len(clf.classes_)
+        final = np.zeros((n_samples, n_classes))
+        confidence_max = max(np.abs(dec2.max()), np.abs(dec2.min()))
+        norm_conf = ((dec2.T[0] / confidence_max) + 1) / 2
+        final.T[0] = 1 - norm_conf
+        final.T[1] = norm_conf
+        # output comparable to multiclass version
+        y_conf = final
+    else:
+        # Get notion of confidence / probability of decision
+        y_conf = clf.decision_function(data)
+    return y_conf
+
+
+def predict_ws_injury_interim_svm(ibs, aids):
+    """
+    Returns relative confidence
+    """
+    config = {
+        #'dim_size': (256, 256),
+        'dim_size': (224, 224),
+        'resize_dim': 'wh'
+    }
+
+    # Load the SVM
+    model_fname = 'interim_svc_injur-shark-hog_12559_224x224x3_ldhhxnxo.cPkl'
+    model_url = 'https://lev.cs.rpi.edu/public/models/{}'.format(model_fname)
+    model_fpath = ut.grab_file_url(model_url, check_hash=False)
+    clf = ut.load_cPkl(model_fpath)
+
+    annots = ibs.annots(aids, config=config)
+    data = np.array([h.ravel() for h in annots.hog_hog])
+
+    target_names = ['healthy', 'injured']
+    # confidence = clf.decision_function(data)
+    # y_conf = predict_svc_ovr(clf, data)
+    y_pred = clf.predict(data)
+    pred_nice = ut.take(target_names, y_pred)
+    return pred_nice
+
+
 def shark_svm():
     r"""
     References:
@@ -1032,6 +994,32 @@ def shark_svm():
 
     problem = classify_shark.ClfProblem(ds)
     problem.print_support_info()
+
+    BUILD_RELEASE_MODEL = False
+    if BUILD_RELEASE_MODEL:
+        clf = sklearn.svm.SVC(kernel=str('linear'), C=.17,
+                              class_weight='balanced',
+                              decision_function_shape='ovr',
+                              verbose=10)
+        clf.fit(ds.data, ds.target)
+        model_fname = 'interim_svc_{}.cPkl'.format(ds.dataset_id)
+        model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
+        model_fpath = join(model_dpath, model_fname)
+        ut.save_cPkl(model_fpath, clf)
+        """
+        TO PUBLISH
+        scp clf to lev:/media/hdd/PUBLIC/models
+        run script lev:/media/hdd/PUBLIC/hash.py to refresh hashes
+        """
+        user = ut.get_user_name()
+        host = 'lev.cs.rpi.edu'
+        remote_path = '/media/hdd/PUBLIC/models/' + model_fname
+        remote_uri = user + '@' + host + ':' + remote_path
+        ut.rsync(model_fpath, remote_uri)
+
+        command = 'python /media/hdd/PUBLIC/hash.py'
+        ut.cmd('ssh {user}@{host} "{command}"'.format(user=user, host=host,
+                                                      command=command))
 
     model_dpath = ut.ensuredir((ds.dataset_dpath, 'svms'))
     #n_folds = 10
@@ -1143,27 +1131,7 @@ def shark_svm():
 
     def classifier_test(clf, X_test, y_test):
         print('[problem] test classifier on %d data points' % (len(test_idx),))
-        if len(clf.classes_) == 2:
-            # Adapt _ovr_decision_function for 2-class case
-            # This is simply a linear scaling into a probability based on the
-            # other members of this query.
-            X = clf._validate_for_predict(X_test)
-            X = clf._compute_kernel(X)
-            _dec2 = clf._dense_decision_function(X)
-            dec2 = -_dec2
-
-            n_samples = dec2.shape[0]
-            n_classes = len(clf.classes_)
-            final = np.zeros((n_samples, n_classes))
-            confidence_max = max(np.abs(dec2.max()), np.abs(dec2.min()))
-            norm_conf = ((dec2.T[0] / confidence_max) + 1) / 2
-            final.T[0] = 1 - norm_conf
-            final.T[1] = norm_conf
-            # output comparable to multiclass version
-            y_conf = final
-        else:
-            # Get notion of confidence / probability of decision
-            y_conf = clf.decision_function(X_test)
+        y_conf = predict_svc_ovr(X_test)
         y_pred = y_conf.argmax(axis=1)
         result = ClfSingleResult(problem.ds, test_idx, y_test, y_pred, y_conf)
         return result
@@ -1354,6 +1322,7 @@ def inspect_results(ds, result_list):
     inter = draw_results.make_InteractClasses(ibs, config, df_chunks,
                                               nCols=len(view_targets))
     inter.start()
+
 
 if __name__ == '__main__':
     r"""

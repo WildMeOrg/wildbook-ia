@@ -787,10 +787,19 @@ class _AnnotInfrIBEIS(object):
         feedback = ut.ddict(list)
         for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
             edge = e_(aid1, aid2)
+            conf = confidence_list[count]
+            truth_ = truth[count]
+            if conf is not None and not isinstance(conf, int):
+                import warnings
+                warnings.warn('CONF WAS NOT AN INTEGER. conf=%r' % (conf,))
+                conf = None
+            decision = lookup_truth[truth_]
+            conf_ = lookup_conf[conf]
+            tag_ = tags_list[count]
             feedback_item = {
-                'decision': lookup_truth[truth[count]],
-                'tags': tags_list[count],
-                'user_confidence': lookup_conf[confidence_list[count]],
+                'decision': decision,
+                'tags': tag_,
+                'user_confidence': conf_,
             }
             feedback[edge].append(feedback_item)
         if infr.verbose >= 1:
