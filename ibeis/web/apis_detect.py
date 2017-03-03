@@ -13,7 +13,7 @@ from ibeis.constants import KEY_DEFAULTS, SPECIES_KEY
 from ibeis.web import appfuncs as appf
 
 
-USE_LOCALIZATIONS = False
+USE_LOCALIZATIONS = True
 
 
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -438,7 +438,8 @@ def detect_cnn_yolo_exists(ibs, gid_list, testing=False):
 
 
 @register_ibs_method
-def commit_localization_results(ibs, gid_list, results_list, note=None):
+def commit_localization_results(ibs, gid_list, results_list, note=None,
+                                update_json_log=True):
     zipped_list = zip(gid_list, results_list)
     aids_list = []
     for gid, (score, bbox_list, theta_list, conf_list, class_list) in zipped_list:
@@ -457,11 +458,15 @@ def commit_localization_results(ibs, gid_list, results_list, note=None):
         # ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
         aids_list.append(aid_list)
     ibs._clean_species()
+    if update_json_log:
+        aid_list = ut.flatten(aids_list)
+        ibs.log_detections(aid_list)
     return aids_list
 
 
 @register_ibs_method
-def commit_detection_results(ibs, gid_list, results_list, note=None):
+def commit_detection_results(ibs, gid_list, results_list, note=None,
+                             update_json_log=True):
     zipped_list = zip(gid_list, results_list)
     aids_list = []
     for gid, (score, bbox_list, theta_list, species_list, viewpoint_list, conf_list) in zipped_list:
@@ -480,11 +485,16 @@ def commit_detection_results(ibs, gid_list, results_list, note=None):
         ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
         aids_list.append(aid_list)
     ibs._clean_species()
+    if update_json_log:
+        aid_list = ut.flatten(aids_list)
+        ibs.log_detections(aid_list)
     return aids_list
 
 
 @register_ibs_method
-def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None, filter_viewpoint_list=None, note=None):
+def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
+                                      filter_viewpoint_list=None, note=None,
+                                      update_json_log=True):
     depc = ibs.depc_image
     results_list = depc.get_property('detections', gid_list, None)
     zipped_list = zip(gid_list, results_list)
@@ -513,7 +523,54 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None, f
             aid_list.append(aid)
         aids_list.append(aid_list)
     ibs._clean_species()
+    if update_json_log:
+        aid_list = ut.flatten(aids_list)
+        ibs.log_detections(aid_list)
     return aids_list
+
+
+@register_ibs_method
+def log_detections(ibs, aid_list):
+    import time
+    import os
+    json_log_path = ibs.get_logdir_local()
+    json_log_filename = 'detections.json'
+    json_log_filepath = os.path.join(json_log_path, json_log_filename)
+    print('Logging detections added to: %r' % (json_log_filepath, ))
+    # Log has never been made, create one
+    if not os.path.exists(json_log_filepath):
+        json_dict = {
+            'updates': [],
+        }
+        json_str = ut.to_json(json_dict, pretty=True)
+        with open(json_log_filepath, 'w') as json_log_file:
+            json_log_file.write(json_str)
+    # Get current log state
+    with open(json_log_filepath, 'r') as json_log_file:
+        json_str = json_log_file.read()
+    json_dict = ut.from_json(json_str)
+    # Get values
+    db_name = ibs.get_db_name()
+    db_init_uuid = ibs.get_db_init_uuid()
+    # Zip all the updates together and write to updates list in dictionary
+    gid_list = ibs.get_annot_gids(aid_list)
+    bbox_list = ibs.get_annot_bboxes(aid_list)
+    theta_list = ibs.get_annot_thetas(aid_list)
+    zipped = zip(aid_list, gid_list, bbox_list, theta_list)
+    for aid, gid, bbox, theta in zipped:
+        json_dict['updates'].append({
+            'time_unixtime': time.time(),
+            'db_name': db_name,
+            'db_init_uuid': db_init_uuid,
+            'image_rowid': gid,
+            'annot_rowid': aid,
+            'annot_bbox': bbox,
+            'annot_theta': theta,
+        })
+    # Write new log state
+    json_str = ut.to_json(json_dict, pretty=True)
+    with open(json_log_filepath, 'w') as json_log_file:
+        json_log_file.write(json_str)
 
 
 @register_ibs_method
