@@ -2075,27 +2075,67 @@ def draw_histogram(bin_labels, bin_values, xlabel='',  ylabel='Freq',
                   ylabel=ylabel, xlabel=xlabel, **kwargs)
 
 
-def draw_time_distribution(unixtime_list):
+def draw_time_distribution(unixtime_list, bw=None):
     import vtool as vt
     import plottool as pt
     if len(unixtime_list) > 0:
-        unixtime_domain = np.linspace(np.nanmin(unixtime_list), np.nanmax(unixtime_list), 1000)
-        unixtime_pdf = vt.estimate_pdf(unixtime_list)
-        unixtime_prob = unixtime_pdf.evaluate(unixtime_domain)
+        from sklearn.neighbors.kde import KernelDensity
+        unixtime_arr = np.asarray(unixtime_list)
+        # Remove nans from list
+        nanflags = np.isnan(unixtime_arr)
+        unixtimes = unixtime_arr[~nanflags]
+        mintime = vt.safe_min(unixtimes)
+        maxtime = vt.safe_max(unixtimes)
+        unixtime_domain = np.linspace(mintime, maxtime, 1000)
+
+        num_nan = sum(nanflags)
+        num_nonnan = len(unixtimes)
+        print('num_nan = %r' % (num_nan,))
+        print('num_nonnan = %r' % (num_nonnan,))
+
+        if bw is None:
+            from sklearn.model_selection import GridSearchCV
+            day = 60 * 60 * 24
+            # bw_low = day
+            # bw_high = (maxtime - mintime) / 10
+            grid_params = {
+                # 'bandwidth': np.logspace(np.log(bw_low), np.log(bw_high), 30)
+                # 'bandwidth': np.linspace(bw_low, bw_high, 30)
+                'bandwidth': np.linspace(day, day * 14, 14)
+            }
+            grid = GridSearchCV(KernelDensity(kernel='gaussian'),
+                                grid_params, cv=3, verbose=3, n_jobs=7)
+            grid.fit(unixtimes[:, None])
+            bw = grid.best_params_['bandwidth']
+            print('bw = %r' % (bw,))
+        # else:
+        #     # scott_bw = len(unixtimes) ** (-1 / 4)
+        #     # 3 days bandwidth
+        #     bw = 60 * 60 * 24 * 3
+        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
+        kde.fit(unixtimes[:, None])
+        log_density = kde.score_samples(unixtime_domain[:, None])
+        unixtime_density = np.exp(log_density)
         xdata = [ut.unixtime_to_datetimeobj(unixtime) for unixtime in unixtime_domain]
+
+        # unixtime_pdf = vt.estimate_pdf(unixtimes)
+        # unixtime_density = unixtime_pdf.evaluate(unixtime_domain)
     else:
-        unixtime_prob = []
+        unixtime_density = []
         xdata = []
 
     fnum = pt.ensure_fnum(None)
-    pt.plot_probabilities([unixtime_prob], ['time'], xdata=xdata, fill=True,
+    pt.plot_probabilities([unixtime_density], ['time'], xdata=xdata, fill=True,
                           use_legend=False, fnum=fnum, remove_yticks=True)
-    #freq, bins = np.histogram(unixtime_list, bins=30, normed=True)
-    #xints = np.arange(len(xdata))
-    #ut.embed()
-    #pt.multi_plot(xints, [freq],
-    #              fnum=fnum,
-    #              kind='bar', dark_background=False)
+
+    if False:
+        # freq, bins = np.histogram(unixtimes, bins=30, normed=True)
+        freq, bins = np.histogram(unixtimes, bins=30, normed=False)
+        # xints = np.arange(len(bins))
+        pt.multi_plot(bins, [freq],
+                      fnum=fnum,
+                      width=np.diff(bins)[0],
+                      kind='bar', dark_background=False)
     #xtick_rotation=30,
     #num_yticks=num_yticks,
     #xticklabels=bin_labels,
