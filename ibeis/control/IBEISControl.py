@@ -1154,6 +1154,10 @@ class IBEISController(BASE_CLASS):
         ibs2 = ibeis.opendb(dbdir=dbdir, web=False)
         ibs.__dict__.update(**ibs2.__dict__)
 
+    def predict_ws_injury_interim_svm(ibs, aids):
+        from ibeis.scripts import classify_shark
+        return classify_shark.predict_ws_injury_interim_svm(ibs, aids)
+
 
 if __name__ == '__main__':
     """
