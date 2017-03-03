@@ -578,10 +578,11 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
     return list(zip(acfg_combo_out, expanded_aids_list))
 
 
-def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
+def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=None):
     """
     Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
     `denc_per_name` for each individual in the datasets respectively.
+    `enc_labels` specifies custom encounter labels.
 
     CommandLine:
         python -m ibeis.init.filter_annots encounter_crossval
@@ -615,7 +616,9 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1):
     assert qenc_per_name == 1, 'can only do one qenc right now'
 
     annots = ibs.annots(aids)
-    unique_encounters, groupxs = annots.group_indicies(annots.encounter_text)
+    if enc_labels is None:
+        enc_labels = annots.encounter_text
+    unique_encounters, groupxs = annots.group_indicies(enc_labels)
     encounter_nids = annots.take(ut.take_column(groupxs, 0)).nid
     encounter_aids = ut.apply_grouping(annots.aids, groupxs)
 
@@ -1037,6 +1040,12 @@ def filter_annots_independent(ibs, avail_aids, aidcfg, prefix='',
     if aidcfg.get('require_timestamp') is True:
         with VerbosityContext('require_timestamp'):
             avail_aids = ibs.filter_aids_without_timestamps(avail_aids)
+
+    if aidcfg.get('require_gps') is True:
+        with VerbosityContext('require_gps'):
+            annots = ibs.annots(avail_aids)
+            annots = annots.compress(~np.isnan(np.array(annots.gps)).any(axis=1))
+            avail_aids = annots.aids
         #avail_aids = sorted(avail_aids)
 
     if aidcfg.get('max_timestamp') is not None:

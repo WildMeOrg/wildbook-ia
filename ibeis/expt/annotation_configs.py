@@ -84,6 +84,7 @@ INDEPENDENT_DEFAULTS = {
     #'species'             : None,
     # Timedelta Params
     'require_timestamp'   : None,
+    'require_gps'         : None,
     'max_timestamp'       : None,
     'contributor_contains'    : None,
     # Quality Params
