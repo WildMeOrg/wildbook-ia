@@ -2212,7 +2212,10 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
     import numpy as np
     import random
 
-    def _get_data(depc, gid_list, limit=None):
+    def _get_data(depc, gid_list, limit=None, shuffle=False):
+        gid_list_ = gid_list[:]
+        if shuffle:
+            random.shuffle(gid_list_)
         config = {
             'algo'         : '_COMBINED',
             'features'     : True,
@@ -2220,7 +2223,7 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
         }
         total = 0
         features_list = []
-        gid_iter = ut.ProgIter(gid_list, lbl='collect feature vectors', bs=True)
+        gid_iter = ut.ProgIter(gid_list_, lbl='collect feature vectors', bs=True)
         for gid in gid_iter:
             if limit is not None and total >= limit:
                 break
@@ -2239,11 +2242,11 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-    random.shuffle(gid_list)
+    gid_list = gid_list[:200]
 
     # Get data
     depc = ibs.depc_image
-    total, data_list = _get_data(depc, gid_list, pca_limit)
+    total, data_list = _get_data(depc, gid_list, pca_limit, True)
     print(data_list.shape)
 
     # Normalize data
@@ -2271,7 +2274,7 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
 
         # Slice gids and get feature data
         gid_list_ = gid_list[start_index, stop_index]
-        total, data_list = _get_data(depc, gid_list_, None)
+        total, data_list = _get_data(depc, gid_list_)
         global_total += total
 
         # Scaler
