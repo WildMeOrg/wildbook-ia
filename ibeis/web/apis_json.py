@@ -621,12 +621,14 @@ def get_image_imagesettext_json(ibs, image_uuid_list):
 
 @register_api('/api/image/imageset/rowid/json/', methods=['PUT'])
 def set_image_imgsetids_json(ibs, image_uuid_list, imageset_rowid_list):
+    ibs.web_check_uuids(image_uuid_list, [], [])
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
 
 
 @register_api('/api/image/imageset/uuid/json/', methods=['PUT'])
 def set_image_imgset_uuids_json(ibs, image_uuid_list, imageset_uuid_list):
+    ibs.web_check_uuids(image_uuid_list, [], [])
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_uuid(imageset_uuid_list)
     return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
@@ -634,6 +636,7 @@ def set_image_imgset_uuids_json(ibs, image_uuid_list, imageset_uuid_list):
 
 @register_api('/api/image/imageset/text/json/', methods=['PUT'])
 def set_image_imagesettext_json(ibs, image_uuid_list, imageset_text_list):
+    ibs.web_check_uuids(image_uuid_list, [], [])
     gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
     imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
     return ibs.set_image_imgsetids(gid_list, imageset_rowid_list)
@@ -719,6 +722,7 @@ def get_annot_hashid_uuid_json(ibs, annot_uuid_list, **kwargs):
 @register_api('/api/annot/exemplar/json/', methods=['POST'])
 def set_exemplars_from_quality_and_viewpoint_json(ibs, annot_uuid_list,
                                                   annot_name_list, **kwargs):
+    ibs.web_check_uuids([], annot_uuid_list, [])
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     if annot_name_list is not None:
         # Set names for query annotations

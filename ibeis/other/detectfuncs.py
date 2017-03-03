@@ -27,7 +27,7 @@ from ibeis import annotmatch_funcs  # NOQA
 
 SAMPLES = 1000
 CHUNK_SIZE = SAMPLES // ut.num_cpus()
-FORCE_SERIAL = False
+FORCE_SERIAL = True
 
 # Must import class before injection
 CLASS_INJECT_KEY, register_ibs_method = (
@@ -427,7 +427,8 @@ def general_identify_operating_point(conf_list, x_list, y_list, invert=False, x_
     return best_conf_list, best_x_list, best_y_list
 
 
-def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b', invert=False, x_limit=0.90, **kwargs):
+def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b',
+                           invert=False, x_limit=0.90, plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
     best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
     best_conf = best_conf_list[0]
@@ -436,7 +437,8 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
     label = '%s [OP = %0.02f]' % (label, best_conf, )
     linestyle = '--' if kwargs.get('classify', False) or kwargs.get('line_dotted', False) else '-'
     plt.plot(x_list, y_list, color=color, linestyle=linestyle, label=label)
-    plt.plot(best_x_list, best_y_list, color=color, marker='o')
+    if plot_point:
+        plt.plot(best_x_list, best_y_list, color=color, marker='o')
     area = np.trapz(y_list, x=x_list)
     if len(best_conf_list) > 1:
         print('WARNING: %r' % (best_conf_list, ))
@@ -677,6 +679,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
+        depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
         confss_list = depc.get_property('localizations_classifier', test_gid_list,
                                         'score', config=kwargs)
 
@@ -944,7 +947,8 @@ def localizer_confusion_matrix_algo_plot(ibs, color, conf, label=None, min_overl
 
 @register_ibs_method
 def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7),
-                                            write_images=False, min_recall=0.9, **kwargs):
+                                            write_images=False, min_recall=0.9,
+                                            plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
     import plottool as pt
 
@@ -958,7 +962,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    species_set = set(['zebra'])
+    # species_set = set(['zebra'])
     # species_set = set(['giraffe'])
     # species_set = set(['elephant'])
     # species_set = None
@@ -974,6 +978,15 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'V3 Whale Fluke', 'grid' : True,  'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set' : set(['whale_fluke'])},
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
+
+        {'label': 'V3',          'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        {'label': 'V3 PZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
+        {'label': 'V3 GZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
+        {'label': 'V3 KENYA',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains', 'zebra_grevys', 'giraffe_reticulated', 'giraffe_masai', 'elephant_savannah', 'antelope', 'dog_wild', 'lion', 'hippopotamus'])},
+        {'label': 'V3 DOMESTIC', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['bird', 'horse_domestic', 'cow_domestic', 'sheep_domestic', 'dog_domestic', 'cat_domestic', 'unspecified_animal'])},
+        {'label': 'V3 OCEAN',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['lionfish', 'turtle_sea', 'whale_shark', 'whale_fluke'])},
+        {'label': 'V3 PERSON',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['person'])},
+        {'label': 'V3 VEHICLE',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['car', 'bicycle', 'motorcycle', 'truck', 'boat', 'bus', 'train', 'airplane'])},
 
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
@@ -998,7 +1011,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
         # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
+        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1014,55 +1027,89 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
-        {
-            'label'        : 'WIC',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'WIC',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        # },
 
-        {
-            'label'        : 'WIC ~0.25',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.25,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'COMBINED ~0.75',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.75,
+        # },
 
-        {
-            'label'        : 'WIC ~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'COMBINED ~0.50',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
 
-        {
-            'label'        : 'WIC ~0.75',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.75,
-            # 'thresh'       : True,
-            # 'index_thresh' : 0.25,
-        },
+        # {
+        #     'label'        : 'COMBINED ~0.25',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        # },
+
+        # {
+        #     'label'        : 'WIC',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
+
+        # {
+        #     'label'        : 'WIC ~0.25',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.25,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
+
+        # {
+        #     'label'        : 'WIC ~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
+
+        # {
+        #     'label'        : 'WIC ~0.75',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.75,
+        #     # 'thresh'       : True,
+        #     # 'index_thresh' : 0.25,
+        # },
 
         ###################
 
@@ -1255,21 +1302,26 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED MUL', 'algo': '_COMBINED', 'species_set' : species_set, 'classify': True},
     ]
 
-    color_list = pt.distinct_colors(len(config_list) - 1, randomize=False)
-    color_list += [(0.2, 0.2, 0.2)]
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
+
+    # color_list = pt.distinct_colors(len(config_list) - 2, randomize=False)
+    # color_list += [(0.2, 0.2, 0.2)]
+    # color_list += [(0.2, 0.2, 0.2)]
 
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
 
     ret_list = [
         localizer_precision_recall_algo_plot(ibs, color=color, min_overlap=min_overlap,
-                                             x_limit=min_recall, **config)
+                                             x_limit=min_recall, plot_point=plot_point,
+                                             **config)
         for color, config in zip(color_list, config_list)
     ]
 
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     index = np.argmax(area_list)
+    # index = 0
     best_label = config_list[index]['label']
     best_color = color_list[index]
     best_config = config_list[index]
@@ -1296,47 +1348,47 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     args = (best_area, best_label, best_conf, )
     plt.title('Confusion Matrix for Highest mAP %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
-    # Show best that is greater than the best_pr
-    best_index = None
-    best_conf = None
-    best_pr = 0.0
-    best_re = 0.0
-    tup_list  = [ ret[2] for ret in ret_list ]
-    for index, tup in enumerate(tup_list):
-        for conf, re, pr in zip(*tup):
-            # if pr > best_pr:
-            #     best_index = index
-            #     best_conf = conf
-            #     best_pr = pr
-            #     best_re = re
-            if re > best_re:
-                best_index = index
-                best_conf = conf
-                best_pr = pr
-                best_re = re
+    # # Show best that is greater than the best_pr
+    # best_index = None
+    # best_conf = None
+    # best_pr = 0.0
+    # best_re = 0.0
+    # tup_list  = [ ret[2] for ret in ret_list ]
+    # for index, tup in enumerate(tup_list):
+    #     for conf, re, pr in zip(*tup):
+    #         # if pr > best_pr:
+    #         #     best_index = index
+    #         #     best_conf = conf
+    #         #     best_pr = pr
+    #         #     best_re = re
+    #         if re > best_re:
+    #             best_index = index
+    #             best_conf = conf
+    #             best_pr = pr
+    #             best_re = re
 
-    if best_index is not None:
-        axes_ = plt.subplot(131)
-        plt.plot([best_re], [best_pr], 'yo')
+    # if best_index is not None:
+    #     axes_ = plt.subplot(131)
+    #     plt.plot([best_re], [best_pr], 'yo')
 
-        best_label = config_list[best_index]['label']
-        best_color = color_list[index]
-        best_config = config_list[best_index]
+    #     best_label = config_list[best_index]['label']
+    #     best_color = color_list[index]
+    #     best_config = config_list[best_index]
 
-        axes_ = plt.subplot(133)
-        axes_.set_aspect(1)
-        gca_ = plt.gca()
-        gca_.grid(False)
-        correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
-                                                               min_overlap=min_overlap,
-                                                               fig_=fig_, axes_=axes_,
-                                                               **best_config)
-        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-        axes_.set_ylabel('Ground-Truth')
-        # args = (min_recall, best_label, best_conf, )
-        # plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
-        args = (best_re, best_label, best_conf, )
-        plt.title('Confusion Matrix for Highest Recall %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    #     axes_ = plt.subplot(133)
+    #     axes_.set_aspect(1)
+    #     gca_ = plt.gca()
+    #     gca_.grid(False)
+    #     correct_rate, _ = localizer_confusion_matrix_algo_plot(ibs, best_color, best_conf,
+    #                                                            min_overlap=min_overlap,
+    #                                                            fig_=fig_, axes_=axes_,
+    #                                                            **best_config)
+    #     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    #     axes_.set_ylabel('Ground-Truth')
+    #     # args = (min_recall, best_label, best_conf, )
+    #     # plt.title('P-R Confusion Matrix for Highest Precision with Recall >= %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
+    #     args = (best_re, best_label, best_conf, )
+    #     plt.title('Confusion Matrix for Highest Recall %0.02f\n(Algo: %s, OP = %0.02f)' % args, y=1.26)
 
     # plt.show()
     fig_filename = 'localizer-precision-recall-%0.2f.png' % (min_overlap, )
@@ -1424,14 +1476,20 @@ def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, category_set,
 
 
 @register_ibs_method
-def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16), **kwargs):
+def classifier_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     import matplotlib.pyplot as plt
 
     fig_ = plt.figure(figsize=figsize)
 
-    category_set = set(species_list)
+    # label = 'V1'
+    # species_list = ['zebra']
+    # kwargs['classifier_weight_filepath'] = 'coco_zebra'
 
-    kwargs['classifier_weight_filepath'] = 'coco_zebra'
+    label = 'V3'
+    species_list = ['zebra_plains', 'zebra_grevys']
+    kwargs['classifier_weight_filepath'] = 'v3_zebra'
+
+    category_set = set(species_list)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
@@ -1440,7 +1498,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf1, _ = classifier_precision_recall_algo_plot(ibs, label='V1', color='r', category_set=category_set, **kwargs)
+    area, best_conf1, _ = classifier_precision_recall_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
     plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1452,7 +1510,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_ylabel('True-Positive Rate')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf2, _ = classifier_roc_algo_plot(ibs, label='V1', color='r', category_set=category_set, **kwargs)
+    area, best_conf2, _ = classifier_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
     plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
@@ -1461,7 +1519,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
@@ -1470,7 +1528,7 @@ def classifier_precision_recall_algo_display(ibs, species_list, figsize=(16, 16)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, 'V1', 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
+    correct_rate, _ = classifier_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
@@ -1510,7 +1568,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
     ]
     flag_list = ut.not_list(flag_list)
     if False in flag_list:
-        aid_list = ut.compress(yaw_list, )
+        aid_list = ut.compress(aid_list, flag_list)
         # Get new species and yaws
         yaw_list = ibs.get_annot_yaw_texts(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
@@ -1633,6 +1691,7 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
 def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 16),
                                           **kwargs):
     import matplotlib.pyplot as plt
+    import plottool as pt
 
     if category_list is None:
         test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
@@ -1645,15 +1704,14 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     print('Compiling raw numbers...')
     label_dict = labeler_tp_tn_fp_fn(ibs, category_list, **kwargs)
 
-    category_color_list = [
-        (None          , 'b', 'All'),
-        (':'           , 'y', 'Zebras'),
-        ('zebra_plains', 'r', 'Plains Only'),
-        ('zebra_grevys', 'g', 'Grevy\'s Only'),
-        ('ignore'      , 'k', 'Ignore Only'),
+    config_list = [
+        {'label': 'All', 'category_list': None},
+        {'label': 'Zebras', 'category_list': None},
+        {'label': 'Plains Only', 'category_list': None},
+        {'label': 'Grevy\'s Only', 'category_list': None},
+        {'label': 'Ignore Only', 'category_list': None},
     ]
-
-    label_list = None  # TODO
+    color_list = pt.distinct_colors(len(config_list), randomize=False)
 
     fig_ = plt.figure(figsize=figsize)  # NOQA
 
@@ -1666,9 +1724,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     axes_.set_ylim([0.0, 1.01])
     area_list = []
     conf_list = []
-    for category, color, label_ in category_color_list:
-        category_list = [ label for label in label_list if category is None or category in label ]
-        area, conf, _ = labeler_precision_recall_algo_plot(ibs, category_list=category_list, label=label_, color=color, label_dict=label_dict)
+    for color, config in zip(color_list, config_list):
+        area, conf, _ = labeler_precision_recall_algo_plot(ibs, label_dict=label_dict,
+                                                           color=color, **config)
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
@@ -1686,9 +1744,9 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     axes_.set_ylim([0.0, 1.01])
     area_list = []
     conf_list = []
-    for category, color, label_ in category_color_list:
-        category_list = [ label for label in label_list if category is None or category in label ]
-        area, conf, _ = labeler_roc_algo_plot(ibs, category_list=category_list, label=label_, color=color, label_dict=label_dict)
+    for color, config in zip(color_list, config_list):
+        area, conf, _ = labeler_roc_algo_plot(ibs, label_dict=label_dict,
+                                              color=color, **config)
         area_list.append(area)
         conf_list.append(conf)
     best_area = area_list[0]
@@ -1697,13 +1755,13 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
                borderaxespad=0.0)
 
     fuzzy_dict = {}
-    for index1, label1 in enumerate(label_list):
+    for index1, label1 in enumerate(category_list):
         if label1 == 'ignore':
             fuzzy_list = []
         else:
             species, viewpoint = label1.strip().split(':')
             fuzzy_list = []
-            for index2, label2 in enumerate(label_list):
+            for index2, label2 in enumerate(category_list):
                 if species in label2:
                     fuzzy_list.append(index2)
         fuzzy_dict[index1] = set(fuzzy_list)
@@ -2145,6 +2203,101 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     return output_filepath
 
 
+@register_ibs_method
+def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
+                  output_path=None, **kwargs):
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import IncrementalPCA
+    from annoy import AnnoyIndex
+    import numpy as np
+    import random
+
+    def _get_data(depc, gid_list, limit=None):
+        config = {
+            'algo'         : '_COMBINED',
+            'features'     : True,
+            'feature2_algo': 'resnet',
+        }
+        total = 0
+        features_list = []
+        gid_iter = ut.ProgIter(gid_list, lbl='collect feature vectors', bs=True)
+        for gid in gid_iter:
+            if limit is not None and total >= limit:
+                break
+            feature_list = depc.get_property('localizations_features', gid,
+                                             'vector', config=config)
+            total += len(feature_list)
+            features_list.append(feature_list)
+        print('Used %d images to mine %d features' % (len(features_list), total, ))
+        data_list = np.vstack(features_list)
+        if len(data_list) > limit:
+            data_list = data_list[:limit]
+        features_list = None
+        return total, data_list
+
+    # ut.embed()
+
+    # gid_list = ibs.get_valid_gids()
+    gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
+    random.shuffle(gid_list)
+
+    # Get data
+    depc = ibs.depc_image
+    total, data_list = _get_data(depc, gid_list, pca_limit)
+    print(data_list.shape)
+
+    # Normalize data
+    scaler = StandardScaler()
+    scaler.fit(data_list)
+    data_list = scaler.transform(data_list)
+
+    # Fit PCA
+    pca_model = IncrementalPCA(n_components=dims)
+    pca_model.fit(data_list)
+
+    pca_quality = pca_model.explained_variance_ratio_.sum() * 100.0
+    print('PCA Variance Quality: %0.04f %%' % (pca_quality, ))
+
+    # Fit ANN for PCA's vectors
+    global_total = 0
+    ann_model = AnnoyIndex(dims)  # Length of item vector that will be indexed
+    ann_rounds = np.ceil(float(len(gid_list)) / ann_batch)
+    for ann_round in ann_rounds:
+        start_index = ann_round * ann_batch
+        stop_index = (ann_round + 1) * ann_batch
+        assert start_index < len(gid_list)
+        stop_index = min(stop_index, len(gid_list) - 1)
+        print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
+
+        # Slice gids and get feature data
+        gid_list_ = gid_list[start_index, stop_index]
+        total, data_list = _get_data(depc, gid_list_, None)
+        global_total += total
+
+        # Scaler
+        data_list = scaler.transform(data_list)
+
+        # Transform data to smaller vectors
+        data_list_ = pca_model.transform(data_list)
+
+        data_iter = ut.ProgIter(data_list_, lbl='add vectors to ANN model', bs=True)
+        for index, feature in enumerate(data_iter):
+            ann_model.add_item(index, feature)
+
+    # Build forest
+    print('Build ANN model using %d feature vectors' % (global_total, ))
+    trees = global_total // 100000
+    ann_model.build(trees)
+
+    # Save forest
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'output-ann')))
+    forest_filename = 'forest.ann'
+    forest_filepath = join(output_path, forest_filename)
+    print('Saving ANN model to: %r' % (forest_filepath, ))
+    ann_model.save(forest_filepath)
+
+
 def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
                     min_overlap=0.75, max_overlap=0.25):
     import random
@@ -2560,13 +2713,15 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
 
 @register_ibs_method
-def classifier_train(ibs, species_list):
+def classifier_train(ibs, species_list, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
     from ibeis_cnn.models.classifier import train_classifier
     from ibeis_cnn.utils import save_model
     data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list, dest_path=data_path)
+    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list,
+                                                               dest_path=data_path,
+                                                               **kwargs)
     id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
     output_path = join(ibs.get_cachedir(), 'training', 'classifier')
     model_path = train_classifier(output_path, X_file, y_file)
