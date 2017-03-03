@@ -1112,7 +1112,7 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             graph.add_edges_from(implicit_edges)
 
         shape_dict = {
-            'node': 'circle',
+            # 'node': 'circle',
             #'node': 'rect',
             'node': 'ellipse',
             #'root': 'rhombus',
@@ -1121,11 +1121,13 @@ class DependencyCache(_CoreDependencyCache, ut.NiceRepr):
             'root': 'ellipse',
             #'root': 'rect',
         }
-        import plottool as pt
+        # import plottool as pt
+        NEUTRAL_BLUE  = np.array((159, 159, 241, 255)) / 255.0
+        RED           = np.array((255,   0,   0, 255)) / 255.0
         color_dict = {
             #'algo': pt.DARK_GREEN,  # 'g',
-            'node': pt.NEUTRAL_BLUE,
-            'root': pt.RED,  # 'r',
+            'node': NEUTRAL_BLUE,
+            'root': RED,  # 'r',
         }
         def _node_attrs(dict_):
             props = {k: dict_['node'] for k, v in
