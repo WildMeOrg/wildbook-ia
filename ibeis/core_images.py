@@ -1101,6 +1101,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
 class Feature2Config(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('feature2_algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
+        ut.ParamInfo('feature2_chip_masking', False, hideif=False),
         ut.ParamInfo('flatten', True),
     ]
     _sub_config_list = [
@@ -1191,10 +1192,12 @@ def compute_localizations_features(depc, loc_id_list, config=None):
         raise ValueError('specified feature algo is not supported in config = %r' % (config, ))
 
     # Load chips
-    gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
-                                                                 target_size=target_size)
-
-    ut.embed()
+    if config['feature2_chip_masking']:
+        gid_list_, gid_list, thumbnail_list = get_localization_masks(ibs, loc_id_list,
+                                                                     target_size=target_size)
+    else:
+        gid_list_, gid_list, thumbnail_list = get_localization_chips(ibs, loc_id_list,
+                                                                     target_size=target_size)
 
     # Build model
     model = MODEL_CLASS(include_top=False)
