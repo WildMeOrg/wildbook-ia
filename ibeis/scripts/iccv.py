@@ -116,10 +116,9 @@ def learn_phi():
 
     for n_query_per_name in range(1, 4):
         expanded_aids = annot_crossval(ibs, annots.aids,
-                                                         n_qaids_per_name=n_query_per_name,
-                                                         n_daids_per_name=1,
-                                                         n_splits=3,
-                                                         rng=rng, debug=False)
+                                       n_qaids_per_name=n_query_per_name,
+                                       n_daids_per_name=1, n_splits=3, rng=rng,
+                                       debug=False)
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
