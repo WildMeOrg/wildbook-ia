@@ -87,7 +87,8 @@ def learn_phi():
     import plottool as pt
     pt.qtensure()
 
-    ibs = ibeis.opendb('GZ_Master1')
+    # ibs = ibeis.opendb('GZ_Master1')
+    ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
 
     aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
                                      is_known=True)
