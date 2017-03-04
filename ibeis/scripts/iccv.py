@@ -199,12 +199,12 @@ def learn_phi():
     import plottool as pt
     pt.qtensure()
 
-    ibs = ibeis.opendb('PZ_Master1')
+    ibs = ibeis.opendb('GZ_Master1')
 
     aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
                                      is_known=True)
 
-    annots = ibs.annots(aids=aids, asarray=Grue)
+    annots = ibs.annots(aids=aids, asarray=True)
     # Take only annots with time and gps data
     # annots = annots.compress(~np.isnan(annots.image_unixtimes_asfloat))
     # annots = annots.compress(~np.isnan(np.array(annots.gps)).any(axis=1))
