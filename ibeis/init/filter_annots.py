@@ -618,12 +618,16 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     annots = ibs.annots(aids)
     if enc_labels is None:
         enc_labels = annots.encounter_text
+
+    # Group annotations by encounter
     unique_encounters, groupxs = annots.group_indicies(enc_labels)
     encounter_nids = annots.take(ut.take_column(groupxs, 0)).nid
     encounter_aids = ut.apply_grouping(annots.aids, groupxs)
-
+    # Group encounters by name
     nid_to_encounters = ut.group_items(encounter_aids, encounter_nids)
+
     # We can only select individuals with enough encounters
+    # Any name without enought data becomes a confusor
     needed_enc_per_name = qenc_per_name + denc_per_name
 
     nid_to_confusor_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
