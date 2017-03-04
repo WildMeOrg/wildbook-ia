@@ -1,14 +1,52 @@
 import numpy as np
 import utool as ut
 
+def debug_expanded_aids(expanded_aids_list, verbose=1):
+    import warnings
+    warnings.simplefilter('ignore', RuntimeWarning)
+    print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
+    for qaids, daids in expanded_aids_list:
+        stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
+                                          combo_enc_info=False)
+        hashids = (stats['qaid_stats']['qhashid'],
+                   stats['daid_stats']['dhashid'])
+        print('hashids = %r' % (hashids,))
+        if verbose > 1:
+            print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
+
 
 def stratified_annot_per_name_sample(ibs, aid_list, n_qaids_per_name=1,
                                      n_daids_per_name=1, rng=None, debug=True,
-                                     n_folds=None):
-    """ Stratified Sampling per name size """
+                                     n_splits=None):
+    """
+    Stratified Sampling per name size
+
+    Args:
+        n_splits (int): number of query/database splits to create.
+            note, some names may not be big enough to split this many times.
+
+    CommandLine:
+        python -m ibeis.scripts.iccv stratified_annot_per_name_sample
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> n_qaids_per_name = 1
+        >>> n_daids_per_name = 1
+        >>> rng = 0
+        >>> debug = True
+        >>> n_splits = None
+        >>> expanded_aids_list = stratified_annot_per_name_sample(ibs, aid_list, n_qaids_per_name, n_daids_per_name, rng, debug, n_splits)
+        >>> result = ('expanded_aids_list = %s' % (ut.repr2(expanded_aids_list),))
+        >>> print(result)
+    """
     # Parameters
     rng = ut.ensure_rng(rng)
     n_need = n_qaids_per_name + n_daids_per_name
+    rebalance = True
 
     # Group annotations by name
     annots = ibs.annots(aids=aid_list)
@@ -25,153 +63,72 @@ def stratified_annot_per_name_sample(ibs, aid_list, n_qaids_per_name=1,
         if len(aids) >= n_need
     }
 
-    if n_folds is None:
+    if n_splits is None:
         # What is the maximum number of annotations in a name?
         maxsize_name = max(map(len, nid_to_sample_pool.values()))
-        n_folds = maxsize_name
+        n_splits = maxsize_name
 
-    raw_samples = [{} for _ in range(n_folds)]
+    # This is a list of dictionaries that maps a name to one possible split
+    split_samples = [{} for _ in range(n_splits)]
+
+    # Create a mapping from each name to the possible split combos
+    nid_to_splits = ut.ddict(list)
 
     # Create several splits for each name
     for nid, aids in nid_to_sample_pool.items():
         # Randomly select combinations of appropriate size
-        # idxs = ut.random_indexes(len(aids), rng=rng)
-        combo_iter = ut.random_combinations(aids, n_need, n_folds, rng=rng)
+        combo_iter = ut.random_combinations(aids, n_need, n_splits, rng=rng)
         for count, aid_combo in enumerate(combo_iter):
             aid_combo = list(aid_combo)
             rng.shuffle(aid_combo)
-            fold_qaids = aid_combo[:n_qaids_per_name]
-            fold_daids = aid_combo[n_qaids_per_name:]
-            fold_split = (fold_qaids, fold_daids)
-            # Earlier samples will be biased towards names with more
-            # annotations
-            sample = raw_samples[count]
-            sample[nid] = fold_split
+            fold_split = (aid_combo[:n_qaids_per_name],
+                          aid_combo[n_qaids_per_name:])
+            nid_to_splits[nid].append(fold_split)
+            # Earlier samples will be biased towards names with more annots
+            split_samples[count][nid] = fold_split
 
-    rebalance = True
-    if not rebalance:
-        # At this point we could create our folds like so:
-        # But each fold would not have a good balance of qaids to daids
+    # Some names may have more splits than others
+    nid_to_nsplits = ut.map_vals(len, nid_to_splits)
+    # Find the name with the most splits
+    max_nid = ut.argmax(nid_to_nsplits)
+    max_size = nid_to_nsplits[max_nid]
 
-        unbalanced_samples = []
-        for aid_split_ in raw_samples:
-            qaids = []
-            daids = []
-            for qaids_, daids_ in aid_split_.values():
-                qaids.extend(qaids_)
-                daids.extend(daids_)
-            unbalanced_samples.append((sorted(qaids), sorted(daids)))
+    # if max_size < n_splits:
+    #     warnings.warn('Splits will not be full')
+    assert max_size <= n_splits, 'cycle assumption does not hold'
+    new_splits = [[] for _ in range(n_splits)]
+    if rebalance:
+        # Rebalance by adding combos from each name in a cycle.
+        # The difference between the largest and smallest split is at most one.
+        for count, aid_combo in enumerate(ut.iflatten(nid_to_splits.values())):
+            new_splits[count % len(new_splits)].append(aid_combo)
+    else:
+        # No rebalancing. The first split contains everything from the dataset
+        # and subsequent splits contain less and less.
+        for nid, aid_combos in nid_to_splits.items():
+            for count, aid_combo in enumerate(aid_combos):
+                new_splits[count].append(aid_combo)
 
-        # if debug:
-        #     # Notice how sets at the begining are larger and biased towards
-        #     # annotations with more possible crossvalidation combinations
-        #     print('len(unbalanced_samples) = %r' % (len(unbalanced_samples),))
-        #     import warnings
-        #     warnings.simplefilter('ignore', RuntimeWarning)
-        #     totalq = 0
-        #     for qaids, daids in unbalanced_samples:
-        #         totalq += len(qaids)
-        #         stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
-        #                                           combo_enc_info=False)
-        #         hashids = (stats['qaid_stats']['qhashid'],
-        #                    stats['daid_stats']['dhashid'])
-        #         print('hashids = %r' % (hashids,))
-        #     print('totalq = %r' % (totalq,))
-        annot_samples = unbalanced_samples
-    elif rebalance:
-        # We can rebalance these so each run is about the same size
-        names = [nid for aid_split_ in raw_samples
-                 for nid in aid_split_.keys()]
-        aidsplits = [aids_ for aid_split_ in raw_samples
-                     for aids_ in aid_split_.values()]
-        group_to_idxs = ut.dzip(*ut.group_indices(names))
-        freq = ut.dict_hist(names)
-        g = list(freq.keys())[ut.argmax(list(freq.values()))]
-        size = freq[g]
-        new_splits = [[] for _ in range(size)]
-        while True:
-            try:
-                g = list(freq.keys())[ut.argmax(list(freq.values()))]
-                if freq[g] == 0:
-                    raise StopIteration()
-                group_idxs = group_to_idxs[g]
-                group_to_idxs[g] = []
-                freq[g] = 0
-                priorityx = ut.argsort(list(map(len, new_splits)))
-                for nextidx, splitx in zip(group_idxs, priorityx):
-                    new_splits[splitx].append(nextidx)
-            except StopIteration:
-                break
-        # name_splits = ut.unflat_take(groups, new_splits)
-        aidsplits = ut.unflat_take(aidsplits, new_splits)
-
-        rebalanced_samples = []
-        for aidsplit in aidsplits:
-            qaids = sorted(ut.flatten(ut.take_column(aidsplit, 0)))
-            daids = sorted(ut.flatten(ut.take_column(aidsplit, 1)))
-            rebalanced_samples.append((qaids, daids))
-
-        # if debug:
-        #     # Now we can see that the annotations are more evenly distributed
-        #     # across the cross validation runs
-        #     import warnings
-        #     warnings.simplefilter('ignore', RuntimeWarning)
-        #     print('len(rebalanced_samples) = %r' % (len(rebalanced_samples),))
-        #     totalq = 0
-        #     for qaids, daids in rebalanced_samples:
-        #         totalq += len(qaids)
-        #         stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
-        #                                           combo_enc_info=False)
-        #         hashids = (stats['qaid_stats']['qhashid'],
-        #                    stats['daid_stats']['dhashid'])
-        #         print('hashids = %r' % (hashids,))
-        #     print('totalq = %r' % (totalq,))
-        annot_samples = rebalanced_samples
-
-    confusor_aids = ut.flatten(nid_to_confusors.values())
-    expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
-                          for qaids, daids in annot_samples]
+    # Reshape into an expanded aids list
+    expanded_aids_list = [
+        [sorted(ut.flatten(qaids_)), sorted(ut.flatten(daids_))]
+        for qaids_, daids_ in (ut.listT(splits) for splits in new_splits)
+    ]
 
     if debug:
-        # Now we can see that the annotations are more evenly distributed
-        # across the cross validation runs
-        import warnings
-        warnings.simplefilter('ignore', RuntimeWarning)
-        print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
-        for qaids, daids in expanded_aids_list:
-            stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
-                                              combo_enc_info=False)
-            hashids = (stats['qaid_stats']['qhashid'],
-                       stats['daid_stats']['dhashid'])
-            print('hashids = %r' % (hashids,))
+        debug_expanded_aids(expanded_aids_list)
+
+    # Add confusors the the dataset
+    confusor_aids = ut.flatten(nid_to_confusors.values())
+    expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
+                          for qaids, daids in expanded_aids_list]
+
+    if debug:
+        debug_expanded_aids(expanded_aids_list)
     return expanded_aids_list
 
 
-def learn_phi():
-    # from ibeis.init import main_helpers
-    # dbname = 'GZ_Master1'
-    # a = 'timectrl'
-    # t = 'baseline'
-    # ibs, testres = main_helpers.testdata_expts(dbname, a=a, t=t)
-
-    from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
-    import datetime
-    import ibeis
-    import plottool as pt
-    pt.qtensure()
-
-    ibs = ibeis.opendb('GZ_Master1')
-
-    aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
-                                     is_known=True)
-
-    annots = ibs.annots(aids=aids, asarray=True)
-    # Take only annots with time and gps data
-    # annots = annots.compress(~np.isnan(annots.image_unixtimes_asfloat))
-    # annots = annots.compress(~np.isnan(np.array(annots.gps)).any(axis=1))
-
-    # pt.draw_time_distribution(annots.image_unixtimes_asfloat, bw=1209600.0)
-
+def encounter_stuff():
     cfgstr = str(ut.combine_uuids(annots.visual_uuids))
 
     class Encounter(ut.NiceRepr):
@@ -228,6 +185,33 @@ def learn_phi():
         print('hashids = %r' % (hashids,))
         # print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
+
+def learn_phi():
+    # from ibeis.init import main_helpers
+    # dbname = 'GZ_Master1'
+    # a = 'timectrl'
+    # t = 'baseline'
+    # ibs, testres = main_helpers.testdata_expts(dbname, a=a, t=t)
+
+    from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
+    import datetime
+    import ibeis
+    import plottool as pt
+    pt.qtensure()
+
+    ibs = ibeis.opendb('PZ_Master1')
+
+    aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
+                                     is_known=True)
+
+    annots = ibs.annots(aids=aids, asarray=Grue)
+    # Take only annots with time and gps data
+    # annots = annots.compress(~np.isnan(annots.image_unixtimes_asfloat))
+    # annots = annots.compress(~np.isnan(np.array(annots.gps)).any(axis=1))
+
+    # pt.draw_time_distribution(annots.image_unixtimes_asfloat, bw=1209600.0)
+
+
     pipe_cfg = {
         'resize_dim': 'area',
         'dim_size': 450,
@@ -237,12 +221,16 @@ def learn_phi():
     # annots = ibs.annots(aids=aids)
     # nid_to_aids = ut.group_items(annots.aids, annots.nids)
 
+    phis = {}
+
+    rng = np.random.RandomState(0)
+
     for n_query_per_name in range(1, 4):
         expanded_aids = stratified_annot_per_name_sample(ibs, annots.aids,
                                                          n_qaids_per_name=n_query_per_name,
                                                          n_daids_per_name=1,
-                                                         n_folds=3,
-                                                         rng=None, debug=False)
+                                                         n_splits=3,
+                                                         rng=rng, debug=False)
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
@@ -261,3 +249,4 @@ def learn_phi():
             print('hashids = %r' % (hashids,))
             print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
             accumulators.append(accumulator)
+        phis[n_query_per_name] = accumulators

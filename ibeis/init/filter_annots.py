@@ -630,10 +630,14 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     # Any name without enought data becomes a confusor
     needed_enc_per_name = qenc_per_name + denc_per_name
 
-    nid_to_confusor_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
-                                  if len(enc) <  needed_enc_per_name}
-    nid_to_valid_encounters = {nid: enc for nid, enc in nid_to_encounters.items()
-                               if len(enc) >= needed_enc_per_name}
+    nid_to_confusor_encounters = {
+        nid: enc for nid, enc in nid_to_encounters.items()
+        if len(enc) <  needed_enc_per_name
+    }
+    nid_to_valid_encounters = {
+        nid: enc for nid, enc in nid_to_encounters.items()
+        if len(enc) >= needed_enc_per_name
+    }
     rng = np.random.RandomState(0)
 
     # Randomly shuffle encounters for each individual
