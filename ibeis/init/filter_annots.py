@@ -713,6 +713,116 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     return expanded_aids_list
 
 
+def annot_crossval(ibs, aid_list, n_qaids_per_name=1,
+                                     n_daids_per_name=1, rng=None, debug=True,
+                                     n_splits=None):
+    """
+    Stratified Sampling per name size
+
+    Args:
+        n_splits (int): number of query/database splits to create.
+            note, some names may not be big enough to split this many times.
+
+    CommandLine:
+        python -m ibeis.scripts.iccv annot_crossval
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> n_qaids_per_name = 1
+        >>> n_daids_per_name = 1
+        >>> rng = 0
+        >>> debug = True
+        >>> n_splits = None
+        >>> expanded_aids_list = annot_crossval(ibs, aid_list, n_qaids_per_name, n_daids_per_name, rng, debug, n_splits)
+        >>> result = ('expanded_aids_list = %s' % (ut.repr2(expanded_aids_list),))
+        >>> print(result)
+    """
+    # Parameters
+    rng = ut.ensure_rng(rng)
+    n_need = n_qaids_per_name + n_daids_per_name
+    rebalance = True
+
+    # Group annotations by name
+    annots = ibs.annots(aids=aid_list)
+    nid_to_aids = ut.group_items(annots.aids, annots.nids)
+
+    # Any name without enough data becomes a confusor
+    # Otherwise we can use it in the sampling pool
+    nid_to_confusors = {
+        nid: aids for nid, aids in nid_to_aids.items()
+        if len(aids) < n_need
+    }
+    nid_to_sample_pool = {
+        nid: aids for nid, aids in nid_to_aids.items()
+        if len(aids) >= n_need
+    }
+
+    if n_splits is None:
+        # What is the maximum number of annotations in a name?
+        maxsize_name = max(map(len, nid_to_sample_pool.values()))
+        n_splits = maxsize_name
+
+    # This is a list of dictionaries that maps a name to one possible split
+    split_samples = [{} for _ in range(n_splits)]
+
+    # Create a mapping from each name to the possible split combos
+    nid_to_splits = ut.ddict(list)
+
+    # Create several splits for each name
+    for nid, aids in nid_to_sample_pool.items():
+        # Randomly select combinations of appropriate size
+        combo_iter = ut.random_combinations(aids, n_need, n_splits, rng=rng)
+        for count, aid_combo in enumerate(combo_iter):
+            aid_combo = list(aid_combo)
+            rng.shuffle(aid_combo)
+            fold_split = (aid_combo[:n_qaids_per_name],
+                          aid_combo[n_qaids_per_name:])
+            nid_to_splits[nid].append(fold_split)
+            # Earlier samples will be biased towards names with more annots
+            split_samples[count][nid] = fold_split
+
+    # Some names may have more splits than others
+    nid_to_nsplits = ut.map_vals(len, nid_to_splits)
+    # Find the name with the most splits
+    max_nid = ut.argmax(nid_to_nsplits)
+    max_size = nid_to_nsplits[max_nid]
+
+    # if max_size < n_splits:
+    #     warnings.warn('Splits will not be full')
+    assert max_size <= n_splits, 'cycle assumption does not hold'
+    new_splits = [[] for _ in range(n_splits)]
+    if rebalance:
+        # Rebalance by adding combos from each name in a cycle.
+        # The difference between the largest and smallest split is at most one.
+        for count, aid_combo in enumerate(ut.iflatten(nid_to_splits.values())):
+            new_splits[count % len(new_splits)].append(aid_combo)
+    else:
+        # No rebalancing. The first split contains everything from the dataset
+        # and subsequent splits contain less and less.
+        for nid, aid_combos in nid_to_splits.items():
+            for count, aid_combo in enumerate(aid_combos):
+                new_splits[count].append(aid_combo)
+
+    # Reshape into an expanded aids list
+    expanded_aids_list = [
+        [sorted(ut.flatten(qaids_)), sorted(ut.flatten(daids_))]
+        for qaids_, daids_ in (ut.listT(splits) for splits in new_splits)
+    ]
+
+    # Add confusors the the dataset
+    confusor_aids = ut.flatten(nid_to_confusors.values())
+    expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
+                          for qaids, daids in expanded_aids_list]
+
+    # if debug:
+    #     debug_expanded_aids(expanded_aids_list)
+    return expanded_aids_list
+
+
 @profile
 def expand_acfgs(ibs, aidcfg, verbose=None, use_cache=None,
                  hack_exclude_keys=None, initial_aids=None, save_cache=True):
