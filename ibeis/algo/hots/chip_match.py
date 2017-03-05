@@ -1087,6 +1087,15 @@ class _AnnotMatchConvenienceGetter(object):
                 for prop in ['rank', 'score']:
                     key = '{}_name_{}'.format(tstr, prop)
                     cminfo_dict[key] = name_df[prop].iloc[idx]
+            # else:
+            #     if truth == 0 and len(cm.dnid_list) < len(name_df):
+            #         # Handle the case where the cm list is not extended
+            #         randrank = np.random.randint(len(cm.dnid_list), len(name_df))
+            #         key = '{}_name_{}'.format(tstr, 'rank')
+            #         cminfo_dict[key] = randrank
+            #         key = '{}_name_{}'.format(tstr, 'score')
+            #         cminfo_dict[key] = -np.inf
+
             # Annot properties
             idxs = np.where(annot_df['truth'] == truth)[0]
             if len(idxs) > 0:
