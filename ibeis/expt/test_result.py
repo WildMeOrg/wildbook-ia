@@ -191,7 +191,7 @@ def build_single_cminfo(cm, qreq_):
         # TODO remove prev dup entries
         gt_rank=gt_rank,
         gf_rank=gf_rank,
-        gt_name_rank=cm.get_name_ranks([cm.qnid])[0]
+        gt_name_rank=cm.get_name_ranks([cm.qnid])[0],
         gt_aid=gt_aid,
         gf_aid=gf_aid,
         gt_raw_score=gt_raw_score,
