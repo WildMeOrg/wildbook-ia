@@ -145,9 +145,9 @@ def print_results(ibs, testres, **kwargs):
     """
 
     tup = ut.dict_take(testres.__dict__,
-                       ['cfg_list', 'cfgx2_cfgresinfo', 'testnameid',
+                       ['cfg_list', 'cfgx2_cmsinfo', 'testnameid',
                         'cfgx2_lbl', 'cfgx2_qreq_'])
-    (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = tup
+    (cfg_list, cfgx2_cmsinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = tup
 
     # join_acfgs = kwargs.get('join_acfgs', False)
 

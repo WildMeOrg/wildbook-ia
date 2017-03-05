@@ -83,7 +83,7 @@ def learn_phi():
     from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
     import datetime
     import ibeis
-    import ibeis.init.filter_annots import annot_crossval
+    from ibeis.init.filter_annots import annot_crossval
     import plottool as pt
     pt.qtensure()
 
@@ -114,11 +114,17 @@ def learn_phi():
 
     rng = np.random.RandomState(0)
 
+    crossval_splits = []
     for n_query_per_name in range(1, 4):
         expanded_aids = annot_crossval(ibs, annots.aids,
                                        n_qaids_per_name=n_query_per_name,
                                        n_daids_per_name=1, n_splits=3, rng=rng,
                                        debug=False)
+        debug_expanded_aids(expanded_aids)
+        crossval_splits.append((n_query_per_name, expanded_aids))
+
+
+    for n_query_per_name, expanded_aids in crossval_splits:
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
@@ -130,11 +136,5 @@ def learn_phi():
                 cm = cm.extend_results(qreq_)
                 rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
                 accumulator[rank] += 1
-
-            stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False, combo_enc_info=False)
-            hashids = (stats['qaid_stats']['qhashid'],
-                       stats['daid_stats']['dhashid'])
-            print('hashids = %r' % (hashids,))
-            print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
-            accumulators.append(accumulator)
         phis[n_query_per_name] = accumulators
+

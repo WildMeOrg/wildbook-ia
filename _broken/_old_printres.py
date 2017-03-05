@@ -136,18 +136,18 @@ def print_results(ibs, testres):
         >>> print(result)
     """
 
-    (cfg_list, cfgx2_cfgresinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
-        testres.__dict__, ['cfg_list', 'cfgx2_cfgresinfo', 'testnameid', 'cfgx2_lbl', 'cfgx2_qreq_'])
+    (cfg_list, cfgx2_cmsinfo, testnameid, cfgx2_lbl, cfgx2_qreq_) = ut.dict_take(
+        testres.__dict__, ['cfg_list', 'cfgx2_cmsinfo', 'testnameid', 'cfgx2_lbl', 'cfgx2_qreq_'])
 
-    # cfgx2_cfgresinfo is a list of dicts of lists
+    # cfgx2_cmsinfo is a list of dicts of lists
     # Parse result info out of the lists
-    #cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
-    #cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
-    #cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
-    #cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
+    #cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cmsinfo, 'qx2_next_bestranks')
+    #cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gt_raw_score')
+    #cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gf_raw_score')
+    #cfgx2_aveprecs       = ut.get_list_column(cfgx2_cmsinfo, 'qx2_avepercision')
 
-    #cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
-    #cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+    #cfgx2_scorediffs     = ut.get_list_column(cfgx2_cmsinfo, 'qx2_scorediff')
+    #cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gt_raw_score')
 
     #column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
     #               for lbl in cfgx2_lbl]
@@ -413,8 +413,8 @@ def print_results(ibs, testres):
     #    print('ScoreDiffMatStats: %s' % testnameid)
     #    print('column_lbls = %r' % (column_lbls,))
 
-    #    #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
-    #    #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+    #    #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gt_raw_score')
+    #    #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gf_raw_score')
 
     #    gt_rawscores_mat = ut.replace_nones(cfgx2_gt_rawscores, np.nan)
     #    gf_rawscores_mat = ut.replace_nones(cfgx2_gf_rawscores, np.nan)
@@ -644,7 +644,7 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
     #          'The keys denote the range of the ranks that the values fall in')
     #    # TODO: rectify this code with other hist code
 
-    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
+    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cmsinfo, 'qx2_gt_aid')
     #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
 
     #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
@@ -674,7 +674,7 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
     #          'The keys denote the range of the ranks that the values fall in')
     #    # TODO: rectify this code with other hist code
 
-    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cfgresinfo, 'qx2_gt_aid')
+    #    config_gt_aids = ut.get_list_column(testres.cfgx2_cmsinfo, 'qx2_gt_aid')
     #    config_rand_bin_qxs = testres.get_rank_histogram_qx_binxs()
 
     #    _iter = enumerate(zip(rank_mat.T, agg_hist_dict, config_gt_aids, config_rand_bin_qxs))
@@ -763,8 +763,8 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
     #    print('ScoreDiffMatStats: %s' % testnameid)
     #    print('column_lbls = %r' % (column_lbls,))
 
-    #    #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
-    #    #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
+    #    #cfgx2_gt_rawscores  = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gt_raw_score')
+    #    #cfgx2_gf_rawscores  = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gf_raw_score')
 
     #    gt_rawscores_mat = ut.replace_nones(cfgx2_gt_rawscores, np.nan)
     #    gf_rawscores_mat = ut.replace_nones(cfgx2_gf_rawscores, np.nan)
@@ -883,15 +883,15 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
 
 
 
-    # cfgx2_cfgresinfo is a list of dicts of lists
+    # cfgx2_cmsinfo is a list of dicts of lists
     # Parse result info out of the lists
-    #cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_next_bestranks')
-    #cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
-    #cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gf_raw_score')
-    #cfgx2_aveprecs       = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_avepercision')
+    #cfgx2_nextbestranks  = ut.get_list_column(cfgx2_cmsinfo, 'qx2_next_bestranks')
+    #cfgx2_gt_rawscores   = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gt_raw_score')
+    #cfgx2_gf_rawscores   = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gf_raw_score')
+    #cfgx2_aveprecs       = ut.get_list_column(cfgx2_cmsinfo, 'qx2_avepercision')
 
-    #cfgx2_scorediffs     = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_scorediff')
-    #cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cfgresinfo, 'qx2_gt_raw_score')
+    #cfgx2_scorediffs     = ut.get_list_column(cfgx2_cmsinfo, 'qx2_scorediff')
+    #cfgx2_gt_raw_score   = ut.get_list_column(cfgx2_cmsinfo, 'qx2_gt_raw_score')
 
     #column_lbls = [ut.remove_chars(ut.remove_vowels(lbl), [' ', ','])
     #               for lbl in cfgx2_lbl]
