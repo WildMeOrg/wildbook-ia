@@ -1120,6 +1120,27 @@ class _AnnotMatchConvenienceGetter(object):
         ))
         return cminfo_dict
 
+    # def get_ranked_nids_and_aids(cm):
+    #     """ Hacky func
+    #     Returns:
+    #         ibeis.algo.hots.name_scoring.NameScoreTup
+    #     """
+    #     sortx = cm.name_score_list.argsort()[::-1]
+    #     sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
+    #     sorted_nids = cm.unique_nids.take(sortx, axis=0)
+    #     sorted_groupxs = ut.take(cm.name_groupxs, sortx)
+    #     sorted_daids = vt.apply_grouping(cm.daid_list,  sorted_groupxs)
+    #     sorted_annot_scores = vt.apply_grouping(cm.annot_score_list,  sorted_groupxs)
+    #     # do subsorting
+    #     subsortx_list = [scores.argsort()[::-1] for scores in sorted_annot_scores]
+    #     subsorted_daids = vt.ziptake(sorted_daids, subsortx_list)
+    #     subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
+    #     nscoretup = name_scoring.NameScoreTup(sorted_nids, sorted_name_scores,
+    #                                           subsorted_daids,
+    #                                           subsorted_annot_scores)
+    #     return nscoretup
+
+
     def get_annot_ave_precision(cm):
         import sklearn.metrics
         annot_df = cm.pandas_annot_info()
@@ -1273,26 +1294,6 @@ class _AnnotMatchConvenienceGetter(object):
         topx = sortx[:min(num_shortlist, len(sortx))]
         top_daids = cm.daid_list[topx]
         return top_daids
-
-    # def get_ranked_nids_and_aids(cm):
-    #     """ Hacky func
-    #     Returns:
-    #         ibeis.algo.hots.name_scoring.NameScoreTup
-    #     """
-    #     sortx = cm.name_score_list.argsort()[::-1]
-    #     sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
-    #     sorted_nids = cm.unique_nids.take(sortx, axis=0)
-    #     sorted_groupxs = ut.take(cm.name_groupxs, sortx)
-    #     sorted_daids = vt.apply_grouping(cm.daid_list,  sorted_groupxs)
-    #     sorted_annot_scores = vt.apply_grouping(cm.annot_score_list,  sorted_groupxs)
-    #     # do subsorting
-    #     subsortx_list = [scores.argsort()[::-1] for scores in sorted_annot_scores]
-    #     subsorted_daids = vt.ziptake(sorted_daids, subsortx_list)
-    #     subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
-    #     nscoretup = name_scoring.NameScoreTup(sorted_nids, sorted_name_scores,
-    #                                           subsorted_daids,
-    #                                           subsorted_annot_scores)
-    #     return nscoretup
 
     @property
     def num_daids(cm):

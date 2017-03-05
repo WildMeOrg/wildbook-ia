@@ -135,7 +135,8 @@ def learn_phi():
 
             cm_list = qreq_.execute()
             testres = test_result.TestResult.from_cms(cm_list, qreq_)
-            # ranks = testres.get_infoprop_list(key='qx2_bestranks')[0]
+            nranks = testres.get_infoprop_list(key='qx2_gt_name_rank')[0]
+            aranks = testres.get_infoprop_list(key='qx2_gt_annot_rank')[0]
             # freqs, bins = testres.get_rank_histograms(
             #     key='qnx2_gt_name_rank', bins=np.arange(num_pccs))
             freqs, bins = testres.get_rank_histograms(
@@ -147,6 +148,9 @@ def learn_phi():
             # import plottool as pt
             # pt.qtensure()
             # pt.multi_plot(edges, [bins[0]])
+
+            testres.get_infoprop_list('qx2_gt_name_rank')
+            [cm.extend_results(qreq_).get_name_ranks([cm.qnid])[0] for cm in cm_list]
 
             if False:
                 accumulator = np.zeros(num_datab_pccs)

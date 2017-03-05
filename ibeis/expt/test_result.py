@@ -63,6 +63,26 @@ def build_cmsinfo(cm_list, qreq_):
         --clear-all-depcache
     """
     ibs = qreq_.ibs
+
+    qaids = qreq_.qaids
+    daids = qreq_.daids
+    # Get the groundtruth ranks and accuracy measures
+    # qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]
+    qx2_cminfo = [cm.extend_results(qreq_).summarize(qreq_) for cm in cm_list]
+    cmsinfo = ut.dict_stack(qx2_cminfo, 'qx2_')
+    cmsinfo['qx2_gt_rank'] = ut.replace_nones(cmsinfo['qx2_gt_rank'] , -1)
+
+    if False:
+        qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
+        qx2_avepercision = np.array(
+            [cm.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
+             (cm, gt_aids) in zip(cm_list, qx2_gtaids)])
+        cmsinfo['qx2_avepercision'] = qx2_avepercision
+
+    # Compute mAP score  # TODO: use mAP score
+    # (Actually map score doesn't make much sense if using name scoring
+    #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
+
     qaids = qreq_.qaids
     #qaids2 = [cm.qaid for cm in cm_list]
     # qnids = qreq_.get_qreq_annot_nids(qaids)  # TODO: use new nid getter
@@ -120,26 +140,8 @@ def build_cmsinfo(cm_list, qreq_):
 
         nameres_info_list.append(qnx2_nameres_info)
         nameres_info = ut.dict_stack(nameres_info_list, 'qnx2_')
+        cmsinfo.update(nameres_info)
 
-    qaids = qreq_.qaids
-    daids = qreq_.daids
-    qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
-    # Get the groundtruth ranks and accuracy measures
-    qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]
-    # qx2_cminfo = [cm.extend_results(qreq_).summarize(qreq_) for cm in cm_list]
-
-    cmsinfo = ut.dict_stack(qx2_cminfo, 'qx2_')
-
-    if False:
-        qx2_avepercision = np.array(
-            [cm.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
-             (cm, gt_aids) in zip(cm_list, qx2_gtaids)])
-        cmsinfo['qx2_avepercision'] = qx2_avepercision
-    # Compute mAP score  # TODO: use mAP score
-    # (Actually map score doesn't make much sense if using name scoring
-    #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
-    cmsinfo['qx2_gt_rank'] = ut.replace_nones(cmsinfo['qx2_gt_rank'] , -1)
-    cmsinfo.update(nameres_info)
     return cmsinfo
 
 
