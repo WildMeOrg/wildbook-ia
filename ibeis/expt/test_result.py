@@ -106,7 +106,6 @@ def build_cmsinfo(cm_list, qreq_):
         gf_name_score = sorted_namescores[gf_name_rank]
 
         if gt_name_score <= 0:
-            break
             # ensure failure cases are loud give them the worst possible rank
             # instead of a random one.
             gt_name_rank = len(qreq_.dnids) + 1
@@ -126,7 +125,7 @@ def build_cmsinfo(cm_list, qreq_):
     daids = qreq_.daids
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
-    qx2_cminfo = [build_single_cminfo(cm, qreq_) for cm in cm_list]
+    qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]
 
     cmsinfo = ut.dict_stack(qx2_cminfo, 'qx2_')
 
@@ -138,70 +137,9 @@ def build_cmsinfo(cm_list, qreq_):
     # Compute mAP score  # TODO: use mAP score
     # (Actually map score doesn't make much sense if using name scoring
     #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
-    cmsinfo['qx2_bestranks'] = ut.replace_nones(cmsinfo['qx2_bestranks'] , -1)
+    cmsinfo['qx2_gt_rank'] = ut.replace_nones(cmsinfo['qx2_gt_rank'] , -1)
     cmsinfo.update(nameres_info)
     return cmsinfo
-
-
-def build_single_cminfo(cm, qreq_):
-    """
-    Builds a result info for a single chip match (cm)
-
-    these are results per query we care about
-     * gt (best correct match) and gf (best incorrect match) rank, their score
-       and the difference
-
-    """
-    ibs = qreq_.ibs
-    #from ibeis.algo.hots import chip_match
-    qnid = cm.qnid
-    nscoretup = cm.get_ranked_nids_and_aids()
-    sorted_nids, sorted_nscores, sorted_aids, sorted_scores = nscoretup
-
-    success = sorted_nids == qnid
-    failure = np.logical_and(~success, sorted_nids > 0)
-    gt_rank = None if not np.any(success) else np.where(success)[0][0]
-    gf_rank = None if not np.any(failure) else np.nonzero(failure)[0][0]
-
-    if gt_rank is None or gf_rank is None:
-        #if isinstance(qres, chip_match.ChipMatch):
-        gt_aids = ibs.get_annot_groundtruth(cm.qaid, daid_list=qreq_.daids)
-        #else:
-        #    gt_aids = cm.get_groundtruth_daids()
-        cm.get_groundtruth_daids()
-        gt_aid = gt_aids[0] if len(gt_aids) > 0 else None
-        gf_aid = None
-        gt_raw_score = None
-        gf_raw_score = None
-        scorediff = scorefactor = None
-        #scorelogfactor = scoreexpdiff = None
-    else:
-
-        gt_aid = sorted_aids[gt_rank][0]
-        gf_aid = sorted_aids[gf_rank][0]
-        gt_raw_score = sorted_nscores[gt_rank]
-        gf_raw_score = sorted_nscores[gf_rank]
-        # different comparison methods
-        scorediff      = gt_raw_score - gf_raw_score
-        scorefactor    = gt_raw_score / gf_raw_score
-
-    cminfo_dict = dict(
-        bestranks=gt_rank,
-        next_bestranks=gf_rank,
-        # TODO remove prev dup entries
-        gt_rank=gt_rank,
-        gf_rank=gf_rank,
-        gt_name_rank=cm.get_name_ranks([cm.qnid])[0],
-        gt_aid=gt_aid,
-        gf_aid=gf_aid,
-        gt_raw_score=gt_raw_score,
-        gf_raw_score=gf_raw_score,
-        scorediff=scorediff,
-        scorefactor=scorefactor,
-        #scorelogfactor=scorelogfactor,
-        #scoreexpdiff=scoreexpdiff
-    )
-    return cminfo_dict
 
 
 def combine_testres_list(ibs, testres_list):
@@ -414,7 +352,7 @@ class TestResult(ut.NiceRepr):
 
     def get_infoprop_list(testres, key, qaids=None):
         """
-        key = 'qx2_bestranks'
+        key = 'qx2_gt_rank'
         key = 'qx2_gt_rank'
         qaids = testres.get_test_qaids()
         """
@@ -437,7 +375,7 @@ class TestResult(ut.NiceRepr):
                 cfgx2_infoprop = [
                     [np.nan if x is None else props[x] for x in qxs]
                     for props, qxs in zip(_tmp2_cfgx2_infoprop, qxs_list)]
-            if key == 'qx2_bestranks' or key.endswith('_rank'):
+            if key == 'qx2_gt_rank' or key.endswith('_rank'):
                 # hack
                 wpr = testres.get_worst_possible_rank()
                 cfgx2_infoprop = [np.array([wpr if rank == -1 else rank
@@ -458,7 +396,7 @@ class TestResult(ut.NiceRepr):
     @ut.memoize
     def get_rank_mat(testres, qaids=None):
         # Ranks of Best Results
-        rank_mat = testres.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
+        rank_mat = testres.get_infoprop_mat(key='qx2_gt_rank', qaids=qaids)
         return rank_mat
 
     def get_worst_possible_rank(testres):
@@ -484,7 +422,7 @@ class TestResult(ut.NiceRepr):
             >>> config_hists = testres.get_rank_histograms(bins, key=key)
         """
         if key is None:
-            key = 'qx2_bestranks'
+            key = 'qx2_gt_rank'
             #key = 'qnx2_gt_name_rank'
         if bins is None:
             bins = testres.get_rank_histogram_bins()
@@ -628,11 +566,11 @@ class TestResult(ut.NiceRepr):
         """
         X_LIST = testres.get_X_LIST()
         nLessX_dict = {int(X): np.zeros(testres.nConfig) for X in X_LIST}
-        cfgx2_qx2_bestrank = testres.get_infoprop_list('qx2_bestranks')
+        cfgx2_qx2_gt_rank = testres.get_infoprop_list('qx2_gt_rank')
         for X in X_LIST:
             cfgx2_lessX_mask = [
-                np.logical_and(0 <= qx2_ranks, qx2_ranks < X)
-                for qx2_ranks in cfgx2_qx2_bestrank]
+                np.logical_and(0 <= qx2_gt_ranks, qx2_gt_ranks < X)
+                for qx2_gt_ranks in cfgx2_qx2_gt_rank]
             cfgx2_nLessX = np.array([lessX_.sum(axis=0)
                                      for lessX_ in cfgx2_lessX_mask])
             nLessX_dict[int(X)] = cfgx2_nLessX
@@ -1084,7 +1022,7 @@ class TestResult(ut.NiceRepr):
         """
         helper
         """
-        key = 'qx2_bestranks'
+        key = 'qx2_gt_rank'
         cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
         label_list = testres.get_short_cfglbls()
         label_list = [

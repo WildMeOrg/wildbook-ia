@@ -161,7 +161,7 @@ def print_results(ibs, testres, **kwargs):
         #nConfig = len(cfg_list)
         #nQuery = len(testres.qaids)
         cfgx2_nQuery = list(map(len, testres.cfgx2_qaids))
-        #cfgx2_qx2_ranks = testres.get_infoprop_list('qx2_bestranks')
+        #cfgx2_qx2_ranks = testres.get_infoprop_list('qx2_gt_rank')
         #--------------------
 
         # A positive scorediff indicates the groundtruth was better than the

@@ -1040,7 +1040,7 @@ class _AnnotMatchConvenienceGetter(object):
             'truth': (cm.dnid_list == cm.qnid).astype(np.int),
         }
         annot_df = pd.DataFrame(data)
-        annot_df.sort('rank', inplace=True)
+        annot_df.sort_values(by='rank', inplace=True)
         annot_df.reset_index(inplace=True, drop=True)
         return annot_df
 
@@ -1053,9 +1053,65 @@ class _AnnotMatchConvenienceGetter(object):
             'truth': (cm.unique_nids == cm.qnid).astype(np.int),
         }
         name_df = pd.DataFrame(data)
-        name_df.sort('rank', inplace=True)
+        name_df.sort_values(by='rank', inplace=True)
         name_df.reset_index(inplace=True, drop=True)
         return name_df
+
+    def summarize(cm, qreq_):
+        """
+        Summarize info about the groundtruth and the best groundfalse.
+        """
+        ibs = qreq_.ibs
+
+        cminfo_dict = dict(
+            # annot props
+            gt_aid=None, gf_aid=None,
+            gt_annot_daid=None, gf_annot_daid=None,
+            gt_annot_rank=None, gf_annot_rank=None,
+            gt_annot_score=None, gf_annot_score=None,
+            # name props
+            gt_name_rank=None, gf_name_rank=None,
+            gt_name_score=None, gf_name_score=None,
+        )
+
+        # Name and annot info sorted by rank
+        name_df = cm.pandas_name_info()
+        annot_df = cm.pandas_annot_info()
+
+        name_df = cm.pandas_name_info()
+        for truth, tstr in [(1, 'gt'), (0, 'gf')]:
+            # Name properties
+            idxs = np.where(name_df['truth'] == truth)[0]
+            if len(idxs) > 0:
+                idx = min(idxs)
+                for prop in ['rank', 'score']:
+                    key = '{}_name_{}'.format(tstr, prop)
+                    cminfo_dict[key] = name_df[prop].iloc[idx]
+            # Annot properties
+            idxs = np.where(annot_df['truth'] == truth)[0]
+            if len(idxs) > 0:
+                idx = min(idxs)
+                for prop in ['rank', 'score', 'daid']:
+                    key = '{}_annot_{}'.format(tstr, prop)
+                    cminfo_dict[key] = annot_df[prop].iloc[idx]
+
+        cminfo_dict.update(dict(
+            gt_aid=cminfo_dict['gt_annot_daid'],
+            gf_aid=cminfo_dict['gf_annot_daid'],
+        ))
+        del cminfo_dict['gt_annot_daid']
+        del cminfo_dict['gf_annot_daid']
+
+        # old aliases
+        cminfo_dict.update(dict(
+            gt_aid=cminfo_dict['gt_annot_aid'],
+            gf_aid=cminfo_dict['gf_annot_aid'],
+            gt_rank=cminfo_dict['gt_rank'],
+            gf_rank=cminfo_dict['gf_rank'],
+            gt_raw_score=cminfo_dict['gt_annot_score'],
+            gf_raw_score=cminfo_dict['gf_annot_score'],
+        ))
+        return cminfo_dict
 
     def get_annot_ave_precision(cm):
         import sklearn.metrics
@@ -1211,26 +1267,25 @@ class _AnnotMatchConvenienceGetter(object):
         top_daids = cm.daid_list[topx]
         return top_daids
 
-    def get_ranked_nids_and_aids(cm):
-        """ Hacky func
-
-        Returns:
-            ibeis.algo.hots.name_scoring.NameScoreTup
-        """
-        sortx = cm.name_score_list.argsort()[::-1]
-        sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
-        sorted_nids = cm.unique_nids.take(sortx, axis=0)
-        sorted_groupxs = ut.take(cm.name_groupxs, sortx)
-        sorted_daids = vt.apply_grouping(cm.daid_list,  sorted_groupxs)
-        sorted_annot_scores = vt.apply_grouping(cm.annot_score_list,  sorted_groupxs)
-        # do subsorting
-        subsortx_list = [scores.argsort()[::-1] for scores in sorted_annot_scores]
-        subsorted_daids = vt.ziptake(sorted_daids, subsortx_list)
-        subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
-        nscoretup = name_scoring.NameScoreTup(sorted_nids, sorted_name_scores,
-                                              subsorted_daids,
-                                              subsorted_annot_scores)
-        return nscoretup
+    # def get_ranked_nids_and_aids(cm):
+    #     """ Hacky func
+    #     Returns:
+    #         ibeis.algo.hots.name_scoring.NameScoreTup
+    #     """
+    #     sortx = cm.name_score_list.argsort()[::-1]
+    #     sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
+    #     sorted_nids = cm.unique_nids.take(sortx, axis=0)
+    #     sorted_groupxs = ut.take(cm.name_groupxs, sortx)
+    #     sorted_daids = vt.apply_grouping(cm.daid_list,  sorted_groupxs)
+    #     sorted_annot_scores = vt.apply_grouping(cm.annot_score_list,  sorted_groupxs)
+    #     # do subsorting
+    #     subsortx_list = [scores.argsort()[::-1] for scores in sorted_annot_scores]
+    #     subsorted_daids = vt.ziptake(sorted_daids, subsortx_list)
+    #     subsorted_annot_scores = vt.ziptake(sorted_annot_scores, subsortx_list)
+    #     nscoretup = name_scoring.NameScoreTup(sorted_nids, sorted_name_scores,
+    #                                           subsorted_daids,
+    #                                           subsorted_annot_scores)
+    #     return nscoretup
 
     @property
     def num_daids(cm):
