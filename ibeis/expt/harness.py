@@ -220,7 +220,7 @@ def make_single_testres(ibs, qaids, daids, pipecfg_list, cfgx2_lbl,
                         ibs.clear_table_cache()
                         #qreq_.ibs.print_cachestats_str()
                 cm_list = qreq_.execute()
-                cmsinfo = build_cmsinfo(cm_list, qreq_)
+                cmsinfo = test_result.build_cmsinfo(cm_list, qreq_)
                 # record previous feature configuration
                 if ibs.table_cache:
                     prev_feat_cfgstr = qreq_.qparams.feat_cfgstr

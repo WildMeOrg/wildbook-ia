@@ -323,7 +323,7 @@ class TestResult(ut.NiceRepr):
 
     @classmethod
     def from_cms(TestResult, cm_list, qreq_):
-        cmsinfo = test_result.build_cmsinfo(cm_list, qreq_)
+        cmsinfo = build_cmsinfo(cm_list, qreq_)
 
     def __str__(testres):
         return testres.reconstruct_test_flags()
