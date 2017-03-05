@@ -110,8 +110,6 @@ def learn_phi():
     # annots = ibs.annots(aids=aids)
     # nid_to_aids = ut.group_items(annots.aids, annots.nids)
 
-    phis = {}
-
     rng = np.random.RandomState(0)
 
     crossval_splits = []
@@ -120,17 +118,21 @@ def learn_phi():
                                        n_qaids_per_name=n_query_per_name,
                                        n_daids_per_name=1, n_splits=3, rng=rng,
                                        debug=False)
-        debug_expanded_aids(expanded_aids)
         crossval_splits.append((n_query_per_name, expanded_aids))
 
+    # for n_query_per_name, expanded_aids in crossval_splits:
+    #     debug_expanded_aids(expanded_aids)
+    from ibeis.expt import test_result
 
+    phis = {}
     for n_query_per_name, expanded_aids in crossval_splits:
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
-
             qreq_ = ibs.new_query_request(qaids, daids, verbose=False, cfgdict=pipe_cfg)
             cm_list = qreq_.execute()
+            testres = test_result.TestResult.from_cms(cm_list, qreq)
+
             accumulator = np.zeros(len(qreq_.daids))
             for cm in cm_list:
                 cm = cm.extend_results(qreq_)
