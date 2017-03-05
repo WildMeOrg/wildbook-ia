@@ -323,7 +323,13 @@ class TestResult(ut.NiceRepr):
 
     @classmethod
     def from_cms(TestResult, cm_list, qreq_):
+        cfg_list = [qreq_.qparams]  # should actually be the specified dict
+        cfgx2_lbl = ['unspecified']
         cmsinfo = build_cmsinfo(cm_list, qreq_)
+        cfgx2_cmsinfo = [cmsinfo]
+        cfgx2_qreq_ = [qreq_]
+        testres = TestResult(cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_)
+        return testres
 
     def __str__(testres):
         return testres.reconstruct_test_flags()

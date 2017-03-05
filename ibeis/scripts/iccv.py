@@ -131,7 +131,18 @@ def learn_phi():
         for qaids, daids in expanded_aids:
             qreq_ = ibs.new_query_request(qaids, daids, verbose=False, cfgdict=pipe_cfg)
             cm_list = qreq_.execute()
-            testres = test_result.TestResult.from_cms(cm_list, qreq)
+            testres = test_result.TestResult.from_cms(cm_list, qreq_)
+            # ranks = testres.get_infoprop_list(key='qx2_bestranks')[0]
+            num_pccs = len(np.unique(ibs.annots(daids).nids))
+            freqs, bins = testres.get_rank_histograms(
+                key='qnx2_gt_name_rank', bins=np.arange(num_pccs))
+            freq = freqs[0]
+            accumulator
+
+            # bins, edges = testres.get_rank_percentage_cumhist()
+            # import plottool as pt
+            # pt.qtensure()
+            # pt.multi_plot(edges, [bins[0]])
 
             accumulator = np.zeros(len(qreq_.daids))
             for cm in cm_list:
