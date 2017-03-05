@@ -129,13 +129,17 @@ def learn_phi():
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
+            num_datab_pccs = len(np.unique(ibs.annots(daids).nids))
+            num_query_pccs = len(np.unique(ibs.annots(qaids).nids))
             qreq_ = ibs.new_query_request(qaids, daids, verbose=False, cfgdict=pipe_cfg)
+
             cm_list = qreq_.execute()
             testres = test_result.TestResult.from_cms(cm_list, qreq_)
             # ranks = testres.get_infoprop_list(key='qx2_bestranks')[0]
-            num_pccs = len(np.unique(ibs.annots(daids).nids))
+            # freqs, bins = testres.get_rank_histograms(
+            #     key='qnx2_gt_name_rank', bins=np.arange(num_pccs))
             freqs, bins = testres.get_rank_histograms(
-                key='qnx2_gt_name_rank', bins=np.arange(num_pccs))
+                key='qx2_gt_name_rank', bins=np.arange(num_pccs))
             freq = freqs[0]
             accumulator
 
@@ -144,10 +148,13 @@ def learn_phi():
             # pt.qtensure()
             # pt.multi_plot(edges, [bins[0]])
 
-            accumulator = np.zeros(len(qreq_.daids))
-            for cm in cm_list:
-                cm = cm.extend_results(qreq_)
-                rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
-                accumulator[rank] += 1
+            if False:
+                accumulator = np.zeros(num_datab_pccs)
+                for cm in cm_list:
+                    cm = cm.extend_results(qreq_)
+                    rank = cm.get_name_ranks([cm.qnid])[0]
+                    # rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
+                    accumulator[rank] += 1
+
         phis[n_query_per_name] = accumulators
 

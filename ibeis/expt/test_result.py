@@ -65,16 +65,17 @@ def build_cmsinfo(cm_list, qreq_):
     ibs = qreq_.ibs
     qaids = qreq_.qaids
     #qaids2 = [cm.qaid for cm in cm_list]
-    qnids = ibs.get_annot_name_rowids(qaids)
+    # qnids = qreq_.get_qreq_annot_nids(qaids)  # TODO: use new nid getter
+    qnids = ibs.get_annot_nids(qaids)
 
-    unique_dnids = np.unique(ibs.get_annot_name_rowids(qreq_.daids))
+    unique_dnids = np.unique(ibs.get_annot_nids(qreq_.daids))
     unique_qnids, groupxs = ut.group_indices(qnids)
     cm_group_list = ut.apply_grouping(cm_list, groupxs)
     qnid2_aggnamescores = {}
 
     qnx2_nameres_info = []
 
-    # Ranked list aggregation-ish
+    # Ranked list aggregation over groups of query annots
     nameres_info_list = []
     for qnid, cm_group in zip(unique_qnids, cm_group_list):
         nid2_name_score_group = [
@@ -105,6 +106,7 @@ def build_cmsinfo(cm_list, qreq_):
         gf_name_score = sorted_namescores[gf_name_rank]
 
         if gt_name_score <= 0:
+            break
             # ensure failure cases are loud give them the worst possible rank
             # instead of a random one.
             gt_name_rank = len(qreq_.dnids) + 1
@@ -189,6 +191,7 @@ def build_single_cminfo(cm, qreq_):
         # TODO remove prev dup entries
         gt_rank=gt_rank,
         gf_rank=gf_rank,
+        gt_name_rank=cm.get_name_ranks([cm.qnid])[0]
         gt_aid=gt_aid,
         gf_aid=gf_aid,
         gt_raw_score=gt_raw_score,
