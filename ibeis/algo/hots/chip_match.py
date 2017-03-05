@@ -1104,8 +1104,6 @@ class _AnnotMatchConvenienceGetter(object):
 
         # old aliases
         cminfo_dict.update(dict(
-            gt_aid=cminfo_dict['gt_annot_aid'],
-            gf_aid=cminfo_dict['gf_annot_aid'],
             gt_rank=cminfo_dict['gt_rank'],
             gf_rank=cminfo_dict['gf_rank'],
             gt_raw_score=cminfo_dict['gt_annot_score'],
