@@ -126,6 +126,7 @@ def build_cmsinfo(cm_list, qreq_):
     qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
     # Get the groundtruth ranks and accuracy measures
     qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]
+    # qx2_cminfo = [cm.extend_results(qreq_).summarize(qreq_) for cm in cm_list]
 
     cmsinfo = ut.dict_stack(qx2_cminfo, 'qx2_')
 
