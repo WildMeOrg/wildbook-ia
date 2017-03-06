@@ -1051,7 +1051,6 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             )
             yield ret_tuple
     elif config['classifier_algo'] in ['svm']:
-        assert not masking
         from ibeis.algo.detect.svm import classify
         # From localizations get gids
         config_ = {
