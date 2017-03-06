@@ -406,7 +406,7 @@ def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, 
     return cm, qreq_
 
 
-def monkeypatch_encounters(ibs, aids, **kwargs):
+def monkeypatch_encounters(ibs, aids, cache=0, **kwargs):
     """
     Hacks in a temporary custom definition of encounters for this controller
 
@@ -431,15 +431,15 @@ def monkeypatch_encounters(ibs, aids, **kwargs):
     thresh_sec = datetime.timedelta(**kwargs).total_seconds()
     # thresh_sec = datetime.timedelta(minutes=30).seconds
 
-    # cfgstr = str(ut.combine_uuids(annots.visual_uuids))
-    # cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=0)
-    # data = cacher.tryload()
-
-    data = cluster_timespace_sec(
-        annots.image_unixtimes_asfloat, annots.gps, thresh_sec=thresh_sec,
-        km_per_sec=.002)
-
-    # cacher.save(data)
+    cfgstr = str(ut.combine_uuids(annots.visual_uuids))
+    cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
+    data = cacher.tryload()
+    if data is not None:
+        print('Computing occurrences')
+        data = cluster_timespace_sec(
+            annots.image_unixtimes_asfloat, annots.gps,
+            thresh_sec=thresh_sec, km_per_sec=.002)
+        cacher.save(data)
     occurrence_labels = data
 
     ndec = int(np.ceil(np.log10(max(occurrence_labels))))
