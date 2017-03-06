@@ -5,9 +5,12 @@ def debug_expanded_aids(expanded_aids_list, verbose=1):
     import warnings
     warnings.simplefilter('ignore', RuntimeWarning)
     # print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
+    cfgargs = dict(per_vp=False, per_multiple=False, combo_dists=False,
+                   per_name=True, per_enc=True, use_hist=False,
+                   combo_enc_info=False)
+
     for qaids, daids in expanded_aids_list:
-        stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
-                                          combo_enc_info=False)
+        stats = ibs.get_annotconfig_stats(qaids, daids, **cfgargs)
         hashids = (stats['qaid_stats']['qhashid'],
                    stats['daid_stats']['dhashid'])
         print('hashids = %r' % (hashids,))
@@ -41,7 +44,7 @@ def learn_phi():
 
     import datetime
     import ibeis
-    from ibeis.init.filter_annots import annot_crossval
+    from ibeis.init.filter_annots import annot_crossval, encounter_crossval
     from ibeis.init import main_helpers
     from ibeis.expt import test_result
     import plottool as pt
@@ -79,16 +82,57 @@ def learn_phi():
     n_splits = 3
     n_splits = 5
     crossval_splits = []
+    avail_confusors = []
+    import random
+    rng = random.Random(0)
     for n_query_per_name in range(1, 5):
-        rng = np.random.RandomState(0)
-        expanded_aids = annot_crossval(ibs, annots.aids,
-                                       n_qaids_per_name=n_query_per_name,
-                                       n_daids_per_name=1, n_splits=n_splits,
-                                       rng=rng, debug=False)
+        reshaped_splits, nid_to_confusors = encounter_crossval(
+            ibs, aids, qenc_per_name=n_query_per_name, denc_per_name=1,
+            rng=rng, n_splits=n_splits, early=True)
+
+        avail_confusors.append(nid_to_confusors)
+
+        expanded_aids = []
+        for qpart, dpart in reshaped_splits:
+            # For each encounter choose just 1 annotation
+            qaids = [rng.choice(enc) for enc in ut.flatten(qpart)]
+            daids = [rng.choice(enc) for enc in ut.flatten(dpart)]
+            assert len(set(qaids).intersection(daids)) == 0
+            expanded_aids.append((sorted(qaids), sorted(daids)))
+
+        # expanded_aids = annot_crossval(ibs, annots.aids,
+        #                                n_qaids_per_name=n_query_per_name,
+        #                                n_daids_per_name=1, n_splits=n_splits,
+        #                                rng=rng, debug=False)
         crossval_splits.append((n_query_per_name, expanded_aids))
 
-    # for n_query_per_name, expanded_aids in crossval_splits:
-    #     debug_expanded_aids(expanded_aids, verbose=2)
+    n_daid_spread = [len(expanded_aids[0][1]) for _, expanded_aids in crossval_splits]
+    # Check to see if we can pad confusors to make the database size equal
+
+    max_size = max(n_daid_spread)
+
+    afford = (min(map(len, avail_confusors)) - (max(n_daid_spread) -
+                                                min(n_daid_spread)))
+    max_size += afford
+
+    crossval_splits2 = []
+
+    for (n_query_per_name, expanded_aids), nid_to_confusors in zip(crossval_splits, avail_confusors):
+        crossval_splits2.append((n_query_per_name, []))
+        for qaids, daids in expanded_aids:
+            n_extra = max(max_size - len(daids), 0)
+            if n_extra <= len(nid_to_confusors):
+                extra2 = ut.take_column(nid_to_confusors.values(), 0)[:n_extra]
+                extra = ut.flatten(extra2)
+            else:
+                extra2 = ut.flatten(nid_to_confusors.values())
+                rng.shuffle(extra2)
+                extra = extra2[:n_extra]
+            crossval_splits2[-1][1].append((qaids, sorted(daids + extra)))
+
+
+    for n_query_per_name, expanded_aids in crossval_splits2:
+        debug_expanded_aids(expanded_aids, verbose=1)
 
     phis = {}
     for n_query_per_name, expanded_aids in crossval_splits:
