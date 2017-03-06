@@ -4,7 +4,7 @@ import utool as ut
 def debug_expanded_aids(expanded_aids_list, verbose=1):
     import warnings
     warnings.simplefilter('ignore', RuntimeWarning)
-    print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
+    # print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
     for qaids, daids in expanded_aids_list:
         stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
                                           combo_enc_info=False)
@@ -84,14 +84,17 @@ def learn_phi():
     import datetime
     import ibeis
     from ibeis.init.filter_annots import annot_crossval
+    from ibeis.expt import test_result
     import plottool as pt
     pt.qtensure()
 
     # ibs = ibeis.opendb('GZ_Master1')
-    ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
+    ibs = ibeis.opendb('PZ_MTEST')
+    # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
 
     aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
                                      is_known=True)
+    aids = ibs.filter_annots_general(is_known=True, require_timestamp=True)
 
     annots = ibs.annots(aids=aids, asarray=True)
     # Take only annots with time and gps data
@@ -112,6 +115,8 @@ def learn_phi():
 
     rng = np.random.RandomState(0)
 
+    # TO FIX WE SHOULD GROUP ENCOUNTERS
+
     crossval_splits = []
     for n_query_per_name in range(1, 4):
         expanded_aids = annot_crossval(ibs, annots.aids,
@@ -120,9 +125,8 @@ def learn_phi():
                                        debug=False)
         crossval_splits.append((n_query_per_name, expanded_aids))
 
-    # for n_query_per_name, expanded_aids in crossval_splits:
-    #     debug_expanded_aids(expanded_aids)
-    from ibeis.expt import test_result
+    for n_query_per_name, expanded_aids in crossval_splits:
+        debug_expanded_aids(expanded_aids, verbose=2)
 
     phis = {}
     for n_query_per_name, expanded_aids in crossval_splits:
@@ -135,30 +139,59 @@ def learn_phi():
 
             cm_list = qreq_.execute()
             testres = test_result.TestResult.from_cms(cm_list, qreq_)
-            nranks = testres.get_infoprop_list(key='qx2_gt_name_rank')[0]
-            aranks = testres.get_infoprop_list(key='qx2_gt_annot_rank')[0]
+            nranks = testres.get_infoprop_list(key='qnx2_gt_name_rank')[0]
+            # aranks = testres.get_infoprop_list(key='qx2_gt_annot_rank')[0]
             # freqs, bins = testres.get_rank_histograms(
-            #     key='qnx2_gt_name_rank', bins=np.arange(num_pccs))
+            #     key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs))
             freqs, bins = testres.get_rank_histograms(
-                key='qx2_gt_name_rank', bins=np.arange(num_pccs))
+                key='qnx2_gt_name_rank', bins=np.arange(num_datab_pccs))
             freq = freqs[0]
-            accumulator
+            accumulators.append(freq)
+        size = max(map(len, accumulators))
+        accum = np.zeros(size)
+        for freq in accumulators:
+            accum[0:len(freq)] += freq
 
-            # bins, edges = testres.get_rank_percentage_cumhist()
-            # import plottool as pt
-            # pt.qtensure()
-            # pt.multi_plot(edges, [bins[0]])
+        # unsmoothed
+        phi1 = accum / accum.sum()
+        # kernel = cv2.getGaussianKernel(ksize=3, sigma=.9).T[0]
+        # phi2 = np.convolve(phi1, kernel)
+        # Smooth out everything after the sv rank to be uniform
+        svrank = qreq_.qparams.nNameShortlistSVER
+        phi = phi1.copy()
+        phi[svrank:] = (phi[svrank:].sum()) / (len(phi) - svrank)
+        # phi = accum
+        phis[n_query_per_name] = phi
 
-            testres.get_infoprop_list('qx2_gt_name_rank')
-            [cm.extend_results(qreq_).get_name_ranks([cm.qnid])[0] for cm in cm_list]
+    ydatas = [phi.cumsum() for phi in phis.values()]
+    label_list = list(map(str, phis.keys()))
+    pt.multi_plot(xdata=np.arange(len(phi)), ydata_list=ydatas, label_list=label_list)
 
-            if False:
-                accumulator = np.zeros(num_datab_pccs)
-                for cm in cm_list:
-                    cm = cm.extend_results(qreq_)
-                    rank = cm.get_name_ranks([cm.qnid])[0]
-                    # rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
-                    accumulator[rank] += 1
+        #cmc = phi3.cumsum()
+        # accum[20:].sum()
+        # import cv2
+        # accum
 
-        phis[n_query_per_name] = accumulators
+        # from sklearn.neighbors.kde import KernelDensity
+        # kde = KernelDensity(kernel='gaussian', bandwidth=3)
+        # X = ut.flatten([[rank] * (1 + int(freq)) for rank, freq in enumerate(accum)])
+        # kde.fit(np.array(X)[:, None])
+        # basis = np.linspace(0, len(accum), 1000)
+        # density = np.exp(kde.score_samples(basis[:, None]))
+        # pt.plot(basis, density)
 
+        # bins, edges = testres.get_rank_percentage_cumhist()
+        # import plottool as pt
+        # pt.qtensure()
+        # pt.multi_plot(edges, [bins[0]])
+
+        # testres.get_infoprop_list('qx2_gt_name_rank')
+        # [cm.extend_results(qreq_).get_name_ranks([cm.qnid])[0] for cm in cm_list]
+
+        # if False:
+        #     accumulator = np.zeros(num_datab_pccs)
+        #     for cm in cm_list:
+        #         cm = cm.extend_results(qreq_)
+        #         rank = cm.get_name_ranks([cm.qnid])[0]
+        #         # rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
+        #         accumulator[rank] += 1
