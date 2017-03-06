@@ -52,7 +52,7 @@ class ResultMetadata(object):
         for cfgx in range(len(testres.cfgx2_qreq_)):
             cfgstr = testres.get_cfgstr(cfgx)
             qaids = testres.qaids
-            cfgresinfo = testres.cfgx2_cfgresinfo[cfgx]
+            cfgresinfo = testres.cfgx2_cmsinfo[cfgx]
             for key, val_list in six.iteritems(cfgresinfo):
                 for qaid, val in zip(qaids, val_list):
                     metadata.set_global_data(cfgstr, qaid, key, val)
@@ -188,7 +188,7 @@ def make_test_result_custom_api(ibs, testres):
     import guitool
     guitool.ensure_qapp()
     cfgx = 0
-    cfgres_info = testres.cfgx2_cfgresinfo[cfgx]
+    cfgres_info = testres.cfgx2_cmsinfo[cfgx]
     qaids = testres.qaids
     gt_aids = cfgres_info['qx2_gt_aid']
     gf_aids = cfgres_info['qx2_gf_aid']

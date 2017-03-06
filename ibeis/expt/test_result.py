@@ -16,6 +16,135 @@ from ibeis.expt import experiment_helpers
 print, rrr, profile = ut.inject2(__name__)
 
 
+def build_cmsinfo(cm_list, qreq_):
+    """
+    Helper function to report results over multiple queries (chip matches).
+    Basically given a group of queries of the same name, we only care if one of
+    them is correct.  This emulates encounters.
+
+    Runs queries of a specific configuration returns the best rank of each
+    query.
+
+    Args:
+        cm_list (list): list of chip matches
+        qreq_ (QueryRequest): request that computed the chip matches.
+
+    Returns:
+        dict: cmsinfo - info about multiple chip matches cm_list
+
+    CommandLine:
+        python -m ibeis get_query_result_info
+        python -m ibeis get_query_result_info:0 --db lynx \
+            -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1
+        python -m ibeis get_query_result_info:0 --db lynx \
+            -a :qsame_imageset=True,been_adjusted=True,excluderef=True -t :K=1 --cmd
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.expt.test_result import *  # NOQA
+        >>> import ibeis
+        >>> qreq_ = ibeis.main_helpers.testdata_qreq_(a=[':qindex=0:3,dindex=0:5'])
+        >>> cm_list = qreq_.execute()
+        >>> cmsinfo = build_cmsinfo(cm_list, qreq_)
+        >>> print(ut.repr2(cmsinfo))
+
+    Ignore:
+        ibeis -e rank_cmc --db humpbacks -a :has_any=hasnotch,mingt=2 \
+                -t :proot=BC_DTW --show --nocache-big
+
+        ibeis -e rank_cmc --db humpbacks -a :is_known=True,mingt=2 \
+                -t :pipeline_root=BC_DTW
+
+        ibeis -e rank_cmc --db humpbacks -a :is_known=True \
+                -t :pipeline_root=BC_DTW \
+                --qaid=1,9,15,16,18 --daid-override=1,9,15,16,18,21,22 \
+                --show --debug-depc
+
+        --clear-all-depcache
+    """
+    ibs = qreq_.ibs
+
+    qaids = qreq_.qaids
+    daids = qreq_.daids
+    # Get the groundtruth ranks and accuracy measures
+    # qx2_cminfo = [cm.summarize(qreq_) for cm in cm_list]
+    qx2_cminfo = [cm.extend_results(qreq_).summarize(qreq_) for cm in cm_list]
+    cmsinfo = ut.dict_stack(qx2_cminfo, 'qx2_')
+    cmsinfo['qx2_gt_rank'] = ut.replace_nones(cmsinfo['qx2_gt_rank'] , -1)
+
+    if False:
+        qx2_gtaids = ibs.get_annot_groundtruth(qaids, daid_list=daids)
+        qx2_avepercision = np.array(
+            [cm.get_average_percision(ibs=ibs, gt_aids=gt_aids) for
+             (cm, gt_aids) in zip(cm_list, qx2_gtaids)])
+        cmsinfo['qx2_avepercision'] = qx2_avepercision
+
+    # Compute mAP score  # TODO: use mAP score
+    # (Actually map score doesn't make much sense if using name scoring
+    #mAP = qx2_avepercision[~np.isnan(qx2_avepercision)].mean()  # NOQA
+
+    qaids = qreq_.qaids
+    #qaids2 = [cm.qaid for cm in cm_list]
+    # qnids = qreq_.get_qreq_annot_nids(qaids)  # TODO: use new nid getter
+    qnids = ibs.get_annot_nids(qaids)
+
+    unique_dnids = np.unique(ibs.get_annot_nids(qreq_.daids))
+    unique_qnids, groupxs = ut.group_indices(qnids)
+    cm_group_list = ut.apply_grouping(cm_list, groupxs)
+    qnid2_aggnamescores = {}
+
+    qnx2_nameres_info = []
+
+    # Ranked list aggregation over groups of query annots
+    nameres_info_list = []
+    for qnid, cm_group in zip(unique_qnids, cm_group_list):
+        nid2_name_score_group = [
+            dict([(nid, cm.name_score_list[nidx])
+                  for nid, nidx in cm.nid2_nidx.items()])
+            for cm in cm_group
+        ]
+        aligned_name_scores = np.array([
+            ut.dict_take(nid2_name_score, unique_dnids.tolist(), -np.inf)
+            for nid2_name_score in nid2_name_score_group
+        ]).T
+        name_score_list = np.nanmax(aligned_name_scores, axis=1)
+        qnid2_aggnamescores[qnid] = name_score_list
+        # sort
+        sortx = name_score_list.argsort()[::-1]
+        sorted_namescores = name_score_list[sortx]
+        sorted_dnids = unique_dnids[sortx]
+
+        ## infer agg name results
+        success = sorted_dnids == qnid
+        failure = np.logical_and(~success, sorted_dnids > 0)
+        gt_name_rank = None if not np.any(success) else np.where(success)[0][0]
+        gf_name_rank = None if not np.any(failure) else np.nonzero(failure)[0][0]
+
+        gt_nid = sorted_dnids[gt_name_rank]
+        gf_nid = sorted_dnids[gf_name_rank]
+        gt_name_score = sorted_namescores[gt_name_rank]
+        gf_name_score = sorted_namescores[gf_name_rank]
+
+        if gt_name_score <= 0:
+            # ensure failure cases are loud give them the worst possible rank
+            # instead of a random one.
+            gt_name_rank = len(qreq_.dnids) + 1
+        qnx2_nameres_info = {}
+        qnx2_nameres_info['qnid'] = qnid
+        qnx2_nameres_info['gt_nid'] = gt_nid
+        qnx2_nameres_info['gf_nid'] = gf_nid
+        qnx2_nameres_info['gt_name_rank'] = gt_name_rank
+        qnx2_nameres_info['gf_name_rank'] = gf_name_rank
+        qnx2_nameres_info['gt_name_score'] = gt_name_score
+        qnx2_nameres_info['gf_name_score'] = gf_name_score
+
+        nameres_info_list.append(qnx2_nameres_info)
+        nameres_info = ut.dict_stack(nameres_info_list, 'qnx2_')
+        cmsinfo.update(nameres_info)
+
+    return cmsinfo
+
+
 def combine_testres_list(ibs, testres_list):
     """
     combine test results over multiple annot configs
@@ -57,7 +186,7 @@ def combine_testres_list(ibs, testres_list):
     agg_cfg_list = ut.flatten([tr.cfg_list for tr in testres_list])
     agg_cfgx2_qreq_ = ut.flatten([tr.cfgx2_qreq_ for tr in testres_list])
     agg_cfgdict_list = ut.flatten([tr.cfgdict_list for tr in testres_list])
-    agg_cfgx2_cfgresinfo = ut.flatten([tr.cfgx2_cfgresinfo for tr in testres_list])
+    agg_cfgx2_cmsinfo = ut.flatten([tr.cfgx2_cmsinfo for tr in testres_list])
     agg_varied_acfg_list = ut.flatten([
         [acfg] * len(tr.cfg_list)
         for tr, acfg in zip(testres_list, varied_acfg_list)
@@ -71,7 +200,7 @@ def combine_testres_list(ibs, testres_list):
          tr, acfg in zip(testres_list, acfg_list)])
 
     big_testres = TestResult(agg_cfg_list, agg_cfgx2_lbls,
-                             agg_cfgx2_cfgresinfo, agg_cfgx2_qreq_)
+                             agg_cfgx2_cmsinfo, agg_cfgx2_qreq_)
 
     # Give the big test result an acfg that is common between everything
     big_testres.acfg = annotation_configs.unflatten_acfgdict(nonvaried_acfg)
@@ -117,17 +246,17 @@ class TestResult(ut.NiceRepr):
         >>> prompt = ut.InteractivePrompt(actions)
         >>> prompt.loop()
     """
-    def __init__(testres, cfg_list, cfgx2_lbl, cfgx2_cfgresinfo, cfgx2_qreq_):
+    def __init__(testres, cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_):
         assert len(cfg_list) == len(cfgx2_lbl), (
             'bad lengths1: %r != %r' % (len(cfg_list), len(cfgx2_lbl)))
         assert len(cfgx2_qreq_) == len(cfgx2_lbl), (
             'bad lengths2: %r != %r' % (len(cfgx2_qreq_), len(cfgx2_lbl)))
-        assert len(cfgx2_cfgresinfo) == len(cfgx2_lbl), (
-            'bad lengths3: %r != %r' % (len(cfgx2_cfgresinfo), len(cfgx2_lbl)))
+        assert len(cfgx2_cmsinfo) == len(cfgx2_lbl), (
+            'bad lengths3: %r != %r' % (len(cfgx2_cmsinfo), len(cfgx2_lbl)))
         # TODO rename cfg_list to pcfg_list
         testres.cfg_list         = cfg_list
         testres.cfgx2_lbl        = cfgx2_lbl
-        testres.cfgx2_cfgresinfo = cfgx2_cfgresinfo
+        testres.cfgx2_cmsinfo = cfgx2_cmsinfo
         testres.cfgx2_qreq_      = cfgx2_qreq_
         # TODO: uncomment
         #testres.cfgx2_acfg
@@ -135,6 +264,16 @@ class TestResult(ut.NiceRepr):
         #testres.acfg_list        = None  #
         testres.lbl              = None
         testres.testnameid       = None
+
+    @classmethod
+    def from_cms(TestResult, cm_list, qreq_):
+        cfg_list = [qreq_.qparams]  # should actually be the specified dict
+        cfgx2_lbl = ['unspecified']
+        cmsinfo = build_cmsinfo(cm_list, qreq_)
+        cfgx2_cmsinfo = [cmsinfo]
+        cfgx2_qreq_ = [qreq_]
+        testres = TestResult(cfg_list, cfgx2_lbl, cfgx2_cmsinfo, cfgx2_qreq_)
+        return testres
 
     def __str__(testres):
         return testres.reconstruct_test_flags()
@@ -216,7 +355,7 @@ class TestResult(ut.NiceRepr):
 
     def get_infoprop_list(testres, key, qaids=None):
         """
-        key = 'qx2_bestranks'
+        key = 'qx2_gt_rank'
         key = 'qx2_gt_rank'
         qaids = testres.get_test_qaids()
         """
@@ -224,7 +363,7 @@ class TestResult(ut.NiceRepr):
             # Get if qaids are part of the config
             cfgx2_infoprop = [np.in1d(qaids, aids_) for aids_ in testres.cfgx2_qaids]
         else:
-            _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cfgresinfo, key)
+            _tmp1_cfgx2_infoprop = ut.get_list_column(testres.cfgx2_cmsinfo, key)
             _tmp2_cfgx2_infoprop = list(map(
                 np.array,
                 ut.util_list.replace_nones(_tmp1_cfgx2_infoprop, np.nan)))
@@ -239,7 +378,7 @@ class TestResult(ut.NiceRepr):
                 cfgx2_infoprop = [
                     [np.nan if x is None else props[x] for x in qxs]
                     for props, qxs in zip(_tmp2_cfgx2_infoprop, qxs_list)]
-            if key == 'qx2_bestranks' or key.endswith('_rank'):
+            if key == 'qx2_gt_rank' or key.endswith('_rank'):
                 # hack
                 wpr = testres.get_worst_possible_rank()
                 cfgx2_infoprop = [np.array([wpr if rank == -1 else rank
@@ -260,7 +399,7 @@ class TestResult(ut.NiceRepr):
     @ut.memoize
     def get_rank_mat(testres, qaids=None):
         # Ranks of Best Results
-        rank_mat = testres.get_infoprop_mat(key='qx2_bestranks', qaids=qaids)
+        rank_mat = testres.get_infoprop_mat(key='qx2_gt_rank', qaids=qaids)
         return rank_mat
 
     def get_worst_possible_rank(testres):
@@ -286,11 +425,11 @@ class TestResult(ut.NiceRepr):
             >>> config_hists = testres.get_rank_histograms(bins, key=key)
         """
         if key is None:
-            key = 'qx2_bestranks'
+            key = 'qx2_gt_rank'
             #key = 'qnx2_gt_name_rank'
         if bins is None:
             bins = testres.get_rank_histogram_bins()
-        elif bins == 'dense':
+        elif bins is 'dense':
             bins = np.arange(testres.get_worst_possible_rank() + 1)
 
         cfgx2_ranks = testres.get_infoprop_list(key=key)
@@ -430,11 +569,11 @@ class TestResult(ut.NiceRepr):
         """
         X_LIST = testres.get_X_LIST()
         nLessX_dict = {int(X): np.zeros(testres.nConfig) for X in X_LIST}
-        cfgx2_qx2_bestrank = testres.get_infoprop_list('qx2_bestranks')
+        cfgx2_qx2_gt_rank = testres.get_infoprop_list('qx2_gt_rank')
         for X in X_LIST:
             cfgx2_lessX_mask = [
-                np.logical_and(0 <= qx2_ranks, qx2_ranks < X)
-                for qx2_ranks in cfgx2_qx2_bestrank]
+                np.logical_and(0 <= qx2_gt_ranks, qx2_gt_ranks < X)
+                for qx2_gt_ranks in cfgx2_qx2_gt_rank]
             cfgx2_nLessX = np.array([lessX_.sum(axis=0)
                                      for lessX_ in cfgx2_lessX_mask])
             nLessX_dict[int(X)] = cfgx2_nLessX
@@ -673,7 +812,7 @@ class TestResult(ut.NiceRepr):
             >>> ibs, testres = ibeis.testdata_expts('PZ_MTEST', a=['ctrl:size=10'],
             >>>                                     t=['default:dim_size=[450,550]'])
             >>> cfg_lbls = testres.get_short_cfglbls()
-            >>> result = ('cfg_lbls = %s' % (ut.list_str(cfg_lbls),))
+            >>> result = ('cfg_lbls = %s' % (ut.repr2(cfg_lbls),))
             >>> print(result)
             cfg_lbls = [
                 'default:dim_size=450+ctrl',
@@ -784,7 +923,7 @@ class TestResult(ut.NiceRepr):
             >>> # >>>       ]
             >>> # >>> )
             >>> varied_lbls = testres.get_varied_labels(shorten=False, join_acfgs=True)
-            >>> result = ('varied_lbls = %s' % (ut.list_str(varied_lbls, strvals=True, nl=2),))
+            >>> result = ('varied_lbls = %s' % (ut.repr2(varied_lbls, strvals=True, nl=2),))
             >>> print(result)
 
             varied_lbls = [u'K=1+qsize=1', u'K=2+qsize=1', u'K=1+qsize=2', u'K=2+qsize=2']
@@ -886,7 +1025,7 @@ class TestResult(ut.NiceRepr):
         """
         helper
         """
-        key = 'qx2_bestranks'
+        key = 'qx2_gt_rank'
         cfgx2_cumhist_percent, edges = testres.get_rank_percentage_cumhist(bins='dense', key=key)
         label_list = testres.get_short_cfglbls()
         label_list = [
@@ -987,8 +1126,8 @@ class TestResult(ut.NiceRepr):
                 if len(pipeline_cfgname) < 64:
                     title_aug += ' t=' + pipeline_cfgname
             except Exception as ex:
-                print(ut.dict_str(testres.common_acfg))
-                print(ut.dict_str(testres.common_cfgdict))
+                print(ut.repr2(testres.common_acfg))
+                print(ut.repr2(testres.common_cfgdict))
                 ut.printex(ex)
                 raise
         if with_size:
@@ -1120,7 +1259,7 @@ class TestResult(ut.NiceRepr):
             print('Printing %d unique annotconfig stats' % (len(unique_daids)))
             common_acfg = testres.common_acfg
             common_acfg['common'] = ut.dict_filter_nones(common_acfg['common'])
-            print('testres.common_acfg = ' + ut.dict_str(common_acfg))
+            print('testres.common_acfg = ' + ut.repr2(common_acfg))
             print('param_basis(len(daids)) = %r' % (
                 testres.get_param_basis('len(daids)'),))
             for count, daids in enumerate(unique_daids):
@@ -1188,7 +1327,7 @@ class TestResult(ut.NiceRepr):
             >>> all_tags = testres.get_all_tags()
             >>> selected_tags = ut.take(all_tags, case_pos_list.T[0])
             >>> flat_tags = list(map(str, ut.flatten(ut.flatten(selected_tags))))
-            >>> print(ut.dict_str(ut.dict_hist(flat_tags), key_order_metric='val'))
+            >>> print(ut.repr2(ut.dict_hist(flat_tags), key_order_metric='val'))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.word_histogram2(flat_tags, fnum=1, pnum=(1, 2, 1))
@@ -1804,7 +1943,7 @@ class TestResult(ut.NiceRepr):
         cfgx_list = ut.ensure_iterable(cfgx)
         qreq_list = ut.take(testres.cfgx2_qreq_, cfgx_list)
         # Preload any requested configs
-        qres_list = [qreq_.load_cached_qres(qaid) for qreq_ in qreq_list]
+        cm_list = [qreq_.execute(qaids=[qaid]) for qreq_ in qreq_list]
         cfgx2_shortlbl = testres.get_short_cfglbls()
         show_kwargs = {
             'N': 3,
@@ -1817,10 +1956,10 @@ class TestResult(ut.NiceRepr):
         show_kwargs['show_timedelta'] = True
         show_kwargs['show_gf'] = True
         show_kwargs['with_figtitle'] = False
-        for cfgx, qres, qreq_ in zip(cfgx_list, qres_list, qreq_list):
+        for cfgx, cm, qreq_ in zip(cfgx_list, cm_list, qreq_list):
             query_lbl = cfgx2_shortlbl[cfgx]
             fnum = cfgx
-            qres.ishow_analysis(
+            cm.ishow_analysis(
                 ibs, figtitle=query_lbl, fnum=fnum, annot_mode=1, qreq_=qreq_,
                 **show_kwargs)
 
@@ -2209,10 +2348,6 @@ class TestResult(ut.NiceRepr):
             pt.set_title('improves mat (diag.T - isect): cfg<x> got <z> qaids that cfg <y> missed')
             label_ticks()
             #pt.colorbar(np.unique(y))
-
-    #def load_full_chipmatch_results(testres):
-    #    #cfgx2_qres
-    #    pass
 
     def map_score(testres):
         """

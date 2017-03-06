@@ -1806,7 +1806,13 @@ class MainWindowBackend(GUIBACK_BASE):
         detector = back.ibs.cfg.detect_cfg.detector
 
         review_in_web = True
-        review_in_web_mode = 'detections'
+        comp_name = ut.get_computer_name()
+        db_name = ibs.dbname
+        is_lewa = comp_name in ['ibeis.cs.uic.edu'] or db_name in ['LEWA', 'lewa_grevys']
+        if is_lewa:
+            review_in_web_mode = 'annotations'
+        else:
+            review_in_web_mode = 'detections'
         # review_in_web_mode = 'annotations'
         assert review_in_web_mode in ['detections', 'annotations']
         if True:

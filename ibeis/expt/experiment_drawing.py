@@ -726,7 +726,7 @@ def temp_num_exmaples_cmc():
         # a='timectrl:species=zebra_plains,sample_per_name=3'
     )
 
-    key = 'qx2_bestranks'
+    key = 'qx2_gt_rank'
     ydata_list = []
     label_list = []
     num_ranks = 5
@@ -826,7 +826,7 @@ def temp_multidb_cmc():
     testres_list = [testres1, testres2, testres3]
     ibs_list = [ibs1, ibs2, ibs3]
 
-    key = 'qx2_bestranks'
+    key = 'qx2_gt_rank'
     ydata_list = []
     label_list = []
     num_ranks = 5
@@ -940,7 +940,7 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
         key = 'qnx2_gt_name_rank'
         target_label = 'accuracy (% per name)'
     else:
-        key = 'qx2_bestranks'
+        key = 'qx2_gt_rank'
         target_label = 'accuracy (% per annotation)'
 
     join_acfgs = True
