@@ -1051,12 +1051,12 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             )
             yield ret_tuple
     elif config['classifier_algo'] in ['svm']:
-        assert not masking
         from ibeis.algo.detect.svm import classify
         # From localizations get gids
         config_ = {
             'algo': '_COMBINED',
             'feature2_algo': 'resnet',
+            'feature2_chip_masking': masking,
         }
         gid_list_ = depc.get_ancestor_rowids('localizations', loc_id_list, 'images')
         assert len(gid_list_) == len(loc_id_list)
@@ -1088,9 +1088,27 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
         assert len(gid_list_) == len(score_dict.keys())
         assert len(gid_list_) == len(class_dict.keys())
 
-        for gid_ in gid_list_:
+        if masking:
+            # We need to perform a difference calculation to see how much the masking
+            # caused a deviation from the un-masked image
+            config_ = dict(config)
+            key_list = ['thumbnail_cfg', 'classifier_masking']
+            for key in key_list:
+                config_.pop(key)
+            class_list_ = depc.get_property('classifier', gid_list_, 'class', config=config_)
+            score_list_ = depc.get_property('classifier', gid_list_, 'score', config=config_)
+        else:
+            class_list_ = [None] * len(gid_list_)
+            score_list_ = [None] * len(gid_list_)
+
+        # Return the results
+        for gid_, class_, score_ in zip(gid_list_, class_list_, score_list_):
             score_list = score_dict[gid_]
             class_list = class_dict[gid_]
+            if masking:
+                score_ = score_ if class_ == 'positive' else 1.0 - score_
+                score_list = score_ - np.array(score_list)
+                class_list = np.array(['positive'] * len(score_list))
             ret_tuple = (
                 np.array(score_list),
                 np.array(class_list),
