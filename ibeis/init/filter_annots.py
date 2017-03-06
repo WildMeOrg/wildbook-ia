@@ -585,8 +585,99 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
     # Sample afterwords
     return list(zip(acfg_combo_out, expanded_aids_list))
 
+def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
+                    n_splits=None, rng=None, rebalance=True):
+    """
+    does sampling based on some grouping (or no grouping) of annots
 
-def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=None):
+    perquery = 2
+    perdatab = 2
+
+    nid_to_sample_pool = {
+        1: [1, 2, 3, 4],
+        2: [6, 7, 8, 9],
+    }
+    """
+    if len(nid_to_sample_pool) == 0:
+        raise ValueError('Names do not have enough data for %d/%d split' %
+                         (perquery, perdatab))
+    rng = ut.ensure_rng(rng, impl='python')
+
+    def split_combos(pool, perquery, perdatab, rng):
+        import scipy
+        poolsize = len(pool)
+        # Number of ways we can select queries
+        n_qmax = int(scipy.misc.comb(poolsize, perquery))
+        # Number of ways we can select targets from remaining items
+        n_dmax = int(scipy.misc.comb(poolsize - perquery, perdatab))
+        # Total number of query / data combinations
+        n_combos = n_qmax * n_dmax
+
+        # Yield random combinations until we get something we havent seen
+        poolset = set(pool)
+        splits = set()
+        while len(splits) < n_combos:
+            # combo = tuple(sorted(rng.choice(items, size, replace=False)))
+            qcombo = tuple(sorted(rng.sample(pool, perquery)))
+            remain = poolset - set(qcombo)
+            dcombo = tuple(sorted(rng.sample(remain, perdatab)))
+            # TODO: try not to use queries / databases that we've used before
+            # until we've exhauseted those possibilities.
+            split = (qcombo, dcombo)
+            if split not in splits:
+                splits.add(split)
+                yield split
+
+    if n_splits is None:
+        # What is the maximum number of items in a name?
+        maxsize_name = max(map(len, nid_to_sample_pool.values()))
+        # This is only a heuristic
+        n_splits = maxsize_name
+
+    # Create a mapping from each name to a list of query/target splits
+    nid_to_splits = ut.ddict(list)
+    # Create several splits for each name
+    for nid, pool in nid_to_sample_pool.items():
+        # Randomly select up to `n_splits` combinations of size `n_need`.
+        combo_iter = split_combos(pool, perquery, perdatab, rng)
+        for count, fold_split in enumerate(combo_iter, start=1):
+            # Earlier samples will be biased towards names with more annots
+            nid_to_splits[nid].append(fold_split)
+            if count >= n_splits:
+                break
+
+    # print(ut.repr2(list(nid_to_splits.values()), strvals=True, nl=2))
+
+    # Some names may have more splits than others
+    nid_to_nsplits = ut.map_vals(len, nid_to_splits)
+    # Find the name with the most splits
+    max_nid = ut.argmax(nid_to_nsplits)
+    max_size = nid_to_nsplits[max_nid]
+
+    new_splits = [[] for _ in range(n_splits)]
+    if rebalance:
+        # Rebalance by adding combos from each name in a cycle.
+        # The difference between the largest and smallest split is at most one.
+        for count, split in enumerate(ut.iflatten(nid_to_splits.values())):
+            new_splits[count % len(new_splits)].append(split)
+    else:
+        # No rebalancing. The first split contains everything from the dataset
+        # and subsequent splits contain less and less.
+        for nid, combos in nid_to_splits.items():
+            for count, split in enumerate(combos):
+                new_splits[count].append(split)
+
+    # Reshape into an expanded aids list
+    # List of query / database objects per split, grouped by name.
+    reshaped_splits = [
+        ut.listT(splits) for splits in new_splits if len(splits) > 0
+    ]
+    return reshaped_splits
+
+
+def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
+                       enc_labels=None, confusors=True, rng=None,
+                       rebalance=True, n_splits=None):
     """
     Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
     `denc_per_name` for each individual in the datasets respectively.
@@ -598,22 +689,40 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from ibeis.init import main_helpers
         >>> import ibeis
-        >>> ibs = ibeis.opendb('WWF_Lynx_Copy')
-        >>> aids = ibeis.testdata_aids(a='default:minqual=good,require_timestamp=True,view=left', ibs=ibs)
-        >>> denc_per_name = 3
-        >>> qenc_per_name = 1
+        >>> #ibs, aids = ibeis.testdata_aids(
+        >>> #    defaultdb='WWF_Lynx_Copy',
+        >>> #    a='default:minqual=good,require_timestamp=True,view=left')
+        >>> ibs, aids = ibeis.testdata_aids(defaultdb='PZ_MTEST',
+        >>>                                 a='default:require_timestamp=True')
+        >>> main_helpers.monkeypatch_encounters(ibs, aids, days=50)
+        >>> qenc_per_name = 2
+        >>> denc_per_name = 2
+        >>> confusors = False
         >>> print('denc_per_name = %r' % (denc_per_name,))
         >>> print('qenc_per_name = %r' % (qenc_per_name,))
-        >>> expanded_aids = encounter_crossval(ibs, aids, qenc_per_name=qenc_per_name, denc_per_name=denc_per_name)
+        >>> rng = 0
+        >>> n_splits = 5
+        >>> expanded_aids = encounter_crossval(ibs, aids, n_splits=n_splits,
+        >>>                                    qenc_per_name=qenc_per_name,
+        >>>                                    denc_per_name=denc_per_name,
+        >>>                                    confusors=confusors, rng=rng)
         >>> # ensure stats agree
+        >>> cfgargs = dict(per_vp=False, per_multiple=False, combo_dists=False,
+        >>>                per_name=False, per_enc=True, use_hist=False)
         >>> for qaids, daids in expanded_aids:
-        >>>     stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False)
+        >>>     stats = ibs.get_annotconfig_stats(qaids, daids, **cfgargs)
+        >>>     del stats['confusor_daid_stats']
         >>>     print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
         >>>     denc_stats = stats['matchable_daid_stats']['denc_per_name']
         >>>     qenc_stats = stats['qaid_stats']['qenc_per_name']
-        >>>     assert denc_stats['min'] == denc_stats['max'] and denc_stats['min'] == denc_per_name
-        >>>     assert qenc_stats['min'] == qenc_stats['max'] and qenc_stats['min'] == qenc_per_name
+        >>>     assert denc_stats['min'] == denc_stats['max']
+        >>>     assert denc_stats['min'] == denc_per_name
+        >>>     assert qenc_stats['min'] == qenc_stats['max']
+        >>>     assert qenc_stats['min'] == qenc_per_name
+        >>> # Restore state
+        >>> main_helpers.unmonkeypatch_encounters(ibs)
         >>> #qaids, daids = expanded_aids[0]
         >>> #stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=True)
         >>> #print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
@@ -621,109 +730,59 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     """
     qenc_per_name = int(qenc_per_name)
     denc_per_name = int(denc_per_name)
-    assert qenc_per_name == 1, 'can only do one qenc right now'
+
+    # We can only select individuals with enough encounters
+    # Any name without enought data becomes a confusor
+    n_need = qenc_per_name + denc_per_name
+    perquery = qenc_per_name
+    perdatab = denc_per_name
 
     annots = ibs.annots(aids)
     if enc_labels is None:
         enc_labels = annots.encounter_text
 
     # Group annotations by encounter
-    unique_encounters, groupxs = annots.group_indicies(enc_labels)
-    encounter_nids = annots.take(ut.take_column(groupxs, 0)).nid
-    encounter_aids = ut.apply_grouping(annots.aids, groupxs)
+    encounters = ibs._annot_groups(annots.group(enc_labels)[1])
+    enc_nids = ut.take_column(encounters.nids, 0)
     # Group encounters by name
-    nid_to_encounters = ut.group_items(encounter_aids, encounter_nids)
+    nid_to_encs = ut.group_items(encounters, enc_nids)
 
-    # We can only select individuals with enough encounters
-    # Any name without enought data becomes a confusor
-    needed_enc_per_name = qenc_per_name + denc_per_name
+    nid_to_confusors = {
+        nid: ut.lmap(tuple, encs) for nid, encs in nid_to_encs.items()
+        if len(encs) < n_need}
+    nid_to_sample_pool = {
+        nid: ut.lmap(tuple, encs) for nid, encs in nid_to_encs.items()
+        if len(encs) >= n_need}
+    # nid_to_sample_pool = {
+    #     nid: encs for nid, encs in nid_to_encs.items()
+    #     if len(encs) >= n_need}
 
-    nid_to_confusor_encounters = {
-        nid: enc for nid, enc in nid_to_encounters.items()
-        if len(enc) <  needed_enc_per_name
-    }
-    nid_to_valid_encounters = {
-        nid: enc for nid, enc in nid_to_encounters.items()
-        if len(enc) >= needed_enc_per_name
-    }
-    rng = np.random.RandomState(0)
+    reshaped_splits = crossval_helper(nid_to_sample_pool, perquery, perdatab,
+                                      n_splits=n_splits, n_need=n_need,
+                                      rng=rng, rebalance=rebalance)
 
-    # Randomly shuffle encounters for each individual
-    valid_enc_rand_idxs = [(nid, ut.random_indexes(len(enc), rng=rng))
-                           for nid, enc in nid_to_valid_encounters.items()]
+    # print(ut.repr4(reshaped_splits, nl=3))
+    expanded_aids_list = [
+        [ut.flatten(qpart), ut.flatten(dpart)]
+        for qpart, dpart in reshaped_splits
+    ]
 
-    # For each individual choose a set of query and database encounters
-    crossval_idx_samples = []
-    max_num_encounters = max(map(len, (t[1] for t in valid_enc_rand_idxs)))
-    # TODO: iterate over a sliding window to choose multiple queries OR
-    # iterate over all combinations of queries... (harder)
-    for i in range(max_num_encounters):
-        encx_split = {}
-        for nid, idxs in valid_enc_rand_idxs:
-            if i < len(idxs):
-                # Choose the database encounters from anything not chosen as a query
-                d_choices = ut.where(ut.not_list(ut.index_to_boolmask([i], len(idxs))))
-                import utool
-                with utool.embed_on_exception_context:
-                    js = rng.choice(d_choices, size=denc_per_name, replace=False)
-                encx_split[nid] = (idxs[i:i + 1], idxs[js])
-        crossval_idx_samples.append(encx_split)
+    expanded_aids_list = [
+        [sorted(ut.flatten(ut.flatten(qpart))),
+         sorted(ut.flatten(ut.flatten(dpart)))]
+        for qpart, dpart in reshaped_splits
+    ]
 
-    # convert to aids
-    crossval_aid_samples = []
-    for encx_split in crossval_idx_samples:
-        aid_split = {}
-        for nid, (qxs, dxs) in encx_split.items():
-            qaids = ut.flatten(ut.take(nid_to_valid_encounters[nid], qxs))
-            daids = ut.flatten(ut.take(nid_to_valid_encounters[nid], dxs))
-            assert len(dxs) == denc_per_name
-            assert len(qxs) == qenc_per_name
-            aid_split[nid] = (qaids, daids)
-        crossval_aid_samples.append(aid_split)
-
-    tups = [(nid, aids_) for aid_split_ in crossval_aid_samples
-            for nid, aids_ in aid_split_.items()]
-    groups = ut.take_column(tups, 0)
-    aidpairs = ut.take_column(tups, 1)
-    # crossval_samples[0]
-
-    # rebalance the queries
-    # Rewrite using rebalance code from crossval_annots
-    # Very inefficient but does what I want
-    group_to_idxs = ut.dzip(*ut.group_indices(groups))
-    freq = ut.dict_hist(groups)
-    g = list(freq.keys())[ut.argmax(list(freq.values()))]
-    size = freq[g]
-    new_splits = [[] for _ in range(size)]
-    while True:
-        try:
-            g = list(freq.keys())[ut.argmax(list(freq.values()))]
-            if freq[g] == 0:
-                raise StopIteration()
-            group_idxs = group_to_idxs[g]
-            group_to_idxs[g] = []
-            freq[g] = 0
-            priorityx = ut.argsort(list(map(len, new_splits)))
-            for nextidx, splitx in zip(group_idxs, priorityx):
-                new_splits[splitx].append(nextidx)
-        except StopIteration:
-            break
-    # name_splits = ut.unflat_take(groups, new_splits)
-    aid_splits = ut.unflat_take(aidpairs, new_splits)
-
-    # Add annots that could not meet these requirements are distractors
-    confusors = ut.flatten(ut.flatten(list(nid_to_confusor_encounters.values())))
-
-    expanded_aids_list = []
-    for aidsplit in aid_splits:
-        qaids = sorted(ut.flatten(ut.take_column(aidsplit, 0)))
-        daids = sorted(ut.flatten(ut.take_column(aidsplit, 1)) + confusors)
-        expanded_aids_list.append((qaids, daids))
+    if confusors:
+        # Add confusors the the dataset
+        confusor_aids = ut.flatten(nid_to_confusors.values())
+        expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
+                              for qaids, daids in expanded_aids_list]
     return expanded_aids_list
 
 
 def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
-                   rng=None, debug=True, n_splits=None):
+                   rng=None, debug=True, n_splits=None, confusors=True):
     """
     Stratified sampling per name size
 
@@ -732,27 +791,26 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
             note, some names may not be big enough to split this many times.
 
     CommandLine:
-        python -m ibeis.scripts.iccv annot_crossval
+        python -m ibeis.init.filter_annots annot_crossval
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids()
-        >>> n_qaids_per_name = 1
-        >>> n_daids_per_name = 1
+        >>> n_qaids_per_name = 2
+        >>> n_daids_per_name = 3
         >>> rng = 0
         >>> debug = True
         >>> n_splits = None
-        >>> expanded_aids_list = annot_crossval(ibs, aid_list, n_qaids_per_name,
-        >>>                                     n_daids_per_name, rng, debug,
-        >>>                                     n_splits)
-        >>> result = ('expanded_aids_list = %s' % (ut.repr2(expanded_aids_list),))
+        >>> expanded_aids_list = annot_crossval(
+        >>>     ibs, aid_list, n_qaids_per_name, n_daids_per_name, rng, debug,
+        >>>     n_splits, confusors=False)
+        >>> result = ('expanded_aids_list = %s' % (ut.repr2(expanded_aids_list, nl=2),))
         >>> print(result)
     """
     # Parameters
-    rng = ut.ensure_rng(rng)
     n_need = n_qaids_per_name + n_daids_per_name
     rebalance = True
 
@@ -767,58 +825,113 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
     nid_to_sample_pool = {nid: aids for nid, aids in nid_to_aids.items()
                           if len(aids) >= n_need}
 
-    if n_splits is None:
-        # What is the maximum number of annotations in a name?
-        maxsize_name = max(map(len, nid_to_sample_pool.values()))
-        n_splits = maxsize_name
+    perquery = n_qaids_per_name
+    perdatab = n_daids_per_name
 
-    # Create a mapping from each name to the possible split combos
-    nid_to_splits = ut.ddict(list)
+    reshaped_splits = crossval_helper(nid_to_sample_pool, perquery, perdatab,
+                                      n_splits=n_splits, n_need=n_need,
+                                      rng=rng, rebalance=rebalance)
 
-    # Create several splits for each name
-    for nid, aids in nid_to_sample_pool.items():
-        # Randomly select up to `n_splits` combinations of size `n_need`.
-        combo_iter = ut.random_combinations(aids, n_need, n_splits, rng=rng)
-        for count, aid_combo in enumerate(combo_iter):
-            aid_combo = ut.shuffle(list(aid_combo), rng=rng)
-            fold_split = (aid_combo[:n_qaids_per_name],
-                          aid_combo[n_qaids_per_name:])
-            # Earlier samples will be biased towards names with more annots
-            nid_to_splits[nid].append(fold_split)
-
-    # Some names may have more splits than others
-    nid_to_nsplits = ut.map_vals(len, nid_to_splits)
-    # Find the name with the most splits
-    max_nid = ut.argmax(nid_to_nsplits)
-    max_size = nid_to_nsplits[max_nid]
-
-    new_splits = [[] for _ in range(n_splits)]
-    if rebalance:
-        # Rebalance by adding combos from each name in a cycle.
-        # The difference between the largest and smallest split is at most one.
-        for count, aid_combo in enumerate(ut.iflatten(nid_to_splits.values())):
-            new_splits[count % len(new_splits)].append(aid_combo)
-    else:
-        # No rebalancing. The first split contains everything from the dataset
-        # and subsequent splits contain less and less.
-        for nid, aid_combos in nid_to_splits.items():
-            for count, aid_combo in enumerate(aid_combos):
-                new_splits[count].append(aid_combo)
-
-    # Reshape into an expanded aids list
     expanded_aids_list = [
-        [sorted(ut.flatten(qaids_)), sorted(ut.flatten(daids_))]
-        for qaids_, daids_ in (ut.listT(splits) for splits in new_splits)
+        [sorted(ut.flatten(qpart)), sorted(ut.flatten(dpart))]
+        for qpart, dpart in reshaped_splits
     ]
 
-    # Add confusors the the dataset
-    confusor_aids = ut.flatten(nid_to_confusors.values())
-    expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
-                          for qaids, daids in expanded_aids_list]
+    if confusors:
+        # Add confusors the the dataset
+        confusor_aids = ut.flatten(nid_to_confusors.values())
+        expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
+                              for qaids, daids in expanded_aids_list]
 
     # if debug:
     #     debug_expanded_aids(expanded_aids_list)
     return expanded_aids_list
+
+
+    # # Group annotations by encounter
+    # unique_encounters, groupxs = annots.group_indicies(enc_labels)
+    # encounter_nids = annots.take(ut.take_column(groupxs, 0)).nid
+    # encounter_aids = ut.apply_grouping(annots.aids, groupxs)
+    # # Group encounters by name
+    # nid_to_encs = ut.group_items(encounter_aids, encounter_nids)
+
+    # nid_to_confusors = {nid: enc for nid, enc in nid_to_encs.items()
+    #                     if len(enc) <  n_need}
+    # nid_to_sample_pool = {nid: enc for nid, enc in nid_to_encs.items()
+    #                       if len(enc) >= n_need}
+
+    # # Randomly shuffle encounters for each individual
+    # valid_enc_rand_idxs = [(nid, ut.random_indexes(len(enc), rng=rng))
+    #                        for nid, enc in nid_to_sample_pool.items()]
+
+    # # For each individual choose a set of query and database encounters
+    # crossval_idx_samples = []
+    # max_num_encounters = max(map(len, (t[1] for t in valid_enc_rand_idxs)))
+    # # TODO: iterate over a sliding window to choose multiple queries OR
+    # # iterate over all combinations of queries... (harder)
+    # for i in range(max_num_encounters):
+    #     encx_split = {}
+    #     for nid, idxs in valid_enc_rand_idxs:
+    #         if i < len(idxs):
+    #             # Choose the database encounters from anything not chosen as a
+    #             # query
+    #             d_choices = ut.where(ut.not_list(
+    #                 ut.index_to_boolmask([i], len(idxs))))
+    #             js = rng.choice(d_choices, size=denc_per_name, replace=False)
+    #             encx_split[nid] = (idxs[i:i + 1], idxs[js])
+    #     crossval_idx_samples.append(encx_split)
+
+    # # convert to aids
+    # crossval_aid_samples = []
+    # for encx_split in crossval_idx_samples:
+    #     aid_split = {}
+    #     for nid, (qxs, dxs) in encx_split.items():
+    #         qaids = ut.flatten(ut.take(nid_to_sample_pool[nid], qxs))
+    #         daids = ut.flatten(ut.take(nid_to_sample_pool[nid], dxs))
+    #         assert len(dxs) == denc_per_name
+    #         assert len(qxs) == qenc_per_name
+    #         aid_split[nid] = (qaids, daids)
+    #     crossval_aid_samples.append(aid_split)
+
+    # tups = [(nid, aids_) for aid_split_ in crossval_aid_samples
+    #         for nid, aids_ in aid_split_.items()]
+    # groups = ut.take_column(tups, 0)
+    # aidpairs = ut.take_column(tups, 1)
+    # # crossval_samples[0]
+
+    # # rebalance the queries
+    # # Rewrite using rebalance code from crossval_annots
+    # # Very inefficient but does what I want
+    # group_to_idxs = ut.dzip(*ut.group_indices(groups))
+    # freq = ut.dict_hist(groups)
+    # g = list(freq.keys())[ut.argmax(list(freq.values()))]
+    # size = freq[g]
+    # new_splits = [[] for _ in range(size)]
+    # while True:
+    #     try:
+    #         g = list(freq.keys())[ut.argmax(list(freq.values()))]
+    #         if freq[g] == 0:
+    #             raise StopIteration()
+    #         group_idxs = group_to_idxs[g]
+    #         group_to_idxs[g] = []
+    #         freq[g] = 0
+    #         priorityx = ut.argsort(list(map(len, new_splits)))
+    #         for nextidx, splitx in zip(group_idxs, priorityx):
+    #             new_splits[splitx].append(nextidx)
+    #     except StopIteration:
+    #         break
+    # # name_splits = ut.unflat_take(groups, new_splits)
+    # aid_splits = ut.unflat_take(aidpairs, new_splits)
+
+    # # Add annots that could not meet these requirements are distractors
+    # confusors = ut.flatten(ut.flatten(list(nid_to_confusors.values())))
+
+    # expanded_aids_list = []
+    # for aidsplit in aid_splits:
+    #     qaids = sorted(ut.flatten(ut.take_column(aidsplit, 0)))
+    #     daids = sorted(ut.flatten(ut.take_column(aidsplit, 1)) + confusors)
+    #     expanded_aids_list.append((qaids, daids))
+    # return expanded_aids_list
 
 
 @profile
