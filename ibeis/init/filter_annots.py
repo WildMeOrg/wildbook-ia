@@ -677,7 +677,7 @@ def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
 
 def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
                        enc_labels=None, confusors=True, rng=None,
-                       rebalance=True, n_splits=None):
+                       rebalance=True, n_splits=None, early=False):
     """
     Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
     `denc_per_name` for each individual in the datasets respectively.
@@ -757,9 +757,11 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
     #     nid: encs for nid, encs in nid_to_encs.items()
     #     if len(encs) >= n_need}
 
-    reshaped_splits = crossval_helper(nid_to_sample_pool, perquery, perdatab,
-                                      n_splits=n_splits, n_need=n_need,
-                                      rng=rng, rebalance=rebalance)
+    reshaped_splits = crossval_helper(
+        nid_to_sample_pool, perquery, perdatab, n_splits=n_splits,
+        n_need=n_need, rng=rng, rebalance=rebalance)
+    if early:
+        return reshaped_splits, nid_to_confusors
 
     # print(ut.repr4(reshaped_splits, nl=3))
     expanded_aids_list = [
