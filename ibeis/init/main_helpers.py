@@ -406,7 +406,7 @@ def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, 
     return cm, qreq_
 
 
-def monkeypatch_encounters(ibs, aids, cache=0, **kwargs):
+def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     """
     Hacks in a temporary custom definition of encounters for this controller
 
@@ -431,6 +431,8 @@ def monkeypatch_encounters(ibs, aids, cache=0, **kwargs):
     thresh_sec = datetime.timedelta(**kwargs).total_seconds()
     # thresh_sec = datetime.timedelta(minutes=30).seconds
 
+    if cache is None:
+        cache = len(aids) > 200
     cfgstr = str(ut.combine_uuids(annots.visual_uuids))
     cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
     data = cacher.tryload()
