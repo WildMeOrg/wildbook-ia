@@ -1107,7 +1107,7 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             class_list = class_dict[gid_]
             if masking:
                 score_ = score_ if class_ == 'positive' else 1.0 - score_
-                score_list = score_ - score_list
+                score_list = score_ - np.array(score_list)
                 class_list = np.array(['positive'] * len(score_list))
             ret_tuple = (
                 np.array(score_list),
