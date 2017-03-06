@@ -88,13 +88,13 @@ def learn_phi():
     import plottool as pt
     pt.qtensure()
 
-    # ibs = ibeis.opendb('GZ_Master1')
-    ibs = ibeis.opendb('PZ_MTEST')
+    ibs = ibeis.opendb('GZ_Master1')
+    # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
 
     aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
                                      is_known=True)
-    aids = ibs.filter_annots_general(is_known=True, require_timestamp=True)
+    # aids = ibs.filter_annots_general(is_known=True, require_timestamp=True)
 
     annots = ibs.annots(aids=aids, asarray=True)
     # Take only annots with time and gps data
@@ -113,20 +113,21 @@ def learn_phi():
     # annots = ibs.annots(aids=aids)
     # nid_to_aids = ut.group_items(annots.aids, annots.nids)
 
-    rng = np.random.RandomState(0)
-
     # TO FIX WE SHOULD GROUP ENCOUNTERS
 
+    n_splits = 3
+    n_splits = 5
     crossval_splits = []
-    for n_query_per_name in range(1, 4):
+    for n_query_per_name in range(1, 5):
+        rng = np.random.RandomState(0)
         expanded_aids = annot_crossval(ibs, annots.aids,
                                        n_qaids_per_name=n_query_per_name,
-                                       n_daids_per_name=1, n_splits=3, rng=rng,
-                                       debug=False)
+                                       n_daids_per_name=1, n_splits=n_splits,
+                                       rng=rng, debug=False)
         crossval_splits.append((n_query_per_name, expanded_aids))
 
-    for n_query_per_name, expanded_aids in crossval_splits:
-        debug_expanded_aids(expanded_aids, verbose=2)
+    # for n_query_per_name, expanded_aids in crossval_splits:
+    #     debug_expanded_aids(expanded_aids, verbose=2)
 
     phis = {}
     for n_query_per_name, expanded_aids in crossval_splits:
@@ -135,7 +136,8 @@ def learn_phi():
         for qaids, daids in expanded_aids:
             num_datab_pccs = len(np.unique(ibs.annots(daids).nids))
             num_query_pccs = len(np.unique(ibs.annots(qaids).nids))
-            qreq_ = ibs.new_query_request(qaids, daids, verbose=False, cfgdict=pipe_cfg)
+            qreq_ = ibs.new_query_request(qaids, daids, verbose=False,
+                                          cfgdict=pipe_cfg)
 
             cm_list = qreq_.execute()
             testres = test_result.TestResult.from_cms(cm_list, qreq_)
@@ -166,6 +168,10 @@ def learn_phi():
     ydatas = [phi.cumsum() for phi in phis.values()]
     label_list = list(map(str, phis.keys()))
     pt.multi_plot(xdata=np.arange(len(phi)), ydata_list=ydatas, label_list=label_list)
+
+    ranks = 10
+    ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
+    pt.multi_plot(xdata=np.arange(ranks), ydata_list=ydatas, label_list=label_list)
 
         #cmc = phi3.cumsum()
         # accum[20:].sum()

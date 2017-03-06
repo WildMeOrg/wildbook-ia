@@ -32,7 +32,8 @@ CLASS_INJECT_KEY, register_ibs_method = _tup
 @profile
 def time_filter_annots():
     """
-    python -m ibeis.init.filter_annots time_filter_annots --db PZ_Master1 -a ctrl:qmingt=2 --profile
+    python -m ibeis.init.filter_annots time_filter_annots \
+            --db PZ_Master1 -a ctrl:qmingt=2 --profile
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -44,7 +45,8 @@ def time_filter_annots():
 
 
 @register_ibs_method
-def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwargs):
+def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
+                          **kwargs):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -103,19 +105,23 @@ def filter_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
     filter_kw_ = get_default_annot_filter_form()
-    ut.update_existing(filter_kw_, filter_kw, iswarning=True, assert_exists=True)
+    ut.update_existing(filter_kw_, filter_kw, iswarning=True,
+                       assert_exists=True)
     ut.update_existing(filter_kw_, kwargs, iswarning=True, assert_exists=True)
     aid_list_ = aid_list
     #filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
     # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
     #aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
-    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_, verbose=verbose)
-    aid_list_ = filter_annots_intragroup(ibs, aid_list_, filter_kw_, verbose=verbose)
+    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_,
+                                              verbose=verbose)
+    aid_list_ = filter_annots_intragroup(ibs, aid_list_, filter_kw_,
+                                         verbose=verbose)
     return aid_list_
 
 
 @register_ibs_method
-def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwargs):
+def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False,
+                          **kwargs):
     """ filter + sampling """
     # hack
     from ibeis.expt import annotation_configs
@@ -131,8 +137,10 @@ def sample_annots_general(ibs, aid_list=None, filter_kw={}, verbose=False, **kwa
     #filter_kw = ut.merge_dicts(get_default_annot_filter_form(), filter_kw)
     # TODO MERGE FILTERFLAGS BY TAGS AND FILTERFLAGS INDEPENDANT
     #aid_list_ = ibs.filterannots_by_tags(aid_list_, filter_kw)
-    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_, verbose=verbose)
-    aid_list_ = filter_annots_intragroup(ibs, aid_list_, filter_kw_, verbose=verbose)
+    aid_list_ = ibs.filter_annots_independent(aid_list_, filter_kw_,
+                                              verbose=verbose)
+    aid_list_ = filter_annots_intragroup(ibs, aid_list_, filter_kw_,
+                                         verbose=verbose)
 
     aid_list_ = sample_annots(ibs, aid_list_, filter_kw_, verbose=verbose)
     aid_list_ = subindex_annots(ibs, aid_list_, filter_kw_, verbose=verbose)
@@ -182,8 +190,8 @@ def get_annot_tag_filterflags(ibs, aid_list, filter_kw,
 
     for key in filter_keys:
         annotmatch_filterkw[key] = filter_kw.get(*kwreg(key + '_annotmatch', None))
-        annot_filterkw[key]      = filter_kw.get(*kwreg(key + '_annot', None))
-        both_filterkw[key]       = filter_kw.get(*kwreg(key, None))
+        annot_filterkw[key] = filter_kw.get(*kwreg(key + '_annot', None))
+        both_filterkw[key] = filter_kw.get(*kwreg(key, None))
 
     if request_defaultkw:
         return kwreg.defaultkw
@@ -680,6 +688,7 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     # crossval_samples[0]
 
     # rebalance the queries
+    # Rewrite using rebalance code from crossval_annots
     # Very inefficient but does what I want
     group_to_idxs = ut.dzip(*ut.group_indices(groups))
     freq = ut.dict_hist(groups)
@@ -713,11 +722,10 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1, enc_labels=N
     return expanded_aids_list
 
 
-def annot_crossval(ibs, aid_list, n_qaids_per_name=1,
-                                     n_daids_per_name=1, rng=None, debug=True,
-                                     n_splits=None):
+def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
+                   rng=None, debug=True, n_splits=None):
     """
-    Stratified Sampling per name size
+    Stratified sampling per name size
 
     Args:
         n_splits (int): number of query/database splits to create.
@@ -737,7 +745,9 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1,
         >>> rng = 0
         >>> debug = True
         >>> n_splits = None
-        >>> expanded_aids_list = annot_crossval(ibs, aid_list, n_qaids_per_name, n_daids_per_name, rng, debug, n_splits)
+        >>> expanded_aids_list = annot_crossval(ibs, aid_list, n_qaids_per_name,
+        >>>                                     n_daids_per_name, rng, debug,
+        >>>                                     n_splits)
         >>> result = ('expanded_aids_list = %s' % (ut.repr2(expanded_aids_list),))
         >>> print(result)
     """
@@ -752,38 +762,29 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1,
 
     # Any name without enough data becomes a confusor
     # Otherwise we can use it in the sampling pool
-    nid_to_confusors = {
-        nid: aids for nid, aids in nid_to_aids.items()
-        if len(aids) < n_need
-    }
-    nid_to_sample_pool = {
-        nid: aids for nid, aids in nid_to_aids.items()
-        if len(aids) >= n_need
-    }
+    nid_to_confusors = {nid: aids for nid, aids in nid_to_aids.items()
+                        if len(aids) < n_need}
+    nid_to_sample_pool = {nid: aids for nid, aids in nid_to_aids.items()
+                          if len(aids) >= n_need}
 
     if n_splits is None:
         # What is the maximum number of annotations in a name?
         maxsize_name = max(map(len, nid_to_sample_pool.values()))
         n_splits = maxsize_name
 
-    # This is a list of dictionaries that maps a name to one possible split
-    split_samples = [{} for _ in range(n_splits)]
-
     # Create a mapping from each name to the possible split combos
     nid_to_splits = ut.ddict(list)
 
     # Create several splits for each name
     for nid, aids in nid_to_sample_pool.items():
-        # Randomly select combinations of appropriate size
+        # Randomly select up to `n_splits` combinations of size `n_need`.
         combo_iter = ut.random_combinations(aids, n_need, n_splits, rng=rng)
         for count, aid_combo in enumerate(combo_iter):
-            aid_combo = list(aid_combo)
-            rng.shuffle(aid_combo)
+            aid_combo = ut.shuffle(list(aid_combo), rng=rng)
             fold_split = (aid_combo[:n_qaids_per_name],
                           aid_combo[n_qaids_per_name:])
-            nid_to_splits[nid].append(fold_split)
             # Earlier samples will be biased towards names with more annots
-            split_samples[count][nid] = fold_split
+            nid_to_splits[nid].append(fold_split)
 
     # Some names may have more splits than others
     nid_to_nsplits = ut.map_vals(len, nid_to_splits)
@@ -791,9 +792,6 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1,
     max_nid = ut.argmax(nid_to_nsplits)
     max_size = nid_to_nsplits[max_nid]
 
-    # if max_size < n_splits:
-    #     warnings.warn('Splits will not be full')
-    assert max_size <= n_splits, 'cycle assumption does not hold'
     new_splits = [[] for _ in range(n_splits)]
     if rebalance:
         # Rebalance by adding combos from each name in a cycle.
