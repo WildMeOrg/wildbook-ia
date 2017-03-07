@@ -1408,49 +1408,51 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
 def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf, min_overlap,
                                          check_species=False,
                                          check_viewpoint=False, **kwargs):
-    ut.embed()
     overlap = general_overlap(gt_list, pred_list)
     num_gt, num_pred = overlap.shape
+
+    # Get confidences
+    conf_list = [pred['confidence'] for pred in pred_list]
+    pred_flag_list = [conf <= conf_ for conf_ in conf_list]
+
     if num_gt == 0:
-        tp = 0.0
-        fp = num_pred
-        fn = 0.0
+        tp_list = [False] * len(pred_list)
+        tn_list = [not pred_flag for pred_flag in pred_flag_list]
+        fp_list = [    pred_flag for pred_flag in pred_flag_list]
+        fn_list = [False] * len(pred_list)
     elif num_pred == 0:
-        tp = 0.0
-        fp = 0.0
-        fn = num_gt
+        tp_list = []
+        tn_list = []
+        fp_list = []
+        fn_list = []
     else:
-        index_list = np.argmax(overlap, axis=1)
-        max_overlap = np.max(overlap, axis=1)
-        max_overlap[max_overlap < min_overlap] = 0.0
-        assignment_dict = {
-            i : index_list[i] for i in range(num_gt) if max_overlap[i] != 0
-        }
-        tp = len(assignment_dict.keys())
-        # Fix where multiple GT claim the same prediction
-        if tp > num_pred:
-            index_list_ = np.argmax(overlap, axis=0)
-            key_list = sorted(assignment_dict.keys())
-            for key in key_list:
-                if key not in index_list_:
-                    del assignment_dict[key]
-            tp = len(assignment_dict.keys())
-        if check_species or check_viewpoint:
-            for gt, pred in assignment_dict.items():
-                # print(gt_list[gt]['class'], pred_list[pred]['class'])
-                # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
-                if gt_list[gt]['class'] != pred_list[pred]['class']:
-                    tp -= 1
-                elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
-                    tp -= 1
-        fp = num_pred - tp
-        fn = num_gt - tp
-    return tp, fp, fn
+        max_overlap = np.max(overlap, axis=0)
+        gt_flag_list = min_overlap < max_overlap
+
+        status_list = []
+        for gt_flag, pred_flag in zip(gt_flag_list, pred_flag_list):
+            if gt_flag and pred_flag:
+                status_list.append('tp')
+            elif gt_flag and not pred_flag:
+                status_list.append('fn')
+            elif not gt_flag and pred_flag:
+                status_list.append('fp')
+            elif not gt_flag and not pred_flag:
+                status_list.append('tn')
+            else:
+                raise ValueError
+
+        tp_list = [status == 'tp' for status in status_list]
+        tn_list = [status == 'tn' for status in status_list]
+        fp_list = [status == 'fp' for status in status_list]
+        fn_list = [status == 'fn' for status in status_list]
+
+    return tp_list, tn_list, fp_list, fn_list
 
 
 def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                                                         label=None,
-                                                        min_overlap=0.1,
+                                                        min_overlap=0.25,
                                                         write_images=False,
                                                         **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
@@ -1475,9 +1477,15 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
         if test_uuid in pred_dict:
             gt_list = gt_dict[test_uuid]
             pred_list = pred_dict[test_uuid]
-            tp, tn, fp, fn = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
-                                                                  min_overlap=min_overlap,
-                                                                  **kwargs)
+            values = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
+                                                          min_overlap=min_overlap,
+                                                          **kwargs)
+            tp_list, tn_list, fp_list, fn_list = values
+            tp = tp_list.count(True)
+            tn = tn_list.count(True)
+            fp = fp_list.count(True)
+            fn = fn_list.count(True)
+
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -1501,14 +1509,27 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                     ytl = int(gt['ytl'] * height_)
                     xbr = int(gt['xbr'] * width_)
                     ybr = int(gt['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
 
-                for pred in pred_list:
+                zipped = zip(pred_list, tp_list, tn_list, fp_list, fn_list)
+                for pred, tp_, tn_, fp_, fn_ in zipped:
+                    if tp_:
+                        color = (0, 255, 0)
+                    elif fp_:
+                        continue
+                        # color = (255, 0, 0)
+                    elif fn_:
+                        color = (255, 0, 0)
+                    elif tn_:
+                        continue
+                    else:
+                        continue
+
                     xtl = int(pred['xtl'] * width_)
                     ytl = int(pred['ytl'] * height_)
                     xbr = int(pred['xbr'] * width_)
                     ybr = int(pred['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), color)
 
                 status_str = 'success' if (fp + fn) == 0 else 'failure'
                 status_val = tp - fp - fn
@@ -1528,7 +1549,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
 
 @register_ibs_method
 def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
-                                                            min_overlap=0.1,
+                                                            min_overlap=0.25,
                                                             figsize=(24, 7),
                                                             write_images=False,
                                                             min_recall=0.9,
@@ -1546,6 +1567,7 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
         'species_set'  : species_set,
         'classify'     : True,
         'classifier_algo': 'svm',
+        'classifier_masking': True,
         'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
 
@@ -2311,7 +2333,8 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 
 @register_ibs_method
-def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False):
+def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False,
+                               C=1.0, kernel='rbf'):
     from sklearn import svm, preprocessing
 
     # Load data
@@ -2321,9 +2344,15 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     ut.ensuredir(output_path)
+    species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
-    output_filepath = join(output_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
+    kernel = kernel.lower()
+    if C == 1 and kernel == 'rbf':
+        output_filename = 'classifier.svm.image.%s.pkl' % (species_list_str, )
+    else:
+        output_filepath = 'classifier.svm.image.%s.%s.%s.pkl' % (species_list_str, )
 
+    output_filepath = join(output_path, output_filename)
     if not dryrun:
         vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
         train_gid_set, data_list, label_list = vals
