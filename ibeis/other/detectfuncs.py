@@ -1408,49 +1408,45 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
 def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf, min_overlap,
                                          check_species=False,
                                          check_viewpoint=False, **kwargs):
-    ut.embed()
     overlap = general_overlap(gt_list, pred_list)
     num_gt, num_pred = overlap.shape
+
+    # Get confidences
+    conf_list = [pred['confidence'] for pred in pred_list]
+    pred_flag_list = [conf <= conf_ for conf_ in conf_list]
+
     if num_gt == 0:
         tp = 0.0
-        fp = num_pred
+        tn = pred_flag_list.count(False)
+        fp = pred_flag_list.count(True)
         fn = 0.0
     elif num_pred == 0:
         tp = 0.0
+        tn = 0.0
         fp = 0.0
         fn = num_gt
     else:
-        index_list = np.argmax(overlap, axis=1)
-        max_overlap = np.max(overlap, axis=1)
-        max_overlap[max_overlap < min_overlap] = 0.0
-        assignment_dict = {
-            i : index_list[i] for i in range(num_gt) if max_overlap[i] != 0
-        }
-        tp = len(assignment_dict.keys())
-        # Fix where multiple GT claim the same prediction
-        if tp > num_pred:
-            index_list_ = np.argmax(overlap, axis=0)
-            key_list = sorted(assignment_dict.keys())
-            for key in key_list:
-                if key not in index_list_:
-                    del assignment_dict[key]
-            tp = len(assignment_dict.keys())
-        if check_species or check_viewpoint:
-            for gt, pred in assignment_dict.items():
-                # print(gt_list[gt]['class'], pred_list[pred]['class'])
-                # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
-                if gt_list[gt]['class'] != pred_list[pred]['class']:
-                    tp -= 1
-                elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
-                    tp -= 1
-        fp = num_pred - tp
-        fn = num_gt - tp
-    return tp, fp, fn
+        max_overlap = np.max(overlap, axis=0)
+        gt_flag_list = min_overlap < max_overlap
+
+        tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
+        for gt_flag, pred_flag in zip(gt_flag_list, pred_flag_list):
+            if gt_flag and pred_flag:
+                tp += 1
+            elif gt_flag and not pred_flag:
+                fn += 1
+            elif not gt_flag and pred_flag:
+                fp += 1
+            elif not gt_flag and not pred_flag:
+                tn += 1
+            else:
+                raise ValueError
+    return tp, tn, fp, fn
 
 
 def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                                                         label=None,
-                                                        min_overlap=0.1,
+                                                        min_overlap=0.25,
                                                         write_images=False,
                                                         **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
@@ -1528,7 +1524,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
 
 @register_ibs_method
 def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
-                                                            min_overlap=0.1,
+                                                            min_overlap=0.25,
                                                             figsize=(24, 7),
                                                             write_images=False,
                                                             min_recall=0.9,
