@@ -279,7 +279,7 @@ class ObjectScalar0D(ut.NiceRepr, ut.HashComparable2):
         self.obj1d = obj1d
 
     def __nice__(self):
-        return '(rowid=%s, uuid=%s)' % (self._rowids, self.uuids)
+        return 'rowid=%s, uuid=%s' % (self._rowids, self.uuids)
 
     def __getattr__(self, key):
         return getattr(self.obj1d, key)[0]
@@ -346,7 +346,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         self._caching = flag
 
     def __nice__(self):
-        return '(num=%r)' % (len(self))
+        return 'num=%r' % (len(self))
 
     def __hash__(self):
         return hash(self.group_uuid())
@@ -537,7 +537,7 @@ class ObjectView1D(ut.NiceRepr):
         return len(self._rowids)
 
     def __nice__(self):
-        return '(unique=%r, num=%r)' % (len(self._unique_rowids), len(self))
+        return 'unique=%r, num=%r' % (len(self._unique_rowids), len(self))
 
     # def __hash__(self):
     #     return hash(self.group_uuid())

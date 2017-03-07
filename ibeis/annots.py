@@ -298,6 +298,25 @@ class Annots(BASE):
     def remove_tags(self, tags):
         self._ibs.remove_annot_case_tags(self._rowids, tags)
 
+    def __hash__(self):
+        return hash(tuple(self.aids))
+
+    def __lt__(self, other):
+        if len(self.aids) == len(other.aids):
+            if len(self.aids) == 0:
+                return False
+            else:
+                return tuple(self) < tuple(other)
+        elif len(self.aids) < len(other.aids):
+            return True
+        else:
+            return False
+
+    def __eq__(self, other):
+        if len(self.aids) == len(other.aids):
+            return all(a == b for a, b in zip(self, other))
+        return False
+
 
 class _AnnotGroupPropInjector(BASE_TYPE):
     def __init__(metaself, name, bases, dct):
@@ -347,6 +366,9 @@ class AnnotGroups(ut.NiceRepr):
         else:
             nice = '(n=%r, m=%.1f, s=%.1f)' % (num, mean, std)
         return nice
+
+    def __iter__(self):
+        return iter(self.annots_list)
 
     @property
     def aids(self):

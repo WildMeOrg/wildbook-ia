@@ -110,7 +110,9 @@ def timespace_distance_km(pt1, pt2, km_per_sec=KM_PER_SEC):
     # Get distance in seconds and convert to km
     sec_dist = np.abs(sec1 - sec2) * km_per_sec
     # Add distances
-    timespace_dist = km_dist + sec_dist
+    # (return nan if points are not comparable, otherwise nansum)
+    parts = np.array([km_dist, sec_dist])
+    timespace_dist = np.nan if np.all(np.isnan(parts)) else np.nansum(parts)
     return timespace_dist
 
 
@@ -124,7 +126,9 @@ def timespace_distance_sec(pt1, pt2, km_per_sec=KM_PER_SEC):
     # Get distance in seconds
     sec_dist = np.abs(sec1 - sec2)
     # Add distances
-    timespace_dist = km_dist + sec_dist
+    # (return nan if points are not comparable, otherwise nansum)
+    parts = np.array([km_dist, sec_dist])
+    timespace_dist = np.nan if np.all(np.isnan(parts)) else np.nansum(parts)
     return timespace_dist
 
 
@@ -157,7 +161,42 @@ def time_dist_km(sec1, sec2, km_per_sec=KM_PER_SEC):
 
 
 def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='seconds'):
-    # Package data and pick distance function
+    r"""
+    Package datas and picks distance function
+
+    Args:
+        posixtimes (ndarray):
+        latlons (ndarray):
+        km_per_sec (float): (default = 0.002)
+        thresh_units (str): (default = 'seconds')
+
+    Returns:
+        ndarray: arr_ -
+
+    CommandLine:
+        python -m ibeis.algo.preproc.occurrence_blackbox prepare_data
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.preproc.occurrence_blackbox import *  # NOQA
+        >>> posixtimes = np.array([10, 50, np.nan, np.nan, 5, 80, np.nan, np.nan])
+        >>> latlons = np.array([
+        >>>     (42.727985, -73.683994),
+        >>>     (np.nan, np.nan),
+        >>>     (np.nan, np.nan),
+        >>>     (42.658333, -73.770993),
+        >>>     (42.227985, -73.083994),
+        >>>     (np.nan, np.nan),
+        >>>     (np.nan, np.nan),
+        >>>     (42.258333, -73.470993),
+        >>> ])
+        >>> km_per_sec = 0.002
+        >>> thresh_units = 'seconds'
+        >>> X_data, dist_func = prepare_data(posixtimes, latlons, km_per_sec, thresh_units)
+        >>> result = ('arr_ = %s' % (ut.repr2(X_data),))
+        >>> [dist_func(a, b) for a, b in ut.combinations(X_data, 2)]
+        >>> print(result)
+    """
 
     def atleast_nd(arr, n, tofront=False):
         r""" ut.static_func_source(vt.atleast_nd) """
@@ -183,23 +222,30 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
             assert arr_.shape[1] == num_cols, 'bad number of cols'
         return arr_
 
-    if latlons is None and posixtimes is None:
+    have_gps = latlons is not None and not np.all(np.isnan(latlons))
+    have_times = posixtimes is not None and not np.all(np.isnan(posixtimes))
+
+    if not have_gps and not have_times:
+        # There is no data, so there is nothing to do
         dist_func = None
         X_data = None
-    elif latlons is None and posixtimes is not None:
+    elif not have_gps and have_times:
+        # We have gps but no timestamps
         X_data = atleast_nd(posixtimes, 2)
         if thresh_units == 'seconds':
             dist_func = time_dist_sec
         elif thresh_units == 'km':
             dist_func = time_dist_km
-    elif latlons is not None and posixtimes is None:
+    elif have_gps and not have_times:
+        # We have timesamps but no gps
         X_data = np.array(latlons)
         if thresh_units == 'seconds':
             dist_func = functools.partial(space_distance_sec,
                                           km_per_sec=km_per_sec)
         elif thresh_units == 'km':
             dist_func = space_distance_km
-    else:
+    elif have_gps and have_times:
+        # We have some combination of gps and timestamps
         posixtimes = atleast_nd(posixtimes, 2)
         latlons = ensure_column_shape(latlons, 2)
         #latlons = np.array(latlons, ndmin=2)
@@ -210,6 +256,8 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         elif thresh_units == 'km':
             dist_func = functools.partial(timespace_distance_km,
                                           km_per_sec=km_per_sec)
+    else:
+        raise AssertionError('impossible state')
     return X_data, dist_func
 
 

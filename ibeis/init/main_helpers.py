@@ -406,6 +406,74 @@ def testdata_cm(defaultdb=None, default_qaids=None, default_daids=None, t=None, 
     return cm, qreq_
 
 
+def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
+    """
+    Hacks in a temporary custom definition of encounters for this controller
+
+    50 days for PZ_MTEST
+    kwargs = dict(days=50)
+
+    if False:
+        name_mindeltas = []
+        for name in annots.group_items(annots.nids).values():
+            times = name.image_unixtimes_asfloat
+            deltas = [ut.unixtime_to_timedelta(np.abs(t1 - t2))
+                      for t1, t2 in ut.combinations(times, 2)]
+            if deltas:
+                name_mindeltas.append(min(deltas))
+        print(ut.repr3(ut.lmap(ut.get_timedelta_str,
+                               sorted(name_mindeltas))))
+    """
+    from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
+    import numpy as np
+    import datetime
+    annots = ibs.annots(aids)
+    thresh_sec = datetime.timedelta(**kwargs).total_seconds()
+    # thresh_sec = datetime.timedelta(minutes=30).seconds
+
+    if cache is None:
+        cache = len(aids) > 200
+    cfgstr = str(ut.combine_uuids(annots.visual_uuids))
+    cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
+    data = cacher.tryload()
+    if data is not None:
+        print('Computing occurrences')
+        data = cluster_timespace_sec(
+            annots.image_unixtimes_asfloat, annots.gps,
+            thresh_sec=thresh_sec, km_per_sec=.002)
+        cacher.save(data)
+    occurrence_labels = data
+
+    ndec = int(np.ceil(np.log10(max(occurrence_labels))))
+    suffmt = '-monkey-occur%0' + str(ndec) + 'd'
+    encounter_labels = [n + suffmt % (o,)
+                        for o, n in zip(occurrence_labels, annots.names)]
+    enc_lookup = ut.dzip(annots.aids, encounter_labels)
+
+    annots_per_enc = ut.dict_hist(encounter_labels, ordered=True)
+    ut.get_stats(list(annots_per_enc.values()))
+
+    encounters = ibs._annot_groups(annots.group(encounter_labels)[1])
+    enc_names = ut.take_column(encounters.nids, 0)
+    name_to_encounters = ut.group_items(encounters, enc_names)
+
+    # print('name_to_encounters = %s' % (ut.repr3(name_to_encounters)),)
+    # print('Names to num encounters')
+    # name_to_num_enc = ut.dict_hist(
+    #     ut.map_dict_vals(len, name_to_encounters).values())
+
+    # monkey patch to override encounter info
+    def _monkey_get_annot_encounter_text(ibs, aids):
+        return ut.dict_take(enc_lookup, aids)
+    ut.inject_func_as_method(ibs, _monkey_get_annot_encounter_text,
+                             'get_annot_encounter_text', force=True)
+
+def unmonkeypatch_encounters(ibs):
+    from ibeis.other import ibsfuncs
+    ut.inject_func_as_method(ibs, ibsfuncs.get_annot_encounter_text,
+                             'get_annot_encounter_text', force=True)
+
+
 if __name__ == '__main__':
     """
     CommandLine:

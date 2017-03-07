@@ -5,9 +5,12 @@ def debug_expanded_aids(expanded_aids_list, verbose=1):
     import warnings
     warnings.simplefilter('ignore', RuntimeWarning)
     # print('len(expanded_aids_list) = %r' % (len(expanded_aids_list),))
+    cfgargs = dict(per_vp=False, per_multiple=False, combo_dists=False,
+                   per_name=True, per_enc=True, use_hist=False,
+                   combo_enc_info=False)
+
     for qaids, daids in expanded_aids_list:
-        stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
-                                          combo_enc_info=False)
+        stats = ibs.get_annotconfig_stats(qaids, daids, **cfgargs)
         hashids = (stats['qaid_stats']['qhashid'],
                    stats['daid_stats']['dhashid'])
         print('hashids = %r' % (hashids,))
@@ -16,48 +19,7 @@ def debug_expanded_aids(expanded_aids_list, verbose=1):
 
 
 def encounter_stuff():
-    cfgstr = str(ut.combine_uuids(annots.visual_uuids))
-
-    class Encounter(ut.NiceRepr):
-        def __init__(self, annots):
-            self.annots = annots
-
-        @property
-        def name(self):
-            return self.annots[0].name
-
-        def __nice__(self):
-            return self.name + ', ' + str(len(self.annots))
-
-    cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr)
-    data = cacher.tryload()
-    if data is None:
-        thresh_sec = datetime.timedelta(minutes=30).seconds
-        print('Clustering occurrences')
-        data = cluster_timespace_sec(
-            annots.image_unixtimes_asfloat, annots.gps, thresh_sec=thresh_sec,
-            km_per_sec=.002)
-        cacher.save(data)
-    occurrence_labels = data
-    ndec = int(np.ceil(np.log10(max(occurrence_labels))))
-    suffmt = '-occur%0' + str(ndec) + 'd'
-    encounter_labels = [n + suffmt % (o,) for o, n in zip(occurrence_labels, annots.names)]
-    enc_lookup = ut.dzip(annots.aids, encounter_labels)
-    annots_per_enc = ut.dict_hist(encounter_labels, ordered=True)
-    ut.get_stats(list(annots_per_enc.values()))
-
-    encounters = ut.lmap(Encounter, annots.group(encounter_labels)[1])
-    enc_names = [enc.name for enc in encounters]
-    name_to_encounters = ut.group_items(encounters, enc_names)
-
-    print('Names to num encounters')
-    name_to_num_enc = ut.dict_hist(ut.map_dict_vals(len, name_to_encounters).values())
-
-    # monkey patch to override encounter info
-    def _monkey_get_annot_encounter_text(ibs, aids):
-        return ut.dict_take(enc_lookup, aids)
-    ut.inject_func_as_method(ibs, _monkey_get_annot_encounter_text,
-                             'get_annot_encounter_text', force=True)
+    monkeypatch_encounters(ibs, aids, days=50)
 
     from ibeis.init.filter_annots import encounter_crossval
     expanded_aids = encounter_crossval(ibs, annots.aids, qenc_per_name=1,
@@ -80,10 +42,10 @@ def learn_phi():
     # t = 'baseline'
     # ibs, testres = main_helpers.testdata_expts(dbname, a=a, t=t)
 
-    from ibeis.algo.preproc.occurrence_blackbox import cluster_timespace_sec
     import datetime
     import ibeis
-    from ibeis.init.filter_annots import annot_crossval
+    from ibeis.init.filter_annots import annot_crossval, encounter_crossval
+    from ibeis.init import main_helpers
     from ibeis.expt import test_result
     import plottool as pt
     pt.qtensure()
@@ -101,6 +63,8 @@ def learn_phi():
     # annots = annots.compress(~np.isnan(annots.image_unixtimes_asfloat))
     # annots = annots.compress(~np.isnan(np.array(annots.gps)).any(axis=1))
 
+    main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
+
     # pt.draw_time_distribution(annots.image_unixtimes_asfloat, bw=1209600.0)
 
 
@@ -116,21 +80,62 @@ def learn_phi():
     # TO FIX WE SHOULD GROUP ENCOUNTERS
 
     n_splits = 3
-    n_splits = 5
+    # n_splits = 5
     crossval_splits = []
+    avail_confusors = []
+    import random
+    rng = random.Random(0)
     for n_query_per_name in range(1, 5):
-        rng = np.random.RandomState(0)
-        expanded_aids = annot_crossval(ibs, annots.aids,
-                                       n_qaids_per_name=n_query_per_name,
-                                       n_daids_per_name=1, n_splits=n_splits,
-                                       rng=rng, debug=False)
+        reshaped_splits, nid_to_confusors = encounter_crossval(
+            ibs, aids, qenc_per_name=n_query_per_name, denc_per_name=1,
+            rng=rng, n_splits=n_splits, early=True)
+
+        avail_confusors.append(nid_to_confusors)
+
+        expanded_aids = []
+        for qpart, dpart in reshaped_splits:
+            # For each encounter choose just 1 annotation
+            qaids = [rng.choice(enc) for enc in ut.flatten(qpart)]
+            daids = [rng.choice(enc) for enc in ut.flatten(dpart)]
+            assert len(set(qaids).intersection(daids)) == 0
+            expanded_aids.append((sorted(qaids), sorted(daids)))
+
+        # expanded_aids = annot_crossval(ibs, annots.aids,
+        #                                n_qaids_per_name=n_query_per_name,
+        #                                n_daids_per_name=1, n_splits=n_splits,
+        #                                rng=rng, debug=False)
         crossval_splits.append((n_query_per_name, expanded_aids))
 
-    # for n_query_per_name, expanded_aids in crossval_splits:
-    #     debug_expanded_aids(expanded_aids, verbose=2)
+    n_daid_spread = [len(expanded_aids[0][1]) for _, expanded_aids in crossval_splits]
+    # Check to see if we can pad confusors to make the database size equal
+
+    max_size = max(n_daid_spread)
+
+    afford = (min(map(len, avail_confusors)) - (max(n_daid_spread) -
+                                                min(n_daid_spread)))
+    max_size += afford
+
+    crossval_splits2 = []
+
+    for (n_query_per_name, expanded_aids), nid_to_confusors in zip(crossval_splits, avail_confusors):
+        crossval_splits2.append((n_query_per_name, []))
+        for qaids, daids in expanded_aids:
+            n_extra = max(max_size - len(daids), 0)
+            if n_extra <= len(nid_to_confusors):
+                extra2 = ut.take_column(nid_to_confusors.values(), 0)[:n_extra]
+                extra = ut.flatten(extra2)
+            else:
+                extra2 = ut.flatten(nid_to_confusors.values())
+                rng.shuffle(extra2)
+                extra = extra2[:n_extra]
+            crossval_splits2[-1][1].append((qaids, sorted(daids + extra)))
+
+
+    for n_query_per_name, expanded_aids in crossval_splits2:
+        debug_expanded_aids(expanded_aids, verbose=1)
 
     phis = {}
-    for n_query_per_name, expanded_aids in crossval_splits:
+    for n_query_per_name, expanded_aids in crossval_splits2:
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
@@ -169,6 +174,7 @@ def learn_phi():
     label_list = list(map(str, phis.keys()))
     pt.multi_plot(xdata=np.arange(len(phi)), ydata_list=ydatas, label_list=label_list)
 
+    pt.figure()
     ranks = 10
     ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
     pt.multi_plot(xdata=np.arange(ranks), ydata_list=ydatas, label_list=label_list)
