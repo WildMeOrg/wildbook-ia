@@ -1542,6 +1542,7 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
         'species_set'  : species_set,
         'classify'     : True,
         'classifier_algo': 'svm',
+        'classifier_masking': True,
         'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
 
