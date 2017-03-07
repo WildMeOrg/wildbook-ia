@@ -1509,17 +1509,20 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                     ytl = int(gt['ytl'] * height_)
                     xbr = int(gt['xbr'] * width_)
                     ybr = int(gt['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (255, 0, 0))
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
 
                 zipped = zip(pred_list, tp_list, tn_list, fp_list, fn_list)
                 for pred, tp_, tn_, fp_, fn_ in zipped:
                     if tp_:
                         color = (0, 255, 0)
                     elif fp_:
-                        color = (0, 0, 255)
+                        continue
+                        # color = (255, 0, 0)
                     elif fn_:
-                        color = (0, 255, 255)
-                    elif fn_:
+                        color = (255, 0, 0)
+                    elif tn_:
+                        continue
+                    else:
                         continue
 
                     xtl = int(pred['xtl'] * width_)
@@ -2331,7 +2334,7 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 @register_ibs_method
 def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False,
-                               C=1, kernel='rbf'):
+                               C=1.0, kernel='rbf'):
     from sklearn import svm, preprocessing
 
     # Load data
@@ -2341,7 +2344,9 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     ut.ensuredir(output_path)
+    species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
+    kernel = kernel.lower()
     if C == 1 and kernel == 'rbf':
         output_filename = 'classifier.svm.image.%s.pkl' % (species_list_str, )
     else:
