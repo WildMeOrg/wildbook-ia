@@ -2446,7 +2446,7 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
 
 
 @register_ibs_method
-def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
+def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
                   output_path=None, **kwargs):
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import IncrementalPCA
@@ -2536,7 +2536,7 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=100,
 
     # Save forest
     if output_path is None:
-        output_path = abspath(expanduser(join('~', 'Desktop', 'output-ann')))
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     forest_filename = 'forest.ann'
     forest_filepath = join(output_path, forest_filename)
     print('Saving ANN model to: %r' % (forest_filepath, ))
