@@ -1416,32 +1416,38 @@ def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf, min_overlap,
     pred_flag_list = [conf <= conf_ for conf_ in conf_list]
 
     if num_gt == 0:
-        tp = 0.0
-        tn = pred_flag_list.count(False)
-        fp = pred_flag_list.count(True)
-        fn = 0.0
+        tp_list = [False] * len(pred_list)
+        tn_list = [not pred_flag for pred_flag in pred_flag_list]
+        fp_list = [    pred_flag for pred_flag in pred_flag_list]
+        fn_list = [False] * len(pred_list)
     elif num_pred == 0:
-        tp = 0.0
-        tn = 0.0
-        fp = 0.0
-        fn = num_gt
+        tp_list = []
+        tn_list = []
+        fp_list = []
+        fn_list = []
     else:
         max_overlap = np.max(overlap, axis=0)
         gt_flag_list = min_overlap < max_overlap
 
-        tp, tn, fp, fn = 0.0, 0.0, 0.0, 0.0
+        status_list = []
         for gt_flag, pred_flag in zip(gt_flag_list, pred_flag_list):
             if gt_flag and pred_flag:
-                tp += 1
+                status_list.append('tp')
             elif gt_flag and not pred_flag:
-                fn += 1
+                status_list.append('fn')
             elif not gt_flag and pred_flag:
-                fp += 1
+                status_list.append('fp')
             elif not gt_flag and not pred_flag:
-                tn += 1
+                status_list.append('tn')
             else:
                 raise ValueError
-    return tp, tn, fp, fn
+
+        tp_list = [status == 'tp' for status in status_list]
+        tn_list = [status == 'tn' for status in status_list]
+        fp_list = [status == 'fp' for status in status_list]
+        fn_list = [status == 'fn' for status in status_list]
+
+    return tp_list, tn_list, fp_list, fn_list
 
 
 def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
@@ -1471,9 +1477,15 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
         if test_uuid in pred_dict:
             gt_list = gt_dict[test_uuid]
             pred_list = pred_dict[test_uuid]
-            tp, tn, fp, fn = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
-                                                                  min_overlap=min_overlap,
-                                                                  **kwargs)
+            values = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
+                                                          min_overlap=min_overlap,
+                                                          **kwargs)
+            tp_list, tn_list, fp_list, fn_list = values
+            tp = tp_list.count(True)
+            tn = tn_list.count(True)
+            fp = fp_list.count(True)
+            fn = fn_list.count(True)
+
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
@@ -1497,14 +1509,22 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                     ytl = int(gt['ytl'] * height_)
                     xbr = int(gt['xbr'] * width_)
                     ybr = int(gt['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (255, 255, 0))
 
-                for pred in pred_list:
+                zipped = zip(pred_list, tp_list, tn_list, fp_list, fn_list)
+                for pred, tp_, tn_, fp_, fn_ in zipped:
+                    if tp_:
+                        color = (0, 255, 0)
+                    elif fp_:
+                        color = (0, 255, 0)
+                    elif fn_:
+                        color = (255, 255, 0)
+
                     xtl = int(pred['xtl'] * width_)
                     ytl = int(pred['ytl'] * height_)
                     xbr = int(pred['xbr'] * width_)
                     ybr = int(pred['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), color)
 
                 status_str = 'success' if (fp + fn) == 0 else 'failure'
                 status_val = tp - fp - fn
