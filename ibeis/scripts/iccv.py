@@ -80,7 +80,7 @@ def learn_phi():
     # TO FIX WE SHOULD GROUP ENCOUNTERS
 
     n_splits = 3
-    n_splits = 5
+    # n_splits = 5
     crossval_splits = []
     avail_confusors = []
     import random
@@ -135,7 +135,7 @@ def learn_phi():
         debug_expanded_aids(expanded_aids, verbose=1)
 
     phis = {}
-    for n_query_per_name, expanded_aids in crossval_splits:
+    for n_query_per_name, expanded_aids in crossval_splits2:
         accumulators = []
         # with warnings.catch_warnings():
         for qaids, daids in expanded_aids:
@@ -174,6 +174,7 @@ def learn_phi():
     label_list = list(map(str, phis.keys()))
     pt.multi_plot(xdata=np.arange(len(phi)), ydata_list=ydatas, label_list=label_list)
 
+    pt.figure()
     ranks = 10
     ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
     pt.multi_plot(xdata=np.arange(ranks), ydata_list=ydatas, label_list=label_list)
