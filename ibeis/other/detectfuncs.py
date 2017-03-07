@@ -2345,7 +2345,7 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     ut.ensuredir(output_path)
     species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
-    kernel = kernel.lower()
+    kernel = str(kernel.lower())
     if C == 1.0 and kernel == 'rbf':
         args = (species_list_str, )
         output_filename = 'classifier.svm.image.%s.pkl' % args
@@ -2624,7 +2624,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
     # Establish variables
 
-    kernel = kernel.lower()
+    kernel = str(kernel.lower())
     species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
     assert scheme in [1, 2], 'Invalid scheme'
