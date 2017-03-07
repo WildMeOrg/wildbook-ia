@@ -1509,16 +1509,18 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                     ytl = int(gt['ytl'] * height_)
                     xbr = int(gt['xbr'] * width_)
                     ybr = int(gt['ybr'] * height_)
-                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (255, 255, 0))
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (255, 0, 0))
 
                 zipped = zip(pred_list, tp_list, tn_list, fp_list, fn_list)
                 for pred, tp_, tn_, fp_, fn_ in zipped:
                     if tp_:
                         color = (0, 255, 0)
                     elif fp_:
-                        color = (0, 255, 0)
+                        color = (0, 0, 255)
                     elif fn_:
-                        color = (255, 255, 0)
+                        color = (0, 255, 255)
+                    elif fn_:
+                        continue
 
                     xtl = int(pred['xtl'] * width_)
                     ytl = int(pred['ytl'] * height_)
@@ -2328,7 +2330,8 @@ def get_classifier_svm_data_labels(ibs, dataset_tag, species_list):
 
 
 @register_ibs_method
-def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False):
+def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False,
+                               C=1, kernel='rbf'):
     from sklearn import svm, preprocessing
 
     # Load data
@@ -2339,8 +2342,12 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
     ut.ensuredir(output_path)
     species_list_str = '.'.join(species_list)
-    output_filepath = join(output_path, 'classifier.svm.image.%s.pkl' % (species_list_str, ))
+    if C == 1 and kernel == 'rbf':
+        output_filename = 'classifier.svm.image.%s.pkl' % (species_list_str, )
+    else:
+        output_filepath = 'classifier.svm.image.%s.%s.%s.pkl' % (species_list_str, )
 
+    output_filepath = join(output_path, output_filename)
     if not dryrun:
         vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
         train_gid_set, data_list, label_list = vals
