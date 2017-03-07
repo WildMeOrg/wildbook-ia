@@ -554,7 +554,7 @@ def general_overlap(gt_list, pred_list):
     return overlap
 
 
-def general_tp_fp_fn(gt_list, pred_list, min_overlap, duplicate_assign=True,
+def general_tp_fp_fn(gt_list, pred_list, min_overlap,
                      check_species=False, check_viewpoint=False, **kwargs):
     overlap = general_overlap(gt_list, pred_list)
     num_gt, num_pred = overlap.shape
@@ -1405,9 +1405,52 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
         ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap, **kwargs)
 
 
+def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, min_overlap, conf,
+                                         check_species=False,
+                                         check_viewpoint=False, **kwargs):
+    ut.embed()
+    overlap = general_overlap(gt_list, pred_list)
+    num_gt, num_pred = overlap.shape
+    if num_gt == 0:
+        tp = 0.0
+        fp = num_pred
+        fn = 0.0
+    elif num_pred == 0:
+        tp = 0.0
+        fp = 0.0
+        fn = num_gt
+    else:
+        index_list = np.argmax(overlap, axis=1)
+        max_overlap = np.max(overlap, axis=1)
+        max_overlap[max_overlap < min_overlap] = 0.0
+        assignment_dict = {
+            i : index_list[i] for i in range(num_gt) if max_overlap[i] != 0
+        }
+        tp = len(assignment_dict.keys())
+        # Fix where multiple GT claim the same prediction
+        if tp > num_pred:
+            index_list_ = np.argmax(overlap, axis=0)
+            key_list = sorted(assignment_dict.keys())
+            for key in key_list:
+                if key not in index_list_:
+                    del assignment_dict[key]
+            tp = len(assignment_dict.keys())
+        if check_species or check_viewpoint:
+            for gt, pred in assignment_dict.items():
+                # print(gt_list[gt]['class'], pred_list[pred]['class'])
+                # print(gt_list[gt]['viewpoint'], pred_list[pred]['viewpoint'])
+                if gt_list[gt]['class'] != pred_list[pred]['class']:
+                    tp -= 1
+                elif check_viewpoint and gt_list[gt]['viewpoint'] != pred_list[pred]['viewpoint']:
+                    tp -= 1
+        fp = num_pred - tp
+        fn = num_gt - tp
+    return tp, fp, fn
+
+
 def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
                                                         label=None,
-                                                        min_overlap=0.5,
+                                                        min_overlap=0.1,
                                                         write_images=False,
                                                         **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
@@ -1430,18 +1473,17 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
     prediction_list = []
     for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
         if test_uuid in pred_dict:
-            # ut.embed()
             gt_list = gt_dict[test_uuid]
-            pred_list = [
-                pred
-                for pred in pred_dict[test_uuid]
-                if pred['confidence'] >= conf
-            ]
-            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
-                                          **kwargs)
+            pred_list = pred_dict[test_uuid]
+            tp, tn, fp, fn = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
+                                                                  min_overlap=min_overlap,
+                                                                  **kwargs)
             for _ in range(int(tp)):
                 label_list.append('positive')
                 prediction_list.append('positive')
+            for _ in range(int(tn)):
+                label_list.append('negative')
+                prediction_list.append('negative')
             for _ in range(int(fp)):
                 label_list.append('negative')
                 prediction_list.append('positive')
@@ -1486,7 +1528,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
 
 @register_ibs_method
 def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
-                                                            min_overlap=0.5,
+                                                            min_overlap=0.1,
                                                             figsize=(24, 7),
                                                             write_images=False,
                                                             min_recall=0.9,
@@ -1519,7 +1561,8 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
                                                                           **config)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
-    plt.title('Confusion Matrix', y=1.26)
+    args = (min_overlap, conf, )
+    plt.title('Confusion Matrix (IoU %0.02f, Conf %0.02f)' % args, y=1.13)
 
     # plt.show()
     args = (min_overlap, conf, )
