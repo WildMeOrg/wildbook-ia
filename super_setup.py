@@ -164,8 +164,6 @@ Some submodles require C++ libraries. Build them using the following Command.
 
 Register these packages with the python enviroment.
 
-    ~python super_setup.py develop~
-    # Actually this command instead
     pip install -e .
 
  --- /USAGE ---
@@ -641,7 +639,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
 
         $_SUDO make install
         # Hack because cv2 does not want to be installed for some reason
-        cp lib/cv2.so $PYTHON_PACKAGES_PATH
+        # cp lib/cv2.so $PYTHON_PACKAGES_PATH
+        cp -v lib/cv2.so $PYTHON_PACKAGES_PATH
         # Test makesure things working
         python -c "import numpy; print(numpy.__file__)"
         python -c "import numpy; print(numpy.__version__)"
@@ -1080,6 +1079,8 @@ def main():
     ____ _  _ ___  ____ ____    ____ ____ ___ _  _ ___
     [__  |  | |__] |___ |__/    [__  |___  |  |  | |__]
     ___] |__| |    |___ |  \    ___] |___  |  |__| |
+
+    Use --help to show usage
     ''')
 
     show_usage = len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h']
