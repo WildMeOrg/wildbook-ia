@@ -1404,6 +1404,125 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
         ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap, **kwargs)
 
 
+def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
+                                                        label=None,
+                                                        min_overlap=0.5,
+                                                        write_images=False,
+                                                        **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', **kwargs)
+    test_uuid_list = ibs.get_image_uuids(test_gid_list)
+
+    print('\tGather Ground-Truth')
+    gt_dict = general_parse_gt(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
+
+    if write_images:
+        output_folder = 'localizer-classification-precision-recall-%0.2f-images-%0.2f' % (min_overlap, conf, )
+        output_path = abspath(expanduser(join('~', 'Desktop', output_folder)))
+        ut.ensuredir(output_path)
+
+    label_list = []
+    prediction_list = []
+    for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
+        if test_uuid in pred_dict:
+            ut.embed()
+            gt_list = gt_dict[test_uuid]
+            pred_list = [
+                pred
+                for pred in pred_dict[test_uuid]
+                if pred['confidence'] >= conf
+            ]
+            tp, fp, fn = general_tp_fp_fn(gt_list, pred_list, min_overlap=min_overlap,
+                                          **kwargs)
+            for _ in range(int(tp)):
+                label_list.append('positive')
+                prediction_list.append('positive')
+            for _ in range(int(fp)):
+                label_list.append('negative')
+                prediction_list.append('positive')
+            for _ in range(int(fn)):
+                label_list.append('positive')
+                prediction_list.append('negative')
+
+            if write_images:
+                test_image = ibs.get_image_imgdata(test_gid)
+                test_image = _resize(test_image, t_width=600, verbose=False)
+                height_, width_, channels_ = test_image.shape
+
+                for gt in gt_list:
+                    xtl = int(gt['xtl'] * width_)
+                    ytl = int(gt['ytl'] * height_)
+                    xbr = int(gt['xbr'] * width_)
+                    ybr = int(gt['ybr'] * height_)
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 255, 0))
+
+                for pred in pred_list:
+                    xtl = int(pred['xtl'] * width_)
+                    ytl = int(pred['ytl'] * height_)
+                    xbr = int(pred['xbr'] * width_)
+                    ybr = int(pred['ybr'] * height_)
+                    cv2.rectangle(test_image, (xtl, ytl), (xbr, ybr), (0, 0, 255))
+
+                status_str = 'success' if (fp + fn) == 0 else 'failure'
+                status_val = tp - fp - fn
+                args = (status_str, status_val, test_gid, tp, fp, fn, )
+                output_filename = 'test_%s_%d_gid_%d_tp_%d_fp_%d_fn_%d.png' % args
+                output_filepath = join(output_path, output_filename)
+                cv2.imwrite(output_filepath, test_image)
+
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
+
+
+@register_ibs_method
+def localizer_classifications_confusion_matrix_algo_display(ibs, min_overlap=0.5,
+                                                            figsize=(24, 7),
+                                                            write_images=False,
+                                                            min_recall=0.9,
+                                                            plot_point=True,
+                                                            total=10,
+                                                            **kwargs):
+    import matplotlib.pyplot as plt
+
+    fig_ = plt.figure(figsize=figsize)
+
+    species_set = None
+
+    config = {
+        'label'        : 'WIC',
+        'algo'         : '_COMBINED',
+        'species_set'  : species_set,
+        'classify'     : True,
+        'classifier_algo': 'svm',
+        'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+    },
+
+    for index in range(0, total + 1):
+        axes_ = plt.subplot(111)
+        axes_.set_aspect(1)
+        gca_ = plt.gca()
+        gca_.grid(False)
+
+        conf = index / total
+        correct_rate, _ = localizer_classification_confusion_matrix_algo_plot(ibs, None, conf,
+                                                                              min_overlap=min_overlap,
+                                                                              write_images=write_images,
+                                                                              fig_=fig_, axes_=axes_,
+                                                                              **config)
+        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+        axes_.set_ylabel('Ground-Truth')
+        plt.title('Confusion Matrix', y=1.26)
+
+
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
     depc = ibs.depc_image
     test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
