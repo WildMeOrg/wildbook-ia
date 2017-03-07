@@ -1422,7 +1422,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
     pred_dict = localizer_parse_pred(ibs, test_gid_list=test_gid_list, **kwargs)
 
     if write_images:
-        output_folder = 'localizer-classification-precision-recall-%0.2f-images-%0.2f' % (min_overlap, conf, )
+        output_folder = 'localizer-classification-confusion-matrix-%0.2f-%0.2f-images' % (min_overlap, conf, )
         output_path = abspath(expanduser(join('~', 'Desktop', output_folder)))
         ut.ensuredir(output_path)
 
@@ -1522,6 +1522,12 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, min_overlap=0.5
         axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
         axes_.set_ylabel('Ground-Truth')
         plt.title('Confusion Matrix', y=1.26)
+
+        # plt.show()
+        args = (min_overlap, conf, )
+        fig_filename = 'localizer-classification-confusion-matrix-%0.2f-%0.2f.png' % args
+        fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+        plt.savefig(fig_path, bbox_inches='tight')
 
 
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
