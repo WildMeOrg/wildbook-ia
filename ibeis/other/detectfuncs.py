@@ -1504,7 +1504,7 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, min_overlap=0.5
         'classify'     : True,
         'classifier_algo': 'svm',
         'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-    },
+    }
 
     for index in range(0, total + 1):
         axes_ = plt.subplot(111)
