@@ -2351,7 +2351,7 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
         output_filename = 'classifier.svm.image.%s.pkl' % args
     else:
         args = (species_list_str, kernel, C, )
-        output_filepath = 'classifier.svm.image.%s.%s.%s.pkl' % args
+        output_filename = 'classifier.svm.image.%s.%s.%s.pkl' % args
 
     output_filepath = join(output_path, output_filename)
     if not dryrun:
