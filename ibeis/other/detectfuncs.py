@@ -1485,12 +1485,12 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
 
 
 @register_ibs_method
-def localizer_classifications_confusion_matrix_algo_display(ibs, min_overlap=0.5,
+def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
+                                                            min_overlap=0.5,
                                                             figsize=(24, 7),
                                                             write_images=False,
                                                             min_recall=0.9,
                                                             plot_point=True,
-                                                            total=10,
                                                             **kwargs):
     import matplotlib.pyplot as plt
 
@@ -1507,29 +1507,32 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, min_overlap=0.5
         'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
 
+    axes_ = plt.subplot(111)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+
+    correct_rate, _ = localizer_classification_confusion_matrix_algo_plot(ibs, None, conf,
+                                                                          min_overlap=min_overlap,
+                                                                          write_images=write_images,
+                                                                          fig_=fig_, axes_=axes_,
+                                                                          **config)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('Confusion Matrix', y=1.26)
+
+    # plt.show()
+    args = (min_overlap, conf, )
+    fig_filename = 'localizer-classification-confusion-matrix-%0.2f-%0.2f.png' % args
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
+@register_ibs_method
+def localizer_classifications_confusion_matrix_algo_display_animate(ibs, total=10, **kwargs):
     for index in range(0, total + 1):
-        plt.clf()
-
-        axes_ = plt.subplot(111)
-        axes_.set_aspect(1)
-        gca_ = plt.gca()
-        gca_.grid(False)
-
         conf = index / total
-        correct_rate, _ = localizer_classification_confusion_matrix_algo_plot(ibs, None, conf,
-                                                                              min_overlap=min_overlap,
-                                                                              write_images=write_images,
-                                                                              fig_=fig_, axes_=axes_,
-                                                                              **config)
-        axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-        axes_.set_ylabel('Ground-Truth')
-        plt.title('Confusion Matrix', y=1.26)
-
-        # plt.show()
-        args = (min_overlap, conf, )
-        fig_filename = 'localizer-classification-confusion-matrix-%0.2f-%0.2f.png' % args
-        fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
-        plt.savefig(fig_path, bbox_inches='tight')
+        ibs.localizer_classifications_confusion_matrix_algo_display(conf, **kwargs)
 
 
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
