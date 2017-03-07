@@ -2440,11 +2440,11 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
                 'classifier_weight_filepath' : output_filepath,
             }
             depc.get_rowids('localizations_features', test_gid_list, config=config)
-            config['feature2_chip_masking'] = True
-            depc.get_rowids('localizations_features', test_gid_list, config=config)
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
-            config['classifier_masking'] = True
-            depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+            # config['feature2_chip_masking'] = True
+            # config['classifier_masking'] = True
+            # depc.get_rowids('localizations_features', test_gid_list, config=config)
+            # depc.get_rowids('localizations_classifier', test_gid_list, config=config)
 
     return output_filepath_list
 
