@@ -963,7 +963,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    # species_set = set(['zebra'])
+    species_set = set(['zebra'])
     # species_set = set(['giraffe'])
     # species_set = set(['elephant'])
     # species_set = None
@@ -980,14 +980,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'LYNX',           'grid' : False, 'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
         # {'label': 'LYNX (GRID)',    'grid' : True,  'config_filepath' : 'lynx', 'weight_filepath' : 'lynx'},
 
-        {'label': 'V3',          'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
-        {'label': 'V3 PZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
-        {'label': 'V3 GZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
-        {'label': 'V3 KENYA',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains', 'zebra_grevys', 'giraffe_reticulated', 'giraffe_masai', 'elephant_savannah', 'antelope', 'dog_wild', 'lion', 'hippopotamus'])},
-        {'label': 'V3 DOMESTIC', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['bird', 'horse_domestic', 'cow_domestic', 'sheep_domestic', 'dog_domestic', 'cat_domestic', 'unspecified_animal'])},
-        {'label': 'V3 OCEAN',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['lionfish', 'turtle_sea', 'whale_shark', 'whale_fluke'])},
-        {'label': 'V3 PERSON',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['person'])},
-        {'label': 'V3 VEHICLE',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['car', 'bicycle', 'motorcycle', 'truck', 'boat', 'bus', 'train', 'airplane'])},
+        # {'label': 'V3',          'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3'},
+        # {'label': 'V3 PZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains'])},
+        # {'label': 'V3 GZ',       'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_grevys'])},
+        # {'label': 'V3 KENYA',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['zebra_plains', 'zebra_grevys', 'giraffe_reticulated', 'giraffe_masai', 'elephant_savannah', 'antelope', 'dog_wild', 'lion', 'hippopotamus'])},
+        # {'label': 'V3 DOMESTIC', 'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['bird', 'horse_domestic', 'cow_domestic', 'sheep_domestic', 'dog_domestic', 'cat_domestic', 'unspecified_animal'])},
+        # {'label': 'V3 OCEAN',    'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['lionfish', 'turtle_sea', 'whale_shark', 'whale_fluke'])},
+        # {'label': 'V3 PERSON',   'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['person'])},
+        # {'label': 'V3 VEHICLE',  'grid' : False, 'config_filepath' : 'v3', 'weight_filepath' : 'v3', 'species_set': set(['car', 'bicycle', 'motorcycle', 'truck', 'boat', 'bus', 'train', 'airplane'])},
 
         # {'label': 'SS2', 'algo': 'selective-search-rcnn', 'grid': False, 'species_set' : species_set},
 
@@ -1012,7 +1012,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'SSD3', 'algo': 'ssd', 'config_filepath': 'pretrained-300-pascal-plus', 'species_set' : species_set},
         # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
-        # {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1028,14 +1028,14 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
-        # {
-        #     'label'        : 'WIC',
-        #     'algo'         : '_COMBINED',
-        #     'species_set'  : species_set,
-        #     'classify'     : True,
-        #     'classifier_algo': 'svm',
-        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
-        # },
+        {
+            'label'        : 'RBF,1.0',
+            'algo'         : '_COMBINED',
+            'species_set'  : species_set,
+            'classify'     : True,
+            'classifier_algo': 'svm',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
+        },
 
         # {
         #     'label'        : 'COMBINED ~0.75',
@@ -1554,20 +1554,19 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, conf,
                                                             write_images=False,
                                                             min_recall=0.9,
                                                             plot_point=True,
+                                                            masking=False,
                                                             **kwargs):
     import matplotlib.pyplot as plt
 
     fig_ = plt.figure(figsize=figsize)
 
-    species_set = None
-
     config = {
         'label'        : 'WIC',
         'algo'         : '_COMBINED',
-        'species_set'  : species_set,
+        'species_set'  : set(['zebra']),
         'classify'     : True,
         'classifier_algo': 'svm',
-        'classifier_masking': True,
+        'classifier_masking': masking,
         'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
 
@@ -1602,7 +1601,7 @@ def localizer_classifications_confusion_matrix_algo_display_animate(ibs, total=1
 
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
     depc = ibs.depc_image
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
@@ -1640,7 +1639,7 @@ def classifier_roc_algo_plot(ibs, **kwargs):
 def classifier_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     species_set_list = [
@@ -1750,7 +1749,7 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
         return error_list
 
     depc = ibs.depc_annot
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
@@ -1856,7 +1855,7 @@ def labeler_roc_algo_plot(ibs, **kwargs):
 def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwargs):
     print('Processing Confusion Matrix for: %r' % (label, ))
     depc = ibs.depc_annot
-    test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
@@ -1890,7 +1889,7 @@ def labeler_precision_recall_algo_display(ibs, category_list=None, figsize=(16, 
     import plottool as pt
 
     if category_list is None:
-        test_gid_set = set(ibs.get_imageset_gids(ibs.get_imageset_imgsetids_from_text('TEST_SET')))
+        test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
         test_gid_set = list(test_gid_set)
         aids_list = ibs.get_image_aids(test_gid_set)
         aid_list = ut.flatten(aids_list)
@@ -2347,10 +2346,12 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
     species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
     kernel = kernel.lower()
-    if C == 1 and kernel == 'rbf':
-        output_filename = 'classifier.svm.image.%s.pkl' % (species_list_str, )
+    if C == 1.0 and kernel == 'rbf':
+        args = (species_list_str, )
+        output_filename = 'classifier.svm.image.%s.pkl' % args
     else:
-        output_filepath = 'classifier.svm.image.%s.%s.%s.pkl' % (species_list_str, )
+        args = (species_list_str, kernel, C, )
+        output_filepath = 'classifier.svm.image.%s.%s.%s.pkl' % args
 
     output_filepath = join(output_path, output_filename)
     if not dryrun:
@@ -2362,7 +2363,7 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
         scaler = preprocessing.StandardScaler().fit(data_list)
         data_list = scaler.transform(data_list)
         print('Train SVM model using features and target labels')
-        model = svm.SVC(probability=True)
+        model = svm.SVC(C=C, kernel=kernel, probability=True)
         model.fit(data_list, label_list)
 
         model_tup = (model, scaler, )
@@ -2404,6 +2405,49 @@ def classifier_train_image_svm(ibs, species_list, output_path=None, dryrun=False
         print('\t FP: % 4d (%0.02f %%)' % (fp, fp / pos, ))
 
     return output_filepath
+
+
+@register_ibs_method
+def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwargs):
+
+    depc = ibs.depc_image
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', species_list)
+
+    config_list = [
+        (True,  0.5, 'rbf'),
+        (True,  1.0, 'rbf'),
+        (True,  2.0, 'rbf'),
+        (True,  0.5, 'linear'),
+        (True,  1.0, 'linear'),
+        (True,  2.0, 'linear'),
+        (False, 0.5, 'rbf'),
+        (False, 1.0, 'rbf'),
+        (False, 2.0, 'rbf'),
+        (False, 0.5, 'linear'),
+        (False, 1.0, 'linear'),
+        (False, 2.0, 'linear'),
+    ]
+    output_filepath_list = []
+    for masking, C, kernel in config_list:
+        output_filepath = ibs.classifier_train_image_svm(species_list, C=C,
+                                                         kernel=kernel,
+                                                         **kwargs)
+        output_filepath_list.append(output_filepath)
+
+        if precompute:
+            config = {
+                'algo'                       : '_COMBINED',
+                'features'                   : True,
+                'feature2_algo'              : 'resnet',
+                'feature2_chip_masking'      : masking,
+                'classify'                   : True,
+                'classifier_algo'            : 'svm',
+                'classifier_masking'         : masking,
+                'classifier_weight_filepath' : output_filepath,
+            }
+            depc.get_rowids('localizations_features', test_gid_list, config=config)
+            depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+    return output_filepath_list
 
 
 @register_ibs_method
@@ -2576,11 +2620,13 @@ def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
 @register_ibs_method
 def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9,
               output_path=None, precompute=True, precompute_test=True,
-              recompute=False, visualize=True, **kwargs):
+              recompute=False, visualize=True, C=1.0, kernel='rbf', **kwargs):
     from sklearn import svm, preprocessing
 
     # Establish variables
 
+    kernel = kernel.lower()
+    species_list = [species.lower() for species in species_list]
     species_list_str = '.'.join(species_list)
     assert scheme in [1, 2], 'Invalid scheme'
     if output_path is None:
@@ -2695,8 +2741,13 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
         # Get model ensemble path
         limit = len(round_gid_list)
-        args = (species_list_str, limit, )
-        svm_model_path = join(output_path, 'classifier.svm.localization.%s.%d' % args)
+        if C == 1.0 and kernel == 'rbf':
+            args = (species_list_str, limit, )
+            output_filename = 'classifier.svm.localization.%s.%d' % args
+        else:
+            args = (species_list_str, limit, kernel, C, )
+            output_filename = 'classifier.svm.localization.%s.%d.%s.%s' % args
+        svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
 
         ut.ensuredir(svm_model_path)
@@ -2781,7 +2832,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 scaler = preprocessing.StandardScaler().fit(data_list)
                 data_list = scaler.transform(data_list)
                 # Train model
-                model = svm.SVC(probability=True)
+                model = svm.SVC(C=C, kernel=kernel, probability=True)
                 model.fit(data_list, label_list)
 
                 # Save model pickle
