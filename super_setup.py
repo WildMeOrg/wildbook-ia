@@ -164,8 +164,6 @@ Some submodles require C++ libraries. Build them using the following Command.
 
 Register these packages with the python enviroment.
 
-    ~python super_setup.py develop~
-    # Actually this command instead
     pip install -e .
 
  --- /USAGE ---
@@ -387,9 +385,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/lisa-lab/pylearn2.git',
             'https://github.com/Lasagne/Lasagne.git',
         ])
-        tpl_rman.add_repos([
-            'https://github.com/Theano/libgpuarray.git',
-        ])
+        if GET_ARGFLAG('--libgpuarray'):
+            tpl_rman.add_repos([
+                'https://github.com/Theano/libgpuarray.git',
+            ])
 
     if WITH_PYRF:
         ibeis_rman.add_repos([
@@ -641,7 +640,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
 
         $_SUDO make install
         # Hack because cv2 does not want to be installed for some reason
-        cp lib/cv2.so $PYTHON_PACKAGES_PATH
+        # cp lib/cv2.so $PYTHON_PACKAGES_PATH
+        cp -v lib/cv2.so $PYTHON_PACKAGES_PATH
         # Test makesure things working
         python -c "import numpy; print(numpy.__file__)"
         python -c "import numpy; print(numpy.__version__)"
@@ -653,36 +653,37 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         # ENDBLOCK
         """).format(**script_fmtdict))
 
-    tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
-        r"""
-        # STARTBLOCK bash
-        {python_bash_setup}
-        cd {repo_dpath}
-        mkdir -p {repo_dpath}/{build_dname}
-        cd {repo_dpath}/{build_dname}
+    if GET_ARGFLAG('--libgpuarray'):
+        tpl_rman['libgpuarray'].add_script('build', ut.codeblock(
+            r"""
+            # STARTBLOCK bash
+            {python_bash_setup}
+            cd {repo_dpath}
+            mkdir -p {repo_dpath}/{build_dname}
+            cd {repo_dpath}/{build_dname}
 
-        # First build the C library
-        cmake {repo_dpath} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX
-        export NCPUS=$(grep -c ^processor /proc/cpuinfo)
-        make -j$NCPUS
-        $_SUDO make install
+            # First build the C library
+            cmake {repo_dpath} -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$LOCAL_PREFIX
+            export NCPUS=$(grep -c ^processor /proc/cpuinfo)
+            make -j$NCPUS
+            $_SUDO make install
 
-        # Now build the python libarary
-        cd {repo_dpath}
-        python setup.py build_ext -L $LOCAL_PREFIX/lib -I $LOCAL_PREFIX/include
-        python setup.py build
-        # python setup.py install
-        $_SUDO pip install -e {repo_dpath}
+            # Now build the python libarary
+            cd {repo_dpath}
+            python setup.py build_ext -L $LOCAL_PREFIX/lib -I $LOCAL_PREFIX/include
+            python setup.py build
+            # python setup.py install
+            $_SUDO pip install -e {repo_dpath}
 
-        # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
-        # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
-        cd ~
-        DEVICE="cuda" python -c "import pygpu;pygpu.test()"
+            # DEVICE="<test device>" python -c "import pygpu;pygpu.test()"
+            # DEVICE="gpu0" python -c "import pygpu;pygpu.test()"
+            cd ~
+            DEVICE="cuda" python -c "import pygpu;pygpu.test()"
 
-        # pip uninstall pygpu
-        # ENDBLOCK
-        """).format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
-                    **script_fmtdict))
+            # pip uninstall pygpu
+            # ENDBLOCK
+            """).format(repo_dpath=ut.unexpanduser(tpl_rman['libgpuarray'].dpath),
+                        **script_fmtdict))
 
     #===================
     # PYQT SETUP SCRIPTS
@@ -809,11 +810,11 @@ def execute_commands(tpl_rman, ibeis_rman):
         dumps = [
             (tpl_rman, 'cv2', 'build'),
             (tpl_rman, 'cv2', 'install'),
-            (tpl_rman, 'libgpuarray', 'build'),
             (ibeis_rman, 'flann', 'build'),
             (ibeis_rman, 'flann', 'install'),
             (ibeis_rman, 'hesaff', 'build'),
             (tpl_rman, 'PyQt', 'system_to_venv'),
+            (tpl_rman, 'libgpuarray', 'build'),
         ]
 
         for rman, mod, sname in dumps:
@@ -900,8 +901,8 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     if GET_ARGFLAG('--build'):
         # Build tpl repos
-        tpl_rman.custom_build()
-        ibeis_rman.custom_build()
+        # tpl_rman.custom_build()
+        # ibeis_rman.custom_build()
         # Build only IBEIS repos with setup.py
         _rman = ibeis_rman.only_with_pysetup()
         _rman.issue('{pythoncmd} setup.py build'.format(pythoncmd=pythoncmd))
@@ -1080,6 +1081,8 @@ def main():
     ____ _  _ ___  ____ ____    ____ ____ ___ _  _ ___
     [__  |  | |__] |___ |__/    [__  |___  |  |  | |__]
     ___] |__| |    |___ |  \    ___] |___  |  |__| |
+
+    Use --help to show usage
     ''')
 
     show_usage = len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h']

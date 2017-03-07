@@ -83,16 +83,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     """
     appname = 'vsone_rf_train'
 
-    def __init__(pblm):
+    def __init__(pblm, qreq_=None):
         import ibeis
-        # ut.aug_sysargv('--db PZ_Master1')
-        qreq_ = ibeis.testdata_qreq_(
-            defaultdb='PZ_PB_RF_TRAIN',
-            a=':mingt=3,species=primary',
-            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
-            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-            t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-        )
+        if qreq_ is None:
+            # ut.aug_sysargv('--db PZ_Master1')
+            qreq_ = ibeis.testdata_qreq_(
+                defaultdb='PZ_PB_RF_TRAIN',
+                a=':mingt=3,species=primary',
+                # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+                # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+                t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            )
         hyper_params = dt.Config.from_dict(dict(
             subsample=None,
             pair_sample=PairSampleConfig(),
@@ -113,6 +114,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.hyper_params = hyper_params
         pblm.qreq_ = qreq_
         pblm.ibs = qreq_.ibs
+
+    @classmethod
+    def from_aids(OneVsOneProblem, ibs, aids):
+        import ibeis
+        qreq_ = ibeis.testdata_qreq_(
+            # defaultdb='PZ_PB_RF_TRAIN',
+            ibs=ibs,
+            default_qaids=aids,
+            default_daids=aids,
+            # a=':mingt=3,species=primary',
+            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+        )
+        pblm = OneVsOneProblem(qreq_)
+        return pblm
 
     def load_features(pblm):
         qreq_ = pblm.qreq_
@@ -1072,6 +1089,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo.print_margins('local_rank')
         # pt.wordcloud(importances)
 
+    def report_classifier_importance2(pblm, clf, data_key=None):
+        if data_key is None:
+            data_key = pblm.default_data_key
+
 
 @ut.reloadable_class
 class AnnotPairSamples(clf_helpers.MultiTaskSamples):
@@ -1090,8 +1111,10 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         >>> print(samples)
         >>> samples.print_info()
         >>> print(samples.make_sample_hashid())
-        >>> assert np.all(samples.index == samples.subtasks['match_state'].encoded_df.index)
-        >>> assert np.all(samples.index == samples.subtasks['match_state'].indicator_df.index)
+        >>> encode_index = samples.subtasks['match_state'].encoded_df.index
+        >>> indica_index = samples.subtasks['match_state'].indicator_df.index
+        >>> assert np.all(samples.index == encode_index)
+        >>> assert np.all(samples.index == indica_index)
     """
     def __init__(samples, ibs, simple_scores=None, X_dict=None, index=None):
         if simple_scores is not None:
@@ -1227,6 +1250,8 @@ class AnnotPairFeatInfo(object):
     def __init__(featinfo, X, importances=None):
         featinfo.X = X
         featinfo.importances = importances
+        if importances is not None:
+            assert isinstance(importances, dict), 'must be a dict'
         featinfo._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
 
     def make_pairfeat_cfg(featinfo):

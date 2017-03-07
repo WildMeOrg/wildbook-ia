@@ -1415,7 +1415,7 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=Fa
     tablename='pairwise_match', parents=['annotations', 'annotations'],
     colnames=['match'], coltypes=[vt.PairwiseMatch],
     configclass=VsOneConfig,
-    chunksize=128,
+    chunksize=256,
     fname='vsone2',
 )
 def compute_pairwise_vsone(depc, qaids, daids, config):
