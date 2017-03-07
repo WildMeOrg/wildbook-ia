@@ -1508,6 +1508,8 @@ def localizer_classifications_confusion_matrix_algo_display(ibs, min_overlap=0.5
     }
 
     for index in range(0, total + 1):
+        plt.clf()
+
         axes_ = plt.subplot(111)
         axes_.set_aspect(1)
         gca_ = plt.gca()
