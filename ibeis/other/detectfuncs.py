@@ -679,7 +679,7 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
-        depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
+        # depc.delete_property('localizations_classifier', test_gid_list, config=kwargs)
         confss_list = depc.get_property('localizations_classifier', test_gid_list,
                                         'score', config=kwargs)
 
