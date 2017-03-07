@@ -432,6 +432,27 @@ class ClfProblem(ut.NiceRepr):
             est_kw2 = {}
         return est_kw1, est_kw2
 
+    def get_clf_partial(pblm, clf_key):
+        tup = clf_key.split('-')
+        wrap_type = None if len(tup) == 1 else tup[1]
+        est_type = tup[0]
+        multiclass_wrapper = {
+            None: ut.identity,
+            'OVR': sklearn.multiclass.OneVsRestClassifier,
+            'OVO': sklearn.multiclass.OneVsOneClassifier,
+        }[wrap_type]
+        est_class = {
+            'RF': sklearn.ensemble.RandomForestClassifier,
+            'SVC': sklearn.svm.SVC,
+        }[est_type]
+
+        est_kw1, est_kw2 = pblm.get_clf_params(est_type)
+        est_params = ut.merge_dicts(est_kw1, est_kw2)
+
+        def clf_partial():
+            return multiclass_wrapper(est_class(**est_params))
+        return clf_partial
+
     def set_pandas_options(pblm):
         # pd.options.display.max_rows = 10
         pd.options.display.max_rows = 20
@@ -513,6 +534,43 @@ class ClfProblem(ut.NiceRepr):
         pblm.task_clfs[task_key][clf_key][data_key] = clf_list
         pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
 
+    def learn_deploy_classifiers(pblm, task_keys=None, clf_key=None,
+                                 data_key=None):
+        """
+        Learns on data without any train/validation split
+        """
+        pblm.default_clf_key = 'RF'
+        pblm.default_data_key = 'learn(sum,glob)'
+        if clf_key is None:
+            clf_key = pblm.default_clf_key
+        if data_key is None:
+            data_key = pblm.default_data_key
+        if task_keys is None:
+            task_keys = list(pblm.samples.subtasks.keys())
+
+        Prog = ut.ProgPartial(freq=1, adjust=False, prehack='%s')
+        task_prog = Prog(task_keys, label='Task')
+        deploy_task_clfs = {}
+        for task_key in task_prog:
+            clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
+            deploy_task_clfs[task_key] = clf
+        pblm.deploy_task_clfs = deploy_task_clfs
+        return deploy_task_clfs
+
+    def _train_deploy_clf(pblm, task_key, data_key, clf_key):
+        X_df = pblm.samples.X_dict[data_key]
+        labels = pblm.samples.subtasks[task_key]
+        assert np.all(labels.encoded_df.index == X_df.index)
+        clf_partial = pblm.get_clf_partial(clf_key)
+        print('Training deployment {} classifier on {} for {}'.format(
+            clf_key, data_key, task_key))
+        clf = clf_partial()
+        index = X_df.index
+        X = X_df.loc[index].values
+        y = labels.encoded_df.loc[index].values
+        clf.fit(X, y)
+        return clf
+
     def _train_evaluation_clf(pblm, task_key, data_key, clf_key):
         """
         Learns a cross-validated classifier on the dataset
@@ -531,34 +589,22 @@ class ClfProblem(ut.NiceRepr):
         labels = pblm.samples.subtasks[task_key]
         assert np.all(labels.encoded_df.index == X_df.index)
 
-        tup = clf_key.split('-')
-        wrap_type = None if len(tup) == 1 else tup[1]
-        est_type = tup[0]
-        multiclass_wrapper = {
-            None: ut.identity,
-            'OVR': sklearn.multiclass.OneVsRestClassifier,
-            'OVO': sklearn.multiclass.OneVsOneClassifier,
-        }[wrap_type]
-        est_class = {
-            'RF': sklearn.ensemble.RandomForestClassifier,
-            'SVC': sklearn.svm.SVC,
-        }[est_type]
+        clf_partial = pblm.get_clf_partial(clf_key)
 
-        est_kw1, est_kw2 = pblm.get_clf_params(est_type)
         xval_kw = pblm.get_xval_kw()
-        est_params = ut.merge_dicts(est_kw1, est_kw2)
 
         clf_list = []
         skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
         skf_prog = ut.ProgIter(skf_list, label='skf-learn')
         for train_idx, test_idx in skf_prog:
-            assert X_df.iloc[train_idx].index.tolist() == ut.take(pblm.samples.index, train_idx)
+            assert (X_df.iloc[train_idx].index.tolist() ==
+                    ut.take(pblm.samples.index, train_idx))
             # train_uv = X_df.iloc[train_idx].index
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
             X_train = X_df.iloc[train_idx].values
             y_train = labels.encoded_df.iloc[train_idx].values
-            clf = multiclass_wrapper(est_class(**est_params))
+            clf = clf_partial()
             clf.fit(X_train, y_train)
             clf_list.append(clf)
         return clf_list

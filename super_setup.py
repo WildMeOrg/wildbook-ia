@@ -385,9 +385,10 @@ def initialize_repo_managers(CODE_DIR, pythoncmd, PY2, PY3):
             'https://github.com/lisa-lab/pylearn2.git',
             'https://github.com/Lasagne/Lasagne.git',
         ])
-        tpl_rman.add_repos([
-            'https://github.com/Theano/libgpuarray.git',
-        ])
+        if GET_ARGFLAG('--libgpuarray'):
+            tpl_rman.add_repos([
+                'https://github.com/Theano/libgpuarray.git',
+            ])
 
     if WITH_PYRF:
         ibeis_rman.add_repos([
@@ -808,11 +809,11 @@ def execute_commands(tpl_rman, ibeis_rman):
         dumps = [
             (tpl_rman, 'cv2', 'build'),
             (tpl_rman, 'cv2', 'install'),
-            (tpl_rman, 'libgpuarray', 'build'),
             (ibeis_rman, 'flann', 'build'),
             (ibeis_rman, 'flann', 'install'),
             (ibeis_rman, 'hesaff', 'build'),
             (tpl_rman, 'PyQt', 'system_to_venv'),
+            (tpl_rman, 'libgpuarray', 'build'),
         ]
 
         for rman, mod, sname in dumps:
@@ -899,8 +900,8 @@ def execute_commands(tpl_rman, ibeis_rman):
 
     if GET_ARGFLAG('--build'):
         # Build tpl repos
-        tpl_rman.custom_build()
-        ibeis_rman.custom_build()
+        # tpl_rman.custom_build()
+        # ibeis_rman.custom_build()
         # Build only IBEIS repos with setup.py
         _rman = ibeis_rman.only_with_pysetup()
         _rman.issue('{pythoncmd} setup.py build'.format(pythoncmd=pythoncmd))

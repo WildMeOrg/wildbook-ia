@@ -46,14 +46,29 @@ def main():
     ut.cprint('--- OPEN REPO ---', 'blue')
     # dpath = os.getcwd()
     dpath = ut.truepath('~/code/scikit-learn')
-    repo = ut.Repo(dpath=dpath)
+    repo = ut.Repo(dpath=dpath, url='git@github.com:Erotemic/scikit-learn.git')
+
+    if not repo.is_cloned():
+        repo.clone()
+        # repo.issue('pip install -e .')
+
+    # Make sure remotes are properly setup
+    repo._ensure_remote_exists('source', 'https://github.com/scikit-learn/scikit-learn.git')
+    repo._ensure_remote_exists('raghavrv', 'https://github.com/raghavrv/scikit-learn.git')
+
+    # Master should point to the scikit-learn official repo
+    if repo.get_branch_remote('master') != 'source':
+        repo.set_branch_remote('master', 'source')
 
     update_all(repo, master, mixins)
 
     REBASE_VERSION = True
     if REBASE_VERSION:
         ut.cprint('--- REBASE BRANCHES ON MASTER ---', 'blue')
-        rebase_mixins = [make_dev_rebased_mixin(repo, master, branch) for branch in mixins]
+        rebase_mixins = []
+        for branch in mixins:
+            new_branch = make_dev_rebased_mixin(repo, master, branch)
+            rebase_mixins.append(new_branch)
         ut.cprint('--- CHECKOUT DEV MASTER --- ', 'blue')
         reset_dev_branch(repo, master, target)
         ut.cprint('--- MERGE INTO DEV MASTER --- ', 'blue')
@@ -76,7 +91,8 @@ def main():
     if True:
         repo.issue('python setup.py clean')
         repo.issue('python setup.py build -j9')
-        repo.issue('python setup.py develop')
+        repo.issue('pip install -e .')
+        # python setup.py develop')
     # # repo.reset_branch_to_remote('speedup_kmpp')
 
 
@@ -104,6 +120,7 @@ def reset_dev_branch(repo, branch, dev_branch):
 def make_dev_rebased_mixin(repo, master, branch):
     # Clear dev rebase branch
     rebase_branch = 'dev_rebase_' + branch
+    dev_branch = rebase_branch
 
     if branch == 'missing_values_rf':
         reset_dev_branch(repo, branch, rebase_branch)
@@ -116,7 +133,8 @@ def make_dev_rebased_mixin(repo, master, branch):
         out = ut.cmd2('git --no-pager log ' + master + '..HEAD --pretty=oneline')['out']
     n_commits = len(out.split('\n'))
     repo.issue('git reset ' + master)
-    repo.issue('git commit -am "Combination of %d commits\n%s"' % (n_commits, out))
+    msg = 'hash is: ' + ut.hashstr(out)
+    repo.issue('git commit -am "Combination of %d commits\n%s"' % (n_commits, msg))
     # repo.issue('git reset ' + master)
     return rebase_branch
 
@@ -138,24 +156,25 @@ def missing_values_rf_rebase(repo, master, branch, rebase_branch):
 
     # Custom rebase script
     out = repo.issue('git rebase ' + master, error='return')
-    fpaths = repo._parse_merge_conflict_fpaths(out)
-    fpath = fpaths[0]
-    assert len(fpaths) == 1 and fpath.endswith('sklearn/utils/validation.py')
-    repo.resolve_conflicts(fpath, 'theirs', force=True)
-    ut.sedfile(fpath, 'accept_sparse=None', 'accept_sparse=False', force=True)
-    repo.issue('git add ' + fpath)
-
-    # Step 2
-    out = repo.issue('git rebase --continue', error='return')
-    # Regex to help solve conflicts
-    for fpath in repo._parse_merge_conflict_fpaths(out):
-        # repo.resolve_conflicts(fpath, 'ours', force=True)
+    if out:
+        fpaths = repo._parse_merge_conflict_fpaths(out)
+        fpath = fpaths[0]
+        assert len(fpaths) == 1 and fpath.endswith('sklearn/utils/validation.py')
         repo.resolve_conflicts(fpath, 'theirs', force=True)
-        # repo.issue('git checkout --theirs ' + fpath)
+        ut.sedfile(fpath, 'accept_sparse=None', 'accept_sparse=False', force=True)
         repo.issue('git add ' + fpath)
 
-    out = repo.issue('git rebase --continue', error='return')
-    assert out is None
+        # Step 2
+        out = repo.issue('git rebase --continue', error='return')
+        # Regex to help solve conflicts
+        for fpath in repo._parse_merge_conflict_fpaths(out):
+            # repo.resolve_conflicts(fpath, 'ours', force=True)
+            repo.resolve_conflicts(fpath, 'theirs', force=True)
+            # repo.issue('git checkout --theirs ' + fpath)
+            repo.issue('git add ' + fpath)
+
+        out = repo.issue('git rebase --continue', error='return')
+        assert out is None
 
     # mixins.remove(branch)
     # mixins.append(rebase_branch)
