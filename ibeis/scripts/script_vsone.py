@@ -1092,6 +1092,15 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def report_classifier_importance2(pblm, clf, data_key=None):
         if data_key is None:
             data_key = pblm.default_data_key
+        X = pblm.samples.X_dict[data_key]
+        assert len(clf.feature_importances_) == len(X.columns)
+        importances = ut.dzip(X.columns, clf.feature_importances_)
+        featinfo = AnnotPairFeatInfo(X, importances)
+        featinfo.print_margins('feature')
+        featinfo.print_margins('measure_type')
+        featinfo.print_margins('summary_op')
+        featinfo.print_margins('summary_measure')
+        featinfo.print_margins('global_measure')
 
 
 @ut.reloadable_class
