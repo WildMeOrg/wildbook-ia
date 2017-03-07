@@ -1475,6 +1475,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
         if test_uuid in pred_dict:
             gt_list = gt_dict[test_uuid]
             pred_list = pred_dict[test_uuid]
+            ut.embed()
             tp, tn, fp, fn = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
                                                                   min_overlap=min_overlap,
                                                                   **kwargs)
