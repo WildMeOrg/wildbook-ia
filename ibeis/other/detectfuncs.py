@@ -2446,8 +2446,8 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
 
 
 @register_ibs_method
-def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
-                  output_path=None, **kwargs):
+def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
+                        output_path=None, **kwargs):
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import IncrementalPCA
     from annoy import AnnoyIndex
@@ -2465,6 +2465,7 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
         }
         total = 0
         features_list = []
+        index_list = []
         gid_iter = ut.ProgIter(gid_list_, lbl='collect feature vectors', bs=True)
         for gid in gid_iter:
             if limit is not None and total >= limit:
@@ -2472,23 +2473,29 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
             feature_list = depc.get_property('localizations_features', gid,
                                              'vector', config=config)
             total += len(feature_list)
+            index_list += [
+                (gid, offset, )
+                for offset in range(len(feature_list))
+            ]
             features_list.append(feature_list)
-        print('Used %d images to mine %d features' % (len(features_list), total, ))
+        print('\nUsed %d images to mine %d features' % (len(features_list), total, ))
         data_list = np.vstack(features_list)
         if len(data_list) > limit:
             data_list = data_list[:limit]
+            index_list = index_list[:limit]
+        assert len(data_list) == len(index_list)
         features_list = None
-        return total, data_list
+        return total, data_list, index_list
 
-    # ut.embed()
+    ut.embed()
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-    gid_list = gid_list[:200]
+    gid_list = gid_list[:20]
 
     # Get data
     depc = ibs.depc_image
-    total, data_list = _get_data(depc, gid_list, pca_limit, True)
+    total, data_list, index_list = _get_data(depc, gid_list, pca_limit, True)
     print(data_list.shape)
 
     # Normalize data
@@ -2504,10 +2511,11 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
     print('PCA Variance Quality: %0.04f %%' % (pca_quality, ))
 
     # Fit ANN for PCA's vectors
-    global_total = 0
+    index = 0
     ann_model = AnnoyIndex(dims)  # Length of item vector that will be indexed
-    ann_rounds = np.ceil(float(len(gid_list)) / ann_batch)
-    for ann_round in ann_rounds:
+    ann_rounds = int(np.ceil(float(len(gid_list)) / ann_batch))
+    manifest_dict = {}
+    for ann_round in range(ann_rounds):
         start_index = ann_round * ann_batch
         stop_index = (ann_round + 1) * ann_batch
         assert start_index < len(gid_list)
@@ -2516,8 +2524,7 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
         # Slice gids and get feature data
         gid_list_ = gid_list[start_index, stop_index]
-        total, data_list = _get_data(depc, gid_list_)
-        global_total += total
+        total, data_list, index_list = _get_data(depc, gid_list_)
 
         # Scaler
         data_list = scaler.transform(data_list)
@@ -2525,22 +2532,78 @@ def bootstrap_pca(ibs, dims=64, pca_limit=500000, ann_batch=50,
         # Transform data to smaller vectors
         data_list_ = pca_model.transform(data_list)
 
-        data_iter = ut.ProgIter(data_list_, lbl='add vectors to ANN model', bs=True)
-        for index, feature in enumerate(data_iter):
+        zipped = zip(index_list, data_list_)
+        data_iter = ut.ProgIter(zipped, lbl='add vectors to ANN model', bs=True)
+        for (gid, offset), feature in data_iter:
             ann_model.add_item(index, feature)
+            manifest_dict[index] = (gid, offset, )
+            index += 1
 
     # Build forest
-    print('Build ANN model using %d feature vectors' % (global_total, ))
-    trees = global_total // 100000
+    print('Build ANN model using %d feature vectors' % (index, ))
+    trees = index // 100000
     ann_model.build(trees)
 
     # Save forest
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+
+    scaler_filename = 'forest.pca'
+    scaler_filepath = join(output_path, scaler_filename)
+    print('Saving scaler model to: %r' % (scaler_filepath, ))
+    model_tup = (pca_model, scaler, )
+    ut.save_cPkl(scaler_filepath, model_tup, manifest_dict)
+
     forest_filename = 'forest.ann'
     forest_filepath = join(output_path, forest_filename)
     print('Saving ANN model to: %r' % (forest_filepath, ))
     ann_model.save(forest_filepath)
+
+
+@register_ibs_method
+def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
+                       output_path=None, **kwargs):
+    from annoy import AnnoyIndex
+
+    depc = ibs.depc_image
+
+    # gid_list = ibs.get_valid_gids()
+    gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
+    gid_list = gid_list[:200]
+
+    # Load forest
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+
+    scaler_filename = 'forest.pca'
+    scaler_filepath = join(output_path, scaler_filename)
+    print('Loading scaler model from: %r' % (scaler_filepath, ))
+    model_tup = ut.load_cPkl(scaler_filepath)
+    pca_model, scaler = model_tup
+
+    forest_filename = 'forest.ann'
+    forest_filepath = join(output_path, forest_filename)
+    print('Loading ANN model from: %r' % (forest_filepath, ))
+    ann_model = AnnoyIndex(dims)
+    ann_model.load(forest_filepath)
+
+    # Get test data
+    config = {
+        'algo'         : '_COMBINED',
+        'features'     : True,
+        'feature2_algo': 'resnet',
+    }
+    for gid in gid_list:
+        data_list = depc.get_property('localizations_features', gid, 'vector',
+                                         config=config)
+        ut.embed()
+        data_list = scaler.transform(data_list)
+        data_list_ = pca_model.transform(data_list)
+
+        neighbors_list = [
+            ann_model.get_nns_by_vector(data_, 20)
+            for data_ in data_list_
+        ]
 
 
 def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
