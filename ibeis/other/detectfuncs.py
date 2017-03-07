@@ -1405,7 +1405,7 @@ def localizer_precision_recall_algo_display_animate(ibs, **kwargs):
         ibs.localizer_precision_recall_algo_display(min_overlap=min_overlap, **kwargs)
 
 
-def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, min_overlap, conf,
+def localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf, min_overlap,
                                          check_species=False,
                                          check_viewpoint=False, **kwargs):
     ut.embed()
@@ -1475,7 +1475,6 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
         if test_uuid in pred_dict:
             gt_list = gt_dict[test_uuid]
             pred_list = pred_dict[test_uuid]
-            ut.embed()
             tp, tn, fp, fn = localizer_classification_tp_tn_fp_fn(gt_list, pred_list, conf,
                                                                   min_overlap=min_overlap,
                                                                   **kwargs)
