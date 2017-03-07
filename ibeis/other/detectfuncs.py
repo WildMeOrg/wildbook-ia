@@ -2414,21 +2414,15 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
     test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', species_list)
 
     config_list = [
-        (True,  0.5, 'rbf'),
-        (True,  1.0, 'rbf'),
-        (True,  2.0, 'rbf'),
-        (True,  0.5, 'linear'),
-        (True,  1.0, 'linear'),
-        (True,  2.0, 'linear'),
-        (False, 0.5, 'rbf'),
-        (False, 1.0, 'rbf'),
-        (False, 2.0, 'rbf'),
-        (False, 0.5, 'linear'),
-        (False, 1.0, 'linear'),
-        (False, 2.0, 'linear'),
+        (0.5, 'rbf'),
+        (1.0, 'rbf'),
+        (2.0, 'rbf'),
+        (0.5, 'linear'),
+        (1.0, 'linear'),
+        (2.0, 'linear'),
     ]
     output_filepath_list = []
-    for masking, C, kernel in config_list:
+    for C, kernel in config_list:
         output_filepath = ibs.classifier_train_image_svm(species_list, C=C,
                                                          kernel=kernel,
                                                          **kwargs)
@@ -2439,14 +2433,19 @@ def classifier_train_image_svm_sweep(ibs, species_list, precompute=True, **kwarg
                 'algo'                       : '_COMBINED',
                 'features'                   : True,
                 'feature2_algo'              : 'resnet',
-                'feature2_chip_masking'      : masking,
+                'feature2_chip_masking'      : False,
                 'classify'                   : True,
                 'classifier_algo'            : 'svm',
-                'classifier_masking'         : masking,
+                'classifier_masking'         : False,
                 'classifier_weight_filepath' : output_filepath,
             }
             depc.get_rowids('localizations_features', test_gid_list, config=config)
+            config['feature2_chip_masking'] = True
+            depc.get_rowids('localizations_features', test_gid_list, config=config)
             depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+            config['classifier_masking'] = True
+            depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
     return output_filepath_list
 
 
