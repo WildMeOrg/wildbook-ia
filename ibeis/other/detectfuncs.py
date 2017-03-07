@@ -1430,7 +1430,7 @@ def localizer_classification_confusion_matrix_algo_plot(ibs, color, conf,
     prediction_list = []
     for index, (test_gid, test_uuid) in enumerate(zip(test_gid_list, test_uuid_list)):
         if test_uuid in pred_dict:
-            ut.embed()
+            # ut.embed()
             gt_list = gt_dict[test_uuid]
             pred_list = [
                 pred
