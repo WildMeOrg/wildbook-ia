@@ -2617,127 +2617,132 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
         max_overlap = np.max(overlap, axis=0)
         index_list = np.argsort(max_overlap)
 
-        example_limit = 5
+        example_limit = 1
         worst_idx_list = index_list[:example_limit]
         best_idx_list = index_list[-1 * example_limit:]
 
         print('Worst ovelap: %r' % (overlap[:, worst_idx_list], ))
         print('Best ovelap:  %r' % (overlap[:, best_idx_list], ))
 
-        idx_list = best_idx_list
-        example_list = ut.take(pred_list, idx_list)
+        for idx_list in [best_idx_list, worst_idx_list]:
+            example_list = ut.take(pred_list, idx_list)
 
-        interpolation = cv2.INTER_LANCZOS4
-        warpkw = dict(interpolation=interpolation)
+            interpolation = cv2.INTER_LANCZOS4
+            warpkw = dict(interpolation=interpolation)
 
-        for example, offset in zip(example_list, idx_list):
-            gid = example['gid']
-            feature_list = np.array([example['feature']])
-            data_list = scaler.transform(feature_list)
-            data_list_ = pca_model.transform(data_list)[0]
+            for example, offset in zip(example_list, idx_list):
+                gid = example['gid']
+                feature_list = np.array([example['feature']])
+                data_list = scaler.transform(feature_list)
+                data_list_ = pca_model.transform(data_list)[0]
 
-            neighbor_index_list = ann_model.get_nns_by_vector(data_list_, neighbors)
-            neighbor_manifest_list = list(set([
-                manifest_dict[neighbor_index]
-                for neighbor_index in neighbor_index_list
-            ]))
-            neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
-            neighbor_gid_list_ = [gid] + neighbor_gid_list_
-            neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
-            neighbor_offset_list_ = ut.take_column(neighbor_manifest_list, 1)
-            neighbor_offset_list_ = [offset] + neighbor_offset_list_
+                neighbor_index_list = ann_model.get_nns_by_vector(data_list_, neighbors)
+                neighbor_manifest_list = list(set([
+                    manifest_dict[neighbor_index]
+                    for neighbor_index in neighbor_index_list
+                ]))
+                neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
+                neighbor_gid_list_ = [gid] + neighbor_gid_list_
+                neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
+                neighbor_offset_list_ = ut.take_column(neighbor_manifest_list, 1)
+                neighbor_offset_list_ = [offset] + neighbor_offset_list_
 
-            neighbor_gid_set_ = list(set(neighbor_gid_list_))
-            neighbor_image_list = ibs.get_image_imgdata(neighbor_gid_set_)
-            neighbor_image_dict = {
-                gid: image
-                for gid, image in zip(neighbor_gid_set_, neighbor_image_list)
-            }
+                neighbor_gid_set_ = list(set(neighbor_gid_list_))
+                neighbor_image_list = ibs.get_image_imgdata(neighbor_gid_set_)
+                neighbor_image_dict = {
+                    gid: image
+                    for gid, image in zip(neighbor_gid_set_, neighbor_image_list)
+                }
 
-            neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
-                                                      **config)
+                neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
+                                                          **config)
 
-            neighbor_dict = {}
-            zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_offset_list_)
-            for neighbor_gid, neighbor_uuid, neighbor_offset in zipped:
-                if neighbor_gid not in neighbor_dict:
-                    neighbor_dict[neighbor_gid] = []
-                neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_offset]
-                neighbor_dict[neighbor_gid].append(neighbor_pred)
+                neighbor_dict = {}
+                zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_offset_list_)
+                for neighbor_gid, neighbor_uuid, neighbor_offset in zipped:
+                    if neighbor_gid not in neighbor_dict:
+                        neighbor_dict[neighbor_gid] = []
+                    neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_offset]
+                    neighbor_dict[neighbor_gid].append(neighbor_pred)
 
-            # Perform NMS
-            chip_list = []
-            query_image = ibs.get_image_imgdata(gid)
-            xbr = example['xbr']
-            ybr = example['ybr']
-            xtl = example['xtl']
-            ytl = example['ytl']
-
-            height, width = query_image.shape[:2]
-            xbr = int(xbr * width)
-            ybr = int(ybr * height)
-            xtl = int(xtl * width)
-            ytl = int(ytl * height)
-            # Get chips
-            try:
-                chip = query_image[ytl: ybr, xtl: xbr, :]
-                chip = cv2.resize(chip, (192, 192), **warpkw)
-                chip_list.append(chip)
-            except:
-                pass
-            chip_list.append(np.zeros((192, 10, 3)))
-
-            for neighbor_gid in neighbor_dict:
-                neighbor_list = neighbor_dict[neighbor_gid]
-                # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
-                coord_list = []
-                confs_list = []
-                for neighbor in neighbor_list:
-                    xbr = neighbor['xbr']
-                    ybr = neighbor['ybr']
-                    xtl = neighbor['xtl']
-                    ytl = neighbor['ytl']
-                    conf = neighbor['confidence']
-                    coord_list.append([xtl, ytl, xbr, ybr])
-                    confs_list.append(conf)
-                coord_list = np.vstack(coord_list)
-                confs_list = np.array(confs_list)
                 # Perform NMS
-                keep_indices_list = nms(coord_list, confs_list, nms_thresh)
-                keep_indices_set = set(keep_indices_list)
-                neighbor_list_ = [
-                    neighbor
-                    for index, neighbor in enumerate(neighbor_list)
-                    if index in keep_indices_set
-                ]
+                chip_list = []
+                query_image = ibs.get_image_imgdata(gid)
+                xbr = example['xbr']
+                ybr = example['ybr']
+                xtl = example['xtl']
+                ytl = example['ytl']
 
-                neighbor_image = neighbor_image_dict[neighbor_gid]
-                for neightbor_ in neighbor_list_:
-                    xbr = neightbor_['xbr']
-                    ybr = neightbor_['ybr']
-                    xtl = neightbor_['xtl']
-                    ytl = neightbor_['ytl']
-                    conf = neighbor['confidence']
+                height, width = query_image.shape[:2]
+                xbr = int(xbr * width)
+                ybr = int(ybr * height)
+                xtl = int(xtl * width)
+                ytl = int(ytl * height)
+                # Get chips
+                try:
+                    chip = query_image[ytl: ybr, xtl: xbr, :]
+                    chip = cv2.resize(chip, (192, 192), **warpkw)
+                    chip_list.append(chip)
+                except:
+                    pass
+                chip_list.append(np.zeros((192, 10, 3)))
 
-                    height, width = neighbor_image.shape[:2]
-                    xbr = int(xbr * width)
-                    ybr = int(ybr * height)
-                    xtl = int(xtl * width)
-                    ytl = int(ytl * height)
-                    # Get chips
-                    try:
-                        chip = neighbor_image[ytl: ybr, xtl: xbr, :]
-                        chip = cv2.resize(chip, (192, 192), **warpkw)
-                        color = (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
-                        cv2.rectangle(chip, (0, 0), (192, 192), color, 10)
-                        chip_list.append(chip)
-                    except:
-                        pass
+                for neighbor_gid in neighbor_dict:
+                    neighbor_list = neighbor_dict[neighbor_gid]
+                    # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
+                    coord_list = []
+                    confs_list = []
+                    for neighbor in neighbor_list:
+                        xbr = neighbor['xbr']
+                        ybr = neighbor['ybr']
+                        xtl = neighbor['xtl']
+                        ytl = neighbor['ytl']
+                        conf = neighbor['confidence']
+                        coord_list.append([xtl, ytl, xbr, ybr])
+                        confs_list.append(conf)
+                    coord_list = np.vstack(coord_list)
+                    confs_list = np.array(confs_list)
+                    # Perform NMS
+                    keep_indices_list = nms(coord_list, confs_list, nms_thresh)
+                    keep_indices_set = set(keep_indices_list)
+                    neighbor_list_ = [
+                        neighbor
+                        for index, neighbor in enumerate(neighbor_list)
+                        if index in keep_indices_set
+                    ]
 
-            canvas = np.hstack(chip_list)
-            output_filename = 'neighbors_%d_%d.png' % (gid, offset, )
-            output_filepath = join(output_path, output_filename)
-            cv2.imwrite(output_filepath, canvas)
+                    neighbor_image = neighbor_image_dict[neighbor_gid]
+                    for neightbor_ in neighbor_list_:
+                        xbr = neightbor_['xbr']
+                        ybr = neightbor_['ybr']
+                        xtl = neightbor_['xtl']
+                        ytl = neightbor_['ytl']
+                        conf = neighbor['confidence']
+
+                        height, width = neighbor_image.shape[:2]
+                        xbr = int(xbr * width)
+                        ybr = int(ybr * height)
+                        xtl = int(xtl * width)
+                        ytl = int(ytl * height)
+                        # Get chips
+                        try:
+                            chip = neighbor_image[ytl: ybr, xtl: xbr, :]
+                            chip = cv2.resize(chip, (192, 192), **warpkw)
+                            color = (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
+                            cv2.rectangle(chip, (0, 0), (192, 192), color, 10)
+                            chip_list.append(chip)
+                        except:
+                            pass
+
+                min_chips = 16
+                if len(chip_list) < min_chips:
+                    continue
+
+                chip_list = chip_list[:min_chips]
+                canvas = np.hstack(chip_list)
+                output_filename = 'neighbors_%d_%d.png' % (gid, offset, )
+                output_filepath = join(output_path, output_filename)
+                cv2.imwrite(output_filepath, canvas)
 
 
 def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
