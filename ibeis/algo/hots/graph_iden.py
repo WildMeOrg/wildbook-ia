@@ -134,6 +134,9 @@ class _AnnotInfrHelpers(object):
         }
         infr.set_node_attrs('name_label', distinct_names)
 
+    def edges(infr):
+        return (e_(u, v) for u, v in infr.graph.edges())
+
     def has_edge(infr, edge):
         redge = edge[::-1]
         flag = infr.graph.has_edge(*edge) or infr.graph.has_edge(*redge)
@@ -2110,6 +2113,16 @@ class _AnnotInfrPriority(object):
         # All operations on a treap except sorting use O(log(N)) time
         infr.queue = ut.PriorityQueue(zip(edges, -priorities))
 
+    def pop(infr):
+        try:
+            edge, priority = infr.queue.pop()
+        except IndexError:
+            raise StopIteration('no more to review!')
+            # raise StopIteration('no more to review!') from None
+        else:
+            aid1, aid2 = e_(*edge)
+            return (aid1, aid2)
+
     def generate_reviews(infr, randomness=0, rng=None, pos_diameter=None,
                          neg_diameter=None):
         """
@@ -2121,17 +2134,8 @@ class _AnnotInfrPriority(object):
         infr._init_priority_queue(randomness, rng)
 
         for index in it.count():
-            try:
-                edge, priority = infr.queue.pop()
-                # print('GENERATE:')
-                # print('  * edge = %r' % (edge,))
-                # print('  * priority = %r' % (priority,))
-                aid1, aid2 = e_(*edge)
-            except IndexError:
-                print('no more edges to reveiw')
-                raise StopIteration('no more to review!')
-            # if index % 2 == 0:
-            yield (aid1, aid2)
+            edge, priority = infr.pop()
+            yield edge
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

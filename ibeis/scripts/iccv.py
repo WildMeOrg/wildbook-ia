@@ -55,7 +55,7 @@ def end_to_end():
     test_aids = ut.flatten(names[1::2])
 
     # aids = train_aids
-    phis = learn_termination(ibs, aids=train_aids)
+    # phis = learn_termination(ibs, aids=train_aids)
 
     from ibeis.scripts.script_vsone import OneVsOneProblem
     clf_key = 'RF'
@@ -68,10 +68,11 @@ def end_to_end():
     pblm.build_feature_subsets()
     # task_keys = list(pblm.samples.subtasks.keys())
 
-    task_clfs = pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
-                                              clf_key=clf_key)
-    # match_clf = task_clfs['match_state']
-    # pb_clf = task_clfs['photobomb_state']
+    deploy_task_clfs = pblm.learn_deploy_classifiers(task_keys,
+                                                     data_key=data_key,
+                                                     clf_key=clf_key)
+    # match_clf = deploy_task_clfs['match_state']
+    # pb_clf = deploy_task_clfs['photobomb_state']
 
     # Inspect feature importances if you want
     # pblm.report_classifier_importance2(match_clf, data_key=data_key)
@@ -83,7 +84,7 @@ def end_to_end():
     # Use one-vs-many to establish candidate edges to classify
     infr.exec_matching()
     infr.apply_match_edges()
-    candidate_edges = list(infr.graph.edges())
+    candidate_edges = list(infr.edges())
 
     from ibeis.scripts.script_vsone import AnnotPairFeatInfo
     # Do one-vs-one scoring on candidate edges
@@ -98,18 +99,94 @@ def end_to_end():
     matches, X = infr._make_pairwise_features(
         candidate_edges, config=config, pairfeat_cfg=pairfeat_cfg,
         need_lnbnn=need_lnbnn)
-    assert np.all(featinfo.X.columns == X_need.columns), (
+    assert np.all(featinfo.X.columns == X.columns), (
         'inconsistent feature dimensions')
 
-    task_need_probs = {}
+    import pandas as pd
+    task_probs = {}
     for task_key in task_keys:
         print('Predicting %s probabilities' % (task_key,))
-        clf_list = pblm.task_clfs[task_key][clf_key][data_key]
+        clf = deploy_task_clfs[task_key]
         labels = pblm.samples.subtasks[task_key]
-        eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
-        eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
-                                                  labels.class_names)
-        task_need_probs[task_key] = eclf_probs
+        columns = ut.take(labels.class_names, clf.classes_)
+        probs_df = pd.DataFrame(
+            clf.predict_proba(X),
+            columns=columns, index=X.index
+        )
+        task_probs[task_key] = probs_df
+
+    # auto_decisions_at_threshold
+    # REVIEW = ibs.const.REVIEW
+
+    """
+    Algorithm Alternatives:
+        1. Ranking only
+        2. ReRanking using 1v1 with automatic thresholds
+        3. K=1
+        4. K=2
+    """
+
+    task_thresh = {
+        'photobomb_state': {
+            'pb': .5,
+            'notpb': .9,
+        },
+        'match_state': ut.odict([
+            ('nomatch', .99),
+            ('match', .99),
+            ('notcomp', .99),
+        ])
+    }
+
+    primary_task = 'match_state'
+    infr.PRIORITY_METRIC = 'priority'
+    match_probs = task_probs[primary_task]['match']
+
+    primary_truth = infr.match_state_df(X.index)
+
+    # Set priority on the graph
+    infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
+    infr.remove_feedback()
+    infr._init_priority_queue()
+    infr.verbose = 1
+    infr.verbose = 0
+
+    # match_probs = task_probs[primary_task]['match']
+    # TODO: actually use annot infr priority mechanism
+    # priority_edges = match_probs.index[match_probs.values.argsort()[::-1]]
+
+    # for edge in ut.ProgIter(priority_edges):
+    # for edge in infr.generate_reviews():
+    while True:
+        edge, priority = infr.queue.pop()
+        print('priority = %r' % (priority,))
+        if priority >= -1:
+            print('edge = %r' % (edge,))
+            decision_probs = task_probs[primary_task].loc[edge]
+            decision_flags = decision_probs > pd.Series(task_thresh[primary_task])
+            if sum(decision_flags) == 1:
+                pb_probs = task_probs['photobomb_state'].loc[edge]
+                confounded = pb_probs['pb'] > task_thresh['photobomb_state']['pb']
+                if not confounded:
+                    decision = decision_flags.argmax()
+                    print('decision = %r' % (decision,))
+                    aid1, aid2 = edge
+                    tags = []
+                    infr.add_feedback(aid1, aid2, decision, tags, apply=True,
+                                      user_id='auto_clf',
+                                      user_confidence='pretty_sure')
+                    continue
+        # Manual review
+        decision = primary_truth.loc[edge].idxmax()
+        infr.add_feedback(aid1, aid2, decision, tags, apply=True,
+                          user_id='oracle',
+                          user_confidence='absolutely_sure')
+    # TODO: use phi to check termination
+    # TODO: recompute candidate edges
+
+    match_probs.argsort()
+
+    index = task_probs[primary_task].index
 
 
 
