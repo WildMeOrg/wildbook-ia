@@ -2608,7 +2608,7 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-    gid_list = gid_list[:200]
+    # gid_list = gid_list[:200]
 
     # Get data
     depc = ibs.depc_image
@@ -2676,7 +2676,8 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
     print('Saving ANN model to: %r' % (forest_filepath, ))
     ann_model.save(forest_filepath)
 
-    ibs.bootstrap_pca_test(model_path=output_path)
+    # ibs.bootstrap_pca_test(model_path=output_path)
+    return output_path
 
 
 @register_ibs_method
@@ -2691,7 +2692,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-    gid_list = gid_list[:200]
+    # gid_list = gid_list[:200]
 
     # Load forest
     if model_path is None:
@@ -3132,6 +3133,373 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
                 for pos in mined_pos_list:
                     data_list.append(pos['feature'])
                     label_list.append(1)
+                for neg in mined_neg_list:
+                    data_list.append(neg['feature'])
+                    label_list.append(0)
+
+                data_list = np.array(data_list)
+                label_list = np.array(label_list)
+
+                print('Train Ensemble SVM (%d)' % (current_ensemble, ))
+                # Train scaler
+                scaler = preprocessing.StandardScaler().fit(data_list)
+                data_list = scaler.transform(data_list)
+                # Train model
+                model = svm.SVC(C=C, kernel=kernel, probability=True)
+                model.fit(data_list, label_list)
+
+                # Save model pickle
+                args = (species_list_str, limit, current_ensemble, )
+                svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
+                svm_model_filepath = join(svm_model_path, svm_model_filename)
+                model_tup = (model, scaler, )
+                ut.save_cPkl(svm_model_filepath, model_tup)
+
+        ##################################################################################
+        # Step 8: update the bootstrapping algorithm to use the new ensemble during
+        #         the next round
+        config['classifier_weight_filepath'] = svm_model_path
+        config_list.append(config.copy())
+
+        ##################################################################################
+        # Step 9: get the test images and classify (cache) their proposals using
+        #         the new model ensemble
+        if precompute and precompute_test:
+            if not is_svm_model_trained:
+                depc.delete_property('localizations_classifier', test_gid_list, config=config)
+            depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
+    # Return the list of used configs
+    return config_list
+
+
+@register_ibs_method
+def bootstrap2(ibs, species_list=['zebra'],
+               alpha=10, gamma=1000, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
+               nms_thresh=0.5, C=1.0, kernel='rbf', theta=1.0,
+               model_path=None, output_path=None,
+               precompute=True, precompute_test=True, recompute=False,
+               overlap_thresh_cat_1=0.75, overlap_thresh_cat_2=0.25, overlap_thresh_cat_3=0.0,
+               **kwargs):
+    from sklearn import svm, preprocessing
+    from annoy import AnnoyIndex
+
+    # Establish variables
+    kernel = str(kernel.lower())
+    species_list = [species.lower() for species in species_list]
+    species_list_str = '.'.join(species_list)
+
+    if output_path is None:
+        output_path_ = 'models-bootstrap'
+        output_path = abspath(expanduser(join('~', 'code', 'ibeis', output_path_)))
+    print('Using output_path = %r' % (output_path, ))
+
+    # Train forest
+    model_path = ibs.bootstrap_pca_train(dims=dims, pca_limit=pca_limit,
+                                         output_path=output_path)
+
+    # Load forest
+    if model_path is None:
+        model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+
+    scaler_filename = 'forest.pca'
+    scaler_filepath = join(model_path, scaler_filename)
+    print('Loading scaler model from: %r' % (scaler_filepath, ))
+    model_tup = ut.load_cPkl(scaler_filepath)
+    pca_model, scaler, manifest_dict = model_tup
+
+    forest_filename = 'forest.ann'
+    forest_filepath = join(model_path, forest_filename)
+    print('Loading ANN model from: %r' % (forest_filepath, ))
+    ann_model = AnnoyIndex(dims)
+    ann_model.load(forest_filepath)
+
+    if recompute:
+        ut.delete(output_path)
+    ut.ensuredir(output_path)
+
+    # Get the test images for later
+    depc = ibs.depc_image
+    test_gid_list = general_get_imageset_gids(ibs, 'TEST_SET', species_list, **kwargs)
+
+    wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path, dryrun=True)
+    is_wic_model_trained = exists(wic_model_filepath)
+    ######################################################################################
+    # Step 1: train whole-image classifier
+    #         this will compute and cache any ResNet features that
+    #         haven't been computed
+    if not is_wic_model_trained:
+        wic_model_filepath = ibs.classifier_train_image_svm(species_list, output_path=output_path)
+
+    # Load model pickle
+    model_tup = ut.load_cPkl(wic_model_filepath)
+    model, scaler = model_tup
+
+    ######################################################################################
+    # Step 2: sort all test images based on whole image classifier
+    #         establish a review ordering based on classification probability
+
+    # Get scores
+    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
+    train_gid_set, data_list, label_list = vals
+    # Normalize data
+    data_list = scaler.transform(data_list)
+    # score_list_ = model.decision_function(data_list)  # NOQA
+    score_list_ = model.predict_proba(data_list)
+    score_list_ = score_list_[:, 1]
+
+    # Sort gids by scores (initial ranking)
+    comb_list = sorted(list(zip(score_list_, train_gid_set)), reverse=True)
+    sorted_gid_list = [comb[1] for comb in comb_list]
+
+    config = {
+        'algo'         : '_COMBINED',
+        'species_set'  : set(species_list),
+        'features'     : True,
+        'feature2_algo': 'resnet',
+        'classify'     : True,
+        'classifier_algo': 'svm',
+        'classifier_weight_filepath': wic_model_filepath,
+        # 'nms'          : True,
+        # 'nms_thresh'   : nms_thresh,
+        # 'thresh'       : True,
+        # 'index_thresh' : 0.25,
+    }
+    config_list = [config.copy()]
+
+    ######################################################################################
+    # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
+    #
+    if precompute:
+        needed = alpha * rounds
+        needed = min(needed, len(sorted_gid_list))
+        sorted_gid_list_ = sorted_gid_list[:needed]
+        depc.get_rowids('localizations_features', sorted_gid_list_, config=config)
+
+    # Precompute test features
+    if precompute and precompute_test:
+        # depc.get_rowids('localizations_features', test_gid_list, config=config)
+        if not is_wic_model_trained:
+            depc.delete_property('localizations_classifier', test_gid_list, config=config)
+        depc.get_rowids('localizations_classifier', test_gid_list, config=config)
+
+    ######################################################################################
+    # Step 3: for each bootstrapping round, ask user for input
+    # The initial classifier is the whole image classifier
+
+    reviewed_gid_list = []
+    for current_round in range(rounds):
+        print('------------------------------------------------------')
+        print('Current Round %r' % (current_round, ))
+
+        ##################################################################################
+        # Step 4: gather the (unreviewed) images to review for this round
+        round_gid_list = []
+        temp_index = 0
+        while len(round_gid_list) < alpha and temp_index < len(sorted_gid_list):
+            temp_gid = sorted_gid_list[temp_index]
+            if temp_gid not in reviewed_gid_list:
+                round_gid_list.append(temp_gid)
+            temp_index += 1
+
+        args = (len(round_gid_list), round_gid_list, )
+        print('Found %d unreviewed gids: %r' % args)
+
+        ##################################################################################
+        # Step 5: add any images reviewed from a previous round
+
+        args = (len(reviewed_gid_list), reviewed_gid_list, )
+        print('Adding %d previously reviewed gids: %r' % args)
+
+        # All gids that have been reviewed
+        round_gid_list = reviewed_gid_list + round_gid_list
+        reviewed_gid_list += round_gid_list
+
+        # Get model ensemble path
+        limit = len(round_gid_list)
+        args = (species_list_str, limit, kernel, C, )
+        output_filename = 'classifier.svm.localization.%s.%d.%s.%s' % args
+        svm_model_path = join(output_path, output_filename)
+        is_svm_model_trained = exists(svm_model_path)
+
+        ut.ensuredir(svm_model_path)
+
+        ##################################################################################
+        # Step 6: gather gt (simulate user interaction)
+
+        print('\tGather Ground-Truth')
+        gt_dict = general_parse_gt(ibs, test_gid_list=round_gid_list, **config)
+
+        ##################################################################################
+        # Step 7: gather predictions from all algorithms combined
+
+        if not is_svm_model_trained:
+            print('\tDelete Old Classifications')
+            depc.delete_property('localizations_classifier', round_gid_list, config=config)
+
+        print('\tGather Predictions')
+        pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
+
+        ut.embed()
+
+        category_dict = {}
+        for image_uuid in gt_dict:
+            image_gid = ibs.get_image_gids_from_uuid(image_uuid)
+
+            # Get the gt and prediction list
+            gt_list = gt_dict[image_uuid]
+            pred_list = pred_dict[image_uuid]
+
+            # Calculate overlap
+            overlap = general_overlap(gt_list, pred_list)
+            num_gt, num_pred = overlap.shape
+            max_overlap = np.max(overlap, axis=0)
+
+            # Find overlap category bins
+            cat1_idx_list = max_overlap >= overlap_thresh_cat_1
+            # cat2_idx_list = np.logical_and(overlap_thresh_cat_1 > max_overlap, max_overlap >= overlap_thresh_cat_2)
+            cat3_idx_list = np.logical_and(overlap_thresh_cat_2 > max_overlap, max_overlap > overlap_thresh_cat_3)
+            cat4_idx_list = overlap_thresh_cat_3 >= max_overlap
+
+            # Mine for prediction neighbors in category 1
+            cat_config_list = [
+                ('cat1', cat1_idx_list),
+                # ('cat2', cat2_idx_list),
+                ('cat3', cat3_idx_list),
+                ('cat4', cat4_idx_list),
+            ]
+            for cat_tag, cat_idx_list in cat_config_list:
+                if cat_tag not in category_dict:
+                    category_dict[cat_tag] = {}
+
+                # Take the predictions for this category
+                cat_pred_list = ut.take(pred_list, cat_idx_list)
+
+                # Add raw predictions
+                if image_gid not in category_dict[cat_tag]:
+                    category_dict[cat_tag][image_gid] = []
+                category_dict[cat_tag][image_gid] += cat_pred_list
+
+                if cat_tag == 'cat1':
+                    # Go over predictions and find neighbors, sorting into either cat1 or cat3
+                    for cat_pred in cat_pred_list:
+                        feature_list = np.array([cat_pred['feature']])
+                        data_list = scaler.transform(feature_list)
+                        data_list_ = pca_model.transform(data_list)[0]
+
+                        neighbor_index_list = ann_model.get_nns_by_vector(data_list_, gamma)
+                        neighbor_manifest_list = list(set([
+                            manifest_dict[neighbor_index]
+                            for neighbor_index in neighbor_index_list
+                        ]))
+                        neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
+                        neighbor_gid_set_ = list(set(neighbor_gid_list_))
+                        neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
+                        neighbor_idx_list_ = ut.take_column(neighbor_manifest_list, 1)
+
+                        neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
+                                                                  **config)
+
+                        zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_idx_list_)
+                        for neighbor_gid, neighbor_uuid, neighbor_idx in zipped:
+                            neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_idx]
+                            cat_tag_ = 'cat1' if neighbor_pred['confidence'] >= epsilon else 'cat3'
+                            if cat_tag_ not in category_dict:
+                                category_dict[cat_tag_] = {}
+                            if neighbor_gid not in category_dict[cat_tag_]:
+                                category_dict[cat_tag_][neighbor_gid] = []
+                            category_dict[cat_tag_][neighbor_gid].append(neighbor_pred)
+
+        # Perform NMS on each category
+        for cat_tag in sorted(category_dict.keys()):
+            cat_pred_dict = category_dict[cat_tag]
+            cat_pred_list = []
+            for cat_gid in cat_pred_dict:
+                pred_list = cat_pred_dict[cat_gid]
+                # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
+                coord_list = []
+                confs_list = []
+                for pred in pred_list:
+                    xbr = pred['xbr']
+                    ybr = pred['ybr']
+                    xtl = pred['xtl']
+                    ytl = pred['ytl']
+                    conf = pred['confidence']
+                    coord_list.append([xtl, ytl, xbr, ybr])
+                    confs_list.append(conf)
+                coord_list = np.vstack(coord_list)
+                confs_list = np.array(confs_list)
+                # Perform NMS
+                keep_indices_list = nms(coord_list, confs_list, nms_thresh)
+                keep_indices_set = set(keep_indices_list)
+                pred_list_ = [
+                    pred
+                    for index, pred in enumerate(pred_list)
+                    if index in keep_indices_set
+                ]
+                cat_pred_list += pred_list_
+            # Print stats
+            conf_list = []
+            for cat_pred in cat_pred_list:
+                conf_list.append(cat_pred['confidence'])
+            conf_list = np.array(conf_list)
+            args = (
+                cat_tag,
+                np.min(conf_list),
+                np.mean(conf_list),
+                np.std(conf_list),
+                np.max(conf_list),
+            )
+            print('Category %r Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
+            # Overwrite GID dictionary with a list of predictions
+            category_dict[cat_tag] = cat_pred_list
+            cat_total = len(category_dict[cat_tag])
+            print('Proposals for category %r: %d' % (cat_tag, cat_total, ))
+
+        ##################################################################################
+        # Step 8: train SVM ensemble using fresh mined data for each ensemble
+
+        # Train models, one-by-one
+        for current_ensemble in range(1, ensemble + 1):
+            # Train new models
+            if not is_svm_model_trained:
+                # Compile feature data and label list
+                mined_pos_list = category_dict['cat1']
+                mined_hard_list = category_dict['cat3']
+                mined_neg_list = category_dict['cat4']
+
+                num_pos = len(mined_pos_list)
+                num_target = num_pos / theta
+
+                if len(mined_hard_list) > num_target:
+                    np.random.shuffle(mined_hard_list)
+                    mined_hard_list = mined_hard_list[:num_target]
+
+                if len(mined_neg_list) > num_target:
+                    np.random.shuffle(mined_neg_list)
+                    mined_neg_list = mined_neg_list[:num_target]
+
+                num_pos = len(mined_pos_list)
+                num_hard = len(mined_pos_list)
+                num_neg = len(mined_pos_list)
+                num_total = num_pos + num_hard + num_pos
+                args = (
+                    num_pos,
+                    num_hard + num_pos,
+                    num_hard,
+                    num_neg,
+                    num_pos / num_total,
+                )
+                print('Training with %d positives and %d (%d + %d) negatives (%0.02f split)' % args)
+
+                data_list = []
+                label_list = []
+                for pos in mined_pos_list:
+                    data_list.append(pos['feature'])
+                    label_list.append(1)
+                for pos in mined_hard_list:
+                    data_list.append(pos['feature'])
+                    label_list.append(0)
                 for neg in mined_neg_list:
                     data_list.append(neg['feature'])
                     label_list.append(0)
