@@ -1013,6 +1013,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
+        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.50, 'line_dotted': True},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1425,7 +1426,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # color_list += [(0.2, 0.2, 0.2)]
 
     color_list = pt.distinct_colors(6, randomize=False)
-    color_list = [(0.2, 0.2, 0.2)] + color_list + color_list
+    color_list = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)] + color_list + color_list
 
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
