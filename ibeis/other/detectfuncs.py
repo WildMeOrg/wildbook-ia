@@ -2487,11 +2487,9 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
         features_list = None
         return total, data_list, index_list
 
-    ut.embed()
-
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-    gid_list = gid_list[:20]
+    gid_list = gid_list[:200]
 
     # Get data
     depc = ibs.depc_image
@@ -2519,11 +2517,11 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
         start_index = ann_round * ann_batch
         stop_index = (ann_round + 1) * ann_batch
         assert start_index < len(gid_list)
-        stop_index = min(stop_index, len(gid_list) - 1)
+        stop_index = min(stop_index, len(gid_list))
         print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
 
         # Slice gids and get feature data
-        gid_list_ = gid_list[start_index, stop_index]
+        gid_list_ = gid_list[start_index: stop_index]
         total, data_list, index_list = _get_data(depc, gid_list_)
 
         # Scaler
@@ -2551,59 +2549,195 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
     scaler_filename = 'forest.pca'
     scaler_filepath = join(output_path, scaler_filename)
     print('Saving scaler model to: %r' % (scaler_filepath, ))
-    model_tup = (pca_model, scaler, )
-    ut.save_cPkl(scaler_filepath, model_tup, manifest_dict)
+    model_tup = (pca_model, scaler, manifest_dict, )
+    ut.save_cPkl(scaler_filepath, model_tup)
 
     forest_filename = 'forest.ann'
     forest_filepath = join(output_path, forest_filename)
     print('Saving ANN model to: %r' % (forest_filepath, ))
     ann_model.save(forest_filepath)
 
+    ibs.bootstrap_pca_test(model_path=output_path)
+
 
 @register_ibs_method
 def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
-                       output_path=None, **kwargs):
+                       model_path=None, output_path=None, neighbors=1000,
+                       nms_thresh=0.5, min_confidence=0.3, **kwargs):
     from annoy import AnnoyIndex
 
-    depc = ibs.depc_image
+    if output_path is None:
+        output_path = abspath(expanduser(join('~', 'Desktop', 'output-ann')))
+    ut.ensuredir(output_path)
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
     gid_list = gid_list[:200]
 
     # Load forest
-    if output_path is None:
-        output_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    if model_path is None:
+        model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
 
     scaler_filename = 'forest.pca'
-    scaler_filepath = join(output_path, scaler_filename)
+    scaler_filepath = join(model_path, scaler_filename)
     print('Loading scaler model from: %r' % (scaler_filepath, ))
     model_tup = ut.load_cPkl(scaler_filepath)
-    pca_model, scaler = model_tup
+    pca_model, scaler, manifest_dict = model_tup
 
     forest_filename = 'forest.ann'
-    forest_filepath = join(output_path, forest_filename)
+    forest_filepath = join(model_path, forest_filename)
     print('Loading ANN model from: %r' % (forest_filepath, ))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
 
-    # Get test data
     config = {
         'algo'         : '_COMBINED',
         'features'     : True,
         'feature2_algo': 'resnet',
+        'classify'     : True,
+        'classifier_algo': 'svm',
+        'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.pkl',
     }
-    for gid in gid_list:
-        data_list = depc.get_property('localizations_features', gid, 'vector',
-                                         config=config)
-        ut.embed()
-        data_list = scaler.transform(data_list)
-        data_list_ = pca_model.transform(data_list)
 
-        neighbors_list = [
-            ann_model.get_nns_by_vector(data_, 20)
-            for data_ in data_list_
-        ]
+    print('\tGather Ground-Truth')
+    gt_dict = general_parse_gt(ibs, test_gid_list=gid_list, **config)
+
+    print('\tGather Predictions')
+    pred_dict = localizer_parse_pred(ibs, test_gid_list=gid_list, **config)
+
+    for image_uuid in gt_dict:
+        # Get the gt and prediction list
+        gt_list = gt_dict[image_uuid]
+        pred_list = pred_dict[image_uuid]
+
+        # Calculate overlap
+        overlap = general_overlap(gt_list, pred_list)
+        num_gt, num_pred = overlap.shape
+
+        max_overlap = np.max(overlap, axis=0)
+        index_list = np.argsort(max_overlap)
+
+        example_limit = 5
+        worst_idx_list = index_list[:example_limit]
+        best_idx_list = index_list[-1 * example_limit:]
+
+        print('Worst ovelap: %r' % (overlap[:, worst_idx_list], ))
+        print('Best ovelap:  %r' % (overlap[:, best_idx_list], ))
+
+        idx_list = best_idx_list
+        example_list = ut.take(pred_list, idx_list)
+
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
+
+        for example, offset in zip(example_list, idx_list):
+            gid = example['gid']
+            feature_list = np.array([example['feature']])
+            data_list = scaler.transform(feature_list)
+            data_list_ = pca_model.transform(data_list)[0]
+
+            neighbor_index_list = ann_model.get_nns_by_vector(data_list_, neighbors)
+            neighbor_manifest_list = list(set([
+                manifest_dict[neighbor_index]
+                for neighbor_index in neighbor_index_list
+            ]))
+            neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
+            neighbor_gid_list_ = [gid] + neighbor_gid_list_
+            neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
+            neighbor_offset_list_ = ut.take_column(neighbor_manifest_list, 1)
+            neighbor_offset_list_ = [offset] + neighbor_offset_list_
+
+            neighbor_gid_set_ = list(set(neighbor_gid_list_))
+            neighbor_image_list = ibs.get_image_imgdata(neighbor_gid_set_)
+            neighbor_image_dict = {
+                gid: image
+                for gid, image in zip(neighbor_gid_set_, neighbor_image_list)
+            }
+
+            neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
+                                                      **config)
+
+            neighbor_dict = {}
+            zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_offset_list_)
+            for neighbor_gid, neighbor_uuid, neighbor_offset in zipped:
+                if neighbor_gid not in neighbor_dict:
+                    neighbor_dict[neighbor_gid] = []
+                neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_offset]
+                neighbor_dict[neighbor_gid].append(neighbor_pred)
+
+            # Perform NMS
+            chip_list = []
+            query_image = ibs.get_image_imgdata(gid)
+            xbr = example['xbr']
+            ybr = example['ybr']
+            xtl = example['xtl']
+            ytl = example['ytl']
+
+            height, width = query_image.shape[:2]
+            xbr = int(xbr * width)
+            ybr = int(ybr * height)
+            xtl = int(xtl * width)
+            ytl = int(ytl * height)
+            # Get chips
+            try:
+                chip = query_image[ytl: ybr, xtl: xbr, :]
+                chip = cv2.resize(chip, (192, 192), **warpkw)
+                chip_list.append(chip)
+            except:
+                pass
+            chip_list.append(np.zeros((192, 10, 3)))
+
+            for neighbor_gid in neighbor_dict:
+                neighbor_list = neighbor_dict[neighbor_gid]
+                # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
+                coord_list = []
+                confs_list = []
+                for neighbor in neighbor_list:
+                    xbr = neighbor['xbr']
+                    ybr = neighbor['ybr']
+                    xtl = neighbor['xtl']
+                    ytl = neighbor['ytl']
+                    conf = neighbor['confidence']
+                    coord_list.append([xtl, ytl, xbr, ybr])
+                    confs_list.append(conf)
+                coord_list = np.vstack(coord_list)
+                confs_list = np.array(confs_list)
+                # Perform NMS
+                keep_indices_list = nms(coord_list, confs_list, nms_thresh)
+                keep_indices_set = set(keep_indices_list)
+                neighbor_list_ = [
+                    neighbor
+                    for index, neighbor in enumerate(neighbor_list)
+                    if index in keep_indices_set
+                ]
+
+                neighbor_image = neighbor_image_dict[neighbor_gid]
+                for neightbor_ in neighbor_list_:
+                    xbr = neightbor_['xbr']
+                    ybr = neightbor_['ybr']
+                    xtl = neightbor_['xtl']
+                    ytl = neightbor_['ytl']
+                    conf = neighbor['confidence']
+
+                    height, width = neighbor_image.shape[:2]
+                    xbr = int(xbr * width)
+                    ybr = int(ybr * height)
+                    xtl = int(xtl * width)
+                    ytl = int(ytl * height)
+                    # Get chips
+                    try:
+                        chip = neighbor_image[ytl: ybr, xtl: xbr, :]
+                        chip = cv2.resize(chip, (192, 192), **warpkw)
+                        color = (0, 255, 0) if conf >= min_confidence else (0, 0, 255)
+                        cv2.rectangle(chip, (0, 0), (192, 192), color, 10)
+                        chip_list.append(chip)
+                    except:
+                        pass
+
+            canvas = np.hstack(chip_list)
+            output_filename = 'neighbors_%d_%d.png' % (gid, offset, )
+            output_filepath = join(output_path, output_filename)
+            cv2.imwrite(output_filepath, canvas)
 
 
 def _bootstrap_mine(ibs, gt_dict, pred_dict, scheme, reviewed_gid_dict,
