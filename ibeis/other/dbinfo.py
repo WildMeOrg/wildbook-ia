@@ -616,7 +616,6 @@ def split_analysis(ibs):
         edge_to_speeds = annots.get_speeds()
         print('max_speed = %r' % (max(edge_to_speeds.values())),)
         infr.initialize_visual_node_attrs()
-        infr.apply_cuts()
         infr.show_graph(use_image=True, only_reviewed=True)
 
     rest = ~np.logical_or(flags1, flags2)
@@ -629,7 +628,6 @@ def split_analysis(ibs):
         edge_to_speeds = annots.get_speeds()
         print('max_speed = %r' % (max(edge_to_speeds.values())),)
         infr.initialize_visual_node_attrs()
-        infr.apply_cuts()
         infr.show_graph(use_image=True, only_reviewed=True)
 
     #import scipy.stats as st

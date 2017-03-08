@@ -346,6 +346,7 @@ class QueryRequest(ut.NiceRepr):
             qreq_.unique_nids = ut.dict_take(custom_nid_lookup,
                                              qreq_.unique_aids)
         qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()
+        qreq_.dnid_to_groupuuid = qreq_._make_namegroup_data_uuids()
         return qreq_
 
     def _make_namegroup_uuids(qreq_):
@@ -364,7 +365,51 @@ class QueryRequest(ut.NiceRepr):
         nid_to_groupuuid = dict(zip(unique_nids, group_uuids))
         return nid_to_groupuuid
 
+    def _make_namegroup_data_uuids(qreq_):
+        """
+        Replaces semantic uuids with dynamically created uuid groups
+        only for database annotations (hacks for iccv).
+        """
+        assert qreq_.qparams.vsmany
+        annots = qreq_.ibs.annots(qreq_.daids)
+        dnids = qreq_.get_qreq_annot_nids(annots.aids)
+        unique_dnids, groupxs = annots.group_indicies(dnids)
+        visual_uuids = annots.visual_uuids
+        grouped_visual_uuids = ut.apply_grouping(visual_uuids, groupxs)
+        group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
+                       for uuids in grouped_visual_uuids]
+        dnid_to_groupuuid = dict(zip(unique_dnids, group_uuids))
+        return dnid_to_groupuuid
+
+    def get_qreq_pcc_semantic_uuids(qreq_, aids):
+        nids = qreq_.get_qreq_annot_nids(aids)
+        zero = ut.util_hash.get_zero_uuid()
+        dannot_name_uuids = ut.dict_take(qreq_.dnid_to_groupuuid, nids, zero)
+        dannot_visual_uuids = qreq_.ibs.get_annot_visual_uuids(aids)
+        dannot_semantic_uuids = [
+            ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
+            for vuuid, nuuid in zip(dannot_visual_uuids, dannot_name_uuids)
+        ]
+        return dannot_semantic_uuids
+
+    def get_qreq_dannot_semantic_hashid(qreq_):
+        """
+        hack for iccv
+        only considers grouping of database names
+        """
+        dannot_semantic_uuids = qreq_.get_qreq_pcc_semantic_uuids(
+            qreq_.daids)
+        prefix = 'D'
+        label = ''.join(('_', prefix, 'SUUIDS'))
+        semantic_hashid  = ut.hashstr_arr27(dannot_semantic_uuids, label,
+                                            pathsafe=True)
+        return semantic_hashid
+
     def get_qreq_annot_semantic_hashid(qreq_, aids, prefix=''):
+        """
+        Gets a semantic hashid of a subset of annotations based on the current
+        grouping of names.
+        """
         # qreq_.ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix)
         annot_semantic_uuids = qreq_.get_qreq_annot_semantic_uuids(aids)
         label = ''.join(('_', prefix, 'SUUIDS'))
@@ -372,6 +417,10 @@ class QueryRequest(ut.NiceRepr):
         return semantic_hashid
 
     def get_qreq_annot_semantic_uuids(qreq_, aids):
+        """
+        Gets a semantic uuids of a subset of annotations based on the current
+        grouping of names.
+        """
         # TODO: need to speed up this function.
         # Perhaps freeze the suuids and cache per aid
         nids = qreq_.get_qreq_annot_nids(aids)
@@ -1132,7 +1181,7 @@ class QueryRequest(ut.NiceRepr):
             #    indexer = multi_index.request_ibeis_mindexer(
             #        qreq_, verbose=verbose)
             else:
-                raise AssertionError('uknown index_method=%r' % (index_method,))
+                raise ValueError('unknown index_method=%r' % (index_method,))
             #if qreq_.prog_hook is not None:
             #    hook.set_progress(4, 4, lbl='building indexer')
             qreq_.indexer = indexer
@@ -1222,6 +1271,7 @@ class QueryRequest(ut.NiceRepr):
         r"""
         Efficient function to get a list of chipmatch paths
         """
+        dpath = qreq_.get_qresdir()
         cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
         qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
         fname_list = [
@@ -1229,7 +1279,6 @@ class QueryRequest(ut.NiceRepr):
                                            cfgstr=cfgstr)
             for qaid, qauuid in zip(qaid_list, qauuid_list)
         ]
-        dpath = qreq_.get_qresdir()
         fpath_list = [join(dpath, fname) for fname in fname_list]
         return fpath_list
 

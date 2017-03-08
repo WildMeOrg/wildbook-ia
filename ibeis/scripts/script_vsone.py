@@ -634,6 +634,50 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
+    def make_deploy_features(pblm, infr, data_key):
+        """
+        Create pairwise features for annotations in a test inference object
+        based on the features used to learn here
+        """
+        candidate_edges = list(infr.edges())
+        # Parse the data_key to build the appropriate feature
+        featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
+        # Do one-vs-one scoring on candidate edges
+        # Find the kwargs to make the desired feature subset
+        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
+        # print(featinfo.get_infostr())
+        print('Building need features')
+        config = pblm.hyper_params.vsone_assign
+        matches, X = infr._make_pairwise_features(
+            candidate_edges, config=config, pairfeat_cfg=pairfeat_cfg,
+            need_lnbnn=need_lnbnn)
+        assert np.all(featinfo.X.columns == X.columns), (
+            'inconsistent feature dimensions')
+        return X
+
+    def predict_proba_deploy(pblm, X, task_keys):
+        import pandas as pd
+        task_probs = {}
+        for task_key in task_keys:
+            print('Predicting %s probabilities' % (task_key,))
+            clf = pblm.deploy_task_clfs[task_key]
+            labels = pblm.samples.subtasks[task_key]
+            columns = ut.take(labels.class_names, clf.classes_)
+            probs_df = pd.DataFrame(
+                clf.predict_proba(X),
+                columns=columns, index=X.index
+            )
+            # add in zero probability for classes without training data
+            missing = ut.setdiff(labels.class_names, columns)
+            if missing:
+                for classname in missing:
+                    print('classname = %r' % (classname,))
+                    probs_df = probs_df.assign(**{
+                        classname: np.zeros(len(probs_df))})
+            task_probs[task_key] = probs_df
+        return task_probs
+
     @profile
     def predict_proba_evaluation(pblm, task_keys, clf_key, data_key, infr,
                                  want_edges):

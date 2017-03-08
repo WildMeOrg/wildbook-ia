@@ -457,7 +457,6 @@ class AnnotGraphInteraction(AbstractInteraction):
         _debug_button(self.infr.apply_scores, r_next)
         _debug_button(self.infr.apply_feedback, r_next)
         _debug_button(self.infr.apply_weights, r_next)
-        _debug_button(self.infr.apply_cuts, r_next)
         _debug_button(self.infr.apply_all, r_next)
 
         r_next = hr_next3
@@ -779,7 +778,6 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     #infr.apply_scores()
     #infr.apply_feedback()
     #infr.apply_weights()
-    #infr.apply_cuts()
     if ut.get_argflag('--cut'):
         infr.apply_all()
 

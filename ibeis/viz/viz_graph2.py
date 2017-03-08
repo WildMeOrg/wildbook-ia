@@ -673,13 +673,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.apply_feedback_edges()
                 self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
-                # self.infr.apply_cuts()
             elif self.init_mode == 'rereview':
                 self.infr.apply_feedback_edges()
                 self.infr.apply_match_scores()
                 self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
-                # self.infr.apply_cuts()
             elif self.init_mode == 'review':
                 self.infr.apply_match_edges()
                 self.infr.review_dummy_edges()
@@ -688,8 +686,6 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
                 self.infr.apply_review_inference()
-                # probably don't need apply_cuts
-                self.infr.apply_cuts()
 
         # Set gui status indicators
         status = self.infr.connected_component_status()
@@ -1646,8 +1642,7 @@ def make_edge_api(infr, review_cfg={}):
 
     """
     if review_cfg['hack_min_review']:
-        pairs = ut.take_column(ut.take_column(infr.get_edges_for_review(), 0), [0, 1])
-        aids1, aids2 = ut.listT(pairs)
+        assert False
     else:
         aids1, aids2 = infr.get_filtered_edges(review_cfg)
 

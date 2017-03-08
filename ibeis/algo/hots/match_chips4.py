@@ -209,7 +209,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True, batch
         exists_flags = [exists(fpath) for fpath in fpath_list]
         qaids_hit = ut.compress(external_qaids, exists_flags)
         fpaths_hit = ut.compress(fpath_list, exists_flags)
-        fpath_iter = ut.ProgressIter(
+        fpath_iter = ut.ProgIter(
             fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
             lbl='loading cache hits', adjust=True, freq=1)
         try:
@@ -222,7 +222,7 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True, batch
             qaid2_cm_hit = {cm.qaid: cm for cm in cm_hit_list}
         except chip_match.NeedRecomputeError:
             print('NeedRecomputeError: Some cached chips need to recompute')
-            fpath_iter = ut.ProgressIter(
+            fpath_iter = ut.ProgIter(
                 fpaths_hit, nTotal=len(fpaths_hit), enabled=len(fpaths_hit) > 1,
                 lbl='checking chipmatch cache', adjust=True, freq=1)
             # Recompute those that fail loading
@@ -293,9 +293,9 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
     nTotalChunks    = ut.get_num_chunks(len(all_qaids), chunksize)
     qaid_chunk_iter = ut.ichunks(all_qaids, chunksize)
     _qreq_iter = (qreq_.shallowcopy(qaids=qaids) for qaids in qaid_chunk_iter)
-    sub_qreq_iter = ut.ProgressIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
-                                    lbl='[mc4] query chunk: ',
-                                    prog_hook=qreq_.prog_hook)
+    sub_qreq_iter = ut.ProgIter(_qreq_iter, nTotal=nTotalChunks, freq=1,
+                                lbl='[mc4] query chunk: ',
+                                prog_hook=qreq_.prog_hook)
     for sub_qreq_ in sub_qreq_iter:
         if ut.VERBOSE:
             print('Generating vsmany chunk')
@@ -307,8 +307,8 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
         if save_qcache:
             fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.qaids)
             _iter = zip(sub_cm_list, fpath_list)
-            _iter = ut.ProgressIter(_iter, nTotal=len(sub_cm_list),
-                                    lbl='saving chip matches', adjust=True, freq=1)
+            _iter = ut.ProgIter(_iter, nTotal=len(sub_cm_list),
+                                lbl='saving chip matches', adjust=True, freq=1)
             for cm, fpath in _iter:
                 cm.save_to_fpath(fpath, verbose=False)
         else:

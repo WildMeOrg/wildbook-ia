@@ -41,18 +41,25 @@ def encounter_stuff(ibs, aids):
 def end_to_end():
     import ibeis
     from ibeis.init import main_helpers
-    ibs = ibeis.opendb('GZ_Master1')
-
-    expt_aids = ibs.filter_annots_general(require_timestamp=True, require_gps=True,
-                                          is_known=True)
-
-    main_helpers.monkeypatch_encounters(ibs, expt_aids, minutes=30)
+    ibs = ibeis.opendb('PZ_MTEST')
+    # ibs = ibeis.opendb('GZ_Master1')
+    # Specialized database params
+    enc_kw = dict(minutes=30)
+    filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True)
+    if ibs.dbname == 'PZ_MTEST':
+        enc_kw = dict(days=50)
+        filt_kw = dict(require_timestamp=True, is_known=True)
+    expt_aids = ibs.filter_annots_general(**filt_kw)
+    main_helpers.monkeypatch_encounters(ibs, aids=expt_aids, **enc_kw)
 
     annots = ibs.annots(expt_aids)
     names = list(annots.group_items(annots.nids).values())
     ut.shuffle(names, rng=321)
     train_aids = ut.flatten(names[0::2])
     test_aids = ut.flatten(names[1::2])
+
+    # -----------
+    # TRAINING
 
     # aids = train_aids
     # phis = learn_termination(ibs, aids=train_aids)
@@ -68,56 +75,17 @@ def end_to_end():
     pblm.build_feature_subsets()
     # task_keys = list(pblm.samples.subtasks.keys())
 
-    deploy_task_clfs = pblm.learn_deploy_classifiers(task_keys,
-                                                     data_key=data_key,
+    pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
                                                      clf_key=clf_key)
-    # match_clf = deploy_task_clfs['match_state']
-    # pb_clf = deploy_task_clfs['photobomb_state']
+    # match_clf = pblm.deploy_task_clfs['match_state']
+    # pb_clf = pblm.deploy_task_clfs['photobomb_state']
 
     # Inspect feature importances if you want
     # pblm.report_classifier_importance2(match_clf, data_key=data_key)
     # pblm.report_classifier_importance2(pb_clf, data_key=data_key)
 
-    # Create a new AnnotInference instance to go end-to-end
-    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True)
-
-    # Use one-vs-many to establish candidate edges to classify
-    infr.exec_matching()
-    infr.apply_match_edges()
-    candidate_edges = list(infr.edges())
-
-    from ibeis.scripts.script_vsone import AnnotPairFeatInfo
-    # Do one-vs-one scoring on candidate edges
-    # Parse the data_key to build the appropriate feature
-    featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
-    # Find the kwargs to make the desired feature subset
-    pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-    need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-    # print(featinfo.get_infostr())
-    print('Building need features')
-    config = pblm.hyper_params.vsone_assign
-    matches, X = infr._make_pairwise_features(
-        candidate_edges, config=config, pairfeat_cfg=pairfeat_cfg,
-        need_lnbnn=need_lnbnn)
-    assert np.all(featinfo.X.columns == X.columns), (
-        'inconsistent feature dimensions')
-
-    import pandas as pd
-    task_probs = {}
-    for task_key in task_keys:
-        print('Predicting %s probabilities' % (task_key,))
-        clf = deploy_task_clfs[task_key]
-        labels = pblm.samples.subtasks[task_key]
-        columns = ut.take(labels.class_names, clf.classes_)
-        probs_df = pd.DataFrame(
-            clf.predict_proba(X),
-            columns=columns, index=X.index
-        )
-        task_probs[task_key] = probs_df
-
-    # auto_decisions_at_threshold
-    # REVIEW = ibs.const.REVIEW
-
+    # ------------
+    # TESTING
     """
     Algorithm Alternatives:
         1. Ranking only
@@ -125,71 +93,137 @@ def end_to_end():
         3. K=1
         4. K=2
     """
+    if False:
+        test_aids = ut.flatten(names[1::2][::2])
 
-    task_thresh = {
-        'photobomb_state': {
-            'pb': .5,
-            'notpb': .9,
-        },
-        'match_state': ut.odict([
-            ('nomatch', .99),
-            ('match', .99),
-            ('notcomp', .99),
-        ])
-    }
-
-    primary_task = 'match_state'
-    infr.PRIORITY_METRIC = 'priority'
-    match_probs = task_probs[primary_task]['match']
-
-    primary_truth = infr.match_state_df(X.index)
-
-    # Set priority on the graph
-    infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
-    infr.remove_feedback()
-    infr._init_priority_queue()
+    import pandas as pd
+    import plottool as pt  # NOQA
+    # Create a new AnnotInference instance to go end-to-end
+    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True)
+    infr.reset(state='empty')
+    infr.set_node_attrs('pin', True)
     infr.verbose = 1
     infr.verbose = 0
 
-    # match_probs = task_probs[primary_task]['match']
-    # TODO: actually use annot infr priority mechanism
-    # priority_edges = match_probs.index[match_probs.values.argsort()[::-1]]
+    oracle_accuracy = 1.0
 
-    # for edge in ut.ProgIter(priority_edges):
-    # for edge in infr.generate_reviews():
-    while True:
-        edge, priority = infr.queue.pop()
-        print('priority = %r' % (priority,))
-        if priority >= -1:
-            print('edge = %r' % (edge,))
+    task_thresh = {
+        'photobomb_state': pd.Series({
+            'pb': .5,
+            'notpb': .9,
+        }),
+        'match_state': pd.Series(ut.odict([
+            ('nomatch', .99),
+            ('match', .99),
+            ('notcomp', .99),
+        ]))
+    }
+    primary_task = 'match_state'
+
+    # Use one-vs-many to establish candidate edges to classify
+    # TODO: use temporary name labels to requery neighbors
+    infr.exec_matching(cfgdict={
+        # 'single_name_condition': True,
+    })
+    infr.apply_match_edges(review_cfg={'ranks_top': 5})
+
+    # infr.show(show_candidate_edges=True)
+
+    # Construct pairwise features on edges in infr
+    X = pblm.make_deploy_features(infr, data_key)
+    task_probs = pblm.predict_proba_deploy(X, task_keys)
+
+    # Get groundtruth state based on ibeis controller
+    primary_truth = infr.match_state_df(X.index)
+
+    # Set priority on the graph
+    if True:
+        # Ranking only algorithm
+        infr.queue_params['pos_redundancy'] = np.inf
+        infr.queue_params['neg_redundancy'] = np.inf
+        infr.apply_match_scores()
+        infr.PRIORITY_METRIC = 'normscore'
+        autoreview_enabled = False
+    else:
+        infr.queue_params['pos_redundancy'] = 1
+        infr.queue_params['neg_redundancy'] = 1
+        infr.PRIORITY_METRIC = 'priority'
+        match_probs = task_probs[primary_task]['match']
+        infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
+
+    def check_autodecide(edge, priority):
+        if priority > 1:
+            return False
+        else:
             decision_probs = task_probs[primary_task].loc[edge]
-            decision_flags = decision_probs > pd.Series(task_thresh[primary_task])
-            if sum(decision_flags) == 1:
-                pb_probs = task_probs['photobomb_state'].loc[edge]
-                confounded = pb_probs['pb'] > task_thresh['photobomb_state']['pb']
-                if not confounded:
-                    decision = decision_flags.argmax()
-                    print('decision = %r' % (decision,))
-                    aid1, aid2 = edge
-                    tags = []
-                    infr.add_feedback(aid1, aid2, decision, tags, apply=True,
-                                      user_id='auto_clf',
-                                      user_confidence='pretty_sure')
-                    continue
+            decision_flags = decision_probs > task_thresh[primary_task]
+        flag = False
+        decision = None
+        tags = []
+        if sum(decision_flags) == 1:
+            pb_probs = task_probs['photobomb_state'].loc[edge]
+            confounded = pb_probs['pb'] > task_thresh['photobomb_state']['pb']
+            if not confounded:
+                decision = decision_flags.argmax()
+                flag = True
+        return flag, decision, tags
+
+    rng = ut.ensure_rng(10, impl='python')
+    def oracle_review(edge):
         # Manual review
-        decision = primary_truth.loc[edge].idxmax()
+        truth = primary_truth.loc[edge].idxmax()
+        error = oracle_accuracy < rng.random()
+        if error:
+            observed = rng.choice(list(set(primary_truth.keys())))
+        else:
+            observed = truth
+        if oracle_accuracy == 1:
+            user_confidence = 'absolutely_sure'
+        elif oracle_accuracy > .5:
+            user_confidence = 'pretty_sure'
+        else:
+            user_confidence = 'guessing'
+        return observed, error, user_confidence
+
+    from ibeis.algo.hots.graph_iden import RefreshCriteria
+    refresh_criteria = RefreshCriteria()
+    self = refresh_criteria
+    self.frac_thresh
+
+    infr.remove_feedback(apply=True)
+    infr._init_priority_queue()
+    print(infr.queue)
+
+    # for edge, priority in infr.generate_reviews(data=True):
+    while True:
+        try:
+            edge, priority = infr.pop()
+        except StopIteration:
+            print('Priority queue is empty')
+            break
+        aid1, aid2 = edge
+        flag, decision, tags = check_autodecide(edge, priority)
+        print('edge=%r, priority=%r, flag=%r' % (edge, priority, flag))
+        if autoreview_enabled and flag:
+            user_id = 'auto_clf'
+            user_confidence = 'pretty_sure'
+            print('auto-decision = %r' % (decision,))
+        else:
+            decision, error, user_confidence = oracle_review(edge)
+            user_id = 'oracle'
+            print('oracle-decision = %r, error=%r' % (decision, error))
         infr.add_feedback(aid1, aid2, decision, tags, apply=True,
-                          user_id='oracle',
-                          user_confidence='absolutely_sure')
+                          user_id=user_id, user_confidence=user_confidence)
+        refresh_criteria.add(decision, user_id)
+
+        if refresh_criteria.check():
+            print('need to refresh')
+            break
+
+        infr.show(show_candidate_edges=True)
+
     # TODO: use phi to check termination
     # TODO: recompute candidate edges
-
-    match_probs.argsort()
-
-    index = task_probs[primary_task].index
-
-
-
 
 
 def learn_termination(ibs, aids):

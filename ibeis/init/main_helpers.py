@@ -436,7 +436,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     cfgstr = str(ut.combine_uuids(annots.visual_uuids))
     cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
     data = cacher.tryload()
-    if data is not None:
+    if data is None:
         print('Computing occurrences')
         data = cluster_timespace_sec(
             annots.image_unixtimes_asfloat, annots.gps,
@@ -453,9 +453,9 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     annots_per_enc = ut.dict_hist(encounter_labels, ordered=True)
     ut.get_stats(list(annots_per_enc.values()))
 
-    encounters = ibs._annot_groups(annots.group(encounter_labels)[1])
-    enc_names = ut.take_column(encounters.nids, 0)
-    name_to_encounters = ut.group_items(encounters, enc_names)
+    # encounters = ibs._annot_groups(annots.group(encounter_labels)[1])
+    # enc_names = ut.take_column(encounters.nids, 0)
+    # name_to_encounters = ut.group_items(encounters, enc_names)
 
     # print('name_to_encounters = %s' % (ut.repr3(name_to_encounters)),)
     # print('Names to num encounters')
@@ -467,6 +467,7 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         return ut.dict_take(enc_lookup, aids)
     ut.inject_func_as_method(ibs, _monkey_get_annot_encounter_text,
                              'get_annot_encounter_text', force=True)
+
 
 def unmonkeypatch_encounters(ibs):
     from ibeis.other import ibsfuncs

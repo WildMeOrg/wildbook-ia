@@ -80,10 +80,10 @@ def demo_graph_iden2():
     # annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
 
     queue_params = {
-        'pos_diameter': None,
-        'neg_diameter': None,
-        # 'pos_diameter': 1,
-        # 'neg_diameter': 2,
+        'pos_redundancy': None,
+        'neg_redundancy': None,
+        # 'pos_redundancy': 1,
+        # 'neg_redundancy': 2,
     }
     # oracle_accuracy = 1.0
     oracle_accuracy = .8
@@ -93,12 +93,12 @@ def demo_graph_iden2():
     b = 10
 
     round2_params = {
-        # 'pos_diameter': None,
-        # 'neg_diameter': None,
-        # 'pos_diameter': 6,
-        # 'neg_diameter': 7,
-        'pos_diameter': 2,
-        'neg_diameter': 3,
+        # 'pos_redundancy': None,
+        # 'neg_redundancy': None,
+        # 'pos_redundancy': 6,
+        # 'neg_redundancy': 7,
+        'pos_redundancy': 2,
+        'neg_redundancy': 3,
     }
     # round2_params = None
 
@@ -475,7 +475,6 @@ def demo_ibeis_graph_iden():
         infr.apply_weights()
 
         # infr.relabel_using_reviews()
-        # infr.apply_cuts()
         if query_num == 0:
             infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
             pt.set_title('pre-review-%r' % (query_num))

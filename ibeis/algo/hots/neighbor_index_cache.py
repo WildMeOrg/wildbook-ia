@@ -280,7 +280,7 @@ def request_ibeis_nnindexer(qreq_, verbose=True, **kwargs):
         NeighborIndexer: nnindexer
 
     CommandLine:
-        python -m ibeis.algo.hots.neighbor_index_cache --test-request_ibeis_nnindexer
+        python -m ibeis.algo.hots.neighbor_index_cache request_ibeis_nnindexer
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -378,8 +378,10 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             NEIGHBOR_CACHE[base_nnindexer.cfgstr] = None
             del NEIGHBOR_CACHE[base_nnindexer.cfgstr]
 
-        new_vecs_list, new_fgws_list, new_fxs_list = get_support_data(qreq_, new_daid_list)
-        base_nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list, new_fxs_list, verbose=True)
+        support_data = get_support_data(qreq_, new_daid_list)
+        (new_vecs_list, new_fgws_list, new_fxs_list)  = support_data
+        base_nnindexer.add_support(new_daid_list, new_vecs_list, new_fgws_list,
+                                   new_fxs_list, verbose=True)
         # FIXME: pointer issues
         nnindexer = base_nnindexer
         # Change to the new cfgstr
@@ -392,7 +394,8 @@ def request_augmented_ibeis_nnindexer(qreq_, daid_list, verbose=True,
             uuid_map_fpath = get_nnindexer_uuid_map_fpath(qreq_)
             daids_hashid   = get_data_cfgstr(qreq_.ibs, daid_list)
             visual_uuid_list = qreq_.ibs.get_annot_visual_uuids(daid_list)
-            UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath, visual_uuid_list, daids_hashid)
+            UUID_MAP_CACHE.write_uuid_map_dict(uuid_map_fpath,
+                                               visual_uuid_list, daids_hashid)
         # Write to memcache
         if ut.VERBOSE:
             print('[aug] Wrote to memcache=%r' % (nnindex_cfgstr,))

@@ -223,6 +223,9 @@ class _AnnotInfrViz(object):
         if getattr(infr, '_viz_image_config_dirty', True):
             infr.update_node_image_attribute(use_image=use_image)
 
+        if kwargs.get('show_candidate_edges', None) is not None:
+            show_unreviewed_edges = kwargs['show_candidate_edges']
+
         alpha_low = .5
         alpha_med = .9
         alpha_high = 1.0
