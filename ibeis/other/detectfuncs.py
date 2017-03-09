@@ -3179,7 +3179,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 def bootstrap2(ibs, species_list=['zebra'],
                alpha=10, gamma=1000, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
                nms_thresh=0.5, C=1.0, kernel='rbf', theta=1.0,
-               model_path=None, output_path=None,
+               output_path=None,
                precompute=True, precompute_test=True, recompute=False,
                overlap_thresh_cat_1=0.75, overlap_thresh_cat_2=0.25, overlap_thresh_cat_3=0.0,
                **kwargs):
@@ -3196,29 +3196,28 @@ def bootstrap2(ibs, species_list=['zebra'],
         output_path = abspath(expanduser(join('~', 'code', 'ibeis', output_path_)))
     print('Using output_path = %r' % (output_path, ))
 
-    # Train forest
-    model_path = ibs.bootstrap_pca_train(dims=dims, pca_limit=pca_limit,
-                                         output_path=output_path)
-
-    # Load forest
-    # if model_path is None:
-    #     model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    if recompute:
+        ut.delete(output_path)
+    ut.ensuredir(output_path)
 
     scaler_filename = 'forest.pca'
-    scaler_filepath = join(model_path, scaler_filename)
+    scaler_filepath = join(output_path, scaler_filename)
+    forest_filename = 'forest.ann'
+    forest_filepath = join(output_path, forest_filename)
+
+    is_ann_model_trained = exists(scaler_filepath) and exists(forest_filepath)
+
+    # Train forest
+    if not is_ann_model_trained:
+        ibs.bootstrap_pca_train(dims=dims, pca_limit=pca_limit, output_path=output_path)
+
     print('Loading scaler model from: %r' % (scaler_filepath, ))
     model_tup = ut.load_cPkl(scaler_filepath)
     pca_model, scaler, manifest_dict = model_tup
 
-    forest_filename = 'forest.ann'
-    forest_filepath = join(model_path, forest_filename)
     print('Loading ANN model from: %r' % (forest_filepath, ))
     ann_model = AnnoyIndex(dims)
     ann_model.load(forest_filepath)
-
-    if recompute:
-        ut.delete(output_path)
-    ut.ensuredir(output_path)
 
     # Get the test images for later
     depc = ibs.depc_image
@@ -3455,8 +3454,8 @@ def bootstrap2(ibs, species_list=['zebra'],
             print('Category %r Confidences: %0.02f min, %0.02f avg, %0.02f std, %0.02f max' % args)
             # Overwrite GID dictionary with a list of predictions
             category_dict[cat_tag] = cat_pred_list
-            cat_total = len(category_dict[cat_tag])
-            print('Proposals for category %r: %d' % (cat_tag, cat_total, ))
+            cat_total = len(cat_pred_list)
+            print('NMS Proposals for category %r: %d' % (cat_tag, cat_total, ))
 
         ##################################################################################
         # Step 8: train SVM ensemble using fresh mined data for each ensemble
