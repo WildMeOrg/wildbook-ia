@@ -3179,7 +3179,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
 @register_ibs_method
 def bootstrap2(ibs, species_list=['zebra'],
-               alpha=10, gamma=1000, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
+               alpha=10, gamma=16, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
                nms_thresh_pos=0.5, nms_thresh_neg=0.75, C=1.0, kernel='rbf', theta=1.0,
                output_path=None,
                precompute=True, precompute_test=True, recompute=False,
@@ -3243,7 +3243,7 @@ def bootstrap2(ibs, species_list=['zebra'],
     #         establish a review ordering based on classification probability
 
     # Get scores
-    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET')
+    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
     train_gid_set, data_list, label_list = vals
     # Normalize data
     data_list = scaler.transform(data_list)
