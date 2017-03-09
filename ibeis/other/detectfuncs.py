@@ -2616,11 +2616,13 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
     print(data_list.shape)
 
     # Normalize data
+    print('Fit Scaler')
     scaler = StandardScaler()
     scaler.fit(data_list)
     data_list = scaler.transform(data_list)
 
     # Fit PCA
+    print('Fit PCA')
     pca_model = IncrementalPCA(n_components=dims)
     pca_model.fit(data_list)
 
@@ -3199,8 +3201,8 @@ def bootstrap2(ibs, species_list=['zebra'],
                                          output_path=output_path)
 
     # Load forest
-    if model_path is None:
-        model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
+    # if model_path is None:
+    #     model_path = abspath(expanduser(join('~', 'code', 'ibeis', 'models')))
 
     scaler_filename = 'forest.pca'
     scaler_filepath = join(model_path, scaler_filename)
