@@ -16,28 +16,30 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 class RefreshCriteria(object):
-    # TODO: becomes part of feedback on annot infr
-    def __init__(self):
-        self.window = 50
-        self.manual_decisions = []
-        self.num_pos = 0
-        self.frac_thresh = 1 / self.window
-        self.pos_thresh = 2
+    """
+    Determine when to re-query for candidate edges
+    """
+    def __init__(refresh):
+        refresh.window = 50
+        refresh.manual_decisions = []
+        refresh.num_pos = 0
+        refresh.frac_thresh = 1 / refresh.window
+        refresh.pos_thresh = 2
 
-    def add(self, decision, user_id):
-        code = 1 if decision == 'match' else 0
-        if user_id == 'oracle':
-            self.manual_decisions.append(code)
-        if code:
-            self.num_pos += 1
+    def add(refresh, decision, user_id):
+        decision_code = 1 if decision == 'match' else 0
+        if not user_id.startswith('auto'):
+            refresh.manual_decisions.append(decision_code)
+        if decision_code:
+            refresh.num_pos += 1
 
     @property
-    def pos_frac(self):
-        return np.mean(self.manual_decisions[-self.window:])
+    def pos_frac(refresh):
+        return np.mean(refresh.manual_decisions[-refresh.window:])
 
-    def check(self):
-        return (self.positive_frac < self.frac_thresh and
-                self.num_pos > self.pos_thresh)
+    def check(refresh):
+        return (refresh.pos_frac < refresh.frac_thresh and
+                refresh.num_pos > refresh.pos_thresh)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -108,7 +110,6 @@ class _AnnotInfrGroundtruth(object):
 
     def match_state_df(infr, index):
         """ Returns groundtruth state based on ibeis controller """
-        import pandas as pd
         aid_pairs = np.asarray(index.tolist())
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
@@ -119,6 +120,20 @@ class _AnnotInfrGroundtruth(object):
         ])
         match_state_df.index = index
         return match_state_df
+
+    def match_state_gt(infr, edge):
+        import pandas as pd
+        # index = pd.MultiIndex.from_tuples([edge], names=('aid1', 'aid2'))
+        # infr.match_state_df(index).loc[edge]
+        aid_pairs = np.asarray([edge])
+        is_same = infr.is_same(aid_pairs)[0]
+        is_comp = infr.is_comparable(aid_pairs)[0]
+        match_state = pd.Series(dict([
+            ('nomatch', ~is_same & is_comp),
+            ('match',    is_same & is_comp),
+            ('notcomp', ~is_comp),
+        ]))
+        return match_state
 
     def edge_attr_df(infr, key, edges=None, default=ut.NoParam):
         """ technically not groundtruth but current infererence predictions """
@@ -897,6 +912,105 @@ class _AnnotInfrFeedback(object):
         # 6: 'notcomp-photobomb',
     }
 
+    def refresh_candidate_edges(infr, pblm=None):
+        if infr.verbose:
+            print('refresh_candidate_edges')
+
+        # do LNBNN query for new edges
+        # Use one-vs-many to establish candidate edges to classify
+        # TODO: use temporary name labels to requery neighbors
+        infr.exec_matching(cfgdict={
+            # 'single_name_condition': True,
+        })
+        infr.apply_match_edges(review_cfg={'ranks_top': 5})
+        if pblm is None:
+            if infr.verbose > 1:
+                print('Prioritizing edges with one-vs-vsmany scores')
+            # Not given any deploy classifier, this is the best we can do
+            infr.task_probs = None
+            infr.apply_match_scores()
+        else:
+            if infr.verbose > 1:
+                print('Prioritizing edges with one-vs-one probabilities')
+            # data_key = 'learn(sum,glob)'
+            # task_keys = ['match_state', 'photobomb_state']
+            data_key = pblm.default_data_key
+            task_keys = list(pblm.samples.subtasks.keys())
+            # Construct pairwise features on edges in infr
+            X = pblm.make_deploy_features(infr, data_key)
+            task_probs = pblm.predict_proba_deploy(X, task_keys)
+            infr.task_probs = task_probs
+            primary_task = 'match_state'
+            match_probs = task_probs[primary_task]['match']
+            infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
+
+        # Get groundtruth state based on ibeis controller
+        # Maybe do this
+        # primary_truth = infr.match_state_df(X.index)
+
+    def try_auto_review(infr, edge, priority):
+        review = {
+            'user_id': 'auto_clf',
+            'user_confidence': 'pretty_sure',
+            'decision': None,
+            'tags': [],
+        }
+        if priority > 1:
+            # This indicates that the graph is in an inconsistent state.
+            # We must yield to the user here.
+            if infr.verbose > 1:
+                print('Must manually review inconsistent edge')
+            return False, review
+        # Determine if anything passes the match threshold
+        primary_task = 'match_state'
+        task_probs = infr.task_probs
+        decision_probs = task_probs[primary_task].loc[edge]
+        decision_flags = decision_probs > infr.task_thresh[primary_task]
+        auto_flag = False
+        if sum(decision_flags) == 1:
+            # Check to see if it might be confounded by a photobomb
+            pb_probs = task_probs['photobomb_state'].loc[edge]
+            pb_thresh = infr.task_thresh['photobomb_state']['pb']
+            confounded = pb_probs['pb'] > pb_thresh
+            if not confounded:
+                review['decision'] = decision_flags.argmax()
+                auto_flag = True
+        if auto_flag and infr.verbose > 1:
+            print('Automatic review success')
+        return auto_flag, review
+
+    def oracle_review(infr, edge, oracle_accuracy, rng=None):
+        if rng is None:
+            import random
+            rng = random.Random()
+        # Manual review
+        review = {
+            'user_id': 'oracle',
+            'user_confidence': 'absolutely_sure',
+            'decision': None,
+            'tags': [],
+        }
+        true_state = infr.match_state_gt(edge)
+        truth = true_state.idxmax()
+        error = oracle_accuracy < rng.random()
+
+        if error:
+            observed = rng.choice(list(set(true_state.keys()) - {truth}))
+            # observed = rng.choice(list(set(truth.keys())))
+        else:
+            observed = truth
+        if oracle_accuracy < 1.0:
+            review['confidence'] = 'pretty_sure'
+        if oracle_accuracy < .5:
+            review['confidence'] = 'guessing'
+        review['decision'] = observed
+        return error, review
+
+    def init_refresh_criteria(infr):
+        if infr.verbose:
+            print('init_refresh_criteria')
+        infr.refresh = RefreshCriteria()
+
     def add_feedback_df(infr, decision_df, user_id=None, apply=False,
                         verbose=None):
         """ Adds multiple feedback at once (usually for auto reviewer) """
@@ -937,13 +1051,15 @@ class _AnnotInfrFeedback(object):
                 'user_confidence': user_confidence,
                 'user_id': user_id,
             })
+            if infr.refresh:
+                raise NotImplementedError('TODO')
         if apply:
             infr.apply_feedback_edges()
 
     @profile
-    def add_feedback(infr, aid1, aid2, decision, tags=[], apply=False,
-                     user_id=None, user_confidence=None, verbose=None,
-                     rectify=True):
+    def add_feedback(infr, aid1=None, aid2=None, decision=None, tags=[],
+                     apply=False, user_id=None, user_confidence=None,
+                     edge=None, verbose=None, rectify=True):
         """
         Public interface to add feedback for a single edge to the buffer.
         Feedback is not applied to the graph unless `apply=True`.
@@ -975,6 +1091,8 @@ class _AnnotInfrFeedback(object):
         """
         if verbose is None:
             verbose = infr.verbose
+        if edge:
+            aid1, aid2 = edge
         if verbose >= 1:
             print(('[infr] add_feedback(%r, %r, decision=%r, tags=%r, '
                                         'user_id=%r, user_confidence=%r)') % (
@@ -1002,6 +1120,8 @@ class _AnnotInfrFeedback(object):
                 'user_id': user_id,
             }
             infr.internal_feedback[edge].append(feedback_item)
+            if infr.refresh:
+                infr.refresh.add(decision, user_id)
         if apply:
             # Apply new results on the fly
             infr._dynamically_apply_feedback(edge, feedback_item, rectify)
@@ -2219,8 +2339,12 @@ class _AnnotInfrUpdates(object):
         if pos_redundancy and pos_redundancy < np.inf:
             # Remove priority internal edges of k-consistent PCCs.
             for nid, pos_edges in reviewed_positives.items():
-                pos_conn = nx.edge_connectivity(nx.Graph(pos_edges))
-                if pos_conn >= neg_redundancy:
+                if pos_redundancy == 1:
+                    # trivially computed
+                    pos_conn = 1
+                else:
+                    pos_conn = nx.edge_connectivity(nx.Graph(list(pos_edges)))
+                if pos_conn >= pos_redundancy:
                     other_edges = positive[nid]
                     queue.delete_items(other_edges)
 
@@ -2701,6 +2825,7 @@ class AnnotInference(ut.NiceRepr,
         infr.graph = None
         infr.aid_to_node = None
         infr.node_to_aid = None
+        infr.refresh = None
 
         # TODO: rename to external_feedback? This should represent The feedback
         # read from a database. We do not need to do any updates to an external

@@ -76,7 +76,7 @@ def end_to_end():
     # task_keys = list(pblm.samples.subtasks.keys())
 
     pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
-                                                     clf_key=clf_key)
+                                  clf_key=clf_key)
     # match_clf = pblm.deploy_task_clfs['match_state']
     # pb_clf = pblm.deploy_task_clfs['photobomb_state']
 
@@ -99,15 +99,56 @@ def end_to_end():
     import pandas as pd
     import plottool as pt  # NOQA
     # Create a new AnnotInference instance to go end-to-end
-    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True)
-    infr.reset(state='empty')
-    infr.set_node_attrs('pin', True)
-    infr.verbose = 1
-    infr.verbose = 0
+    # Dials
+    dials1 = {
+        'name': 'Ranking Only',
+        'k_redun': np.inf,
+        'cand_kw': dict(pblm=None),
+        'priority_metric': 'normscore',
+        'oracle_accuracy': 1.0,
+    }
+    dials2 = {
+        'name': 'Graph K=1',
+        'k_redun': 1,
+        'cand_kw': dict(pblm=pblm),
+        'priority_metric': 'priority',
+        'oracle_accuracy': 1.0,
+    }
 
-    oracle_accuracy = 1.0
+    verbose = 0
+    # infr.set_node_attrs('pin', True)
+    # infr.show(show_candidate_edges=True)
+    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                verbose=verbose)
+    metrics_df1 = run_expt(infr, dials=dials1)
 
-    task_thresh = {
+    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                verbose=verbose)
+    metrics_df2 = run_expt(infr, dials=dials2)
+
+    import plottool as pt
+    pt.qtensure()
+    pt.plot(metrics_df1['n_manual'].values, metrics_df1['merge_remain'].values, label=dials1['name'])
+    pt.plot(metrics_df2['n_manual'].values, metrics_df2['merge_remain'].values, label=dials2['name'])
+    pt.set_xlabel('# manual reviews')
+    pt.set_ylabel('% merges remaining')
+    pt.legend()
+
+    # infr.show(show_candidate_edges=True)
+    # TODO: use phi to check termination
+    # TODO: recompute candidate edges
+
+
+def run_expt(infr, dials):
+    k_redun = dials['k_redun']
+    oracle_accuracy = dials['oracle_accuracy']
+    cand_kw = dials['cand_kw']
+    priority_metric = dials['priority_metric']
+    infr.PRIORITY_METRIC = priority_metric
+    autoreview_enabled = infr.PRIORITY_METRIC == 'priority'
+    infr.queue_params['pos_redundancy'] = k_redun
+    infr.queue_params['neg_redundancy'] = k_redun
+    infr.task_thresh = {
         'photobomb_state': pd.Series({
             'pb': .5,
             'notpb': .9,
@@ -118,112 +159,56 @@ def end_to_end():
             ('notcomp', .99),
         ]))
     }
-    primary_task = 'match_state'
+    nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
+    real_n_pcc_mst_edges = sum([len(cc) - 1 for cc in nid_to_gt_cc.values()])
+    def measure_metrics(infr, n_manual, n_auto):
+        pred_n_pcc_mst_edges = sum([len(cc.node) - 1 for cc in
+                                    infr.positive_connected_compoments()])
+        pos_acc = pred_n_pcc_mst_edges / real_n_pcc_mst_edges
+        metrics = {
+            'n_manual': n_manual,
+            'n_auto': n_auto,
+            'pos_acc': pos_acc,
+            'merge_remain': 1 - pos_acc,
+        }
+        return metrics
 
-    # Use one-vs-many to establish candidate edges to classify
-    # TODO: use temporary name labels to requery neighbors
-    infr.exec_matching(cfgdict={
-        # 'single_name_condition': True,
-    })
-    infr.apply_match_edges(review_cfg={'ranks_top': 5})
-
-    # infr.show(show_candidate_edges=True)
-
-    # Construct pairwise features on edges in infr
-    X = pblm.make_deploy_features(infr, data_key)
-    task_probs = pblm.predict_proba_deploy(X, task_keys)
-
-    # Get groundtruth state based on ibeis controller
-    primary_truth = infr.match_state_df(X.index)
-
-    # Set priority on the graph
-    if True:
-        # Ranking only algorithm
-        infr.queue_params['pos_redundancy'] = np.inf
-        infr.queue_params['neg_redundancy'] = np.inf
-        infr.apply_match_scores()
-        infr.PRIORITY_METRIC = 'normscore'
-        autoreview_enabled = False
-    else:
-        infr.queue_params['pos_redundancy'] = 1
-        infr.queue_params['neg_redundancy'] = 1
-        infr.PRIORITY_METRIC = 'priority'
-        match_probs = task_probs[primary_task]['match']
-        infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
-
-    def check_autodecide(edge, priority):
-        if priority > 1:
-            return False
-        else:
-            decision_probs = task_probs[primary_task].loc[edge]
-            decision_flags = decision_probs > task_thresh[primary_task]
-        flag = False
-        decision = None
-        tags = []
-        if sum(decision_flags) == 1:
-            pb_probs = task_probs['photobomb_state'].loc[edge]
-            confounded = pb_probs['pb'] > task_thresh['photobomb_state']['pb']
-            if not confounded:
-                decision = decision_flags.argmax()
-                flag = True
-        return flag, decision, tags
+    n_manual = 0
+    n_auto = 0
+    metrics_list = []
 
     rng = ut.ensure_rng(10, impl='python')
-    def oracle_review(edge):
-        # Manual review
-        truth = primary_truth.loc[edge].idxmax()
-        error = oracle_accuracy < rng.random()
-        if error:
-            observed = rng.choice(list(set(primary_truth.keys())))
-        else:
-            observed = truth
-        if oracle_accuracy == 1:
-            user_confidence = 'absolutely_sure'
-        elif oracle_accuracy > .5:
-            user_confidence = 'pretty_sure'
-        else:
-            user_confidence = 'guessing'
-        return observed, error, user_confidence
-
-    from ibeis.algo.hots.graph_iden import RefreshCriteria
-    refresh_criteria = RefreshCriteria()
-    self = refresh_criteria
-    self.frac_thresh
-
+    infr.reset(state='empty')
     infr.remove_feedback(apply=True)
-    infr._init_priority_queue()
-    print(infr.queue)
 
-    # for edge, priority in infr.generate_reviews(data=True):
     while True:
-        try:
+        infr.refresh_candidate_edges(**cand_kw)
+        infr.init_refresh_criteria()
+        infr._init_priority_queue()
+
+        if not len(infr.queue):
+            print('Queue is empty')
+            break
+
+        while not infr.refresh.check() and len(infr.queue):
             edge, priority = infr.pop()
-        except StopIteration:
-            print('Priority queue is empty')
-            break
-        aid1, aid2 = edge
-        flag, decision, tags = check_autodecide(edge, priority)
-        print('edge=%r, priority=%r, flag=%r' % (edge, priority, flag))
-        if autoreview_enabled and flag:
-            user_id = 'auto_clf'
-            user_confidence = 'pretty_sure'
-            print('auto-decision = %r' % (decision,))
-        else:
-            decision, error, user_confidence = oracle_review(edge)
-            user_id = 'oracle'
-            print('oracle-decision = %r, error=%r' % (decision, error))
-        infr.add_feedback(aid1, aid2, decision, tags, apply=True,
-                          user_id=user_id, user_confidence=user_confidence)
-        refresh_criteria.add(decision, user_id)
+            print('edge=%r, priority=%r' % (edge, priority))
+            auto_flag = False
+            if autoreview_enabled:
+                auto_flag, review = infr.try_auto_review(edge, priority)
+                n_auto += auto_flag
+            if not auto_flag:
+                error, review = infr.oracle_review(edge, oracle_accuracy, rng)
+                n_manual += 1
+            infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
+            metrics = measure_metrics(infr, n_manual, n_auto)
+            metrics_list.append(metrics)
 
-        if refresh_criteria.check():
-            print('need to refresh')
-            break
-
-        infr.show(show_candidate_edges=True)
-
-    # TODO: use phi to check termination
-    # TODO: recompute candidate edges
+        print('need to refresh')
+        # For now don't refresh
+        break
+    metrics_df = pd.DataFrame.from_dict(metrics_list)
+    return metrics_df
 
 
 def learn_termination(ibs, aids):
