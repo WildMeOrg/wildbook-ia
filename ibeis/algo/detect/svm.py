@@ -118,9 +118,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
 
             # Slice gids and get feature data
             index_list_ = list(range(start_index, stop_index))
-            vectors_list_ = vectors_list[start_index: stop_index]
-            assert len(index_list_) == len(vectors_list_)
-            args = (index_list_, weight_filepath, vectors_list_, )
+            vector_list_ = vector_list[start_index: stop_index]
+            assert len(index_list_) == len(vector_list_)
+            args = (index_list_, weight_filepath, vector_list_, )
             args_list.append(args)
 
         nTasks = num_cpus
