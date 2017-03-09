@@ -32,13 +32,16 @@ CONFIG_URL_DICT = {
 
 
 def classify_helper(tup, verbose=VERBOSE_SVM):
-    weight_filepath_, vector_list = tup
+    if len(tup) == 2:
+        weight_filepath, vector_list = tup
+        index_list = list(range(len(vector_list)))
+    elif len(tup) == 3:
+        index_list, weight_filepath, vector_list = tup
     # Init score and class holders
-    index_list = list(range(len(vector_list)))
     score_dict = { index: [] for index in index_list }
     class_dict = { index: [] for index in index_list }
     # Load models
-    model_tup = ut.load_cPkl(weight_filepath_, verbose=verbose)
+    model_tup = ut.load_cPkl(weight_filepath, verbose=verbose)
     model, scaler = model_tup
     # Normalize
     vector_list = scaler.transform(vector_list)
@@ -65,6 +68,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     Returns:
         iter
     """
+    import multiprocessing
+    import numpy as np
+
     # Get correct weight if specified with shorthand
     if weight_filepath in CONFIG_URL_DICT:
         weight_url = CONFIG_URL_DICT[weight_filepath]
@@ -83,25 +89,56 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
         ])
     else:
         weight_filepath_list = [weight_filepath]
-    assert len(weight_filepath_list) > 0
+    num_weights = len(weight_filepath_list)
+    assert num_weights > 0
 
     # Form dictionaries
-    index_list = list(range(len(vector_list)))
-    score_dict = { index: [] for index in index_list }
-    class_dict = { index: [] for index in index_list }
+    num_vectors = len(vector_list)
+    index_list = list(range(num_vectors))
 
     # Generate parallelized wrapper
-    vectors_list = [ vector_list for i in range(len(weight_filepath_list)) ]
-    args_list = zip(weight_filepath_list, vectors_list)
-    nTasks = len(weight_filepath_list)
+    if is_ensemble:
+        vectors_list = [ vector_list for _ in range(num_weights) ]
+        args_list = zip(weight_filepath_list, vectors_list)
+        nTasks = num_weights
+        print('Processing ensembles in parallel using %d ensembles' % (num_weights, ))
+    else:
+        weight_filepath = weight_filepath_list[0]
+        num_cpus = multiprocessing.cpu_count()
+        vector_batch = int(np.ceil(float(num_vectors) / num_cpus))
+        vector_rounds = int(np.ceil(float(num_vectors) / vector_batch))
+
+        args_list = []
+        for vector_round in range(vector_rounds):
+            start_index = vector_round * vector_batch
+            stop_index = (vector_round + 1) * vector_batch
+            assert start_index < num_vectors
+            stop_index = min(stop_index, num_vectors)
+            print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
+
+            # Slice gids and get feature data
+            index_list_ = list(range(start_index, stop_index))
+            vectors_list_ = vectors_list[start_index: stop_index]
+            assert len(index_list_) == len(vectors_list_)
+            args = (index_list_, weight_filepath, vectors_list_, )
+            args_list.append(args)
+
+        nTasks = num_cpus
+        print('Processing vectors in parallel using vector_batch = %r' % (vector_batch, ))
+
+    # Perform inference
     classify_iter = ut.generate(classify_helper, args_list, nTasks=nTasks,
-                                chunksize=1, ordered=False, force_serial=False)
+                                chunksize=1, ordered=True, force_serial=False)
 
     # Classify with SVM for each image vector
+    score_dict = { index: [] for index in index_list }
+    class_dict = { index: [] for index in index_list }
     for score_dict_, class_dict_ in classify_iter:
         for index in index_list:
-            score_dict[index] += score_dict_[index]
-            class_dict[index] += class_dict_[index]
+            if index in score_dict_:
+                score_dict[index] += score_dict_[index]
+            if index in class_dict_:
+                class_dict[index] += class_dict_[index]
 
     # Organize and compute mode and average for class and score
     for index in index_list:

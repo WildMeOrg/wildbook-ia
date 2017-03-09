@@ -3243,7 +3243,7 @@ def bootstrap2(ibs, species_list=['zebra'],
     #         establish a review ordering based on classification probability
 
     # Get scores
-    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET', species_list)
+    vals = get_classifier_svm_data_labels(ibs, 'TRAIN_SET')
     train_gid_set, data_list, label_list = vals
     # Normalize data
     data_list = scaler.transform(data_list)
@@ -3346,8 +3346,10 @@ def bootstrap2(ibs, species_list=['zebra'],
         ut.embed()
 
         category_dict = {}
-        for image_uuid in gt_dict:
+        for image_index, image_uuid in enumerate(gt_dict.keys()):
             image_gid = ibs.get_image_gids_from_uuid(image_uuid)
+            args = (image_gid, image_uuid, image_index, len(round_gid_list), )
+            print('Processing neighbors for image %r, %r (%d / %d)' % args)
 
             # Get the gt and prediction list
             gt_list = gt_dict[image_uuid]
@@ -3376,7 +3378,9 @@ def bootstrap2(ibs, species_list=['zebra'],
                     category_dict[cat_tag] = {}
 
                 # Take the predictions for this category
-                cat_pred_list = ut.take(pred_list, cat_idx_list)
+                cat_pred_list = ut.compress(pred_list, list(cat_idx_list))
+                args = (cat_tag, len(cat_pred_list), )
+                print('\t Working on category %r with %d predictions' % args)
 
                 # Add raw predictions
                 if image_gid not in category_dict[cat_tag]:
@@ -3385,40 +3389,47 @@ def bootstrap2(ibs, species_list=['zebra'],
 
                 if cat_tag == 'cat1':
                     # Go over predictions and find neighbors, sorting into either cat1 or cat3
+                    neighbor_manifest_list = []
                     for cat_pred in cat_pred_list:
                         feature_list = np.array([cat_pred['feature']])
                         data_list = scaler.transform(feature_list)
                         data_list_ = pca_model.transform(data_list)[0]
 
                         neighbor_index_list = ann_model.get_nns_by_vector(data_list_, gamma)
-                        neighbor_manifest_list = list(set([
+                        neighbor_manifest_list += [
                             manifest_dict[neighbor_index]
                             for neighbor_index in neighbor_index_list
-                        ]))
-                        neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
-                        neighbor_gid_set_ = list(set(neighbor_gid_list_))
-                        neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
-                        neighbor_idx_list_ = ut.take_column(neighbor_manifest_list, 1)
+                        ]
 
-                        neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
-                                                                  **config)
+                    neighbor_manifest_list = list(set(neighbor_manifest_list))
+                    neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
+                    neighbor_gid_set_ = list(set(neighbor_gid_list_))
+                    neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
+                    neighbor_idx_list_ = ut.take_column(neighbor_manifest_list, 1)
 
-                        zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_idx_list_)
-                        for neighbor_gid, neighbor_uuid, neighbor_idx in zipped:
-                            neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_idx]
-                            cat_tag_ = 'cat1' if neighbor_pred['confidence'] >= epsilon else 'cat3'
-                            if cat_tag_ not in category_dict:
-                                category_dict[cat_tag_] = {}
-                            if neighbor_gid not in category_dict[cat_tag_]:
-                                category_dict[cat_tag_][neighbor_gid] = []
-                            category_dict[cat_tag_][neighbor_gid].append(neighbor_pred)
+                    args = (len(neighbor_gid_set_), len(neighbor_manifest_list), )
+                    print('\t\tGetting %d images for %d neighbors' % args)
+                    neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
+                                                              **config)
+
+                    zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_idx_list_)
+                    for neighbor_gid, neighbor_uuid, neighbor_idx in zipped:
+                        neighbor_pred = neighbor_pred_dict[neighbor_uuid][neighbor_idx]
+                        cat_tag_ = 'cat1' if neighbor_pred['confidence'] >= epsilon else 'cat3'
+                        if cat_tag_ not in category_dict:
+                            category_dict[cat_tag_] = {}
+                        if neighbor_gid not in category_dict[cat_tag_]:
+                            category_dict[cat_tag_][neighbor_gid] = []
+                        category_dict[cat_tag_][neighbor_gid].append(neighbor_pred)
 
         # Perform NMS on each category
         for cat_tag in sorted(category_dict.keys()):
             cat_pred_dict = category_dict[cat_tag]
             cat_pred_list = []
+            cat_pred_total = 0
             for cat_gid in cat_pred_dict:
                 pred_list = cat_pred_dict[cat_gid]
+                cat_pred_total += len(pred_list)
                 # Compile coordinate list of (xtl, ytl, xbr, ybr) instead of (xtl, ytl, w, h)
                 coord_list = []
                 confs_list = []
@@ -3441,6 +3452,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                     if index in keep_indices_set
                 ]
                 cat_pred_list += pred_list_
+            print('NMS Proposals (start) for category %r: %d' % (cat_tag, cat_pred_total, ))
             # Print stats
             conf_list = []
             for cat_pred in cat_pred_list:
@@ -3457,7 +3469,7 @@ def bootstrap2(ibs, species_list=['zebra'],
             # Overwrite GID dictionary with a list of predictions
             category_dict[cat_tag] = cat_pred_list
             cat_total = len(cat_pred_list)
-            print('NMS Proposals for category %r: %d' % (cat_tag, cat_total, ))
+            print('NMS Proposals (end) for category %r: %d' % (cat_tag, cat_total, ))
 
         ##################################################################################
         # Step 8: train SVM ensemble using fresh mined data for each ensemble
