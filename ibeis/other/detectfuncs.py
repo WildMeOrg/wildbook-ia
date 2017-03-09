@@ -1029,120 +1029,120 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.25, 'thresh': True, 'index_thresh': 0.25, 'classify': True, 'p': 'mult', 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-50'},
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
-        {
-            'label'        : 'LINEAR,0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.0.5.pkl',
-        },
-        {
-            'label'        : 'LINEAR,1.0',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.1.0.pkl',
-        },
-        {
-            'label'        : 'LINEAR,2.0',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.2.0.pkl',
-        },
-        {
-            'label'        : 'RBF,0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.0.5.pkl',
-        },
-        {
-            'label'        : 'RBF,1.0',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.1.0.pkl',
-        },
-        {
-            'label'        : 'RBF,2.0',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.2.0.pkl',
-        },
-        {
-            'label'        : 'LINEAR,0.5~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.0.5.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
-        },
-        {
-            'label'        : 'LINEAR,1.0~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.1.0.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
-        },
-        {
-            'label'        : 'LINEAR,2.0~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.2.0.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
-        },
-        {
-            'label'        : 'RBF,0.5~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.0.5.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
-        },
+        # {
+        #     'label'        : 'LINEAR,0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.0.5.pkl',
+        # },
+        # {
+        #     'label'        : 'LINEAR,1.0',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.1.0.pkl',
+        # },
+        # {
+        #     'label'        : 'LINEAR,2.0',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.2.0.pkl',
+        # },
+        # {
+        #     'label'        : 'RBF,0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.0.5.pkl',
+        # },
+        # {
+        #     'label'        : 'RBF,1.0',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.1.0.pkl',
+        # },
+        # {
+        #     'label'        : 'RBF,2.0',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.2.0.pkl',
+        # },
+        # {
+        #     'label'        : 'LINEAR,0.5~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.0.5.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
+        # {
+        #     'label'        : 'LINEAR,1.0~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.1.0.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
+        # {
+        #     'label'        : 'LINEAR,2.0~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.linear.2.0.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
+        # {
+        #     'label'        : 'RBF,0.5~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.0.5.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
         {
             'label'        : 'RBF,1.0~0.5',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'classify'     : True,
             'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.1.0.pkl',
+            'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.rbf.1.0.pkl',
             'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
+            'nms_thresh'   : 0.30,
+            # 'line_dotted'  : True,
         },
-        {
-            'label'        : 'RBF,2.0~0.5',
-            'algo'         : '_COMBINED',
-            'species_set'  : species_set,
-            'classify'     : True,
-            'classifier_algo': 'svm',
-            'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.2.0.pkl',
-            'nms'          : True,
-            'nms_thresh'   : 0.50,
-            'line_dotted'  : True,
-        },
+        # {
+        #     'label'        : 'RBF,2.0~0.5',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models/classifier.svm.image.zebra.rbf.2.0.pkl',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.50,
+        #     'line_dotted'  : True,
+        # },
 
         # {
         #     'label'        : 'WIC',
@@ -3180,7 +3180,7 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 @register_ibs_method
 def bootstrap2(ibs, species_list=['zebra'],
                alpha=10, gamma=1000, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
-               nms_thresh=0.5, C=1.0, kernel='rbf', theta=1.0,
+               nms_thresh_pos=0.5, nms_thresh_neg=0.75, C=1.0, kernel='rbf', theta=1.0,
                output_path=None,
                precompute=True, precompute_test=True, recompute=False,
                overlap_thresh_cat_1=0.75, overlap_thresh_cat_2=0.25, overlap_thresh_cat_3=0.0,
@@ -3321,7 +3321,7 @@ def bootstrap2(ibs, species_list=['zebra'],
         # Get model ensemble path
         limit = len(round_gid_list)
         args = (species_list_str, limit, kernel, C, )
-        output_filename = 'classifier.svm.localization.%s.%d.%s.%s' % args
+        output_filename = 'classifier.svm.localization.%s.%d.%s.%ds' % args
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
 
@@ -3342,8 +3342,6 @@ def bootstrap2(ibs, species_list=['zebra'],
 
         print('\tGather Predictions')
         pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
-
-        ut.embed()
 
         category_dict = {}
         for image_index, image_uuid in enumerate(gt_dict.keys()):
@@ -3444,6 +3442,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                 coord_list = np.vstack(coord_list)
                 confs_list = np.array(confs_list)
                 # Perform NMS
+                nms_thresh = nms_thresh_pos if cat_tag in ['cat1', 'cat3'] else nms_thresh_neg
                 keep_indices_list = nms(coord_list, confs_list, nms_thresh)
                 keep_indices_set = set(keep_indices_list)
                 pred_list_ = [
@@ -3487,20 +3486,22 @@ def bootstrap2(ibs, species_list=['zebra'],
                 num_target = num_pos / theta
 
                 if len(mined_hard_list) > num_target:
+                    print('Sampling Hard')
                     np.random.shuffle(mined_hard_list)
                     mined_hard_list = mined_hard_list[:num_target]
 
                 if len(mined_neg_list) > num_target:
+                    print('Sampling Negatives')
                     np.random.shuffle(mined_neg_list)
                     mined_neg_list = mined_neg_list[:num_target]
 
                 num_pos = len(mined_pos_list)
-                num_hard = len(mined_pos_list)
-                num_neg = len(mined_pos_list)
-                num_total = num_pos + num_hard + num_pos
+                num_hard = len(mined_hard_list)
+                num_neg = len(mined_neg_list)
+                num_total = num_pos + num_hard + num_neg
                 args = (
                     num_pos,
-                    num_hard + num_pos,
+                    num_hard + num_neg,
                     num_hard,
                     num_neg,
                     num_pos / num_total,
@@ -3531,8 +3532,8 @@ def bootstrap2(ibs, species_list=['zebra'],
                 model.fit(data_list, label_list)
 
                 # Save model pickle
-                args = (species_list_str, limit, current_ensemble, )
-                svm_model_filename = 'classifier.svm.localization.%s.%d.%d.pkl' % args
+                args = (current_ensemble, )
+                svm_model_filename = 'classifier.svm.localization.%d.pkl' % args
                 svm_model_filepath = join(svm_model_path, svm_model_filename)
                 model_tup = (model, scaler, )
                 ut.save_cPkl(svm_model_filepath, model_tup)
