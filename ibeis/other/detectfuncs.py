@@ -2659,8 +2659,8 @@ def bootstrap_pca_train(ibs, dims=64, pca_limit=500000, ann_batch=50,
             index += 1
 
     # Build forest
-    print('Build ANN model using %d feature vectors' % (index, ))
     trees = index // 100000
+    print('Build ANN model using %d feature vectors and %d trees' % (index, trees, ))
     ann_model.build(trees)
 
     # Save forest
@@ -2687,6 +2687,7 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
                        model_path=None, output_path=None, neighbors=1000,
                        nms_thresh=0.5, min_confidence=0.3, **kwargs):
     from annoy import AnnoyIndex
+    import random
 
     if output_path is None:
         output_path = abspath(expanduser(join('~', 'Desktop', 'output-ann')))
@@ -2694,7 +2695,8 @@ def bootstrap_pca_test(ibs, dims=64, pca_limit=500000, ann_batch=50,
 
     # gid_list = ibs.get_valid_gids()
     gid_list = general_get_imageset_gids(ibs, 'TRAIN_SET', **kwargs)
-    # gid_list = gid_list[:200]
+    random.shuffle(gid_list)
+    gid_list = gid_list[:100]
 
     # Load forest
     if model_path is None:
