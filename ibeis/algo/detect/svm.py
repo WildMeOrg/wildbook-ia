@@ -114,7 +114,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
             stop_index = (vector_round + 1) * vector_batch
             assert start_index < num_vectors
             stop_index = min(stop_index, num_vectors)
-            print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
+            # print('Slicing index range: [%r, %r)' % (start_index, stop_index, ))
 
             # Slice gids and get feature data
             index_list_ = list(range(start_index, stop_index))

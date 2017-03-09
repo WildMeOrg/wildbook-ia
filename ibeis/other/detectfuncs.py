@@ -3321,7 +3321,7 @@ def bootstrap2(ibs, species_list=['zebra'],
         # Get model ensemble path
         limit = len(round_gid_list)
         args = (species_list_str, limit, kernel, C, )
-        output_filename = 'classifier.svm.localization.%s.%d.%s.%ds' % args
+        output_filename = 'classifier.svm.localization.%s.%d.%s.%s' % args
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
 
