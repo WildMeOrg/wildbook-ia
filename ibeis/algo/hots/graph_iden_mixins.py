@@ -60,8 +60,11 @@ class _AnnotInfrHelpers(object):
         attr_list = list(infr.get_node_attrs(key, nodes).values())
         return attr_list
 
-    def edges(infr):
-        return (e_(u, v) for u, v in infr.graph.edges())
+    def edges(infr, data=False):
+        if data:
+            return ((e_(u, v), d) for u, v, d in infr.graph.edges(data=True))
+        else:
+            return (e_(u, v) for u, v in infr.graph.edges())
 
     def has_edge(infr, edge):
         redge = edge[::-1]

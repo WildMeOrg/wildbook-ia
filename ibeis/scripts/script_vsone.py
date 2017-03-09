@@ -83,7 +83,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     """
     appname = 'vsone_rf_train'
 
-    def __init__(pblm, qreq_=None):
+    def __init__(pblm, qreq_=None, verbose=None):
+        pblm.default_clf_key = 'RF'
+        pblm.default_data_key = 'learn(sum,glob)'
+        if verbose is None:
+            verbose = 0
+        pblm.verbose = verbose
         import ibeis
         if qreq_ is None:
             # ut.aug_sysargv('--db PZ_Master1')
@@ -93,12 +98,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
                 # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
                 t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+                verbose=max(0, verbose - 1),
             )
-        hyper_params = dt.Config.from_dict(dict(
-            subsample=None,
-            pair_sample=PairSampleConfig(),
-            vsone_assign=VsOneAssignConfig(),
-            pairwise_feats=PairFeatureConfig(), ),
+        hyper_params = dt.Config.from_dict(ut.odict([
+            ('subsample', None),
+            ('pair_sample', PairSampleConfig()),
+            ('vsone_assign', VsOneAssignConfig()),
+            ('pairwise_feats', PairFeatureConfig()),
+        ]),
             tablename='HyperParams'
         )
         if qreq_.qparams.featweight_enabled:
@@ -116,7 +123,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.ibs = qreq_.ibs
 
     @classmethod
-    def from_aids(OneVsOneProblem, ibs, aids):
+    def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
+        if verbose is None:
+            verbose = 0
         import ibeis
         qreq_ = ibeis.testdata_qreq_(
             # defaultdb='PZ_PB_RF_TRAIN',
@@ -127,19 +136,30 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
             # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
             t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+            verbose=verbose,
         )
-        pblm = OneVsOneProblem(qreq_)
+        pblm = OneVsOneProblem(qreq_, verbose=verbose)
         return pblm
 
     def load_features(pblm):
+        if pblm.verbose > 0:
+            print('[pblm] load_features')
         qreq_ = pblm.qreq_
         dbname = qreq_.ibs.get_dbname()
         vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
+        # print('vsmany_hashid = %r' % (vsmany_hashid,))
+        # import sys
         hyper_params = pblm.hyper_params
+        # print('hyper_params = %s' % (hyper_params,))
+        # print('--------')
+        # print('hyper_params.get_cfgstr() = %r' % (hyper_params.get_cfgstr(),))
+        # print('--------')
         features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
+        # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
         cacher = ut.Cacher('pairwise_data_v11', cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=1)
+                           appname=pblm.appname, enabled=1,
+                           verbose=pblm.verbose)
         data = cacher.tryload()
         if not data:
             data = build_features(qreq_, hyper_params)
@@ -151,6 +171,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.raw_simple_scores = simple_scores
 
     def load_samples(pblm):
+        if pblm.verbose > 0:
+            print('[pblm] load_samples')
         pblm.samples = AnnotPairSamples(
             ibs=pblm.ibs,
             simple_scores=copy.deepcopy(pblm.raw_simple_scores),
@@ -660,7 +682,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         import pandas as pd
         task_probs = {}
         for task_key in task_keys:
-            print('Predicting %s probabilities' % (task_key,))
+            print('[pblm] predicting %s probabilities' % (task_key,))
             clf = pblm.deploy_task_clfs[task_key]
             labels = pblm.samples.subtasks[task_key]
             columns = ut.take(labels.class_names, clf.classes_)
@@ -672,7 +694,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             missing = ut.setdiff(labels.class_names, columns)
             if missing:
                 for classname in missing:
-                    print('classname = %r' % (classname,))
+                    # print('classname = %r' % (classname,))
                     probs_df = probs_df.assign(**{
                         classname: np.zeros(len(probs_df))})
             task_probs[task_key] = probs_df
@@ -873,6 +895,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Try to identify a useful subset of features to reduce problem
         dimensionality
         """
+        if pblm.verbose:
+            print('[pblm] build_feature_subsets')
         X_dict = pblm.samples.X_dict
         X = X_dict['learn(all)']
         featinfo = AnnotPairFeatInfo(X)
@@ -1170,6 +1194,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         >>> assert np.all(samples.index == indica_index)
     """
     def __init__(samples, ibs, simple_scores=None, X_dict=None, index=None):
+
         if simple_scores is not None:
             assert index is None
             index = simple_scores.index

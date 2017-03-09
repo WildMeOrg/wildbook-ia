@@ -216,7 +216,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         #qreq_.query_config2_ = query_config2_
         #qreq_.data_config2_ = data_config2_
         qreq_.unique_species = unique_species_  # HACK
-        if verbose:
+        if verbose > 1:
             print('[qreq] * unique_species = %s' % (qreq_.unique_species,))
     if verbose:
         print('[qreq] * pipe_cfg = %s' % (qreq_.get_pipe_cfgstr()))
@@ -244,10 +244,11 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
             ut.cprint(
                 '[qreq] HACKING FG_WEIGHT OFF (db species is not supported)',
                 'yellow')
-            if len(unique_species) != 1:
-                print('[qreq]  * len(unique_species) = %r' % len(unique_species))
-            else:
-                print('[qreq]  * unique_species = %r' % (unique_species,))
+            if verbose > 1:
+                if len(unique_species) != 1:
+                    print('[qreq]  * len(unique_species) = %r' % len(unique_species))
+                else:
+                    print('[qreq]  * unique_species = %r' % (unique_species,))
         #print('[qreq]  * valid species = %r' % (
         #    ibs.get_species_with_detectors(),))
         #cfg._featweight_cfg.featweight_enabled = 'ERR'
@@ -370,7 +371,6 @@ class QueryRequest(ut.NiceRepr):
         Replaces semantic uuids with dynamically created uuid groups
         only for database annotations (hacks for iccv).
         """
-        assert qreq_.qparams.vsmany
         annots = qreq_.ibs.annots(qreq_.daids)
         dnids = qreq_.get_qreq_annot_nids(annots.aids)
         unique_dnids, groupxs = annots.group_indicies(dnids)
@@ -381,7 +381,7 @@ class QueryRequest(ut.NiceRepr):
         dnid_to_groupuuid = dict(zip(unique_dnids, group_uuids))
         return dnid_to_groupuuid
 
-    def get_qreq_pcc_semantic_uuids(qreq_, aids):
+    def get_qreq_pcc_uuids(qreq_, aids):
         nids = qreq_.get_qreq_annot_nids(aids)
         zero = ut.util_hash.get_zero_uuid()
         dannot_name_uuids = ut.dict_take(qreq_.dnid_to_groupuuid, nids, zero)
@@ -392,15 +392,47 @@ class QueryRequest(ut.NiceRepr):
         ]
         return dannot_semantic_uuids
 
-    def get_qreq_dannot_semantic_hashid(qreq_):
+    def get_qreq_pcc_hashid(qreq_, aids, prefix=''):
         """
         hack for iccv
         only considers grouping of database names
+
+        Example:
+            >>> import ibeis
+            >>> t = ['default:K=2,nameknn=True']
+            >>> defaultdb = 'testdb1'
+            >>> # Test that UUIDS change when you change the name lookup
+            >>> new_ = ut.partial(ibeis.testdata_qreq_, defaultdb=defaultdb, t=t,
+            >>>                   verbose=False)
+            >>> # All diff names
+            >>> qreq1 = new_(daid_override=[2, 3, 5, 6],
+            >>>              qaid_override=[1, 2, 4],
+            >>>              custom_nid_lookup={a: a for a in range(14)})
+            >>> # All same names
+            >>> qreq2 = new_(daid_override=[2, 3, 5, 6],
+            >>>              qaid_override=[1, 2, 4],
+            >>>              custom_nid_lookup={a: 1 for a in range(14)})
+            >>> # Change the PCC, removing a query (data should NOT change)
+            >>> # because the thing being queried against is the same
+            >>> qreq3 = new_(daid_override=[2, 3, 5, 6],
+            >>>              qaid_override=[1, 2],
+            >>>              custom_nid_lookup={a: 1 for a in range(14)})
+            >>> # Now remove a database object (query SHOULD change)
+            >>> # because the results are different depending on
+            >>> # nameing of database (maybe they shouldnt change...)
+            >>> qreq4 = new_(daid_override=[2, 3, 6],
+            >>>              qaid_override=[1, 2, 4],
+            >>>              custom_nid_lookup={a: 1 for a in range(14)})
+            >>> print(qreq1.get_cfgstr(with_input=True, with_pipe=False))
+            >>> print(qreq2.get_cfgstr(with_input=True, with_pipe=False))
+            >>> print(qreq3.get_cfgstr(with_input=True, with_pipe=False))
+            >>> print(qreq4.get_cfgstr(with_input=True, with_pipe=False))
+            >>> assert qreq3.get_data_hashid() == qreq2.get_data_hashid()
+            >>> assert qreq1.get_data_hashid() != qreq2.get_data_hashid()
+
         """
-        dannot_semantic_uuids = qreq_.get_qreq_pcc_semantic_uuids(
-            qreq_.daids)
-        prefix = 'D'
-        label = ''.join(('_', prefix, 'SUUIDS'))
+        dannot_semantic_uuids = qreq_.get_qreq_pcc_uuids(aids)
+        label = ''.join(('_', prefix, 'PCC_UUIDS'))
         semantic_hashid  = ut.hashstr_arr27(dannot_semantic_uuids, label,
                                             pathsafe=True)
         return semantic_hashid
@@ -867,8 +899,9 @@ class QueryRequest(ut.NiceRepr):
 
     def get_data_hashid(qreq_):
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        data_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.daids,
-                                                           prefix='D')
+        data_hashid = qreq_.get_qreq_pcc_hashid(qreq_.daids, prefix='D')
+        # data_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.daids,
+        #                                                    prefix='D')
         return data_hashid
 
     def get_query_hashid(qreq_):
@@ -886,8 +919,9 @@ class QueryRequest(ut.NiceRepr):
             >>> print(result)
         """
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        query_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.qaids,
-                                                            prefix='Q')
+        query_hashid = qreq_.get_qreq_pcc_hashid(qreq_.qaids, prefix='Q')
+        # query_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.qaids,
+        #                                                     prefix='Q')
         return query_hashid
 
     def get_pipe_cfgstr(qreq_):

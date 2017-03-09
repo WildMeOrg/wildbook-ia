@@ -5,7 +5,7 @@ Runs many queries and keeps track of some results
 from __future__ import absolute_import, division, print_function
 import sys
 import textwrap
-import numpy as np
+import numpy as np  # NOQA
 import utool as ut
 from ibeis.expt import experiment_helpers
 from ibeis.expt import test_result

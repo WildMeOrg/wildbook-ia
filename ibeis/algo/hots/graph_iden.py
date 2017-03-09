@@ -110,6 +110,9 @@ class _AnnotInfrGroundtruth(object):
 
     def match_state_df(infr, index):
         """ Returns groundtruth state based on ibeis controller """
+        import pandas as pd
+        if not isinstance(index, (pd.MultiIndex, pd.Index)):
+            index = pd.MultiIndex.from_tuples(index, names=('aid1', 'aid2'))
         aid_pairs = np.asarray(index.tolist())
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
@@ -123,8 +126,6 @@ class _AnnotInfrGroundtruth(object):
 
     def match_state_gt(infr, edge):
         import pandas as pd
-        # index = pd.MultiIndex.from_tuples([edge], names=('aid1', 'aid2'))
-        # infr.match_state_df(index).loc[edge]
         aid_pairs = np.asarray([edge])
         is_same = infr.is_same(aid_pairs)[0]
         is_comp = infr.is_comparable(aid_pairs)[0]
@@ -902,17 +903,47 @@ class _AnnotInfrIBEIS(object):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrFeedback(object):
-    truth_texts = {
-        0: 'nomatch',
-        1: 'match',
-        2: 'notcomp',
-        3: 'unreviewed',
-        # 4: 'nomatch-photobomb',
-        # 5: 'match-photobomb',
-        # 6: 'notcomp-photobomb',
-    }
 
-    def refresh_candidate_edges(infr, pblm=None):
+    def non_redundant_components(infr):
+        k = infr.queue_params['pos_redundancy']
+        if k == 1:
+            for cc in  infr.consistent_components():
+                yield cc
+
+        for cc in infr.consistent_components():
+            pos_conn = nx.edge_connectivity(cc)
+            # if the nodes are not big enough for this amount of connectivity
+            # then we relax the requirement
+            required_k = min(len(cc) - 1, k)
+            if pos_conn < required_k:
+                yield cc
+
+    def refresh_candidate_edges(infr, pblm=None, method=None):
+        """
+        Args:
+            infr (?):
+            pblm (None): (default = None)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden refresh_candidate_edges
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> infr = AnnotInference(ibs, aids=list(range(1, 40)), autoinit=True)
+            >>> infr.queue_params['pos_redundancy'] = 2
+            >>> infr.review_dummy_edges(method=2)
+            >>> infr.relabel_using_reviews()
+            >>> non_redundant_ccs = list(infr.non_redundant_components())
+            >>> consistent_ccs = list(infr.consistent_components())
+            >>> print(len(non_redundant_ccs))
+            >>> print(len(consistent_ccs))
+            >>> pblm = None
+            >>> infr.refresh_candidate_edges()
+            >>> print(result)
+        """
         if infr.verbose:
             print('refresh_candidate_edges')
 
@@ -920,9 +951,13 @@ class _AnnotInfrFeedback(object):
         # Use one-vs-many to establish candidate edges to classify
         # TODO: use temporary name labels to requery neighbors
         infr.exec_matching(cfgdict={
-            # 'single_name_condition': True,
+            'condknn': True,
+            'can_match_samename': False,
+            'can_match_sameimg': False,
         })
-        infr.apply_match_edges(review_cfg={'ranks_top': 5})
+        # infr.apply_match_edges(review_cfg={'ranks_top': 5})
+        candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
+        infr.get_edge_attrs('reviewed_state', edges=candidate_edges)
         if pblm is None:
             if infr.verbose > 1:
                 print('Prioritizing edges with one-vs-vsmany scores')
@@ -943,6 +978,8 @@ class _AnnotInfrFeedback(object):
             primary_task = 'match_state'
             match_probs = task_probs[primary_task]['match']
             infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
+            # TODO
+            # Add random edges between exisiting PCCs
 
         # Get groundtruth state based on ibeis controller
         # Maybe do this
@@ -1000,9 +1037,9 @@ class _AnnotInfrFeedback(object):
         else:
             observed = truth
         if oracle_accuracy < 1.0:
-            review['confidence'] = 'pretty_sure'
+            review['user_confidence'] = 'pretty_sure'
         if oracle_accuracy < .5:
-            review['confidence'] = 'guessing'
+            review['user_confidence'] = 'guessing'
         review['decision'] = observed
         return error, review
 
@@ -1059,7 +1096,7 @@ class _AnnotInfrFeedback(object):
     @profile
     def add_feedback(infr, aid1=None, aid2=None, decision=None, tags=[],
                      apply=False, user_id=None, user_confidence=None,
-                     edge=None, verbose=None, rectify=True):
+                     edge=None, verbose=None, rectify=True, method=None):
         """
         Public interface to add feedback for a single edge to the buffer.
         Feedback is not applied to the graph unless `apply=True`.
@@ -1067,7 +1104,7 @@ class _AnnotInfrFeedback(object):
         Args:
             aid1 (int):  annotation id
             aid2 (int):  annotation id
-            decision (str): decision from `infr.truth_texts`
+            decision (str): decision from `ibs.const.REVIEW.CODE_TO_INT`
             tags (list of str): specify Photobomb / Scenery / etc
             user_id (str): id of agent who did the review
             user_confidence (str): See ibs.const.CONFIDENCE
@@ -1124,10 +1161,12 @@ class _AnnotInfrFeedback(object):
                 infr.refresh.add(decision, user_id)
         if apply:
             # Apply new results on the fly
-            infr._dynamically_apply_feedback(edge, feedback_item, rectify)
+            infr._dynamically_apply_feedback(edge, feedback_item, rectify,
+                                             method=method)
 
     @profile
-    def _dynamically_apply_feedback(infr, edge, feedback_item, rectify):
+    def _dynamically_apply_feedback(infr, edge, feedback_item, rectify,
+                                    method=None):
         """
         Dynamically updates all states based on a single dynamic change
 
@@ -1227,7 +1266,7 @@ class _AnnotInfrFeedback(object):
         extended_subgraph = infr.graph.subgraph(extended_nodes)
 
         # This re-infers all attributes of the influenced sub-graph only
-        infr.apply_review_inference(graph=extended_subgraph)
+        infr.apply_review_inference(graph=extended_subgraph, method=method)
 
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
@@ -2095,7 +2134,7 @@ class _AnnotInfrUpdates(object):
             raise AssertionError('edges not the same')
 
     @profile
-    def apply_review_inference(infr, graph=None):
+    def apply_review_inference(infr, graph=None, method=None):
         """
         Updates the inferred state of each edge based on reviews and current
         labeling.
@@ -2163,22 +2202,24 @@ class _AnnotInfrUpdates(object):
 
         suggested_fix_edges = []
         other_error_edges = []
-        for nid, cc_inconsistent_edges in ne_categories['inconsistent_internal'].items():
-            # ut.unflat_take(node_to_label, cc_inconsistent_edges)
-            # Find possible edges to fix in the reviewed subgarph
-            reviewed_inconsistent = [
-                (u, v, infr_graph_edge[u][v].copy()) for (u, v) in cc_inconsistent_edges
-                if edge_to_reviewstate[(u, v)] != 'unreviewed'
-            ]
-            subgraph = nx.Graph(reviewed_inconsistent)
-            # TODO: only need to use one fix edge here.
-            cc_error_edges = infr._find_possible_error_edges(subgraph)
-            assert len(cc_error_edges) > 0, 'no fixes found'
-            cc_other_edges = ut.setdiff(cc_inconsistent_edges, cc_error_edges)
-            suggested_fix_edges.extend(cc_error_edges)
-            other_error_edges.extend(cc_other_edges)
-            # just add one for now
-            # break
+        if method != 'ranking':
+            # dont do this in ranking mode
+            for nid, cc_inconsistent_edges in ne_categories['inconsistent_internal'].items():
+                # ut.unflat_take(node_to_label, cc_inconsistent_edges)
+                # Find possible edges to fix in the reviewed subgarph
+                reviewed_inconsistent = [
+                    (u, v, infr_graph_edge[u][v].copy()) for (u, v) in cc_inconsistent_edges
+                    if edge_to_reviewstate[(u, v)] != 'unreviewed'
+                ]
+                subgraph = nx.Graph(reviewed_inconsistent)
+                # TODO: only need to use one fix edge here.
+                cc_error_edges = infr._find_possible_error_edges(subgraph)
+                assert len(cc_error_edges) > 0, 'no fixes found'
+                cc_other_edges = ut.setdiff(cc_inconsistent_edges, cc_error_edges)
+                suggested_fix_edges.extend(cc_error_edges)
+                other_error_edges.extend(cc_other_edges)
+                # just add one for now
+                # break
 
         if infr.verbose >= 1 and ne_categories['inconsistent_internal']:
             print('[infr] found %d possible fixes' % len(suggested_fix_edges))
@@ -2233,7 +2274,9 @@ class _AnnotInfrUpdates(object):
         # print('suggested_fix_edges = %r' % (sorted(suggested_fix_edges),))
         # print('other_error_edges = %r' % (sorted(other_error_edges),))
 
-        if infr.queue is not None:
+        if infr.queue is not None and method != 'ranking':
+            # hack this off if method is ranking, we dont want to update any
+            # priority
             if infr.verbose >= 1:
                 print('[infr] updating priority queue')
             infr._update_priority_queue(graph, ne_categories['positive'],

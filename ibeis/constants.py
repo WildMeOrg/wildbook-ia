@@ -393,15 +393,16 @@ class REVIEW(object):
     # Unknown means that it was reviewed, but we just can't figure it out.
     UNKNOWN = 3
 
-    MATCH_CODE = {
+    CODE_TO_INT = {
         'unreviewed' : UNREVIEWED,
         'nomatch'    : NON_MATCH,
         'match'      : MATCH,
         'notcomp'    : NOT_COMPARABLE,
         'unknown'    : UNKNOWN,
     }
+    MATCH_CODE = CODE_TO_INT
 
-    INT_TO_CODE = ut.invert_dict(MATCH_CODE)
+    INT_TO_CODE = ut.invert_dict(CODE_TO_INT)
     INT_TO_NICE = {
         UNREVIEWED     : 'Unreviewed',
         NON_MATCH      : 'Non-Match',
@@ -410,7 +411,6 @@ class REVIEW(object):
         UNKNOWN        : 'Unknown',
     }
 
-    CODE_TO_INT = MATCH_CODE
     CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
 
     NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)

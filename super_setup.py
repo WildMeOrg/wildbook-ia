@@ -487,7 +487,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
                 export _SUDO="sudo"
             fi
         else
-            export LOCAL_PREFIX=$VIRTUAL_ENV/local
+            # export LOCAL_PREFIX=$VIRTUAL_ENV/local
+            export LOCAL_PREFIX=$VIRTUAL_ENV
             export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/site-packages
             export PYTHON_PACKAGES_PATH=${pypkg_var}
             export _SUDO=""
@@ -641,7 +642,8 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         $_SUDO make install
         # Hack because cv2 does not want to be installed for some reason
         # cp lib/cv2.so $PYTHON_PACKAGES_PATH
-        cp -v lib/cv2.so $PYTHON_PACKAGES_PATH
+        # Seems to work now that local is removed from prefix
+        # cp -v lib/cv2.so $PYTHON_PACKAGES_PATH
         # Test makesure things working
         python -c "import numpy; print(numpy.__file__)"
         python -c "import numpy; print(numpy.__version__)"
@@ -814,11 +816,17 @@ def execute_commands(tpl_rman, ibeis_rman):
             (ibeis_rman, 'flann', 'install'),
             (ibeis_rman, 'hesaff', 'build'),
             (tpl_rman, 'PyQt', 'system_to_venv'),
-            (tpl_rman, 'libgpuarray', 'build'),
         ]
+        if GET_ARGFLAG('--libgpuarray'):
+            dumps += [
+                (tpl_rman, 'libgpuarray', 'build'),
+            ]
 
         for rman, mod, sname in dumps:
             from os.path import join
+            # if mod not in rman:
+            #     print('mod=%r not available in rman=%r' % (mod, rman))
+            #     continue
             script = rman[mod].get_script(sname).text
             suffix = get_plat_specifier()
             sh_fpath = join(dpath, mod + '_' + sname + suffix + '.sh')

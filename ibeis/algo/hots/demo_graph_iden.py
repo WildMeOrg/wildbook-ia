@@ -225,7 +225,8 @@ def demo_graph_iden2():
             observed = rng.choice(list({0, 1} - {truth}))
         else:
             observed = truth
-        state = infr.truth_texts[observed]
+        from ibeis import constants as const
+        state = const.REVIEW.INT_TO_CODE[observed]
         tags = []
         return state, tags
 
@@ -486,7 +487,7 @@ def demo_ibeis_graph_iden():
             # Assume perfect reviewer
             nid1, nid2 = ibs.get_annot_nids([aid1, aid2])
             truth = nid1 == nid2
-            state = infr.truth_texts[truth]
+            state = ibs.const.REVIEW.INT_TO_CODE[truth]
             tags = []
             # TODO:
             # if view1 != view1: infr.add_feedback(aid1, aid2, 'notcomp', apply=True)

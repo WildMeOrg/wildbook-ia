@@ -213,7 +213,8 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # a nns object is a tuple(ndarray, ndarray) - (qfx2_dx, qfx2_dist)
         # * query descriptors assigned to database descriptors
         # * FLANN used here
-        nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
+        nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,
+                                     verbose=verbose)
 
         # Remove Impossible Votes
         # a nnfilt object is an ndarray qfx2_valid
@@ -448,21 +449,21 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     chip_cfgstr    = qreq_.qparams.chip_cfgstr
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
-    single_name_condition   = qreq_.qparams.single_name_condition
-    assert single_name_condition is False, 'can not be on yet'
+    condknn   = qreq_.qparams.condknn
+    # assert condknn is False, 'can not be on yet'
 
     internal_daids = qreq_.get_internal_daids()
     internal_qaids = qreq_.get_internal_qaids()
-    if single_name_condition:
+    if condknn:
         assert qreq_.qparams.vsmany
-        data_hashid = qreq_.get_qreq_pcc_semantic_hashid()
+        data_hashid = qreq_.get_qreq_pcc_hashid(internal_daids, prefix='D')
         # data_hashid = qreq_.get_qreq_annot_semantic_hashid(
         #     internal_daids, prefix='D')
     else:
         data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
             internal_daids, prefix='D')
-    if single_name_condition:
-        data_hashid = qreq_.get_qreq_pcc_semantic_uuids(internal_qaids)
+    if condknn:
+        query_hashid_list = qreq_.get_qreq_pcc_uuids(internal_qaids)
         # query_hashid_list = qreq_.get_qreq_annot_semantic_uuids(internal_qaids)
     else:
         # TODO: get attribute from qreq_, not ibeis
@@ -503,8 +504,8 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
 
 @profile
-def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm,
-                            single_name_condition, verbose):
+def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
+                            impossible_daids_list, K, Knorm, condknn, verbose):
     """
     Logic for computing neighbors if there is a cache miss
 
@@ -524,7 +525,10 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm,
 
     Kpad_list = ut.compress(Kpad_list, flags_list)
     # do computation
-    num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
+    if not condknn:
+        num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
+    else:
+        num_neighbors_list = [K] * len(Kpad_list)
     config2_ = qreq_.get_internal_query_config2()
     qvecs_list = internal_qannots.vecs
 
@@ -561,15 +565,20 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm,
     # Mark progress ane execute nearest indexer nearest neighbor code
     prog_hook = (None if qreq_.prog_hook is None else
                  qreq_.prog_hook.next_subhook())
-    if single_name_condition:
-        assert False, (
-            'need to implement part where matches with the same name are not considered'
-        )
+    if condknn:
+        # assert False, (
+        #     'need to implement part where matches with the same name are not considered'
+        # )
         qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
                                     prog_hook=prog_hook, **PROGKW)
         idx_dist_list = [
-            qreq_.indexer.knn(qfx2_vec, num_neighbors)
-            for qfx2_vec, num_neighbors in zip(qvec_iter, num_neighbors_list)]
+            qreq_.indexer.conditional_knn(qaid, qnid, qfx2_vec, K, pad,
+                                          impossible_daids, qreq_)
+            for qaid, qnid, qfx2_vec, K, pad, impossible_daids in zip(
+                internal_qannots.aids, internal_qannots.nids,
+                qvec_iter, num_neighbors_list, Kpad_list,
+                impossible_daids_list)
+        ]
     else:
         qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
                                     prog_hook=prog_hook, **PROGKW)
@@ -585,7 +594,8 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list, K, Knorm,
 
 
 @profile
-def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
+def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
+                      verbose=VERB_PIPELINE):
     """
     Plain Nearest Neighbors
     Tries to load nearest neighbors from a cache instead of recomputing them.
@@ -600,7 +610,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> verbose = True
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1, 2, 3])
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
@@ -618,7 +628,7 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> verbose = True
-        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1, 2, 3])
+        >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
         >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
         >>> nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
@@ -630,10 +640,63 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
         >>> ut.assert_eq(qfx2_idx.shape, qfx2_dist.shape)
         >>> ut.assert_eq(qfx2_idx.shape[1], num_neighbors)
         >>> ut.assert_inbounds(qfx2_idx.shape[0], 1000, 3000)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> import ibeis
+        >>> verbose = True
+        >>> custom_nid_lookup = {a: a for a in range(14)}
+        >>> qreq1_ = ibeis.testdata_qreq_(
+        >>>     defaultdb='testdb1', t=['default:K=2,condknn=True,can_match_samename=False'],
+        >>>     daid_override=[2, 3, 4, 5, 6, 7, 8],
+        >>>     qaid_override=[2, 5, 1], custom_nid_lookup=custom_nid_lookup)
+        >>> locals_ = plh.testrun_pipeline_upto(qreq1_, 'nearest_neighbors')
+        >>> Kpad_list, impossible_daids_list = ut.dict_take(
+        >>>    locals_, ['Kpad_list', 'impossible_daids_list'])
+        >>> nns_list1 = nearest_neighbors(qreq1_, Kpad_list, impossible_daids_list,
+        >>>                               verbose=verbose)
+        >>> nn1 = nns_list1[0]
+        >>> nnvalid0_list1 = baseline_neighbor_filter(qreq1_, nns_list1,
+        >>>                                           impossible_daids_list)
+        >>> assert np.all(nnvalid0_list1[0]), (
+        >>>  'condknn should never produce impossible results')
+        >>> # Compare versus not using condknn
+        >>> qreq2_ = ibeis.testdata_qreq_(
+        >>>     defaultdb='testdb1', t=['default:K=2,condknn=False'],
+        >>>     daid_override=[1, 2, 3, 4, 5, 6, 7, 8],
+        >>>     qaid_override=[2, 5, 0])
+        >>> locals_ = plh.testrun_pipeline_upto(qreq2_, 'nearest_neighbors')
+        >>> Kpad_list, impossible_daids_list = ut.dict_take(
+        >>>    locals_, ['Kpad_list', 'impossible_daids_list'])
+        >>> nns_list2 = nearest_neighbors(qreq2_, Kpad_list, impossible_daids_list,
+        >>>                               verbose=verbose)
+        >>> nn2 = nns_list2[0]
+        >>> nn1.neighb_dists
+        >>> nn2.neighb_dists
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> import ibeis
+        >>> verbose = True
+        >>> qreq1_ = ibeis.testdata_qreq_(
+        >>>     defaultdb='testdb1', t=['default:K=5,condknn=True,can_match_samename=False'],
+        >>>     daid_override=[2, 3, 4, 5, 6, 7, 8],
+        >>>     qaid_override=[2, 5, 1])
+        >>> locals_ = plh.testrun_pipeline_upto(qreq1_, 'nearest_neighbors')
+        >>> Kpad_list, impossible_daids_list = ut.dict_take(
+        >>>    locals_, ['Kpad_list', 'impossible_daids_list'])
+        >>> nns_list1 = nearest_neighbors(qreq1_, Kpad_list, impossible_daids_list,
+        >>>                               verbose=verbose)
+        >>> nn1 = nns_list1[0]
+        >>> nnvalid0_list1 = baseline_neighbor_filter(qreq1_, nns_list1,
+        >>>                                           impossible_daids_list)
+        >>> assert np.all(nnvalid0_list1[0]), 'should always be valid'
     """
     K      = qreq_.qparams.K
     Knorm  = qreq_.qparams.Knorm
-    single_name_condition = qreq_.qparams.single_name_condition
+    condknn = qreq_.qparams.condknn
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
@@ -646,14 +709,20 @@ def nearest_neighbors(qreq_, Kpad_list, verbose=VERB_PIPELINE):
     # For each internal query annotation
     # Find the nearest neighbors of each descriptor vector
     #USE_NN_MID_CACHE = ut.is_developer()
-    nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(
-        qreq_, Kpad_list)
 
     use_cache = USE_NN_MID_CACHE
+    if use_cache:
+        nn_cachedir, nn_mid_cacheid_list = nearest_neighbor_cacheid2(
+            qreq_, Kpad_list)
+    else:
+        # hacks
+        nn_mid_cacheid_list = [None] * len(qreq_.get_internal_qaids())
+        nn_cachedir = None
+
     nns_list = ut.tryload_cache_list_with_compute(
         use_cache, nn_cachedir, 'neighbs4', nn_mid_cacheid_list,
-        cachemiss_nn_compute_fn, qreq_, Kpad_list, K, Knorm,
-        single_name_condition, verbose)
+        cachemiss_nn_compute_fn, qreq_, Kpad_list, impossible_daids_list, K,
+        Knorm, condknn, verbose)
     return nns_list
 
 

@@ -539,8 +539,8 @@ class ClfProblem(ut.NiceRepr):
         """
         Learns on data without any train/validation split
         """
-        pblm.default_clf_key = 'RF'
-        pblm.default_data_key = 'learn(sum,glob)'
+        if pblm.verbose > 0:
+            print('[pblm] learn_deploy_classifiers')
         if clf_key is None:
             clf_key = pblm.default_clf_key
         if data_key is None:

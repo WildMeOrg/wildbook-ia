@@ -27,7 +27,7 @@ def get_varied_pipecfg_lbls(cfgdict_list, pipecfg_list=None):
     return cfgx2_lbl
 
 
-def get_pipecfg_list(test_cfg_name_list, ibs=None):
+def get_pipecfg_list(test_cfg_name_list, ibs=None, verbose=None):
     r"""
     Builds a list of varied query configurations. Only custom configs depend on
     an ibs object. The order of the output is not gaurenteed to aggree with
@@ -84,6 +84,8 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
         >>> print(result)
         >>> print_pipe_configs(pcfgdict_list, pipecfg_list)
     """
+    if verbose is None:
+        verbose = ut.VERBOSE
     if ut.VERBOSE:
         print('[expt_help.get_pipecfg_list] building pipecfg_list using: %s' %
               test_cfg_name_list)
@@ -161,7 +163,7 @@ def get_pipecfg_list(test_cfg_name_list, ibs=None):
     _flag_list = ut.flag_unique_items(_pipecfg_list)
     cfgdict_list = ut.compress(_pcfgdict_list, _flag_list)
     pipecfg_list = ut.compress(_pipecfg_list, _flag_list)
-    if ut.NOT_QUIET:
+    if verbose:
         #for cfg in _pipecfg_list:
         #    print(cfg.get_cfgstr())
         #    print(cfg)
@@ -286,7 +288,8 @@ def parse_acfg_combo_list(acfg_name_list):
     return acfg_combo_list
 
 
-def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbose=ut.NOT_QUIET):
+def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list,
+                           verbose=None):
     """
     Removes configs with the same expanded aids list
 
@@ -296,7 +299,8 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
 
     """
     from ibeis.expt import annotation_configs
-    verbose = int(verbose)
+    if verbose is None:
+        verbose = ut.VERBOSE
     acfg_list_ = []
     expanded_aids_list_ = []
     seen_ = ut.ddict(list)
@@ -326,7 +330,9 @@ def filter_duplicate_acfgs(expanded_aids_list, acfg_list, acfg_name_list, verbos
                     ut.dict_str(nonvaried_compressed_dict),))
                 print('L__')
 
-        print('[harn.help] parsed %d / %d unique annot configs' % (len(acfg_list_), len(acfg_list),))
+        if verbose >= 1:
+            print('[harn.help] parsed %d / %d unique annot configs' %
+                  (len(acfg_list_), len(acfg_list),))
         if verbose > 2:
             print('[harn.help] parsed from: %r' % (acfg_name_list,))
     return expanded_aids_list_, acfg_list_

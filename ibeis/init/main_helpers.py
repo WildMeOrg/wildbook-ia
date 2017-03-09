@@ -143,7 +143,8 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
     from ibeis.expt import annotation_configs
     from ibeis.expt import cfghelpers
 
-    print('[main_helpers] testdata_aids')
+    if verbose is None or verbose >= 1:
+        print('[main_helpers] testdata_aids')
     if a is None:
         a = adefault
     a, _specified_a = ut.get_argval(('--aidcfg', '--acfg', '-a'), type_=str,
@@ -189,7 +190,7 @@ def testdata_aids(defaultdb=None, a=None, adefault='default', ibs=None,
         return aids
 
 
-def testdata_pipecfg(p=None, t=None, ibs=None):
+def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
     r"""
     Returns:
         dict: pcfgdict
@@ -213,7 +214,8 @@ def testdata_pipecfg(p=None, t=None, ibs=None):
         >>> result = ('pcfgdict = %s' % (ut.dict_str(pcfgdict),))
         >>> print(result)
     """
-    print('[main_helpers] testdata_pipecfg')
+    if verbose is None or verbose >= 1:
+        print('[main_helpers] testdata_pipecfg')
     if t is not None and p is None:
         p = t
     if p is None:
@@ -230,7 +232,7 @@ def testdata_pipecfg(p=None, t=None, ibs=None):
 def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
                            default_qaids=None, default_daids=None,
                            qaid_override=None, daid_override=None,
-                           return_annot_info=False, verbose=False,
+                           return_annot_info=False, verbose=None,
                            use_cache=None):
     r"""
     Args:
@@ -264,7 +266,11 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
         >>> ibs.print_annot_stats(qaid_list + daid_list, yawtext_isect=True)
         >>> print('qaid_list = %r' % (qaid_list,))
     """
-    print('[main_helpers] testdata_expanded_aids')
+    if verbose is None:
+        verbose = 1
+
+    if verbose:
+        print('[main_helpers] testdata_expanded_aids')
     if default_qaids is None:
         # Hack to aggree with experiment-helpers
         default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=[1])
@@ -290,7 +296,7 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
         ibs, aidcfg_name_list, qaid_override=qaid_override,
         use_cache=use_cache,
-        daid_override=daid_override, verbose=verbose)
+        daid_override=daid_override, verbose=max(0, verbose - 1))
 
     #aidcfg = old_main_helpers.get_commandline_aidcfg()
     assert len(acfg_list) == 1, (
@@ -318,7 +324,8 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
 
 
 def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
-                   default_daids=None, **kwargs):
+                   default_daids=None, custom_nid_lookup=None, verbose=None,
+                   **kwargs):
     r"""
     Args:
         p (None): (default = None)
@@ -346,7 +353,8 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
         >>> qreq_ = testdata_qreq_(p)
         >>> result = ('qreq_ = %s' % (str(qreq_),))
     """
-    print('[main_helpers] testdata_qreq_')
+    if verbose is None or verbose >= 1:
+        print('[main_helpers] testdata_qreq_')
     if t is not None and p is None:
         p = t
     if p is None:
@@ -354,9 +362,12 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
     ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True,
                                                      default_qaids=default_qaids,
                                                      default_daids=default_daids,
+                                                     verbose=verbose,
                                                      **kwargs)
-    pcfgdict = testdata_pipecfg(t=p, ibs=ibs)
-    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict)
+    pcfgdict = testdata_pipecfg(t=p, ibs=ibs, verbose=verbose)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=pcfgdict,
+                                  custom_nid_lookup=custom_nid_lookup,
+                                  verbose=verbose)
     # Maintain regen command info: TODO: generalize and integrate
     qreq_._regen_info = {
         '_acfgstr': acfg['qcfg']['_cfgstr'],
@@ -367,12 +378,13 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
 
 
 def testdata_cmlist(defaultdb=None, default_qaids=None, default_daids=None,
-                    t=None, p=None, a=None):
+                    t=None, p=None, a=None, verbose=None):
     """
     Returns:
         list, ibeis.QueryRequest: cm_list, qreq_
     """
-    print('[main_helpers] testdata_cmlist')
+    if verbose is None or verbose >= 1:
+        print('[main_helpers] testdata_cmlist')
     qreq_ = testdata_qreq_(defaultdb=defaultdb, default_qaids=default_qaids,
                            default_daids=default_daids, t=t, p=p, a=a)
     cm_list = qreq_.execute()
@@ -432,7 +444,8 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     # thresh_sec = datetime.timedelta(minutes=30).seconds
 
     if cache is None:
-        cache = len(aids) > 200
+        cache = True
+        # cache = len(aids) > 200
     cfgstr = str(ut.combine_uuids(annots.visual_uuids))
     cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
     data = cacher.tryload()

@@ -39,10 +39,19 @@ def encounter_stuff(ibs, aids):
 
 
 def end_to_end():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.iccv end_to_end
+
+    Example:
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> result = end_to_end()
+        >>> print(result)
+    """
     import ibeis
     from ibeis.init import main_helpers
-    ibs = ibeis.opendb('PZ_MTEST')
-    # ibs = ibeis.opendb('GZ_Master1')
+    # ibs = ibeis.opendb('PZ_MTEST')
+    ibs = ibeis.opendb('GZ_Master1')
     # Specialized database params
     enc_kw = dict(minutes=30)
     filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True)
@@ -68,15 +77,24 @@ def end_to_end():
     clf_key = 'RF'
     data_key = 'learn(sum,glob)'
     task_keys = ['match_state', 'photobomb_state']
-    pblm = OneVsOneProblem.from_aids(ibs, aids=train_aids)
+    pblm = OneVsOneProblem.from_aids(ibs, aids=train_aids, verbose=1)
     pblm.load_features()
     pblm.load_samples()
-    pblm.samples.print_info()
     pblm.build_feature_subsets()
-    # task_keys = list(pblm.samples.subtasks.keys())
 
-    pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
-                                  clf_key=clf_key)
+    cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
+    cacher = ut.Cacher('deploy_clf_', cfgstr=cfgstr)
+    deploy_clf = cacher.tryload()
+    if deploy_clf is None:
+        # pblm.samples.print_info()
+        # task_keys = list(pblm.samples.subtasks.keys())
+
+        pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
+                                      clf_key=clf_key)
+        deploy_clf = pblm
+        cacher.save(pblm.deploy_task_clfs)
+    else:
+        pblm.deploy_task_clfs = deploy_clf
     # match_clf = pblm.deploy_task_clfs['match_state']
     # pb_clf = pblm.deploy_task_clfs['photobomb_state']
 
@@ -93,26 +111,27 @@ def end_to_end():
         3. K=1
         4. K=2
     """
-    if False:
-        test_aids = ut.flatten(names[1::2][::2])
+    # if False:
+    # test_aids = ut.flatten(names[1::2][::2])
 
-    import pandas as pd
     import plottool as pt  # NOQA
     # Create a new AnnotInference instance to go end-to-end
     # Dials
     dials1 = {
-        'name': 'Ranking Only',
+        'name': 'Ranking',
         'k_redun': np.inf,
         'cand_kw': dict(pblm=None),
         'priority_metric': 'normscore',
-        'oracle_accuracy': 1.0,
+        # 'oracle_accuracy': 1.0,
+        'oracle_accuracy': 0.95,
     }
     dials2 = {
-        'name': 'Graph K=1',
-        'k_redun': 1,
+        'name': 'Graph,K=2',
+        'k_redun': 2,
         'cand_kw': dict(pblm=pblm),
         'priority_metric': 'priority',
-        'oracle_accuracy': 1.0,
+        # 'oracle_accuracy': 1.0,
+        'oracle_accuracy': 0.95,
     }
 
     verbose = 0
@@ -126,13 +145,30 @@ def end_to_end():
                                 verbose=verbose)
     metrics_df2 = run_expt(infr, dials=dials2)
 
-    import plottool as pt
     pt.qtensure()
-    pt.plot(metrics_df1['n_manual'].values, metrics_df1['merge_remain'].values, label=dials1['name'])
-    pt.plot(metrics_df2['n_manual'].values, metrics_df2['merge_remain'].values, label=dials2['name'])
+    pt.plot(metrics_df2['n_manual'].values, metrics_df2['merge_remain'].values,
+            'b-', lw=2.5,
+            label=dials2['name'] + ' - % merges remaining')
+    pt.plot(metrics_df1['n_manual'].values, metrics_df1['merge_remain'].values,
+            'r-', lw=1.5,
+            label=dials1['name'] + ' - % merges remaining')
+
+    # error_denom = max(metrics_df1['n_errors'].values.max(),
+    #                   metrics_df2['n_errors'].values.max())
+    error_denom = len(infr.aids)
+    if error_denom == 0:
+        error_denom = 1
+
+    pt.plot(metrics_df2['n_manual'].values,
+            metrics_df2['n_errors'].values / error_denom,
+            'b--', lw=2.5, label=dials2['name'] + ' - error magnitude')
+    pt.plot(metrics_df1['n_manual'].values,
+            metrics_df1['n_errors'].values / error_denom,
+            'r--', lw=1.5, label=dials1['name'] + ' - error magnitude')
     pt.set_xlabel('# manual reviews')
-    pt.set_ylabel('% merges remaining')
+    # pt.set_ylabel('% merges remaining')
     pt.legend()
+    ut.show_if_requested()
 
     # infr.show(show_candidate_edges=True)
     # TODO: use phi to check termination
@@ -140,12 +176,20 @@ def end_to_end():
 
 
 def run_expt(infr, dials):
+    ut.cprint('RUNING TEST', 'yellow')
+    print('dials = %s' % (ut.repr4(dials),))
+    import pandas as pd
     k_redun = dials['k_redun']
     oracle_accuracy = dials['oracle_accuracy']
     cand_kw = dials['cand_kw']
     priority_metric = dials['priority_metric']
     infr.PRIORITY_METRIC = priority_metric
     autoreview_enabled = infr.PRIORITY_METRIC == 'priority'
+    print('autoreview_enabled = %r' % (autoreview_enabled,))
+    if autoreview_enabled:
+        method = 'graph'
+    else:
+        method = 'ranking'
     infr.queue_params['pos_redundancy'] = k_redun
     infr.queue_params['neg_redundancy'] = k_redun
     infr.task_thresh = {
@@ -159,17 +203,49 @@ def run_expt(infr, dials):
             ('notcomp', .99),
         ]))
     }
+
+    aid_to_gt_nid = ut.dzip(infr.aids, infr.orig_name_labels)
     nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
     real_n_pcc_mst_edges = sum([len(cc) - 1 for cc in nid_to_gt_cc.values()])
-    def measure_metrics(infr, n_manual, n_auto):
-        pred_n_pcc_mst_edges = sum([len(cc.node) - 1 for cc in
-                                    infr.positive_connected_compoments()])
+    ut.cprint('real_n_pcc_mst_edges = %r' % (real_n_pcc_mst_edges,), 'red')
+    def measure_metrics(infr, n_manual, n_auto, edge_truth):
+        real_pos_edges = []
+        n_error_edges = 0
+        pred_n_pcc_mst_edges = 0
+        if edge_truth is not None:
+            for edge, data in infr.edges(data=True):
+                true_state = edge_truth.loc[edge].idxmax()
+                reviewed_state = data.get('reviewed_state', 'unreviewed')
+                if true_state == reviewed_state and true_state == 'match':
+                    real_pos_edges.append(edge)
+                elif reviewed_state != 'unreviewed':
+                    if true_state != reviewed_state:
+                        n_error_edges += 1
+
+            import networkx as nx
+            for cc in nx.connected_components(nx.Graph(real_pos_edges)):
+                pred_n_pcc_mst_edges += len(cc) - 1
+        # if n_manual == 30:
+        #     import utool
+        #     utool.embed()
+        # for cc in infr.positive_connected_compoments():
+        #     for edge, data in cc.edges(data=True):
+        #         edge
+        #         break
+        #     pass
+        # # pred_n_pcc_mst_edges = sum([
+        # #     ut.group_items(cc.nodes(), ut.take(aid_to_gt_nid, cc.nodes())).values()
+        # #     for cc in infr.positive_connected_compoments()
+        # # ])
+        # pred_n_pcc_mst_edges = sum([len(cc.node) - 1 for cc in
+        #                             infr.positive_connected_compoments()])
         pos_acc = pred_n_pcc_mst_edges / real_n_pcc_mst_edges
         metrics = {
             'n_manual': n_manual,
             'n_auto': n_auto,
             'pos_acc': pos_acc,
             'merge_remain': 1 - pos_acc,
+            'n_errors': n_error_edges,
         }
         return metrics
 
@@ -181,10 +257,16 @@ def run_expt(infr, dials):
     infr.reset(state='empty')
     infr.remove_feedback(apply=True)
 
-    while True:
-        infr.refresh_candidate_edges(**cand_kw)
+    metrics = measure_metrics(infr, n_manual, n_auto, None)
+    metrics_list.append(metrics)
+
+    import itertools as it
+    for count in it.count(0):
+        infr.refresh_candidate_edges(method=method, **cand_kw)
         infr.init_refresh_criteria()
         infr._init_priority_queue()
+
+        edge_truth = infr.match_state_df(list(infr.edges()))
 
         if not len(infr.queue):
             print('Queue is empty')
@@ -192,7 +274,7 @@ def run_expt(infr, dials):
 
         while not infr.refresh.check() and len(infr.queue):
             edge, priority = infr.pop()
-            print('edge=%r, priority=%r' % (edge, priority))
+            # print('edge=%r, priority=%r' % (edge, priority))
             auto_flag = False
             if autoreview_enabled:
                 auto_flag, review = infr.try_auto_review(edge, priority)
@@ -200,13 +282,17 @@ def run_expt(infr, dials):
             if not auto_flag:
                 error, review = infr.oracle_review(edge, oracle_accuracy, rng)
                 n_manual += 1
-            infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
-            metrics = measure_metrics(infr, n_manual, n_auto)
+            infr.add_feedback(edge=edge, apply=True, rectify=False,
+                              method=method, **review)
+            metrics = measure_metrics(infr, n_manual, n_auto, edge_truth)
             metrics_list.append(metrics)
 
-        print('need to refresh')
-        # For now don't refresh
-        break
+        if count >= 2:
+            # Just do a maximum of some number of runs for now
+            ut.cprint('Early stop', 'blue')
+            break
+        else:
+            ut.cprint('Refresh %d required' % (count,), 'blue')
     metrics_df = pd.DataFrame.from_dict(metrics_list)
     return metrics_df
 
@@ -490,3 +576,14 @@ def learn_phi():
     #         rank = cm.get_name_ranks([cm.qnid])[0]
     #         # rank = min(cm.get_annot_ranks(cm.get_groundtruth_daids()))
     #         accumulator[rank] += 1
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.iccv
+        python -m ibeis.scripts.iccv --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()
