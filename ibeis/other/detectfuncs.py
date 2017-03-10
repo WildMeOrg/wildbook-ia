@@ -3579,9 +3579,8 @@ def bootstrap2(ibs, species_list=['zebra'],
                             # print('Lazy loading ensemble feature with %r' % (feature_func, ))
                             assert feature_func is not None
                             feature = feature_func()
-                            # data['feature'] = feature
+                            data['feature'] = feature
                         if data_list is None:
-                            ut.embed()
                             num_dims = len(feature)
                             data_shape = (num_total, num_dims, )
                             data_list = np.zeros(data_shape, dtype=feature.dtype)
