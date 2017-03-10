@@ -97,7 +97,7 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     index_list = list(range(num_vectors))
 
     # Generate parallelized wrapper
-    OLD = False
+    OLD = True
     if is_ensemble and OLD:
         vectors_list = [ vector_list for _ in range(num_weights) ]
         args_list = zip(weight_filepath_list, vectors_list)
