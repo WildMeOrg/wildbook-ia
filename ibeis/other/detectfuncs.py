@@ -3481,7 +3481,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                         for neighbor_gid_ in neighbor_gid_list_:
                             if neighbor_gid_ not in round_neighbor_gid_hist:
                                 round_neighbor_gid_hist[neighbor_gid_] = 0
-                            round_neighbor_gid_hist[neighbor_gid_] += 0
+                            round_neighbor_gid_hist[neighbor_gid_] += 1
 
                         args = (len(neighbor_gid_set_), len(neighbor_manifest_list), )
                         print('\t\tGetting %d images for %d neighbors' % args)
