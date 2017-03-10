@@ -1085,12 +1085,8 @@ def compute_localizations_classifications(depc, loc_id_list, config=None):
             score_, class_ = result
             score_dict[gid].append(score_)
             class_dict[gid].append(class_)
-        try:
-            assert len(gid_list_) == len(score_dict.keys())
-            assert len(gid_list_) == len(class_dict.keys())
-        except AssertionError:
-            print("HIT ASSERTION AGAIN!")
-            ut.embed()
+        assert len(gid_list_) == len(score_dict.keys())
+        assert len(gid_list_) == len(class_dict.keys())
 
         if masking:
             # We need to perform a difference calculation to see how much the masking
