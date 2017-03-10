@@ -3360,7 +3360,7 @@ def bootstrap2(ibs, species_list=['zebra'],
 
         # All gids that have been reviewed
         round_gid_list = reviewed_gid_list + round_gid_list
-        reviewed_gid_list += round_gid_list
+        reviewed_gid_list = round_gid_list
 
         # Get model ensemble path
         limit = len(round_gid_list)
