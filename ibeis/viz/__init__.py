@@ -83,7 +83,6 @@ def reload_subs(verbose=True):
     getattr(viz_nearest_descriptors, 'rrr', fbrrr)(verbose=verbose)
     getattr(viz_qres, 'rrr', fbrrr)(verbose=verbose)
     getattr(viz_sver, 'rrr', fbrrr)(verbose=verbose)
-    getattr(interact, 'reload_subs', fbrrr)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -102,7 +101,6 @@ IMPORT_TUPLES = [
     ('viz_nearest_descriptors', None),
     ('viz_qres', None),
     ('viz_sver', None),
-    ('interact', None, True),
 ]
 
 """

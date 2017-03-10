@@ -83,7 +83,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     """
     appname = 'vsone_rf_train'
 
-    def __init__(pblm, qreq_=None, verbose=None):
+    def __init__(pblm, qreq_=None, default_qaids=None, default_daids=None,
+                 verbose=None):
         pblm.default_clf_key = 'RF'
         pblm.default_data_key = 'learn(sum,glob)'
         if verbose is None:
@@ -94,10 +95,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # ut.aug_sysargv('--db PZ_Master1')
             qreq_ = ibeis.testdata_qreq_(
                 defaultdb='PZ_PB_RF_TRAIN',
+                default_qaids=default_qaids,
+                default_daids=default_daids,
                 a=':mingt=3,species=primary',
-                # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
+                t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
                 # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-                t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+                # t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
                 verbose=max(0, verbose - 1),
             )
         hyper_params = dt.Config.from_dict(ut.odict([
@@ -124,21 +127,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
-        if verbose is None:
-            verbose = 0
-        import ibeis
-        qreq_ = ibeis.testdata_qreq_(
-            # defaultdb='PZ_PB_RF_TRAIN',
-            ibs=ibs,
-            default_qaids=aids,
-            default_daids=aids,
-            # a=':mingt=3,species=primary',
-            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum',
-            # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-            t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-            verbose=verbose,
-        )
-        pblm = OneVsOneProblem(qreq_, verbose=verbose)
+        pblm = OneVsOneProblem(default_qaids=aids, default_daids=aids,
+                               verbose=verbose)
         return pblm
 
     def load_features(pblm):
@@ -656,12 +646,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
-    def make_deploy_features(pblm, infr, data_key):
+    def make_deploy_features(pblm, infr, edges, data_key):
         """
         Create pairwise features for annotations in a test inference object
         based on the features used to learn here
         """
-        candidate_edges = list(infr.edges())
+        candidate_edges = list(edges)
         # Parse the data_key to build the appropriate feature
         featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
         # Do one-vs-one scoring on candidate edges

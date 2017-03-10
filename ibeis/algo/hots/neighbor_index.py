@@ -942,6 +942,7 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
     count = 0
 
     assert limit > 0, 'must have at least one iteration'
+    at_limit = False
 
     for count in it.count():
         # print('count = %r' % (count,))
@@ -984,7 +985,8 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
                 break
         tx2_qfx = tx2_qfx.compress(tx2_notdone, axis=0)
         tx2_vec = tx2_vec.compress(tx2_notdone, axis=0)
-        if limit is not None and count >= limit:
+        at_limit = limit is not None and count >= limit
+        if at_limit:
             print('[knn] Hit limit=%r and found %d/%d' % (
                 limit, sum(tx2_done), len(tx2_done)))
             break
@@ -993,7 +995,7 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
         K_increase = temp_K
         temp_K += K_increase
 
-    if count >= limit and recover:
+    if at_limit and recover:
         # If over the limit, then we need to do the best with what we have
         # otherwise we would just return nan
 

@@ -20,7 +20,6 @@ def reload_subs(verbose=True):
     rrr(verbose=verbose)
     getattr(DB_SCHEMA, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(IBEISControl, 'rrr', lambda verbose: None)(verbose=verbose)
-    getattr(SQLDatabaseControl, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(_sql_helpers, 'rrr', lambda verbose: None)(verbose=verbose)
     getattr(accessor_decors, 'rrr', lambda verbose: None)(verbose=verbose)
     rrr(verbose=verbose)

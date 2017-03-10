@@ -65,10 +65,10 @@ def reload_subs(verbose=True):
     get_rrr(grabmodels)(verbose=verbose)
     get_rrr(randomforest)(verbose=verbose)
     get_rrr(yolo)(verbose=verbose)
-    get_rrr(selectivesearch)(verbose=verbose)
-    get_rrr(ssd)(verbose=verbose)
-    get_rrr(fasterrcnn)(verbose=verbose)
-    get_rrr(darknet)(verbose=verbose)
+    # get_rrr(selectivesearch)(verbose=verbose)
+    # get_rrr(ssd)(verbose=verbose)
+    # get_rrr(fasterrcnn)(verbose=verbose)
+    # get_rrr(darknet)(verbose=verbose)
     rrr(verbose=verbose)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -81,10 +81,10 @@ IMPORT_TUPLES = [
     ('grabmodels', None),
     ('randomforest', None),
     ('yolo', None),
-    ('selectivesearch', None),
-    ('ssd', None),
-    ('fasterrcnn', None),
-    ('darknet', None),
+    # ('selectivesearch', None),
+    # ('ssd', None),
+    # ('fasterrcnn', None),
+    # ('darknet', None),
 ]
 """
 Regen Command:

@@ -15,6 +15,7 @@ import sys
 import dtool
 from datetime import timedelta
 from functools import update_wrapper
+import warnings
 from functools import wraps
 from os.path import abspath, join, dirname
 # import simplejson as json
@@ -518,7 +519,11 @@ def get_ibeis_flask_api(__name__, DEBUG_PYTHON_STACK_TRACE_JSON_RESPONSE=True):
             assert rule.endswith('/'), 'An API should always end in a forward-slash'
             assert 'methods' in options, 'An api should always have a specified methods list'
             rule_ = rule + ':'.join(options['methods'])
-            assert rule_ not in API_SEEN_SET, 'An API rule has been duplicated'
+            if rule_ in API_SEEN_SET:
+                msg = 'An API rule has been duplicated'
+                warnings.warn(msg + '. Ignoring duplicate (may break web)')
+                return ut.identity
+                # raise AssertionError(msg)
             API_SEEN_SET.add(rule_)
             try:
                 assert 'annotation' not in rule, 'An API rule should use "annot" instead of annotation(s)"'

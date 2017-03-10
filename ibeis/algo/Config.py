@@ -578,7 +578,8 @@ class QueryConfig(ConfigBase):
         query_cfg.pipeline_root = 'vsmany'
         # <Hack Paramaters>
         query_cfg.with_metadata = False
-        query_cfg.augment_queryside_hack = False
+        # query_cfg.augment_queryside_hack = False
+        query_cfg.augment_queryside_hack = True
         # for hacky distinctivness
         query_cfg.return_expanded_nns = False
         # for distinctivness model

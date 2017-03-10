@@ -1,5 +1,6 @@
 import numpy as np
 import utool as ut
+print, rrr, profile = ut.inject2(__name__)
 
 
 def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
@@ -31,7 +32,8 @@ def encounter_stuff(ibs, aids):
     warnings.simplefilter('ignore', RuntimeWarning)
     # with warnings.catch_warnings():
     for qaids, daids in expanded_aids:
-        stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False, combo_enc_info=False)
+        stats = ibs.get_annotconfig_stats(qaids, daids, use_hist=False,
+                                          combo_enc_info=False)
         hashids = (stats['qaid_stats']['qhashid'],
                    stats['daid_stats']['dhashid'])
         print('hashids = %r' % (hashids,))
@@ -41,7 +43,7 @@ def encounter_stuff(ibs, aids):
 def end_to_end():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv end_to_end
+        python -m ibeis.scripts.iccv end_to_end --show
 
     Example:
         >>> from ibeis.scripts.iccv import *  # NOQA
@@ -50,8 +52,8 @@ def end_to_end():
     """
     import ibeis
     from ibeis.init import main_helpers
-    # ibs = ibeis.opendb('PZ_MTEST')
-    ibs = ibeis.opendb('GZ_Master1')
+    ibs = ibeis.opendb('PZ_MTEST')
+    # ibs = ibeis.opendb('GZ_Master1')
     # Specialized database params
     enc_kw = dict(minutes=30)
     filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True)
@@ -67,11 +69,18 @@ def end_to_end():
     train_aids = ut.flatten(names[0::2])
     test_aids = ut.flatten(names[1::2])
 
+    train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
+
     # -----------
     # TRAINING
 
     # aids = train_aids
-    # phis = learn_termination(ibs, aids=train_aids)
+    phi_cacher = ut.Cacher('term_phis', cfgstr=train_cfgstr)
+    phis = phi_cacher.tryload()
+    if phis is None:
+        phis = learn_termination(ibs, aids=train_aids)
+        phi_cacher.save(phis)
+    # show_phis(phis)
 
     from ibeis.scripts.script_vsone import OneVsOneProblem
     clf_key = 'RF'
@@ -82,19 +91,14 @@ def end_to_end():
     pblm.load_samples()
     pblm.build_feature_subsets()
 
-    cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
-    cacher = ut.Cacher('deploy_clf_', cfgstr=cfgstr)
-    deploy_clf = cacher.tryload()
-    if deploy_clf is None:
-        # pblm.samples.print_info()
-        # task_keys = list(pblm.samples.subtasks.keys())
-
+    clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr)
+    pblm.deploy_task_clfs = clf_cacher.tryload()
+    if pblm.deploy_task_clfs is None:
         pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
                                       clf_key=clf_key)
-        deploy_clf = pblm
-        cacher.save(pblm.deploy_task_clfs)
-    else:
-        pblm.deploy_task_clfs = deploy_clf
+        clf_cacher.save(pblm.deploy_task_clfs)
+    # pblm.samples.print_info()
+    # task_keys = list(pblm.samples.subtasks.keys())
     # match_clf = pblm.deploy_task_clfs['match_state']
     # pb_clf = pblm.deploy_task_clfs['photobomb_state']
 
@@ -104,75 +108,77 @@ def end_to_end():
 
     # ------------
     # TESTING
-    """
-    Algorithm Alternatives:
-        1. Ranking only
-        2. ReRanking using 1v1 with automatic thresholds
-        3. K=1
-        4. K=2
-    """
-    # if False:
-    # test_aids = ut.flatten(names[1::2][::2])
-
     import plottool as pt  # NOQA
-    # Create a new AnnotInference instance to go end-to-end
-    # Dials
-    dials1 = {
-        'name': 'Ranking',
-        'k_redun': np.inf,
-        'cand_kw': dict(pblm=None),
-        'priority_metric': 'normscore',
-        # 'oracle_accuracy': 1.0,
-        'oracle_accuracy': 0.95,
-    }
-    dials2 = {
-        'name': 'Graph,K=2',
-        'k_redun': 2,
-        'cand_kw': dict(pblm=pblm),
-        'priority_metric': 'priority',
-        # 'oracle_accuracy': 1.0,
-        'oracle_accuracy': 0.95,
-    }
+    test_aids = ut.flatten(names[1::2])
+    # test_aids = ut.flatten(names[1::2][::2])
+    expt_dials = [
+        {
+            'name': 'Ranking',
+            'k_redun': np.inf,
+            'cand_kw': dict(pblm=None),
+            'priority_metric': 'normscore',
+            # 'oracle_accuracy': 1.0,
+            'oracle_accuracy': 0.95,
+            'complete_thresh': 1.0,
+            # 'max_loops': np.inf,
+            'max_loops': 1.0,
+        },
+        {
+            'name': 'Graph,K=2',
+            'k_redun': 2,
+            'cand_kw': dict(pblm=pblm),
+            'priority_metric': 'priority',
+            'oracle_accuracy': 1.0,
+            # 'complete_thresh': 1.0,
+            'complete_thresh': .6,
+            # 'oracle_accuracy': 0.95,
+            # 'max_loops': np.inf,
+            # 'max_loops': 1,
+            'max_loops': np.inf,
+            # np.inf,
+        },
+        {
+            'name': 'Graph,K=1',
+            'k_redun': 1,
+            'cand_kw': dict(pblm=pblm),
+            'priority_metric': 'priority',
+            # 'complete_thresh': 1.0,
+            'complete_thresh': .6,
+            # 'oracle_accuracy': 1.0,
+            'oracle_accuracy': 0.95,
+            'max_loops': np.inf,
+        }
+    ]
+
+    dials = expt_dials[1]
 
     verbose = 0
-    # infr.set_node_attrs('pin', True)
-    # infr.show(show_candidate_edges=True)
-    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                verbose=verbose)
-    metrics_df1 = run_expt(infr, dials=dials1)
-
-    infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                verbose=verbose)
-    metrics_df2 = run_expt(infr, dials=dials2)
+    expt_metrics = []
+    for dials in expt_dials[1:2]:
+        infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                    verbose=verbose)
+        infr.init_termination_criteria(phis)
+        metrics_df = run_expt(infr, dials=dials)
+        # infr.non_complete_pcc_pairs().__next__()
+        expt_metrics.append((dials, metrics_df))
 
     pt.qtensure()
-    pt.plot(metrics_df2['n_manual'].values, metrics_df2['merge_remain'].values,
-            'b-', lw=2.5,
-            label=dials2['name'] + ' - % merges remaining')
-    pt.plot(metrics_df1['n_manual'].values, metrics_df1['merge_remain'].values,
-            'r-', lw=1.5,
-            label=dials1['name'] + ' - % merges remaining')
-
-    # error_denom = max(metrics_df1['n_errors'].values.max(),
-    #                   metrics_df2['n_errors'].values.max())
     error_denom = len(infr.aids)
     if error_denom == 0:
         error_denom = 1
 
-    pt.plot(metrics_df2['n_manual'].values,
-            metrics_df2['n_errors'].values / error_denom,
-            'b--', lw=2.5, label=dials2['name'] + ' - error magnitude')
-    pt.plot(metrics_df1['n_manual'].values,
-            metrics_df1['n_errors'].values / error_denom,
-            'r--', lw=1.5, label=dials1['name'] + ' - error magnitude')
+    for dials, metrics_df in expt_metrics:
+        pt.plot(metrics_df['n_manual'].values,
+                metrics_df['merge_remain'].values, '-', lw=3.5,
+                label=dials['name'] + ' - % merges remaining')
+        pt.plot(metrics_df['n_manual'].values,
+                metrics_df['n_errors'].values / error_denom,
+                '--', lw=3.5, label=dials['name'] + ' - error magnitude')
+
     pt.set_xlabel('# manual reviews')
     # pt.set_ylabel('% merges remaining')
     pt.legend()
     ut.show_if_requested()
-
-    # infr.show(show_candidate_edges=True)
-    # TODO: use phi to check termination
-    # TODO: recompute candidate edges
 
 
 def run_expt(infr, dials):
@@ -192,6 +198,7 @@ def run_expt(infr, dials):
         method = 'ranking'
     infr.queue_params['pos_redundancy'] = k_redun
     infr.queue_params['neg_redundancy'] = k_redun
+    infr.queue_params['complete_thresh'] = dials['complete_thresh']
     infr.task_thresh = {
         'photobomb_state': pd.Series({
             'pb': .5,
@@ -259,21 +266,29 @@ def run_expt(infr, dials):
 
     metrics = measure_metrics(infr, n_manual, n_auto, None)
     metrics_list.append(metrics)
+    infr.init_refresh_criteria()
 
     import itertools as it
     for count in it.count(0):
+        ut.cprint('Outer loop iter %d ' % (count,), 'blue')
         infr.refresh_candidate_edges(method=method, **cand_kw)
-        infr.init_refresh_criteria()
-        infr._init_priority_queue()
 
         edge_truth = infr.match_state_df(list(infr.edges()))
 
         if not len(infr.queue):
-            print('Queue is empty')
+            ut.cprint('Queue is empty. Terminate.', 'blue')
             break
 
-        while not infr.refresh.check() and len(infr.queue):
+        ut.cprint('Start inner loop', 'blue')
+        while True:
+            if len(infr.queue) == 0:
+                ut.cprint('No more edges, need refresh', 'blue')
+                break
             edge, priority = infr.pop()
+            if priority <= 1:
+                if infr.refresh.check():
+                    ut.cprint('Refresh criteria flags refresh', 'blue')
+                    break
             # print('edge=%r, priority=%r' % (edge, priority))
             auto_flag = False
             if autoreview_enabled:
@@ -287,36 +302,38 @@ def run_expt(infr, dials):
             metrics = measure_metrics(infr, n_manual, n_auto, edge_truth)
             metrics_list.append(metrics)
 
-        if count >= 2:
+        if count >= dials['max_loops']:
             # Just do a maximum of some number of runs for now
             ut.cprint('Early stop', 'blue')
             break
-        else:
-            ut.cprint('Refresh %d required' % (count,), 'blue')
     metrics_df = pd.DataFrame.from_dict(metrics_list)
     return metrics_df
+
+
+def show_phis(phis):
+    import plottool as pt
+    pt.qtensure()
+    ranks = 20
+    ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
+    pt.multi_plot(
+        xdata=np.arange(1, ranks + 1),
+        ydata_list=ydatas,
+        num_xticks=ranks,
+        label_list=['annots per query: %d' % d for d in phis.keys()],
+        title='Learned Termination CDF',
+    )
 
 
 def learn_termination(ibs, aids):
     """
     Example:
-        >>> import plottool as pt
-        >>> pt.qtensure()
-        >>> ranks = 20
-        >>> ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
-        >>> pt.multi_plot(
-        >>>     xdata=np.arange(1, ranks + 1),
-        >>>     ydata_list=ydatas,
-        >>>     num_xticks=ranks,
-        >>>     label_list=['annots per query: %d' % d for d in phis.keys()],
-        >>>     title='Learned Termination CDF',
-        >>> )
     """
+    ut.cprint('Learning termination phi', 'white')
     from ibeis.init.filter_annots import encounter_crossval
     from ibeis.expt import test_result
     pipe_cfg = {
-        'resize_dim': 'area',
-        'dim_size': 450,
+        # 'resize_dim': 'area',
+        # 'dim_size': 450,
     }
 
     n_splits = 3

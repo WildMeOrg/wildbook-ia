@@ -1140,7 +1140,6 @@ class _AnnotMatchConvenienceGetter(object):
     #                                           subsorted_annot_scores)
     #     return nscoretup
 
-
     def get_annot_ave_precision(cm):
         import sklearn.metrics
         annot_df = cm.pandas_annot_info()
