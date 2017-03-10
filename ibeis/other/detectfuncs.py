@@ -1033,7 +1033,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
-        {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.50, 'line_dotted': True},
+        {'label': 'COMBINED~0.3', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.30, 'line_dotted': True},
+        {'label': 'COMBINED~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.50, 'line_dotted': True},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
         # {'label': 'COMBINED` 0.1', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.1},
@@ -1050,7 +1051,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'COMBINED 4', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.1, 'thresh': True, 'index_thresh': 0.10, 'classify': True, 'classifier_algo': 'svm', 'classifier_weight_filepath': 'localizer-zebra-100'},
 
         {
-            'label'        : 'ROUND 0',
+            'label'        : 'C_0',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'classify'     : True,
@@ -1061,7 +1062,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             # 'line_dotted'  : True,
         },
         {
-            'label'        : 'ROUND 0',
+            'label'        : 'C_1',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'classify'     : True,
@@ -1071,6 +1072,28 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'nms_thresh'   : 0.30,
             # 'line_dotted'  : True,
         },
+        # {
+        #     'label'        : 'C_2',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.20.rbf.1.0',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.30,
+        #     # 'line_dotted'  : True,
+        # },
+        # {
+        #     'label'        : 'C_3',
+        #     'algo'         : '_COMBINED',
+        #     'species_set'  : species_set,
+        #     'classify'     : True,
+        #     'classifier_algo': 'svm',
+        #     'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.30.rbf.1.0',
+        #     'nms'          : True,
+        #     'nms_thresh'   : 0.30,
+        #     # 'line_dotted'  : True,
+        # },
 
         # {
         #     'label'        : 'LINEAR,0.5',
@@ -1468,8 +1491,9 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # color_list += [(0.2, 0.2, 0.2)]
     # color_list += [(0.2, 0.2, 0.2)]
 
-    color_list = pt.distinct_colors(len(config_list) - 2, randomize=False)
-    color_list = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)] + color_list
+    color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2), (0.4, 0.4, 0.4)]
+    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
+    color_list = color_list_ + color_list
 
     # color_list = pt.distinct_colors(len(config_list) // 2, randomize=False)
     # color_list = color_list + color_list
@@ -3222,8 +3246,8 @@ def bootstrap(ibs, species_list=['zebra'], N=10, rounds=20, scheme=2, ensemble=9
 
 @register_ibs_method
 def bootstrap2(ibs, species_list=['zebra'],
-               alpha=10, gamma=16, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
-               nms_thresh_pos=0.5, nms_thresh_neg=0.75, C=1.0, kernel='rbf', theta=1.0,
+               alpha=10, gamma=16, epsilon=0.3, rounds=20, ensemble=5, dims=64, pca_limit=1000000,
+               nms_thresh_pos=0.5, nms_thresh_neg=0.90, C=1.0, kernel='rbf', theta=1.0,
                output_path=None,
                precompute=True, precompute_test=True, recompute=False, recompute_classifications=True,
                overlap_thresh_cat_1=0.75, overlap_thresh_cat_2=0.25, overlap_thresh_cat_3=0.0,
@@ -3587,6 +3611,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                         # Add feature and label to list
                         # data_list.append(feature)
                         data_list[index] = feature
+                        index += 1
                         label_list.append(label)
 
                 # data_list = np.array(data_list)
