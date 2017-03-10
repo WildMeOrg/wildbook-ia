@@ -1033,7 +1033,6 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
         # {'label': 'SSD4', 'algo': 'ssd', 'config_filepath': 'pretrained-512-pascal-plus', 'species_set' : species_set},
 
         {'label': 'COMBINED', 'algo': '_COMBINED', 'species_set' : species_set},
-        {'label': 'COMBINED~0.3', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.30, 'line_dotted': True},
         {'label': 'COMBINED~0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'nms': True, 'nms_thresh': 0.50, 'line_dotted': True},
 
         # {'label': 'COMBINED` 0.5', 'algo': '_COMBINED', 'species_set' : species_set, 'thresh': True, 'index_thresh': 0.5},
@@ -1058,7 +1057,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.image.zebra.rbf.1.0.pkl',
             'nms'          : True,
-            'nms_thresh'   : 0.30,
+            'nms_thresh'   : 0.50,
             # 'line_dotted'  : True,
         },
         {
@@ -1069,7 +1068,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             'classifier_algo': 'svm',
             'classifier_weight_filepath': '/home/jason/code/ibeis/models-bootstrap/classifier.svm.localization.zebra.10.rbf.1.0',
             'nms'          : True,
-            'nms_thresh'   : 0.30,
+            'nms_thresh'   : 0.50,
             # 'line_dotted'  : True,
         },
         # {
