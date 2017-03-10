@@ -3390,7 +3390,7 @@ def bootstrap2(ibs, species_list=['zebra'],
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
 
-        round_neighbor_gid_set = set([])
+        round_neighbor_gid_hist = {}
         if not is_svm_model_trained:
             ##################################################################################
             # Step 6: gather gt (simulate user interaction)
@@ -3478,7 +3478,10 @@ def bootstrap2(ibs, species_list=['zebra'],
                         neighbor_idx_list_ = ut.take_column(neighbor_manifest_list, 1)
 
                         # Keep track of the round's results
-                        round_neighbor_gid_set = round_neighbor_gid_set | neighbor_gid_set_
+                        for neighbor_gid_ in neighbor_gid_list_:
+                            if neighbor_gid_ not in round_neighbor_gid_hist:
+                                round_neighbor_gid_hist[neighbor_gid_] = 0
+                            round_neighbor_gid_hist[neighbor_gid_] += 0
 
                         args = (len(neighbor_gid_set_), len(neighbor_manifest_list), )
                         print('\t\tGetting %d images for %d neighbors' % args)
@@ -3635,22 +3638,39 @@ def bootstrap2(ibs, species_list=['zebra'],
 
         ##################################################################################
         # Step 8: update the sorted_gid_list based on what neighbors were samples
-        lower_sorted_gid_list = [
-            sorted_gid
-            for sorted_gid in sorted_gid_list
-            if sorted_gid in round_neighbor_gid_set
-        ]
-        higher_sorted_gid_list = [
-            sorted_gid
-            for sorted_gid in sorted_gid_list
-            if sorted_gid not in lower_sorted_gid_list
-        ]
-        sorted_gid_list_ = higher_sorted_gid_list + lower_sorted_gid_list
+        if len(round_neighbor_gid_hist) >= alpha:
+            vals_list = [
+                (
+                    round_neighbor_gid_hist[neighbor_gid_],
+                    neighbor_gid_,
+                )
+                for neighbor_gid_ in round_neighbor_gid_hist
+            ]
+            vals_list = sorted(vals_list)
+            vals_list = vals_list[:alpha]
+            print('Reference Histogram: %r' % (vals_list, ))
+            top_referenced_neighbor_gid_list = [ _[1] for _ in vals_list ]
+            round_neighbor_gid_set = set(top_referenced_neighbor_gid_list)
 
-        assert len(sorted_gid_list_) == len(higher_sorted_gid_list) + len(lower_sorted_gid_list)
-        assert len(sorted_gid_list_) == len(sorted_gid_list)
-        args = (len(higher_sorted_gid_list), len(lower_sorted_gid_list), )
-        print('Round Sorted Image Re-index: %d Above + %d Below' % args)
+            # Partition set
+            lower_sorted_gid_list = [
+                sorted_gid
+                for sorted_gid in sorted_gid_list
+                if sorted_gid in round_neighbor_gid_set
+            ]
+            higher_sorted_gid_list = [
+                sorted_gid
+                for sorted_gid in sorted_gid_list
+                if sorted_gid not in lower_sorted_gid_list
+            ]
+            sorted_gid_list_ = higher_sorted_gid_list + lower_sorted_gid_list
+
+            assert len(sorted_gid_list_) == len(higher_sorted_gid_list) + len(lower_sorted_gid_list)
+            assert len(sorted_gid_list_) == len(sorted_gid_list)
+            args = (len(higher_sorted_gid_list), len(lower_sorted_gid_list), )
+            print('Round Sorted Image Re-index: %d Above + %d Below' % args)
+        else:
+            print('NO IMAGE RE-INDEXING: NOT ENOUGH NEIGHBOR IMAGES SEEN')
 
         ##################################################################################
         # Step 9: update the bootstrapping algorithm to use the new ensemble during
