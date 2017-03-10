@@ -1094,7 +1094,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
             # 'line_dotted'  : True,
         },
         {
-            'label'        : 'C_3',
+            'label'        : 'C_4',
             'algo'         : '_COMBINED',
             'species_set'  : species_set,
             'classify'     : True,
