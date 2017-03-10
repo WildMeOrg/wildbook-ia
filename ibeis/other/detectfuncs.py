@@ -3533,7 +3533,8 @@ def bootstrap2(ibs, species_list=['zebra'],
                 mined_neg_list = category_dict['cat4']
 
                 num_pos = len(mined_pos_list)
-                num_target = num_pos / theta
+                num_target = int(num_pos / theta)
+                print('Mining %d target negatives' % (num_target, ))
 
                 if len(mined_hard_list) > num_target:
                     print('Sampling Hard')
