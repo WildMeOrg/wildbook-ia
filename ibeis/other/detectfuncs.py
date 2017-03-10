@@ -3559,16 +3559,18 @@ def bootstrap2(ibs, species_list=['zebra'],
                 )
                 print('Training with %d positives and %d (%d + %d) negatives (%0.02f split)' % args)
 
-                data_list = []
-                label_list = []
                 temp_list = [
-                    (1, mined_pos_list),
-                    (0, mined_hard_list),
-                    (0, mined_neg_list),
+                    ('pos', 1, mined_pos_list),
+                    ('hard', 0, mined_hard_list),
+                    ('neg', 0, mined_neg_list),
                 ]
 
-                for label, mined_data_list in temp_list:
-                    lbl = 'gathering training features for %s' % (label, )
+                # data_list = []
+                index = 0
+                data_list = None
+                label_list = []
+                for label_tag, label, mined_data_list in temp_list:
+                    lbl = 'gathering training features for %s' % (label_tag, )
                     mined_data_iter = ut.ProgIter(mined_data_list, lbl=lbl, bs=True)
                     for data in mined_data_iter:
                         feature = data.get('feature', None)
@@ -3577,11 +3579,18 @@ def bootstrap2(ibs, species_list=['zebra'],
                             # print('Lazy loading ensemble feature with %r' % (feature_func, ))
                             assert feature_func is not None
                             feature = feature_func()
-                            data['feature'] = feature
-                        data_list.append(feature)
+                            # data['feature'] = feature
+                        if data_list is None:
+                            ut.embed()
+                            num_dims = len(feature)
+                            data_shape = (num_total, num_dims, )
+                            data_list = np.zeros(data_shape, dtype=feature.dtype)
+                        # Add feature and label to list
+                        # data_list.append(feature)
+                        data_list[index] = feature
                         label_list.append(label)
 
-                data_list = np.array(data_list)
+                # data_list = np.array(data_list)
                 label_list = np.array(label_list)
 
                 print('Train Ensemble SVM (%d)' % (current_ensemble, ))
