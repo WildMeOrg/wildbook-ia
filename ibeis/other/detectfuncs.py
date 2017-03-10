@@ -1490,7 +1490,7 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # color_list += [(0.2, 0.2, 0.2)]
     # color_list += [(0.2, 0.2, 0.2)]
 
-    color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2), (0.4, 0.4, 0.4)]
+    color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)]
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
@@ -3473,7 +3473,7 @@ def bootstrap2(ibs, species_list=['zebra'],
 
                         neighbor_manifest_list = list(set(neighbor_manifest_list))
                         neighbor_gid_list_ = ut.take_column(neighbor_manifest_list, 0)
-                        neighbor_gid_set_ = list(set(neighbor_gid_list_))
+                        neighbor_gid_set_ = set(neighbor_gid_list_)
                         neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
                         neighbor_idx_list_ = ut.take_column(neighbor_manifest_list, 1)
 
@@ -3482,7 +3482,7 @@ def bootstrap2(ibs, species_list=['zebra'],
 
                         args = (len(neighbor_gid_set_), len(neighbor_manifest_list), )
                         print('\t\tGetting %d images for %d neighbors' % args)
-                        neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=neighbor_gid_set_,
+                        neighbor_pred_dict = localizer_parse_pred(ibs, test_gid_list=list(neighbor_gid_set_),
                                                                   **config)
 
                         zipped = zip(neighbor_gid_list_, neighbor_uuid_list_, neighbor_idx_list_)
