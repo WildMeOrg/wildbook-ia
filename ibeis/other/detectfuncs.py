@@ -3205,7 +3205,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                alpha=10, gamma=16, epsilon=0.3, rounds=20, ensemble=9, dims=64, pca_limit=1000000,
                nms_thresh_pos=0.5, nms_thresh_neg=0.75, C=1.0, kernel='rbf', theta=1.0,
                output_path=None,
-               precompute=True, precompute_test=True, recompute=False,
+               precompute=True, precompute_test=True, recompute=False, recompute_classifications=True,
                overlap_thresh_cat_1=0.75, overlap_thresh_cat_2=0.25, overlap_thresh_cat_3=0.0,
                **kwargs):
     from sklearn import svm, preprocessing
@@ -3357,8 +3357,9 @@ def bootstrap2(ibs, species_list=['zebra'],
 
             ##################################################################################
             # Step 7: gather predictions from all algorithms combined
-            print('\tDelete Old Classifications')
-            depc.delete_property('localizations_classifier', round_gid_list, config=config)
+            if recompute_classifications:
+                print('\tDelete Old Classifications')
+                depc.delete_property('localizations_classifier', round_gid_list, config=config)
 
             print('\tGather Predictions')
             pred_dict = localizer_parse_pred(ibs, test_gid_list=round_gid_list, **config)
