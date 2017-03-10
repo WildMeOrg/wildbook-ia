@@ -3341,10 +3341,7 @@ def bootstrap2(ibs, species_list=['zebra'],
     # Step 2.5: pre-compute localizations and ResNet features (without loading to memory)
     #
     if precompute:
-        needed = alpha * rounds
-        needed = min(needed, len(sorted_gid_list))
-        sorted_gid_list_ = sorted_gid_list[:needed]
-        depc.get_rowids('localizations_features', sorted_gid_list_, config=config)
+        depc.get_rowids('localizations_features', sorted_gid_list, config=config)
 
     # Precompute test features
     if precompute and precompute_test:
@@ -3357,6 +3354,7 @@ def bootstrap2(ibs, species_list=['zebra'],
     # Step 3: for each bootstrapping round, ask user for input
     # The initial classifier is the whole image classifier
 
+    sorted_gid_list_ = sorted_gid_list[:]
     reviewed_gid_list = []
     for current_round in range(rounds):
         print('------------------------------------------------------')
@@ -3366,8 +3364,8 @@ def bootstrap2(ibs, species_list=['zebra'],
         # Step 4: gather the (unreviewed) images to review for this round
         round_gid_list = []
         temp_index = 0
-        while len(round_gid_list) < alpha and temp_index < len(sorted_gid_list):
-            temp_gid = sorted_gid_list[temp_index]
+        while len(round_gid_list) < alpha and temp_index < len(sorted_gid_list_):
+            temp_gid = sorted_gid_list_[temp_index]
             if temp_gid not in reviewed_gid_list:
                 round_gid_list.append(temp_gid)
             temp_index += 1
@@ -3392,6 +3390,7 @@ def bootstrap2(ibs, species_list=['zebra'],
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
 
+        round_neighbor_gid_set = set([])
         if not is_svm_model_trained:
             ##################################################################################
             # Step 6: gather gt (simulate user interaction)
@@ -3477,6 +3476,9 @@ def bootstrap2(ibs, species_list=['zebra'],
                         neighbor_gid_set_ = list(set(neighbor_gid_list_))
                         neighbor_uuid_list_ = ibs.get_image_uuids(neighbor_gid_list_)
                         neighbor_idx_list_ = ut.take_column(neighbor_manifest_list, 1)
+
+                        # Keep track of the round's results
+                        round_neighbor_gid_set = round_neighbor_gid_set | neighbor_gid_set_
 
                         args = (len(neighbor_gid_set_), len(neighbor_manifest_list), )
                         print('\t\tGetting %d images for %d neighbors' % args)
@@ -3632,14 +3634,33 @@ def bootstrap2(ibs, species_list=['zebra'],
                 ut.save_cPkl(svm_model_filepath, model_tup)
 
         ##################################################################################
-        # Step 8: update the bootstrapping algorithm to use the new ensemble during
+        # Step 8: update the sorted_gid_list based on what neighbors were samples
+        lower_sorted_gid_list = [
+            sorted_gid
+            for sorted_gid in sorted_gid_list
+            if sorted_gid in round_neighbor_gid_set
+        ]
+        higher_sorted_gid_list = [
+            sorted_gid
+            for sorted_gid in sorted_gid_list
+            if sorted_gid not in lower_sorted_gid_list
+        ]
+        sorted_gid_list_ = higher_sorted_gid_list + lower_sorted_gid_list
+
+        assert len(sorted_gid_list_) == len(higher_sorted_gid_list) + len(lower_sorted_gid_list)
+        assert len(sorted_gid_list_) == len(sorted_gid_list)
+        args = (len(higher_sorted_gid_list), len(lower_sorted_gid_list), )
+        print('Round Sorted Image Re-index: %d Above + %d Below' % args)
+
+        ##################################################################################
+        # Step 9: update the bootstrapping algorithm to use the new ensemble during
         #         the next round
         config['classifier_weight_filepath'] = svm_model_path
         config_list.append(config.copy())
 
         ##################################################################################
-        # Step 9: get the test images and classify (cache) their proposals using
-        #         the new model ensemble
+        # Step 10: get the test images and classify (cache) their proposals using
+        #          the new model ensemble
         if precompute and precompute_test:
             if not is_svm_model_trained:
                 depc.delete_property('localizations_classifier', test_gid_list, config=config)
