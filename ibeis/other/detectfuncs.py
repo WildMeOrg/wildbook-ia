@@ -670,12 +670,30 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
     test_gids_list = [ [test_gid] * length for test_gid, length in zip(test_gid_list, length_list) ]
     sizes_list = [ [size] * length for size, length in zip(size_list, length_list) ]
     keeps_list = [ [True] * length for length in length_list ]
-    features_list = [ [True] * length for length in length_list ]
+    features_list = [ [None] * length for length in length_list ]
+    features_lazy_list = [ [None] * length for length in length_list ]
 
     # Get features
     if kwargs.get('features', False):
         features_list = depc.get_property('localizations_features', test_gid_list,
                                           'vector', config=kwargs)
+
+    if kwargs.get('features_lazy', False):
+        from functools import partial
+
+        def features_lazy_func(gid, offset):
+            vector_list = depc.get_property('localizations_features', gid,
+                                            'vector', config=kwargs)
+            vector = vector_list[offset]
+            return vector
+
+        features_lazy_list = [
+            [
+                partial(features_lazy_func, test_gid, test_offset)
+                for test_offset in range(length)
+            ]
+            for test_gid, length in zip(test_gid_list, length_list)
+        ]
 
     # Get updated confidences for boxes
     if kwargs.get('classify', False):
@@ -763,24 +781,26 @@ def localizer_parse_pred(ibs, test_gid_list=None, **kwargs):
         thetas_list,
         confss_list,
         classs_list,
-        features_list
+        features_list,
+        features_lazy_list,
     )
     results_list = [
         [
             {
-                'gid'        : test_gid,
-                'xtl'        : bbox[0] / width,
-                'ytl'        : bbox[1] / height,
-                'xbr'        : (bbox[0] + bbox[2]) / width,
-                'ybr'        : (bbox[1] + bbox[3]) / height,
-                'width'      : bbox[2] / width,
-                'height'     : bbox[3] / height,
-                'theta'      : theta,
-                'confidence' : conf,
-                'class'      : class_,
-                'feature'    : feature,
+                'gid'          : test_gid,
+                'xtl'          : bbox[0] / width,
+                'ytl'          : bbox[1] / height,
+                'xbr'          : (bbox[0] + bbox[2]) / width,
+                'ybr'          : (bbox[1] + bbox[3]) / height,
+                'width'        : bbox[2] / width,
+                'height'       : bbox[3] / height,
+                'theta'        : theta,
+                'confidence'   : conf,
+                'class'        : class_,
+                'feature'      : feature,
+                'feature_lazy' : feature_lazy,
             }
-            for keep_, test_gid, (width, height), bbox, theta, conf, class_, feature in zip(*zipped_list)
+            for keep_, test_gid, (width, height), bbox, theta, conf, class_, feature, feature_lazy in zip(*zipped_list)
             if keep_
         ]
         for zipped_list in zipped_list_list
@@ -3279,11 +3299,12 @@ def bootstrap2(ibs, species_list=['zebra'],
     sorted_gid_list = [comb[1] for comb in comb_list]
 
     config = {
-        'algo'         : '_COMBINED',
-        'species_set'  : set(species_list),
-        'features'     : True,
-        'feature2_algo': 'resnet',
-        'classify'     : True,
+        'algo'           : '_COMBINED',
+        'species_set'    : set(species_list),
+        # 'features'       : True,
+        'features_lazy'  : True,
+        'feature2_algo'  : 'resnet',
+        'classify'       : True,
         'classifier_algo': 'svm',
         'classifier_weight_filepath': wic_model_filepath,
         # 'nms'          : True,
@@ -3409,7 +3430,14 @@ def bootstrap2(ibs, species_list=['zebra'],
                     if cat_tag == 'cat1':
                         # Go over predictions and find neighbors, sorting into either cat1 or cat3
                         neighbor_manifest_list = []
-                        for cat_pred in cat_pred_list:
+                        cat_pred_iter = ut.ProgIter(cat_pred_list, lbl='find neighbors', bs=True)
+                        for cat_pred in cat_pred_iter:
+                            if cat_pred.get('feature', None) is None:
+                                feature_func = cat_pred.get('feature_lazy', None)
+                                print('Lazy loading neighbor feature with %r' % (feature_func, ))
+                                assert feature_func is not None
+                                feature = feature_func()
+                                cat_pred['feature'] = feature
                             feature_list = np.array([cat_pred['feature']])
                             data_list = scaler.transform(feature_list)
                             data_list_ = pca_model.transform(data_list)[0]
@@ -3531,15 +3559,22 @@ def bootstrap2(ibs, species_list=['zebra'],
 
                 data_list = []
                 label_list = []
-                for pos in mined_pos_list:
-                    data_list.append(pos['feature'])
-                    label_list.append(1)
-                for pos in mined_hard_list:
-                    data_list.append(pos['feature'])
-                    label_list.append(0)
-                for neg in mined_neg_list:
-                    data_list.append(neg['feature'])
-                    label_list.append(0)
+                temp_list = [
+                    (1, mined_pos_list),
+                    (0, mined_hard_list),
+                    (0, mined_neg_list),
+                ]
+
+                for label, mined_data_list in temp_list:
+                    for data in mined_data_list:
+                        if data.get('feature', None) is None:
+                            feature_func = data.get('feature_lazy', None)
+                            print('Lazy loading ensemble feature with %r' % (feature_func, ))
+                            assert feature_func is not None
+                            feature = feature_func()
+                            data['feature'] = feature
+                        data_list.append(data['feature'])
+                        label_list.append(label)
 
                 data_list = np.array(data_list)
                 label_list = np.array(label_list)
