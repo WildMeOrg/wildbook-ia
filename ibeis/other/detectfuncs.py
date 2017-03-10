@@ -3432,13 +3432,14 @@ def bootstrap2(ibs, species_list=['zebra'],
                         neighbor_manifest_list = []
                         cat_pred_iter = ut.ProgIter(cat_pred_list, lbl='find neighbors', bs=True)
                         for cat_pred in cat_pred_iter:
-                            if cat_pred.get('feature', None) is None:
+                            feature = cat_pred.get('feature', None)
+                            if feature is None:
                                 feature_func = cat_pred.get('feature_lazy', None)
-                                print('Lazy loading neighbor feature with %r' % (feature_func, ))
+                                # print('Lazy loading neighbor feature with %r' % (feature_func, ))
                                 assert feature_func is not None
                                 feature = feature_func()
-                                cat_pred['feature'] = feature
-                            feature_list = np.array([cat_pred['feature']])
+                                # cat_pred['feature'] = feature
+                            feature_list = np.array([feature])
                             data_list = scaler.transform(feature_list)
                             data_list_ = pca_model.transform(data_list)[0]
 
@@ -3566,14 +3567,17 @@ def bootstrap2(ibs, species_list=['zebra'],
                 ]
 
                 for label, mined_data_list in temp_list:
-                    for data in mined_data_list:
-                        if data.get('feature', None) is None:
+                    lbl = 'gathering training features for %s' % (label, )
+                    mined_data_iter = ut.ProgIter(mined_data_list, lbl=lbl, bs=True)
+                    for data in mined_data_iter:
+                        feature = data.get('feature', None)
+                        if feature is None:
                             feature_func = data.get('feature_lazy', None)
-                            print('Lazy loading ensemble feature with %r' % (feature_func, ))
+                            # print('Lazy loading ensemble feature with %r' % (feature_func, ))
                             assert feature_func is not None
                             feature = feature_func()
-                            data['feature'] = feature
-                        data_list.append(data['feature'])
+                            # data['feature'] = feature
+                        data_list.append(feature)
                         label_list.append(label)
 
                 data_list = np.array(data_list)
