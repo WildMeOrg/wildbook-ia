@@ -3646,7 +3646,7 @@ def bootstrap2(ibs, species_list=['zebra'],
                 )
                 for neighbor_gid_ in round_neighbor_gid_hist
             ]
-            vals_list = sorted(vals_list)
+            vals_list = sorted(vals_list, reverse=True)
             vals_list = vals_list[:alpha]
             print('Reference Histogram: %r' % (vals_list, ))
             top_referenced_neighbor_gid_list = [ _[1] for _ in vals_list ]
