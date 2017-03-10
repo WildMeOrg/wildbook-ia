@@ -3348,8 +3348,6 @@ def bootstrap2(ibs, species_list=['zebra'],
         svm_model_path = join(output_path, output_filename)
         is_svm_model_trained = exists(svm_model_path)
 
-        ut.ensuredir(svm_model_path)
-
         if not is_svm_model_trained:
             ##################################################################################
             # Step 6: gather gt (simulate user interaction)
@@ -3494,6 +3492,8 @@ def bootstrap2(ibs, species_list=['zebra'],
 
             ##################################################################################
             # Step 8: train SVM ensemble using fresh mined data for each ensemble
+
+            ut.ensuredir(svm_model_path)
 
             # Train models, one-by-one
             for current_ensemble in range(1, ensemble + 1):

@@ -97,13 +97,13 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
     index_list = list(range(num_vectors))
 
     # Generate parallelized wrapper
-    if is_ensemble:
+    OLD = False
+    if is_ensemble and OLD:
         vectors_list = [ vector_list for _ in range(num_weights) ]
         args_list = zip(weight_filepath_list, vectors_list)
         nTasks = num_weights
         print('Processing ensembles in parallel using %d ensembles' % (num_weights, ))
     else:
-        weight_filepath = weight_filepath_list[0]
         num_cpus = multiprocessing.cpu_count()
         vector_batch = int(np.ceil(float(num_vectors) / num_cpus))
         vector_rounds = int(np.ceil(float(num_vectors) / vector_batch))
@@ -120,8 +120,9 @@ def classify(vector_list, weight_filepath, verbose=VERBOSE_SVM, **kwargs):
             index_list_ = list(range(start_index, stop_index))
             vector_list_ = vector_list[start_index: stop_index]
             assert len(index_list_) == len(vector_list_)
-            args = (index_list_, weight_filepath, vector_list_, )
-            args_list.append(args)
+            for weight_filepath in weight_filepath_list:
+                args = (index_list_, weight_filepath, vector_list_, )
+                args_list.append(args)
 
         nTasks = num_cpus
         print('Processing vectors in parallel using vector_batch = %r' % (vector_batch, ))
