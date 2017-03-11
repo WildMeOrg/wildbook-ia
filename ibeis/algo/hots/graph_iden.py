@@ -16,6 +16,10 @@ import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
 
+DEBUG_CC = False
+# DEBUG_CC = True
+
+
 class TerminationCriteria(object):
     def __init__(term, phis):
         term.phis = phis
@@ -38,7 +42,7 @@ class RefreshCriteria(object):
 
     def add(refresh, decision, user_id):
         decision_code = 1 if decision == 'match' else 0
-        if not user_id.startswith('auto'):
+        if user_id is not None and not user_id.startswith('auto'):
             refresh.manual_decisions.append(decision_code)
         if decision_code:
             refresh.num_pos += 1
@@ -943,36 +947,40 @@ class _AnnotInfrFeedback(object):
             check_edges = {}
         return check_edges
 
-    @property
-    def current_categories(infr):
-        # TODO dynamically maintain this, and then use
-        # as main interface to dynamic connectivity (via union-find / ETT)
-        if infr._categories is None:
-            infr._categories = infr.categorize_edges()
-        return infr._categories
-
-    def negative_nid_neighbors(infr, cc):
+    def negative_redundant_nids(infr, cc):
         """
         Get PCCs that are k-negative redundant with `cc`
+
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> infr = testdata_infr2()
+            >>> node = 20
+            >>> cc = infr.pos_graph.connected_to(node)
+            >>> infr.queue_params['neg_redundancy'] = 2
+            >>> infr.negative_redundant_nids(cc)
         """
-        # categories = infr.current_categories
-        # node_to_label = categories['node_to_label']
-        # edge_to_reviewstate = categories['edge_to_reviewstate']
-        # reviewed_negatives = categories['reviewed_negatives']
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
         neg_nid_freq = ut.ddict(lambda: 0)
         for u in cc:
-            nid1 = infr.graph.node[u]['name_label']
-            for v in infr.graph.neighbors(u):
-                nid2 = infr.graph.node[v]['name_label']
+            nid1 = pos_graph.node_label(u)
+            for v in neg_graph.neighbors(u):
+                nid2 = pos_graph.node_label(v)
                 if nid1 == nid2:
                     continue
-                state = infr.graph.edge[u][v].get('reviewed_state', 'unreviewed')
-                # state = edge_to_reviewstate.get(e_(u, v), 'unreviewed')
-                if state == 'nomatch':
-                    neg_nid_freq[nid2] += 1
+                neg_nid_freq[nid2] += 1
         # check for k-negative redundancy
-        neg_nids = [nid2 for nid2, freq in neg_nid_freq.items()
-                    if freq >= infr.queue_params['neg_redundancy']]
+        k_neg = infr.queue_params['neg_redundancy']
+
+        neg_nids = [
+            nid2 for nid2, freq in neg_nid_freq.items()
+            if (
+                freq >= k_neg or
+                freq == len(cc) or
+                freq == len(pos_graph.connected_to(nid2))
+            )
+        ]
         return neg_nids
 
     def prob_complete(infr, cc):
@@ -985,27 +993,49 @@ class _AnnotInfrFeedback(object):
             if size not in infr.term.phis:
                 size = max(infr.term.phis.keys())
             phi = infr.term.phis[size]
-            categories = infr.current_categories
-            node_to_label = categories['node_to_label']
-            nid_to_cc = categories['nid_to_cc']
+            # pos_graph.node_label()
+            num_ccs = len(infr.pos_graph._ccs)
             # We use annot scores because names could be different if
             # reviews have happened.
             ranked_aids = infr._get_cm_agg_aid_ranking(cc)
             # Map these aids onto current nid label
-            ranked_nids = ut.unique(ut.take(node_to_label, ranked_aids))
+            ranked_nids = ut.unique(
+                [infr.pos_graph.node_label(aid) for aid in ranked_aids])
             nid_to_rank = ut.make_index_lookup(ranked_nids)
-            neg_nid_neighbors = set(infr.negative_nid_neighbors(cc))
+            neg_nid_neighbors = set(infr.negative_redundant_nids(cc))
             # Get the ranks of known negative neighbors
-            neg_ranks = [rank for nid, rank in nid_to_rank.items() if
-                         nid in neg_nid_neighbors]
-            slack = len(nid_to_cc) - len(phi)
+            neg_ranks = [rank for nid, rank in nid_to_rank.items()
+                         if nid in neg_nid_neighbors]
+            neg_ranks = sorted(neg_ranks)
+            slack = num_ccs - len(phi)
             if slack:
                 phi = np.append(phi, [phi[-1]] * slack)
                 phi = phi / phi.sum()
             # TODO: extend phi if needed for current dbsize
             p_complete = sum([phi[r] for r in neg_ranks])
-            print('p_complete = %r' % (p_complete,))
             return p_complete
+
+    def check_prob_completeness(infr, node):
+        """
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> infr = testdata_infr2()
+            >>> infr.initialize_visual_node_attrs()
+            >>> #ut.ensureqt()
+            >>> #infr.show()
+            >>> infr.refresh_candidate_edges()
+            >>> node = 1
+            >>> node = 20
+            >>> infr.is_node_complete(node)
+        """
+        thresh = infr.queue_params['complete_thresh']
+        cc = infr.pos_graph.connected_to(node)
+        if thresh < 1.0:
+            p_complete = infr.prob_complete(cc)
+            if p_complete > thresh:
+                return True
+        return False
 
     @profile
     def non_complete_pcc_pairs(infr):
@@ -1016,7 +1046,7 @@ class _AnnotInfrFeedback(object):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = '?'
+            >>> infr = testdata_infr2()
             >>> categories = infr.categorize_edges(graph)
             >>> negative = categories['ne_categories']['negative']
             >>> ne, edges = list(categories['reviewed_negatives'].items())[0]
@@ -1045,20 +1075,23 @@ class _AnnotInfrFeedback(object):
                 # no check edges means we can't do anything
                 yield (c1_nodes, c2_nodes, check_edges)
 
-    def non_redundant_pccs(infr):
+    def non_redundant_pccs(infr, relax_size=False):
         """
         Get PCCs that are not k-positive-redundant
         """
         k = infr.queue_params['pos_redundancy']
         if k == 1:
-            for cc in  infr.consistent_components():
+            for cc in infr.consistent_components():
                 yield cc
 
         for cc in infr.consistent_components():
             pos_conn = nx.edge_connectivity(cc)
             # if the nodes are not big enough for this amount of connectivity
             # then we relax the requirement
-            required_k = min(len(cc) - 1, k)
+            if relax_size:
+                required_k = min(len(cc) - 1, k)
+            else:
+                required_k = k
             if pos_conn < required_k:
                 yield cc
 
@@ -1080,7 +1113,7 @@ class _AnnotInfrFeedback(object):
             >>> infr.queue_params['pos_redundancy'] = 2
             >>> infr.review_dummy_edges(method=2)
             >>> infr.relabel_using_reviews()
-            >>> non_redundant_ccs = list(infr.non_redundant_components())
+            >>> non_redundant_ccs = list(infr.non_redundant_pccs())
             >>> consistent_ccs = list(infr.consistent_components())
             >>> print(len(non_redundant_ccs))
             >>> print(len(consistent_ccs))
@@ -1162,8 +1195,22 @@ class _AnnotInfrFeedback(object):
                 infr.set_edge_attrs('task_probs', edge_task_probs)
                 # infr.task_probs = task_probs
                 primary_task = 'match_state'
-                match_probs = task_probs[primary_task]['match']
-                infr.set_edge_attrs(infr.PRIORITY_METRIC, match_probs.to_dict())
+
+                default_priority = task_probs[primary_task]['match'].copy()
+
+                # Give negatives that pass automatic thresholds high priority
+                nomatch_probs = task_probs[primary_task]['nomatch']
+                flags = nomatch_probs > infr.task_thresh[primary_task]['nomatch']
+                default_priority[flags] = np.maximum(default_priority[flags],
+                                                     nomatch_probs[flags])
+
+                # do same for not-comp
+                notcomp_probs = task_probs[primary_task]['notcomp']
+                flags = notcomp_probs > infr.task_thresh[primary_task]['notcomp']
+                default_priority[flags] = np.maximum(default_priority[flags],
+                                                     notcomp_probs[flags])
+
+                infr.set_edge_attrs(infr.PRIORITY_METRIC, default_priority.to_dict())
 
         infr._init_priority_queue()
 
@@ -1171,6 +1218,7 @@ class _AnnotInfrFeedback(object):
             # hack in removal of inferred edges
             infr.apply_review_inference()
 
+    @profile
     def try_auto_review(infr, edge, priority):
         review = {
             'user_id': 'auto_clf',
@@ -1201,11 +1249,16 @@ class _AnnotInfrFeedback(object):
             confounded = pb_probs['pb'] > pb_thresh
             if not confounded:
                 review['decision'] = decision_flags.argmax()
+                truth = infr.match_state_gt(edge).idxmax()
+                if review['decision'] != truth:
+                    ut.cprint('AUTOMATIC ERROR', 'purple')
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
             print('Automatic review success')
+
         return auto_flag, review
 
+    @profile
     def oracle_review(infr, edge, oracle_accuracy, rng=None):
         if rng is None:
             import random
@@ -1222,7 +1275,9 @@ class _AnnotInfrFeedback(object):
         error = oracle_accuracy < rng.random()
 
         if error:
-            observed = rng.choice(list(set(true_state.keys()) - {truth}))
+            error_options = set(true_state.keys()) - {truth}
+            error_options -= {'notcomp'}
+            observed = rng.choice(list(error_options))
             # observed = rng.choice(list(set(truth.keys())))
         else:
             observed = truth
@@ -1231,6 +1286,8 @@ class _AnnotInfrFeedback(object):
         if oracle_accuracy < .5:
             review['user_confidence'] = 'guessing'
         review['decision'] = observed
+        if error:
+            ut.cprint('MADE MANUAL ERROR', 'red')
         return error, review
 
     def init_refresh_criteria(infr):
@@ -1337,9 +1394,6 @@ class _AnnotInfrFeedback(object):
         assert isinstance(decision, six.string_types)
         edge = e_(aid1, aid2)
 
-        # Kill all cached state (TODO: keep as much as possible)
-        infr._categories = None
-
         if decision == 'unreviewed':
             feedback_item = None
             if edge in infr.external_feedback:
@@ -1347,6 +1401,9 @@ class _AnnotInfrFeedback(object):
                     "Can't unreview an edge that has been committed")
             if edge in infr.internal_feedback:
                 del infr.internal_feedback[edge]
+            for G in infr.review_graphs.values():
+                if G.has_edge(*edge):
+                    G.remove_edge(*edge)
         else:
             feedback_item = {
                 'decision': decision,
@@ -1356,6 +1413,14 @@ class _AnnotInfrFeedback(object):
                 'user_id': user_id,
             }
             infr.internal_feedback[edge].append(feedback_item)
+            # Add to appropriate review graph and change review if it existed
+            # previously
+            infr.review_graphs[decision].add_edge(*edge)
+            for k, G in infr.review_graphs.items():
+                if k != decision:
+                    if G.has_edge(*edge):
+                        G.remove_edge(*edge)
+
             if infr.refresh:
                 infr.refresh.add(decision, user_id)
         if apply:
@@ -1427,6 +1492,7 @@ class _AnnotInfrFeedback(object):
             state = feedback_item['decision']
             tags = feedback_item['tags']
             user_confidence = feedback_item['user_confidence']
+            user_id = feedback_item['user_id']
             if infr.verbose >= 2:
                 print('[infr] _dynamically_apply_feedback edge=%r, state=%r'
                       % (edge, state,))
@@ -1439,7 +1505,8 @@ class _AnnotInfrFeedback(object):
             num_reviews = infr.get_edge_attrs('num_reviews', [edge],
                                               default=0).get(edge, 0)
             infr._set_feedback_edges([edge], [state], [p_same], [tags],
-                                     [user_confidence], [num_reviews + 1])
+                                     [user_confidence],
+                                     [user_id], [num_reviews + 1])
             # TODO: change num_reviews to num_consistent_reviews
             if state != 'notcomp':
                 ut.nx_delete_edge_attr(infr.graph, 'inferred_state', [edge])
@@ -1447,9 +1514,18 @@ class _AnnotInfrFeedback(object):
         # Dynamically update names and inferred attributes of relevant nodes
         # subgraph, subgraph_cuts = infr._get_influenced_subgraph(edge)
         n1, n2 = edge
-        cc1 = infr.get_annot_cc(n1)
-        cc2 = infr.get_annot_cc(n2)
+
+        import utool
+        with utool.embed_on_exception_context:
+            cc1 = infr.pos_graph.connected_to(n1)
+            cc2 = infr.pos_graph.connected_to(n2)
         relevant_nodes = cc1.union(cc2)
+        if DEBUG_CC:
+            cc1_ = infr.get_annot_cc(n1)
+            cc2_ = infr.get_annot_cc(n2)
+            relevant_nodes_ = cc1_.union(cc2_)
+            assert relevant_nodes_ == relevant_nodes
+            # print('seems good')
 
         subgraph = infr.graph.subgraph(relevant_nodes)
 
@@ -1479,7 +1555,7 @@ class _AnnotInfrFeedback(object):
 
     @profile
     def _set_feedback_edges(infr, edges, review_states, p_same_list, tags_list,
-                            confidence_list, n_reviews_list):
+                            confidence_list, userid_list, n_reviews_list):
         if infr.verbose >= 3:
             edges = list(edges)
             print('[infr] _set_feedback_edges(nEdges=%d)' % (len(edges),))
@@ -1494,6 +1570,7 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
         infr.set_edge_attrs('user_confidence', _dz(edges, confidence_list))
+        infr.set_edge_attrs('user_id', _dz(edges, userid_list))
         infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
         infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
         infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
@@ -1529,6 +1606,7 @@ class _AnnotInfrFeedback(object):
         num_review_list = []
         decision_list = []
         confidence_list = []
+        userid_list = []
         tags_list = []
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
@@ -1538,6 +1616,7 @@ class _AnnotInfrFeedback(object):
                 continue
             feedback_edges.append(edge)
             num_review_list.append(len(vals))
+            userid_list.append(feedback_item['user_id'])
             decision_list.append(decision)
             tags_list.append(feedback_item['tags'])
             confidence_list.append(feedback_item['user_confidence'])
@@ -1551,7 +1630,8 @@ class _AnnotInfrFeedback(object):
 
         # Put pair orders in context of the graph
         infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
-                                 tags_list, confidence_list, num_review_list)
+                                 tags_list, confidence_list, userid_list,
+                                 num_review_list)
 
     def _compute_p_same(infr, p_match, p_notcomp):
         p_bg = 0.5  # Needs to be thresh value
@@ -2198,9 +2278,10 @@ class _AnnotInfrUpdates(object):
             nid_to_cc[groupid].add(item)
 
         # Get edge -> reviewed_state
+        all_edges = list(it.starmap(e_, graph.edges()))
         edge_to_reviewstate = {
             (u, v): infr.graph.edge[u][v].get('reviewed_state', 'unreviewed')
-            for u, v in it.starmap(e_, graph.edges())
+            for u, v in all_edges
         }
 
         # Group edges by review type
@@ -2318,6 +2399,7 @@ class _AnnotInfrUpdates(object):
         categories['nid_to_cc'] = nid_to_cc
         categories['node_to_label'] = node_to_label
         categories['edge_to_reviewstate'] = edge_to_reviewstate
+        categories['all_edges'] = all_edges
         return categories
 
     def _debug_edge_categories(infr, graph, ne_categories, edge_categories,
@@ -2424,6 +2506,7 @@ class _AnnotInfrUpdates(object):
         edge_to_reviewstate = categories['edge_to_reviewstate']
         nid_to_cc = categories['nid_to_cc']
         node_to_label = categories['node_to_label']
+        all_edges = categories['all_edges']
 
         # Find possible fixes for inconsistent components
         if infr.verbose >= 2:
@@ -2435,7 +2518,7 @@ class _AnnotInfrUpdates(object):
 
         suggested_fix_edges = []
         other_error_edges = []
-        if method != 'ranking':
+        if method == 'graph':
             # dont do this in ranking mode
             # Check for inconsistencies
             for nid, cc_incon_edges in ne_categories['inconsistent_internal'].items():
@@ -2447,7 +2530,9 @@ class _AnnotInfrUpdates(object):
                 subgraph = nx.Graph(reviewed_inconsistent)
                 # TODO: only need to use one fix edge here.
                 cc_error_edges = infr._find_possible_error_edges(subgraph)
-                assert len(cc_error_edges) > 0, 'no fixes found'
+                import utool
+                with utool.embed_on_exception_context:
+                    assert len(cc_error_edges) > 0, 'no fixes found'
                 cc_other_edges = ut.setdiff(cc_incon_edges, cc_error_edges)
                 suggested_fix_edges.extend(cc_error_edges)
                 other_error_edges.extend(cc_other_edges)
@@ -2477,7 +2562,7 @@ class _AnnotInfrUpdates(object):
         infr.set_edge_attrs('inferred_state', _dz(edge_categories['negative'], ['diff']))
 
         # Suggest possible fixes
-        infr.set_edge_attrs('maybe_error', ut.dzip(list(infr.edges()), [False]))
+        infr.set_edge_attrs('maybe_error', ut.dzip(all_edges, [False]))
         infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
 
         # Update the cut state
@@ -2646,20 +2731,34 @@ class _AnnotInfrUpdates(object):
         cc belonging to that connected node.  In the case of an inconsistent
         cc, nodes within the cc will not be returned.
         """
-        visited = set(cc)
-        # visited_nodes = set([])
-        nomatch_ccs = []
-        for n1 in cc:
-            for n2 in infr.graph.neighbors(n1):
-                if n2 not in visited:
-                    # data = infr.graph.get_edge_data(n1, n2)
-                    # _state = data.get('reviewed_state', 'unreviewed')
-                    _state = infr.graph.edge[n1][n2].get('reviewed_state',
-                                                         'unreviewed')
-                    if _state == 'nomatch':
-                        cc2 = infr.get_annot_cc(n2)
-                        nomatch_ccs.append(cc2)
-                        visited.update(cc2)
+        if DEBUG_CC:
+            visited = set(cc)
+            # visited_nodes = set([])
+            nomatch_ccs = []
+            for n1 in cc:
+                for n2 in infr.graph.neighbors(n1):
+                    if n2 not in visited:
+                        # data = infr.graph.get_edge_data(n1, n2)
+                        # _state = data.get('reviewed_state', 'unreviewed')
+                        _state = infr.graph.edge[n1][n2].get('reviewed_state',
+                                                             'unreviewed')
+                        if _state == 'nomatch':
+                            cc2 = infr.get_annot_cc(n2)
+                            nomatch_ccs.append(cc2)
+                            visited.update(cc2)
+            nomatch_ccs_old = nomatch_ccs
+        else:
+            neg_graph = infr.neg_graph
+            pos_graph = infr.pos_graph
+            cc_labels = {
+                pos_graph.node_label(n2)
+                for n1 in cc
+                for n2 in neg_graph.neighbors(n1)
+            }
+            nomatch_ccs = [pos_graph.connected_to(node)
+                           for node in cc_labels]
+        if DEBUG_CC:
+            assert nomatch_ccs_old == nomatch_ccs
         return nomatch_ccs
 
     @profile
@@ -2759,10 +2858,22 @@ class _AnnotInfrRelabel(object):
             #     inconsistent_subgraphs.append(subgraph)
         return consistent_subgraphs
 
+    @profile
     def positive_connected_compoments(infr, graph=None):
         """
         Returns the positive connected compoments (PCCs)
         """
+        if True:
+            pos_graph = infr.pos_graph
+            if graph is None:
+                ccs = pos_graph.connected_components()
+            else:
+                unique_labels = {
+                    pos_graph.node_label(node) for node in graph.nodes()}
+                ccs = (pos_graph.connected_to(node) for node in unique_labels)
+            cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
+            return cc_subgraphs
+
         if graph is None:
             graph = infr.graph
         # Make a graph where connections do indicate same names
@@ -3104,12 +3215,12 @@ class AnnotInference(ut.NiceRepr,
         infr.node_to_aid = None
 
         infr.graph = None
-        infr.pos_graph = None
-        infr.neg_graph = None
-        infr.incomp_graph = None
 
-        # Dynamic State
-        infr._categories = None
+        infr.review_graphs = {
+            'match': None,
+            'nomatch': None,
+            'notcomp': None,
+        }
 
         # Criteria
         infr.refresh = None
@@ -3138,6 +3249,18 @@ class AnnotInference(ut.NiceRepr,
         infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
+
+    @property
+    def pos_graph(infr):
+        return infr.review_graphs['match']
+
+    @property
+    def neg_graph(infr):
+        return infr.review_graphs['nomatch']
+
+    @property
+    def incomp_graph(infr):
+        return infr.review_graphs['notcomp']
 
     @classmethod
     def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
@@ -3301,9 +3424,9 @@ class AnnotInference(ut.NiceRepr,
             print('[infr] initialize_graph')
         infr.graph = infr._graph_cls()
 
-        infr.pos_graph = graph_iden_utils.DynConnGraph()
-        infr.neg_graph = infr._graph_cls()
-        infr.incomp_graph = infr._graph_cls()
+        infr.review_graphs['match'] = graph_iden_utils.DynConnGraph()
+        infr.review_graphs['nomatch'] = infr._graph_cls()
+        infr.review_graphs['notcomp'] = infr._graph_cls()
 
         infr.update_node_attributes()
 
@@ -3334,6 +3457,38 @@ class AnnotInference(ut.NiceRepr,
         weights = weights.compress(is_valid, axis=0)
         edges = ut.compress(edges, is_valid)
         infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, weights))
+
+
+def testdata_infr2(defaultdb='PZ_MTEST'):
+    defaultdb = 'PZ_MTEST'
+    import ibeis
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    annots = ibs.annots()
+    names = list(annots.group_items(annots.nids).values())[0:20]
+    def dummy_phi(c, n):
+        x = np.arange(n)
+        phi = c * x / (c * x + 1)
+        phi = phi / phi.sum()
+        phi = np.diff(phi)
+        return phi
+    phis = {
+        c: dummy_phi(c, 30)
+        for c in range(1, 4)
+    }
+    aids = ut.flatten(names)
+    infr = AnnotInference(ibs, aids, autoinit=True)
+    infr.init_termination_criteria(phis)
+    infr.init_refresh_criteria()
+
+    # Partially review
+    n1, n2, n3, n4 = names[0:4]
+    for name in names[4:]:
+        for a, b in ut.itertwo(name.aids):
+            infr.add_feedback(a, b, 'match', apply=True)
+
+    for name1, name2 in ut.combinations(names[4:], 2):
+        infr.add_feedback(name1.aids[0], name2.aids[0], 'nomatch', apply=True)
+    return infr
 
 
 def testdata_infr(defaultdb='PZ_MTEST'):

@@ -155,6 +155,9 @@ class DynConnGraph(nx.Graph):
         self._union_find.remove_entire_cc(old_cc)
         # Might be faster to just do DFS to find the CC
         internal_edges = bridges_inside(self, old_cc)
+        # Add nodes in case there are no edges to it
+        for n in old_cc:
+            self._add_node(n)
         for edge in internal_edges:
             self._union(*edge)
 
