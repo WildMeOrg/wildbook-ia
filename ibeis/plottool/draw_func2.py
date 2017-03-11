@@ -4254,6 +4254,10 @@ def plot_func(funcs, start=0, stop=1, num=100, setup=None, fnum=None, pnum=None)
                 "lambda n: log2(n)"\
                 "lambda n: n ** (1/3)"
 
+        python -m plottool plot_func --show --range=0,10 \
+                --func \
+                "lambda x: (3 * (x ** 2) - 18 * (x) - 81) / ((x ** 2) - 54) "
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
