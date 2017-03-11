@@ -148,7 +148,7 @@ class SQLExecutionContext(object):
             print('Reporting SQLite Error')
             print('params = ' + ut.list_str(params, truncate=not ut.VERBOSE))
             ut.printex(ex, 'sql.Error', keys=['params'])
-            if ex.message.find('probably unsupported type') > -1:
+            if hasattr(ex, 'message') and ex.message.find('probably unsupported type') > -1:
                 print('ERR REPORT: given param types = ' + ut.list_str(ut.lmap(type, params)))
                 if context.tablename is None:
                     if context.operation_type.startswith('SELECT'):
