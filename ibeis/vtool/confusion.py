@@ -889,7 +889,7 @@ def interact_roc_factory(confusions, target_tpr=None, show_operating_point=False
 
 def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
                    target_fpr=None, thresholds=None, color=None, name=None,
-                   show_operating_point=False):
+                   label=None, show_operating_point=False):
     r"""
     Args:
         fpr (?):
@@ -930,8 +930,8 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
     if fnum is None:
         fnum = pt.next_fnum()
 
-    if color is None:
-        color = (0.4, 1.0, 0.4) if pt.is_default_dark_bg() else  (0.1, 0.4, 0.4)
+    # if color is None:
+    #     color = (0.4, 1.0, 0.4) if pt.is_default_dark_bg() else  (0.1, 0.4, 0.4)
 
     roc_auc = sklearn.metrics.auc(fpr, tpr)
 
@@ -976,13 +976,21 @@ def draw_roc_curve(fpr, tpr, fnum=None, pnum=None, marker='', target_tpr=None,
     #else:
     #    ave_p = p_interp.sum() / p_interp.size
     title = 'Receiver operating characteristic'
-    if name:
+    if name and not label:
         title += ' (%s)' % (name,)
-    title += '\n' + 'AUC=%.3f' % (roc_auc,)
+    if not label:
+        title += '\n' + 'AUC=%.3f' % (roc_auc,)
+    else:
+        label += ' AUC=%.3f' % (roc_auc,)
+
     title += title_suffix
 
-    pt.multi_plot(fpr, [tpr], marker=marker, color=color, fnum=fnum, pnum=pnum,
-                  title=title,
+    label_list = None
+    if label:
+        label_list = [label]
+
+    pt.multi_plot(fpr, [tpr], label_list=label_list, marker=marker,
+                  color=color, fnum=fnum, pnum=pnum, title=title,
                   xlabel='False Positive Rate',
                   ylabel='True Positive Rate')
 
