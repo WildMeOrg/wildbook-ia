@@ -53,9 +53,9 @@ def end_to_end():
     """
     import ibeis
     from ibeis.init import main_helpers
-    ibs = ibeis.opendb('PZ_MTEST')
+    # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
-    # ibs = ibeis.opendb('GZ_Master1')
+    ibs = ibeis.opendb('GZ_Master1')
     # Specialized database params
     enc_kw = dict(minutes=30)
     filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True)
