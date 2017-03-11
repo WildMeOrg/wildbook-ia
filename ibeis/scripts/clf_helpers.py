@@ -1051,7 +1051,7 @@ class ClfResult(ut.NiceRepr):
         import plottool as pt
         y_test_bin = res.target_bin_df.values
         clf_probs = res.probs_df.values
-        ut.qt4ensure()
+        ut.qtensure()
 
         # The maximum allowed false positive rate
         # We expect that we will make 1 error every 1,000 decisions
@@ -1082,6 +1082,13 @@ class ClfResult(ut.NiceRepr):
         #     encoder.inverse_normalize(learn_thresh)
         # encoder.visualize(fnum=k)
         pass
+
+    def show_roc(res, class_name, **kwargs):
+        import vtool as vt
+        labels = res.target_bin_df[class_name].values
+        probs = res.probs_df[class_name].values
+        confusions = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        confusions.draw_roc_curve(**kwargs)
 
     def roc_scores_ovr_hat(res):
         res.augment_if_needed()

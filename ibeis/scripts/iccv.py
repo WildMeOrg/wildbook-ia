@@ -72,15 +72,83 @@ def end_to_end():
     test_aids = ut.flatten(names[1::2])
 
     # Hack
-    test_aids = ut.flatten(names[1::2][::2])
+    # num_names = 75
+    # train_aids = ut.flatten(names[0::2][0:num_names])
+    # test_aids = ut.flatten(names[1::2][0:num_names])
 
     print_cfg = dict(per_multiple=False)
-    ibs.print_annot_stats(test_aids, prefix='TRAIN_', **print_cfg)
+    ibs.print_annot_stats(train_aids, prefix='TRAIN_', use_hist=True, **print_cfg)
     ibs.print_annot_stats(test_aids, prefix='TEST_', **print_cfg)
     # import utool
     # utool.embed()
 
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
+
+    if False:
+        # quick test
+        phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
+        phi_annots = ibs.annots(phi_aids)
+        phi_names = list(phi_annots.group_items(phi_annots.nids).values())
+        cmc_aids = ut.flatten(phi_names[:75])
+        ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
+
+        # Ranking Experiment
+        import plottool as pt
+        pt.qtensure()
+        ranks = 20
+        phis = learn_termination(ibs, aids=cmc_aids)
+        ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
+        species = ibs.get_species_nice(
+            ibs.get_species_rowids_from_text(ibs.get_database_species()))[0]
+        pt.multi_plot(
+            xdata=np.arange(1, ranks + 1),
+            ydata_list=ydatas,
+            num_xticks=ranks,
+            label_list=['annots per query: %d' % d for d in phis.keys()],
+            title='Rank CMC for %s' % (species,),
+        )
+        pt.gca().set_ylim(pt.gca().get_ylim()[0], 1)
+        pt.set_xlabel('rank')
+        pt.set_ylabel('cumulative probability of a correct match')
+        pass
+
+    if False:
+        # One-vs-One Experiment
+        from ibeis.scripts.script_vsone import OneVsOneProblem
+        clf_key = 'RF'
+        data_key = 'learn(sum,glob)'
+        task_keys = ['match_state']
+        pblm = OneVsOneProblem.from_aids(ibs, aids=train_aids, verbose=1)
+        pblm.load_features()
+        pblm.load_samples()
+        pblm.build_feature_subsets()
+
+        pblm.evaluate_simple_scores(task_keys)
+        feat_cfgstr = ut.hashstr_arr27(
+            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
+        cfg_prefix = (pblm.samples.make_sample_hashid() +
+                      pblm.qreq_.get_cfgstr() + feat_cfgstr)
+        pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
+                                          cfg_prefix)
+        task_key = 'match_state'
+        clf_key = 'RF'
+
+        pblm.report_simple_scores(task_key)
+        res.extended_clf_report()
+
+        import vtool as vt
+        fnum = 1
+        class_name = 'match'
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        res.show_roc(class_name=class_name, fnum=fnum, label='pairwise')
+        labels = pblm.samples.subtasks['match_state'].indicator_df[class_name]
+        scores = pblm.samples.simple_scores['score_lnbnn_1vM']
+        confusions = vt.ConfusionMetrics.from_scores_and_labels(scores, labels)
+        confusions.draw_roc_curve(show_operating_point=True, fnum=fnum,
+                                  label='LNBNN')
+        pt.legend()
+
+        pass
 
     # -----------
     # TRAINING
@@ -103,7 +171,7 @@ def end_to_end():
     pblm.build_feature_subsets()
 
     # Figure out what the thresholds should be
-    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr)
+    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr + 'v2')
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
         feat_cfgstr = ut.hashstr_arr27(
@@ -117,7 +185,7 @@ def end_to_end():
         res = pblm.task_combo_res[task_key][clf_key][data_key]
         fpr_thresholds = {
             fpr: res.get_pos_threshes('fpr', value=fpr)
-            for fpr in [0, .01, .1]
+            for fpr in [0, .01, .05]
         }
         thresh_cacher.save(fpr_thresholds)
 
@@ -192,7 +260,7 @@ def end_to_end():
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': complete_thresh,
-            'match_state_thresh': fpr_thresholds[.1],
+            'match_state_thresh': fpr_thresholds[.05],
             'max_loops': graph_loops,
         },
     ]
@@ -384,7 +452,7 @@ def show_phis(phis):
     )
 
 
-def learn_termination(ibs, aids):
+def learn_termination(ibs, aids, max_per_query=4):
     """
     Example:
     """
@@ -401,7 +469,7 @@ def learn_termination(ibs, aids):
     avail_confusors = []
     import random
     rng = random.Random(0)
-    for n_query_per_name in range(1, 5):
+    for n_query_per_name in range(1, max_per_query + 1):
         reshaped_splits, nid_to_confusors = encounter_crossval(
             ibs, aids, qenc_per_name=n_query_per_name, denc_per_name=1,
             rng=rng, n_splits=n_splits, early=True)
