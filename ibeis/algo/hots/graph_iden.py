@@ -1057,45 +1057,52 @@ class _AnnotInfrFeedback(object):
 
         """
         thresh = infr.queue_params['complete_thresh']
-        pcc_set = set(infr.positive_connected_compoments())
+        pcc_set = list(infr.positive_connected_compoments())
         # Remove anything under the probabilistic threshold
         if thresh < 1.0:
-            for c1 in set(pcc_set):
-                p_complete = infr.prob_complete(c1)
-                print('p_complete = %r' % (p_complete,))
-                if p_complete > thresh:
-                    pcc_set.remove(c1)
+            pcc_set = [
+                c1 for c1 in pcc_set if
+                infr.prob_complete(c1) < thresh
+            ]
         else:
             assert False
         # Loop through all pairs
-        pcc_set2 = [set(c1.nodes()) for c1 in pcc_set]
-        for c1_nodes, c2_nodes in ut.combinations(pcc_set2, 2):
+        for c1_nodes, c2_nodes in ut.combinations(pcc_set, 2):
             check_edges = infr.rand_neg_check_edges(c1_nodes, c2_nodes)
             if len(check_edges) > 0:
                 # no check edges means we can't do anything
                 yield (c1_nodes, c2_nodes, check_edges)
 
-    def non_redundant_pccs(infr, relax_size=False):
-        """
-        Get PCCs that are not k-positive-redundant
-        """
+    def is_pos_redundant(infr, cc, relax_size=False):
         k = infr.queue_params['pos_redundancy']
         if k == 1:
-            for cc in infr.consistent_components():
-                yield cc
-
-        for cc in infr.consistent_components():
-            pos_conn = nx.edge_connectivity(cc)
+            return True  # assumes cc is connected
+        else:
             # if the nodes are not big enough for this amount of connectivity
             # then we relax the requirement
             if relax_size:
                 required_k = min(len(cc) - 1, k)
             else:
                 required_k = k
-            if pos_conn < required_k:
+            assert isinstance(cc, set)
+            pos_conn = nx.edge_connectivity(infr.pos_graph.subgraph(cc))
+            return pos_conn >= required_k
+
+    def pos_redundant_pccs(infr, relax_size=False):
+        for cc in infr.consistent_components():
+            if infr.is_pos_redundant(cc, relax_size):
                 yield cc
 
-    def refresh_candidate_edges(infr, pblm=None, method=None):
+    def non_pos_redundant_pccs(infr, relax_size=False):
+        """
+        Get PCCs that are not k-positive-redundant
+        """
+        for cc in infr.consistent_components():
+            if not infr.is_pos_redundant(cc, relax_size):
+                yield cc
+
+    @profile
+    def refresh_candidate_edges(infr, pblm=None):
         """
         Args:
             infr (?):
@@ -1113,7 +1120,7 @@ class _AnnotInfrFeedback(object):
             >>> infr.queue_params['pos_redundancy'] = 2
             >>> infr.review_dummy_edges(method=2)
             >>> infr.relabel_using_reviews()
-            >>> non_redundant_ccs = list(infr.non_redundant_pccs())
+            >>> non_redundant_ccs = list(infr.non_pos_redundant_pccs())
             >>> consistent_ccs = list(infr.consistent_components())
             >>> print(len(non_redundant_ccs))
             >>> print(len(consistent_ccs))
@@ -1144,7 +1151,7 @@ class _AnnotInfrFeedback(object):
             if state != 'unreviewed'
         }
         candidate_edges = set(candidate_edges) - already_reviewed
-        # if method == 'graph':
+        # if infr.method == 'graph':
         #     # need to remove inferred candidates as well
         #     # hacking this in bellow
         #     pass
@@ -1152,20 +1159,32 @@ class _AnnotInfrFeedback(object):
         if infr.verbose:
             print('[infr] vsmany found %d/%d new edges' % (
                 len(candidate_edges), len(candidate_edges) + len(already_reviewed)))
-        if method == 'graph':
+        if infr.method == 'graph':
             if len(candidate_edges) < infr.refresh.window:
                 if infr.verbose >= 0:
                     print('[infr] Not enough vsmany edges, adding random edges')
-                candidate_edges = list(candidate_edges)
                 for c1, c2, check_edges in infr.non_complete_pcc_pairs():
-                    candidate_edges.extend(check_edges)
+                    candidate_edges.update(check_edges)
                 if infr.verbose >= 0:
                     print('[infr] now have %d new candidate edges' %
                           (len(candidate_edges),))
             else:
                 print('[infr] WE DONE NEED TO CHECK CONSISTENCY')
-            # TODO
-            # Add random edges between exisiting PCCs
+
+            # Add random edges between exisiting non-redundant PCCs
+            for pcc in infr.non_pos_redundant_pccs(relax_size=True):
+                sub = infr.graph.subgraph(pcc)
+                # Very agressive, need to tone down
+                check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
+                candidate_edges.update(check_edges)
+
+        if infr.test_mode:
+            if getattr(infr, 'edge_truth', None) is None:
+                infr.edge_truth = {}
+            infr.edge_truth.update(
+                infr.match_state_df(candidate_edges).idxmax(axis=1).to_dict()
+            )
+
         infr.graph.add_edges_from(candidate_edges)
         if pblm is None:
             if infr.verbose > 1:
@@ -1214,7 +1233,7 @@ class _AnnotInfrFeedback(object):
 
         infr._init_priority_queue()
 
-        if method == 'graph':
+        if infr.method == 'graph':
             # hack in removal of inferred edges
             infr.apply_review_inference()
 
@@ -1258,6 +1277,25 @@ class _AnnotInfrFeedback(object):
 
         return auto_flag, review
 
+    def try_implicit_review(infr, edge, priority):
+        review = {}
+        # Check if edge is implicitly negative
+        if priority <= 1:
+            implicit_flag = (
+                infr.check_prob_completeness(edge[0]) or
+                infr.check_prob_completeness(edge[1])
+            )
+            if implicit_flag:
+                review = {
+                    'user_id': 'auto_implicit_complete',
+                    'user_confidence': 'pretty_sure',
+                    'decision': 'nomatch',
+                    'tags': [],
+                }
+        else:
+            implicit_flag = False
+        return implicit_flag, review
+
     @profile
     def oracle_review(infr, edge, oracle_accuracy, rng=None):
         if rng is None:
@@ -1300,55 +1338,10 @@ class _AnnotInfrFeedback(object):
             print('init_termination_criteria')
         infr.term = TerminationCriteria(phis)
 
-    def add_feedback_df(infr, decision_df, user_id=None, apply=False,
-                        verbose=None):
-        """ Adds multiple feedback at once (usually for auto reviewer) """
-        import pandas as pd
-        if verbose is None:
-            verbose = infr.verbose
-        if verbose >= 1:
-            print('[infr] add_feedback_df()')
-        tags_list = [None] * len(decision_df)
-        if isinstance(decision_df, pd.Series):
-            decisions = decision_df
-        elif isinstance(decision_df, pd.DataFrame):
-            if 'decision' in decision_df:
-                assert 'match_state' not in decision_df
-                decisions = decision_df['decision']
-            else:
-                decisions = decision_df['match_state']
-            if 'tags' in decision_df:
-                tags_list = decision_df['tags']
-        else:
-            raise ValueError(type(decision_df))
-        index = decisions.index
-        assert index.get_level_values(0).isin(infr.aids_set).all()
-        assert index.get_level_values(1).isin(infr.aids_set).all()
-        timestamp = ut.get_timestamp('int', isutc=True)
-        user_confidence = None
-        uv_iter = it.starmap(e_, index.tolist())
-        _iter = zip(uv_iter, decisions, tags_list)
-        prog = ut.ProgIter(_iter, nTotal=len(tags_list), enabled=verbose,
-                           label='adding feedback')
-        for edge, decision, tags in prog:
-            if tags is None:
-                tags = []
-            infr.internal_feedback[edge].append({
-                'decision': decision,
-                'tags': tags,
-                'timestamp': timestamp,
-                'user_confidence': user_confidence,
-                'user_id': user_id,
-            })
-            if infr.refresh:
-                raise NotImplementedError('TODO')
-        if apply:
-            infr.apply_feedback_edges()
-
     @profile
     def add_feedback(infr, aid1=None, aid2=None, decision=None, tags=[],
                      apply=False, user_id=None, user_confidence=None,
-                     edge=None, verbose=None, rectify=True, method=None):
+                     edge=None, verbose=None, rectify=True):
         """
         Public interface to add feedback for a single edge to the buffer.
         Feedback is not applied to the graph unless `apply=True`.
@@ -1423,14 +1416,27 @@ class _AnnotInfrFeedback(object):
 
             if infr.refresh:
                 infr.refresh.add(decision, user_id)
+
+            if infr.test_mode:
+                if user_id.startswith('auto'):
+                    infr.test_state['n_auto'] += 1
+                elif user_id == 'oracle':
+                    infr.test_state['n_manual'] += 1
+                else:
+                    raise AssertionError('unknown user_id=%r' % (user_id,))
+
         if apply:
             # Apply new results on the fly
-            infr._dynamically_apply_feedback(edge, feedback_item, rectify,
-                                             method=method)
+            infr._dynamically_apply_feedback(edge, feedback_item, rectify)
+
+            if infr.test_mode:
+                metrics = infr.measure_metrics()
+                infr.metrics_list.append(metrics)
+        else:
+            assert not infr.test_mode, 'breaks tests'
 
     @profile
-    def _dynamically_apply_feedback(infr, edge, feedback_item, rectify,
-                                    method=None):
+    def _dynamically_apply_feedback(infr, edge, feedback_item, rectify):
         """
         Dynamically updates all states based on a single dynamic change
 
@@ -1541,7 +1547,7 @@ class _AnnotInfrFeedback(object):
         extended_subgraph = infr.graph.subgraph(extended_nodes)
 
         # This re-infers all attributes of the influenced sub-graph only
-        infr.apply_review_inference(graph=extended_subgraph, method=method)
+        infr.apply_review_inference(graph=extended_subgraph )
 
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
@@ -1632,13 +1638,6 @@ class _AnnotInfrFeedback(object):
         infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
                                  tags_list, confidence_list, userid_list,
                                  num_review_list)
-
-    def _compute_p_same(infr, p_match, p_notcomp):
-        p_bg = 0.5  # Needs to be thresh value
-        part1 = p_match * (1 - p_notcomp)
-        part2 = p_bg * p_notcomp
-        p_same = part1 + part2
-        return p_same
 
     def reset_feedback(infr, mode='annotmatch'):
         """ Resets feedback edges to state of the SQL annotmatch table """
@@ -2278,7 +2277,15 @@ class _AnnotInfrUpdates(object):
             nid_to_cc[groupid].add(item)
 
         # Get edge -> reviewed_state
-        all_edges = list(it.starmap(e_, graph.edges()))
+        all_edges = [e_(u, v) for u, v in graph.edges()]
+        # edge_to_reviewstate = {}
+        # for u, v in infr.pos_graph.edges():
+        #     edge_to_reviewstate[(u, v)] = 'match'
+        # for u, v in infr.neg_graph.edges():
+        #     edge_to_reviewstate[(u, v)] = 'nomatch'
+        # for u, v in infr.incomp_graph.edges():
+        #     edge_to_reviewstate[(u, v)] = 'notcomp'
+
         edge_to_reviewstate = {
             (u, v): infr.graph.edge[u][v].get('reviewed_state', 'unreviewed')
             for u, v in all_edges
@@ -2461,7 +2468,7 @@ class _AnnotInfrUpdates(object):
             raise AssertionError('edges not the same')
 
     @profile
-    def apply_review_inference(infr, graph=None, method=None):
+    def apply_review_inference(infr, graph=None):
         """
         Updates the inferred state of each edge based on reviews and current
         labeling. State of the graph is only changed at the very end of the
@@ -2518,7 +2525,7 @@ class _AnnotInfrUpdates(object):
 
         suggested_fix_edges = []
         other_error_edges = []
-        if method == 'graph':
+        if infr.method == 'graph':
             # dont do this in ranking mode
             # Check for inconsistencies
             for nid, cc_incon_edges in ne_categories['inconsistent_internal'].items():
@@ -2595,7 +2602,7 @@ class _AnnotInfrUpdates(object):
         if infr.queue is not None:
             # hack this off if method is ranking, we dont want to update any
             # priority
-            if method != 'ranking':
+            if infr.method != 'ranking':
                 if infr.verbose >= 2:
                     print('[infr] updating priority queue')
                 infr._update_priority_queue(graph, ne_categories['positive'],
@@ -2655,6 +2662,7 @@ class _AnnotInfrUpdates(object):
         maybe_error_edges_ = ut.lstarmap(e_, maybe_error_edges)
         return maybe_error_edges_
 
+    @profile
     def _update_priority_queue(infr, graph, positive, negative,
                                reviewed_positives, reviewed_negatives,
                                node_to_label, nid_to_cc, suggested_fix_edges,
@@ -2831,61 +2839,74 @@ class _AnnotInfrRelabel(object):
         new_nid = infr.nid_counter
         return new_nid
 
+    def is_consistent(infr, cc):
+        """ Returns False if cc contains any negative edges """
+        return (len(cc) <= 2 or
+                infr.neg_graph.subgraph(cc).number_of_edges() == 0)
+
     def inconsistent_components(infr, graph=None):
         """
         Return components without nomatch edges
         """
-        cc_subgraphs = infr.positive_connected_compoments(graph)
-        inconsistent_subgraphs = []
-        for subgraph in cc_subgraphs:
-            edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
-            if any(state == 'nomatch' for state in edge_to_state.values()):
-                inconsistent_subgraphs.append(subgraph)
-        return inconsistent_subgraphs
+        # Find PCCs with negative edges
+        for cc in infr.positive_connected_compoments(graph):
+            if not infr.is_consistent(cc):
+                yield cc
+        # cc_subgraphs = infr.positive_connected_compoments(graph)
+        # inconsistent_subgraphs = []
+        # for subgraph in cc_subgraphs:
+        #     edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
+        #     if any(state == 'nomatch' for state in edge_to_state.values()):
+        #         inconsistent_subgraphs.append(subgraph)
+        # return inconsistent_subgraphs
 
     def consistent_components(infr, graph=None):
         """
         Return components without nomatch edges
         """
-        cc_subgraphs = infr.positive_connected_compoments(graph)
-        # inconsistent_subgraphs = []
-        consistent_subgraphs = []
-        for subgraph in cc_subgraphs:
-            edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
-            if not any(state == 'nomatch' for state in edge_to_state.values()):
-                consistent_subgraphs.append(subgraph)
-            # else:
-            #     inconsistent_subgraphs.append(subgraph)
-        return consistent_subgraphs
+        # Find PCCs without any negative edges
+        for cc in infr.positive_connected_compoments(graph):
+            if infr.is_consistent(cc):
+                yield cc
+        # cc_subgraphs = infr.positive_connected_compoments(graph)
+        # # inconsistent_subgraphs = []
+        # consistent_subgraphs = []
+        # for subgraph in cc_subgraphs:
+        #     edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
+        #     if not any(state == 'nomatch' for state in edge_to_state.values()):
+        #         consistent_subgraphs.append(subgraph)
+        #     # else:
+        #     #     inconsistent_subgraphs.append(subgraph)
+        # return consistent_subgraphs
 
     @profile
     def positive_connected_compoments(infr, graph=None):
         """
         Returns the positive connected compoments (PCCs)
         """
-        if True:
-            pos_graph = infr.pos_graph
-            if graph is None:
-                ccs = pos_graph.connected_components()
-            else:
-                unique_labels = {
-                    pos_graph.node_label(node) for node in graph.nodes()}
-                ccs = (pos_graph.connected_to(node) for node in unique_labels)
-            cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
-            return cc_subgraphs
-
+        pos_graph = infr.pos_graph
         if graph is None:
-            graph = infr.graph
-        # Make a graph where connections do indicate same names
-        reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
-        graph2 = infr._graph_cls()
-        keep_edges = [key for key, val in reviewed_states.items()
-                      if val == 'match']
-        graph2.add_nodes_from(graph.nodes())
-        graph2.add_edges_from(keep_edges)
-        ccs = list(nx.connected_components(graph2))
-        cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
-        return cc_subgraphs
+            ccs = pos_graph.connected_components()
+        else:
+            unique_labels = {
+                pos_graph.node_label(node) for node in graph.nodes()}
+            ccs = (pos_graph.connected_to(node) for node in unique_labels)
+        for cc in ccs:
+            yield cc
+        # cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
+        # return cc_subgraphs
+        # if graph is None:
+        #     graph = infr.graph
+        # # Make a graph where connections do indicate same names
+        # reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
+        # graph2 = infr._graph_cls()
+        # keep_edges = [key for key, val in reviewed_states.items()
+        #               if val == 'match']
+        # graph2.add_nodes_from(graph.nodes())
+        # graph2.add_edges_from(keep_edges)
+        # ccs = list(nx.connected_components(graph2))
+        # cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
+        # return cc_subgraphs
 
     @profile
     def reset_labels_to_ibeis(infr):
@@ -2977,7 +2998,10 @@ class _AnnotInfrRelabel(object):
             print('[infr] relabel_using_reviews')
         if graph is None:
             graph = infr.graph
-        cc_subgraphs = infr.positive_connected_compoments(graph=graph)
+        cc_subgraphs = [
+            infr.graph.subgraph(cc)
+            for cc in infr.positive_connected_compoments(graph=graph)
+        ]
 
         # Check consistentcy
         num_inconsistent = 0
@@ -3085,22 +3109,6 @@ class AnnotInference(ut.NiceRepr,
     """
     class for maintaining state of an identification
 
-    Notes:
-        General workflow goes
-        * Initialize Step
-            * Add annots/names/configs/matches to AnnotInference Object
-            * Apply Edges (mst/matches/feedback)
-            * Apply Scores
-            * Apply Weights
-            * Apply Inference
-        * Review Step
-            * Get shortlist of results
-            * Present results to user
-            * Apply user feedback
-            * Apply Inference
-            * Record results
-            * Repeat
-
     Terminology and Concepts:
 
         Node Attributes:
@@ -3201,7 +3209,87 @@ class AnnotInference(ut.NiceRepr,
     _graph_cls = nx.Graph
     # _graph_cls = nx.DiGraph
 
+    def init_test_mode(infr):
+        print('[infr] init_test_mode')
+        infr.test_mode = True
+        infr.edge_truth = {}
+        infr.metrics_list = []
+        infr.test_state = {
+            'n_auto': 0,
+            'n_manual': 0,
+        }
+        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
+        infr.real_n_pcc_mst_edges = sum(
+            len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
+        ut.cprint('real_n_pcc_mst_edges = %r' % (
+            infr.real_n_pcc_mst_edges,), 'red')
+
+    def edge_confusion(infr):
+        confusion = {
+            'correct': {
+                'pred_pos': [],
+                'pred_neg': [],
+            },
+            'incorrect': {
+                'pred_pos': [],
+                'pred_neg': [],
+            },
+        }
+        for edge, data in infr.edges(data=True):
+            # nid1 = infr.pos_graph.node_label(edge[0])
+            # nid2 = infr.pos_graph.node_label(edge[1])
+            true_state = infr.edge_truth[edge]
+            reviewed_state = data.get('reviewed_state', 'unreviewed')
+            if reviewed_state == 'unreviewed':
+                pass
+            elif true_state == reviewed_state:
+                if true_state == 'match':
+                    confusion['correct']['pred_pos'].append(edge)
+            elif true_state != reviewed_state:
+                if reviewed_state == 'match':
+                    confusion['incorrect']['pred_pos'].append(edge)
+                elif reviewed_state == 'nomatch':
+                    confusion['incorrect']['pred_neg'].append(edge)
+
+    def measure_metrics(infr):
+        real_pos_edges = []
+        n_error_edges = 0
+        pred_n_pcc_mst_edges = 0
+        n_fn = 0
+        n_fp = 0
+
+        for edge, data in infr.edges(data=True):
+            true_state = infr.edge_truth[edge]
+            reviewed_state = data.get('reviewed_state', 'unreviewed')
+            if true_state == reviewed_state and true_state == 'match':
+                real_pos_edges.append(edge)
+            elif reviewed_state != 'unreviewed':
+                if true_state != reviewed_state:
+                    n_error_edges += 1
+                    if true_state == 'match':
+                        n_fn += 1
+                    elif true_state == 'nomatch':
+                        n_fp += 1
+
+        import networkx as nx
+        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
+            pred_n_pcc_mst_edges += len(cc) - 1
+
+        pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
+        metrics = {
+            'n_manual': infr.test_state['n_manual'],
+            'n_auto': infr.test_state['n_auto'],
+            'pos_acc': pos_acc,
+            'n_merge_remain': infr.real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
+            'merge_remain': 1 - pos_acc,
+            'n_errors': n_error_edges,
+            'n_fn': n_fn,
+            'n_fp': n_fp,
+        }
+        return metrics
+
     def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
+        infr.test_mode = False
         infr.verbose = verbose
         if infr.verbose >= 1:
             print('[infr] __init__')
@@ -3209,6 +3297,7 @@ class AnnotInference(ut.NiceRepr,
         if aids == 'all':
             aids = ibs.get_valid_aids()
         infr.aids = None
+        infr.method = 'graph'
         infr.aids_set = None
         infr.orig_name_labels = None
         infr.aid_to_node = None
@@ -3249,6 +3338,8 @@ class AnnotInference(ut.NiceRepr,
         infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
+
+
 
     @property
     def pos_graph(infr):

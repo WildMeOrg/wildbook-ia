@@ -881,24 +881,27 @@ class ClfResult(ut.NiceRepr):
 
         # FIXME: What is the difference between sklearn multiclass-MCC
         # and BM * MK MCC?
-        mcc = sklearn.metrics.matthews_corrcoef(
-            res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
-        # These scales are chosen somewhat arbitrarily in the context of a
-        # computer vision application with relatively reasonable quality data
-        mcc_significance_scales = ut.odict([
-            (1.0, 'perfect'),
-            (0.9, 'very strong'),
-            (0.7, 'strong'),
-            (0.5, 'significant'),
-            (0.3, 'moderate'),
-            (0.2, 'weak'),
-            (0.0, 'negligible'),
-        ])
-        for k, v in mcc_significance_scales.items():
-            if np.abs(mcc) >= k:
-                print('classifier correlation is %s' % (v,))
-                break
-        print(('MCC\' = %.' + str(precision) + 'f') % (mcc,))
+        try:
+            mcc = sklearn.metrics.matthews_corrcoef(
+                res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
+            # These scales are chosen somewhat arbitrarily in the context of a
+            # computer vision application with relatively reasonable quality data
+            mcc_significance_scales = ut.odict([
+                (1.0, 'perfect'),
+                (0.9, 'very strong'),
+                (0.7, 'strong'),
+                (0.5, 'significant'),
+                (0.3, 'moderate'),
+                (0.2, 'weak'),
+                (0.0, 'negligible'),
+            ])
+            for k, v in mcc_significance_scales.items():
+                if np.abs(mcc) >= k:
+                    print('classifier correlation is %s' % (v,))
+                    break
+            print(('MCC\' = %.' + str(precision) + 'f') % (mcc,))
+        except ValueError:
+            pass
 
     def print_report(res):
         res.augment_if_needed()
@@ -1033,7 +1036,10 @@ class ClfResult(ut.NiceRepr):
         auto_pred_enc = auto_probs.argmax(axis=1)
         print('Autoclassify Confusion Matrix:\n')
         print(sklearn.metrics.confusion_matrix(auto_truth_enc, auto_pred_enc))
-        print('Autoclassify MCC: ' + str(sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
+        try:
+            print('Autoclassify MCC: ' + str(sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
+        except ValueError:
+            pass
         print('Autoclassify AUC(Macro): ' + str(sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
         # return pos_threshes
 

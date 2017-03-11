@@ -17,9 +17,9 @@ def compare_groups(true_groups, pred_groups):
         >>>     [20, 21, 22, 23], [1, 2], [12], [13, 14], [3, 4], [5, 6,11],
         >>>     [7], [8, 9], [10], [31, 32], [33, 34, 35], [41, 42, 43, 44, 45]
         >>> ]
-        >>> result = compare_groups(true_groups, pred_groups)
-        >>> print(result)
-        >>> print(ut.repr4(result))
+        >>> comparisons = compare_groups(true_groups, pred_groups)
+        >>> print(comparisons)
+        >>> print(ut.repr4(comparisons))
     """
     true = {frozenset(_group) for _group in true_groups}
     pred = {frozenset(_group) for _group in pred_groups}
@@ -36,44 +36,46 @@ def compare_groups(true_groups, pred_groups):
 
     # How many predictions can be merged into perfect pieces?
     # For each true sets, find if it can be made via merging pred sets
-    predict_merges = []
+    pred_merges = []
     true_merges = []
     for ts in true_sets:
         ccs = set([pred_conn.get(t, frozenset()) for t in ts])
         if frozenset.union(*ccs) == ts:
             # This is a pure merge
-            predict_merges.append(ccs)
+            pred_merges.append(ccs)
             true_merges.append(ts)
 
     # How many predictions can be split into perfect pieces?
     true_splits = []
-    predict_splits = []
+    pred_splits = []
     for ps in pred_sets:
         ccs = set([true_conn.get(p, frozenset()) for p in ps])
         if frozenset.union(*ccs) == ps:
             # This is a pure merge
             true_splits.append(ccs)
-            predict_splits.append(ps)
+            pred_splits.append(ps)
 
-    pred_merges_flat = ut.flatten(predict_merges)
+    pred_merges_flat = ut.flatten(pred_merges)
     true_splits_flat = ut.flatten(true_splits)
 
     pred_hybrid = frozenset(map(frozenset, pred_sets)).difference(
-        set(predict_splits + pred_merges_flat))
+        set(pred_splits + pred_merges_flat))
 
     true_hybrid = frozenset(map(frozenset, true_sets)).difference(
         set(true_merges + true_splits_flat))
 
-    result = {
+    comparisons = {
         'common': common,
-        'true_splits_flat': true_splits_flat,
+        # 'true_splits_flat': true_splits_flat,
+        'true_splits': true_splits,
         'true_merges': true_merges,
         'true_hybrid': true_hybrid,
-        'pred_splits': predict_splits,
-        'pred_merges_flat': pred_merges_flat,
+        'pred_splits': pred_splits,
+        'pred_merges': pred_merges,
+        # 'pred_merges_flat': pred_merges_flat,
         'pred_hybrid': pred_hybrid,
     }
-    return result
+    return comparisons
 
 
 @ut.reloadable_class

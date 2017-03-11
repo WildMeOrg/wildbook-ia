@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
+import itertools as it
 import vtool as vt
 import utool as ut
 import six
@@ -503,3 +504,59 @@ class _AnnotInfrDepMixin(object):
 
         # print('[infr] num_filtered = %r' % (num_filtered,))
         return aids1, aids2
+
+    def add_feedback_df(infr, decision_df, user_id=None, apply=False,
+                        verbose=None):
+        """
+        Adds multiple feedback at once (usually for auto reviewer)
+
+        maybe move back later
+        """
+        import pandas as pd
+        if verbose is None:
+            verbose = infr.verbose
+        if verbose >= 1:
+            print('[infr] add_feedback_df()')
+        tags_list = [None] * len(decision_df)
+        if isinstance(decision_df, pd.Series):
+            decisions = decision_df
+        elif isinstance(decision_df, pd.DataFrame):
+            if 'decision' in decision_df:
+                assert 'match_state' not in decision_df
+                decisions = decision_df['decision']
+            else:
+                decisions = decision_df['match_state']
+            if 'tags' in decision_df:
+                tags_list = decision_df['tags']
+        else:
+            raise ValueError(type(decision_df))
+        index = decisions.index
+        assert index.get_level_values(0).isin(infr.aids_set).all()
+        assert index.get_level_values(1).isin(infr.aids_set).all()
+        timestamp = ut.get_timestamp('int', isutc=True)
+        user_confidence = None
+        uv_iter = it.starmap(e_, index.tolist())
+        _iter = zip(uv_iter, decisions, tags_list)
+        prog = ut.ProgIter(_iter, nTotal=len(tags_list), enabled=verbose,
+                           label='adding feedback')
+        for edge, decision, tags in prog:
+            if tags is None:
+                tags = []
+            infr.internal_feedback[edge].append({
+                'decision': decision,
+                'tags': tags,
+                'timestamp': timestamp,
+                'user_confidence': user_confidence,
+                'user_id': user_id,
+            })
+            if infr.refresh:
+                raise NotImplementedError('TODO')
+        if apply:
+            infr.apply_feedback_edges()
+
+    def _compute_p_same(infr, p_match, p_notcomp):
+        p_bg = 0.5  # Needs to be thresh value
+        part1 = p_match * (1 - p_notcomp)
+        part2 = p_bg * p_notcomp
+        p_same = part1 + part2
+        return p_same

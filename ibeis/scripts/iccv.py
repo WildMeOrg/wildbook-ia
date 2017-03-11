@@ -71,6 +71,15 @@ def end_to_end():
     train_aids = ut.flatten(names[0::2])
     test_aids = ut.flatten(names[1::2])
 
+    # Hack
+    test_aids = ut.flatten(names[1::2][::2])
+
+    print_cfg = dict(per_multiple=False)
+    ibs.print_annot_stats(test_aids, prefix='TRAIN_', **print_cfg)
+    ibs.print_annot_stats(test_aids, prefix='TEST_', **print_cfg)
+    # import utool
+    # utool.embed()
+
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     # -----------
@@ -93,6 +102,25 @@ def end_to_end():
     pblm.load_samples()
     pblm.build_feature_subsets()
 
+    # Figure out what the thresholds should be
+    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr)
+    fpr_thresholds = thresh_cacher.tryload()
+    if fpr_thresholds is None:
+        feat_cfgstr = ut.hashstr_arr27(
+            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
+        cfg_prefix = (pblm.samples.make_sample_hashid() +
+                      pblm.qreq_.get_cfgstr() + feat_cfgstr)
+        pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
+                                          cfg_prefix)
+        task_key = 'match_state'
+        clf_key = 'RF'
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        fpr_thresholds = {
+            fpr: res.get_pos_threshes('fpr', value=fpr)
+            for fpr in [0, .01, .1]
+        }
+        thresh_cacher.save(fpr_thresholds)
+
     clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr)
     pblm.deploy_task_clfs = clf_cacher.tryload()
     if pblm.deploy_task_clfs is None:
@@ -111,11 +139,14 @@ def end_to_end():
     # ------------
     # TESTING
     import plottool as pt  # NOQA
-    test_aids = ut.flatten(names[1::2])
+    # test_aids = ut.flatten(names[1::2])
+    # test_aids = ut.flatten(names[1::2][0:4])
     # test_aids = ut.flatten(names[1::2][::2])
     # oracle_accuracy = 1.0
     # oracle_accuracy = .6
-    oracle_accuracy = .9
+    # match_state_thresh = 1.0
+    # oracle_accuracy = .9
+    oracle_accuracy = 1.0
     complete_thresh = .95
     ranking_loops = 2
     graph_loops = np.inf
@@ -128,6 +159,7 @@ def end_to_end():
             'priority_metric': 'normscore',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': 1.0,
+            'match_state_thresh': None,
             'max_loops': ranking_loops,
         },
         {
@@ -138,112 +170,114 @@ def end_to_end():
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': 1.0,
+            'match_state_thresh': fpr_thresholds[0],
             'max_loops': ranking_loops,
         },
         {
-            'name': 'Graph,K=2',
+            'name': 'Graph,K=2,fpr=.01',
             'method': 'graph',
             'k_redun': 2,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': complete_thresh,
+            'match_state_thresh': fpr_thresholds[.01],
             'max_loops': graph_loops,
         },
         {
-            'name': 'Graph,K=1',
+            'name': 'Graph,K=2,fpr=.1',
             'method': 'graph',
-            'k_redun': 1,
+            'k_redun': 2,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
-            'complete_thresh': complete_thresh,
             'oracle_accuracy': oracle_accuracy,
+            'complete_thresh': complete_thresh,
+            'match_state_thresh': fpr_thresholds[.1],
             'max_loops': graph_loops,
-        }
+        },
     ]
 
+    colors = pt.distinct_colors(len(expt_dials))
+
     dials = expt_dials[1]
+    import pandas as pd
 
     # verbose = 0
     verbose = 1
-    expt_metrics = []
-    for dials in expt_dials[0:3]:
+    expt_metrics = {}
+    for idx in range(3, 4):
+        dials = expt_dials[idx]
         infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)
+        infr.init_test_mode()
         infr.init_termination_criteria(phis)
-        metrics_df = run_expt(infr, dials=dials)
+        run_expt(infr, dials=dials)
+        metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
-        expt_metrics.append((dials, metrics_df))
+        expt_metrics[idx] = (dials, metrics_df)
 
     pt.qtensure()
     error_denom = len(infr.aids)
     if error_denom == 0:
         error_denom = 1
 
+    # lwb = 3.5
+
     pt.figure(fnum=1, pnum=(1, 2, 1))
-    for count, (dials, metrics_df) in enumerate(expt_metrics):
+    for count, (dials, metrics_df) in expt_metrics.items():
         pt.plot(metrics_df['n_manual'].values,
-                metrics_df['n_merge_remain'].values, '-', lw=3.5 - (count / 5),
-                label=dials['name'] + ' - % merges remaining')
+                metrics_df['n_merge_remain'].values, '-',
+                # lw=lwb - (count),
+                color=colors[count],
+                label=dials['name'])
     pt.set_xlabel('# manual reviews')
     pt.set_ylabel('# merges remaining')
     pt.legend()
 
     pt.figure(fnum=1, pnum=(1, 2, 2))
-    for count, (dials, metrics_df) in enumerate(expt_metrics):
+    for count, (dials, metrics_df) in expt_metrics.items():
         pt.plot(metrics_df['n_manual'].values,
                 metrics_df['n_errors'].values,
-                '-', lw=3.5 - (count / 5), label=dials['name'] + ' - error magnitude')
+                '-',
+                # lw=lwb - count,
+                color=colors[count],
+                label=dials['name'])
+
+        pt.plot(metrics_df['n_manual'].values,
+                metrics_df['n_fn'].values,
+                '--',
+                # lw=lwb - count,
+                color=colors[count],
+                label=dials['name'] + 'n_fn')
+
+        pt.plot(metrics_df['n_manual'].values,
+                metrics_df['n_fp'].values,
+                ':',
+                # lw=lwb - count,
+                color=colors[count],
+                label=dials['name'] + 'n_fp')
         pt.gca().set_ylim(0, error_denom)
 
     pt.set_ylabel('# of errors')
     pt.set_xlabel('# manual reviews')
     pt.legend()
+
+    # infr.show(fnum=3, groupby='name_label')
     ut.show_if_requested()
 
 
 @profile
-def measure_metrics(infr, n_manual, n_auto, edge_truth,
-                    real_n_pcc_mst_edges):
-    real_pos_edges = []
-    n_error_edges = 0
-    pred_n_pcc_mst_edges = 0
-    if edge_truth is not None:
-        for edge, data in infr.edges(data=True):
-            # true_state = edge_truth.loc[edge].idxmax()
-            true_state = edge_truth[edge]
-            reviewed_state = data.get('reviewed_state', 'unreviewed')
-            if true_state == reviewed_state and true_state == 'match':
-                real_pos_edges.append(edge)
-            elif reviewed_state != 'unreviewed':
-                if true_state != reviewed_state:
-                    n_error_edges += 1
-
-        import networkx as nx
-        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
-            pred_n_pcc_mst_edges += len(cc) - 1
-    pos_acc = pred_n_pcc_mst_edges / real_n_pcc_mst_edges
-    metrics = {
-        'n_manual': n_manual,
-        'n_auto': n_auto,
-        'pos_acc': pos_acc,
-        'n_merge_remain': real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
-        'merge_remain': 1 - pos_acc,
-        'n_errors': n_error_edges,
-    }
-    return metrics
-
-
-@profile
 def run_expt(infr, dials):
+    import pandas as pd
+    import itertools as it
+
     ut.cprint('RUNING TEST', 'yellow')
     print('dials = %s' % (ut.repr4(dials),))
-    import pandas as pd
     k_redun = dials['k_redun']
     oracle_accuracy = dials['oracle_accuracy']
     cand_kw = dials['cand_kw']
     priority_metric = dials['priority_metric']
-    method = dials['method']
+    infr.method = dials['method']
     infr.PRIORITY_METRIC = priority_metric
     autoreview_enabled = infr.PRIORITY_METRIC == 'priority'
     infr.queue_params['pos_redundancy'] = k_redun
@@ -254,46 +288,25 @@ def run_expt(infr, dials):
             'pb': .5,
             'notpb': .9,
         }),
-        'match_state': pd.Series(ut.odict([
-            ('nomatch', .90),
-            ('match', .90),
-            ('notcomp', .90),
-            # ('nomatch', .97),
-            # ('match', .97),
-            # ('notcomp', .97),
-        ]))
+        'match_state': pd.Series(dials['match_state_thresh'])
     }
 
     # aid_to_gt_nid = ut.dzip(infr.aids, infr.orig_name_labels)
-    nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
-    real_n_pcc_mst_edges = sum([len(cc) - 1 for cc in nid_to_gt_cc.values()])
-    ut.cprint('real_n_pcc_mst_edges = %r' % (real_n_pcc_mst_edges,), 'red')
-    n_manual = 0
-    n_auto = 0
-    metrics_list = []
-
     seed = sum(map(ord, dials['name']))
 
     rng = ut.ensure_rng(seed, impl='python')
     infr.reset(state='empty')
     infr.remove_feedback(apply=True)
 
-    metrics = measure_metrics(infr, n_manual, n_auto, None,
-                              real_n_pcc_mst_edges)
-    metrics_list.append(metrics)
     infr.init_refresh_criteria()
 
-    import itertools as it
     for count in it.count(0):
         if count >= dials['max_loops']:
             # Just do a maximum of some number of runs for now
             ut.cprint('Early stop', 'blue')
             break
         ut.cprint('Outer loop iter %d ' % (count,), 'blue')
-        infr.refresh_candidate_edges(method=method, **cand_kw)
-
-        edge_truth = infr.match_state_df(
-            list(infr.edges())).idxmax(axis=1).to_dict()
+        infr.refresh_candidate_edges(**cand_kw)
 
         if not len(infr.queue):
             ut.cprint('Queue is empty. Terminate.', 'blue')
@@ -312,64 +325,49 @@ def run_expt(infr, dials):
             else:
                 ut.cprint('IN RECOVERY MODE priority=%r' % (priority,), 'red')
 
-            # print('edge=%r, priority=%r' % (edge, priority))
-            auto_flag = False
+            flag = False
             if autoreview_enabled:
-                auto_flag, review = infr.try_auto_review(edge, priority)
-                n_auto += auto_flag
-            if not auto_flag:
-                if priority <= 1 and method == 'graph':
-                    prob_check = (infr.check_prob_completeness(edge[0]) or
-                                  infr.check_prob_completeness(edge[1]))
-                else:
-                    prob_check = False
-                if prob_check:
-                    # print('PROB_CHECK = %r' % (prob_check,))
-                    review = {
-                        'user_id': 'auto_prob_complete',
-                        'user_confidence': 'pretty_sure',
-                        'decision': 'nomatch',
-                        'tags': [],
-                    }
-                else:
-                    error, review = infr.oracle_review(edge, oracle_accuracy, rng)
-                    n_manual += 1
-            infr.add_feedback(edge=edge, apply=True, rectify=False,
-                              method=method, **review)
-            metrics = measure_metrics(infr, n_manual, n_auto, edge_truth,
-                                      real_n_pcc_mst_edges)
-            metrics_list.append(metrics)
-            # print(infr.connected_component_status())
+                flag, review = infr.try_auto_review(edge, priority)
+            if not flag:
+                if infr.method == 'graph':
+                    flag, review = infr.try_implicit_review(edge, priority)
+                if not flag:
+                    error, review = infr.oracle_review(edge, oracle_accuracy,
+                                                       rng)
+            infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
 
-    if method == 'graph':
+    if infr.method == 'graph':
         # Enforce that a user checks any PCC that was auto-reviewed
         # but was unable to achieve k-positive-consistency
-        for pcc in infr.non_redundant_pccs():
-            for u, v, data in pcc.edges(data=True):
+        for pcc in infr.non_pos_redundant_pccs():
+            subgraph = infr.graph.subgraph(pcc)
+            for u, v, data in subgraph.edges(data=True):
                 edge = infr.e_(u, v)
                 if data.get('user_id', '').startswith('auto'):
                     error, review = infr.oracle_review(edge, oracle_accuracy, rng)
-                    n_manual += 1
                     infr.add_feedback(edge=edge, apply=True, rectify=False,
-                                      method=method, **review)
-                    metrics = measure_metrics(infr, n_manual, n_auto, edge_truth,
-                                              real_n_pcc_mst_edges)
-                    metrics_list.append(metrics)
+                                      **review)
         # Check for inconsistency recovery
         while len(infr.queue):
             edge, priority = infr.pop()
             if priority <= 1:
                 break
             error, review = infr.oracle_review(edge, oracle_accuracy, rng)
-            n_manual += 1
-            infr.add_feedback(edge=edge, apply=True, rectify=False,
-                              method=method, **review)
-            metrics = measure_metrics(infr, n_manual, n_auto, edge_truth,
-                                      real_n_pcc_mst_edges)
-            metrics_list.append(metrics)
+            infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
 
-    metrics_df = pd.DataFrame.from_dict(metrics_list)
-    return metrics_df
+    if infr.method == 'graph':
+        assert len(list(infr.inconsistent_components())) == 0
+
+    true_groups = list(map(set, infr.nid_to_gt_cc.values()))
+    pred_groups = list(infr.positive_connected_compoments())
+    from ibeis.algo.hots import sim_graph_iden
+    comparisons = sim_graph_iden.compare_groups(true_groups, pred_groups)
+    pred_merges = comparisons['pred_merges']
+    print(pred_merges)
+    # print(ut.repr4(comparisons, nl=4))
+
+    # import utool
+    # utool.embed()
 
 
 def show_phis(phis):
