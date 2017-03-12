@@ -55,14 +55,39 @@ def end_to_end():
     from ibeis.init import main_helpers
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
-    ibs = ibeis.opendb('GZ_Master1')
+    ibs = ibeis.opendb('PZ_Master1')
+    # ibs = ibeis.opendb('GZ_Master1')
     # Specialized database params
     enc_kw = dict(minutes=30)
-    filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True)
+    filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True,
+                   minqual='good')
     if ibs.dbname == 'PZ_MTEST':
         enc_kw = dict(days=50)
         filt_kw = dict(require_timestamp=True, is_known=True)
+
+    maxphi = 4
+    if ibs.dbname == 'PZ_PB_RF_TRAIN':
+        maxphi = 2
+
+    if ibs.dbname == 'PZ_Master1':
+        filt_kw['min_pername'] = 3
+        maxphi = 3
+        # maxphi = 2
+
     expt_aids = ibs.filter_annots_general(**filt_kw)
+    print('len(expt_aids) = %r' % (len(expt_aids),))
+
+    if ibs.dbname == 'PZ_Master1':
+        mtest_aids = ibeis.dbio.export_subset.find_overlap_annots(
+            ibs, ibeis.opendb('PZ_MTEST'), method='images')
+        pbtest_aids = ibeis.dbio.export_subset.find_overlap_annots(
+            ibs, ibeis.opendb('PZ_PB_RF_TRAIN'), method='annots')
+        expt_aids.extend(mtest_aids)
+        expt_aids.extend(pbtest_aids)
+        expt_aids = sorted(set(expt_aids))
+        print('Expanding dataset')
+        print('len(expt_aids) = %r' % (len(expt_aids),))
+
     main_helpers.monkeypatch_encounters(ibs, aids=expt_aids, **enc_kw)
 
     annots = ibs.annots(expt_aids)
@@ -133,13 +158,14 @@ def end_to_end():
         task_key = 'match_state'
         clf_key = 'RF'
 
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+
         pblm.report_simple_scores(task_key)
         res.extended_clf_report()
 
         import vtool as vt
         fnum = 1
         class_name = 'match'
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
         res.show_roc(class_name=class_name, fnum=fnum, label='pairwise')
         labels = pblm.samples.subtasks['match_state'].indicator_df[class_name]
         scores = pblm.samples.simple_scores['score_lnbnn_1vM']
@@ -153,25 +179,18 @@ def end_to_end():
     # -----------
     # TRAINING
 
-    # aids = train_aids
-    phi_cacher = ut.Cacher('term_phis', cfgstr=train_cfgstr)
-    phis = phi_cacher.tryload()
-    if phis is None:
-        phis = learn_termination(ibs, aids=train_aids)
-        phi_cacher.save(phis)
-    # show_phis(phis)
-
     from ibeis.scripts.script_vsone import OneVsOneProblem
     clf_key = 'RF'
     data_key = 'learn(sum,glob)'
     task_keys = ['match_state', 'photobomb_state']
-    pblm = OneVsOneProblem.from_aids(ibs, aids=train_aids, verbose=1)
+    pblm = OneVsOneProblem.from_aids(ibs=ibs, aids=train_aids, verbose=1)
     pblm.load_features()
     pblm.load_samples()
     pblm.build_feature_subsets()
 
     # Figure out what the thresholds should be
-    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr + 'v2')
+    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr + 'v3',
+                              enabled=False)
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
         feat_cfgstr = ut.hashstr_arr27(
@@ -185,8 +204,10 @@ def end_to_end():
         res = pblm.task_combo_res[task_key][clf_key][data_key]
         fpr_thresholds = {
             fpr: res.get_pos_threshes('fpr', value=fpr)
-            for fpr in [0, .01, .05]
+            for fpr in [0, .001, .005, .01]
         }
+        import pprint
+        print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
     clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr)
@@ -203,6 +224,14 @@ def end_to_end():
     # Inspect feature importances if you want
     # pblm.report_classifier_importance2(match_clf, data_key=data_key)
     # pblm.report_classifier_importance2(pb_clf, data_key=data_key)
+
+    # aids = train_aids
+    phi_cacher = ut.Cacher('term_phis', cfgstr=train_cfgstr)
+    phis = phi_cacher.tryload()
+    if phis is None:
+        phis = learn_termination(ibs, train_aids, maxphi)
+        phi_cacher.save(phis)
+    # show_phis(phis)
 
     # ------------
     # TESTING
@@ -273,7 +302,7 @@ def end_to_end():
     # verbose = 0
     verbose = 1
     expt_metrics = {}
-    for idx in range(3, 4):
+    for idx in range(2, 3):
         dials = expt_dials[idx]
         infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)

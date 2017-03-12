@@ -886,6 +886,26 @@ def remerge_subset():
     # inspect_gui.show_vsone_tuner(ibs2, 86, 6265)
 
 
+def find_overlap_annots(ibs1, ibs2, method='annots'):
+    """
+    Finds the aids of annotations in ibs1 that are also in ibs2
+
+    ibs1 = ibeis.opendb('PZ_Master1')
+    ibs2 = ibeis.opendb('PZ_MTEST')
+    """
+    if method == 'images':
+        images1, images2 = ibs1.images(), ibs2.images()
+        idxs1, idxs2 = ut.isect_indices(images1.uuids, images2.uuids)
+        isect_images1 = images1.take(idxs1)
+        annot_uuids = ut.flatten(isect_images1.annot_uuids)
+        isect_annots1 = ibs1.annots(uuids=annot_uuids)
+    elif method == 'annots':
+        annots1, annots2 = ibs1.annots(), ibs2.annots()
+        idxs1, idxs2 = ut.isect_indices(annots1.uuids, annots2.uuids)
+        isect_annots1 = annots1.take(idxs1)
+    return isect_annots1.aids
+
+
 def check_database_overlap(ibs1, ibs2):
     """
     CommandLine:
