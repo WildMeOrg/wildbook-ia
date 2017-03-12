@@ -115,7 +115,7 @@ class Neighbors(ut.NiceRepr):
 
     def __nice__(self):
         return '(qaid=%r,nQfxs=%r,nNbs=%r)' % (
-            self.qaid, self.num_query_feats, self.neighb_idxs.size)
+            self.qaid, self.num_query_feats, self.neighb_idxs.shape[1])
 
     def __getstate__(self):
         return self.__dict__
@@ -378,7 +378,7 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         Kpad_list = [0 for _ in range(len(impossible_daids_list))]
     else:
         if use_k_padding:
-            Kpad_list = list(map(len, impossible_daids_list))  # NOQA
+            Kpad_list = list(map(len, impossible_daids_list))
         else:
             # always at least pad K for self queries
             Kpad_list =  [
@@ -505,7 +505,8 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
 @profile
 def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
-                            impossible_daids_list, K, Knorm, condknn, verbose):
+                            impossible_daids_list, K, Knorm, condknn,
+                            verbose):
     """
     Logic for computing neighbors if there is a cache miss
 
@@ -528,7 +529,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
     if not condknn:
         num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
     else:
-        num_neighbors_list = [K] * len(Kpad_list)
+        num_neighbors_list = [K + Knorm] * len(Kpad_list)
     config2_ = qreq_.get_internal_query_config2()
     qvecs_list = internal_qannots.vecs
 
@@ -543,10 +544,10 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
         # kpts_list = vt.ziptake(kpts_list, fxs_list, axis=0)  # not needed for first filter
         scales_list = [vt.get_scales(kpts) for kpts in qkpts_list]
         # Remove data under the threshold
-        flags_list = [np.logical_and(scales >= min_, scales <= max_)
-                      for scales in scales_list]
-        qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
-        qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
+        flags_list1 = [np.logical_and(scales >= min_, scales <= max_)
+                       for scales in scales_list]
+        qvecs_list = vt.zipcompress(qvecs_list, flags_list1, axis=0)
+        qfxs_list = vt.zipcompress(qfxs_list, flags_list1, axis=0)
 
     if config2_.fgw_thresh is not None:
         #qfgw_list = qreq_.ibs.get_annot_fgweights(
@@ -554,9 +555,9 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
         qfgw_list = internal_qannots.fgweights
         qfgw_list = vt.ziptake(qfgw_list, qfxs_list, axis=0)
         fgw_thresh = config2_.fgw_thresh
-        flags_list = [fgws >= fgw_thresh for fgws in qfgw_list]
-        qfxs_list = vt.zipcompress(qfxs_list, flags_list, axis=0)
-        qvecs_list = vt.zipcompress(qvecs_list, flags_list, axis=0)
+        flags_list2 = [fgws >= fgw_thresh for fgws in qfgw_list]
+        qfxs_list = vt.zipcompress(qfxs_list, flags_list2, axis=0)
+        qvecs_list = vt.zipcompress(qvecs_list, flags_list2, axis=0)
 
     if verbose:
         if len(qvecs_list) == 1:
@@ -572,10 +573,8 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
         qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
                                     prog_hook=prog_hook, **PROGKW)
         idx_dist_list = [
-            qreq_.indexer.conditional_knn(qaid, qnid, qfx2_vec, K, pad,
-                                          impossible_daids, qreq_)
-            for qaid, qnid, qfx2_vec, K, pad, impossible_daids in zip(
-                internal_qannots.aids, internal_qannots.nids,
+            qreq_.indexer.conditional_knn(qfx2_vec, K, pad, impossible_daids)
+            for qfx2_vec, K, pad, impossible_daids in zip(
                 qvec_iter, num_neighbors_list, Kpad_list,
                 impossible_daids_list)
         ]
@@ -612,8 +611,10 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> verbose = True
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
-        >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
-        >>> nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
+        >>> Kpad_list, impossible_daids_list = ut.dict_take(
+        >>>     locals_, ['Kpad_list', 'impossible_daids_list'])
+        >>> nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,
+        >>>                              verbose=verbose)
         >>> qaid = qreq_.internal_qaids[0]
         >>> nn = nns_list[0]
         >>> (qfx2_idx, qfx2_dist) = nn
@@ -630,8 +631,10 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> verbose = True
         >>> qreq_ = ibeis.testdata_qreq_(defaultdb='testdb1', qaid_override=[1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')
-        >>> Kpad_list, = ut.dict_take(locals_, ['Kpad_list'])
-        >>> nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
+        >>> Kpad_list, impossible_daids_list = ut.dict_take(
+        >>>     locals_, ['Kpad_list', 'impossible_daids_list'])
+        >>> nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,
+        >>>                              verbose=verbose)
         >>> qaid = qreq_.internal_qaids[0]
         >>> nn = nns_list[0]
         >>> (qfx2_idx, qfx2_dist) = nn
@@ -694,9 +697,9 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>>                                           impossible_daids_list)
         >>> assert np.all(nnvalid0_list1[0]), 'should always be valid'
     """
-    K      = qreq_.qparams.K
-    Knorm  = qreq_.qparams.Knorm
-    condknn = qreq_.qparams.condknn
+    K           = qreq_.qparams.K
+    Knorm       = qreq_.qparams.Knorm
+    condknn     = qreq_.qparams.condknn
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
@@ -742,23 +745,47 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *   # NOQA
-        >>> import ibeis
-        >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(qaid_list=[1, 2, 3, 4], codename='vsmany')
-        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'baseline_neighbor_filter', defaultdb='testdb1',
+        >>>     qaid_override=[1, 2, 3, 4],
+        >>>     daid_override=list(range(1, 11)),
+        >>>     p=['default:QRH=False,condknn=False,can_match_samename=False'],
+        >>>     verbose=True)
+        >>> nns_list, impossible_daids_list = args
+        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,
+        >>>                                          impossible_daids_list)
         >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.qaids))
-        >>> #ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
-        >>> #ut.assert_eq(qreq_.qparams.K, 4, 'k is not 4')
         >>> assert not np.any(nnvalid0_list[0][:, 0]), (
         ...    'first col should be all invalid because of self match')
         >>> assert not np.all(nnvalid0_list[0][:, 1]), (
         ...    'second col should have some good matches')
         >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)
 
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.pipeline import *   # NOQA
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'baseline_neighbor_filter', defaultdb='testdb1',
+        >>>     qaid_override=[3,4],
+        >>>     daid_override=list(range(1, 11)),
+        >>>     p=['default:K=1,Knorm=0,QRH=False,condknn=True,can_match_samename=False'],
+        >>>     verbose=True)
+        >>> # Test that recovered matches still get marked as invalid when
+        >>> # condknn=True
+        >>> nns_list, impossible_daids_list = args
+        >>> nn = nns_list[0]
+        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,
+        >>>                                          impossible_daids_list)
+        >>> assert (~nnvalid0_list[0]).sum() > 0, 'should have recovered'
+
     Example1:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *   # NOQA
-        >>> import ibeis
-        >>> qreq_, nns_list, impossible_daids_list = plh.testdata_pre_baselinefilter(codename='vsone')
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'baseline_neighbor_filter', defaultdb='testdb1',
+        >>>     default_qaids=[1, 2],
+        >>>     p=['default:codename=vsone'], verbose=True)
+        >>> nns_list, impossible_daids_list = args
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
         >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.daids))
         >>> ut.assert_eq(qreq_.qparams.K, 1, 'k is not 1')
@@ -770,17 +797,17 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         print('[hs] Step 2) Baseline neighbor filter')
     Knorm = qreq_.qparams.Knorm
     # Find which annotations each query matched against
-    neighb_aids_iter = (qreq_.indexer.get_nn_aids(nn.neighb_idxs.T[0:-Knorm].T)
-                        for nn in nns_list)
+    neighb_aids_iter = (
+        qreq_.indexer.get_nn_aids(
+            nn.neighb_idxs.T[0:nn.neighb_idxs.shape[1] - Knorm].T)
+        for nn in nns_list)
     filter_iter_ = zip(neighb_aids_iter, impossible_daids_list)
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     filter_iter = ut.ProgressIter(filter_iter_, nTotal=len(nns_list),
                                   lbl=FILT_LBL, prog_hook=prog_hook, **PROGKW)
     # Check to be sure that none of the matched annotations are in the impossible set
-    nnvalid0_list = [
-        vt.get_uncovered_mask(neighb_aids, impossible_daids)
-        for neighb_aids, impossible_daids in filter_iter
-    ]
+    nnvalid0_list = [vt.get_uncovered_mask(neighb_aids, impossible_daids)
+                     for neighb_aids, impossible_daids in filter_iter]
     return nnvalid0_list
 
 
@@ -806,9 +833,10 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
-        >>>                                a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
-        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'weight_neighbors', defaultdb='testdb1',
+        >>>     a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
+        >>>     p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
         >>> nns_list, nnvalid0_list = args
         >>> verbose = True
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
@@ -827,9 +855,10 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
-        >>>                                a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
-        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'weight_neighbors', defaultdb='testdb1',
+        >>>     a=['default:qindex=0:3,dindex=0:5,hackerrors=False'],
+        >>>     p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
         >>> nns_list, nnvalid0_list = args
         >>> verbose = True
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose)
@@ -858,12 +887,15 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
-        >>>                                a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
-        >>>                                p=['default:codename=vsone,fg_on=False,ratio_thresh=.625'], verbose=True)
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'weight_neighbors', defaultdb='testdb1',
+        >>>     a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
+        >>>     p=['default:codename=vsone,fg_on=False,ratio_thresh=.625'],
+        >>>     verbose=True)
         >>> nns_list, nnvalid0_list = args
         >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)
-        >>> filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = weight_ret
+        >>> (filtkey_list, filtweights_list, filtvalids_list,
+        >>>  filtnormks_list) = weight_ret
         >>> nFiltKeys = len(filtkey_list)
         >>> nInternAids = len(qreq_.get_internal_qaids())
         >>> filtweight_depth = ut.depth_profile(filtweights_list)
@@ -1016,8 +1048,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         None if filtvalid is None else filtvalid[index]
         for filtvalid in _filtvalid_list
     ] for index in range(nInternAids) ]
-    # print('ut.depth_profile(_filtweight_list) = %r' % (ut.depth_profile(_filtweight_list),))
-    # print('ut.depth_profile(filtweights_list) = %r' % (ut.depth_profile(filtweights_list),))
 
     filtnormks_list = [[
         None if normk is None else normk[index]
@@ -1027,7 +1057,8 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     assert len(filtkey_list) > 0, (
         'no feature correspondece filter keys were specified')
 
-    weight_ret = WeightRet_(filtkey_list, filtweights_list, filtvalids_list, filtnormks_list)
+    weight_ret = WeightRet_(filtkey_list, filtweights_list, filtvalids_list,
+                            filtnormks_list)
     return weight_ret
 
 
@@ -1047,9 +1078,6 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     database features and builds sparse matching pairs for each annotation to
     annotation match.
 
-    Ignore:
-        python -c "import utool; print(utool.auto_docstr('ibeis.algo.hots.pipeline', 'build_chipmatches'))"
-
     CommandLine:
         python -m ibeis build_chipmatches
         python -m ibeis build_chipmatches:0 --show
@@ -1059,8 +1087,10 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsmany'])
-        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'build_chipmatches', p=['default:codename=vsmany'])
+        >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>> filtvalids_list, filtnormks_list) = args
         >>> verbose = True
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
@@ -1079,8 +1109,11 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> verbose = True
-        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsone,sqrd_dist_on=True'])
-        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'build_chipmatches',
+        >>>     p=['default:codename=vsone,sqrd_dist_on=True'])
+        >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>>  filtvalids_list, filtnormks_list) = args
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results
         >>> [cm.assert_self(qreq_) for cm in cm_list]
@@ -1098,8 +1131,11 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> # Test to make sure filtering by feature weights works
-        >>> qreq_, args = plh.testdata_pre('build_chipmatches', p=['default:codename=vsmany,fgw_thresh=.9'])
-        >>> nns_list, nnvalid0_list, filtkey_list, filtweights_list, filtvalids_list, filtnormks_list = args
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'build_chipmatches',
+        >>>     p=['default:codename=vsmany,fgw_thresh=.9'])
+        >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>>  filtvalids_list, filtnormks_list) = args
         >>> verbose = True
         >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
         >>> # verify results

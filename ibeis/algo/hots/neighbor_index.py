@@ -709,7 +709,8 @@ class NeighborIndex(object):
                     'inconsistant distance calculations')
         return (qfx2_idx, qfx2_dist)
 
-    def conditional_knn(indexer, qaid, qnid, qfx2_vec, K, pad, impossible_aids, qreq_):
+    def conditional_knn(indexer, qfx2_vec, K, pad, impossible_aids,
+                        recover=True):
         """
         hack for iccv - this is a highly coupled function
         """
@@ -721,11 +722,13 @@ class NeighborIndex(object):
         elif len(qfx2_vec) == 0:
             (qfx2_idx, qfx2_dist) = indexer.empty_neighbors(0, K)
         else:
+            # hack to try and make things a little bit faster
+            invalid_axs = np.array(ut.take(indexer.aid2_ax, impossible_aids))
+            # pad += (len(invalid_axs) * 2)
             try:
                 (qfx2_idx, qfx2_dist) = conditional_knn_(
-                    indexer, qaid, qnid, qfx2_vec, num_neighbs=K, qreq_=qreq_,
-                    pad=pad, impossible_aids=impossible_aids, limit=5,
-                    recover=True)
+                    indexer, qfx2_vec, num_neighbs=K, pad=pad,
+                    invalid_axs=invalid_axs, limit=3, recover=recover)
             except pyflann.FLANNException as ex:
                 ut.printex(ex, 'probably misread the cached flann_fpath=%r' %
                            (indexer.flann_fpath,))
@@ -894,10 +897,14 @@ def in1d_shape(arr1, arr2):
     return np.in1d(arr1, arr2).reshape(arr1.shape)
 
 
-def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
-                     impossible_aids=[], limit=4, recover=True):
+@profile
+def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
+                     limit=4, recover=True):
     """
     Searches for `num_neighbs` until enough are found.
+
+    CommandLine:
+        python -m ibeis.algo.hots.neighbor_index conditional_knn_
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -907,17 +914,16 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
         >>> qreq_.load_indexer()
         >>> indexer = qreq_.indexer
         >>> qannot = qreq_.internal_qannots[1]
-        >>> qaid = qannot.aid
         >>> qfx2_vec = qannot.vecs
-        >>> qnid = qannot.nid
         >>> ibs = qreq_.ibs
+        >>> qaid = qannot.aid
         >>> impossible_aids = ibs.get_annot_groundtruth(qaid, noself=False)
+        >>> invalid_axs = np.array(ut.take(indexer.aid2_ax, impossible_aids))
         >>> pad = 0
         >>> limit = 1
         >>> num_neighbs = 3
         >>> res = conditional_knn_(
-        >>>     indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad,
-        >>>     impossible_aids, limit,
+        >>>     indexer, qfx2_vec, num_neighbs, impossible_aids, pad, limit,
         >>>     recover=True)
         >>> qfx2_idx, qfx2_dist = res
     """
@@ -932,8 +938,6 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
     qfx2_idx = np.full(shape, -1, dtype=np.int32)
     qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
     qfx2_truek = np.full(shape, -1, dtype=np.int32)
-
-    invalid_axs = np.array(ut.take(indexer.aid2_ax, impossible_aids))
 
     # Make a set of temporary indexes and loop variables
     temp_K = num_neighbs + pad
@@ -987,13 +991,14 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
         tx2_vec = tx2_vec.compress(tx2_notdone, axis=0)
         at_limit = limit is not None and count >= limit
         if at_limit:
+            print('')
             print('[knn] Hit limit=%r and found %d/%d' % (
                 limit, sum(tx2_done), len(tx2_done)))
+            print('')
             break
         # K_increase = (K - tx2_num_valid.min())
         # double the search space
-        K_increase = temp_K
-        temp_K += K_increase
+        temp_K *= 2
 
     if at_limit and recover:
         # If over the limit, then we need to do the best with what we have
@@ -1003,7 +1008,9 @@ def conditional_knn_(indexer, qnid, qaid, qfx2_vec, num_neighbs, qreq_, pad=2,
         bx2_valid = tx2_valid.compress(tx2_notdone, axis=0)
         bx2_idx = tx2_idx.compress(tx2_notdone, axis=0)
         bx2_qfx = tx2_qfx
+        print('')
         print('[knn] Recover for %d features' % (len(bx2_qfx)))
+        print('')
 
         # Simply override the last indices to be valid and use those
         bx2_valid[:, -num_neighbs:] = True
@@ -1105,74 +1112,7 @@ class NeighborIndex2(NeighborIndex, ut.NiceRepr):
             >>> ax2_encid = np.array(ibs.get_annot_encounter_text(nnindexer.ax2_aid))
             >>> invalid_axs = np.where(ax2_encid == qencid)[0]
         """
-        #import ibeis
-        import itertools as it
-        get_neighbors = ut.partial(nnindexer.flann.nn_index,
-                                   checks=nnindexer.checks,
-                                   cores=nnindexer.cores)
-
-        # Alloc space for final results
-        K = num_neighbors
-        shape = (len(qfx2_vec), K)
-        qfx2_idx = np.full(shape, -1, dtype=np.int32)
-        qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
-        qfx2_truek = np.full(shape, -1, dtype=np.int32)
-
-        # Make a set of temporary indexes and loop variables
-        limit = None
-        limit = 4
-        K_ = K
-        tx2_qfx = np.arange(len(qfx2_vec))
-        tx2_vec = qfx2_vec
-        count = 0
-        for count in it.count():
-            if limit is not None and count >= limit:
-                break
-            # Find a set of neighbors
-            (tx2_idx, tx2_rawdist) = get_neighbors(tx2_vec, K_)
-            tx2_idx = vt.atleast_nd(tx2_idx, 2)
-            tx2_rawdist = vt.atleast_nd(tx2_rawdist, 2)
-            tx2_ax = nnindexer.get_nn_axs(tx2_idx)
-            # Check to see if they meet the criteria
-            tx2_invalid = in1d_shape(tx2_ax, invalid_axs)
-            tx2_valid = np.logical_not(tx2_invalid)
-            tx2_num_valid = tx2_valid.sum(axis=1)
-            tx2_notdone = tx2_num_valid < K
-            tx2_done = np.logical_not(tx2_notdone)
-
-            # Move completely valid queries into the results
-            if np.any(tx2_done):
-                done_qfx = tx2_qfx.compress(tx2_done, axis=0)
-                # Need to parse which columns are the completed ones
-                done_valid_ = tx2_valid.compress(tx2_done, axis=0)
-                done_rawdist_ = tx2_rawdist.compress(tx2_done, axis=0)
-                done_idx_ = tx2_idx.compress(tx2_done, axis=0)
-                # Get the complete valid indicies
-                rowxs, colxs = np.where(done_valid_)
-                unique_rows, groupxs = vt.group_indices(rowxs)
-                first_k_groupxs = [groupx[0:K] for groupx in groupxs]
-                chosen_xs = np.hstack(first_k_groupxs)
-                multi_index = (rowxs.take(chosen_xs), colxs.take(chosen_xs))
-                flat_xs = np.ravel_multi_index(multi_index, done_valid_.shape)
-                done_rawdist = done_rawdist_.take(flat_xs).reshape((-1, K))
-                done_idx = done_idx_.take(flat_xs).reshape((-1, K))
-                # Write done results in output
-                qfx2_idx[done_qfx, :] = done_idx
-                qfx2_rawdist[done_qfx, :] = done_rawdist
-                qfx2_truek[done_qfx, :] = vt.apply_grouping(
-                    colxs, first_k_groupxs)
-            if np.all(tx2_done):
-                break
-            K_increase = (K - tx2_num_valid.min())
-            K_ += K_increase
-            tx2_qfx = tx2_qfx.compress(tx2_notdone, axis=0)
-            tx2_vec = tx2_vec.compress(tx2_notdone, axis=0)
-
-        if nnindexer.max_distance_sqrd is not None:
-            qfx2_dist = np.divide(qfx2_rawdist, nnindexer.max_distance_sqrd)
-        else:
-            qfx2_dist = qfx2_rawdist
-        return (qfx2_idx, qfx2_dist, count)
+        return conditional_knn_(nnindexer, qfx2_vec, num_neighbors, invalid_axs)
 
 
 def testdata_nnindexer(*args, **kwargs):

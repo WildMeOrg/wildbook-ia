@@ -101,27 +101,25 @@ def end_to_end():
     # train_aids = ut.flatten(names[0::2][0:num_names])
     # test_aids = ut.flatten(names[1::2][0:num_names])
 
-    print_cfg = dict(per_multiple=False)
-    ibs.print_annot_stats(train_aids, prefix='TRAIN_', use_hist=True, **print_cfg)
+    print_cfg = dict(per_multiple=False, use_hist=False)
+    ibs.print_annot_stats(train_aids, prefix='TRAIN_', **print_cfg)
     ibs.print_annot_stats(test_aids, prefix='TEST_', **print_cfg)
-    # import utool
-    # utool.embed()
 
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     if False:
         # quick test
-        phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
-        phi_annots = ibs.annots(phi_aids)
-        phi_names = list(phi_annots.group_items(phi_annots.nids).values())
-        cmc_aids = ut.flatten(phi_names[:75])
-        ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
+        # phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
+        # phi_annots = ibs.annots(phi_aids)
+        # phi_names = list(phi_annots.group_items(phi_annots.nids).values())
+        # cmc_aids = ut.flatten(phi_names[:75])
+        # ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
 
         # Ranking Experiment
         import plottool as pt
         pt.qtensure()
         ranks = 20
-        phis = learn_termination(ibs, aids=cmc_aids)
+        phis = learn_termination(ibs, aids=expt_aids)
         ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
         species = ibs.get_species_nice(
             ibs.get_species_rowids_from_text(ibs.get_database_species()))[0]
@@ -143,7 +141,7 @@ def end_to_end():
         clf_key = 'RF'
         data_key = 'learn(sum,glob)'
         task_keys = ['match_state']
-        pblm = OneVsOneProblem.from_aids(ibs, aids=train_aids, verbose=1)
+        pblm = OneVsOneProblem.from_aids(ibs, aids=expt_aids, verbose=1)
         pblm.load_features()
         pblm.load_samples()
         pblm.build_feature_subsets()

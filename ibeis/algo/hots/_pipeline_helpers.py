@@ -48,11 +48,14 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
     #---
     if stop_node == 'nearest_neighbors':
         return locals()
-    nns_list = nearest_neighbors(qreq_, Kpad_list, verbose=verbose)
+    nns_list = nearest_neighbors(qreq_, Kpad_list, impossible_daids_list,
+                                 verbose=verbose)
     #---
     if stop_node == 'baseline_neighbor_filter':
         return locals()
-    nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=verbose)
+    nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,
+                                             impossible_daids_list,
+                                             verbose=verbose)
     #---
     if stop_node == 'weight_neighbors':
         return locals()
@@ -93,10 +96,11 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
 
 def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
                  a=['default:qindex=0:1,dindex=0:5'], **kwargs):
-    """ New (1-1-2016) generic pipeline node testdata getter
+    """
+    New (1-1-2016) generic pipeline node testdata getter
 
     Args:
-        stopnode (str):
+        stopnode (str): name of pipeline function to be tested
         defaultdb (str): (default = u'testdb1')
         p (list): (default = [u'default:'])
         a (list): (default = [u'default:qsize=1,dsize=4'])
@@ -139,26 +143,6 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
 #+--- OTHER TESTDATA FUNCS ---
 
 
-def testdata_pre_weight_neighbors(defaultdb='testdb1', qaid_list=[1, 2], daid_list=None, codename='vsmany', cfgdict=None):
-    """
-    TODO: replace testdata_pre_weight_neighbors with
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
-        >>>                                a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
-        >>>                                p=['default:codename=vsmany,bar_l2_on=True,fg_on=False'], verbose=True)
-    """
-    if cfgdict is None:
-        cfgdict = dict(codename=codename)
-    import ibeis
-    p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
-    ibs = qreq_.ibs
-    locals_ = testrun_pipeline_upto(qreq_, 'weight_neighbors')
-    nns_list, nnvalid0_list = ut.dict_take(locals_, ['nns_list', 'nnvalid0_list'])
-
-    # qreq_, args = testdata_pre('weight_neighbors', defaultdb=defaultdb, p=['default:bar_l2_on=True,fg_on=False'])
-    return ibs, qreq_, nns_list, nnvalid0_list
-
-
 def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
     qreq_, args = testdata_pre('build_chipmatches', defaultdb=defaultdb, p=p)
     internal_index = 1 if qreq_.qparams.vsone else 0
@@ -173,7 +157,8 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
     neighb_valid_list     = args.filtvalids_list[internal_index]
     neighb_normk          = args.filtnormks_list[internal_index]
     Knorm = qreq_.qparams.Knorm
-    args = (nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk, Knorm)
+    args = (nns, neighb_idx, neighb_valid0, neighb_score_list,
+            neighb_valid_list, neighb_normk, Knorm)
     return qreq_, qaid, daid, args
 
 
@@ -181,9 +166,11 @@ def testdata_pre_baselinefilter(defaultdb='testdb1', qaid_list=None, daid_list=N
     cfgdict = dict(codename=codename)
     import ibeis
     p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list,
+                                 default_daids=daid_list, p=p)
     locals_ = testrun_pipeline_upto(qreq_, 'baseline_neighbor_filter')
-    nns_list, impossible_daids_list = ut.dict_take(locals_, ['nns_list', 'impossible_daids_list'])
+    nns_list, impossible_daids_list = ut.dict_take(locals_,
+                                                   ['nns_list', 'impossible_daids_list'])
     return qreq_, nns_list, impossible_daids_list
 
 
@@ -195,7 +182,8 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     cfgdict = dict()
     import ibeis
     p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
+    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list,
+                                 default_daids=daid_list, p=p)
     ibs = qreq_.ibs
     locals_ = testrun_pipeline_upto(qreq_, 'spatial_verification')
     cm_list = locals_['cm_list_FILT']
