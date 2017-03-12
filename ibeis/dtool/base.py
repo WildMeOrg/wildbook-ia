@@ -404,6 +404,22 @@ class Config(ut.NiceRepr, ut.DictLike):
         dlg.show()
         return dlg
 
+    def getstate_todict_recursive(cfg):
+        import dtool
+        _dict = cfg.asdict()
+        _dict2 = {}
+        for key, val in _dict.items():
+            if isinstance(val, dtool.Config):
+                # val = val.asdict()
+                try:
+                    val = val.getstate_todict_recursive()
+                except Exception:
+                    val = getstate_todict_recursive(val)  # NOQA
+                _dict2[key] = val
+            else:
+                _dict2[key] = val
+        return _dict2
+
     def __getstate__(cfg):
         """
         FIXME
