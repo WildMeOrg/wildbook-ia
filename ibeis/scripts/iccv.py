@@ -44,7 +44,8 @@ def encounter_stuff(ibs, aids):
 def end_to_end():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv end_to_end --show
+        python -m ibeis.scripts.iccv end_to_end --show --db PZ_Master1
+        python -m ibeis.scripts.iccv end_to_end --show --db GZ_Master1
 
     Example:
         >>> from ibeis.scripts.iccv import *  # NOQA
@@ -55,7 +56,8 @@ def end_to_end():
     from ibeis.init import main_helpers
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
-    ibs = ibeis.opendb('PZ_Master1')
+    # ibs = ibeis.opendb('PZ_Master1')
+    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
     # ibs = ibeis.opendb('GZ_Master1')
     # Specialized database params
     enc_kw = dict(minutes=30)
@@ -71,7 +73,7 @@ def end_to_end():
 
     if ibs.dbname == 'PZ_Master1':
         filt_kw['min_pername'] = 3
-        maxphi = 3
+        maxphi = 4
         # maxphi = 2
 
     expt_aids = ibs.filter_annots_general(**filt_kw)
@@ -102,41 +104,24 @@ def end_to_end():
     # test_aids = ut.flatten(names[1::2][0:num_names])
 
     print_cfg = dict(per_multiple=False, use_hist=False)
+    ibs.print_annot_stats(expt_aids, prefix='EXPT_', **print_cfg)
     ibs.print_annot_stats(train_aids, prefix='TRAIN_', **print_cfg)
     ibs.print_annot_stats(test_aids, prefix='TEST_', **print_cfg)
 
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
-    if False:
-        # quick test
-        # phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
-        # phi_annots = ibs.annots(phi_aids)
-        # phi_names = list(phi_annots.group_items(phi_annots.nids).values())
-        # cmc_aids = ut.flatten(phi_names[:75])
-        # ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
-
-        # Ranking Experiment
-        import plottool as pt
-        pt.qtensure()
-        ranks = 20
-        phis = learn_termination(ibs, aids=expt_aids)
-        ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
-        species = ibs.get_species_nice(
-            ibs.get_species_rowids_from_text(ibs.get_database_species()))[0]
-        pt.multi_plot(
-            xdata=np.arange(1, ranks + 1),
-            ydata_list=ydatas,
-            num_xticks=ranks,
-            label_list=['annots per query: %d' % d for d in phis.keys()],
-            title='Rank CMC for %s' % (species,),
-        )
-        pt.gca().set_ylim(pt.gca().get_ylim()[0], 1)
-        pt.set_xlabel('rank')
-        pt.set_ylabel('cumulative probability of a correct match')
-        pass
+    species_code = ibs.get_database_species(expt_aids)[0]
+    if species_code == 'zebra_plains':
+        species = 'Plains Zebras'
+    if species_code == 'zebra_grevys':
+        species = 'Grévy\'s Zebras'
+    # species = ibs.get_species_nice(
+    #     ibs.get_species_rowids_from_text())[0]
 
     if False:
         # One-vs-One Experiment
+        import plottool as pt
+        pt.qtensure()
         from ibeis.scripts.script_vsone import OneVsOneProblem
         clf_key = 'RF'
         data_key = 'learn(sum,glob)'
@@ -170,9 +155,94 @@ def end_to_end():
         confusions = vt.ConfusionMetrics.from_scores_and_labels(scores, labels)
         confusions.draw_roc_curve(show_operating_point=True, fnum=fnum,
                                   label='LNBNN')
+        pt.set_title('Match classification ROC for %s' % (species,))
         pt.legend()
 
-        pass
+        fig = pt.gcf()
+
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                           hspace=.2)
+        fig.set_size_inches([7.4375,  3.125])
+
+        expt_annots = ibs.annots(expt_aids)
+        suffix = 'nAids=%r,nNids=%r,nPairs=%r' % (len(expt_annots),
+                                                  len(set(expt_annots.nids)),
+                                                  len(pblm.samples))
+        hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
+        fname = '_'.join(['roc', species_code, suffix, hashid])
+        fig_fname = fname  + '.png'
+        info_fname = fname + '.json'
+        pt.save_figure(fig=fig, fpath_strict=fig_fname)
+        info = {
+            'dbname': ibs.dbname,
+            'annot_uuids': expt_annots.uuids,
+            'visual_uuids': expt_annots.visual_uuids,
+            'qreq_cfgstr': pblm.qreq_.get_cfgstr(),
+            # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
+            'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
+        }
+        info['pblm_hyperparams']['pairwise_feats']['summary_ops'] = list(info['pblm_hyperparams']['pairwise_feats']['summary_ops'])
+        ut.save_json(info_fname, info)
+
+        """
+        rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
+        rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+        """
+
+        # ut.truthpath('~/latex/crall-iccv-2017/figures/')
+
+    if False:
+        # quick test
+        # phi_aids = ibs.filter_annots_general(min_pername=2, **filt_kw)
+        # phi_annots = ibs.annots(phi_aids)
+        # phi_names = list(phi_annots.group_items(phi_annots.nids).values())
+        # cmc_aids = ut.flatten(phi_names[:75])
+        # ibs.print_annot_stats(cmc_aids, prefix='CMC_', **print_cfg)
+
+        # Ranking Experiment
+        import plottool as pt
+        pt.qtensure()
+        ranks = 20
+        phis = learn_termination(ibs, aids=expt_aids, max_per_query=4)
+        # phis_ = phis
+        phis = {k: v for k, v in phis.items() if k < 5}
+        ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
+        pt.multi_plot(
+            xdata=np.arange(1, ranks + 1),
+            ydata_list=ydatas,
+            num_xticks=ranks,
+            xlabel='rank',
+            ylabel='cumulative probability',
+            label_list=['annots per query: %d' % d for d in phis.keys()],
+            title='Rank CMC for %s' % (species,),
+        )
+        fig = pt.gcf()
+        pt.gca().set_ylim(pt.gca().get_ylim()[0], 1)
+        # pt.set_xlabel('rank')
+        # pt.set_ylabel('cumulative probability of a correct match')
+
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                           hspace=.2)
+        fig.set_size_inches([7.4375,  3.125])
+
+        expt_annots = ibs.annots(expt_aids)
+        suffix = 'nAids=%r,nNids=%r' % (len(expt_annots),
+                                        len(set(expt_annots.nids)))
+        hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
+        fname = '_'.join(['cmc', species_code, suffix, hashid])
+        fig_fname = fname  + '.png'
+        info_fname = fname + '.json'
+        pt.save_figure(fig=fig, fpath_strict=fig_fname)
+        info = {
+            'dbname': ibs.dbname,
+            'annot_uuids': expt_annots.uuids,
+            'visual_uuids': expt_annots.visual_uuids,
+            # 'qreq_cfgstr': pblm.qreq_.get_cfgstr(),
+            # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
+            # 'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
+        }
+        ut.save_json(info_fname, info)
+
 
     # -----------
     # TRAINING
@@ -200,11 +270,12 @@ def end_to_end():
         task_key = 'match_state'
         clf_key = 'RF'
         res = pblm.task_combo_res[task_key][clf_key][data_key]
+        res.extended_clf_report()
         fpr_thresholds = {
             fpr: res.get_pos_threshes('fpr', value=fpr)
             for fpr in [0, .001, .005, .01]
         }
-        import pprint
+        # import pprint
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
@@ -224,7 +295,7 @@ def end_to_end():
     # pblm.report_classifier_importance2(pb_clf, data_key=data_key)
 
     # aids = train_aids
-    phi_cacher = ut.Cacher('term_phis', cfgstr=train_cfgstr)
+    phi_cacher = ut.Cacher('term_phis', cfgstr=train_cfgstr + str(maxphi))
     phis = phi_cacher.tryload()
     if phis is None:
         phis = learn_termination(ibs, train_aids, maxphi)

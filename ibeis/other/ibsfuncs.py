@@ -4781,6 +4781,16 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
         data = ibs.get_num_annots_per_name(aids)[0]
         stats = stat_func(data)
         keyval_list += [(prefix + 'per_name', stats)]
+        if not use_hist:
+            a = ibs.annots(aids)
+            pername = ut.dict_hist(ut.lmap(len, a.group_items(a.nids).values()))
+            pername_bins = ut.odict([
+                ('1', sum(v for k, v in pername.items() if k == 1)),
+                ('2-3', sum(v for k, v in pername.items() if k >= 2 and k < 4)),
+                ('4-5', sum(v for k, v in pername.items() if k >= 4 and k < 6)),
+                ('>=6', sum(v for k, v in pername.items() if k >= 6)),
+            ])
+            keyval_list += [(prefix + 'per_name_bins', pername_bins)]
 
     # if kwargs.pop('per_name_dict', True or forceall):
     #     keyval_list += [

@@ -84,7 +84,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     appname = 'vsone_rf_train'
 
     def __init__(pblm, qreq_=None, ibs=None, defaultdb=None,
-                 default_qaids=None, default_daids=None, verbose=None):
+                 qaid_override=None, daid_override=None, verbose=None):
         if defaultdb is None:
             defaultdb = 'PZ_PB_RF_TRAIN'
 
@@ -97,8 +97,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if qreq_ is None:
             # ut.aug_sysargv('--db PZ_Master1')
             qreq_ = ibeis.testdata_qreq_(
-                ibs=ibs, defaultdb=defaultdb, default_qaids=default_qaids,
-                default_daids=default_daids,
+                ibs=ibs, defaultdb=defaultdb, qaid_override=qaid_override,
+                daid_override=daid_override,
                 a=':mingt=3,species=primary',
                 t='default:K=4,Knorm=1,condknn=True,score_method=csum,prescore_method=csum',
                 # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
@@ -129,7 +129,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
-        pblm = OneVsOneProblem(ibs=ibs, default_qaids=aids, default_daids=aids,
+        pblm = OneVsOneProblem(ibs=ibs, qaid_override=aids, daid_override=aids,
                                verbose=verbose)
         return pblm
 

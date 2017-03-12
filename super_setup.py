@@ -696,7 +696,10 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             'sys_dist_packages': ut.get_global_dist_packages_dir(),
             'venv_site_packages': ut.get_site_packages_dir(),
             'pyqt'              : 'PyQt4' if PY2 else 'PyQt5',
-            'debian-python-qt'  : 'python-qt4' if PY2 else 'qt5-default python3-pyqt5',
+            # Need the PyQT5 SVG module for IPython to work properly
+            'debian-python-qt'  : (
+                'python-qt4' if PY2 else
+                'qt5-default python3-pyqt5 debian-python-qt-svg'),
             'pip-python-qt'  : 'python-qt4' if PY2 else 'python-qt5'
         }
         # sys_dist_packages = ut.get_global_dist_packages_dir()
@@ -715,7 +718,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             else
                 # Ensure PyQt is installed first (FIXME make this work for non-debian systems)
                 sudo apt-get install {debian-python-qt}
-                pip install {pip-python-qt}
+                # pip install {pip-python-qt}
             fi
             if [ -d $GLOBAL_DIST_PACKAGES/{pyqt} ]; then
                 # Install system pyqt packages to virtual envirment via symlink
