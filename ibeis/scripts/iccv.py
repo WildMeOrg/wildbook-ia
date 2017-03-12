@@ -340,25 +340,25 @@ def end_to_end():
             'max_loops': ranking_loops,
         },
         {
-            'name': 'Graph,K=2,fpr=.01',
+            'name': 'Graph,K=2,fpr=.001',
             'method': 'graph',
             'k_redun': 2,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': complete_thresh,
-            'match_state_thresh': fpr_thresholds[.01],
+            'match_state_thresh': fpr_thresholds[.001],
             'max_loops': graph_loops,
         },
         {
-            'name': 'Graph,K=2,fpr=.1',
+            'name': 'Graph,K=2,fpr=.005',
             'method': 'graph',
             'k_redun': 2,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': complete_thresh,
-            'match_state_thresh': fpr_thresholds[.05],
+            'match_state_thresh': fpr_thresholds[.005],
             'max_loops': graph_loops,
         },
     ]
@@ -371,7 +371,7 @@ def end_to_end():
     # verbose = 0
     verbose = 1
     expt_metrics = {}
-    for idx in range(2, 3):
+    for idx in range(0, 4):
         dials = expt_dials[idx]
         infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)
