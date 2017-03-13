@@ -763,7 +763,7 @@ class TestResult(ut.NiceRepr):
             ('sv_on', 'SV'),
             ('rotation_invariance', 'RI'),
             ('affine_invariance', 'AI'),
-            ('augment_queryside_hack', 'QRH'),
+            ('query_rotation_heuristic', 'QRH'),
             ('nNameShortlistSVER', 'nRR'),
             #
             #('sample_per_ref_name', 'per_ref_name'),

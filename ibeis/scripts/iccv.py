@@ -44,6 +44,7 @@ def encounter_stuff(ibs, aids):
 def end_to_end():
     r"""
     CommandLine:
+        python -m ibeis.scripts.iccv end_to_end --show --db PZ_TEST
         python -m ibeis.scripts.iccv end_to_end --show --db PZ_Master1
         python -m ibeis.scripts.iccv end_to_end --show --db GZ_Master1
 

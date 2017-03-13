@@ -15,8 +15,8 @@ ALIAS_KEYS = {
     'proot': 'pipeline_root',
     'RI': 'rotation_invariance',
     'AI': 'affine_invariance',
-    #'AQH': 'augment_queryside_hack',
-    'QRH': 'augment_queryside_hack',
+    #'AQH': 'query_rotation_heuristic',
+    'QRH': 'query_rotation_heuristic',
     'SV': 'sv_on',
     'nWords': 'num_words',
     #'SVxy': 'xy_thresh',
@@ -47,15 +47,15 @@ def apply_knorm(cfg):
 
 
 def apply_CircQRH(cfg):
-    return apply_param(cfg, augment_queryside_hack=True, affine_invariance=False)
+    return apply_param(cfg, query_rotation_heuristic=True, affine_invariance=False)
 
 
 def apply_Ell(cfg):
-    return apply_param(cfg, augment_queryside_hack=False, affine_invariance=True)
+    return apply_param(cfg, query_rotation_heuristic=False, affine_invariance=True)
 
 
 def apply_EllQRH(cfg):
-    return apply_param(cfg, augment_queryside_hack=True, affine_invariance=True)
+    return apply_param(cfg, query_rotation_heuristic=True, affine_invariance=True)
 
 exclude_vars = list(locals().keys())   # this line is before tests
 
@@ -165,12 +165,12 @@ def get_candidacy_dbnames():
 
 # Test all combinations of invariance
 invar = candinvar = candidacy_invariance = [
-    {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
-    {'affine_invariance':  [True], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
-    {'affine_invariance': [False], 'rotation_invariance':  [True], 'augment_queryside_hack': [False]},
-    {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack': [False]},
-    {'affine_invariance':  [True], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
-    {'affine_invariance': [False], 'rotation_invariance': [False], 'augment_queryside_hack':  [True]},
+    {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+    {'affine_invariance':  [True], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+    {'affine_invariance': [False], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+    {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+    {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+    {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
 ]
 
 # Special value used to specify the current IBEIS configuration

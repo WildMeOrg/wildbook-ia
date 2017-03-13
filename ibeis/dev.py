@@ -931,12 +931,12 @@ CurrentExperiments:
     ./dev.py -t \
             custom \
             custom:rotation_invariance=True,affine_invariance=False \
-            custom:rotation_invariance=True,augment_queryside_hack=True \
+            custom:rotation_invariance=True,query_rotation_heuristic=True \
             --db PZ_Master0 --controlled --print-rankhist  --print-bestcfg
 
     ./dev.py -t \
             custom:rotation_invariance=True,affine_invariance=False \
-            custom:rotation_invariance=True,augment_queryside_hack=True \
+            custom:rotation_invariance=True,query_rotation_heuristic=True \
             --db NNP_Master3 --controlled --print-rankhist  --print-bestcfg
 
 

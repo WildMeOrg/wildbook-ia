@@ -161,7 +161,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
                 #ibs.cfg.query_cfg.nn_cfg.lookup_paraminfo('Knorm'),
                 ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('normalizer_rule'),
                 ut.ParamInfo('fgw_thresh', ibs.cfg.query_cfg.flann_cfg.fgw_thresh, type_=float, min_=0, max_=1),
-                ut.ParamInfo('augment_queryside_hack', ibs.cfg.query_cfg.augment_queryside_hack),
+                ut.ParamInfo('query_rotation_heuristic', ibs.cfg.query_cfg.query_rotation_heuristic),
                 ut.ParamInfo('minscale_thresh', ibs.cfg.query_cfg.flann_cfg.minscale_thresh, type_=float),
                 ut.ParamInfo('maxscale_thresh', ibs.cfg.query_cfg.flann_cfg.maxscale_thresh, type_=float),
                 ibs.cfg.query_cfg.nnweight_cfg.lookup_paraminfo('can_match_samename'),

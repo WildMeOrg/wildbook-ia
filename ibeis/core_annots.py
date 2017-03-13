@@ -1186,7 +1186,7 @@ class VsOneConfig(dtool.Config):
     """
     _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG + [
         ut.ParamInfo('version', 2),
-        ut.ParamInfo('augment_queryside_hack', False),
+        ut.ParamInfo('query_rotation_heuristic', False),
     ]
     #     #ut.ParamInfo('sver_xy_thresh', .01),
     #     ut.ParamInfo('sver_xy_thresh', .001),

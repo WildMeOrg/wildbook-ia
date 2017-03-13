@@ -578,9 +578,9 @@ class QueryConfig(ConfigBase):
         query_cfg._valid_pipeline_roots = ['vsmany', 'vsone']
         query_cfg.pipeline_root = 'vsmany'
         # <Hack Paramaters>
-        query_cfg.with_metadata = False
-        # query_cfg.augment_queryside_hack = False
-        query_cfg.augment_queryside_hack = True
+        # query_cfg.with_metadata = False
+        query_cfg.query_rotation_heuristic = False
+        # query_cfg.query_rotation_heuristic = True
         # for hacky distinctivness
         query_cfg.return_expanded_nns = False
         # for distinctivness model
@@ -628,7 +628,7 @@ class QueryConfig(ConfigBase):
             cfgstr_list += query_cfg._featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
             cfgstr_list += query_cfg._featweight_cfg._feat_cfg._chip_cfg.get_cfgstr_list(**kwargs)
 
-        if query_cfg.augment_queryside_hack:
+        if query_cfg.query_rotation_heuristic:
             # HACK
             cfgstr_list += ['_HACK(augment_queryside)']
         return cfgstr_list

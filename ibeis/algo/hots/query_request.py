@@ -99,7 +99,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         >>> ibs, qaid_list, daid_list = testdata_newqreq('PZ_MTEST')
         >>> unique_species = None
         >>> verbose = ut.NOT_QUIET
-        >>> cfgdict = {'sv_on': False, 'augment_queryside_hack': True}
+        >>> cfgdict = {'sv_on': False, 'query_rotation_heuristic': True}
         >>> qreq_ = new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=cfgdict)
         >>> # Featweight should be off because there is no Naut detector
         >>> print(qreq_.qparams.query_cfgstr)
@@ -201,7 +201,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         # <HACK>
         # MAKE A SECOND CONFIG FOR QUERIES AND DATABASE VECTORS ONLY
         # allow query and database annotations to have different feature configs
-        if qparams.augment_queryside_hack:
+        if qparams.query_rotation_heuristic:
             query_cfgdict = cfgdict.copy()
             query_cfgdict['augment_orientation'] = True
             query_config2_ = query_params.QueryParams(cfg, query_cfgdict)

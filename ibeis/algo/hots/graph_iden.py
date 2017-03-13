@@ -1723,7 +1723,7 @@ class _AnnotInfrMatching(object):
                 # 'can_match_samename': False,
                 'can_match_samename': True,
                 'can_match_sameimg': True,
-                # 'augment_queryside_hack': True,
+                # 'query_rotation_heuristic': True,
                 'K': 3,
                 'Knorm': 3,
                 'prescore_method': 'csum',

@@ -24,11 +24,14 @@ def _get_sv_vartup_for_plottool(ibs, aid1, aid2, chipmatch_FILT, aid2_svtup, con
 
 
 def _compute_svvars(ibs, aid1):
-    """ If spatial-verfication dbginfo is not in we need to compute it """
+    """
+    DEPRICATE
+    If spatial-verfication dbginfo is not in we need to compute it
+    """
     from ibeis.algo.hots import _pipeline_helpers as plh
     daids = ibs.get_valid_aids()
     qaids = [aid1]
-    cfgdict = dict(with_metadata=True)
+    cfgdict = dict()
     qreq_ = ibs.new_query_request(qaids, daids, cfgdict)
     assert len(daids) > 0, '!!! nothing to search'
     assert len(qaids) > 0, '!!! nothing to query'

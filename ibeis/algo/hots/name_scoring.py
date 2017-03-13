@@ -96,7 +96,7 @@ def compute_nsum_score(cm, qreq_=None):
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18], cfgdict=dict(augment_queryside_hack=True))
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = cm_list[0]
         >>> cm.score_nsum(qreq_)
         >>> ut.quit_if_noshow()
@@ -106,7 +106,7 @@ def compute_nsum_score(cm, qreq_=None):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
         >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(augment_queryside_hack=True))
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = cm_list[0]
         >>> cm.score_nsum(qreq_)
         >>> ut.quit_if_noshow()
@@ -159,7 +159,7 @@ def compute_nsum_score(cm, qreq_=None):
     """
     #assert qreq_ is not None
     try:
-        hack_single_ori =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+        hack_single_ori =  qreq_ is not None and (qreq_.qparams.query_rotation_heuristic or qreq_.qparams.rotation_invariance)
     except AttributeError:
         hack_single_ori =  True
     # The core for each feature match
@@ -224,7 +224,7 @@ def compute_nsum_score2(cm, qreq_=None):
     Example3:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(fg_on=False, augment_queryside_hack=True))
+        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(fg_on=False, query_rotation_heuristic=True))
         >>> cm = cm_list[0]
         >>> cm.evaluate_dnids(qreq_)
         >>> nsum_nid_list1, nsum_score_list1, featflag_list1 = compute_nsum_score2(cm, qreq_)
@@ -271,7 +271,7 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
         >>> assert all(list(map(np.all, featflat_list))), 'all features should be able to vote in K=1, per_name=1 case'
     """
     try:
-        hack_single_ori =  qreq_ is not None and (qreq_.qparams.augment_queryside_hack or qreq_.qparams.rotation_invariance)
+        hack_single_ori =  qreq_ is not None and (qreq_.qparams.query_rotation_heuristic or qreq_.qparams.rotation_invariance)
     except AttributeError:
         hack_single_ori =  True
         pass

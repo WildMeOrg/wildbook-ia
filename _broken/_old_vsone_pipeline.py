@@ -615,7 +615,7 @@ def extract_aligned_parts(ibs, qaid, daid, qreq_=None):
 
 #     # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=False))
 #     # qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict())
-#     qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=True, augment_queryside_hack=True))
+#     qreq_ = ibs.new_query_request(aids, aids, cfgdict=dict(affine_invariance=True, query_rotation_heuristic=True))
 
 #     qconfig2_ = qreq_.extern_query_config2
 #     dconfig2_ = qreq_.extern_query_config2

@@ -464,21 +464,21 @@ def setup_developer_menu(mainwin, back):
                                     use_prioritized_name_subset=True,
                                     daids_mode=const.VS_EXEMPLARS_KEY,
                                     cfgdict=dict(can_match_samename=False, use_k_padding=False,
-                                                 affine_invariance=False, scale_max=150, augment_queryside_hack=True)),
+                                                 affine_invariance=False, scale_max=150, query_rotation_heuristic=True)),
     )
     adv_ieq_menu.newAction(
         name='actionQueryInEncMode1',
         text='Query: Names Intra Occurrence With OriAugment',
         triggered=functools.partial(back.compute_queries, daids_mode=const.INTRA_OCCUR_KEY,
                                     use_prioritized_name_subset=True,
-                                    cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
+                                    cfgdict=dict(query_rotation_heuristic=True, can_match_samename=False, use_k_padding=False)),
     )
     adv_exq_menu.newAction(
         name='actionQueryVsExempMode2',
         text='Query: Names VsExamplar With OriAugment',
         triggered=functools.partial(back.compute_queries, daids_mode=const.VS_EXEMPLARS_KEY,
                                     use_prioritized_name_subset=True,
-                                    cfgdict=dict(augment_queryside_hack=True, can_match_samename=False, use_k_padding=False)),
+                                    cfgdict=dict(query_rotation_heuristic=True, can_match_samename=False, use_k_padding=False)),
     )
     menu.addSeparator()  # ---------
     menu.newAction(

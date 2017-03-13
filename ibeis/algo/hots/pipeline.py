@@ -478,7 +478,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     else:
         nn_cfgstr      = qreq_.qparams.nn_cfgstr
 
-    aug_cfgstr = ('aug_quryside' if qreq_.qparams.augment_queryside_hack
+    aug_cfgstr = ('aug_quryside' if qreq_.qparams.query_rotation_heuristic
                   else '')
     nn_mid_cacheid = ''.join([data_hashid, nn_cfgstr, chip_cfgstr, feat_cfgstr,
                               flann_cfgstr, aug_cfgstr])
@@ -1406,8 +1406,6 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     if verbose:
         print('[hs] Step 5) Spatial verification: ' + qreq_.qparams.sv_cfgstr)
 
-    # TODO: move rerank out of theis pipeline node
-    #with_metadata = qreq_.qparams.with_metadata
     # dbg info (can remove if there is a speed issue)
     score_method = qreq_.qparams.score_method
     prescore_method    = qreq_.qparams.prescore_method
