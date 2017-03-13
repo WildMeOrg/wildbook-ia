@@ -243,7 +243,6 @@ def end_to_end():
         }
         ut.save_json(info_fname, info)
 
-
     # -----------
     # TRAINING
 
@@ -312,7 +311,7 @@ def end_to_end():
     # oracle_accuracy = .6
     # match_state_thresh = 1.0
     # oracle_accuracy = .9
-    oracle_accuracy = 1.0
+    # oracle_accuracy = 1.0
     complete_thresh = .95
     ranking_loops = 2
     graph_loops = np.inf
@@ -323,18 +322,18 @@ def end_to_end():
             'k_redun': np.inf,
             'cand_kw': dict(pblm=None),
             'priority_metric': 'normscore',
-            'oracle_accuracy': oracle_accuracy,
+            'oracle_accuracy': 1.0,
             'complete_thresh': 1.0,
             'match_state_thresh': None,
             'max_loops': ranking_loops,
         },
         {
-            'name': 'Ranking+Classifier',
+            'name': 'Ranking+Classifier,fpr=0',
             'method': 'ranking',
             'k_redun': np.inf,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
-            'oracle_accuracy': oracle_accuracy,
+            'oracle_accuracy': 1.0,
             'complete_thresh': 1.0,
             'match_state_thresh': fpr_thresholds[0],
             'max_loops': ranking_loops,
@@ -345,20 +344,45 @@ def end_to_end():
             'k_redun': 2,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
-            'oracle_accuracy': oracle_accuracy,
+            'oracle_accuracy': 1.0,
             'complete_thresh': complete_thresh,
             'match_state_thresh': fpr_thresholds[.001],
             'max_loops': graph_loops,
         },
+    ]
+    oracle_accuracy = .98
+    expt_dials += [
         {
-            'name': 'Graph,K=2,fpr=.005',
+            'name': 'Ranking+Error',
+            'method': 'ranking',
+            'k_redun': np.inf,
+            'cand_kw': dict(pblm=None),
+            'priority_metric': 'normscore',
+            'oracle_accuracy': oracle_accuracy,
+            'complete_thresh': 1.0,
+            'match_state_thresh': None,
+            'max_loops': ranking_loops,
+        },
+        {
+            'name': 'Ranking+Classifier,fpr=0+Error',
+            'method': 'ranking',
+            'k_redun': np.inf,
+            'cand_kw': dict(pblm=pblm),
+            'priority_metric': 'priority',
+            'oracle_accuracy': oracle_accuracy,
+            'complete_thresh': 1.0,
+            'match_state_thresh': fpr_thresholds[0],
+            'max_loops': ranking_loops,
+        },
+        {
+            'name': 'Graph,K=2,fpr=.001+Error',
             'method': 'graph',
             'k_redun': 2,
             'cand_kw': dict(pblm=pblm),
             'priority_metric': 'priority',
             'oracle_accuracy': oracle_accuracy,
             'complete_thresh': complete_thresh,
-            'match_state_thresh': fpr_thresholds[.005],
+            'match_state_thresh': fpr_thresholds[.001],
             'max_loops': graph_loops,
         },
     ]
@@ -367,11 +391,16 @@ def end_to_end():
 
     dials = expt_dials[1]
     import pandas as pd
+    import utool
+    utool.embed()
 
     # verbose = 0
     verbose = 1
     expt_metrics = {}
-    for idx in range(0, 4):
+    # idx_list = list(range(0, 3))
+    idx_list = list(range(4, 6))
+
+    for idx in idx_list:
         dials = expt_dials[idx]
         infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)
@@ -388,41 +417,107 @@ def end_to_end():
         error_denom = 1
 
     # lwb = 3.5
+    # import utool
+    # utool.embed()
 
-    pt.figure(fnum=1, pnum=(1, 2, 1))
+    expt_cfgstr = ibs.get_annot_hashid_visual_uuid(expt_aids)
+
+    dpath = 'ete_expt_' + ut.timestamp()
+
     for count, (dials, metrics_df) in expt_metrics.items():
-        pt.plot(metrics_df['n_manual'].values,
-                metrics_df['n_merge_remain'].values, '-',
-                # lw=lwb - (count),
-                color=colors[count],
-                label=dials['name'])
+        ete_info = {
+            'expt_count': count,
+            'dbname': ibs.dbname,
+            'test_auuids': ibs.annots(test_aids).uuids,
+            'train_auuids': ibs.annots(train_aids).uuids,
+            'dials': ut.delete_keys(dials.copy(), ['cand_kw']),
+            'metrics_df': metrics_df.to_dict('list'),
+            # 'qreq_cfgstr': pblm.qreq_.get_cfgstr(),
+            # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
+            # 'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
+        }
+        from os.path import join
+        ut.ensuredir(dpath)
+        ete_info_fname = 'ETE_info_' + dials['name'] + expt_cfgstr
+        ete_info_fpath = join(dpath, ete_info_fname + '.json')
+        ut.save_json(ete_info_fpath, ete_info)
+
+    # DRAW RESULTS
+    import plottool as pt
+    pt.qtensure()
+    dpath = ut.glob('.', 'ete_expt_*')[0]
+
+    infos = [
+        ut.load_json(fpath)
+        for fpath in ut.glob(dpath, '*')
+    ]
+
+    colors = pt.distinct_colors(4)
+    pt.figure(fnum=1, pnum=(1, 2, 1))
+    for ete_info in infos:
+        count = ete_info['expt_count']
+        metrics = ete_info['metrics_df']
+        dials = ete_info['dials']
+        # metrics.keys()
+        pt.plot(
+            metrics['n_manual'],
+            metrics['n_merge_remain'], '-',
+            label=dials['name'],
+            color=colors[count],
+        )
     pt.set_xlabel('# manual reviews')
     pt.set_ylabel('# merges remaining')
     pt.legend()
 
     pt.figure(fnum=1, pnum=(1, 2, 2))
-    for count, (dials, metrics_df) in expt_metrics.items():
-        pt.plot(metrics_df['n_manual'].values,
-                metrics_df['n_errors'].values,
-                '-',
-                # lw=lwb - count,
-                color=colors[count],
-                label=dials['name'])
+    for ete_info in infos:
+        count = ete_info['expt_count']
+        metrics = ete_info['metrics_df']
+        dials = ete_info['dials']
+        # metrics.keys()
+        pt.plot(
+            metrics['n_manual'],
+            metrics['n_errors'], '-',
+            label=dials['name'],
+            color=colors[count],
+        )
+    pt.set_ylabel('# of errors')
+    pt.set_xlabel('# manual reviews')
+    # pt.set_title('Identification performance')
+    pt.legend()
+    pt.set_figtitle('Identification performance')
 
-        pt.plot(metrics_df['n_manual'].values,
-                metrics_df['n_fn'].values,
-                '--',
-                # lw=lwb - count,
-                color=colors[count],
-                label=dials['name'] + 'n_fn')
+    # pt.figure(fnum=1, pnum=(1, 2, 1))
+    # for count, (dials, metrics_df) in expt_metrics.items():
+    #     pt.plot(metrics_df['n_manual'].values,
+    #             metrics_df['n_merge_remain'].values, '-',
+    #             # lw=lwb - (count),
+    #             color=colors[count],
+    #             label=dials['name'])
 
-        pt.plot(metrics_df['n_manual'].values,
-                metrics_df['n_fp'].values,
-                ':',
-                # lw=lwb - count,
-                color=colors[count],
-                label=dials['name'] + 'n_fp')
-        pt.gca().set_ylim(0, error_denom)
+    # pt.figure(fnum=1, pnum=(1, 2, 2))
+    # for count, (dials, metrics_df) in expt_metrics.items():
+    #     pt.plot(metrics_df['n_manual'].values,
+    #             metrics_df['n_errors'].values,
+    #             '-',
+    #             # lw=lwb - count,
+    #             color=colors[count],
+    #             label=dials['name'])
+
+    #     pt.plot(metrics_df['n_manual'].values,
+    #             metrics_df['n_fn'].values,
+    #             '--',
+    #             # lw=lwb - count,
+    #             color=colors[count],
+    #             label=dials['name'] + 'n_fn')
+
+    #     pt.plot(metrics_df['n_manual'].values,
+    #             metrics_df['n_fp'].values,
+    #             ':',
+    #             # lw=lwb - count,
+    #             color=colors[count],
+    #             label=dials['name'] + 'n_fp')
+    #     pt.gca().set_ylim(0, error_denom)
 
     pt.set_ylabel('# of errors')
     pt.set_xlabel('# manual reviews')
@@ -505,7 +600,7 @@ def run_expt(infr, dials):
     if infr.method == 'graph':
         # Enforce that a user checks any PCC that was auto-reviewed
         # but was unable to achieve k-positive-consistency
-        for pcc in infr.non_pos_redundant_pccs():
+        for pcc in list(infr.non_pos_redundant_pccs()):
             subgraph = infr.graph.subgraph(pcc)
             for u, v, data in subgraph.edges(data=True):
                 edge = infr.e_(u, v)

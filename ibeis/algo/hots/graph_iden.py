@@ -1131,10 +1131,13 @@ class _AnnotInfrFeedback(object):
         if infr.verbose:
             print('[infr] refresh_candidate_edges')
         infr.refresh.reset()
+        # TODO: reduce the annotations sent to the ranking algorithm.
+        # No need to include any individual that is "done".
+        # Can pick exemplar annotations for each individual.
 
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
-        # TODO: use temporary name labels to requery neighbors
+        # uses temporary name labels to requery neighbors
         infr.exec_matching(cfgdict={
             'resize_dim': 'width',
             'dim_size': 700,
@@ -3338,8 +3341,6 @@ class AnnotInference(ut.NiceRepr,
         infr.add_aids(aids, nids)
         if autoinit:
             infr.initialize_graph()
-
-
 
     @property
     def pos_graph(infr):
