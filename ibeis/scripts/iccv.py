@@ -391,14 +391,12 @@ def end_to_end():
 
     dials = expt_dials[1]
     import pandas as pd
-    import utool
-    utool.embed()
 
     # verbose = 0
     verbose = 1
     expt_metrics = {}
     # idx_list = list(range(0, 3))
-    idx_list = list(range(4, 6))
+    idx_list = list(range(0, 6))
 
     for idx in idx_list:
         dials = expt_dials[idx]
