@@ -32,7 +32,7 @@ class MatchInteraction2(BASE_CLASS):
         >>> import ibeis
         >>> # build test data
         >>> ibs = ibeis.opendb('testdb1')
-        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(augment_queryside_hack=True))
+        >>> qreq_ = ibs.new_query_request([1], [2, 3, 4, 5], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = qreq_.execute()[0]
         >>> qaid = cm.qaid
         >>> daid = cm.get_top_aids()[0]
