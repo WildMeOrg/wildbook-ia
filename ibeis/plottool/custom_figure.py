@@ -465,8 +465,8 @@ def set_title(title='', ax=None, **fontkw):
         ax = gca()
     titlesize = fontkw.get('titlesize', TITLE_SIZE)
     titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(weight='light',
-                                                          size=titlesize)
+        'fontproperties': mpl.font_manager.FontProperties(
+            weight='light', size=titlesize)
     }
     #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, **titlekw)
@@ -480,22 +480,19 @@ def set_xlabel(lbl, ax=None, **kwargs):
         'fontproperties': mpl.font_manager.FontProperties(
             weight='light', size=labelsize)
     }
-    #ax.set_xlabel(lbl, **labelkw)
     # Have to strip for tex output to work with mpl. uggg
     ax.set_xlabel(lbl.strip('\n'), **labelkw)
-    #ax.set_xlabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
-def set_ylabel(lbl, **kwargs):
-    ax = gca()
+def set_ylabel(lbl, ax=None, **kwargs):
+    if ax is None:
+        ax = gca()
     labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            # weight='light',
-            size=labelsize)
+            weight='light', size=labelsize)
     }
     ax.set_ylabel(lbl, **labelkw)
-    #ax.set_ylabel(lbl, fontproperties=custom_constants.FONTS.xlabel)
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
