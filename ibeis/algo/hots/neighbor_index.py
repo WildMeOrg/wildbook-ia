@@ -607,6 +607,7 @@ class NeighborIndex(object):
     def get_dtype(nnindexer):
         return nnindexer.idx2_vec.dtype
 
+    @profile
     def knn(nnindexer, qfx2_vec, K):
         r"""
         Returns the indices and squared distance to the nearest K neighbors.
@@ -709,6 +710,7 @@ class NeighborIndex(object):
                     'inconsistant distance calculations')
         return (qfx2_idx, qfx2_dist)
 
+    @profile
     def conditional_knn(indexer, qfx2_vec, K, pad, impossible_aids,
                         recover=True):
         """
@@ -905,6 +907,7 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
 
     CommandLine:
         python -m ibeis.algo.hots.neighbor_index conditional_knn_
+        python -m ibeis.algo.hots.neighbor_index conditional_knn_ --profile --db PZ_PB_RF_TRAIN
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -929,10 +932,6 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
     """
     #import ibeis
     import itertools as it
-    get_neighbors = ut.partial(indexer.flann.nn_index,
-                               checks=indexer.checks,
-                               cores=indexer.cores)
-
     # Alloc space for final results
     shape = (len(qfx2_vec), num_neighbs)
     qfx2_idx = np.full(shape, -1, dtype=np.int32)
@@ -951,7 +950,9 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
     for count in it.count():
         # print('count = %r' % (count,))
         # Find a set of neighbors
-        (tx2_idx, tx2_rawdist) = get_neighbors(tx2_vec, temp_K)
+        (tx2_idx, tx2_rawdist) = indexer.flann.nn_index(tx2_vec, temp_K,
+                                                        checks=indexer.checks,
+                                                        cores=indexer.cores)
         tx2_idx = vt.atleast_nd(tx2_idx, 2)
         tx2_rawdist = vt.atleast_nd(tx2_rawdist, 2)
         # Flag any neighbors that are invalid
@@ -971,19 +972,23 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
             done_idx_ = tx2_idx.compress(tx2_done, axis=0)
             # Find the first `num_neighbs` complete columns in each row
             rowxs, colxs = np.where(done_valid_)
-            unique_rows, groupxs = vt.group_indices(rowxs)
-            first_k_groupxs = [groupx[0:num_neighbs] for groupx in groupxs]
-            chosen_xs = np.hstack(first_k_groupxs)
+            groupxs = vt.group_indices(rowxs)[1]
+            # unique_rows, groupxs = vt.group_indices(rowxs)
+            first_k_groupxs = (groupx[0:num_neighbs] for groupx in groupxs)
+            chosen_xs = np.array(ut.flatten(first_k_groupxs))
+            # chosen_xs = np.hstack(first_k_groupxs)
             # then convert these to multi-indices
             multi_index = (rowxs.take(chosen_xs), colxs.take(chosen_xs))
             flat_xs = np.ravel_multi_index(multi_index, done_valid_.shape)
             _shape = (-1, num_neighbs)
             done_rawdist = done_rawdist_.take(flat_xs).reshape(_shape)
             done_idx = done_idx_.take(flat_xs).reshape(_shape)
+            done_truek = colxs.take(chosen_xs).reshape(_shape)
+            # done_truek = vt.apply_grouping(colxs, first_k_groupxs)
             # Copy done results into correct output positions
             qfx2_idx[done_qfx, :] = done_idx
             qfx2_rawdist[done_qfx, :] = done_rawdist
-            qfx2_truek[done_qfx, :] = vt.apply_grouping(colxs, first_k_groupxs)
+            qfx2_truek[done_qfx, :] = done_truek
             if np.all(tx2_done):
                 # If everything was done, then the loop ends
                 break
@@ -1017,15 +1022,17 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
         # For any row that does not have any results should we use the first
         # indices instead?
         rowxs, colxs = np.where(bx2_valid)
-        unique_rows, groupxs = vt.group_indices(rowxs)
-        first_k_groupxs = [groupx[0:num_neighbs] for groupx in groupxs]
-        chosen_xs = np.hstack(first_k_groupxs)
+        groupxs = vt.group_indices(rowxs)[1]
+        first_k_groupxs = (groupx[0:num_neighbs] for groupx in groupxs)
+        chosen_xs = np.array(ut.flatten(first_k_groupxs))
+        # chosen_xs = np.hstack(first_k_groupxs)
         multi_index = (rowxs.take(chosen_xs), colxs.take(chosen_xs))
         flat_xs = np.ravel_multi_index(multi_index, done_valid_.shape)
         _shape = (-1, num_neighbs)
         best_rawdist = bx2_rawdist.take(flat_xs).reshape(_shape)
         best_idx = bx2_idx.take(flat_xs).reshape(_shape)
-        best_k = vt.apply_grouping(colxs, first_k_groupxs)
+        best_k = colxs.take(chosen_xs).reshape(_shape)
+        # best_k = vt.apply_grouping(colxs, first_k_groupxs)
         qfx2_idx[bx2_qfx, :] = best_idx
         qfx2_rawdist[bx2_qfx, :] = best_rawdist
         qfx2_truek[bx2_qfx, :] = best_k

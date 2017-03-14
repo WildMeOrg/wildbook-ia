@@ -57,9 +57,9 @@ def end_to_end():
     from ibeis.init import main_helpers
     # ibs = ibeis.opendb('PZ_MTEST')
     # ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
-    # ibs = ibeis.opendb('PZ_Master1')
-    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    ibs = ibeis.opendb('PZ_Master1')
     # ibs = ibeis.opendb('GZ_Master1')
+    # ibs = ibeis.opendb(defaultdb='PZ_MTEST')
     # Specialized database params
     enc_kw = dict(minutes=30)
     filt_kw = dict(require_timestamp=True, require_gps=True, is_known=True,
@@ -148,33 +148,29 @@ def end_to_end():
         res.extended_clf_report()
 
         import vtool as vt
+        class_name = 'match'
+        labels = res.target_bin_df[class_name].values
+        probs = res.probs_df[class_name].values
+        clf_conf = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        clf_fpr = clf_conf.fpr
+        clf_tpr = clf_conf.tpr
+
         fnum = 1
         class_name = 'match'
-        res.show_roc(class_name=class_name, fnum=fnum, label='pairwise')
         labels = pblm.samples.subtasks['match_state'].indicator_df[class_name]
         scores = pblm.samples.simple_scores['score_lnbnn_1vM']
-        confusions = vt.ConfusionMetrics.from_scores_and_labels(scores, labels)
-        confusions.draw_roc_curve(show_operating_point=True, fnum=fnum,
-                                  label='LNBNN')
-        pt.set_title('Match classification ROC for %s' % (species,))
-        pt.legend()
+        lnbnn_conf = vt.ConfusionMetrics.from_scores_and_labels(scores, labels)
+        lnbnn_fpr = lnbnn_conf.fpr
+        lnbnn_tpr = lnbnn_conf.tpr
 
-        fig = pt.gcf()
-
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                           hspace=.2)
-        fig.set_size_inches([7.4375,  3.125])
-
+        # Dump the data required to recreate the ROC into a folder
         expt_annots = ibs.annots(expt_aids)
-        suffix = 'nAids=%r,nNids=%r,nPairs=%r' % (len(expt_annots),
-                                                  len(set(expt_annots.nids)),
-                                                  len(pblm.samples))
-        hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
-        fname = '_'.join(['roc', species_code, suffix, hashid])
-        fig_fname = fname  + '.png'
-        info_fname = fname + '.json'
-        pt.save_figure(fig=fig, fpath_strict=fig_fname)
         info = {
+            'species': species,
+            'lnbnn_fpr': lnbnn_fpr,
+            'lnbnn_tpr': lnbnn_tpr,
+            'clf_fpr': clf_fpr,
+            'clf_tpr': clf_tpr,
             'dbname': ibs.dbname,
             'annot_uuids': expt_annots.uuids,
             'visual_uuids': expt_annots.visual_uuids,
@@ -183,14 +179,79 @@ def end_to_end():
             'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
         }
         info['pblm_hyperparams']['pairwise_feats']['summary_ops'] = list(info['pblm_hyperparams']['pairwise_feats']['summary_ops'])
-        ut.save_json(info_fname, info)
+        suffix = 'nAids=%r,nNids=%r,nPairs=%r' % (len(expt_annots),
+                                                  len(set(expt_annots.nids)),
+                                                  len(pblm.samples))
+        hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
+        fname = '_'.join(['roc', species_code, suffix, hashid])
+        fig_fname = fname  + '.png'
+        info_fname = fname + '.json'
+        dpath = 'roc_expt_' + ut.timestamp()
+        ut.ensuredir(dpath)
+        info_fpath = join(dpath, info_fname)
+        ut.save_json(info_fpath, info)
 
-        """
-        rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
-        rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
-        """
+        # Draw the ROC in another process for quick iterations to appearance
+        def draw_saved_roc():
+            """
+            rsync
+            scp -r lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
+            rsync -r hyrule:roc* ~/latex/crall-iccv-2017/figures
 
-        # ut.truthpath('~/latex/crall-iccv-2017/figures/')
+            rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
+            rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+            """
+            # DRAW RESULTS
+            import plottool as pt
+            pt.qtensure()
+            dpath = sorted(ut.glob('.', 'roc_expt_*'))[-1]
+            from os.path import splitext
+            info_fpath = ut.glob(dpath, '*.json')[0]
+            fig_fpath = splitext(info_fpath)[0] + '.png'
+
+            info = ut.load_json(info_fpath)
+            lnbnn_fpr = info['lnbnn_fpr']
+            lnbnn_tpr = info['lnbnn_tpr']
+            clf_fpr = info['clf_fpr']
+            clf_tpr = info['clf_tpr']
+            species = info['species']
+
+
+            import sklearn.metrics
+            clf_auc = sklearn.metrics.auc(clf_fpr, clf_tpr)
+            lnbnn_auc = sklearn.metrics.auc(lnbnn_fpr, lnbnn_tpr)
+            import matplotlib as mpl
+
+            tmprc = {
+                'legend.fontsize': 16,
+                'axes.titlesize': 18,
+                'axes.labelsize': 14,
+                'legend.facecolor': 'w',
+                'font.family': 'DejaVu Sans',
+                'xtick.labelsize': 12,
+                'ytick.labelsize': 12,
+            }
+            mpl.rcParams.update(tmprc)
+            # with pt.plt.rc_context(tmprc):
+            if True:
+                fnum = 11
+                fnum = pt.ensure_fnum(fnum)
+                fig = pt.figure(fnum=fnum)
+                pt.plot(clf_fpr, clf_tpr, label='Pairwise AUC=%.3f' % (clf_auc,))
+                pt.plot(lnbnn_fpr, lnbnn_tpr, label='LNBNN AUC=%.3f' % (lnbnn_auc,))
+                ax = pt.gca()
+                ax.set_xlabel('False Positive Rate')
+                ax.set_ylabel('True Positive Rate')
+                ax.set_title('Positive Match ROC for %s' % (species,))
+                ax.legend()
+                pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                                   hspace=.2)
+                fig.set_size_inches([7.4375,  3.125])
+                savekw = {
+                    # 'bbox_inches': pt.extract_axes_extents(fig)[0]
+                }
+                fig.savefig(fig_fpath, **savekw)
+            vt.clipwhite_ondisk(fig_fpath)
 
     if False:
         # quick test
@@ -203,38 +264,13 @@ def end_to_end():
         # Ranking Experiment
         import plottool as pt
         pt.qtensure()
-        ranks = 20
         phis = learn_termination(ibs, aids=expt_aids, max_per_query=4)
         # phis_ = phis
-        phis = {k: v for k, v in phis.items() if k < 5}
-        ydatas = [phi.cumsum()[0:ranks] for phi in phis.values()]
-        pt.multi_plot(
-            xdata=np.arange(1, ranks + 1),
-            ydata_list=ydatas,
-            num_xticks=ranks,
-            xlabel='rank',
-            ylabel='cumulative probability',
-            label_list=['annots per query: %d' % d for d in phis.keys()],
-            title='Rank CMC for %s' % (species,),
-        )
-        fig = pt.gcf()
-        pt.gca().set_ylim(pt.gca().get_ylim()[0], 1)
-        # pt.set_xlabel('rank')
-        # pt.set_ylabel('cumulative probability of a correct match')
+        phis = {str(k): v for k, v in phis.items() if k < 5}
 
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
-                           hspace=.2)
-        fig.set_size_inches([7.4375,  3.125])
-
-        expt_annots = ibs.annots(expt_aids)
-        suffix = 'nAids=%r,nNids=%r' % (len(expt_annots),
-                                        len(set(expt_annots.nids)))
-        hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
-        fname = '_'.join(['cmc', species_code, suffix, hashid])
-        fig_fname = fname  + '.png'
-        info_fname = fname + '.json'
-        pt.save_figure(fig=fig, fpath_strict=fig_fname)
         info = {
+            'phis': phis,
+            'species': species,
             'dbname': ibs.dbname,
             'annot_uuids': expt_annots.uuids,
             'visual_uuids': expt_annots.visual_uuids,
@@ -242,7 +278,72 @@ def end_to_end():
             # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
             # 'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
         }
-        ut.save_json(info_fname, info)
+        expt_annots = ibs.annots(expt_aids)
+        suffix = 'nAids=%r,nNids=%r' % (len(expt_annots),
+                                        len(set(expt_annots.nids)))
+        hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
+        fname = '_'.join(['cmc', species_code, suffix, hashid])
+        fig_fname = fname  + '.png'
+        info_fname = fname + '.json'
+        dpath = 'cmc_expt_' + ut.timestamp()
+        ut.ensuredir(dpath)
+        info_fpath = join(dpath, info_fname)
+        ut.save_json(info_fpath, info)
+
+        def draw_cmcs():
+            """
+            rsync
+            scp -r lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+            rsync -r lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
+            rsync -r hyrule:cmc_expt* ~/latex/crall-iccv-2017/figures
+            """
+            # DRAW RESULTS
+            import vtool as vt
+            import plottool as pt
+            from os.path import splitext
+            pt.qtensure()
+            fig_dpath = ut.truepath('~/latex/crall-iccv-2017/figures')
+            dpath = sorted(ut.glob(fig_dpath, 'cmc_expt_*'))[-1]
+            info_fpath = ut.glob(dpath, '*.json')[0]
+            fig_fpath = splitext(info_fpath)[0] + '.png'
+
+            info = ut.load_json(info_fpath)
+            phis = info['phis']
+            species = info['species']
+
+            tmprc = {
+                'legend.fontsize': 16,
+                'axes.titlesize': 18,
+                'axes.labelsize': 14,
+                'legend.facecolor': 'w',
+                'font.family': 'DejaVu Sans',
+                'xtick.labelsize': 12,
+                'ytick.labelsize': 12,
+            }
+            import matplotlib as mpl
+            mpl.rcParams.update(tmprc)
+            fnum = 12
+            fnum = pt.ensure_fnum(fnum)
+            fig = pt.figure(fnum=fnum)
+            ax = pt.gca()
+            ranks = 20
+            xdata = np.arange(1, ranks + 1)
+            for k, phi in sorted(phis.items()):
+                ax.plot(xdata, np.cumsum(phi[:ranks]),
+                        label='annots per query: %s' % (k,))
+            ax.set_xlabel('Rank')
+            ax.set_ylabel('Cumulative Probability')
+            ax.set_title('Rank CMC for %s' % (species,))
+            ax.set_ylim(ax.get_ylim()[0], 1)
+            ax.set_ylim(.7, 1)
+            ax.set_xlim(.9, ranks)
+            ax.set_xticks(xdata)
+            ax.legend()
+            pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                               hspace=.2)
+            fig.set_size_inches([7.4375,  3.125])
+            fig.savefig(fig_fpath)
+            vt.clipwhite_ondisk(fig_fpath)
 
     # -----------
     # TRAINING
@@ -427,6 +528,7 @@ def end_to_end():
         ete_info = {
             'expt_count': count,
             'dbname': ibs.dbname,
+            'species': species,
             'test_auuids': ibs.annots(test_aids).uuids,
             'train_auuids': ibs.annots(train_aids).uuids,
             'dials': ut.delete_keys(dials.copy(), ['cand_kw']),
@@ -441,50 +543,99 @@ def end_to_end():
         ete_info_fpath = join(dpath, ete_info_fname + '.json')
         ut.save_json(ete_info_fpath, ete_info)
 
+    def draw_ete():
+        """
+        rsync -r hyrule:ete* ~/latex/crall-iccv-2017/figures
+        rsync -r lev:code/ibeis/ete* ~/latex/crall-iccv-2017/figures
+        rsync -r lev:ete* ~/latex/crall-iccv-2017/figures
+        """
+        pass
+
     # DRAW RESULTS
     import plottool as pt
     pt.qtensure()
-    dpath = sorted(ut.glob('.', 'ete_expt_*'))[-1]
+    fig_dpath = ut.truepath('~/latex/crall-iccv-2017/figures')
+    possible_expts = sorted(ut.glob(fig_dpath, 'ete_expt_*'))
+    for dpath in sorted(possible_expts)[::-1]:
+        infos_ = [
+            ut.load_json(fpath)
+            for fpath in ut.glob(dpath, '*')
+        ]
+        if 1:
+            if 'PZ' in infos_[0]['dbname']:
+                species = 'PZ'
+                break
+        else:
+            if 'GZ' in infos_[0]['dbname']:
+                species = 'GZ'
+                break
 
-    infos = [
-        ut.load_json(fpath)
-        for fpath in ut.glob(dpath, '*')
-    ]
+    infos = {info['dials']['name']: info
+             for info in infos_ if 'Error' in info['dials']['name']}
 
+    xmax = 2000
+
+    import matplotlib as mpl
+    tmprc = {
+        'legend.fontsize': 16,
+        'axes.titlesize': 18,
+        'axes.labelsize': 14,
+        'legend.facecolor': 'w',
+        'font.family': 'DejaVu Sans',
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+    }
+    mpl.rcParams.update(tmprc)
+    fnum = 13
+    fnum = pt.ensure_fnum(fnum)
     # colors = pt.distinct_colors(4)
-    pt.figure(fnum=1, pnum=(1, 2, 1))
-    for ete_info in infos:
+    fig = pt.figure(fnum=fnum, pnum=(1, 2, 1))
+    ax = pt.gca()
+    for ete_info in infos.values():
         count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
         dials = ete_info['dials']
         # metrics.keys()
-        pt.plot(
+        pt.plt.plot(
             metrics['n_manual'],
             metrics['n_merge_remain'], '-',
             label=dials['name'],
-            color=colors[count],
+            # color=colors[count],
         )
-    pt.set_xlabel('# manual reviews')
-    pt.set_ylabel('# merges remaining')
-    pt.legend()
+    ax.set_xlim(0,xmax)
+    ax.set_xlabel('# manual reviews')
+    ax.set_ylabel('# merges remaining')
+    # ax.legend()
 
-    pt.figure(fnum=1, pnum=(1, 2, 2))
-    for ete_info in infos:
+    pt.figure(fnum=fnum, pnum=(1, 2, 2))
+    ax = pt.gca()
+    for ete_info in infos.values():
         count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
         dials = ete_info['dials']
         # metrics.keys()
-        pt.plot(
+        pt.plt.plot(
             metrics['n_manual'],
             metrics['n_errors'], '-',
             label=dials['name'],
-            color=colors[count],
+            # color=colors[count],
         )
-    pt.set_ylabel('# of errors')
-    pt.set_xlabel('# manual reviews')
-    # pt.set_title('Identification performance')
-    pt.legend()
-    pt.set_figtitle('Identification performance')
+    ax.set_xlim(0,xmax)
+    ax.set_ylim(0,40)
+    ax.set_xlabel('# manual reviews')
+    ax.set_ylabel('# of errors')
+    ax.legend()
+    pt.set_figtitle('Identification performance', fontweight='normal',
+                    fontfamily='DejaVu Sans')
+
+    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.25,
+                       hspace=.2)
+    fig.set_size_inches([7.4375,  3.125])
+    # fig_fpath = splitext(info_fpath)[0] + '.png'
+    fig_fpath = 'ete_%s.png' % (species.replace(' ', '_',))
+    fig.savefig(fig_fpath)
+    import vtool as vt
+    vt.clipwhite_ondisk(fig_fpath)
 
     # pt.figure(fnum=1, pnum=(1, 2, 1))
     # for count, (dials, metrics_df) in expt_metrics.items():

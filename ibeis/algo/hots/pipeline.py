@@ -572,6 +572,22 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
         # )
         qvec_iter = ut.ProgressIter(qvecs_list, lbl=NN_LBL,
                                     prog_hook=prog_hook, **PROGKW)
+
+        """
+        # Maybe some query vector stacking would help here
+        qvecs_stack = np.vstack(qvecs_list)
+
+        # Nope, really doesn't help that much
+
+        # For 100 annotations
+        %timeit np.vstack(qvecs_list)
+        # 100 loops, best of 3: 5.15 ms per loop
+        %timeit qreq_.indexer.knn(qvecs_stack, K)
+        # 1 loop, best of 3: 18.1 s per loop
+        %timeit [qreq_.indexer.knn(qfx2_vec, K) for qfx2_vec in qvecs_list]
+        # 1 loop, best of 3: 19.4 s per loop
+        """
+
         idx_dist_list = [
             qreq_.indexer.conditional_knn(qfx2_vec, K, pad, impossible_daids)
             for qfx2_vec, K, pad, impossible_daids in zip(

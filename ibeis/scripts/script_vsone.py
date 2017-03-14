@@ -62,6 +62,7 @@ class VsOneAssignConfig(dt.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
+
 @ut.reloadable_class
 class OneVsOneProblem(clf_helpers.ClfProblem):
     """
@@ -100,9 +101,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ibs=ibs, defaultdb=defaultdb, qaid_override=qaid_override,
                 daid_override=daid_override,
                 a=':mingt=3,species=primary',
-                t='default:K=4,Knorm=1,condknn=True,score_method=csum,prescore_method=csum',
-                # t='default:K=4,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
-                # t='default:K=3,Knorm=1,score_method=csum,prescore_method=csum,QRH=True',
+                t=('default:K=4,Knorm=1,condknn=True,'
+                   'score_method=csum,prescore_method=csum'),
                 verbose=max(0, verbose - 1),
             )
         hyper_params = dt.Config.from_dict(ut.odict([
@@ -132,6 +132,100 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm = OneVsOneProblem(ibs=ibs, qaid_override=aids, daid_override=aids,
                                verbose=verbose)
         return pblm
+
+    def demo_classes(pblm):
+        r"""
+        CommandLine:
+            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=classes.png --clipwhite
+
+            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem(defaultdb='PZ_PB_RF_TRAIN')
+            >>> pblm.load_features()
+            >>> pblm.load_samples()
+            >>> pblm.build_feature_subsets()
+            >>> pblm.demo_classes()
+            >>> ut.show_if_requested()
+        """
+        task_key = 'match_state'
+        labels = pblm.samples.subtasks[task_key]
+        pb_labels = pblm.samples.subtasks['photobomb_state']
+        classname_offset = {
+            'match': 0,
+            'nomatch': 0,
+            'notcomp': 0,
+        }
+        class_name = 'match'
+        class_name = 'nomatch'
+        class_name = 'notcomp'
+
+        feats = pblm.samples.X_dict['learn(sum,glob)']
+
+        offset = 0
+        class_to_edge = {}
+        for class_name in labels.class_names:
+            print('Find example of %r' % (class_name,))
+            # Find an example of each class (that is not a photobomb)
+            pbflags = pb_labels.indicator_df['notpb']
+            flags = labels.indicator_df[class_name]
+            assert np.all(pbflags.index == flags.index)
+            flags = flags & pbflags
+            ratio = feats['sum(ratio)']
+            if class_name == 'notcomp':
+                flags &= feats['global(yaw_delta)'] > 3
+                # flags &= feats['sum(ratio)'] > 0
+            if class_name == 'nomatch':
+                low = ratio[flags].max()
+                flags &= feats['sum(ratio)'] >= low
+            if class_name == 'match':
+                low = ratio[flags].median() / 2
+                high = ratio[flags].median()
+                flags &= feats['sum(ratio)'] < high
+                flags &= feats['sum(ratio)'] > low
+            # flags &= pblm.samples.simple_scores[flags]['score_lnbnn_1vM'] > 0
+            idxs = np.where(flags)[0]
+            print('Found %d candidates' % (len(idxs)))
+            offset = classname_offset[class_name]
+            idx = idxs[offset]
+            series = labels.indicator_df.iloc[idx]
+            assert series[class_name]
+            edge = series.name
+            class_to_edge[class_name] = edge
+
+        import plottool as pt
+        import guitool as gt
+        gt.ensure_qapp()
+        pt.qtensure()
+
+        fnum = 1
+        pt.figure(fnum=fnum, pnum=(1, 3, 1))
+        pnum_ = pt.make_pnum_nextgen(1, 3)
+
+        classname_alias = {
+            'match': 'positive',
+            'nomatch': 'negative',
+            'notcomp': 'incomparable',
+        }
+
+        ibs = pblm.qreq_.ibs
+        for class_name in class_to_edge.keys():
+            edge = class_to_edge[class_name]
+            aid1, aid2 = edge
+            alias = classname_alias[class_name]
+            print('class_name = %r' % (class_name,))
+            annot1 = ibs.annots([aid1])[0]._make_lazy_dict()
+            annot2 = ibs.annots([aid2])[0]._make_lazy_dict()
+            vt.matching.ensure_metadata_normxy(annot1)
+            vt.matching.ensure_metadata_normxy(annot2)
+            match = vt.PairwiseMatch(annot1, annot2)
+            cfgdict = pblm.hyper_params.vsone_assign.asdict()
+            match.apply_all(cfgdict)
+            pt.figure(fnum=fnum, pnum=pnum_())
+            match.show(show_ell=False, show_ori=False)
+            # pt.set_title(alias)
 
     def load_features(pblm):
         if pblm.verbose > 0:
@@ -446,7 +540,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             result_cacher.save(auto_results_list)
 
         import plottool as pt
-        pt.qt4ensure()
+        pt.qtensure()
 
         xdata = thresh_list
         xlabel = 'thresh'
@@ -1111,7 +1205,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
     def report_classifier_importance(pblm, task_key, clf_key, data_key):
-        # ut.qt4ensure()
+        # ut.qtensure()
         # import plottool as pt  # NOQA
 
         if clf_key != 'RF':
@@ -1684,7 +1778,7 @@ def photobomb_samples(ibs):
         a1_ = a1.compress(flags)
         a2_ = a2.compress(flags)
         import guitool as gt
-        ut.qt4ensure()
+        ut.qtensure()
         gt.ensure_qapp()
         from vtool import inspect_matches
         import vtool as vt
