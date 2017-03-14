@@ -125,9 +125,15 @@ class _AnnotInfrGroundtruth(object):
     def match_state_df(infr, index):
         """ Returns groundtruth state based on ibeis controller """
         import pandas as pd
-        if not isinstance(index, (pd.MultiIndex, pd.Index)):
-            index = pd.MultiIndex.from_tuples(index, names=('aid1', 'aid2'))
+        if not isinstance(index, pd.indexes.base.Index):
+            if len(index) > 0:
+                index = pd.MultiIndex.from_tuples(
+                    index, sortorder=2, names=('aid1', 'aid2'))
+            else:
+                index = pd.MultiIndex(
+                    levels=[[], []], labels=[[], []], names=('aid1', 'aid2'))
         aid_pairs = np.asarray(index.tolist())
+        aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
         match_state_df = pd.DataFrame.from_items([

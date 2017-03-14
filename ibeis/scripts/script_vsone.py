@@ -677,18 +677,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             print('[pblm] predicting %s probabilities' % (task_key,))
             clf = pblm.deploy_task_clfs[task_key]
             labels = pblm.samples.subtasks[task_key]
-            columns = ut.take(labels.class_names, clf.classes_)
-            probs_df = pd.DataFrame(
-                clf.predict_proba(X),
-                columns=columns, index=X.index
-            )
-            # add in zero probability for classes without training data
-            missing = ut.setdiff(labels.class_names, columns)
-            if missing:
-                for classname in missing:
-                    # print('classname = %r' % (classname,))
-                    probs_df = probs_df.assign(**{
-                        classname: np.zeros(len(probs_df))})
+            probs_df = clf_helpers.predict_proba_df(
+                clf, X, labels.class_names)
+            # columns = ut.take(labels.class_names, clf.classes_)
+            # probs_df = pd.DataFrame(
+            #     clf.predict_proba(X),
+            #     columns=columns, index=X.index
+            # )
+            # # add in zero probability for classes without training data
+            # missing = ut.setdiff(labels.class_names, columns)
+            # if missing:
+            #     for classname in missing:
+            #         # print('classname = %r' % (classname,))
+            #         probs_df = probs_df.assign(**{
+            #             classname: np.zeros(len(probs_df))})
             task_probs[task_key] = probs_df
         return task_probs
 

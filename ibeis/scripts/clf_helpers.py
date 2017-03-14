@@ -108,10 +108,27 @@ def classification_report2(y_true, y_pred, target_names=None,
 
 
 def predict_proba_df(clf, X_df, class_names=None):
+    """
+    Calls sklearn classifier predict_proba but then puts results in a dataframe
+    using the same index as X_df and incorporating all possible class_names
+    given
+    """
+    import utool
+    if class_names is not None:
+        columns = ut.take(class_names, clf.classes_)
+    else:
+        columns = None
     probs_df = pd.DataFrame(
         clf.predict_proba(X_df),
-        columns=class_names, index=X_df.index
+        columns=columns, index=X_df.index
     )
+    # add in zero probability for classes without training data
+    if class_names is not None:
+        missing = ut.setdiff(class_names, columns)
+        if missing:
+            for classname in missing:
+                probs_df = probs_df.assign(**{
+                    classname: np.zeros(len(probs_df))})
     return probs_df
 
 

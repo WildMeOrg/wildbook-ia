@@ -44,7 +44,7 @@ def encounter_stuff(ibs, aids):
 def end_to_end():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv end_to_end --show --db PZ_TEST
+        python -m ibeis.scripts.iccv end_to_end --show --db PZ_MTEST
         python -m ibeis.scripts.iccv end_to_end --show --db PZ_Master1
         python -m ibeis.scripts.iccv end_to_end --show --db GZ_Master1
 
@@ -444,14 +444,14 @@ def end_to_end():
     # DRAW RESULTS
     import plottool as pt
     pt.qtensure()
-    dpath = ut.glob('.', 'ete_expt_*')[0]
+    dpath = sorted(ut.glob('.', 'ete_expt_*'))[-1]
 
     infos = [
         ut.load_json(fpath)
         for fpath in ut.glob(dpath, '*')
     ]
 
-    colors = pt.distinct_colors(4)
+    # colors = pt.distinct_colors(4)
     pt.figure(fnum=1, pnum=(1, 2, 1))
     for ete_info in infos:
         count = ete_info['expt_count']
