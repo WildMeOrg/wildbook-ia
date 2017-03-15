@@ -466,7 +466,7 @@ def set_title(title='', ax=None, **fontkw):
     titlesize = fontkw.get('titlesize', TITLE_SIZE)
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=titlesize)
+            weight=fontkw.get('weight', 'light'), size=titlesize)
     }
     #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, **titlekw)
@@ -478,7 +478,7 @@ def set_xlabel(lbl, ax=None, **kwargs):
     labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
+            weight=fontkw.get('weight', 'light'), size=labelsize)
     }
     # Have to strip for tex output to work with mpl. uggg
     ax.set_xlabel(lbl.strip('\n'), **labelkw)
@@ -490,7 +490,7 @@ def set_ylabel(lbl, ax=None, **kwargs):
     labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight='light', size=labelsize)
+            weight=fontkw.get('weight', 'light'), size=labelsize)
     }
     ax.set_ylabel(lbl, **labelkw)
 
