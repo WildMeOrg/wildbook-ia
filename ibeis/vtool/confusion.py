@@ -514,6 +514,10 @@ class ConfusionMetrics(object):
         # TODO: Use interpoloation here and make tpr vs fpr a smooth funciton
         metric = self.inv_aliases[metric]
         metric_values = getattr(self, metric)
+        if metric == 'fpr':
+            # hack
+            if len(metric_values) <= 1:
+                return 1.0
         # prefer_max = metric not in self.minimizing_metrics
         if prefer_max is None:
             prefer_max = metric not in {'fpr'}
