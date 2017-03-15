@@ -160,6 +160,11 @@ class PairwiseMatch(ut.NiceRepr):
         )
         return ax, xywh1, xywh2
 
+    def ishow(match):
+        from vtool.inspect_matches import MatchInspector
+        self = MatchInspector(match=match)
+        self.show()
+
     def add_global_measures(match, global_keys):
         for key in global_keys:
             match.global_measures[key] = (match.annot1[key],

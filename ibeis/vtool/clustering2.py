@@ -981,6 +981,19 @@ def group_indices(idx2_groupid):
     return keys, groupxs
 
 
+def sorted_indices_ranges(groupids_sorted):
+    """
+    Like group sorted indices but returns a list of slices
+    """
+    num_items = groupids_sorted.size
+    # Find the boundaries between groups
+    diff = np.ones(num_items + 1, groupids_sorted.dtype)
+    np.subtract(groupids_sorted[1:], groupids_sorted[:-1], out=diff[1:num_items])
+    idxs = np.flatnonzero(diff)
+    group_ranges = [(lx, rx) for lx, rx in ut.itertwo(idxs)]  # 34.5%
+    return group_ranges
+
+
 def find_duplicate_items(item_arr):
     """
     Args:

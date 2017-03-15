@@ -996,7 +996,8 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
         cropped_img = crop_out_imgfill(img, fillval, thresh=thresh, channel=channel)
         # Clip white next
         fillval = np.array([255] * nChannels)
-        cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
+        cropped_img = crop_out_imgfill(cropped_img, fillval=fillval, thresh=thresh)
+        # cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
     else:
         fillval = np.array([255] * nChannels)
         cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
