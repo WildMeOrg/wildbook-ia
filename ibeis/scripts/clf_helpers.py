@@ -960,8 +960,8 @@ class ClfResult(ut.NiceRepr):
             class_name = res.class_names[k]
             probs, labels = clf_probs.T[k], y_test_bin.T[k]
             cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-            pos_threshes[class_name] = cfms.get_thresh_at_metric(metric, value,
-                                                                 prefer_max=prefer_max)
+            pos_threshes[class_name] = cfms.get_thresh_at_metric(
+                metric, value, prefer_max=prefer_max)
         return pos_threshes
 
     def report_thresholds(res):
