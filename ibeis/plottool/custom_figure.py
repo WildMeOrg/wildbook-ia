@@ -478,7 +478,7 @@ def set_xlabel(lbl, ax=None, **kwargs):
     labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight=fontkw.get('weight', 'light'), size=labelsize)
+            weight=kwargs.get('weight', 'light'), size=labelsize)
     }
     # Have to strip for tex output to work with mpl. uggg
     ax.set_xlabel(lbl.strip('\n'), **labelkw)
@@ -490,7 +490,7 @@ def set_ylabel(lbl, ax=None, **kwargs):
     labelsize = kwargs.get('labelsize', LABEL_SIZE)
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
-            weight=fontkw.get('weight', 'light'), size=labelsize)
+            weight=kwargs.get('weight', 'light'), size=labelsize)
     }
     ax.set_ylabel(lbl, **labelkw)
 
