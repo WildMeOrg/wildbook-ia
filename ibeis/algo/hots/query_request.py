@@ -371,11 +371,13 @@ class QueryRequest(ut.NiceRepr):
         Replaces semantic uuids with dynamically created uuid groups
         only for database annotations (hacks for iccv).
         """
-        annots = qreq_.ibs.annots(qreq_.daids)
+        # make sure items are sorted to ensure same assignment
+        # gives same uuids
+        annots = qreq_.ibs.annots(sorted(qreq_.daids))
         dnids = qreq_.get_qreq_annot_nids(annots.aids)
         unique_dnids, groupxs = annots.group_indicies(dnids)
-        visual_uuids = annots.visual_uuids
-        grouped_visual_uuids = ut.apply_grouping(visual_uuids, groupxs)
+        groupxs = ut.lmap(sorted, groupxs)
+        grouped_visual_uuids = ut.apply_grouping(annots.visual_uuids, groupxs)
         group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
                        for uuids in grouped_visual_uuids]
         dnid_to_groupuuid = dict(zip(unique_dnids, group_uuids))
@@ -431,7 +433,7 @@ class QueryRequest(ut.NiceRepr):
             >>> assert qreq1.get_data_hashid() != qreq2.get_data_hashid()
 
         """
-        dannot_semantic_uuids = qreq_.get_qreq_pcc_uuids(aids)
+        dannot_semantic_uuids = qreq_.get_qreq_pcc_uuids(sorted(aids))
         label = ''.join(('_', prefix, 'PCC_UUIDS'))
         semantic_hashid  = ut.hashstr_arr27(dannot_semantic_uuids, label,
                                             pathsafe=True)

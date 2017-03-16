@@ -22,9 +22,16 @@ class _AnnotInfrHelpers(object):
 
     def gen_edge_attrs(infr, key, edges=None, default=ut.NoParam,
                        check_exist=True):
+        """ maybe change to gen edge items """
         return ut.util_graph.nx_gen_edge_attrs(
                 infr.graph, key, edges=edges, default=default,
                 check_exist=check_exist)
+
+    def gen_edge_values(infr, key, edges=None, default=ut.NoParam,
+                        check_exist=True):
+        return (t[1] for t in ut.util_graph.nx_gen_edge_attrs(
+                infr.graph, key, edges=edges, default=default,
+                check_exist=check_exist))
 
     def get_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         """ Networkx node getter helper """
@@ -53,6 +60,15 @@ class _AnnotInfrHelpers(object):
     def set_edge_attrs(infr, key, edge_to_prop):
         """ Networkx edge setter helper """
         return nx.set_edge_attributes(infr.graph, key, edge_to_prop)
+
+    def get_edge_attr(infr, edge, key, default=ut.NoParam):
+        """ single edge getter helper """
+        return infr.get_edge_attrs(key, [edge], default=default)[edge]
+
+    def set_edge_attr(infr, edge, attr):
+        """ single edge setter helper """
+        for key, value in attr.items():
+            infr.set_edge_attrs(key, {edge: value})
 
     def get_annot_attrs(infr, key, aids):
         """ Wrapper around get_node_attrs specific to annotation nodes """

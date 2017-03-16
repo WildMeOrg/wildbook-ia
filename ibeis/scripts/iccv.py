@@ -39,6 +39,7 @@ def encounter_stuff(ibs, aids):
         print('hashids = %r' % (hashids,))
         # print(ut.repr2(stats, strvals=True, strkeys=True, nl=2))
 
+
 def iccv_data(defaultdb='PZ_MTEST'):
     import ibeis
     from ibeis.init import main_helpers
@@ -99,6 +100,7 @@ def iccv_data(defaultdb='PZ_MTEST'):
     #     ibs.get_species_rowids_from_text())[0]
     return ibs, expt_aids, train_aids, test_aids, species
 
+
 def iccv_cmc():
     """ Ranking Experiment """
     ibs, expt_aids, train_aids, test_aids, species = iccv_data()
@@ -113,6 +115,7 @@ def iccv_cmc():
     phis = learn_termination(ibs, aids=expt_aids, max_per_query=4)
     # phis_ = phis
     phis = {str(k): v for k, v in phis.items() if k < 5}
+    expt_annots = ibs.annots(expt_aids)
 
     info = {
         'phis': phis,
@@ -124,7 +127,6 @@ def iccv_cmc():
         # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
         # 'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
     }
-    expt_annots = ibs.annots(expt_aids)
     suffix = 'nAids=%r,nNids=%r' % (len(expt_annots),
                                     len(set(expt_annots.nids)))
     hashid = ut.hashstr27(pblm.qreq_.get_cfgstr())
@@ -504,31 +506,50 @@ def end_to_end():
         },
     ]
 
-    colors = pt.distinct_colors(len(expt_dials))
+    # colors = pt.distinct_colors(len(expt_dials))_
 
     dials = expt_dials[1]
     import pandas as pd
 
-    # verbose = 0
-    verbose = 1
+    verbose = 0
+    # verbose = 1
     expt_metrics = {}
     # idx_list = list(range(0, 3))
     # idx_list = list(range(0, 6))
-    idx_list = [3, 4, 5]
+    # idx_list = [3, 4, 5]
+    idx_list = [5]
 
     for idx in idx_list:
         dials = expt_dials[idx]
-        infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                    verbose=verbose)
-        infr.init_test_mode()
-        infr.init_termination_criteria(phis)
-        run_expt(infr, dials=dials)
+        if True:
+            infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                        verbose=verbose)
+            new_dials = dict(
+                phis=phis,
+                oracle_accuracy=dials['oracle_accuracy'],
+                k_redun=dials['k_redun'],
+                enable_autoreview=dials['priority_metric'] == 'priority',
+                enable_inference=dials['method'] == 'graph',
+                classifiers=dials['cand_kw']['pblm'],
+                complete_thresh=dials['complete_thresh'],
+                match_state_thresh=dials['match_state_thresh'],
+            )
+            infr.init_test_mode2(**new_dials)
+            print('new_dials = %s' % (ut.repr4(new_dials),))
+            infr.priority_review_loop(max_loops=dials['max_loops'])
+        else:
+            infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                        verbose=verbose)
+            infr.init_test_mode()
+            infr.init_termination_criteria(phis)
+            run_expt(infr, dials=dials)
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
         # Remove non-transferable attributes
         infr.ibs = None
         infr.qreq_ = None
         infr.vsmany_qreq_ = None
+        infr.classifiers = None
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')
@@ -559,10 +580,17 @@ def end_to_end():
         }
         ete_info_fname = 'ETE_info_' + dials['name'] + expt_cfgstr
         ete_info_fpath = expt_dpath.joinpath(ete_info_fname + '.cPkl')
-        ut.save_cPkl(str(ete_info_fpath), ete_info)
+        try:
+            ut.save_cPkl(str(ete_info_fpath), ete_info)
+        except Exception:
+            for k, v in vars(ete_info['infr']).items():
+                print('k = %r' % (k,))
+                pickle.dumps(v)
+            raise
 
     dbname = ibs.dbname
     draw_ete(dbname)
+
 
 def draw_ete(dbname):
     """
@@ -617,7 +645,7 @@ def draw_ete(dbname):
 
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
-            for edge, error in list(infr.error_edges()):
+            for edge, error in list(infr.error_edges2()):
                 print('error = %s' % (ut.repr2(error),))
                 data = infr.graph.get_edge_data(*edge)
                 print('user_id = %r' % (data['user_id'],))
@@ -646,7 +674,6 @@ def draw_ete(dbname):
         'Ranking+Classifier,fpr=0+Error': 'Ranking+Classifier',
         'Graph,K=2,fpr=.001+Error': 'Graph',
     }
-
 
     import matplotlib as mpl
     tmprc = {
@@ -794,7 +821,6 @@ def run_expt(infr, dials):
             # Fix anything that is not positive/negative redundant
             infr.refresh_candidate_edges(ranking=False, **cand_kw)
             inner_loop()
-
 
     if infr.method == 'graph':
         # Enforce that a user checks any PCC that was auto-reviewed

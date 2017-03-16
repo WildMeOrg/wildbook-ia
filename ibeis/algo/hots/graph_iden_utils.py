@@ -130,11 +130,17 @@ class DynConnGraph(nx.Graph):
         self._union_find = nx_UnionFind()
         super(DynConnGraph, self).__init__(*args, **kwargs)
 
+    def component_nodes(self, label):
+        return self._ccs[label]
+
     def connected_to(self, node):
         return self._ccs[self._union_find[node]]
 
     def node_label(self, node):
         return self._union_find[node]
+
+    def node_labels(self, *nodes):
+        return [self._union_find[node] for node in nodes]
 
     def connected_components(self):
         for cc in self._ccs.values():
