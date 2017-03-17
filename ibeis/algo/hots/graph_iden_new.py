@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import six
 import numpy as np
 import utool as ut
 import pandas as pd
@@ -10,6 +11,9 @@ from ibeis.algo.hots.graph_iden_utils import e_
 from ibeis.algo.hots.graph_iden_utils import (
     bridges_inside, bridges_cross)
 print, rrr, profile = ut.inject2(__name__)
+
+
+DEBUG_INCON = True
 
 
 class TerminationCriteria2(object):
@@ -50,11 +54,15 @@ class RefreshCriteria2(object):
 
 class UserOracle(object):
     def __init__(oracle, accuracy, rng):
+        if isinstance(rng, six.string_types):
+            rng = sum(map(ord, rng))
+        rng = ut.ensure_rng(rng, impl='python')
+
         oracle.accuracy = accuracy
         oracle.rng = rng
         oracle.states = {'match', 'nomatch', 'notcomp'}
 
-    def review(oracle, edge, truth):
+    def review(oracle, edge, truth, force=False):
         feedback = {
             'user_id': 'oracle',
             'confidence': 'absolutely_sure',
@@ -62,6 +70,8 @@ class UserOracle(object):
             'tags': [],
         }
         error = oracle.accuracy < oracle.rng.random()
+        if force:
+            error = False
         if error:
             error_options = list(oracle.states - {truth} - {'notcomp'})
             observed = oracle.rng.choice(list(error_options))
@@ -73,8 +83,36 @@ class UserOracle(object):
             feedback['confidence'] = 'guessing'
         feedback['decision'] = observed
         if error:
-            ut.cprint('MADE MANUAL ERROR', 'red')
+            ut.cprint('MADE MANUAL ERROR edge=%r, truth=%r, observed=%r' %
+                      (edge, truth, observed), 'red')
         return feedback
+
+
+class InfrInvariants(object):
+    def assert_consistency_invariant(infr, label=''):
+        if not DEBUG_INCON:
+            return
+        if infr.enable_inference:
+            incon_ccs = list(infr.inconsistent_components())
+            with ut.embed_on_exception_context:
+                if len(incon_ccs) > 0:
+                    raise AssertionError('The graph is not consistent. ' +
+                                         label)
+
+    def assert_recovery_invariant(infr, label=''):
+        if not DEBUG_INCON:
+            return
+        inconsistent_ccs = list(infr.inconsistent_components())
+        incon_cc = set(ut.flatten(inconsistent_ccs))
+        import utool
+        with utool.embed_on_exception_context:
+            assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
+            if False:
+                print('infr.recovery_cc = %r' % (infr.recovery_cc,))
+                print('incon_cc = %r' % (incon_cc,))
+                # nid_to_cc2 = ut.group_items(
+                #     incon_cc,
+                #     map(pos_graph.node_label, incon_cc))
 
 
 class CandidateSearch2(object):
@@ -106,6 +144,7 @@ class CandidateSearch2(object):
             'condknn': True,
             'can_match_samename': False,
             'can_match_sameimg': False,
+            # 'sv_on': False,
         })
         # infr.apply_match_edges(review_cfg={'ranks_top': 5})
         candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
@@ -133,8 +172,16 @@ class CandidateSearch2(object):
         candidate_edges = set([])
         for pcc in infr.non_pos_redundant_pccs(relax_size=True):
             sub = infr.graph.subgraph(pcc)
+
+            # Get edges between biconnected (nodes) components
+            sub_comp = nx.complement(sub)
+            bicon = list(nx.biconnected_components(sub))
+            check_edges = set([])
+            for c1, c2 in it.combinations(bicon, 2):
+                check_edges.update(bridges_cross(sub_comp, c1, c2))
             # Very agressive, need to tone down
-            check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
+            check_edges = set(it.starmap(e_, check_edges))
+            # check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
             candidate_edges.update(check_edges)
         return candidate_edges
 
@@ -158,11 +205,9 @@ class CandidateSearch2(object):
             if not ranking:
                 new_pos = set(infr.find_pos_redun_candidate_edges())
                 candidate_edges.update(new_pos)
-        import utool
-        with utool.embed_on_exception_context:
-            new_edges = {
-                edge for edge in candidate_edges if not infr.graph.has_edge(*edge)
-            }
+        new_edges = {
+            edge for edge in candidate_edges if not infr.graph.has_edge(*edge)
+        }
         return new_edges
 
     @profile
@@ -172,6 +217,7 @@ class CandidateSearch2(object):
             return
 
         infr.graph.add_edges_from(new_edges)
+        infr.set_edge_attrs('num_reviews', ut.dzip(new_edges, [0]))
 
         if infr.test_mode:
             edge_truth_df = infr.match_state_df(new_edges)
@@ -193,12 +239,20 @@ class CandidateSearch2(object):
             primary_thresh = infr.task_thresh[primary_task]
             prob_match = primary_probs['match']
 
-            # Give negatives that pass automatic thresholds high priority
             default_priority = prob_match.copy()
-            nomatch_probs = task_probs[primary_task]['nomatch']
-            flags = nomatch_probs > primary_thresh['nomatch']
-            default_priority[flags] = np.maximum(default_priority[flags],
-                                                 nomatch_probs[flags])
+            # Give negatives that pass automatic thresholds high priority
+            if True:
+                _probs = task_probs[primary_task]['nomatch']
+                flags = _probs > primary_thresh['nomatch']
+                default_priority[flags] = np.maximum(default_priority[flags],
+                                                     _probs[flags])
+
+            # Give not-comps that pass automatic thresholds high priority
+            if True:
+                _probs = task_probs[primary_task]['notcomp']
+                flags = _probs > primary_thresh['notcomp']
+                default_priority[flags] = np.maximum(default_priority[flags],
+                                                     _probs[flags])
 
             # Pack into edge attributes
             edge_task_probs = {edge: {} for edge in new_edges}
@@ -229,16 +283,27 @@ class CandidateSearch2(object):
         """
         if infr.verbose:
             print('[infr] refresh_candidate_edges2')
+
+        infr.assert_consistency_invariant()
         infr.refresh.reset()
         new_edges = infr.find_new_candidate_edges(ranking=ranking)
         infr.add_new_candidate_edges(new_edges)
+        infr.assert_consistency_invariant()
 
     @profile
     def _make_task_probs(infr, edges):
         pblm = infr.classifiers
-        task_keys = list(pblm.samples.subtasks.keys())
         data_key = pblm.default_data_key
-        X = pblm.make_deploy_features(infr, edges, data_key)
+        # TODO: find a good way to cache this
+        cfgstr = infr.ibs.dbname + ut.hashstr27(repr(edges)) + data_key
+        cacher = ut.Cacher('foobarclf', cfgstr=cfgstr,
+                           appname=pblm.appname, enabled=1,
+                           verbose=pblm.verbose)
+        X = cacher.tryload()
+        if X is None:
+            X = pblm.make_deploy_features(infr, edges, data_key)
+            cacher.save(X)
+        task_keys = list(pblm.samples.subtasks.keys())
         task_probs = pblm.predict_proba_deploy(X, task_keys)
         return task_probs
 
@@ -254,24 +319,221 @@ class CandidateSearch2(object):
         return normscores
 
 
+class InfrRecovery2(object):
+    """ recovery funcs """
+
+    def is_recovering(infr):
+        return infr.recovery_cc is not None
+
+    def _enter_recovery(infr, edge, decision, *nids):
+        assert not infr.is_recovering()
+        ut.cprint('GRAPH ENTERED AN INCONSISTENT STATE edge=%r' % (edge,), 'red')
+        aid1, aid2 = edge
+        pos_graph = infr.pos_graph
+        infr.recovery_cc = set(ut.flatten([pos_graph.component_nodes(nid)
+                                          for nid in nids]))
+        infr.recover_prev_neg_nids = infr.purge_redun_flags(nids)
+        infr.inconsistent_inference(edge, decision)
+
+    @profile
+    def hypothesis_errors(infr, pos_subgraph, neg_edges):
+        import utool
+        with utool.embed_on_exception_context:
+            assert nx.is_connected(pos_subgraph)
+
+        pos_edges = list(pos_subgraph.edges())
+
+        # Generate weights for edges
+        pos_prob = list(infr.gen_edge_values('prob_match', pos_edges))
+        neg_prob = list(infr.gen_edge_values('prob_match', neg_edges))
+        pos_n = list(infr.gen_edge_values('num_reviews', pos_edges))
+        neg_n = list(infr.gen_edge_values('num_reviews', neg_edges))
+        pos_weight = pos_n
+        neg_weight = neg_n
+        pos_weight = np.add(pos_prob, np.array(pos_n))
+        neg_weight = np.add(neg_prob, np.array(neg_n))
+        capacity = 'weight'
+        nx.set_edge_attributes(pos_subgraph, capacity,
+                               ut.dzip(pos_edges, pos_weight))
+
+        # Solve a multicut problem for multiple pairs of terminal nodes.
+        # Running multiple min-cuts produces a k-factor approximation
+        maybe_error_edges = set([])
+        for (s, t), join_weight in zip(neg_edges, neg_weight):
+            cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t,
+                                               capacity=capacity)
+            cut_edgeset = bridges_cross(pos_subgraph, *parts)
+            # cut_edgeset_weight = sum([
+            #     pos_subgraph.get_edge_data(u, v)[capacity]
+            #     for u, v in cut_edgeset])
+            if join_weight < cut_weight:
+                join_edgeset = {(s, t)}
+                chosen = join_edgeset
+                hypothesis = 'match'
+            else:
+                chosen = cut_edgeset
+                hypothesis = 'nomatch'
+            for edge in chosen:
+                if edge not in maybe_error_edges:
+                    maybe_error_edges.add(edge)
+                    yield (edge, hypothesis)
+        # return maybe_error_edges
+
+    @profile
+    def inconsistent_inference(infr, edge, decision):
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
+
+        # if infr.recover_hypothesis is not None:
+        #     # If the user disagrees with the hypothesis, redo everything
+        #     if edge in infr.recover_hypothesis:
+        #         hypothesis = infr.recover_hypothesis[edge]
+        #         if decision != hypothesis:
+        #             infr.recover_hypothesis = None
+        #             print('decision %r disagreed with hypothesis %r' %
+        #                   (decision, hypothesis))
+        #         else:
+        #             print('decision agrees with hypothesis')
+        #             # otherwise remove this edge and move to the next
+        #             del infr.recover_hypothesis[edge]
+
+        # Add in the new edge
+        infr._add_review_edge(edge, decision)
+
+        # Check if there is any inconsistent edge between any pcc in
+        # infr.recovery_cc
+        neg_subgraph = neg_graph.subgraph(infr.recovery_cc)
+        inconsistent_edges = [
+            e_(u, v) for u, v in neg_subgraph.edges()
+            if pos_graph.node_label(u) == pos_graph.node_label(v)
+        ]
+        if inconsistent_edges:
+            infr.assert_recovery_invariant()
+
+            # ut.cprint('graph is inconsistent. searching for errors', 'red')
+            # if not infr.recover_hypothesis:
+            # print('recompute hypothesis')
+            pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
+            infr.recover_hypothesis = dict(infr.hypothesis_errors(
+                pos_subgraph, inconsistent_edges))
+
+            # if edge in infr.recover_hypothesis and len(infr.recover_hypothesis) > 1:
+            #     del infr.recover_hypothesis[edge]
+
+            # choose just one error edge and give it insanely high priority
+            assert len(infr.recover_hypothesis) > 0, 'must have at least one'
+            error_edge = next(iter(infr.recover_hypothesis.keys()))
+            base = infr.graph.get_edge_data(*error_edge).get('prob_match')
+            infr.queue[error_edge] = -(10 + base)
+        else:
+            ut.cprint('consistency has been restored', 'green')
+            # infr.set_edge_attrs('num_reviews', ut.dzip(infr.edges(), [0]))
+
+            if DEBUG_INCON:
+                infr.assert_consistency_invariant('should have fixed incon')
+
+            nid_to_cc = ut.group_items(
+                infr.recovery_cc,
+                map(pos_graph.node_label, infr.recovery_cc))
+
+            # Update redundancies on the influenced subgraph
+            # Force reinstatement
+            for nid in nid_to_cc.keys():
+                infr.update_pos_redun(nid, check_reinstate=True)
+
+            for nid1, nid2 in it.combinations(nid_to_cc.keys(), 2):
+                infr.update_neg_redun(nid1, nid2, check_reinstate=True)
+
+            for nid1, nid2 in it.product(nid_to_cc.keys(),
+                                         infr.recover_prev_neg_nids):
+                infr.update_neg_redun(nid1, nid2, check_reinstate=True)
+
+            # Ensure reviewed edges are removed
+            pos_subgraph = pos_graph.subgraph(infr.recovery_cc)
+            incomp_subgraph = infr.incomp_graph.subgraph(infr.recovery_cc)
+            reviewed_edges = it.starmap(e_, ut.iflatten([
+                pos_subgraph.edges(), neg_subgraph.edges(),
+                incomp_subgraph.edges()]))
+            for edge in reviewed_edges:
+                if edge in infr.queue:
+                    del infr.queue[edge]
+
+            # Remove recovery flags
+            infr.recovery_cc = None
+            infr.recover_prev_neg_nids = None
+            infr.recover_hypothesis = None
+
+
 class InfrFeedback2(object):
 
-    def init_bookkeeping(infr):
-        infr.recovery_cc = None
-        infr.recover_prev_neg_nids = None
-        # Set of PCCs that are positive redundant
-        infr.pos_redun_nids = set([])
-        # Represents the metagraph of negative edges between PCCs
-        infr.neg_redun_nids = nx.Graph()
+    @profile
+    def consistent_inference(infr, edge, decision):
+        # assuming we are in a consistent state
+        # k_pos = infr.queue_params['pos_redundancy']
+        aid1, aid2 = edge
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
+        nid1 = pos_graph.node_label(aid1)
+        nid2 = pos_graph.node_label(aid2)
+        cc1 = pos_graph.component_nodes(nid1)
+        cc2 = pos_graph.component_nodes(nid2)
+        if decision == 'match' and nid1 == nid2:
+            # add positive redundancy
+            infr._add_review_edge(edge, decision)
+            if nid1 not in infr.pos_redun_nids:
+                infr.update_pos_redun(nid1)
+        elif decision == 'match' and nid1 != nid2:
+            if any(bridges_cross(neg_graph, cc1, cc2)):
+                # Added positive edge between PCCs with a negative edge
+                return infr._enter_recovery(edge, decision, nid1, nid2)
+            else:
+                # merge into single pcc
+                infr._add_review_edge(edge=(aid1, aid2), decision='match')
+                new_nid = pos_graph.node_label(aid1)
+                prev_neg_nids = infr.purge_redun_flags(nid1, nid2)
+                for other_nid in prev_neg_nids:
+                    infr.update_neg_redun(new_nid, other_nid)
+                infr.update_pos_redun(new_nid)
+        elif decision == 'nomatch' and nid1 == nid2:
+            # Added negative edge in positive PCC
+            return infr._enter_recovery(edge, decision, nid1)
+        elif decision == 'nomatch' and nid1 != nid2:
+            # add negative redundancy
+            infr._add_review_edge(edge, decision)
+            if not infr.neg_redun_nids.has_edge(nid1, nid2):
+                infr.update_neg_redun(nid1, nid2)
+        elif decision == 'notcomp' and nid1 == nid2:
+            if pos_graph.has_edge(*edge):
+                # changed an existing positive edge
+                infr._add_review_edge(edge, decision)
+                new_nid1, new_nid2 = pos_graph.node_labels(aid1, aid2)
+                if new_nid1 != new_nid2:
+                    # split case
+                    old_nid = nid1
+                    prev_neg_nids = infr.purge_redun_flags(old_nid)
+                    for other_nid in prev_neg_nids:
+                        infr.update_neg_redun(new_nid1, other_nid)
+                        infr.update_neg_redun(new_nid2, other_nid)
+                    infr.update_neg_redun(new_nid1, new_nid2)
+                    infr.update_pos_redun(new_nid1)
+                    infr.update_pos_redun(new_nid2)
+                else:
+                    infr.update_pos_redun(cc1)
+            else:
+                infr._add_review_edge(edge, decision)
 
-    def _add_review_edge(infr, edge, decision):
-        # Add to review graph corresponding to decision
-        infr.review_graphs[decision].add_edge(*edge)
-        # Remove from previously existing graphs
-        for k, G in infr.review_graphs.items():
-            if k != decision:
-                if G.has_edge(*edge):
-                    G.remove_edge(*edge)
+        elif decision == 'notcomp' and nid1 != nid2:
+            if neg_graph.has_edge(*edge):
+                # changed and existing negative edge
+                infr._add_review_edge(edge, decision)
+                if not infr.neg_redun_nids.has_edge(nid1, nid2):
+                    infr.update_neg_redun(nid1, nid2)
+            else:
+                infr._add_review_edge(edge, decision)
+        else:
+            raise AssertionError('impossible consistent state')
+
+        infr.assert_consistency_invariant()
 
     @profile
     def add_feedback2(infr, edge, decision, tags=None, user_id=None,
@@ -309,7 +571,7 @@ class InfrFeedback2(object):
 
         if infr.enable_inference:
             # Update priority queue based on the new edge
-            if infr.recovery_cc:
+            if infr.is_recovering():
                 infr.inconsistent_inference(edge, decision)
             else:
                 infr.consistent_inference(edge, decision)
@@ -319,167 +581,25 @@ class InfrFeedback2(object):
         metrics = infr.measure_metrics2()
         infr.metrics_list.append(metrics)
 
-    @profile
-    def consistent_inference(infr, edge, decision):
-        # assuming we are in a consistent state
-        # k_pos = infr.queue_params['pos_redundancy']
-        aid1, aid2 = edge
-        pos_graph = infr.pos_graph
-        neg_graph = infr.neg_graph
-        nid1 = pos_graph.node_label(aid1)
-        nid2 = pos_graph.node_label(aid2)
-        cc1 = pos_graph.component_nodes(nid1)
-        cc2 = pos_graph.component_nodes(nid2)
-        if decision == 'match' and nid1 == nid2:
-            # add positive redundancy
-            infr._add_review_edge(edge, decision)
-            if nid1 not in infr.pos_redun_nids:
-                infr.update_pos_redun(nid1)
-        elif decision == 'match' and nid1 != nid2:
-            if any(bridges_cross(neg_graph, cc1, cc2)):
-                # Added positive edge between PCCs with a negative edge
-                infr._enter_recovery(edge, decision, nid1, nid2)
-            else:
-                # merge into single pcc
-                infr._add_review_edge(edge=(aid1, aid2), decision='match')
-                new_nid = pos_graph.node_label(aid1)
-                prev_neg_nids = infr.purge_redun_flags(nid1, nid2)
-                for other_nid in prev_neg_nids:
-                    infr.update_neg_redun(new_nid, other_nid)
-                infr.update_pos_redun(new_nid)
-        elif decision == 'nomatch' and nid1 == nid2:
-            # Added negative edge in positive PCC
-            infr._enter_recovery(edge, decision, nid1)
-        elif decision == 'nomatch' and nid1 != nid2:
-            # add negative redundancy
-            infr._add_review_edge(edge, decision)
-            if not infr.neg_redun_nids.has_edge(nid1, nid2):
-                infr.update_neg_redun(nid1, nid2)
-        elif decision == 'notcomp' and nid1 == nid2:
-            if pos_graph.has_edge(*edge):
-                # changed an existing positive edge
-                infr._add_review_edge(edge, decision)
-                new_nid1, new_nid2 = pos_graph.node_labels(aid1, aid2)
-                if new_nid1 != new_nid2:
-                    # split case
-                    old_nid = nid1
-                    prev_neg_nids = infr.purge_redun_flags(old_nid)
-                    for other_nid in prev_neg_nids:
-                        infr.update_neg_redun(new_nid1, other_nid)
-                        infr.update_neg_redun(new_nid2, other_nid)
-                    infr.update_neg_redun(new_nid1, new_nid2)
-                    infr.update_pos_redun(new_nid1)
-                    infr.update_pos_redun(new_nid2)
-                else:
-                    infr.update_pos_redun(cc1)
-            else:
-                infr._add_review_edge(edge, decision)
 
-        elif decision == 'notcomp' and nid1 != nid2:
-            if neg_graph.has_edge(*edge):
-                # changed and existing negative edge
-                infr._add_review_edge(edge, decision)
-                if not infr.neg_redun_nids.has_edge(nid1, nid2):
-                    infr.update_neg_redun(nid1, nid2)
-            else:
-                infr._add_review_edge(edge, decision)
-        else:
-            raise AssertionError('impossible consistent state')
+class DynamicUpdate2(object):
 
-    def _enter_recovery(infr, edge, decision, *nids):
-        assert infr.recovery_cc is None
-        ut.cprint('GRAPH HAS ENTERED AN INCONSISTENT STATE', 'red')
-        aid1, aid2 = edge
-        pos_graph = infr.pos_graph
-        infr.recovery_cc = set(ut.flatten([pos_graph.component_nodes(nid)
-                                          for nid in nids]))
-        infr.recover_prev_neg_nids = infr.purge_redun_flags(nids)
-        infr.inconsistent_inference(edge, decision)
+    def init_bookkeeping(infr):
+        infr.recovery_cc = None
+        infr.recover_prev_neg_nids = None
+        # Set of PCCs that are positive redundant
+        infr.pos_redun_nids = set([])
+        # Represents the metagraph of negative edges between PCCs
+        infr.neg_redun_nids = nx.Graph()
 
-    @profile
-    def inconsistent_inference(infr, edge, decision):
-        pos_graph = infr.pos_graph
-        neg_graph = infr.neg_graph
-
-        # Add in the new edge
-        infr._add_review_edge(edge, decision)
-
-        # Check if there is any inconsistent edge between any pcc in
-        # infr.recovery_cc
-        neg_subgraph = neg_graph.subgraph(infr.recovery_cc)
-        inconsistent_edges = [
-            e_(u, v) for u, v in neg_subgraph.edges()
-            if pos_graph.node_label(u) == pos_graph.node_label(v)
-        ]
-        if inconsistent_edges:
-            ut.cprint('graph is inconsistent. searching for errors', 'red')
-            pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
-            error_edge_gen = infr.hypothesis_errors(pos_subgraph,
-                                                    inconsistent_edges)
-            # choose just one error edge and give it insanely high priority
-            try:
-                error_edge = next(error_edge_gen)
-            except StopIteration:
-                raise AssertionError('As least one edge must be generated')
-            base = infr.graph.get_edge_data(*error_edge).get('prob_match')
-            infr.queue[error_edge] = -(10 + base)
-        else:
-            ut.cprint('consistency has been restored', 'green')
-            nid_to_cc = ut.group_items(
-                infr.recovery_cc,
-                map(pos_graph.node_label, infr.recovery_cc))
-
-            # Update redundancies on the influenced subgraph
-            # Force reinstatement
-            for nid in nid_to_cc.keys():
-                infr.update_pos_redun(nid, check_reinstate=True)
-
-            for nid1, nid2 in it.combinations(nid_to_cc.keys(), 2):
-                infr.update_neg_redun(nid1, nid2, check_reinstate=True)
-
-            for nid1, nid2 in it.product(nid_to_cc.keys(),
-                                         infr.recover_prev_neg_nids):
-                infr.update_neg_redun(nid1, nid2, check_reinstate=True)
-
-            # Remove recovery flags
-            infr.recovery_cc = None
-            infr.recover_prev_neg_nids = None
-
-    @profile
-    def hypothesis_errors(infr, pos_subgraph, neg_edges):
-        pos_edges = list(pos_subgraph.edges())
-
-        # Generate weights for edges
-        pos_prob = list(infr.gen_edge_values('prob_match', pos_edges))
-        neg_prob = list(infr.gen_edge_values('prob_match', neg_edges))
-        pos_n = list(infr.gen_edge_values('num_reviews', pos_edges))
-        neg_n = list(infr.gen_edge_values('num_reviews', neg_edges))
-        pos_weight = np.add(pos_prob, pos_n)
-        neg_weight = np.add(neg_prob, neg_n)
-        capacity = 'weight'
-        nx.set_edge_attributes(pos_subgraph, capacity,
-                               ut.dzip(pos_edges, pos_weight))
-
-        # Solve a multicut problem for multiple pairs of terminal nodes.
-        # Running multiple min-cuts produces a k-factor approximation
-        maybe_error_edges = set([])
-        for (s, t), join_weight in zip(neg_edges, neg_weight):
-            cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t,
-                                               capacity=capacity)
-            cut_edgeset = bridges_cross(pos_subgraph, *parts)
-            # cut_edgeset_weight = sum([
-            #     pos_subgraph.get_edge_data(u, v)[capacity]
-            #     for u, v in cut_edgeset])
-            if join_weight < cut_weight:
-                join_edgeset = {(s, t)}
-                chosen = join_edgeset
-            else:
-                chosen = cut_edgeset
-            for edge in chosen:
-                edge = e_(*edge)
-                if edge not in maybe_error_edges:
-                    maybe_error_edges.add(edge)
-                    yield edge
+    def _add_review_edge(infr, edge, decision):
+        # Add to review graph corresponding to decision
+        infr.review_graphs[decision].add_edge(*edge)
+        # Remove from previously existing graphs
+        for k, G in infr.review_graphs.items():
+            if k != decision:
+                if G.has_edge(*edge):
+                    G.remove_edge(*edge)
 
     def purge_redun_flags(infr, *nids):
         neighbs = (infr.neg_redun_nids.neighbors(nid) for nid in nids
@@ -554,7 +674,7 @@ class InfrReviewers(object):
             'decision': None,
             'tags': [],
         }
-        if infr.recovery_cc:
+        if infr.is_recovering():
             # Do not autoreview if we are in an inconsistent state
             if infr.verbose > 1:
                 print('Must manually review inconsistent edge')
@@ -576,7 +696,8 @@ class InfrReviewers(object):
                 review['decision'] = decision_flags.argmax()
                 truth = infr.match_state_gt(edge).idxmax()
                 if review['decision'] != truth:
-                    ut.cprint('AUTOMATIC ERROR', 'purple')
+                    ut.cprint('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
+                              (edge, truth, review['decision']), 'purple')
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
             print('Automatic review success')
@@ -586,7 +707,7 @@ class InfrReviewers(object):
     def try_implicit_review2(infr, edge):
         review = {}
         # Check if edge is implicitly negative
-        if not infr.recovery_cc:
+        if not infr.is_recovering():
             implicit_flag = (
                 infr.check_prob_completeness(edge[0]) and
                 infr.check_prob_completeness(edge[1])
@@ -606,7 +727,8 @@ class InfrReviewers(object):
         if infr.test_mode:
             true_state = infr.match_state_gt(edge)
             truth = true_state.idxmax()
-            feedback = infr.oracle.review(edge, truth)
+            feedback = infr.oracle.review(
+                edge, truth, infr.is_recovering())
         else:
             raise NotImplementedError('no user review')
         return feedback
@@ -616,7 +738,11 @@ class TestStuff2(object):
     def init_test_mode2(infr, oracle_accuracy=1.0, k_redun=2,
                         enable_autoreview=True, enable_inference=True,
                         classifiers=None, phis=None, complete_thresh=None,
-                        match_state_thresh=None):
+                        match_state_thresh=None, name=None):
+
+        infr.name = name
+
+        infr.recover_hypothesis = None
         ut.cprint('INIT TEST', 'yellow')
         infr.init_bookkeeping()
 
@@ -630,8 +756,7 @@ class TestStuff2(object):
 
         infr.queue = ut.PriorityQueue()
 
-        rng = ut.ensure_rng(2315329092, impl='python')
-        infr.oracle = UserOracle(oracle_accuracy, rng)
+        infr.oracle = UserOracle(oracle_accuracy, infr.name)
         infr.term = TerminationCriteria2(phis)
 
         infr.task_thresh = {
@@ -706,25 +831,26 @@ class TestStuff2(object):
         return metrics
 
 
-class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
+class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
+                 TestStuff2, DynamicUpdate2, InfrInvariants):
 
     def inner_loop2(infr):
         """
-        Executes reviews until the queue is empty or
-
+        Executes reviews until the queue is empty or needs refresh
         """
+
         ut.cprint('Start inner loop', 'blue')
-        while True:
+        for count in it.count(0):
             if len(infr.queue) == 0:
                 ut.cprint('No more edges, need refresh', 'blue')
                 break
             edge, priority = infr.pop()
-            if not infr.recovery_cc:
+            if infr.is_recovering():
+                ut.cprint('IN RECOVERY MODE priority=%r' % (priority,), 'red')
+            else:
                 if infr.refresh.check():
                     ut.cprint('Refresh criteria flags refresh', 'blue')
                     break
-            else:
-                ut.cprint('IN RECOVERY MODE priority=%r' % (priority,), 'red')
 
             flag = False
             if infr.enable_autoreview:
@@ -735,14 +861,18 @@ class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
                 if not flag:
                     feedback = infr.request_user_review(edge)
             infr.add_feedback2(edge=edge, **feedback)
-            if infr.recovery_cc:
+
+            if infr.is_recovering():
                 infr.recovery_review_loop()
 
     def recovery_review_loop(infr):
-        while infr.recovery_cc:
+        while infr.is_recovering():
             edge, priority = infr.pop()
-            ut.cprint('IN RECOVERY LOOP priority=%r' % (priority,), 'red')
+
+            num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
             feedback = infr.request_user_review(edge)
+            ut.cprint('RECOVERY LOOP edge=%r, decision=%r, priority=%r, n_reviews=%r, len(recover_cc)=%r' %
+                      (edge, feedback['decision'], priority, num_reviews, len(infr.recovery_cc)), 'red')
             infr.add_feedback2(edge=edge, **feedback)
 
     def priority_review_loop(infr, max_loops):
@@ -758,7 +888,8 @@ class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
                 break
             infr.inner_loop2()
             if infr.enable_inference:
-                print('HACK FIX REDUN')
+                infr.assert_consistency_invariant()
+                ut.cprint('HACK FIX REDUN', 'white')
                 # Fix anything that is not positive/negative redundant
                 real_queue = infr.queue
                 # use temporary queue
@@ -787,9 +918,8 @@ class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
             # Check for inconsistency recovery
             infr.recovery_review_loop()
 
-        if infr.enable_inference:
-            assert len(list(infr.inconsistent_components())) == 0, (
-                'inconsistencies must not exist')
+        if infr.enable_inference and DEBUG_INCON:
+            infr.assert_consistency_invariant()
         # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
         # pred_groups = list(infr.positive_connected_compoments())
         # from ibeis.algo.hots import sim_graph_iden

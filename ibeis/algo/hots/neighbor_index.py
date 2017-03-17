@@ -599,7 +599,6 @@ class NeighborIndex(object):
         cfgstr = nnindexer.get_cfgstr(noquery=True)
         ext    = nnindexer.ext
         fpath  = _args2_fpath(cachedir, prefix, cfgstr, ext)
-        print('flann fpath = %r' % (fpath,))
         return fpath
 
     # ---- </cachable_interface> ---

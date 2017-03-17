@@ -997,7 +997,7 @@ class QueryRequest(ut.NiceRepr):
 
         Load non-query specific normalizers / weights
         """
-        if verbose:
+        if verbose >= 2:
             print('[qreq] lazy preloading')
         if prog_hook is not None:
             prog_hook.initialize_subhooks(4)

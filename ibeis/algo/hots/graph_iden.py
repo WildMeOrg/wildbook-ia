@@ -954,6 +954,7 @@ class _AnnotInfrFeedback(object):
             check_edges = {}
         return check_edges
 
+    @profile
     def negative_redundant_nids(infr, cc):
         """
         Get PCCs that are k-negative redundant with `cc`
@@ -990,6 +991,7 @@ class _AnnotInfrFeedback(object):
         ]
         return neg_nids
 
+    @profile
     def prob_complete(infr, cc):
         if infr.term is None:
             assert False
@@ -1022,6 +1024,7 @@ class _AnnotInfrFeedback(object):
             p_complete = sum([phi[r] for r in neg_ranks])
             return p_complete
 
+    @profile
     def check_prob_completeness(infr, node):
         """
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
@@ -1080,6 +1083,7 @@ class _AnnotInfrFeedback(object):
                 # no check edges means we can't do anything
                 yield (c1_nodes, c2_nodes, check_edges)
 
+    @profile
     def is_pos_redundant(infr, cc, relax_size=False):
         k = infr.queue_params['pos_redundancy']
         if k == 1:
@@ -1092,14 +1096,26 @@ class _AnnotInfrFeedback(object):
             else:
                 required_k = k
             assert isinstance(cc, set)
-            pos_conn = nx.edge_connectivity(infr.pos_graph.subgraph(cc))
-            return pos_conn >= required_k
+            if required_k <= 1:
+                return True
+            if required_k == 2:
+                pos_subgraph = infr.pos_graph.subgraph(cc)
+                return nx.is_biconnected(pos_subgraph)
+            else:
+                pos_subgraph = infr.pos_graph.subgraph(cc)
+                pos_conn = nx.edge_connectivity(pos_subgraph)
+                return pos_conn >= required_k
 
+    @profile
     def pos_redundant_pccs(infr, relax_size=False):
         for cc in infr.consistent_components():
+            if len(cc) == 2:
+                break
+
             if infr.is_pos_redundant(cc, relax_size):
                 yield cc
 
+    @profile
     def non_pos_redundant_pccs(infr, relax_size=False):
         """
         Get PCCs that are not k-positive-redundant
