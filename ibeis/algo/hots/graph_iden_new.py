@@ -94,6 +94,10 @@ class CandidateSearch2(object):
 
     @profile
     def find_lnbnn_candidate_edges(infr):
+        # Refresh the name labels
+        for nid, cc in infr.pos_graph._ccs.items():
+            infr.set_node_attrs('name_label', ut.dzip(cc, [nid]))
+
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
         infr.exec_matching(cfgdict={
@@ -134,12 +138,14 @@ class CandidateSearch2(object):
             candidate_edges.update(check_edges)
         return candidate_edges
 
+    @profile
     def find_neg_redun_candidate_edges(infr):
         candidate_edges = set([])
         for c1, c2, check_edges in infr.non_complete_pcc_pairs():
             candidate_edges.update(check_edges)
         return candidate_edges
 
+    @profile
     def find_new_candidate_edges(infr, ranking=True):
         if ranking:
             candidate_edges = infr.find_lnbnn_candidate_edges()
@@ -159,6 +165,7 @@ class CandidateSearch2(object):
             }
         return new_edges
 
+    @profile
     def add_new_candidate_edges(infr, new_edges):
         new_edges = list(new_edges)
         if len(new_edges) == 0:
@@ -226,6 +233,7 @@ class CandidateSearch2(object):
         new_edges = infr.find_new_candidate_edges(ranking=ranking)
         infr.add_new_candidate_edges(new_edges)
 
+    @profile
     def _make_task_probs(infr, edges):
         pblm = infr.classifiers
         task_keys = list(pblm.samples.subtasks.keys())
@@ -234,6 +242,7 @@ class CandidateSearch2(object):
         task_probs = pblm.predict_proba_deploy(X, task_keys)
         return task_probs
 
+    @profile
     def _make_lnbnn_scores(infr, edges):
         edge_to_data = infr._get_cm_edge_data(edges)
         edges = list(edge_to_data.keys())
@@ -378,14 +387,16 @@ class InfrFeedback2(object):
             raise AssertionError('impossible consistent state')
 
     def _enter_recovery(infr, edge, decision, *nids):
+        assert infr.recovery_cc is None
         ut.cprint('GRAPH HAS ENTERED AN INCONSISTENT STATE', 'red')
         aid1, aid2 = edge
         pos_graph = infr.pos_graph
-        infr.recover_cc = set(ut.flatten([pos_graph.component_nodes(nid)
+        infr.recovery_cc = set(ut.flatten([pos_graph.component_nodes(nid)
                                           for nid in nids]))
         infr.recover_prev_neg_nids = infr.purge_redun_flags(nids)
         infr.inconsistent_inference(edge, decision)
 
+    @profile
     def inconsistent_inference(infr, edge, decision):
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
@@ -395,14 +406,14 @@ class InfrFeedback2(object):
 
         # Check if there is any inconsistent edge between any pcc in
         # infr.recovery_cc
-        neg_subgraph = neg_graph.subgraph(infr.recover_cc)
+        neg_subgraph = neg_graph.subgraph(infr.recovery_cc)
         inconsistent_edges = [
-            (u, v) for u, v in neg_subgraph.edges()
+            e_(u, v) for u, v in neg_subgraph.edges()
             if pos_graph.node_label(u) == pos_graph.node_label(v)
         ]
         if inconsistent_edges:
             ut.cprint('graph is inconsistent. searching for errors', 'red')
-            pos_subgraph = pos_graph.subgraph(infr.recover_cc).copy()
+            pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
             error_edge_gen = infr.hypothesis_errors(pos_subgraph,
                                                     inconsistent_edges)
             # choose just one error edge and give it insanely high priority
@@ -415,8 +426,8 @@ class InfrFeedback2(object):
         else:
             ut.cprint('consistency has been restored', 'green')
             nid_to_cc = ut.group_items(
-                infr.recover_cc,
-                map(pos_graph.node_label, infr.recover_cc))
+                infr.recovery_cc,
+                map(pos_graph.node_label, infr.recovery_cc))
 
             # Update redundancies on the influenced subgraph
             # Force reinstatement
@@ -431,7 +442,7 @@ class InfrFeedback2(object):
                 infr.update_neg_redun(nid1, nid2, check_reinstate=True)
 
             # Remove recovery flags
-            infr.recover_cc = None
+            infr.recovery_cc = None
             infr.recover_prev_neg_nids = None
 
     @profile
@@ -453,14 +464,14 @@ class InfrFeedback2(object):
         # Running multiple min-cuts produces a k-factor approximation
         maybe_error_edges = set([])
         for (s, t), join_weight in zip(neg_edges, neg_weight):
-            _, parts = nx.minimum_cut(pos_subgraph, s, t, capacity=capacity)
+            cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t,
+                                               capacity=capacity)
             cut_edgeset = bridges_cross(pos_subgraph, *parts)
-            join_edgeset = {e_(s, t)}
-            cut_edgeset_weight = sum([
-                pos_subgraph.get_edge_data(u, v)[capacity]
-                for u, v in cut_edgeset])
-            join_edgeset_weight = join_weight
-            if join_edgeset_weight < cut_edgeset_weight:
+            # cut_edgeset_weight = sum([
+            #     pos_subgraph.get_edge_data(u, v)[capacity]
+            #     for u, v in cut_edgeset])
+            if join_weight < cut_weight:
+                join_edgeset = {(s, t)}
                 chosen = join_edgeset
             else:
                 chosen = cut_edgeset
@@ -654,12 +665,15 @@ class TestStuff2(object):
                                       ('pred', pred_state)])
                     yield edge, error
 
+    @profile
     def measure_metrics2(infr):
         real_pos_edges = []
         n_error_edges = 0
         pred_n_pcc_mst_edges = 0
         n_fn = 0
         n_fp = 0
+
+        # TODO: dynamic measurement
 
         for edge, data in infr.edges(data=True):
             true_state = infr.edge_truth[edge]
@@ -735,7 +749,7 @@ class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
         infr.refresh = RefreshCriteria2()
         for count in it.count(0):
             if count >= max_loops:
-                ut.cprint('Early stop', 'blue')
+                ut.cprint('early stop', 'blue')
                 break
             ut.cprint('Outer loop iter %d ' % (count,), 'blue')
             infr.refresh_candidate_edges2()
@@ -755,9 +769,6 @@ class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
 
     @profile
     def main_loop2(infr, max_loops=np.inf):
-        import utool
-        utool.embed()
-
         infr.reset(state='empty')
         infr.remove_feedback(apply=True)
 
@@ -777,7 +788,8 @@ class AnnotInfr2(InfrFeedback2, CandidateSearch2, InfrReviewers, TestStuff2):
             infr.recovery_review_loop()
 
         if infr.enable_inference:
-            assert len(list(infr.inconsistent_components())) == 0
+            assert len(list(infr.inconsistent_components())) == 0, (
+                'inconsistencies must not exist')
         # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
         # pred_groups = list(infr.positive_connected_compoments())
         # from ibeis.algo.hots import sim_graph_iden

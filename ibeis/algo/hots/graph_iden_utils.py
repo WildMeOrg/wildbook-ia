@@ -148,7 +148,6 @@ class DynConnGraph(nx.Graph):
 
     # -----
 
-    @profile
     def _cut(self, u, v):
         """ Decremental connectivity (slow) """
         old_nid1 = self._union_find[u]
@@ -167,7 +166,6 @@ class DynConnGraph(nx.Graph):
         for edge in internal_edges:
             self._union(*edge)
 
-    @profile
     def _union(self, u, v):
         """ Incremental connectivity (fast) """
         # print('Union ({})'.format((u, v)))
@@ -244,12 +242,10 @@ def _dz(a, b):
     return ut.dzip(a, b)
 
 
-@profile
 def e_(u, v):
     return (u, v) if u < v else (v, u)
 
 
-@profile
 def bridges_inside(graph, nodes):
     """
     Finds edges within a set of nodes
@@ -269,7 +265,6 @@ def bridges_inside(graph, nodes):
     return result
 
 
-@profile
 def bridges_cross(graph, nodes1, nodes2):
     """
     Finds edges between two sets of disjoint nodes.
