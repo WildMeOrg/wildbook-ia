@@ -349,7 +349,7 @@ def imread(img_fpath, grayscale=False, orient=False, flags=None,
                 imgBGR = cv2.imread(img_fpath, flags=flags)
 
         except cv2.error as cv2ex:
-            ut.printex(cv2ex, iswarning=True)
+            ut.printex(cv2ex, 'opencv error', iswarning=True)
             #print('cv2error dict = ' + ut.dict_str(cv2ex.__dict__))
             #print('cv2error dirlist = ' + ut.list_str(dir(cv2ex)))
             #print('cv2error args = ' + repr(cv2ex.args))

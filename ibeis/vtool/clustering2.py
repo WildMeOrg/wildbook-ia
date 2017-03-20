@@ -53,31 +53,6 @@ def testdata_kmeans():
     return locals()
 
 
-# def k_means_plus_plus(X, n_clusters, random_state, n_local_trials=None,
-#                       verbose=True):
-
-#     from sklearn.utils.extmath import row_norms
-#     from sklearn.utils import check_array
-
-#     X = check_array(X, accept_sparse="csr", order='C',
-#                     dtype=[np.float64, np.float32])
-#     n_samples, n_features = X.shape
-#     if n_samples < n_clusters:
-#         raise ValueError("Number of samples smaller than number "
-#                          "of clusters.")
-
-#     x_squared_norms = row_norms(X, squared=True)[np.newaxis, :]
-#     try:
-#         import sklearn.cluster.k_means_
-#         # with ut.Timer('km++'):
-#         #     centers = sklearn.cluster.k_means_._k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=n_local_trials, verbose=1)
-#         #     %timeit sklearn.cluster.k_means_._k_init(X, n_clusters, x_squared_norms, random_state, n_local_trials=n_local_trials, verbose=0)
-#     except KeyboardInterrupt:
-#         print('\n\n\n')
-#         raise
-#     return centers
-
-
 def kmeans_plusplus_sklearn(X, K, **kwargs):
     import sklearn.cluster
     from sklearn.utils.extmath import row_norms
@@ -634,7 +609,7 @@ def akmeans_iterations(data, centroids, max_iters, flann_params,
         python -m vtool.clustering2 akmeans_iterations --show
 
     Example:
-        >>> # ENABLE_DOCTEST
+        >>> # DISABLE_DOCTEST
         >>> from vtool.clustering2 import *  # NOQA
         >>> import numpy as np
         >>> rng = np.random.RandomState(42)
@@ -735,25 +710,15 @@ class AnnoyWraper(object):
         return self.query_annoy(query_vecs, num, checks)
 
 
-ANNOY = 0
-
-
 def approximate_distances(centroids, data, K, flann_params):
-    if ANNOY:
-        (_, qdist2_sdist) = AnnoyWraper().nn(centroids, data, K, **flann_params)
-    else:
-        import pyflann
-        (_, qdist2_sdist) = pyflann.FLANN().nn(centroids, data, K, **flann_params)
+    import pyflann
+    (_, qdist2_sdist) = pyflann.FLANN().nn(centroids, data, K, **flann_params)
     return qdist2_sdist
 
 
 def approximate_assignments(seachedvecs, queryvecs, K, flann_params):
-    if ANNOY:
-        (qx2_sx, qdist2_sdist) = AnnoyWraper().nn(seachedvecs, queryvecs, K, **flann_params)
-        qx2_sx = qx2_sx.ravel()
-    else:
-        import pyflann
-        (qx2_sx, qdist2_sdist) = pyflann.FLANN().nn(seachedvecs, queryvecs, K, **flann_params)
+    import pyflann
+    (qx2_sx, qdist2_sdist) = pyflann.FLANN().nn(seachedvecs, queryvecs, K, **flann_params)
     return qx2_sx, qdist2_sdist
 
 
