@@ -171,12 +171,17 @@ def multi_plot(xdata, ydata_list, **kwargs):
     extra_kw_vals = ut.dict_take(plot_list_kw, extra_kw_keys)
     extra_kw_list = [dict(zip(extra_kw_keys, vals)) for vals in zip(*extra_kw_vals)]
 
-    # Setup figure
-    fig = pt.figure(fnum=fnum, pnum=pnum, docla=False)
+    # Get passed in axes or setup a new figure
+    ax = kwargs.get('ax', None)
+    if ax is None:
+        fig = pt.figure(fnum=fnum, pnum=pnum, docla=False)
+        ax = pt.gca()
+    else:
+        pt.plt.sca(ax)
+        fig = ax.figure
 
     # +---------------
     # Draw plot lines
-    ax = pt.gca()
     ydata_list = np.array(ydata_list)
 
     if transpose:
@@ -287,21 +292,29 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ylabel = none_or_unicode(ylabel)
     title = none_or_unicode(title)
 
-    # Font sizes
-    #titlesize  = kwargs.get('titlesize',  12)
-    #labelsize  = kwargs.get('labelsize',  10)
-    #legendsize = kwargs.get('legendsize', 10)
-    titlesize  = kwargs.get('titlesize',  custom_figure.TITLE_SIZE)
-    labelsize  = kwargs.get('labelsize',  custom_figure.LABEL_SIZE)
-    legendsize = kwargs.get('legendsize', custom_figure.LEGEND_SIZE)
+    # Initial integration with mpl rcParams standards
+    mplrc = mpl.rcParams.copy()
+    mplrc.update({
+        'legend.fontsize': custom_figure.LEGEND_SIZE,
+        'axes.titlesize': custom_figure.TITLE_SIZE,
+        'axes.labelsize': custom_figure.LABEL_SIZE,
+        # 'legend.facecolor': 'w',
+        'font.family': 'DejaVu Sans',
+        'xtick.labelsize': custom_figure.TICK_SIZE,
+        'ytick.labelsize': custom_figure.TICK_SIZE,
+    })
+    mplrc.update(kwargs.get('rcParams', {}))
+
+    titlesize  = kwargs.get('titlesize',  mplrc['axes.titlesize'])
+    labelsize  = kwargs.get('labelsize',  mplrc['axes.labelsize'])
+    legendsize = kwargs.get('legendsize', mplrc['legend.fontsize'])
+    xticksize = kwargs.get('ticksize', mplrc['xtick.labelsize'])
+    yticksize = kwargs.get('ticksize', mplrc['ytick.labelsize'])
+    family = kwargs.get('fontfamily', mplrc['font.family'])
 
     # 'DejaVu Sans','Verdana', 'Arial'
-    family = kwargs.get('fontfamily', None)
-    if family is None:
-        family = 'DejaVu Sans'
     weight = kwargs.get('fontweight', None)
     if weight is None:
-        # weight = 'light'
         weight = 'normal'
 
     labelkw = {
@@ -312,21 +325,20 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ax.set_xlabel(xlabel, **labelkw)
     ax.set_ylabel(ylabel, **labelkw)
 
-    ticksize = kwargs.get('ticksize', None)
     tick_fontprop = mpl.font_manager.FontProperties(family=family,
                                                     weight=weight)
 
     if tick_fontprop is not None:
-        for label in ax.get_xticklabels():
-            label.set_fontproperties(tick_fontprop)
-        for label in ax.get_yticklabels():
-            label.set_fontproperties(tick_fontprop)
-
-    if ticksize is not None:
-        for label in ax.get_xticklabels():
-            label.set_fontsize(ticksize)
-        for label in ax.get_yticklabels():
-            label.set_fontsize(ticksize)
+        for ticklabel in ax.get_xticklabels():
+            ticklabel.set_fontproperties(tick_fontprop)
+        for ticklabel in ax.get_yticklabels():
+            ticklabel.set_fontproperties(tick_fontprop)
+    if xticksize is not None:
+        for ticklabel in ax.get_xticklabels():
+            ticklabel.set_fontsize(xticksize)
+    if yticksize is not None:
+        for ticklabel in ax.get_yticklabels():
+            ticklabel.set_fontsize(yticksize)
 
     xtick_kw = ytick_kw = {
         'width': kwargs.get('tickwidth', None),
@@ -466,7 +478,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
                 weight=weight,
                 size=legendsize)
         }
-        df2.legend(loc=legend_loc, **legendkw)
+        df2.legend(loc=legend_loc, ax=ax, **legendkw)
 
     figtitle = kwargs.get('figtitle', None)
     if figtitle is not None:

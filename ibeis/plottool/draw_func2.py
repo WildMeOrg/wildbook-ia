@@ -350,14 +350,27 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
         else:
             zoom = .5
         zoom = ut.get_argval('--overlay-zoom', default=zoom)
-        imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
-        ab = mpl.offsetbox.AnnotationBbox(
-            imagebox, xy,
-            xybox=(0., 0.),
-            xycoords='data',
-            #xycoords='axes fraction',
-            boxcoords="offset points",
-            box_alignment=bbox_alignment, pad=0.0)
+        if False:
+            # TODO: figure out how to make axes fraction work
+            imagebox = mpl.offsetbox.OffsetImage(icon)
+            imagebox.set_width(1)
+            imagebox.set_height(1)
+            ab = mpl.offsetbox.AnnotationBbox(
+                imagebox, xy,
+                xybox=(0., 0.),
+                xycoords='data',
+                boxcoords=('axes fraction', 'data'),
+                # boxcoords="offset points",
+                box_alignment=bbox_alignment, pad=0.0)
+        else:
+            imagebox = mpl.offsetbox.OffsetImage(icon, zoom=zoom)
+            ab = mpl.offsetbox.AnnotationBbox(
+                imagebox, xy,
+                xybox=(0., 0.),
+                xycoords='data',
+                #xycoords='axes fraction',
+                boxcoords="offset points",
+                box_alignment=bbox_alignment, pad=0.0)
         ax.add_artist(ab)
     else:
         img_size = vt.get_size(icon)
@@ -367,6 +380,7 @@ def overlay_icon(icon, coords=(0, 0), coord_type='axes', bbox_alignment=(0, 0),
             width, height = dsize
         else:
             width, height = img_size
+        print('width, height= %r, %r' % (width, height,))
         x1 = xy[0] + width * bbox_alignment[0]
         y1 = xy[1] + height * bbox_alignment[1]
         x2 = xy[0] + width * (1 - bbox_alignment[0])
@@ -2217,7 +2231,8 @@ LEGEND_LOCATION = {
 
 
 #def legend(loc='upper right', fontproperties=None):
-def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1):
+def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
+           ax=None):
     r"""
     Args:
         loc (str): (default = 'best')
@@ -2243,7 +2258,8 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1):
     """
     assert loc in LEGEND_LOCATION or loc == 'best', (
         'invalid loc. try one of %r' % (LEGEND_LOCATION,))
-    ax = gca()
+    if ax is None:
+        ax = gca()
     if fontproperties is None:
         prop = {}
         if size is not None:

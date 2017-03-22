@@ -19,16 +19,40 @@ ut.noinject(__name__, '[customfig]')
 #TITLE_SIZE = ut.get_argval('--titlesize', default=8)
 
 
-LABEL_SIZE = ut.get_argval('--labelsize', default=10)
-TITLE_SIZE = ut.get_argval('--titlesize', default=12)
-FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=10)
-LEGEND_SIZE = ut.get_argval('--legendsize', default=8)
+# LABEL_SIZE = ut.get_argval('--labelsize', default=10)
+# TITLE_SIZE = ut.get_argval('--titlesize', default=12)
+# FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=10)
+# LEGEND_SIZE = ut.get_argval('--legendsize', default=8)
+# TICK_SIZE = ut.get_argval('--ticksize', default=8)
 
 # UNCOMMENT FOR PRESENTATIONS
-LABEL_SIZE = ut.get_argval('--labelsize', default=14)
-TITLE_SIZE = ut.get_argval('--titlesize', default=18)
-FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
-LEGEND_SIZE = ut.get_argval('--legendsize', default=14)
+# LABEL_SIZE = ut.get_argval('--labelsize', default=13)
+# TITLE_SIZE = ut.get_argval('--titlesize', default=18)
+# FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
+# LEGEND_SIZE = ut.get_argval('--legendsize', default=16)
+# TICK_SIZE = ut.get_argval('--ticksize', default=12)
+
+LABEL_SIZE = ut.get_argval('--labelsize', default=None)
+TITLE_SIZE = ut.get_argval('--titlesize', default=None)
+FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=None)
+LEGEND_SIZE = ut.get_argval('--legendsize', default=None)
+TICK_SIZE = ut.get_argval('--ticksize', default=None)
+
+# CUSTOM_RC = {
+#     'legend.fontsize': LEGEND_SIZE,
+#     'axes.titlesize': TITLE_SIZE,
+#     'axes.labelsize': LABEL_SIZE,
+#     # 'legend.facecolor': 'w',
+#     # 'font.family': 'DejaVu Sans',
+#     'xtick.labelsize': TICK_SIZE,
+#     'ytick.labelsize': TICK_SIZE,
+# }
+# for key, val in CUSTOM_RC.items():
+#     print(key)
+#     print(val)
+#     if val is not None:
+#         mpl.rcParams[key] = val
+
 
 
 def customize_figure(fig, docla):
