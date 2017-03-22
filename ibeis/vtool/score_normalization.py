@@ -779,7 +779,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         # inspect_kw = ut.update_existing(default_kw, kwargs, alias_dict=alias_dict)
         inspect_kw = ut.update_dict(default_kw, kwargs, alias_dict=alias_dict)
         print('inspect_kw = %r' % (inspect_kw,))
-        other_kw = ut.delete_dict_keys(kwargs.copy(), inspect_kw.keys() + alias_dict.keys())
+        other_kw = ut.delete_dict_keys(kwargs.copy(), list(inspect_kw.keys()) +
+                                       list(alias_dict.keys()))
 
         score_thresh, prob_thresh = encoder._hack_vizlearn(**other_kw)
 
@@ -1438,20 +1439,20 @@ def inspect_pdfs(tn_support, tp_support,
     )
 
     class SortedScoreSupportInteraction(AbstractInteraction):
-        def __init__(self, **kwargs):
-            super(SortedScoreSupportInteraction, self).__init__(**kwargs)
-            self.tn_support = tn_support
-            self.tp_support = tp_support
-            self.part_attrs = part_attrs
-            self.attr_callback = attr_callback
-            self.sel_mode = 'tn'
+        def __init__(data_pdf, **kwargs):
+            super(SortedScoreSupportInteraction, data_pdf).__init__(**kwargs)
+            data_pdf.tn_support = tn_support
+            data_pdf.tp_support = tp_support
+            data_pdf.part_attrs = part_attrs
+            data_pdf.attr_callback = attr_callback
+            data_pdf.sel_mode = 'tn'
 
-        def toggle_mode(self):
-            if self.sel_mode == 'tn':
-                self.sel_mode = 'tp'
+        def toggle_mode(data_pdf):
+            if data_pdf.sel_mode == 'tn':
+                data_pdf.sel_mode = 'tp'
             else:
-                self.sel_mode = 'tn'
-            print('TOGGLE self.sel_mode = %r' % (self.sel_mode,))
+                data_pdf.sel_mode = 'tn'
+            print('TOGGLE data_pdf.sel_mode = %r' % (self.sel_mode,))
 
         @staticmethod
         def static_plot(fnum, pnum):
@@ -1463,41 +1464,41 @@ def inspect_pdfs(tn_support, tp_support,
                 **support_sort_kw
             )
 
-        def plot(self, fnum, pnum):
-            self.static_plot(fnum, pnum)
+        def plot(data_pdf, fnum, pnum):
+            data_pdf.static_plot(fnum, pnum)
 
-        def on_key_press(self, event):
+        def on_key_press(data_pdf, event):
             #print('event = %r' % (event,))
             #print('event.key = %r' % (event.key,))
             if event.key == 't':
-                self.toggle_mode()
+                data_pdf.toggle_mode()
 
-        def on_click_inside(self, event, ex):
+        def on_click_inside(data_pdf, event, ex):
             import vtool as vt
             #ax = event.inaxes
             #for l in ax.get_lines():
             #    print(l.get_label())
-            tp_index, tp_dist = vt.closest_point(event.ydata, self.tp_support[:, None])
-            tn_index, tn_dist = vt.closest_point(event.ydata, self.tn_support[:, None])
+            tp_index, tp_dist = vt.closest_point(event.ydata, data_pdf.tp_support[:, None])
+            tn_index, tn_dist = vt.closest_point(event.ydata, data_pdf.tn_support[:, None])
             print('closest tp_index = %r, %r' % (tp_index, tp_dist))
             print('closest tn_index = %r, %r' % (tn_index, tn_dist))
-            SEL_TP = self.sel_mode == 'tp'
-            print('self.sel_mode = %r' % (self.sel_mode,))
+            SEL_TP = data_pdf.sel_mode == 'tp'
+            print('data_pdf.sel_mode = %r' % (self.sel_mode,))
             if SEL_TP:
-                tp_attrs = self.part_attrs[True]
+                tp_attrs = data_pdf.part_attrs[True]
                 if len(tp_attrs) == 0:
                     print('No positive attrs')
                 subattrs = ut.get_dict_column(tp_attrs, tp_index)
             else:
-                tn_attrs = self.part_attrs[False]
+                tn_attrs = data_pdf.part_attrs[False]
                 if len(tn_attrs) == 0:
                     print('No negative attrs')
                 subattrs = ut.get_dict_column(tn_attrs, tn_index)
             print('subattrs = %r' % (subattrs,))
-            if self.attr_callback is not None:
+            if data_pdf.attr_callback is not None:
                 print('Executing callback')
-                self.attr_callback(**subattrs)
-            #dists = vt.L1(event.ydata, self.tp_support[:, None])
+                data_pdf.attr_callback(**subattrs)
+            #dists = vt.L1(event.ydata, data_pdf.tp_support[:, None])
             #index = dists.argsort()[0]
             #event.xdata
             # Find the nearest label
@@ -1614,7 +1615,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         ndarray: data_pdf
 
     CommandLine:
-        python -m vtool.score_normalization --exec-estimate_pdf --show
+        python -m vtool.score_normalization estimate_pdf --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -1646,8 +1647,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
     import statsmodels.nonparametric.kde
     import statsmodels.nonparametric.bandwidths
     #import scipy.stats as spstats
-    #import statsmodels
-    data = data.astype(np.float64)  # HACK
+    #import statsmodelskde.score_samples(support[:, None])
 
     if True:
         # Ensure that a non-zero bandwidth is chosen
@@ -1667,6 +1667,26 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
                 # use a very small value
                 bw_value = 1e-9
     try:
+
+        if False:
+            # Alternate implementation in case statsmodels breaks
+            class TempPdf():
+                def __init__(data_pdf, data, bw_value, gridsize):
+                    from sklearn.neighbors.kde import KernelDensity
+                    kde = KernelDensity(kernel='gaussian', bandwidth=bw_value)
+                    kde.fit(data[:, None])
+                    data_pdf.kde = kde
+                    data_pdf.support = np.linspace(data.min(), data.max(), gridsize)
+                    data_pdf.density = data_pdf.evaluate(data_pdf.support)
+                    # import scipy as sp
+                    data_pdf.cdf = data_pdf.density.cumsum()
+                    # data_pdf.cdf = sp.integrate.cumtrapz(data_pdf.density,
+                                                           # data_pdf.support)
+
+                def evaluate(data_pdf, scores):
+                    return np.exp(data_pdf.kde.score_samples(scores[:, None]))
+            data_pdf = TempPdf(data, bw_value, gridsize)
+
         data_pdf = statsmodels.nonparametric.kde.KDEUnivariate(data)
         fitkw = dict(kernel='gau',
                      bw=bw_value,
@@ -1679,7 +1699,7 @@ def estimate_pdf(data, gridsize=1024, adjust=1):
         data_pdf.fit(**fitkw)
     except Exception as ex:
         ut.printex(ex, '! Exception while estimating kernel density',
-                   keys=['data'])
+                   keys=['data', 'gridsize', 'bw_value', 'adjust'])
         raise
 
     return data_pdf

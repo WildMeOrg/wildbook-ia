@@ -1620,13 +1620,31 @@ def rectify_invV_mats_are_up(invVR_mats):
         >>> print(ut.hashstr(output))
         2wir&6ybcga0bpvz
 
+    Ignore:
+        _invRs_2x2 = invVR_mats[:, 0:2, 0:2][0:1]
+        A = _invRs_2x2[0]
+        Q, R = np.linalg.qr(A)
+
+        invVR_mats2, oris = rectify_invV_mats_are_up(_invRs_2x2[0:1])
+        L2, ori2 = invVR_mats2[0], oris[0]
+        Q2 = vt.rotation_mat2x2(ori2)
+
+        np.linalg.det(Q)
+
+        vecs = np.random.rand(2, 4)
+        Q2.dot(vecs)
+        Q.dot(vecs)
+
+        np.linalg.cholesky(_invR_2x2)
+
+
     """
     # Get orientation encoded in the matrix
     _oris = get_invVR_mats_oris(invVR_mats)
     # Extract keypoint shape components
     (_a, _b, _c, _d) = get_invVR_mats_shape(invVR_mats)
-    #
     # Convert to lower triangular (rectify orientation downwards)
+    # I believe this is an LQ decomposition
     det_ = np.sqrt(np.abs((_a * _d) - (_b * _c)))
     b2a2 = np.sqrt((_b ** 2) + (_a ** 2))
     iv11 = b2a2 / det_
