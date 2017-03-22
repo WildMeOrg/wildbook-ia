@@ -223,8 +223,15 @@ class _AnnotInfrViz(object):
         if getattr(infr, '_viz_image_config_dirty', True):
             infr.update_node_image_attribute(use_image=use_image)
 
-        if kwargs.get('show_candidate_edges', None) is not None:
-            show_unreviewed_edges = kwargs['show_candidate_edges']
+        def get_any(dict_, keys, default=None):
+            for key in keys:
+                if key in dict_:
+                    return dict_[key]
+            return default
+        show_cand = get_any(kwargs, ['show_candidate_edges', 'show_candidates',
+                                     'show_cand'])
+        if show_cand is not None:
+            show_unreviewed_edges = show_cand
 
         alpha_low = .5
         alpha_med = .9
@@ -423,8 +430,8 @@ class _AnnotInfrViz(object):
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     @profile
-    def show_graph(infr, use_image=False, with_colorbar=False, pnum=(1, 1, 1),
-                   **kwargs):
+    def show_graph(infr, use_image=False, update_attrs=True,
+                   with_colorbar=False, pnum=(1, 1, 1), **kwargs):
         import plottool as pt
         # kwargs['fontsize'] = kwargs.get('fontsize', 8)
         with warnings.catch_warnings():
@@ -432,7 +439,8 @@ class _AnnotInfrViz(object):
             # default_update_kw = ut.get_func_kwargs(infr.update_visual_attrs)
             # update_kw = ut.update_existing(default_update_kw, kwargs)
             # infr.update_visual_attrs(**update_kw)
-            infr.update_visual_attrs(**kwargs)
+            if update_attrs:
+                infr.update_visual_attrs(**kwargs)
             graph = infr.graph
             plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                                   modify_ax=False, use_image=use_image, verbose=0,

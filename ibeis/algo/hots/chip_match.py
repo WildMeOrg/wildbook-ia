@@ -179,7 +179,7 @@ class _ChipMatchVisualization(object):
     Abstract class containing the visualization function for ChipMatch
     """
 
-    def show_single_namematch(cm, qreq_, dnid, fnum=None, pnum=None,
+    def show_single_namematch(cm, qreq_, dnid=None, rank=None, fnum=None, pnum=None,
                               homog=ut.get_argflag('--homog'), **kwargs):
         r"""
         CommandLine:
@@ -188,24 +188,34 @@ class _ChipMatchVisualization(object):
             python -m ibeis --tf ChipMatch.show_single_namematch --show --qaid 1 \
                 --dpath figures --save ~/latex/crall-candidacy-2015/figures/namematch.jpg
 
+            python -m ibeis --tf _ChipMatchVisualization.show_single_namematch --show --rank=0 --qaid=1 --save rank0.jpg
+            python -m ibeis --tf _ChipMatchVisualization.show_single_namematch --show --rank=1 --qaid=1 --save rank1.jpg
+            python -m ibeis --tf _ChipMatchVisualization.show_single_namematch --show --rank=2 --qaid=1 --save rank2.jpg
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST', default_qaids=[18])
-            >>> homog = False
-            >>> dnid = cm.qnid
-            >>> cm.show_single_namematch(qreq_, dnid)
+            >>> homog = ut.get_argflag('--homog')
+            >>> _nid = ut.get_argval('--dnid', default=cm.qnid)
+            >>> rank = ut.get_argval('--rank', default=None)
+            >>> dnid = None if rank is not None else _nid
+            >>> cm.show_single_namematch(qreq_, dnid=dnid, rank=rank)
             >>> ut.quit_if_noshow()
             >>> ut.show_if_requested()
         """
         from ibeis.viz import viz_matches
+        assert bool(dnid is None) != bool(rank is None), 'must choose one'
+        if dnid is None:
+            dnid = cm.get_nid_at_rank(rank)
         qaid = cm.qaid
         if cm.nid2_nidx is None:
             raise AssertionError('cm.nid2_nidx has not been evaluated yet')
             #cm.score_nsum(qreq_)
         # <GET NAME GROUPXS>
         try:
+
             nidx = cm.nid2_nidx[dnid]
             #if nidx == 144:
             #    raise
@@ -1251,6 +1261,10 @@ class _AnnotMatchConvenienceGetter(object):
         nidx_list = ut.dict_take(cm.nid2_nidx, nid_list)
         name_scores = vt.list_take_(cm.name_score_list, nidx_list)
         return name_scores
+
+    def get_nid_at_rank(cm, rank):
+        sorted_nids, sorted_name_scores = cm.get_ranked_nids()
+        return sorted_nids[rank]
 
     def get_ranked_nids(cm):
         sortx = cm.name_score_list.argsort()[::-1]

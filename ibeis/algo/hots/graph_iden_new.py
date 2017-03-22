@@ -210,6 +210,12 @@ class CandidateSearch2(object):
         }
         return new_edges
 
+    def apply_edge_truth(infr, edges):
+        edge_truth_df = infr.match_state_df(edges)
+        edge_truth = edge_truth_df.idxmax(axis=1).to_dict()
+        infr.set_edge_attrs('truth', edge_truth)
+        infr.edge_truth.update(edge_truth)
+
     @profile
     def add_new_candidate_edges(infr, new_edges):
         new_edges = list(new_edges)
@@ -220,10 +226,7 @@ class CandidateSearch2(object):
         infr.set_edge_attrs('num_reviews', ut.dzip(new_edges, [0]))
 
         if infr.test_mode:
-            edge_truth_df = infr.match_state_df(new_edges)
-            edge_truth = edge_truth_df.idxmax(axis=1).to_dict()
-            infr.set_edge_attrs('truth', edge_truth)
-            infr.edge_truth.update(edge_truth)
+            infr.apply_edge_truth(new_edges)
 
         if infr.classifiers:
             if infr.verbose > 1:
@@ -558,7 +561,8 @@ class InfrFeedback2(object):
             'num_reviews': num_reviews + 1,
         }
         infr.internal_feedback[edge].append(feedback_item)
-        infr.refresh.add(decision, user_id)
+        if infr.refresh:
+            infr.refresh.add(decision, user_id)
         infr.set_edge_attr(edge, feedback_item)
 
         if infr.test_mode:

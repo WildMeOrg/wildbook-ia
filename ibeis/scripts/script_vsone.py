@@ -227,7 +227,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             match.show(show_ell=False, show_ori=False)
             # pt.set_title(alias)
 
-    def load_features(pblm):
+    def load_features(pblm, use_cache=True):
         if pblm.verbose > 0:
             print('[pblm] load_features')
         qreq_ = pblm.qreq_
@@ -244,7 +244,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
         cacher = ut.Cacher('pairwise_data_v11', cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=1,
+                           appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose)
         data = cacher.tryload()
         if not data:

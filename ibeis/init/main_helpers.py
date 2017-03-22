@@ -271,9 +271,12 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
 
     if verbose:
         print('[main_helpers] testdata_expanded_aids')
+
+    default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list,
+                                  default=default_qaids)
     if default_qaids is None:
-        # Hack to aggree with experiment-helpers
-        default_qaids = ut.get_argval(('--qaid', '--qaid-override'), type_=list, default=[1])
+        default_qaids = [1]
+
     if defaultdb is None:
         defaultdb = 'testdb1'
     import ibeis

@@ -1318,7 +1318,7 @@ class QueryRequest(ut.NiceRepr):
         fpath_list = [join(dpath, fname) for fname in fname_list]
         return fpath_list
 
-    def execute(qreq_, qaids=None, prog_hook=None):
+    def execute(qreq_, qaids=None, prog_hook=None, use_cache=None):
         r"""
         Runs the hotspotter pipeline and returns chip match objects.
 
@@ -1346,8 +1346,8 @@ class QueryRequest(ut.NiceRepr):
             # Send query to hotspotter (runs the query)
             qreq_.prog_hook = prog_hook
             cm_list = mc4.submit_query_request(
-                qreq_, use_cache=None, use_bigcache=None, verbose=True,
-                save_qcache=None)
+                qreq_, use_cache=use_cache, use_bigcache=use_cache, verbose=True,
+                save_qcache=use_cache)
         return cm_list
 
 

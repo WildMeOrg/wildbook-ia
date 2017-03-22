@@ -264,18 +264,37 @@ def iccv_roc(dbname):
     res.extended_clf_report()
 
     class_name = 'match'
-    labels = res.target_bin_df[class_name].values
-    probs = res.probs_df[class_name].values
-    clf_conf = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+    clf_labels = res.target_bin_df[class_name].values
+    clf_probs = res.probs_df[class_name].values
+    clf_conf = vt.ConfusionMetrics.from_scores_and_labels(clf_probs,
+                                                          clf_labels)
     clf_fpr = clf_conf.fpr
     clf_tpr = clf_conf.tpr
 
     class_name = 'match'
-    labels = pblm.samples.subtasks['match_state'].indicator_df[class_name]
-    scores = pblm.samples.simple_scores['score_lnbnn_1vM']
-    lnbnn_conf = vt.ConfusionMetrics.from_scores_and_labels(scores, labels)
+    task = pblm.samples.subtasks['match_state']
+    lnbnn_labels = task.indicator_df[class_name]
+    lnbnn_scores = pblm.samples.simple_scores['score_lnbnn_1vM']
+    lnbnn_conf = vt.ConfusionMetrics.from_scores_and_labels(lnbnn_scores,
+                                                            lnbnn_labels)
     lnbnn_fpr = lnbnn_conf.fpr
     lnbnn_tpr = lnbnn_conf.tpr
+
+    clf_bins = np.linspace(0, 1, 100)
+    clf_pos_probs = clf_probs[clf_labels]
+    clf_neg_probs = clf_probs[~clf_labels]
+    clf_pos_freq, _ = np.histogram(clf_pos_probs, clf_bins)
+    clf_neg_freq, _ = np.histogram(clf_neg_probs, clf_bins)
+    clf_pos_freq = clf_pos_freq / clf_pos_freq.sum()
+    clf_neg_freq = clf_neg_freq / clf_neg_freq.sum()
+
+    lnbnn_bins = np.linspace(0, 10, 100)
+    lnbnn_pos_probs = lnbnn_scores[lnbnn_labels].values
+    lnbnn_neg_probs = lnbnn_scores[~lnbnn_labels].values
+    lnbnn_pos_freq, _ = np.histogram(lnbnn_pos_probs, lnbnn_bins)
+    lnbnn_neg_freq, _ = np.histogram(lnbnn_neg_probs, lnbnn_bins)
+    lnbnn_pos_freq = lnbnn_pos_freq / lnbnn_pos_freq.sum()
+    lnbnn_neg_freq = lnbnn_neg_freq / lnbnn_neg_freq.sum()
 
     # Dump the data required to recreate the ROC into a folder
     expt_annots = ibs.annots(expt_aids)
@@ -289,6 +308,12 @@ def iccv_roc(dbname):
         'annot_uuids': expt_annots.uuids,
         'visual_uuids': expt_annots.visual_uuids,
         'qreq_cfgstr': pblm.qreq_.get_cfgstr(),
+        'lnbnn_bins': lnbnn_bins,
+        'lnbnn_pos_freq': lnbnn_pos_freq,
+        'lnbnn_neg_freq': lnbnn_neg_freq,
+        'clf_bins': clf_bins,
+        'clf_pos_freq': clf_pos_freq,
+        'clf_neg_freq': clf_neg_freq,
         # 'pblm_hyperparams': getstate_todict_recursive(pblm.hyper_params),
         'pblm_hyperparams': pblm.hyper_params.getstate_todict_recursive(),
     }
@@ -307,14 +332,6 @@ def iccv_roc(dbname):
     ut.save_cPkl(str(info_fpath), info)
 
     draw_saved_roc(dbname)
-
-    # fname = '_'.join(['roc', species_code, suffix, hashid])
-    # fig_fname = fname  + '.png'
-    # info_fname = fname + '.cPkl'
-    # dpath = 'roc_expt_' + ut.timestamp()
-    # ut.ensuredir(dpath)
-    # info_fpath = join(dpath, info_fname)
-    # ut.save_cPkl(info_fpath, info)
 
 
 def draw_saved_roc(dbname):
@@ -344,6 +361,9 @@ def draw_saved_roc(dbname):
     # Draw the ROC in another process for quick iterations to appearance
     # DRAW RESULTS
     import plottool as pt
+    import sklearn.metrics
+    import vtool as vt
+    import matplotlib as mpl
     pt.qtensure()
 
     if dbname is None:
@@ -362,10 +382,8 @@ def draw_saved_roc(dbname):
     clf_tpr = info['clf_tpr']
     species = info['species']
 
-    import sklearn.metrics
     clf_auc = sklearn.metrics.auc(clf_fpr, clf_tpr)
     lnbnn_auc = sklearn.metrics.auc(lnbnn_fpr, lnbnn_tpr)
-    import matplotlib as mpl
 
     tmprc = {
         'legend.fontsize': 16,
@@ -394,10 +412,55 @@ def draw_saved_roc(dbname):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
                        hspace=.2)
     fig.set_size_inches([7.4375,  3.125])
-    import vtool as vt
     fig.savefig(str(fig_fpath))
     clip_fpath = vt.clipwhite_ondisk(str(fig_fpath))
     print('clip_fpath = %r' % (clip_fpath,))
+
+    clf_bins = info['clf_bins']
+    clf_pos_freq = info['clf_pos_freq']
+    clf_neg_freq = info['clf_neg_freq']
+    lnbnn_bins = info['lnbnn_bins']
+    lnbnn_pos_freq = info['lnbnn_pos_freq']
+    lnbnn_neg_freq = info['lnbnn_neg_freq']
+
+    fnum = 12
+    pnum = (1, 1, 1)
+    true_color = pt.TRUE_BLUE  # pt.TRUE_GREEN
+    false_color = pt.FALSE_RED
+    score_colors = (false_color, true_color)
+    lnbnn_fig = pt.multi_plot(
+        clf_bins, (clf_neg_freq, clf_pos_freq),
+        label_list=('negative', 'positive'),
+        fnum=fnum, color_list=score_colors, pnum=pnum, kind='bar',
+        width=np.diff(clf_bins)[0], alpha=.7, stacked=True, edgecolor='none',
+        rcParams=tmprc,
+        xlabel='positive probability', ylabel='frequency',
+        title='pairwise probability separation')
+    lnbnn_fig_fpath = ut.augpath(str(fig_fpath), prefix='clf_scoresep_')
+    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                       hspace=.2)
+    lnbnn_fig.set_size_inches([7.4375,  3.125])
+    lnbnn_fig.savefig(str(lnbnn_fig_fpath), dpi=256)
+    vt.clipwhite_ondisk(str(lnbnn_fig_fpath))
+
+    fnum = 13
+    score_colors = (false_color, true_color)
+    clf_fig = pt.multi_plot(
+        lnbnn_bins,
+        (lnbnn_neg_freq, lnbnn_pos_freq),
+        label_list=('negative', 'positive'),
+        fnum=fnum, color_list=score_colors, pnum=pnum, kind='bar',
+        width=np.diff(lnbnn_bins)[0], alpha=.7, stacked=True, edgecolor='none',
+        rcParams=tmprc,
+        xlabel='LNBNN score', ylabel='frequency',
+        title='LNBNN score separation')
+    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
+                       hspace=.2)
+    clf_fig.set_size_inches([7.4375,  3.125])
+    clf_fig_fpath = ut.augpath(str(fig_fpath), prefix='lnbnn_scoresep_')
+    clf_fig.savefig(str(clf_fig_fpath), dpi=256)
+    vt.clipwhite_ondisk(str(clf_fig_fpath))
+
     ut.show_if_requested()
 
 

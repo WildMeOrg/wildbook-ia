@@ -1150,6 +1150,23 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> cm.score_csum(qreq_)
         >>> cm_list[0].ishow_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
+
+    Example3:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.hots.pipeline import *  # NOQA
+        >>> qreq_, args = plh.testdata_pre(
+        >>>     'build_chipmatches', p=['default:cond_knn=True'], a='default')
+        >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
+        >>> filtvalids_list, filtnormks_list) = args
+        >>> verbose = True
+        >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
+        >>> # verify results
+        >>> [cm.assert_self(qreq_) for cm in cm_list]
+        >>> scoring.score_chipmatch_list(qreq_, cm_list, 'csum')
+        >>> cm = cm_list[0]
+        >>> for cm in cm_list:
+        >>>     # should be positive for LNBNN
+        >>>     assert np.all(cm.score_list[np.isfinite(cm.score_list)] >= 0)
     """
     is_vsone =  qreq_.qparams.vsone
     Knorm = qreq_.qparams.Knorm

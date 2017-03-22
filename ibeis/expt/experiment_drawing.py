@@ -1035,10 +1035,11 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     cumhistkw.update(kwargs)
 
     # if not twoplots:
+    minval = numranks if numranks <= 10 else 10
 
     pt.plot_rank_cumhist(
         cfgx2_cumhist_short, edges=edges_short, label_list=label_list,
-        num_xticks=min(numranks, (numranks // 20) + 2),
+        num_xticks=max(5, min(minval, (numranks // 20) + 2)),
         #legend_alpha=.85,
         legend_alpha=.92,
         #legendsize=12,
@@ -1065,8 +1066,10 @@ def draw_rank_cmc(ibs, testres, verbose=False, test_cfgx_slice=None,
     if draw_icon and icon is not None:
         #ax = pt.gca()
         #ax.get_xlim()
-        pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True, max_asize=(10, 20))
-        # pt.overlay_icon(icon, bbox_alignment=(0, 1), as_artist=True, max_asize=(2, 4))
+        pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=True)
+        # pt.overlay_icon(icon, bbox_alignment=(0, 0), as_artist=False, max_asize=(.5, .5))
+        # pt.overlay_icon(icon, bbox_alignment=(0, 1), as_artist=False)
+        # max_asize=(2, 4))
         pass
         #ax.get_ylim()
 

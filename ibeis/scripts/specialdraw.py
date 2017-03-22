@@ -368,6 +368,7 @@ def graphcut_flow():
         ?: name
 
     CommandLine:
+        python -m ibeis.scripts.specialdraw graphcut_flow --show
         python -m ibeis.scripts.specialdraw graphcut_flow --show --save cutflow.png --diskshow --clipwhite
         python -m ibeis.scripts.specialdraw graphcut_flow --save figures4/cutiden.png --diskshow --clipwhite --dpath ~/latex/crall-candidacy-2015/ --figsize=24,10 --arrow-width=2.0
 
@@ -662,12 +663,134 @@ def setcover_example():
     pt.zoom_factory()
 
 
+def graph_iden_cut_demo():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --precut
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --show --postcut
+
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --precut --save=precut.png --clipwhite
+        python -m ibeis.scripts.specialdraw graph_iden_cut_demo --postcut --save=postcut.png --clipwhite
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> graph_iden_cut_demo()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool as pt
+    from ibeis.viz import viz_graph
+    # import networkx as nx
+    pt.ensureqt()
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    nid2_aid = {
+        #4880: [3690, 3696, 3703, 3706, 3712, 3721],
+        4880: [3690, 3696, 3703],
+        6537: [3739],
+        # 6653: [7671],
+        6610: [7566, 7408],
+        #6612: [7664, 7462, 7522],
+        #6624: [7465, 7360],
+        #6625: [7746, 7383, 7390, 7477, 7376, 7579],
+        6630: [7586, 7377, 7464, 7478],
+        #6677: [7500]
+    }
+
+    if False:
+        # Find extra example
+        annots = ibs.annots(ibs.filter_annots_general(view='right', require_timestamp=True, min_pername=2))
+        unique_nids = ut.unique(annots.nids)
+        nid_to_annots = ut.dzip(unique_nids, map(ibs.annots, ibs.get_name_aids(unique_nids)))
+        # nid_to_annots = annots.group_items(annots.nids)
+        right_nids = ut.argsort(ut.map_dict_vals(len, nid_to_annots))[::-1]
+        right_annots = nid_to_annots[right_nids[1]]
+        inter = pt.interact_multi_image.MultiImageInteraction(right_annots.chips)
+        inter.start()
+
+        inter = pt.interact_multi_image.MultiImageInteraction(ibs.annots([16228, 16257, 16273]).chips)
+        inter.start()
+        ut.take(right_annots.aids, [2, 6, 10])
+
+    nid2_aid.update({4429: [16228, 16257, 16273]})
+
+    aids = ut.flatten(nid2_aid.values())
+
+    postcut = ut.get_argflag('--postcut')
+    aids_list = ibs.group_annots_by_name(aids)[0]
+
+    infr = ibeis.AnnotInference(ibs=ibs, aids=ut.flatten(aids_list),
+                                autoinit=True)
+    if postcut:
+        infr.init_test_mode2(enable_autoreview=False)
+
+        node_to_label = infr.get_node_attrs('orig_name_label')
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+        # cliques
+        new_edges = []
+        for label, nodes in label_to_nodes.items():
+            for edge in ut.combinations(nodes, 2):
+                if not infr.has_edge(edge):
+                    new_edges.append(infr.e_(*edge))
+        # negative edges
+        import random
+        rng = random.Random(0)
+        for aids1, aids2 in ut.combinations(nid2_aid.values(), 2):
+            aid1 = rng.choice(aids1)
+            aid2 = rng.choice(aids2)
+            new_edges.append(infr.e_(aid1, aid2))
+
+        infr.graph.add_edges_from(new_edges)
+        infr.apply_edge_truth(new_edges)
+        infr.queue.update(ut.dzip(new_edges, ut.dzip(new_edges, [-1])))
+
+        try:
+            while True:
+                edge, priority = infr.pop()
+                feedback = infr.request_user_review(edge)
+                infr.add_feedback2(edge=edge, **feedback)
+        except StopIteration:
+            pass
+    # if postcut:
+    #     # infr.ensure_mst()
+    #     # infr.ensure_cliques()
+    #     infr.review_dummy_edges(method=2)
+    else:
+        infr.ensure_full()
+
+    # Adjust between new and old variable names
+    infr.set_edge_attrs('reviewed_state', infr.get_edge_attrs('decision'))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'match'), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'nomatch'), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'notcomp'), [0.5]))
+
+    infr.initialize_visual_node_attrs()
+    infr.update_node_image_attribute(use_image=True)
+    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
+                             groupby='name_label', splines='spline',
+                             show_cand=not postcut)
+    infr.set_edge_attrs('linewidth', 2)
+    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', 'match'), [4]))
+    if not postcut:
+        infr.set_edge_attrs('color', pt.BLACK)
+    infr.set_edge_attrs('alpha', .7)
+    if not postcut:
+        infr.set_node_attrs('framewidth', 0)
+    viz_graph.ensure_node_images(ibs, infr.graph)
+    infr.show(use_image=True, update_attrs=False)
+
+
 def intraoccurrence_connected():
     r"""
     CommandLine:
         python -m ibeis.scripts.specialdraw intraoccurrence_connected --show
-        python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --postcut
         python -m ibeis.scripts.specialdraw intraoccurrence_connected --show --smaller
+
+        python -m ibeis.scripts.specialdraw intraoccurrence_connected --precut --save=precut.jpg
+        python -m ibeis.scripts.specialdraw intraoccurrence_connected --postcut --save=postcut.jpg
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -717,7 +840,9 @@ def intraoccurrence_connected():
     temp_nids = [1] * len(aids)
     postcut = ut.get_argflag('--postcut')
     aids_list = ibs.group_annots_by_name(aids)[0]
+
     ensure_edges = 'all' if True or not postcut else None
+    unlabeled_graph = infr.graph
     unlabeled_graph = viz_graph.make_netx_graph_from_aid_groups(
         ibs, aids_list,
         #invis_edges=invis_edges,
