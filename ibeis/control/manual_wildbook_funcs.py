@@ -280,7 +280,7 @@ def wildbook_signal_name_changes(ibs, nid_list, new_name_list, wb_target=None,
                 error = name_response.get('error', '')
                 status = status or 'unknown MarkedIndividual' in error
                 status_list.append(status)
-        ut.embed()
+        # ut.embed()
     return status_list
 
 
