@@ -735,6 +735,47 @@ def set_image_gps(ibs, gid_list, gps_list=None, lat_list=None, lon_list=None):
 
 @register_ibs_method
 @accessor_decors.setter
+@register_api('/api/image/gps/str/', methods=['PUT'], __api_plural_check__=False)
+def set_image_gps_str(ibs, gid_list, gps_str_list):
+    r"""
+    see get_image_gps for how the gps_list should look.
+        lat and lon should be given in degrees
+
+    RESTful:
+        Method: PUT
+        URL:    /api/image/gps/
+    """
+    lat_list = []
+    lon_list = []
+    for gps_str in gps_str_list:
+        # Strip any tuple () and spaces
+        gps_str = gps_str.strip()
+        gps_str = gps_str.strip('(').strip(')')
+        # Replace any spaces with commas
+        gps_str = gps_str.replace(' ', ',')
+        # Split by commas and strip each component of spaces
+        gps_str_ = gps_str.split(',')
+        gps_str_ = [ _.strip() for _ in gps_str_ ]
+        # Filter out any values that are empty
+        gps_str_ = [ _ for _ in gps_str_ if len(_) > 0 ]
+        # Make sure that there are only 2
+        assert len(gps_str_) == 2
+        # Cast to floats
+        gps_str_ = [ float(_) for _ in gps_str_ ]
+        lat = gps_str_[0]
+        lon = gps_str_[1]
+        assert -90.0 <= lat and lat <= 90.0
+        assert -180.0 <= lon and lon <= 180.0
+        lat_list.append(lat)
+        lon_list.append(lon)
+    colnames = ('image_gps_lat', 'image_gps_lon',)
+    val_list = zip(lat_list, lon_list)
+    id_iter = ((gid,) for gid in gid_list)
+    ibs.db.set(const.IMAGE_TABLE, colnames, val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
 def _set_image_sizes(ibs, gid_list, width_list, height_list):
     colnames = ('image_width', 'image_height',)
     val_list = zip(width_list, height_list)

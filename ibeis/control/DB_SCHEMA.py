@@ -1465,6 +1465,16 @@ def update_1_6_2(db, ibs=None):
     )
 
 
+def update_1_6_3(db, ibs=None):
+    db.modify_table(const.IMAGESET_TABLE, (
+        (None, 'imageset_metadata_json', 'TEXT', None),
+    ))
+
+    db.modify_table(const.NAME_TABLE, (
+        (None, 'name_metadata_json', 'TEXT', None),
+    ))
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1512,6 +1522,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.0',    (None,                 update_1_6_0,       None                )),
     ('1.6.1',    (None,                 update_1_6_1,       post_1_6_1          )),
     ('1.6.2',    (None,                 update_1_6_2,       None                )),
+    ('1.6.3',    (None,                 update_1_6_3,       None                )),
 ])
 """
 SeeAlso:

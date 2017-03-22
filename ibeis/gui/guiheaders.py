@@ -223,11 +223,11 @@ def make_table_declarations(ibs):
 
     # the columns which are editable
     TABLE_EDITSET = {
-        IMAGE_TABLE      : set(['reviewed', 'imgnotes']),
+        IMAGE_TABLE      : set(['reviewed', 'imgnotes', 'gps']),
         ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text', 'tag_text']),
         NAME_TABLE       : set(['name', 'namenotes']),
         QRES_TABLE       : set(['name']),
-        IMAGESET_TABLE  : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
+        IMAGESET_TABLE   : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
         IMAGE_GRID       : set([]),
         THUMB_TABLE      : set([]),
         NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text']),
@@ -419,6 +419,7 @@ def make_ibeis_headers_dict(ibs):
     setters[IMAGE_TABLE] = {
         'reviewed'      : ibs.set_image_reviewed,
         'imgnotes'      : ibs.set_image_notes,
+        'gps'           : ibs.set_image_gps_str,
     }
     # +--------------------------
     # IMAGE GRID

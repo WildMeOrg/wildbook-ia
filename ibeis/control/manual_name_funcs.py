@@ -699,6 +699,29 @@ def get_name_notes(ibs, name_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/name/metadata/', methods=['GET'])
+def get_name_metadata(ibs, name_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): name metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/name/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.NAME_TABLE, ('name_metadata_json',), name_rowid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/name/num/annot/', methods=['GET'])
 def get_name_num_annotations(ibs, nid_list):
     r"""
@@ -1102,6 +1125,27 @@ def set_name_notes(ibs, name_rowid_list, notes_list):
     #ibs.set_lblannot_notes(nid_list, notes_list)
     val_list = ((value,) for value in notes_list)
     ibs.db.set(const.NAME_TABLE, (NAME_NOTE,), val_list, name_rowid_list)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/name/metadata/', methods=['PUT'])
+def set_name_metadata(ibs, name_rowid_list, metadata_dict_list):
+    r"""
+    Sets the name's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/name/metadata/
+
+    """
+    id_iter = ((gid,) for gid in name_rowid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.NAME_TABLE, ('name_metadata_json',), val_list, id_iter)
 
 
 @register_ibs_method

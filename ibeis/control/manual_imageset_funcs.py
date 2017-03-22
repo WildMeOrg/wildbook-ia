@@ -943,6 +943,29 @@ def get_imageset_notes(ibs, imageset_rowid_list):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/imageset/metadata/', methods=['GET'])
+def get_imageset_metadata(ibs, imageset_rowid_list, return_raw=False):
+    r"""
+    Returns:
+        list_ (list): imageset metadata dictionary
+
+    RESTful:
+        Method: GET
+        URL:    /api/imageset/metadata/
+    """
+    metadata_str_list = ibs.db.get(const.IMAGESET_TABLE, ('imageset_metadata_json',), imageset_rowid_list)
+    metadata_list = []
+    for metadata_str in metadata_str_list:
+        if metadata_str in [None, '']:
+            metadata_dict = {}
+        else:
+            metadata_dict = metadata_str if return_raw else ut.from_json(metadata_str)
+        metadata_list.append(metadata_dict)
+    return metadata_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 @register_api('/api/imageset/processed/', methods=['GET'])
 def get_imageset_processed_flags(ibs, imageset_rowid_list):
     r"""
@@ -1191,6 +1214,27 @@ def set_imageset_notes(ibs, imageset_rowid_list, imageset_note_list):
     id_iter = imageset_rowid_list
     colnames = (IMAGESET_NOTE,)
     ibs.db.set(const.IMAGESET_TABLE, colnames, imageset_note_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/imageset/metadata/', methods=['PUT'])
+def set_imageset_metadata(ibs, imageset_rowid_list, metadata_dict_list):
+    r"""
+    Sets the imageset's metadata using a metadata dictionary
+
+    RESTful:
+        Method: PUT
+        URL:    /api/imageset/metadata/
+
+    """
+    id_iter = ((gid,) for gid in imageset_rowid_list)
+    metadata_str_list = []
+    for metadata_dict in metadata_dict_list:
+        metadata_str = ut.to_json(metadata_dict)
+        metadata_str_list.append(metadata_str)
+    val_list = ((metadata_str,) for metadata_str in metadata_str_list)
+    ibs.db.set(const.IMAGESET_TABLE, ('imageset_metadata_json',), val_list, id_iter)
 
 
 @register_ibs_method
