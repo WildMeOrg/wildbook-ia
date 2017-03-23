@@ -900,7 +900,7 @@ def in1d_shape(arr1, arr2):
 
 @profile
 def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
-                     limit=4, recover=True):
+                     limit=4, recover=True, get_neighbors=None, get_axs=None):
     """
     Searches for `num_neighbs` until enough are found.
 
@@ -931,77 +931,46 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
         >>> assert np.all(np.diff(qfx2_dist, axis=1) >= 0)
 
     Ignore:
-        max_k = 8
+        max_k = 9
         n_pts = 5
-        num_neighbs = 2
+        num_neighbs = 3
         temp_K = num_neighbs * 2
 
-        import itertools as it
-        # Alloc space for final results
-        shape = (n_pts, num_neighbs)
-        qfx2_idx = np.full(shape, -1, dtype=np.int32)
-        qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
-        qfx2_truek = np.full(shape, -1, dtype=np.int32)
-
-
-        tx2_idx_full = np.random.randint(0, 10, size=(n_pts, max_k))
+        # Create dummy data
+        rng = np.random.RandomState(0)
+        tx2_idx_full = rng.randint(0, 10, size=(n_pts, max_k))
         tx2_idx_full[:, 0] = 0
         tx2_dist_full = np.meshgrid(np.arange(max_k), np.arange(n_pts))[0] / 10
-        tx2_dist_full += (np.random.rand(n_pts, max_k) * 10).astype(np.int) / 100
+        tx2_dist_full += (rng.rand(n_pts, max_k) * 10).astype(np.int) / 100
+        qfx2_vec = np.arange(n_pts)[:, None]
+        tx2_vec = qfx2_vec
 
-        def dummy_nn(temp_K):
+        pad = 2
+        limit = 4
+        recover = True
+
+        invalid_axs = np.array([0, 1, 2, 5, 7, 9])
+        get_axs = ut.identity
+
+        def get_neighbors(tx2_vec, temp_K):
             # simulates finding k nearest neighbors
-            return tx2_idx_full[:, 0:temp_K], tx2_dist_full[:, 0:temp_K]
-        tx2_idx, tx2_rawdist = dummy_nn(temp_K)
-
-        tx2_idx = vt.atleast_nd(tx2_idx, 2)
-        tx2_rawdist = vt.atleast_nd(tx2_rawdist, 2)
-        # tx2_ax = indexer.get_nn_axs(tx2_idx)
-        tx2_ax = tx2_idx
-        invalid_axs = np.array([0, 1, 3, 2, 7, 5, 6])
-        tx2_valid = ~in1d_shape(tx2_ax, invalid_axs)
-        # Find which query features have found enough neighbors
-        tx2_num_valid = tx2_valid.sum(axis=1)
-        tx2_notdone = tx2_num_valid < num_neighbs
-        tx2_done = np.logical_not(tx2_notdone)
-
-        # If any new queries are done, move them into results and shrink search
-        if np.any(tx2_done):
-            done_qfx = tx2_qfx.compress(tx2_done, axis=0)
-            # Determine which columns are done
-            done_valid_ = tx2_valid.compress(tx2_done, axis=0)
-            done_rawdist_ = tx2_rawdist.compress(tx2_done, axis=0)
-            done_idx_ = tx2_idx.compress(tx2_done, axis=0)
-            # Find the first `num_neighbs` complete columns in each row
-            rowxs, colxs = np.where(done_valid_)
-            groupxs = vt.group_indices(rowxs)[1]
-            # unique_rows, groupxs = vt.group_indices(rowxs)
-            first_k_groupxs = (groupx[0:num_neighbs] for groupx in groupxs)
-            chosen_xs = np.array(ut.flatten(first_k_groupxs))
-            # chosen_xs = np.hstack(first_k_groupxs)
-            # then convert these to multi-indices
-            multi_index = (rowxs.take(chosen_xs), colxs.take(chosen_xs))
-            flat_xs = np.ravel_multi_index(multi_index, done_valid_.shape)
-            _shape = (-1, num_neighbs)
-            done_rawdist = done_rawdist_.take(flat_xs).reshape(_shape)
-            done_idx = done_idx_.take(flat_xs).reshape(_shape)
-            done_truek = colxs.take(chosen_xs).reshape(_shape)
-            # done_truek = vt.apply_grouping(colxs, first_k_groupxs)
-            # Copy done results into correct output positions
-            qfx2_idx[done_qfx, :] = done_idx
-            qfx2_rawdist[done_qfx, :] = done_rawdist
-            qfx2_truek[done_qfx, :] = done_truek
-
-
-
-        dummy_nn(temp_K)
-
+            tx2_idx = tx2_idx_full[tx2_vec.ravel(), 0:temp_K]
+            tx2_dist = tx2_dist_full[tx2_vec.ravel(), 0:temp_K]
+            return tx2_idx, tx2_dist
     """
     #import ibeis
     import itertools as it
-    shape = (len(qfx2_vec), num_neighbs)
+
+    if get_neighbors is None:
+        def get_neighbors(tx2_vec, temp_K):
+            return indexer.flann.nn_index(tx2_vec, temp_K, checks=indexer.checks,
+                                          cores=indexer.cores)
+
+        def get_axs(tx2_idx):
+            return indexer.get_nn_axs(tx2_idx)
 
     # Alloc space for final results
+    shape = (len(qfx2_vec), num_neighbs)
     qfx2_idx = np.full(shape, -1, dtype=np.int32)
     qfx2_rawdist = np.full(shape, np.nan, dtype=np.float64)
     qfx2_truek = np.full(shape, -1, dtype=np.int32)
@@ -1018,13 +987,12 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
     for count in it.count():
         # print('count = %r' % (count,))
         # Find a set of neighbors
-        (tx2_idx, tx2_rawdist) = indexer.flann.nn_index(tx2_vec, temp_K,
-                                                        checks=indexer.checks,
-                                                        cores=indexer.cores)
+        # TODO: cache large values of these
+        (tx2_idx, tx2_rawdist) = get_neighbors(tx2_vec, temp_K)
         tx2_idx = vt.atleast_nd(tx2_idx, 2)
         tx2_rawdist = vt.atleast_nd(tx2_rawdist, 2)
         # Flag any neighbors that are invalid
-        tx2_ax = indexer.get_nn_axs(tx2_idx)
+        tx2_ax = get_axs(tx2_idx)
         tx2_valid = ~in1d_shape(tx2_ax, invalid_axs)
         # Find which query features have found enough neighbors
         tx2_num_valid = tx2_valid.sum(axis=1)
@@ -1054,6 +1022,9 @@ def conditional_knn_(indexer, qfx2_vec, num_neighbs, invalid_axs=[], pad=2,
             done_truek = colxs.take(chosen_xs).reshape(_shape)
             # done_truek = vt.apply_grouping(colxs, first_k_groupxs)
             # Copy done results into correct output positions
+            print(ut.hz_str('done_rawdist = ', ut.repr2(done_rawdist)))
+            import utool
+            utool.embed()
             qfx2_idx[done_qfx, :] = done_idx
             qfx2_rawdist[done_qfx, :] = done_rawdist
             qfx2_truek[done_qfx, :] = done_truek
