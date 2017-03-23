@@ -828,7 +828,7 @@ def groupedzip(id_list, datas_list):
 
 
 #@profile
-def group_indices(idx2_groupid):
+def group_indices(idx2_groupid, assume_sorted=False):
     r"""
     group_indices
 
@@ -930,8 +930,12 @@ def group_indices(idx2_groupid):
     """
     # Sort items and idx2_groupid by groupid
     # <len(data) bottlneck>
-    sortx = idx2_groupid.argsort()
-    groupids_sorted = idx2_groupid.take(sortx)
+    if assume_sorted:
+        sortx = np.arange(len(idx2_groupid))
+        groupids_sorted = idx2_groupid
+    else:
+        sortx = idx2_groupid.argsort()
+        groupids_sorted = idx2_groupid.take(sortx)
     num_items = idx2_groupid.size
     # Find the boundaries between groups
     diff = np.ones(num_items + 1, idx2_groupid.dtype)
