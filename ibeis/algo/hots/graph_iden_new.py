@@ -141,7 +141,7 @@ class CandidateSearch2(object):
         infr.exec_matching(cfgdict={
             'resize_dim': 'width',
             'dim_size': 700,
-            'condknn': True,
+            'requery': True,
             'can_match_samename': False,
             'can_match_sameimg': False,
             # 'sv_on': False,
@@ -538,6 +538,13 @@ class InfrFeedback2(object):
 
         infr.assert_consistency_invariant()
 
+    def _check_edge(infr, edge):
+        aid1, aid2 = edge
+        if aid1 not in infr.aids_set:
+            raise ValueError('aid1=%r is not part of the graph' % (aid1,))
+        if aid2 not in infr.aids_set:
+            raise ValueError('aid2=%r is not part of the graph' % (aid2,))
+
     @profile
     def add_feedback2(infr, edge, decision, tags=None, user_id=None,
                       confidence=None, verbose=None):
@@ -545,6 +552,11 @@ class InfrFeedback2(object):
             verbose = infr.verbose
         edge = e_(*edge)
         aid1, aid2 = edge
+
+        if not infr.has_edge(edge):
+            infr._check_edge(edge)
+            infr.graph.add_edge(aid1, aid2)
+
         if verbose >= 1:
             print(('[infr] add_feedback(%r, %r, decision=%r, tags=%r, '
                                         'user_id=%r, confidence=%r)') % (
@@ -582,8 +594,9 @@ class InfrFeedback2(object):
         else:
             infr._add_review_edge(edge, decision)
 
-        metrics = infr.measure_metrics2()
-        infr.metrics_list.append(metrics)
+        if infr.test_mode:
+            metrics = infr.measure_metrics2()
+            infr.metrics_list.append(metrics)
 
 
 class DynamicUpdate2(object):

@@ -101,7 +101,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ibs=ibs, defaultdb=defaultdb, qaid_override=qaid_override,
                 daid_override=daid_override,
                 a=':mingt=3,species=primary',
-                t=('default:K=4,Knorm=1,condknn=True,'
+                t=('default:K=4,Knorm=1,requery=True,'
                    'score_method=csum,prescore_method=csum'),
                 verbose=max(0, verbose - 1),
             )

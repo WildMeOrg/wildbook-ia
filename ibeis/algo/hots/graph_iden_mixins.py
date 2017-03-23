@@ -83,9 +83,10 @@ class _AnnotInfrHelpers(object):
             return (e_(u, v) for u, v in infr.graph.edges())
 
     def has_edge(infr, edge):
-        redge = edge[::-1]
-        flag = infr.graph.has_edge(*edge) or infr.graph.has_edge(*redge)
-        return flag
+        return infr.graph.has_edge(*edge)
+        # redge = edge[::-1]
+        # flag = infr.graph.has_edge(*edge) or infr.graph.has_edge(*redge)
+        # return flag
 
     def get_edge_data(infr, u, v):
         data = infr.graph.get_edge_data(u, v)

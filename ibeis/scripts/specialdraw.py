@@ -663,6 +663,68 @@ def setcover_example():
     pt.zoom_factory()
 
 
+def k_redun_demo():
+    r"""
+
+    python -m ibeis.scripts.specialdraw k_redun_demo --save=kredun.png
+    python -m ibeis.scripts.specialdraw k_redun_demo --show
+
+    Example:
+        >>> # SCRIPT
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> k_redun_demo()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    import plottool as pt
+    from ibeis.viz import viz_graph
+    # import networkx as nx
+    pt.ensureqt()
+    ibs = ibeis.opendb(defaultdb='PZ_Master1')
+    nid2_aid = {
+        6612: [7664, 7462, 7522],
+        6625: [7746, 7383, 7390, 7477, 7376, 7579],
+        6630: [7586, 7377, 7464, 7478],
+    }
+    aids = ut.flatten(nid2_aid.values())
+    infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+
+    for name_aids in nid2_aid.values():
+        for edge in ut.itertwo(name_aids):
+            infr.add_feedback2(edge, 'match')
+    infr.add_feedback2((7664, 7522), 'match')
+    infr.add_feedback2((7746, 7477), 'match')
+    infr.add_feedback2((7383, 7376), 'match')
+
+    # infr.add_feedback2((7664, 7383), 'nomatch')
+    # infr.add_feedback2((7462, 7746), 'nomatch')
+
+    # infr.add_feedback2((7464, 7376), 'nomatch')
+
+    # Adjust between new and old variable names
+    infr.set_edge_attrs('reviewed_state', infr.get_edge_attrs('decision'))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'match'), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'nomatch'), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'notcomp'), [0.5]))
+
+
+    infr.initialize_visual_node_attrs()
+    infr.update_node_image_attribute(use_image=True)
+    infr.update_visual_attrs(use_image=True, show_unreviewed_edges=True,
+                             groupby='name_label',
+                             splines='spline',
+                             show_cand=False)
+    infr.set_edge_attrs('linewidth', 2)
+    # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', 'match'), [4]))
+    # infr.set_edge_attrs('color', pt.BLACK)
+    infr.set_edge_attrs('alpha', .7)
+    viz_graph.ensure_node_images(ibs, infr.graph)
+    infr.show(use_image=True, update_attrs=False)
+
+
+
 def graph_iden_cut_demo():
     r"""
     CommandLine:

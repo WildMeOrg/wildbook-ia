@@ -451,12 +451,12 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     chip_cfgstr    = qreq_.qparams.chip_cfgstr
     feat_cfgstr    = qreq_.qparams.feat_cfgstr
     flann_cfgstr   = qreq_.qparams.flann_cfgstr
-    condknn   = qreq_.qparams.condknn
-    # assert condknn is False, 'can not be on yet'
+    requery   = qreq_.qparams.requery
+    # assert requery is False, 'can not be on yet'
 
     internal_daids = qreq_.get_internal_daids()
     internal_qaids = qreq_.get_internal_qaids()
-    if condknn:
+    if requery:
         assert qreq_.qparams.vsmany
         data_hashid = qreq_.get_qreq_pcc_hashid(internal_daids, prefix='D')
         # data_hashid = qreq_.get_qreq_annot_semantic_hashid(
@@ -464,7 +464,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     else:
         data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
             internal_daids, prefix='D')
-    if condknn:
+    if requery:
         query_hashid_list = qreq_.get_qreq_pcc_uuids(internal_qaids)
         # query_hashid_list = qreq_.get_qreq_annot_semantic_uuids(internal_qaids)
     else:
@@ -507,7 +507,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
 
 @profile
 def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
-                            impossible_daids_list, K, Knorm, condknn,
+                            impossible_daids_list, K, Knorm, requery,
                             verbose):
     """
     Logic for computing neighbors if there is a cache miss
@@ -528,10 +528,11 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
 
     Kpad_list = ut.compress(Kpad_list, flags_list)
     # do computation
-    if not condknn:
+    if not requery:
         num_neighbors_list = [K + Kpad + Knorm for Kpad in Kpad_list]
     else:
         num_neighbors_list = [K + Knorm] * len(Kpad_list)
+        Kpad_list = 2 * np.array(Kpad_list)
     config2_ = qreq_.get_internal_query_config2()
     qvecs_list = internal_qannots.vecs
 
@@ -568,7 +569,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
     # Mark progress ane execute nearest indexer nearest neighbor code
     prog_hook = (None if qreq_.prog_hook is None else
                  qreq_.prog_hook.next_subhook())
-    if condknn:
+    if requery:
         # assert False, (
         #     'need to implement part where matches with the same name are not considered'
         # )
@@ -591,7 +592,7 @@ def cachemiss_nn_compute_fn(flags_list, qreq_, Kpad_list,
         """
 
         idx_dist_list = [
-            qreq_.indexer.conditional_knn(qfx2_vec, K, pad, impossible_daids)
+            qreq_.indexer.requery_knn(qfx2_vec, K, pad, impossible_daids)
             for qfx2_vec, K, pad, impossible_daids in zip(
                 qvec_iter, num_neighbors_list, Kpad_list,
                 impossible_daids_list)
@@ -669,7 +670,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> verbose = True
         >>> custom_nid_lookup = {a: a for a in range(14)}
         >>> qreq1_ = ibeis.testdata_qreq_(
-        >>>     defaultdb='testdb1', t=['default:K=2,condknn=True,can_match_samename=False'],
+        >>>     defaultdb='testdb1', t=['default:K=2,requery=True,can_match_samename=False'],
         >>>     daid_override=[2, 3, 4, 5, 6, 7, 8],
         >>>     qaid_override=[2, 5, 1], custom_nid_lookup=custom_nid_lookup)
         >>> locals_ = plh.testrun_pipeline_upto(qreq1_, 'nearest_neighbors')
@@ -681,10 +682,10 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> nnvalid0_list1 = baseline_neighbor_filter(qreq1_, nns_list1,
         >>>                                           impossible_daids_list)
         >>> assert np.all(nnvalid0_list1[0]), (
-        >>>  'condknn should never produce impossible results')
-        >>> # Compare versus not using condknn
+        >>>  'requery should never produce impossible results')
+        >>> # Compare versus not using requery
         >>> qreq2_ = ibeis.testdata_qreq_(
-        >>>     defaultdb='testdb1', t=['default:K=2,condknn=False'],
+        >>>     defaultdb='testdb1', t=['default:K=2,requery=False'],
         >>>     daid_override=[1, 2, 3, 4, 5, 6, 7, 8],
         >>>     qaid_override=[2, 5, 1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq2_, 'nearest_neighbors')
@@ -702,7 +703,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> import ibeis
         >>> verbose = True
         >>> qreq1_ = ibeis.testdata_qreq_(
-        >>>     defaultdb='testdb1', t=['default:K=5,condknn=True,can_match_samename=False'],
+        >>>     defaultdb='testdb1', t=['default:K=5,requery=True,can_match_samename=False'],
         >>>     daid_override=[2, 3, 4, 5, 6, 7, 8],
         >>>     qaid_override=[2, 5, 1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq1_, 'nearest_neighbors')
@@ -717,7 +718,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
     """
     K           = qreq_.qparams.K
     Knorm       = qreq_.qparams.Knorm
-    condknn     = qreq_.qparams.condknn
+    requery     = qreq_.qparams.requery
     #checks = qreq_.qparams.checks
     # Get both match neighbors (including padding) and normalizing neighbors
     if verbose:
@@ -743,7 +744,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
     nns_list = ut.tryload_cache_list_with_compute(
         use_cache, nn_cachedir, 'neighbs4', nn_mid_cacheid_list,
         cachemiss_nn_compute_fn, qreq_, Kpad_list, impossible_daids_list, K,
-        Knorm, condknn, verbose)
+        Knorm, requery, verbose)
     return nns_list
 
 
@@ -767,7 +768,7 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         >>>     'baseline_neighbor_filter', defaultdb='testdb1',
         >>>     qaid_override=[1, 2, 3, 4],
         >>>     daid_override=list(range(1, 11)),
-        >>>     p=['default:QRH=False,condknn=False,can_match_samename=False'],
+        >>>     p=['default:QRH=False,requery=False,can_match_samename=False'],
         >>>     verbose=True)
         >>> nns_list, impossible_daids_list = args
         >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,
@@ -1155,7 +1156,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
-        >>>     'build_chipmatches', p=['default:cond_knn=True'], a='default')
+        >>>     'build_chipmatches', p=['default:requery=True'], a='default')
         >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
         >>> filtvalids_list, filtnormks_list) = args
         >>> verbose = True

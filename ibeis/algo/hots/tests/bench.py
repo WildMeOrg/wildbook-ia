@@ -16,7 +16,7 @@ def benchmark_knn():
     verbose = True
     qreq_ = ibeis.testdata_qreq_(
         defaultdb='PZ_PB_RF_TRAIN',
-        t='default:K=3,condknn=True,can_match_samename=False',
+        t='default:K=3,requery=True,can_match_samename=False',
         a='default:qsize=100', verbose=1
     )
     locals_ = plh.testrun_pipeline_upto(qreq_, 'nearest_neighbors')

@@ -1161,7 +1161,7 @@ class _AnnotInfrFeedback(object):
         infr.exec_matching(cfgdict={
             'resize_dim': 'width',
             'dim_size': 700,
-            'condknn': True,
+            'requery': True,
             'can_match_samename': False,
             'can_match_sameimg': False,
         })
@@ -3339,6 +3339,9 @@ class AnnotInference(ut.NiceRepr,
             'nomatch': None,
             'notcomp': None,
         }
+        infr.enable_inference = None
+        infr.test_mode = False
+        infr.edge_truth = {}
 
         # Criteria
         infr.refresh = None

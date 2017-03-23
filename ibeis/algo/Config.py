@@ -208,7 +208,7 @@ class NNConfig(ConfigBase):
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.Config import *  # NOQA
         >>> nn_cfg = NNConfig()
-        >>> nn_cfg = NNConfig(condknn=True)
+        >>> nn_cfg = NNConfig(requery=True)
         >>> result = nn_cfg.get_cfgstr()
         >>> print(result)
         _NN(single,K=4,Kn=1,padk=False,cks800)
@@ -247,7 +247,7 @@ class NNConfig(ConfigBase):
                 ut.ParamInfo('K', 4, type_=int),
                 ut.ParamInfo('Knorm', 1, 'Kn='),
                 ut.ParamInfo('use_k_padding', False, 'padk='),
-                ut.ParamInfo('condknn', False, type_=bool, hideif=False),
+                ut.ParamInfo('requery', False, type_=bool, hideif=False),
                 # ut.ParamInfo('condrecover', True, type_=bool, hideif=False),
                 ut.ParamInfo('checks', 800, 'cks', type_=int),
                 #ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
