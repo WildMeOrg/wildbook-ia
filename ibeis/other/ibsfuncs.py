@@ -2101,9 +2101,13 @@ def is_aid_unknown(ibs, aid_list):
 @register_ibs_method
 def batch_rename_consecutive_via_species(ibs, imgsetid=None, location_text=None,
                                          notify_wildbook=True, assert_wildbook=True):
+    import ibeis
     wildbook_existing_name_list = []
-    if notify_wildbook:
+    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
         wildbook_existing_name_list = ibs.wildbook_get_existing_names()
+    else:
+        wildbook_existing_name_list = []
+
     """ actually sets the new consecutive names"""
     new_nid_list, new_name_list = ibs.get_consecutive_newname_list_via_species(
         imgsetid=imgsetid, location_text=location_text,

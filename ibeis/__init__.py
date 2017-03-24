@@ -37,6 +37,10 @@ if ut.is_developer():
 # has to be before control, can be after constants, params, and main_module
 #import plottool
 
+
+ENABLE_WILDBOOK_SIGNAL = True
+
+
 try:
     from ibeis import constants
     from ibeis import constants as const

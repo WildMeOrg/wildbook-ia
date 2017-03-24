@@ -2439,7 +2439,8 @@ def set_annot_name_rowids(ibs, aid_list, name_rowid_list, notify_wildbook=True,
         >>> ut.assert_eq(ibs.get_annot_names(aid_list), ['____', 'easy'])
         >>> ut.assert_eq(ibs.get_annot_exemplar_flags(aid_list), [0, 1])
     """
-    if notify_wildbook:
+    import ibeis
+    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
         try:
             ibs.wildbook_signal_annot_name_changes(aid_list)
         except requests.exceptions.ConnectionError:

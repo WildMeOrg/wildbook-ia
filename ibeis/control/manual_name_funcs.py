@@ -1175,9 +1175,10 @@ def set_name_texts(ibs, name_rowid_list, name_text_list, verbose=False,
         >>> result = set_name_texts(ibs, nid_list, name_list)
         >>> print(result)
     """
+    import ibeis
     if verbose:
         print('[ibs] setting %d name texts' % (len(name_rowid_list),))
-    if notify_wildbook:
+    if notify_wildbook and ibeis.ENABLE_WILDBOOK_SIGNAL:
         print('[ibs] notifying WildBook of name text changes')
         status_list = ibs.wildbook_signal_name_changes(name_rowid_list, name_text_list)
         if assert_wildbook:
