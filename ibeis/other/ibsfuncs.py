@@ -6258,7 +6258,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         ]
 
     header_list = header_list[1:]
-    imageset_text_set = set(ibs.get_imageset_text(ibs.get_valid_imgsetids()))
+    imageset_text_set = set(ibs.get_imageset_text(ibs.get_valid_imgsetids(is_special=False)))
 
     seen_set = set([])
     invalid_list = []
