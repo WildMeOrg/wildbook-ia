@@ -6282,10 +6282,12 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         line_list = line_list[1:]
         metadata_dict = dict(zip(header_list, line_list))
         metadata_list.append(metadata_dict)
+    valid_list = list(seen_set)
     missing_list = list(imageset_text_set - seen_set)
 
     invalid = len(invalid_list) + len(duplicate_list) + len(missing_list)
     if invalid > 0:
+        print('VALID:     %r' % (valid_list, ))
         print('INVALID:   %r' % (invalid_list, ))
         print('DUPLICATE: %r' % (duplicate_list, ))
         print('MISSING:   %r' % (missing_list, ))
