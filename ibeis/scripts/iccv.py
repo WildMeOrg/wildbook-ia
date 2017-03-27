@@ -372,7 +372,7 @@ def draw_saved_roc(dbname):
     fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
 
     possible_paths = sorted(fig_dpath.glob('roc_' + dbname + '_*.cPkl'))[::-1]
-    info_fpath = possible_paths[-1]
+    info_fpath = possible_paths[0]
     fig_fpath = info_fpath.parent.joinpath(info_fpath.stem + '.png')
 
     info = ut.load_data(str(info_fpath))
@@ -502,6 +502,7 @@ def end_to_end():
     # Figure out what the thresholds should be
     thresh_cacher = ut.Cacher('clf_thresh',
                               cfgstr=train_cfgstr + data_key + 'v3',
+                              appname=pblm.appname,
                               enabled=True)
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
@@ -528,7 +529,9 @@ def end_to_end():
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
-    clf_cacher = ut.Cacher('deploy_clf_v2_', cfgstr=train_cfgstr + data_key)
+    clf_cacher = ut.Cacher('deploy_clf_v2_',
+                           appname=pblm.appname,
+                           cfgstr=train_cfgstr + data_key)
     pblm.deploy_task_clfs = clf_cacher.tryload()
     if pblm.deploy_task_clfs is None:
         pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
@@ -547,7 +550,9 @@ def end_to_end():
 
     # aids = train_aids
     maxphi = 3
-    phi_cacher = ut.Cacher('term_phis', cfgstr=train_cfgstr + str(maxphi))
+    phi_cacher = ut.Cacher('term_phis',
+                           appname=pblm.appname,
+                           cfgstr=train_cfgstr + str(maxphi))
     phis = phi_cacher.tryload()
     if phis is None:
         phis = learn_termination(ibs, train_aids, maxphi)

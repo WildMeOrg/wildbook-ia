@@ -299,7 +299,7 @@ class CandidateSearch2(object):
         data_key = pblm.default_data_key
         # TODO: find a good way to cache this
         cfgstr = infr.ibs.dbname + ut.hashstr27(repr(edges)) + data_key
-        cacher = ut.Cacher('foobarclf', cfgstr=cfgstr,
+        cacher = ut.Cacher('foobarclf_taskprobs', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=1,
                            verbose=pblm.verbose)
         X = cacher.tryload()
