@@ -6244,6 +6244,60 @@ def fix_coco_species(ibs, **kwargs):
     ibs.set_annot_species(aid_list, species_fixed_text_list)
 
 
+@register_ibs_method
+def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwargs):
+    assert exists(input_file_path)
+
+    with open(input_file_path, 'r') as input_file:
+        header_line = input_file.readline()
+        header_list = header_line.strip().split(',')
+        line_list = input_file.readlines()
+        lines_list = [
+            line.strip().split(',')
+            for line in line_list
+        ]
+
+    header_list = header_list[1:]
+    imageset_text_set = set(ibs.get_imageset_text(ibs.get_valid_imgsetids()))
+
+    seen_set = set([])
+    invalid_list = []
+    duplicate_list = []
+
+    imageset_rowid_list = []
+    metadata_list = []
+    for index, line_list in enumerate(lines_list):
+        imageset_text = line_list[0]
+        found = imageset_text in imageset_text_set
+        print('Processing %r (Found %s)' % (imageset_text, found, ))
+        if not found:
+            invalid_list.append(imageset_text)
+            continue
+        if imageset_text in seen_set:
+            duplicate_list.append(imageset_text)
+            continue
+        seen_set.add(imageset_text)
+        imageset_rowid = ibs.get_imageset_imgsetids_from_text(imageset_text)
+        imageset_rowid_list.append(imageset_rowid)
+        line_list = line_list[1:]
+        metadata_dict = dict(zip(header_list, line_list))
+        metadata_list.append(metadata_dict)
+    missing_list = list(imageset_text_set - seen_set)
+
+    invalid = len(invalid_list) + len(duplicate_list) + len(missing_list)
+    if invalid > 0:
+        print('INVALID:   %r' % (invalid_list, ))
+        print('DUPLICATE: %r' % (duplicate_list, ))
+        print('MISSING:   %r' % (missing_list, ))
+    else:
+        ibs.set_imageset_metadata(imageset_rowid_list, metadata_list)
+
+
+@register_ibs_method
+def princeton_process_individuals(ibs, input_file_path, **kwargs):
+    ut.embed()
+
+
 if __name__ == '__main__':
     """
     CommandLine:
