@@ -239,7 +239,7 @@ class InfrSimulation(object):
             tags = []
             infr.add_feedback(aid1, aid2, state, tags, apply=True,
                               rectify=False, user_id='oracle',
-                              user_confidence='absolutely_sure')
+                              confidence='absolutely_sure')
         n_reviews = count
         n_fixes = n_reviews - n_superflouous
         print('n_worst_case = %r' % (n_worst_case,))
@@ -285,7 +285,7 @@ class InfrSimulation(object):
             tags = []
             infr.add_feedback(aid1, aid2, state, tags, apply=True,
                               rectify=False, user_id='oracle',
-                              user_confidence='absolutely_sure')
+                              confidence='absolutely_sure')
             if count > max_reviews:
                 break
         infr.verbose = prev

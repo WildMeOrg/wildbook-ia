@@ -534,7 +534,7 @@ class _AnnotInfrDepMixin(object):
         assert index.get_level_values(0).isin(infr.aids_set).all()
         assert index.get_level_values(1).isin(infr.aids_set).all()
         timestamp = ut.get_timestamp('int', isutc=True)
-        user_confidence = None
+        confidence = None
         uv_iter = it.starmap(e_, index.tolist())
         _iter = zip(uv_iter, decisions, tags_list)
         prog = ut.ProgIter(_iter, nTotal=len(tags_list), enabled=verbose,
@@ -546,7 +546,7 @@ class _AnnotInfrDepMixin(object):
                 'decision': decision,
                 'tags': tags,
                 'timestamp': timestamp,
-                'user_confidence': user_confidence,
+                'confidence': confidence,
                 'user_id': user_id,
             })
             if infr.refresh:

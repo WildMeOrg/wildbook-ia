@@ -5,6 +5,16 @@ import pathlib
 print, rrr, profile = ut.inject2(__name__)
 
 
+def gt_reveiw():
+    import ibeis
+    ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
+                                autoinit=True, verbose=True)
+    infr.reset_feedback('annotmatch')
+    infr.apply_feedback_edges()
+    infr.review_dummy_edges(method=2)
+
+
 def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):
     import warnings
     warnings.simplefilter('ignore', RuntimeWarning)

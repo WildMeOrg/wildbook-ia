@@ -59,7 +59,7 @@ class CustomReviewDialog(gt.GuitoolWidget):
         if edge_data is not None:
             reviewed_tags = edge_data.get('reviewed_tags', [])
             match_state = edge_data.get('reviewed_state', 'unreviewed')
-            default_conf = edge_data.get('user_confidence', 'unspecified')
+            default_conf = edge_data.get('confidence', 'unspecified')
             print('edge_data = %r' % (edge_data,))
             default_match_state = ibeis.const.REVIEW.CODE_TO_NICE[match_state]
         else:
@@ -121,13 +121,13 @@ class CustomReviewDialog(gt.GuitoolWidget):
         decision_code = ibeis.const.REVIEW.NICE_TO_CODE[decision_nice]
         tags = [check.text() for check in self.tag_checkboxes
                 if check.checkState()]
-        user_confidence = self.user_conf_rb.currentText()
+        confidence = self.user_conf_rb.currentText()
         review = {
             'aid1': self.aid1,
             'aid2': self.aid2,
             'decision': decision_code,
             'tags': tags,
-            'user_confidence': user_confidence,
+            'confidence': confidence,
             'user_id': 'qt-custom',
         }
         return review

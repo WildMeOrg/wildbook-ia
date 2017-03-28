@@ -83,8 +83,11 @@ def add_annotmatch(ibs, aid1_list, aid2_list, annotmatch_truth_list=None, annotm
         tbl = annotmatch
     """
     # WORK IN PROGRESS
-    colnames = (ANNOT_ROWID1, ANNOT_ROWID2, ANNOTMATCH_TRUTH, ANNOTMATCH_CONFIDENCE, ANNOTMATCH_TAG_TEXT,
-                ANNOTMATCH_REVIEWED, ANNOTMATCH_REVIEWER, ANNOTMATCH_POSIXTIME_MODIFIED, ANNOTMATCH_PAIRWISE_PROB, CONFIG_HASHID,)
+    colnames = (ANNOT_ROWID1, ANNOT_ROWID2, ANNOTMATCH_TRUTH,
+                ANNOTMATCH_CONFIDENCE, ANNOTMATCH_TAG_TEXT,
+                ANNOTMATCH_REVIEWED, ANNOTMATCH_REVIEWER,
+                ANNOTMATCH_POSIXTIME_MODIFIED, ANNOTMATCH_PAIRWISE_PROB,
+                CONFIG_HASHID,)
     if annotmatch_truth_list is None:
         annotmatch_truth_list = [None] * len(aid1_list)
     if annotmatch_confidence_list is None:

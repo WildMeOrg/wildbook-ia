@@ -237,7 +237,7 @@ class _AnnotInfrDummy(object):
                                         node_to_label.values())
         new_edges = []
         for label, nodes in label_to_nodes.items():
-            for edge in ut.combinations(nodes, 2):
+            for edge in it.combinations(nodes, 2):
                 if not infr.has_edge(edge):
                     new_edges.append(edge)
         if infr.verbose >= 2:
@@ -247,6 +247,9 @@ class _AnnotInfrDummy(object):
 
     def find_mst_edges2(infr):
         """
+        Returns edges to augment existing PCCs (by label) in order to ensure
+        they are connected
+
         nid = 5977
         """
         import networkx as nx
@@ -267,6 +270,8 @@ class _AnnotInfrDummy(object):
             nodes = label_to_nodes[nid]
             # We want to make this CC connected
             target_cc = aug_graph.subgraph(nodes)
+            if len(nodes) > 10 and len(list(target_cc.edges())):
+                break
             positive_edges = [
                 e_(*e) for e, v in
                 nx.get_edge_attributes(target_cc, 'reviewed_state').items()
@@ -277,19 +282,37 @@ class _AnnotInfrDummy(object):
             tmp.add_edges_from(positive_edges)
             # Need to find a way to connect these components
             sub_ccs = list(nx.connected_components(tmp))
-            candidate_edges = []
 
-            # TODO: prioritize based on comparability
-            for c1, c2 in ut.combinations(sub_ccs, 2):
-                for u, v in ut.product(c1, c2):
-                    if not target_cc.has_edge(u, v):
-                        # Once we find one edge we've completed the connection
-                        candidate_edges.append((u, v))
-                        break
+            connecting_edges = []
+
+            if False:
+                for c1, c2 in it.combinations(sub_ccs, 2):
+                    for u, v in it.product(c1, c2):
+                        if not target_cc.has_edge(u, v):
+                            # Once we find one edge we've completed the connection
+                            connecting_edges.append((u, v))
+                            break
+            else:
+                # TODO: prioritize based on comparability
+                for c1, c2 in it.combinations(sub_ccs, 2):
+                    found = False
+                    for u, v in it.product(c1, c2):
+                        if not target_cc.has_edge(u, v):
+                            if infr.is_comparable([(u, v)])[0]:
+                                # Once we find one edge we've completed the
+                                # connection
+                                connecting_edges.append((u, v))
+                                found = True
+                                break
+                    if not found:
+                        connecting_edges.append((u, v))
+                        # no comparable edges, so add them all
+                        # connecting_edges.extend(list(it.product(c1, c2)))
 
             # Find the MST of the candidates to eliminiate complexity
-            # (mostly handles singletons, when CCs are big this wont matter)
-            candidate_graph = nx.Graph(candidate_edges)
+            # (mostly handles singletons, when existing CCs are big this wont
+            #  matter)
+            candidate_graph = nx.Graph(connecting_edges)
             mst_edges = list(nx.minimum_spanning_tree(candidate_graph).edges())
             new_edges.extend(mst_edges)
 
@@ -419,7 +442,7 @@ class _AnnotInfrDummy(object):
             print('[infr] reviewing %s dummy edges' % (len(new_edges),))
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
-            infr.add_feedback(u, v, 'match', user_confidence='guessing',
+            infr.add_feedback(u, v, 'match', confidence='guessing',
                               user_id='mst', verbose=False)
         infr.apply_feedback_edges()
 
@@ -474,7 +497,7 @@ class _AnnotInfrIBEIS(object):
             decision_key = feedback_item['decision']
             tags = feedback_item['tags']
             timestamp = feedback_item.get('timestamp', None)
-            confidence_key = feedback_item.get('user_confidence', None)
+            confidence_key = feedback_item.get('confidence', None)
             user_id = feedback_item.get('user_id', None)
             decision_int = ibs.const.REVIEW.CODE_TO_INT[decision_key]
             confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
@@ -525,10 +548,14 @@ class _AnnotInfrIBEIS(object):
         new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
         new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
                                 edge_delta_df_['new_user_confidence'], None)
+        new_timestamp = edge_delta_df_['timestamp']
+        new_reviewer = edge_delta_df_['user_id']
         am_rowids = edge_delta_df_['am_rowid'].values
         ibs.set_annotmatch_truth(am_rowids, new_truth)
         ibs.set_annotmatch_tag_text(am_rowids, new_tags)
         ibs.set_annotmatch_confidence(am_rowids, new_conf)
+        ibs.set_annotmatch_reviewer(am_rowids, new_reviewer)
+        ibs.set_annotmatch_posixtime_modified(am_rowids, new_timestamp)
 
     def write_ibeis_name_assignment(infr, name_delta_df=None):
         if name_delta_df is None:
@@ -609,10 +636,12 @@ class _AnnotInfrIBEIS(object):
 
         from ibeis.control.manual_review_funcs import (
             REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-            REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP, REVIEW_TAGS)
+            REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP,
+            REVIEW_TAGS)
 
         colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-                    REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP, REVIEW_TAGS)
+                    REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
+                    REVIEW_TIMESTAMP, REVIEW_TAGS)
         review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, colnames,
                                       review_ids)
 
@@ -621,13 +650,15 @@ class _AnnotInfrIBEIS(object):
         lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
 
         for data in review_data:
-            (aid1, aid2, count, decision_int, conf_int, timestamp, tags) = data
+            (aid1, aid2, count, decision_int,
+             user_id, conf_int, timestamp, tags) = data
             edge = e_(aid1, aid2)
             feedback_item = {
                 'decision': lookup_truth[decision_int],
                 'timestamp': timestamp,
+                'user_id': user_id,
                 'tags': [] if not tags else tags.split(';'),
-                'user_confidence': lookup_conf[conf_int],
+                'confidence': lookup_conf[conf_int],
             }
             feedback[edge].append(feedback_item)
         return feedback
@@ -679,6 +710,8 @@ class _AnnotInfrIBEIS(object):
             print('[infr] * checking tags')
         tags_list = ibs.get_annotmatch_case_tags(am_rowids)
         confidence_list = ibs.get_annotmatch_confidence(am_rowids)
+        timestamp_list = ibs.get_annotmatch_posixtime_modified(am_rowids)
+        userid_list = ibs.get_annotmatch_reviewer(am_rowids)
         # Hack, if we didnt set it, it probably means it matched
         # FIXME: allow for truth to not be set.
         need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
@@ -716,6 +749,8 @@ class _AnnotInfrIBEIS(object):
             edge = e_(aid1, aid2)
             conf = confidence_list[count]
             truth_ = truth[count]
+            timestamp = timestamp_list[count]
+            user_id = userid_list[count]
             if conf is not None and not isinstance(conf, int):
                 import warnings
                 warnings.warn('CONF WAS NOT AN INTEGER. conf=%r' % (conf,))
@@ -725,8 +760,10 @@ class _AnnotInfrIBEIS(object):
             tag_ = tags_list[count]
             feedback_item = {
                 'decision': decision,
+                'timestamp': timestamp,
                 'tags': tag_,
-                'user_confidence': conf_,
+                'user_id': user_id,
+                'confidence': conf_,
             }
             feedback[edge].append(feedback_item)
         if infr.verbose >= 1:
@@ -745,13 +782,13 @@ class _AnnotInfrIBEIS(object):
         rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
         decision = ut.dict_take_column(rectified_feedback, 'decision')
         tags = ut.dict_take_column(rectified_feedback, 'tags')
-        confidence = ut.dict_take_column(rectified_feedback, 'user_confidence')
+        confidence = ut.dict_take_column(rectified_feedback, 'confidence')
         df = pd.DataFrame([])
         df['decision'] = decision
         df['aid1'] = aids1
         df['aid2'] = aids2
         df['tags'] = tags
-        df['user_confidence'] = confidence
+        df['confidence'] = confidence
         df['am_rowid'] = am_rowids
         df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
         return df
@@ -880,7 +917,7 @@ class _AnnotInfrIBEIS(object):
         isect_old = old_feedback.loc[isect_edges]
 
         # If any important column is different we mark the row as changed
-        data_columns = ['decision', 'tags', 'user_confidence']
+        data_columns = ['decision', 'tags', 'confidence']
         important_columns = ['decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
@@ -945,7 +982,7 @@ class _AnnotInfrFeedback(object):
             # Find k random negative edges
             check_edges = existing_edges - set(reviewed_edges)
             if len(check_edges) < k:
-                for edge in it.starmap(e_, ut.product(c1_nodes, c2_nodes)):
+                for edge in it.starmap(e_, it.product(c1_nodes, c2_nodes)):
                     if edge not in reviewed_edges:
                         check_edges.add(edge)
                         if len(check_edges) == k:
@@ -1077,7 +1114,7 @@ class _AnnotInfrFeedback(object):
         else:
             assert False
         # Loop through all pairs
-        for c1_nodes, c2_nodes in ut.combinations(pcc_set, 2):
+        for c1_nodes, c2_nodes in it.combinations(pcc_set, 2):
             check_edges = infr.rand_neg_check_edges(c1_nodes, c2_nodes)
             if len(check_edges) > 0:
                 # no check edges means we can't do anything
@@ -1264,7 +1301,7 @@ class _AnnotInfrFeedback(object):
     def try_auto_review(infr, edge, priority):
         review = {
             'user_id': 'auto_clf',
-            'user_confidence': 'pretty_sure',
+            'confidence': 'pretty_sure',
             'decision': None,
             'tags': [],
         }
@@ -1311,7 +1348,7 @@ class _AnnotInfrFeedback(object):
             if implicit_flag:
                 review = {
                     'user_id': 'auto_implicit_complete',
-                    'user_confidence': 'pretty_sure',
+                    'confidence': 'pretty_sure',
                     'decision': 'nomatch',
                     'tags': [],
                 }
@@ -1327,7 +1364,7 @@ class _AnnotInfrFeedback(object):
         # Manual review
         review = {
             'user_id': 'oracle',
-            'user_confidence': 'absolutely_sure',
+            'confidence': 'absolutely_sure',
             'decision': None,
             'tags': [],
         }
@@ -1343,9 +1380,9 @@ class _AnnotInfrFeedback(object):
         else:
             observed = truth
         if oracle_accuracy < 1.0:
-            review['user_confidence'] = 'pretty_sure'
+            review['confidence'] = 'pretty_sure'
         if oracle_accuracy < .5:
-            review['user_confidence'] = 'guessing'
+            review['confidence'] = 'guessing'
         review['decision'] = observed
         if error:
             ut.cprint('MADE MANUAL ERROR', 'red')
@@ -1363,7 +1400,7 @@ class _AnnotInfrFeedback(object):
 
     @profile
     def add_feedback(infr, aid1=None, aid2=None, decision=None, tags=[],
-                     apply=False, user_id=None, user_confidence=None,
+                     apply=False, user_id=None, confidence=None,
                      edge=None, verbose=None, rectify=True):
         """
         Public interface to add feedback for a single edge to the buffer.
@@ -1375,7 +1412,7 @@ class _AnnotInfrFeedback(object):
             decision (str): decision from `ibs.const.REVIEW.CODE_TO_INT`
             tags (list of str): specify Photobomb / Scenery / etc
             user_id (str): id of agent who did the review
-            user_confidence (str): See ibs.const.CONFIDENCE
+            confidence (str): See ibs.const.CONFIDENCE
             apply (bool): if True feedback is dynamically applied
 
         CommandLine:
@@ -1400,8 +1437,8 @@ class _AnnotInfrFeedback(object):
             aid1, aid2 = edge
         if verbose >= 1:
             print(('[infr] add_feedback(%r, %r, decision=%r, tags=%r, '
-                                        'user_id=%r, user_confidence=%r)') % (
-                aid1, aid2, decision, tags, user_id, user_confidence))
+                                        'user_id=%r, confidence=%r)') % (
+                aid1, aid2, decision, tags, user_id, confidence))
 
         if aid1 not in infr.aids_set:
             raise ValueError('aid1=%r is not part of the graph' % (aid1,))
@@ -1425,7 +1462,7 @@ class _AnnotInfrFeedback(object):
                 'decision': decision,
                 'tags': tags,
                 'timestamp': ut.get_timestamp('int', isutc=True),
-                'user_confidence': user_confidence,
+                'confidence': confidence,
                 'user_id': user_id,
             }
             infr.internal_feedback[edge].append(feedback_item)
@@ -1520,7 +1557,7 @@ class _AnnotInfrFeedback(object):
             # Apply the review to the specified edge
             state = feedback_item['decision']
             tags = feedback_item['tags']
-            user_confidence = feedback_item['user_confidence']
+            confidence = feedback_item['confidence']
             user_id = feedback_item['user_id']
             if infr.verbose >= 2:
                 print('[infr] _dynamically_apply_feedback edge=%r, state=%r'
@@ -1534,7 +1571,7 @@ class _AnnotInfrFeedback(object):
             num_reviews = infr.get_edge_attrs('num_reviews', [edge],
                                               default=0).get(edge, 0)
             infr._set_feedback_edges([edge], [state], [p_same], [tags],
-                                     [user_confidence],
+                                     [confidence],
                                      [user_id], [num_reviews + 1])
             # TODO: change num_reviews to num_consistent_reviews
             if state != 'notcomp':
@@ -1598,7 +1635,7 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('reviewed_state', _dz(edges, review_states))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
-        infr.set_edge_attrs('user_confidence', _dz(edges, confidence_list))
+        infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
         infr.set_edge_attrs('user_id', _dz(edges, userid_list))
         infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
         infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
@@ -1648,7 +1685,7 @@ class _AnnotInfrFeedback(object):
             userid_list.append(feedback_item['user_id'])
             decision_list.append(decision)
             tags_list.append(feedback_item['tags'])
-            confidence_list.append(feedback_item['user_confidence'])
+            confidence_list.append(feedback_item['confidence'])
 
         p_same_lookup = {
             'match': infr._compute_p_same(1.0, 0.0),
@@ -2457,7 +2494,7 @@ class _AnnotInfrUpdates(object):
             dup_edges = ut.find_duplicate_items(all_edges)
             if len(dup_edges) > 0:
                 # Check where the duplicates are if any
-                for k1, k2 in ut.combinations(edge_categories.keys(), 2):
+                for k1, k2 in it.combinations(edge_categories.keys(), 2):
                     v1 = edge_categories[k1]
                     v2 = edge_categories[k2]
                     overlaps = ut.set_overlaps(v1, v2)
@@ -3607,7 +3644,7 @@ def testdata_infr2(defaultdb='PZ_MTEST'):
         for a, b in ut.itertwo(name.aids):
             infr.add_feedback(a, b, 'match', apply=True)
 
-    for name1, name2 in ut.combinations(names[4:], 2):
+    for name1, name2 in it.combinations(names[4:], 2):
         infr.add_feedback(name1.aids[0], name2.aids[0], 'nomatch', apply=True)
     return infr
 
