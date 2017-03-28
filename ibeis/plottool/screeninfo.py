@@ -235,7 +235,11 @@ def get_resolution_info(monitor_num=0):
 def get_number_of_monitors():
     gt.ensure_qtapp()
     desktop = QtWidgets.QDesktopWidget()
-    return desktop.numScreens()
+    if hasattr(desktop, 'numScreens'):
+        n = desktop.numScreens()
+    else:
+        n = desktop.screenCount()
+    return n
 
 
 def get_monitor_geom(monitor_num=0):
@@ -268,7 +272,11 @@ def get_monitor_geometries():
     gt.ensure_qtapp()
     monitor_geometries = {}
     desktop = QtWidgets.QDesktopWidget()
-    for screenx in range(desktop.numScreens()):
+    if hasattr(desktop, 'numScreens'):
+        n = desktop.numScreens()
+    else:
+        n = desktop.screenCount()
+    for screenx in range(n):
         rect = desktop.availableGeometry(screen=screenx)
         geom = (rect.x(), rect.y(), rect.width(), rect.height())
         monitor_geometries[screenx] = geom
