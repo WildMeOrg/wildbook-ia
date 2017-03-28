@@ -11,8 +11,15 @@ def gt_reveiw():
     infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
                                 autoinit=True, verbose=True)
     infr.reset_feedback('annotmatch')
-    infr.apply_feedback_edges()
+
+    # infr.apply_feedback_edges()
+    for edge, vals in infr.all_feedback_items():
+        feedback = infr._rectify_feedback_item(vals)
+        infr.add_feedback2(edge, **feedback)
+
     infr.review_dummy_edges(method=2)
+    infr.relabel_using_reviews()
+    infr.apply_review_inference()
 
 
 def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):

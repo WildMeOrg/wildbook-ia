@@ -547,7 +547,7 @@ class InfrFeedback2(object):
 
     @profile
     def add_feedback2(infr, edge, decision, tags=None, user_id=None,
-                      confidence=None, verbose=None):
+                      confidence=None, timestamp=None, verbose=None):
         if verbose is None:
             verbose = infr.verbose
         edge = e_(*edge)
@@ -564,10 +564,12 @@ class InfrFeedback2(object):
 
         # Keep track of sequential reviews and set properties on global graph
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
+        if timestamp is None:
+            timestamp = ut.get_timestamp('int', isutc=True)
         feedback_item = {
             'decision': decision,
             'tags': tags,
-            'timestamp': ut.get_timestamp('int', isutc=True),
+            'timestamp': timestamp,
             'confidence': confidence,
             'user_id': user_id,
             'num_reviews': num_reviews + 1,

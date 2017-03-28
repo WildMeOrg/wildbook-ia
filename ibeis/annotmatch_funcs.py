@@ -175,15 +175,27 @@ def get_annotmatch_rowids_between(ibs, aids1, aids2):
         # Strategy 1: get all existing rows and see what intersects
         # This is better when the enumerated set of rows would be larger than
         # the database size
-        unflat_rowids1 = ibs.get_annotmatch_rowids_from_aid(aids1)
-        unflat_rowids2 = ibs.get_annotmatch_rowids_from_aid(aids2)
-        am_rowids1 = {r for r in ut.iflatten(unflat_rowids1) if r is not None}
-        am_rowids2 = {r for r in ut.iflatten(unflat_rowids2) if r is not None}
-        ams = sorted(am_rowids1.intersection(am_rowids2))
-        # am_rowids1 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids1))
-        # am_rowids2 = ut.flatten(ibs.get_annotmatch_rowids_from_aid(aids2))
-        # am_rowids1 = ut.filter_Nones(am_rowids1)
-        # am_rowids2 = ut.filter_Nones(am_rowids2)
+
+        unflat_rowids1L = ibs.get_annotmatch_rowids_from_aid1(aids1)
+        unflat_rowids1R = ibs.get_annotmatch_rowids_from_aid2(aids1)
+        unflat_rowids2L = ibs.get_annotmatch_rowids_from_aid1(aids2)
+        unflat_rowids2R = ibs.get_annotmatch_rowids_from_aid2(aids2)
+
+        am_rowids1L = {r for r in ut.iflatten(unflat_rowids1L) if r is not None}
+        am_rowids1R = {r for r in ut.iflatten(unflat_rowids1R) if r is not None}
+        am_rowids2L = {r for r in ut.iflatten(unflat_rowids2L) if r is not None}
+        am_rowids2R = {r for r in ut.iflatten(unflat_rowids2R) if r is not None}
+
+        ams12 = am_rowids1L.intersection(am_rowids2R)
+        ams21 = am_rowids2L.intersection(am_rowids1R)
+        ams = sorted(ams12.union(ams21))
+        # ams = sorted(am_rowids1.intersection(am_rowids2))
+        # rowids2 = ibs.get_annotmatch_rowids_from_aid2(aid_list)
+        # unflat_rowids1 = ibs.get_annotmatch_rowids_from_aid(aids1)
+        # unflat_rowids2 = ibs.get_annotmatch_rowids_from_aid(aids2)
+        # am_rowids1 = {r for r in ut.iflatten(unflat_rowids1) if r is not None}
+        # am_rowids2 = {r for r in ut.iflatten(unflat_rowids2) if r is not None}
+        # ams = sorted(am_rowids1.intersection(am_rowids2))
         # ams = ut.isect(am_rowids1, am_rowids2)
     else:
         # Strategy 2: enumerate what rows could exist and see what does exist
