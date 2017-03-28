@@ -975,6 +975,18 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
 
 
 def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
+    r"""
+    Args:
+        fpath_in (str):
+        fpath_out (None): (default = None)
+        verbose (bool):  verbosity flag(default = True)
+
+    Returns:
+        str: fpath_out
+
+    CommandLine:
+        python -m vtool.image clipwhite_ondisk
+    """
     import vtool as vt
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')

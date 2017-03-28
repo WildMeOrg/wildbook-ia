@@ -55,7 +55,7 @@
 
 #     Ignore:
 #         >>> from vtool.matching import *  # NOQA
-#         >>> ut.qt4ensure()
+#         >>> ut.qtensure()
 #         >>> import plottool as pt
 #         >>> pt.imshow(rchip1)
 #         >>> pt.draw_kpts2(kpts1)

@@ -30,7 +30,7 @@ def match_inspect_graph():
         >>> from vtool.inspect_matches import *  # NOQA
         >>> import vtool as vt
         >>> gt.ensure_qapp()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> self = match_inspect_graph()
         >>> self.show()
         >>> ut.quit_if_noshow()
@@ -100,7 +100,7 @@ class MatchInspector(INSPECT_BASE):
         >>> from vtool.inspect_matches import *  # NOQA
         >>> import vtool as vt
         >>> gt.ensure_qapp()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> annot1 = lazy_test_annot('easy1.png')
         >>> annot2 = lazy_test_annot('easy2.png')
         >>> match = vt.PairwiseMatch(annot1, annot2)
@@ -116,7 +116,7 @@ class MatchInspector(INSPECT_BASE):
         >>> import vtool as vt
         >>> import ibeis
         >>> gt.ensure_qapp()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> annots = ibs.annots([1, 2])
         >>> annot1 = annots[0]._make_lazy_dict()

@@ -625,7 +625,7 @@ def akmeans_iterations(data, centroids, max_iters, flann_params,
         >>>                                      ave_unchanged_iterwin, monitor=True)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> pt.multi_plot('epoch_num', hist, fnum=2)
         >>> plot_centroids(data, centroids)
         >>> ut.show_if_requested()
