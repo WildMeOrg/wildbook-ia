@@ -162,7 +162,7 @@ class _AnnotInfrDepMixin(object):
             >>>     ccs=[[1, 2, 3, 4, 5],
             >>>            [6, 7, 8, 9, 10]],
             >>>     edges=[
-            >>>         #(1, 6, {'reviewed_state': 'nomatch'}),
+            >>>         #(1, 6, {'decision': 'nomatch'}),
             >>>         (1, 6, {}),
             >>>         (4, 9, {}),
             >>>     ]
@@ -412,7 +412,7 @@ class _AnnotInfrDepMixin(object):
 
         if review_cfg['filter_nonmatch_between_ccs']:
             review_states = [
-                graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+                graph.get_edge_data(*edge).get('decision', 'unreviewed')
                 for edge in zip(aids1, aids2)]
             is_nonmatched = [state == 'nomatch' for state in review_states]
             #isneg_flags = is_nonmatched
@@ -451,7 +451,7 @@ class _AnnotInfrDepMixin(object):
         if review_cfg['filter_reviewed']:
             valid_flags = [
                 graph.get_edge_data(*edge).get(
-                    'reviewed_state', 'unreviewed') == 'unreviewed'
+                    'decision', 'unreviewed') == 'unreviewed'
                 for edge in zip(aids1, aids2)]
             num_filtered += len(valid_flags) - sum(valid_flags)
             aids1 = ut.compress(aids1, valid_flags)
@@ -467,7 +467,7 @@ class _AnnotInfrDepMixin(object):
                 max(graph.get_edge_data(*edge).get('score', -1), -1)
                 for edge in zip(aids1, aids2)])
             review_states = [
-                graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+                graph.get_edge_data(*edge).get('decision', 'unreviewed')
                 for edge in zip(aids1, aids2)]
             is_notcomp = np.array([state == 'notcomp'
                                    for state in review_states], dtype=np.bool)

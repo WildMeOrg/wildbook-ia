@@ -135,7 +135,7 @@ def build_vsone_metadata(qaid, daid, qreq_, use_ibscache=True):
         >>> metadata, cfgdict = build_vsone_metadata(qaid, daid, qreq_, use_ibscache)
         >>> from vtool import inspect_matches
         >>> gt.ensure_qapp()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> self = inspect_matches.MatchInspector(metadata=metadata)
         >>> self.show()
         >>> ut.quit_if_noshow()

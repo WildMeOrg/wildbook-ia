@@ -160,7 +160,7 @@ class InvertedAnnotsExtras(object):
             >>> ibs = qreq_.ibs
             >>> wx_list = list(inva.wx_to_aids.keys())
             >>> wx = wx_list[0]
-            >>> ut.qt4ensure()
+            >>> ut.qtensure()
             >>> fnum = 2
             >>> fnum = pt.ensure_fnum(fnum)
             >>> # Interactive visualization of many words

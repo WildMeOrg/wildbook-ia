@@ -105,7 +105,7 @@ class SMKRequest(mc5.EstimatorRequest):
         >>> qreq_.ensure_data()
         >>> cm_list = qreq_.execute()
         >>> ut.quit_if_noshow()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> cm_list[0].ishow_analysis(qreq_, fnum=1, viz_name_score=False)
         >>> cm_list[1].ishow_analysis(qreq_, fnum=2, viz_name_score=False)
         >>> ut.show_if_requested()
@@ -362,7 +362,7 @@ class SMK(ut.NiceRepr):
             >>> verbose = True
             >>> cm = qreq_.smk.match_single(qaid, daids, qreq_)
             >>> ut.quit_if_noshow()
-            >>> ut.qt4ensure()
+            >>> ut.qtensure()
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
         """

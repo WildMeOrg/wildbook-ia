@@ -704,7 +704,7 @@ def k_redun_demo():
     # infr.add_feedback2((7464, 7376), 'nomatch')
 
     # Adjust between new and old variable names
-    infr.set_edge_attrs('reviewed_state', infr.get_edge_attrs('decision'))
+    infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
     infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'match'), [1.0]))
     infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'nomatch'), [0.0]))
     infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'notcomp'), [0.5]))
@@ -824,7 +824,7 @@ def graph_iden_cut_demo():
         infr.ensure_full()
 
     # Adjust between new and old variable names
-    infr.set_edge_attrs('reviewed_state', infr.get_edge_attrs('decision'))
+    infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
     infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'match'), [1.0]))
     infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'nomatch'), [0.0]))
     infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'notcomp'), [0.5]))

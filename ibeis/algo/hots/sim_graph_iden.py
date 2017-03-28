@@ -200,13 +200,13 @@ class InfrSimulation(object):
         for cc in infr.inconsistent_components():
             edges = ut.lstarmap(infr.e_, list(cc.edges()))
             reviewed_edges = list(infr.get_edges_where_ne(
-                'reviewed_state', 'unreviewed', edges=edges,
+                'decision', 'unreviewed', edges=edges,
                 default='unreviewed'))
             incon_edges.extend(reviewed_edges)
             n_worst_case += len(reviewed_edges)
 
         incon_truth = primary_truth.loc[incon_edges].idxmax(axis=1)
-        # incon_pred1 = infr.edge_attr_df('reviewed_state', incon_edges)
+        # incon_pred1 = infr.edge_attr_df('decision', incon_edges)
 
         # We can do better, but there might still be some superflous reviews
         n_superflouous = 0
@@ -232,14 +232,14 @@ class InfrSimulation(object):
             else:
                 pass
                 # print('Fixing edge: %r' % (d,))
-            prev_state = d['reviewed_state']
+            prev_state = d['decision']
             state = primary_truth.loc[(aid1, aid2)].idxmax()
             if state == prev_state:
                 n_superflouous += 1
             tags = []
-            infr.add_feedback(aid1, aid2, state, tags, apply=True,
-                              rectify=False, user_id='oracle',
-                              confidence='absolutely_sure')
+            infr.add_feedback2((aid1, aid2), decision=state, tags=tags,
+                               rectify=False, user_id='oracle',
+                               confidence='absolutely_sure')
         n_reviews = count
         n_fixes = n_reviews - n_superflouous
         print('n_worst_case = %r' % (n_worst_case,))
@@ -257,7 +257,7 @@ class InfrSimulation(object):
 
         if False:
             from ibeis.scripts import clf_helpers
-            incon_pred2 = infr.edge_attr_df('reviewed_state', incon_edges)
+            incon_pred2 = infr.edge_attr_df('decision', incon_edges)
 
             print('--------')
             # clf_helpers.classification_report2(incon_truth, incon_pred1)
@@ -298,7 +298,7 @@ class InfrSimulation(object):
         sim.results['n_user_clusters'] = n_clusters
         # infr.apply_review_inference()
 
-        curr_decisions = infr.edge_attr_df('reviewed_state')
+        curr_decisions = infr.edge_attr_df('decision')
         curr_truth = primary_truth.loc[curr_decisions.index].idxmax(axis=1)
         n_user_mistakes = curr_decisions != curr_truth
         sim.results['n_user_mistakes'] = sum(n_user_mistakes)

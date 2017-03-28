@@ -242,7 +242,7 @@ class TestResult(ut.NiceRepr):
         >>> testres.help()
         >>> actions = testres.get_actions()
         >>> testres.map_score()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> prompt = ut.InteractivePrompt(actions)
         >>> prompt.loop()
     """

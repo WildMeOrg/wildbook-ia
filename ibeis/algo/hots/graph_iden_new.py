@@ -115,6 +115,31 @@ class InfrInvariants(object):
                 #     map(pos_graph.node_label, incon_cc))
 
 
+class InfrLearning(object):
+
+    def learn_evaluataion_clasifiers(infr):
+        from ibeis.scripts.script_vsone import OneVsOneProblem
+        clf_key = 'RF'
+        data_key = 'learn(sum,glob,4)'
+        task_keys = ['match_state']
+        pblm = OneVsOneProblem.from_aids(infr.ibs, aids=infr.aids, verbose=1)
+        pblm.default_clf_key = clf_key
+        pblm.default_data_key = data_key
+        pblm.load_features()
+        pblm.load_samples()
+        pblm.build_feature_subsets()
+
+        # pblm.evaluate_simple_scores(task_keys)
+        feat_cfgstr = ut.hashstr_arr27(
+            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
+        cfg_prefix = (pblm.samples.make_sample_hashid() +
+                      pblm.qreq_.get_cfgstr() + feat_cfgstr)
+        pblm.learn_evaluation_classifiers(task_keys, [clf_key], [data_key],
+                                          cfg_prefix)
+        infr.pblm = pblm
+        pass
+
+
 class CandidateSearch2(object):
     """ Search for candidate edges """
 
@@ -558,9 +583,21 @@ class InfrFeedback2(object):
             infr.graph.add_edge(aid1, aid2)
 
         if verbose >= 1:
-            print(('[infr] add_feedback(%r, %r, decision=%r, tags=%r, '
+            print(('[infr] add_feedback2(%r, %r, decision=%r, tags=%r, '
                                         'user_id=%r, confidence=%r)') % (
                 aid1, aid2, decision, tags, user_id, confidence))
+
+        if decision == 'unreviewed':
+            raise NotImplementedError('not done yet')
+            feedback_item = None
+            if edge in infr.external_feedback:
+                raise ValueError(
+                    "Can't unreview an edge that has been committed")
+            if edge in infr.internal_feedback:
+                del infr.internal_feedback[edge]
+            for G in infr.review_graphs.values():
+                if G.has_edge(*edge):
+                    G.remove_edge(*edge)
 
         # Keep track of sequential reviews and set properties on global graph
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
@@ -594,6 +631,7 @@ class InfrFeedback2(object):
             else:
                 infr.consistent_inference(edge, decision)
         else:
+            infr.dirty = True
             infr._add_review_edge(edge, decision)
 
         if infr.test_mode:
@@ -851,7 +889,7 @@ class TestStuff2(object):
 
 
 class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
-                 TestStuff2, DynamicUpdate2, InfrInvariants):
+                 InfrLearning, TestStuff2, DynamicUpdate2, InfrInvariants):
 
     def inner_loop2(infr):
         """

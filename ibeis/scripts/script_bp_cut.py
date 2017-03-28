@@ -517,11 +517,11 @@ def bp_step(G, nodes, edges , n_annots, n_names, lookup_annot_idx):
 
 def viz_factor_graph(gm):
     """
-    ut.qt4ensure()
+    ut.qtensure()
     gm = build_factor_graph(G, nodes, edges , n_annots, n_names, lookup_annot_idx,
                             use_unaries=True, edge_probs=None, operator='multiplier')
     """
-    ut.qt4ensure()
+    ut.qtensure()
     import networkx
     from networkx.drawing.nx_agraph import graphviz_layout
     networkx.graphviz_layout = graphviz_layout

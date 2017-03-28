@@ -1165,7 +1165,7 @@ def compare_data(Y_list_):
     # z = ibs.annots([a.aid for a in bady])
 
     import plottool as pt
-    ut.qt4ensure()
+    ut.qtensure()
     gamma1s = np.array(gamma1s)
     gamma2s = np.array(gamma2s)
     sortx = gamma1s.argsort()

@@ -274,7 +274,7 @@ class _AnnotInfrDummy(object):
                 break
             positive_edges = [
                 e_(*e) for e, v in
-                nx.get_edge_attributes(target_cc, 'reviewed_state').items()
+                nx.get_edge_attributes(target_cc, 'decision').items()
                 if v == 'match'
             ]
             tmp = nx.Graph()
@@ -346,7 +346,7 @@ class _AnnotInfrDummy(object):
             for (u, v, d) in aug_graph.edges(data=True)
             if not (
                 d.get('is_cut') or
-                d.get('reviewed_state', 'unreviewed') in ['nomatch']
+                d.get('decision', 'unreviewed') in ['nomatch']
             )
         ]
         cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
@@ -442,8 +442,8 @@ class _AnnotInfrDummy(object):
             print('[infr] reviewing %s dummy edges' % (len(new_edges),))
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
-            infr.add_feedback(u, v, 'match', confidence='guessing',
-                              user_id='mst', verbose=False)
+            infr.add_feedback2((u, v), decision='match', confidence='guessing',
+                               user_id='mst', verbose=False)
         infr.apply_feedback_edges()
 
 
@@ -808,9 +808,9 @@ class _AnnotInfrIBEIS(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
-            >>> infr.add_feedback(2, 3, 'match')
-            >>> infr.add_feedback(5, 6, 'nomatch')
-            >>> infr.add_feedback(5, 4, 'nomatch')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((5, 6), 'nomatch')
+            >>> infr.add_feedback2((5, 4), 'nomatch')
             >>> (edge_delta_df) = infr.match_state_delta()
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
@@ -972,7 +972,7 @@ class _AnnotInfrFeedback(object):
         reviewed_edges = {
             edge: state
             for edge, state in infr.get_edge_attrs(
-                'reviewed_state', existing_edges,
+                'decision', existing_edges,
                 default='unreviewed').items()
             if state != 'unreviewed'
         }
@@ -1206,7 +1206,7 @@ class _AnnotInfrFeedback(object):
         candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
         already_reviewed = {
             edge for edge, state in
-            infr.get_edge_attrs('reviewed_state', edges=candidate_edges,
+            infr.get_edge_attrs('decision', edges=candidate_edges,
                                 default='unreviewed').items()
             if state != 'unreviewed'
         }
@@ -1422,9 +1422,9 @@ class _AnnotInfrFeedback(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback(5, 6, 'match')
-            >>> infr.add_feedback(5, 6, 'nomatch', ['Photobomb'])
-            >>> infr.add_feedback(1, 2, 'notcomp')
+            >>> infr.add_feedback2((5, 6), 'match')
+            >>> infr.add_feedback2((5, 6), 'nomatch', ['Photobomb'])
+            >>> infr.add_feedback2((1, 2), 'notcomp')
             >>> print(ut.repr2(infr.internal_feedback, nl=2))
             >>> assert len(infr.external_feedback) == 0
             >>> assert len(infr.internal_feedback) == 2
@@ -1509,9 +1509,9 @@ class _AnnotInfrFeedback(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.relabel_using_reviews()
-            >>> infr.add_feedback(1, 2, 'match', apply=True)
-            >>> infr.add_feedback(2, 3, 'match', apply=True)
-            >>> infr.add_feedback(2, 3, 'match', apply=True)
+            >>> infr.add_feedback2((1, 2), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
             >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
             >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
             >>> infr._del_feedback_edges()
@@ -1525,20 +1525,20 @@ class _AnnotInfrFeedback(object):
             >>> infr = testdata_infr('testdb1')
             >>> infr.relabel_using_reviews()
             >>> infr.verbose = 2
-            >>> ut.qt4ensure()
+            >>> ut.qtensure()
             >>> infr.ensure_full()
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback(6, 2, 'match', apply=True)
-            >>> infr.add_feedback(2, 3, 'match', apply=True)
-            >>> infr.add_feedback(3, 4, 'match', apply=True)
+            >>> infr.add_feedback2((6, 2), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((3, 4), 'match')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback(2, 3, 'nomatch', apply=True)
+            >>> infr.add_feedback2((2, 3), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback(6, 4, 'match', apply=True)
+            >>> infr.add_feedback2((6, 4), 'match')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback(1, 5, 'nomatch', apply=True)
+            >>> infr.add_feedback2((1, 5), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback(1, 3, 'nomatch', apply=True)
+            >>> infr.add_feedback2((1, 3), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
             >>> import plottool as pt
             >>> pt.present()
@@ -1615,7 +1615,7 @@ class _AnnotInfrFeedback(object):
             edges = list(infr.graph.edges())
         if infr.verbose >= 2:
             print('[infr] _del_feedback_edges len(edges) = %r' % (len(edges)))
-        keys = ['reviewed_state', 'reviewed_tags', 'num_reviews',
+        keys = ['decision', 'reviewed_tags', 'num_reviews',
                 'reviewed_weight']
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
 
@@ -1632,7 +1632,7 @@ class _AnnotInfrFeedback(object):
 
         # use UTC timestamps
         timestamp = ut.get_timestamp('int', isutc=True)
-        infr.set_edge_attrs('reviewed_state', _dz(edges, review_states))
+        infr.set_edge_attrs('decision', _dz(edges, review_states))
         infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
         infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
         infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
@@ -1654,7 +1654,7 @@ class _AnnotInfrFeedback(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
-            >>> infr.add_feedback(1, 2, 'unknown', tags=[])
+            >>> infr.add_feedback2((1, 2), 'unknown', tags=[])
             >>> infr.apply_feedback_edges()
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
@@ -2274,7 +2274,7 @@ class _AnnotInfrPriority(object):
         # Candidate edges are unreviewed
         cand_uvds = [
             (u, v, d) for u, v, d in graph.edges(data=True)
-            if (d.get('reviewed_state', 'unreviewed') == 'unreviewed' or
+            if (d.get('decision', 'unreviewed') == 'unreviewed' or
                 d.get('maybe_error', False))
         ]
 
@@ -2341,7 +2341,7 @@ class _AnnotInfrUpdates(object):
         for item, groupid in node_to_label.items():
             nid_to_cc[groupid].add(item)
 
-        # Get edge -> reviewed_state
+        # Get edge -> decision
         all_edges = [e_(u, v) for u, v in graph.edges()]
         # edge_to_reviewstate = {}
         # for u, v in infr.pos_graph.edges():
@@ -2352,7 +2352,7 @@ class _AnnotInfrUpdates(object):
         #     edge_to_reviewstate[(u, v)] = 'notcomp'
 
         edge_to_reviewstate = {
-            (u, v): infr.graph.edge[u][v].get('reviewed_state', 'unreviewed')
+            (u, v): infr.graph.edge[u][v].get('decision', 'unreviewed')
             for u, v in all_edges
         }
 
@@ -2517,7 +2517,7 @@ class _AnnotInfrUpdates(object):
             for u, v in missing12:
                 edge = graph.edge[u][v]
                 print('missing edge = %r' % ((u, v),))
-                print('state = %r' % (edge.get('reviewed_state',
+                print('state = %r' % (edge.get('decision',
                                                'unreviewed')))
                 nid1 = node_to_label[u]
                 nid2 = node_to_label[v]
@@ -2550,17 +2550,17 @@ class _AnnotInfrUpdates(object):
             >>> infr = AnnotInference(None, aids, autoinit=True, verbose=1)
             >>> infr.ensure_full()
             >>> infr._init_priority_queue()
-            >>> infr.add_feedback(1, 2, 'match', apply=True)
-            >>> infr.add_feedback(2, 3, 'match', apply=True)
-            >>> infr.add_feedback(2, 3, 'match', apply=True)
-            >>> infr.add_feedback(3, 4, 'match', apply=True)
-            >>> infr.add_feedback(4, 5, 'nomatch', apply=True)
-            >>> infr.add_feedback(6, 7, 'match', apply=True)
-            >>> infr.add_feedback(7, 8, 'match', apply=True)
-            >>> infr.add_feedback(6, 8, 'nomatch', apply=True)
-            >>> infr.add_feedback(6, 1, 'notcomp', apply=True)
-            >>> infr.add_feedback(1, 9, 'notcomp', apply=True)
-            >>> infr.add_feedback(8, 9, 'notcomp', apply=True)
+            >>> infr.add_feedback2((1, 2), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((3, 4), 'match')
+            >>> infr.add_feedback2((4, 5), 'nomatch')
+            >>> infr.add_feedback2((6, 7), 'match')
+            >>> infr.add_feedback2((7, 8), 'match')
+            >>> infr.add_feedback2((6, 8), 'nomatch')
+            >>> infr.add_feedback2((6, 1), 'notcomp')
+            >>> infr.add_feedback2((1, 9), 'notcomp')
+            >>> infr.add_feedback2((8, 9), 'notcomp')
             >>> #infr.show_graph(hide_cuts=False)
             >>> graph = infr.graph
             >>> infr.apply_review_inference(graph)
@@ -2692,7 +2692,7 @@ class _AnnotInfrUpdates(object):
         """
         inconsistent_edges = [
             edge for edge, state in
-            nx.get_edge_attributes(subgraph, 'reviewed_state').items()
+            nx.get_edge_attributes(subgraph, 'decision').items()
             if state == 'nomatch'
         ]
         maybe_error_edges = set([])
@@ -2743,7 +2743,7 @@ class _AnnotInfrUpdates(object):
             >>>     ccs=[[1, 2, 3, 4, 5],
             >>>            [6, 7, 8, 9, 10]],
             >>>     edges=[
-            >>>         #(1, 6, {'reviewed_state': 'nomatch'}),
+            >>>         #(1, 6, {'decision': 'nomatch'}),
             >>>         (1, 6, {}),
             >>>         (4, 9, {}),
             >>>     ]
@@ -2751,7 +2751,7 @@ class _AnnotInfrUpdates(object):
             >>> infr._init_priority_queue()
             >>> assert len(infr.queue) == 2
             >>> infr.queue_params['neg_redundancy'] = None
-            >>> infr.add_feedback(1, 6, 'nomatch', apply=True)
+            >>> infr.add_feedback2((1, 6), 'nomatch')
             >>> assert len(infr.queue) == 0
             >>> graph = infr.graph
             >>> ut.exec_func_src(infr.apply_review_inference,
@@ -2812,8 +2812,8 @@ class _AnnotInfrUpdates(object):
                 for n2 in infr.graph.neighbors(n1):
                     if n2 not in visited:
                         # data = infr.graph.get_edge_data(n1, n2)
-                        # _state = data.get('reviewed_state', 'unreviewed')
-                        _state = infr.graph.edge[n1][n2].get('reviewed_state',
+                        # _state = data.get('decision', 'unreviewed')
+                        _state = infr.graph.edge[n1][n2].get('decision',
                                                              'unreviewed')
                         if _state == 'nomatch':
                             cc2 = infr.get_annot_cc(n2)
@@ -2920,7 +2920,7 @@ class _AnnotInfrRelabel(object):
         # cc_subgraphs = infr.positive_connected_compoments(graph)
         # inconsistent_subgraphs = []
         # for subgraph in cc_subgraphs:
-        #     edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
+        #     edge_to_state = nx.get_edge_attributes(subgraph, 'decision')
         #     if any(state == 'nomatch' for state in edge_to_state.values()):
         #         inconsistent_subgraphs.append(subgraph)
         # return inconsistent_subgraphs
@@ -2937,7 +2937,7 @@ class _AnnotInfrRelabel(object):
         # # inconsistent_subgraphs = []
         # consistent_subgraphs = []
         # for subgraph in cc_subgraphs:
-        #     edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
+        #     edge_to_state = nx.get_edge_attributes(subgraph, 'decision')
         #     if not any(state == 'nomatch' for state in edge_to_state.values()):
         #         consistent_subgraphs.append(subgraph)
         #     # else:
@@ -2963,9 +2963,9 @@ class _AnnotInfrRelabel(object):
         # if graph is None:
         #     graph = infr.graph
         # # Make a graph where connections do indicate same names
-        # reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
+        # decisions = nx.get_edge_attributes(graph, 'decision')
         # graph2 = infr._graph_cls()
-        # keep_edges = [key for key, val in reviewed_states.items()
+        # keep_edges = [key for key, val in decisions.items()
         #               if val == 'match']
         # graph2.add_nodes_from(graph.nodes())
         # graph2.add_edges_from(keep_edges)
@@ -3071,7 +3071,7 @@ class _AnnotInfrRelabel(object):
         # Check consistentcy
         num_inconsistent = 0
         for subgraph in cc_subgraphs:
-            edge_to_state = nx.get_edge_attributes(subgraph, 'reviewed_state')
+            edge_to_state = nx.get_edge_attributes(subgraph, 'decision')
             if any(state == 'nomatch' for state in edge_to_state.values()):
                 num_inconsistent += 1
 
@@ -3114,9 +3114,9 @@ class _AnnotInfrRelabel(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback(2, 3, 'nomatch')
-            >>> infr.add_feedback(5, 6, 'nomatch')
-            >>> infr.add_feedback(1, 2, 'match')
+            >>> infr.add_feedback2((2, 3), 'nomatch')
+            >>> infr.add_feedback2((5, 6), 'nomatch')
+            >>> infr.add_feedback2((1, 2), 'match')
             >>> infr.apply_feedback_edges()
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
@@ -3132,10 +3132,10 @@ class _AnnotInfrRelabel(object):
         aid_to_ccx = {
             aid: ccx for ccx, aids in ccx_to_aids.items() for aid in aids
         }
-        all_reviewed_states = infr.get_edge_attrs('reviewed_state')
+        all_decisions = infr.get_edge_attrs('decision')
         separated_ccxs = set([])
         inconsistent_ccxs = set([])
-        for edge, state in all_reviewed_states.items():
+        for edge, state in all_decisions.items():
             if state == 'nomatch':
                 ccx1 = aid_to_ccx[edge[0]]
                 ccx2 = aid_to_ccx[edge[1]]
@@ -3229,7 +3229,7 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.apply_mst()
         >>> infr.show_graph(use_image=use_image)
         >>> # Add some feedback
-        >>> infr.add_feedback(1, 4, 'nomatch')
+        >>> infr.add_feedback2((1, 4), 'nomatch')
         >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
@@ -3249,13 +3249,13 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.initialize_visual_node_attrs()
         >>> infr.apply_mst()
         >>> # Add some feedback
-        >>> infr.add_feedback(1, 4, 'nomatch')
+        >>> infr.add_feedback2((1, 4), 'nomatch')
         >>> try:
-        >>>     infr.add_feedback(1, 10, 'nomatch')
+        >>>     infr.add_feedback2((1, 10), 'nomatch')
         >>> except ValueError:
         >>>     pass
         >>> try:
-        >>>     infr.add_feedback(11, 12, 'nomatch')
+        >>>     infr.add_feedback2((11, 12), 'nomatch')
         >>> except ValueError:
         >>>     pass
         >>> infr.apply_feedback_edges()
@@ -3305,16 +3305,16 @@ class AnnotInference(ut.NiceRepr,
             # nid1 = infr.pos_graph.node_label(edge[0])
             # nid2 = infr.pos_graph.node_label(edge[1])
             true_state = infr.edge_truth[edge]
-            reviewed_state = data.get('reviewed_state', 'unreviewed')
-            if reviewed_state == 'unreviewed':
+            decision = data.get('decision', 'unreviewed')
+            if decision == 'unreviewed':
                 pass
-            elif true_state == reviewed_state:
+            elif true_state == decision:
                 if true_state == 'match':
                     confusion['correct']['pred_pos'].append(edge)
-            elif true_state != reviewed_state:
-                if reviewed_state == 'match':
+            elif true_state != decision:
+                if decision == 'match':
                     confusion['incorrect']['pred_pos'].append(edge)
-                elif reviewed_state == 'nomatch':
+                elif decision == 'nomatch':
                     confusion['incorrect']['pred_neg'].append(edge)
 
     def measure_metrics(infr):
@@ -3326,11 +3326,11 @@ class AnnotInference(ut.NiceRepr,
 
         for edge, data in infr.edges(data=True):
             true_state = infr.edge_truth[edge]
-            reviewed_state = data.get('reviewed_state', 'unreviewed')
-            if true_state == reviewed_state and true_state == 'match':
+            decision = data.get('decision', 'unreviewed')
+            if true_state == decision and true_state == 'match':
                 real_pos_edges.append(edge)
-            elif reviewed_state != 'unreviewed':
-                if true_state != reviewed_state:
+            elif decision != 'unreviewed':
+                if true_state != decision:
                     n_error_edges += 1
                     if true_state == 'match':
                         n_fn += 1
@@ -3368,6 +3368,11 @@ class AnnotInference(ut.NiceRepr,
         infr.orig_name_labels = None
         infr.aid_to_node = None
         infr.node_to_aid = None
+
+        # If not dirty, new feedback should dynamically maintain a consistent
+        # state. If dirty it means we need to recompute connected compoments
+        # before we can continue with dynamic review.
+        infr.dirty = False
 
         infr.graph = None
 
@@ -3440,7 +3445,7 @@ class AnnotInference(ut.NiceRepr,
         aids = list(G.nodes())
         nids = [-a for a in aids]
         infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
-        infr.graph = G
+        infr.initialize_graph(graph=G)
         infr.update_node_attributes()
         return infr
 
@@ -3473,11 +3478,13 @@ class AnnotInference(ut.NiceRepr,
         infr2.nid_counter = infr.nid_counter
         infr2.thresh = infr.thresh
         infr2.aid_to_node = copy.deepcopy(infr.aid_to_node)
+        infr2.review_graphs = {}
 
-        infr2.pos_graph = infr2.pos_graph.copy()
-        infr2.neg_graph = infr2.neg_graph.copy()
-        infr2.incomp_graph = infr2.incomp_graph.copy()
-
+        for key, graph in infr.review_graphs.items():
+            if graph is None:
+                infr2.review_graphs[key] = None
+            else:
+                infr2.review_graphs[key] = graph.copy()
         return infr2
 
     def __nice__(infr):
@@ -3577,14 +3584,23 @@ class AnnotInference(ut.NiceRepr,
         infr.neg_graph.add_nodes_from(aids)
         infr.incomp_graph.add_nodes_from(aids)
 
-    def initialize_graph(infr):
+    def initialize_graph(infr, graph=None):
         if infr.verbose >= 1:
             print('[infr] initialize_graph')
-        infr.graph = infr._graph_cls()
+        if graph is None:
+            infr.graph = infr._graph_cls()
+        else:
+            infr.graph = graph
 
         infr.review_graphs['match'] = graph_iden_utils.DynConnGraph()
         infr.review_graphs['nomatch'] = infr._graph_cls()
         infr.review_graphs['notcomp'] = infr._graph_cls()
+
+        if graph is not None:
+            for u, v, d in graph.edges(data=True):
+                decision = d.get('decision', 'unreviewed')
+                if decision in {'match', 'nomatch', 'notcomp'}:
+                    infr.review_graphs[decision].add_edge(u, v)
 
         infr.update_node_attributes()
 
@@ -3642,10 +3658,10 @@ def testdata_infr2(defaultdb='PZ_MTEST'):
     n1, n2, n3, n4 = names[0:4]
     for name in names[4:]:
         for a, b in ut.itertwo(name.aids):
-            infr.add_feedback(a, b, 'match', apply=True)
+            infr.add_feedback2((a, b), 'match')
 
     for name1, name2 in it.combinations(names[4:], 2):
-        infr.add_feedback(name1.aids[0], name2.aids[0], 'nomatch', apply=True)
+        infr.add_feedback2((name1.aids[0], name2.aids[0]), 'nomatch')
     return infr
 
 

@@ -529,7 +529,7 @@ def split_analysis(ibs):
         for aid1, aid2 in bad_edges:
             if infr.graph.has_edge(aid1, aid2):
                 flipped_edges.append((aid1, aid2))
-            infr.add_feedback(aid1, aid2, 'nomatch')
+            infr.add_feedback2((aid1, aid2), 'nomatch')
         infr.apply_feedback()
         nx.set_edge_attributes(infr.graph, '_speed_split', 'orig')
         nx.set_edge_attributes(infr.graph, '_speed_split',
@@ -546,7 +546,7 @@ def split_analysis(ibs):
         relabel_stats = []
         for infr in infr_list_:
             num_ccs, num_inconsistent = infr.relabel_using_reviews()
-            state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'reviewed_state').values())
+            state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'decision').values())
             if 'match' not in state_hist:
                 state_hist['match'] = 0
             hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())

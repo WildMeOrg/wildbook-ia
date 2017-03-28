@@ -62,7 +62,6 @@ class VsOneAssignConfig(dt.Config):
     _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
 
 
-
 @ut.reloadable_class
 class OneVsOneProblem(clf_helpers.ClfProblem):
     """
@@ -91,6 +90,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         pblm.default_clf_key = 'RF'
         pblm.default_data_key = 'learn(sum,glob)'
+        pblm.main_task_key = 'match_state'
+
         if verbose is None:
             verbose = 0
         pblm.verbose = verbose

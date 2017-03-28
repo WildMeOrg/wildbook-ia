@@ -271,7 +271,7 @@ class _AnnotInfrViz(object):
         edges, edge_weights, edge_colors = infr.get_colored_edge_weights(
             graph, highlight_reviews)
 
-        reviewed_states = nx.get_edge_attributes(graph, 'reviewed_state')
+        reviewed_states = nx.get_edge_attributes(graph, 'decision')
         edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
         dummy_edges = [edge for edge, flag in
                        nx.get_edge_attributes(graph, '_dummy_edge').items()
@@ -323,7 +323,7 @@ class _AnnotInfrViz(object):
             nx.set_edge_attributes(graph, 'linewidth', _dz(
                 edges, [unreviewed_width]))
 
-        # EDGE_STROKE: based on reviewed_state and maybe_error
+        # EDGE_STROKE: based on decision and maybe_error
         # fg = pt.WHITE if dark_background else pt.BLACK
         # nx.set_edge_attributes(graph, 'stroke', _dz(reviewed_edges, [
         #     {'linewidth': 3, 'foreground': fg}]))

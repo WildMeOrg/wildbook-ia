@@ -12,14 +12,27 @@ def gt_reveiw():
                                 autoinit=True, verbose=True)
     infr.reset_feedback('annotmatch')
 
+    infr.learn_evaluataion_clasifiers()
+
     # infr.apply_feedback_edges()
     for edge, vals in infr.all_feedback_items():
         feedback = infr._rectify_feedback_item(vals)
+        ut.delete_dict_keys(feedback, ['num_reviews'])
+        # del feedback['num_reviews']
         infr.add_feedback2(edge, **feedback)
 
-    infr.review_dummy_edges(method=2)
-    infr.relabel_using_reviews()
-    infr.apply_review_inference()
+    new_edges = infr.find_mst_edges2()
+    if infr.verbose >= 1:
+        print('[infr] reviewing %s dummy edges' % (len(new_edges),))
+    for u, v in new_edges:
+        infr.add_feedback2((u, v), decision='match', confidence='guessing',
+                           user_id='mst', verbose=False)
+
+    infr._make_pairwise_features(list(infr.edges()), need_lnbnn=False)
+
+    # infr.review_dummy_edges(method=2)
+    # infr.relabel_using_reviews()
+    # infr.apply_review_inference()
 
 
 def debug_expanded_aids(ibs, expanded_aids_list, verbose=1):

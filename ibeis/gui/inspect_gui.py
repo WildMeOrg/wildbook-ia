@@ -870,7 +870,7 @@ def make_vsone_context_options(ibs, aid1, aid2, qreq_):
         >>> from ibeis.gui.inspect_gui import *  # NOQA
         >>> import ibeis
         >>> gt.ensure_qapp()
-        >>> ut.qt4ensure()
+        >>> ut.qtensure()
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aids = ut.get_argval('--aids', default=[1, 2], type_=list)
         >>> print('aids = %r' % (aids,))

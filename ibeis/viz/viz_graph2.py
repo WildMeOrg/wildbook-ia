@@ -58,7 +58,7 @@ class CustomReviewDialog(gt.GuitoolWidget):
         import ibeis
         if edge_data is not None:
             reviewed_tags = edge_data.get('reviewed_tags', [])
-            match_state = edge_data.get('reviewed_state', 'unreviewed')
+            match_state = edge_data.get('decision', 'unreviewed')
             default_conf = edge_data.get('confidence', 'unspecified')
             print('edge_data = %r' % (edge_data,))
             default_match_state = ibeis.const.REVIEW.CODE_TO_NICE[match_state]
@@ -855,8 +855,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = statetags[1].split(';') if len(statetags) > 1 else []
         assert state in valid_states
         for aid1, aid2 in pairs:
-            self.infr.add_feedback(aid1, aid2, state, tags=tags,
-                                   user_id='qt-mark', apply=True)
+            self.infr.add_feedback2((aid1, aid2), decision=state, tags=tags,
+                                    user_id='qt-mark')
         self.emit_state_update(disable_global_update=True)
 
     def make_mark_state_funcs(self, selection_func):
@@ -944,7 +944,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         dlg.exec_()
         if dlg.widget.was_confirmed:
             feedback = dlg.widget.feedback_dict()
-            self.infr.add_feedback(apply=True, **feedback)
+            self.infr.add_feedback2(**feedback)
 
     def get_edge_options(self, aid_pairs):
         """
@@ -1098,7 +1098,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = tags.map(ut.unique)
 
         for (aid1, aid2), state, tags in zip(aid_pairs, decision, tags):
-            infr.add_feedback(aid1, aid2, state, tags, apply=False)
+            infr.add_feedback2((aid1, aid2), decision=state, tags=tags)
 
         infr.apply_feedback_edges()
         infr.apply_review_inference()
@@ -1366,7 +1366,7 @@ class EdgeAPIHelper(object):
     def get_edge_data(self, edge):
         aid1, aid2 = edge
         attrs = self.graph.get_edge_data(aid1, aid2).copy()
-        remove_attrs = self.infr.visual_edge_attrs + ['rank', 'reviewed_state', 'score']
+        remove_attrs = self.infr.visual_edge_attrs + ['rank', 'decision', 'score']
         try:
             remove_attrs.remove('style')
         except ValueError:
@@ -1457,7 +1457,7 @@ class EdgeAPIHelper(object):
 
     def get_review_text(self, edge):
         graph = self.infr.graph
-        text = graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')
+        text = graph.get_edge_data(*edge).get('decision', 'unreviewed')
         return text
 
     def get_inference_bgrole(self, edge):
@@ -1481,7 +1481,7 @@ class EdgeAPIHelper(object):
                 color = truth_colors['unreviewed']
             else:
                 color = truth_colors['match'] if state == 'same' else truth_colors['nomatch']
-            #self.graph.get_edge_data(*edge).get('reviewed_state', 'unreviewed')]
+            #self.graph.get_edge_data(*edge).get('decision', 'unreviewed')]
             if lighten_amount is not None:
                 color = pt.lighten_rgb(color, lighten_amount)
         color = pt.to_base255(color)
@@ -1490,7 +1490,7 @@ class EdgeAPIHelper(object):
     def get_review_bgrole(self, edge):
         """ Background role for status column """
         data = self.graph.get_edge_data(*edge)
-        state = data.get('reviewed_state', 'unreviewed')
+        state = data.get('decision', 'unreviewed')
         truth_colors = self.infr._get_truth_colors()
         if state == 'unreviewed':
             inference_state, text, maybe_error = self._get_inference_info(edge)
