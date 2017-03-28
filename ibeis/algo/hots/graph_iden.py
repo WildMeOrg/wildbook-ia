@@ -960,7 +960,8 @@ class _AnnotInfrIBEIS(object):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrFeedback(object):
+class _AnnotInfrRedundancy(object):
+    """ methods for computing redundancy """
 
     @profile
     def rand_neg_check_edges(infr, c1_nodes, c2_nodes):
@@ -991,6 +992,23 @@ class _AnnotInfrFeedback(object):
             check_edges = {}
         return check_edges
 
+    def find_neg_outgoing_freq(infr, cc):
+        """
+        Find the number of edges leaving `cc` and directed towards specific
+        names.
+        """
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
+        neg_nid_freq = ut.ddict(lambda: 0)
+        for u in cc:
+            nid1 = pos_graph.node_label(u)
+            for v in neg_graph.neighbors(u):
+                nid2 = pos_graph.node_label(v)
+                if nid1 == nid2 and v not in cc:
+                    continue
+                neg_nid_freq[nid2] += 1
+        return neg_nid_freq
+
     @profile
     def negative_redundant_nids(infr, cc):
         """
@@ -1005,19 +1023,10 @@ class _AnnotInfrFeedback(object):
             >>> infr.queue_params['neg_redundancy'] = 2
             >>> infr.negative_redundant_nids(cc)
         """
-        pos_graph = infr.pos_graph
-        neg_graph = infr.neg_graph
-        neg_nid_freq = ut.ddict(lambda: 0)
-        for u in cc:
-            nid1 = pos_graph.node_label(u)
-            for v in neg_graph.neighbors(u):
-                nid2 = pos_graph.node_label(v)
-                if nid1 == nid2:
-                    continue
-                neg_nid_freq[nid2] += 1
+        neg_nid_freq = infr.find_neg_outgoing_freq(cc)
         # check for k-negative redundancy
         k_neg = infr.queue_params['neg_redundancy']
-
+        pos_graph = infr.pos_graph
         neg_nids = [
             nid2 for nid2, freq in neg_nid_freq.items()
             if (
@@ -1147,8 +1156,7 @@ class _AnnotInfrFeedback(object):
     def pos_redundant_pccs(infr, relax_size=False):
         for cc in infr.consistent_components():
             if len(cc) == 2:
-                break
-
+                continue
             if infr.is_pos_redundant(cc, relax_size):
                 yield cc
 
@@ -1160,6 +1168,26 @@ class _AnnotInfrFeedback(object):
         for cc in infr.consistent_components():
             if not infr.is_pos_redundant(cc, relax_size):
                 yield cc
+
+    def find_pos_redun_nids(infr):
+        """ recomputes infr.pos_redun_nids """
+        for cc in infr.pos_redundant_pccs():
+            node = next(iter(cc))
+            nid = infr.pos_graph.node_label(node)
+            yield nid
+
+    def find_neg_redun_nids(infr):
+        """ recomputes edges in infr.neg_redun_nids """
+        for cc in infr.consistent_components():
+            node = next(iter(cc))
+            nid1 = infr.pos_graph.node_label(node)
+            for nid2 in infr.negative_redundant_nids(cc):
+                if nid1 < nid2:
+                    yield nid1, nid2
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class _AnnotInfrFeedback(object):
 
     @profile
     def refresh_candidate_edges(infr, pblm=None):
@@ -2256,7 +2284,7 @@ class _AnnotInfrPriority(object):
         else:
             uvds = edges
         new_priorities = np.array([
-            d.get(infr.PRIORITY_METRIC, -1) + (2 * d.get('maybe_error', False))
+            d.get(infr.PRIORITY_METRIC, -1) + (2 * d.get('maybe_error', None))
             for u, v, d in uvds
         ])
         flags = np.isnan(new_priorities)
@@ -2275,7 +2303,7 @@ class _AnnotInfrPriority(object):
         cand_uvds = [
             (u, v, d) for u, v, d in graph.edges(data=True)
             if (d.get('decision', 'unreviewed') == 'unreviewed' or
-                d.get('maybe_error', False))
+                d.get('maybe_error', None))
         ]
 
         # Sort edges to review
@@ -2634,7 +2662,7 @@ class _AnnotInfrUpdates(object):
         infr.set_edge_attrs('inferred_state', _dz(edge_categories['negative'], ['diff']))
 
         # Suggest possible fixes
-        infr.set_edge_attrs('maybe_error', ut.dzip(all_edges, [False]))
+        infr.set_edge_attrs('maybe_error', ut.dzip(all_edges, [None]))
         infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
 
         # Update the cut state
@@ -3168,7 +3196,7 @@ class AnnotInference(ut.NiceRepr,
                      graph_iden_mixins._AnnotInfrHelpers, _AnnotInfrIBEIS,
                      _AnnotInfrMatching, _AnnotInfrFeedback, _AnnotInfrUpdates,
                      _AnnotInfrPriority, _AnnotInfrRelabel, _AnnotInfrDummy,
-                     _AnnotInfrGroundtruth,
+                     _AnnotInfrGroundtruth, _AnnotInfrRedundancy,
                      AnnotInfr2,
                      graph_iden_depmixin._AnnotInfrDepMixin,
                      viz_graph_iden._AnnotInfrViz):
@@ -3381,13 +3409,15 @@ class AnnotInference(ut.NiceRepr,
             'nomatch': None,
             'notcomp': None,
         }
-        infr.enable_inference = None
+        infr.enable_inference = True
         infr.test_mode = False
         infr.edge_truth = {}
 
         # Criteria
         infr.refresh = None
         infr.term = None
+
+        infr.init_bookkeeping()
 
         # TODO: rename to external_feedback? This should represent The feedback
         # read from a database. We do not need to do any updates to an external
@@ -3447,6 +3477,7 @@ class AnnotInference(ut.NiceRepr,
         infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
         infr.initialize_graph(graph=G)
         infr.update_node_attributes()
+        infr.refresh_bookkeeping()
         return infr
 
     @classmethod
@@ -3479,6 +3510,12 @@ class AnnotInference(ut.NiceRepr,
         infr2.thresh = infr.thresh
         infr2.aid_to_node = copy.deepcopy(infr.aid_to_node)
         infr2.review_graphs = {}
+
+        infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
+        infr2.recovery_cc = copy.deepcopy(infr.recovery_cc)
+        infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)
+        infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
+        infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
 
         for key, graph in infr.review_graphs.items():
             if graph is None:

@@ -372,10 +372,12 @@ class InfrRecovery2(object):
         pos_edges = list(pos_subgraph.edges())
 
         # Generate weights for edges
-        pos_prob = list(infr.gen_edge_values('prob_match', pos_edges))
-        neg_prob = list(infr.gen_edge_values('prob_match', neg_edges))
-        pos_n = list(infr.gen_edge_values('num_reviews', pos_edges))
-        neg_n = list(infr.gen_edge_values('num_reviews', neg_edges))
+        pos_gen = infr.gen_edge_values('prob_match', pos_edges, default=1e-6)
+        neg_gen = infr.gen_edge_values('prob_match', neg_edges, default=1e-6)
+        pos_prob = list(pos_gen)
+        neg_prob = list(neg_gen)
+        pos_n = list(infr.gen_edge_values('num_reviews', pos_edges, default=0))
+        neg_n = list(infr.gen_edge_values('num_reviews', neg_edges, default=0))
         pos_weight = pos_n
         neg_weight = neg_n
         pos_weight = np.add(pos_prob, np.array(pos_n))
@@ -428,6 +430,9 @@ class InfrRecovery2(object):
         # Add in the new edge
         infr._add_review_edge(edge, decision)
 
+        # remove any maybe_error flag
+        infr.graph.edge[edge[0]][edge[1]].pop('maybe_error', None)
+
         # Check if there is any inconsistent edge between any pcc in
         # infr.recovery_cc
         neg_subgraph = neg_graph.subgraph(infr.recovery_cc)
@@ -451,8 +456,11 @@ class InfrRecovery2(object):
             # choose just one error edge and give it insanely high priority
             assert len(infr.recover_hypothesis) > 0, 'must have at least one'
             error_edge = next(iter(infr.recover_hypothesis.keys()))
-            base = infr.graph.get_edge_data(*error_edge).get('prob_match')
-            infr.queue[error_edge] = -(10 + base)
+
+            infr.set_edge_attr(error_edge, {'maybe_error': True})
+            base = infr.graph.get_edge_data(*error_edge).get('prob_match', 1e-9)
+            if infr.queue is not None:
+                infr.queue[error_edge] = -(10 + base)
         else:
             ut.cprint('consistency has been restored', 'green')
             # infr.set_edge_attrs('num_reviews', ut.dzip(infr.edges(), [0]))
@@ -482,9 +490,10 @@ class InfrRecovery2(object):
             reviewed_edges = it.starmap(e_, ut.iflatten([
                 pos_subgraph.edges(), neg_subgraph.edges(),
                 incomp_subgraph.edges()]))
-            for edge in reviewed_edges:
-                if edge in infr.queue:
-                    del infr.queue[edge]
+            if infr.queue is not None:
+                for edge in reviewed_edges:
+                    if edge in infr.queue:
+                        del infr.queue[edge]
 
             # Remove recovery flags
             infr.recovery_cc = None
@@ -641,7 +650,24 @@ class InfrFeedback2(object):
 
 class DynamicUpdate2(object):
 
+    def refresh_bookkeeping(infr):
+        # TODO: need to ensure bookkeeping is taken care of
+        infr.recovery_ccs = list(infr.inconsistent_components())
+        if len(infr.recovery_ccs) > 0:
+            infr.recovery_cc = infr.recovery_ccs[0]
+            infr.recover_prev_neg_nids = list(
+                infr.find_neg_outgoing_freq(infr.recovery_cc).keys()
+            )
+        else:
+            infr.recovery_cc = None
+            infr.recover_prev_neg_nids = None
+        infr.pos_redun_nids = set(infr.find_pos_redun_nids())
+        infr.neg_redun_nids = nx.Graph(list(infr.find_neg_redun_nids()))
+
     def init_bookkeeping(infr):
+        infr.recovery_ccs = []
+        # TODO: keep one main recovery cc but once it is done pop the next one
+        # from recovery_ccs until none are left
         infr.recovery_cc = None
         infr.recover_prev_neg_nids = None
         # Set of PCCs that are positive redundant
@@ -674,7 +700,8 @@ class DynamicUpdate2(object):
         if infr.is_neg_redundant(cc1, cc2):
             # Flag ourselves as negative redundant and remove priorities
             infr.neg_redun_nids.add_edge(nid1, nid2)
-            infr.queue.delete_items(bridges_cross(infr.graph, cc1, cc2))
+            if infr.queue is not None:
+                infr.queue.delete_items(bridges_cross(infr.graph, cc1, cc2))
         else:
             # FIXME: we can make this faster with assumption flags
             # if we are not k negative redunant but we are flagged as such
@@ -684,26 +711,29 @@ class DynamicUpdate2(object):
                     infr.neg_redun_nids.remove_edge(nid1, nid2)
                 except nx.exception.NetworkXError:
                     pass
-                edges = bridges_cross(infr.graph, cc1, cc2)
-                prob_match = np.array(list(infr.gen_edge_values(
-                    'prob_match', edges)))
-                priority = -prob_match
-                infr.queue.update(ut.dzip(edges, priority))
+                if infr.queue is not None:
+                    edges = bridges_cross(infr.graph, cc1, cc2)
+                    prob_match = np.array(list(infr.gen_edge_values(
+                        'prob_match', edges, default=1e-9)))
+                    priority = -prob_match
+                    infr.queue.update(ut.dzip(edges, priority))
 
     @profile
     def update_pos_redun(infr, nid, check_reinstate=False):
         cc = infr.pos_graph.component_nodes(nid)
         if infr.is_pos_redundant(cc):
             infr.pos_redun_nids.add(nid)
-            infr.queue.delete_items(bridges_inside(infr.graph, cc))
+            if infr.queue is not None:
+                infr.queue.delete_items(bridges_inside(infr.graph, cc))
         else:
             if check_reinstate or nid in infr.pos_redun_nids:
                 infr.pos_redun_nids -= {nid}
-                edges = bridges_inside(infr.graph, cc)
-                prob_match = np.array(list(infr.gen_edge_values(
-                    'prob_match', edges)))
-                priority = -prob_match
-                infr.queue.update(ut.dzip(edges, priority))
+                if infr.queue is not None:
+                    edges = bridges_inside(infr.graph, cc)
+                    prob_match = np.array(list(infr.gen_edge_values(
+                        'prob_match', edges, default=1e-9)))
+                    priority = -prob_match
+                    infr.queue.update(ut.dzip(edges, priority))
 
     @profile
     def is_neg_redundant(infr, cc1, cc2):

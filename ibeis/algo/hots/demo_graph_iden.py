@@ -839,7 +839,7 @@ def case_override_inference():
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
     # Make sure that the inferred edges are no longer inferred when an
     # inconsistent case is introduced
-    check(infr2, 1, 4, 'maybe_error', False, 'should not split inferred edge')
+    check(infr2, 1, 4, 'maybe_error', None, 'should not split inferred edge')
     check(infr2, 4, 5, 'maybe_error', True, 'split me')
     check(infr2, 5, 2, 'inferred_state', 'inconsistent_internal', 'inference should be overriden')
     after()
@@ -1091,10 +1091,10 @@ def case_flag_merge():
     # Ensure that the nomatch edge comes back as potentially in error
     new_edges = [(1, 4, {'decision': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr1, 2, 4, 'maybe_error', False, 'match edge should flag first')
-    check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first')
-    check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second')
-    check(infr2, 1, 4, 'maybe_error', False, 'nomatch edge should flag second')
+    check(infr1, 2, 4, 'maybe_error', None, 'match edge should flag first None')
+    check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first True')
+    check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second True')
+    check(infr2, 1, 4, 'maybe_error', None, 'nomatch edge should flag second None')
     after()
 
 
