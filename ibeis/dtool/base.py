@@ -114,6 +114,11 @@ class Config(ut.NiceRepr, ut.DictLike):
     def update(cfg, **kwargs):
         """
         Overwrites default DictLike update for only keys that exist.
+        Non-existing key are ignored.
+
+        Note:
+            prefixed keys in the form <classname>_<key> will be just be
+            interpreted as <key>
 
         CommandLine:
             python -m dtool.base update --show
@@ -144,7 +149,7 @@ class Config(ut.NiceRepr, ut.DictLike):
                 cfg.setitem(key, val)
             if key_alias in self_keys:
                 #print("SETTING")
-                cfg.setitem(key, val)
+                cfg.setitem(key_alias, val)
                 #setattr(cfg, key, val)
 
     def initialize_params(cfg, **kwargs):
@@ -312,7 +317,8 @@ class Config(ut.NiceRepr, ut.DictLike):
     def setitem(cfg, key, value):
         """ Required for DictLike interface """
         # TODO; check for valid config setting
-        pi = cfg.get_param_info_dict()[key]
+        pi_dict = cfg.get_param_info_dict()
+        pi = pi_dict[key]
         pi.error_if_invalid_value(value)
         return setattr(cfg, key, value)
 

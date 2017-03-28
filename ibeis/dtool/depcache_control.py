@@ -354,22 +354,34 @@ class _CoreDependencyCache(object):
     # STATE GETTERS
 
     def rectify_input_tuple(depc, exi_inputs, input_tuple):
-        if isinstance(input_tuple, (list, np.ndarray)):
-            input_tuple = (input_tuple,)
+        """
+        Standardizes inputs allowed for convinience into the expected input for
+        get_parent_rowids.
+        """
+        input_tuple_ = input_tuple
+
+        if isinstance(input_tuple_, (list, np.ndarray)):
+            if len(exi_inputs) != 1:
+                msg = '#expected=%d, #got=1' % (len(exi_inputs),)
+                msg += '. Did you forget to cast multi-inputs to a tuple?'
+                raise ValueError(msg)
+            # Inputs should always be a tuple of lists.
+            input_tuple_ = (input_tuple_,)
         if len(exi_inputs) == 1:
             # HACK: for simple case where we only need one parent
-            if isinstance(input_tuple, (tuple,)):
-                if len(input_tuple) == 0:
-                    input_tuple = []
-                elif len(input_tuple) > 1:
-                    if not ut.isiterable(input_tuple[0]):
-                        input_tuple = (input_tuple,)
-        assert len(exi_inputs) == len(input_tuple), (
-            '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple)))
+            if isinstance(input_tuple_, (tuple,)):
+                if len(input_tuple_) == 0:
+                    input_tuple_ = []
+                elif len(input_tuple_) > 1:
+                    if not ut.isiterable(input_tuple_[0]):
+                        input_tuple_ = (input_tuple_,)
+        if len(exi_inputs) != len(input_tuple_):
+            msg = '#expected=%d, #got=%d' % (len(exi_inputs), len(input_tuple_))
+            raise ValueError(msg)
 
         # rectify input depth
         rectified_input = []
-        for x, d in zip(input_tuple, exi_inputs.expected_input_depth()):
+        for x, d in zip(input_tuple_, exi_inputs.expected_input_depth()):
             if d == 0:
                 if not ut.isiterable(x):
                     rectified_input.append([x])
@@ -449,24 +461,20 @@ class _CoreDependencyCache(object):
 
             compute_edges = exi_inputs.flat_compute_rmi_edges()
             if _debug:
-                print(' * rectified_input=%s' % (ut.trunc_repr(rectified_input),))
-                print(' * compute_edges=%s' % (ut.repr2(compute_edges, nl=2),))
+                print(' * rectified_input=%s' % ut.trunc_repr(rectified_input))
+                print(' * compute_edges=%s' % ut.repr2(compute_edges, nl=2))
 
             for count, (input_nodes, output_node) in enumerate(compute_edges, start=1):
                 if _debug:
                     ut.cprint(' * COMPUTING %d/%d EDGE %r -- %r' % (
-                        count, len(compute_edges), input_nodes, output_node), 'blue')
-                #ut.colorprint('output_node = %r' % (output_node,), 'yellow')
+                        count, len(compute_edges), input_nodes, output_node),
+                        'blue')
                 tablekey = output_node.tablename
                 table = depc[tablekey]
-                # ensure correct ordering to the table
-                # input_tablekeys = [n.tablename for n in input_nodes]
-                # sortx = ut.list_alignment(table.parent_id_tablenames,
-                #                           input_tablekeys)
-                # input_nodes_ = ut.take(input_nodes, sortx)
                 input_nodes_ = input_nodes
                 if _debug:
-                    print('table.parent_id_tablenames = %r' % (table.parent_id_tablenames,))
+                    print('table.parent_id_tablenames = %r' % (
+                        table.parent_id_tablenames,))
                     print('input_nodes_ = %r' % (input_nodes_,))
                 input_multi_flags = [
                     node.ismulti and node in exi_inputs.rmi_list
