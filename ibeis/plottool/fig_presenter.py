@@ -113,13 +113,17 @@ def all_figures_tight_layout():
 
 
 def get_main_win_base():
+    if hasattr(mpl.backends, 'backend_qt4'):
+        backend = mpl.backends.backend_qt4
+    else:
+        backend = mpl.backends.backend_qt5
     try:
-        QMainWin = mpl.backends.backend_qt4.MainWindow
+        QMainWin = backend.MainWindow
     except Exception as ex:
         try:
             ut.printex(ex, 'warning', '[fig_presenter]')
             #from guitool.__PYQT__ import QtGui
-            QMainWin = mpl.backends.backend_qt4.QtWidgets.QMainWindow
+            QMainWin = backend.QtWidgets.QMainWindow
         except Exception as ex1:
             ut.printex(ex1, 'warning', '[fig_presenter]')
             QMainWin = object
