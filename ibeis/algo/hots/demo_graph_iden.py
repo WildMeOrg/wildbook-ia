@@ -575,7 +575,7 @@ def on_pick(event, infr=None):
     print(ut.get_timestamp())
 
 
-def synthetic_infr(ccs, edges):
+def make_demo_infr(ccs, edges):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
 
@@ -626,10 +626,7 @@ def do_infr_test(ccs, edges, new_edges):
     import networkx as nx
     import plottool as pt
 
-    infr = synthetic_infr(ccs, edges)
-
-    if nx.__version__.startswith('1'):
-        nx.add_path = nx.Graph.add_path
+    infr = make_demo_infr(ccs, edges)
 
     pt.qtensure()
 
@@ -1096,6 +1093,129 @@ def case_flag_merge():
     check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second True')
     check(infr2, 1, 4, 'maybe_error', None, 'nomatch edge should flag second None')
     after()
+
+
+def case_all_types2():
+    """
+    CommandLine:
+        python -m ibeis.algo.hots.demo_graph_iden case_all_types2 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.hots.demo_graph_iden import *  # NOQA
+        >>> infr = case_all_types2()
+        >>> # Ensure that the nomatch edge comes back as potentially in error
+        >>> # new_edges = [(2, 5, {'decision': 'match'})]
+        >>> infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+        >>> errors = []
+        >>> for u, v, d in infr2.graph.edges(data=True):
+        >>>     state = d.get('inferred_state', '')
+        >>>     if u < 20 or v < 20:
+        >>>         if state is not None and 'inconsistent' not in state:
+        >>>             print('u, v, state = %r, %r, %r' % (u, v, state))
+        >>>             err = AssertionError('all of cc0 should be incon')
+        >>>             print(err)
+        >>>             errors.append(err)
+        >>>     else:
+        >>>         if state is not None and 'inconsistent' in state:
+        >>>             print('u, v, state = %r, %r, %r' % (u, v, state))
+        >>>             err = AssertionError('outside of cc0 should not be incon')
+        >>>             print(err)
+        >>>             errors.append(err)
+        >>> check(infr1, 13, 14, 'inferred_state', 'inconsistent_internal',
+        >>>       'notcomp edge should be incon')
+        >>> check(infr1, 21, 31, 'inferred_state', 'notcomp', 'notcomp edge should remain notcomp')
+        >>> check(infr1, 22, 32, 'inferred_state', None, 'notcomp edge should transfer knowledge')
+        >>> check(infr1, 12, 42, 'inferred_state', 'inconsistent_external',
+        >>>       'inconsistency should override notcomp')
+        >>> # check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first')
+        >>> # check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second')
+        >>> # check(infr2, 1, 4, 'maybe_error', False, 'nomatch edge should flag second')
+        >>> after(errors)
+
+    """
+    # A case where a review between two ccs modifies state outside of
+    # the subgraph of ccs
+    edges = [
+        # ---------
+        # Define edges within components
+        # ---------
+        # Inconsistent component
+        (11, 12, {'decision': 'match'}),
+        (12, 13, {'decision': 'match'}),
+        (11, 13, {'decision': 'nomatch'}),
+        (11, 14, {'decision': 'match'}),
+        (12, 14, {'decision': 'match'}),
+        (13, 14, {}),
+        (11, 15, {'decision': 'match'}),
+        (12, 15, {'decision': 'notcomp'}),
+
+        # Positive component (with notcomp)
+        (21, 22, {'decision': 'match'}),
+        (22, 23, {'decision': 'match'}),
+        (21, 23, {'decision': 'notcomp'}),
+        (21, 24, {'decision': 'match'}),
+        (22, 24, {'decision': 'match'}),
+        (23, 24, {}),
+
+        # Positive component (with unreview)
+        (31, 32, {'decision': 'match'}),
+        (32, 33, {'decision': 'match'}),
+        (31, 33, {'decision': 'match'}),
+        (31, 34, {'decision': 'match'}),
+        (32, 34, {'decision': 'match'}),
+        (33, 34, {}),
+
+        # Positive component
+        (41, 42, {'decision': 'match'}),
+        (42, 43, {'decision': 'match'}),
+        (41, 43, {'decision': 'match'}),
+
+        # Positive component (extra)
+        (51, 52, {'decision': 'match'}),
+        (52, 53, {'decision': 'match'}),
+        (51, 53, {'decision': 'match'}),
+
+        # Positive component (isolated)
+        (61, 62, {'decision': 'match'}),
+
+        #-----------
+        # Define edges between components
+        #-----------
+        # 1 - 2
+        (11, 21, {}),
+        (12, 22, {}),
+        # 1 - 3
+        (11, 31, {}),
+        (12, 32, {'decision': 'nomatch'}),
+        (13, 33, {}),
+        # 1 - 4
+        (11, 41, {}),
+        (12, 42, {'decision': 'notcomp'}),
+        (13, 43, {}),
+        # 1 - 5
+        (11, 51, {'decision': 'notcomp'}),
+        (12, 52, {'decision': 'nomatch'}),
+        (13, 53, {}),
+
+        # 2 - 3
+        (21, 31, {'decision': 'notcomp'}),
+        (22, 32, {}),
+        # 2 - 4
+        (21, 41, {}),
+        (22, 42, {}),
+        # 2 - 5
+        (21, 51, {'decision': 'notcomp'}),
+        (22, 52, {'decision': 'nomatch'}),
+
+        # 3 - 4
+        (31, 41, {'decision': 'nomatch'}),
+        (32, 42, {}),
+    ]
+    infr = make_demo_infr([], edges)
+    return infr
+
+
 
 
 def case_all_types():

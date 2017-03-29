@@ -687,29 +687,22 @@ def end_to_end():
 
     for idx in idx_list:
         dials = expt_dials[idx]
-        if True:
-            infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                        verbose=verbose)
-            new_dials = dict(
-                phis=phis,
-                oracle_accuracy=dials['oracle_accuracy'],
-                k_redun=dials['k_redun'],
-                enable_autoreview=dials['priority_metric'] == 'priority',
-                enable_inference=dials['method'] == 'graph',
-                classifiers=dials['cand_kw']['pblm'],
-                complete_thresh=dials['complete_thresh'],
-                match_state_thresh=dials['match_state_thresh'],
-                name=dials['name'],
-            )
-            infr.init_test_mode2(**new_dials)
-            print('new_dials = %s' % (ut.repr4(new_dials),))
-            infr.main_loop2(max_loops=dials['max_loops'])
-        else:
-            infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                        verbose=verbose)
-            infr.init_test_mode()
-            infr.init_termination_criteria(phis)
-            run_expt(infr, dials=dials)
+        infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                    verbose=verbose)
+        new_dials = dict(
+            phis=phis,
+            oracle_accuracy=dials['oracle_accuracy'],
+            k_redun=dials['k_redun'],
+            enable_autoreview=dials['priority_metric'] == 'priority',
+            enable_inference=dials['method'] == 'graph',
+            classifiers=dials['cand_kw']['pblm'],
+            complete_thresh=dials['complete_thresh'],
+            match_state_thresh=dials['match_state_thresh'],
+            name=dials['name'],
+        )
+        infr.init_test_mode2(**new_dials)
+        print('new_dials = %s' % (ut.repr4(new_dials),))
+        infr.main_loop2(max_loops=dials['max_loops'])
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
         # Remove non-transferable attributes
@@ -923,116 +916,6 @@ def draw_ete(dbname):
 
     # infr.show(fnum=3, groupby='name_label')
     ut.show_if_requested()
-
-
-@profile
-def run_expt(infr, dials):
-    import pandas as pd
-    import itertools as it
-
-    ut.cprint('RUNING TEST', 'yellow')
-    print('dials = %s' % (ut.repr4(dials),))
-    k_redun = dials['k_redun']
-    oracle_accuracy = dials['oracle_accuracy']
-    cand_kw = dials['cand_kw']
-    priority_metric = dials['priority_metric']
-    infr.method = dials['method']
-    infr.PRIORITY_METRIC = priority_metric
-    autoreview_enabled = infr.PRIORITY_METRIC == 'priority'
-    infr.queue_params['pos_redundancy'] = k_redun
-    infr.queue_params['neg_redundancy'] = k_redun
-    infr.queue_params['complete_thresh'] = dials['complete_thresh']
-    infr.task_thresh = {
-        'photobomb_state': pd.Series({
-            'pb': .5,
-            'notpb': .9,
-        }),
-        'match_state': pd.Series(dials['match_state_thresh'])
-    }
-
-    # aid_to_gt_nid = ut.dzip(infr.aids, infr.orig_name_labels)
-    seed = sum(map(ord, dials['name']))
-
-    rng = ut.ensure_rng(seed, impl='python')
-    infr.reset(state='empty')
-    infr.remove_feedback(apply=True)
-
-    infr.init_refresh_criteria()
-
-    def inner_loop():
-        ut.cprint('Start inner loop', 'blue')
-        while True:
-            if len(infr.queue) == 0:
-                ut.cprint('No more edges, need refresh', 'blue')
-                break
-            edge, priority = infr.pop()
-            if priority <= 1:
-                if infr.refresh.check():
-                    ut.cprint('Refresh criteria flags refresh', 'blue')
-                    break
-            else:
-                ut.cprint('IN RECOVERY MODE priority=%r' % (priority,), 'red')
-
-            flag = False
-            if autoreview_enabled:
-                flag, review = infr.try_auto_review(edge, priority)
-            if not flag:
-                if infr.method == 'graph':
-                    flag, review = infr.try_implicit_review(edge, priority)
-                if not flag:
-                    error, review = infr.oracle_review(edge, oracle_accuracy,
-                                                       rng)
-            infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
-
-    for count in it.count(0):
-        if count >= dials['max_loops']:
-            # Just do a maximum of some number of runs for now
-            ut.cprint('Early stop', 'blue')
-            break
-        ut.cprint('Outer loop iter %d ' % (count,), 'blue')
-        infr.refresh_candidate_edges(**cand_kw)
-
-        if not len(infr.queue):
-            ut.cprint('Queue is empty. Terminate.', 'blue')
-            break
-
-        inner_loop()
-
-        if infr.method == 'graph':
-            # Fix anything that is not positive/negative redundant
-            infr.refresh_candidate_edges(ranking=False, **cand_kw)
-            inner_loop()
-
-    if infr.method == 'graph':
-        # Enforce that a user checks any PCC that was auto-reviewed
-        # but was unable to achieve k-positive-consistency
-        for pcc in list(infr.non_pos_redundant_pccs()):
-            subgraph = infr.graph.subgraph(pcc)
-            for u, v, data in subgraph.edges(data=True):
-                edge = infr.e_(u, v)
-                if data.get('user_id', '').startswith('auto'):
-                    error, review = infr.oracle_review(edge, oracle_accuracy, rng)
-                    infr.add_feedback(edge=edge, apply=True, rectify=False,
-                                      **review)
-        # Check for inconsistency recovery
-        while len(infr.queue):
-            edge, priority = infr.pop()
-            if priority <= 1:
-                break
-            error, review = infr.oracle_review(edge, oracle_accuracy, rng)
-            infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
-
-    if infr.method == 'graph':
-        assert len(list(infr.inconsistent_components())) == 0
-
-    true_groups = list(map(set, infr.nid_to_gt_cc.values()))
-    pred_groups = list(infr.positive_connected_compoments())
-    from ibeis.algo.hots import sim_graph_iden
-    comparisons = sim_graph_iden.compare_groups(true_groups, pred_groups)
-    pred_merges = comparisons['pred_merges']
-    # print(pred_merges)
-    ut.cprint('FINISHE ETE')
-    # print(ut.repr4(comparisons, nl=4))
 
 
 def show_phis(phis):

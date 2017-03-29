@@ -29,7 +29,6 @@ class nx_UnionFind(object):
         while root != path[-1]:
             path.append(root)
             root = self.parents[root]
-
         # compress the path and return
         for ancestor in path:
             self.parents[ancestor] = root
@@ -37,6 +36,13 @@ class nx_UnionFind(object):
 
     def __iter__(self):
         return iter(self.parents)
+
+    def rebalance(self):
+        # Make sure only one operation is needed to lookup any node
+        for x in list(self.parents.keys()):
+            parent = self[x]
+            self.parents[x] = parent
+            self.weights[x] = 1
 
     def to_sets(self):
         import itertools as it

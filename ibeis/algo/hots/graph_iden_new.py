@@ -89,7 +89,24 @@ class UserOracle(object):
 
 
 class InfrInvariants(object):
-    def assert_consistency_invariant(infr, label=''):
+
+    def assert_invariants(infr, msg=''):
+        infr.assert_disjoint_invariant(msg)
+        infr.assert_consistency_invariant(msg)
+        infr.assert_recovery_invariant(msg)
+
+    def assert_disjoint_invariant(infr, msg=''):
+        edge_sets = [
+            set(it.starmap(e_, graph.edges()))
+            for key, graph in infr.review_graphs.items()
+        ]
+        for es1, es2 in it.combinations(edge_sets, 2):
+            assert es1.isdisjoint(es2), 'edge sets must be disjoint'
+        all_edges = set(it.starmap(e_, infr.graph.edges()))
+        edge_union = set.union(*edge_sets)
+        assert edge_union == all_edges, 'edge sets must have full union'
+
+    def assert_consistency_invariant(infr, msg=''):
         if not DEBUG_INCON:
             return
         if infr.enable_inference:
@@ -97,9 +114,9 @@ class InfrInvariants(object):
             with ut.embed_on_exception_context:
                 if len(incon_ccs) > 0:
                     raise AssertionError('The graph is not consistent. ' +
-                                         label)
+                                         msg)
 
-    def assert_recovery_invariant(infr, label=''):
+    def assert_recovery_invariant(infr, msg=''):
         if not DEBUG_INCON:
             return
         inconsistent_ccs = list(infr.inconsistent_components())
@@ -108,15 +125,14 @@ class InfrInvariants(object):
         with utool.embed_on_exception_context:
             assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
             if False:
-                print('infr.recovery_cc = %r' % (infr.recovery_cc,))
-                print('incon_cc = %r' % (incon_cc,))
                 # nid_to_cc2 = ut.group_items(
                 #     incon_cc,
                 #     map(pos_graph.node_label, incon_cc))
+                print('infr.recovery_cc = %r' % (infr.recovery_cc,))
+                print('incon_cc = %r' % (incon_cc,))
 
 
 class InfrLearning(object):
-
     def learn_evaluataion_clasifiers(infr):
         from ibeis.scripts.script_vsone import OneVsOneProblem
         clf_key = 'RF'
@@ -502,7 +518,6 @@ class InfrRecovery2(object):
 
 
 class InfrFeedback2(object):
-
     @profile
     def consistent_inference(infr, edge, decision):
         # assuming we are in a consistent state
@@ -649,7 +664,6 @@ class InfrFeedback2(object):
 
 
 class DynamicUpdate2(object):
-
     def refresh_bookkeeping(infr):
         # TODO: need to ensure bookkeeping is taken care of
         infr.recovery_ccs = list(infr.inconsistent_components())
@@ -752,7 +766,6 @@ class DynamicUpdate2(object):
 
 
 class InfrReviewers(object):
-
     @profile
     def try_auto_review2(infr, edge):
         review = {
@@ -819,6 +832,233 @@ class InfrReviewers(object):
         else:
             raise NotImplementedError('no user review')
         return feedback
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class AnnotInfrRedundancy(object):
+    """ methods for computing redundancy """
+
+    @profile
+    def rand_neg_check_edges(infr, c1_nodes, c2_nodes):
+        """
+        Find enough edges to between two pccs to make them k-negative complete
+        """
+        k = infr.queue_params['neg_redundancy']
+        existing_edges = bridges_cross(infr.graph, c1_nodes, c2_nodes)
+        reviewed_edges = {
+            edge: state
+            for edge, state in infr.get_edge_attrs(
+                'decision', existing_edges,
+                default='unreviewed').items()
+            if state != 'unreviewed'
+        }
+        n_neg = sum([state == 'nomatch'
+                     for state in reviewed_edges.values()])
+        if n_neg < k:
+            # Find k random negative edges
+            check_edges = existing_edges - set(reviewed_edges)
+            if len(check_edges) < k:
+                for edge in it.starmap(e_, it.product(c1_nodes, c2_nodes)):
+                    if edge not in reviewed_edges:
+                        check_edges.add(edge)
+                        if len(check_edges) == k:
+                            break
+        else:
+            check_edges = {}
+        return check_edges
+
+    def find_neg_outgoing_freq(infr, cc):
+        """
+        Find the number of edges leaving `cc` and directed towards specific
+        names.
+        """
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
+        neg_nid_freq = ut.ddict(lambda: 0)
+        for u in cc:
+            nid1 = pos_graph.node_label(u)
+            for v in neg_graph.neighbors(u):
+                nid2 = pos_graph.node_label(v)
+                if nid1 == nid2 and v not in cc:
+                    continue
+                neg_nid_freq[nid2] += 1
+        return neg_nid_freq
+
+    @profile
+    def negative_redundant_nids(infr, cc):
+        """
+        Get PCCs that are k-negative redundant with `cc`
+
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> infr = testdata_infr2()
+            >>> node = 20
+            >>> cc = infr.pos_graph.connected_to(node)
+            >>> infr.queue_params['neg_redundancy'] = 2
+            >>> infr.negative_redundant_nids(cc)
+        """
+        neg_nid_freq = infr.find_neg_outgoing_freq(cc)
+        # check for k-negative redundancy
+        k_neg = infr.queue_params['neg_redundancy']
+        pos_graph = infr.pos_graph
+        neg_nids = [
+            nid2 for nid2, freq in neg_nid_freq.items()
+            if (
+                freq >= k_neg or
+                freq == len(cc) or
+                freq == len(pos_graph.connected_to(nid2))
+            )
+        ]
+        return neg_nids
+
+    @profile
+    def prob_complete(infr, cc):
+        if infr.term is None:
+            assert False
+            return 0
+        else:
+            size = len(cc)
+            # Choose most appropriate phi
+            if size not in infr.term.phis:
+                size = max(infr.term.phis.keys())
+            phi = infr.term.phis[size]
+            # pos_graph.node_label()
+            num_ccs = len(infr.pos_graph._ccs)
+            # We use annot scores because names could be different if
+            # reviews have happened.
+            ranked_aids = infr._get_cm_agg_aid_ranking(cc)
+            # Map these aids onto current nid label
+            ranked_nids = ut.unique(
+                [infr.pos_graph.node_label(aid) for aid in ranked_aids])
+            nid_to_rank = ut.make_index_lookup(ranked_nids)
+            neg_nid_neighbors = set(infr.negative_redundant_nids(cc))
+            # Get the ranks of known negative neighbors
+            neg_ranks = [rank for nid, rank in nid_to_rank.items()
+                         if nid in neg_nid_neighbors]
+            neg_ranks = sorted(neg_ranks)
+            slack = num_ccs - len(phi)
+            if slack:
+                phi = np.append(phi, [phi[-1]] * slack)
+                phi = phi / phi.sum()
+            # TODO: extend phi if needed for current dbsize
+            p_complete = sum([phi[r] for r in neg_ranks])
+            return p_complete
+
+    @profile
+    def check_prob_completeness(infr, node):
+        """
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> infr = testdata_infr2()
+            >>> infr.initialize_visual_node_attrs()
+            >>> #ut.ensureqt()
+            >>> #infr.show()
+            >>> infr.refresh_candidate_edges2()
+            >>> node = 1
+            >>> node = 20
+            >>> infr.is_node_complete(node)
+        """
+        thresh = infr.queue_params['complete_thresh']
+        cc = infr.pos_graph.connected_to(node)
+        if thresh < 1.0:
+            p_complete = infr.prob_complete(cc)
+            if p_complete > thresh:
+                return True
+        return False
+
+    @profile
+    def non_complete_pcc_pairs(infr):
+        """
+        Get pairs of PCCs that are not complete.
+        Finds edges that might complete them.
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr2()
+            >>> categories = infr.categorize_edges(graph)
+            >>> negative = categories['ne_categories']['negative']
+            >>> ne, edges = list(categories['reviewed_negatives'].items())[0]
+            >>> infr.graph.remove_edges_from(edges)
+            >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
+            >>> result = non_complete_pcc_pairs(infr)
+            >>> print(result)
+
+        """
+        thresh = infr.queue_params['complete_thresh']
+        pcc_set = list(infr.positive_connected_compoments())
+        # Remove anything under the probabilistic threshold
+        if thresh < 1.0:
+            pcc_set = [
+                c1 for c1 in pcc_set if
+                infr.prob_complete(c1) < thresh
+            ]
+        else:
+            assert False
+        # Loop through all pairs
+        for c1_nodes, c2_nodes in it.combinations(pcc_set, 2):
+            check_edges = infr.rand_neg_check_edges(c1_nodes, c2_nodes)
+            if len(check_edges) > 0:
+                # no check edges means we can't do anything
+                yield (c1_nodes, c2_nodes, check_edges)
+
+    @profile
+    def is_pos_redundant(infr, cc, relax_size=False):
+        k = infr.queue_params['pos_redundancy']
+        if k == 1:
+            return True  # assumes cc is connected
+        else:
+            # if the nodes are not big enough for this amount of connectivity
+            # then we relax the requirement
+            if relax_size:
+                required_k = min(len(cc) - 1, k)
+            else:
+                required_k = k
+            assert isinstance(cc, set)
+            if required_k <= 1:
+                return True
+            if required_k == 2:
+                pos_subgraph = infr.pos_graph.subgraph(cc)
+                return nx.is_biconnected(pos_subgraph)
+            else:
+                pos_subgraph = infr.pos_graph.subgraph(cc)
+                pos_conn = nx.edge_connectivity(pos_subgraph)
+                return pos_conn >= required_k
+
+    @profile
+    def pos_redundant_pccs(infr, relax_size=False):
+        for cc in infr.consistent_components():
+            if len(cc) == 2:
+                continue
+            if infr.is_pos_redundant(cc, relax_size):
+                yield cc
+
+    @profile
+    def non_pos_redundant_pccs(infr, relax_size=False):
+        """
+        Get PCCs that are not k-positive-redundant
+        """
+        for cc in infr.consistent_components():
+            if not infr.is_pos_redundant(cc, relax_size):
+                yield cc
+
+    def find_pos_redun_nids(infr):
+        """ recomputes infr.pos_redun_nids """
+        for cc in infr.pos_redundant_pccs():
+            node = next(iter(cc))
+            nid = infr.pos_graph.node_label(node)
+            yield nid
+
+    def find_neg_redun_nids(infr):
+        """ recomputes edges in infr.neg_redun_nids """
+        for cc in infr.consistent_components():
+            node = next(iter(cc))
+            nid1 = infr.pos_graph.node_label(node)
+            for nid2 in infr.negative_redundant_nids(cc):
+                if nid1 < nid2:
+                    yield nid1, nid2
 
 
 class TestStuff2(object):
@@ -919,7 +1159,8 @@ class TestStuff2(object):
 
 
 class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
-                 InfrLearning, TestStuff2, DynamicUpdate2, InfrInvariants):
+                 InfrLearning, AnnotInfrRedundancy, TestStuff2, DynamicUpdate2,
+                 InfrInvariants):
 
     def inner_loop2(infr):
         """
