@@ -37,9 +37,11 @@ class nx_UnionFind(object):
     def __iter__(self):
         return iter(self.parents)
 
-    def rebalance(self):
+    def rebalance(self, elements=None):
+        if elements is None:
+            elements = list(self.parents.keys())
         # Make sure only one operation is needed to lookup any node
-        for x in list(self.parents.keys()):
+        for x in elements:
             parent = self[x]
             self.parents[x] = parent
             self.weights[x] = 1

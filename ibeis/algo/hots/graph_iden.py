@@ -1837,18 +1837,23 @@ class _AnnotInfrPriority(object):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrUpdates(object):
 
+    @profile
     def categorize_edges2(infr, graph=None):
         """
+        Infers status of each edge in the graph.
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden categorize_edges2 --profile
+
         Example:
             >>> from ibeis.algo.hots import demo_graph_iden
-            >>> infr = demo_graph_iden.case_all_types2()
+            >>> infr = demo_graph_iden.demodata_infr(num_pccs=150)
             >>> graph = None
-            >>> %timeit infr.categorize_edges2()
-            >>> %timeit infr.categorize_edges()
+            >>> infr.categorize_edges2()
+            >>> infr.categorize_edges()
+            >>> infr.categorize_edges2()
+            >>> infr.categorize_edges()
         """
-        if graph is None:
-            graph = infr.graph
-
         # consistent_ccs = []
         # inconsistent_ccs = []
         # for cc in infr.positive_connected_compoments(graph):
@@ -1857,105 +1862,139 @@ class _AnnotInfrUpdates(object):
         #     else:
         #         inconsistent_ccs.append(cc)
         # Q = nx.quotient_graph(graph, consistent_ccs + inconsistent_ccs)
-        pos_graph = infr.pos_graph
-        pos_graph._union_find.rebalance()
-        node_to_label = pos_graph._union_find.parents
 
         def group_name_edges(edges):
-            nid_to_cc = collections.defaultdict(set)
-            # pos_graph = infr.pos_graph
+            ne_to_edges = collections.defaultdict(set)
             name_edges = (
                 e_(node_to_label[u], node_to_label[v])
-                # e_(pos_graph.node_label(u), pos_graph.node_label(v))
                 for u, v in edges
             )
             for edge, name_edge in zip(edges, name_edges):
-                nid_to_cc[name_edge].add(edge)
-            return nid_to_cc
+                ne_to_edges[name_edge].add(edge)
+            return ne_to_edges
 
-        # Get edges using fast lookup structures
-        review_edges = {
-            key: list(it.starmap(e_, graph.edges()))
-            for key, graph in infr.review_graphs.items()
-        }
+        def group_name_edges_keys(edges):
+            return {
+                e_(node_to_label[u], node_to_label[v])
+                for u, v in edges
+            }
+        POSTV = 'match'
+        NEGTV = 'nomatch'
+        INCMP = 'notcomp'
+        UNREV = 'unreviewed'
+        states = {POSTV, NEGTV, INCMP, UNREV}
 
-        review_name_edges = {
-            key: group_name_edges(edges)
-            for key, edges in review_edges.items()
-        }
+        rev_graph = {s: None for s in states}
+        rev_graph[POSTV] = infr.review_graphs[POSTV]
+        rev_graph[NEGTV] = infr.review_graphs[NEGTV]
+        rev_graph[INCMP] = infr.review_graphs[INCMP]
+        rev_graph[UNREV] = infr.review_graphs[UNREV]
+        if graph is None or graph is infr.graph:
+            graph = infr.graph
+            nodes = None
+        else:
+            # Need to extract relevant subgraphs
+            nodes = list(graph.nodes())
+            rev_graph[POSTV] = rev_graph[POSTV].subgraph(nodes)
+            rev_graph[NEGTV] = rev_graph[NEGTV].subgraph(nodes)
+            rev_graph[INCMP] = rev_graph[INCMP].subgraph(nodes)
+            rev_graph[UNREV] = rev_graph[UNREV].subgraph(nodes)
 
-        # Infer status of PCCs
-        pos_ne = set(review_name_edges['match'].keys())
-        neg_ne = set(review_name_edges['nomatch'].keys())
-        notcomp_ne = set(review_name_edges['notcomp'].keys())
-        unreviewed_ne = set(review_name_edges['unreviewed'].keys())
+        # Rebalance union find to ensure parents is a single lookup
+        infr.pos_graph._union_find.rebalance(nodes)
+        node_to_label = infr.pos_graph._union_find.parents
+        # node_to_label = infr.pos_graph._union_find
 
-        assert all(n1 == n2 for n1, n2 in pos_ne), 'pos should have same lbl'
-        incon_internal_ne = neg_ne.intersection(pos_ne)
+        # Get reviewed edges using fast lookup structures
+        lsm = ut.lstarmap
+        rev_edge = {s: None for s in states}
+        rev_edge[POSTV] = lsm(e_, rev_graph[POSTV].edges())
+        rev_edge[NEGTV] = lsm(e_, rev_graph[NEGTV].edges())
+        rev_edge[INCMP] = lsm(e_, rev_graph[INCMP].edges())
+        rev_edge[UNREV] = lsm(e_, rev_graph[UNREV].edges())
 
-        # positive overrides notcomp and unreviewed
-        notcomp_ne.difference_update(pos_ne)
-        unreviewed_ne.difference_update(pos_ne)
+        incmp_ne_to_edges = group_name_edges(rev_edge[INCMP])
 
-        # negative overrides notcomp and unreviewed
-        notcomp_ne.difference_update(neg_ne)
-        unreviewed_ne.difference_update(neg_ne)
+        # Use reviewed edges to determine status of PCCs (repr by name ids)
+        # The next steps will rectify duplicates in these sets
+        name_edges = {s: None for s in states}
+        name_edges[POSTV] = group_name_edges_keys(rev_edge[POSTV])
+        name_edges[NEGTV] = group_name_edges_keys(rev_edge[NEGTV])
+        name_edges[INCMP] = set(incmp_ne_to_edges.keys())
+        name_edges[UNREV] = group_name_edges_keys(rev_edge[UNREV])
 
-        # internal inconsistencies override all other categories
-        pos_ne.difference_update(incon_internal_ne)
-        neg_ne.difference_update(incon_internal_ne)
-        notcomp_ne.difference_update(incon_internal_ne)
-        unreviewed_ne.difference_update(incon_internal_ne)
+        # Positive and negative decisions override incomparable and unreviewed
+        name_edges[INCMP].difference_update(name_edges[POSTV])
+        name_edges[INCMP].difference_update(name_edges[NEGTV])
+        name_edges[UNREV].difference_update(name_edges[POSTV])
+        name_edges[UNREV].difference_update(name_edges[NEGTV])
+
+        assert all(n1 == n2 for n1, n2 in name_edges[POSTV]), (
+            'All positive edges should be internal to a PCC')
+
+        # Negative edges within a PCC signals that an inconsistency exists
+        # Remove inconsistencies from the name edges
+        incon_internal_ne = name_edges[NEGTV].intersection(name_edges[POSTV])
+        name_edges[POSTV].difference_update(incon_internal_ne)
+        name_edges[NEGTV].difference_update(incon_internal_ne)
+
+        assert len(name_edges[INCMP].intersection(incon_internal_ne)) == 0
+        assert len(name_edges[UNREV].intersection(incon_internal_ne)) == 0
 
         # External inconsistentices are edges leaving inconsistent components
-        # internal_incon_ne = set([(n1, n2) for (n1, n2) in neg_ne if n1 == n2])
         assert all(n1 == n2 for n1, n2 in incon_internal_ne), (
-            'incon_internal should have same lbl')
-        incon_internal_nids = set([n1 for n1, n2 in incon_internal_ne])
+            'incon_internal edges should be internal to a PCC')
+        incon_internal_nids = {n1 for n1, n2 in incon_internal_ne}
         incon_external_ne = set([])
-        for _ne in [neg_ne, notcomp_ne, unreviewed_ne]:
+        # Find all edges leaving an inconsistent PCC
+        for key in [NEGTV, INCMP, UNREV]:
+            _ne = name_edges[key]
             incon_external_ne.update({
                 (nid1, nid2) for nid1, nid2 in _ne
                 if nid1 in incon_internal_nids or nid2 in incon_internal_nids
             })
-        neg_ne.difference_update(incon_external_ne)
-        notcomp_ne.difference_update(incon_external_ne)
-        unreviewed_ne.difference_update(incon_external_ne)
+        name_edges[NEGTV].difference_update(incon_external_ne)
+        name_edges[INCMP].difference_update(incon_external_ne)
+        name_edges[UNREV].difference_update(incon_external_ne)
 
-        # Inference is made on a name(cc) based level now expand this inference
-        # back onto the edges.
+        # Inference between names is now complete.
+        # Now we expand this inference and project the labels onto the
+        # annotation edges corresponding to each name edge.
         nid_to_cc = infr.pos_graph._ccs
 
+        # Find edges within consistent PCCs
         positive = {
             nid1: (bridges_inside(graph, nid_to_cc[nid1]))
-            for nid1, nid2 in pos_ne
+            for nid1, nid2 in name_edges[POSTV]
         }
+        # Find edges between 1-negative-redundant consistent PCCs
         negative = {
             (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
-            for nid1, nid2 in neg_ne
+            for nid1, nid2 in name_edges[NEGTV]
         }
+        # Find edges internal to inconsistent PCCs
         inconsistent_internal = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
-            for nid1, nid2 in incon_internal_ne
+            nid: (bridges_inside(graph, nid_to_cc[nid]))
+            for nid in incon_internal_nids
         }
+        # Find edges leaving inconsistent PCCs
         inconsistent_external = {
             (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
             for nid1, nid2 in incon_external_ne
         }
         # No bridges are formed for notcomparable edges. Just take
         # the set of reviews
-        review_notcomp_ne = review_name_edges['notcomp']
         notcomparable = {
-            (nid1, nid2): review_notcomp_ne[(nid1, nid2)]
-            for (nid1, nid2) in notcomp_ne
+            (nid1, nid2): incmp_ne_to_edges[(nid1, nid2)]
+            for (nid1, nid2) in name_edges[INCMP]
         }
         unreviewed = {
             (nid1, nid2):
                 bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
-            for (nid1, nid2) in unreviewed_ne
+            for (nid1, nid2) in name_edges[UNREV]
         }
         # Removed not-comparable edges from unreviewed
-        for name_edge in unreviewed_ne.intersection(notcomp_ne):
+        for name_edge in name_edges[UNREV].intersection(name_edges[INCMP]):
             unreviewed[name_edge].difference_update(notcomparable[name_edge])
 
         ne_categories = {
@@ -1967,215 +2006,6 @@ class _AnnotInfrUpdates(object):
             'inconsistent_external': inconsistent_external,
         }
         return ne_categories
-
-
-    @profile
-    def categorize_edges(infr, graph=None):
-        r"""
-        Categorizies edges into disjoint types. The types are: positive,
-        negative, unreviewed, incomparable, inconsistent internal, and
-        inconsistent external.
-        """
-        if graph is None:
-            graph = infr.graph
-        # Get node -> name label (PCC)
-        node_to_label = nx.get_node_attributes(graph, 'name_label')
-
-        # Group nodes by PCC
-        nid_to_cc = collections.defaultdict(set)
-        for item, groupid in node_to_label.items():
-            nid_to_cc[groupid].add(item)
-
-        # Get edge -> decision
-        all_edges = [e_(u, v) for u, v in graph.edges()]
-        # edge_to_reviewstate = {}
-        # for u, v in infr.pos_graph.edges():
-        #     edge_to_reviewstate[(u, v)] = 'match'
-        # for u, v in infr.neg_graph.edges():
-        #     edge_to_reviewstate[(u, v)] = 'nomatch'
-        # for u, v in infr.incomp_graph.edges():
-        #     edge_to_reviewstate[(u, v)] = 'notcomp'
-
-        edge_to_reviewstate = {
-            (u, v): infr.graph.edge[u][v].get('decision', 'unreviewed')
-            for u, v in all_edges
-        }
-
-        # Group edges by review type
-        grouped_review_edges = ut.group_pairs(edge_to_reviewstate.items())
-        neg_review_edges = grouped_review_edges.pop('nomatch', [])
-        pos_review_edges = grouped_review_edges.pop('match', [])
-        notcomp_review_edges = grouped_review_edges.pop('notcomp', [])
-        unreviewed_edges = grouped_review_edges.pop('unreviewed', [])
-
-        if grouped_review_edges:
-            raise AssertionError('Reviewed state has unknown values: %r' % (
-                list(grouped_review_edges.keys())),)
-
-        def group_name_edges(edges):
-            nid_to_cc = collections.defaultdict(set)
-            name_edges = (e_(node_to_label[u], node_to_label[v])
-                          for u, v in edges)
-            for edge, name_edge in zip(edges, name_edges):
-                nid_to_cc[name_edge].add(edge)
-            return nid_to_cc
-
-        # Group edges by the PCCs they are between
-        pos_review_ne_groups = group_name_edges(pos_review_edges)
-        neg_review_ne_groups = group_name_edges(neg_review_edges)
-        notcomp_review_ne_groups = group_name_edges(notcomp_review_edges)
-        unreviewed_ne_groups = group_name_edges(unreviewed_edges)
-
-        # Infer status of PCCs
-        pos_ne = set(pos_review_ne_groups.keys())
-        neg_ne = set(neg_review_ne_groups.keys())
-        notcomp_ne = set(notcomp_review_ne_groups.keys())
-        unreviewed_ne = set(unreviewed_ne_groups.keys())
-
-        assert all(n1 == n2 for n1, n2 in pos_ne), 'pos should have same lbl'
-        incon_internal_ne = neg_ne.intersection(pos_ne)
-
-        # positive overrides notcomp and unreviewed
-        notcomp_ne.difference_update(pos_ne)
-        unreviewed_ne.difference_update(pos_ne)
-
-        # negative overrides notcomp and unreviewed
-        notcomp_ne.difference_update(neg_ne)
-        unreviewed_ne.difference_update(neg_ne)
-
-        # internal inconsistencies override all other categories
-        pos_ne.difference_update(incon_internal_ne)
-        neg_ne.difference_update(incon_internal_ne)
-        notcomp_ne.difference_update(incon_internal_ne)
-        unreviewed_ne.difference_update(incon_internal_ne)
-
-        # External inconsistentices are edges leaving inconsistent components
-        # internal_incon_ne = set([(n1, n2) for (n1, n2) in neg_ne if n1 == n2])
-        assert all(n1 == n2 for n1, n2 in incon_internal_ne), (
-            'incon_internal should have same lbl')
-        incon_internal_nids = set([n1 for n1, n2 in incon_internal_ne])
-        incon_external_ne = set([])
-        for _ne in [neg_ne, notcomp_ne, unreviewed_ne]:
-            incon_external_ne.update({
-                (nid1, nid2) for nid1, nid2 in _ne
-                if nid1 in incon_internal_nids or nid2 in incon_internal_nids
-            })
-        neg_ne.difference_update(incon_external_ne)
-        notcomp_ne.difference_update(incon_external_ne)
-        unreviewed_ne.difference_update(incon_external_ne)
-
-        # Inference is made on a name(cc) based level now expand this inference
-        # back onto the edges.
-        positive = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
-            for nid1, nid2 in pos_ne
-        }
-        negative = {
-            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
-            for nid1, nid2 in neg_ne
-        }
-        inconsistent_internal = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
-            for nid1, nid2 in incon_internal_ne
-        }
-        inconsistent_external = {
-            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
-            for nid1, nid2 in incon_external_ne
-        }
-        # No bridges are formed for notcomparable edges. Just take
-        # the set of reviews
-        notcomparable = {
-            (nid1, nid2): notcomp_review_ne_groups[(nid1, nid2)]
-            for (nid1, nid2) in notcomp_ne
-        }
-        unreviewed = {
-            (nid1, nid2):
-                bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
-            for (nid1, nid2) in unreviewed_ne
-        }
-        # Removed not-comparable edges from unreviewed
-        for name_edge in unreviewed_ne.intersection(notcomp_ne):
-            unreviewed[name_edge].difference_update(notcomparable[name_edge])
-
-        reviewed_positives = {n1: pos_review_ne_groups[(n1, n2)] for
-                              n1, n2 in pos_ne}
-        reviewed_negatives = {ne: neg_review_ne_groups[ne] for ne in neg_ne}
-
-        ne_categories = {
-            'positive': positive,
-            'negative': negative,
-            'unreviewed': unreviewed,
-            'notcomp': notcomparable,
-            'inconsistent_internal': inconsistent_internal,
-            'inconsistent_external': inconsistent_external,
-        }
-        categories = {}
-        categories['ne_categories'] = ne_categories
-        categories['reviewed_positives'] = reviewed_positives
-        categories['reviewed_negatives'] = reviewed_negatives
-        categories['nid_to_cc'] = nid_to_cc
-        categories['node_to_label'] = node_to_label
-        categories['edge_to_reviewstate'] = edge_to_reviewstate
-        categories['all_edges'] = all_edges
-        return categories
-
-    def _debug_edge_categories(infr, graph, ne_categories, edge_categories,
-                               node_to_label):
-        """
-        Checks if edges are categorized and if categoriziations are disjoint.
-        """
-        name_edge_to_category = {
-            name_edge: cat
-            for cat, edges in ne_categories.items()
-            for name_edge in edges.keys()}
-
-        num_edges = sum(map(len, edge_categories.values()))
-        num_edges_real = graph.number_of_edges()
-
-        if num_edges != num_edges_real:
-            print('num_edges = %r' % (num_edges,))
-            print('num_edges_real = %r' % (num_edges_real,))
-            all_edges = ut.flatten(edge_categories.values())
-            dup_edges = ut.find_duplicate_items(all_edges)
-            if len(dup_edges) > 0:
-                # Check where the duplicates are if any
-                for k1, k2 in it.combinations(edge_categories.keys(), 2):
-                    v1 = edge_categories[k1]
-                    v2 = edge_categories[k2]
-                    overlaps = ut.set_overlaps(v1, v2)
-                    if overlaps['isect'] != 0:
-                        print('%r-%r: %s' % (k1, k2, ut.repr4(overlaps)))
-                for k1 in edge_categories.keys():
-                    v1 = edge_categories[k1]
-                    dups = ut.find_duplicate_items(v1)
-                    if dups:
-                        print('%r, has %s dups' % (k1, len(dups)))
-            assert len(dup_edges) == 0, 'edge not same and duplicates'
-
-            edges = ut.lstarmap(e_, graph.edges())
-            missing12 = ut.setdiff(edges, all_edges)
-            missing21 = ut.setdiff(all_edges, edges)
-            print('missing12 = %r' % (missing12,))
-            print('missing21 = %r' % (missing21,))
-            print(ut.repr4(ut.set_overlaps(graph.edges(), all_edges)))
-
-            for u, v in missing12:
-                edge = graph.edge[u][v]
-                print('missing edge = %r' % ((u, v),))
-                print('state = %r' % (edge.get('decision',
-                                               'unreviewed')))
-                nid1 = node_to_label[u]
-                nid2 = node_to_label[v]
-                name_edge = e_(nid1, nid2)
-                print('name_edge = %r' % (name_edge,))
-                cat = name_edge_to_category.get(name_edge, None)
-                print('cat = %r' % (cat,))
-
-            print('ERROR: Not all edges accounted for. '
-                  'Is name labeling computed using connected components?')
-            import utool
-            utool.embed()
-            raise AssertionError('edges not the same')
 
     @profile
     def apply_review_inference(infr, graph=None):
