@@ -348,7 +348,7 @@ def review_graph_match_html(ibs, review_pair, cm_dict, query_config_dict,
 
     proot = query_config_dict.get('pipeline_root', 'vsmany')
     proot = query_config_dict.get('proot', proot)
-    if proot.upper() == 'BC_DTW':
+    if proot.upper() in ('BC_DTW', 'OC_WDTW'):
         cls = chip_match.AnnotMatch  # ibs.depc_annot.requestclass_dict['BC_DTW']
     else:
         cls = chip_match.ChipMatch
@@ -462,10 +462,15 @@ def review_query_chips_test(**kwargs):
     """
     ibs = current_app.ibs
 
-    use_bc_dtw = 'use_bc_dtw' in request.args
-    if use_bc_dtw:
+    # the old block curvature dtw
+    if 'use_bc_dtw' in request.args:
         query_config_dict = {
             'pipeline_root' : 'BC_DTW'
+        }
+    # the new oriented curvature dtw
+    elif 'use_oc_wdtw' in request.args:
+        query_config_dict = {
+            'pipeline_root' : 'OC_WDTW'
         }
     else:
         query_config_dict = {}
