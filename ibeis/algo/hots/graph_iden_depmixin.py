@@ -7,8 +7,8 @@ import vtool as vt
 import utool as ut
 import six
 from ibeis.algo.hots import infr_model
-from ibeis.algo.hots.graph_iden_utils import e_
-from ibeis.algo.hots.graph_iden_utils import bridges_inside, bridges_cross
+from ibeis.algo.hots.graph_iden_utils import e_, _dz
+from ibeis.algo.hots.graph_iden_utils import edges_inside, edges_cross
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -142,7 +142,7 @@ class _AnnotInfrDepMixin(object):
         # print('strong_edges.append = %r' % (strong_edges,))
         # print('weak_edges.append = %r' % (weak_edges,))
 
-    def _update_priority_queue(infr, graph, positive, negative,
+    def _update_priority_queue_older(infr, graph, positive, negative,
                                reviewed_positives, reviewed_negatives,
                                node_to_label, nid_to_cc, suggested_fix_edges,
                                other_error_edges, unreviewed_edges):
@@ -564,7 +564,7 @@ class _AnnotInfrDepMixin(object):
         return p_same
 
     @profile
-    def categorize_edges(infr, graph=None):
+    def categorize_edges_old(infr, graph=None):
         r"""
         Categorizies edges into disjoint types. The types are: positive,
         negative, unreviewed, incomparable, inconsistent internal, and
@@ -661,19 +661,19 @@ class _AnnotInfrDepMixin(object):
         # Inference is made on a name(cc) based level now expand this inference
         # back onto the edges.
         positive = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
+            nid1: (edges_inside(graph, nid_to_cc[nid1]))
             for nid1, nid2 in pos_ne
         }
         negative = {
-            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
+            (nid1, nid2): (edges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
             for nid1, nid2 in neg_ne
         }
         inconsistent_internal = {
-            nid1: (bridges_inside(graph, nid_to_cc[nid1]))
+            nid1: (edges_inside(graph, nid_to_cc[nid1]))
             for nid1, nid2 in incon_internal_ne
         }
         inconsistent_external = {
-            (nid1, nid2): (bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
+            (nid1, nid2): (edges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2]))
             for nid1, nid2 in incon_external_ne
         }
         # No bridges are formed for notcomparable edges. Just take
@@ -684,7 +684,7 @@ class _AnnotInfrDepMixin(object):
         }
         unreviewed = {
             (nid1, nid2):
-                bridges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
+                edges_cross(graph, nid_to_cc[nid1], nid_to_cc[nid2])
             for (nid1, nid2) in unreviewed_ne
         }
         # Removed not-comparable edges from unreviewed
@@ -770,3 +770,271 @@ class _AnnotInfrDepMixin(object):
             import utool
             utool.embed()
             raise AssertionError('edges not the same')
+
+
+    @profile
+    def apply_review_inference(infr, graph=None):
+        """
+        Updates the inferred state of each edge based on reviews and current
+        labeling. State of the graph is only changed at the very end of the
+        function.
+
+        TODO: split into simpler functions
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_review_inference
+
+        Example:
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> aids = list(range(1, 10))
+            >>> infr = AnnotInference(None, aids, autoinit=True, verbose=1)
+            >>> infr.ensure_full()
+            >>> infr._init_priority_queue()
+            >>> infr.add_feedback2((1, 2), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback2((3, 4), 'match')
+            >>> infr.add_feedback2((4, 5), 'nomatch')
+            >>> infr.add_feedback2((6, 7), 'match')
+            >>> infr.add_feedback2((7, 8), 'match')
+            >>> infr.add_feedback2((6, 8), 'nomatch')
+            >>> infr.add_feedback2((6, 1), 'notcomp')
+            >>> infr.add_feedback2((1, 9), 'notcomp')
+            >>> infr.add_feedback2((8, 9), 'notcomp')
+            >>> #infr.show_graph(hide_cuts=False)
+            >>> graph = infr.graph
+            >>> infr.apply_review_inference(graph)
+        """
+        if graph is None:
+            graph = infr.graph
+
+        if infr.verbose >= 2:
+            print('[infr] apply_review_inference on %d nodes' % (len(graph)))
+
+        categories = infr.categorize_edges_old(graph)
+        ne_categories = categories['ne_categories']
+        reviewed_positives = categories['reviewed_positives']
+        reviewed_negatives = categories['reviewed_negatives']
+        edge_to_reviewstate = categories['edge_to_reviewstate']
+        nid_to_cc = categories['nid_to_cc']
+        node_to_label = categories['node_to_label']
+        all_edges = categories['all_edges']
+
+        # Find possible fixes for inconsistent components
+        if infr.verbose >= 2:
+            if ne_categories['inconsistent_internal']:
+                print('[infr] found %d inconsistencies searching for fixes' %
+                      (len(ne_categories['inconsistent_internal']),))
+            else:
+                print('no inconsistencies')
+
+        suggested_fix_edges = []
+        other_error_edges = []
+        if infr.method == 'graph':
+            # dont do this in ranking mode
+            # Check for inconsistencies
+            for nid, cc_incon_edges in ne_categories['inconsistent_internal'].items():
+                # Find possible edges to fix in the reviewed subgarph
+                reviewed_inconsistent = [
+                    (u, v, infr.graph.edge[u][v].copy()) for (u, v) in cc_incon_edges
+                    if edge_to_reviewstate[(u, v)] != 'unreviewed'
+                ]
+                subgraph = nx.Graph(reviewed_inconsistent)
+                # TODO: only need to use one fix edge here.
+                cc_error_edges = infr._find_possible_error_edges_old(subgraph)
+                import utool
+                with utool.embed_on_exception_context:
+                    assert len(cc_error_edges) > 0, 'no fixes found'
+                cc_other_edges = ut.setdiff(cc_incon_edges, cc_error_edges)
+                suggested_fix_edges.extend(cc_error_edges)
+                other_error_edges.extend(cc_other_edges)
+                # just add one for now
+                # break
+
+        if infr.verbose >= 2 and ne_categories['inconsistent_internal']:
+            print('[infr] found %d possible fixes' % len(suggested_fix_edges))
+
+        edge_categories = {k: ut.flatten(v.values())
+                           for k, v in ne_categories.items()}
+
+        # if __debug__:
+        #     infr._debug_edge_categories(graph, ne_categories, edge_categories,
+        #                                 node_to_label)
+
+        # Update the attributes of all edges in the subgraph
+
+        # Update the infered state
+        infr.set_edge_attrs('inferred_state', _dz(
+            edge_categories['inconsistent_external'], ['inconsistent_external']))
+        infr.set_edge_attrs('inferred_state', _dz(
+            edge_categories['inconsistent_internal'], ['inconsistent_internal']))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['unreviewed'], [None]))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['notcomp'], ['notcomp']))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['positive'], ['same']))
+        infr.set_edge_attrs('inferred_state', _dz(edge_categories['negative'], ['diff']))
+
+        # Suggest possible fixes
+        infr.set_edge_attrs('maybe_error', ut.dzip(all_edges, [None]))
+        infr.set_edge_attrs('maybe_error', _dz(suggested_fix_edges, [True]))
+
+        # Update the cut state
+        # TODO: DEPRICATE the cut state is not relevant anymore
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['inconsistent_external'],
+                                          [True]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['inconsistent_internal'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['unreviewed'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['notcomp'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['positive'], [False]))
+        infr.set_edge_attrs('is_cut', _dz(edge_categories['negative'], [True]))
+
+        # Update basic priorites
+        # FIXME: this must agree with queue
+        # infr.set_edge_attrs('priority', infr.get_edge_attrs(
+        #         infr.PRIORITY_METRIC, inconsistent_external_edges,
+        #         default=.01))
+        # infr.set_edge_attrs('priority', infr.get_edge_attrs(
+        #         infr.PRIORITY_METRIC, incon_intern_edges, default=.01))
+        # infr.set_edge_attrs('priority', infr.get_edge_attrs(
+        #         infr.PRIORITY_METRIC, unreviewed_edges, default=.01))
+        # infr.set_edge_attrs('priority', _dz(notcomparable_edges, [0]))
+        # infr.set_edge_attrs('priority', _dz(positive_edges, [0]))
+        # infr.set_edge_attrs('priority', _dz(negative_edges, [0]))
+        # infr.set_edge_attrs('priority', _dz(suggested_fix_edges, [2]))
+
+        # print('suggested_fix_edges = %r' % (sorted(suggested_fix_edges),))
+        # print('other_error_edges = %r' % (sorted(other_error_edges),))
+
+        if infr.queue is not None:
+            # hack this off if method is ranking, we dont want to update any
+            # priority
+            if infr.method != 'ranking':
+                if infr.verbose >= 2:
+                    print('[infr] updating priority queue')
+                infr._update_priority_queue_old(graph,
+                                                ne_categories['positive'],
+                                                ne_categories['negative'],
+                                                reviewed_positives,
+                                                reviewed_negatives,
+                                                node_to_label, nid_to_cc,
+                                                suggested_fix_edges,
+                                                other_error_edges,
+                                                edge_categories['unreviewed'])
+        else:
+            if infr.verbose >= 2:
+                print('[infr] no priority queue to update')
+        if infr.verbose >= 3:
+            print('[infr] finished review inference')
+
+    @profile
+    def _find_possible_error_edges_old(infr, subgraph):
+        """
+        Args:
+            subgraph (nx.Graph): a subgraph of a positive compomenent
+                with only reviewed edges.
+        """
+        inconsistent_edges = [
+            edge for edge, state in
+            nx.get_edge_attributes(subgraph, 'decision').items()
+            if state == 'nomatch'
+        ]
+        maybe_error_edges = set([])
+        # subgraph_ = infr.simplify_graph(subgraph, copy=copy)
+        subgraph_ = subgraph.copy()
+        subgraph_.remove_edges_from(inconsistent_edges)
+
+        # This is essentially solving a multicut problem for multiple pairs of
+        # terminal nodes. The multiple min-cut runs produces a feasible
+        # solution. Could use a multicut approximation.
+
+        ut.nx_set_default_edge_attributes(subgraph_, 'num_reviews', 1)
+        for s, t in inconsistent_edges:
+            cut_edgeset = ut.nx_mincut_edges_weighted(subgraph_, s, t,
+                                                      capacity='num_reviews')
+            cut_edgeset = set([e_(*edge) for edge in cut_edgeset])
+            join_edgeset = {(s, t)}
+            cut_edgeset_weight = sum([
+                subgraph_.get_edge_data(u, v).get('num_reviews', 1)
+                for u, v in cut_edgeset])
+            join_edgeset_weight = sum([
+                subgraph.get_edge_data(u, v).get('num_reviews', 1)
+                for u, v in join_edgeset])
+            # Determine if this is more likely a split or a join
+            # if len(cut_edgeset) == 0:
+            #     maybe_error_edges.update(join_edgeset)
+            if join_edgeset_weight < cut_edgeset_weight:
+                maybe_error_edges.update(join_edgeset)
+            else:
+                maybe_error_edges.update(cut_edgeset)
+
+        maybe_error_edges_ = ut.lstarmap(e_, maybe_error_edges)
+        return maybe_error_edges_
+
+    @profile
+    def _update_priority_queue_old(infr, graph, positive, negative,
+                                   reviewed_positives, reviewed_negatives,
+                                   node_to_label, nid_to_cc,
+                                   suggested_fix_edges, other_error_edges,
+                                   unreviewed_edges):
+        r"""
+        TODO refactor
+
+        Example:
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.hots.graph_iden import _dz
+            >>> from ibeis.algo.hots import demo_graph_iden
+            >>> infr = demo_graph_iden.make_demo_infr(
+            >>>     ccs=[[1, 2, 3, 4, 5],
+            >>>            [6, 7, 8, 9, 10]],
+            >>>     edges=[
+            >>>         #(1, 6, {'decision': 'nomatch'}),
+            >>>         (1, 6, {}),
+            >>>         (4, 9, {}),
+            >>>     ]
+            >>> )
+            >>> infr._init_priority_queue()
+            >>> assert len(infr.queue) == 2
+            >>> infr.queue_params['neg_redundancy'] = None
+            >>> infr.add_feedback2((1, 6), 'nomatch')
+            >>> assert len(infr.queue) == 0
+            >>> graph = infr.graph
+            >>> ut.exec_func_src(infr.apply_review_inference,
+            >>>                  sentinal='if infr.queue is not None', stop=-1,
+            >>>                  verbose=True)
+            >>> infr.queue_params['neg_redundancy'] = 1
+            >>> infr.apply_review_inference()
+        """
+        # update the priority queue on the fly
+        queue = infr.queue
+        pos_redundancy = infr.queue_params['pos_redundancy']
+        neg_redundancy = infr.queue_params['neg_redundancy']
+
+        if neg_redundancy and neg_redundancy < np.inf:
+            # Remove priority of PCC-pairs with k-negative edges between them
+            for (nid1, nid2), neg_edges in reviewed_negatives.items():
+                if len(neg_edges) >= neg_redundancy:
+                    other_edges = negative[(nid1, nid2)]
+                    queue.delete_items(other_edges)
+
+        if pos_redundancy and pos_redundancy < np.inf:
+            # Remove priority internal edges of k-consistent PCCs.
+            for nid, pos_edges in reviewed_positives.items():
+                if pos_redundancy == 1:
+                    # trivially computed
+                    pos_conn = 1
+                else:
+                    pos_conn = nx.edge_connectivity(nx.Graph(list(pos_edges)))
+                if pos_conn >= pos_redundancy:
+                    other_edges = positive[nid]
+                    queue.delete_items(other_edges)
+
+        if suggested_fix_edges:
+            # Add error edges back in with higher priority
+            queue.update(zip(suggested_fix_edges,
+                             -infr._get_priorites(suggested_fix_edges)))
+
+            queue.delete_items(other_error_edges)
+
+        needs_priority = [e for e in unreviewed_edges if e not in queue]
+        queue.update(zip(needs_priority, -infr._get_priorites(needs_priority)))
+
+

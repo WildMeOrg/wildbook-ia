@@ -563,7 +563,10 @@ def on_pick(event, infr=None):
             node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
             print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
             print('node_data: ' + ut.repr2(node_data, nl=1))
+            node = plotdat['node']
             ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
+            node_label = infr.pos_graph.node_label(node)
+            print('(pcc) node_label = %r' % (node_label,))
             print('artist = %r' % (artist,))
         elif 'edge' in plotdat:
             all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
@@ -575,7 +578,7 @@ def on_pick(event, infr=None):
     print(ut.get_timestamp())
 
 
-def make_demo_infr(ccs, edges):
+def make_demo_infr(ccs, edges, nodes=[]):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
 
@@ -583,6 +586,7 @@ def make_demo_infr(ccs, edges):
         nx.add_path = nx.Graph.add_path
 
     G = nx.Graph()
+    G.add_nodes_from(nodes)
     import numpy as np
     rng = np.random.RandomState(42)
     for cc in ccs:
@@ -604,9 +608,15 @@ def make_demo_infr(ccs, edges):
 
     G.add_edges_from(edges)
     infr = graph_iden.AnnotInference.from_netx(G)
+    infr.verbose = 3
 
-    infr.relabel_using_reviews()
-    infr.apply_review_inference()
+    infr.set_node_attrs(
+        'name_label', {n: infr.pos_graph.node_label(n)
+                       for n in infr.graph.nodes()})
+    # infr.relabel_using_reviews()
+    # infr.apply_review_inference()
+    infr.relabel_using_reviews2()
+    infr.apply_category_inference()
 
     infr.apply_weights()
     infr.graph.graph['dark_background'] = False
@@ -623,7 +633,7 @@ def do_infr_test(ccs, edges, new_edges):
     """
     Creates a graph with `ccs` + `edges` and then adds `new_edges`
     """
-    import networkx as nx
+    # import networkx as nx
     import plottool as pt
 
     infr = make_demo_infr(ccs, edges)
@@ -651,6 +661,8 @@ def do_infr_test(ccs, edges, new_edges):
         aid1, aid2, data = new_edge
         state = data['decision']
         infr2.add_feedback2((aid1, aid2), state)
+    infr2.relabel_using_reviews2()
+    infr2.apply_category_inference()
 
     # Postshow
     if ut.show_was_requested():
@@ -822,11 +834,11 @@ def case_override_inference():
     ccs = [[1, 2, 3, 4, 5]]
     edges = [
         (1, 3, {'inferred_state': 'same'}),
-        (1, 4, {'inferred_state': 'same', 'num_reviews': .001}),
+        (1, 4, {'inferred_state': 'same', 'num_reviews': 100}),
         # (1, 5, {'inferred_state': 'same'}),
         (2, 4, {'inferred_state': 'same'}),
         (2, 5, {'inferred_state': 'same'}),
-        (4, 5, {'inferred_state': 'same', 'num_reviews': .1}),
+        (4, 5, {'inferred_state': 'same', 'num_reviews': 1}),
     ]
     edges += []
     new_edges = [
@@ -857,7 +869,7 @@ def case_undo_match():
     new_edges = [(1, 2, {'decision': 'nomatch'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
 
-    check(infr2, 1, 2, 'is_cut', True, 'should have cut edge')
+    check(infr2, 1, 2, 'inferred_state', 'diff', 'should have cut edge')
     after()
 
 
@@ -877,7 +889,7 @@ def case_undo_nomatch():
     ]
     new_edges = [(1, 2, {'decision': 'match'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr2, 1, 2, 'is_cut', False, 'should have matched edge')
+    check(infr2, 1, 2, 'inferred_state', 'same', 'should have matched edge')
     after()
 
 
@@ -996,9 +1008,12 @@ def case_notcomp_remove_cuts():
     ]
     new_edges = [(1, 4, {'decision': 'notcomp'})]
     infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
-    check(infr2, 1, 4, 'is_cut', False, 'can not infer cut here!')
-    check(infr2, 2, 5, 'is_cut', False, 'can not infer cut here!')
-    check(infr2, 3, 6, 'is_cut', False, 'can not infer cut here!')
+    check(infr1, 1, 4, 'inferred_state', 'diff', 'should infer diff!')
+    check(infr1, 2, 5, 'inferred_state', 'diff', 'should infer diff!')
+    check(infr1, 3, 6, 'inferred_state', 'diff', 'should infer diff!')
+    check(infr2, 1, 4, 'decision', 'notcomp', 'can not infer cut here!')
+    check(infr2, 2, 5, 'inferred_state', 'notcomp', 'can not infer cut here!')
+    check(infr2, 3, 6, 'inferred_state', 'notcomp', 'can not infer cut here!')
     after()
 
 
@@ -1098,6 +1113,19 @@ def case_flag_merge():
 def demodata_infr(**kwargs):
     """
     kwargs = {}
+
+    Example:
+        >>> from ibeis.algo.hots import demo_graph_iden
+        >>> kwargs = dict(num_pccs=250, p_incon=.1)
+        >>> infr = demo_graph_iden.demodata_infr(**kwargs)
+        >>> pccs = list(infr.positive_connected_compoments())
+        >>> assert len(pccs) == kwargs['num_pccs']
+        >>> nonfull_pccs = [cc for cc in pccs if len(cc) > 1 and nx.is_empty(nx.complement(infr.pos_graph.subgraph(cc)))]
+        >>> expected_n_incon = len(nonfull_pccs) * kwargs['p_incon']
+        >>> n_incon = len(list(infr.inconsistent_components()))
+        >>> # TODO can test that we our sample num incon agrees with pop mean
+        >>> sample_mean = n_incon / len(nonfull_pccs)
+        >>> pop_mean = kwargs['p_incon']
     """
 
     def rand_normal(mean=0, std=1, shape=[]):
@@ -1107,7 +1135,8 @@ def demodata_infr(**kwargs):
     rng = np.random.RandomState(0)
     counter = 0
     new_ccs = []
-    for i in ut.ProgIter(list(range(kwargs.get('num_pccs', 16)))):
+    num_pccs = kwargs.get('num_pccs', 16)
+    for i in ut.ProgIter(list(range(num_pccs))):
         size_mean = kwargs.get('pcc_size_mean', 5)
         size_std = kwargs.get('pcc_size_std', 4)
         size = max(1, int(rand_normal(size_mean, size_std)))
@@ -1118,7 +1147,7 @@ def demodata_infr(**kwargs):
         want_connectivity = min(size - 1, want_connectivity)
         # print('want_connectivity = %r' % (want_connectivity,))
         while True:
-            g = nx.fast_gnp_random_graph(size, .4)
+            g = nx.fast_gnp_random_graph(size, p)
             conn = nx.edge_connectivity(g)
             if conn == want_connectivity:
                 break
@@ -1135,21 +1164,49 @@ def demodata_infr(**kwargs):
             (int(min(u, v)), int(max(u, v)), {'decision': 'match'})
             for u, v in new_edges_
         ]
-        for u, v in nx.complement(g).edges():
-            u, v = (u, v) if u < v else (v, u)
-            p = .1
-            # Add in candidate edges
-            if rng.rand() < p:
-                new_edges.append((u, v, {'decision': 'unreviewed'}))
-            # Add in noncomparable edges
-            if rng.rand() < p / 2:
-                new_edges.append((u, v, {'decision': 'notcomp'}))
-            # Add in inconsistent edges
-            if rng.rand() < p / 4:
-                # print('made inconsistent cc')
-                new_edges.append((u, v, {'decision': 'nomatch'}))
+        new_g = nx.Graph(new_edges)
+        new_g.add_nodes_from(new_nodes)
+        assert nx.is_connected(new_g)
 
+        # The probability any edge is inconsistent is `p_incon`
+        # This is 1 - P(all edges consistent)
+        # which means p(edge is consistent) = (1 - p_incon) / N
+        complement_edges = list(nx.complement(new_g).edges())
+        if len(complement_edges) > 0:
+            p_pcc_incon = kwargs.get('p_incon', .1)
+            # compute probability that any particular edge is inconsistent
+            # to achieve probability the PCC is inconsistent
+            p_edge_inconn = 1 - (1 - p_pcc_incon) ** (1 / len(complement_edges))
+            # print('p_edge_inconn = %r' % (p_edge_inconn,))
+            p_edge_unrev = .1
+            p_edge_notcomp = .05
+            probs = np.array([p_edge_inconn, p_edge_unrev, p_edge_notcomp])
+            # if the total probability is greater than 1 the parameters
+            # are invalid, so we renormalize to "fix" it.
+            if probs.sum() > 1:
+                probs = probs / probs.sum()
+            pcumsum = probs.cumsum()
+            # Determine which mutually exclusive state each complement edge is in
+            # print('pcumsum = %r' % (pcumsum,))
+            states = np.searchsorted(pcumsum, rng.rand(len(complement_edges)))
+            # print('states = %r' % (states,))
+            for (u, v), state in zip(complement_edges, states):
+                u, v = (u, v) if u < v else (v, u)
+                # Add in candidate edges
+                if state == 0:
+                    # Add in inconsistent edges
+                    # print('made inconsistent cc')
+                    new_edges.append((u, v, {'decision': 'nomatch'}))
+                elif state == 1:
+                    new_edges.append((u, v, {'decision': 'unreviewed'}))
+                elif state == 2:
+                    # Add in noncomparable edges
+                    new_edges.append((u, v, {'decision': 'notcomp'}))
         new_ccs.append((new_nodes, new_edges))
+
+    pos_g = nx.Graph(ut.flatten(ut.take_column(new_ccs, 1)))
+    pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
+    assert num_pccs == len(list(nx.connected_components(pos_g)))
 
     neg_edges = []
 
@@ -1173,7 +1230,8 @@ def demodata_infr(**kwargs):
 
     edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
     edges = [(int(u), int(v), d) for u, v, d in edges]
-    infr = make_demo_infr([], edges)
+    nodes = ut.flatten(ut.take_column(new_ccs, 0))
+    infr = make_demo_infr([], edges, nodes=nodes)
     return infr
 
 

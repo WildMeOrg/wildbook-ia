@@ -167,7 +167,7 @@ class DynConnGraph(nx.Graph):
         del self._ccs[old_nid1]
         self._union_find.remove_entire_cc(old_cc)
         # Might be faster to just do DFS to find the CC
-        internal_edges = bridges_inside(self, old_cc)
+        internal_edges = edges_inside(self, old_cc)
         # Add nodes in case there are no edges to it
         for n in old_cc:
             self._add_node(n)
@@ -254,7 +254,7 @@ def e_(u, v):
     return (u, v) if u < v else (v, u)
 
 
-def bridges_inside(graph, nodes):
+def edges_inside(graph, nodes):
     """
     Finds edges within a set of nodes
     Running time is O(len(nodes) ** 2)
@@ -273,7 +273,7 @@ def bridges_inside(graph, nodes):
     return result
 
 
-def bridges_cross(graph, nodes1, nodes2):
+def edges_cross(graph, nodes1, nodes2):
     """
     Finds edges between two sets of disjoint nodes.
     Running time is O(len(nodes1) * len(nodes2))

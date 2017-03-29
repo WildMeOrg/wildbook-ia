@@ -9,7 +9,7 @@ import networkx as nx
 import vtool as vt
 from ibeis.algo.hots.graph_iden_utils import e_
 from ibeis.algo.hots.graph_iden_utils import (
-    bridges_inside, bridges_cross)
+    edges_inside, edges_cross)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -219,7 +219,7 @@ class CandidateSearch2(object):
             bicon = list(nx.biconnected_components(sub))
             check_edges = set([])
             for c1, c2 in it.combinations(bicon, 2):
-                check_edges.update(bridges_cross(sub_comp, c1, c2))
+                check_edges.update(edges_cross(sub_comp, c1, c2))
             # Very agressive, need to tone down
             check_edges = set(it.starmap(e_, check_edges))
             # check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
@@ -408,7 +408,7 @@ class InfrRecovery2(object):
         for (s, t), join_weight in zip(neg_edges, neg_weight):
             cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t,
                                                capacity=capacity)
-            cut_edgeset = bridges_cross(pos_subgraph, *parts)
+            cut_edgeset = edges_cross(pos_subgraph, *parts)
             # cut_edgeset_weight = sum([
             #     pos_subgraph.get_edge_data(u, v)[capacity]
             #     for u, v in cut_edgeset])
@@ -427,6 +427,8 @@ class InfrRecovery2(object):
 
     @profile
     def inconsistent_inference(infr, edge, decision):
+        if infr.verbose >= 4:
+            print('[infr] Making inconsistent inference decision')
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
 
@@ -520,6 +522,8 @@ class InfrRecovery2(object):
 class InfrFeedback2(object):
     @profile
     def consistent_inference(infr, edge, decision):
+        if infr.verbose >= 4:
+            print('[infr] Making consistent inference decision')
         # assuming we are in a consistent state
         # k_pos = infr.queue_params['pos_redundancy']
         aid1, aid2 = edge
@@ -535,7 +539,7 @@ class InfrFeedback2(object):
             if nid1 not in infr.pos_redun_nids:
                 infr.update_pos_redun(nid1)
         elif decision == 'match' and nid1 != nid2:
-            if any(bridges_cross(neg_graph, cc1, cc2)):
+            if any(edges_cross(neg_graph, cc1, cc2)):
                 # Added positive edge between PCCs with a negative edge
                 return infr._enter_recovery(edge, decision, nid1, nid2)
             else:
@@ -690,12 +694,15 @@ class DynamicUpdate2(object):
         infr.neg_redun_nids = nx.Graph()
 
     def _add_review_edge(infr, edge, decision):
+        if infr.verbose >= 3:
+            print('[infr] Add review edge=%r, decision=%r' % (edge, decision))
         # Add to review graph corresponding to decision
         infr.review_graphs[decision].add_edge(*edge)
         # Remove from previously existing graphs
         for k, G in infr.review_graphs.items():
             if k != decision:
                 if G.has_edge(*edge):
+                    # print('replaced edge from %r graph' % (k,))
                     G.remove_edge(*edge)
 
     def purge_redun_flags(infr, *nids):
@@ -715,7 +722,7 @@ class DynamicUpdate2(object):
             # Flag ourselves as negative redundant and remove priorities
             infr.neg_redun_nids.add_edge(nid1, nid2)
             if infr.queue is not None:
-                infr.queue.delete_items(bridges_cross(infr.graph, cc1, cc2))
+                infr.queue.delete_items(edges_cross(infr.graph, cc1, cc2))
         else:
             # FIXME: we can make this faster with assumption flags
             # if we are not k negative redunant but we are flagged as such
@@ -726,7 +733,7 @@ class DynamicUpdate2(object):
                 except nx.exception.NetworkXError:
                     pass
                 if infr.queue is not None:
-                    edges = bridges_cross(infr.graph, cc1, cc2)
+                    edges = edges_cross(infr.graph, cc1, cc2)
                     prob_match = np.array(list(infr.gen_edge_values(
                         'prob_match', edges, default=1e-9)))
                     priority = -prob_match
@@ -738,12 +745,12 @@ class DynamicUpdate2(object):
         if infr.is_pos_redundant(cc):
             infr.pos_redun_nids.add(nid)
             if infr.queue is not None:
-                infr.queue.delete_items(bridges_inside(infr.graph, cc))
+                infr.queue.delete_items(edges_inside(infr.graph, cc))
         else:
             if check_reinstate or nid in infr.pos_redun_nids:
                 infr.pos_redun_nids -= {nid}
                 if infr.queue is not None:
-                    edges = bridges_inside(infr.graph, cc)
+                    edges = edges_inside(infr.graph, cc)
                     prob_match = np.array(list(infr.gen_edge_values(
                         'prob_match', edges, default=1e-9)))
                     priority = -prob_match
@@ -753,8 +760,8 @@ class DynamicUpdate2(object):
     def is_neg_redundant(infr, cc1, cc2):
         k_neg = infr.queue_params['neg_redundancy']
         neg_graph = infr.neg_graph
-        # from ibeis.algo.hots.graph_iden_utils import bridges_cross
-        # num_neg = len(list(bridges_cross(neg_graph, cc1, cc2)))
+        # from ibeis.algo.hots.graph_iden_utils import edges_cross
+        # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
         # return num_neg >= k_neg
         neg_edge_gen = (
             1 for u in cc1 for v in cc2.intersection(neg_graph.adj[u])
@@ -844,7 +851,7 @@ class AnnotInfrRedundancy(object):
         Find enough edges to between two pccs to make them k-negative complete
         """
         k = infr.queue_params['neg_redundancy']
-        existing_edges = bridges_cross(infr.graph, c1_nodes, c2_nodes)
+        existing_edges = edges_cross(infr.graph, c1_nodes, c2_nodes)
         reviewed_edges = {
             edge: state
             for edge, state in infr.get_edge_attrs(
@@ -979,8 +986,8 @@ class AnnotInfrRedundancy(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr2()
             >>> categories = infr.categorize_edges(graph)
-            >>> negative = categories['ne_categories']['negative']
-            >>> ne, edges = list(categories['reviewed_negatives'].items())[0]
+            >>> negative = categories['negative']
+            >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
             >>> infr.graph.remove_edges_from(edges)
             >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
             >>> result = non_complete_pcc_pairs(infr)

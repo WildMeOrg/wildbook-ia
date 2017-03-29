@@ -801,7 +801,7 @@ def draw_ete(dbname):
             infr.show(groupby='orig_name_label')
         if 0:
             from ibeis.algo.hots.graph_iden_utils import (
-                bridges_inside, bridges_cross)
+                edges_inside, edges_cross)
 
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
