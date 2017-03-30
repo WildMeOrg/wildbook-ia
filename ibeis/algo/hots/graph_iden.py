@@ -1604,6 +1604,8 @@ class _AnnotInfrUpdates(object):
     def apply_category_inference(infr, graph=None):
         categories = infr.categorize_edges(graph)
 
+        # TODO: should this also update redundancy?
+
         new_error_edges = set([])
         for nid, intern_edges in categories['inconsistent_internal'].items():
             recovery_cc = infr.pos_graph.component_nodes(nid)
@@ -1658,6 +1660,7 @@ class _AnnotInfrUpdates(object):
             'maybe_error',
             ut.dzip(new_error_edges, [True])
         )
+        infr.print('new_error_edges = %r' % (new_error_edges,))
         infr.error_edges = new_error_edges
 
     @profile

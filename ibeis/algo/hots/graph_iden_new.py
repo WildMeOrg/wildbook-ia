@@ -432,6 +432,49 @@ class InfrRecovery2(object):
 
     @profile
     def inconsistent_inference(infr, edge, decision):
+        """
+        NEED:
+            need data structure to handle the inconsistent compoments
+            and their external edges.
+
+        Starting from a consistent state:
+            * When an inconsistency is created, recover the recover_cc and its
+            outgoing edges.
+            * New edges will either
+                (1) resolve that inconsistency
+                (2) increase/decrease internal inconsistency
+                (3) add a separate inconsistency
+
+            If edges are added internal to the recover_cc, we may split it in
+            two but it will remain inconsistent. In this case we should split
+            the recover_cc in two as well, and denote the external edges.
+
+            Goal:
+                accept arbitrary edge reviews regardless of the priority scheme
+
+                For each recover_cc we must keep track:
+                    * the recover_cc
+                    * its negative external edges
+                    (previously the nids, but this must change)
+
+            CC Cases:
+                (1) split existing recover_cc into two parts
+                    (a) all split components are consistent
+                    (b) any split components has error
+                (2) merge two existing recover_ccs
+                (3) add a new recover_cc
+                    *
+                (4) resolve an existing recover_cc
+                    * we remove the last neg edge from a cc
+
+            Neg Cases:
+                (1) new external neg edge is added
+                (2) external neg edge is changed
+
+
+            We also might merge two recover_ccs
+
+        """
         infr.print('Making inconsistent inference decision', 4)
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
@@ -451,7 +494,7 @@ class InfrRecovery2(object):
         ]
 
         # Remove previously marked error hypothesis
-        infr.set_edge_attrs('maybe_error', ut.dzip(infr.error_edges, [False]))
+        infr.set_edge_attrs('maybe_error', ut.dzip(infr.error_edges, [None]))
         new_error_edges = set([])
 
         if inconsistent_edges:
