@@ -601,6 +601,20 @@ class InfrFeedback2(object):
     @profile
     def add_feedback2(infr, edge, decision, tags=None, user_id=None,
                       confidence=None, timestamp=None, verbose=None):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.add_feedback2((5, 6), 'match')
+            >>> infr.add_feedback2((5, 6), 'nomatch', ['Photobomb'])
+            >>> infr.add_feedback2((1, 2), 'notcomp')
+            >>> print(ut.repr2(infr.internal_feedback, nl=2))
+            >>> assert len(infr.external_feedback) == 0
+            >>> assert len(infr.internal_feedback) == 2
+            >>> assert len(infr.internal_feedback[(5, 6)]) == 2
+            >>> assert len(infr.internal_feedback[(1, 2)]) == 1
+        """
         if verbose is None:
             verbose = infr.verbose
         edge = e_(*edge)

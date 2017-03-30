@@ -393,7 +393,7 @@ class _AnnotInfrDummy(object):
         for u, v in new_edges:
             infr.add_feedback2((u, v), decision='match', confidence='guessing',
                                user_id='mst', verbose=False)
-        infr.apply_feedback_edges()
+        infr.apply_feedback_edges_old()
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -910,216 +910,6 @@ class _AnnotInfrIBEIS(object):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrFeedback(object):
-    @profile
-    def add_feedback(infr, aid1=None, aid2=None, decision=None, tags=[],
-                     apply=False, user_id=None, confidence=None,
-                     edge=None, verbose=None, rectify=True):
-        """
-        Public interface to add feedback for a single edge to the buffer.
-        Feedback is not applied to the graph unless `apply=True`.
-
-        Args:
-            aid1 (int):  annotation id
-            aid2 (int):  annotation id
-            decision (str): decision from `ibs.const.REVIEW.CODE_TO_INT`
-            tags (list of str): specify Photobomb / Scenery / etc
-            user_id (str): id of agent who did the review
-            confidence (str): See ibs.const.CONFIDENCE
-            apply (bool): if True feedback is dynamically applied
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden add_feedback
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback2((5, 6), 'match')
-            >>> infr.add_feedback2((5, 6), 'nomatch', ['Photobomb'])
-            >>> infr.add_feedback2((1, 2), 'notcomp')
-            >>> print(ut.repr2(infr.internal_feedback, nl=2))
-            >>> assert len(infr.external_feedback) == 0
-            >>> assert len(infr.internal_feedback) == 2
-            >>> assert len(infr.internal_feedback[(5, 6)]) == 2
-            >>> assert len(infr.internal_feedback[(1, 2)]) == 1
-        """
-        if verbose is None:
-            verbose = infr.verbose
-        if edge:
-            aid1, aid2 = edge
-        if verbose >= 1:
-            print(('[infr] add_feedback(%r, %r, decision=%r, tags=%r, '
-                                        'user_id=%r, confidence=%r)') % (
-                aid1, aid2, decision, tags, user_id, confidence))
-
-        if aid1 not in infr.aids_set:
-            raise ValueError('aid1=%r is not part of the graph' % (aid1,))
-        if aid2 not in infr.aids_set:
-            raise ValueError('aid2=%r is not part of the graph' % (aid2,))
-        assert isinstance(decision, six.string_types)
-        edge = e_(aid1, aid2)
-
-        if decision == 'unreviewed':
-            feedback_item = None
-            if edge in infr.external_feedback:
-                raise ValueError(
-                    "Can't unreview an edge that has been committed")
-            if edge in infr.internal_feedback:
-                del infr.internal_feedback[edge]
-            for G in infr.review_graphs.values():
-                if G.has_edge(*edge):
-                    G.remove_edge(*edge)
-        else:
-            feedback_item = {
-                'decision': decision,
-                'tags': tags,
-                'timestamp': ut.get_timestamp('int', isutc=True),
-                'confidence': confidence,
-                'user_id': user_id,
-            }
-            infr.internal_feedback[edge].append(feedback_item)
-            # Add to appropriate review graph and change review if it existed
-            # previously
-            infr.review_graphs[decision].add_edge(*edge)
-            for k, G in infr.review_graphs.items():
-                if k != decision:
-                    if G.has_edge(*edge):
-                        G.remove_edge(*edge)
-
-            if infr.refresh:
-                infr.refresh.add(decision, user_id)
-
-            if infr.test_mode:
-                if user_id.startswith('auto'):
-                    infr.test_state['n_auto'] += 1
-                elif user_id == 'oracle':
-                    infr.test_state['n_manual'] += 1
-                else:
-                    raise AssertionError('unknown user_id=%r' % (user_id,))
-
-        if apply:
-            # Apply new results on the fly
-            infr._dynamically_apply_feedback(edge, feedback_item, rectify)
-
-            if infr.test_mode:
-                metrics = infr.measure_metrics()
-                infr.metrics_list.append(metrics)
-        else:
-            assert not infr.test_mode, 'breaks tests'
-
-    @profile
-    def _dynamically_apply_feedback(infr, edge, feedback_item, rectify):
-        """
-        Dynamically updates all states based on a single dynamic change
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden _dynamically_apply_feedback:0
-            python -m ibeis.algo.hots.graph_iden _dynamically_apply_feedback:1 --show
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.relabel_using_reviews()
-            >>> infr.add_feedback2((1, 2), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
-            >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
-            >>> infr._del_feedback_edges()
-            >>> infr.apply_feedback_edges()
-            >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
-            >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.relabel_using_reviews()
-            >>> infr.verbose = 2
-            >>> ut.qtensure()
-            >>> infr.ensure_full()
-            >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((6, 2), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((3, 4), 'match')
-            >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((2, 3), 'nomatch')
-            >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((6, 4), 'match')
-            >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((1, 5), 'nomatch')
-            >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((1, 3), 'nomatch')
-            >>> infr.show_graph(show_cuts=True)
-            >>> import plottool as pt
-            >>> pt.present()
-            >>> ut.show_if_requested()
-        """
-        if feedback_item is None:
-            if infr.verbose >= 2:
-                print('[infr] _dynamically_apply_feedback (removing edge=%r)'
-                      % (edge,))
-            state = 'unreviewed'
-            infr._del_feedback_edges([edge])
-            infr.set_edge_attrs(
-                infr.CUT_WEIGHT_KEY,
-                infr.get_edge_attrs('normscore', [edge], np.nan))
-        else:
-            # Apply the review to the specified edge
-            state = feedback_item['decision']
-            tags = feedback_item['tags']
-            confidence = feedback_item['confidence']
-            user_id = feedback_item['user_id']
-            if infr.verbose >= 2:
-                print('[infr] _dynamically_apply_feedback edge=%r, state=%r'
-                      % (edge, state,))
-            p_same_lookup = {
-                'match': infr._compute_p_same(1.0, 0.0),
-                'nomatch': infr._compute_p_same(0.0, 0.0),
-                'notcomp': infr._compute_p_same(0.0, 1.0),
-            }
-            p_same = p_same_lookup[state]
-            num_reviews = infr.get_edge_attrs('num_reviews', [edge],
-                                              default=0).get(edge, 0)
-            infr._set_feedback_edges([edge], [state], [p_same], [tags],
-                                     [confidence],
-                                     [user_id], [num_reviews + 1])
-            # TODO: change num_reviews to num_consistent_reviews
-            if state != 'notcomp':
-                ut.nx_delete_edge_attr(infr.graph, 'inferred_state', [edge])
-
-        # Dynamically update names and inferred attributes of relevant nodes
-        # subgraph, subgraph_cuts = infr._get_influenced_subgraph(edge)
-        n1, n2 = edge
-
-        import utool
-        with utool.embed_on_exception_context:
-            cc1 = infr.pos_graph.connected_to(n1)
-            cc2 = infr.pos_graph.connected_to(n2)
-        relevant_nodes = cc1.union(cc2)
-        if DEBUG_CC:
-            cc1_ = infr.get_annot_cc(n1)
-            cc2_ = infr.get_annot_cc(n2)
-            relevant_nodes_ = cc1_.union(cc2_)
-            assert relevant_nodes_ == relevant_nodes
-            # print('seems good')
-
-        subgraph = infr.graph.subgraph(relevant_nodes)
-
-        # Change names of nodes
-        infr.relabel_using_reviews(graph=subgraph, rectify=rectify)
-
-        # Include other components where there are external consequences
-        # This is only the case if two annotations are merged or a single
-        # annotation is split.
-        nomatch_ccs = infr.get_nomatch_ccs(relevant_nodes)
-        extended_nodes = ut.flatten(nomatch_ccs)
-        extended_nodes.extend(relevant_nodes)
-        extended_subgraph = infr.graph.subgraph(extended_nodes)
-
-        # This re-infers all attributes of the influenced sub-graph only
-        infr.apply_review_inference(graph=extended_subgraph )
 
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
@@ -1152,64 +942,6 @@ class _AnnotInfrFeedback(object):
         infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
         infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
         infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
-
-    @profile
-    def apply_feedback_edges(infr, safe=True):
-        r"""
-        Transforms the feedback dictionaries into nx graph edge attributes
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden apply_feedback_edges
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.reset_feedback()
-            >>> infr.add_feedback2((1, 2), 'unknown', tags=[])
-            >>> infr.apply_feedback_edges()
-            >>> print('edges = ' + ut.repr4(infr.graph.edge))
-            >>> result = str(infr)
-            >>> print(result)
-            <AnnotInference(nAids=6, nEdges=2)>
-        """
-        if infr.verbose >= 1:
-            print('[infr] apply_feedback_edges')
-        if safe:
-            # You can be unsafe if you know that the current feedback is a
-            # strict superset of previous feedback
-            infr._del_feedback_edges()
-        # Transforms dictionary feedback into numpy array
-        feedback_edges = []
-        num_review_list = []
-        decision_list = []
-        confidence_list = []
-        userid_list = []
-        tags_list = []
-        for edge, vals in infr.all_feedback_items():
-            # hack for feedback rectification
-            feedback_item = infr._rectify_feedback_item(vals)
-            decision = feedback_item['decision']
-            if decision == 'unknown':
-                continue
-            feedback_edges.append(edge)
-            num_review_list.append(len(vals))
-            userid_list.append(feedback_item['user_id'])
-            decision_list.append(decision)
-            tags_list.append(feedback_item['tags'])
-            confidence_list.append(feedback_item['confidence'])
-
-        p_same_lookup = {
-            'match': infr._compute_p_same(1.0, 0.0),
-            'nomatch': infr._compute_p_same(0.0, 0.0),
-            'notcomp': infr._compute_p_same(0.0, 1.0),
-        }
-        p_same_list = ut.take(p_same_lookup, decision_list)
-
-        # Put pair orders in context of the graph
-        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
-                                 tags_list, confidence_list, userid_list,
-                                 num_review_list)
 
     def reset_feedback(infr, mode='annotmatch'):
         """ Resets feedback edges to state of the SQL annotmatch table """
@@ -2396,7 +2128,7 @@ class _AnnotInfrRelabel(object):
             >>> infr.add_feedback2((2, 3), 'nomatch')
             >>> infr.add_feedback2((5, 6), 'nomatch')
             >>> infr.add_feedback2((1, 2), 'match')
-            >>> infr.apply_feedback_edges()
+            >>> infr.apply_feedback_edges_old()
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
@@ -2456,17 +2188,6 @@ class AnnotInference(ut.NiceRepr,
 
     Terminology and Concepts:
 
-        Node Attributes:
-            * annotation id
-            * original and current name label
-
-        Each Attributes:
-            * raw matching scores
-            * pairwise features for learning?
-            * measured probability match/notmatch/notcomp
-            * inferred probability same/diff | features
-            * User feedback
-
     CommandLine:
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7
         ibeis AnnotInference:0 --show
@@ -2509,7 +2230,7 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.show_graph(use_image=use_image)
         >>> # Add some feedback
         >>> infr.add_feedback2((1, 4), 'nomatch')
-        >>> infr.apply_feedback_edges()
+        >>> infr.apply_feedback_edges_old()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
@@ -2537,7 +2258,7 @@ class AnnotInference(ut.NiceRepr,
         >>>     infr.add_feedback2((11, 12), 'nomatch')
         >>> except ValueError:
         >>>     pass
-        >>> infr.apply_feedback_edges()
+        >>> infr.apply_feedback_edges_old()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
