@@ -386,7 +386,7 @@ class InfrInvariants(object):
         if not DEBUG_INCON:
             return
         inconsistent_ccs = list(infr.inconsistent_components())
-        incon_cc = set(ut.flatten(inconsistent_ccs))
+        incon_cc = set(ut.flatten(inconsistent_ccs))  # NOQA
         # import utool
         # with utool.embed_on_exception_context:
         #     assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
@@ -396,6 +396,476 @@ class InfrInvariants(object):
         #         #     map(pos_graph.node_label, incon_cc))
         #         infr.print('infr.recovery_cc = %r' % (infr.recovery_cc,))
         #         infr.print('incon_cc = %r' % (incon_cc,))
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class AnnotInfrMatching(object):
+    """
+    Methods for running matching algorithms
+    """
+
+    def exec_matching(infr, prog_hook=None, cfgdict=None):
+        """
+        Loads chip matches into the inference structure
+        Uses graph name labeling and ignores ibeis labeling
+        """
+        infr.print('exec_matching', 1)
+        #from ibeis.algo.hots import graph_iden
+        ibs = infr.ibs
+        aids = infr.aids
+        if cfgdict is None:
+            cfgdict = {
+                # 'can_match_samename': False,
+                'can_match_samename': True,
+                'can_match_sameimg': True,
+                # 'augment_queryside_hack': True,
+                'K': 3,
+                'Knorm': 3,
+                'prescore_method': 'csum',
+                'score_method': 'csum'
+            }
+        # hack for ulsing current nids
+        custom_nid_lookup = ut.dzip(aids, infr.get_annot_attrs('name_label',
+                                                               aids))
+        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                      custom_nid_lookup=custom_nid_lookup,
+                                      verbose=infr.verbose >= 2)
+
+        cm_list = qreq_.execute(prog_hook=prog_hook)
+
+        infr.vsmany_qreq_ = qreq_
+        infr.vsmany_cm_list = cm_list
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
+
+    def exec_vsone(infr, prog_hook=None):
+        r"""
+        Args:
+            prog_hook (None): (default = None)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden exec_vsone
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.ensure_full()
+            >>> result = infr.exec_vsone()
+            >>> print(result)
+        """
+        # Post process ranks_top and bottom vsmany queries with vsone
+        # Execute vsone queries on the best vsmany results
+        parent_rowids = list(infr.graph.edges())
+        qaids = ut.take_column(parent_rowids, 0)
+        daids = ut.take_column(parent_rowids, 1)
+
+        config = {
+            # 'sv_on': False,
+            'ratio_thresh': .9,
+        }
+
+        result_list = infr.ibs.depc.get('vsone', (qaids, daids), config=config)
+        # result_list = infr.ibs.depc.get('vsone', parent_rowids)
+        # result_list = infr.ibs.depc.get('vsone', [list(zip(qaids)), list(zip(daids))])
+        # hack copy the postprocess
+        import ibeis
+        unique_qaids, groupxs = ut.group_indices(qaids)
+        grouped_daids = ut.apply_grouping(daids, groupxs)
+
+        unique_qnids = infr.ibs.get_annot_nids(unique_qaids)
+        single_cm_list = ut.take_column(result_list, 1)
+        grouped_cms = ut.apply_grouping(single_cm_list, groupxs)
+
+        _iter = zip(unique_qaids, unique_qnids, grouped_daids, grouped_cms)
+        cm_list = []
+        for qaid, qnid, daids, cms in _iter:
+            # Hacked in version of creating an annot match object
+            chip_match = ibeis.ChipMatch.combine_cms(cms)
+            # chip_match.score_maxcsum(request)
+            cm_list.append(chip_match)
+
+        # cm_list = qreq_.execute(parent_rowids)
+        infr.vsone_qreq_ = infr.ibs.depc.new_request('vsone', qaids, daids, cfgdict=config)
+        infr.vsone_cm_list_ = cm_list
+        infr.qreq_  = infr.vsone_qreq_
+        infr.cm_list = cm_list
+
+    def _exec_pairwise_match(infr, edges, config={}, prog_hook=None):
+        edges = ut.lmap(tuple, ut.aslist(edges))
+        infr.print('exec_vsone_subset')
+        qaids = ut.take_column(edges, 0)
+        daids = ut.take_column(edges, 1)
+        # TODO: ensure feat/chip configs are resepected
+        match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
+                                       'match', config=config)
+        # recompute=True)
+        # Hack: Postprocess matches to re-add annotation info in lazy-dict format
+        from ibeis import core_annots
+        config = ut.hashdict(config)
+        configured_lazy_annots = core_annots.make_configured_annots(
+            infr.ibs, qaids, daids, config, config, preload=True)
+        for qaid, daid, match in zip(qaids, daids, match_list):
+            match.annot1 = configured_lazy_annots[config][qaid]
+            match.annot2 = configured_lazy_annots[config][daid]
+            match.config = config
+        return match_list
+
+    def _enrich_matches_lnbnn(infr, matches, inplace=False):
+        """
+        applies lnbnn scores to pairwise one-vs-one matches
+        """
+        from ibeis.algo.hots import nn_weights
+        qreq_ = infr.qreq_
+        qreq_.load_indexer()
+        indexer = qreq_.indexer
+        if not inplace:
+            matches_ = [match.copy() for match in matches]
+        else:
+            matches_ = matches
+        K = qreq_.qparams.K
+        Knorm = qreq_.qparams.Knorm
+        normalizer_rule  = qreq_.qparams.normalizer_rule
+
+        infr.print('Stacking vecs for batch lnbnn matching')
+        offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
+        stacked_vecs = np.vstack([
+            match_.matched_vecs2()
+            for match_ in ut.ProgIter(matches_, label='stack matched vecs')
+        ])
+
+        vecs = stacked_vecs
+        num = (K + Knorm)
+        idxs, dists = indexer.batch_knn(vecs, num, chunksize=8192,
+                                        label='lnbnn scoring')
+
+        idx_list = [idxs[l:r] for l, r in ut.itertwo(offset_list)]
+        dist_list = [dists[l:r] for l, r in ut.itertwo(offset_list)]
+        iter_ = zip(matches_, idx_list, dist_list)
+        prog = ut.ProgIter(iter_, nTotal=len(matches_), label='lnbnn scoring')
+        for match_, neighb_idx, neighb_dist in prog:
+            qaid = match_.annot2['aid']
+            norm_k = nn_weights.get_normk(qreq_, qaid, neighb_idx, Knorm,
+                                          normalizer_rule)
+            ndist = vt.take_col_per_row(neighb_dist, norm_k)
+            vdist = match_.local_measures['match_dist']
+            lnbnn_dist = nn_weights.lnbnn_fn(vdist, ndist)
+            lnbnn_clip_dist = np.clip(lnbnn_dist, 0, np.inf)
+            match_.local_measures['lnbnn_norm_dist'] = ndist
+            match_.local_measures['lnbnn'] = lnbnn_dist
+            match_.local_measures['lnbnn_clip'] = lnbnn_clip_dist
+            match_.fs = lnbnn_dist
+        return matches_
+
+    def _enriched_pairwise_matches(infr, edges, config={}, global_keys=None,
+                                   need_lnbnn=True, prog_hook=None):
+        if global_keys is None:
+            global_keys = ['yaw', 'qual', 'gps', 'time']
+        matches = infr._exec_pairwise_match(edges, config=config,
+                                            prog_hook=prog_hook)
+        infr.print('enriching matches')
+        if need_lnbnn:
+            infr._enrich_matches_lnbnn(matches, inplace=True)
+        # Ensure matches know about relavent metadata
+        for match in matches:
+            vt.matching.ensure_metadata_normxy(match.annot1)
+            vt.matching.ensure_metadata_normxy(match.annot2)
+        for match in ut.ProgIter(matches, label='setup globals'):
+            match.add_global_measures(global_keys)
+        for match in ut.ProgIter(matches, label='setup locals'):
+            match.add_local_measures()
+        return matches
+
+    def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
+                                global_keys=None, need_lnbnn=True,
+                                multi_index=True):
+        """
+        Construct matches and their pairwise features
+        """
+        import pandas as pd
+        # TODO: ensure feat/chip configs are resepected
+        edges = ut.lmap(tuple, ut.aslist(edges))
+        matches = infr._enriched_pairwise_matches(edges, config=config,
+                                                  global_keys=global_keys,
+                                                  need_lnbnn=need_lnbnn)
+        # ---------------
+        # Try different feature constructions
+        infr.print('building pairwise features')
+        X = pd.DataFrame([
+            m.make_feature_vector(**pairfeat_cfg)
+            for m in ut.ProgIter(matches, label='making pairwise feats')
+        ])
+        if multi_index:
+            # Index features by edges
+            uv_index = ensure_multi_index(edges, ('aid1', 'aid2'))
+            X.index = uv_index
+        X[pd.isnull(X)] = np.nan
+        # Re-order column names to ensure dimensions are consistent
+        X = X.reindex_axis(sorted(X.columns), axis=1)
+        return matches, X
+
+    def exec_vsone_subset(infr, edges, config={}, prog_hook=None):
+        r"""
+        Args:
+            prog_hook (None): (default = None)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden exec_vsone
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> config = {}
+            >>> infr.ensure_full()
+            >>> edges = [(1, 2), (2, 3)]
+            >>> result = infr.exec_vsone_subset(edges)
+            >>> print(result)
+        """
+        match_list = infr._exec_pairwise_match(edges, config=config,
+                                               prog_hook=prog_hook)
+        vsone_matches = {e_(u, v): match
+                         for (u, v), match in zip(edges, match_list)}
+        infr.vsone_matches.update(vsone_matches)
+        edge_to_score = {e: match.fs.sum() for e, match in
+                         vsone_matches.items()}
+        infr.graph.add_edges_from(edge_to_score.keys())
+        infr.set_edge_attrs('score', edge_to_score)
+        return match_list
+
+    def lookup_cm(infr, aid1, aid2):
+        """
+        Get chipmatch object associated with an edge if one exists.
+        """
+        if infr.cm_list is None:
+            return None, aid1, aid2
+        # TODO: keep chip matches in dictionary by default?
+        aid2_idx = ut.make_index_lookup(
+            [cm.qaid for cm in infr.cm_list])
+        switch_order = False
+
+        if aid1 in aid2_idx:
+            idx = aid2_idx[aid1]
+            cm = infr.cm_list[idx]
+            if aid2 not in cm.daid2_idx:
+                switch_order = True
+                # raise KeyError('switch order')
+        else:
+            switch_order = True
+
+        if switch_order:
+            # switch order
+            aid1, aid2 = aid2, aid1
+            idx = aid2_idx[aid1]
+            cm = infr.cm_list[idx]
+            if aid2 not in cm.daid2_idx:
+                raise KeyError('No ChipMatch for edge (%r, %r)' % (aid1, aid2))
+        return cm, aid1, aid2
+
+    @profile
+    def apply_match_edges(infr, review_cfg={}):
+        """
+        Adds results from one-vs-many rankings as edges in the graph
+        """
+        if infr.cm_list is None:
+            infr.print('apply_match_edges - matching has not been run!')
+            return
+        infr.print('apply_match_edges', 1)
+        edges = infr._cm_breaking(review_cfg)
+        # Create match-based graph structure
+        infr.remove_dummy_edges()
+        infr.print('apply_match_edges adding %d edges' % len(edges), 1)
+        infr.graph.add_edges_from(edges)
+        infr.apply_match_scores()
+
+    def _cm_breaking(infr, review_cfg={}):
+        """
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> review_cfg = {}
+        """
+        cm_list = infr.cm_list
+        ranks_top = review_cfg.get('ranks_top', None)
+        ranks_bot = review_cfg.get('ranks_bot', None)
+
+        # Construct K-broken graph
+        edges = []
+
+        if ranks_bot is None:
+            ranks_bot = 0
+
+        for count, cm in enumerate(cm_list):
+            score_list = cm.annot_score_list
+            rank_list = ut.argsort(score_list)[::-1]
+            sortx = ut.argsort(rank_list)
+
+            top_sortx = sortx[:ranks_top]
+            bot_sortx = sortx[len(sortx) - ranks_bot:]
+            short_sortx = ut.unique(top_sortx + bot_sortx)
+
+            daid_list = ut.take(cm.daid_list, short_sortx)
+            for daid in daid_list:
+                u, v = (cm.qaid, daid)
+                if v < u:
+                    u, v = v, u
+                edges.append((u, v))
+        return edges
+
+    def _cm_training_pairs(infr, top_gt=2, mid_gt=2, bot_gt=2, top_gf=2,
+                           mid_gf=2, bot_gf=2, rand_gt=2, rand_gf=2, rng=None):
+        """
+        Constructs training data for a pairwise classifier
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden _cm_training_pairs
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr.exec_matching(cfgdict={
+            >>>     'can_match_samename': True,
+            >>>     'K': 4,
+            >>>     'Knorm': 1,
+            >>>     'prescore_method': 'csum',
+            >>>     'score_method': 'csum'
+            >>> })
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> exec(ut.execstr_funckw(infr._cm_training_pairs))
+            >>> rng = np.random.RandomState(42)
+            >>> aid_pairs = np.array(infr._cm_training_pairs(rng=rng))
+            >>> print(len(aid_pairs))
+            >>> assert np.sum(aid_pairs.T[0] == aid_pairs.T[1]) == 0
+        """
+        cm_list = infr.cm_list
+        qreq_ = infr.qreq_
+        ibs = infr.ibs
+        aid_pairs = []
+        dnids = qreq_.ibs.get_annot_nids(qreq_.daids)
+        # dnids = qreq_.get_qreq_annot_nids(qreq_.daids)
+        rng = ut.ensure_rng(rng)
+        for cm in ut.ProgIter(cm_list, lbl='building pairs'):
+            all_gt_aids = cm.get_top_gt_aids(ibs)
+            all_gf_aids = cm.get_top_gf_aids(ibs)
+            gt_aids = ut.take_percentile_parts(all_gt_aids, top_gt, mid_gt,
+                                               bot_gt)
+            gf_aids = ut.take_percentile_parts(all_gf_aids, top_gf, mid_gf,
+                                               bot_gf)
+            # get unscored examples
+            unscored_gt_aids = [aid for aid in qreq_.daids[cm.qnid == dnids]
+                                if aid not in cm.daid2_idx]
+            rand_gt_aids = ut.random_sample(unscored_gt_aids, rand_gt, rng=rng)
+            # gf_aids = cm.get_groundfalse_daids()
+            _gf_aids = qreq_.daids[cm.qnid != dnids]
+            _gf_aids = qreq_.daids.compress(cm.qnid != dnids)
+            # gf_aids = ibs.get_annot_groundfalse(cm.qaid, daid_list=qreq_.daids)
+            rand_gf_aids = ut.random_sample(_gf_aids, rand_gf, rng=rng).tolist()
+            chosen_daids = ut.unique(gt_aids + gf_aids + rand_gf_aids +
+                                     rand_gt_aids)
+            aid_pairs.extend([(cm.qaid, aid) for aid in chosen_daids if cm.qaid != aid])
+
+        return aid_pairs
+
+    def _get_cm_agg_aid_ranking(infr, cc):
+        aid_to_cm = {cm.qaid: cm for cm in infr.cm_list}
+        # node_to_cm = {infr.aid_to_node[cm.qaid]:
+        #               cm for cm in infr.cm_list}
+        all_scores = ut.ddict(list)
+        for qaid in cc:
+            cm = aid_to_cm[qaid]
+            # should we be doing nids?
+            for daid, score in zip(cm.get_top_aids(), cm.get_top_scores()):
+                all_scores[daid].append(score)
+
+        max_scores = sorted((max(scores), aid)
+                            for aid, scores in all_scores.items())[::-1]
+        ranked_aids = ut.take_column(max_scores, 1)
+        return ranked_aids
+        # aid = infr.aid_to_node[node]
+        # node_to
+
+    def _get_cm_edge_data(infr, edges):
+        symmetric = True
+
+        # Find scores for the edges that exist in the graph
+        edge_to_data = ut.ddict(dict)
+        node_to_cm = {infr.aid_to_node[cm.qaid]:
+                      cm for cm in infr.cm_list}
+        for u, v in edges:
+            if symmetric:
+                u, v = e_(u, v)
+            cm1 = node_to_cm.get(u, None)
+            cm2 = node_to_cm.get(v, None)
+            scores = []
+            ranks = []
+            for cm in ut.filter_Nones([cm1, cm2]):
+                for node in [u, v]:
+                    aid = infr.node_to_aid[node]
+                    idx = cm.daid2_idx.get(aid, None)
+                    if idx is None:
+                        continue
+                    score = cm.annot_score_list[idx]
+                    rank = cm.get_annot_ranks([aid])[0]
+                    scores.append(score)
+                    ranks.append(rank)
+            if len(scores) == 0:
+                score = None
+                rank = None
+            else:
+                rank = vt.safe_min(ranks)
+                score = np.nanmean(scores)
+            edge_to_data[(u, v)]['score'] = score
+            edge_to_data[(u, v)]['rank'] = rank
+        return edge_to_data
+
+    @profile
+    def apply_match_scores(infr):
+        """
+
+        Applies precomputed matching scores to edges that already exist in the
+        graph. Typically you should run infr.apply_match_edges() before running
+        this.
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_match_scores --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('PZ_MTEST')
+            >>> infr.exec_matching()
+            >>> infr.apply_match_edges()
+            >>> infr.apply_match_scores()
+            >>> infr.get_edge_attrs('score')
+        """
+        if infr.cm_list is None:
+            infr.print('apply_match_scores - no scores to apply!')
+            return
+        infr.print('apply_match_scores', 1)
+        edges = list(infr.graph.edges())
+        edge_to_data = infr._get_cm_edge_data(edges)
+
+        # Remove existing attrs
+        ut.nx_delete_edge_attr(infr.graph, 'score')
+        ut.nx_delete_edge_attr(infr.graph, 'rank')
+        ut.nx_delete_edge_attr(infr.graph, 'normscore')
+
+        edges = list(edge_to_data.keys())
+        edge_scores = list(ut.take_column(edge_to_data.values(), 'score'))
+        edge_scores = ut.replace_nones(edge_scores, np.nan)
+        edge_scores = np.array(edge_scores)
+        edge_ranks = np.array(ut.take_column(edge_to_data.values(), 'rank'))
+        # take the inf-norm
+        normscores = edge_scores / vt.safe_max(edge_scores, nans=False)
+
+        # Add new attrs
+        infr.set_edge_attrs('score', ut.dzip(edges, edge_scores))
+        infr.set_edge_attrs('rank', ut.dzip(edges, edge_ranks))
+
+        # Hack away zero probabilites
+        # probs = np.vstack([p_nomatch, p_match, p_notcomp]).T + 1e-9
+        # probs = vt.normalize(probs, axis=1, ord=1, out=probs)
+        # entropy = -(np.log2(probs) * probs).sum(axis=1)
+        infr.set_edge_attrs('normscore', dict(zip(edges, normscores)))
 
 
 class InfrLearning(object):
@@ -695,6 +1165,77 @@ class InfrRecovery2(object):
         # return maybe_error_edges
 
     @profile
+    def consistent_inference(infr, edge, decision):
+        infr.print('Making consistent inference decision', 4)
+        # assuming we are in a consistent state
+        # k_pos = infr.queue_params['pos_redundancy']
+        aid1, aid2 = edge
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
+        nid1 = pos_graph.node_label(aid1)
+        nid2 = pos_graph.node_label(aid2)
+        cc1 = pos_graph.component_nodes(nid1)
+        cc2 = pos_graph.component_nodes(nid2)
+        if decision == 'match' and nid1 == nid2:
+            # add positive redundancy
+            infr._add_review_edge(edge, decision)
+            if nid1 not in infr.pos_redun_nids:
+                infr.update_pos_redun(nid1)
+        elif decision == 'match' and nid1 != nid2:
+            if any(edges_cross(neg_graph, cc1, cc2)):
+                # Added positive edge between PCCs with a negative edge
+                return infr._enter_recovery(edge, decision, nid1, nid2)
+            else:
+                # merge into single pcc
+                infr._add_review_edge(edge=(aid1, aid2), decision='match')
+                new_nid = pos_graph.node_label(aid1)
+                prev_neg_nids = infr.purge_redun_flags(nid1, nid2)
+                for other_nid in prev_neg_nids:
+                    infr.update_neg_redun(new_nid, other_nid)
+                infr.update_pos_redun(new_nid)
+        elif decision == 'nomatch' and nid1 == nid2:
+            # Added negative edge in positive PCC
+            return infr._enter_recovery(edge, decision, nid1)
+        elif decision == 'nomatch' and nid1 != nid2:
+            # add negative redundancy
+            infr._add_review_edge(edge, decision)
+            if not infr.neg_redun_nids.has_edge(nid1, nid2):
+                infr.update_neg_redun(nid1, nid2)
+        elif decision == 'notcomp' and nid1 == nid2:
+            if pos_graph.has_edge(*edge):
+                # changed an existing positive edge
+                infr._add_review_edge(edge, decision)
+                new_nid1, new_nid2 = pos_graph.node_labels(aid1, aid2)
+                if new_nid1 != new_nid2:
+                    # split case
+                    old_nid = nid1
+                    prev_neg_nids = infr.purge_redun_flags(old_nid)
+                    for other_nid in prev_neg_nids:
+                        infr.update_neg_redun(new_nid1, other_nid)
+                        infr.update_neg_redun(new_nid2, other_nid)
+                    infr.update_neg_redun(new_nid1, new_nid2)
+                    infr.update_pos_redun(new_nid1)
+                    infr.update_pos_redun(new_nid2)
+                else:
+                    infr.update_pos_redun(cc1)
+            else:
+                infr._add_review_edge(edge, decision)
+
+        elif decision == 'notcomp' and nid1 != nid2:
+            if neg_graph.has_edge(*edge):
+                # changed and existing negative edge
+                infr._add_review_edge(edge, decision)
+                if not infr.neg_redun_nids.has_edge(nid1, nid2):
+                    infr.update_neg_redun(nid1, nid2)
+            else:
+                infr._add_review_edge(edge, decision)
+        else:
+            infr.dump_logs()
+            raise AssertionError('impossible consistent state')
+
+        infr.assert_consistency_invariant()
+
+    @profile
     def inconsistent_inference(infr, edge, decision):
         """
         NEED:
@@ -735,10 +1276,12 @@ class InfrRecovery2(object):
                 (1) new external neg edge is added
                 (2) external neg edge is changed
 
-
             We also might merge two recover_ccs
-
         """
+        # FIXME: this function only works only if subsequent reviews
+        # are generated within the recover_cc until that cc is fixed.
+        # Need to add support for accepting arbitrary reviews
+
         infr.print('Making inconsistent inference decision', 4)
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
@@ -758,6 +1301,7 @@ class InfrRecovery2(object):
         ]
 
         # Remove previously marked error hypothesis
+        # infr.print('Remove previous error edges {}'.format(infr.error_edges))
         infr.set_edge_attrs('maybe_error', ut.dzip(infr.error_edges, [None]))
         new_error_edges = set([])
 
@@ -774,7 +1318,8 @@ class InfrRecovery2(object):
 
             # flag error edges
             infr.set_edge_attrs('maybe_error', ut.dzip(new_error_edges, [True]))
-            infr.new_error_edges = new_error_edges
+            infr.error_edges = new_error_edges
+            # infr.print('Add new error edges {}'.format(infr.error_edges))
             # choose one and give it insanely high priority
 
             if infr.queue is not None:
@@ -824,6 +1369,17 @@ class InfrRecovery2(object):
 
 
 class DynamicUpdate2(object):
+
+    def _add_review_edges_from(infr, edges, decision):
+        infr.print('add decision=%r from %d reviews' % (
+            decision, len(edges)), 1)
+        # Add to review graph corresponding to decision
+        infr.review_graphs[decision].add_edges_from(edges)
+        # Remove from previously existing graphs
+        for k, G in infr.review_graphs.items():
+            if k != decision:
+                # print('replaced edge from %r graph' % (k,))
+                G.remove_edges_from(edges)
 
     def _add_review_edge(infr, edge, decision):
         infr.print('add review edge=%r, decision=%r' % (edge, decision), 1)
@@ -1130,7 +1686,8 @@ class AnnotInfrRedundancy(object):
                     yield nid1, nid2
 
 
-class AnnotInfr2(InfrRecovery2, CandidateSearch2, InfrReviewers, InfrLearning,
-                 AnnotInfrRedundancy, SimulationHelpers, DynamicUpdate2,
-                 InfrInvariants, InfrLoops):
+class AnnotInfr2(InfrRecovery2, CandidateSearch2, InfrReviewers,
+                 InfrLearning, AnnotInfrMatching, AnnotInfrRedundancy,
+                 SimulationHelpers, DynamicUpdate2, InfrInvariants,
+                 InfrLoops):
     pass

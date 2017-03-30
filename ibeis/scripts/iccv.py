@@ -14,12 +14,13 @@ def gt_reveiw():
 
     infr.learn_evaluataion_clasifiers()
 
-    # infr.apply_feedback_edges()
-    for edge, vals in infr.all_feedback_items():
-        feedback = infr._rectify_feedback_item(vals)
-        ut.delete_dict_keys(feedback, ['num_reviews'])
-        # del feedback['num_reviews']
-        infr.add_feedback(edge, **feedback)
+    infr.apply_feedback_edges()
+
+    # for edge, vals in infr.all_feedback_items():
+    #     feedback = infr._rectify_feedback_item(vals)
+    #     ut.delete_dict_keys(feedback, ['num_reviews'])
+    #     # del feedback['num_reviews']
+    #     infr.add_feedback(edge, **feedback)
 
     new_edges = infr.find_mst_edges2()
     if infr.verbose >= 1:

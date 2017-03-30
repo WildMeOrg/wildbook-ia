@@ -1438,6 +1438,15 @@ class _AnnotInfrDepMixin(object):
         edges = ut.compress(edges, is_valid)
         infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, weights))
 
+        # infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
+        # p_same_lookup = {
+        #     'match': infr._compute_p_same(1.0, 0.0),
+        #     'nomatch': infr._compute_p_same(0.0, 0.0),
+        #     'notcomp': infr._compute_p_same(0.0, 1.0),
+        # }
+        # p_same_list = ut.take(p_same_lookup, decision_list)
+        # infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
+
     # Scores are ordered in priority order:
     # CUT_WEIGHT - final weight used for inference (overridden by user)
     # NORMSCORE - normalized score computed by an automatic process

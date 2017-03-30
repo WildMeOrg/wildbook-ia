@@ -619,7 +619,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         menu.newAction(triggered=self.ensure_cliques)
         menu.newAction(triggered=self.vsone_subset)
         menu.newAction(text='relabel_using_reviews', triggered=lambda: self.infr.relabel_using_reviews())
-        menu.newAction(text='apply_category_inference', triggered=lambda: self.infr.apply_category_inference())
+        menu.newAction(text='apply_nondynamic_update', triggered=lambda: self.infr.apply_nondynamic_update())
 
     def preset_config(self, mode='filtered'):
         print('[graph] preset_config mode=%r' % (mode,))
@@ -684,15 +684,15 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.relabel_using_reviews()
             elif self.init_mode == 'rereview':
                 self.infr.apply_feedback_edges()
-                self.infr.apply_match_scores()
+                # self.infr.apply_match_scores()
                 self.infr.relabel_using_reviews()
             elif self.init_mode == 'review':
                 self.infr.apply_match_edges()
                 self.infr.review_dummy_edges()
                 self.infr.apply_feedback_edges()
-                self.infr.apply_match_scores()
+                # self.infr.apply_match_scores()
                 self.infr.relabel_using_reviews()
-                self.infr.apply_category_inference()
+                self.infr.apply_nondynamic_update()
 
         # Set gui status indicators
         status = self.infr.connected_component_status()
@@ -725,13 +725,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def ensure_cliques(self):
         self.infr.ensure_cliques()
         self.infr.relabel_using_reviews()
-        self.infr.apply_category_inference()
+        self.infr.apply_nondynamic_update()
         self.repopulate()
 
     def ensure_full(self):
         self.infr.ensure_full()
         self.infr.relabel_using_reviews()
-        self.infr.apply_category_inference()
+        self.infr.apply_nondynamic_update()
         self.repopulate()
 
     def match_and_score_edges(self):
@@ -739,13 +739,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             # TODO: add in a cfgdict here with settable params
             self.infr.exec_matching(prog_hook=ctx.prog_hook)
             self.infr.apply_match_edges(self.review_cfg)
-            self.infr.apply_match_scores()
+            # self.infr.apply_match_scores()
         self.repopulate()
 
     def score_edges_vsone(self):
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
             self.infr.exec_vsone(prog_hook=ctx.prog_hook)
-            self.infr.apply_match_scores()
+            # self.infr.apply_match_scores()
         self.repopulate()
 
     def reset_review(self):
@@ -765,12 +765,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 infr.review_dummy_edges()
             with ut.Timer('apply_match_edges'):
                 infr.apply_match_edges()
-            with ut.Timer('apply_match_scores'):
-                infr.apply_match_scores()
+            # with ut.Timer('apply_match_scores'):
+            #     infr.apply_match_scores()
             # with ut.Timer('relabel_using_reviews'):
             #     self.infr.relabel_using_reviews()
-            # with ut.Timer('apply_category_inference'):
-            #     self.infr.apply_category_inference()
+            # with ut.Timer('apply_nondynamic_update'):
+            #     self.infr.apply_nondynamic_update()
             self.repopulate()
             ctx.set_progress(3, 3)
 
@@ -798,8 +798,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.apply_feedback_edges()
             ctx.set_progress(msg='remove name labels')
             infr.remove_name_labels()
-            ctx.set_progress(msg='apply match scores')
-            infr.apply_match_scores()
+            # ctx.set_progress(msg='apply match scores')
+            # infr.apply_match_scores()
             ctx.set_progress(msg='repopulate')
             self.repopulate()
             ctx.set_progress(8, 8)
@@ -1104,7 +1104,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.add_feedback((aid1, aid2), decision=state, tags=tags)
 
         infr.apply_feedback_edges()
-        infr.apply_category_inference()
+        infr.apply_nondynamic_update()
 
     def accept(self):
         """

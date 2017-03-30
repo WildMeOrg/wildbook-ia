@@ -470,7 +470,6 @@ def demo_ibeis_graph_iden():
         # Build hypothesis links
         infr.exec_matching()
         infr.apply_match_edges(dict(ranks_top=3, ranks_bot=1))
-        infr.apply_match_scores()
         infr.apply_feedback_edges()
 
         # infr.relabel_using_reviews()
@@ -576,7 +575,7 @@ def on_pick(event, infr=None):
     print(ut.get_timestamp())
 
 
-def make_demo_infr(ccs, edges, nodes=[]):
+def make_demo_infr(ccs, edges, nodes=[], infer=True):
     from ibeis.algo.hots import graph_iden
     import networkx as nx
 
@@ -605,16 +604,13 @@ def make_demo_infr(ccs, edges, nodes=[]):
             d['normscore'] = rng.rand()
 
     G.add_edges_from(edges)
-    infr = graph_iden.AnnotInference.from_netx(G)
+    infr = graph_iden.AnnotInference.from_netx(G, infer=infer)
     infr.verbose = 3
 
-    infr.set_node_attrs(
-        'name_label', {n: infr.pos_graph.node_label(n)
-                       for n in infr.graph.nodes()})
     # infr.relabel_using_reviews()
     # infr.apply_review_inference()
     infr.relabel_using_reviews(rectify=False)
-    infr.apply_category_inference()
+    # infr.apply_nondynamic_update()
 
     infr.graph.graph['dark_background'] = False
     infr.graph.graph['ignore_labels'] = True
@@ -659,7 +655,7 @@ def do_infr_test(ccs, edges, new_edges):
         state = data['decision']
         infr2.add_feedback((aid1, aid2), state)
     infr2.relabel_using_reviews(rectify=False)
-    infr2.apply_category_inference()
+    infr2.apply_nondynamic_update()
 
     # Postshow
     if ut.show_was_requested():
@@ -671,31 +667,55 @@ def do_infr_test(ccs, edges, new_edges):
         if fig2 is not fig1:
             fig2.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr2))
 
-    _errors = []
-    def check(infr, u, v, key, val, msg):
-        data = infr.get_edge_data(u, v)
-        if data is None:
-            assert infr.graph.has_edge(u, v), (
-                'uv=%r, %r does not exist'  % (u, v))
-        got = data.get(key)
-        if got != val:
-            msg1 = 'key=%s %r!=%r, ' % (key, got, val)
-            _errors.append(msg1 + msg + '\nedge=' + ut.repr2((u, v)) + '\n' +
-                           repr_edge_data(infr, data))
+    class Checker(object):
+        """
+        Asserts pre and post test properties of the graph
+        """
+        def __init__(self, infr1, infr2):
+            self._errors = []
+            self.infr1 = infr1
+            self.infr2 = infr2
 
-    def after(errors=[]):
-        errors = errors + _errors
-        if errors:
-            ut.cprint('PRINTING %d FAILURE' % (len(errors)), 'red')
-            for msg in errors:
-                print(msg)
-            ut.cprint('HAD %d FAILURE' % (len(errors)), 'red')
-        if ut.show_was_requested():
-            pt.all_figures_tile(percent_w=.5)
-            ut.show_if_requested()
-        if errors:
-            raise AssertionError('There were errors')
-    return infr1, infr2, after, check
+        def __call__(self, infr, u, v, key, val, msg):
+            data = infr.get_edge_data(u, v)
+            if data is None:
+                assert infr.graph.has_edge(u, v), (
+                    'uv=%r, %r does not exist'  % (u, v))
+            got = data.get(key)
+            if got != val:
+                msg1 = 'key=%s %r!=%r, ' % (key, got, val)
+                errmsg = ''.join([msg1, msg, '\nedge=', ut.repr2((u, v)), '\n',
+                                 repr_edge_data(infr, data)])
+                self._errors.append(errmsg)
+
+        def custom_precheck(self, func):
+            try:
+                func(self.infr1)
+            except AssertionError as ex:
+                self._errors.append(str(ex))
+
+        def after(self, errors=[]):
+            """
+            Delays error reporting until after visualization
+
+            prints errors, then shows you the graph, then
+            finally if any errors were discovered they are raised
+            """
+
+            errors = errors + self._errors
+            if errors:
+                ut.cprint('PRINTING %d FAILURE' % (len(errors)), 'red')
+                for msg in errors:
+                    print(msg)
+                ut.cprint('HAD %d FAILURE' % (len(errors)), 'red')
+            if ut.show_was_requested():
+                pt.all_figures_tile(percent_w=.5)
+                ut.show_if_requested()
+            if errors:
+                raise AssertionError('There were errors')
+
+    check = Checker(infr1, infr2)
+    return infr1, infr2, check
 
 
 def case_nomatch_infr():
@@ -718,7 +738,7 @@ def case_nomatch_infr():
     ]
     # Add in scored, but unreviewed edges
     new_edges = [(3, 9, {'decision': 'nomatch'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr2, 1, 7, 'inferred_state', None,
           'negative review of an edge should not jump more than one component')
@@ -726,7 +746,7 @@ def case_nomatch_infr():
     check(infr2, 1, 9, 'inferred_state', 'diff',
           'negative review of an edge should cut within one jump')
 
-    after()
+    check.after()
 
 
 def case_match_infr():
@@ -752,7 +772,7 @@ def case_match_infr():
         (2, 9, {'inferred_state': None}),
     ]
     new_edges = [(2, 10, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     # Checks out of cc inferences
     check(infr2, 2, 9, 'inferred_state', 'same', 'should infer a match')
@@ -760,7 +780,7 @@ def case_match_infr():
     check(infr1, 2, 7, 'inferred_state', None, 'discon should have inference')
 
     check(infr2, 2, 7, 'inferred_state', None, 'discon should have inference')
-    after()
+    check.after()
 
 
 def case_inconsistent():
@@ -782,12 +802,12 @@ def case_inconsistent():
         # (2, 7, {'inferred_state': None}),
     ]
     new_edges = [(1, 5, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     # Make sure the previously inferred edge is no longer inferred
     check(infr1, 4, 1, 'inferred_state', 'diff', 'should initially be an inferred diff')
     check(infr2, 4, 1, 'inferred_state', 'inconsistent_internal', 'should not be inferred after incon')
     check(infr2, 4, 3, 'maybe_error', True, 'need to have a maybe split')
-    after()
+    check.after()
 
 
 def case_redo_incon():
@@ -807,7 +827,7 @@ def case_redo_incon():
     ]
     edges += []
     new_edges = [(2, 3, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     maybe_splits = infr2.get_edge_attrs('maybe_error')
     print('maybe_splits = %r' % (maybe_splits,))
@@ -815,7 +835,7 @@ def case_redo_incon():
         ut.cprint('FAILURE', 'red')
         print('At least one edge should be marked as a split')
 
-    after()
+    check.after()
 
 
 def case_override_inference():
@@ -845,13 +865,13 @@ def case_override_inference():
         (1, 5, {'decision': 'nomatch'}),
         (5, 2, {'decision': 'nomatch'}),
     ]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     # Make sure that the inferred edges are no longer inferred when an
     # inconsistent case is introduced
     check(infr2, 1, 4, 'maybe_error', None, 'should not split inferred edge')
     check(infr2, 4, 5, 'maybe_error', True, 'split me')
     check(infr2, 5, 2, 'inferred_state', 'inconsistent_internal', 'inference should be overriden')
-    after()
+    check.after()
 
 
 def case_undo_match():
@@ -867,10 +887,10 @@ def case_undo_match():
     ccs = [[1, 2]]
     edges = []
     new_edges = [(1, 2, {'decision': 'nomatch'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr2, 1, 2, 'inferred_state', 'diff', 'should have cut edge')
-    after()
+    check.after()
 
 
 def case_undo_nomatch():
@@ -888,9 +908,9 @@ def case_undo_nomatch():
         (1, 2, {'decision': 'nomatch'}),
     ]
     new_edges = [(1, 2, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr2, 1, 2, 'inferred_state', 'same', 'should have matched edge')
-    after()
+    check.after()
 
 
 def case_incon_removes_inference():
@@ -911,11 +931,11 @@ def case_incon_removes_inference():
         (1, 6, {}),
     ]
     new_edges = [(3, 4, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
 
     check(infr1, 2, 5, 'inferred_state', 'diff', 'should be preinferred')
     check(infr2, 2, 5, 'inferred_state', 'inconsistent_internal', 'should be uninferred on incon')
-    after()
+    check.after()
 
 
 def case_inferable_notcomp1():
@@ -935,9 +955,9 @@ def case_inferable_notcomp1():
         (2, 3, {'decision': 'nomatch'}),
     ]
     new_edges = [(1, 4, {'decision': 'notcomp'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr2, 1, 4, 'inferred_state', 'diff', 'should be inferred')
-    after()
+    check.after()
 
 
 def case_inferable_update_notcomp():
@@ -958,10 +978,10 @@ def case_inferable_update_notcomp():
         (1, 4, {'decision': 'notcomp'}),
     ]
     new_edges = [(2, 3, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 1, 4, 'inferred_state', 'diff', 'should be inferred diff')
     check(infr2, 1, 4, 'inferred_state', 'same', 'should be inferred same')
-    after()
+    check.after()
 
 
 def case_notcomp_remove_infr():
@@ -982,11 +1002,11 @@ def case_notcomp_remove_infr():
         (3, 6, {'decision': 'notcomp'}),
     ]
     new_edges = [(1, 4, {'decision': 'notcomp'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr2, 1, 4, 'inferred_state', 'notcomp', 'can not infer match here!')
     check(infr2, 2, 5, 'inferred_state', 'notcomp', 'can not infer match here!')
     check(infr2, 3, 6, 'inferred_state', 'notcomp', 'can not infer match here!')
-    after()
+    check.after()
 
 
 def case_notcomp_remove_cuts():
@@ -1007,14 +1027,14 @@ def case_notcomp_remove_cuts():
         (3, 6, {'decision': 'notcomp'}),
     ]
     new_edges = [(1, 4, {'decision': 'notcomp'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 1, 4, 'inferred_state', 'diff', 'should infer diff!')
     check(infr1, 2, 5, 'inferred_state', 'diff', 'should infer diff!')
     check(infr1, 3, 6, 'inferred_state', 'diff', 'should infer diff!')
     check(infr2, 1, 4, 'decision', 'notcomp', 'can not infer cut here!')
     check(infr2, 2, 5, 'inferred_state', 'notcomp', 'can not infer cut here!')
     check(infr2, 3, 6, 'inferred_state', 'notcomp', 'can not infer cut here!')
-    after()
+    check.after()
 
 
 def case_keep_in_cc_infr_post_nomatch():
@@ -1030,12 +1050,12 @@ def case_keep_in_cc_infr_post_nomatch():
     ccs = [[1, 2, 3], [4]]
     edges = [(1, 3), (1, 4), (2, 4), (3, 4)]
     new_edges = [(4, 2, {'decision': 'nomatch'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 3, 4, 'inferred_state', None, 'should be no inference')
     check(infr1, 1, 3, 'inferred_state', 'same', 'should be inferred')
     check(infr2, 1, 3, 'inferred_state', 'same', 'should remain inferred')
     check(infr2, 3, 4, 'inferred_state', 'diff', 'should become inferred')
-    after()
+    check.after()
 
 
 def case_keep_in_cc_infr_post_notcomp():
@@ -1051,12 +1071,12 @@ def case_keep_in_cc_infr_post_notcomp():
     ccs = [[1, 2, 3], [4]]
     edges = [(1, 3), (1, 4), (2, 4), (3, 4)]
     new_edges = [(4, 2, {'decision': 'notcomp'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 3, 4, 'inferred_state', None, 'should not be inferred')
     check(infr1, 1, 3, 'inferred_state', 'same', 'should be inferred')
     check(infr2, 1, 3, 'inferred_state', 'same', 'should remain inferred')
     check(infr2, 3, 4, 'inferred_state', None, 'should not become inferred')
-    after()
+    check.after()
 
 
 def case_out_of_subgraph_modification():
@@ -1076,10 +1096,10 @@ def case_out_of_subgraph_modification():
         (2, 6), (4, 5, {'decision': 'nomatch'})
     ]
     new_edges = [(2, 3, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     check(infr1, 2, 6, 'inferred_state', None, 'should not be inferred')
     check(infr2, 2, 6, 'inferred_state', 'diff', 'should be inferred')
-    after()
+    check.after()
 
 
 def case_flag_merge():
@@ -1102,12 +1122,16 @@ def case_flag_merge():
     ]
     # Ensure that the nomatch edge comes back as potentially in error
     new_edges = [(1, 4, {'decision': 'match'})]
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
+    @check.custom_precheck
+    def check_pre_state(infr):
+        assert infr.error_edges == {(1, 4)}
+
     check(infr1, 2, 4, 'maybe_error', None, 'match edge should flag first None')
     check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first True')
     check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second True')
     check(infr2, 1, 4, 'maybe_error', None, 'nomatch edge should flag second None')
-    after()
+    check.after()
 
 
 def demodata_infr(**kwargs):
@@ -1231,7 +1255,7 @@ def demodata_infr(**kwargs):
     edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
     edges = [(int(u), int(v), d) for u, v, d in edges]
     nodes = ut.flatten(ut.take_column(new_ccs, 0))
-    infr = make_demo_infr([], edges, nodes=nodes)
+    infr = make_demo_infr([], edges, nodes=nodes, infer=kwargs.get('infer', True))
     return infr
 
 
@@ -1324,7 +1348,7 @@ def case_all_types():
     # Ensure that the nomatch edge comes back as potentially in error
     # new_edges = [(2, 5, {'decision': 'match'})]
     new_edges = []
-    infr1, infr2, after, check = do_infr_test(ccs, edges, new_edges)
+    infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     errors = []
     for u, v, d in infr2.graph.edges(data=True):
         state = d.get('inferred_state', '')
@@ -1349,7 +1373,7 @@ def case_all_types():
     # check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first')
     # check(infr2, 2, 4, 'maybe_error', True, 'nomatch edge should flag second')
     # check(infr2, 1, 4, 'maybe_error', False, 'nomatch edge should flag second')
-    after(errors)
+    check.after(errors)
 
 
 # TODO: inconsistent out of subgraph modification
