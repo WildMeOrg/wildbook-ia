@@ -117,7 +117,16 @@ class _AnnotInfrViz(object):
             graph = infr.graph
         edges = list(infr.graph.edges())
         if highlight_reviews:
-            edge2_weight = nx.get_edge_attributes(infr.graph, infr.CUT_WEIGHT_KEY)
+            edge_to_decision = nx.get_edge_attributes(infr.graph, 'decision')
+            state_to_weight = {
+                'match': 1.0,
+                'notcomp': 0.5,
+                'nomatch': 0.0,
+                'unreviewed': np.nan
+            }
+            edge2_weight = ut.map_dict_vals(state_to_weight, edge_to_decision)
+            # {e: state for e, state in edge_to_decision.items()}
+            # edge2_weight = nx.get_edge_attributes(infr.graph, infr.CUT_WEIGHT_KEY)
         else:
             edge2_weight = nx.get_edge_attributes(infr.graph, 'normscore')
         #edges = list(edge2_weight.keys())

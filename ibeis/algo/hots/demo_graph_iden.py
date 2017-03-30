@@ -834,11 +834,14 @@ def case_override_inference():
     ccs = [[1, 2, 3, 4, 5]]
     edges = [
         (1, 3, {'inferred_state': 'same'}),
-        (1, 4, {'inferred_state': 'same', 'num_reviews': 100}),
+        (1, 4, {'inferred_state': 'same'}),
         # (1, 5, {'inferred_state': 'same'}),
+        (1, 2, {'inferred_state': 'same', 'num_reviews': 2}),
+        (2, 3, {'inferred_state': 'same', 'num_reviews': 2}),
         (2, 4, {'inferred_state': 'same'}),
         (2, 5, {'inferred_state': 'same'}),
-        (4, 5, {'inferred_state': 'same', 'num_reviews': 1}),
+        (3, 4, {'inferred_state': 'same', 'num_reviews': 100}),
+        (4, 5, {'inferred_state': 'same', 'num_reviews': .01}),
     ]
     edges += []
     new_edges = [
