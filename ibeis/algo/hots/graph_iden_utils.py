@@ -138,6 +138,9 @@ class DynConnGraph(nx.Graph):
         self._union_find = nx_UnionFind()
         super(DynConnGraph, self).__init__(*args, **kwargs)
 
+    def number_of_components(self):
+        return len(self._ccs)
+
     def component_nodes(self, label):
         return self._ccs[label]
 

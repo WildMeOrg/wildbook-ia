@@ -366,7 +366,7 @@ class _AnnotInfrDepMixin(object):
             >>> infr.exec_matching()
             >>> infr.apply_match_edges()
             >>> infr.apply_match_scores()
-            >>> infr.apply_feedback_edges_old()
+            >>> infr.apply_feedback_edges()
             >>> review_cfg = {'max_num': 3}
             >>> aids1, aids2 = infr.get_filtered_edges(review_cfg)
             >>> assert len(aids1) == 3
@@ -554,7 +554,7 @@ class _AnnotInfrDepMixin(object):
             if infr.refresh:
                 raise NotImplementedError('TODO')
         if apply:
-            infr.apply_feedback_edges_old()
+            infr.apply_feedback_edges()
 
     def _compute_p_same(infr, p_match, p_notcomp):
         p_bg = 0.5  # Needs to be thresh value
@@ -1154,7 +1154,7 @@ class _AnnotInfrDepMixin(object):
             >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
             >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
             >>> infr._del_feedback_edges()
-            >>> infr.apply_feedback_edges_old()
+            >>> infr.apply_feedback_edges()
             >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
             >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
 
@@ -1248,61 +1248,101 @@ class _AnnotInfrDepMixin(object):
         # This re-infers all attributes of the influenced sub-graph only
         infr.apply_review_inference(graph=extended_subgraph )
 
+
     @profile
-    def apply_feedback_edges_old(infr, safe=True):
-        r"""
-        Transforms the feedback dictionaries into nx graph edge attributes
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden apply_feedback_edges_old
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.reset_feedback()
-            >>> infr.add_feedback2((1, 2), 'unknown', tags=[])
-            >>> infr.apply_feedback_edges_old()
-            >>> print('edges = ' + ut.repr4(infr.graph.edge))
-            >>> result = str(infr)
-            >>> print(result)
-            <AnnotInference(nAids=6, nEdges=2)>
+    def get_nomatch_ccs(infr, cc):
         """
-        if infr.verbose >= 1:
-            print('[infr] apply_feedback_edges_old')
-        if safe:
-            # You can be unsafe if you know that the current feedback is a
-            # strict superset of previous feedback
-            infr._del_feedback_edges()
-        # Transforms dictionary feedback into numpy array
-        feedback_edges = []
-        num_review_list = []
-        decision_list = []
-        confidence_list = []
-        userid_list = []
-        tags_list = []
-        for edge, vals in infr.all_feedback_items():
-            # hack for feedback rectification
-            feedback_item = infr._rectify_feedback_item(vals)
-            decision = feedback_item['decision']
-            if decision == 'unknown':
-                continue
-            feedback_edges.append(edge)
-            num_review_list.append(len(vals))
-            userid_list.append(feedback_item['user_id'])
-            decision_list.append(decision)
-            tags_list.append(feedback_item['tags'])
-            confidence_list.append(feedback_item['confidence'])
+        Returns a set of PCCs that are known to have at least one negative
+        match to any node in the input nodes.
 
-        p_same_lookup = {
-            'match': infr._compute_p_same(1.0, 0.0),
-            'nomatch': infr._compute_p_same(0.0, 0.0),
-            'notcomp': infr._compute_p_same(0.0, 1.0),
-        }
-        p_same_list = ut.take(p_same_lookup, decision_list)
+        Search every neighbor in this cc for a nomatch connection. Then add the
+        cc belonging to that connected node.  In the case of an inconsistent
+        cc, nodes within the cc will not be returned.
+        """
+        if DEBUG_CC:
+            visited = set(cc)
+            # visited_nodes = set([])
+            nomatch_ccs = []
+            for n1 in cc:
+                for n2 in infr.graph.neighbors(n1):
+                    if n2 not in visited:
+                        # data = infr.graph.get_edge_data(n1, n2)
+                        # _state = data.get('decision', 'unreviewed')
+                        _state = infr.graph.edge[n1][n2].get('decision',
+                                                             'unreviewed')
+                        if _state == 'nomatch':
+                            cc2 = infr.get_annot_cc(n2)
+                            nomatch_ccs.append(cc2)
+                            visited.update(cc2)
+            nomatch_ccs_old = nomatch_ccs
+        else:
+            neg_graph = infr.neg_graph
+            pos_graph = infr.pos_graph
+            cc_labels = {
+                pos_graph.node_label(n2)
+                for n1 in cc
+                for n2 in neg_graph.neighbors(n1)
+            }
+            nomatch_ccs = [pos_graph.connected_to(node)
+                           for node in cc_labels]
+        if DEBUG_CC:
+            assert nomatch_ccs_old == nomatch_ccs
+        return nomatch_ccs
 
-        # Put pair orders in context of the graph
-        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
-                                 tags_list, confidence_list, userid_list,
-                                 num_review_list)
+    @profile
+    def get_annot_cc(infr, source, visited_nodes=None):
+        """
+        Get the name_label cc connected to `source`
 
+        TODO:
+            Currently instead of using BFS to find the connected compoments
+            each time dynamically maintain connected compoments as new
+            information is added.
+
+            The problem is "Dynamic Connectivity"
+
+            Union-find can be used as long as no edges are deleted
+
+            Refactor to a union-split-find data structure
+                https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
+                http://cs.stackexchange.com/questions/33595/maintaining-connect
+                http://cs.stackexchange.com/questions/32077/
+                https://networkx.github.io/documentation/development/_modules/
+                    networkx/utils/union_find.html
+        """
+        # Speed hack for BFS conditional
+        G = infr.graph
+        cc = set([source])
+        queue = collections.deque([])
+        # visited_nodes = set([source])
+        if visited_nodes is None:
+            visited_nodes = set([])
+        if source not in visited_nodes:
+            visited_nodes.add(source)
+            new_edges = iter([(source, n) for n in G.adj[source]])
+            queue.append((source, new_edges))
+        while queue:
+            parent, edges = queue[0]
+            parent_attr = G.node[parent]['name_label']
+            for edge in edges:
+                child = edge[1]
+                # only move forward if the child shares name_label
+                if child not in visited_nodes:
+                    visited_nodes.add(child)
+                    if parent_attr == G.node[child]['name_label']:
+                        cc.add(child)
+                        new_edges = iter([(child, n) for n in G.adj[child]])
+                        queue.append((child, new_edges))
+            queue.popleft()
+        # def condition(G, child, edge):
+        #     u, v = edge
+        #     nid1 = G.node[u]['name_label']
+        #     nid2 = G.node[v]['name_label']
+        #     return nid1 == nid2
+        # cc = set(ut.util_graph.bfs_same_attr_nodes(infr.graph, node,
+        #                                            key='name_label'))
+        # cc = set(ut.util_graph.bfs_conditional(
+        #     infr.graph, node, yield_condition=condition,
+        #     continue_condition=condition))
+        # cc.add(node)
+        return cc

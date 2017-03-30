@@ -121,15 +121,15 @@ class InfrInvariants(object):
             return
         inconsistent_ccs = list(infr.inconsistent_components())
         incon_cc = set(ut.flatten(inconsistent_ccs))
-        import utool
-        with utool.embed_on_exception_context:
-            assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
-            if False:
-                # nid_to_cc2 = ut.group_items(
-                #     incon_cc,
-                #     map(pos_graph.node_label, incon_cc))
-                print('infr.recovery_cc = %r' % (infr.recovery_cc,))
-                print('incon_cc = %r' % (incon_cc,))
+        # import utool
+        # with utool.embed_on_exception_context:
+        #     assert infr.recovery_cc.issuperset(incon_cc), 'diff incon'
+        #     if False:
+        #         # nid_to_cc2 = ut.group_items(
+        #         #     incon_cc,
+        #         #     map(pos_graph.node_label, incon_cc))
+        #         infr.print('infr.recovery_cc = %r' % (infr.recovery_cc,))
+        #         infr.print('incon_cc = %r' % (incon_cc,))
 
 
 class InfrLearning(object):
@@ -203,7 +203,7 @@ class CandidateSearch2(object):
         #     pass
 
         if infr.verbose:
-            print('[infr] vsmany found %d/%d new edges' % (
+            infr.print('vsmany found %d/%d new edges' % (
                 len(candidate_edges), len(candidate_edges) + len(already_reviewed)))
         return candidate_edges
 
@@ -271,7 +271,7 @@ class CandidateSearch2(object):
 
         if infr.classifiers:
             if infr.verbose > 1:
-                print('Prioritizing edges with one-vs-one probabilities')
+                infr.print('Prioritizing edges with one-vs-one probabilities')
             # Construct pairwise features on edges in infr
             # needs_probs = infr.get_edges_where_eq('task_probs', None,
             #                                       edges=new_edges,
@@ -312,7 +312,7 @@ class CandidateSearch2(object):
             infr.queue.update((-default_priority).to_dict())
         else:
             if infr.verbose > 1:
-                print('Prioritizing edges with one-vs-vsmany scores')
+                infr.print('Prioritizing edges with one-vs-vsmany scores')
             # Not given any deploy classifier, this is the best we can do
             infr.task_probs = None
             scores = infr._make_lnbnn_scores(new_edges)
@@ -326,7 +326,7 @@ class CandidateSearch2(object):
         Assign each edge a priority and add to queue.
         """
         if infr.verbose:
-            print('[infr] refresh_candidate_edges2')
+            infr.print('refresh_candidate_edges2')
 
         infr.assert_consistency_invariant()
         infr.refresh.reset()
@@ -381,15 +381,18 @@ class InfrRecovery2(object):
 
     @profile
     def hypothesis_errors(infr, pos_subgraph, neg_edges):
-        import utool
-        with utool.embed_on_exception_context:
-            assert nx.is_connected(pos_subgraph)
+        assert nx.is_connected(pos_subgraph)
+        infr.print(
+            'Find hypothesis errors in {} nodes with {} neg edges'.format(
+                len(pos_subgraph), len(neg_edges)), 2)
 
         pos_edges = list(pos_subgraph.edges())
 
         # Generate weights for edges
-        pos_gen = infr.gen_edge_values('prob_match', pos_edges, default=1e-6)
-        neg_gen = infr.gen_edge_values('prob_match', neg_edges, default=1e-6)
+        default = 0
+        # default = 1e-6
+        pos_gen = infr.gen_edge_values('prob_match', pos_edges, default=default)
+        neg_gen = infr.gen_edge_values('prob_match', neg_edges, default=default)
         pos_prob = list(pos_gen)
         neg_prob = list(neg_gen)
         pos_n = list(infr.gen_edge_values('num_reviews', pos_edges, default=0))
@@ -412,6 +415,8 @@ class InfrRecovery2(object):
             # cut_edgeset_weight = sum([
             #     pos_subgraph.get_edge_data(u, v)[capacity]
             #     for u, v in cut_edgeset])
+            infr.print('cut_weight = %r' % (cut_weight,), 3)
+            infr.print('join_weight = %r' % (join_weight,), 3)
             if join_weight < cut_weight:
                 join_edgeset = {(s, t)}
                 chosen = join_edgeset
@@ -427,23 +432,9 @@ class InfrRecovery2(object):
 
     @profile
     def inconsistent_inference(infr, edge, decision):
-        if infr.verbose >= 4:
-            print('[infr] Making inconsistent inference decision')
+        infr.print('Making inconsistent inference decision', 4)
         pos_graph = infr.pos_graph
         neg_graph = infr.neg_graph
-
-        # if infr.recover_hypothesis is not None:
-        #     # If the user disagrees with the hypothesis, redo everything
-        #     if edge in infr.recover_hypothesis:
-        #         hypothesis = infr.recover_hypothesis[edge]
-        #         if decision != hypothesis:
-        #             infr.recover_hypothesis = None
-        #             print('decision %r disagreed with hypothesis %r' %
-        #                   (decision, hypothesis))
-        #         else:
-        #             print('decision agrees with hypothesis')
-        #             # otherwise remove this edge and move to the next
-        #             del infr.recover_hypothesis[edge]
 
         # Add in the new edge
         infr._add_review_edge(edge, decision)
@@ -458,27 +449,32 @@ class InfrRecovery2(object):
             e_(u, v) for u, v in neg_subgraph.edges()
             if pos_graph.node_label(u) == pos_graph.node_label(v)
         ]
+
+        # Remove previously marked error hypothesis
+        infr.set_edge_attrs('maybe_error', ut.dzip(infr.error_edges, [False]))
+        new_error_edges = set([])
+
         if inconsistent_edges:
             infr.assert_recovery_invariant()
 
-            # ut.cprint('graph is inconsistent. searching for errors', 'red')
-            # if not infr.recover_hypothesis:
-            # print('recompute hypothesis')
+            # TODO: should maintain several infr.recovery_ccs here instead
             pos_subgraph = pos_graph.subgraph(infr.recovery_cc).copy()
-            infr.recover_hypothesis = dict(infr.hypothesis_errors(
-                pos_subgraph, inconsistent_edges))
+            hypothesis = dict(infr.hypothesis_errors(pos_subgraph,
+                                                     inconsistent_edges))
+            assert len(hypothesis) > 0, 'must have at least one'
+            error_edges = set(hypothesis.keys())
+            new_error_edges.update(error_edges)
 
-            # if edge in infr.recover_hypothesis and len(infr.recover_hypothesis) > 1:
-            #     del infr.recover_hypothesis[edge]
+            # flag error edges
+            infr.set_edge_attrs('maybe_error', ut.dzip(new_error_edges, [True]))
+            infr.new_error_edges = new_error_edges
+            # choose one and give it insanely high priority
 
-            # choose just one error edge and give it insanely high priority
-            assert len(infr.recover_hypothesis) > 0, 'must have at least one'
-            error_edge = next(iter(infr.recover_hypothesis.keys()))
-
-            infr.set_edge_attr(error_edge, {'maybe_error': True})
-            base = infr.graph.get_edge_data(*error_edge).get('prob_match', 1e-9)
             if infr.queue is not None:
-                infr.queue[error_edge] = -(10 + base)
+                for error_edge in error_edges:
+                    data = infr.graph.get_edge_data(*error_edge)
+                    base = data.get('prob_match', 1e-9)
+                    infr.queue[error_edge] = -(10 + base)
         else:
             ut.cprint('consistency has been restored', 'green')
             # infr.set_edge_attrs('num_reviews', ut.dzip(infr.edges(), [0]))
@@ -516,14 +512,15 @@ class InfrRecovery2(object):
             # Remove recovery flags
             infr.recovery_cc = None
             infr.recover_prev_neg_nids = None
-            infr.recover_hypothesis = None
+            # Just remove the edges in infr.error_edges pertaining
+            # to this specific recovery_cc?
 
 
 class InfrFeedback2(object):
     @profile
     def consistent_inference(infr, edge, decision):
         if infr.verbose >= 4:
-            print('[infr] Making consistent inference decision')
+            infr.print('Making consistent inference decision')
         # assuming we are in a consistent state
         # k_pos = infr.queue_params['pos_redundancy']
         aid1, aid2 = edge
@@ -625,8 +622,8 @@ class InfrFeedback2(object):
             infr.graph.add_edge(aid1, aid2)
 
         if verbose >= 1:
-            print(('[infr] add_feedback2(%r, %r, decision=%r, tags=%r, '
-                                        'user_id=%r, confidence=%r)') % (
+            infr.print(('add_feedback2(%r, %r, decision=%r, tags=%r, '
+                        'user_id=%r, confidence=%r)') % (
                 aid1, aid2, decision, tags, user_id, confidence))
 
         if decision == 'unreviewed':
@@ -709,7 +706,7 @@ class DynamicUpdate2(object):
 
     def _add_review_edge(infr, edge, decision):
         if infr.verbose >= 3:
-            print('[infr] Add review edge=%r, decision=%r' % (edge, decision))
+            infr.print('Add review edge=%r, decision=%r' % (edge, decision))
         # Add to review graph corresponding to decision
         infr.review_graphs[decision].add_edge(*edge)
         # Remove from previously existing graphs
@@ -798,7 +795,7 @@ class InfrReviewers(object):
         if infr.is_recovering():
             # Do not autoreview if we are in an inconsistent state
             if infr.verbose > 1:
-                print('Must manually review inconsistent edge')
+                infr.print('Must manually review inconsistent edge')
             return False, review
         # Determine if anything passes the match threshold
         primary_task = 'match_state'
@@ -821,7 +818,7 @@ class InfrReviewers(object):
                               (edge, truth, review['decision']), 'purple')
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
-            print('Automatic review success')
+            infr.print('Automatic review success')
 
         return auto_flag, review
 
@@ -1090,7 +1087,6 @@ class TestStuff2(object):
 
         infr.name = name
 
-        infr.recover_hypothesis = None
         ut.cprint('INIT TEST', 'yellow')
         infr.init_bookkeeping()
 

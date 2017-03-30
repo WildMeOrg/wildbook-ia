@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import utool as ut
 import vtool as vt
+import logging
 import itertools as it
 import six
 import collections
@@ -149,8 +150,7 @@ class _AnnotInfrGroundtruth(object):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrDummy(object):
     def remove_dummy_edges(infr):
-        if infr.verbose >= 2:
-            print('[infr] remove_dummy_edges')
+        infr.print('remove_dummy_edges', 2)
         edge_to_isdummy = infr.get_edge_attrs('_dummy_edge')
         dummy_edges = [edge for edge, flag in edge_to_isdummy.items() if flag]
         infr.graph.remove_edges_from(dummy_edges)
@@ -160,18 +160,16 @@ class _AnnotInfrDummy(object):
         MST edges connect nodes labeled with the same name.
         This is done in case an explicit feedback or score edge does not exist.
         """
-        if infr.verbose >= 2:
-            print('[infr] apply_mst')
+        infr.print('apply_mst', 2)
         # Remove old MST edges
         infr.remove_dummy_edges()
         infr.ensure_mst()
 
     def ensure_full(infr):
-        if infr.verbose:
-            print('[infr] ensure_full with %d nodes' % (len(infr.graph)))
+        infr.print('ensure_full with %d nodes' % (len(infr.graph)), 2)
         new_edges = nx.complement(infr.graph).edges()
         # if infr.verbose:
-        #     print('[infr] adding %d complement edges' % (len(new_edges)))
+        #     infr.print('adding %d complement edges' % (len(new_edges)))
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
 
@@ -179,8 +177,7 @@ class _AnnotInfrDummy(object):
         """
         Force each name label to be a clique
         """
-        if infr.verbose:
-            print('[infr] ensure_cliques')
+        infr.print('ensure_cliques', 1)
         node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
@@ -189,8 +186,7 @@ class _AnnotInfrDummy(object):
             for edge in it.combinations(nodes, 2):
                 if not infr.has_edge(edge):
                     new_edges.append(edge)
-        if infr.verbose >= 2:
-            print('[infr] adding %d clique edges' % (len(new_edges)))
+        infr.print('adding %d clique edges' % (len(new_edges)), 2)
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', _dz(new_edges, [True]))
 
@@ -347,7 +343,7 @@ class _AnnotInfrDummy(object):
                     edge: 10.0 + extra for edge, extra in
                     zip(candidate_mst_edges, extra_weight)})
         except Exception:
-            print('FAILED WEIGHTING USING TIME')
+            infr.print('FAILED WEIGHTING USING TIME')
             nx.set_edge_attributes(aug_graph, 'weight',
                                    {edge: 10.0 + _randint()
                                     for edge in candidate_mst_edges})
@@ -366,12 +362,10 @@ class _AnnotInfrDummy(object):
         Needs to be applied after any operation that adds/removes edges if we
         want to maintain that name labels must be connected in some way.
         """
-        if infr.verbose >= 1:
-            print('[infr] ensure_mst')
+        infr.print('ensure_mst', 1)
         new_edges = infr.find_mst_edges()
         # Add new MST edges to original graph
-        if infr.verbose >= 2:
-            print('[infr] adding %d MST edges' % (len(new_edges)))
+        infr.print('adding %d MST edges' % (len(new_edges)), 2)
         infr.graph.add_edges_from(new_edges)
         infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
 
@@ -380,20 +374,17 @@ class _AnnotInfrDummy(object):
         Creates just enough dummy reviews to maintain a consistent labeling if
         relabel_using_reviews is called. (if the existing edges are consistent).
         """
-        if infr.verbose >= 2:
-            print('[infr] review_dummy_edges')
+        infr.print('review_dummy_edges', 2)
         if method == 2:
             new_edges = infr.find_mst_edges2()
         else:
             new_edges = infr.find_mst_edges()
-
-        if infr.verbose >= 1:
-            print('[infr] reviewing %s dummy edges' % (len(new_edges),))
+        infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
             infr.add_feedback2((u, v), decision='match', confidence='guessing',
                                user_id='mst', verbose=False)
-        infr.apply_feedback_edges_old()
+        # infr.apply_feedback_edges()
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -424,9 +415,8 @@ class _AnnotInfrIBEIS(object):
         Commit all reviews in internal_feedback into the staging table.  The
         edges are removed from interal_feedback and added to external feedback.
         """
-        if infr.verbose > 0:
-            print('[infr] write_ibeis_staging_feedback %d' %
-                  (len(infr.internal_feedback),))
+        infr.print('write_ibeis_staging_feedback %d' %
+                   (len(infr.internal_feedback),), 1)
         if len(infr.internal_feedback) == 0:
             return
         aid_1_list = []
@@ -479,7 +469,7 @@ class _AnnotInfrIBEIS(object):
         if edge_delta_df is None:
             edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
         if infr.verbose > 0:
-            print('[infr] write_ibeis_annotmatch_feedback %r' % (
+            infr.print('write_ibeis_annotmatch_feedback %r' % (
                 len(edge_delta_df)))
         ibs = infr.ibs
         edge_delta_df_ = edge_delta_df.reset_index()
@@ -509,8 +499,7 @@ class _AnnotInfrIBEIS(object):
     def write_ibeis_name_assignment(infr, name_delta_df=None):
         if name_delta_df is None:
             name_delta_df = infr.get_ibeis_name_delta()
-        if infr.verbose > 0:
-            print('[infr] write_ibeis_name_assignment %d' % len(name_delta_df))
+        infr.print('write_ibeis_name_assignment %d' % len(name_delta_df))
         aid_list = name_delta_df.index.values
         new_name_list = name_delta_df['new_name'].values
         infr.ibs.set_annot_names(aid_list, new_name_list)
@@ -519,8 +508,7 @@ class _AnnotInfrIBEIS(object):
         """
         Rectifies internal name_labels with the names stored in the name table.
         """
-        if infr.verbose >= 3:
-            print('[infr] constructing name delta')
+        infr.print('constructing name delta', 3)
         import pandas as pd
         graph = infr.graph
         node_to_new_label = nx.get_node_attributes(graph, 'name_label')
@@ -537,10 +525,9 @@ class _AnnotInfrIBEIS(object):
         if ignore_unknown:
             label_to_name = ut.delete_dict_keys(label_to_name, unknown_labels)
             needs_assign = ut.setdiff(needs_assign, unknown_labels)
-        if infr.verbose >= 3:
-            print('[infr] had %d unknown labels' % (len(unknown_labels)))
-            print('ignore_unknown = %r' % (ignore_unknown,))
-            print('[infr] need to make %d new names' % (len(needs_assign)))
+        infr.print('had %d unknown labels' % (len(unknown_labels)), 3)
+        infr.print('ignore_unknown = %r' % (ignore_unknown,), 3)
+        infr.print('need to make %d new names' % (len(needs_assign)), 3)
         # Overwrite names of labels with temporary names
         needed_names = infr.ibs.make_next_name(len(needs_assign))
         for unassigned_label, new in zip(needs_assign, needed_names):
@@ -563,16 +550,14 @@ class _AnnotInfrIBEIS(object):
         )
         changed_flags = name_delta_df_['old_name'] != name_delta_df_['new_name']
         name_delta_df = name_delta_df_[changed_flags]
-        if infr.verbose >= 3:
-            print('[infr] finished making name delta')
+        infr.print('finished making name delta', 3)
         return name_delta_df
 
     def read_ibeis_staging_feedback(infr):
         """
         Reads feedback from review staging table.
         """
-        if infr.verbose >= 1:
-            print('[infr] read_ibeis_staging_feedback')
+        infr.print('read_ibeis_staging_feedback', 1)
         ibs = infr.ibs
         # annots = ibs.annots(infr.aids)
         review_ids = ibs.get_review_rowids_between(infr.aids)
@@ -634,8 +619,7 @@ class _AnnotInfrIBEIS(object):
                 (5, 6): [{'decision': 'match', 'tags': ['photobomb']}],
             }
         """
-        if infr.verbose >= 1:
-            print('[infr] read_ibeis_annotmatch_feedback')
+        infr.print('read_ibeis_annotmatch_feedback', 1)
         ibs = infr.ibs
         if only_existing_edges:
             aid_pairs = infr.graph.edges()
@@ -647,16 +631,12 @@ class _AnnotInfrIBEIS(object):
         aids1 = ut.take_column(aid_pairs, 0)
         aids2 = ut.take_column(aid_pairs, 1)
 
-        if infr.verbose >= 2:
-            print('[infr] read %d annotmatch rowids' % (len(am_rowids)))
-
-        if infr.verbose >= 2:
-            print('[infr] * checking truth')
+        infr.print('read %d annotmatch rowids' % (len(am_rowids)), 2)
+        infr.print('* checking truth', 2)
 
         # Use explicit truth state to mark truth
         truth = np.array(ibs.get_annotmatch_truth(am_rowids))
-        if infr.verbose >= 2:
-            print('[infr] * checking tags')
+        infr.print('* checking tags', 2)
         tags_list = ibs.get_annotmatch_case_tags(am_rowids)
         confidence_list = ibs.get_annotmatch_confidence(am_rowids)
         timestamp_list = ibs.get_annotmatch_posixtime_modified(am_rowids)
@@ -674,8 +654,7 @@ class _AnnotInfrIBEIS(object):
 
         if False:
             # Add information from relevant tags
-            if infr.verbose >= 2:
-                print('[infr] * checking split and joins')
+            infr.print('* checking split and joins', 2)
             # Use tags to infer truth
             props = ['SplitCase', 'JoinCase']
             flags_list = ibs.get_annotmatch_prop(props, am_rowids)
@@ -686,8 +665,7 @@ class _AnnotInfrIBEIS(object):
             truth[is_split] = ibs.const.REVIEW.NON_MATCH
             truth[is_merge] = ibs.const.REVIEW.MATCH
 
-        if infr.verbose >= 2:
-            print('[infr] * making feedback dict')
+        infr.print('* making feedback dict', 2)
 
         # CHANGE OF FORMAT
         lookup_truth = ibs.const.REVIEW.INT_TO_CODE
@@ -715,8 +693,7 @@ class _AnnotInfrIBEIS(object):
                 'confidence': conf_,
             }
             feedback[edge].append(feedback_item)
-        if infr.verbose >= 1:
-            print('[infr] read %d annotmatch entries' % (len(feedback)))
+        infr.print('read %d annotmatch entries' % (len(feedback)), 1)
         return feedback
 
     def _pandas_feedback_format(infr, feedback):
@@ -911,12 +888,68 @@ class _AnnotInfrIBEIS(object):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrFeedback(object):
 
+    @profile
+    def apply_feedback_edges(infr, safe=True):
+        r"""
+        Transforms the feedback dictionaries into nx graph edge attributes
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_feedback_edges
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.reset_feedback()
+            >>> infr.add_feedback2((1, 2), 'unknown', tags=[])
+            >>> infr.apply_feedback_edges()
+            >>> print('edges = ' + ut.repr4(infr.graph.edge))
+            >>> result = str(infr)
+            >>> print(result)
+            <AnnotInference(nAids=6, nEdges=2)>
+        """
+        infr.print('apply_feedback_edges', 1)
+        if safe:
+            # You can be unsafe if you know that the current feedback is a
+            # strict superset of previous feedback
+            infr._del_feedback_edges()
+        # Transforms dictionary feedback into numpy array
+        feedback_edges = []
+        num_review_list = []
+        decision_list = []
+        confidence_list = []
+        userid_list = []
+        tags_list = []
+        for edge, vals in infr.all_feedback_items():
+            # hack for feedback rectification
+            feedback_item = infr._rectify_feedback_item(vals)
+            decision = feedback_item['decision']
+            if decision == 'unknown':
+                continue
+            feedback_edges.append(edge)
+            num_review_list.append(len(vals))
+            userid_list.append(feedback_item['user_id'])
+            decision_list.append(decision)
+            tags_list.append(feedback_item['tags'])
+            confidence_list.append(feedback_item['confidence'])
+
+        p_same_lookup = {
+            'match': infr._compute_p_same(1.0, 0.0),
+            'nomatch': infr._compute_p_same(0.0, 0.0),
+            'notcomp': infr._compute_p_same(0.0, 1.0),
+        }
+        p_same_list = ut.take(p_same_lookup, decision_list)
+
+        # Put pair orders in context of the graph
+        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
+                                 tags_list, confidence_list, userid_list,
+                                 num_review_list)
+
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
         if edges is None:
             edges = list(infr.graph.edges())
-        if infr.verbose >= 2:
-            print('[infr] _del_feedback_edges len(edges) = %r' % (len(edges)))
+        infr.print('_del_feedback_edges len(edges) = %r' % (len(edges)), 2)
         keys = ['decision', 'reviewed_tags', 'num_reviews',
                 'reviewed_weight']
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
@@ -926,7 +959,7 @@ class _AnnotInfrFeedback(object):
                             confidence_list, userid_list, n_reviews_list):
         if infr.verbose >= 3:
             edges = list(edges)
-            print('[infr] _set_feedback_edges(nEdges=%d)' % (len(edges),))
+            infr.print('_set_feedback_edges(nEdges=%d)' % (len(edges),), 3)
         # Ensure edges exist
         for edge in edges:
             if not infr.graph.has_edge(*edge):
@@ -945,8 +978,7 @@ class _AnnotInfrFeedback(object):
 
     def reset_feedback(infr, mode='annotmatch'):
         """ Resets feedback edges to state of the SQL annotmatch table """
-        if infr.verbose >= 1:
-            print('[infr] reset_feedback mode=%r' % (mode,))
+        infr.print('reset_feedback mode=%r' % (mode,), 1)
         if mode == 'annotmatch':
             infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
         elif mode == 'staging':
@@ -957,8 +989,7 @@ class _AnnotInfrFeedback(object):
 
     def remove_feedback(infr, apply=False):
         """ Deletes all feedback """
-        if infr.verbose >= 1:
-            print('[infr] remove_feedback')
+        infr.print('remove_feedback', 1)
         infr.external_feedback = ut.ddict(list)
         infr.internal_feedback = ut.ddict(list)
         if apply:
@@ -991,15 +1022,13 @@ class _AnnotInfrFeedback(object):
 
     def reset_name_labels(infr):
         """ Resets all annotation node name labels to their initial values """
-        if infr.verbose >= 1:
-            print('[infr] reset_name_labels')
+        infr.print('reset_name_labels', 1)
         orig_names = infr.get_node_attrs('orig_name_label')
         infr.set_node_attrs('name_label', orig_names)
 
     def remove_name_labels(infr):
         """ Sets all annotation node name labels to be unknown """
-        if infr.verbose >= 1:
-            print('[infr] remove_name_labels()')
+        infr.print('remove_name_labels()', 1)
         # make distinct names for all nodes
         distinct_names = {
             node: -aid for node, aid in infr.get_node_attrs('aid').items()
@@ -1014,8 +1043,7 @@ class _AnnotInfrMatching(object):
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores ibeis labeling
         """
-        if infr.verbose >= 1:
-            print('[infr] exec_matching')
+        infr.print('exec_matching', 1)
         #from ibeis.algo.hots import graph_iden
         ibs = infr.ibs
         aids = infr.aids
@@ -1099,7 +1127,7 @@ class _AnnotInfrMatching(object):
 
     def _exec_pairwise_match(infr, edges, config={}, prog_hook=None):
         edges = ut.lmap(tuple, ut.aslist(edges))
-        print('[infr] exec_vsone_subset')
+        infr.print('exec_vsone_subset')
         qaids = ut.take_column(edges, 0)
         daids = ut.take_column(edges, 1)
         # TODO: ensure feat/chip configs are resepected
@@ -1133,7 +1161,7 @@ class _AnnotInfrMatching(object):
         Knorm = qreq_.qparams.Knorm
         normalizer_rule  = qreq_.qparams.normalizer_rule
 
-        print('[inf] Stacking vecs for batch lnbnn matching')
+        infr.print('Stacking vecs for batch lnbnn matching')
         offset_list = np.cumsum([0] + [match_.fm.shape[0] for match_ in matches_])
         stacked_vecs = np.vstack([
             match_.matched_vecs2()
@@ -1169,7 +1197,7 @@ class _AnnotInfrMatching(object):
             global_keys = ['yaw', 'qual', 'gps', 'time']
         matches = infr._exec_pairwise_match(edges, config=config,
                                             prog_hook=prog_hook)
-        print('[infr] enriching matches')
+        infr.print('enriching matches')
         if need_lnbnn:
             infr._enrich_matches_lnbnn(matches, inplace=True)
         # Ensure matches know about relavent metadata
@@ -1196,7 +1224,7 @@ class _AnnotInfrMatching(object):
                                                   need_lnbnn=need_lnbnn)
         # ---------------
         # Try different feature constructions
-        print('[infr] building pairwise features')
+        infr.print('building pairwise features')
         X = pd.DataFrame([
             m.make_feature_vector(**pairfeat_cfg)
             for m in ut.ProgIter(matches, label='making pairwise feats')
@@ -1279,15 +1307,15 @@ class _AnnotInfrMatching(object):
         Adds results from one-vs-many rankings as edges in the graph
         """
         if infr.cm_list is None:
-            print('[infr] apply_match_edges - matching has not been run!')
+            infr.print('apply_match_edges - matching has not been run!')
             return
         if infr.verbose >= 1:
-            print('[infr] apply_match_edges')
+            infr.print('apply_match_edges')
         edges = infr._cm_breaking(review_cfg)
         # Create match-based graph structure
         infr.remove_dummy_edges()
         if infr.verbose >= 1:
-            print('[infr] apply_match_edges adding %d edges' % len(edges))
+            infr.print('apply_match_edges adding %d edges' % len(edges))
         infr.graph.add_edges_from(edges)
 
     def _cm_breaking(infr, review_cfg={}):
@@ -1450,10 +1478,10 @@ class _AnnotInfrMatching(object):
             >>> infr.get_edge_attrs('score')
         """
         if infr.cm_list is None:
-            print('[infr] apply_match_scores - no scores to apply!')
+            infr.print('apply_match_scores - no scores to apply!')
             return
         if infr.verbose >= 1:
-            print('[infr] apply_match_scores')
+            infr.print('apply_match_scores')
         edges = list(infr.graph.edges())
         edge_to_data = infr._get_cm_edge_data(edges)
 
@@ -1512,7 +1540,7 @@ class _AnnotInfrPriority(object):
 
     def _init_priority_queue(infr, randomness=0, rng=None):
         if infr.verbose:
-            print('[infr] _init_priority_queue')
+            infr.print('_init_priority_queue')
         graph = infr.graph
 
         # Candidate edges are unreviewed
@@ -1576,7 +1604,7 @@ class _AnnotInfrUpdates(object):
     def apply_category_inference(infr, graph=None):
         categories = infr.categorize_edges(graph)
 
-        new_recover_hypothesis = set([])
+        new_error_edges = set([])
         for nid, intern_edges in categories['inconsistent_internal'].items():
             recovery_cc = infr.pos_graph.component_nodes(nid)
             pos_subgraph = infr.pos_graph.subgraph(recovery_cc).copy()
@@ -1587,8 +1615,7 @@ class _AnnotInfrUpdates(object):
             ]
             recover_hypothesis = dict(infr.hypothesis_errors(
                 pos_subgraph, inconsistent_edges))
-            error_edge = next(iter(recover_hypothesis.keys()))
-            new_recover_hypothesis.add(error_edge)
+            new_error_edges.update(set(recover_hypothesis.keys()))
 
         infr.set_edge_attrs(
             'inferred_state',
@@ -1624,14 +1651,14 @@ class _AnnotInfrUpdates(object):
         # Delete old hypothesis
         infr.set_edge_attrs(
             'maybe_error',
-            ut.dzip(infr.recover_hypothesis2, [None])
+            ut.dzip(infr.error_edges, [None])
         )
         # Set new hypothesis
         infr.set_edge_attrs(
             'maybe_error',
-            ut.dzip(new_recover_hypothesis, [True])
+            ut.dzip(new_error_edges, [True])
         )
-        infr.recover_hypothesis2 = new_recover_hypothesis
+        infr.error_edges = new_error_edges
 
     @profile
     def categorize_edges(infr, graph=None):
@@ -1652,7 +1679,7 @@ class _AnnotInfrUpdates(object):
         """
         # consistent_ccs = []
         # inconsistent_ccs = []
-        # for cc in infr.positive_connected_compoments(graph):
+        # for cc in infr.positive_components(graph):
         #     if infr.is_consistent(cc):
         #         consistent_ccs.append(cc)
         #     else:
@@ -1806,104 +1833,6 @@ class _AnnotInfrUpdates(object):
         }
         return ne_categories
 
-    @profile
-    def get_nomatch_ccs(infr, cc):
-        """
-        Returns a set of PCCs that are known to have at least one negative
-        match to any node in the input nodes.
-
-        Search every neighbor in this cc for a nomatch connection. Then add the
-        cc belonging to that connected node.  In the case of an inconsistent
-        cc, nodes within the cc will not be returned.
-        """
-        if DEBUG_CC:
-            visited = set(cc)
-            # visited_nodes = set([])
-            nomatch_ccs = []
-            for n1 in cc:
-                for n2 in infr.graph.neighbors(n1):
-                    if n2 not in visited:
-                        # data = infr.graph.get_edge_data(n1, n2)
-                        # _state = data.get('decision', 'unreviewed')
-                        _state = infr.graph.edge[n1][n2].get('decision',
-                                                             'unreviewed')
-                        if _state == 'nomatch':
-                            cc2 = infr.get_annot_cc(n2)
-                            nomatch_ccs.append(cc2)
-                            visited.update(cc2)
-            nomatch_ccs_old = nomatch_ccs
-        else:
-            neg_graph = infr.neg_graph
-            pos_graph = infr.pos_graph
-            cc_labels = {
-                pos_graph.node_label(n2)
-                for n1 in cc
-                for n2 in neg_graph.neighbors(n1)
-            }
-            nomatch_ccs = [pos_graph.connected_to(node)
-                           for node in cc_labels]
-        if DEBUG_CC:
-            assert nomatch_ccs_old == nomatch_ccs
-        return nomatch_ccs
-
-    @profile
-    def get_annot_cc(infr, source, visited_nodes=None):
-        """
-        Get the name_label cc connected to `source`
-
-        TODO:
-            Currently instead of using BFS to find the connected compoments
-            each time dynamically maintain connected compoments as new
-            information is added.
-
-            The problem is "Dynamic Connectivity"
-
-            Union-find can be used as long as no edges are deleted
-
-            Refactor to a union-split-find data structure
-                https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
-                http://cs.stackexchange.com/questions/33595/maintaining-connect
-                http://cs.stackexchange.com/questions/32077/
-                https://networkx.github.io/documentation/development/_modules/
-                    networkx/utils/union_find.html
-        """
-        # Speed hack for BFS conditional
-        G = infr.graph
-        cc = set([source])
-        queue = collections.deque([])
-        # visited_nodes = set([source])
-        if visited_nodes is None:
-            visited_nodes = set([])
-        if source not in visited_nodes:
-            visited_nodes.add(source)
-            new_edges = iter([(source, n) for n in G.adj[source]])
-            queue.append((source, new_edges))
-        while queue:
-            parent, edges = queue[0]
-            parent_attr = G.node[parent]['name_label']
-            for edge in edges:
-                child = edge[1]
-                # only move forward if the child shares name_label
-                if child not in visited_nodes:
-                    visited_nodes.add(child)
-                    if parent_attr == G.node[child]['name_label']:
-                        cc.add(child)
-                        new_edges = iter([(child, n) for n in G.adj[child]])
-                        queue.append((child, new_edges))
-            queue.popleft()
-        # def condition(G, child, edge):
-        #     u, v = edge
-        #     nid1 = G.node[u]['name_label']
-        #     nid2 = G.node[v]['name_label']
-        #     return nid1 == nid2
-        # cc = set(ut.util_graph.bfs_same_attr_nodes(infr.graph, node,
-        #                                            key='name_label'))
-        # cc = set(ut.util_graph.bfs_conditional(
-        #     infr.graph, node, yield_condition=condition,
-        #     continue_condition=condition))
-        # cc.add(node)
-        return cc
-
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrRelabel(object):
@@ -1916,49 +1845,53 @@ class _AnnotInfrRelabel(object):
         return new_nid
 
     def is_consistent(infr, cc):
-        """ Returns False if cc contains any negative edges """
+        r"""
+        Determines if a PCC contains inconsistencies
+
+        Args:
+            cc (set): nodes in a PCC
+
+        Returns:
+            : bool: returns True unless cc contains any negative edges
+        """
         return (len(cc) <= 2 or
                 infr.neg_graph.subgraph(cc).number_of_edges() == 0)
 
     def inconsistent_components(infr, graph=None):
         """
-        Return components without nomatch edges
+        Generates inconsistent PCCs.
+        These PCCs contain internal negative edges indicating an error exists.
+
+        Note:
+            If inference is enabled these will be accessible in
+            constant time using `infr.recover_ccs`
         """
         # Find PCCs with negative edges
-        for cc in infr.positive_connected_compoments(graph):
+        for cc in infr.positive_components(graph):
             if not infr.is_consistent(cc):
                 yield cc
-        # cc_subgraphs = infr.positive_connected_compoments(graph)
-        # inconsistent_subgraphs = []
-        # for subgraph in cc_subgraphs:
-        #     edge_to_state = nx.get_edge_attributes(subgraph, 'decision')
-        #     if any(state == 'nomatch' for state in edge_to_state.values()):
-        #         inconsistent_subgraphs.append(subgraph)
-        # return inconsistent_subgraphs
 
     def consistent_components(infr, graph=None):
-        """
-        Return components without nomatch edges
+        r"""
+        Generates consistent PCCs.
+        These PCCs contain no internal negative edges.
+
+        Yields:
+            cc: set: nodes within the PCC
         """
         # Find PCCs without any negative edges
-        for cc in infr.positive_connected_compoments(graph):
+        for cc in infr.positive_components(graph):
             if infr.is_consistent(cc):
                 yield cc
-        # cc_subgraphs = infr.positive_connected_compoments(graph)
-        # # inconsistent_subgraphs = []
-        # consistent_subgraphs = []
-        # for subgraph in cc_subgraphs:
-        #     edge_to_state = nx.get_edge_attributes(subgraph, 'decision')
-        #     if not any(state == 'nomatch' for state in edge_to_state.values()):
-        #         consistent_subgraphs.append(subgraph)
-        #     # else:
-        #     #     inconsistent_subgraphs.append(subgraph)
-        # return consistent_subgraphs
 
     @profile
-    def positive_connected_compoments(infr, graph=None):
-        """
-        Returns the positive connected compoments (PCCs)
+    def positive_components(infr, graph=None):
+        r"""
+        Generates the positive connected compoments (PCCs) in the graph
+        These will contain both consistent and inconsinstent PCCs.
+
+        Yields:
+            cc: set: nodes within the PCC
         """
         pos_graph = infr.pos_graph
         if graph is None or graph is infr.graph:
@@ -1969,20 +1902,8 @@ class _AnnotInfrRelabel(object):
             ccs = (pos_graph.connected_to(node) for node in unique_labels)
         for cc in ccs:
             yield cc
-        # cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
-        # return cc_subgraphs
-        # if graph is None:
-        #     graph = infr.graph
-        # # Make a graph where connections do indicate same names
-        # decisions = nx.get_edge_attributes(graph, 'decision')
-        # graph2 = infr._graph_cls()
-        # keep_edges = [key for key, val in decisions.items()
-        #               if val == 'match']
-        # graph2.add_nodes_from(graph.nodes())
-        # graph2.add_edges_from(keep_edges)
-        # ccs = list(nx.connected_components(graph2))
-        # cc_subgraphs = [infr.graph.subgraph(cc) for cc in ccs]
-        # return cc_subgraphs
+
+    pccs = positive_components
 
     @profile
     def reset_labels_to_ibeis(infr):
@@ -2000,7 +1921,7 @@ class _AnnotInfrRelabel(object):
         new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
         """
         if infr.verbose >= 3:
-            print('rectifying name lists')
+            infr.print('rectifying name lists')
         from ibeis.scripts import name_recitifer
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
         unique_newlabels = list(newlabel_to_oldnames.keys())
@@ -2025,10 +1946,13 @@ class _AnnotInfrRelabel(object):
         return label_to_name, needs_assign, unknown_labels
 
     def _rectified_relabel(infr, cc_subgraphs):
+        """
+        Reuses as many names as possible
+        """
         # Determine which names can be reused
         from ibeis.scripts import name_recitifer
         if infr.verbose >= 3:
-            print('grouping names for rectification')
+            infr.print('grouping names for rectification')
         grouped_oldnames_ = [
             list(nx.get_node_attributes(subgraph, 'name_label').values())
             for count, subgraph in enumerate(cc_subgraphs)
@@ -2039,12 +1963,12 @@ class _AnnotInfrRelabel(object):
             for group in grouped_oldnames_
         ]
         if infr.verbose >= 2:
-            print('begin rectification of %d grouped old names' % (
+            infr.print('begin rectification of %d grouped old names' % (
                 len(grouped_oldnames)))
         new_labels = name_recitifer.find_consistent_labeling(
             grouped_oldnames, verbose=infr.verbose >= 3)
         if infr.verbose >= 2:
-            print('done rectifying new names')
+            infr.print('done rectifying new names')
         new_flags = [
             not isinstance(n, int) and n.startswith('_extra_name')
             for n in new_labels
@@ -2071,37 +1995,42 @@ class _AnnotInfrRelabel(object):
                 other than that they are distinct.
         """
         if infr.verbose >= 2:
-            print('[infr] relabel_using_reviews')
+            infr.print('relabel_using_reviews')
         if graph is None:
             graph = infr.graph
-        cc_subgraphs = [
-            infr.graph.subgraph(cc)
-            for cc in infr.positive_connected_compoments(graph=graph)
-        ]
 
-        # Check consistentcy
+        # Get subgraphs and check consistency
+        cc_subgraphs = []
         num_inconsistent = 0
-        for subgraph in cc_subgraphs:
-            edge_to_state = nx.get_edge_attributes(subgraph, 'decision')
-            if any(state == 'nomatch' for state in edge_to_state.values()):
+        for cc in infr.positive_components(graph=graph):
+            cc_subgraphs.append(infr.graph.subgraph(cc))
+            if not infr.is_consistent(cc):
                 num_inconsistent += 1
 
         if infr.verbose >= 2:
-            print('num_inconsistent = %r' % (num_inconsistent,))
+            infr.print('num_inconsistent = %r' % (num_inconsistent,))
             cc_sizes = list(map(len, cc_subgraphs))
             pcc_size_hist = ut.dict_hist(cc_sizes)
             pcc_size_stats = ut.get_stats(cc_sizes)
             if len(pcc_size_hist) < 8:
-                print('PCC size hist = %s' % (ut.repr2(pcc_size_hist),))
-            print('PCC size stats = %s' % (ut.repr2(pcc_size_stats),))
+                infr.print('PCC size hist = %s' % (ut.repr2(pcc_size_hist),))
+            infr.print('PCC size stats = %s' % (ut.repr2(pcc_size_stats),))
 
         if rectify:
             # Rectified relabeling, preserves grouping and labeling if possible
             new_labels = infr._rectified_relabel(cc_subgraphs)
         else:
             # Arbitrary relabeling, only preserves grouping
-            new_labels = {count: infr._next_nid()
-                          for count, subgraph in enumerate(cc_subgraphs)}
+            if graph is infr.graph:
+                # Use union find labels
+                new_labels = {
+                    count:
+                    infr.pos_graph.node_label(next(iter(subgraph.nodes())))
+                    for count, subgraph in enumerate(cc_subgraphs)
+                }
+            else:
+                new_labels = {count: infr._next_nid()
+                              for count, subgraph in enumerate(cc_subgraphs)}
 
         for count, subgraph in enumerate(cc_subgraphs):
             new_nid = new_labels[count]
@@ -2110,13 +2039,13 @@ class _AnnotInfrRelabel(object):
 
         num_names = len(cc_subgraphs)
         if infr.verbose >= 3:
-            print('[infr] done relabeling')
+            infr.print('done relabeling')
         return num_names, num_inconsistent
 
     def connected_component_status(infr):
         r"""
         Returns:
-            dict: num_inconsistent, num_names_max, num_names_min
+            dict: num_inconsistent, num_names_max
 
         CommandLine:
             python -m ibeis.algo.hots.graph_iden connected_component_status
@@ -2128,49 +2057,23 @@ class _AnnotInfrRelabel(object):
             >>> infr.add_feedback2((2, 3), 'nomatch')
             >>> infr.add_feedback2((5, 6), 'nomatch')
             >>> infr.add_feedback2((1, 2), 'match')
-            >>> infr.apply_feedback_edges_old()
+            >>> infr.apply_feedback_edges()
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
         if infr.verbose >= 3:
-            print('[infr] checking status')
-        cc_subgraphs = infr.positive_connected_compoments()
-        num_names_max = len(cc_subgraphs)
-        ccx_to_aids = {
-            ccx: list(nx.get_node_attributes(cc, 'aid').values())
-            for ccx, cc in enumerate(cc_subgraphs)
-        }
-        aid_to_ccx = {
-            aid: ccx for ccx, aids in ccx_to_aids.items() for aid in aids
-        }
-        all_decisions = infr.get_edge_attrs('decision')
-        separated_ccxs = set([])
-        inconsistent_ccxs = set([])
-        for edge, state in all_decisions.items():
-            if state == 'nomatch':
-                ccx1 = aid_to_ccx[edge[0]]
-                ccx2 = aid_to_ccx[edge[1]]
-                # Determine number of negative matches within a component
-                if ccx1 == ccx2:
-                    inconsistent_ccxs.add(ccx1)
-                # Determine the number of components that should not be joined
-                if ccx1 > ccx2:
-                    ccx1, ccx2 = ccx2, ccx1
-                separated_ccxs.add((ccx1, ccx2))
+            infr.print('checking status')
 
-        if False:
-            ccxs = list(ccx_to_aids.keys())
-            num_names_min = ut.approx_min_num_components(ccxs, separated_ccxs)
-        else:
-            num_names_min = '?'
+        pccs = list(infr.positive_components())
+        num_inconsistent = len(infr.recovery_ccs)
+        num_names_max = infr.pos_graph.number_of_components()
 
         status = dict(
             num_names_max=num_names_max,
-            num_inconsistent=len(inconsistent_ccxs),
-            num_names_min=num_names_min,
+            num_inconsistent=num_inconsistent,
         )
         if infr.verbose >= 3:
-            print('[infr] done checking status')
+            infr.print('done checking status')
         return status
 
 
@@ -2230,7 +2133,7 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.show_graph(use_image=use_image)
         >>> # Add some feedback
         >>> infr.add_feedback2((1, 4), 'nomatch')
-        >>> infr.apply_feedback_edges_old()
+        >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
@@ -2258,7 +2161,7 @@ class AnnotInference(ut.NiceRepr,
         >>>     infr.add_feedback2((11, 12), 'nomatch')
         >>> except ValueError:
         >>>     pass
-        >>> infr.apply_feedback_edges_old()
+        >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
@@ -2276,7 +2179,7 @@ class AnnotInference(ut.NiceRepr,
     # _graph_cls = nx.DiGraph
 
     def init_test_mode(infr):
-        print('[infr] init_test_mode')
+        infr.print('init_test_mode')
         infr.test_mode = True
         infr.edge_truth = {}
         infr.metrics_list = []
@@ -2354,11 +2257,17 @@ class AnnotInference(ut.NiceRepr,
         }
         return metrics
 
+    def init_logging(infr):
+        def log_message(msg, level=logging.NOTSET):
+            if infr.verbose >= level:
+                ut.cprint('[infr] ' + msg, 'blue')
+        infr.print = log_message
+
     def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
         infr.test_mode = False
         infr.verbose = verbose
-        if infr.verbose >= 1:
-            print('[infr] __init__')
+        infr.init_logging()
+        infr.print('__init__', level=1)
         infr.ibs = ibs
         if aids == 'all':
             aids = ibs.get_valid_aids()
@@ -2369,7 +2278,7 @@ class AnnotInference(ut.NiceRepr,
         infr.aid_to_node = None
         infr.node_to_aid = None
 
-        infr.recover_hypothesis2 = set([])
+        infr.error_edges = set([])
 
         # If not dirty, new feedback should dynamically maintain a consistent
         # state. If dirty it means we need to recompute connected compoments
@@ -2601,8 +2510,7 @@ class AnnotInference(ut.NiceRepr,
         infr.incomp_graph.add_nodes_from(aids)
 
     def initialize_graph(infr, graph=None):
-        if infr.verbose >= 1:
-            print('[infr] initialize_graph')
+        infr.print('initialize_graph', 1)
         if graph is None:
             infr.graph = infr._graph_cls()
         else:
@@ -2627,8 +2535,7 @@ class AnnotInference(ut.NiceRepr,
         Combines normalized scores and user feedback into edge weights used in
         the graph cut inference.
         """
-        if infr.verbose >= 1:
-            print('[infr] apply_weights')
+        infr.print('apply_weights', 1)
         ut.nx_delete_edge_attr(infr.graph, infr.CUT_WEIGHT_KEY)
         # mst not needed. No edges are removed
 

@@ -619,7 +619,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         menu.newAction(triggered=self.ensure_cliques)
         menu.newAction(triggered=self.vsone_subset)
         menu.newAction(text='relabel_using_reviews', triggered=lambda: self.infr.relabel_using_reviews())
-        menu.newAction(text='apply_review_inference', triggered=lambda: self.infr.apply_review_inference())
+        menu.newAction(text='apply_category_inference', triggered=lambda: self.infr.apply_category_inference())
 
     def preset_config(self, mode='filtered'):
         print('[graph] preset_config mode=%r' % (mode,))
@@ -658,6 +658,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.graph_tab_widget.setCurrentIndex(index)
             # self.graph_tab_widget.setCurrentIndex(2)
 
+        match = ut.get_argval('--match', type_=list, default=None)
+        print('match = %r' % (match,))
+        if match:
+            self.mark_pair_state([match], 'match')
+
     def repopulate(self):
         # self.update_state(structure_changed=True)
         self.emit_state_update(structure_changed=True)
@@ -685,7 +690,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 self.infr.apply_match_scores()
                 self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
-                self.infr.apply_review_inference()
+                self.infr.apply_category_inference()
 
         # Set gui status indicators
         status = self.infr.connected_component_status()
@@ -697,9 +702,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.state_lbl.setText('Consistent')
             self.state_lbl.setColor('black', truth_colors['match'][0:3] * 255)
 
-        self.num_names_lbl.setText('Names: max=%r, ~min=%r' % (
-            status['num_names_max'],
-            status['num_names_min'],))
+        self.num_names_lbl.setText('Names: max=%r' % (status['num_names_max']))
 
         # print('[viz_graph] on_update_state mode=%s' % (self.init_mode,))
         if structure_changed:
@@ -720,13 +723,13 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def ensure_cliques(self):
         self.infr.ensure_cliques()
         self.infr.relabel_using_reviews()
-        self.infr.apply_review_inference()
+        self.infr.apply_category_inference()
         self.repopulate()
 
     def ensure_full(self):
         self.infr.ensure_full()
         self.infr.relabel_using_reviews()
-        self.infr.apply_review_inference()
+        self.infr.apply_category_inference()
         self.repopulate()
 
     def match_and_score_edges(self):
@@ -766,8 +769,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
                 infr.apply_match_scores()
             # with ut.Timer('relabel_using_reviews'):
             #     self.infr.relabel_using_reviews()
-            # with ut.Timer('apply_review_inference'):
-            #     self.infr.apply_review_inference()
+            # with ut.Timer('apply_category_inference'):
+            #     self.infr.apply_category_inference()
             self.repopulate()
             ctx.set_progress(3, 3)
 
@@ -849,7 +852,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.graph_widget.show_selected()
 
     def mark_pair_state(self, pairs, state):
-        valid_states = ['match', 'nomatch', 'notcomp', 'unreviewed']
+        valid_states = {'match', 'nomatch', 'notcomp', 'unreviewed'}
         statetags = state.split('+')
         state = statetags[0]
         tags = statetags[1].split(';') if len(statetags) > 1 else []
@@ -1101,7 +1104,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             infr.add_feedback2((aid1, aid2), decision=state, tags=tags)
 
         infr.apply_feedback_edges()
-        infr.apply_review_inference()
+        infr.apply_category_inference()
 
     def accept(self):
         """
@@ -1799,6 +1802,7 @@ def make_qt_graph_review(qreq_, cm_list):
     """
     gt.ensure_qtapp()
     infr = graph_iden.AnnotInference.from_qreq_(qreq_, cm_list)
+
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode='review')
@@ -1877,8 +1881,9 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
     # infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
-    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=1)
+    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=5)
     infr.initialize_graph()
+
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
     win = AnnotGraphWidget(infr=infr, use_image=False, init_mode=init_mode)
@@ -1888,8 +1893,14 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     if graph_tab:
         index = win.graph_tab_widget.indexOf(win.graph_tab)
         win.graph_tab_widget.setCurrentIndex(index)
-        print('win.graph_widget.use_image_cb.setChecked = %r' % (win.graph_widget.use_image_cb.setChecked,))
+        print('win.graph_widget.use_image_cb.setChecked = %r' % (
+            win.graph_widget.use_image_cb.setChecked,))
         win.graph_widget.use_image_cb.setChecked(True)
+
+    # match = ut.get_argval('--match', type_=list, default=None)
+    # print('match = %r' % (match,))
+    # if match:
+    #     win.mark_pair_state([match], 'match')
 
     if False:
         win.expand_image_and_names()

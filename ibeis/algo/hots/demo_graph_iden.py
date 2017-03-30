@@ -615,7 +615,7 @@ def make_demo_infr(ccs, edges, nodes=[]):
                        for n in infr.graph.nodes()})
     # infr.relabel_using_reviews()
     # infr.apply_review_inference()
-    infr.relabel_using_reviews2()
+    infr.relabel_using_reviews(rectify=False)
     infr.apply_category_inference()
 
     infr.apply_weights()
@@ -661,7 +661,7 @@ def do_infr_test(ccs, edges, new_edges):
         aid1, aid2, data = new_edge
         state = data['decision']
         infr2.add_feedback2((aid1, aid2), state)
-    infr2.relabel_using_reviews2()
+    infr2.relabel_using_reviews(rectify=False)
     infr2.apply_category_inference()
 
     # Postshow
@@ -1121,7 +1121,7 @@ def demodata_infr(**kwargs):
         >>> from ibeis.algo.hots import demo_graph_iden
         >>> kwargs = dict(num_pccs=250, p_incon=.1)
         >>> infr = demo_graph_iden.demodata_infr(**kwargs)
-        >>> pccs = list(infr.positive_connected_compoments())
+        >>> pccs = list(infr.positive_components())
         >>> assert len(pccs) == kwargs['num_pccs']
         >>> nonfull_pccs = [cc for cc in pccs if len(cc) > 1 and nx.is_empty(nx.complement(infr.pos_graph.subgraph(cc)))]
         >>> expected_n_incon = len(nonfull_pccs) * kwargs['p_incon']
