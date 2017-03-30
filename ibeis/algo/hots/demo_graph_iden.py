@@ -191,7 +191,6 @@ def demo_graph_iden2():
     apply_dummy_scores(infr, rng)
     infr.break_graph(b)
     infr.remove_name_labels()
-    infr.apply_weights()
 
     if VISUALIZE:
         infr.update_visual_attrs(splines=splines)
@@ -245,7 +244,7 @@ def demo_graph_iden2():
         if count == TARGET_REVIEW:
             infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
 
-        infr.add_feedback2((aid1, aid2), decision=state, tags=tags)
+        infr.add_feedback((aid1, aid2), decision=state, tags=tags)
 
         # Show the result
         if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
@@ -277,7 +276,7 @@ def demo_graph_iden2():
             if count == TARGET_REVIEW:
                 infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
 
-            infr.add_feedback2((aid1, aid2), decision=state, tags=tags)
+            infr.add_feedback((aid1, aid2), decision=state, tags=tags)
 
             # Show the result
             if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
@@ -473,7 +472,6 @@ def demo_ibeis_graph_iden():
         infr.apply_match_edges(dict(ranks_top=3, ranks_bot=1))
         infr.apply_match_scores()
         infr.apply_feedback_edges()
-        infr.apply_weights()
 
         # infr.relabel_using_reviews()
         if query_num == 0:
@@ -490,14 +488,14 @@ def demo_ibeis_graph_iden():
             state = ibs.const.REVIEW.INT_TO_CODE[truth]
             tags = []
             # TODO:
-            # if view1 != view1: infr.add_feedback2((aid1, aid2), 'notcomp')
+            # if view1 != view1: infr.add_feedback((aid1, aid2), 'notcomp')
             return state, tags
 
         # for count in ut.ProgIter(range(1, n_reviews + 1), 'review'):
         for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
             if oracle_mode:
                 state, tags = oracle_decision(aid1, aid2)
-                infr.add_feedback2((aid1, aid2), decision=state, tags=tags)
+                infr.add_feedback((aid1, aid2), decision=state, tags=tags)
             else:
                 raise NotImplementedError('review based on thresholded graph cuts')
 
@@ -618,7 +616,6 @@ def make_demo_infr(ccs, edges, nodes=[]):
     infr.relabel_using_reviews(rectify=False)
     infr.apply_category_inference()
 
-    infr.apply_weights()
     infr.graph.graph['dark_background'] = False
     infr.graph.graph['ignore_labels'] = True
     infr.set_node_attrs('width', 40)
@@ -660,7 +657,7 @@ def do_infr_test(ccs, edges, new_edges):
     for new_edge in new_edges:
         aid1, aid2, data = new_edge
         state = data['decision']
-        infr2.add_feedback2((aid1, aid2), state)
+        infr2.add_feedback((aid1, aid2), state)
     infr2.relabel_using_reviews(rectify=False)
     infr2.apply_category_inference()
 

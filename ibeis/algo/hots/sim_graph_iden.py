@@ -237,7 +237,7 @@ class InfrSimulation(object):
             if state == prev_state:
                 n_superflouous += 1
             tags = []
-            infr.add_feedback2((aid1, aid2), decision=state, tags=tags,
+            infr.add_feedback((aid1, aid2), decision=state, tags=tags,
                                rectify=False, user_id='oracle',
                                confidence='absolutely_sure')
         n_reviews = count

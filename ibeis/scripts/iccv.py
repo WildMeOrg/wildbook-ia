@@ -19,13 +19,13 @@ def gt_reveiw():
         feedback = infr._rectify_feedback_item(vals)
         ut.delete_dict_keys(feedback, ['num_reviews'])
         # del feedback['num_reviews']
-        infr.add_feedback2(edge, **feedback)
+        infr.add_feedback(edge, **feedback)
 
     new_edges = infr.find_mst_edges2()
     if infr.verbose >= 1:
         print('[infr] reviewing %s dummy edges' % (len(new_edges),))
     for u, v in new_edges:
-        infr.add_feedback2((u, v), decision='match', confidence='guessing',
+        infr.add_feedback((u, v), decision='match', confidence='guessing',
                            user_id='mst', verbose=False)
 
     infr._make_pairwise_features(list(infr.edges()), need_lnbnn=False)
@@ -700,9 +700,9 @@ def end_to_end():
             match_state_thresh=dials['match_state_thresh'],
             name=dials['name'],
         )
-        infr.init_test_mode2(**new_dials)
+        infr.init_simulation(**new_dials)
         print('new_dials = %s' % (ut.repr4(new_dials),))
-        infr.main_loop2(max_loops=dials['max_loops'])
+        infr.main_loop(max_loops=dials['max_loops'])
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
         # Remove non-transferable attributes
@@ -805,7 +805,7 @@ def draw_ete(dbname):
 
             groups_nid = ut.ddict(list)
             groups_type = ut.ddict(list)
-            for edge, error in list(infr.error_edges2()):
+            for edge, error in list(infr.measure_error_edges()):
                 print('error = %s' % (ut.repr2(error),))
                 data = infr.graph.get_edge_data(*edge)
                 print('user_id = %r' % (data['user_id'],))

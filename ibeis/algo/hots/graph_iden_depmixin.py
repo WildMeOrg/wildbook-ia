@@ -790,17 +790,17 @@ class _AnnotInfrDepMixin(object):
             >>> infr = AnnotInference(None, aids, autoinit=True, verbose=1)
             >>> infr.ensure_full()
             >>> infr._init_priority_queue()
-            >>> infr.add_feedback2((1, 2), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((3, 4), 'match')
-            >>> infr.add_feedback2((4, 5), 'nomatch')
-            >>> infr.add_feedback2((6, 7), 'match')
-            >>> infr.add_feedback2((7, 8), 'match')
-            >>> infr.add_feedback2((6, 8), 'nomatch')
-            >>> infr.add_feedback2((6, 1), 'notcomp')
-            >>> infr.add_feedback2((1, 9), 'notcomp')
-            >>> infr.add_feedback2((8, 9), 'notcomp')
+            >>> infr.add_feedback((1, 2), 'match')
+            >>> infr.add_feedback((2, 3), 'match')
+            >>> infr.add_feedback((2, 3), 'match')
+            >>> infr.add_feedback((3, 4), 'match')
+            >>> infr.add_feedback((4, 5), 'nomatch')
+            >>> infr.add_feedback((6, 7), 'match')
+            >>> infr.add_feedback((7, 8), 'match')
+            >>> infr.add_feedback((6, 8), 'nomatch')
+            >>> infr.add_feedback((6, 1), 'notcomp')
+            >>> infr.add_feedback((1, 9), 'notcomp')
+            >>> infr.add_feedback((8, 9), 'notcomp')
             >>> #infr.show_graph(hide_cuts=False)
             >>> graph = infr.graph
             >>> infr.apply_review_inference(graph)
@@ -994,7 +994,7 @@ class _AnnotInfrDepMixin(object):
             >>> infr._init_priority_queue()
             >>> assert len(infr.queue) == 2
             >>> infr.queue_params['neg_redundancy'] = None
-            >>> infr.add_feedback2((1, 6), 'nomatch')
+            >>> infr.add_feedback((1, 6), 'nomatch')
             >>> assert len(infr.queue) == 0
             >>> graph = infr.graph
             >>> ut.exec_func_src(infr.apply_review_inference,
@@ -1061,9 +1061,9 @@ class _AnnotInfrDepMixin(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback2((5, 6), 'match')
-            >>> infr.add_feedback2((5, 6), 'nomatch', ['Photobomb'])
-            >>> infr.add_feedback2((1, 2), 'notcomp')
+            >>> infr.add_feedback((5, 6), 'match')
+            >>> infr.add_feedback((5, 6), 'nomatch', ['Photobomb'])
+            >>> infr.add_feedback((1, 2), 'notcomp')
             >>> print(ut.repr2(infr.internal_feedback, nl=2))
             >>> assert len(infr.external_feedback) == 0
             >>> assert len(infr.internal_feedback) == 2
@@ -1129,7 +1129,7 @@ class _AnnotInfrDepMixin(object):
             infr._dynamically_apply_feedback_old(edge, feedback_item, rectify)
 
             if infr.test_mode:
-                metrics = infr.measure_metrics()
+                metrics = infr.measure_metrics_old()
                 infr.metrics_list.append(metrics)
         else:
             assert not infr.test_mode, 'breaks tests'
@@ -1148,9 +1148,9 @@ class _AnnotInfrDepMixin(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.relabel_using_reviews()
-            >>> infr.add_feedback2((1, 2), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
+            >>> infr.add_feedback((1, 2), 'match')
+            >>> infr.add_feedback((2, 3), 'match')
+            >>> infr.add_feedback((2, 3), 'match')
             >>> assert infr.graph.edge[1][2]['num_reviews'] == 1
             >>> assert infr.graph.edge[2][3]['num_reviews'] == 2
             >>> infr._del_feedback_edges()
@@ -1167,17 +1167,17 @@ class _AnnotInfrDepMixin(object):
             >>> ut.qtensure()
             >>> infr.ensure_full()
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((6, 2), 'match')
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((3, 4), 'match')
+            >>> infr.add_feedback((6, 2), 'match')
+            >>> infr.add_feedback((2, 3), 'match')
+            >>> infr.add_feedback((3, 4), 'match')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((2, 3), 'nomatch')
+            >>> infr.add_feedback((2, 3), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((6, 4), 'match')
+            >>> infr.add_feedback((6, 4), 'match')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((1, 5), 'nomatch')
+            >>> infr.add_feedback((1, 5), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
-            >>> infr.add_feedback2((1, 3), 'nomatch')
+            >>> infr.add_feedback((1, 3), 'nomatch')
             >>> infr.show_graph(show_cuts=True)
             >>> import plottool as pt
             >>> pt.present()
@@ -1346,3 +1346,101 @@ class _AnnotInfrDepMixin(object):
         #     continue_condition=condition))
         # cc.add(node)
         return cc
+
+    def measure_metrics_old(infr):
+        real_pos_edges = []
+        n_error_edges = 0
+        pred_n_pcc_mst_edges = 0
+        n_fn = 0
+        n_fp = 0
+
+        for edge, data in infr.edges(data=True):
+            true_state = infr.edge_truth[edge]
+            decision = data.get('decision', 'unreviewed')
+            if true_state == decision and true_state == 'match':
+                real_pos_edges.append(edge)
+            elif decision != 'unreviewed':
+                if true_state != decision:
+                    n_error_edges += 1
+                    if true_state == 'match':
+                        n_fn += 1
+                    elif true_state == 'nomatch':
+                        n_fp += 1
+
+        import networkx as nx
+        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
+            pred_n_pcc_mst_edges += len(cc) - 1
+
+        pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
+        metrics = {
+            'n_manual': infr.test_state['n_manual'],
+            'n_auto': infr.test_state['n_auto'],
+            'pos_acc': pos_acc,
+            'n_merge_remain': infr.real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
+            'merge_remain': 1 - pos_acc,
+            'n_errors': n_error_edges,
+            'n_fn': n_fn,
+            'n_fp': n_fp,
+        }
+        return metrics
+
+    def edge_confusion(infr):
+        confusion = {
+            'correct': {
+                'pred_pos': [],
+                'pred_neg': [],
+            },
+            'incorrect': {
+                'pred_pos': [],
+                'pred_neg': [],
+            },
+        }
+        for edge, data in infr.edges(data=True):
+            # nid1 = infr.pos_graph.node_label(edge[0])
+            # nid2 = infr.pos_graph.node_label(edge[1])
+            true_state = infr.edge_truth[edge]
+            decision = data.get('decision', 'unreviewed')
+            if decision == 'unreviewed':
+                pass
+            elif true_state == decision:
+                if true_state == 'match':
+                    confusion['correct']['pred_pos'].append(edge)
+            elif true_state != decision:
+                if decision == 'match':
+                    confusion['incorrect']['pred_pos'].append(edge)
+                elif decision == 'nomatch':
+                    confusion['incorrect']['pred_neg'].append(edge)
+
+    @profile
+    def apply_weights(infr):
+        """
+        Combines normalized scores and user feedback into edge weights used in
+        the graph cut inference.
+        """
+        infr.print('apply_weights', 1)
+        ut.nx_delete_edge_attr(infr.graph, infr.CUT_WEIGHT_KEY)
+        # mst not needed. No edges are removed
+
+        edges = list(infr.graph.edges())
+        edge_to_normscore = infr.get_edge_attrs('normscore')
+        normscores = np.array(ut.dict_take(edge_to_normscore, edges, np.nan))
+
+        edge_to_reviewed_weight = infr.get_edge_attrs('reviewed_weight')
+        reviewed_weights = np.array(ut.dict_take(edge_to_reviewed_weight,
+                                                 edges, np.nan))
+        # Combine into weights
+        weights = normscores.copy()
+        has_review = ~np.isnan(reviewed_weights)
+        weights[has_review] = reviewed_weights[has_review]
+        # remove nans
+        is_valid = ~np.isnan(weights)
+        weights = weights.compress(is_valid, axis=0)
+        edges = ut.compress(edges, is_valid)
+        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, weights))
+
+    # Scores are ordered in priority order:
+    # CUT_WEIGHT - final weight used for inference (overridden by user)
+    # NORMSCORE - normalized score computed by an automatic process
+    # SCORE - raw score computed by automatic process
+
+    CUT_WEIGHT_KEY = 'cut_weight'

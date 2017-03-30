@@ -4,6 +4,7 @@ import numpy as np
 import utool as ut
 import vtool as vt  # NOQA
 import networkx as nx
+from collections import defaultdict
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -288,6 +289,25 @@ def edges_cross(graph, nodes1, nodes2):
     """
     return {e_(u, v) for u in nodes1
             for v in nodes2.intersection(graph.adj[u])}
+
+
+def group_name_edges(g, node_to_label):
+    ne_to_edges = defaultdict(set)
+    for u, v in g.edges():
+        name_edge = e_(node_to_label[u], node_to_label[v])
+        ne_to_edges[name_edge].add(e_(u, v))
+    return ne_to_edges
+
+
+def ensure_multi_index(index, names):
+    import pandas as pd
+    if not isinstance(index, (pd.MultiIndex, pd.Index)):
+        names = ('aid1', 'aid2')
+        if len(index) == 0:
+            index = pd.MultiIndex([[], []], [[], []], names=names)
+        else:
+            index = pd.MultiIndex.from_tuples(index, names=names)
+    return index
 
 
 # @profile

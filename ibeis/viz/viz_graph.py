@@ -513,21 +513,21 @@ class AnnotGraphInteraction(AbstractInteraction):
         print('BREAK LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback2((aid1, aid2), 'nomatch')
+            self.infr.add_feedback((aid1, aid2), 'nomatch')
         self.show_page()
 
     def mark_match(self, event):
         print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback2((aid1, aid2), 'match')
+            self.infr.add_feedback((aid1, aid2), 'match')
         self.show_page()
 
     def mark_notcomp(self, event):
         print('MAKE LINK self.selected_aids = %r' % (self.selected_aids,))
         import itertools
         for aid1, aid2 in itertools.combinations(self.selected_aids, 2):
-            self.infr.add_feedback2((aid1, aid2), 'notcomp')
+            self.infr.add_feedback((aid1, aid2), 'notcomp')
         self.show_page()
 
     def unselect_all(self, event):

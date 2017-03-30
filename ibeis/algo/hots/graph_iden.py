@@ -6,13 +6,14 @@ import vtool as vt
 import logging
 import itertools as it
 import six
-import collections
 from ibeis.algo.hots import viz_graph_iden
 from ibeis.algo.hots import graph_iden_depmixin
 from ibeis.algo.hots import graph_iden_mixins
 from ibeis.algo.hots import graph_iden_utils
 from ibeis.algo.hots.graph_iden_utils import e_, _dz
 from ibeis.algo.hots.graph_iden_new import AnnotInfr2
+from ibeis.algo.hots.graph_iden_utils import (edges_cross, group_name_edges,
+                                              ensure_multi_index)
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -90,13 +91,7 @@ class _AnnotInfrGroundtruth(object):
     def match_state_df(infr, index):
         """ Returns groundtruth state based on ibeis controller """
         import pandas as pd
-        if not isinstance(index, (pd.MultiIndex, pd.Index)):
-            if len(index) == 0:
-                index = pd.MultiIndex([[], []], [[], []],
-                                      names=('aid1', 'aid2'))
-            else:
-                index = pd.MultiIndex.from_tuples(index, names=('aid1',
-                                                                'aid2'))
+        index = ensure_multi_index(index, ('aid1', 'aid2'))
         aid_pairs = np.asarray(index.tolist())
         aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
         is_same = infr.is_same(aid_pairs)
@@ -138,8 +133,6 @@ class _AnnotInfrGroundtruth(object):
         edge_df = pd.Series.from_array(records)
         edge_df.name = key
         edge_df.index = index
-        # edge_df = pd.DataFrame.from_records( records, columns=[key])
-        # edge_df.index = index
         return edge_df
 
     def infr_pred_df(infr, edges=None):
@@ -382,658 +375,8 @@ class _AnnotInfrDummy(object):
         infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
-            infr.add_feedback2((u, v), decision='match', confidence='guessing',
+            infr.add_feedback((u, v), decision='match', confidence='guessing',
                                user_id='mst', verbose=False)
-        # infr.apply_feedback_edges()
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrIBEIS(object):
-    """
-    Direct interface into ibeis tables
-    (most of these should not be used or be reworked)
-    """
-
-    def _pandas_feedback_format2(infr, feedback):
-        import pandas as pd
-        #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
-        dicts = []
-        feedback = infr.internal_feedback
-        for (u, v), vals in feedback.items():
-            for val in vals:
-                val = val.copy()
-                val['aid1'] = u
-                val['aid2'] = v
-                val['tags'] = ';'.join(val['tags'])
-                dicts.append(val)
-        df = pd.DataFrame.from_dict(dicts)
-        # df.sort('timestamp')
-        return df
-
-    def write_ibeis_staging_feedback(infr):
-        """
-        Commit all reviews in internal_feedback into the staging table.  The
-        edges are removed from interal_feedback and added to external feedback.
-        """
-        infr.print('write_ibeis_staging_feedback %d' %
-                   (len(infr.internal_feedback),), 1)
-        if len(infr.internal_feedback) == 0:
-            return
-        aid_1_list = []
-        aid_2_list = []
-        decision_list = []
-        timestamp_list = []
-        tags_list = []
-        user_confidence_list = []
-        identity_list = []
-        ibs = infr.ibs
-        _iter = (
-            (aid1, aid2, feedback_item)
-            for (aid1, aid2), feedbacks in infr.internal_feedback.items()
-            for feedback_item in feedbacks
-        )
-        for aid1, aid2, feedback_item in _iter:
-            decision_key = feedback_item['decision']
-            tags = feedback_item['tags']
-            timestamp = feedback_item.get('timestamp', None)
-            confidence_key = feedback_item.get('confidence', None)
-            user_id = feedback_item.get('user_id', None)
-            decision_int = ibs.const.REVIEW.CODE_TO_INT[decision_key]
-            confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
-                    confidence_key, None)
-            aid_1_list.append(aid1)
-            aid_2_list.append(aid2)
-            decision_list.append(decision_int)
-            tags_list.append(tags)
-            user_confidence_list.append(confidence_int)
-            timestamp_list.append(timestamp)
-            identity_list.append(user_id)
-        review_id_list = ibs.add_review(
-                aid_1_list, aid_2_list, decision_list,
-                tags_list=tags_list,
-                identity_list=identity_list,
-                user_confidence_list=user_confidence_list,
-                timestamp_list=timestamp_list)
-        assert len(ut.find_duplicate_items(review_id_list)) == 0
-        # Copy internal feedback into external
-        for edge, feedbacks in infr.internal_feedback.items():
-            infr.external_feedback[edge].extend(feedbacks)
-        # Delete internal feedback
-        infr.internal_feedback = ut.ddict(list)
-
-    def write_ibeis_annotmatch_feedback(infr, edge_delta_df=None):
-        """
-        Commits the current state in external and internal into the annotmatch
-        table.
-        """
-        if edge_delta_df is None:
-            edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
-        if infr.verbose > 0:
-            infr.print('write_ibeis_annotmatch_feedback %r' % (
-                len(edge_delta_df)))
-        ibs = infr.ibs
-        edge_delta_df_ = edge_delta_df.reset_index()
-        # Find the rows not yet in the annotmatch table
-        is_add = edge_delta_df_['am_rowid'].isnull().values
-        add_df = edge_delta_df_.loc[is_add]
-        # Assign then a new annotmatch rowid
-        add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
-                                                add_df['aid2'].values)
-        edge_delta_df_.loc[is_add, 'am_rowid'] = add_ams
-
-        # Set residual matching data
-        new_truth = ut.take(ibs.const.REVIEW.CODE_TO_INT,
-                            edge_delta_df_['new_decision'])
-        new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
-        new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
-                                edge_delta_df_['new_user_confidence'], None)
-        new_timestamp = edge_delta_df_['timestamp']
-        new_reviewer = edge_delta_df_['user_id']
-        am_rowids = edge_delta_df_['am_rowid'].values
-        ibs.set_annotmatch_truth(am_rowids, new_truth)
-        ibs.set_annotmatch_tag_text(am_rowids, new_tags)
-        ibs.set_annotmatch_confidence(am_rowids, new_conf)
-        ibs.set_annotmatch_reviewer(am_rowids, new_reviewer)
-        ibs.set_annotmatch_posixtime_modified(am_rowids, new_timestamp)
-
-    def write_ibeis_name_assignment(infr, name_delta_df=None):
-        if name_delta_df is None:
-            name_delta_df = infr.get_ibeis_name_delta()
-        infr.print('write_ibeis_name_assignment %d' % len(name_delta_df))
-        aid_list = name_delta_df.index.values
-        new_name_list = name_delta_df['new_name'].values
-        infr.ibs.set_annot_names(aid_list, new_name_list)
-
-    def get_ibeis_name_delta(infr, ignore_unknown=True):
-        """
-        Rectifies internal name_labels with the names stored in the name table.
-        """
-        infr.print('constructing name delta', 3)
-        import pandas as pd
-        graph = infr.graph
-        node_to_new_label = nx.get_node_attributes(graph, 'name_label')
-        nodes = list(node_to_new_label.keys())
-        aids = ut.take(infr.node_to_aid, nodes)
-        old_names = infr.ibs.get_annot_name_texts(aids)
-        # Indicate that unknown names should be replaced
-        old_names = [None if n == infr.ibs.const.UNKNOWN else n
-                     for n in old_names]
-        new_labels = ut.take(node_to_new_label, aids)
-        # Recycle as many old names as possible
-        label_to_name, needs_assign, unknown_labels = infr._rectify_names(
-            old_names, new_labels)
-        if ignore_unknown:
-            label_to_name = ut.delete_dict_keys(label_to_name, unknown_labels)
-            needs_assign = ut.setdiff(needs_assign, unknown_labels)
-        infr.print('had %d unknown labels' % (len(unknown_labels)), 3)
-        infr.print('ignore_unknown = %r' % (ignore_unknown,), 3)
-        infr.print('need to make %d new names' % (len(needs_assign)), 3)
-        # Overwrite names of labels with temporary names
-        needed_names = infr.ibs.make_next_name(len(needs_assign))
-        for unassigned_label, new in zip(needs_assign, needed_names):
-            label_to_name[unassigned_label] = new
-        # Assign each node to the rectified label
-        if ignore_unknown:
-            unknown_labels_ = set(unknown_labels)
-            node_to_new_label = {
-                node: label for node, label in node_to_new_label.items()
-                if label not in unknown_labels_
-            }
-        aid_list = ut.take(infr.node_to_aid, node_to_new_label.keys())
-        new_name_list = ut.take(label_to_name, node_to_new_label.values())
-        old_name_list = infr.ibs.get_annot_name_texts(aid_list)
-        # Put into a dataframe for convinience
-        name_delta_df_ = pd.DataFrame(
-            {'old_name': old_name_list, 'new_name': new_name_list},
-            columns=['old_name', 'new_name'],
-            index=pd.Index(aid_list, name='aid')
-        )
-        changed_flags = name_delta_df_['old_name'] != name_delta_df_['new_name']
-        name_delta_df = name_delta_df_[changed_flags]
-        infr.print('finished making name delta', 3)
-        return name_delta_df
-
-    def read_ibeis_staging_feedback(infr):
-        """
-        Reads feedback from review staging table.
-        """
-        infr.print('read_ibeis_staging_feedback', 1)
-        ibs = infr.ibs
-        # annots = ibs.annots(infr.aids)
-        review_ids = ibs.get_review_rowids_between(infr.aids)
-        review_ids = sorted(review_ids)
-        # aid_pairs = ibs.get_review_aid_tuple(review_ids)
-        # flat_review_ids, cumsum = ut.invertible_flatten2(review_ids)
-
-        from ibeis.control.manual_review_funcs import hack_create_aidpair_index
-        hack_create_aidpair_index(ibs)
-
-        from ibeis.control.manual_review_funcs import (
-            REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-            REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP,
-            REVIEW_TAGS)
-
-        colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
-                    REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
-                    REVIEW_TIMESTAMP, REVIEW_TAGS)
-        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, colnames,
-                                      review_ids)
-
-        feedback = ut.ddict(list)
-        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
-        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
-
-        for data in review_data:
-            (aid1, aid2, count, decision_int,
-             user_id, conf_int, timestamp, tags) = data
-            edge = e_(aid1, aid2)
-            feedback_item = {
-                'decision': lookup_truth[decision_int],
-                'timestamp': timestamp,
-                'user_id': user_id,
-                'tags': [] if not tags else tags.split(';'),
-                'confidence': lookup_conf[conf_int],
-            }
-            feedback[edge].append(feedback_item)
-        return feedback
-
-    def read_ibeis_annotmatch_feedback(infr, only_existing_edges=False):
-        """
-        Reads feedback from annotmatch table.
-
-        Args:
-            only_existing_edges (bool): if True only reads info existing edges
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden read_ibeis_annotmatch_feedback
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> feedback = infr.read_ibeis_annotmatch_feedback()
-            >>> result =('feedback = %s' % (ut.repr2(feedback, nl=1),))
-            >>> print(result)
-            feedback = {
-                (2, 3): [{'decision': 'match', 'tags': ['photobomb']}],
-                (5, 6): [{'decision': 'match', 'tags': ['photobomb']}],
-            }
-        """
-        infr.print('read_ibeis_annotmatch_feedback', 1)
-        ibs = infr.ibs
-        if only_existing_edges:
-            aid_pairs = infr.graph.edges()
-            am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
-        else:
-            annots = ibs.annots(infr.aids)
-            am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
-
-        aids1 = ut.take_column(aid_pairs, 0)
-        aids2 = ut.take_column(aid_pairs, 1)
-
-        infr.print('read %d annotmatch rowids' % (len(am_rowids)), 2)
-        infr.print('* checking truth', 2)
-
-        # Use explicit truth state to mark truth
-        truth = np.array(ibs.get_annotmatch_truth(am_rowids))
-        infr.print('* checking tags', 2)
-        tags_list = ibs.get_annotmatch_case_tags(am_rowids)
-        confidence_list = ibs.get_annotmatch_confidence(am_rowids)
-        timestamp_list = ibs.get_annotmatch_posixtime_modified(am_rowids)
-        userid_list = ibs.get_annotmatch_reviewer(am_rowids)
-        # Hack, if we didnt set it, it probably means it matched
-        # FIXME: allow for truth to not be set.
-        need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
-        if np.any(need_truth):
-            need_aids1 = ut.compress(aids1, need_truth)
-            need_aids2 = ut.compress(aids2, need_truth)
-            needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
-            truth[need_truth] = needed_truth
-
-        truth = np.array(truth, dtype=np.int)
-
-        if False:
-            # Add information from relevant tags
-            infr.print('* checking split and joins', 2)
-            # Use tags to infer truth
-            props = ['SplitCase', 'JoinCase']
-            flags_list = ibs.get_annotmatch_prop(props, am_rowids)
-            is_split, is_merge = flags_list
-            is_split = np.array(is_split).astype(np.bool)
-            is_merge = np.array(is_merge).astype(np.bool)
-            # truth[is_pb] = ibs.const.REVIEW.NON_MATCH
-            truth[is_split] = ibs.const.REVIEW.NON_MATCH
-            truth[is_merge] = ibs.const.REVIEW.MATCH
-
-        infr.print('* making feedback dict', 2)
-
-        # CHANGE OF FORMAT
-        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
-        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
-
-        feedback = ut.ddict(list)
-        for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
-            edge = e_(aid1, aid2)
-            conf = confidence_list[count]
-            truth_ = truth[count]
-            timestamp = timestamp_list[count]
-            user_id = userid_list[count]
-            if conf is not None and not isinstance(conf, int):
-                import warnings
-                warnings.warn('CONF WAS NOT AN INTEGER. conf=%r' % (conf,))
-                conf = None
-            decision = lookup_truth[truth_]
-            conf_ = lookup_conf[conf]
-            tag_ = tags_list[count]
-            feedback_item = {
-                'decision': decision,
-                'timestamp': timestamp,
-                'tags': tag_,
-                'user_id': user_id,
-                'confidence': conf_,
-            }
-            feedback[edge].append(feedback_item)
-        infr.print('read %d annotmatch entries' % (len(feedback)), 1)
-        return feedback
-
-    def _pandas_feedback_format(infr, feedback):
-        import pandas as pd
-        aid_pairs = list(feedback.keys())
-        aids1 = ut.take_column(aid_pairs, 0)
-        aids2 = ut.take_column(aid_pairs, 1)
-        ibs = infr.ibs
-        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1,
-                                                                      aids2)
-        rectified_feedback_ = infr._rectify_feedback(feedback)
-        rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
-        decision = ut.dict_take_column(rectified_feedback, 'decision')
-        tags = ut.dict_take_column(rectified_feedback, 'tags')
-        confidence = ut.dict_take_column(rectified_feedback, 'confidence')
-        df = pd.DataFrame([])
-        df['decision'] = decision
-        df['aid1'] = aids1
-        df['aid2'] = aids2
-        df['tags'] = tags
-        df['confidence'] = confidence
-        df['am_rowid'] = am_rowids
-        df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
-        return df
-
-    def match_state_delta(infr, old='annotmatch', new='all'):
-        r"""
-        Returns information about state change of annotmatches
-
-        Returns:
-            tuple: (new_df, old_df)
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden match_state_delta
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.reset_feedback()
-            >>> infr.add_feedback2((2, 3), 'match')
-            >>> infr.add_feedback2((5, 6), 'nomatch')
-            >>> infr.add_feedback2((5, 4), 'nomatch')
-            >>> (edge_delta_df) = infr.match_state_delta()
-            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
-            >>> print(result)
-        """
-        def _lookup_feedback(key):
-            if key == 'annotmatch':
-                feedback = infr.read_ibeis_annotmatch_feedback()
-                df = infr._pandas_feedback_format(feedback)
-            elif key == 'staging':
-                df = infr._pandas_feedback_format(infr.read_ibeis_staging_feedback())
-            elif key == 'all':
-                df = infr._pandas_feedback_format(infr.all_feedback())
-            elif key == 'internal':
-                df = infr._pandas_feedback_format(infr.internal_feedback)
-            elif key == 'external':
-                df = infr._pandas_feedback_format(infr.external_feedback)
-            else:
-                raise KeyError('key=%r' % (key,))
-            return df
-
-        old_feedback = _lookup_feedback(old)
-        new_feedback = _lookup_feedback(new)
-        edge_delta_df = infr._make_state_delta(old_feedback, new_feedback)
-        return edge_delta_df
-
-    def all_feedback_items(infr):
-        for edge, vals in six.iteritems(infr.external_feedback):
-            yield edge, vals
-        for edge, vals in six.iteritems(infr.internal_feedback):
-            yield edge, vals
-
-    def all_feedback(infr):
-        all_feedback = ut.ddict(list)
-        all_feedback.update(infr.all_feedback_items())
-        return all_feedback
-
-    @staticmethod
-    def _make_state_delta(old_feedback, new_feedback):
-        r"""
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden _make_state_delta
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> import pandas as pd
-            >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
-            >>> new_feedback = old_feedback = pd.DataFrame([
-            >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
-            >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
-            >>>                                                  new_feedback)
-            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
-            >>> print(result)
-            edge_delta_df =
-            Empty DataFrame
-            Columns: [am_rowid, old_decision, new_decision, old_tags, new_tags]
-            Index: []
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> import pandas as pd
-            >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
-            >>> old_feedback = pd.DataFrame([
-            >>>     ['nomatch', 100, 101, 1000, []],
-            >>>     [  'match', 101, 102, 1001, []],
-            >>>     [  'match', 103, 104, 1002, []],
-            >>>     ['nomatch', 101, 104, 1004, []],
-            >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
-            >>> new_feedback = pd.DataFrame([
-            >>>     [  'match', 101, 102, 1001, []],
-            >>>     ['nomatch', 103, 104, 1002, []],
-            >>>     [  'match', 101, 104, 1004, []],
-            >>>     ['nomatch', 102, 103, None, []],
-            >>>     ['nomatch', 100, 103, None, []],
-            >>>     ['notcomp', 107, 109, None, []],
-            >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
-            >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
-            >>>                                                  new_feedback)
-            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
-            >>> print(result)
-            edge_delta_df =
-                       am_rowid old_decision new_decision old_tags new_tags
-            aid1 aid2
-            101  104     1004.0      nomatch        match       []       []
-            103  104     1002.0        match      nomatch       []       []
-            100  103        NaN          NaN      nomatch      NaN       []
-            102  103        NaN          NaN      nomatch      NaN       []
-            107  109        NaN          NaN      notcomp      NaN       []
-        """
-        import pandas as pd
-        from six.moves import reduce
-        import operator as op
-        # Ensure input is in the expected format
-        new_index = new_feedback.index
-        old_index = old_feedback.index
-        assert new_index.names == ['aid1', 'aid2'], ('not indexed on edges')
-        assert old_index.names == ['aid1', 'aid2'], ('not indexed on edges')
-        assert all(u < v for u, v in new_index.values), ('bad direction')
-        assert all(u < v for u, v in old_index.values), ('bad direction')
-        # Determine what edges have changed
-        isect_edges = new_index.intersection(old_index)
-        isect_new = new_feedback.loc[isect_edges]
-        isect_old = old_feedback.loc[isect_edges]
-
-        # If any important column is different we mark the row as changed
-        data_columns = ['decision', 'tags', 'confidence']
-        important_columns = ['decision', 'tags']
-        other_columns = ut.setdiff(data_columns, important_columns)
-        if len(isect_edges) > 0:
-            changed_gen = (isect_new[c] != isect_old[c]
-                           for c in important_columns)
-            is_changed = reduce(op.or_, changed_gen)
-            # decision_changed = isect_new['decision'] != isect_old['decision']
-            # tags_changed = isect_new['tags'] != isect_old['tags']
-            # is_changed = tags_changed | decision_changed
-            new_df_ = isect_new[is_changed]
-            old_df = isect_old[is_changed]
-        else:
-            new_df_ = isect_new
-            old_df = isect_old
-        # Determine what edges have been added
-        add_edges = new_index.difference(old_index)
-        add_df = new_feedback.loc[add_edges]
-        # Concat the changed and added edges
-        new_df = pd.concat([new_df_, add_df])
-        # Prepare the data frames for merging
-        old_colmap = {c: 'old_' + c for c in data_columns}
-        new_colmap = {c: 'new_' + c for c in data_columns}
-        prep_old = old_df.rename(columns=old_colmap).reset_index()
-        prep_new = new_df.rename(columns=new_colmap).reset_index()
-        # defer to new values for non-important columns
-        for col in other_columns:
-            oldcol = 'old_' + col
-            if oldcol in prep_old:
-                del prep_old[oldcol]
-        # Combine into a single delta data frame
-        merge_keys = ['aid1', 'aid2', 'am_rowid']
-        merged_df = prep_old.merge(
-            prep_new, how='outer', left_on=merge_keys, right_on=merge_keys)
-        # Reorder the columns
-        col_order = ['old_decision', 'new_decision', 'old_tags', 'new_tags']
-        edge_delta_df = merged_df.reindex(columns=(
-            ut.setdiff(merged_df.columns.values, col_order) + col_order))
-        edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
-        return edge_delta_df
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrFeedback(object):
-
-    @profile
-    def apply_feedback_edges(infr, safe=True):
-        r"""
-        Transforms the feedback dictionaries into nx graph edge attributes
-
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden apply_feedback_edges
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.reset_feedback()
-            >>> infr.add_feedback2((1, 2), 'unknown', tags=[])
-            >>> infr.apply_feedback_edges()
-            >>> print('edges = ' + ut.repr4(infr.graph.edge))
-            >>> result = str(infr)
-            >>> print(result)
-            <AnnotInference(nAids=6, nEdges=2)>
-        """
-        infr.print('apply_feedback_edges', 1)
-        if safe:
-            # You can be unsafe if you know that the current feedback is a
-            # strict superset of previous feedback
-            infr._del_feedback_edges()
-        # Transforms dictionary feedback into numpy array
-        feedback_edges = []
-        num_review_list = []
-        decision_list = []
-        confidence_list = []
-        userid_list = []
-        tags_list = []
-        for edge, vals in infr.all_feedback_items():
-            # hack for feedback rectification
-            feedback_item = infr._rectify_feedback_item(vals)
-            decision = feedback_item['decision']
-            if decision == 'unknown':
-                continue
-            feedback_edges.append(edge)
-            num_review_list.append(len(vals))
-            userid_list.append(feedback_item['user_id'])
-            decision_list.append(decision)
-            tags_list.append(feedback_item['tags'])
-            confidence_list.append(feedback_item['confidence'])
-
-        p_same_lookup = {
-            'match': infr._compute_p_same(1.0, 0.0),
-            'nomatch': infr._compute_p_same(0.0, 0.0),
-            'notcomp': infr._compute_p_same(0.0, 1.0),
-        }
-        p_same_list = ut.take(p_same_lookup, decision_list)
-
-        # Put pair orders in context of the graph
-        infr._set_feedback_edges(feedback_edges, decision_list, p_same_list,
-                                 tags_list, confidence_list, userid_list,
-                                 num_review_list)
-
-    def _del_feedback_edges(infr, edges=None):
-        """ Delete all edges properties related to feedback """
-        if edges is None:
-            edges = list(infr.graph.edges())
-        infr.print('_del_feedback_edges len(edges) = %r' % (len(edges)), 2)
-        keys = ['decision', 'reviewed_tags', 'num_reviews',
-                'reviewed_weight']
-        ut.nx_delete_edge_attr(infr.graph, keys, edges)
-
-    @profile
-    def _set_feedback_edges(infr, edges, review_states, p_same_list, tags_list,
-                            confidence_list, userid_list, n_reviews_list):
-        if infr.verbose >= 3:
-            edges = list(edges)
-            infr.print('_set_feedback_edges(nEdges=%d)' % (len(edges),), 3)
-        # Ensure edges exist
-        for edge in edges:
-            if not infr.graph.has_edge(*edge):
-                infr.graph.add_edge(*edge)
-
-        # use UTC timestamps
-        timestamp = ut.get_timestamp('int', isutc=True)
-        infr.set_edge_attrs('decision', _dz(edges, review_states))
-        infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
-        infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
-        infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
-        infr.set_edge_attrs('user_id', _dz(edges, userid_list))
-        infr.set_edge_attrs('num_reviews', _dz(edges, n_reviews_list))
-        infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
-        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
-
-    def reset_feedback(infr, mode='annotmatch'):
-        """ Resets feedback edges to state of the SQL annotmatch table """
-        infr.print('reset_feedback mode=%r' % (mode,), 1)
-        if mode == 'annotmatch':
-            infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
-        elif mode == 'staging':
-            infr.external_feedback = infr.read_ibeis_staging_feedback()
-        else:
-            raise ValueError('no mode=%r' % (mode,))
-        infr.internal_feedback = ut.ddict(list)
-
-    def remove_feedback(infr, apply=False):
-        """ Deletes all feedback """
-        infr.print('remove_feedback', 1)
-        infr.external_feedback = ut.ddict(list)
-        infr.internal_feedback = ut.ddict(list)
-        if apply:
-            infr._del_feedback_edges()
-
-    def _rectify_feedback(infr, feedback):
-        return {edge: infr._rectify_feedback_item(vals)
-                for edge, vals in feedback.items()}
-
-    def _rectify_feedback_item(infr, vals):
-        """ uses most recently use strategy """
-        return vals[-1]
-
-    def reset(infr, state='empty'):
-        """
-        Removes all edges from graph and resets name labels.
-        """
-        if state == 'empty':
-            # Remove all edges, and component names
-            infr.graph.remove_edges_from(list(infr.graph.edges()))
-            infr.remove_feedback()
-            infr.remove_name_labels()
-        elif state == 'orig':
-            raise NotImplementedError('unused')
-            infr.graph.remove_edges_from(list(infr.graph.edges()))
-            infr.remove_feedback()
-            infr.reset_name_labels()
-        else:
-            raise ValueError('Unknown state=%r' % (state,))
-
-    def reset_name_labels(infr):
-        """ Resets all annotation node name labels to their initial values """
-        infr.print('reset_name_labels', 1)
-        orig_names = infr.get_node_attrs('orig_name_label')
-        infr.set_node_attrs('name_label', orig_names)
-
-    def remove_name_labels(infr):
-        """ Sets all annotation node name labels to be unknown """
-        infr.print('remove_name_labels()', 1)
-        # make distinct names for all nodes
-        distinct_names = {
-            node: -aid for node, aid in infr.get_node_attrs('aid').items()
-        }
-        infr.set_node_attrs('name_label', distinct_names)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1231,12 +574,7 @@ class _AnnotInfrMatching(object):
         ])
         if multi_index:
             # Index features by edges
-            if len(edges) == 0:
-                uv_index = pd.MultiIndex([[], []], [[], []],
-                                         names=('aid1', 'aid2'))
-            else:
-                uv_index = pd.MultiIndex.from_tuples(edges,
-                                                     names=('aid1', 'aid2'))
+            uv_index = ensure_multi_index(edges, ('aid1', 'aid2'))
             X.index = uv_index
         X[pd.isnull(X)] = np.nan
         # Re-order column names to ensure dimensions are consistent
@@ -1309,13 +647,11 @@ class _AnnotInfrMatching(object):
         if infr.cm_list is None:
             infr.print('apply_match_edges - matching has not been run!')
             return
-        if infr.verbose >= 1:
-            infr.print('apply_match_edges')
+        infr.print('apply_match_edges', 1)
         edges = infr._cm_breaking(review_cfg)
         # Create match-based graph structure
         infr.remove_dummy_edges()
-        if infr.verbose >= 1:
-            infr.print('apply_match_edges adding %d edges' % len(edges))
+        infr.print('apply_match_edges adding %d edges' % len(edges), 1)
         infr.graph.add_edges_from(edges)
 
     def _cm_breaking(infr, review_cfg={}):
@@ -1480,8 +816,7 @@ class _AnnotInfrMatching(object):
         if infr.cm_list is None:
             infr.print('apply_match_scores - no scores to apply!')
             return
-        if infr.verbose >= 1:
-            infr.print('apply_match_scores')
+        infr.print('apply_match_scores', 1)
         edges = list(infr.graph.edges())
         edge_to_data = infr._get_cm_edge_data(edges)
 
@@ -1507,6 +842,806 @@ class _AnnotInfrMatching(object):
         # probs = vt.normalize(probs, axis=1, ord=1, out=probs)
         # entropy = -(np.log2(probs) * probs).sum(axis=1)
         infr.set_edge_attrs('normscore', dict(zip(edges, normscores)))
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class _AnnotInfrIBEIS(object):
+    """
+    Direct interface into ibeis tables
+    (most of these should not be used or be reworked)
+    """
+
+    def _pandas_feedback_format2(infr, feedback):
+        import pandas as pd
+        #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
+        dicts = []
+        feedback = infr.internal_feedback
+        for (u, v), vals in feedback.items():
+            for val in vals:
+                val = val.copy()
+                val['aid1'] = u
+                val['aid2'] = v
+                val['tags'] = ';'.join(val['tags'])
+                dicts.append(val)
+        df = pd.DataFrame.from_dict(dicts)
+        # df.sort('timestamp')
+        return df
+
+    def write_ibeis_staging_feedback(infr):
+        """
+        Commit all reviews in internal_feedback into the staging table.  The
+        edges are removed from interal_feedback and added to external feedback.
+        """
+        infr.print('write_ibeis_staging_feedback %d' %
+                   (len(infr.internal_feedback),), 1)
+        if len(infr.internal_feedback) == 0:
+            return
+        aid_1_list = []
+        aid_2_list = []
+        decision_list = []
+        timestamp_list = []
+        tags_list = []
+        user_confidence_list = []
+        identity_list = []
+        ibs = infr.ibs
+        _iter = (
+            (aid1, aid2, feedback_item)
+            for (aid1, aid2), feedbacks in infr.internal_feedback.items()
+            for feedback_item in feedbacks
+        )
+        for aid1, aid2, feedback_item in _iter:
+            decision_key = feedback_item['decision']
+            tags = feedback_item['tags']
+            timestamp = feedback_item.get('timestamp', None)
+            confidence_key = feedback_item.get('confidence', None)
+            user_id = feedback_item.get('user_id', None)
+            decision_int = ibs.const.REVIEW.CODE_TO_INT[decision_key]
+            confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
+                    confidence_key, None)
+            aid_1_list.append(aid1)
+            aid_2_list.append(aid2)
+            decision_list.append(decision_int)
+            tags_list.append(tags)
+            user_confidence_list.append(confidence_int)
+            timestamp_list.append(timestamp)
+            identity_list.append(user_id)
+        review_id_list = ibs.add_review(
+                aid_1_list, aid_2_list, decision_list,
+                tags_list=tags_list,
+                identity_list=identity_list,
+                user_confidence_list=user_confidence_list,
+                timestamp_list=timestamp_list)
+        assert len(ut.find_duplicate_items(review_id_list)) == 0
+        # Copy internal feedback into external
+        for edge, feedbacks in infr.internal_feedback.items():
+            infr.external_feedback[edge].extend(feedbacks)
+        # Delete internal feedback
+        infr.internal_feedback = ut.ddict(list)
+
+    def write_ibeis_annotmatch_feedback(infr, edge_delta_df=None):
+        """
+        Commits the current state in external and internal into the annotmatch
+        table.
+        """
+        if edge_delta_df is None:
+            edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
+        infr.print('write_ibeis_annotmatch_feedback %r' % (
+            len(edge_delta_df)))
+        ibs = infr.ibs
+        edge_delta_df_ = edge_delta_df.reset_index()
+        # Find the rows not yet in the annotmatch table
+        is_add = edge_delta_df_['am_rowid'].isnull().values
+        add_df = edge_delta_df_.loc[is_add]
+        # Assign then a new annotmatch rowid
+        add_ams = ibs.add_annotmatch_undirected(add_df['aid1'].values,
+                                                add_df['aid2'].values)
+        edge_delta_df_.loc[is_add, 'am_rowid'] = add_ams
+
+        # Set residual matching data
+        new_truth = ut.take(ibs.const.REVIEW.CODE_TO_INT,
+                            edge_delta_df_['new_decision'])
+        new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
+        new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
+                                edge_delta_df_['new_user_confidence'], None)
+        new_timestamp = edge_delta_df_['timestamp']
+        new_reviewer = edge_delta_df_['user_id']
+        am_rowids = edge_delta_df_['am_rowid'].values
+        ibs.set_annotmatch_truth(am_rowids, new_truth)
+        ibs.set_annotmatch_tag_text(am_rowids, new_tags)
+        ibs.set_annotmatch_confidence(am_rowids, new_conf)
+        ibs.set_annotmatch_reviewer(am_rowids, new_reviewer)
+        ibs.set_annotmatch_posixtime_modified(am_rowids, new_timestamp)
+
+    def write_ibeis_name_assignment(infr, name_delta_df=None):
+        if name_delta_df is None:
+            name_delta_df = infr.get_ibeis_name_delta()
+        infr.print('write_ibeis_name_assignment %d' % len(name_delta_df))
+        aid_list = name_delta_df.index.values
+        new_name_list = name_delta_df['new_name'].values
+        infr.ibs.set_annot_names(aid_list, new_name_list)
+
+    def get_ibeis_name_delta(infr, ignore_unknown=True):
+        """
+        Rectifies internal name_labels with the names stored in the name table.
+        """
+        infr.print('constructing name delta', 3)
+        import pandas as pd
+        graph = infr.graph
+        node_to_new_label = nx.get_node_attributes(graph, 'name_label')
+        nodes = list(node_to_new_label.keys())
+        aids = ut.take(infr.node_to_aid, nodes)
+        old_names = infr.ibs.get_annot_name_texts(aids)
+        # Indicate that unknown names should be replaced
+        old_names = [None if n == infr.ibs.const.UNKNOWN else n
+                     for n in old_names]
+        new_labels = ut.take(node_to_new_label, aids)
+        # Recycle as many old names as possible
+        label_to_name, needs_assign, unknown_labels = infr._rectify_names(
+            old_names, new_labels)
+        if ignore_unknown:
+            label_to_name = ut.delete_dict_keys(label_to_name, unknown_labels)
+            needs_assign = ut.setdiff(needs_assign, unknown_labels)
+        infr.print('had %d unknown labels' % (len(unknown_labels)), 3)
+        infr.print('ignore_unknown = %r' % (ignore_unknown,), 3)
+        infr.print('need to make %d new names' % (len(needs_assign)), 3)
+        # Overwrite names of labels with temporary names
+        needed_names = infr.ibs.make_next_name(len(needs_assign))
+        for unassigned_label, new in zip(needs_assign, needed_names):
+            label_to_name[unassigned_label] = new
+        # Assign each node to the rectified label
+        if ignore_unknown:
+            unknown_labels_ = set(unknown_labels)
+            node_to_new_label = {
+                node: label for node, label in node_to_new_label.items()
+                if label not in unknown_labels_
+            }
+        aid_list = ut.take(infr.node_to_aid, node_to_new_label.keys())
+        new_name_list = ut.take(label_to_name, node_to_new_label.values())
+        old_name_list = infr.ibs.get_annot_name_texts(aid_list)
+        # Put into a dataframe for convinience
+        name_delta_df_ = pd.DataFrame(
+            {'old_name': old_name_list, 'new_name': new_name_list},
+            columns=['old_name', 'new_name'],
+            index=pd.Index(aid_list, name='aid')
+        )
+        changed_flags = name_delta_df_['old_name'] != name_delta_df_['new_name']
+        name_delta_df = name_delta_df_[changed_flags]
+        infr.print('finished making name delta', 3)
+        return name_delta_df
+
+    def read_ibeis_staging_feedback(infr):
+        """
+        Reads feedback from review staging table.
+        """
+        infr.print('read_ibeis_staging_feedback', 1)
+        ibs = infr.ibs
+        # annots = ibs.annots(infr.aids)
+        review_ids = ibs.get_review_rowids_between(infr.aids)
+        review_ids = sorted(review_ids)
+        # aid_pairs = ibs.get_review_aid_tuple(review_ids)
+        # flat_review_ids, cumsum = ut.invertible_flatten2(review_ids)
+
+        from ibeis.control.manual_review_funcs import hack_create_aidpair_index
+        hack_create_aidpair_index(ibs)
+
+        from ibeis.control.manual_review_funcs import (
+            REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
+            REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE, REVIEW_TIMESTAMP,
+            REVIEW_TAGS)
+
+        colnames = (REVIEW_AID1, REVIEW_AID2, REVIEW_COUNT, REVIEW_DECISION,
+                    REVIEW_USER_IDENTITY, REVIEW_USER_CONFIDENCE,
+                    REVIEW_TIMESTAMP, REVIEW_TAGS)
+        review_data = ibs.staging.get(ibs.const.REVIEW_TABLE, colnames,
+                                      review_ids)
+
+        feedback = ut.ddict(list)
+        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
+        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
+
+        for data in review_data:
+            (aid1, aid2, count, decision_int,
+             user_id, conf_int, timestamp, tags) = data
+            edge = e_(aid1, aid2)
+            feedback_item = {
+                'decision': lookup_truth[decision_int],
+                'timestamp': timestamp,
+                'user_id': user_id,
+                'tags': [] if not tags else tags.split(';'),
+                'confidence': lookup_conf[conf_int],
+            }
+            feedback[edge].append(feedback_item)
+        return feedback
+
+    def read_ibeis_annotmatch_feedback(infr, only_existing_edges=False):
+        r"""
+        Reads feedback from annotmatch table and returns the result.
+        Internal state is not changed.
+
+        Args:
+            only_existing_edges (bool): if True only reads info existing edges
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden read_ibeis_annotmatch_feedback
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> feedback = infr.read_ibeis_annotmatch_feedback()
+            >>> items = feedback[(2, 3)]
+            >>> result = ('feedback = %s' % (ut.repr2(feedback, nl=2),))
+            >>> print(result)
+            >>> assert len(feedback) >= 2, 'should contain at least 2 edges'
+            >>> assert len(items) >= 1, '2-3 should have one review'
+            >>> assert items[0]['decision'] == 'match', '2-3 must match'
+        """
+        infr.print('read_ibeis_annotmatch_feedback', 1)
+        ibs = infr.ibs
+        if only_existing_edges:
+            aid_pairs = infr.graph.edges()
+            am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
+        else:
+            annots = ibs.annots(infr.aids)
+            am_rowids, aid_pairs = annots.get_am_rowids_and_pairs()
+
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+
+        infr.print('read %d annotmatch rowids' % (len(am_rowids)), 2)
+        infr.print('* checking truth', 2)
+
+        # Use explicit truth state to mark truth
+        truth = np.array(ibs.get_annotmatch_truth(am_rowids))
+        infr.print('* checking tags', 2)
+        tags_list = ibs.get_annotmatch_case_tags(am_rowids)
+        confidence_list = ibs.get_annotmatch_confidence(am_rowids)
+        timestamp_list = ibs.get_annotmatch_posixtime_modified(am_rowids)
+        userid_list = ibs.get_annotmatch_reviewer(am_rowids)
+        # Hack, if we didnt set it, it probably means it matched
+        # FIXME: allow for truth to not be set.
+        need_truth = np.array(ut.flag_None_items(truth)).astype(np.bool)
+        if np.any(need_truth):
+            need_aids1 = ut.compress(aids1, need_truth)
+            need_aids2 = ut.compress(aids2, need_truth)
+            needed_truth = ibs.get_aidpair_truths(need_aids1, need_aids2)
+            truth[need_truth] = needed_truth
+
+        truth = np.array(truth, dtype=np.int)
+
+        if False:
+            # Add information from relevant tags
+            infr.print('* checking split and joins', 2)
+            # Use tags to infer truth
+            props = ['SplitCase', 'JoinCase']
+            flags_list = ibs.get_annotmatch_prop(props, am_rowids)
+            is_split, is_merge = flags_list
+            is_split = np.array(is_split).astype(np.bool)
+            is_merge = np.array(is_merge).astype(np.bool)
+            # truth[is_pb] = ibs.const.REVIEW.NON_MATCH
+            truth[is_split] = ibs.const.REVIEW.NON_MATCH
+            truth[is_merge] = ibs.const.REVIEW.MATCH
+
+        infr.print('* making feedback dict', 2)
+
+        # CHANGE OF FORMAT
+        lookup_truth = ibs.const.REVIEW.INT_TO_CODE
+        lookup_conf = ibs.const.CONFIDENCE.INT_TO_CODE
+
+        feedback = ut.ddict(list)
+        for count, (aid1, aid2) in enumerate(zip(aids1, aids2)):
+            edge = e_(aid1, aid2)
+            conf = confidence_list[count]
+            truth_ = truth[count]
+            timestamp = timestamp_list[count]
+            user_id = userid_list[count]
+            if conf is not None and not isinstance(conf, int):
+                import warnings
+                warnings.warn('CONF WAS NOT AN INTEGER. conf=%r' % (conf,))
+                conf = None
+            decision = lookup_truth[truth_]
+            conf_ = lookup_conf[conf]
+            tag_ = tags_list[count]
+            feedback_item = {
+                'decision': decision,
+                'timestamp': timestamp,
+                'tags': tag_,
+                'user_id': user_id,
+                'confidence': conf_,
+            }
+            feedback[edge].append(feedback_item)
+        infr.print('read %d annotmatch entries' % (len(feedback)), 1)
+        return feedback
+
+    def _pandas_feedback_format(infr, feedback):
+        import pandas as pd
+        aid_pairs = list(feedback.keys())
+        aids1 = ut.take_column(aid_pairs, 0)
+        aids2 = ut.take_column(aid_pairs, 1)
+        ibs = infr.ibs
+        am_rowids = ibs.get_annotmatch_rowid_from_undirected_superkey(aids1,
+                                                                      aids2)
+        rectified_feedback_ = infr._rectify_feedback(feedback)
+        rectified_feedback = ut.take(rectified_feedback_, aid_pairs)
+        decision = ut.dict_take_column(rectified_feedback, 'decision')
+        tags = ut.dict_take_column(rectified_feedback, 'tags')
+        confidence = ut.dict_take_column(rectified_feedback, 'confidence')
+        df = pd.DataFrame([])
+        df['decision'] = decision
+        df['aid1'] = aids1
+        df['aid2'] = aids2
+        df['tags'] = tags
+        df['confidence'] = confidence
+        df['am_rowid'] = am_rowids
+        df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
+        return df
+
+    def match_state_delta(infr, old='annotmatch', new='all'):
+        r"""
+        Returns information about state change of annotmatches
+
+        Returns:
+            tuple: (new_df, old_df)
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden match_state_delta
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.reset_feedback()
+            >>> infr.add_feedback((2, 3), 'match')
+            >>> infr.add_feedback((5, 6), 'nomatch')
+            >>> infr.add_feedback((5, 4), 'nomatch')
+            >>> (edge_delta_df) = infr.match_state_delta()
+            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
+            >>> print(result)
+        """
+        def _lookup_feedback(key):
+            if key == 'annotmatch':
+                feedback = infr.read_ibeis_annotmatch_feedback()
+                df = infr._pandas_feedback_format(feedback)
+            elif key == 'staging':
+                df = infr._pandas_feedback_format(infr.read_ibeis_staging_feedback())
+            elif key == 'all':
+                df = infr._pandas_feedback_format(infr.all_feedback())
+            elif key == 'internal':
+                df = infr._pandas_feedback_format(infr.internal_feedback)
+            elif key == 'external':
+                df = infr._pandas_feedback_format(infr.external_feedback)
+            else:
+                raise KeyError('key=%r' % (key,))
+            return df
+
+        old_feedback = _lookup_feedback(old)
+        new_feedback = _lookup_feedback(new)
+        edge_delta_df = infr._make_state_delta(old_feedback, new_feedback)
+        return edge_delta_df
+
+    def all_feedback_items(infr):
+        for edge, vals in six.iteritems(infr.external_feedback):
+            yield edge, vals
+        for edge, vals in six.iteritems(infr.internal_feedback):
+            yield edge, vals
+
+    def all_feedback(infr):
+        all_feedback = ut.ddict(list)
+        all_feedback.update(infr.all_feedback_items())
+        return all_feedback
+
+    @staticmethod
+    def _make_state_delta(old_feedback, new_feedback):
+        r"""
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden _make_state_delta
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import pandas as pd
+            >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
+            >>> new_feedback = old_feedback = pd.DataFrame([
+            >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
+            >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
+            >>>                                                  new_feedback)
+            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
+            >>> print(result)
+            edge_delta_df =
+            Empty DataFrame
+            Columns: [am_rowid, old_decision, new_decision, old_tags, new_tags]
+            Index: []
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> import pandas as pd
+            >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
+            >>> old_feedback = pd.DataFrame([
+            >>>     ['nomatch', 100, 101, 1000, []],
+            >>>     [  'match', 101, 102, 1001, []],
+            >>>     [  'match', 103, 104, 1002, []],
+            >>>     ['nomatch', 101, 104, 1004, []],
+            >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
+            >>> new_feedback = pd.DataFrame([
+            >>>     [  'match', 101, 102, 1001, []],
+            >>>     ['nomatch', 103, 104, 1002, []],
+            >>>     [  'match', 101, 104, 1004, []],
+            >>>     ['nomatch', 102, 103, None, []],
+            >>>     ['nomatch', 100, 103, None, []],
+            >>>     ['notcomp', 107, 109, None, []],
+            >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
+            >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
+            >>>                                                  new_feedback)
+            >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
+            >>> print(result)
+            edge_delta_df =
+                       am_rowid old_decision new_decision old_tags new_tags
+            aid1 aid2
+            101  104     1004.0      nomatch        match       []       []
+            103  104     1002.0        match      nomatch       []       []
+            100  103        NaN          NaN      nomatch      NaN       []
+            102  103        NaN          NaN      nomatch      NaN       []
+            107  109        NaN          NaN      notcomp      NaN       []
+        """
+        import pandas as pd
+        from six.moves import reduce
+        import operator as op
+        # Ensure input is in the expected format
+        new_index = new_feedback.index
+        old_index = old_feedback.index
+        assert new_index.names == ['aid1', 'aid2'], ('not indexed on edges')
+        assert old_index.names == ['aid1', 'aid2'], ('not indexed on edges')
+        assert all(u < v for u, v in new_index.values), ('bad direction')
+        assert all(u < v for u, v in old_index.values), ('bad direction')
+        # Determine what edges have changed
+        isect_edges = new_index.intersection(old_index)
+        isect_new = new_feedback.loc[isect_edges]
+        isect_old = old_feedback.loc[isect_edges]
+
+        # If any important column is different we mark the row as changed
+        data_columns = ['decision', 'tags', 'confidence']
+        important_columns = ['decision', 'tags']
+        other_columns = ut.setdiff(data_columns, important_columns)
+        if len(isect_edges) > 0:
+            changed_gen = (isect_new[c] != isect_old[c]
+                           for c in important_columns)
+            is_changed = reduce(op.or_, changed_gen)
+            # decision_changed = isect_new['decision'] != isect_old['decision']
+            # tags_changed = isect_new['tags'] != isect_old['tags']
+            # is_changed = tags_changed | decision_changed
+            new_df_ = isect_new[is_changed]
+            old_df = isect_old[is_changed]
+        else:
+            new_df_ = isect_new
+            old_df = isect_old
+        # Determine what edges have been added
+        add_edges = new_index.difference(old_index)
+        add_df = new_feedback.loc[add_edges]
+        # Concat the changed and added edges
+        new_df = pd.concat([new_df_, add_df])
+        # Prepare the data frames for merging
+        old_colmap = {c: 'old_' + c for c in data_columns}
+        new_colmap = {c: 'new_' + c for c in data_columns}
+        prep_old = old_df.rename(columns=old_colmap).reset_index()
+        prep_new = new_df.rename(columns=new_colmap).reset_index()
+        # defer to new values for non-important columns
+        for col in other_columns:
+            oldcol = 'old_' + col
+            if oldcol in prep_old:
+                del prep_old[oldcol]
+        # Combine into a single delta data frame
+        merge_keys = ['aid1', 'aid2', 'am_rowid']
+        merged_df = prep_old.merge(
+            prep_new, how='outer', left_on=merge_keys, right_on=merge_keys)
+        # Reorder the columns
+        col_order = ['old_decision', 'new_decision', 'old_tags', 'new_tags']
+        edge_delta_df = merged_df.reindex(columns=(
+            ut.setdiff(merged_df.columns.values, col_order) + col_order))
+        edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
+        return edge_delta_df
+
+
+@six.add_metaclass(ut.ReloadingMetaclass)
+class _AnnotInfrFeedback(object):
+
+    @profile
+    def consistent_inference(infr, edge, decision):
+        infr.print('Making consistent inference decision', 4)
+        # assuming we are in a consistent state
+        # k_pos = infr.queue_params['pos_redundancy']
+        aid1, aid2 = edge
+        pos_graph = infr.pos_graph
+        neg_graph = infr.neg_graph
+        nid1 = pos_graph.node_label(aid1)
+        nid2 = pos_graph.node_label(aid2)
+        cc1 = pos_graph.component_nodes(nid1)
+        cc2 = pos_graph.component_nodes(nid2)
+        if decision == 'match' and nid1 == nid2:
+            # add positive redundancy
+            infr._add_review_edge(edge, decision)
+            if nid1 not in infr.pos_redun_nids:
+                infr.update_pos_redun(nid1)
+        elif decision == 'match' and nid1 != nid2:
+            if any(edges_cross(neg_graph, cc1, cc2)):
+                # Added positive edge between PCCs with a negative edge
+                return infr._enter_recovery(edge, decision, nid1, nid2)
+            else:
+                # merge into single pcc
+                infr._add_review_edge(edge=(aid1, aid2), decision='match')
+                new_nid = pos_graph.node_label(aid1)
+                prev_neg_nids = infr.purge_redun_flags(nid1, nid2)
+                for other_nid in prev_neg_nids:
+                    infr.update_neg_redun(new_nid, other_nid)
+                infr.update_pos_redun(new_nid)
+        elif decision == 'nomatch' and nid1 == nid2:
+            # Added negative edge in positive PCC
+            return infr._enter_recovery(edge, decision, nid1)
+        elif decision == 'nomatch' and nid1 != nid2:
+            # add negative redundancy
+            infr._add_review_edge(edge, decision)
+            if not infr.neg_redun_nids.has_edge(nid1, nid2):
+                infr.update_neg_redun(nid1, nid2)
+        elif decision == 'notcomp' and nid1 == nid2:
+            if pos_graph.has_edge(*edge):
+                # changed an existing positive edge
+                infr._add_review_edge(edge, decision)
+                new_nid1, new_nid2 = pos_graph.node_labels(aid1, aid2)
+                if new_nid1 != new_nid2:
+                    # split case
+                    old_nid = nid1
+                    prev_neg_nids = infr.purge_redun_flags(old_nid)
+                    for other_nid in prev_neg_nids:
+                        infr.update_neg_redun(new_nid1, other_nid)
+                        infr.update_neg_redun(new_nid2, other_nid)
+                    infr.update_neg_redun(new_nid1, new_nid2)
+                    infr.update_pos_redun(new_nid1)
+                    infr.update_pos_redun(new_nid2)
+                else:
+                    infr.update_pos_redun(cc1)
+            else:
+                infr._add_review_edge(edge, decision)
+
+        elif decision == 'notcomp' and nid1 != nid2:
+            if neg_graph.has_edge(*edge):
+                # changed and existing negative edge
+                infr._add_review_edge(edge, decision)
+                if not infr.neg_redun_nids.has_edge(nid1, nid2):
+                    infr.update_neg_redun(nid1, nid2)
+            else:
+                infr._add_review_edge(edge, decision)
+        else:
+            infr.dump_logs()
+            raise AssertionError('impossible consistent state')
+
+        infr.assert_consistency_invariant()
+
+    def _check_edge(infr, edge):
+        aid1, aid2 = edge
+        if aid1 not in infr.aids_set:
+            raise ValueError('aid1=%r is not part of the graph' % (aid1,))
+        if aid2 not in infr.aids_set:
+            raise ValueError('aid2=%r is not part of the graph' % (aid2,))
+
+    @profile
+    def add_feedback(infr, edge, decision, tags=None, user_id=None,
+                     confidence=None, timestamp=None, verbose=None):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.add_feedback((5, 6), 'match')
+            >>> infr.add_feedback((5, 6), 'nomatch', ['Photobomb'])
+            >>> infr.add_feedback((1, 2), 'notcomp')
+            >>> print(ut.repr2(infr.internal_feedback, nl=2))
+            >>> assert len(infr.external_feedback) == 0
+            >>> assert len(infr.internal_feedback) == 2
+            >>> assert len(infr.internal_feedback[(5, 6)]) == 2
+            >>> assert len(infr.internal_feedback[(1, 2)]) == 1
+        """
+        if verbose is None:
+            verbose = infr.verbose
+        edge = e_(*edge)
+        aid1, aid2 = edge
+
+        if not infr.has_edge(edge):
+            infr._check_edge(edge)
+            infr.graph.add_edge(aid1, aid2)
+
+        infr.print(('add_feedback(%r, %r, decision=%r, tags=%r, '
+                    'user_id=%r, confidence=%r)') % (
+            aid1, aid2, decision, tags, user_id, confidence), 1,
+                   color='underline')
+
+        if decision == 'unreviewed':
+            raise NotImplementedError('not done yet')
+            feedback_item = None
+            if edge in infr.external_feedback:
+                raise ValueError('External edge reviews cannot be undone')
+            if edge in infr.internal_feedback:
+                del infr.internal_feedback[edge]
+            for G in infr.review_graphs.values():
+                if G.has_edge(*edge):
+                    G.remove_edge(*edge)
+
+        # Keep track of sequential reviews and set properties on global graph
+        num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
+        if timestamp is None:
+            timestamp = ut.get_timestamp('int', isutc=True)
+        feedback_item = {
+            'decision': decision,
+            'tags': tags,
+            'timestamp': timestamp,
+            'confidence': confidence,
+            'user_id': user_id,
+            'num_reviews': num_reviews + 1,
+        }
+        infr.internal_feedback[edge].append(feedback_item)
+        infr.set_edge_attr(edge, feedback_item)
+        if infr.refresh:
+            infr.refresh.add(decision, user_id)
+
+        if infr.test_mode:
+            if user_id.startswith('auto'):
+                infr.test_state['n_auto'] += 1
+            elif user_id == 'oracle':
+                infr.test_state['n_manual'] += 1
+            else:
+                raise AssertionError('unknown user_id=%r' % (user_id,))
+
+        if infr.enable_inference:
+            # Update priority queue based on the new edge
+            if infr.is_recovering():
+                infr.inconsistent_inference(edge, decision)
+            else:
+                infr.consistent_inference(edge, decision)
+        else:
+            infr.dirty = True
+            infr._add_review_edge(edge, decision)
+
+        if infr.test_mode:
+            infr.metrics_list.append(infr.measure_metrics())
+
+    @profile
+    def apply_feedback_edges(infr, safe=True):
+        r"""
+        Transforms the feedback dictionaries into nx graph edge attributes
+
+        CommandLine:
+            python -m ibeis.algo.hots.graph_iden apply_feedback_edges
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> infr.reset_feedback()
+            >>> #infr.add_feedback((1, 2), 'unknown', tags=[])
+            >>> infr.add_feedback((1, 2), 'notcomp', tags=[])
+            >>> infr.apply_feedback_edges()
+            >>> print('edges = ' + ut.repr4(infr.graph.edge))
+            >>> result = str(infr)
+            >>> print(result)
+            <AnnotInference(nAids=6, nEdges=3)>
+        """
+        infr.print('apply_feedback_edges', 1)
+        if safe:
+            # You can be unsafe if you know that the current feedback is a
+            # strict superset of previous feedback
+            infr._del_feedback_edges()
+        # Transforms dictionary feedback into numpy array
+        feedback_edges = []
+        num_review_list = []
+        decision_list = []
+        confidence_list = []
+        userid_list = []
+        tags_list = []
+        for edge, vals in infr.all_feedback_items():
+            # hack for feedback rectification
+            feedback_item = infr._rectify_feedback_item(vals)
+            decision = feedback_item['decision']
+            if decision == 'unknown':
+                continue
+            feedback_edges.append(edge)
+            num_review_list.append(len(vals))
+            userid_list.append(feedback_item['user_id'])
+            decision_list.append(decision)
+            tags_list.append(feedback_item['tags'])
+            confidence_list.append(feedback_item['confidence'])
+
+        p_same_lookup = {
+            'match': infr._compute_p_same(1.0, 0.0),
+            'nomatch': infr._compute_p_same(0.0, 0.0),
+            'notcomp': infr._compute_p_same(0.0, 1.0),
+        }
+        p_same_list = ut.take(p_same_lookup, decision_list)
+
+        # Put pair orders in context of the graph
+        edges = feedback_edges
+        infr.print('_set_feedback_edges(nEdges=%d)' % (len(edges),), 3)
+        # Ensure edges exist
+        for edge in edges:
+            if not infr.graph.has_edge(*edge):
+                infr.graph.add_edge(*edge)
+
+        # use UTC timestamps
+        timestamp = ut.get_timestamp('int', isutc=True)
+        infr.set_edge_attrs('decision', _dz(edges, decision_list))
+        infr.set_edge_attrs('reviewed_weight', _dz(edges, p_same_list))
+        infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
+        infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
+        infr.set_edge_attrs('user_id', _dz(edges, userid_list))
+        infr.set_edge_attrs('num_reviews', _dz(edges, num_review_list))
+        infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
+        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, p_same_list))
+
+    def _del_feedback_edges(infr, edges=None):
+        """ Delete all edges properties related to feedback """
+        if edges is None:
+            edges = list(infr.graph.edges())
+        infr.print('_del_feedback_edges len(edges) = %r' % (len(edges)), 2)
+        keys = ['decision', 'reviewed_tags', 'num_reviews',
+                'reviewed_weight']
+        ut.nx_delete_edge_attr(infr.graph, keys, edges)
+
+    def remove_feedback(infr, apply=False):
+        """ Deletes all feedback """
+        infr.print('remove_feedback', 1)
+        infr.external_feedback = ut.ddict(list)
+        infr.internal_feedback = ut.ddict(list)
+        if apply:
+            infr._del_feedback_edges()
+
+    def _rectify_feedback(infr, feedback):
+        return {edge: infr._rectify_feedback_item(vals)
+                for edge, vals in feedback.items()}
+
+    def _rectify_feedback_item(infr, vals):
+        """ uses most recently use strategy """
+        return vals[-1]
+
+    def reset_feedback(infr, mode='annotmatch'):
+        """ Resets feedback edges to state of the SQL annotmatch table """
+        infr.print('reset_feedback mode=%r' % (mode,), 1)
+        if mode == 'annotmatch':
+            infr.external_feedback = infr.read_ibeis_annotmatch_feedback()
+        elif mode == 'staging':
+            infr.external_feedback = infr.read_ibeis_staging_feedback()
+        else:
+            raise ValueError('no mode=%r' % (mode,))
+        infr.internal_feedback = ut.ddict(list)
+
+    def reset(infr, state='empty'):
+        """
+        Removes all edges from graph and resets name labels.
+        """
+        if state == 'empty':
+            # Remove all edges, and component names
+            infr.graph.remove_edges_from(list(infr.graph.edges()))
+            infr.remove_feedback()
+            infr.remove_name_labels()
+        elif state == 'orig':
+            raise NotImplementedError('unused')
+            infr.graph.remove_edges_from(list(infr.graph.edges()))
+            infr.remove_feedback()
+            infr.reset_name_labels()
+        else:
+            raise ValueError('Unknown state=%r' % (state,))
+
+    def reset_name_labels(infr):
+        """ Resets all annotation node name labels to their initial values """
+        infr.print('reset_name_labels', 1)
+        orig_names = infr.get_node_attrs('orig_name_label')
+        infr.set_node_attrs('name_label', orig_names)
+
+    def remove_name_labels(infr):
+        """ Sets all annotation node name labels to be unknown """
+        infr.print('remove_name_labels()', 1)
+        # make distinct names for all nodes
+        distinct_names = {
+            node: -aid for node, aid in infr.get_node_attrs('aid').items()
+        }
+        infr.set_node_attrs('name_label', distinct_names)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1539,8 +1674,7 @@ class _AnnotInfrPriority(object):
         return new_priorities
 
     def _init_priority_queue(infr, randomness=0, rng=None):
-        if infr.verbose:
-            infr.print('_init_priority_queue')
+        infr.print('_init_priority_queue', 1)
         graph = infr.graph
 
         # Candidate edges are unreviewed
@@ -1596,12 +1730,24 @@ class _AnnotInfrPriority(object):
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _AnnotInfrUpdates(object):
 
-    def relabel_using_reviews2(infr):
-        infr.set_node_attrs(
-            'name_label', {n: infr.pos_graph.node_label(n)
-                           for n in infr.graph.nodes()})
+    def refresh_bookkeeping(infr):
+        # TODO: need to ensure bookkeeping is taken care of
+        infr.recovery_ccs = list(infr.inconsistent_components())
+        if len(infr.recovery_ccs) > 0:
+            infr.recovery_cc = infr.recovery_ccs[0]
+            infr.recover_prev_neg_nids = list(
+                infr.find_neg_outgoing_freq(infr.recovery_cc).keys()
+            )
+        else:
+            infr.recovery_cc = None
+            infr.recover_prev_neg_nids = None
+        infr.pos_redun_nids = set(infr.find_pos_redun_nids())
+        infr.neg_redun_nids = nx.Graph(list(infr.find_neg_redun_nids()))
 
     def apply_category_inference(infr, graph=None):
+
+        # infr.refresh_bookkeeping()
+
         categories = infr.categorize_edges(graph)
 
         # TODO: should this also update redundancy?
@@ -1688,13 +1834,6 @@ class _AnnotInfrUpdates(object):
         #     else:
         #         inconsistent_ccs.append(cc)
         # Q = nx.quotient_graph(graph, consistent_ccs + inconsistent_ccs)
-
-        def group_name_edges(g, node_to_label):
-            ne_to_edges = collections.defaultdict(set)
-            for u, v in g.edges():
-                name_edge = e_(node_to_label[u], node_to_label[v])
-                ne_to_edges[name_edge].add(e_(u, v))
-            return ne_to_edges
 
         POSTV = 'match'
         NEGTV = 'nomatch'
@@ -1906,8 +2045,6 @@ class _AnnotInfrRelabel(object):
         for cc in ccs:
             yield cc
 
-    pccs = positive_components
-
     @profile
     def reset_labels_to_ibeis(infr):
         """ Sets to IBEIS de-facto labels if available """
@@ -1923,8 +2060,7 @@ class _AnnotInfrRelabel(object):
         old_names  = [None, None, None, 1, 2, 3, 3, 4, 4, 4, 5, None]
         new_labels = [   1,    2,    2, 3, 4, 5, 5, 6, 3, 3, 7, 7]
         """
-        if infr.verbose >= 3:
-            infr.print('rectifying name lists')
+        infr.print('rectifying name lists', 3)
         from ibeis.scripts import name_recitifer
         newlabel_to_oldnames = ut.group_items(old_names, new_labels)
         unique_newlabels = list(newlabel_to_oldnames.keys())
@@ -1954,8 +2090,7 @@ class _AnnotInfrRelabel(object):
         """
         # Determine which names can be reused
         from ibeis.scripts import name_recitifer
-        if infr.verbose >= 3:
-            infr.print('grouping names for rectification')
+        infr.print('grouping names for rectification', 3)
         grouped_oldnames_ = [
             list(nx.get_node_attributes(subgraph, 'name_label').values())
             for count, subgraph in enumerate(cc_subgraphs)
@@ -1965,13 +2100,11 @@ class _AnnotInfrRelabel(object):
             [n for n in group if len(group) == 1 or n > 0]
             for group in grouped_oldnames_
         ]
-        if infr.verbose >= 2:
-            infr.print('begin rectification of %d grouped old names' % (
-                len(grouped_oldnames)))
+        infr.print('begin rectification of %d grouped old names' % (
+            len(grouped_oldnames)), 2)
         new_labels = name_recitifer.find_consistent_labeling(
             grouped_oldnames, verbose=infr.verbose >= 3)
-        if infr.verbose >= 2:
-            infr.print('done rectifying new names')
+        infr.print('done rectifying new names', 2)
         new_flags = [
             not isinstance(n, int) and n.startswith('_extra_name')
             for n in new_labels
@@ -1997,8 +2130,7 @@ class _AnnotInfrRelabel(object):
                 consistent otherwise there are no restrictions on name labels
                 other than that they are distinct.
         """
-        if infr.verbose >= 2:
-            infr.print('relabel_using_reviews')
+        infr.print('relabel_using_reviews', 2)
         if graph is None:
             graph = infr.graph
 
@@ -2010,8 +2142,8 @@ class _AnnotInfrRelabel(object):
             if not infr.is_consistent(cc):
                 num_inconsistent += 1
 
+        infr.print('num_inconsistent = %r' % (num_inconsistent,), 2)
         if infr.verbose >= 2:
-            infr.print('num_inconsistent = %r' % (num_inconsistent,))
             cc_sizes = list(map(len, cc_subgraphs))
             pcc_size_hist = ut.dict_hist(cc_sizes)
             pcc_size_stats = ut.get_stats(cc_sizes)
@@ -2041,8 +2173,7 @@ class _AnnotInfrRelabel(object):
             infr.set_node_attrs('name_label', node_to_newlabel)
 
         num_names = len(cc_subgraphs)
-        if infr.verbose >= 3:
-            infr.print('done relabeling')
+        infr.print('done relabeling', 3)
         return num_names, num_inconsistent
 
     def connected_component_status(infr):
@@ -2057,17 +2188,14 @@ class _AnnotInfrRelabel(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback2((2, 3), 'nomatch')
-            >>> infr.add_feedback2((5, 6), 'nomatch')
-            >>> infr.add_feedback2((1, 2), 'match')
-            >>> infr.apply_feedback_edges()
+            >>> infr.add_feedback((2, 3), 'nomatch')
+            >>> infr.add_feedback((5, 6), 'nomatch')
+            >>> infr.add_feedback((1, 2), 'match')
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
-        if infr.verbose >= 3:
-            infr.print('checking status')
+        infr.print('checking status', 3)
 
-        pccs = list(infr.positive_components())
         num_inconsistent = len(infr.recovery_ccs)
         num_names_max = infr.pos_graph.number_of_components()
 
@@ -2075,8 +2203,7 @@ class _AnnotInfrRelabel(object):
             num_names_max=num_names_max,
             num_inconsistent=num_inconsistent,
         )
-        if infr.verbose >= 3:
-            infr.print('done checking status')
+        infr.print('done checking status', 3)
         return status
 
 
@@ -2135,7 +2262,7 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.apply_mst()
         >>> infr.show_graph(use_image=use_image)
         >>> # Add some feedback
-        >>> infr.add_feedback2((1, 4), 'nomatch')
+        >>> infr.add_feedback((1, 4), 'nomatch')
         >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
@@ -2155,13 +2282,13 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.initialize_visual_node_attrs()
         >>> infr.apply_mst()
         >>> # Add some feedback
-        >>> infr.add_feedback2((1, 4), 'nomatch')
+        >>> infr.add_feedback((1, 4), 'nomatch')
         >>> try:
-        >>>     infr.add_feedback2((1, 10), 'nomatch')
+        >>>     infr.add_feedback((1, 10), 'nomatch')
         >>> except ValueError:
         >>>     pass
         >>> try:
-        >>>     infr.add_feedback2((11, 12), 'nomatch')
+        >>>     infr.add_feedback((11, 12), 'nomatch')
         >>> except ValueError:
         >>>     pass
         >>> infr.apply_feedback_edges()
@@ -2170,13 +2297,6 @@ class AnnotInference(ut.NiceRepr,
         infr = <AnnotInference(nAids=6, nEdges=0)>
 
     """
-
-    # Scores are ordered in priority order:
-    # CUT_WEIGHT - final weight used for inference (overridden by user)
-    # NORMSCORE - normalized score computed by an automatic process
-    # SCORE - raw score computed by automatic process
-
-    CUT_WEIGHT_KEY = 'cut_weight'
 
     _graph_cls = nx.Graph
     # _graph_cls = nx.DiGraph
@@ -2196,75 +2316,22 @@ class AnnotInference(ut.NiceRepr,
         ut.cprint('real_n_pcc_mst_edges = %r' % (
             infr.real_n_pcc_mst_edges,), 'red')
 
-    def edge_confusion(infr):
-        confusion = {
-            'correct': {
-                'pred_pos': [],
-                'pred_neg': [],
-            },
-            'incorrect': {
-                'pred_pos': [],
-                'pred_neg': [],
-            },
-        }
-        for edge, data in infr.edges(data=True):
-            # nid1 = infr.pos_graph.node_label(edge[0])
-            # nid2 = infr.pos_graph.node_label(edge[1])
-            true_state = infr.edge_truth[edge]
-            decision = data.get('decision', 'unreviewed')
-            if decision == 'unreviewed':
-                pass
-            elif true_state == decision:
-                if true_state == 'match':
-                    confusion['correct']['pred_pos'].append(edge)
-            elif true_state != decision:
-                if decision == 'match':
-                    confusion['incorrect']['pred_pos'].append(edge)
-                elif decision == 'nomatch':
-                    confusion['incorrect']['pred_neg'].append(edge)
-
-    def measure_metrics(infr):
-        real_pos_edges = []
-        n_error_edges = 0
-        pred_n_pcc_mst_edges = 0
-        n_fn = 0
-        n_fp = 0
-
-        for edge, data in infr.edges(data=True):
-            true_state = infr.edge_truth[edge]
-            decision = data.get('decision', 'unreviewed')
-            if true_state == decision and true_state == 'match':
-                real_pos_edges.append(edge)
-            elif decision != 'unreviewed':
-                if true_state != decision:
-                    n_error_edges += 1
-                    if true_state == 'match':
-                        n_fn += 1
-                    elif true_state == 'nomatch':
-                        n_fp += 1
-
-        import networkx as nx
-        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
-            pred_n_pcc_mst_edges += len(cc) - 1
-
-        pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
-        metrics = {
-            'n_manual': infr.test_state['n_manual'],
-            'n_auto': infr.test_state['n_auto'],
-            'pos_acc': pos_acc,
-            'n_merge_remain': infr.real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
-            'merge_remain': 1 - pos_acc,
-            'n_errors': n_error_edges,
-            'n_fn': n_fn,
-            'n_fp': n_fp,
-        }
-        return metrics
-
     def init_logging(infr):
-        def log_message(msg, level=logging.NOTSET):
+        infr.logs = []
+        def log_message(msg, level=logging.NOTSET, color=None):
+            if color is None:
+                color = 'blue'
+            if True:
+                infr.logs.append((msg, color))
             if infr.verbose >= level:
-                ut.cprint('[infr] ' + msg, 'blue')
+                ut.cprint('[infr] ' + msg, color)
         infr.print = log_message
+
+    def dump_logs(infr):
+        print('--- <LOG DUMP> ---')
+        for msg, color in infr.logs:
+            ut.cprint('[infr] ' + msg, color)
+        print('--- <\LOG DUMP> ---')
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
         infr.test_mode = False
@@ -2280,8 +2347,6 @@ class AnnotInference(ut.NiceRepr,
         infr.orig_name_labels = None
         infr.aid_to_node = None
         infr.node_to_aid = None
-
-        infr.error_edges = set([])
 
         # If not dirty, new feedback should dynamically maintain a consistent
         # state. If dirty it means we need to recompute connected compoments
@@ -2304,15 +2369,24 @@ class AnnotInference(ut.NiceRepr,
         infr.refresh = None
         infr.term = None
 
-        infr.init_bookkeeping()
+        # Bookkeeping
+        infr.error_edges = set([])
+        infr.recovery_ccs = []
+        # TODO: keep one main recovery cc but once it is done pop the next one
+        # from recovery_ccs until none are left
+        infr.recovery_cc = None
+        infr.recover_prev_neg_nids = None
+        # Set of PCCs that are positive redundant
+        infr.pos_redun_nids = set([])
+        # Represents the metagraph of negative edges between PCCs
+        infr.neg_redun_nids = nx.Graph()
 
-        # TODO: rename to external_feedback? This should represent The feedback
-        # read from a database. We do not need to do any updates to an external
-        # database based on this data.
+        # This should represent The feedback read from a database. We do not
+        # need to do any updates to an external database based on this data.
         infr.external_feedback = ut.ddict(list)
 
-        # TODO: add all feedback to internal_feedback until we sync with the
-        # database. Then merge it into external_feedback
+        # Feedback that has not been synced with the external database.
+        # Once we sync, this is merged into external feedback.
         infr.internal_feedback = ut.ddict(list)
 
         infr.thresh = None
@@ -2368,7 +2442,7 @@ class AnnotInference(ut.NiceRepr,
         infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
         infr.initialize_graph(graph=G)
         infr.update_node_attributes()
-        infr.refresh_bookkeeping()
+        infr.apply_category_inference()
         return infr
 
     @classmethod
@@ -2532,33 +2606,6 @@ class AnnotInference(ut.NiceRepr,
 
         infr.update_node_attributes()
 
-    @profile
-    def apply_weights(infr):
-        """
-        Combines normalized scores and user feedback into edge weights used in
-        the graph cut inference.
-        """
-        infr.print('apply_weights', 1)
-        ut.nx_delete_edge_attr(infr.graph, infr.CUT_WEIGHT_KEY)
-        # mst not needed. No edges are removed
-
-        edges = list(infr.graph.edges())
-        edge_to_normscore = infr.get_edge_attrs('normscore')
-        normscores = np.array(ut.dict_take(edge_to_normscore, edges, np.nan))
-
-        edge_to_reviewed_weight = infr.get_edge_attrs('reviewed_weight')
-        reviewed_weights = np.array(ut.dict_take(edge_to_reviewed_weight,
-                                                 edges, np.nan))
-        # Combine into weights
-        weights = normscores.copy()
-        has_review = ~np.isnan(reviewed_weights)
-        weights[has_review] = reviewed_weights[has_review]
-        # remove nans
-        is_valid = ~np.isnan(weights)
-        weights = weights.compress(is_valid, axis=0)
-        edges = ut.compress(edges, is_valid)
-        infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, _dz(edges, weights))
-
 
 def testdata_infr2(defaultdb='PZ_MTEST'):
     defaultdb = 'PZ_MTEST'
@@ -2585,10 +2632,10 @@ def testdata_infr2(defaultdb='PZ_MTEST'):
     n1, n2, n3, n4 = names[0:4]
     for name in names[4:]:
         for a, b in ut.itertwo(name.aids):
-            infr.add_feedback2((a, b), 'match')
+            infr.add_feedback((a, b), 'match')
 
     for name1, name2 in it.combinations(names[4:], 2):
-        infr.add_feedback2((name1.aids[0], name2.aids[0]), 'nomatch')
+        infr.add_feedback((name1.aids[0], name2.aids[0]), 'nomatch')
     return infr
 
 
@@ -2603,7 +2650,7 @@ def testdata_infr(defaultdb='PZ_MTEST'):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph-tab
+        ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
         python -m ibeis.algo.hots.graph_iden
         python -m ibeis.algo.hots.graph_iden --allexamples
     """

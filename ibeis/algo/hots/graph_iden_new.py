@@ -88,6 +88,272 @@ class UserOracle(object):
         return feedback
 
 
+class InfrLoops(object):
+    """
+    Algorithm control flow loops
+    """
+
+    def inner_loop(infr):
+        """
+        Executes reviews until the queue is empty or needs refresh
+        """
+
+        infr.print('Start inner loop')
+        for count in it.count(0):
+            if len(infr.queue) == 0:
+                infr.print('No more edges, need refresh')
+                break
+            edge, priority = infr.pop()
+            if infr.is_recovering():
+                infr.print('IN RECOVERY MODE priority=%r' % (priority,),
+                           color='red')
+            else:
+                if infr.refresh.check():
+                    infr.print('Refresh criteria flags refresh')
+                    break
+
+            flag = False
+            if infr.enable_autoreview:
+                flag, feedback = infr.try_auto_review(edge)
+            if not flag:
+                # if infr.enable_inference:
+                #     flag, feedback = infr.try_implicit_review(edge)
+                if not flag:
+                    feedback = infr.request_user_review(edge)
+            infr.add_feedback(edge=edge, **feedback)
+
+            if infr.is_recovering():
+                infr.recovery_review_loop()
+
+    def recovery_review_loop(infr):
+        while infr.is_recovering():
+            edge, priority = infr.pop()
+
+            num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
+            feedback = infr.request_user_review(edge)
+            infr.print('RECOVERY LOOP edge=%r, decision=%r, priority=%r, n_reviews=%r, len(recover_cc)=%r' %
+                       (edge, feedback['decision'], priority, num_reviews,
+                        len(infr.recovery_cc)), color='red')
+            infr.add_feedback(edge=edge, **feedback)
+
+    def priority_review_loop(infr, max_loops):
+        infr.refresh = RefreshCriteria2()
+        for count in it.count(0):
+            if count >= max_loops:
+                infr.print('early stop')
+                break
+            infr.print('Outer loop iter %d ' % (count,))
+            infr.refresh_candidate_edges()
+            if not len(infr.queue):
+                infr.print('Queue is empty. Terminate.')
+                break
+            infr.inner_loop()
+            if infr.enable_inference:
+                infr.assert_consistency_invariant()
+                infr.print('HACK FIX REDUN', color='white')
+                # Fix anything that is not positive/negative redundant
+                real_queue = infr.queue
+                # use temporary queue
+                infr.queue = ut.PriorityQueue()
+                infr.refresh_candidate_edges(ranking=False)
+                infr.inner_loop()
+                infr.queue = real_queue
+
+    @profile
+    def main_loop(infr, max_loops=np.inf):
+        infr.print('Starting main loop', 1)
+        infr.reset(state='empty')
+        infr.remove_feedback(apply=True)
+
+        infr.priority_review_loop(max_loops)
+
+        if infr.enable_inference:
+            # Enforce that a user checks any PCC that was auto-reviewed
+            # but was unable to achieve k-positive-consistency
+            for pcc in list(infr.non_pos_redundant_pccs()):
+                subgraph = infr.graph.subgraph(pcc)
+                for u, v, data in subgraph.edges(data=True):
+                    edge = infr.e_(u, v)
+                    if data.get('user_id', '').startswith('auto'):
+                        feedback = infr.request_user_review(edge)
+                        infr.add_feedback(edge=edge, **feedback)
+            # Check for inconsistency recovery
+            infr.recovery_review_loop()
+
+        if infr.enable_inference and DEBUG_INCON:
+            infr.assert_consistency_invariant()
+        # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
+        # pred_groups = list(infr.positive_connected_compoments())
+        # from ibeis.algo.hots import sim_graph_iden
+        # comparisons = sim_graph_iden.compare_groups(true_groups, pred_groups)
+        # pred_merges = comparisons['pred_merges']
+        # print(pred_merges)
+        infr.print('Exiting main loop')
+
+
+class InfrReviewers(object):
+    @profile
+    def try_auto_review(infr, edge):
+        review = {
+            'user_id': 'auto_clf',
+            'confidence': 'pretty_sure',
+            'decision': None,
+            'tags': [],
+        }
+        if infr.is_recovering():
+            # Do not autoreview if we are in an inconsistent state
+            infr.print('Must manually review inconsistent edge', 1)
+            return False, review
+        # Determine if anything passes the match threshold
+        primary_task = 'match_state'
+        data = infr.get_edge_data(*edge)
+        decision_probs = pd.Series(data['task_probs'][primary_task])
+        a, b = decision_probs.align(infr.task_thresh[primary_task])
+        decision_flags = a > b
+        # decision_probs > infr.task_thresh[primary_task]
+        auto_flag = False
+        if sum(decision_flags) == 1:
+            # Check to see if it might be confounded by a photobomb
+            pb_probs = data['task_probs']['photobomb_state']
+            pb_thresh = infr.task_thresh['photobomb_state']['pb']
+            confounded = pb_probs['pb'] > pb_thresh
+            if not confounded:
+                review['decision'] = decision_flags.argmax()
+                truth = infr.match_state_gt(edge).idxmax()
+                if review['decision'] != truth:
+                    infr.print('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
+                               (edge, truth, review['decision']), color='purple')
+                auto_flag = True
+        if auto_flag and infr.verbose > 1:
+            infr.print('Automatic review success')
+
+        return auto_flag, review
+
+    def try_implicit_review(infr, edge):
+        review = {}
+        # Check if edge is implicitly negative
+        if not infr.is_recovering():
+            implicit_flag = (
+                infr.check_prob_completeness(edge[0]) and
+                infr.check_prob_completeness(edge[1])
+            )
+            if implicit_flag:
+                review = {
+                    'user_id': 'auto_implicit_complete',
+                    'confidence': 'pretty_sure',
+                    'decision': 'nomatch',
+                    'tags': [],
+                }
+        else:
+            implicit_flag = False
+        return implicit_flag, review
+
+    def request_user_review(infr, edge):
+        if infr.test_mode:
+            true_state = infr.match_state_gt(edge)
+            truth = true_state.idxmax()
+            feedback = infr.oracle.review(
+                edge, truth, infr.is_recovering())
+        else:
+            raise NotImplementedError('no user review')
+        return feedback
+
+
+class SimulationHelpers(object):
+    def init_simulation(infr, oracle_accuracy=1.0, k_redun=2,
+                        enable_autoreview=True, enable_inference=True,
+                        classifiers=None, phis=None, complete_thresh=None,
+                        match_state_thresh=None, name=None):
+
+        infr.name = name
+
+        infr.print('INIT SIMULATION', color='yellow')
+
+        infr.classifiers = classifiers
+        infr.enable_inference = enable_inference
+        infr.enable_autoreview = enable_autoreview
+
+        infr.queue_params['pos_redundancy'] = k_redun
+        infr.queue_params['neg_redundancy'] = k_redun
+        infr.queue_params['complete_thresh'] = complete_thresh
+
+        infr.queue = ut.PriorityQueue()
+
+        infr.oracle = UserOracle(oracle_accuracy, infr.name)
+        infr.term = TerminationCriteria2(phis)
+
+        infr.task_thresh = {
+            'photobomb_state': pd.Series({
+                'pb': .5,
+                'notpb': .9,
+            }),
+            'match_state': pd.Series(match_state_thresh)
+        }
+
+        infr.test_mode = True
+        infr.edge_truth = {}
+        infr.metrics_list = []
+        infr.test_state = {
+            'n_auto': 0,
+            'n_manual': 0,
+        }
+        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
+        infr.real_n_pcc_mst_edges = sum(
+            len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
+        infr.print('real_n_pcc_mst_edges = %r' % (
+            infr.real_n_pcc_mst_edges,), color='red')
+
+    def measure_error_edges(infr):
+        for edge, data in infr.edges(data=True):
+            true_state = data['truth']
+            pred_state = data.get('decision', 'unreviewed')
+            if pred_state != 'unreviewed':
+                if true_state != pred_state:
+                    error = ut.odict([('real', true_state),
+                                      ('pred', pred_state)])
+                    yield edge, error
+
+    @profile
+    def measure_metrics(infr):
+        real_pos_edges = []
+        n_error_edges = 0
+        pred_n_pcc_mst_edges = 0
+        n_fn = 0
+        n_fp = 0
+
+        # TODO: dynamic measurement
+
+        for edge, data in infr.edges(data=True):
+            true_state = infr.edge_truth[edge]
+            decision = data.get('decision', 'unreviewed')
+            if true_state == decision and true_state == 'match':
+                real_pos_edges.append(edge)
+            elif decision != 'unreviewed':
+                if true_state != decision:
+                    n_error_edges += 1
+                    if true_state == 'match':
+                        n_fn += 1
+                    elif true_state == 'nomatch':
+                        n_fp += 1
+
+        import networkx as nx
+        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
+            pred_n_pcc_mst_edges += len(cc) - 1
+
+        pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
+        metrics = {
+            'n_manual': infr.test_state['n_manual'],
+            'n_auto': infr.test_state['n_auto'],
+            'pos_acc': pos_acc,
+            'n_merge_remain': infr.real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
+            'merge_remain': 1 - pos_acc,
+            'n_errors': n_error_edges,
+            'n_fn': n_fn,
+            'n_fp': n_fp,
+        }
+        return metrics
+
+
 class InfrInvariants(object):
 
     def assert_invariants(infr, msg=''):
@@ -202,9 +468,9 @@ class CandidateSearch2(object):
         #     # hacking this in bellow
         #     pass
 
-        if infr.verbose:
-            infr.print('vsmany found %d/%d new edges' % (
-                len(candidate_edges), len(candidate_edges) + len(already_reviewed)))
+        infr.print('vsmany found %d/%d new edges' % (
+            len(candidate_edges), len(candidate_edges) +
+            len(already_reviewed)), 1)
         return candidate_edges
 
     @profile
@@ -270,8 +536,7 @@ class CandidateSearch2(object):
             infr.apply_edge_truth(new_edges)
 
         if infr.classifiers:
-            if infr.verbose > 1:
-                infr.print('Prioritizing edges with one-vs-one probabilities')
+            infr.print('Prioritizing edges with one-vs-one probabilities', 1)
             # Construct pairwise features on edges in infr
             # needs_probs = infr.get_edges_where_eq('task_probs', None,
             #                                       edges=new_edges,
@@ -311,8 +576,7 @@ class CandidateSearch2(object):
             # Insert all the new edges into the priority queue
             infr.queue.update((-default_priority).to_dict())
         else:
-            if infr.verbose > 1:
-                infr.print('Prioritizing edges with one-vs-vsmany scores')
+            infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
             infr.task_probs = None
             scores = infr._make_lnbnn_scores(new_edges)
@@ -320,13 +584,12 @@ class CandidateSearch2(object):
             infr.queue.update(ut.dzip(new_edges, -scores))
 
     @profile
-    def refresh_candidate_edges2(infr, ranking=True):
+    def refresh_candidate_edges(infr, ranking=True):
         """
         Search for candidate edges.
         Assign each edge a priority and add to queue.
         """
-        if infr.verbose:
-            infr.print('refresh_candidate_edges2')
+        infr.print('refresh_candidate_edges', 1)
 
         infr.assert_consistency_invariant()
         infr.refresh.reset()
@@ -371,7 +634,8 @@ class InfrRecovery2(object):
 
     def _enter_recovery(infr, edge, decision, *nids):
         assert not infr.is_recovering()
-        ut.cprint('GRAPH ENTERED AN INCONSISTENT STATE edge=%r' % (edge,), 'red')
+        infr.print('Entered an inconsistent state edge=%r' % (edge,),
+                   color='red')
         aid1, aid2 = edge
         pos_graph = infr.pos_graph
         infr.recovery_cc = set(ut.flatten([pos_graph.component_nodes(nid)
@@ -415,8 +679,8 @@ class InfrRecovery2(object):
             # cut_edgeset_weight = sum([
             #     pos_subgraph.get_edge_data(u, v)[capacity]
             #     for u, v in cut_edgeset])
-            infr.print('cut_weight = %r' % (cut_weight,), 3)
-            infr.print('join_weight = %r' % (join_weight,), 3)
+            # infr.print('cut_weight = %r' % (cut_weight,), 3)
+            # infr.print('join_weight = %r' % (join_weight,), 3)
             if join_weight < cut_weight:
                 join_edgeset = {(s, t)}
                 chosen = join_edgeset
@@ -483,7 +747,7 @@ class InfrRecovery2(object):
         infr._add_review_edge(edge, decision)
 
         # remove any maybe_error flag
-        infr.graph.edge[edge[0]][edge[1]].pop('maybe_error', None)
+        # infr.graph.edge[edge[0]][edge[1]].pop('maybe_error', None)
 
         # Check if there is any inconsistent edge between any pcc in
         # infr.recovery_cc
@@ -519,7 +783,7 @@ class InfrRecovery2(object):
                     base = data.get('prob_match', 1e-9)
                     infr.queue[error_edge] = -(10 + base)
         else:
-            ut.cprint('consistency has been restored', 'green')
+            infr.print('consistency has been restored', color='green')
             # infr.set_edge_attrs('num_reviews', ut.dzip(infr.edges(), [0]))
 
             if DEBUG_INCON:
@@ -559,197 +823,10 @@ class InfrRecovery2(object):
             # to this specific recovery_cc?
 
 
-class InfrFeedback2(object):
-    @profile
-    def consistent_inference(infr, edge, decision):
-        if infr.verbose >= 4:
-            infr.print('Making consistent inference decision')
-        # assuming we are in a consistent state
-        # k_pos = infr.queue_params['pos_redundancy']
-        aid1, aid2 = edge
-        pos_graph = infr.pos_graph
-        neg_graph = infr.neg_graph
-        nid1 = pos_graph.node_label(aid1)
-        nid2 = pos_graph.node_label(aid2)
-        cc1 = pos_graph.component_nodes(nid1)
-        cc2 = pos_graph.component_nodes(nid2)
-        if decision == 'match' and nid1 == nid2:
-            # add positive redundancy
-            infr._add_review_edge(edge, decision)
-            if nid1 not in infr.pos_redun_nids:
-                infr.update_pos_redun(nid1)
-        elif decision == 'match' and nid1 != nid2:
-            if any(edges_cross(neg_graph, cc1, cc2)):
-                # Added positive edge between PCCs with a negative edge
-                return infr._enter_recovery(edge, decision, nid1, nid2)
-            else:
-                # merge into single pcc
-                infr._add_review_edge(edge=(aid1, aid2), decision='match')
-                new_nid = pos_graph.node_label(aid1)
-                prev_neg_nids = infr.purge_redun_flags(nid1, nid2)
-                for other_nid in prev_neg_nids:
-                    infr.update_neg_redun(new_nid, other_nid)
-                infr.update_pos_redun(new_nid)
-        elif decision == 'nomatch' and nid1 == nid2:
-            # Added negative edge in positive PCC
-            return infr._enter_recovery(edge, decision, nid1)
-        elif decision == 'nomatch' and nid1 != nid2:
-            # add negative redundancy
-            infr._add_review_edge(edge, decision)
-            if not infr.neg_redun_nids.has_edge(nid1, nid2):
-                infr.update_neg_redun(nid1, nid2)
-        elif decision == 'notcomp' and nid1 == nid2:
-            if pos_graph.has_edge(*edge):
-                # changed an existing positive edge
-                infr._add_review_edge(edge, decision)
-                new_nid1, new_nid2 = pos_graph.node_labels(aid1, aid2)
-                if new_nid1 != new_nid2:
-                    # split case
-                    old_nid = nid1
-                    prev_neg_nids = infr.purge_redun_flags(old_nid)
-                    for other_nid in prev_neg_nids:
-                        infr.update_neg_redun(new_nid1, other_nid)
-                        infr.update_neg_redun(new_nid2, other_nid)
-                    infr.update_neg_redun(new_nid1, new_nid2)
-                    infr.update_pos_redun(new_nid1)
-                    infr.update_pos_redun(new_nid2)
-                else:
-                    infr.update_pos_redun(cc1)
-            else:
-                infr._add_review_edge(edge, decision)
-
-        elif decision == 'notcomp' and nid1 != nid2:
-            if neg_graph.has_edge(*edge):
-                # changed and existing negative edge
-                infr._add_review_edge(edge, decision)
-                if not infr.neg_redun_nids.has_edge(nid1, nid2):
-                    infr.update_neg_redun(nid1, nid2)
-            else:
-                infr._add_review_edge(edge, decision)
-        else:
-            raise AssertionError('impossible consistent state')
-
-        infr.assert_consistency_invariant()
-
-    def _check_edge(infr, edge):
-        aid1, aid2 = edge
-        if aid1 not in infr.aids_set:
-            raise ValueError('aid1=%r is not part of the graph' % (aid1,))
-        if aid2 not in infr.aids_set:
-            raise ValueError('aid2=%r is not part of the graph' % (aid2,))
-
-    @profile
-    def add_feedback2(infr, edge, decision, tags=None, user_id=None,
-                      confidence=None, timestamp=None, verbose=None):
-        """
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback2((5, 6), 'match')
-            >>> infr.add_feedback2((5, 6), 'nomatch', ['Photobomb'])
-            >>> infr.add_feedback2((1, 2), 'notcomp')
-            >>> print(ut.repr2(infr.internal_feedback, nl=2))
-            >>> assert len(infr.external_feedback) == 0
-            >>> assert len(infr.internal_feedback) == 2
-            >>> assert len(infr.internal_feedback[(5, 6)]) == 2
-            >>> assert len(infr.internal_feedback[(1, 2)]) == 1
-        """
-        if verbose is None:
-            verbose = infr.verbose
-        edge = e_(*edge)
-        aid1, aid2 = edge
-
-        if not infr.has_edge(edge):
-            infr._check_edge(edge)
-            infr.graph.add_edge(aid1, aid2)
-
-        if verbose >= 1:
-            infr.print(('add_feedback2(%r, %r, decision=%r, tags=%r, '
-                        'user_id=%r, confidence=%r)') % (
-                aid1, aid2, decision, tags, user_id, confidence))
-
-        if decision == 'unreviewed':
-            raise NotImplementedError('not done yet')
-            feedback_item = None
-            if edge in infr.external_feedback:
-                raise ValueError(
-                    "Can't unreview an edge that has been committed")
-            if edge in infr.internal_feedback:
-                del infr.internal_feedback[edge]
-            for G in infr.review_graphs.values():
-                if G.has_edge(*edge):
-                    G.remove_edge(*edge)
-
-        # Keep track of sequential reviews and set properties on global graph
-        num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
-        if timestamp is None:
-            timestamp = ut.get_timestamp('int', isutc=True)
-        feedback_item = {
-            'decision': decision,
-            'tags': tags,
-            'timestamp': timestamp,
-            'confidence': confidence,
-            'user_id': user_id,
-            'num_reviews': num_reviews + 1,
-        }
-        infr.internal_feedback[edge].append(feedback_item)
-        if infr.refresh:
-            infr.refresh.add(decision, user_id)
-        infr.set_edge_attr(edge, feedback_item)
-
-        if infr.test_mode:
-            if user_id.startswith('auto'):
-                infr.test_state['n_auto'] += 1
-            elif user_id == 'oracle':
-                infr.test_state['n_manual'] += 1
-            else:
-                raise AssertionError('unknown user_id=%r' % (user_id,))
-
-        if infr.enable_inference:
-            # Update priority queue based on the new edge
-            if infr.is_recovering():
-                infr.inconsistent_inference(edge, decision)
-            else:
-                infr.consistent_inference(edge, decision)
-        else:
-            infr.dirty = True
-            infr._add_review_edge(edge, decision)
-
-        if infr.test_mode:
-            metrics = infr.measure_metrics2()
-            infr.metrics_list.append(metrics)
-
-
 class DynamicUpdate2(object):
-    def refresh_bookkeeping(infr):
-        # TODO: need to ensure bookkeeping is taken care of
-        infr.recovery_ccs = list(infr.inconsistent_components())
-        if len(infr.recovery_ccs) > 0:
-            infr.recovery_cc = infr.recovery_ccs[0]
-            infr.recover_prev_neg_nids = list(
-                infr.find_neg_outgoing_freq(infr.recovery_cc).keys()
-            )
-        else:
-            infr.recovery_cc = None
-            infr.recover_prev_neg_nids = None
-        infr.pos_redun_nids = set(infr.find_pos_redun_nids())
-        infr.neg_redun_nids = nx.Graph(list(infr.find_neg_redun_nids()))
-
-    def init_bookkeeping(infr):
-        infr.recovery_ccs = []
-        # TODO: keep one main recovery cc but once it is done pop the next one
-        # from recovery_ccs until none are left
-        infr.recovery_cc = None
-        infr.recover_prev_neg_nids = None
-        # Set of PCCs that are positive redundant
-        infr.pos_redun_nids = set([])
-        # Represents the metagraph of negative edges between PCCs
-        infr.neg_redun_nids = nx.Graph()
 
     def _add_review_edge(infr, edge, decision):
-        if infr.verbose >= 3:
-            infr.print('Add review edge=%r, decision=%r' % (edge, decision))
+        infr.print('add review edge=%r, decision=%r' % (edge, decision), 1)
         # Add to review graph corresponding to decision
         infr.review_graphs[decision].add_edge(*edge)
         # Remove from previously existing graphs
@@ -809,90 +886,6 @@ class DynamicUpdate2(object):
                         'prob_match', edges, default=1e-9)))
                     priority = -prob_match
                     infr.queue.update(ut.dzip(edges, priority))
-
-    @profile
-    def is_neg_redundant(infr, cc1, cc2):
-        k_neg = infr.queue_params['neg_redundancy']
-        neg_graph = infr.neg_graph
-        # from ibeis.algo.hots.graph_iden_utils import edges_cross
-        # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
-        # return num_neg >= k_neg
-        neg_edge_gen = (
-            1 for u in cc1 for v in cc2.intersection(neg_graph.adj[u])
-        )
-        # do a lazy count of bridges
-        for count in neg_edge_gen:
-            if count >= k_neg:
-                return True
-
-
-class InfrReviewers(object):
-    @profile
-    def try_auto_review2(infr, edge):
-        review = {
-            'user_id': 'auto_clf',
-            'confidence': 'pretty_sure',
-            'decision': None,
-            'tags': [],
-        }
-        if infr.is_recovering():
-            # Do not autoreview if we are in an inconsistent state
-            if infr.verbose > 1:
-                infr.print('Must manually review inconsistent edge')
-            return False, review
-        # Determine if anything passes the match threshold
-        primary_task = 'match_state'
-        data = infr.get_edge_data(*edge)
-        decision_probs = pd.Series(data['task_probs'][primary_task])
-        a, b = decision_probs.align(infr.task_thresh[primary_task])
-        decision_flags = a > b
-        # decision_probs > infr.task_thresh[primary_task]
-        auto_flag = False
-        if sum(decision_flags) == 1:
-            # Check to see if it might be confounded by a photobomb
-            pb_probs = data['task_probs']['photobomb_state']
-            pb_thresh = infr.task_thresh['photobomb_state']['pb']
-            confounded = pb_probs['pb'] > pb_thresh
-            if not confounded:
-                review['decision'] = decision_flags.argmax()
-                truth = infr.match_state_gt(edge).idxmax()
-                if review['decision'] != truth:
-                    ut.cprint('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
-                              (edge, truth, review['decision']), 'purple')
-                auto_flag = True
-        if auto_flag and infr.verbose > 1:
-            infr.print('Automatic review success')
-
-        return auto_flag, review
-
-    def try_implicit_review2(infr, edge):
-        review = {}
-        # Check if edge is implicitly negative
-        if not infr.is_recovering():
-            implicit_flag = (
-                infr.check_prob_completeness(edge[0]) and
-                infr.check_prob_completeness(edge[1])
-            )
-            if implicit_flag:
-                review = {
-                    'user_id': 'auto_implicit_complete',
-                    'confidence': 'pretty_sure',
-                    'decision': 'nomatch',
-                    'tags': [],
-                }
-        else:
-            implicit_flag = False
-        return implicit_flag, review
-
-    def request_user_review(infr, edge):
-        if infr.test_mode:
-            true_state = infr.match_state_gt(edge)
-            truth = true_state.idxmax()
-            feedback = infr.oracle.review(
-                edge, truth, infr.is_recovering())
-        else:
-            raise NotImplementedError('no user review')
-        return feedback
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -1016,7 +1009,7 @@ class AnnotInfrRedundancy(object):
             >>> infr.initialize_visual_node_attrs()
             >>> #ut.ensureqt()
             >>> #infr.show()
-            >>> infr.refresh_candidate_edges2()
+            >>> infr.refresh_candidate_edges()
             >>> node = 1
             >>> node = 20
             >>> infr.is_node_complete(node)
@@ -1089,6 +1082,21 @@ class AnnotInfrRedundancy(object):
                 return pos_conn >= required_k
 
     @profile
+    def is_neg_redundant(infr, cc1, cc2):
+        k_neg = infr.queue_params['neg_redundancy']
+        neg_graph = infr.neg_graph
+        # from ibeis.algo.hots.graph_iden_utils import edges_cross
+        # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
+        # return num_neg >= k_neg
+        neg_edge_gen = (
+            1 for u in cc1 for v in cc2.intersection(neg_graph.adj[u])
+        )
+        # do a lazy count of bridges
+        for count in neg_edge_gen:
+            if count >= k_neg:
+                return True
+
+    @profile
     def pos_redundant_pccs(infr, relax_size=False):
         for cc in infr.consistent_components():
             if len(cc) == 2:
@@ -1122,196 +1130,7 @@ class AnnotInfrRedundancy(object):
                     yield nid1, nid2
 
 
-class TestStuff2(object):
-    def init_test_mode2(infr, oracle_accuracy=1.0, k_redun=2,
-                        enable_autoreview=True, enable_inference=True,
-                        classifiers=None, phis=None, complete_thresh=None,
-                        match_state_thresh=None, name=None):
-
-        infr.name = name
-
-        ut.cprint('INIT TEST', 'yellow')
-        infr.init_bookkeeping()
-
-        infr.classifiers = classifiers
-        infr.enable_inference = enable_inference
-        infr.enable_autoreview = enable_autoreview
-
-        infr.queue_params['pos_redundancy'] = k_redun
-        infr.queue_params['neg_redundancy'] = k_redun
-        infr.queue_params['complete_thresh'] = complete_thresh
-
-        infr.queue = ut.PriorityQueue()
-
-        infr.oracle = UserOracle(oracle_accuracy, infr.name)
-        infr.term = TerminationCriteria2(phis)
-
-        infr.task_thresh = {
-            'photobomb_state': pd.Series({
-                'pb': .5,
-                'notpb': .9,
-            }),
-            'match_state': pd.Series(match_state_thresh)
-        }
-
-        infr.test_mode = True
-        infr.edge_truth = {}
-        infr.metrics_list = []
-        infr.test_state = {
-            'n_auto': 0,
-            'n_manual': 0,
-        }
-        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
-        infr.real_n_pcc_mst_edges = sum(
-            len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
-        ut.cprint('real_n_pcc_mst_edges = %r' % (
-            infr.real_n_pcc_mst_edges,), 'red')
-
-    def error_edges2(infr):
-        for edge, data in infr.edges(data=True):
-            true_state = data['truth']
-            pred_state = data.get('decision', 'unreviewed')
-            if pred_state != 'unreviewed':
-                if true_state != pred_state:
-                    error = ut.odict([('real', true_state),
-                                      ('pred', pred_state)])
-                    yield edge, error
-
-    @profile
-    def measure_metrics2(infr):
-        real_pos_edges = []
-        n_error_edges = 0
-        pred_n_pcc_mst_edges = 0
-        n_fn = 0
-        n_fp = 0
-
-        # TODO: dynamic measurement
-
-        for edge, data in infr.edges(data=True):
-            true_state = infr.edge_truth[edge]
-            decision = data.get('decision', 'unreviewed')
-            if true_state == decision and true_state == 'match':
-                real_pos_edges.append(edge)
-            elif decision != 'unreviewed':
-                if true_state != decision:
-                    n_error_edges += 1
-                    if true_state == 'match':
-                        n_fn += 1
-                    elif true_state == 'nomatch':
-                        n_fp += 1
-
-        import networkx as nx
-        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
-            pred_n_pcc_mst_edges += len(cc) - 1
-
-        pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
-        metrics = {
-            'n_manual': infr.test_state['n_manual'],
-            'n_auto': infr.test_state['n_auto'],
-            'pos_acc': pos_acc,
-            'n_merge_remain': infr.real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
-            'merge_remain': 1 - pos_acc,
-            'n_errors': n_error_edges,
-            'n_fn': n_fn,
-            'n_fp': n_fp,
-        }
-        return metrics
-
-
-class AnnotInfr2(InfrRecovery2, InfrFeedback2, CandidateSearch2, InfrReviewers,
-                 InfrLearning, AnnotInfrRedundancy, TestStuff2, DynamicUpdate2,
-                 InfrInvariants):
-
-    def inner_loop2(infr):
-        """
-        Executes reviews until the queue is empty or needs refresh
-        """
-
-        ut.cprint('Start inner loop', 'blue')
-        for count in it.count(0):
-            if len(infr.queue) == 0:
-                ut.cprint('No more edges, need refresh', 'blue')
-                break
-            edge, priority = infr.pop()
-            if infr.is_recovering():
-                ut.cprint('IN RECOVERY MODE priority=%r' % (priority,), 'red')
-            else:
-                if infr.refresh.check():
-                    ut.cprint('Refresh criteria flags refresh', 'blue')
-                    break
-
-            flag = False
-            if infr.enable_autoreview:
-                flag, feedback = infr.try_auto_review2(edge)
-            if not flag:
-                # if infr.enable_inference:
-                #     flag, feedback = infr.try_implicit_review2(edge)
-                if not flag:
-                    feedback = infr.request_user_review(edge)
-            infr.add_feedback2(edge=edge, **feedback)
-
-            if infr.is_recovering():
-                infr.recovery_review_loop()
-
-    def recovery_review_loop(infr):
-        while infr.is_recovering():
-            edge, priority = infr.pop()
-
-            num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
-            feedback = infr.request_user_review(edge)
-            ut.cprint('RECOVERY LOOP edge=%r, decision=%r, priority=%r, n_reviews=%r, len(recover_cc)=%r' %
-                      (edge, feedback['decision'], priority, num_reviews, len(infr.recovery_cc)), 'red')
-            infr.add_feedback2(edge=edge, **feedback)
-
-    def priority_review_loop(infr, max_loops):
-        infr.refresh = RefreshCriteria2()
-        for count in it.count(0):
-            if count >= max_loops:
-                ut.cprint('early stop', 'blue')
-                break
-            ut.cprint('Outer loop iter %d ' % (count,), 'blue')
-            infr.refresh_candidate_edges2()
-            if not len(infr.queue):
-                ut.cprint('Queue is empty. Terminate.', 'blue')
-                break
-            infr.inner_loop2()
-            if infr.enable_inference:
-                infr.assert_consistency_invariant()
-                ut.cprint('HACK FIX REDUN', 'white')
-                # Fix anything that is not positive/negative redundant
-                real_queue = infr.queue
-                # use temporary queue
-                infr.queue = ut.PriorityQueue()
-                infr.refresh_candidate_edges2(ranking=False)
-                infr.inner_loop2()
-                infr.queue = real_queue
-
-    @profile
-    def main_loop2(infr, max_loops=np.inf):
-        infr.reset(state='empty')
-        infr.remove_feedback(apply=True)
-
-        infr.priority_review_loop(max_loops)
-
-        if infr.enable_inference:
-            # Enforce that a user checks any PCC that was auto-reviewed
-            # but was unable to achieve k-positive-consistency
-            for pcc in list(infr.non_pos_redundant_pccs()):
-                subgraph = infr.graph.subgraph(pcc)
-                for u, v, data in subgraph.edges(data=True):
-                    edge = infr.e_(u, v)
-                    if data.get('user_id', '').startswith('auto'):
-                        feedback = infr.request_user_review(edge)
-                        infr.add_feedback2(edge=edge, **feedback)
-            # Check for inconsistency recovery
-            infr.recovery_review_loop()
-
-        if infr.enable_inference and DEBUG_INCON:
-            infr.assert_consistency_invariant()
-        # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
-        # pred_groups = list(infr.positive_connected_compoments())
-        # from ibeis.algo.hots import sim_graph_iden
-        # comparisons = sim_graph_iden.compare_groups(true_groups, pred_groups)
-        # pred_merges = comparisons['pred_merges']
-        # print(pred_merges)
-        ut.cprint('FINISH ETE')
+class AnnotInfr2(InfrRecovery2, CandidateSearch2, InfrReviewers, InfrLearning,
+                 AnnotInfrRedundancy, SimulationHelpers, DynamicUpdate2,
+                 InfrInvariants, InfrLoops):
+    pass

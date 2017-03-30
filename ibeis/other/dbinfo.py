@@ -529,7 +529,7 @@ def split_analysis(ibs):
         for aid1, aid2 in bad_edges:
             if infr.graph.has_edge(aid1, aid2):
                 flipped_edges.append((aid1, aid2))
-            infr.add_feedback2((aid1, aid2), 'nomatch')
+            infr.add_feedback((aid1, aid2), 'nomatch')
         infr.apply_feedback()
         nx.set_edge_attributes(infr.graph, '_speed_split', 'orig')
         nx.set_edge_attributes(infr.graph, '_speed_split',

@@ -659,9 +659,14 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             # self.graph_tab_widget.setCurrentIndex(2)
 
         match = ut.get_argval('--match', type_=list, default=None)
-        print('match = %r' % (match,))
+        import ubelt as ub
         if match:
-            self.mark_pair_state([match], 'match')
+            pairs = list(ub.chunks(match, 2))
+            self.mark_pair_state(pairs, 'match')
+        nomatch = ut.get_argval('--nomatch', type_=list, default=None)
+        if nomatch:
+            pairs = list(ub.chunks(nomatch, 2))
+            self.mark_pair_state(pairs, 'nomatch')
 
     def repopulate(self):
         # self.update_state(structure_changed=True)
@@ -676,19 +681,16 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         if not disable_global_update:
             if self.init_mode == 'split':
                 self.infr.apply_feedback_edges()
-                self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
             elif self.init_mode == 'rereview':
                 self.infr.apply_feedback_edges()
                 self.infr.apply_match_scores()
-                self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
             elif self.init_mode == 'review':
                 self.infr.apply_match_edges()
                 self.infr.review_dummy_edges()
                 self.infr.apply_feedback_edges()
                 self.infr.apply_match_scores()
-                self.infr.apply_weights()
                 self.infr.relabel_using_reviews()
                 self.infr.apply_category_inference()
 
@@ -738,14 +740,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.infr.exec_matching(prog_hook=ctx.prog_hook)
             self.infr.apply_match_edges(self.review_cfg)
             self.infr.apply_match_scores()
-            self.infr.apply_weights()
         self.repopulate()
 
     def score_edges_vsone(self):
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
             self.infr.exec_vsone(prog_hook=ctx.prog_hook)
             self.infr.apply_match_scores()
-            self.infr.apply_weights()
         self.repopulate()
 
     def reset_review(self):
@@ -858,7 +858,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = statetags[1].split(';') if len(statetags) > 1 else []
         assert state in valid_states
         for aid1, aid2 in pairs:
-            self.infr.add_feedback2((aid1, aid2), decision=state, tags=tags,
+            self.infr.add_feedback((aid1, aid2), decision=state, tags=tags,
                                     user_id='qt-mark')
         self.emit_state_update(disable_global_update=True)
 
@@ -947,7 +947,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         dlg.exec_()
         if dlg.widget.was_confirmed:
             feedback = dlg.widget.feedback_dict()
-            self.infr.add_feedback2(**feedback)
+            self.infr.add_feedback(**feedback)
 
     def get_edge_options(self, aid_pairs):
         """
@@ -1101,7 +1101,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         tags = tags.map(ut.unique)
 
         for (aid1, aid2), state, tags in zip(aid_pairs, decision, tags):
-            infr.add_feedback2((aid1, aid2), decision=state, tags=tags)
+            infr.add_feedback((aid1, aid2), decision=state, tags=tags)
 
         infr.apply_feedback_edges()
         infr.apply_category_inference()

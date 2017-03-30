@@ -693,15 +693,15 @@ def k_redun_demo():
 
     for name_aids in nid2_aid.values():
         for edge in ut.itertwo(name_aids):
-            infr.add_feedback2(edge, 'match')
-    infr.add_feedback2((7664, 7522), 'match')
-    infr.add_feedback2((7746, 7477), 'match')
-    infr.add_feedback2((7383, 7376), 'match')
+            infr.add_feedback(edge, 'match')
+    infr.add_feedback((7664, 7522), 'match')
+    infr.add_feedback((7746, 7477), 'match')
+    infr.add_feedback((7383, 7376), 'match')
 
-    # infr.add_feedback2((7664, 7383), 'nomatch')
-    # infr.add_feedback2((7462, 7746), 'nomatch')
+    # infr.add_feedback((7664, 7383), 'nomatch')
+    # infr.add_feedback((7462, 7746), 'nomatch')
 
-    # infr.add_feedback2((7464, 7376), 'nomatch')
+    # infr.add_feedback((7464, 7376), 'nomatch')
 
     # Adjust between new and old variable names
     infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
@@ -813,7 +813,7 @@ def graph_iden_cut_demo():
             while True:
                 edge, priority = infr.pop()
                 feedback = infr.request_user_review(edge)
-                infr.add_feedback2(edge=edge, **feedback)
+                infr.add_feedback(edge=edge, **feedback)
         except StopIteration:
             pass
     # if postcut:
