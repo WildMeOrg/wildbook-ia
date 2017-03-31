@@ -90,10 +90,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         pblm.default_clf_key = 'RF'
         pblm.default_data_key = 'learn(sum,glob)'
-        pblm.main_task_key = 'match_state'
+        pblm.primary_task_key = 'match_state'
 
         if verbose is None:
-            verbose = 0
+            verbose = 2
         pblm.verbose = verbose
         import ibeis
         if qreq_ is None:
@@ -116,10 +116,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         )
         if qreq_.qparams.featweight_enabled:
             hyper_params.vsone_assign['weight'] = 'fgweights'
-            hyper_params.pairwise_feats['sorters'] += [
-                'weighted_ratio',
-                # 'weighted_lnbnn',
-            ]
+            hyper_params.pairwise_feats['sorters'] = ut.unique(
+                hyper_params.pairwise_feats['sorters'] +
+                [
+                    'weighted_ratio',
+                    # 'weighted_lnbnn'
+                ]
+            )
         else:
             hyper_params.vsone_assign['weight'] = None
         assert qreq_.qparams.can_match_samename is True
@@ -205,17 +208,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pt.figure(fnum=fnum, pnum=(1, 3, 1))
         pnum_ = pt.make_pnum_nextgen(1, 3)
 
-        classname_alias = {
-            'match': 'positive',
-            'nomatch': 'negative',
-            'notcomp': 'incomparable',
-        }
+        # classname_alias = {
+        #     'match': 'positive',
+        #     'nomatch': 'negative',
+        #     'notcomp': 'incomparable',
+        # }
 
         ibs = pblm.qreq_.ibs
         for class_name in class_to_edge.keys():
             edge = class_to_edge[class_name]
             aid1, aid2 = edge
-            alias = classname_alias[class_name]
+            # alias = classname_alias[class_name]
             print('class_name = %r' % (class_name,))
             annot1 = ibs.annots([aid1])[0]._make_lazy_dict()
             annot2 = ibs.annots([aid2])[0]._make_lazy_dict()
@@ -246,7 +249,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
         cacher = ut.Cacher('pairwise_data_v11', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
-                           verbose=pblm.verbose)
+                           verbose=pblm.verbose + 10)
         data = cacher.tryload()
         if not data:
             data = build_features(qreq_, hyper_params)
@@ -444,7 +447,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         want_edges = list(infr.graph.edges())
         task_probs = pblm.predict_proba_evaluation(
-            task_keys, clf_key, data_key, infr, want_edges)
+            infr, want_edges, task_keys, clf_key, data_key)
 
         primary_task = 'match_state'
         index = task_probs[primary_task].index
@@ -518,7 +521,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('n_aids = %r' % (len(ut.unique(infr.aids))))
 
         result_cacher = ut.Cacher('auto_results', cfgstr='2',
-                                  appname=pblm.appname, enabled=1)
+                                  verbose=20, appname=pblm.appname, enabled=1)
         auto_results_list = result_cacher.tryload()
         if auto_results_list is None:
             auto_results_list = []
@@ -766,7 +769,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         return X
 
     def predict_proba_deploy(pblm, X, task_keys):
-        import pandas as pd
+        # import pandas as pd
         task_probs = {}
         for task_key in task_keys:
             print('[pblm] predicting %s probabilities' % (task_key,))
@@ -790,8 +793,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         return task_probs
 
     @profile
-    def predict_proba_evaluation(pblm, task_keys, clf_key, data_key, infr,
-                                 want_edges):
+    def predict_proba_evaluation(pblm, infr, want_edges, task_keys=None,
+                                 clf_key=None, data_key=None):
         """
         Note: Ideally we should use a completely independant dataset to test.
         However, due to lack of labeled photobombs and notcomparable cases we
@@ -804,78 +807,71 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         breaks these test independence assumptions. You really should use a
         completely disjoint test set.
         """
-        # Choose a classifier for each task
-        res_dict = dict([
-            (task_key, pblm.task_combo_res[task_key][clf_key][data_key])
-            for task_key in task_keys
-        ])
-        assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
-            'inconsistent combined result indices')
-
-        # Normalize and align combined result sample edges
-        res0 = next(iter(res_dict.values()))
-        train_uv = np.array(res0.probs_df.index.tolist())
-        assert np.all(train_uv.T[0] < train_uv.T[1]), (
-            'edges must be in lower triangular form')
-        assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
-            'edges must be unique')
-        assert (sorted(ut.lmap(tuple, train_uv.tolist())) ==
-                sorted(ut.lmap(tuple, pblm.samples.aid_pairs.tolist())))
-        want_uv = np.array(want_edges)
-
-        # Determine which edges need/have probabilities
-        want_uv_, train_uv_ = vt.structure_rows(want_uv, train_uv)
-        unordered_have_uv_ = np.intersect1d(want_uv_, train_uv_)
-        need_uv_ = np.setdiff1d(want_uv_, unordered_have_uv_)
-        flags = vt.flag_intersection(train_uv_, unordered_have_uv_)
-        # Re-order have_edges to agree with test_idx
-        have_uv_ = train_uv_[flags]
-        need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
-
-        # Convert to tuples for pandas lookup. bleh...
-        have_edges = ut.lmap(tuple, have_uv.tolist())
-        need_edges = ut.lmap(tuple, need_uv.tolist())
-        want_edges = ut.lmap(tuple, want_uv.tolist())
-        assert set(have_edges) & set(need_edges) == set([])
-        assert set(have_edges) | set(need_edges) == set(want_edges)
-
-        # Parse the data_key to build the appropriate feature
-        featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
-        # Find the kwargs to make the desired feature subset
-        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-        # print(featinfo.get_infostr())
-
+        if clf_key is None:
+            clf_key = pblm.default_clf_key
+        if data_key is None:
+            data_key = pblm.default_data_key
+        if task_keys is None:
+            task_keys = [pblm.primary_task_key]
         # Construct the matches
-        # TODO: ensure the params are ALL the same including qreq_ params
+        # TODO: move probability predictions into the depcache
         config = pblm.hyper_params.vsone_assign
-        cfgstr = 'temp'
-        cacher2 = ut.Cacher('full_eval_probs', cfgstr, appname=pblm.appname,
-                            verbose=2)
+        prob_cfgstr = '_'.join([
+            infr.ibs.dbname,
+            ut.hashstr3(np.array(want_edges)),
+            data_key,
+            clf_key,
+            repr(task_keys),
+            config.get_cfgstr()
+        ])
+        cacher2 = ut.Cacher('full_eval_probs', prob_cfgstr,
+                            appname=pblm.appname, verbose=20)
         data2 = cacher2.tryload()
         if not data2:
-            # TODO: cache this
-            cfgstr = 'temp'
-            cacher = ut.Cacher('full_eval_feats', cfgstr, appname=pblm.appname,
-                               verbose=2)
-            data = cacher.tryload()
-            if not data:
-                print('Building need features')
-                matches, X_need = infr._make_pairwise_features(
-                    need_edges, config=config, pairfeat_cfg=pairfeat_cfg,
-                    need_lnbnn=need_lnbnn)
-                data = matches, X_need
-                cacher.save(data)
-            matches, X_need = data
-            assert np.all(featinfo.X.columns == X_need.columns), (
-                'inconsistent feature dimensions')
+            # Choose a classifier for each task
+            res_dict = dict([
+                (task_key, pblm.task_combo_res[task_key][clf_key][data_key])
+                for task_key in task_keys
+            ])
+            assert ut.allsame([res.probs_df.index for res in res_dict.values()]), (
+                'inconsistent combined result indices')
 
+            # Normalize and align combined result sample edges
+            res0 = next(iter(res_dict.values()))
+            train_uv = np.array(res0.probs_df.index.tolist())
+            assert np.all(train_uv.T[0] < train_uv.T[1]), (
+                'edges must be in lower triangular form')
+            assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
+                'edges must be unique')
+            assert (sorted(ut.lmap(tuple, train_uv.tolist())) ==
+                    sorted(ut.lmap(tuple, pblm.samples.aid_pairs.tolist())))
+            want_uv = np.array(want_edges)
+
+            # Determine which edges need/have probabilities
+            want_uv_, train_uv_ = vt.structure_rows(want_uv, train_uv)
+            unordered_have_uv_ = np.intersect1d(want_uv_, train_uv_)
+            need_uv_ = np.setdiff1d(want_uv_, unordered_have_uv_)
+            flags = vt.flag_intersection(train_uv_, unordered_have_uv_)
+            # Re-order have_edges to agree with test_idx
+            have_uv_ = train_uv_[flags]
+            need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
+
+            # Convert to tuples for pandas lookup. bleh...
+            have_edges = ut.lmap(tuple, have_uv.tolist())
+            need_edges = ut.lmap(tuple, need_uv.tolist())
+            want_edges = ut.lmap(tuple, want_uv.tolist())
+            assert set(have_edges) & set(need_edges) == set([])
+            assert set(have_edges) | set(need_edges) == set(want_edges)
+
+            infr.classifiers = pblm
+            matches, X_need = infr._pblm_pairwise_features(need_edges,
+                                                           data_key)
             # Make an ensemble of the evaluation classifiers
             # (todo: use a classifier that hasn't seen any of this data)
             task_need_probs = {}
             for task_key in task_keys:
                 print('Predicting %s probabilities' % (task_key,))
-                clf_list = pblm.task_clfs[task_key][clf_key][data_key]
+                clf_list = pblm.eval_task_clfs[task_key][clf_key][data_key]
                 labels = pblm.samples.subtasks[task_key]
                 eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
                 eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
@@ -1230,7 +1226,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print(' * `ave_w` is the average importance a single feature in the row')
         # with ut.Indenter('[%s] ' % (data_key,)):
 
-        clf_list = pblm.task_clfs[task_key][clf_key][data_key]
+        clf_list = pblm.eval_task_clfs[task_key][clf_key][data_key]
         feature_importances = np.mean([
             clf_.feature_importances_ for clf_ in clf_list
         ], axis=0)

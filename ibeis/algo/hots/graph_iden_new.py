@@ -9,7 +9,7 @@ import networkx as nx
 import vtool as vt
 from ibeis.algo.hots.graph_iden_utils import e_
 from ibeis.algo.hots.graph_iden_utils import (
-    edges_inside, edges_cross)
+    edges_inside, edges_cross, ensure_multi_index)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -576,6 +576,47 @@ class AnnotInfrMatching(object):
             match.add_local_measures()
         return matches
 
+    def _pblm_pairwise_features(infr, edges, data_key=None):
+        from ibeis.scripts.script_vsone import AnnotPairFeatInfo
+        infr.print('Requesting %d cached pairwise features' % len(edges))
+        pblm = infr.classifiers
+        if data_key is not None:
+            data_key = pblm.default_data_key
+        # Parse the data_key to build the appropriate feature
+        featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
+        # Find the kwargs to make the desired feature subset
+        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
+
+        config = pblm.hyper_params.vsone_assign
+
+        def tmprepr(cfg):
+            return ut.repr2(cfg, strvals=True, explicit=True,
+                            nobr=True).replace(' ', '').replace('\'', '')
+
+        ibs = infr.ibs
+        edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
+        edge_hashid = ut.hashstr_arr27(edge_uuids, 'edges', hashlen=32)
+
+        feat_cfgstr = '_'.join([
+            edge_hashid,
+            config.get_cfgstr(),
+            'need_lnbnn={}'.format(need_lnbnn),
+            'local(' + tmprepr(pairfeat_cfg) + ')',
+            'global(' + tmprepr(global_keys) + ')'
+        ])
+        feat_cacher = ut.Cacher('bulk_pairfeat_cache', feat_cfgstr,
+                                appname=pblm.appname, verbose=20)
+        data = feat_cacher.tryload()
+        if data is None:
+            data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
+                                                global_keys, need_lnbnn)
+            feat_cacher.save(data)
+        matches, feats = data
+        assert np.all(featinfo.X.columns == feats.columns), (
+            'inconsistent feature dimensions')
+        return matches, feats
+
     def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
                                 global_keys=None, need_lnbnn=True,
                                 multi_index=True):
@@ -870,13 +911,12 @@ class AnnotInfrMatching(object):
 
 class InfrLearning(object):
     def learn_evaluataion_clasifiers(infr):
+        infr.print('learn_evaluataion_clasifiers')
         from ibeis.scripts.script_vsone import OneVsOneProblem
-        clf_key = 'RF'
-        data_key = 'learn(sum,glob,4)'
-        task_keys = ['match_state']
-        pblm = OneVsOneProblem.from_aids(infr.ibs, aids=infr.aids, verbose=1)
-        pblm.default_clf_key = clf_key
-        pblm.default_data_key = data_key
+        pblm = OneVsOneProblem.from_aids(infr.ibs, aids=infr.aids, verbose=True)
+        pblm.primary_task_key = 'match_state'
+        pblm.default_clf_key = 'RF'
+        pblm.default_data_key = 'learn(sum,glob,4)'
         pblm.load_features()
         pblm.load_samples()
         pblm.build_feature_subsets()
@@ -886,9 +926,8 @@ class InfrLearning(object):
             pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
         cfg_prefix = (pblm.samples.make_sample_hashid() +
                       pblm.qreq_.get_cfgstr() + feat_cfgstr)
-        pblm.learn_evaluation_classifiers(task_keys, [clf_key], [data_key],
-                                          cfg_prefix)
-        infr.pblm = pblm
+        pblm.learn_evaluation_classifiers(cfg_prefix=cfg_prefix)
+        infr.classifiers = pblm
         pass
 
 

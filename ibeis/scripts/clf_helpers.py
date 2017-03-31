@@ -19,7 +19,7 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 def classification_report2(y_true, y_pred, target_names=None,
-                                   sample_weight=None):
+                           sample_weight=None):
     from sklearn.preprocessing import LabelEncoder
 
     if target_names is None:
@@ -113,7 +113,6 @@ def predict_proba_df(clf, X_df, class_names=None):
     using the same index as X_df and incorporating all possible class_names
     given
     """
-    import utool
     if class_names is not None:
         columns = ut.take(class_names, clf.classes_)
     else:
@@ -416,7 +415,11 @@ class MultiClassLabels(ut.NiceRepr):
 
 @ut.reloadable_class
 class ClfProblem(ut.NiceRepr):
-    pass
+
+    def __init__(pblm):
+        pblm.deploy_task_clfs = None
+        pblm.eval_task_clfs = None
+
     # TODO
     # def learn_single_clf
     def get_xval_kw(pblm):
@@ -504,15 +507,17 @@ class ClfProblem(ut.NiceRepr):
 
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
-        pblm.task_clfs = ut.AutoVivification()
+        pblm.eval_task_clfs = ut.AutoVivification()
         pblm.task_combo_res = ut.AutoVivification()
 
         if task_keys is None:
-            task_keys = list(pblm.samples.subtasks.keys())
+            # task_keys = list(pblm.samples.subtasks.keys())
+            task_keys = [pblm.primary_task_key]
         if data_keys is None:
-            task_keys = list(pblm.samples.X_dict.keys())
+            data_keys = [pblm.default_data_key]
+            # data_keys = list(pblm.samples.X_dict.keys())
         if clf_keys is None:
-            clf_keys = ['RF']
+            clf_keys = [pblm.default_clf_key]
 
         Prog = ut.ProgPartial(freq=1, adjust=False, prehack='%s')
         task_prog = Prog(task_keys, label='Task')
@@ -537,7 +542,7 @@ class ClfProblem(ut.NiceRepr):
         cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
                            data_key, clf_key])
 
-        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=1)
+        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=5)
         cacher_clf = ut.Cacher('eval_clf_v13_0', cfgstr=cfgstr, **cacher_kw)
         cacher_res = ut.Cacher('eval_res_v13_0', cfgstr=cfgstr, **cacher_kw)
 
@@ -553,7 +558,7 @@ class ClfProblem(ut.NiceRepr):
 
         labels = pblm.samples.subtasks[task_key]
         combo_res = ClfResult.combine_results(res_list, labels)
-        pblm.task_clfs[task_key][clf_key][data_key] = clf_list
+        pblm.eval_task_clfs[task_key][clf_key][data_key] = clf_list
         pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
 
     def learn_deploy_classifiers(pblm, task_keys=None, clf_key=None,

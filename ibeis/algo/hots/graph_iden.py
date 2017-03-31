@@ -11,9 +11,9 @@ from ibeis.algo.hots import graph_iden_depmixin
 from ibeis.algo.hots import graph_iden_mixins
 from ibeis.algo.hots import graph_iden_utils
 from ibeis.algo.hots.graph_iden_utils import e_, _dz
-from ibeis.algo.hots.graph_iden_new import AnnotInfr2
-from ibeis.algo.hots.graph_iden_utils import (edges_cross, group_name_edges,
+from ibeis.algo.hots.graph_iden_utils import (group_name_edges,
                                               ensure_multi_index)
+from ibeis.algo.hots.graph_iden_new import AnnotInfr2
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -256,6 +256,7 @@ class _AnnotInfrDummy(object):
 
             target_cc.add_edges_from(mst_edges)
             assert nx.is_connected(target_cc)
+        prog.ensure_newline()
 
         for edge in new_edges:
             assert not infr.graph.has_edge(*edge)
@@ -904,8 +905,9 @@ class _AnnotInfrFeedback(object):
             >>> assert len(infr.internal_feedback[(5, 6)]) == 2
             >>> assert len(infr.internal_feedback[(1, 2)]) == 1
         """
-        if verbose is None:
-            verbose = infr.verbose
+        prev_verbose = infr.verbose
+        if verbose is not None:
+            infr.verbose = verbose
         edge = aid1, aid2 = e_(*edge)
 
         if not infr.has_edge(edge):
@@ -964,6 +966,7 @@ class _AnnotInfrFeedback(object):
             else:
                 raise AssertionError('unknown user_id=%r' % (user_id,))
             infr.metrics_list.append(infr.measure_metrics())
+        infr.verbose = prev_verbose
 
     @profile
     def apply_feedback_edges(infr, safe=True):
@@ -1752,14 +1755,16 @@ class AnnotInference(ut.NiceRepr,
     def init_logging(infr):
         import collections
         infr.logs = collections.deque(maxlen=10000)
-        def log_message(msg, level=logging.NOTSET, color=None):
-            if color is None:
-                color = 'blue'
-            if True:
-                infr.logs.append((msg, color))
-            if infr.verbose >= level:
-                ut.cprint('[infr] ' + msg, color)
-        infr.print = log_message
+
+    def log_message(infr, msg, level=logging.NOTSET, color=None):
+        if color is None:
+            color = 'blue'
+        if True:
+            infr.logs.append((msg, color))
+        if infr.verbose >= level:
+            ut.cprint('[infr] ' + msg, color)
+
+    print = log_message
 
     def dump_logs(infr):
         print('--- <LOG DUMP> ---')

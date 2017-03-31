@@ -6,31 +6,112 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 def gt_reveiw():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.iccv gt_reveiw
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> result = gt_reveiw()
+        >>> print(result)
+    """
     import ibeis
-    ibs = ibeis.opendb(defaultdb='GZ_Master1')
-    infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
-                                autoinit=True, verbose=True)
-    infr.reset_feedback('annotmatch')
+    cacher = ut.Cacher('tmp_gz_review', 'v1')
+    data = cacher.tryload()
+    if data is None:
+        ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
+                                    autoinit=True, verbose=True)
+        infr.reset_feedback('annotmatch')
+        infr.learn_evaluataion_clasifiers()
 
-    infr.learn_evaluataion_clasifiers()
+        infr.apply_feedback_edges()
 
-    infr.apply_feedback_edges()
+        # for edge, vals in infr.all_feedback_items():
+        #     feedback = infr._rectify_feedback_item(vals)
+        #     ut.delete_dict_keys(feedback, ['num_reviews'])
+        #     # del feedback['num_reviews']
+        #     infr.add_feedback(edge, **feedback)
 
-    # for edge, vals in infr.all_feedback_items():
-    #     feedback = infr._rectify_feedback_item(vals)
-    #     ut.delete_dict_keys(feedback, ['num_reviews'])
-    #     # del feedback['num_reviews']
-    #     infr.add_feedback(edge, **feedback)
+        infr.review_dummy_edges(method=2)
+        # infr._make_pairwise_features(list(infr.edges()), need_lnbnn=False)
 
-    new_edges = infr.find_mst_edges2()
-    if infr.verbose >= 1:
-        print('[infr] reviewing %s dummy edges' % (len(new_edges),))
-    for u, v in new_edges:
-        infr.add_feedback((u, v), decision='match', confidence='guessing',
-                           user_id='mst', verbose=False)
+        want_edges = list(infr.edges())
+        pblm = infr.classifiers
+        task_probs = pblm.predict_proba_evaluation(
+            infr, want_edges, ['match_state'])
+        match_probs = task_probs[pblm.primary_task_key]
+        len(match_probs)
+        len(want_edges)
 
-    infr._make_pairwise_features(list(infr.edges()), need_lnbnn=False)
+        real_probs = infr.match_state_df(want_edges).astype(np.float)
+        real_probs, pred_probs = real_probs.align(match_probs)
 
+        pred_probs['hardness'] = np.nan
+
+        real = real_probs.idxmax(axis=1)
+        pred = pred_probs.idxmax(axis=1)
+        failed = (real != pred)
+        pred_probs['failed'] = failed
+        pred_probs['truth'] = real
+
+        labels, groupxs = ut.group_indices(real.values)
+        for label, groupx in zip(labels, groupxs):
+            print('label = %r' % (label,))
+            real_probs_ = real_probs.iloc[groupx]
+            pred_probs_ = pred_probs.iloc[groupx]
+            diff = real_probs_ - pred_probs_
+            hardness = diff[label]
+            pred_probs['hardness'].loc[hardness.index] = hardness
+            # sortx = hardness.values.argsort()
+            # real_probs2_ = real_probs_.iloc[sortx[::-1]]
+            # pred_probs2_ = pred_probs_.iloc[sortx[::-1]]
+        pred_probs = pred_probs.sort_values('hardness')[::-1]
+        data = infr, pred_probs
+        infr.classifiers = None
+        cacher.save(data)
+    infr, pred_probs = data
+
+    # TODO: add an inspect pair to infr
+    print('[graph_widget] show_selected')
+    from ibeis.viz import viz_chip
+    import plottool as pt
+    import guitool as gt
+    ut.qtensure()
+    gt.ensure_qapp()
+
+    edge = pred_probs.index[-1]
+    from ibeis.gui import inspect_gui
+    aid1, aid2 = edge
+    info = pred_probs.loc[edge]
+    ibs = infr.ibs
+    tuner = inspect_gui.make_vsone_tuner(ibs, aid1, aid2)
+    tuner.show()
+
+    # ut.check_debug_import_times()
+    # import utool
+    # utool.embed()
+
+    if False:
+        fnum = pt.ensure_fnum(10)
+        for index in ut.InteractiveIter(list(range(0, len(pred_probs)))):
+            fig = pt.figure(fnum=fnum)  # NOQA
+            edge = pred_probs.index[index]
+            info = pred_probs.loc[edge]
+            viz_chip.show_many_chips(infr.ibs, edge, fnum=fnum)
+            pt.set_title(str(info))
+            # fig.show()
+            fig.canvas.draw()
+
+    # print('%d/%d failed' % (failed.sum(), len(failed)))
+    # real_probs[failed] - match_probs[failed]
+    # real - match_probs
+    # # .idxmax(axis=1)
+    # pred = match_probs.idxmax(axis=1)
+    # real, pred = real
+    # (pred != real).sum()
+    # res = pblm.task_combo_res['match_state']['RF']['learn(sum,glob,4)']
     # infr.review_dummy_edges(method=2)
     # infr.relabel_using_reviews()
     # infr.apply_review_inference()

@@ -840,7 +840,10 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     return options
 
 
-def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
+def make_vsone_tuner(ibs, qaid, daid, qreq_=None):
+    """
+    Makes a qt widget for inspecting one-vs-one matches
+    """
     from vtool import inspect_matches
     import vtool as vt
     if qreq_ is None:
@@ -853,6 +856,11 @@ def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
     annot2 = ibs.annots([daid], config=dconfig2_)[0]._make_lazy_dict()
     match = vt.PairwiseMatch(annot1, annot2)
     self = inspect_matches.MatchInspector(match=match)
+    return self
+
+
+def show_vsone_tuner(ibs, qaid, daid, qreq_=None):
+    self = make_vsone_tuner(ibs, qaid, daid, qreq_=qreq_)
     self.show()
 
 

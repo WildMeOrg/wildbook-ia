@@ -6,24 +6,33 @@ from six.moves import builtins
 from utool._internal.meta_util_six import get_funcname
 print, rrr, profile = ut.inject2(__name__)
 
-DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
-DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
-DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
+DEBUG_ADDERS = False
+DEBUG_SETTERS = False
+DEBUG_GETTERS = False
+# DEBUG_ADDERS  = ut.get_argflag(('--debug-adders', '--verbadd'))
+# DEBUG_SETTERS = ut.get_argflag(('--debug-setters', '--verbset'))
+# DEBUG_GETTERS = ut.get_argflag(('--debug-getters', '--verbget'))
 VERB_CONTROL = ut.get_argflag(('--verb-control'))
 
-DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
-DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
+# DEV_CACHE = ut.get_argflag(('--dev-cache', '--devcache'))
+# DEBUG_API_CACHE = ut.get_argflag('--debug-api-cache')
+DEV_CACHE = False
+DEBUG_API_CACHE = False
 RELEASE_MODE = True
 
 if RELEASE_MODE:
     # API Cache is only for when you can gaurentee one instance of the
     # Controller will be running. This is not safe to use in production.  Use
     # only for local testing.
-    API_CACHE = ut.get_argflag('--api-cache')
-    ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+    # API_CACHE = ut.get_argflag('--api-cache')
+    # ASSERT_API_CACHE = not ut.get_argflag(('--noassert-api-cache', '--naac'))
+    API_CACHE = False
+    ASSERT_API_CACHE = False
 else:
-    API_CACHE = not ut.get_argflag('--no-api-cache')
-    ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+    # API_CACHE = not ut.get_argflag('--no-api-cache')
+    # ASSERT_API_CACHE = ut.get_argflag(('--assert-api-cache', '--naac'))
+    API_CACHE = False
+    ASSERT_API_CACHE = False
 
 
 if ut.VERBOSE:
