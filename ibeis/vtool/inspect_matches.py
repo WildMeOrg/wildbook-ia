@@ -91,6 +91,11 @@ class MultiMatchInspector(INSPECT_BASE):
 
 class MatchInspector(INSPECT_BASE):
     """
+    A widget that contains
+        (1) a viewport that displays an annotation pair with matches overlayed.
+        (2) a control panel for tuning matching parameters
+        (3) a text area displaying information about the match vector
+
     CommandLine:
         python -m vtool.inspect_matches MatchInspector:0 --show
         python -m vtool.inspect_matches MatchInspector:1 --show
@@ -164,7 +169,7 @@ class MatchInspector(INSPECT_BASE):
         import utool
         utool.embed()
 
-    def _new_confg_widget(self, cfg, changed=None):
+    def _new_config_widget(self, cfg, changed=None):
         from guitool import PrefWidget2
         user_mode = 0
         cfg_widget = PrefWidget2.EditConfigWidget(
@@ -190,29 +195,30 @@ class MatchInspector(INSPECT_BASE):
         ])
 
         self.featconfig = TmpFeatConfig()
-        self.featconfig_widget = self._new_confg_widget(
+        self.featconfig_widget = self._new_config_widget(
             self.featconfig, changed=self.on_feat_cfg_changed)
 
         TmpVsOneConfig = dtool.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
         self.config = TmpVsOneConfig()
-        self.config_widget = self._new_confg_widget(
+        self.config_widget = self._new_config_widget(
             self.config, changed=self.on_cfg_changed)
 
         TmpDisplayConfig = dtool.from_param_info_list([
+            ut.ParamInfo('overlay', True),
             ut.ParamInfo('show_all_kpts', False),
             ut.ParamInfo('mask_blend', 0.0, min_=0, max_=1),
 
-            ut.ParamInfo('show_homog', False),
-            ut.ParamInfo('show_ori', False),
-            ut.ParamInfo('show_ell', True),
-            ut.ParamInfo('show_pts', False),
-            ut.ParamInfo('show_lines', True),
-            ut.ParamInfo('show_rect', False),
-            ut.ParamInfo('show_eig', False),
+            ut.ParamInfo('show_homog', False, hideif=': not overlay'),
+            ut.ParamInfo('show_ori', False, hideif=': not overlay'),
+            ut.ParamInfo('show_ell', True, hideif=': not overlay'),
+            ut.ParamInfo('show_pts', False, hideif=': not overlay'),
+            ut.ParamInfo('show_lines', True, hideif=lambda cfg: not cfg['overlay']),
+            ut.ParamInfo('show_rect', False, hideif=': not overlay'),
+            ut.ParamInfo('show_eig', False, hideif=': not overlay'),
         ])
         self.disp_config = TmpDisplayConfig()
-        self.disp_config_widget = self._new_confg_widget(
+        self.disp_config_widget = self._new_config_widget(
             self.disp_config, changed=self.on_cfg_changed)
 
     def _setup_layout(self):
@@ -281,26 +287,42 @@ class MatchInspector(INSPECT_BASE):
         self.cfg_needs_update = True
 
 
+def get_qt_backend():
+    from guitool import __PYQT__
+    if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
+        import matplotlib.backends.backend_qt4agg as backend_qt
+    else:
+        import matplotlib.backends.backend_qt5agg as backend_qt
+    return backend_qt
+
+
 class MatplotlibWidget(INSPECT_BASE):
+    """
+    A qt widget that contains a matplotlib figure
+
+    References:
+        http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
+    """
     #click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
 
     def initialize(self):
-        import plottool as pt
-        #from plottool import interact_helpers as ih
+        import matplotlib as mpl
         from plottool import abstract_interaction
-        from guitool import __PYQT__
-        if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
-            import matplotlib.backends.backend_qt4agg as backend_qt
-        else:
-            import matplotlib.backends.backend_qt5agg as backend_qt
+        backend_qt = get_qt_backend()
         FigureCanvas = backend_qt.FigureCanvasQTAgg
-        self.fig = pt.plt.figure()
+
+        self.fig = mpl.figure.Figure()
         self.fig._no_raise_plottool = True
         self.canvas = FigureCanvas(self.fig)
+        self.canvas.setParent(self)
         self.addWidget(self.canvas)
+        self.reset_ax()
+
+        # import plottool as pt
+        #from plottool import interact_helpers as ih
+        # self.fig = pt.plt.figure()
         #self.canvas.manager = ut.DynStruct()
         #self.canvas.manager.window = self
-        self.reset_ax()
         #ih.connect_callback(self.fig, 'button_press_event', self.on_click)
         #ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
         #ih.connect_callback(self.fig, 'pick_event', self.on_pick)
@@ -313,10 +335,10 @@ class MatplotlibWidget(INSPECT_BASE):
         self.reset_ax()
 
     def reset_ax(self):
+        import plottool as pt
         # from plottool.interactions import zoom_factory, pan_factory
         self.ax = self.fig.add_subplot(1, 1, 1)
-        import plottool as pt
-        pt.adjust_subplots(left=0, right=1, top=1, bottom=0)
+        pt.adjust_subplots(left=0, right=1, top=1, bottom=0, fig=self.fig)
         # self.pan_events = pan_factory(self.ax)
         # self.zoon_events = zoom_factory(self.ax)
         return self.ax

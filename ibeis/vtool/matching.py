@@ -130,7 +130,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     def show(match, ax=None, show_homog=False, show_ori=True, show_ell=True,
              show_pts=True, show_lines=True, show_rect=False, show_eig=False,
-             show_all_kpts=False, mask_blend=0):
+             show_all_kpts=False, mask_blend=0, overlay=True):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
@@ -138,6 +138,18 @@ class PairwiseMatch(ut.NiceRepr):
         # rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
         rchip1, kpts1 = ut.dict_take(annot1, ['rchip', 'kpts'])
         rchip2, kpts2 = ut.dict_take(annot2, ['rchip', 'kpts'])
+
+        if not overlay:
+            show_homog = False
+            show_ori = False
+            show_ell = False
+            show_pts = False
+            show_lines = False
+            show_rect = False
+            show_eig = False
+            # show_all_kpts = False
+            # mask_blend = 0
+
         if mask_blend:
             import vtool as vt
             mask1 = vt.resize(annot1['probchip_img'], vt.get_size(rchip1))
@@ -290,7 +302,9 @@ class PairwiseMatch(ut.NiceRepr):
         ratio_score = (1.0 - ratio)
 
         # remove local measure that can no longer apply
-        ut.delete_dict_keys(match.local_measures, ['sver_err_xy', 'sver_err_scale', 'sver_err_ori'])
+        ut.delete_dict_keys(match.local_measures, ['sver_err_xy',
+                                                   'sver_err_scale',
+                                                   'sver_err_ori'])
 
         match.local_measures['match_dist'] = match_dist
         match.local_measures['norm_dist'] = norm_dist
@@ -764,7 +778,8 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     """
     import vtool as vt
     index_dtype = fx2_to_fx1.dtype
-    # Find spatial errors of keypoints under current homography (kpts1 mapped into image2 space)
+    # Find spatial errors of keypoints under current homography
+    # (kpts1 mapped into image2 space)
     fx2_to_xyerr_sqrd = vt.get_match_spatial_squared_error(kpts1, kpts2, H, fx2_to_fx1)
     fx2_to_xyerr = np.sqrt(fx2_to_xyerr_sqrd)
     fx2_to_xyerr_norm = np.divide(fx2_to_xyerr, np.sqrt(chip2_dlen_sqrd))
@@ -773,15 +788,18 @@ def assign_spatially_constrained_matches(chip2_dlen_sqrd, kpts1, kpts2, H,
     fx2_to_valid_match      = ut.inbounds(fx2_to_xyerr_norm, 0.0, match_xy_thresh, eq=True)
     fx2_to_valid_normalizer = ut.inbounds(fx2_to_xyerr_norm, *norm_xy_bounds, eq=True)
     fx2_to_fx1_match_col = vt.find_first_true_indices(fx2_to_valid_match)
-    fx2_to_fx1_norm_col  = vt.find_next_true_indices(fx2_to_valid_normalizer, fx2_to_fx1_match_col)
+    fx2_to_fx1_norm_col  = vt.find_next_true_indices(fx2_to_valid_normalizer,
+                                                     fx2_to_fx1_match_col)
 
     assert fx2_to_fx1_match_col != fx2_to_fx1_norm_col, 'normlizers are matches!'
 
     fx2_to_hasmatch = [pos is not None for pos in fx2_to_fx1_norm_col]
     # IMAGE 2 Matching Features
     fx2_match = np.where(fx2_to_hasmatch)[0].astype(index_dtype)
-    match_col_list = np.array(ut.take(fx2_to_fx1_match_col, fx2_match), dtype=fx2_match.dtype)
-    norm_col_list = np.array(ut.take(fx2_to_fx1_norm_col, fx2_match), dtype=fx2_match.dtype)
+    match_col_list = np.array(ut.take(fx2_to_fx1_match_col, fx2_match),
+                              dtype=fx2_match.dtype)
+    norm_col_list = np.array(ut.take(fx2_to_fx1_norm_col, fx2_match),
+                             dtype=fx2_match.dtype)
 
     # We now have 2d coordinates into fx2_to_fx1
     # Covnert into 1d coordinates for flat indexing into fx2_to_fx1
