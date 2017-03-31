@@ -1586,7 +1586,7 @@ def postsetup_axes(use_legend=True, bg=None):
 
 
 def adjust_subplots(left=None, right=None, bottom=None, top=None, wspace=None,
-                    hspace=None, use_argv=False):
+                    hspace=None, use_argv=False, fig=None):
     """
     Kwargs:
         left (float): left side of the subplots of the figure
@@ -1599,21 +1599,16 @@ def adjust_subplots(left=None, right=None, bottom=None, top=None, wspace=None,
     kwargs = dict(left=left, right=right, bottom=bottom, top=top,
                   wspace=wspace, hspace=hspace)
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
-    subplotpars = gcf().subplotpars
+    if fig is None:
+        fig = gcf()
+    subplotpars = fig.subplotpars
     adjust_dict = subplotpars.__dict__.copy()
     del adjust_dict['validate']
     adjust_dict.update(kwargs)
     if use_argv:
         # hack to take args from commandline
         adjust_dict = ut.parse_dict_from_argv(adjust_dict)
-    # valid_kw = ['left', 'right', 'bottom', 'top', 'wspace', 'hspace']
-    # adjust_dict = {}
-    # for key in valid_kw:
-    #     adjust_dict[key] = kwargs.get(key, subplotpars.__dict__[key])
-    # if kwargs.get('use_argv', False):
-    #     # hack to take args from commandline
-    #     adjust_dict = ut.parse_dict_from_argv(adjust_dict)
-    plt.subplots_adjust(**adjust_dict)
+    fig.subplots_adjust(**adjust_dict)
 
 
 #=======================
