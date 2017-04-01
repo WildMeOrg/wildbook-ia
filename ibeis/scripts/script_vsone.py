@@ -1786,20 +1786,27 @@ def photobomb_samples(ibs):
         import guitool as gt
         ut.qtensure()
         gt.ensure_qapp()
-        from vtool import inspect_matches
-        import vtool as vt
+        # from vtool import inspect_matches
+        from ibeis.gui import inspect_gui
+        # import vtool as vt
+        # import vtool as vt
         i = 1
-        annot1 = a1_[i]._make_lazy_dict()
-        annot2 = a2_[i]._make_lazy_dict()
+        aid1 = a1_.aids[i]
+        aid2 = a2_.aids[i]
 
-        def on_context():
-            from ibeis.gui import inspect_gui
-            return inspect_gui.make_annotpair_context_options(
-                ibs, annot1['aid'], annot1['aid'], None)
+        win = inspect_gui.make_vsone_tuner(ibs, aid1, aid2)
+        win.show()
+        # annot1 = a1_[i]._make_lazy_dict()
+        # annot2 = a2_[i]._make_lazy_dict()
 
-        match = vt.PairwiseMatch(annot1, annot2)
-        inspect_matches.MatchInspector(match=match,
-                                       on_context=on_context).show()
+        # def on_context():
+        #     from ibeis.gui import inspect_gui
+        #     return inspect_gui.make_annotpair_context_options(
+        #         ibs, annot1['aid'], annot1['aid'], None)
+
+        # match = vt.PairwiseMatch(annot1, annot2)
+        # inspect_matches.MatchInspector(match=match,
+        #                                on_context=on_context).show()
     return list(zip(aids1, aids2))
 
 

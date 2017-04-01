@@ -405,8 +405,8 @@ class REVIEW(object):
     INT_TO_CODE = ut.invert_dict(CODE_TO_INT)
     INT_TO_NICE = {
         UNREVIEWED     : 'Unreviewed',
-        NON_MATCH      : 'Non-Match',
-        MATCH          : 'Match',
+        NON_MATCH      : 'Negative',
+        MATCH          : 'Positive',
         NOT_COMPARABLE : 'Incomparable',
         UNKNOWN        : 'Unknown',
     }

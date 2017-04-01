@@ -39,6 +39,150 @@ GRAPH_REVIEW_CFG_DEFAULTS = {
 }
 
 
+class AnnotPairDialog(gt.GuitoolWidget):
+    r"""
+
+    ibeis AnnotPairDialog --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> import guitool as gt
+        >>> gt.ensure_qapp()
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> win = AnnotPairDialog(ibs=ibs, aid1=1, aid2=2,
+        >>>                       info_text='text describing this match')
+        >>> gt.qtapp_loop(qwin=win, freq=10)
+    """
+    def initialize(self, ibs, aid1, aid2, info_text=None):
+        from ibeis.gui import inspect_gui
+        annot_state1 = AnnotStateDialog(ibs=ibs, aid=aid1)
+        annot_state2 = AnnotStateDialog(ibs=ibs, aid=aid2)
+
+        edge_data = None
+        annot_review = CustomReviewDialog(aid1=aid1, aid2=aid2,
+                                          edge_data=edge_data, radio=False,
+                                          with_confirm=False)
+
+        tuner = inspect_gui.make_vsone_tuner(ibs, aid1, aid2, autoupdate=False,
+                                             info_text=info_text)
+
+        splitter = self.addNewSplitter(orientation='horiz')
+        splitter.addWidget(tuner)
+
+        rbox = splitter.addNewWidget(orientation='vert')
+
+        rbox.setStyleSheet(ut.codeblock(
+            '''
+            .QFrame {
+                border-width: 2px;
+                border-color: black;
+                border-style: outset;
+            }
+            '''))
+
+        for var in ['annot_state1', 'annot_state1', 'annot_review', 'rbox',
+                    'tuner', 'splitter']:
+            vars()[var].setObjectName(var)
+
+        self.setMinimumHeight(1)
+        self.setMinimumWidth(1)
+
+        # border: 20px solid black;
+        # border-radius: 10px;
+        # background-color: rgb(255, 255, 255);
+        rbox.addNewFrame().addWidget(annot_state1)
+        rbox.addNewFrame().addWidget(annot_state2)
+        rbox.addNewFrame().addWidget(annot_review)
+        rbox.addNewSpacer(hPolicy='Expanding', vPolicy='Expanding')
+        # gt.print_widget_heirarchy(self, attrs=['sizePolicy', 'minimumHeight'], skip=True)
+
+        self.accept_button = rbox.addNewButton('Accept', pressed=self.on_accept)
+
+    def on_accept(self):
+        pass
+
+
+class AnnotStateDialog(gt.GuitoolWidget):
+    """
+    ibeis AnnotStateDialog --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.viz.viz_graph2 import *  # NOQA
+        >>> import guitool as gt
+        >>> gt.ensure_qapp()
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_MTEST')
+        >>> win = AnnotStateDialog(ibs=ibs, aid=1)
+        >>> gt.qtapp_loop(qwin=win, freq=10)
+    """
+
+    def _new_form_hbox(self, text):
+        form_box = self.addNewWidget(orientation='horiz', margin=1)
+        # form_box.setMinimumHeight(1)
+        # form_box.setMinimumWidth(1)
+        label = form_box.addNewLabel(text, align='left')
+        label.setObjectName('form_box_label_' + text)
+        return form_box
+
+    def initialize(self, ibs, aid):
+        self.ibs = ibs
+        self.aid = aid
+
+        current_qualtext = ibs.get_annot_quality_texts([aid])[0]
+        if current_qualtext is None:
+            current_qualtext = ibs.const.QUAL_UNKNOWN
+
+        current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
+        if current_yawtext is None:
+            current_yawtext = 'UNKNOWN'
+
+        current_multiple = ibs.get_annot_multiple([aid])[0]
+        tag_text = ibs.get_annot_tag_text([aid])[0]
+        if tag_text is None:
+            tag_text = ''
+
+        print(self._guitool_layout.spacing())
+        self._guitool_layout.setSpacing(0)
+        self.set_all_margins(1)
+
+        self._new_form_hbox('Aid: %r' % (aid,))
+
+        qual_box = self._new_form_hbox('Quality:')
+        self.quality_combo = qual_box.addNewComboBox(
+            options=list(ibs.const.QUALITY_TEXT_TO_INT.keys()),
+            default=current_qualtext)
+
+        view_box = self._new_form_hbox('Viewpoint:')
+        self.view_combo = view_box.addNewComboBox(
+            options=list(ibs.const.VIEWTEXT_TO_YAW_RADIANS.keys()) + ['UNKNOWN'],
+            default=current_yawtext)
+
+        multi_box = self._new_form_hbox('Multiple:')
+        self.ismulti_cb = multi_box.addNewCheckBox(checked=current_multiple)
+
+        # TODO: make qt tag editor
+        tag_box = self._new_form_hbox('Tags:')
+        self.tag_edit = tag_box.addNewLineEdit(tag_text)
+        # from guitool.__PYQT__ import QtWidgets
+        # self.tag_edit.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+        #                             QtWidgets.QSizePolicy.Maximum)
+        # self.tag_edit.setMinimumHeight(1)
+        # self.tag_edit.setMinimumWidth(1)
+
+        self.addNewSpacer(hPolicy='Preferred', vPolicy='Preferred')
+
+        for key, val in locals().items():
+            if hasattr(val, 'setObjectName'):
+                val.setObjectName(key)
+
+        for key, val in vars(self).items():
+            if hasattr(val, 'setObjectName'):
+                val.setObjectName(key)
+
+
 class CustomReviewDialog(gt.GuitoolWidget):
     r"""
 
@@ -53,7 +197,8 @@ class CustomReviewDialog(gt.GuitoolWidget):
         >>> gt.qtapp_loop(qwin=win, freq=10)
         >>> print(win.feedback_dict())
     """
-    def initialize(self, aid1, aid2, edge_data=None):
+    def initialize(self, aid1, aid2, edge_data=None, radio=True,
+                   with_confirm=True):
         # from guitool.__PYQT__ import QtWidgets
         import ibeis
         if edge_data is not None:
@@ -64,7 +209,7 @@ class CustomReviewDialog(gt.GuitoolWidget):
             default_match_state = ibeis.const.REVIEW.CODE_TO_NICE[match_state]
         else:
             default_conf = 'unspecified'
-            default_match_state = None
+            default_match_state = ibeis.const.REVIEW.CODE_TO_NICE['unreviewed']
             reviewed_tags = []
 
         self.aid1 = aid1
@@ -73,38 +218,46 @@ class CustomReviewDialog(gt.GuitoolWidget):
         match_state_options = list(ibeis.const.REVIEW.INT_TO_NICE.values())
         user_conf_options = list(ibeis.const.CONFIDENCE.CODE_TO_INT.keys())
 
+        self.set_all_margins(1)
+
         self.addNewLabel('Review Aids (%r, %r)' % (aid1, aid2))
-        self.row1 = self.newHWidget(verticalStretch=1000)
+        self.row1 = self.newHWidget(marin=1)
         self.row1.addNewLabel('Match State:', align='left')
         self.match_state_combo = self.row1.addNewComboBox(
             options=match_state_options,
             default=default_match_state)
 
-        self.checkbox_row = self.newHWidget(verticalStretch=1000)
+        self.checkbox_row = self.newHWidget(marin=1)
         self.tag_checkboxes = []
         for tag in ['photobomb', 'scenerymatch']:
             checked = tag in reviewed_tags
             checkbox = self.checkbox_row.addNewCheckBox(tag, checked=checked)
+            checkbox.setObjectName('tag_cb_' + tag)
             self.tag_checkboxes.append(checkbox)
 
-        self.row2 = self.newHWidget(verticalStretch=1000)
+        self.row2 = self.newHWidget(margin=1)
         self.row2.addNewLabel('Confidence:', align='left')
-        self.user_conf_rb = gt.RadioButtonGroup(self,
-                                                options=user_conf_options,
-                                                default=default_conf)
-        # self.user_conf_combo = self.row2.addNewComboBox(
-        #     options=user_conf_options, default=default_conf)
+        if radio:
+            self.user_conf_combo = gt.RadioButtonGroup(
+                self, options=user_conf_options, default=default_conf)
+        else:
+            self.user_conf_combo = self.row2.addNewComboBox(
+                options=user_conf_options, default=default_conf)
 
-        self.button_row = self.newHWidget(verticalStretch=1000)
-        self.button_row.setObjectName('button_row')
-        # self.button_row.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
-        #                                             QtWidgets.QSizePolicy.Maximum))
-        self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
+        for var in ['row1', 'row2', 'user_conf_combo', 'checkbox_row',
+                    'match_state_combo']:
+            getattr(self, var).setObjectName(var)
 
-        self.confirm_button = self.button_row.addNewButton(
-            'Confirm', pressed=self.confirm)
-        self.cancel_button = self.button_row.addNewButton(
-            'Cancel', pressed=self.cancel)
+        if with_confirm:
+            self.button_row = self.newHWidget(margin=1)
+            self.button_row.setObjectName('button_row')
+            self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
+            self.confirm_button = self.button_row.addNewButton(
+                'Confirm', pressed=self.confirm)
+            self.cancel_button = self.button_row.addNewButton(
+                'Cancel', pressed=self.cancel)
+            for var in ['cancel_button', 'confirm_button', 'button_row']:
+                getattr(self, var).setObjectName(var)
         self.was_confirmed = False
 
     def cancel(self):
@@ -121,7 +274,7 @@ class CustomReviewDialog(gt.GuitoolWidget):
         decision_code = ibeis.const.REVIEW.NICE_TO_CODE[decision_nice]
         tags = [check.text() for check in self.tag_checkboxes
                 if check.checkState()]
-        confidence = self.user_conf_rb.currentText()
+        confidence = self.user_conf_combo.currentText()
         review = {
             'aid1': self.aid1,
             'aid2': self.aid2,

@@ -840,7 +840,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     return options
 
 
-def make_vsone_tuner(ibs, qaid, daid, qreq_=None):
+def make_vsone_tuner(ibs, qaid, daid, qreq_=None, autoupdate=True,
+                     info_text=None):
     """
     Makes a qt widget for inspecting one-vs-one matches
     """
@@ -855,7 +856,16 @@ def make_vsone_tuner(ibs, qaid, daid, qreq_=None):
     annot1 = ibs.annots([qaid], config=qconfig2_)[0]._make_lazy_dict()
     annot2 = ibs.annots([daid], config=dconfig2_)[0]._make_lazy_dict()
     match = vt.PairwiseMatch(annot1, annot2)
-    self = inspect_matches.MatchInspector(match=match)
+
+    def on_context():
+        from ibeis.gui import inspect_gui
+        return inspect_gui.make_annotpair_context_options(
+            ibs, qaid, daid, None)
+
+    self = inspect_matches.MatchInspector(match=match, on_context=on_context,
+                                          autoupdate=autoupdate,
+                                          info_text=info_text)
+
     return self
 
 

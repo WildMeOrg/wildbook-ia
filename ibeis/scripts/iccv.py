@@ -80,14 +80,34 @@ def gt_reveiw():
     import guitool as gt
     ut.qtensure()
     gt.ensure_qapp()
-
-    edge = pred_probs.index[-1]
-    from ibeis.gui import inspect_gui
-    aid1, aid2 = edge
-    info = pred_probs.loc[edge]
     ibs = infr.ibs
-    tuner = inspect_gui.make_vsone_tuner(ibs, aid1, aid2)
-    tuner.show()
+
+    edge = pred_probs.index[0]
+    aid1, aid2 = edge
+    info_text = str(pred_probs.loc[edge])
+
+    # TODO: Next step is to hook up infr and let AnnotPairDialog set feedback
+    # then we just need to iterate through results
+    self = None
+
+    from ibeis.viz import viz_graph2
+    fnum = pt.ensure_fnum(10)
+    for index in ut.InteractiveIter(list(range(0, len(pred_probs)))):
+        edge = pred_probs.index[index]
+        aid1, aid2 = edge
+        info_text = str(pred_probs.loc[edge])
+        if self is not None:
+            self.close()
+
+        self = viz_graph2.AnnotPairDialog(ibs=ibs, aid1=aid1, aid2=aid2,
+                                          info_text=info_text)
+        self.show()
+        # fig.show()
+        # fig.canvas.draw()
+
+    # from ibeis.gui import inspect_gui
+    # self = tuner = inspect_gui.make_vsone_tuner(ibs, aid1, aid2)  # NOQA
+    # tuner.show()
 
     # ut.check_debug_import_times()
     # import utool

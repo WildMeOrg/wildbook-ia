@@ -7,19 +7,14 @@ CommandLine:
     python -m ibeis.viz.interact.interact_chip --test-ishow_chip --show --aid 2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from ibeis import viz
 import utool as ut
 import vtool as vt
 import plottool as pt  # NOQA
 from functools import partial
-import six
-from ibeis import constants as const
-from plottool import draw_func2 as df2
-from plottool.viz_featrow import draw_feat_row
+from ibeis import viz
 from ibeis.viz import viz_helpers as vh
 from plottool import interact_helpers as ih
-
-(print, rrr, profile) = ut.inject2(__name__, '[interact_chip]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def interact_multichips(ibs, aid_list, config2_=None, **kwargs):
@@ -232,7 +227,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
              ('*' if current_yawtext == key else '') + key,
              set_yaw_func(key))
             for count, key in
-            enumerate(six.iterkeys(const.VIEWTEXT_TO_YAW_RADIANS), start=1)
+            enumerate(ibs.const.VIEWTEXT_TO_YAW_RADIANS.keys(), start=1)
         ]),
     ]
     # Nested qualities
@@ -243,7 +238,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
              '&' + key,
              set_quality_func(key))
             for count, key in
-            enumerate(six.iterkeys(const.QUALITY_TEXT_TO_INT), start=1)
+            enumerate(ibs.const.QUALITY_TEXT_TO_INT.keys(), start=1)
         ]),
     ]
 
@@ -433,6 +428,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
     mode_ptr = [0]
 
     def _select_fxth_kpt(fx):
+        from plottool.viz_featrow import draw_feat_row
         # Get the fx-th keypiont
         chip = ibs.get_annot_chips(aid, config2_=config2_)
         kp = ibs.get_annot_kpts(aid, config2_=config2_)[fx]
@@ -450,11 +446,11 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
         kwargs['pts'] = mode_ptr[0]  == 2
 
         if not ischild:
-            df2.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
+            pt.figure(fnum=fnum, pnum=pnum, docla=True, doclf=True)
         # Toggle no keypoints view
         viz.show_chip(ibs, aid, fnum=fnum, pnum=pnum, config2_=config2_,
                       **kwargs)
-        df2.set_figtitle('Chip View')
+        pt.set_figtitle('Chip View')
 
     def _on_chip_click(event):
         print('[inter] clicked chip')
@@ -500,7 +496,7 @@ def ishow_chip(ibs, aid, fnum=2, fx=None, dodraw=True, config2_=None,
                     fx = vh.get_ibsdat(ax, 'fx')
                     if fx is not None and viztype == 'warped':
                         viz.show_keypoint_gradient_orientations(
-                            ibs, aid, fx, fnum=df2.next_fnum())
+                            ibs, aid, fx, fnum=pt.next_fnum())
                 else:
                     print('...Unknown viztype: %r' % viztype)
 
