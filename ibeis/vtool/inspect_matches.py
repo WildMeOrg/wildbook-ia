@@ -138,21 +138,31 @@ class MatchInspector(INSPECT_BASE):
         super(MatchInspector, self).showEvent(event)
         # ut.cprint('[viz_graph] showEvent', 'green')
         # Fire initialize event after we show the GUI
-        self.update()
         # QtCore.QTimer.singleShot(50, self.init_inference)
+        self.first_show()
 
-    def set_match(self, match=None, on_context=None):
+    def first_show(self):
+        # Show the match if updating is on, otherwise just draw the annot pair
+        if self.autoupdate_cb.checkState():
+            self.update()
+        else:
+            self.draw_pair()
+
+    def set_match(self, match=None, on_context=None, info_text=None):
         self.match = match
+        self.info_text = info_text
         self.on_context = on_context
-        self.update()
+        self.first_show()
 
-    def initialize(self, match, on_context=None):
+    def initialize(self, match, on_context=None, autoupdate=True,
+                   info_text=None):
         from plottool import abstract_interaction
         from guitool.__PYQT__ import QtCore
         self.match = match
+        self.info_text = info_text
         self.on_context = on_context
         self._setup_configs()
-        self._setup_layout()
+        self._setup_layout(autoupdate=autoupdate)
         abstract_interaction.register_interaction(self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.execContextMenu)
@@ -209,19 +219,19 @@ class MatchInspector(INSPECT_BASE):
             ut.ParamInfo('show_all_kpts', False),
             ut.ParamInfo('mask_blend', 0.0, min_=0, max_=1),
 
-            ut.ParamInfo('show_homog', False, hideif=': not overlay'),
-            ut.ParamInfo('show_ori', False, hideif=': not overlay'),
-            ut.ParamInfo('show_ell', True, hideif=': not overlay'),
-            ut.ParamInfo('show_pts', False, hideif=': not overlay'),
+            ut.ParamInfo('show_homog', False, hideif=':not overlay'),
+            ut.ParamInfo('show_ori', False, hideif=':not overlay'),
+            ut.ParamInfo('show_ell', True, hideif=':not overlay'),
+            ut.ParamInfo('show_pts', False, hideif=':not overlay'),
             ut.ParamInfo('show_lines', True, hideif=lambda cfg: not cfg['overlay']),
-            ut.ParamInfo('show_rect', False, hideif=': not overlay'),
-            ut.ParamInfo('show_eig', False, hideif=': not overlay'),
+            ut.ParamInfo('show_rect', False, hideif=':not overlay'),
+            ut.ParamInfo('show_eig', False, hideif=':not overlay'),
         ])
         self.disp_config = TmpDisplayConfig()
         self.disp_config_widget = self._new_config_widget(
             self.disp_config, changed=self.on_cfg_changed)
 
-    def _setup_layout(self):
+    def _setup_layout(self, autoupdate=True):
         from guitool.__PYQT__ import QtWidgets
         self.menubar = gt.newMenubar(self)
         self.menuFile = self.menubar.newMenu('Dev')
@@ -235,7 +245,10 @@ class MatchInspector(INSPECT_BASE):
         config_vframe.addWidget(self.config_widget)
         config_vframe.addWidget(QtWidgets.QLabel('Display Config'))
         config_vframe.addWidget(self.disp_config_widget)
-        config_vframe.addNewButton('Update', pressed=self.update)
+        # update_hframe = config_vframe.addNewWidget(orientation='horiz')
+        # update_hframe.addNewButton('Update', pressed=self.update)
+        self.autoupdate_cb = config_vframe.addNewCheckBox(
+            'auto-update', checked=autoupdate, changed=self.update)
 
         self.mpl_widget = MatplotlibWidget()
         splitter2.addWidget(self.mpl_widget)
@@ -256,8 +269,23 @@ class MatchInspector(INSPECT_BASE):
 
         match.apply_all(cfgdict)
 
+    def draw_pair(self):
+        self.mpl_widget.clf()
+        ax = self.mpl_widget.ax
+        info_html = ''
+        if self.info_text is not None:
+            info_html = '<pre>' + self.info_text + '</pre>'
+        self.infobox.setText(info_html)
+        self.match.show(ax=ax, overlay=False)
+
+    def draw_vsone(self):
+        match = self.match
         summary = match._make_local_summary_feature_vector(summary_ops={'sum'})
-        self.infobox.setText('<pre>' + ut.align(ut.repr4(summary), ':') + '</pre>')
+        info_html = ''
+        if self.info_text is not None:
+            info_html = '<pre>' + self.info_text + '</pre>'
+        feat_html = '<pre>' + ut.align(ut.repr4(summary), ':') + '</pre>'
+        self.infobox.setText(info_html + feat_html)
 
         self.mpl_widget.clf()
         ax = self.mpl_widget.ax
@@ -265,11 +293,13 @@ class MatchInspector(INSPECT_BASE):
         #fig.show()
         self.mpl_widget.fig.canvas.draw()
 
-    def update(self):
+    def update(self, state=None):
         print('update')
         # import vtool as vt
         # vt.rrrr()
-        self.execute_vsone()
+        if self.autoupdate_cb.checkState():
+            self.execute_vsone()
+            self.draw_vsone()
 
     def on_cfg_changed(self, *args):
         self.update()
@@ -281,8 +311,10 @@ class MatchInspector(INSPECT_BASE):
         self.match.annot1._mutable = True
         self.match.annot2._mutable = True
         for key in feat_keys:
-            del self.match.annot1[key]
-            del self.match.annot2[key]
+            if key in self.match.annot1:
+                del self.match.annot1[key]
+            if key in self.match.annot2:
+                del self.match.annot2[key]
         self.update()
         self.cfg_needs_update = True
 

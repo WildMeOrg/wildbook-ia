@@ -134,12 +134,14 @@ class PairwiseMatch(ut.NiceRepr):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
-        # rchip1, kpts1, vecs1 = ut.dict_take(annot1, ['rchip', 'kpts', 'vecs'])
-        # rchip2, kpts2, vecs2 = ut.dict_take(annot2, ['rchip', 'kpts', 'vecs'])
-        rchip1, kpts1 = ut.dict_take(annot1, ['rchip', 'kpts'])
-        rchip2, kpts2 = ut.dict_take(annot2, ['rchip', 'kpts'])
+        rchip1 = annot1['rchip']
+        rchip2 = annot2['rchip']
 
-        if not overlay:
+        if overlay:
+            kpts1 = annot1['kpts']
+            kpts2 = annot2['kpts']
+        else:
+            kpts1 = kpts2 = None
             show_homog = False
             show_ori = False
             show_ell = False
