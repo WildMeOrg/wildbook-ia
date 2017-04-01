@@ -9,7 +9,7 @@ from six.moves import range
 from guitool.guitool_decorators import slot_
 from guitool import guitool_main
 import utool as ut
-ut.noinject(__name__, '[guitool.misc]', DEBUG=False)
+ut.noinject(__name__)
 
 
 # For some reason QtCore.Qt.ALT doesn't work right
@@ -244,3 +244,12 @@ def get_view_selection_as_str(view):
     #copy_table.append('\n')
     copy_str = str(''.join(copy_table))
     return copy_str
+
+
+def set_qt_object_names(dict_):
+    """
+    Hack to set qt object names from locals, vars, or general dict context
+    """
+    for key, val in dict_.items():
+        if hasattr(val, 'setObjectName'):
+            val.setObjectName(key)

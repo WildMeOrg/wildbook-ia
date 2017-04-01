@@ -25,20 +25,86 @@ ALIGN_DICT = {
 }
 
 
+
+def rectifyQtEnum(type_, value, default=ut.NoParam):
+    """
+    Args:
+        type_ (str): name of qt enum
+        value (int or str): string or integer value
+        default (int or str): default value
+
+    Returns:
+        int: rectified_value
+
+    TODO: move to qt_enums?
+
+    CommandLine:
+        python -m guitool.guitool_components rectifyQtEnum
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> newvals = []
+        >>> newvals.append(rectifyQtEnum('Orientation', 'vert'))
+        >>> newvals.append(rectifyQtEnum('Orientation', 'Horizontal'))
+        >>> newvals.append(rectifyQtEnum('LayoutDirection', 'LeftToRight'))
+        >>> newvals.append(rectifyQtEnum('QSizePolicy', 'Expanding'))
+        >>> result = ut.repr4(newvals)
+        >>> print(result)
+        >>> assert all(isinstance(v, int) for v in newvals)
+    """
+    if value is None:
+        if default is ut.NoParam:
+            raise ValueError('Cannot rectify None value for {}'.format(type_))
+        value = default
+    if isinstance(value, six.string_types):
+        if type_ == 'QSizePolicy':
+            valid_values = {'Fixed', 'Minimum', 'Maximum', 'Preferred',
+                            'Expanding', 'MinimumExpanding', 'Ignored'}
+            enum_obj = QtWidgets.QSizePolicy
+        elif type_ == 'Alignment':
+            return {
+                'center': Qt.AlignCenter,
+                'right': Qt.AlignRight | Qt.AlignVCenter,
+                'left': Qt.AlignLeft | Qt.AlignVCenter,
+                'justify': Qt.AlignJustify,
+            }[value]
+        elif type_ == 'LayoutDirection':
+            valid_values = {'LeftToRight', 'RightToLeft'}
+            enum_obj = QtCore.Qt
+        elif type_ == 'Orientation':
+            # alias
+            if value.lower().startswith('vert'):
+                value = 'Vertical'
+            elif value.lower().startswith('horiz'):
+                value = 'Horizontal'
+            valid_values = {'Vertical', 'Horizontal'}
+            enum_obj = QtCore.Qt
+        elif value not in valid_values:
+            raise ValueError(
+                'Unknown enum {} for {}. Valid values are {}'.format(
+                    value, type_, valid_values))
+        rectified_value = getattr(enum_obj, value)
+    else:
+        rectified_value = value
+    return rectified_value
+
+
 def rectifySizePolicy(policy=None, default='Expanding'):
-    policy_dict = {
-        'Fixed': QtWidgets.QSizePolicy.Fixed,
-        'Minimum': QtWidgets.QSizePolicy.Minimum,
-        'Maximum': QtWidgets.QSizePolicy.Maximum,
-        'Preferred': QtWidgets.QSizePolicy.Preferred,
-        'Expanding': QtWidgets.QSizePolicy.Expanding,
-        'MinimumExpanding': QtWidgets.QSizePolicy.MinimumExpanding,
-        'Ignored': QtWidgets.QSizePolicy.Ignored,
-    }
-    if policy is None:
-        policy = default
-    if isinstance(policy, six.string_types):
-        policy = policy_dict[policy]
+    return rectifyQtEnum('QSizePolicy', policy, default)
+    # policy_dict = {
+    #     'Fixed': QtWidgets.QSizePolicy.Fixed,
+    #     'Minimum': QtWidgets.QSizePolicy.Minimum,
+    #     'Maximum': QtWidgets.QSizePolicy.Maximum,
+    #     'Preferred': QtWidgets.QSizePolicy.Preferred,
+    #     'Expanding': QtWidgets.QSizePolicy.Expanding,
+    #     'MinimumExpanding': QtWidgets.QSizePolicy.MinimumExpanding,
+    #     'Ignored': QtWidgets.QSizePolicy.Ignored,
+    # }
+    # if policy is None:
+    #     policy = default
+    # if isinstance(policy, six.string_types):
+    #     policy = policy_dict[policy]
     return policy
 
 
@@ -81,7 +147,7 @@ def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1,
     """
     input: widget - the central widget
     """
-    orientation = rectify_qt_const(orientation)
+    orientation = rectifyQtEnum('Orientation', orientation)
     splitter = QtWidgets.QSplitter(orientation, widget)
     _inject_new_widget_methods(splitter)
     # This line makes the splitter resize with the widget
@@ -790,8 +856,9 @@ def newLabel(parent=None, text='', align='center', gpath=None, fontkw={},
     """
     label = QtWidgets.QLabel(text, parent=parent)
     #label.setAlignment(ALIGN_DICT[align])
-    if isinstance(align, six.string_types):
-        align = ALIGN_DICT[align]
+    align = rectifyQtEnum('Alignment', align)
+    # if isinstance(align, six.string_types):
+    #     align = ALIGN_DICT[align]
     label.setAlignment(align)
     adjust_font(label, **fontkw)
     if gpath is not None:
@@ -866,8 +933,9 @@ def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
     outputEdit.setReadOnly(not editable)
     if text is not None:
         outputEdit.setText(text)
-    if isinstance(align, six.string_types):
-        align = ALIGN_DICT[align]
+    align = rectifyQtEnum('Alignment', align)
+    # if isinstance(align, six.string_types):
+    #     align = ALIGN_DICT[align]
     outputEdit.setAlignment(align)
     if label is None:
         pass
@@ -916,8 +984,9 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     if text is not None:
         widget.setText(text)
     widget.setEnabled(enabled)
-    if isinstance(align, six.string_types):
-        align = ALIGN_DICT[align]
+    align = rectifyQtEnum('Alignment', align)
+    # if isinstance(align, six.string_types):
+    #     align = ALIGN_DICT[align]
     widget.setAlignment(align)
     widget.setReadOnly(readOnly)
     if textChangedSlot is not None:
@@ -934,13 +1003,60 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     return widget
 
 
+class TagEdit(QtWidgets.QWidget):
+    """
+        Args:
+            self (?):
+            parent (None): (default = None)
+            tags (None): (default = None)
+            editor_mode (str): (default = 'line')
+
+        CommandLine:
+            python -m guitool.guitool_components TagEdit
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from guitool.guitool_components import *  # NOQA
+            >>> import guitool as gt
+            >>> gt.ensure_qtapp()
+            >>> self = TagEdit(tags=['a', 'b', 'c'])
+            >>> self.show()
+            >>> ut.quit_if_noshow()
+            >>> gt.qtapp_loop(qwin=self, freq=10)
+
+    """
+    def __init__(self, parent=None, tags=None, valid_tags=None,
+                 editor_mode='line'):
+        super(TagEdit, self).__init__(parent)
+        self.layout = QtWidgets.QHBoxLayout(self)
+        if editor_mode == 'line':
+            self.editor = QtWidgets.QLineEdit(parent=self)
+        else:
+            raise NotImplementedError('no fancy tag editing yet')
+        self.valid_tags = valid_tags
+        self._sep = ';'
+        self.setTags(tags)
+
+    def tags(self):
+        tag_text = self.editor.text()
+        tags = tag_text.split(self._sep)
+        return tags
+
+    def setTags(self, tags):
+        if tags is None:
+            tags = []
+        if self.valid_tags is not None:
+            for tag in tags:
+                assert tag in self.valid_tags
+        tag_text = self._sep.join(tags)
+        self.editor.setText(tag_text)
+
+
 def newFrame(*args, **kwargs):
     kwargs = kwargs.copy()
     widget = QtWidgets.QFrame()
     orientation = kwargs.get('orientation', None)
-    orientation = rectify_qt_const(orientation)
-    if orientation is None:
-        orientation = Qt.Vertical
+    orientation = rectifyQtEnum('Orientation', orientation, Qt.Vertical)
     if orientation == Qt.Vertical:
         layout = QtWidgets.QVBoxLayout(widget)
     elif orientation == Qt.Horizontal:
@@ -995,8 +1111,10 @@ def _inject_new_widget_methods(self):
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
         'CheckBox', 'TextEdit',
         'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
+        ('RadioButtonGroup', RadioButtonGroup),
         ('EditConfigWidget', PrefWidget2.EditConfigWidget),
         ('TableWidget', QtWidgets.QTableWidget),
+        ('TagEdit', TagEdit),
         'ScrollArea',
         #('ScrollArea', QtWidgets.QScrollArea),
     ]
@@ -1019,12 +1137,24 @@ def _inject_new_widget_methods(self):
                 self.layout().addWidget(widget, *args, **kwargs)
                 return widget
 
+            # TODO: depricate in favor of addNewHWidget
             def newHWidget(self, **kwargs):
                 return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)
 
+            # TODO: depricate in favor of addNewVWidget
             def newVWidget(self, **kwargs):
                 return self.addNewWidget(orientation=Qt.Vertical, **kwargs)
-            return addWidget, newVWidget, newHWidget
+
+            def addNewHWidget(self, **kwargs):
+                return self.addNewWidget(orientation=Qt.Horizontal, **kwargs)
+
+            def addNewVWidget(self, **kwargs):
+                return self.addNewWidget(orientation=Qt.Vertical, **kwargs)
+
+            return (
+                addWidget, newVWidget, newHWidget, addNewHWidget,
+                addNewVWidget
+            )
         for func  in _make_add_new_widgets():
             ut.inject_func_as_method(self, func, ut.get_funcname(func))
 
@@ -1049,15 +1179,6 @@ def newWidget(parent=None, *args, **kwargs):
     """
     widget = GuitoolWidget(parent, *args, **kwargs)
     return widget
-
-
-def rectify_qt_const(x):
-    if isinstance(x, six.string_types):
-        if x in ['vert', 'vertical']:
-            return Qt.Vertical
-        elif x in ['horiz', 'horizontal']:
-            return Qt.Horizontal
-    return x
 
 
 #class GuitoolWidget(QtWidgets.QWidget):
@@ -1098,7 +1219,7 @@ class GuitoolWidget(WIDGET_BASE):
 
         if ori is not None:
             orientation = ori
-        orientation = rectify_qt_const(orientation)
+        orientation = rectifyQtEnum('Orientation', orientation)
 
         if name is not None:
             self.setObjectName(name)
@@ -1646,8 +1767,9 @@ def get_widget_text_width(widget):
     return text_width
 
 
-def newComboBox(parent=None, options=None, changed=None, default=None, visible=True,
-                enabled=True, bgcolor=None, fgcolor=None, fontkw={}):
+def newComboBox(parent=None, options=None, changed=None, default=None,
+                visible=True, enabled=True, bgcolor=None, fgcolor=None,
+                fontkw={}, editor_mode='combo'):
     """ wrapper around QtWidgets.QComboBox
 
     Args:
@@ -1680,28 +1802,25 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
         >>> exec(ut.execstr_funckw(newComboBox), globals())
         >>> parent = None
         >>> options = ['red', 'blue']
-        >>> # execute function
         >>> combo = newComboBox(parent, options)
-        >>> # verify results
         >>> result = str(combo)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> combo.show()
         >>> gt.qtapp_loop(qwin=combo, freq=10)
     """
-
-    # Check for tuple option formating
-    flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
-    options_ = [opt if flag else (str(opt), opt)
-                for flag, opt in zip(flags, options)]
-
     combo_kwargs = {
         'parent' : parent,
-        'options_': options_,
+        'options': options,
         'default': default,
         'changed': changed,
     }
-    combo = CustomComboBox(**combo_kwargs)
+    if editor_mode == 'combo':
+        combo = CustomComboBox(**combo_kwargs)
+    elif editor_mode == 'radio':
+        combo = RadioButtonGroup(**combo_kwargs)
+    else:
+        raise ValueError('editor_mode=%r' % (editor_mode,))
     #if changed is None:
     #    enabled = False
     combo.setVisible(visible)
@@ -1711,15 +1830,19 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
 
 
 class CustomComboBox(QtWidgets.QComboBox):
-    def __init__(combo, parent=None, default=None, options_=None, changed=None):
+    def __init__(combo, parent=None, default=None, options=None, changed=None):
         super(CustomComboBox, combo).__init__(parent=parent)
+
+        # Check for tuple option formating
+        options = [opt if isinstance(opt, tuple) and len(opt) == 2 else
+                   (str(opt), opt) for opt in options]
+
         # QtWidgets.QComboBox.__init__(combo, parent)
-        combo.ibswgt = parent
-        combo.options_ = options_
+        combo.options = options
         combo.changed = changed
+        combo.updateOptions()
         #combo.allow_add = allow_add  # TODO
         # combo.setEditable(True)
-        combo.updateOptions()
         # combo.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
         #                     QtWidgets.QSizePolicy.Preferred)
 
@@ -1728,22 +1851,22 @@ class CustomComboBox(QtWidgets.QComboBox):
 
     def currentValue(combo):
         index = combo.currentIndex()
-        opt = combo.options_[index]
+        opt = combo.options[index]
         value = opt[1]
         return value
 
     def setOptions(combo, options):
         flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
-        options_ = [opt if flag else (str(opt), opt)
+        options = [opt if flag else (str(opt), opt)
                     for flag, opt in zip(flags, options)]
-        combo.options_ = options_
+        combo.options = options
 
     def updateOptions(combo, reselect=False, reselect_index=None):
         if reselect_index is None:
             reselect_index = combo.currentIndex()
         combo.clear()
-        combo.addItems( [ option[0] for option in combo.options_ ] )
-        if reselect and reselect_index < len(combo.options_):
+        combo.addItems( [ option[0] for option in combo.options ] )
+        if reselect and reselect_index < len(combo.options):
             combo.setCurrentIndex(reselect_index)
 
     def setOptionText(combo, option_text_list):
@@ -1753,7 +1876,7 @@ class CustomComboBox(QtWidgets.QComboBox):
 
     def currentIndexChangedCustom(combo, index):
         if combo.changed is not None:
-            combo.changed(index, combo.options_[index][1])
+            combo.changed(index, combo.options[index][1])
 
     def setDefault(combo, default=None):
         if default is not None:
@@ -1767,77 +1890,107 @@ class CustomComboBox(QtWidgets.QComboBox):
 
     def findValueIndex(combo, value):
         """ finds index of backend value and sets the current index """
-        for index, (text, val) in enumerate(combo.options_):
+        for index, (text, val) in enumerate(combo.options):
             if value == val:
                 return index
         else:
             # Hack, try the text if value doesnt work
-            for index, (text, val) in enumerate(combo.options_):
+            for index, (text, val) in enumerate(combo.options):
                 if value == text:
                     return index
             else:
                 raise ValueError('No such option value=%r' % (value,))
 
 
-class RadioButtonGroup(object):
-    def __init__(self, parent=None, options=[], default=None):
-        self.rb_widget = parent.newHWidget()
-        self.radio_buttons = []
-        for option in options:
-            rb = QtWidgets.QRadioButton(option)
-            if option == default:
+class RadioButtonGroup(QtWidgets.QWidget):
+    """
+    Mutually exclusive set of options (alternative to combo box)
+    """
+    def __init__(self, parent=None, options=[], default=None, changed=None):
+        super(RadioButtonGroup, self).__init__(parent=parent)
+        options = [opt if isinstance(opt, tuple) and len(opt) == 2 else
+                   (str(opt), opt) for opt in options]
+        self.layout = QtWidgets.QHBoxLayout(self)
+        self.radio_buttons = ut.odict()
+        for nice, code in options:
+            rb = QtWidgets.QRadioButton(nice)
+            if code == default:
                 rb.setChecked(True)
-            self.rb_widget.addWidget(rb)
-            self.radio_buttons.append(rb)
+            self.layout.addWidget(rb)
+            self.radio_buttons[code] = rb
+
+        if changed:
+            raise NotImplementedError('not implemented for radio buttons yet')
+
+    def setCurrentValue(self, value):
+        self.radio_buttons[value].setChecked(True)
 
     def currentText(self):
-        for rb in self.radio_buttons:
+        for rb in self.radio_buttons.values():
             if rb.isChecked():
                 return rb.text()
 
 
-def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=True,
-                enabled=True, bgcolor=None, fgcolor=None):
-    """ wrapper around QtWidgets.QCheckBox
+def newCheckBox(parent=None, text=None, changed=None, checked=False,
+                visible=True, enabled=True, bgcolor=None, fgcolor=None,
+                direction=None):
     """
+    wrapper around QtWidgets.QCheckBox
 
+    CommandLine:
+        python -m guitool.guitool_components newCheckBox
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool as gt
+        >>> app = gt.ensure_qtapp()[0]
+        >>> parent = newWidget()
+        >>> cb1 = gt.newCheckBox(parent, text='check_text1',
+        >>>                      direction='RightToLeft')
+        >>> parent.addWidget(cb1)
+        >>> cb2 = parent.addNewCheckBox(text='check_text2',
+        >>>                             direction='LeftToRight')
+        >>> parent.show()
+        >>> parent.resize(600, 40)
+        >>> ut.quit_if_noshow()
+        >>> gt.print_widget_heirarchy(cb1)
+        >>> gt.qtapp_loop(qwin=parent, freq=10)
+    """
     if text is None:
-        if changed is not None:
-            text = ut.get_funcname(changed)
-        else:
-            text = ''
-
+        text = '' if changed is None else ut.get_funcname(changed)
     check_kwargs = {
         'text'   : text,
         'checked': checked,
         'parent' : parent,
         'changed': changed,
     }
-    check = CustomCheckBox(**check_kwargs)
+    checkbox = CustomCheckBox(**check_kwargs)
+    if direction is not None:
+        direction = rectifyQtEnum('LayoutDirection', direction)
+        checkbox.setLayoutDirection(direction)
     # if changed is None:
     #     enabled = False
-    check.setVisible(visible)
-    check.setEnabled(enabled)
-    return check
+    checkbox.setVisible(visible)
+    checkbox.setEnabled(enabled)
+    return checkbox
 
 
 class CustomCheckBox(QtWidgets.QCheckBox):
-    def __init__(check, text='', parent=None, checked=False, changed=None):
-        # QtWidgets.QCheckBox.__init__(check, text, parent=parent)
-        super(CustomCheckBox, check).__init__(text, parent=parent)
-        check.ibswgt = parent
-        check.changed = changed
+    def __init__(self, text='', parent=None, checked=False, changed=None):
+        # QtWidgets.QCheckBox.__init__(self, text, parent=parent)
+        super(CustomCheckBox, self).__init__(text, parent=parent)
+        self.changed = changed
         if checked:
-            check.setCheckState(2)  # 2 is equivelant to checked, 1 to partial, 0 to not checked
+            # 2 is equivelant to checked, 1 to partial, 0 to not checked
+            self.setCheckState(2)
         else:
-            check.setCheckState(0)
-        # check.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-        #                     QtWidgets.QSizePolicy.Preferred)
-        check.stateChanged.connect(check.stateChangedCustom)
+            self.setCheckState(0)
+        self.stateChanged.connect(self.stateChangedCustom)
 
-    def stateChangedCustom(check, state):
-        if check.changed is not None:
-            check.changed(state == 2)
+    def stateChangedCustom(self, state):
+        if self.changed is not None:
+            self.changed(state == 2)
 
 
 def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
