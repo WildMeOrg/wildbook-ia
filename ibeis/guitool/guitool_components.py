@@ -25,6 +25,23 @@ ALIGN_DICT = {
 }
 
 
+def rectifySizePolicy(policy=None, default='Expanding'):
+    policy_dict = {
+        'Fixed': QtWidgets.QSizePolicy.Fixed,
+        'Minimum': QtWidgets.QSizePolicy.Minimum,
+        'Maximum': QtWidgets.QSizePolicy.Maximum,
+        'Preferred': QtWidgets.QSizePolicy.Preferred,
+        'Expanding': QtWidgets.QSizePolicy.Expanding,
+        'MinimumExpanding': QtWidgets.QSizePolicy.MinimumExpanding,
+        'Ignored': QtWidgets.QSizePolicy.Ignored,
+    }
+    if policy is None:
+        policy = default
+    if isinstance(policy, six.string_types):
+        policy = policy_dict[policy]
+    return policy
+
+
 def newSizePolicy(widget=None,
                   verticalSizePolicy=None, horizontalSizePolicy=None,
                   horizontalStretch=None, verticalStretch=None,
@@ -45,25 +62,8 @@ def newSizePolicy(widget=None,
     if hSizePolicy is not None:
         horizontalSizePolicy = hSizePolicy
 
-    if verticalSizePolicy is None:
-        verticalSizePolicy = QtWidgets.QSizePolicy.Expanding
-    if horizontalSizePolicy is None:
-        horizontalSizePolicy = QtWidgets.QSizePolicy.Expanding
-
-    policy_dict = {
-        'Fixed': QtWidgets.QSizePolicy.Fixed,
-        'Minimum': QtWidgets.QSizePolicy.Minimum,
-        'Maximum': QtWidgets.QSizePolicy.Maximum,
-        'Preferred': QtWidgets.QSizePolicy.Preferred,
-        'Expanding': QtWidgets.QSizePolicy.Expanding,
-        'MinimumExpanding': QtWidgets.QSizePolicy.MinimumExpanding,
-        'Ignored': QtWidgets.QSizePolicy.Ignored,
-    }
-
-    if isinstance(horizontalSizePolicy, six.string_types):
-        horizontalSizePolicy = policy_dict[horizontalSizePolicy]
-    if isinstance(verticalSizePolicy, six.string_types):
-        verticalSizePolicy = policy_dict[verticalSizePolicy]
+    horizontalSizePolicy = rectifySizePolicy(horizontalSizePolicy)
+    verticalSizePolicy = rectifySizePolicy(verticalSizePolicy)
 
     if verticalStretch is None:
         verticalStretch = 0
@@ -857,8 +857,8 @@ def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
     #outputEdit = ResizableTextEdit(parent)
     #else:
     outputEdit = QtWidgets.QTextEdit(parent)
-    sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
-    outputEdit.setSizePolicy(sizePolicy)
+    # sizePolicy = newSizePolicy(outputEdit, verticalStretch=1)
+    # outputEdit.setSizePolicy(sizePolicy)
     outputEdit.setAcceptRichText(rich)
     if visible is not None:
         outputEdit.setVisible(visible)
@@ -883,7 +883,7 @@ def newTextEdit(parent=None, label=None, visible=None, label_pos='above',
     #else:
     #    outputEdit.setMinimumHeight(0)
 
-    setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
+    # setattr(outputEdit, '_guitool_sizepolicy', sizePolicy)
     return outputEdit
 
 
@@ -909,10 +909,10 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     if editable is not None:
         readOnly = editable
     widget = QtWidgets.QLineEdit(parent)
-    sizePolicy = newSizePolicy(widget,
-                               verticalSizePolicy=QtWidgets.QSizePolicy.Fixed,
-                               verticalStretch=verticalStretch)
-    widget.setSizePolicy(sizePolicy)
+    # sizePolicy = newSizePolicy(widget,
+    #                            verticalSizePolicy=QtWidgets.QSizePolicy.Fixed,
+    #                            verticalStretch=verticalStretch)
+    # widget.setSizePolicy(sizePolicy)
     if text is not None:
         widget.setText(text)
     widget.setEnabled(enabled)
@@ -930,7 +930,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     #outputEdit.setAcceptRichText(False)
     #outputEdit.setVisible(visible)
     adjust_font(widget, **fontkw)
-    setattr(widget, '_guitool_sizepolicy', sizePolicy)
+    # setattr(widget, '_guitool_sizepolicy', sizePolicy)
     return widget
 
 
@@ -1115,15 +1115,12 @@ class GuitoolWidget(WIDGET_BASE):
             layout = QtWidgets.QHBoxLayout(self)
         else:
             raise NotImplementedError('orientation=%r' % (orientation,))
+        self._guitool_layout = layout
         if spacing is not None:
             layout.setSpacing(spacing)
         if margin is not None:
-            if hasattr(layout, 'setMargin'):
-                layout.setMargin(margin)
-            else:
-                layout.setContentsMargins(margin, margin, margin, margin)
+            self.set_all_margins(margin)
         self.setLayout(layout)
-        self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
         _inject_new_widget_methods(self)
         self.initialize(**kwargs)
@@ -1132,6 +1129,20 @@ class GuitoolWidget(WIDGET_BASE):
             # debug code
             self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
             #self.setStyleSheet("background-color: border:5px solid rgb(255, 0, 0); ")
+
+    def addNewSpacer(self, w=0, h=0, hPolicy=None, vPolicy=None):
+        hPolicy = rectifySizePolicy(hPolicy, 'Expanding')
+        vPolicy = rectifySizePolicy(vPolicy, 'Expanding')
+        spacer = QtWidgets.QSpacerItem(w, h, hPolicy, vPolicy)
+        self._guitool_layout.addItem(spacer)
+        return spacer
+
+    def set_all_margins(self, margin):
+        layout = self._guitool_layout
+        if hasattr(layout, 'setMargin'):
+            layout.setMargin(margin)
+        else:
+            layout.setContentsMargins(margin, margin, margin, margin)
 
     @classmethod
     def as_dialog(cls, parent=None, **kwargs):
@@ -1191,6 +1202,10 @@ def get_nested_attr(obj, attr):
 
 
 def walk_widget_heirarchy(obj, **kwargs):
+    """
+    print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['minimumWidth'], skip=True)))
+    print('\n'.join(gt.walk_widget_heirarchy(self, attrs=['sizePolicy'], skip=True)))
+    """
     default_attrs = [
         'sizePolicy'
         'widgetResizable'
@@ -1199,6 +1214,7 @@ def walk_widget_heirarchy(obj, **kwargs):
         'alignment'
         'spacing',
         'margin',
+        'sizeHint',
     ]
     attrs = kwargs.get('attrs', None)
     max_depth = kwargs.get('max_depth', None)
@@ -1679,70 +1695,6 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
     options_ = [opt if flag else (str(opt), opt)
                 for flag, opt in zip(flags, options)]
 
-    class CustomComboBox(QtWidgets.QComboBox):
-        def __init__(combo, parent=None, default=None, options_=None, changed=None):
-            QtWidgets.QComboBox.__init__(combo, parent)
-            combo.ibswgt = parent
-            combo.options_ = options_
-            combo.changed = changed
-            #combo.allow_add = allow_add  # TODO
-            # combo.setEditable(True)
-            combo.updateOptions()
-            combo.setDefault(default)
-            combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom)
-
-        def currentValue(combo):
-            index = combo.currentIndex()
-            opt = combo.options_[index]
-            value = opt[1]
-            return value
-
-        def setOptions(combo, options):
-            flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
-            options_ = [opt if flag else (str(opt), opt)
-                        for flag, opt in zip(flags, options)]
-            combo.options_ = options_
-
-        def updateOptions(combo, reselect=False, reselect_index=None):
-            if reselect_index is None:
-                reselect_index = combo.currentIndex()
-            combo.clear()
-            combo.addItems( [ option[0] for option in combo.options_ ] )
-            if reselect and reselect_index < len(combo.options_):
-                combo.setCurrentIndex(reselect_index)
-
-        def setOptionText(combo, option_text_list):
-            for index, text in enumerate(option_text_list):
-                combo.setItemText(index, text)
-            #combo.removeItem()
-
-        def currentIndexChangedCustom(combo, index):
-            if combo.changed is not None:
-                combo.changed(index, combo.options_[index][1])
-
-        def setDefault(combo, default=None):
-            if default is not None:
-                combo.setCurrentValue(default)
-            else:
-                combo.setCurrentIndex(0)
-
-        def setCurrentValue(combo, value):
-            index = combo.findValueIndex(value)
-            combo.setCurrentIndex(index)
-
-        def findValueIndex(combo, value):
-            """ finds index of backend value and sets the current index """
-            for index, (text, val) in enumerate(combo.options_):
-                if value == val:
-                    return index
-            else:
-                # Hack, try the text if value doesnt work
-                for index, (text, val) in enumerate(combo.options_):
-                    if value == text:
-                        return index
-                else:
-                    raise ValueError('No such option value=%r' % (value,))
-
     combo_kwargs = {
         'parent' : parent,
         'options_': options_,
@@ -1756,6 +1708,75 @@ def newComboBox(parent=None, options=None, changed=None, default=None, visible=T
     combo.setEnabled(enabled)
     adjust_font(combo, **fontkw)
     return combo
+
+
+class CustomComboBox(QtWidgets.QComboBox):
+    def __init__(combo, parent=None, default=None, options_=None, changed=None):
+        super(CustomComboBox, combo).__init__(parent=parent)
+        # QtWidgets.QComboBox.__init__(combo, parent)
+        combo.ibswgt = parent
+        combo.options_ = options_
+        combo.changed = changed
+        #combo.allow_add = allow_add  # TODO
+        # combo.setEditable(True)
+        combo.updateOptions()
+        # combo.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+        #                     QtWidgets.QSizePolicy.Preferred)
+
+        combo.setDefault(default)
+        combo.currentIndexChanged['int'].connect(combo.currentIndexChangedCustom)
+
+    def currentValue(combo):
+        index = combo.currentIndex()
+        opt = combo.options_[index]
+        value = opt[1]
+        return value
+
+    def setOptions(combo, options):
+        flags = [isinstance(opt, tuple) and len(opt) == 2 for opt in options]
+        options_ = [opt if flag else (str(opt), opt)
+                    for flag, opt in zip(flags, options)]
+        combo.options_ = options_
+
+    def updateOptions(combo, reselect=False, reselect_index=None):
+        if reselect_index is None:
+            reselect_index = combo.currentIndex()
+        combo.clear()
+        combo.addItems( [ option[0] for option in combo.options_ ] )
+        if reselect and reselect_index < len(combo.options_):
+            combo.setCurrentIndex(reselect_index)
+
+    def setOptionText(combo, option_text_list):
+        for index, text in enumerate(option_text_list):
+            combo.setItemText(index, text)
+        #combo.removeItem()
+
+    def currentIndexChangedCustom(combo, index):
+        if combo.changed is not None:
+            combo.changed(index, combo.options_[index][1])
+
+    def setDefault(combo, default=None):
+        if default is not None:
+            combo.setCurrentValue(default)
+        else:
+            combo.setCurrentIndex(0)
+
+    def setCurrentValue(combo, value):
+        index = combo.findValueIndex(value)
+        combo.setCurrentIndex(index)
+
+    def findValueIndex(combo, value):
+        """ finds index of backend value and sets the current index """
+        for index, (text, val) in enumerate(combo.options_):
+            if value == val:
+                return index
+        else:
+            # Hack, try the text if value doesnt work
+            for index, (text, val) in enumerate(combo.options_):
+                if value == text:
+                    return index
+            else:
+                raise ValueError('No such option value=%r' % (value,))
 
 
 class RadioButtonGroup(object):
@@ -1779,21 +1800,12 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=Tru
                 enabled=True, bgcolor=None, fgcolor=None):
     """ wrapper around QtWidgets.QCheckBox
     """
-    class CustomCheckBox(QtWidgets.QCheckBox):
-        def __init__(check, text='', parent=None, checked=False, changed=None):
-            QtWidgets.QComboBox.__init__(check, text, parent=parent)
-            check.ibswgt = parent
-            check.changed = changed
-            if checked:
-                check.setCheckState(2)  # 2 is equivelant to checked, 1 to partial, 0 to not checked
-            check.stateChanged.connect(check.stateChangedCustom)
-
-        def stateChangedCustom(check, state):
-            if check.changed is not None:
-                check.changed(state == 2)
 
     if text is None:
-        text = ut.get_funcname(changed)
+        if changed is not None:
+            text = ut.get_funcname(changed)
+        else:
+            text = ''
 
     check_kwargs = {
         'text'   : text,
@@ -1807,6 +1819,25 @@ def newCheckBox(parent=None, text=None, changed=None, checked=False, visible=Tru
     check.setVisible(visible)
     check.setEnabled(enabled)
     return check
+
+
+class CustomCheckBox(QtWidgets.QCheckBox):
+    def __init__(check, text='', parent=None, checked=False, changed=None):
+        # QtWidgets.QCheckBox.__init__(check, text, parent=parent)
+        super(CustomCheckBox, check).__init__(text, parent=parent)
+        check.ibswgt = parent
+        check.changed = changed
+        if checked:
+            check.setCheckState(2)  # 2 is equivelant to checked, 1 to partial, 0 to not checked
+        else:
+            check.setCheckState(0)
+        # check.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+        #                     QtWidgets.QSizePolicy.Preferred)
+        check.stateChanged.connect(check.stateChangedCustom)
+
+    def stateChangedCustom(check, state):
+        if check.changed is not None:
+            check.changed(state == 2)
 
 
 def newFont(fontname='Courier New', pointSize=-1, weight=-1, italic=False):
