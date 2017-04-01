@@ -152,15 +152,14 @@ class MatchInspector(INSPECT_BASE):
         self.match = match
         self.info_text = info_text
         self.on_context = on_context
-        self.first_show()
+        if self.isVisible():
+            self.first_show()
 
-    def initialize(self, match, on_context=None, autoupdate=True,
+    def initialize(self, match=None, on_context=None, autoupdate=True,
                    info_text=None):
         from plottool import abstract_interaction
         from guitool.__PYQT__ import QtCore
-        self.match = match
-        self.info_text = info_text
-        self.on_context = on_context
+        self.set_match(match, on_context, info_text)
         self._setup_configs()
         self._setup_layout(autoupdate=autoupdate)
         abstract_interaction.register_interaction(self)
@@ -257,7 +256,7 @@ class MatchInspector(INSPECT_BASE):
 
     def execute_vsone(self):
         from vtool import matching
-        print('Execute vsone')
+        print('[inspect_match] Execute vsone')
         cfgdict = self.config.asdict()
 
         feat_cfgdict = self.featconfig.asdict()
@@ -270,6 +269,8 @@ class MatchInspector(INSPECT_BASE):
         match.apply_all(cfgdict)
 
     def draw_pair(self):
+        if self.match is None:
+            return
         self.mpl_widget.clf()
         ax = self.mpl_widget.ax
         info_html = ''
@@ -277,6 +278,7 @@ class MatchInspector(INSPECT_BASE):
             info_html = '<pre>' + self.info_text + '</pre>'
         self.infobox.setText(info_html)
         self.match.show(ax=ax, overlay=False)
+        self.mpl_widget.fig.canvas.draw()
 
     def draw_vsone(self):
         match = self.match
@@ -294,10 +296,7 @@ class MatchInspector(INSPECT_BASE):
         self.mpl_widget.fig.canvas.draw()
 
     def update(self, state=None):
-        print('update')
-        # import vtool as vt
-        # vt.rrrr()
-        if self.autoupdate_cb.checkState():
+        if self.autoupdate_cb.checkState() and self.match is not None:
             self.execute_vsone()
             self.draw_vsone()
 
