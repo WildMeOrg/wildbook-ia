@@ -236,31 +236,31 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
 
         acfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
 
-        query_vframe = acfg_hframe.newVWidget()
+        query_vframe = acfg_hframe.addNewVWidget()
         query_vframe.addWidget(QtWidgets.QLabel('Query Config'))
         query_vframe.addWidget(self.editQueryConfig)
 
-        data_vframe = acfg_hframe.newVWidget()
+        data_vframe = acfg_hframe.addNewVWidget()
         data_vframe.addWidget(QtWidgets.QLabel('Data Config'))
         data_vframe.addWidget(self.editDataConfig)
         #data_vframe.setVisible(False)
 
-        info_vframe = acfg_hframe.newVWidget()
+        info_vframe = acfg_hframe.addNewVWidget()
         info_vframe.addNewLabel('Exemplar Config')
         self.editExemplarConfig = info_vframe.addNewEditConfigWidget(
             config=self.exemplar_cfg, changed=self.on_cfg_changed)
         info_vframe.addNewButton('Set Exemplars', pressed=self.set_exemplars)
 
         pcfg_hframe = splitter.newWidget(orientation=Qt.Horizontal)
-        pipe_vframe = pcfg_hframe.newVWidget()
+        pipe_vframe = pcfg_hframe.addNewVWidget()
         pipe_vframe.addNewLabel('Pipeline Config')
         pipe_vframe.addWidget(self.editPipeConfig)
 
-        review_vframe = pcfg_hframe.newVWidget()
+        review_vframe = pcfg_hframe.addNewVWidget()
         review_vframe.addNewLabel('Review Config')
         review_vframe.addWidget(self.editReviewConfig)
 
-        info_vframe = pcfg_hframe.newVWidget()
+        info_vframe = pcfg_hframe.addNewVWidget()
         info_vframe.addNewLabel('Info Config')
         info_vframe.addWidget(self.editInfoConfig)
 
@@ -278,7 +278,7 @@ class CustomAnnotCfgSelector(gt.GuitoolWidget):
         tab2.addWidget(self.qstats2)
         #self.layout().addWidget(self.qstats)
 
-        button_bar = self.newHWidget()
+        button_bar = self.addNewHWidget()
 
         self.update_button = button_bar.addNewButton('Apply New Config', pressed=self.apply_new_config)
         self.execute_button = button_bar.addNewButton('Execute New Query', pressed=self.execute_query)
@@ -669,11 +669,11 @@ class NewDatabaseWidget(gt.GuitoolWidget):
         self.setWindowTitle(title_mode[mode])
         self.instructions = self.addNewLabel(instruction_mode[mode], align='center')
         # ---
-        self.dbname_row = self.newHWidget()
+        self.dbname_row = self.addNewHWidget()
         self.dbname_row.edit = self.dbname_row.addNewLineEdit(self.dbname, align='center')
         self.dbname_row.edit.textChanged.connect(self.update_state)
         # ---
-        self.workdir_row = self.newHWidget()
+        self.workdir_row = self.addNewHWidget()
         self.workdir_row.lbl  = self.workdir_row.addNewLabel('Current Workdir:')
         self.workdir_row.edit = self.workdir_row.addNewLineEdit(self.workdir, align='right')
         self.workdir_row.button = self.workdir_row.addNewButton('...',
@@ -684,13 +684,13 @@ class NewDatabaseWidget(gt.GuitoolWidget):
                                                                  pressed=self.view_workdir)
         self.workdir_row.edit.textChanged.connect(self.update_state)
         # ---
-        self.current_row = self.newHWidget()
+        self.current_row = self.addNewHWidget()
         self.create_but = self.newButton(
             'Create in workdir', pressed=self.create_in_workdir)
         self.current_row.lbl  = self.current_row.addNewLabel('Current choice:', align='left')
         self.current_row.edit = self.current_row.addNewLabel('{current_dbdir}', align='right')
 
-        self.button_row = self.newHWidget()
+        self.button_row = self.addNewHWidget()
         self.button_row.addNewButton('Cancel', pressed=self.cancel)
         self.button_row.addNewButton('Create in a different directory',
                                      pressed=self.create_in_customdir)

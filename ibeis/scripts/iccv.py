@@ -5,22 +5,25 @@ import pathlib
 print, rrr, profile = ut.inject2(__name__)
 
 
-def gt_reveiw():
+def gt_review():
     r"""
     CommandLine:
-        python -m ibeis.scripts.iccv gt_reveiw
+        python -m ibeis.scripts.iccv gt_review
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
-        >>> result = gt_reveiw()
+        >>> result = gt_review()
         >>> print(result)
     """
     import ibeis
-    cacher = ut.Cacher('tmp_gz_review', 'v1')
+    import ubelt as ub
+    # defaultdb = 'GZ_Master'
+    defaultdb = 'PZ_MTEST'
+    cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v2')
     data = cacher.tryload()
     if data is None:
-        ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        ibs = ibeis.opendb(defaultdb=defaultdb)
         infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
                                     autoinit=True, verbose=True)
         infr.reset_feedback('annotmatch')
@@ -54,6 +57,7 @@ def gt_reveiw():
         pred = pred_probs.idxmax(axis=1)
         failed = (real != pred)
         pred_probs['failed'] = failed
+        pred_probs['pred'] = pred
         pred_probs['truth'] = real
 
         labels, groupxs = ut.group_indices(real.values)
@@ -78,51 +82,66 @@ def gt_reveiw():
     from ibeis.viz import viz_chip
     import plottool as pt
     import guitool as gt
+    from ibeis.viz import viz_graph2
     ut.qtensure()
-    gt.ensure_qapp()
+    app = gt.ensure_qapp()[0]
     ibs = infr.ibs
 
-    edge = pred_probs.index[0]
-    aid1, aid2 = edge
-    info_text = str(pred_probs.loc[edge])
+    from guitool.__PYQT__ import QtCore
+    Qt = QtCore.Qt
+
+    def get_index_data(count):
+        edge = pred_probs.index[count]
+        info_text = str(pred_probs.loc[edge])
+        return edge, info_text
+
+    self = viz_graph2.AnnotPairDialog(
+        infr=infr, get_index_data=get_index_data, total=len(pred_probs))
+    self.seek(0)
+
+    # count = 0
+    # edge = pred_probs.index[count]
+    # info_text = str(pred_probs.loc[edge])
+    # self.set_edge(edge, info_text)
+
+    # self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+    self.show()
+    self.activateWindow()
+    self.raise_()
+    gt.qtapp_loop(qwin=self, freq=10)
 
     # TODO: Next step is to hook up infr and let AnnotPairDialog set feedback
     # then we just need to iterate through results
-    self = None
 
-    from ibeis.viz import viz_graph2
-    fnum = pt.ensure_fnum(10)
-    for index in ut.InteractiveIter(list(range(0, len(pred_probs)))):
-        edge = pred_probs.index[index]
-        aid1, aid2 = edge
-        info_text = str(pred_probs.loc[edge])
-        if self is not None:
-            self.close()
+    # for count in ut.InteractiveIter(list(range(0, len(pred_probs)))):
+    #     edge = pred_probs.index[count]
+    #     info_text = str(pred_probs.loc[edge])
+    #     self.set_edge(edge, info_text=info_text)
 
-        self = viz_graph2.AnnotPairDialog(ibs=ibs, aid1=aid1, aid2=aid2,
-                                          info_text=info_text)
-        self.show()
-        # fig.show()
-        # fig.canvas.draw()
+    #     # # self = viz_graph2.AnnotPairDialog(ibs=ibs, aid1=aid1, aid2=aid2,
+    #     # #                                   info_text=info_text)
+    #     # self.show()
+    #     # fig.show()
+    #     # fig.canvas.draw()
 
     # from ibeis.gui import inspect_gui
-    # self = tuner = inspect_gui.make_vsone_tuner(ibs, aid1, aid2)  # NOQA
+    # self = tuner = inspect_gui.make_vsone_tuner(ibs, (aid1, aid2))  # NOQA
     # tuner.show()
 
     # ut.check_debug_import_times()
     # import utool
     # utool.embed()
 
-    if False:
-        fnum = pt.ensure_fnum(10)
-        for index in ut.InteractiveIter(list(range(0, len(pred_probs)))):
-            fig = pt.figure(fnum=fnum)  # NOQA
-            edge = pred_probs.index[index]
-            info = pred_probs.loc[edge]
-            viz_chip.show_many_chips(infr.ibs, edge, fnum=fnum)
-            pt.set_title(str(info))
-            # fig.show()
-            fig.canvas.draw()
+    # if False:
+    #     fnum = pt.ensure_fnum(10)
+    #     for count in ut.InteractiveIter(list(range(0, len(pred_probs)))):
+    #         fig = pt.figure(fnum=fnum)  # NOQA
+    #         edge = pred_probs.index[count]
+    #         info = pred_probs.loc[edge]
+    #         viz_chip.show_many_chips(infr.ibs, edge, fnum=fnum)
+    #         pt.set_title(str(info))
+    #         # fig.show()
+    #         fig.canvas.draw()
 
     # print('%d/%d failed' % (failed.sum(), len(failed)))
     # real_probs[failed] - match_probs[failed]

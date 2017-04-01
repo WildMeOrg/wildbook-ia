@@ -51,57 +51,95 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>> gt.ensure_qapp()
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
-        >>> win = AnnotPairDialog(ibs=ibs, aid1=1, aid2=2,
+        >>> win = AnnotPairDialog(ibs=ibs, edge=(1, 2),
         >>>                       info_text='text describing this match')
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
-    def initialize(self, ibs, aid1, aid2, info_text=None):
+    def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
+                   get_index_data=None, total=None):
         from ibeis.gui import inspect_gui
-        annot_state1 = AnnotStateDialog(ibs=ibs, aid=aid1)
-        annot_state2 = AnnotStateDialog(ibs=ibs, aid=aid2)
+        self.infr = infr
+        if infr is not None:
+            ibs = infr.ibs
+        self.annot_state1 = AnnotStateDialog(ibs=ibs)
+        self.annot_state2 = AnnotStateDialog(ibs=ibs)
 
-        edge_data = None
-        annot_review = CustomReviewDialog(aid1=aid1, aid2=aid2,
-                                          edge_data=edge_data, radio=False,
-                                          with_confirm=False)
+        self.annot_review = EdgeReviewDialog(
+            conf_editor='combo', with_confirm=False)
 
-        tuner = inspect_gui.make_vsone_tuner(ibs, aid1, aid2, autoupdate=False,
-                                             info_text=info_text)
+        self.tuner = inspect_gui.make_vsone_tuner(
+            ibs, autoupdate=False, info_text=info_text)
 
         splitter = self.addNewSplitter(orientation='horiz')
-        splitter.addWidget(tuner)
+        splitter.addWidget(self.tuner)
 
         rbox = splitter.addNewWidget(orientation='vert')
 
-        rbox.setStyleSheet(ut.codeblock(
+        rbox.setStyleSheet(
             '''
             .QFrame {
                 border-width: 2px;
                 border-color: black;
                 border-style: outset;
             }
-            '''))
+            ''')
 
-        for var in ['annot_state1', 'annot_state1', 'annot_review', 'rbox',
-                    'tuner', 'splitter']:
-            vars()[var].setObjectName(var)
+        gt.set_qt_object_names(vars(self))
 
         self.setMinimumHeight(1)
         self.setMinimumWidth(1)
 
-        # border: 20px solid black;
-        # border-radius: 10px;
-        # background-color: rgb(255, 255, 255);
-        rbox.addNewFrame().addWidget(annot_state1)
-        rbox.addNewFrame().addWidget(annot_state2)
-        rbox.addNewFrame().addWidget(annot_review)
+        rbox.addNewFrame().addWidget(self.annot_state1)
+        rbox.addNewFrame().addWidget(self.annot_state2)
+        rbox.addNewFrame().addWidget(self.annot_review)
         rbox.addNewSpacer(hPolicy='Expanding', vPolicy='Expanding')
-        # gt.print_widget_heirarchy(self, attrs=['sizePolicy', 'minimumHeight'], skip=True)
+        # gt.print_widget_heirarchy(
+        #     self, attrs=['sizePolicy', 'minimumHeight'], skip=True)
 
-        self.accept_button = rbox.addNewButton('Accept', pressed=self.on_accept)
+        self.accept_button = rbox.addNewButton('Accept', pressed=self.accept)
 
-    def on_accept(self):
-        pass
+        np_bar = rbox.addNewHWidget()
+
+        if total is not None:
+            self.get_index_data = get_index_data
+            self.total = total
+            self.count = 0
+            self.prev_but = np_bar.addNewButton(
+                'Prev', pressed=lambda: self.step_by(-1))
+            self.index_edit = np_bar.addNewLineEdit(
+                str(self.count), editingFinishedSlot=self.edit_jump)
+            self.next_but = np_bar.addNewButton(
+                'Next', pressed=lambda: self.step_by(1))
+
+        if edge is not None:
+            self.set_edge(edge, info_text)
+
+    def edit_jump(self):
+        index = int(self.index_edit.text())
+        self.seek(index)
+
+    def accept(self):
+        self.step_by(1)
+
+    def set_edge(self, edge, info_text=None):
+        edge_data = (None if self.infr is None else
+                     self.infr.get_edge_data(*edge))
+        self.tuner.set_edge(edge, info_text)
+        self.annot_state1.set_aid(edge[0])
+        self.annot_state2.set_aid(edge[1])
+        self.annot_review.set_edge(edge, edge_data)
+
+    def step_by(self, amount=1):
+        self.seek(self.count + amount)
+
+    def seek(self, index):
+        assert isinstance(index, int)
+        self.count = index
+        self.count = max(self.count, 0)
+        self.count = min(self.count, self.total - 1)
+        edge, info_text = self.get_index_data(self.count)
+        self.index_edit.setText(str(self.count))
+        self.set_edge(edge, info_text)
 
 
 class AnnotStateDialog(gt.GuitoolWidget):
@@ -121,144 +159,170 @@ class AnnotStateDialog(gt.GuitoolWidget):
 
     def _new_form_hbox(self, text):
         form_box = self.addNewWidget(orientation='horiz', margin=1)
-        # form_box.setMinimumHeight(1)
-        # form_box.setMinimumWidth(1)
         label = form_box.addNewLabel(text, align='left')
         label.setObjectName('form_box_label_' + text)
         return form_box
 
-    def initialize(self, ibs, aid):
-        self.ibs = ibs
-        self.aid = aid
-
+    def set_aid(self, aid):
+        # read ibeis state
+        # TODO: allow read from infr graph node attributes
+        ibs = self.ibs
         current_qualtext = ibs.get_annot_quality_texts([aid])[0]
         if current_qualtext is None:
             current_qualtext = ibs.const.QUAL_UNKNOWN
-
         current_yawtext = ibs.get_annot_yaw_texts([aid])[0]
         if current_yawtext is None:
             current_yawtext = 'UNKNOWN'
-
         current_multiple = ibs.get_annot_multiple([aid])[0]
-        tag_text = ibs.get_annot_tag_text([aid])[0]
-        if tag_text is None:
-            tag_text = ''
+        tags = ibs.get_annot_case_tags([aid])[0]
+        # Set qt state
+        self.aid = aid
+        self.aid_label.setText(repr(aid))
+        self.quality_combo.setCurrentValue(current_qualtext)
+        self.view_combo.setCurrentValue(current_yawtext)
+        self.ismulti_cb.setCheckState(bool(current_multiple))
+        self.tag_edit.setTags(tags)
 
-        print(self._guitool_layout.spacing())
-        self._guitool_layout.setSpacing(0)
-        self.set_all_margins(1)
+    def initialize(self, ibs, aid=None):
+        self.ibs = ibs
+        self.aid = aid
 
-        self._new_form_hbox('Aid: %r' % (aid,))
+        const = ibs.const
+        valid_quals = list(const.QUALITY_TEXT_TO_INT.keys())
+        valid_views = list(const.VIEWTEXT_TO_YAW_RADIANS.keys()) + ['UNKNOWN']
+
+        aid_box = self._new_form_hbox('Aid:')
+        self.aid_label = aid_box.addNewLabel(align='right')
 
         qual_box = self._new_form_hbox('Quality:')
-        self.quality_combo = qual_box.addNewComboBox(
-            options=list(ibs.const.QUALITY_TEXT_TO_INT.keys()),
-            default=current_qualtext)
+        self.quality_combo = qual_box.addNewComboBox(options=valid_quals)
 
         view_box = self._new_form_hbox('Viewpoint:')
-        self.view_combo = view_box.addNewComboBox(
-            options=list(ibs.const.VIEWTEXT_TO_YAW_RADIANS.keys()) + ['UNKNOWN'],
-            default=current_yawtext)
+        self.view_combo = view_box.addNewComboBox(options=valid_views)
 
         multi_box = self._new_form_hbox('Multiple:')
-        self.ismulti_cb = multi_box.addNewCheckBox(checked=current_multiple)
+        self.ismulti_cb = multi_box.addNewCheckBox(direction='RightToLeft')
 
-        # TODO: make qt tag editor
         tag_box = self._new_form_hbox('Tags:')
-        self.tag_edit = tag_box.addNewLineEdit(tag_text)
-        # from guitool.__PYQT__ import QtWidgets
-        # self.tag_edit.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
-        #                             QtWidgets.QSizePolicy.Maximum)
-        # self.tag_edit.setMinimumHeight(1)
-        # self.tag_edit.setMinimumWidth(1)
+        tag_box.addNewSpacer(hPolicy='Expanding')
+        self.tag_edit = tag_box.addNewTagEdit()
 
         self.addNewSpacer(hPolicy='Preferred', vPolicy='Preferred')
 
-        for key, val in locals().items():
-            if hasattr(val, 'setObjectName'):
-                val.setObjectName(key)
+        self.set_all_margins(1)
+        self.setMinimumHeight(1)
+        self.setMinimumWidth(1)
 
-        for key, val in vars(self).items():
-            if hasattr(val, 'setObjectName'):
-                val.setObjectName(key)
+        gt.set_qt_object_names(locals())
+        gt.set_qt_object_names(vars(self))
+
+        if aid is not None:
+            self.set_aid(aid)
 
 
-class CustomReviewDialog(gt.GuitoolWidget):
+class EdgeReviewDialog(gt.GuitoolWidget):
     r"""
 
-    ibeis CustomReviewDialog --show
+    ibeis EdgeReviewDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.viz.viz_graph2 import *  # NOQA
         >>> import guitool as gt
         >>> gt.ensure_qapp()
-        >>> win = CustomReviewDialog(aid1=1, aid2=2)
+        >>> win = EdgeReviewDialog(edge=(1, 2))
         >>> gt.qtapp_loop(qwin=win, freq=10)
         >>> print(win.feedback_dict())
     """
-    def initialize(self, aid1, aid2, edge_data=None, radio=True,
+
+    def _new_form_hbox(self, text):
+        form_box = self.addNewWidget(orientation='horiz', margin=1)
+        label = form_box.addNewLabel(text, align='left')
+        label.setObjectName('form_box_label_' + text)
+        return form_box
+
+    def initialize(self, edge=None, edge_data=None, conf_editor='radio',
                    with_confirm=True):
         # from guitool.__PYQT__ import QtWidgets
         import ibeis
-        if edge_data is not None:
-            reviewed_tags = edge_data.get('reviewed_tags', [])
-            match_state = edge_data.get('decision', 'unreviewed')
-            default_conf = edge_data.get('confidence', 'unspecified')
-            print('edge_data = %r' % (edge_data,))
-            default_match_state = ibeis.const.REVIEW.CODE_TO_NICE[match_state]
-        else:
-            default_conf = 'unspecified'
-            default_match_state = ibeis.const.REVIEW.CODE_TO_NICE['unreviewed']
-            reviewed_tags = []
 
-        self.aid1 = aid1
-        self.aid2 = aid2
-
-        match_state_options = list(ibeis.const.REVIEW.INT_TO_NICE.values())
-        user_conf_options = list(ibeis.const.CONFIDENCE.CODE_TO_INT.keys())
+        match_state_options = list(ibeis.const.REVIEW.NICE_TO_CODE.items())
+        user_conf_options = list(ibeis.const.CONFIDENCE.NICE_TO_CODE.items())
 
         self.set_all_margins(1)
 
-        self.addNewLabel('Review Aids (%r, %r)' % (aid1, aid2))
-        self.row1 = self.newHWidget(marin=1)
-        self.row1.addNewLabel('Match State:', align='left')
-        self.match_state_combo = self.row1.addNewComboBox(
-            options=match_state_options,
-            default=default_match_state)
+        edge_row = self._new_form_hbox('Edge:')
+        self.edge_label = edge_row.addNewLabel(align='right')
 
-        self.checkbox_row = self.newHWidget(marin=1)
-        self.tag_checkboxes = []
-        for tag in ['photobomb', 'scenerymatch']:
-            checked = tag in reviewed_tags
-            checkbox = self.checkbox_row.addNewCheckBox(tag, checked=checked)
-            checkbox.setObjectName('tag_cb_' + tag)
-            self.tag_checkboxes.append(checkbox)
+        state_row = self._new_form_hbox('Match State:')
+        editor_mode = 'combo'
+        editor_mode = 'radio'
+        self.match_state_combo = state_row.addNewComboBox(
+            options=match_state_options, editor_mode=editor_mode
+        )
+        # self.match_state_combo.setStyleSheet(
+        #     '''
+        #     QRadioButton {
+        #     text: "Bottom"
+        #     }
+        #     '''
+        # )
 
-        self.row2 = self.newHWidget(margin=1)
-        self.row2.addNewLabel('Confidence:', align='left')
-        if radio:
-            self.user_conf_combo = gt.RadioButtonGroup(
-                self, options=user_conf_options, default=default_conf)
-        else:
-            self.user_conf_combo = self.row2.addNewComboBox(
-                options=user_conf_options, default=default_conf)
 
-        for var in ['row1', 'row2', 'user_conf_combo', 'checkbox_row',
-                    'match_state_combo']:
-            getattr(self, var).setObjectName(var)
+        # tags_row = self.addNewWidget(orientation='horiz', margin=1)
+        tags_row = self._new_form_hbox('Secondary State:')
+        tags_row.addNewSpacer(hPolicy='Expanding')
+        self.tag_checkboxes = {}
+        for tagname in ['photobomb', 'scenerymatch']:
+            checkbox = tags_row.addNewCheckBox(tagname)
+            checkbox.setObjectName('tag_cb_' + tagname)
+            self.tag_checkboxes[tagname] = checkbox
+
+        conf_row = self._new_form_hbox('Confidence:')
+        self.conf_combo = conf_row.addNewComboBox(
+            options=user_conf_options, editor_mode=conf_editor
+        )
 
         if with_confirm:
-            self.button_row = self.newHWidget(margin=1)
-            self.button_row.setObjectName('button_row')
+            self.button_row = self.addNewWidget(orientation='horiz', margin=1)
             self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
             self.confirm_button = self.button_row.addNewButton(
                 'Confirm', pressed=self.confirm)
             self.cancel_button = self.button_row.addNewButton(
                 'Cancel', pressed=self.cancel)
-            for var in ['cancel_button', 'confirm_button', 'button_row']:
-                getattr(self, var).setObjectName(var)
         self.was_confirmed = False
+
+        self.set_edge(edge, edge_data)
+
+        self.set_all_margins(1)
+        self.setMinimumHeight(1)
+        self.setMinimumWidth(1)
+
+        gt.set_qt_object_names(vars(self))
+        gt.set_qt_object_names(locals())
+
+    def set_edge(self, edge, edge_data=None):
+        import ibeis
+        if edge_data is not None:
+            reviewed_tags = edge_data.get('reviewed_tags', [])
+            match_state = edge_data.get('decision', 'unreviewed')
+            confidence = edge_data.get('confidence', 'unspecified')
+            print('edge_data = %r' % (edge_data,))
+
+        else:
+            confidence = 'unspecified'
+            match_state = 'unreviewed'
+            reviewed_tags = []
+
+        if edge is not None and len(edge) != 2:
+            raise ValueError('Edge must be 2 ints')
+        # set qt state
+        self.edge = edge
+        self.edge_label.setText(repr(edge))
+        self.match_state_combo.setCurrentValue(match_state)
+        for tagname, checkbox in self.tag_checkboxes.items():
+            checkbox.setChecked(tagname in reviewed_tags)
+        self.conf_combo.setCurrentValue(confidence)
 
     def cancel(self):
         self.was_confirmed = False
@@ -272,12 +336,12 @@ class CustomReviewDialog(gt.GuitoolWidget):
         import ibeis
         decision_nice = self.match_state_combo.currentText()
         decision_code = ibeis.const.REVIEW.NICE_TO_CODE[decision_nice]
-        tags = [check.text() for check in self.tag_checkboxes
+        tags = [key for key, check in self.tag_checkboxes.items()
                 if check.checkState()]
-        confidence = self.user_conf_combo.currentText()
+        confidence =self.conf_combo.currentText()
         review = {
-            'aid1': self.aid1,
-            'aid2': self.aid2,
+            'aid1': self.edge[0],
+            'aid2': self.edge[1],
             'decision': decision_code,
             'tags': tags,
             'confidence': confidence,
@@ -793,7 +857,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
     def init_inference(self):
         print('[viz_graph] init_inference mode=%r' % (self.init_mode))
         if self.init_mode is None:
-            pass
+            pkoass
         elif self.init_mode == 'split':
             self.preset_config('filtered')
             self.reset_split()
@@ -1094,8 +1158,8 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         # import utool
         # utool.embed()
         edge_data = self.infr.get_edge_data(aid1, aid2)
-        dlg = CustomReviewDialog.as_dialog(self, aid1=aid1, aid2=aid2,
-                                           edge_data=edge_data)
+        dlg = EdgeReviewDialog.as_dialog(self, edge=(aid1, aid2),
+                                         edge_data=edge_data)
         dlg.resize(400, 300)
         dlg.exec_()
         if dlg.widget.was_confirmed:

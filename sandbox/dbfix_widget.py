@@ -63,7 +63,7 @@ class FixDatabaseWidget(gt.GuitoolWidget):
 
         self.populate_dirsize_table()
 
-        button_bar = self.newHWidget()
+        button_bar = self.addNewHWidget()
         #button_bar.addNewButton('TestLog', pressed=self.log_query)
         button_bar.addNewButton('Embed', pressed=self.embed)
 

@@ -1794,7 +1794,7 @@ def photobomb_samples(ibs):
         aid1 = a1_.aids[i]
         aid2 = a2_.aids[i]
 
-        win = inspect_gui.make_vsone_tuner(ibs, aid1, aid2)
+        win = inspect_gui.make_vsone_tuner(ibs, (aid1, aid2))
         win.show()
         # annot1 = a1_[i]._make_lazy_dict()
         # annot2 = a2_[i]._make_lazy_dict()

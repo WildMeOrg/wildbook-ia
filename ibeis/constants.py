@@ -381,48 +381,68 @@ SPECIES_WITH_DETECTORS = (
 class REVIEW(object):
     """
     Enumerated types of review codes and texts
+
+    Notes:
+        Unreviewed: Not comparared yet.
+        nomatch: Visually comparable and the different
+        match: Visually comparable and the same
+        notcomp: Not comparable means it is actually impossible to determine.
+        unknown: means that it was reviewed, but we just can't figure it out.
     """
-    # Not comparared yet.
-    UNREVIEWED = None
-    # Visually comparable and the different
-    NON_MATCH = 0
-    # Visually comparable and the same
-    MATCH = 1
-    # Not comparable means it is actually impossible to determine.
+    UNREVIEWED     = None
+    NON_MATCH      = 0
+    MATCH          = 1
     NOT_COMPARABLE = 2
-    # Unknown means that it was reviewed, but we just can't figure it out.
-    UNKNOWN = 3
+    UNKNOWN        = 3
 
-    CODE_TO_INT = {
-        'unreviewed' : UNREVIEWED,
-        'nomatch'    : NON_MATCH,
-        'match'      : MATCH,
-        'notcomp'    : NOT_COMPARABLE,
-        'unknown'    : UNKNOWN,
-    }
-    MATCH_CODE = CODE_TO_INT
+    INT_TO_CODE = ut.odict([
+        (MATCH          , 'match'),
+        (NON_MATCH      , 'nomatch'),
+        (NOT_COMPARABLE , 'notcomp'),
+        (UNKNOWN        , 'unknown'),
+        (UNREVIEWED     , 'unreviewed'),
+    ])
 
-    INT_TO_CODE = ut.invert_dict(CODE_TO_INT)
-    INT_TO_NICE = {
-        UNREVIEWED     : 'Unreviewed',
-        NON_MATCH      : 'Negative',
-        MATCH          : 'Positive',
-        NOT_COMPARABLE : 'Incomparable',
-        UNKNOWN        : 'Unknown',
-    }
+    INT_TO_NICE = ut.odict([
+        (MATCH          , 'Positive'),
+        (NON_MATCH      , 'Negative'),
+        (NOT_COMPARABLE , 'Incomparable'),
+        (UNKNOWN        , 'Unknown'),
+        (UNREVIEWED     , 'Unreviewed'),
+    ])
 
     CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
-
+    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
     NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
     NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
 
+    MATCH_CODE = CODE_TO_INT
+
 
 class CONFIDENCE(object):
-    CODE_TO_INT = ut.odict([
-        ('unspecified', None),
-        ('guessing', 1),
-        ('not_sure', 2),
-        ('pretty_sure', 3),
-        ('absolutely_sure', 4),
+    UNKNOWN         = None
+    GUESSING        = 1
+    NOT_SURE        = 2
+    PRETTY_SURE     = 3
+    ABSOLUTELY_SURE = 4
+
+    INT_TO_CODE = ut.odict([
+        (ABSOLUTELY_SURE, 'absolutely_sure'),
+        (PRETTY_SURE, 'pretty_sure'),
+        (NOT_SURE, 'not_sure'),
+        (GUESSING, 'guessing'),
+        (UNKNOWN, 'unspecified'),
     ])
-    INT_TO_CODE = ut.invert_dict(CODE_TO_INT)
+
+    INT_TO_NICE = ut.odict([
+        (ABSOLUTELY_SURE, 'Absolutely Sure'),
+        (PRETTY_SURE, 'Pretty Sure'),
+        (NOT_SURE, 'Not Sure'),
+        (GUESSING, 'Guessing'),
+        (UNKNOWN, 'Unspecified'),
+    ])
+
+    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
+    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
+    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
+    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
