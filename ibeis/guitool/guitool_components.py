@@ -108,6 +108,13 @@ def rectifySizePolicy(policy=None, default='Expanding'):
     return policy
 
 
+def adjustSizePolicy(widget, hPolicy=None, vPolicy=None, hStretch=None,
+                     vStretch=None):
+    policy = newSizePolicy(widget, hSizePolicy=hPolicy, vSizePolicy=vPolicy,
+                           hStretch=hStretch, vStretch=vStretch)
+    widget.setSizePolicy(policy)
+
+
 def newSizePolicy(widget=None,
                   verticalSizePolicy=None, horizontalSizePolicy=None,
                   horizontalStretch=None, verticalStretch=None,
@@ -119,25 +126,40 @@ def newSizePolicy(widget=None,
         http://doc.qt.io/qt-4.8/qsizepolicy.html
         http://doc.qt.io/qt-5/qsizepolicy.html
     """
-    if hStretch is not None:
-        horizontalStretch = hStretch
-    if vStretch is not None:
-        verticalStretch = vStretch
-    if vSizePolicy is not None:
-        verticalSizePolicy = vSizePolicy
-    if hSizePolicy is not None:
-        horizontalSizePolicy = hSizePolicy
+    # Alias
+    if horizontalStretch is not None:
+        hStretch = horizontalStretch
+    if verticalStretch is not None:
+         vStretch = verticalStretch
+    if verticalSizePolicy is not None:
+        vSizePolicy = verticalSizePolicy
+    if horizontalSizePolicy is not None:
+        hSizePolicy = horizontalSizePolicy
+    #
 
-    horizontalSizePolicy = rectifySizePolicy(horizontalSizePolicy)
-    verticalSizePolicy = rectifySizePolicy(verticalSizePolicy)
+    if widget is not None:
+        # use existing policy as default
+        old = widget.sizePolicy()
+        defaultHPolicy = old.horizontalPolicy()
+        defaultVPolicy = old.verticalPolicy()
+        defaultHStretch = old.horizontalStretch()
+        defaultVStretch = old.verticalStretch()
+    else:
+        defaultVPolicy = 'Expanding'
+        defaultHPolicy = 'Expanding'
+        defaultVStretch = 0
+        defaultHStretch = 0
 
-    if verticalStretch is None:
-        verticalStretch = 0
-    if horizontalStretch is None:
-        horizontalStretch = 0
-    sizePolicy = QtWidgets.QSizePolicy(horizontalSizePolicy, verticalSizePolicy)
-    sizePolicy.setHorizontalStretch(horizontalStretch)
-    sizePolicy.setVerticalStretch(verticalStretch)
+    hPolicy = rectifyQtEnum('QSizePolicy', hSizePolicy, defaultHPolicy)
+    vPolicy = rectifyQtEnum('QSizePolicy', vSizePolicy, defaultVPolicy)
+    if hStretch is None:
+        hStretch = defaultHStretch
+    if vStretch is None:
+        vStretch = defaultVStretch
+
+    sizePolicy = QtWidgets.QSizePolicy(hPolicy, vPolicy)
+    sizePolicy.setHorizontalStretch(hStretch)
+    sizePolicy.setVerticalStretch(vStretch)
     #sizePolicy.setHeightForWidth(widget.sizePolicy().hasHeightForWidth())
     return sizePolicy
 
@@ -1003,7 +1025,7 @@ def newLineEdit(parent, text=None, enabled=True, align='center',
     return widget
 
 
-class TagEdit(QtWidgets.QWidget):
+class TagEdit(QtWidgets.QLineEdit):
     """
         Args:
             self (?):
@@ -1025,20 +1047,24 @@ class TagEdit(QtWidgets.QWidget):
             >>> gt.qtapp_loop(qwin=self, freq=10)
 
     """
-    def __init__(self, parent=None, tags=None, valid_tags=None,
-                 editor_mode='line'):
+    def __init__(self, parent=None, tags=None, valid_tags=None):
+                 # editor_mode='line'):
         super(TagEdit, self).__init__(parent)
-        self.layout = QtWidgets.QHBoxLayout(self)
-        if editor_mode == 'line':
-            self.editor = QtWidgets.QLineEdit(parent=self)
-        else:
-            raise NotImplementedError('no fancy tag editing yet')
+        # self.layout = QtWidgets.QHBoxLayout(self)
+        # if editor_mode == 'line':
+        #     self.editor = QtWidgets.QLineEdit(parent=self)
+        # else:
+        #     raise NotImplementedError('no fancy tag editing yet')
         self.valid_tags = valid_tags
         self._sep = ';'
         self.setTags(tags)
 
+    # def setSizePolicy(self, *args):
+    #     super(TagEdit, self).setSizePolicy(*args)
+    #     self.editor.setSizePolicy(*args)
+
     def tags(self):
-        tag_text = self.editor.text()
+        tag_text = self.text()
         tags = tag_text.split(self._sep)
         return tags
 
@@ -1049,7 +1075,7 @@ class TagEdit(QtWidgets.QWidget):
             for tag in tags:
                 assert tag in self.valid_tags
         tag_text = self._sep.join(tags)
-        self.editor.setText(tag_text)
+        self.setText(tag_text)
 
 
 def newFrame(*args, **kwargs):
@@ -1217,12 +1243,9 @@ class GuitoolWidget(WIDGET_BASE):
                  **kwargs):
         super(GuitoolWidget, self).__init__(parent)
 
-        if ori is not None:
-            orientation = ori
-        orientation = rectifyQtEnum('Orientation', orientation)
-
         if name is not None:
             self.setObjectName(name)
+
         #sizePolicy = newSizePolicy(self,
         #                           horizontalSizePolicy=horizontalSizePolicy,
         #                           verticalSizePolicy=verticalSizePolicy,
@@ -1230,12 +1253,18 @@ class GuitoolWidget(WIDGET_BASE):
         #                           horizontalStretch=horizontalStretch)
         #self.setSizePolicy(sizePolicy)
         #setattr(self, '_guitool_sizepolicy', sizePolicy)
-        if orientation == Qt.Vertical:
-            layout = QtWidgets.QVBoxLayout(self)
-        elif orientation == Qt.Horizontal:
-            layout = QtWidgets.QHBoxLayout(self)
+        if ori is not None:
+            orientation = ori
+        if orientation == 'flow':
+            layout = FlowLayout(self)
         else:
-            raise NotImplementedError('orientation=%r' % (orientation,))
+            orientation = rectifyQtEnum('Orientation', orientation)
+            if orientation == Qt.Vertical:
+                layout = QtWidgets.QVBoxLayout(self)
+            elif orientation == Qt.Horizontal:
+                layout = QtWidgets.QHBoxLayout(self)
+            else:
+                raise NotImplementedError('orientation=%r' % (orientation,))
         self._guitool_layout = layout
         if spacing is not None:
             layout.setSpacing(spacing)
@@ -1911,6 +1940,7 @@ class RadioButtonGroup(QtWidgets.QWidget):
         options = [opt if isinstance(opt, tuple) and len(opt) == 2 else
                    (str(opt), opt) for opt in options]
         self.layout = QtWidgets.QHBoxLayout(self)
+        # self.layout = FlowLayout(self)
         self.radio_buttons = ut.odict()
         for nice, code in options:
             rb = QtWidgets.QRadioButton(nice)
@@ -2419,6 +2449,145 @@ class BlockSignals(object):
 
     def __exit__(self, tb, e, s):
         self.qobj.blockSignals(self.prev)
+
+        #! /usr/bin/python2
+# -*- coding: utf-8 -*-
+
+
+class FlowLayout(QtWidgets.QLayout):
+    """
+    References:
+        https://gist.github.com/Cysu/7461066
+
+    CommandLine:
+        python -m guitool.guitool_components FlowLayout
+
+    Example:
+        >>> import sys
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool as gt
+        >>> app = gt.ensure_qtapp()[0]
+        >>> #
+        >>> class Window(QtWidgets.QWidget):
+        >>>     def __init__(self):
+        >>>         super(Window, self).__init__()
+        >>> #
+        >>>         flowLayout = FlowLayout()
+        >>>         #flowLayout.setLayoutDirection(Qt.RightToLeft)
+        >>>         flowLayout.addWidget(QtWidgets.QPushButton("Short"))
+        >>>         flowLayout.addWidget(QtWidgets.QPushButton("Longer"))
+        >>>         flowLayout.addWidget(QtWidgets.QPushButton("Different text"))
+        >>>         flowLayout.addWidget(QtWidgets.QPushButton("More text"))
+        >>>         flowLayout.addWidget(QtWidgets.QPushButton("Even longer button text"))
+        >>>         self.setLayout(flowLayout)
+        >>> #
+        >>>         self.setWindowTitle("Flow Layout")
+        >>> #
+        >>> mainWin = Window()
+        >>> mainWin.show()
+        >>> gt.qtapp_loop(freq=10)
+    """
+    def __init__(self, parent=None, margin=0, spacing=-1):
+        super(FlowLayout, self).__init__(parent)
+
+        if parent is not None:
+            if hasattr(self, 'setMargin'):
+                self.setMargin(margin)
+            else:
+                self.setContentsMargins(margin, margin, margin, margin)
+
+        self.setSpacing(spacing)
+
+        self.itemList = []
+
+    def __del__(self):
+        item = self.takeAt(0)
+        while item:
+            item = self.takeAt(0)
+
+    def addItem(self, item):
+        self.itemList.append(item)
+
+    def count(self):
+        return len(self.itemList)
+
+    def itemAt(self, index):
+        if index >= 0 and index < len(self.itemList):
+            return self.itemList[index]
+
+        return None
+
+    def takeAt(self, index):
+        if index >= 0 and index < len(self.itemList):
+            return self.itemList.pop(index)
+
+        return None
+
+    def expandingDirections(self):
+        return QtCore.Qt.Orientations(QtCore.Qt.Orientation(0))
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self, width):
+        height = self._doLayout(QtCore.QRect(0, 0, width, 0), True)
+        return height
+
+    def setGeometry(self, rect):
+        super(FlowLayout, self).setGeometry(rect)
+        self._doLayout(rect, False)
+
+    def sizeHint(self):
+        return self.minimumSize()
+
+    def minimumSize(self):
+        size = QtCore.QSize()
+
+        for item in self.itemList:
+            size = size.expandedTo(item.minimumSize())
+
+        if hasattr(self, 'contentsMargins'):
+            margin = self.contentsMargins()
+            margin = (margin.left() + margin.right() + margin.bottom() +
+                      margin.top()) / 4
+        else:
+            margin = self.margin()
+
+        size += QtCore.QSize(2 * margin, 2 * margin)
+        return size
+
+    def _doLayout(self, rect, testOnly):
+        x = rect.x()
+        y = rect.y()
+        lineHeight = 0
+
+        for item in self.itemList:
+            wid = item.widget()
+            spaceX = self.spacing() + wid.style().layoutSpacing(
+                QtWidgets.QSizePolicy.PushButton,
+                QtWidgets.QSizePolicy.PushButton,
+                QtCore.Qt.Horizontal)
+
+            spaceY = self.spacing() + wid.style().layoutSpacing(
+                QtWidgets.QSizePolicy.PushButton,
+                QtWidgets.QSizePolicy.PushButton,
+                QtCore.Qt.Vertical)
+
+            nextX = x + item.sizeHint().width() + spaceX
+            if nextX - spaceX > rect.right() and lineHeight > 0:
+                x = rect.x()
+                y = y + lineHeight + spaceY
+                nextX = x + item.sizeHint().width() + spaceX
+                lineHeight = 0
+
+            if not testOnly:
+                item.setGeometry(
+                    QtCore.QRect(QtCore.QPoint(x, y), item.sizeHint()))
+
+            x = nextX
+            lineHeight = max(lineHeight, item.sizeHint().height())
+
+        return y + lineHeight - rect.y()
 
 
 if __name__ == '__main__':
