@@ -119,6 +119,17 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self.seek(index)
 
     def accept(self):
+
+        # TODO: eventually stage annotation attributes
+        self.annot_state1.ibeis_write()
+        self.annot_state2.ibeis_write()
+        # Stage edge attributes
+        # edge = self.annot_review.edge
+        feedback = self.annot_review.feedback_dict()
+        if self.infr is not None:
+            self.infr.add_feedback(**feedback)
+        else:
+            print('Edge feedback not recoreded')
         self.step_by(1)
 
     def set_edge(self, edge, info_text=None):
@@ -144,7 +155,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
 
 class AnnotStateDialog(gt.GuitoolWidget):
     """
-    ibeis AnnotStateDialog --show
+    python -m ibeis.viz.viz_graph2 AnnotStateDialog --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -157,10 +168,12 @@ class AnnotStateDialog(gt.GuitoolWidget):
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
 
-    def _new_form_hbox(self, text):
-        form_box = self.addNewWidget(orientation='horiz', margin=1)
+    def _new_form_hbox(self, text, ori='horiz'):
+        form_box = self.addNewWidget(ori=ori, margin=1)
         label = form_box.addNewLabel(text, align='left')
+        gt.adjustSizePolicy(label, hStretch=1)
         label.setObjectName('form_box_label_' + text)
+        form_box.addNewSpacer(hPolicy='Preferred', vPolicy='Preferred')
         return form_box
 
     def set_aid(self, aid):
@@ -178,10 +191,28 @@ class AnnotStateDialog(gt.GuitoolWidget):
         # Set qt state
         self.aid = aid
         self.aid_label.setText(repr(aid))
-        self.quality_combo.setCurrentValue(current_qualtext)
+        self.qual_combo.setCurrentValue(current_qualtext)
         self.view_combo.setCurrentValue(current_yawtext)
-        self.ismulti_cb.setCheckState(bool(current_multiple))
+        self.ismulti_cb.setChecked(bool(current_multiple))
         self.tag_edit.setTags(tags)
+
+    def ibeis_write(self):
+        ibs = self.ibs
+        attrs = self.annot_attrs()
+        aid = attrs['aid']
+        ibs.set_annot_quality_texts([aid], [attrs['qual']])
+        ibs.set_annot_yaw_texts([aid], [attrs['view']])
+        ibs.overwrite_annot_case_tags([aid], [attrs['tags']])
+        ibs.set_annot_multiple([aid], [attrs['multiple']])
+
+    def annot_attrs(self):
+        return {
+            'aid': self.aid,
+            'qual': self.qual_combo.currentValue(),
+            'view': self.view_combo.currentValue(),
+            'tags': self.tag_edit.tags(),
+            'multiple': self.ismulti_cb.isChecked(),
+        }
 
     def initialize(self, ibs, aid=None):
         self.ibs = ibs
@@ -195,23 +226,33 @@ class AnnotStateDialog(gt.GuitoolWidget):
         self.aid_label = aid_box.addNewLabel(align='right')
 
         qual_box = self._new_form_hbox('Quality:')
-        self.quality_combo = qual_box.addNewComboBox(options=valid_quals)
+        self.qual_combo = qual_box.addNewComboBox(options=valid_quals,
+                                                     # editor_mode='radio'
+                                                    )
+        gt.adjustSizePolicy(self.qual_combo, hStretch=5)
 
+        # view_box = self._new_form_hbox('Viewpoint:', ori='flow')
         view_box = self._new_form_hbox('Viewpoint:')
-        self.view_combo = view_box.addNewComboBox(options=valid_views)
+        self.view_combo = view_box.addNewComboBox(options=valid_views,
+                                                  # editor_mode='radio'
+                                                 )
+        gt.adjustSizePolicy(self.view_combo, hStretch=5)
 
         multi_box = self._new_form_hbox('Multiple:')
         self.ismulti_cb = multi_box.addNewCheckBox(direction='RightToLeft')
 
         tag_box = self._new_form_hbox('Tags:')
-        tag_box.addNewSpacer(hPolicy='Expanding')
+        # tag_box.addNewSpacer(hPolicy='Expanding')
         self.tag_edit = tag_box.addNewTagEdit()
+        self.tag_edit.setSizePolicy(gt.newSizePolicy(
+            hSizePolicy='Expanding', vSizePolicy='Fixed',
+            hStretch=100))
 
         self.addNewSpacer(hPolicy='Preferred', vPolicy='Preferred')
 
-        self.set_all_margins(1)
-        self.setMinimumHeight(1)
-        self.setMinimumWidth(1)
+        # self.set_all_margins(1)
+        # self.setMinimumHeight(1)
+        # self.setMinimumWidth(1)
 
         gt.set_qt_object_names(locals())
         gt.set_qt_object_names(vars(self))
@@ -256,7 +297,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
 
         state_row = self._new_form_hbox('Match State:')
         editor_mode = 'combo'
-        editor_mode = 'radio'
+        # editor_mode = 'radio'
         self.match_state_combo = state_row.addNewComboBox(
             options=match_state_options, editor_mode=editor_mode
         )
@@ -270,8 +311,8 @@ class EdgeReviewDialog(gt.GuitoolWidget):
 
 
         # tags_row = self.addNewWidget(orientation='horiz', margin=1)
-        tags_row = self._new_form_hbox('Secondary State:')
-        tags_row.addNewSpacer(hPolicy='Expanding')
+        tags_row = self._new_form_hbox('Confounding State:')
+        tags_row.addNewSpacer(hPolicy='Expanding', vPolicy='Fixed')
         self.tag_checkboxes = {}
         for tagname in ['photobomb', 'scenerymatch']:
             checkbox = tags_row.addNewCheckBox(tagname)
@@ -306,7 +347,8 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         if edge_data is not None:
             reviewed_tags = edge_data.get('reviewed_tags', [])
             match_state = edge_data.get('decision', 'unreviewed')
-            confidence = edge_data.get('confidence', 'unspecified')
+            # confidence = edge_data.get('confidence', 'unspecified')
+            confidence = 'unspecified'
             print('edge_data = %r' % (edge_data,))
 
         else:
@@ -340,8 +382,9 @@ class EdgeReviewDialog(gt.GuitoolWidget):
                 if check.checkState()]
         confidence =self.conf_combo.currentText()
         review = {
-            'aid1': self.edge[0],
-            'aid2': self.edge[1],
+            'edge': self.edge,
+            # 'aid1': self.edge[0],
+            # 'aid2': self.edge[1],
             'decision': decision_code,
             'tags': tags,
             'confidence': confidence,
