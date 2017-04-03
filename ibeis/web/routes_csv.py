@@ -206,7 +206,6 @@ def get_demographic_info(**kwargs):
 def get_annotation_special_info(**kwargs):
     ibs = current_app.ibs
     filename = 'special.csv'
-    ut.embed()
 
     aid_list = sorted(ibs.get_valid_aids())
     print('Found %d aids' % (len(aid_list), ))
@@ -242,8 +241,11 @@ def get_annotation_special_info(**kwargs):
     annot_metadata_key_str = ','.join(annot_metadata_key_list)
 
     line_list = []
-    zipped = zip(aid_list, nid_list, gname_list, imageset_metadata_list, annot_metadata_list)
-    for aid, nid, gname, imageset_metadata_dict, annot_metadata_dict in zipped:
+    zipped = zip(nid_list, aid_list, gname_list, imageset_metadata_list, annot_metadata_list)
+    zipped = sorted(list(zipped))
+    for nid, aid, gname, imageset_metadata_dict, annot_metadata_dict in zipped:
+        if nid <= 0:
+            continue
         line_list_ = [
             aid,
             nid,
