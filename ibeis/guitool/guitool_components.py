@@ -2695,14 +2695,14 @@ class ComboRadioHybrid(GuitoolWidget):
             return self.combo.currentText()
         for count, rb in enumerate(self.radio_buttons.values()):
             if rb.isChecked():
-                self.radio_options[count][0]
+                return self.radio_options[count][0]
 
     def currentValue(self):
         if self.combo_rb.isChecked():
             return self.combo.currentValue()
         for count, rb in enumerate(self.radio_buttons.values()):
             if rb.isChecked():
-                self.radio_options[count][1]
+                return self.radio_options[count][1]
 
 
 if __name__ == '__main__':
