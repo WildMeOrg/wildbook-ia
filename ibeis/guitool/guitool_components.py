@@ -25,7 +25,6 @@ ALIGN_DICT = {
 }
 
 
-
 def rectifyQtEnum(type_, value, default=ut.NoParam):
     """
     Args:
@@ -130,7 +129,7 @@ def newSizePolicy(widget=None,
     if horizontalStretch is not None:
         hStretch = horizontalStretch
     if verticalStretch is not None:
-         vStretch = verticalStretch
+        vStretch = verticalStretch
     if verticalSizePolicy is not None:
         vSizePolicy = verticalSizePolicy
     if horizontalSizePolicy is not None:
@@ -1048,7 +1047,6 @@ class TagEdit(QtWidgets.QLineEdit):
 
     """
     def __init__(self, parent=None, tags=None, valid_tags=None):
-                 # editor_mode='line'):
         super(TagEdit, self).__init__(parent)
         # self.layout = QtWidgets.QHBoxLayout(self)
         # if editor_mode == 'line':
@@ -1137,6 +1135,7 @@ def _inject_new_widget_methods(self):
         'Widget', 'Button', 'LineEdit', 'ComboBox', 'Label', 'Spoiler',
         'CheckBox', 'TextEdit',
         'Frame', 'Splitter', 'TabWidget', 'ProgressBar',
+        ('RadioButton', QtWidgets.QRadioButton),
         ('RadioButtonGroup', RadioButtonGroup),
         ('EditConfigWidget', PrefWidget2.EditConfigWidget),
         ('TableWidget', QtWidgets.QTableWidget),
@@ -1277,7 +1276,7 @@ class GuitoolWidget(WIDGET_BASE):
 
         if DEBUG_WIDGET:
             # debug code
-            self.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
+            self.setStyleSheet("background-color: rgb(255,0,0); margin:1px; border:1px solid rgb(0, 255, 0); ")
             #self.setStyleSheet("background-color: border:5px solid rgb(255, 0, 0); ")
 
     def addNewSpacer(self, w=0, h=0, hPolicy=None, vPolicy=None):
@@ -1798,7 +1797,7 @@ def get_widget_text_width(widget):
 
 def newComboBox(parent=None, options=None, changed=None, default=None,
                 visible=True, enabled=True, bgcolor=None, fgcolor=None,
-                fontkw={}, editor_mode='combo'):
+                fontkw={}, editor_mode='combo', num=2):
     """ wrapper around QtWidgets.QComboBox
 
     Args:
@@ -1848,6 +1847,8 @@ def newComboBox(parent=None, options=None, changed=None, default=None,
         combo = CustomComboBox(**combo_kwargs)
     elif editor_mode == 'radio':
         combo = RadioButtonGroup(**combo_kwargs)
+    elif editor_mode == 'hybrid':
+        combo = ComboRadioHybrid(num=num, **combo_kwargs)
     else:
         raise ValueError('editor_mode=%r' % (editor_mode,))
     #if changed is None:
@@ -2588,6 +2589,120 @@ class FlowLayout(QtWidgets.QLayout):
             lineHeight = max(lineHeight, item.sizeHint().height())
 
         return y + lineHeight - rect.y()
+
+
+class ComboRadioHybrid(GuitoolWidget):
+    """
+    CommandLine:
+        python -m guitool.guitool_components ComboRadioHybrid --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from guitool.guitool_components import *  # NOQA
+        >>> import guitool as gt
+        >>> gt.ensure_qtapp()
+        >>> parent = None
+        >>> options = ['red', 'blue', 'green', 'blue', 'black', 'blah']
+        >>> options = [(a.title(), a) for a in options]
+        >>> self = ComboRadioHybrid(parent=parent, options=options)
+        >>> self.setCurrentValue('black')
+        >>> self.print_widget_heirarchy(attrs=['sizePolicy'])
+        >>> ut.quit_if_noshow()
+        >>> self.show()
+        >>> print(self.currentText())
+        >>> gt.qtapp_loop(qwin=self, freq=10)
+    """
+    def __init__(self, parent=None, **kwargs):
+        kwargs.pop('ori', 'vert')
+        kwargs['ori'] = 'horiz'
+        # kwargs['spacing'] = 1
+        kwargs['margin'] = 1
+        super(ComboRadioHybrid, self).__init__(parent=parent, **kwargs)
+
+    def on_toggle(self, button, checked):
+        pass
+        # if button is self.combo_rb:
+        #     self.combo.setEnabled(checked)
+
+    def initialize(self, options=[], num=2, default=None, changed=None):
+        self.group = QtWidgets.QButtonGroup(parent=self)
+        self.group.setExclusive(True)
+        self.group.buttonToggled.connect(self.on_toggle)
+        # Rectify options
+        options = [opt if isinstance(opt, tuple) and len(opt) == 2 else
+                   (str(opt), opt) for opt in options]
+        if len(options) == num:
+            num += 1
+        self.radio_options = options[0:num]
+        self.combo_options = options[num:]
+
+        self.radio_buttons = ut.odict()
+        ori = 'vert'
+        for nice, code in self.radio_options:
+            rb_widget = self.addNewWidget(ori=ori, margin=1, spacing=1)
+            adjustSizePolicy(rb_widget, vPolicy='Fixed')
+            space_widget = rb_widget.addNewHWidget(margin=1, spacing=1)
+            adjustSizePolicy(space_widget, vPolicy='Fixed')
+            space_widget.addNewSpacer()
+            rb = space_widget.addNewRadioButton()
+            space_widget.addNewSpacer()
+            rb_widget.addNewLabel(nice)
+            rb_widget.addNewSpacer()
+
+            self.group.addButton(rb)
+            if code == default:
+                rb.setChecked(True)
+            self.radio_buttons[code] = rb
+
+        if len(self.combo_options) > 0:
+            rb_widget = self.addNewWidget(ori=ori, margin=1, spacing=1)
+            adjustSizePolicy(rb_widget, vPolicy='Fixed')
+            space_widget = rb_widget.addNewHWidget(margin=1, spacing=1)
+            space_widget.addNewSpacer()
+            adjustSizePolicy(space_widget, vPolicy='Fixed')
+            self.combo_rb = space_widget.addNewRadioButton()
+            space_widget.addNewSpacer()
+            self.combo = rb_widget.addNewComboBox(options=self.combo_options)
+            rb_widget.addNewSpacer()
+
+            self.group.addButton(self.combo_rb)
+            if default in ut.take_column(options, 1):
+                rb.setChecked(True)
+            # else:
+            #     self.combo.setEnabled(False)
+            self.combo.activated.connect(lambda x: self.combo_rb.setChecked(True))
+
+            # self.combo.setStyleSheet(
+            #     '''
+            #     {
+            #         text-align: center;
+            #     }
+            #     '''
+            # )
+
+            # self.combo.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
+        # self.set_all_margins(1)
+
+    def setCurrentValue(self, value):
+        if value in self.radio_buttons:
+            self.radio_buttons[value].setChecked(True)
+        else:
+            self.combo.setCurrentValue(value)
+            self.combo_rb.setChecked(True)
+
+    def currentText(self):
+        if self.combo_rb.isChecked():
+            return self.combo.currentText()
+        for count, rb in enumerate(self.radio_buttons.values()):
+            if rb.isChecked():
+                self.radio_options[count][0]
+
+    def currentValue(self):
+        if self.combo_rb.isChecked():
+            return self.combo.currentValue()
+        for count, rb in enumerate(self.radio_buttons.values()):
+            if rb.isChecked():
+                self.radio_options[count][1]
 
 
 if __name__ == '__main__':
