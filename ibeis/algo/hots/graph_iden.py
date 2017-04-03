@@ -11,8 +11,7 @@ from ibeis.algo.hots import graph_iden_depmixin
 from ibeis.algo.hots import graph_iden_mixins
 from ibeis.algo.hots import graph_iden_utils
 from ibeis.algo.hots.graph_iden_utils import e_, _dz
-from ibeis.algo.hots.graph_iden_utils import (group_name_edges,
-                                              ensure_multi_index)
+from ibeis.algo.hots.graph_iden_utils import group_name_edges
 from ibeis.algo.hots.graph_iden_new import AnnotInfr2
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
@@ -20,124 +19,6 @@ print, rrr, profile = ut.inject2(__name__)
 
 DEBUG_CC = False
 # DEBUG_CC = True
-
-
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrGroundtruth(object):
-    """
-    Methods for generating training labels for classifiers
-    """
-    def guess_if_comparable(infr, aid_pairs):
-        """
-        Takes a guess as to which annots are not comparable based on scores and
-        viewpoints. If either viewpoints is null assume they are comparable.
-        """
-        # simple_scores = labels.simple_scores
-        # key = 'sum(weighted_ratio)'
-        # if key not in simple_scores:
-        #     key = 'sum(ratio)'
-        # scores = simple_scores[key].values
-        # yaws1 = labels.annots1.yaws_asfloat
-        # yaws2 = labels.annots2.yaws_asfloat
-        aid_pairs = np.asarray(aid_pairs)
-        ibs = infr.ibs
-        yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
-        yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
-        dists = vt.ori_distance(yaws1, yaws2)
-        tau = np.pi * 2
-        # scores = np.full(len(aid_pairs), np.nan)
-        comp_by_viewpoint = (dists < tau / 8.1) | np.isnan(dists)
-        # comp_by_score = (scores > .1)
-        # is_comp = comp_by_score | comp_by_viewpoint
-        is_comp_guess = comp_by_viewpoint
-        return is_comp_guess
-
-    def is_comparable(infr, aid_pairs, allow_guess=True):
-        """
-        Guesses by default when real comparable information is not available.
-        """
-        ibs = infr.ibs
-        if allow_guess:
-            # Guess if comparability information is unavailable
-            is_comp_guess = infr.guess_if_comparable(aid_pairs)
-            is_comp = is_comp_guess.copy()
-        else:
-            is_comp = np.full(len(aid_pairs), np.nan)
-        # But use information that we have
-        am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
-        truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
-        truths = np.asarray(truths)
-        is_notcomp_have = truths == ibs.const.REVIEW.NOT_COMPARABLE
-        is_comp_have = ((truths == ibs.const.REVIEW.MATCH) |
-                        (truths == ibs.const.REVIEW.NON_MATCH))
-        is_comp[is_notcomp_have] = False
-        is_comp[is_comp_have] = True
-        return is_comp
-
-    def is_photobomb(infr, aid_pairs):
-        ibs = infr.ibs
-        am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
-        am_tags = ibs.get_annotmatch_case_tags(am_rowids)
-        is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
-        return is_pb
-
-    def is_same(infr, aid_pairs):
-        aids1, aids2 = np.asarray(aid_pairs).T
-        nids1 = infr.ibs.get_annot_nids(aids1)
-        nids2 = infr.ibs.get_annot_nids(aids2)
-        is_same = (nids1 == nids2)
-        return is_same
-
-    def match_state_df(infr, index):
-        """ Returns groundtruth state based on ibeis controller """
-        import pandas as pd
-        index = ensure_multi_index(index, ('aid1', 'aid2'))
-        aid_pairs = np.asarray(index.tolist())
-        aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
-        is_same = infr.is_same(aid_pairs)
-        is_comp = infr.is_comparable(aid_pairs)
-        match_state_df = pd.DataFrame.from_items([
-            ('nomatch', ~is_same & is_comp),
-            ('match',    is_same & is_comp),
-            ('notcomp', ~is_comp),
-        ])
-        match_state_df.index = index
-        return match_state_df
-
-    def match_state_gt(infr, edge):
-        import pandas as pd
-        aid_pairs = np.asarray([edge])
-        is_same = infr.is_same(aid_pairs)[0]
-        is_comp = infr.is_comparable(aid_pairs)[0]
-        match_state = pd.Series(dict([
-            ('nomatch', ~is_same & is_comp),
-            ('match',    is_same & is_comp),
-            ('notcomp', ~is_comp),
-        ]))
-        return match_state
-
-    def edge_attr_df(infr, key, edges=None, default=ut.NoParam):
-        """ constructs DataFrame using current predictions """
-        import pandas as pd
-        edge_states = infr.gen_edge_attrs(key, edges=edges, default=default)
-        edge_states = list(edge_states)
-        if isinstance(edges, pd.MultiIndex):
-            index = edges
-        else:
-            if edges is None:
-                edges_ = ut.take_column(edge_states, 0)
-            else:
-                edges_ = ut.lmap(tuple, ut.aslist(edges))
-            index = pd.MultiIndex.from_tuples(edges_, names=('aid1', 'aid2'))
-        records = ut.itake_column(edge_states, 1)
-        edge_df = pd.Series.from_array(records)
-        edge_df.name = key
-        edge_df.index = index
-        return edge_df
-
-    def infr_pred_df(infr, edges=None):
-        """ technically not groundtruth but current infererence predictions """
-        return infr.edge_attr_df('inferred_state', edges, default=np.nan)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -429,11 +310,12 @@ class _AnnotInfrIBEIS(object):
             decision_key = feedback_item['decision']
             tags = feedback_item['tags']
             timestamp = feedback_item.get('timestamp', None)
-            confidence_key = feedback_item.get('confidence', None)
+            conf_key = feedback_item.get('confidence', None)
             user_id = feedback_item.get('user_id', None)
             decision_int = ibs.const.REVIEW.CODE_TO_INT[decision_key]
-            confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
-                    confidence_key, None)
+            confidence_int = ibs.const.CONFIDENCE.CODE_TO_INT[conf_key]
+            # confidence_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT.get(
+            #         confidence_key, None)
             aid_1_list.append(aid1)
             aid_2_list.append(aid2)
             decision_list.append(decision_int)
@@ -728,6 +610,23 @@ class _AnnotInfrIBEIS(object):
         df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
         return df
 
+    def _feedback_df(infr, key):
+        if key == 'annotmatch':
+            feedback = infr.read_ibeis_annotmatch_feedback()
+        elif key == 'staging':
+            feedback = infr.read_ibeis_staging_feedback()
+        elif key == 'all':
+            feedback = infr.all_feedback()
+        elif key == 'internal':
+            feedback = infr.internal_feedback
+            df = infr._pandas_feedback_format()
+        elif key == 'external':
+            feedback = infr.external_feedback
+        else:
+            raise KeyError('key=%r' % (key,))
+        df = infr._pandas_feedback_format(feedback)
+        return df
+
     def match_state_delta(infr, old='annotmatch', new='all'):
         r"""
         Returns information about state change of annotmatches
@@ -750,24 +649,8 @@ class _AnnotInfrIBEIS(object):
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
         """
-        def _lookup_feedback(key):
-            if key == 'annotmatch':
-                feedback = infr.read_ibeis_annotmatch_feedback()
-                df = infr._pandas_feedback_format(feedback)
-            elif key == 'staging':
-                df = infr._pandas_feedback_format(infr.read_ibeis_staging_feedback())
-            elif key == 'all':
-                df = infr._pandas_feedback_format(infr.all_feedback())
-            elif key == 'internal':
-                df = infr._pandas_feedback_format(infr.internal_feedback)
-            elif key == 'external':
-                df = infr._pandas_feedback_format(infr.external_feedback)
-            else:
-                raise KeyError('key=%r' % (key,))
-            return df
-
-        old_feedback = _lookup_feedback(old)
-        new_feedback = _lookup_feedback(new)
+        old_feedback = infr._feedback_df(old)
+        new_feedback = infr._feedback_df(new)
         edge_delta_df = infr._make_state_delta(old_feedback, new_feedback)
         return edge_delta_df
 
@@ -1076,7 +959,7 @@ class _AnnotInfrFeedback(object):
         """ uses most recently use strategy """
         return vals[-1]
 
-    def reset_feedback(infr, mode='annotmatch'):
+    def reset_feedback(infr, mode='annotmatch', apply=False):
         """ Resets feedback edges to state of the SQL annotmatch table """
         infr.print('reset_feedback mode=%r' % (mode,), 1)
         if mode == 'annotmatch':
@@ -1086,6 +969,8 @@ class _AnnotInfrFeedback(object):
         else:
             raise ValueError('no mode=%r' % (mode,))
         infr.internal_feedback = ut.ddict(list)
+        if apply:
+            infr.apply_feedback_edges()
 
     def reset(infr, state='empty'):
         """
@@ -1661,12 +1546,13 @@ class _AnnotInfrRelabel(object):
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference(ut.NiceRepr,
-                     graph_iden_mixins._AnnotInfrHelpers, _AnnotInfrIBEIS,
+                     _AnnotInfrIBEIS,
                      _AnnotInfrFeedback, _AnnotInfrUpdates,
                      _AnnotInfrPriority, _AnnotInfrRelabel, _AnnotInfrDummy,
-                     _AnnotInfrGroundtruth,
-                     AnnotInfr2,
+                     graph_iden_mixins._AnnotInfrHelpers,
+                     graph_iden_mixins._AnnotInfrGroundtruth,
                      graph_iden_depmixin._AnnotInfrDepMixin,
+                     AnnotInfr2,
                      viz_graph_iden._AnnotInfrViz):
     """
     class for maintaining state of an identification

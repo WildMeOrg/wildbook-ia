@@ -21,7 +21,7 @@ def gt_review():
     import ubelt as ub
 
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
-    defaultdb = 'PZ_MTEST'
+    # defaultdb = 'PZ_MTEST'
     cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v4')
     data = cacher.tryload()
     if data is None:
@@ -29,22 +29,12 @@ def gt_review():
         infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
                                     autoinit=True, verbose=True)
         # TODO: ensure that staging has all data from annotmatch in it
-        infr.reset_feedback('staging')
+        infr.reset_feedback('staging', apply=True)
         # infr.reset_staging_with_ensure()
-        # infr.reset_feedback('annotmatch')
-        infr.apply_feedback_edges()
+        # infr.reset_feedback('annotmatch', apply=True)
         infr.review_dummy_edges(method=2)
 
         infr.learn_evaluataion_clasifiers()
-
-
-        # for edge, vals in infr.all_feedback_items():
-        #     feedback = infr._rectify_feedback_item(vals)
-        #     ut.delete_dict_keys(feedback, ['num_reviews'])
-        #     # del feedback['num_reviews']
-        #     infr.add_feedback(edge, **feedback)
-
-        # infr._make_pairwise_features(list(infr.edges()), need_lnbnn=False)
 
         want_edges = list(infr.edges())
         pblm = infr.classifiers
@@ -74,9 +64,6 @@ def gt_review():
             diff = real_probs_ - pred_probs_
             hardness = diff[label]
             pred_probs['hardness'].loc[hardness.index] = hardness
-            # sortx = hardness.values.argsort()
-            # real_probs2_ = real_probs_.iloc[sortx[::-1]]
-            # pred_probs2_ = pred_probs_.iloc[sortx[::-1]]
         pred_probs = pred_probs.sort_values('hardness')[::-1]
         data = infr, pred_probs
         infr.classifiers = None
@@ -85,16 +72,30 @@ def gt_review():
 
     # TODO: add an inspect pair to infr
     print('[graph_widget] show_selected')
-    from ibeis.viz import viz_chip
-    import plottool as pt
     import guitool as gt
     from ibeis.viz import viz_graph2
-    ut.qtensure()
-    app = gt.ensure_qapp()[0]
+    app = gt.ensure_qapp()[0]  # NOQA
     ibs = infr.ibs
 
-    from guitool.__PYQT__ import QtCore
-    Qt = QtCore.Qt
+    ut.qtensure()
+    infr.reset_feedback('staging', apply=True)
+
+    # from guitool.__PYQT__ import QtCore
+    # Qt = QtCore.Qt
+
+    # Move absolutely sure edges down so they arn't re-reviewed
+    edge_to_conf = infr.get_edge_attrs('confidence', pred_probs.index)
+    pred_probs = pred_probs.assign(
+        conf=pd.DataFrame.from_dict(edge_to_conf, orient='index'))
+
+    easiness = 1 - pred_probs['hardness']
+    sureness = np.nan_to_num(pred_probs['conf'].map(ibs.const.CONFIDENCE.CODE_TO_INT))
+    # Order by least sure first, and then least easy
+    priorities = list(zip(sureness, easiness))
+    sortx = ut.argsort(priorities)
+    pred_probs = pred_probs.iloc[sortx]
+
+    # lambda x: 0 if x == 'absolutely_sure' else 1)
 
     def get_index_data(count):
         edge = pred_probs.index[count]
@@ -104,18 +105,18 @@ def gt_review():
     self = viz_graph2.AnnotPairDialog(
         infr=infr, get_index_data=get_index_data, total=len(pred_probs))
     self.seek(0)
-
-    # count = 0
-    # edge = pred_probs.index[count]
-    # info_text = str(pred_probs.loc[edge])
-    # self.set_edge(edge, info_text)
-
-    # self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
     self.show()
     self.activateWindow()
     self.raise_()
+
+    if False:
+        df = infr._feedback_df('staging')
+        edge = (184, 227)
+        df.loc[edge]
     gt.qtapp_loop(qwin=self, freq=10)
 
+    # import plottool as pt
+    # from ibeis.viz import viz_chip
     # TODO: Next step is to hook up infr and let AnnotPairDialog set feedback
     # then we just need to iterate through results
 
