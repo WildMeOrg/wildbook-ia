@@ -6297,6 +6297,17 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
 
 @register_ibs_method
 def princeton_process_individuals(ibs, input_file_path, **kwargs):
+    assert exists(input_file_path)
+
+    with open(input_file_path, 'r') as input_file:
+        header_line = input_file.readline()
+        header_list = header_line.strip().split(',')
+        line_list = input_file.readlines()
+        lines_list = [
+            line.strip().split(',')
+            for line in line_list
+        ]
+
     ut.embed()
 
 
