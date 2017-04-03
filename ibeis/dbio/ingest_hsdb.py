@@ -140,7 +140,7 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
         >>> # SCRIPT
         >>> from ibeis.dbio.ingest_hsdb import *  # NOQA
         >>> dbdir = ut.get_argval('--dbdir', type_=str, default=None)
-        >>> hsdir = ut.get_argval('--hsdir', type_=str, default=db_dir)
+        >>> hsdir = ut.get_argval('--hsdir', type_=str, default=dbdir)
         >>> result = convert_hsdb_to_ibeis(hsdir)
         >>> print(result)
     """
@@ -346,8 +346,20 @@ def convert_hsdb_to_ibeis(hsdir, dbdir=None, **kwargs):
     # Index chips using new ibs rowids
     ibs_gid_lookup = ut.dzip(images['hs_gid'], images['ibs_gid'])
     ibs_nid_lookup = ut.dzip(names['hs_nid'], names['ibs_nid'])
-    chips['ibs_gid'] = ut.take(ibs_gid_lookup, chips['hs_gid'])
-    chips['ibs_nid'] = ut.take(ibs_nid_lookup, chips['hs_nid'])
+    try:
+        chips['ibs_gid'] = ut.take(ibs_gid_lookup, chips['hs_gid'])
+    except KeyError:
+        chips['ibs_gid'] = [
+            ibs_gid_lookup.get(index, None)
+            for index in chips['hs_gid']
+        ]
+    try:
+        chips['ibs_nid'] = ut.take(ibs_nid_lookup, chips['hs_nid'])
+    except KeyError:
+        chips['ibs_nid'] = [
+            ibs_nid_lookup.get(index, None)
+            for index in chips['hs_nid']
+        ]
 
     ibs.add_annots(chips['ibs_gid'], bbox_list=chips['bbox'],
                    theta_list=chips['theta'], nid_list=chips['ibs_nid'],
