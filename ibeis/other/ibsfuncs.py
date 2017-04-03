@@ -6257,7 +6257,6 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
             for line in line_list
         ]
 
-    header_list = header_list[1:]
     imageset_text_set = set(ibs.get_imageset_text(ibs.get_valid_imgsetids(is_special=False)))
 
     seen_set = set([])
@@ -6296,7 +6295,6 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         # ADD TO TRACKER
         seen_set.add(imageset_text)
         imageset_rowid_list.append(imageset_rowid)
-        line_list = line_list[1:]
         metadata_list.append(metadata_dict)
     valid_list = list(seen_set)
     missing_list = list(imageset_text_set - seen_set)
