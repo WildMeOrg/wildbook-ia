@@ -10,7 +10,7 @@ from guitool import guitool_dialogs
 import weakref
 (print, rrr, profile) = ut.inject2(__name__)
 
-DEBUG_WIDGET = ut.get_argflag('--debugwidget')
+DEBUG_WIDGET = ut.get_argflag(('--dbgwgt', '--debugwidget', '--debug-widget'))
 
 if DEBUG_WIDGET:
     WIDGET_BASE = QtWidgets.QFrame
@@ -163,19 +163,19 @@ def newSizePolicy(widget=None,
     return sizePolicy
 
 
-def newSplitter(widget=None, orientation=Qt.Horizontal, verticalStretch=1,
-                horizontalStretch=None):
+def newSplitter(widget=None, orientation=None, verticalStretch=1,
+                horizontalStretch=None, ori=None):
     """
     input: widget - the central widget
     """
-    orientation = rectifyQtEnum('Orientation', orientation)
-    splitter = QtWidgets.QSplitter(orientation, widget)
+    if orientation is not None:
+        ori = orientation
+    ori = rectifyQtEnum('Orientation', ori, 'horiz')
+    splitter = QtWidgets.QSplitter(ori, widget)
     _inject_new_widget_methods(splitter)
     # This line makes the splitter resize with the widget
-    sizePolicy = newSizePolicy(splitter, verticalStretch=verticalStretch,
-                               horizontalStretch=horizontalStretch)
-    splitter.setSizePolicy(sizePolicy)
-    setattr(splitter, '_guitool_sizepolicy', sizePolicy)
+    adjustSizePolicy(splitter, hStretch=horizontalStretch,
+                     vStretch=verticalStretch)
     return splitter
 
 
@@ -188,10 +188,8 @@ def newScrollArea(parent, horizontalStretch=1, verticalStretch=1):
 
 def newTabWidget(parent, horizontalStretch=1, verticalStretch=1):
     tabwgt = QtWidgets.QTabWidget(parent)
-    sizePolicy = newSizePolicy(tabwgt, horizontalStretch=horizontalStretch,
-                               verticalStretch=verticalStretch)
-    tabwgt.setSizePolicy(sizePolicy)
-    setattr(tabwgt, '_guitool_sizepolicy', sizePolicy)
+    adjustSizePolicy(tabwgt, hStretch=horizontalStretch,
+                     vStretch=verticalStretch)
 
     def addNewTab(self, name):
         #tab = QtWidgets.QTabWidget()
@@ -1076,22 +1074,6 @@ class TagEdit(QtWidgets.QLineEdit):
         self.setText(tag_text)
 
 
-def newFrame(*args, **kwargs):
-    kwargs = kwargs.copy()
-    widget = QtWidgets.QFrame()
-    orientation = kwargs.get('orientation', None)
-    orientation = rectifyQtEnum('Orientation', orientation, Qt.Vertical)
-    if orientation == Qt.Vertical:
-        layout = QtWidgets.QVBoxLayout(widget)
-    elif orientation == Qt.Horizontal:
-        layout = QtWidgets.QHBoxLayout(widget)
-    else:
-        raise NotImplementedError('orientation=%r' % (orientation,))
-    widget.setLayout(layout)
-    _inject_new_widget_methods(widget)
-    return widget
-
-
 def _inject_new_widget_methods(self):
     """
     helper for guitool widgets
@@ -1107,24 +1089,33 @@ def _inject_new_widget_methods(self):
 
     def _make_new_widget_func(widget_cls):
         def new_widget_maker(*args, **kwargs):
-            kwargs = kwargs.copy()
-            verticalStretch = kwargs.pop('verticalStretch', 1)
+            # verticalStretch = kwargs.pop('verticalStretch', 1)
+            vStretch = kwargs.pop('verticalStretch', None)
             widget = widget_cls(*args, **kwargs)
             _inject_new_widget_methods(widget)
             # This line makes the widget resize with the widget
-            sizePolicy = newSizePolicy(widget, verticalStretch=verticalStretch)
-            widget.setSizePolicy(sizePolicy)
-            setattr(widget, '_guitool_sizepolicy', sizePolicy)
+            adjustSizePolicy(widget, vStretch=vStretch)
+            # sizePolicy = newSizePolicy(widget, verticalStretch=verticalStretch)
+            # widget.setSizePolicy(sizePolicy)
+            # setattr(widget, '_guitool_sizepolicy', sizePolicy)
             return widget
         return new_widget_maker
 
     def _addnew_factory(self, newfunc):
         """ helper for addNew guitool widgets """
         def _addnew(self, *args, **kwargs):
-            kwargs = kwargs.copy()
             name = kwargs.pop('name', None)
+            layout = self.layout()
+            layout_kw = {}
+            if isinstance(layout, QtWidgets.QGridLayout):
+                layout_kw.update({
+                    'fromRow': kwargs.pop('fromRow', kwargs.pop('row', None)),
+                    'fromColumn': kwargs.pop('fromColumn', kwargs.pop('column', None)),
+                    'rowSpan': kwargs.pop('rowSpan', 1),
+                    'columnSpan': kwargs.pop('columnSpan', 1),
+                })
             new_widget = newfunc(self, *args, **kwargs)
-            self.addWidget(new_widget)
+            self.addWidget(new_widget, **layout_kw)
             if name is not None:
                 new_widget.setObjectName(name)
             return new_widget
@@ -1158,9 +1149,39 @@ def _inject_new_widget_methods(self):
 
     if not hasattr(self, 'addWidget'):
         def _make_add_new_widgets():
-            def addWidget(self, widget, *args, **kwargs):
-                self.layout().addWidget(widget, *args, **kwargs)
+
+            def addWidget(self, widget, **kwargs):
+                # fromRow, fromColumn, rowSpan, columnSpan
+                layout = self.layout()
+                if isinstance(layout, QtWidgets.QGridLayout):
+                    row = kwargs.pop('fromRow', kwargs.pop('row', None))
+                    col = kwargs.pop('fromColumn', kwargs.pop('column', None))
+                    rowSpan = kwargs.pop('rowSpan', 1)
+                    columnSpan = kwargs.pop('columnSpan', 1)
+                    if (row is None) != (col is None):
+                        raise ValueError('only both or neither can be None')
+                    if row is not None:
+                        layout.addWidget(widget, row, col, rowSpan, columnSpan,
+                                         **kwargs)
+                    else:
+                        layout.addWidget(widget, **kwargs)
+                else:
+                    layout.addWidget(widget, **kwargs)
                 return widget
+
+            def addItem(self, layout_item, **kwargs):
+                layout = self.layout()
+                if isinstance(layout, QtWidgets.QGridLayout):
+                    row = kwargs.pop('fromRow', kwargs.pop('row', None))
+                    col = kwargs.pop('fromColumn', kwargs.pop('column', None))
+                    if (row is None) != (col is None):
+                        raise ValueError('only both or neither can be None')
+                    if row is not None:
+                        layout.addItem(layout_item, row, col, **kwargs)
+                    else:
+                        layout.addItem(layout_item, **kwargs)
+                else:
+                    layout.addItem(layout_item, **kwargs)
 
             # TODO: depricate in favor of addNewHWidget
             def newHWidget(self, **kwargs):
@@ -1177,7 +1198,7 @@ def _inject_new_widget_methods(self):
                 return self.addNewWidget(orientation=Qt.Vertical, **kwargs)
 
             return (
-                addWidget, newVWidget, newHWidget, addNewHWidget,
+                addWidget, addItem, newVWidget, newHWidget, addNewHWidget,
                 addNewVWidget
             )
         for func  in _make_add_new_widgets():
@@ -1206,6 +1227,47 @@ def newWidget(parent=None, *args, **kwargs):
     return widget
 
 
+def newLayout(parent=None, ori=None, spacing=None, margin=None):
+    if ori == 'grid':
+        layout = QtWidgets.QGridLayout(parent)
+    elif ori == 'flow':
+        layout = FlowLayout(parent)
+    else:
+        ori = rectifyQtEnum('Orientation', ori, Qt.Vertical)
+        if ori == Qt.Vertical:
+            layout = QtWidgets.QVBoxLayout(parent)
+        elif ori == Qt.Horizontal:
+            layout = QtWidgets.QHBoxLayout(parent)
+        else:
+            raise NotImplementedError('ori=%r' % (ori,))
+    if spacing is not None:
+        layout.setSpacing(spacing)
+    if margin is not None:
+        if hasattr(layout, 'setMargin'):
+            layout.setMargin(margin)
+        else:
+            layout.setContentsMargins(margin, margin, margin, margin)
+    return layout
+
+
+def newFrame(*args, **kwargs):
+    widget = QtWidgets.QFrame()
+    ori = kwargs.get('ori', kwargs.get('orientation'))
+    spacing = kwargs.get('spacing')
+    margin = kwargs.get('margin')
+    layout = newLayout(parent=widget, ori=ori, spacing=spacing, margin=margin)
+    widget.setLayout(layout)
+    _inject_new_widget_methods(widget)
+    return widget
+
+
+def newSpacer(w=0, h=0, hPolicy=None, vPolicy=None):
+    hPolicy = rectifySizePolicy(hPolicy, 'Expanding')
+    vPolicy = rectifySizePolicy(vPolicy, 'Expanding')
+    spacer = QtWidgets.QSpacerItem(w, h, hPolicy, vPolicy)
+    return spacer
+
+
 #class GuitoolWidget(QtWidgets.QWidget):
 class GuitoolWidget(WIDGET_BASE):
     """
@@ -1232,19 +1294,14 @@ class GuitoolWidget(WIDGET_BASE):
     """
     closed = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None, orientation=Qt.Vertical,
-                 verticalSizePolicy=None,
-                 horizontalSizePolicy=None,
-                 verticalStretch=None,
-                 horizontalStretch=None,
-                 spacing=None, margin=None, name=None,
-                 ori=None,
-                 **kwargs):
+    def __init__(self, parent=None, orientation=None,
+                 verticalSizePolicy=None, horizontalSizePolicy=None,
+                 verticalStretch=None, horizontalStretch=None, spacing=None,
+                 margin=None, name=None, ori=None, **kwargs):
         super(GuitoolWidget, self).__init__(parent)
 
         if name is not None:
             self.setObjectName(name)
-
         #sizePolicy = newSizePolicy(self,
         #                           horizontalSizePolicy=horizontalSizePolicy,
         #                           verticalSizePolicy=verticalSizePolicy,
@@ -1252,24 +1309,12 @@ class GuitoolWidget(WIDGET_BASE):
         #                           horizontalStretch=horizontalStretch)
         #self.setSizePolicy(sizePolicy)
         #setattr(self, '_guitool_sizepolicy', sizePolicy)
-        if ori is not None:
-            orientation = ori
-        if orientation == 'flow':
-            layout = FlowLayout(self)
-        else:
-            orientation = rectifyQtEnum('Orientation', orientation)
-            if orientation == Qt.Vertical:
-                layout = QtWidgets.QVBoxLayout(self)
-            elif orientation == Qt.Horizontal:
-                layout = QtWidgets.QHBoxLayout(self)
-            else:
-                raise NotImplementedError('orientation=%r' % (orientation,))
-        self._guitool_layout = layout
-        if spacing is not None:
-            layout.setSpacing(spacing)
-        if margin is not None:
-            self.set_all_margins(margin)
+        if orientation is not None:
+            ori = orientation
+        layout = newLayout(parent=self, ori=ori, spacing=spacing,
+                           margin=margin)
         self.setLayout(layout)
+        self._guitool_layout = layout
         #layout.setAlignment(Qt.AlignBottom)
         _inject_new_widget_methods(self)
         self.initialize(**kwargs)
@@ -1279,11 +1324,9 @@ class GuitoolWidget(WIDGET_BASE):
             self.setStyleSheet("background-color: rgb(255,0,0); margin:1px; border:1px solid rgb(0, 255, 0); ")
             #self.setStyleSheet("background-color: border:5px solid rgb(255, 0, 0); ")
 
-    def addNewSpacer(self, w=0, h=0, hPolicy=None, vPolicy=None):
-        hPolicy = rectifySizePolicy(hPolicy, 'Expanding')
-        vPolicy = rectifySizePolicy(vPolicy, 'Expanding')
-        spacer = QtWidgets.QSpacerItem(w, h, hPolicy, vPolicy)
-        self._guitool_layout.addItem(spacer)
+    def addNewSpacer(self, w=0, h=0, hPolicy=None, vPolicy=None, **kwargs):
+        spacer = newSpacer(w=w, h=h, hPolicy=hPolicy)
+        self.addItem(spacer)
         return spacer
 
     def set_all_margins(self, margin):
@@ -1398,11 +1441,11 @@ def walk_widget_heirarchy(obj, **kwargs):
     #    lines.append('  * widgetResizable = %r' % prop_text_map('widgetResizable', val))
     lines = [ut.indent(line, ' ' * level * 4) for line in lines]
     next_level = level + 1
-    kwargs = kwargs.copy()
-    kwargs['level'] = level + 1
+    kwargs_ = kwargs.copy()
+    kwargs_['level'] = level + 1
     if max_depth is None or next_level <= max_depth:
         for child in children:
-            child_info = walk_widget_heirarchy(child, **kwargs)
+            child_info = walk_widget_heirarchy(child, **kwargs_)
             lines.extend(child_info)
     return lines
 
@@ -1483,23 +1526,14 @@ class ConfigConfirmWidget(GuitoolWidget):
             msg_widget = newLabel(self, text=msg, align='left')
             #msg_widget = newTextEdit(self, text=msg, align='left', editable=False, fit_to_text=True)
             msg_widget.setObjectName('msg_widget')
-            #msg_widget = self.addNewLabel(msg, align='left')
-            #msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred,
-            #                                       verticalStretch=1))
-            msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                                   QtWidgets.QSizePolicy.Maximum,
-                                                   verticalStretch=1))
-            #msg_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Preferred,
-            #QtWidgets.QSizePolicy.Expanding, #verticalStretch=1))
+            msg_widget.setSizePolicy(newSizePolicy(
+                None, 'Expanding', 'Maximum', verticalStretch=1))
             layout.addWidget(msg_widget)
 
         if 1 and config is not None:
             self.editConfig = PrefWidget2.EditConfigWidget(config=self.config, user_mode=True)
             if with_spoiler:
                 self.spoiler = Spoiler(self, title='Advanced Configuration')
-                #self.spoiler.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                #                                         QtWidgets.QSizePolicy.Preferred,
-                #                                         verticalStretch=0))
                 self.spoiler.setObjectName('spoiler')
                 self.spoiler.setContentLayout(self.editConfig)
                 #self.layout().addStretch(1)
@@ -1513,9 +1547,6 @@ class ConfigConfirmWidget(GuitoolWidget):
             detailed_msg_widget = newTextEdit(text=detailed_msg, editable=False)
             detailed_msg_widget.setObjectName('detailed_msg_widget')
             self.spoiler2 = Spoiler(self, title='Details')
-            #self.spoiler2.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
-            #                                          QtWidgets.QSizePolicy.Preferred,
-            #                                          verticalStretch=0))
             self.spoiler2.setObjectName('spoiler2')
             self.spoiler2.setContentLayout(detailed_msg_widget)
             self.addWidget(self.spoiler2)
@@ -1525,8 +1556,9 @@ class ConfigConfirmWidget(GuitoolWidget):
         if 1:
             self.button_row = self.newHWidget(verticalStretch=1000)
             self.button_row.setObjectName('button_row')
-            self.button_row.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                                        QtWidgets.QSizePolicy.Maximum))
+            self.button_row.setSizePolicy(newSizePolicy(
+                None, QtWidgets.QSizePolicy.Expanding,
+                QtWidgets.QSizePolicy.Maximum))
             self.button_row._guitool_layout.setAlignment(Qt.AlignBottom)
             if options is None:
                 options = ['Confirm']
@@ -1677,7 +1709,10 @@ class ConfigConfirmWidget(GuitoolWidget):
             w.resize(*newsize)
             print('Actual new size = %r' % (w.size()))
 
-        top = self.topLevelWidget()
+        if hasattr(self, 'topLevelWidget'):
+            top = self.topLevelWidget()
+        else:
+            top = self.window()
         #top.ensurePolished()
         if not checked:
             _adjust_widget(top)
@@ -2107,6 +2142,7 @@ class Spoiler(WIDGET_BASE):
         python -m guitool.guitool_components Spoiler --show
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from guitool.guitool_components import *  # NOQA
         >>> # build test data
         >>> import guitool
@@ -2121,25 +2157,17 @@ class Spoiler(WIDGET_BASE):
         >>> #widget2.addWidget(gt.newButton(
         >>> #    widget2, 'Popup Hi', lambda: gt.user_info(widget2, 'hi')))
         >>> spoiler = Spoiler(title='spoiler title')
-        >>> widget1._guitool_layout.addWidget(spoiler)
+        >>> widget1.layout().addWidget(spoiler)
         >>> #top = widget1.addNewFrame()
-        >>> #top._guitool_layout.addWidget(spoiler)
+        >>> #top.layout().addWidget(spoiler)
         >>> detailed_msg = 'Foo\nbar'
         >>> child_widget = QtWidgets.QTextEdit()
         >>> #child_widget.setWordWrap(True)
         >>> #child_widget = QtWidgets.QPushButton()
         >>> child_widget.setObjectName('child_widget')
         >>> child_widget.setText(ut.lorium_ipsum() * 10)
-        >>> #vbox = QtWidgets.QVBoxLayout()
-        >>> #vbox.setContentsMargins(0, 0, 0, 0)
-        >>> #vbox.addWidget(child_widget)
-        >>> #child_widget.setSizePolicy(newSizePolicy(QtWidgets.QSizePolicy.Ignored,
-        >>> #                                         QtWidgets.QSizePolicy.Ignored))
-        >>> # spoiler = widget1.addNewSpoiler(title='spoiler title')
-        >>> #contentLayout = widget2.layout()
         >>> spoiler.setContentLayout(child_widget)
         >>> widget1.print_widget_heirarchy()
-        >>> #widget1.setStyleSheet("background-color: rgb(255,0,0); margin:5px; border:1px solid rgb(0, 255, 0); ")
         >>> widget1.layout().setAlignment(Qt.AlignBottom)
         >>> widget1.show()
         >>> #widget1.resize(int(ut.PHI * 500), 500)
@@ -2162,23 +2190,18 @@ class Spoiler(WIDGET_BASE):
         }
         self.change_policy = False
         #:
+        QSizePolicy = QtWidgets.QSizePolicy
         self._header_size_policy_states = {
-            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed),
-            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum),
-            False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum),
-            True: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
+            False: newSizePolicy(None, QSizePolicy.Expanding, QSizePolicy.Minimum),
+            True: newSizePolicy(None, QSizePolicy.Expanding, QSizePolicy.Expanding),
         }
         self._self_size_policy = {
-            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed),
-            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum),
-            False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum),
-            True: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
+            False: newSizePolicy(None, QSizePolicy.Expanding, QSizePolicy.Minimum),
+            True: newSizePolicy(None, QSizePolicy.Expanding, QSizePolicy.Expanding),
         }
         self._scroll_size_policy_states = {
-            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed),
-            False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
-            #False: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
-            True: newSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding),
+            False: newSizePolicy(None, QSizePolicy.Expanding, QSizePolicy.Expanding),
+            True: newSizePolicy(None, QSizePolicy.Expanding, QSizePolicy.Expanding),
         }
         if not self.change_policy:
             del self._header_size_policy_states[True]
@@ -2606,16 +2629,15 @@ class ComboRadioHybrid(GuitoolWidget):
         >>> options = [(a.title(), a) for a in options]
         >>> self = ComboRadioHybrid(parent=parent, options=options)
         >>> self.setCurrentValue('black')
-        >>> self.print_widget_heirarchy(attrs=['sizePolicy'])
+        >>> #self.print_widget_heirarchy(attrs=['sizePolicy'])
         >>> ut.quit_if_noshow()
         >>> self.show()
         >>> print(self.currentText())
         >>> gt.qtapp_loop(qwin=self, freq=10)
     """
     def __init__(self, parent=None, **kwargs):
-        kwargs.pop('ori', 'vert')
+        kwargs.pop('ori', kwargs.pop('orientation', 'vert'))
         kwargs['ori'] = 'horiz'
-        # kwargs['spacing'] = 1
         kwargs['margin'] = 1
         super(ComboRadioHybrid, self).__init__(parent=parent, **kwargs)
 
@@ -2625,9 +2647,6 @@ class ComboRadioHybrid(GuitoolWidget):
         #     self.combo.setEnabled(checked)
 
     def initialize(self, options=[], num=2, default=None, changed=None):
-        self.group = QtWidgets.QButtonGroup(parent=self)
-        self.group.setExclusive(True)
-        self.group.buttonToggled.connect(self.on_toggle)
         # Rectify options
         options = [opt if isinstance(opt, tuple) and len(opt) == 2 else
                    (str(opt), opt) for opt in options]
@@ -2636,18 +2655,26 @@ class ComboRadioHybrid(GuitoolWidget):
         self.radio_options = options[0:num]
         self.combo_options = options[num:]
 
+        # Put all radio buttons in a group
+        self.group = QtWidgets.QButtonGroup(parent=self)
+        self.group.setExclusive(True)
+        self.group.buttonToggled.connect(self.on_toggle)
+
         self.radio_buttons = ut.odict()
-        ori = 'vert'
-        for nice, code in self.radio_options:
-            rb_widget = self.addNewWidget(ori=ori, margin=1, spacing=1)
+        ori = 'grid'
+        for count, (nice, code) in enumerate(self.radio_options):
+            rb_widget = self.addNewWidget(ori=ori, margin=1, spacing=1,
+                                          name='opt_%d_widget' % (count,))
             adjustSizePolicy(rb_widget, vPolicy='Fixed')
-            space_widget = rb_widget.addNewHWidget(margin=1, spacing=1)
-            adjustSizePolicy(space_widget, vPolicy='Fixed')
-            space_widget.addNewSpacer()
-            rb = space_widget.addNewRadioButton()
-            space_widget.addNewSpacer()
-            rb_widget.addNewLabel(nice)
-            rb_widget.addNewSpacer()
+            # rb_widget.addNewSpacer(row=0, column=0)
+            rb = rb_widget.addNewRadioButton(row=0, column=1,
+                                             name='opt_%d_rb' % (count,))
+            adjustSizePolicy(rb, hPolicy='Fixed', vPolicy='Fixed')
+            # rb.setLayoutDirection(Qt.RightToLeft)
+            # rb_widget.addNewSpacer(row=0, column=2)
+            rb_widget.addNewLabel(nice, row=1, column=0, columnSpan=3,
+                                  name='opt_%d_label' % (count,))
+            # rb_widget.addNewSpacer(column=)
 
             self.group.addButton(rb)
             if code == default:
@@ -2655,15 +2682,35 @@ class ComboRadioHybrid(GuitoolWidget):
             self.radio_buttons[code] = rb
 
         if len(self.combo_options) > 0:
-            rb_widget = self.addNewWidget(ori=ori, margin=1, spacing=1)
+            rb_widget = self.addNewWidget(ori=ori, margin=1, spacing=1,
+                                          name='opt_rest_widget')
             adjustSizePolicy(rb_widget, vPolicy='Fixed')
-            space_widget = rb_widget.addNewHWidget(margin=1, spacing=1)
-            space_widget.addNewSpacer()
-            adjustSizePolicy(space_widget, vPolicy='Fixed')
-            self.combo_rb = space_widget.addNewRadioButton()
-            space_widget.addNewSpacer()
-            self.combo = rb_widget.addNewComboBox(options=self.combo_options)
-            rb_widget.addNewSpacer()
+            # rb_widget.addNewSpacer(row=0, column=0)
+            adjustSizePolicy(rb_widget, vPolicy='Fixed')
+            self.combo_rb = rb_widget.addNewRadioButton(row=0, column=1,
+                                                        name='opt_rest_rb')
+            adjustSizePolicy(self.combo_rb, hPolicy='Fixed', vPolicy='Fixed')
+
+            # rb_widget.addNewSpacer(row=0, column=2)
+            self.combo = rb_widget.addNewComboBox(options=self.combo_options,
+                                                  row=1, column=0, columnSpan=3,
+                                                  name='opt_rest_combo')
+
+            # model = self.combo.model()
+            if False:
+                # TODO: figure out how to align text without setting editable
+                model = self.combo.model()
+                for i in range(len(self.combo_options)):
+                    self.combo.setItemData(i, Qt.AlignCenter, Qt.TextAlignmentRole)
+
+                for i in range(len(self.combo_options)):
+                    print(self.combo.itemData(0))
+                    print(model.itemData(model.index(i, 0)))
+            else:
+                self.combo.setEditable(True)
+                self.combo.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
+                self.combo.lineEdit().setReadOnly(True)
+            # rb_widget.addNewSpacer()
 
             self.group.addButton(self.combo_rb)
             if default in ut.take_column(options, 1):
