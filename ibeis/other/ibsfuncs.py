@@ -6282,7 +6282,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
             continue
         imageset_rowid = ibs.get_imageset_imgsetids_from_text(imageset_text)
         # Check ImageSetIDs
-        imageset_rowid_ = metadata_dict.pop('ImageSetID')
+        imageset_rowid_ = int(metadata_dict.pop('ImageSetID'))
         if imageset_rowid != imageset_rowid_:
             args = (imageset_text, imageset_rowid, imageset_rowid_, )
             print('Invalid ImageSetID for %r - WANTED: %r, GAVE: %r' % args)
