@@ -6466,6 +6466,8 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             elif sex_symbol not in [None]:
                 raise ValueError('INVALID SPECIES: %r' % (species_symbol, ))
 
+        aid_list_ = []
+        species_text_ = []
         for name_rowid in name_sex_dict:
             name_sex_list = name_sex_dict[name_rowid]
             if len(name_sex_list) == 0:
@@ -6481,7 +6483,6 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 species_text = ibs.const.UNKNOWN
             else:
                 species_mode = max(set(name_species_list), key=name_species_list.count)
-                print(name_species_list, species_mode)
                 assert species_mode in ['PLAINS', 'GREVY_S', 'GREVYS', 'HYBRID']
                 if species_mode == 'PLAINS':
                     species_text = 'zebra_plains'
@@ -6490,7 +6491,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 else:
                     species_text = 'zebra_grevys'
             aid_list = ibs.get_name_aids(name_rowid)
-            ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
+            aid_list_ += aid_list
+            species_text_ += [species_text] * len(aid_list)
+        ibs.set_annot_species(aid_list_, species_text_)
 
 
 if __name__ == '__main__':
