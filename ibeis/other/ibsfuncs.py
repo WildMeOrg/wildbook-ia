@@ -6445,21 +6445,25 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             if name_rowid < 0:
                 new_nid = ibs.make_next_nids()
                 ibs.set_annot_name_rowids([annot_rowid], [new_nid])
-            sex_symbol = metadata_dict['Sex'].upper()
-            species_symbol = metadata_dict['Species'].upper()
+            sex_symbol = metadata_dict['Sex']
+            if sex_symbol is not None:
+                sex_symbol = sex_symbol.upper()
+            species_symbol = metadata_dict['Species']
+            if species_symbol is not None:
+                species_symbol = species_symbol.upper()
             # Get names
             if name_rowid not in name_sex_dict:
                 name_sex_dict[name_rowid] = []
             if sex_symbol in ['M', 'F']:
                 name_sex_dict[name_rowid].append(sex_symbol)
-            elif sex_symbol not in ['']:
+            elif sex_symbol not in [None]:
                 raise ValueError('INVALID SEX: %r' % (sex_symbol, ))
             # Get species
             if name_rowid not in name_species_dict:
                 name_species_dict[name_rowid] = []
             if species_symbol in ['PLAINS', 'GREVY_S', 'GREVYS', 'HYBRID']:
                 name_species_dict[name_rowid].append(species_symbol)
-            elif  sex_symbol not in ['']:
+            elif sex_symbol not in [None]:
                 raise ValueError('INVALID SPECIES: %r' % (species_symbol, ))
 
         for name_rowid in name_sex_dict:
