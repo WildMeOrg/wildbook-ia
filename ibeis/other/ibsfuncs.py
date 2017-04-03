@@ -6267,7 +6267,12 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
     imageset_rowid_list = []
     metadata_list = []
     for index, line_list in enumerate(lines_list):
-        imageset_text = line_list[0]
+        metadata_dict = dict(zip(header_list, line_list))
+        for key in metadata_dict:
+            if metadata_dict[key] == '':
+                metadata_dict[key] = None
+        # Get primitives
+        imageset_text = metadata_dict.pop('Image_Set')
         found = imageset_text in imageset_text_set
         print('Processing %r (Found %s)' % (imageset_text, found, ))
         if not found:
@@ -6276,11 +6281,22 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         if imageset_text in seen_set:
             duplicate_list.append(imageset_text)
             continue
-        seen_set.add(imageset_text)
         imageset_rowid = ibs.get_imageset_imgsetids_from_text(imageset_text)
+        # Check ImageSetIDs
+        imageset_rowid_ = metadata_dict.pop('ImageSetID')
+        if imageset_rowid != imageset_rowid_:
+            args = (imageset_text, imageset_rowid, imageset_rowid_, )
+            print('Invalid ImageSetID for %r - WANTED: %r, GAVE: %r' % args)
+        # Check #Imgs
+        imageset_num_images = len(ibs.get_imageset_gids(imageset_rowid))
+        imageset_num_images_ = metadata_dict.pop('#Imgs')
+        if imageset_num_images != imageset_num_images_:
+            args = (imageset_text, imageset_num_images, imageset_num_images_, )
+            print('Invalid #Imgs for %r - WANTED: %r, GAVE: %r' % args)
+        # ADD TO TRACKER
+        seen_set.add(imageset_text)
         imageset_rowid_list.append(imageset_rowid)
         line_list = line_list[1:]
-        metadata_dict = dict(zip(header_list, line_list))
         metadata_list.append(metadata_dict)
     valid_list = list(seen_set)
     missing_list = list(imageset_text_set - seen_set)
@@ -6308,7 +6324,171 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             for line in line_list
         ]
 
-    ut.embed()
+    aid_list = ibs.get_valid_aids()
+    # aid_set = set(aid_list)
+    gid_list = ibs.get_valid_gids()
+    gname_list = ibs.get_image_gnames(gid_list)
+
+    seen_aid_set = set([])
+    # seen_nid_set = set([])
+    invalid_list = []
+    duplicate_list = []
+
+    annot_rowid_list = []
+    metadata_list = []
+    for index, line_list in enumerate(lines_list):
+        primary_header_list = header_list[:8]
+        primary_line_list = line_list[:8]
+        secondary_line_list = line_list[8:]
+        metadata_dict = dict(zip(primary_header_list, primary_line_list))
+        for key in metadata_dict:
+            if metadata_dict[key] == '':
+                metadata_dict[key] = None
+        # Get primitives
+        aid = int(metadata_dict.pop('AnnotationID'))
+        nid = ibs.get_annot_nids(aid)
+        # gid = ibs.get_annot_gids(aid)
+        gname = metadata_dict.pop('Photo#')
+        # Check if found
+        found1 = aid in aid_list
+        found2 = gname in gname_list
+        if not (found1 and found2):
+            args = (gname, aid, found1, found2, )
+            print('Invalid Gname %r AID %r (aid %s, gname %s)' % args)
+            if found2:
+                zip_list = [
+                    value
+                    for value in list(zip(gname_list, gid_list))
+                    if value[0] == gname
+                ]
+                assert len(zip_list) == 1
+                gid_ = zip_list[0][1]
+                aid_list_ = ibs.get_image_aids(gid_)
+                print('\t AID_LIST: %r' % (aid_list_, ))
+            invalid_list.append(aid)
+            continue
+        if aid in seen_aid_set:
+            duplicate_list.append(aid)
+            continue
+        # if nid in seen_nid_set:
+        #     args = (nid, gname, aid, )
+        #     print('Duplicate NID %r for Gname %r AID %r' % args)
+        #     continue
+        # if nid is not None:
+        #     seen_nid_set.add(nid)
+        # Check gname
+        gname_ = ibs.get_annot_image_names(aid)
+        if gname != gname_:
+            args = (gname, aid, gname_, gname, )
+            print('Invalid Photo# %r for AnnotationID for %r - WANTED: %r, GAVE: %r' % args)
+            zip_list = [
+                value
+                for value in list(zip(gname_list, gid_list))
+                if value[0] == gname
+            ]
+            assert len(zip_list) == 1
+            gid_ = zip_list[0][1]
+            aid_list_ = ibs.get_image_aids(gid_)
+            print('\t AID_LIST: %r' % (aid_list_, ))
+        seen_aid_set.add(aid)
+        annot_rowid_list.append(aid)
+        metadata_list.append(metadata_dict)
+
+        # Check associated aids
+        aid2_list = ut.flatten(ibs.get_name_aids([nid]))
+        for index in range(len(secondary_line_list) // 2):
+            gname2 = secondary_line_list[(index * 2) + 0]
+            if gname2 == '':
+                continue
+            aid2 = int(secondary_line_list[(index * 2) + 1])
+            nid2 = ibs.get_annot_nids(aid2)
+            if nid != nid2:
+                args = (nid2, aid2, found1, found2, )
+                print('Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args)
+                if nid > 0 and nid is not None:
+                    print('\tfixing to %r...' % (nid, ))
+                    ibs.set_annot_name_rowids([aid2], [nid])
+                    aid2_list = ut.flatten(ibs.get_name_aids([nid]))
+            # Check if found
+            found1 = aid2 in aid2_list
+            found2 = gname2 in gname_list
+            if not (found1 and found2):
+                args = (aid2, found1, found2, )
+                print('Invalid Secondary AID2 %r (aid %s, gname %s)' % args)
+                args = (gname, aid, )
+                print('\tGname %r AID %r' % args)
+                args = (nid2, nid, )
+                print('\tNIDs - WANTED: %r, GAVE: %r' % args)
+                args = (aid2_list, )
+                print('\tAID2_LIST: %r' % args)
+                invalid_list.append(aid2)
+                continue
+            seen_aid_set.add(aid2)
+            annot_rowid_list.append(aid2)
+            metadata_list.append(metadata_dict)
+
+    valid_list = list(seen_aid_set)
+    # missing_list = list(aid_set - seen_aid_set)
+
+    invalid = len(invalid_list) + len(duplicate_list)  # + len(missing_list)
+    if invalid > 0:
+        print('VALID:     %r' % (valid_list, ))
+        print('INVALID:   %r' % (invalid_list, ))
+        print('DUPLICATE: %r' % (duplicate_list, ))
+        # print('MISSING:   %r' % (missing_list, ))
+    else:
+        ibs.set_annot_metadata(annot_rowid_list, metadata_list)
+
+        # Set demographics to names
+        name_sex_dict = {}
+        name_species_dict = {}
+        for annot_rowid, metadata_dict in zip(annot_rowid_list, metadata_list):
+            name_rowid = ibs.get_annot_nids(annot_rowid)
+            if name_rowid < 0:
+                new_nid = ibs.make_next_nids()
+                ibs.set_annot_name_rowids([annot_rowid], [new_nid])
+            sex_symbol = metadata_dict['Sex'].upper()
+            species_symbol = metadata_dict['Species'].upper()
+            # Get names
+            if name_rowid not in name_sex_dict:
+                name_sex_dict[name_rowid] = []
+            if sex_symbol in ['M', 'F']:
+                name_sex_dict[name_rowid].append(sex_symbol)
+            elif sex_symbol not in ['']:
+                raise ValueError('INVALID SEX: %r' % (sex_symbol, ))
+            # Get species
+            if name_rowid not in name_species_dict:
+                name_species_dict[name_rowid] = []
+            if species_symbol in ['PLAINS', 'GREVY_S', 'GREVYS', 'HYBRID']:
+                name_species_dict[name_rowid].append(species_symbol)
+            elif  sex_symbol not in ['']:
+                raise ValueError('INVALID SPECIES: %r' % (species_symbol, ))
+
+        for name_rowid in name_sex_dict:
+            name_sex_list = name_sex_dict[name_rowid]
+            if len(name_sex_list) == 0:
+                sex_text = 'UNKNOWN SEX'
+            else:
+                sex_mode = max(set(name_sex_list), key=name_sex_list.count)
+                assert sex_mode in ['M', 'F']
+                sex_text = 'Male' if sex_mode == 'M' else 'Female'
+            ibs.set_name_sex_text([name_rowid], [sex_text])
+
+            name_species_list = name_species_dict[name_rowid]
+            if len(name_species_list) == 0:
+                species_text = ibs.const.UNKNOWN
+            else:
+                species_mode = max(set(name_species_list), key=name_species_list.count)
+                print(name_species_list, species_mode)
+                assert species_mode in ['PLAINS', 'GREVY_S', 'GREVYS', 'HYBRID']
+                if species_mode == 'PLAINS':
+                    species_text = 'zebra_plains'
+                elif species_mode == 'HYBRID':
+                    species_text = 'zebra_hybrid'
+                else:
+                    species_text = 'zebra_grevys'
+            aid_list = ibs.get_name_aids(name_rowid)
+            ibs.set_annot_species(aid_list, [species_text] * len(aid_list))
 
 
 if __name__ == '__main__':
