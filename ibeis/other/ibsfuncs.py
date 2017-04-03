@@ -6288,7 +6288,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
             print('Invalid ImageSetID for %r - WANTED: %r, GAVE: %r' % args)
         # Check #Imgs
         imageset_num_images = len(ibs.get_imageset_gids(imageset_rowid))
-        imageset_num_images_ = metadata_dict.pop('#Imgs')
+        imageset_num_images_ = int(metadata_dict.pop('#Imgs'))
         if imageset_num_images != imageset_num_images_:
             args = (imageset_text, imageset_num_images, imageset_num_images_, )
             print('Invalid #Imgs for %r - WANTED: %r, GAVE: %r' % args)
