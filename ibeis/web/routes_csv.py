@@ -202,6 +202,56 @@ def get_demographic_info(**kwargs):
     return appf.send_csv_file(combined_str, filename)
 
 
+@register_route('/csv/princeton/special/', methods=['GET'])
+def get_annotation_special_info(**kwargs):
+    import datetime
+    ibs = current_app.ibs
+    filename = 'special.csv'
+    ut.embed()
+    aid_list = sorted(ibs.get_valid_aids())
+    gid_list = ibs.get_annot_gids(aid_list)
+
+    gname_list = ibs.get_image_gnames(gid_list)
+    datetime_list = ibs.get_image_unixtime(gid_list)
+    datetime_list_ = [
+        datetime.datetime.fromtimestamp(datetime_).strftime('%Y-%m-%d %H:%M:%S')
+        for datetime_ in datetime_list
+    ]
+    lat_list = ibs.get_image_lat(gid_list)
+    lon_list = ibs.get_image_lon(gid_list)
+    note_list = ibs.get_image_notes(gid_list)
+    party_list = []
+    contributor_list = []
+    for note in note_list:
+        try:
+            note = note.split(',')
+            party, contributor = note[:2]
+            party_list.append(party)
+            contributor_list.append(contributor)
+        except:
+            party_list.append('UNKNOWN')
+            contributor_list.append('UNKNOWN')
+
+    zipped_list = zip(gid_list, gname_list, datetime_list_, lat_list, lon_list,
+                      party_list, contributor_list, note_list)
+    aids_list = ibs.get_image_aids(gid_list)
+    names_list = [ ibs.get_annot_name_texts(aid_list) for aid_list in aids_list ]
+    combined_list = [
+        ','.join( map(str, list(zipped) + name_list) )
+        for zipped, name_list in zip(zipped_list, names_list)
+    ]
+    max_length = 0
+    for name_list in names_list:
+        max_length = max(max_length, len(name_list))
+    if max_length == 1:
+        name_header_str = 'NAME'
+    else:
+        name_header_str = ','.join([ 'NAME%d' % (i + 1, ) for i in range(max_length) ])
+    combined_str = '\n'.join(combined_list)
+    combined_str = 'AID,NID,%s,%s\n' % (name_header_str, ) + combined_str
+    return appf.send_csv_file(combined_str, filename)
+
+
 @register_route('/csv/nids_with_gids/', methods=['GET'])
 def get_nid_with_gids_csv(**kwargs):
     ibs = current_app.ibs
