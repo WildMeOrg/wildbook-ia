@@ -21,17 +21,22 @@ def gt_review():
     import ubelt as ub
 
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
-    # defaultdb = 'PZ_MTEST'
-    cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v2')
+    defaultdb = 'PZ_MTEST'
+    cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v4')
     data = cacher.tryload()
     if data is None:
         ibs = ibeis.opendb(defaultdb=defaultdb)
         infr = ibeis.AnnotInference(ibs=ibs, aids=ibs.get_valid_aids(),
                                     autoinit=True, verbose=True)
-        infr.reset_feedback('annotmatch')
+        # TODO: ensure that staging has all data from annotmatch in it
+        infr.reset_feedback('staging')
+        # infr.reset_staging_with_ensure()
+        # infr.reset_feedback('annotmatch')
+        infr.apply_feedback_edges()
+        infr.review_dummy_edges(method=2)
+
         infr.learn_evaluataion_clasifiers()
 
-        infr.apply_feedback_edges()
 
         # for edge, vals in infr.all_feedback_items():
         #     feedback = infr._rectify_feedback_item(vals)
@@ -39,7 +44,6 @@ def gt_review():
         #     # del feedback['num_reviews']
         #     infr.add_feedback(edge, **feedback)
 
-        infr.review_dummy_edges(method=2)
         # infr._make_pairwise_features(list(infr.edges()), need_lnbnn=False)
 
         want_edges = list(infr.edges())

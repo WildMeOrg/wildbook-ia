@@ -557,6 +557,8 @@ class _AnnotInfrIBEIS(object):
         # aid_pairs = ibs.get_review_aid_tuple(review_ids)
         # flat_review_ids, cumsum = ut.invertible_flatten2(review_ids)
 
+        infr.print('read %d staged reviews' % (len(review_ids)), 2)
+
         from ibeis.control.manual_review_funcs import hack_create_aidpair_index
         hack_create_aidpair_index(ibs)
 
@@ -688,6 +690,20 @@ class _AnnotInfrIBEIS(object):
             feedback[edge].append(feedback_item)
         infr.print('read %d annotmatch entries' % (len(feedback)), 1)
         return feedback
+
+    def reset_staging_with_ensure(infr):
+        """
+        Make sure staging has all info that annotmatch has.
+        """
+        staging_feedback = infr.read_ibeis_staging_feedback()
+        if len(staging_feedback) == 0:
+            infr.internal_feedback = infr.read_ibeis_annotmatch_feedback()
+            infr.write_ibeis_staging_feedback()
+        else:
+            infr.external_feedback = staging_feedback
+        infr.internal_feedback = ut.ddict(list)
+        # edge_delta_df = infr.match_state_delta(old='staging',
+        # new='annotmatch')
 
     def _pandas_feedback_format(infr, feedback):
         import pandas as pd
