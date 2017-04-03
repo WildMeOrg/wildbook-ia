@@ -4,8 +4,11 @@ import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 try:
     import guitool as gt
+    from guitool import mpl_widget
     INSPECT_BASE = gt.GuitoolWidget
+    MatplotlibWidget = mpl_widget.MatplotlibWidget
 except ImportError:
+    MatplotlibWidget = object
     INSPECT_BASE = object
 
 
@@ -141,12 +144,14 @@ class MatchInspector(INSPECT_BASE):
         # QtCore.QTimer.singleShot(50, self.init_inference)
         self.first_show()
 
-    def first_show(self):
-        # Show the match if updating is on, otherwise just draw the annot pair
-        if self.autoupdate_cb.checkState():
-            self.update()
-        else:
-            self.draw_pair()
+    def first_show(self, state=None):
+        if self.match is not None:
+            # Show the match if updating is on, otherwise just draw the annot
+            # pair
+            if self.autoupdate_cb.checkState():
+                self.update()
+            else:
+                self.draw_pair()
 
     def set_match(self, match=None, on_context=None, info_text=None):
         self.match = match
@@ -247,9 +252,9 @@ class MatchInspector(INSPECT_BASE):
         # update_hframe = config_vframe.addNewWidget(orientation='horiz')
         # update_hframe.addNewButton('Update', pressed=self.update)
         self.autoupdate_cb = config_vframe.addNewCheckBox(
-            'auto-update', checked=autoupdate, changed=self.update)
+            'auto-update', checked=autoupdate, changed=self.first_show)
 
-        self.mpl_widget = MatplotlibWidget()
+        self.mpl_widget = MatplotlibWidget(parent=self)
         splitter2.addWidget(self.mpl_widget)
 
         self.infobox = splitter2.addNewTextEdit()
@@ -316,88 +321,6 @@ class MatchInspector(INSPECT_BASE):
                 del self.match.annot2[key]
         self.update()
         self.cfg_needs_update = True
-
-
-def get_qt_backend():
-    from guitool import __PYQT__
-    if __PYQT__._internal.GUITOOL_PYQT_VERSION == 4:
-        import matplotlib.backends.backend_qt4agg as backend_qt
-    else:
-        import matplotlib.backends.backend_qt5agg as backend_qt
-    return backend_qt
-
-
-class MatplotlibWidget(INSPECT_BASE):
-    """
-    A qt widget that contains a matplotlib figure
-
-    References:
-        http://matplotlib.org/examples/user_interfaces/embedding_in_qt4.html
-    """
-    #click_inside_signal = QtCore.pyqtSignal(MouseEvent, object)
-
-    def initialize(self):
-        import matplotlib as mpl
-        from plottool import abstract_interaction
-        backend_qt = get_qt_backend()
-        FigureCanvas = backend_qt.FigureCanvasQTAgg
-
-        self.fig = mpl.figure.Figure()
-        self.fig._no_raise_plottool = True
-        self.canvas = FigureCanvas(self.fig)
-        self.canvas.setParent(self)
-        self.addWidget(self.canvas)
-        self.reset_ax()
-
-        # import plottool as pt
-        #from plottool import interact_helpers as ih
-        # self.fig = pt.plt.figure()
-        #self.canvas.manager = ut.DynStruct()
-        #self.canvas.manager.window = self
-        #ih.connect_callback(self.fig, 'button_press_event', self.on_click)
-        #ih.connect_callback(self.fig, 'draw_event', self.draw_callback)
-        #ih.connect_callback(self.fig, 'pick_event', self.on_pick)
-        self.MOUSE_BUTTONS = abstract_interaction.AbstractInteraction.MOUSE_BUTTONS
-        self.setMinimumHeight(20)
-        self.setMinimumWidth(20)
-
-    def clf(self):
-        self.fig.clf()
-        self.reset_ax()
-
-    def reset_ax(self):
-        import plottool as pt
-        # from plottool.interactions import zoom_factory, pan_factory
-        self.ax = self.fig.add_subplot(1, 1, 1)
-        pt.adjust_subplots(left=0, right=1, top=1, bottom=0, fig=self.fig)
-        # self.pan_events = pan_factory(self.ax)
-        # self.zoon_events = zoom_factory(self.ax)
-        return self.ax
-
-    #def on_click(self, event):
-    #    from plottool import interact_helpers as ih
-    #    if ih.clicked_inside_axis(event):
-    #        ax = event.inaxes
-    #        self.click_inside_signal.emit(event, ax)
-
-    #def on_pick(self, event):
-    #    print('PICK: event.artist = %r' % (event.artist,))
-    #    edge = pt.get_plotdat(event.artist, 'edge')
-    #    node = pt.get_plotdat(event.artist, 'node')
-    #    edge_data = pt.get_plotdat(event.artist, 'edge_data')
-    #    node_data = pt.get_plotdat(event.artist, 'node_data')
-    #    if edge_data is not None:
-    #        print('edge = %r' % (edge,))
-    #        print('edge_data = %s' % (ut.repr3(edge_data),))
-    #        pass
-    #    if node_data is not None:
-    #        print('node = %r' % (node,))
-    #        pass
-
-    def draw_callback(self, event):
-        # self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-        # self.draw_artists()
-        return
 
 
 def make_match_interaction(matches, metadata, type_='RAT+SV', **kwargs):
