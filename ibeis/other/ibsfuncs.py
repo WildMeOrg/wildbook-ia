@@ -6273,7 +6273,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
         # Get primitives
         imageset_text = metadata_dict.pop('Image_Set')
         found = imageset_text in imageset_text_set
-        print('Processing %r (Found %s)' % (imageset_text, found, ))
+        # print('Processing %r (Found %s)' % (imageset_text, found, ))
         if not found:
             invalid_list.append(imageset_text)
             continue
