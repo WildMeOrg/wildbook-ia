@@ -257,6 +257,10 @@ def get_annotation_special_info(**kwargs):
             annot_metadata_dict.get(annot_metadata_key, '')
             for annot_metadata_key in annot_metadata_key_list
         ]
+        line_list_ = [
+            '' if item is None else item
+            for item in line_list_
+        ]
         line = ','.join( map(str, line_list_) )
         line_list.append(line)
 
