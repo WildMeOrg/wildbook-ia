@@ -435,7 +435,7 @@ class CONFIDENCE(object):
     ])
 
     INT_TO_NICE = ut.odict([
-        (ABSOLUTELY_SURE, 'Absolutely Sure'),
+        (ABSOLUTELY_SURE, 'Doubtless'),
         (PRETTY_SURE, 'Sure'),
         (NOT_SURE, 'Unsure'),
         (GUESSING, 'Guessing'),

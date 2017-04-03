@@ -5,6 +5,26 @@ import pathlib
 print, rrr, profile = ut.inject2(__name__)
 
 
+def qt_review():
+    import ibeis
+    defaultdb = ut.get_argval('--db', default='GZ_Master1')
+    ibs = ibeis.opendb(defaultdb=defaultdb)
+    infr = ibeis.AnnotInference(ibs=ibs, aids='all',
+                                autoinit=True, verbose=True)
+    infr.reset_feedback('staging', apply=True)
+    infr.relabel_using_reviews()
+
+    nodes = ut.flatten(infr.recovery_ccs)
+    # graph = infr.graph.subgraph(nodes)
+    # infr.show_graph(graph=graph)
+
+    infr = ibeis.AnnotInference(ibs=ibs, aids=nodes, autoinit=True,
+                                verbose=True)
+    infr.reset_feedback('staging', apply=True)
+    infr.relabel_using_reviews()
+    win = infr.start_qt_interface(loop=False)
+
+
 def gt_review():
     r"""
     CommandLine:
@@ -21,6 +41,7 @@ def gt_review():
     import ubelt as ub
 
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
+
     # defaultdb = 'PZ_MTEST'
     cacher = ub.Cacher('tmp_gz_review', defaultdb + 'v4')
     data = cacher.tryload()
@@ -77,7 +98,10 @@ def gt_review():
     app = gt.ensure_qapp()[0]  # NOQA
     ibs = infr.ibs
 
+    import pandas as pd
+
     ut.qtensure()
+    infr.enable_inference = False
     infr.reset_feedback('staging', apply=True)
 
     # from guitool.__PYQT__ import QtCore
@@ -90,10 +114,17 @@ def gt_review():
 
     easiness = 1 - pred_probs['hardness']
     sureness = np.nan_to_num(pred_probs['conf'].map(ibs.const.CONFIDENCE.CODE_TO_INT))
+
+    pred_probs = pred_probs[sureness <= 2]
+    easiness = 1 - pred_probs['hardness']
+    sureness = np.nan_to_num(pred_probs['conf'].map(ibs.const.CONFIDENCE.CODE_TO_INT))
+
     # Order by least sure first, and then least easy
     priorities = list(zip(sureness, easiness))
     sortx = ut.argsort(priorities)
     pred_probs = pred_probs.iloc[sortx]
+
+    pred_probs = pred_probs[pred_probs['failed']]
 
     # lambda x: 0 if x == 'absolutely_sure' else 1)
 

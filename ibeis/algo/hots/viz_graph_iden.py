@@ -94,30 +94,33 @@ class _AnnotInfrViz(object):
                 infr._viz_image_config[key] = val
                 infr._viz_image_config_dirty = True
 
-    def update_node_image_attribute(infr, use_image=False):
+    def update_node_image_attribute(infr, use_image=False, graph=None):
+        if graph is None:
+            graph = infr.graph
         if not hasattr(infr, '_viz_image_config_dirty'):
             infr.initialize_visual_node_attrs()
-        aid_list = list(infr.aid_to_node.keys())
-        annot_nodes = ut.take(infr.aid_to_node, aid_list)
+        aid_list = list(graph.nodes())
 
         if infr.ibs is not None:
-            nx.set_node_attributes(infr.graph, 'framewidth', 3.0)
-            nx.set_node_attributes(infr.graph, 'shape', _dz(annot_nodes, ['rect']))
+            nx.set_node_attributes(graph, 'framewidth', 3.0)
+            nx.set_node_attributes(graph, 'shape', ut.dzip(aid_list, ['rect']))
             if infr.ibs is None:
                 raise ValueError('Cannot show images when ibs is None')
             imgpath_list = infr.ibs.depc_annot.get('chipthumb', aid_list, 'img',
                                                    config=infr._viz_image_config,
                                                    read_extern=False)
-            nx.set_node_attributes(infr.graph, 'image', _dz(annot_nodes, imgpath_list))
-        infr._viz_image_config_dirty = False
+            nx.set_node_attributes(graph, 'image', ut.dzip(aid_list,
+                                                           imgpath_list))
+        if graph is infr.graph:
+            infr._viz_image_config_dirty = False
 
     def get_colored_edge_weights(infr, graph=None, highlight_reviews=True):
         # Update color and linewidth based on scores/weight
         if graph is None:
             graph = infr.graph
-        edges = list(infr.graph.edges())
+        edges = list(graph.edges())
         if highlight_reviews:
-            edge_to_decision = nx.get_edge_attributes(infr.graph, 'decision')
+            edge_to_decision = nx.get_edge_attributes(graph, 'decision')
             state_to_weight = {
                 'match': 1.0,
                 'notcomp': 0.5,
@@ -126,9 +129,9 @@ class _AnnotInfrViz(object):
             }
             edge2_weight = ut.map_dict_vals(state_to_weight, edge_to_decision)
             # {e: state for e, state in edge_to_decision.items()}
-            # edge2_weight = nx.get_edge_attributes(infr.graph, infr.CUT_WEIGHT_KEY)
+            # edge2_weight = nx.get_edge_attributes(graph, infr.CUT_WEIGHT_KEY)
         else:
-            edge2_weight = nx.get_edge_attributes(infr.graph, 'normscore')
+            edge2_weight = nx.get_edge_attributes(graph, 'normscore')
         #edges = list(edge2_weight.keys())
         weights = np.array(ut.dict_take(edge2_weight, edges, np.nan))
         nan_idxs = []
@@ -227,10 +230,11 @@ class _AnnotInfrViz(object):
 
         if not getattr(infr, '_viz_init_nodes', False):
             infr._viz_init_nodes = True
-            infr.set_node_attrs('shape', 'circle')
+            nx.set_node_attributes(graph, 'shape', 'circle')
+            # infr.set_node_attrs('shape', 'circle')
 
         if getattr(infr, '_viz_image_config_dirty', True):
-            infr.update_node_image_attribute(use_image=use_image)
+            infr.update_node_image_attribute(graph=graph, use_image=use_image)
 
         def get_any(dict_, keys, default=None):
             for key in keys:
@@ -439,9 +443,11 @@ class _AnnotInfrViz(object):
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     @profile
-    def show_graph(infr, use_image=False, update_attrs=True,
+    def show_graph(infr, graph=None, use_image=False, update_attrs=True,
                    with_colorbar=False, pnum=(1, 1, 1), **kwargs):
         import plottool as pt
+        if graph is None:
+            graph = infr.graph
         # kwargs['fontsize'] = kwargs.get('fontsize', 8)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -449,8 +455,7 @@ class _AnnotInfrViz(object):
             # update_kw = ut.update_existing(default_update_kw, kwargs)
             # infr.update_visual_attrs(**update_kw)
             if update_attrs:
-                infr.update_visual_attrs(**kwargs)
-            graph = infr.graph
+                infr.update_visual_attrs(graph=graph, **kwargs)
             plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
                                   modify_ax=False, use_image=use_image, verbose=0,
                                   pnum=pnum, **kwargs)
@@ -476,7 +481,7 @@ class _AnnotInfrViz(object):
                                    connectionstyle="angle3,angleA=90,angleB=0"),)
 
         # infr.graph
-        if infr.graph.graph.get('dark_background', None):
+        if graph.graph.get('dark_background', None):
             pt.dark_background(force=True)
 
     def start_qt_interface(infr, loop=True):

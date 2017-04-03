@@ -927,19 +927,21 @@ class _AnnotInfrFeedback(object):
         # use UTC timestamps
         timestamp = ut.get_timestamp('int', isutc=True)
         infr.set_edge_attrs('decision', _dz(edges, decision_list))
-        infr.set_edge_attrs('reviewed_tags', _dz(edges, tags_list))
+        infr.set_edge_attrs('tags', _dz(edges, tags_list))
         infr.set_edge_attrs('confidence', _dz(edges, confidence_list))
         infr.set_edge_attrs('user_id', _dz(edges, userid_list))
         infr.set_edge_attrs('num_reviews', _dz(edges, num_review_list))
         infr.set_edge_attrs('review_timestamp', _dz(edges, [timestamp]))
-        infr.apply_nondynamic_update()
+
+        if infr.enable_inference:
+            infr.apply_nondynamic_update()
 
     def _del_feedback_edges(infr, edges=None):
         """ Delete all edges properties related to feedback """
         if edges is None:
             edges = list(infr.graph.edges())
         infr.print('_del_feedback_edges len(edges) = %r' % (len(edges)), 2)
-        keys = ['decision', 'reviewed_tags', 'num_reviews',
+        keys = ['decision', 'tags', 'num_reviews',
                 'reviewed_weight']
         ut.nx_delete_edge_attr(infr.graph, keys, edges)
 
