@@ -6428,6 +6428,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
         except ValueError:
             args = (gname, aid, )
             print('Invalid secondary list for Gname %r AID %r' % args)
+            raise ValueError
 
     valid_list = list(seen_aid_set)
     # missing_list = list(aid_set - seen_aid_set)
