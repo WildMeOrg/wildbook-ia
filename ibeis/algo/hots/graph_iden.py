@@ -642,9 +642,8 @@ class _AnnotInfrIBEIS(object):
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
-            >>> infr.add_feedback((2, 3), 'match')
-            >>> infr.add_feedback((5, 6), 'nomatch')
-            >>> infr.add_feedback((5, 4), 'nomatch')
+            >>> infr.add_feedback_from([(2, 3), 'match') (5, 6), 'nomatch')
+            >>>                         (5, 4), 'nomatch')]
             >>> (edge_delta_df) = infr.match_state_delta()
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
@@ -787,6 +786,10 @@ class _AnnotInfrFeedback(object):
         if aid2 not in infr.aids_set:
             raise ValueError('aid2=%r is not part of the graph' % (aid2,))
 
+    def add_feedback_from(infr, items):
+        for item in items:
+            infr.add_feedback(*item)
+
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
                      confidence=None, timestamp=None, verbose=None):
@@ -810,14 +813,32 @@ class _AnnotInfrFeedback(object):
         edge = aid1, aid2 = e_(*edge)
 
         if not infr.has_edge(edge):
+            if True:
+                # Allow new aids
+                if not infr.graph.has_node(aid1):
+                    infr.add_aids([aid1])
+                if not infr.graph.has_node(aid2):
+                    infr.add_aids([aid2])
             infr._check_edge(edge)
             infr.graph.add_edge(aid1, aid2)
 
+        if True:
+            print('')
+
+        msg = 'add_feedback {}, {} '.format(aid1, aid2)
+        loc = locals()
+        msg += ' '.join([
+            key + '=' + str(val)
+            for key, val in ((key, loc[key])
+                             for key in 'decision tags user_id confidence'.split())
+            if val is not None
+        ])
         infr.print(
-            'add_feedback {}, {}, decision={}, tags={}, user_id={},'
-            ' confidence={}'.format(
-                aid1, aid2, decision, tags, user_id, confidence), 1,
-            color='underline')
+            msg,
+            # 'add_feedback {}, {}, decision={}, tags={}, user_id={}, '
+            # 'confidence={}'.format(
+            #     aid1, aid2, decision, tags, user_id, confidence),
+            1, color='white')
 
         if decision == 'unreviewed':
             raise NotImplementedError('not done yet')
@@ -848,11 +869,25 @@ class _AnnotInfrFeedback(object):
             infr.refresh.add(decision, user_id)
 
         if infr.enable_inference:
+            assert infr.dirty is False, (
+                'need to recompute before dynamic inference continues')
             # Update priority queue based on the new edge
-            if infr.is_recovering():
-                infr.inconsistent_inference(edge, decision)
-            else:
-                infr.consistent_inference(edge, decision)
+            infr.dynamic_inference(edge, decision)
+            # if infr.is_recovering():
+            #     infr.inconsistent_inference(edge, decision)
+            # else:
+            #     infr.consistent_inference(edge, decision)
+            if True:
+                sorted_ccs = sorted([
+                    tuple(cc) for cc in infr.pos_graph.connected_components()
+                ])
+                msg = '[' + ', '.join([
+                    repr(cc)
+                    if infr.is_consistent(cc) else
+                    ut.highlight_text(repr(cc), 'red')
+                    for cc in sorted_ccs]) + ']'
+                print(msg)
+
         else:
             infr.dirty = True
             infr._add_review_edge(edge, decision)
@@ -1165,13 +1200,13 @@ class _AnnotInfrUpdates(object):
         if len(infr.recovery_ccs) > 0:
             infr.recovery_cc = infr.recovery_ccs[0]
             infr.recover_prev_neg_nids = list(
-                infr.find_neg_outgoing_freq(infr.recovery_cc).keys()
+                infr.find_external_neg_nids(infr.recovery_cc)
             )
         else:
             infr.recovery_cc = None
             infr.recover_prev_neg_nids = None
         infr.pos_redun_nids = set(infr.find_pos_redun_nids())
-        infr.neg_redun_nids = nx.Graph(list(infr.find_neg_redun_nids()))
+        infr.neg_redun_nids = infr._graph_cls(list(infr.find_neg_redun_nids()))
 
     @profile
     def categorize_edges(infr, graph=None):
@@ -1527,9 +1562,8 @@ class _AnnotInfrRelabel(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.hots.graph_iden import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback((2, 3), 'nomatch')
-            >>> infr.add_feedback((5, 6), 'nomatch')
-            >>> infr.add_feedback((1, 2), 'match')
+            >>> infr.add_feedback_from([(2, 3), 'nomatch') (5, 6), 'nomatch')
+            >>>                         (1, 2), 'match')]
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
@@ -1638,7 +1672,9 @@ class AnnotInference(ut.NiceRepr,
 
     """
 
-    _graph_cls = nx.Graph
+    _graph_cls = graph_iden_utils.NiceGraph
+    # _graph_cls = nx.Graph
+    # nx.Graph
     # _graph_cls = nx.DiGraph
 
     def init_test_mode(infr):
@@ -1704,6 +1740,7 @@ class AnnotInference(ut.NiceRepr,
             'notcomp': None,
             'unreviewed': None,
         }
+
         infr.enable_inference = True
         infr.test_mode = False
         infr.edge_truth = {}
@@ -1712,17 +1749,23 @@ class AnnotInference(ut.NiceRepr,
         infr.refresh = None
         infr.term = None
 
-        # Bookkeeping
+        # Dynamic Properties (requires bookkeeping)
         infr.error_edges = set([])
+        infr.error_edges2 = {}
         infr.recovery_ccs = []
         # TODO: keep one main recovery cc but once it is done pop the next one
         # from recovery_ccs until none are left
         infr.recovery_cc = None
+
+        # graph holding positive edges of inconsistent PCCs
+        # infr.recover_graph = infr._graph_cls()
+        infr.recover_graph = graph_iden_utils.DynConnGraph()
+        # infr._graph_cls()
         infr.recover_prev_neg_nids = None
         # Set of PCCs that are positive redundant
         infr.pos_redun_nids = set([])
         # Represents the metagraph of negative edges between PCCs
-        infr.neg_redun_nids = nx.Graph()
+        infr.neg_redun_nids = infr._graph_cls()
 
         # This should represent The feedback read from a database. We do not
         # need to do any updates to an external database based on this data.
@@ -1765,7 +1808,10 @@ class AnnotInference(ut.NiceRepr,
 
         infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
         infr2.recovery_cc = copy.deepcopy(infr.recovery_cc)
+
+        infr2.recover_graph = copy.deepcopy(infr.recover_graph)
         infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)
+
         infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
         infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
 
@@ -1795,7 +1841,7 @@ class AnnotInference(ut.NiceRepr,
         # infr.update_node_attributes(G)
         # aids = set(ut.flatten(aid_pairs))
         import networkx as nx
-        G = nx.Graph()
+        G = AnnotInference._graph_cls()
         assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
         G.add_edges_from(aid_pairs)
         if attrs is not None:
@@ -1905,6 +1951,11 @@ class AnnotInference(ut.NiceRepr,
             infr.orig_name_labels.extend(new_nids)
             infr.aids_set.update(new_aids)
             infr.update_node_attributes(new_aids, new_nids)
+
+            if infr.graph is not None:
+                infr.graph.add_nodes_from(aids)
+                for subgraph in infr.review_graphs.values():
+                    subgraph.add_nodes_from(aids)
 
     def update_node_attributes(infr, aids=None, nids=None):
         if aids is None:

@@ -582,7 +582,7 @@ def make_demo_infr(ccs, edges, nodes=[], infer=True):
     if nx.__version__.startswith('1'):
         nx.add_path = nx.Graph.add_path
 
-    G = nx.Graph()
+    G = graph_iden.AnnotInference._graph_cls()
     G.add_nodes_from(nodes)
     import numpy as np
     rng = np.random.RandomState(42)
@@ -1228,6 +1228,7 @@ def demodata_infr(**kwargs):
                     new_edges.append((u, v, {'decision': 'notcomp'}))
         new_ccs.append((new_nodes, new_edges))
 
+    import networkx as nx
     pos_g = nx.Graph(ut.flatten(ut.take_column(new_ccs, 1)))
     pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
     assert num_pccs == len(list(nx.connected_components(pos_g)))

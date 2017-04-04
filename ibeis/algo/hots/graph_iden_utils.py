@@ -83,7 +83,15 @@ class nx_UnionFind(object):
                 self.parents[x] = x
 
 
-class DynConnGraph(nx.Graph):
+class NiceGraph(nx.Graph, ut.NiceRepr):
+    def __nice__(self):
+        return 'nNodes={}, nEdges={}'.format(
+            self.number_of_nodes(),
+            self.number_of_edges(),
+        )
+
+
+class DynConnGraph(nx.Graph, ut.NiceRepr):
     """
     Dynamically connected graph.
 
@@ -139,11 +147,20 @@ class DynConnGraph(nx.Graph):
         self._union_find = nx_UnionFind()
         super(DynConnGraph, self).__init__(*args, **kwargs)
 
+    def __nice__(self):
+        return 'nNodes={}, nEdges={}, nCCs={}'.format(
+            self.number_of_nodes(),
+            self.number_of_edges(),
+            self.number_of_components(),
+        )
+
     def number_of_components(self):
         return len(self._ccs)
 
-    def component_nodes(self, label):
+    def component(self, label):
         return self._ccs[label]
+
+    component_nodes = component
 
     def connected_to(self, node):
         return self._ccs[self._union_find[node]]
@@ -197,6 +214,12 @@ class DynConnGraph(nx.Graph):
             # print('Add ({})'.format((n)))
             self._ccs[n] = {n}
 
+    def _remove_node(self, n):
+        if n in self._union_find.parents:
+            del self._union_find.weights[n]
+            del self._union_find.parents[n]
+            del self._ccs[n]
+
     def add_edge(self, u, v, **attr):
         self._union(u, v)
         super(DynConnGraph, self).add_edge(u, v, **attr)
@@ -236,16 +259,39 @@ class DynConnGraph(nx.Graph):
 
     def remove_nodes_from(self, nodes):
         # remove edges as well
+        nodes = list(nodes)
         for n in nodes:
             nbrs = list(self.adj[n].keys())
             self.remove_edges_from((n, v) for v in nbrs)
+        for n in nodes:
+            self._remove_node(n)
         super(DynConnGraph, self).remove_nodes_from(nodes)
 
     def remove_node(self, n):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.graph_iden_utils import *  # NOQA
+            >>> self = DynConnGraph()
+            >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9)])
+            >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7, 8, 9}}
+            >>> self.remove_node(2)
+            >>> assert self._ccs == {1: {1}, 3: {3}, 4: {4, 5, 6, 7, 8, 9}}
+            >>> self.remove_node(7)
+            >>> assert self._ccs == {1: {1}, 3: {3}, 4: {4, 5, 6}, 8: {8, 9}}
+        """
         # remove edges as well
         nbrs = list(self.adj[n].keys())
         self.remove_edges_from((n, v) for v in nbrs)
+        self._remove_node(n)
         super(DynConnGraph, self).remove_node(n)
+
+    def subgraph(self, nbunch):
+        H = super(DynConnGraph, self).subgraph(nbunch)
+        # Recreate the connected compoment structure
+        for u, v in H.edges():
+            H._union(u, v)
+        return H
 
 
 def _dz(a, b):
@@ -275,6 +321,20 @@ def edges_inside(graph, nodes):
             result.add(e_(u, v))
         upper.remove(u)
     return result
+
+
+def edges_outgoing(graph, nodes1):
+    """
+    Finds edges between two sets of disjoint nodes.
+    Running time is O(len(nodes1) * len(nodes2))
+
+    Args:
+        graph (nx.Graph): an undirected graph
+        nodes1 (set): set of nodes disjoint from `nodes2`
+        nodes2 (set): set of nodes disjoint from `nodes1`.
+    """
+    nodes1 = set(nodes1)
+    return {e_(u, v) for u in nodes1 for v in graph.adj[u] if v not in nodes1}
 
 
 def edges_cross(graph, nodes1, nodes2):
