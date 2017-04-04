@@ -6,6 +6,7 @@
 
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" id="ia-detection-form">
     <div id="ia-bbox-annotator"></div>
+    <input type="checkbox" class="context_menu_checkbox"> DEBUG
     <div style="text-align: center; color: #aaa;">
       <span>hover to highlight and press <b>b</b> to send an annotation to the back, <b>Esc</b> or <b>k</b> to delete</a></span>
     </div>
@@ -50,7 +51,7 @@
         url: "{{ image_src }}",
         input_method: 'fixed',
         default_color: 'rgb(127, 255, 127)', // Green
-        show_label: true,
+        show_label: false,
         labels: ['{{ species }}'],
         onchange: function(entries) {
           $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));
