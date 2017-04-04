@@ -6394,36 +6394,40 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
 
         # Check associated aids
         aid2_list = ut.flatten(ibs.get_name_aids([nid]))
-        for index in range(len(secondary_line_list) // 2):
-            gname2 = secondary_line_list[(index * 2) + 0]
-            if gname2 == '':
-                continue
-            aid2 = int(secondary_line_list[(index * 2) + 1])
-            nid2 = ibs.get_annot_nids(aid2)
-            if nid != nid2:
-                args = (nid2, aid2, found1, found2, )
-                print('Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args)
-                if nid > 0 and nid is not None:
-                    print('\tfixing to %r...' % (nid, ))
-                    ibs.set_annot_name_rowids([aid2], [nid])
-                    aid2_list = ut.flatten(ibs.get_name_aids([nid]))
-            # Check if found
-            found1 = aid2 in aid2_list
-            found2 = gname2 in gname_list
-            if not (found1 and found2):
-                args = (aid2, found1, found2, )
-                print('Invalid Secondary AID2 %r (aid %s, gname %s)' % args)
-                args = (gname, aid, )
-                print('\tGname %r AID %r' % args)
-                args = (nid2, nid, )
-                print('\tNIDs - WANTED: %r, GAVE: %r' % args)
-                args = (aid2_list, )
-                print('\tAID2_LIST: %r' % args)
-                invalid_list.append(aid2)
-                continue
-            seen_aid_set.add(aid2)
-            annot_rowid_list.append(aid2)
-            metadata_list.append(metadata_dict)
+        try:
+            for index in range(len(secondary_line_list) // 2):
+                gname2 = secondary_line_list[(index * 2) + 0]
+                if gname2 == '':
+                    continue
+                aid2 = int(secondary_line_list[(index * 2) + 1])
+                nid2 = ibs.get_annot_nids(aid2)
+                if nid != nid2:
+                    args = (nid2, aid2, found1, found2, )
+                    print('Invalid NID %r for Secondary AID2 %r (aid %s, gname %s)' % args)
+                    if nid > 0 and nid is not None:
+                        print('\tfixing to %r...' % (nid, ))
+                        ibs.set_annot_name_rowids([aid2], [nid])
+                        aid2_list = ut.flatten(ibs.get_name_aids([nid]))
+                # Check if found
+                found1 = aid2 in aid2_list
+                found2 = gname2 in gname_list
+                if not (found1 and found2):
+                    args = (aid2, found1, found2, )
+                    print('Invalid Secondary AID2 %r (aid %s, gname %s)' % args)
+                    args = (gname, aid, )
+                    print('\tGname %r AID %r' % args)
+                    args = (nid2, nid, )
+                    print('\tNIDs - WANTED: %r, GAVE: %r' % args)
+                    args = (aid2_list, )
+                    print('\tAID2_LIST: %r' % args)
+                    invalid_list.append(aid2)
+                    continue
+                seen_aid_set.add(aid2)
+                annot_rowid_list.append(aid2)
+                metadata_list.append(metadata_dict)
+        except ValueError:
+            args = (gname, aid, )
+            print('Invalid secondary list for Gname %r AID %r' % args)
 
     valid_list = list(seen_aid_set)
     # missing_list = list(aid_set - seen_aid_set)
