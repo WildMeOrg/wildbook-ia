@@ -2,7 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import networkx as nx
-from ibeis.algo.graph_iden.nx_utils import edges_inside
+import itertools as it
+from ibeis.algo.graph.nx_utils import edges_inside
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -54,7 +55,6 @@ class nx_UnionFind(object):
             self.weights[x] = 1
 
     def to_sets(self):
-        import itertools as it
         for block in it.groups(self.parents).values():
             yield block
 
@@ -114,11 +114,11 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         **kwargs:
 
     CommandLine:
-        python -m ibeis.algo.graph_iden.nx_dynamic_graph DynConnGraph
+        python -m ibeis.algo.graph.nx_dynamic_graph DynConnGraph
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.nx_dynamic_graph import *  # NOQA
+        >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
         >>> self = DynConnGraph()
         >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
         >>> self.add_edges_from([(10, 20), (20, 30), (40, 50), (60, 70), (70, 40)])
@@ -269,7 +269,7 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph_iden.nx_dynamic_graph import *  # NOQA
+            >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9)])
             >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7, 8, 9}}
@@ -295,8 +295,8 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph_iden.nx_dynamic_graph
-        python -m ibeis.algo.graph_iden.nx_dynamic_graph --allexamples
+        python -m ibeis.algo.graph.nx_dynamic_graph
+        python -m ibeis.algo.graph.nx_dynamic_graph --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

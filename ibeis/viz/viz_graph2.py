@@ -11,7 +11,6 @@ import numpy as np
 import dtool
 import networkx as nx
 import itertools as it
-from ibeis.algo.graph_iden import graph_iden
 import guitool as gt
 import plottool as pt
 from plottool import abstract_interaction
@@ -1638,8 +1637,9 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         annots = ibs.annots(aids)
         aids = annots.get_name_image_closure()
         nids = ibs.get_annot_nids(aids)
-        new_infr = graph_iden.AnnotInference(ibs, aids, nids,
-                                             verbose=self.infr.verbose)
+        import ibeis
+        new_infr = ibeis.AnnotInference(ibs, aids, nids,
+                                        verbose=self.infr.verbose)
         new_infr.initialize_graph()
         self.infr = new_infr
         self.init_inference()
@@ -2205,7 +2205,8 @@ def make_qt_graph_review(qreq_, cm_list):
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
     gt.ensure_qtapp()
-    infr = graph_iden.AnnotInference.from_qreq_(qreq_, cm_list)
+    import ibeis
+    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list)
 
     gt.ensure_qtapp()
     print('infr = %r' % (infr,))
@@ -2284,8 +2285,9 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
 
     print('make_qt_graph_interface aids = %r' % (aids,))
     nids = ibs.get_annot_name_rowids(aids)
-    # infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
-    infr = graph_iden.AnnotInference(ibs, aids, nids, verbose=5)
+    import ibeis
+    # infr = ibeis.AnnotInference(ibs, aids, nids, verbose=ut.VERBOSE)
+    infr = ibeis.AnnotInference(ibs, aids, nids, verbose=5)
     infr.initialize_graph()
 
     gt.ensure_qtapp()

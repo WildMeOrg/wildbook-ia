@@ -49,11 +49,11 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 def make_dummy_infr(annots_per_name):
-    from ibeis.algo.graph_iden import graph_iden
+    import ibeis
     nids = [val for val, num in enumerate(annots_per_name, start=1)
             for _ in range(num)]
     aids = range(len(nids))
-    infr = graph_iden.AnnotInference(None, aids, nids=nids, autoinit=True,
+    infr = ibeis.AnnotInference(None, aids, nids=nids, autoinit=True,
                                      verbose=1)
     return infr
 
@@ -62,7 +62,7 @@ def make_dummy_infr(annots_per_name):
 def demo2():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo demo2
+        python -m ibeis.algo.graph.demo demo2
     """
     import plottool as pt
 
@@ -329,7 +329,7 @@ def get_edge_truth(infr, n1, n2):
 def apply_dummy_scores(infr, rng=None):
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo apply_dummy_scores --show
+        python -m ibeis.algo.graph.demo apply_dummy_scores --show
 
     Ignore:
         import sympy
@@ -345,8 +345,9 @@ def apply_dummy_scores(infr, rng=None):
         2*x/(x + 1) - y
 
     Example:
+        >>> # DISABLE_DOCTEST
         >>> import vtool as vt
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> infr = make_dummy_infr([100] * 2)
         >>> infr.ensure_full()
         >>> rng = None
@@ -437,9 +438,8 @@ def apply_dummy_viewpoints(infr):
 def demo_ibeis_graph_iden():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo demo_ibeis_graph_iden --show
+        python -m ibeis.algo.graph.demo demo_ibeis_graph_iden --show
     """
-    from ibeis.algo.graph_iden import graph_iden
     import ibeis
     ibs = ibeis.opendb('PZ_MTEST')
     # Initially the entire population is unnamed
@@ -452,7 +452,7 @@ def demo_ibeis_graph_iden():
     aids = ibs.get_valid_aids()[1:9]
     # nids = [-aid for aid in aids]
     # infr = graph_iden.AnnotInference(ibs, aids, nids=nids, autoinit=True, verbose=1)
-    infr = graph_iden.AnnotInference(ibs, aids, autoinit=True, verbose=1)
+    infr = ibeis.AnnotInference(ibs, aids, autoinit=True, verbose=1)
     # Pin nodes in groundtruth positions
     infr.ensure_cliques()
     # infr.initialize_visual_node_attrs()
@@ -576,13 +576,13 @@ def on_pick(event, infr=None):
 
 
 def make_demo_infr(ccs, edges, nodes=[], infer=True):
-    from ibeis.algo.graph_iden import graph_iden
+    import ibeis
     import networkx as nx
 
     if nx.__version__.startswith('1'):
         nx.add_path = nx.Graph.add_path
 
-    G = graph_iden.AnnotInference._graph_cls()
+    G = ibeis.AnnotInference._graph_cls()
     G.add_nodes_from(nodes)
     import numpy as np
     rng = np.random.RandomState(42)
@@ -604,7 +604,7 @@ def make_demo_infr(ccs, edges, nodes=[], infer=True):
             d['normscore'] = rng.rand()
 
     G.add_edges_from(edges)
-    infr = graph_iden.AnnotInference.from_netx(G, infer=infer)
+    infr = ibeis.AnnotInference.from_netx(G, infer=infer)
     infr.verbose = 3
 
     # infr.relabel_using_reviews()
@@ -721,11 +721,11 @@ def do_infr_test(ccs, edges, new_edges):
 def case_nomatch_infr():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_nomatch_infr --show
+        python -m ibeis.algo.graph.demo case_nomatch_infr --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_nomatch_infr()
     """
     # Initial positive reviews
@@ -752,11 +752,11 @@ def case_nomatch_infr():
 def case_match_infr():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_match_infr --show
+        python -m ibeis.algo.graph.demo case_match_infr --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_match_infr()
     """
     # Initial positive reviews
@@ -786,11 +786,11 @@ def case_match_infr():
 def case_inconsistent():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_inconsistent --show
+        python -m ibeis.algo.graph.demo case_inconsistent --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_inconsistent()
     """
     ccs = [[1, 2], [3, 4, 5]]  # [6, 7]]
@@ -813,11 +813,11 @@ def case_inconsistent():
 def case_redo_incon():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_redo_incon --show
+        python -m ibeis.algo.graph.demo case_redo_incon --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_redo_incon()
     """
     ccs = [[1, 2], [3, 4]]  # [6, 7]]
@@ -841,11 +841,11 @@ def case_redo_incon():
 def case_override_inference():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_override_inference --show
+        python -m ibeis.algo.graph.demo case_override_inference --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_override_inference()
     """
     ccs = [[1, 2, 3, 4, 5]]
@@ -877,11 +877,11 @@ def case_override_inference():
 def case_undo_match():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_undo_match --show
+        python -m ibeis.algo.graph.demo case_undo_match --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_undo_match()
     """
     ccs = [[1, 2]]
@@ -896,11 +896,11 @@ def case_undo_match():
 def case_undo_nomatch():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_undo_nomatch --show
+        python -m ibeis.algo.graph.demo case_undo_nomatch --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_undo_nomatch()
     """
     ccs = [[1], [2]]
@@ -916,11 +916,11 @@ def case_undo_nomatch():
 def case_incon_removes_inference():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_incon_removes_inference --show
+        python -m ibeis.algo.graph.demo case_incon_removes_inference --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_incon_removes_inference()
     """
     ccs = [[1, 2, 3], [4, 5, 6]]
@@ -943,11 +943,11 @@ def case_inferable_notcomp1():
     make sure notcomparable edges can be inferred
 
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_inferable_notcomp1 --show
+        python -m ibeis.algo.graph.demo case_inferable_notcomp1 --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_inferable_notcomp1()
     """
     ccs = [[1, 2], [3, 4]]
@@ -965,11 +965,11 @@ def case_inferable_update_notcomp():
     make sure inference updates for nocomparable edges
 
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_inferable_update_notcomp --show
+        python -m ibeis.algo.graph.demo case_inferable_update_notcomp --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_inferable_update_notcomp()
     """
     ccs = [[1, 2], [3, 4]]
@@ -987,11 +987,11 @@ def case_inferable_update_notcomp():
 def case_notcomp_remove_infr():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_notcomp_remove_infr --show
+        python -m ibeis.algo.graph.demo case_notcomp_remove_infr --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_notcomp_remove_infr()
     """
     ccs = [[1, 2, 3], [4, 5, 6]]
@@ -1012,11 +1012,11 @@ def case_notcomp_remove_infr():
 def case_notcomp_remove_cuts():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_notcomp_remove_cuts --show
+        python -m ibeis.algo.graph.demo case_notcomp_remove_cuts --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_notcomp_remove_cuts()
     """
     ccs = [[1, 2, 3], [4, 5, 6]]
@@ -1040,11 +1040,11 @@ def case_notcomp_remove_cuts():
 def case_keep_in_cc_infr_post_nomatch():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_keep_in_cc_infr_post_nomatch --show
+        python -m ibeis.algo.graph.demo case_keep_in_cc_infr_post_nomatch --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_keep_in_cc_infr_post_nomatch()
     """
     ccs = [[1, 2, 3], [4]]
@@ -1061,11 +1061,11 @@ def case_keep_in_cc_infr_post_nomatch():
 def case_keep_in_cc_infr_post_notcomp():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_keep_in_cc_infr_post_notcomp --show
+        python -m ibeis.algo.graph.demo case_keep_in_cc_infr_post_notcomp --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_keep_in_cc_infr_post_notcomp()
     """
     ccs = [[1, 2, 3], [4]]
@@ -1082,11 +1082,11 @@ def case_keep_in_cc_infr_post_notcomp():
 def case_out_of_subgraph_modification():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_out_of_subgraph_modification --show
+        python -m ibeis.algo.graph.demo case_out_of_subgraph_modification --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_out_of_subgraph_modification()
     """
     # A case where a review between two ccs modifies state outside of
@@ -1105,11 +1105,11 @@ def case_out_of_subgraph_modification():
 def case_flag_merge():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_flag_merge --show
+        python -m ibeis.algo.graph.demo case_flag_merge --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_flag_merge()
     """
     # A case where a review between two ccs modifies state outside of
@@ -1139,8 +1139,10 @@ def demodata_infr(**kwargs):
     kwargs = {}
 
     Example:
-        >>> from ibeis.algo.hots import demo
-        >>> kwargs = dict(num_pccs=250, p_incon=.1)
+        >>> from ibeis.algo.graph.demo import *  # NOQA
+        >>> from ibeis.algo.graph import demo
+        >>> import networkx as nx
+        >>> kwargs = dict(num_pccs=50, p_incon=.1)
         >>> infr = demo.demodata_infr(**kwargs)
         >>> pccs = list(infr.positive_components())
         >>> assert len(pccs) == kwargs['num_pccs']
@@ -1263,11 +1265,11 @@ def demodata_infr(**kwargs):
 def case_all_types():
     """
     CommandLine:
-        python -m ibeis.algo.graph_iden.demo case_all_types --show
+        python -m ibeis.algo.graph.demo case_all_types --show
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.demo import *  # NOQA
+        >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> case_all_types()
     """
     # A case where a review between two ccs modifies state outside of
@@ -1389,10 +1391,10 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph
-        python -m ibeis.algo.graph_iden.demo demo2
-        python -m ibeis.algo.graph_iden.demo
-        python -m ibeis.algo.graph_iden.demo --allexamples
-        python -m ibeis.algo.graph_iden.demo --allexamples --show
+        python -m ibeis.algo.graph.demo demo2
+        python -m ibeis.algo.graph.demo
+        python -m ibeis.algo.graph.demo --allexamples
+        python -m ibeis.algo.graph.demo --allexamples --show
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

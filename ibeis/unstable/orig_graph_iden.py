@@ -352,7 +352,7 @@ class OrigAnnotInference(object):
         #import utool
         #utool.embed()
 
-        from ibeis.algo.graph_iden import graph_iden
+        from ibeis.algo.graph import graph_iden
         graph_iden.rrr()
         qreq_ = self.qreq_
         cm_list = self.cm_list

@@ -5,7 +5,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.algo.hots import _pipeline_helpers
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import exceptions
-from ibeis.algo.graph_iden import graph_iden
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import match_chips4
 from ibeis.algo.hots import multi_index
@@ -75,7 +74,6 @@ def reload_subs(verbose=True):
     get_rrr(_pipeline_helpers)(verbose=verbose)
     get_rrr(chip_match)(verbose=verbose)
     get_rrr(exceptions)(verbose=verbose)
-    get_rrr(graph_iden)(verbose=verbose)
     get_rrr(hstypes)(verbose=verbose)
     get_rrr(match_chips4)(verbose=verbose)
     get_rrr(multi_index)(verbose=verbose)
@@ -101,7 +99,6 @@ IMPORT_TUPLES = [
     ('_pipeline_helpers', None),
     ('chip_match', None),
     ('exceptions', None),
-    ('graph_iden', None),
     ('hstypes', None),
     ('match_chips4', None),
     ('multi_index', None),

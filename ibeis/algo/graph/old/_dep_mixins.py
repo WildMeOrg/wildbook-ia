@@ -7,8 +7,8 @@ import vtool as vt
 import utool as ut
 import six
 from ibeis.algo.hots import infr_model
-from ibeis.algo.graph_iden.core_utils import e_, _dz
-from ibeis.algo.graph_iden.core_utils import edges_inside, edges_cross
+from ibeis.algo.graph.nx_utils import e_, _dz
+from ibeis.algo.graph.nx_utils import edges_inside, edges_cross
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -19,11 +19,11 @@ def filter_between_ccs_neg(aids1, aids2, aid_to_nid, nid_to_aids, isneg_flags):
     remove all other potential reviews between those cc's
 
     CommandLine:
-        python -m ibeis.algo.graph_iden.core filter_between_ccs_neg
+        python -m ibeis.algo.graph.core filter_between_ccs_neg
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.graph_iden.core import *  # NOQA
+        >>> from ibeis.algo.graph.core import *  # NOQA
         >>> edges = [(0, 1), (1, 2), (1, 3), (3, 4), (4, 2)]
         >>> aids1 = ut.take_column(edges, 0)
         >>> aids2 = ut.take_column(edges, 1)
@@ -157,8 +157,8 @@ class _AnnotInfrDepMixin(object):
         http://www.cis.upenn.edu/~sanjeev/papers/diameter.pdf
 
         Example:
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
-            >>> from ibeis.algo.graph_iden.core import _dz
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import _dz
             >>> from ibeis.algo.hots import demo
             >>> infr = demo.synthetic_infr(
             >>>     ccs=[[1, 2, 3, 4, 5],
@@ -238,7 +238,7 @@ class _AnnotInfrDepMixin(object):
                 for u in graph.nodes()
             )
 
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching()
             >>> infr.apply_match_edges()
@@ -361,7 +361,7 @@ class _AnnotInfrDepMixin(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.exec_matching()
             >>> infr.apply_match_edges()
@@ -782,10 +782,10 @@ class _AnnotInfrDepMixin(object):
         TODO: split into simpler functions
 
         CommandLine:
-            python -m ibeis.algo.graph_iden.core apply_review_inference
+            python -m ibeis.algo.graph.core apply_review_inference
 
         Example:
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
             >>> aids = list(range(1, 10))
             >>> infr = AnnotInference(None, aids, autoinit=True, verbose=1)
             >>> infr.ensure_full()
@@ -979,8 +979,8 @@ class _AnnotInfrDepMixin(object):
         TODO refactor
 
         Example:
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
-            >>> from ibeis.algo.graph_iden.core import _dz
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import _dz
             >>> from ibeis.algo.hots import demo
             >>> infr = demo.make_demo_infr(
             >>>     ccs=[[1, 2, 3, 4, 5],
@@ -1055,11 +1055,11 @@ class _AnnotInfrDepMixin(object):
             apply (bool): if True feedback is dynamically applied
 
         CommandLine:
-            python -m ibeis.algo.graph_iden.core add_feedback_old
+            python -m ibeis.algo.graph.core add_feedback_old
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback((5, 6), 'match')
             >>> infr.add_feedback((5, 6), 'nomatch', ['Photobomb'])
@@ -1140,12 +1140,12 @@ class _AnnotInfrDepMixin(object):
         Dynamically updates all states based on a single dynamic change
 
         CommandLine:
-            python -m ibeis.algo.graph_iden.core _dynamically_apply_feedback_old:0
-            python -m ibeis.algo.graph_iden.core _dynamically_apply_feedback_old:1 --show
+            python -m ibeis.algo.graph.core _dynamically_apply_feedback_old:0
+            python -m ibeis.algo.graph.core _dynamically_apply_feedback_old:1 --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.relabel_using_reviews()
             >>> infr.add_feedback((1, 2), 'match')
@@ -1160,7 +1160,7 @@ class _AnnotInfrDepMixin(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.relabel_using_reviews()
             >>> infr.verbose = 2

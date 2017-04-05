@@ -1347,21 +1347,21 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     @ut.memoize
     def is_same(samples):
         # Hack to use infr implementation
-        from ibeis.algo.graph_iden.core import AnnotInference
+        from ibeis.algo.graph.core import AnnotInference
         infr = AnnotInference(ibs=samples.ibs)
         return infr.is_same(samples.aid_pairs)
 
     @ut.memoize
     def is_photobomb(samples):
         # Hack to use infr implementation
-        from ibeis.algo.graph_iden.core import AnnotInference
+        from ibeis.algo.graph.core import AnnotInference
         infr = AnnotInference(ibs=samples.ibs)
         return infr.is_photobomb(samples.aid_pairs)
 
     @ut.memoize
     def is_comparable(samples):
         # Hack to use infr implementation
-        from ibeis.algo.graph_iden.core import AnnotInference
+        from ibeis.algo.graph.core import AnnotInference
         infr = AnnotInference(ibs=samples.ibs)
         return infr.is_comparable(samples.aid_pairs, allow_guess=True)
 

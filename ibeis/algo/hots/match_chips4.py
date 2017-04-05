@@ -7,7 +7,7 @@ import utool as ut
 from os.path import exists
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import pipeline
-(print, rrr, profile) = ut.inject2(__name__, '[mc4]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # TODO: Move to params

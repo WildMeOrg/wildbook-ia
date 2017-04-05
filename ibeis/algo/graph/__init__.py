@@ -3,7 +3,7 @@
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool
-print, rrr, profile = utool.inject2(__name__, '[ibeis.algo.graph_iden]')
+print, rrr, profile = utool.inject2(__name__)
 
 
 def reassign_submodule_attributes(verbose=1):
@@ -15,14 +15,14 @@ def reassign_submodule_attributes(verbose=1):
     if verbose and '--quiet' not in sys.argv:
         print('dev reimport')
     # Self import
-    import ibeis.algo.graph_iden
+    import ibeis.algo.graph
     # Implicit reassignment.
     seen_ = set([])
     for tup in IMPORT_TUPLES:
         if len(tup) > 2 and tup[2]:
             continue  # dont import package names
         submodname, fromimports = tup[0:2]
-        submod = getattr(ibeis.algo.graph_iden, submodname)
+        submod = getattr(ibeis.algo.graph, submodname)
         for attr in dir(submod):
             if attr.startswith('_'):
                 continue
@@ -32,13 +32,13 @@ def reassign_submodule_attributes(verbose=1):
                 # which is good
                 continue
             seen_.add(attr)
-            setattr(ibeis.algo.graph_iden, attr, getattr(submod, attr))
+            setattr(ibeis.algo.graph, attr, getattr(submod, attr))
 
 
 def reload_subs(verbose=1):
-    """ Reloads ibeis.algo.graph_iden and submodules """
+    """ Reloads ibeis.algo.graph and submodules """
     if verbose:
-        print('Reloading ibeis.algo.graph_iden submodules')
+        print('Reloading ibeis.algo.graph submodules')
     rrr(verbose > 1)
     def wrap_fbrrr(mod):
         def fbrrr(*args, **kwargs):
@@ -53,7 +53,7 @@ def reload_subs(verbose=1):
             return wrap_fbrrr(mod)
     def get_reload_subs(mod):
         return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
-    
+
     rrr(verbose > 1)
     try:
         # hackish way of propogating up the new reloaded submodule attributes
@@ -67,6 +67,6 @@ IMPORT_TUPLES = [
 ]
 """
 Regen Command:
-    cd /home/joncrall/code/ibeis/ibeis/algo/graph_iden
-    makeinit.py --modname=ibeis.algo.graph_iden
+    cd /home/joncrall/code/ibeis/ibeis/algo/graph
+    makeinit.py --modname=ibeis.algo.graph
 """

@@ -959,7 +959,7 @@ def draw_ete(dbname):
         if False:
             infr.show(groupby='orig_name_label')
         if 0:
-            from ibeis.algo.graph_iden.core_utils import (
+            from ibeis.algo.graph.nx_utils import (
                 edges_inside, edges_cross)
 
             groups_nid = ut.ddict(list)
