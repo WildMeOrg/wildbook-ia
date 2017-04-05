@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import utool as ut
 import pathlib
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -452,7 +453,7 @@ def iccv_roc(dbname):
     pblm.report_simple_scores(task_key)
     res.extended_clf_report()
 
-    class_name = 'match'
+    class_name = POSTV
     clf_labels = res.target_bin_df[class_name].values
     clf_probs = res.probs_df[class_name].values
     clf_conf = vt.ConfusionMetrics.from_scores_and_labels(clf_probs,
@@ -460,7 +461,7 @@ def iccv_roc(dbname):
     clf_fpr = clf_conf.fpr
     clf_tpr = clf_conf.tpr
 
-    class_name = 'match'
+    class_name = POSTV
     task = pblm.samples.subtasks['match_state']
     lnbnn_labels = task.indicator_df[class_name]
     lnbnn_scores = pblm.samples.simple_scores['score_lnbnn_1vM']
@@ -711,10 +712,10 @@ def end_to_end():
         }
         for fpr, thresh_df in fpr_thresholds.items():
             # disable notcomp thresholds due to training issues
-            thresh_df['notcomp'] = max(1.0, thresh_df['notcomp'])
+            thresh_df[INCMP] = max(1.0, thresh_df[INCMP])
             # ensure thresholds are over .5
-            thresh_df['match'] = max(.51, thresh_df['match'])
-            thresh_df['nomatch'] = max(.51, thresh_df['nomatch'])
+            thresh_df[POSTV] = max(.51, thresh_df[POSTV])
+            thresh_df[NEGTV] = max(.51, thresh_df[NEGTV])
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 

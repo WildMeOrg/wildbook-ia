@@ -18,6 +18,7 @@ from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool import mpl_widget
 from guitool import PrefWidget2
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
     'ranks_top': 3,
@@ -362,8 +363,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         match_state_codes = list(REVIEW.CODE_TO_INT.keys())
         user_conf_codes = list(CONFIDENCE.CODE_TO_INT.keys())
 
-        match_state_codes = ut.partial_order(match_state_codes,
-                                             ['match', 'nomatch'])
+        match_state_codes = ut.partial_order(match_state_codes, [POSTV, NEGTV])
         user_conf_codes = ut.partial_order(user_conf_codes,
                                            # ['absolutely_sure', 'not_sure']
                                            ['pretty_sure', 'not_sure']
@@ -452,7 +452,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         print('edge_data = %s' % (ut.repr4(edge_data),))
         edge_state = {
             'edge': edge,
-            'decision': 'unreviewed',
+            'decision': UNREV,
             'user_id': self.user_edit.text(),
             'tags': [],
             # 'confidence': 'unspecified'
@@ -461,7 +461,7 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         if edge_data is not None:
             # Read edge state from edge_data
             edge_state['tags'] = edge_data.get('tags', [])
-            edge_state['decision'] = edge_data.get('decision', 'unreviewed')
+            edge_state['decision'] = edge_data.get('decision', UNREV)
             # Use previous confidence if you are the same user
             if edge_state['user_id'] == edge_data.get('user_id', None):
                 edge_state['confidence'] = edge_data.get(
@@ -1065,11 +1065,11 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         import ubelt as ub
         if match:
             pairs = list(ub.chunks(match, 2))
-            self.mark_pair_state(pairs, 'match')
+            self.mark_pair_state(pairs, POSTV)
         nomatch = ut.get_argval('--nomatch', type_=list, default=None)
         if nomatch:
             pairs = list(ub.chunks(nomatch, 2))
-            self.mark_pair_state(pairs, 'nomatch')
+            self.mark_pair_state(pairs, NEGTV)
 
     def repopulate(self):
         # self.update_state(structure_changed=True)
@@ -1102,10 +1102,10 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         truth_colors = self.infr._get_truth_colors()
         if status['num_inconsistent']:
             self.state_lbl.setText('Inconsistent Names: %d' % (status['num_inconsistent'],))
-            self.state_lbl.setColor('black', truth_colors['nomatch'][0:3] * 255)
+            self.state_lbl.setColor('black', truth_colors[NEGTV][0:3] * 255)
         else:
             self.state_lbl.setText('Consistent')
-            self.state_lbl.setColor('black', truth_colors['match'][0:3] * 255)
+            self.state_lbl.setColor('black', truth_colors[POSTV][0:3] * 255)
 
         self.num_names_lbl.setText('Names: max=%r' % (status['num_names_max']))
 
@@ -1255,7 +1255,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             self.graph_widget.show_selected()
 
     def mark_pair_state(self, pairs, state):
-        valid_states = {'match', 'nomatch', 'notcomp', 'unreviewed'}
+        valid_states = {POSTV, NEGTV, INCMP, UNREV}
         statetags = state.split('+')
         state = statetags[0]
         tags = statetags[1].split(';') if len(statetags) > 1 else []
@@ -1269,12 +1269,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         def _mark_selected_pair_state(state):
             self.mark_pair_state(selection_func(), state)
         options = [
-            ('Mark &True', ut.partial(_mark_selected_pair_state, 'match')),
-            ('Mark &False', ut.partial(_mark_selected_pair_state, 'nomatch')),
-            ('Mark &Not-Comparable', ut.partial(_mark_selected_pair_state, 'notcomp')),
+            ('Mark &True', ut.partial(_mark_selected_pair_state, POSTV)),
+            ('Mark &False', ut.partial(_mark_selected_pair_state, NEGTV)),
+            ('Mark &Not-Comparable', ut.partial(_mark_selected_pair_state, INCMP)),
             ('Mark &Photobomb', ut.partial(_mark_selected_pair_state, 'nomatch+photobomb')),
             ('Mark &SceneryMatch', ut.partial(_mark_selected_pair_state, 'nomatch+scenerymatch')),
-            ('&Unreview', ut.partial(_mark_selected_pair_state, 'unreviewed')),
+            ('&Unreview', ut.partial(_mark_selected_pair_state, UNREV)),
             # unreview will only remove internal feedback, anything commited will not change
         ]
         return options
@@ -1822,8 +1822,8 @@ class EdgeAPIHelper(object):
         elif inferred_state.startswith('inconsistent'):
             state = inferred_state
         else:
-            if inferred_state == 'notcomp':
-                state = 'notcomp'
+            if inferred_state == INCMP:
+                state = INCMP
             else:
                 inferred_truth = {'same': True, 'diff': False}[inferred_state]
                 name_truth = (nid1 == nid2)
@@ -1865,7 +1865,7 @@ class EdgeAPIHelper(object):
 
     def get_review_text(self, edge):
         graph = self.infr.graph
-        text = graph.get_edge_data(*edge).get('decision', 'unreviewed')
+        text = graph.get_edge_data(*edge).get('decision', UNREV)
         return text
 
     def get_inference_bgrole(self, edge):
@@ -1886,10 +1886,10 @@ class EdgeAPIHelper(object):
             truth_colors = self.infr._get_truth_colors()
             if state == 'unknown':
                 lighten_amount = .7
-                color = truth_colors['unreviewed']
+                color = truth_colors[UNREV]
             else:
-                color = truth_colors['match'] if state == 'same' else truth_colors['nomatch']
-            #self.graph.get_edge_data(*edge).get('decision', 'unreviewed')]
+                color = truth_colors[POSTV] if state == 'same' else truth_colors[NEGTV]
+            #self.graph.get_edge_data(*edge).get('decision', UNREV)]
             if lighten_amount is not None:
                 color = pt.lighten_rgb(color, lighten_amount)
         color = pt.to_base255(color)
@@ -1898,20 +1898,20 @@ class EdgeAPIHelper(object):
     def get_review_bgrole(self, edge):
         """ Background role for status column """
         data = self.graph.get_edge_data(*edge)
-        state = data.get('decision', 'unreviewed')
+        state = data.get('decision', UNREV)
         truth_colors = self.infr._get_truth_colors()
-        if state == 'unreviewed':
+        if state == UNREV:
             inference_state, text, maybe_error = self._get_inference_info(edge)
             if inference_state == 'same':
-                color = truth_colors['match']
+                color = truth_colors[POSTV]
             elif inference_state == 'diff':
-                color = truth_colors['nomatch']
+                color = truth_colors[NEGTV]
             else:
                 color = truth_colors[state]
         else:
             color = truth_colors[state]
         lighten_amount = .35
-        if state == 'unreviewed':
+        if state == UNREV:
             lighten_amount = .7
         if lighten_amount is not None:
             color = pt.lighten_rgb(color, lighten_amount)
@@ -2058,7 +2058,7 @@ def make_edge_api(infr, review_cfg={}):
                               if 'photobomb' not in d.get('tags')]
         if review_cfg['filter_reviewed']:
             edges_and_data = [(edge, d) for edge, d in edges_and_data
-                              if d.get('decision', 'unreviewed') != 'unreviewed']
+                              if d.get('decision', UNREV) != UNREV]
         if review_cfg['filter_true_matches']:
             edges_and_data = [(edge, d) for edge, d in edges_and_data
                               if not infr.pos_redun_edge_flag(edge)]
@@ -2321,7 +2321,7 @@ def make_qt_graph_interface(ibs, aids=None, nids=None, gids=None,
     # match = ut.get_argval('--match', type_=list, default=None)
     # print('match = %r' % (match,))
     # if match:
-    #     win.mark_pair_state([match], 'match')
+    #     win.mark_pair_state([match], POSTV)
 
     if False:
         win.expand_image_and_names()

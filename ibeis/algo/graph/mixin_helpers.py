@@ -6,6 +6,7 @@ import operator
 import numpy as np
 import utool as ut
 import vtool as vt
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 from ibeis.algo.graph.nx_utils import e_
 import six
 print, rrr, profile = ut.inject2(__name__)
@@ -97,19 +98,19 @@ class AttrAccess(object):
 
     @property
     def pos_graph(infr):
-        return infr.review_graphs['match']
+        return infr.review_graphs[POSTV]
 
     @property
     def neg_graph(infr):
-        return infr.review_graphs['nomatch']
+        return infr.review_graphs[NEGTV]
 
     @property
     def incomp_graph(infr):
-        return infr.review_graphs['notcomp']
+        return infr.review_graphs[INCMP]
 
     @property
     def unreviewed_graph(infr):
-        return infr.review_graphs['unreviewed']
+        return infr.review_graphs[UNREV]
 
 
 class Convenience(object):
@@ -194,7 +195,7 @@ class DummyEdges(object):
             positive_edges = [
                 e_(*e) for e, v in
                 nx.get_edge_attributes(target_cc, 'decision').items()
-                if v == 'match'
+                if v == POSTV
             ]
             tmp = nx.Graph()
             tmp.add_nodes_from(nodes)
@@ -266,7 +267,7 @@ class DummyEdges(object):
             for (u, v, d) in aug_graph.edges(data=True)
             if not (
                 d.get('is_cut') or
-                d.get('decision', 'unreviewed') in ['nomatch']
+                d.get('decision', UNREV) in [NEGTV]
             )
         ]
         cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
@@ -357,7 +358,7 @@ class DummyEdges(object):
         infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
         # TODO apply set of new edges in bulk
         for u, v in new_edges:
-            infr.add_feedback((u, v), decision='match', confidence='guessing',
+            infr.add_feedback((u, v), decision=POSTV, confidence='guessing',
                                user_id='mst', verbose=False)
 
 

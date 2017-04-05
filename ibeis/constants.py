@@ -389,24 +389,24 @@ class REVIEW(object):
         notcomp: Not comparable means it is actually impossible to determine.
         unknown: means that it was reviewed, but we just can't figure it out.
     """
-    UNREVIEWED     = None
-    NON_MATCH      = 0
-    MATCH          = 1
-    NOT_COMPARABLE = 2
-    UNKNOWN        = 3
+    UNREVIEWED   = None
+    NEGATIVE     = 0
+    POSITIVE     = 1
+    INCOMPARABLE = 2
+    UNKNOWN      = 3
 
     INT_TO_CODE = ut.odict([
-        (MATCH          , 'match'),
-        (NON_MATCH      , 'nomatch'),
-        (NOT_COMPARABLE , 'notcomp'),
+        (POSITIVE       , 'match'),
+        (NEGATIVE       , 'nomatch'),
+        (INCOMPARABLE   , 'notcomp'),
         (UNKNOWN        , 'unknown'),
         (UNREVIEWED     , 'unreviewed'),
     ])
 
     INT_TO_NICE = ut.odict([
-        (MATCH          , 'Positive'),
-        (NON_MATCH      , 'Negative'),
-        (NOT_COMPARABLE , 'Incomparable'),
+        (POSITIVE       , 'Positive'),
+        (NEGATIVE       , 'Negative'),
+        (INCOMPARABLE   , 'Incomparable'),
         (UNKNOWN        , 'Unknown'),
         (UNREVIEWED     , 'Unreviewed'),
     ])

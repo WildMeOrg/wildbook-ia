@@ -6,6 +6,7 @@ import utool as ut
 import vtool as vt  # NOQA
 import six
 import networkx as nx
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -16,11 +17,11 @@ class GraphVisualization(object):
     def _get_truth_colors(infr):
         import plottool as pt
         truth_colors = {
-            # 'match': pt.TRUE_GREEN,
-            'match': pt.TRUE_BLUE,
-            'nomatch': pt.FALSE_RED,
-            'notcomp': pt.YELLOW,
-            'unreviewed': pt.UNKNOWN_PURP
+            # POSTV: pt.TRUE_GREEN,
+            POSTV: pt.TRUE_BLUE,
+            NEGTV: pt.FALSE_RED,
+            INCMP: pt.YELLOW,
+            UNREV: pt.UNKNOWN_PURP
         }
         return truth_colors
 
@@ -116,10 +117,10 @@ class GraphVisualization(object):
         if highlight_reviews:
             edge_to_decision = nx.get_edge_attributes(graph, 'decision')
             state_to_weight = {
-                'match': 1.0,
-                'notcomp': 0.5,
-                'nomatch': 0.0,
-                'unreviewed': np.nan
+                POSTV: 1.0,
+                INCMP: 0.5,
+                NEGTV: 0.0,
+                UNREV: np.nan
             }
             edge2_weight = ut.map_dict_vals(state_to_weight, edge_to_decision)
             # {e: state for e, state in edge_to_decision.items()}
@@ -291,11 +292,11 @@ class GraphVisualization(object):
                      nx.get_edge_attributes(graph, 'is_cut').items()
                      if cut]
         nomatch_edges = [edge for edge, state in reviewed_states.items()
-                         if state == 'nomatch']
+                         if state == NEGTV]
         match_edges = [edge for edge, state in reviewed_states.items()
-                       if state == 'match']
+                       if state == POSTV]
         notcomp_edges = [edge for edge, state in reviewed_states.items()
-                         if state == 'notcomp']
+                         if state == INCMP]
         inferred_same = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'same']
         inferred_diff = [edge for edge, state in edge_to_inferred_state.items()

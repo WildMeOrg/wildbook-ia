@@ -5,6 +5,7 @@ import numpy as np
 import utool as ut
 import pandas as pd
 import itertools as it
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -29,7 +30,7 @@ class RefreshCriteria2(object):
         refresh.num_pos = 0
 
     def add(refresh, decision, user_id):
-        decision_code = 1 if decision == 'match' else 0
+        decision_code = 1 if decision == POSTV else 0
         if user_id is not None and not user_id.startswith('auto'):
             refresh.manual_decisions.append(decision_code)
         if decision_code:
@@ -52,7 +53,7 @@ class UserOracle(object):
 
         oracle.accuracy = accuracy
         oracle.rng = rng
-        oracle.states = {'match', 'nomatch', 'notcomp'}
+        oracle.states = {POSTV, NEGTV, INCMP}
 
     def review(oracle, edge, truth, force=False):
         feedback = {
@@ -65,7 +66,7 @@ class UserOracle(object):
         if force:
             error = False
         if error:
-            error_options = list(oracle.states - {truth} - {'notcomp'})
+            error_options = list(oracle.states - {truth} - {INCMP})
             observed = oracle.rng.choice(list(error_options))
         else:
             observed = truth
@@ -236,7 +237,7 @@ class InfrReviewers(object):
                 review = {
                     'user_id': 'auto_implicit_complete',
                     'confidence': 'pretty_sure',
-                    'decision': 'nomatch',
+                    'decision': NEGTV,
                     'tags': [],
                 }
         else:
@@ -301,8 +302,8 @@ class SimulationHelpers(object):
     def measure_error_edges(infr):
         for edge, data in infr.edges(data=True):
             true_state = data['truth']
-            pred_state = data.get('decision', 'unreviewed')
-            if pred_state != 'unreviewed':
+            pred_state = data.get('decision', UNREV)
+            if pred_state != UNREV:
                 if true_state != pred_state:
                     error = ut.odict([('real', true_state),
                                       ('pred', pred_state)])
@@ -320,15 +321,15 @@ class SimulationHelpers(object):
 
         for edge, data in infr.edges(data=True):
             true_state = infr.edge_truth[edge]
-            decision = data.get('decision', 'unreviewed')
-            if true_state == decision and true_state == 'match':
+            decision = data.get('decision', UNREV)
+            if true_state == decision and true_state == POSTV:
                 real_pos_edges.append(edge)
-            elif decision != 'unreviewed':
+            elif decision != UNREV:
                 if true_state != decision:
                     n_error_edges += 1
-                    if true_state == 'match':
+                    if true_state == POSTV:
                         n_fn += 1
-                    elif true_state == 'nomatch':
+                    elif true_state == NEGTV:
                         n_fp += 1
 
         import networkx as nx

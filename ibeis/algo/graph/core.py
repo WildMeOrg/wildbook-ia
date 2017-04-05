@@ -14,6 +14,7 @@ from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_ibeis
 from ibeis.algo.graph.nx_utils import e_, _dz
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -43,9 +44,9 @@ class Feedback(object):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback((5, 6), 'match')
-            >>> infr.add_feedback((5, 6), 'nomatch', ['Photobomb'])
-            >>> infr.add_feedback((1, 2), 'notcomp')
+            >>> infr.add_feedback((5, 6), POSTV)
+            >>> infr.add_feedback((5, 6), NEGTV, ['Photobomb'])
+            >>> infr.add_feedback((1, 2), INCMP)
             >>> print(ut.repr2(infr.internal_feedback, nl=2))
             >>> assert len(infr.external_feedback) == 0
             >>> assert len(infr.internal_feedback) == 2
@@ -85,7 +86,7 @@ class Feedback(object):
             #     aid1, aid2, decision, tags, user_id, confidence),
             1, color='white')
 
-        if decision == 'unreviewed':
+        if decision == UNREV:
             # raise NotImplementedError('not done yet')
             feedback_item = None
             if edge in infr.external_feedback:
@@ -161,7 +162,7 @@ class Feedback(object):
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
             >>> #infr.add_feedback((1, 2), 'unknown', tags=[])
-            >>> infr.add_feedback((1, 2), 'notcomp', tags=[])
+            >>> infr.add_feedback((1, 2), INCMP, tags=[])
             >>> infr.apply_feedback_edges()
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
@@ -324,7 +325,7 @@ class OldPriority(object):
         # Candidate edges are unreviewed
         cand_uvds = [
             (u, v, d) for u, v, d in graph.edges(data=True)
-            if (d.get('decision', 'unreviewed') == 'unreviewed' or
+            if (d.get('decision', UNREV) == UNREV or
                 d.get('maybe_error', None))
         ]
 
@@ -530,8 +531,8 @@ class NameRelabel(object):
             >>> # DISABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
-            >>> infr.add_feedback_from([(2, 3), 'nomatch') (5, 6), 'nomatch')
-            >>>                         (1, 2), 'match')]
+            >>> infr.add_feedback_from([(2, 3), NEGTV) (5, 6), NEGTV)
+            >>>                         (1, 2), POSTV)]
             >>> status = infr.connected_component_status()
             >>> print(ut.repr3(status))
         """
@@ -652,15 +653,15 @@ class MiscHelpers(object):
         else:
             infr.graph = graph
 
-        infr.review_graphs['match'] = nx_dynamic_graph.DynConnGraph()
-        infr.review_graphs['nomatch'] = infr._graph_cls()
-        infr.review_graphs['notcomp'] = infr._graph_cls()
-        infr.review_graphs['unreviewed'] = infr._graph_cls()
+        infr.review_graphs[POSTV] = nx_dynamic_graph.DynConnGraph()
+        infr.review_graphs[NEGTV] = infr._graph_cls()
+        infr.review_graphs[INCMP] = infr._graph_cls()
+        infr.review_graphs[UNREV] = infr._graph_cls()
 
         if graph is not None:
             for u, v, d in graph.edges(data=True):
-                decision = d.get('decision', 'unreviewed')
-                if decision in {'match', 'nomatch', 'notcomp', 'unreviewed'}:
+                decision = d.get('decision', UNREV)
+                if decision in {POSTV, NEGTV, INCMP, UNREV}:
                     infr.review_graphs[decision].add_edge(u, v)
 
         infr.update_node_attributes()
@@ -838,7 +839,7 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.apply_mst()
         >>> infr.show_graph(use_image=use_image)
         >>> # Add some feedback
-        >>> infr.add_feedback((1, 4), 'nomatch')
+        >>> infr.add_feedback((1, 4), NEGTV)
         >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
@@ -858,13 +859,13 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.initialize_visual_node_attrs()
         >>> infr.apply_mst()
         >>> # Add some feedback
-        >>> infr.add_feedback((1, 4), 'nomatch')
+        >>> infr.add_feedback((1, 4), NEGTV)
         >>> try:
-        >>>     infr.add_feedback((1, 10), 'nomatch')
+        >>>     infr.add_feedback((1, 10), NEGTV)
         >>> except ValueError:
         >>>     pass
         >>> try:
-        >>>     infr.add_feedback((11, 12), 'nomatch')
+        >>>     infr.add_feedback((11, 12), NEGTV)
         >>> except ValueError:
         >>>     pass
         >>> infr.apply_feedback_edges()
@@ -896,10 +897,10 @@ class AnnotInference(ut.NiceRepr,
         infr.graph = None
 
         infr.review_graphs = {
-            'match': None,
-            'nomatch': None,
-            'notcomp': None,
-            'unreviewed': None,
+            POSTV: None,
+            NEGTV: None,
+            INCMP: None,
+            UNREV: None,
         }
 
         infr.enable_inference = True
@@ -1006,10 +1007,10 @@ def testdata_infr2(defaultdb='PZ_MTEST'):
     n1, n2, n3, n4 = names[0:4]
     for name in names[4:]:
         for a, b in ut.itertwo(name.aids):
-            infr.add_feedback((a, b), 'match')
+            infr.add_feedback((a, b), POSTV)
 
     for name1, name2 in it.combinations(names[4:], 2):
-        infr.add_feedback((name1.aids[0], name2.aids[0]), 'nomatch')
+        infr.add_feedback((name1.aids[0], name2.aids[0]), NEGTV)
     return infr
 
 

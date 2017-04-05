@@ -12,6 +12,7 @@ import numpy as np
 from collections import OrderedDict
 from utool import util_latex
 import functools
+from ibeis.algo.graph.state import POSTV, NEGTV
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -529,7 +530,7 @@ def split_analysis(ibs):
         for aid1, aid2 in bad_edges:
             if infr.graph.has_edge(aid1, aid2):
                 flipped_edges.append((aid1, aid2))
-            infr.add_feedback((aid1, aid2), 'nomatch')
+            infr.add_feedback((aid1, aid2), NEGTV)
         infr.apply_feedback()
         nx.set_edge_attributes(infr.graph, '_speed_split', 'orig')
         nx.set_edge_attributes(infr.graph, '_speed_split',
@@ -547,17 +548,17 @@ def split_analysis(ibs):
         for infr in infr_list_:
             num_ccs, num_inconsistent = infr.relabel_using_reviews()
             state_hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, 'decision').values())
-            if 'match' not in state_hist:
-                state_hist['match'] = 0
+            if POSTV not in state_hist:
+                state_hist[POSTV] = 0
             hist = ut.dict_hist(nx.get_edge_attributes(infr.graph, '_speed_split').values())
 
             subgraphs = infr.positive_connected_compoments()
             subgraph_sizes = [len(g) for g in subgraphs]
 
             info = ut.odict([
-                ('num_nonmatch_edges', state_hist['nomatch']),
-                ('num_match_edges', state_hist['match']),
-                ('frac_nonmatch_edges',  state_hist['nomatch'] / (state_hist['match'] + state_hist['nomatch'])),
+                ('num_nonmatch_edges', state_hist[NEGTV]),
+                ('num_match_edges', state_hist[POSTV]),
+                ('frac_nonmatch_edges',  state_hist[NEGTV] / (state_hist[POSTV] + state_hist[NEGTV])),
                 ('num_inconsistent', num_inconsistent),
                 ('num_ccs', num_ccs),
                 ('edges_flipped', hist.get('flip', 0)),

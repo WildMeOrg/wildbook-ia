@@ -7,6 +7,7 @@ import vtool as vt
 import six
 from ibeis.algo.graph.nx_utils import ensure_multi_index
 from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -243,7 +244,7 @@ class IBEISIO(object):
             >>> print(result)
             >>> assert len(feedback) >= 2, 'should contain at least 2 edges'
             >>> assert len(items) >= 1, '2-3 should have one review'
-            >>> assert items[0]['decision'] == 'match', '2-3 must match'
+            >>> assert items[0]['decision'] == POSTV, '2-3 must match'
         """
         infr.print('read_ibeis_annotmatch_feedback', 1)
         ibs = infr.ibs
@@ -391,8 +392,8 @@ class IBEISIO(object):
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
-            >>> infr.add_feedback_from([(2, 3), 'match') (5, 6), 'nomatch')
-            >>>                         (5, 4), 'nomatch')]
+            >>> infr.add_feedback_from([(2, 3), POSTV) (5, 6), NEGTV)
+            >>>                         (5, 4), NEGTV)]
             >>> (edge_delta_df) = infr.match_state_delta()
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
@@ -441,18 +442,18 @@ class IBEISIO(object):
             >>> import pandas as pd
             >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> old_feedback = pd.DataFrame([
-            >>>     ['nomatch', 100, 101, 1000, []],
-            >>>     [  'match', 101, 102, 1001, []],
-            >>>     [  'match', 103, 104, 1002, []],
-            >>>     ['nomatch', 101, 104, 1004, []],
+            >>>     [NEGTV, 100, 101, 1000, []],
+            >>>     [POSTV, 101, 102, 1001, []],
+            >>>     [POSTV, 103, 104, 1002, []],
+            >>>     [NEGTV, 101, 104, 1004, []],
             >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
             >>> new_feedback = pd.DataFrame([
-            >>>     [  'match', 101, 102, 1001, []],
-            >>>     ['nomatch', 103, 104, 1002, []],
-            >>>     [  'match', 101, 104, 1004, []],
-            >>>     ['nomatch', 102, 103, None, []],
-            >>>     ['nomatch', 100, 103, None, []],
-            >>>     ['notcomp', 107, 109, None, []],
+            >>>     [POSTV, 101, 102, 1001, []],
+            >>>     [NEGTV, 103, 104, 1002, []],
+            >>>     [POSTV, 101, 104, 1004, []],
+            >>>     [NEGTV, 102, 103, None, []],
+            >>>     [NEGTV, 100, 103, None, []],
+            >>>     [INCMP, 107, 109, None, []],
             >>> ], columns=columns).set_index(['aid1', 'aid2'], drop=True)
             >>> edge_delta_df = AnnotInference._make_state_delta(old_feedback,
             >>>                                                  new_feedback)
@@ -600,9 +601,9 @@ class IBEISGroundtruth(object):
         is_same = infr.is_same(aid_pairs)
         is_comp = infr.is_comparable(aid_pairs)
         match_state_df = pd.DataFrame.from_items([
-            ('nomatch', ~is_same & is_comp),
-            ('match',    is_same & is_comp),
-            ('notcomp', ~is_comp),
+            (NEGTV, ~is_same & is_comp),
+            (POSTV,  is_same & is_comp),
+            (INCMP, ~is_comp),
         ])
         match_state_df.index = index
         return match_state_df
@@ -613,9 +614,9 @@ class IBEISGroundtruth(object):
         is_same = infr.is_same(aid_pairs)[0]
         is_comp = infr.is_comparable(aid_pairs)[0]
         match_state = pd.Series(dict([
-            ('nomatch', ~is_same & is_comp),
-            ('match',    is_same & is_comp),
-            ('notcomp', ~is_comp),
+            (NEGTV, ~is_same & is_comp),
+            (POSTV,  is_same & is_comp),
+            (INCMP, ~is_comp),
         ]))
         return match_state
 

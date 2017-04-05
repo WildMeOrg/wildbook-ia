@@ -23,6 +23,7 @@ import sklearn.model_selection
 import sklearn.multiclass
 import sklearn.ensemble
 from ibeis.scripts import clf_helpers
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -158,13 +159,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         labels = pblm.samples.subtasks[task_key]
         pb_labels = pblm.samples.subtasks['photobomb_state']
         classname_offset = {
-            'match': 0,
-            'nomatch': 0,
-            'notcomp': 0,
+            POSTV: 0,
+            NEGTV: 0,
+            INCMP: 0,
         }
-        class_name = 'match'
-        class_name = 'nomatch'
-        class_name = 'notcomp'
+        class_name = POSTV
+        class_name = NEGTV
+        class_name = INCMP
 
         feats = pblm.samples.X_dict['learn(sum,glob)']
 
@@ -178,13 +179,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             assert np.all(pbflags.index == flags.index)
             flags = flags & pbflags
             ratio = feats['sum(ratio)']
-            if class_name == 'notcomp':
+            if class_name == INCMP:
                 flags &= feats['global(yaw_delta)'] > 3
                 # flags &= feats['sum(ratio)'] > 0
-            if class_name == 'nomatch':
+            if class_name == NEGTV:
                 low = ratio[flags].max()
                 flags &= feats['sum(ratio)'] >= low
-            if class_name == 'match':
+            if class_name == POSTV:
                 low = ratio[flags].median() / 2
                 high = ratio[flags].median()
                 flags &= feats['sum(ratio)'] < high
@@ -209,9 +210,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pnum_ = pt.make_pnum_nextgen(1, 3)
 
         # classname_alias = {
-        #     'match': 'positive',
-        #     'nomatch': 'negative',
-        #     'notcomp': 'incomparable',
+        #     POSTV: 'positive',
+        #     NEGTV: 'negative',
+        #     INCMP: 'incomparable',
         # }
 
         ibs = pblm.qreq_.ibs
@@ -485,8 +486,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # target_fprs = [1E-4, 1E-2, .1, .3, .49]
         primary_res = pblm.task_combo_res[primary_task][clf_key][data_key]
-        labels = primary_res.target_bin_df['match'].values
-        probs = primary_res.probs_df['match'].values
+        labels = primary_res.target_bin_df[POSTV].values
+        probs = primary_res.probs_df[POSTV].values
         cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
 
         # thresh_list0 = np.linspace(0, 1.0, 20)
@@ -507,7 +508,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         fpr_list = ut.take(fpr_list, unique_idx)
 
         # primary_threshes = [
-        #     primary_res.get_pos_threshes('fpr', target_fpr)['match']
+        #     primary_res.get_pos_threshes('fpr', target_fpr)[POSTV]
         #     for target_fpr in target_fprs
         # ]
 
@@ -1369,9 +1370,9 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         # multioutput-multiclass / multi-task
         tasks_to_indicators = ut.odict([
             ('match_state', ut.odict([
-                ('nomatch', ~samples.is_same() & samples.is_comparable()),
-                ('match',    samples.is_same() & samples.is_comparable()),
-                ('notcomp', ~samples.is_comparable()),
+                (NEGTV, ~samples.is_same() & samples.is_comparable()),
+                (POSTV,  samples.is_same() & samples.is_comparable()),
+                (INCMP, ~samples.is_comparable()),
             ])),
             ('photobomb_state', ut.odict([
                 ('notpb', ~samples.is_photobomb()),
@@ -1386,8 +1387,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
             ('same_state', ut.odict([
                 ('notsame', ~samples.is_same()),
                 ('same',     samples.is_same())
-                # ('nomatch', ~samples.is_same() | ~samples.is_comparable()),
-                # ('match',    samples.is_same() & samples.is_comparable()),
+                # (NEGTV, ~samples.is_same() | ~samples.is_comparable()),
+                # (POSTV,    samples.is_same() & samples.is_comparable()),
             ])),
             ('photobomb_state', ut.odict([
                 ('notpb', ~samples.is_photobomb()),

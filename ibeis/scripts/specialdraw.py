@@ -680,6 +680,8 @@ def k_redun_demo():
     import ibeis
     import plottool as pt
     from ibeis.viz import viz_graph
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+
     # import networkx as nx
     pt.ensureqt()
     ibs = ibeis.opendb(defaultdb='PZ_Master1')
@@ -693,22 +695,21 @@ def k_redun_demo():
 
     for name_aids in nid2_aid.values():
         for edge in ut.itertwo(name_aids):
-            infr.add_feedback(edge, 'match')
-    infr.add_feedback((7664, 7522), 'match')
-    infr.add_feedback((7746, 7477), 'match')
-    infr.add_feedback((7383, 7376), 'match')
+            infr.add_feedback(edge, POSTV)
+    infr.add_feedback((7664, 7522), POSTV)
+    infr.add_feedback((7746, 7477), POSTV)
+    infr.add_feedback((7383, 7376), POSTV)
 
-    # infr.add_feedback((7664, 7383), 'nomatch')
-    # infr.add_feedback((7462, 7746), 'nomatch')
+    # infr.add_feedback((7664, 7383), NEGTV)
+    # infr.add_feedback((7462, 7746), NEGTV)
 
-    # infr.add_feedback((7464, 7376), 'nomatch')
+    # infr.add_feedback((7464, 7376), NEGTV)
 
     # Adjust between new and old variable names
     infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'match'), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'nomatch'), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'notcomp'), [0.5]))
-
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', POSTV), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', NEGTV), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', INCMP), [0.5]))
 
     infr.initialize_visual_node_attrs()
     infr.update_node_image_attribute(use_image=True)
@@ -717,12 +718,11 @@ def k_redun_demo():
                              splines='spline',
                              show_cand=False)
     infr.set_edge_attrs('linewidth', 2)
-    # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', 'match'), [4]))
+    # infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', POSTV), [4]))
     # infr.set_edge_attrs('color', pt.BLACK)
     infr.set_edge_attrs('alpha', .7)
     viz_graph.ensure_node_images(ibs, infr.graph)
     infr.show(use_image=True, update_attrs=False)
-
 
 
 def graph_iden_cut_demo():
@@ -825,9 +825,9 @@ def graph_iden_cut_demo():
 
     # Adjust between new and old variable names
     infr.set_edge_attrs('decision', infr.get_edge_attrs('decision'))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'match'), [1.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'nomatch'), [0.0]))
-    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', 'notcomp'), [0.5]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', POSTV), [1.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', NEGTV), [0.0]))
+    infr.set_edge_attrs(infr.CUT_WEIGHT_KEY, ut.dzip(infr.get_edges_where_eq('decision', INCMP), [0.5]))
 
     infr.initialize_visual_node_attrs()
     infr.update_node_image_attribute(use_image=True)
@@ -835,7 +835,7 @@ def graph_iden_cut_demo():
                              groupby='name_label', splines='spline',
                              show_cand=not postcut)
     infr.set_edge_attrs('linewidth', 2)
-    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', 'match'), [4]))
+    infr.set_edge_attrs('linewidth', ut.dzip(infr.get_edges_where_eq('decision', POSTV), [4]))
     if not postcut:
         infr.set_edge_attrs('color', pt.BLACK)
     infr.set_edge_attrs('alpha', .7)
