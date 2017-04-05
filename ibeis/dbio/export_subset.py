@@ -423,9 +423,9 @@ def fix_bidirectional_annotmatch(ibs):
         v1, v2 = r1[1], r2[1]
         aid1 = v1['annot_rowid1']
         aid2 = v1['annot_rowid2']
-        truth_real = (ibs.const.REVIEW.MATCH
+        truth_real = (ibs.const.REVIEW.POSITIVE
                       if aid_to_nid[aid1] == aid_to_nid[aid2] else
-                      ibs.const.REVIEW.NON_MATCH)
+                      ibs.const.REVIEW.NEGATIVE)
         truth1 = v1['annotmatch_truth']
         truth2 = v2['annotmatch_truth']
         t1 = _parse_tags(v1['annotmatch_tag_text'])
@@ -563,9 +563,9 @@ def fix_annotmatch_pzmaster1():
             v1, v2 = r1[1], r2[1]
             aid1 = v1['annot_rowid1']
             aid2 = v1['annot_rowid2']
-            truth_real = (ibs.const.REVIEW.MATCH
+            truth_real = (ibs.const.REVIEW.POSITIVE
                           if aid_to_nid[aid1] == aid_to_nid[aid2] else
-                          ibs.const.REVIEW.NON_MATCH)
+                          ibs.const.REVIEW.NEGATIVE)
             truth1 = v1['annotmatch_truth']
             truth2 = v2['annotmatch_truth']
             t1 = _parse_tags(v1['annotmatch_tag_text'])
@@ -629,12 +629,12 @@ def fix_annotmatch_pzmaster1():
     for k, m in prog:
         aid1 = m['annot_rowid1']
         aid2 = m['annot_rowid2']
-        if m['annotmatch_truth'] == ibs.const.REVIEW.MATCH:
+        if m['annotmatch_truth'] == ibs.const.REVIEW.POSITIVE:
             if aid_to_nid[aid1] == aid_to_nid[aid2]:
                 x['agree1'].append(k)
             else:
                 x['disagree1'].append(k)
-        elif m['annotmatch_truth'] == ibs.const.REVIEW.NON_MATCH:
+        elif m['annotmatch_truth'] == ibs.const.REVIEW.NEGATIVE:
             if aid_to_nid[aid1] == aid_to_nid[aid2]:
                 x['disagree2'].append(k)
             else:

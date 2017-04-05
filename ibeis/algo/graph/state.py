@@ -1,0 +1,8 @@
+# -*- coding: utf-8 -*-
+import ibeis.constants as const
+
+POSTV = const.REVIEW.INT_TO_CODE[const.REVIEW.POSITIVE]
+NEGTV = const.REVIEW.INT_TO_CODE[const.REVIEW.NEGATIVE]
+INCMP = const.REVIEW.INT_TO_CODE[const.REVIEW.INCOMPARABLE]
+UNREV = const.REVIEW.INT_TO_CODE[const.REVIEW.UNREVIEWED]
+UNKWN = const.REVIEW.INT_TO_CODE[const.REVIEW.UNKNOWN]

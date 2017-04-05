@@ -7,6 +7,7 @@ import itertools as it
 import networkx as nx
 from ibeis.algo.graph import nx_utils
 from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 from ibeis.algo.graph.nx_utils import (edges_inside, edges_cross,
                                        edges_outgoing)
 print, rrr, profile = ut.inject2(__name__)
@@ -51,6 +52,261 @@ class DynamicUpdate(object):
     INCOMPARABLE, BETWEEN, ANY_INCONSISTENT
         * might remove incon-neg-external
     """
+
+    @profile
+    def add_review_edge(infr, edge, decision):
+        if decision == POSTV:
+            infr._positive_decision(edge)
+        elif decision == NEGTV:
+            infr._negative_decision(edge)
+        elif decision in (INCMP, UNREV):
+            # incomparable and unreview have the same inference structure
+            infr._uninferable_decision(edge, decision)
+        else:
+            raise AssertionError('Unknown decision=%r' % (decision,))
+        # print('infr.recover_graph = %r' % (infr.recover_graph,))
+
+    def _add_review_edges_from(infr, edges, decision):
+        infr.print('add decision=%r from %d reviews' % (
+            decision, len(edges)), 1)
+        # Add to review graph corresponding to decision
+        infr.review_graphs[decision].add_edges_from(edges)
+        # Remove from previously existing graphs
+        for k, G in infr.review_graphs.items():
+            if k != decision:
+                # print('replaced edge from %r graph' % (k,))
+                G.remove_edges_from(edges)
+
+    def _add_review_edge(infr, edge, decision):
+        infr.print('add review edge=%r, decision=%r' % (edge, decision), 20)
+        # Add to review graph corresponding to decision
+        infr.review_graphs[decision].add_edge(*edge)
+        # Remove from previously existing graphs
+        for k, G in infr.review_graphs.items():
+            if k != decision:
+                if G.has_edge(*edge):
+                    # print('replaced edge from %r graph' % (k,))
+                    G.remove_edge(*edge)
+
+    def on_merge(infr, nid1, nid2, new_nid):
+        cc = infr.pos_graph.component(new_nid)
+        infr.set_node_attrs('name_label', ut.dzip(cc, [new_nid]))
+
+    def on_split(infr, nid, new_nid1, new_nid2):
+        cc1 = infr.pos_graph.component(new_nid1)
+        cc2 = infr.pos_graph.component(new_nid2)
+        infr.set_node_attrs('name_label', ut.dzip(cc1, [new_nid1]))
+        infr.set_node_attrs('name_label', ut.dzip(cc2, [new_nid2]))
+
+    def _positive_decision(infr, edge):
+        r"""
+        Ignore:
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> kwargs = dict(num_pccs=3, p_incon=0, size=100)
+            >>> infr = demo.demodata_infr(infer=False, **kwargs)
+            >>> infr.apply_nondynamic_update()
+            >>> cc1 = next(infr.positive_components())
+
+            %timeit list(infr.pos_graph.subgraph(cc1).edges())
+            %timeit list(edges_inside(infr.pos_graph, cc1))
+        """
+        nid1, nid2 = infr.pos_graph.node_labels(*edge)
+        incon1, incon2 = infr.recover_graph.has_nodes(edge)
+        any_inconsistent = (incon1 or incon2)
+        all_consistent = not any_inconsistent
+        was_within = nid1 == nid2
+
+        if was_within:
+            infr._add_review_edge(edge, POSTV)
+            if all_consistent:
+                # infr.print('Internal consistent positive review')
+                infr.print('pos-within-clean',)
+                infr.update_pos_redun(nid1, may_remove=False)
+            else:
+                # infr.print('Internal inconsistent positive review')
+                infr.print('pos-within-dirty',)
+                infr._check_inconsistency(nid1)
+        else:
+            # infr.print('Merge case')
+            cc1 = infr.pos_graph.component(nid1)
+            cc2 = infr.pos_graph.component(nid2)
+
+            infr.purge_redun_flags(nid1, nid2)
+
+            if any_inconsistent:
+                # infr.print('Inconsistent merge',)
+                infr.print('pos-between-dirty-merge',)
+                if not incon1:
+                    recover_edges = list(edges_inside(infr.pos_graph, cc1))
+                else:
+                    recover_edges = list(edges_inside(infr.pos_graph, cc2))
+                infr.recover_graph.add_edges_from(recover_edges)
+                infr._add_review_edge(edge, POSTV)
+                infr.recover_graph.add_edge(*edge)
+                new_nid = infr.pos_graph.node_label(edge[0])
+            elif any(edges_cross(infr.neg_graph, cc1, cc2)):
+                # infr.print('Merge creates inconsistency',)
+                infr.print('pos-between-clean-merge-dirty',)
+                infr._add_review_edge(edge, POSTV)
+                new_nid = infr.pos_graph.node_label(edge[0])
+                infr._new_inconsistency(new_nid, POSTV)
+            else:
+                # infr.print('Consistent merge')
+                infr.print('pos-between-clean-merge-clean',)
+                infr._add_review_edge(edge, POSTV)
+                new_nid = infr.pos_graph.node_label(edge[0])
+                infr.update_extern_neg_redun(new_nid, may_remove=False)
+                infr.update_pos_redun(new_nid, may_remove=False)
+
+            infr.on_merge(nid1, nid2, new_nid)
+
+    def _negative_decision(infr, edge):
+        nid1, nid2 = infr.node_labels(*edge)
+        incon1, incon2 = infr.recover_graph.has_nodes(edge)
+        all_consistent = not (incon1 or incon2)
+        infr._add_review_edge(edge, NEGTV)
+        new_nid1, new_nid2 = infr.pos_graph.node_labels(*edge)
+
+        was_within = nid1 == nid2
+        was_split = was_within and new_nid1 != new_nid2
+
+        # FIXME: REMOVING POSITIVE EDGES MIGHT CHANGE THE NAME LABEL EVEN IF
+        # THE PCC IS NOT SPLIT
+
+        if was_within:
+            if was_split:
+                if all_consistent:
+                    # infr.print('Consistent split from negative')
+                    infr.print('neg-within-split-clean',)
+                    infr.purge_redun_flags(nid1)
+                    infr.update_pos_redun(new_nid1, may_remove=False)
+                    infr.update_pos_redun(new_nid2, may_remove=False)
+                    infr.update_extern_neg_redun(new_nid1, may_remove=False)
+                    infr.update_extern_neg_redun(new_nid2, may_remove=False)
+                else:
+                    # infr.print('Inconsistent split from negative')
+                    infr.print('neg-within-split-dirty',)
+                    if infr.recover_graph.has_edge(*edge):
+                        infr.recover_graph.remove_edge(*edge)
+                    infr.purge_redun_flags(nid1)
+                    infr._check_inconsistency(new_nid1)
+                    infr._check_inconsistency(new_nid2)
+                # Signal that a split occurred
+                infr.on_split(nid1, new_nid1, new_nid2)
+            else:
+                if all_consistent:
+                    # infr.print('Negative added within clean PCC')
+                    infr.print('neg-within-clean',)
+                    infr.purge_redun_flags(new_nid1)
+                    infr._new_inconsistency(new_nid1, NEGTV)
+                else:
+                    # infr.print('Negative added within inconsistent PCC')
+                    infr.print('neg-within-dirty',)
+                    pass
+        else:
+            if all_consistent:
+                # infr.print('Negative added between consistent PCCs')
+                infr.print('neg-between-clean',)
+                infr.update_neg_redun(new_nid1, new_nid2, may_remove=False)
+            else:
+                # infr.print('Negative added external to inconsistent PCC')
+                infr.print('neg-between-dirty',)
+                # nothing to do if a negative edge is added between two PCCs
+                # where at least one is inconsistent
+                pass
+
+    def _uninferable_decision(infr, edge, decision):
+        """
+        Adds either an incomparable or unreview decision
+        """
+        nid1, nid2 = infr.pos_graph.node_labels(*edge)
+        incon1 = infr.recover_graph.has_node(edge[0])
+        incon2 = infr.recover_graph.has_node(edge[1])
+        all_consistent = not (incon1 or incon2)
+
+        was_within = nid1 == nid2
+
+        # FIXME: REMOVING POSITIVE EDGES MIGHT CHANGE THE NAME LABEL EVEN IF
+        # THE PCC IS NOT SPLIT
+
+        overwrote_positive = infr.pos_graph.has_edge(*edge)
+        overwrote_negative = infr.neg_graph.has_edge(*edge)
+
+        if decision == INCMP:
+            prefix = 'incmp'
+        elif decision == UNREV:
+            prefix = 'unrev'
+        else:
+            raise KeyError('decision can only be UNREV or INCMP')
+
+        infr._add_review_edge(edge, decision)
+
+        if was_within:
+            if overwrote_positive:
+                # changed an existing positive edge
+                if infr.recover_graph.has_edge(*edge):
+                    infr.recover_graph.remove_edge(*edge)
+                new_nid1, new_nid2 = infr.pos_graph.node_labels(*edge)
+                was_split = new_nid1 != new_nid2
+                if was_split:
+                    old_nid = nid1
+                    prev_neg_nids = infr.purge_redun_flags(old_nid)
+                    if all_consistent:
+                        # infr.print('Split CC from incomparable')
+                        infr.print('%s-within-pos-split-clean' % prefix)
+                        # split case
+                        for other_nid in prev_neg_nids:
+                            infr.update_neg_redun(new_nid1, other_nid)
+                            infr.update_neg_redun(new_nid2, other_nid)
+                        infr.update_neg_redun(new_nid1, new_nid2)
+                        infr.update_pos_redun(new_nid1, may_remove=False)
+                        infr.update_pos_redun(new_nid2, may_remove=False)
+                    else:
+                        # infr.print('Split inconsistent CC from incomparable')
+                        infr.print('%s-within-pos-split-dirty',)
+                        if infr.recover_graph.has_edge(*edge):
+                            infr.recover_graph.remove_edge(*edge)
+                        infr._check_inconsistency(new_nid1)
+                        infr._check_inconsistency(new_nid2)
+                    # Signal that a split occurred
+                    infr.on_split(nid1, new_nid1, new_nid2)
+                elif all_consistent:
+                    # infr.print('Overwrote pos in CC with incomp')
+                    infr.print('%s-within-pos-clean' % prefix)
+                    infr.update_pos_redun(new_nid1, may_add=False)
+                else:
+                    # infr.print('Overwrote pos in inconsistent CC with incomp')
+                    infr.print('%s-within-pos-dirty' % prefix)
+                    # Overwriting a positive edge that is not a split
+                    # in an inconsistent component, means no inference.
+                    pass
+            elif overwrote_negative:
+                # infr.print('Overwrite negative within CC')
+                infr.print('%s-within-neg-dirty' % prefix)
+                assert not all_consistent
+                infr._check_inconsistency(nid1)
+            else:
+                if all_consistent:
+                    infr.print('%s-within-clean' % prefix)
+                    # infr.print('Incomp edge within consistent CC')
+                else:
+                    infr.print('%s-within-dirty' % prefix)
+                    # infr.print('Incomp edge within inconsistent CC')
+        else:
+            if overwrote_negative:
+                if all_consistent:
+                    # changed and existing negative edge only influences
+                    # consistent pairs of PCCs
+                    # infr.print('Overwrote neg edge between CCs')
+                    infr.print('incon-between-neg-clean',)
+                    infr.update_neg_redun(nid1, nid2, may_add=False)
+                else:
+                    infr.print('incon-between-neg-dirty',)
+                    # infr.print('Overwrote pos edge between incon CCs')
+            else:
+                infr.print('incon-between',)
+                # infr.print('Incomp edge between CCs')
 
     def _new_inconsistency(infr, nid, from_):
         cc = infr.pos_graph.component(nid)
@@ -108,218 +364,6 @@ class DynamicUpdate(object):
             infr.update_pos_redun(nid, force=True)
             infr.update_extern_neg_redun(nid, force=True)
 
-    def _positive_decision(infr, edge):
-        nid1, nid2 = infr.pos_graph.node_labels(*edge)
-        incon1 = infr.recover_graph.has_node(edge[0])
-        incon2 = infr.recover_graph.has_node(edge[1])
-        any_inconsistent = (incon1 or incon2)
-        all_consistent = not any_inconsistent
-        was_within = nid1 == nid2
-
-        if was_within:
-            infr._add_review_edge(edge, 'match')
-            if all_consistent:
-                # infr.print('Internal consistent positive review')
-                infr.print('pos-within-clean',)
-                infr.update_pos_redun(nid1, may_remove=False)
-            else:
-                # infr.print('Internal inconsistent positive review')
-                infr.print('pos-within-dirty',)
-                infr._check_inconsistency(nid1)
-        else:
-            # infr.print('Merge case')
-            cc1 = infr.pos_graph.component(nid1)
-            cc2 = infr.pos_graph.component(nid2)
-
-            infr.purge_redun_flags(nid1, nid2)
-
-            if any_inconsistent:
-                # infr.print('Inconsistent merge',)
-                infr.print('pos-between-dirty-merge',)
-                if not incon1:
-                    recover_edges = list(infr.pos_graph.subgraph(cc1).edges())
-                else:
-                    recover_edges = list(infr.pos_graph.subgraph(cc2).edges())
-                infr.recover_graph.add_edges_from(recover_edges)
-                infr._add_review_edge(edge, 'match')
-                infr.recover_graph.add_edge(*edge)
-            elif any(edges_cross(infr.neg_graph, cc1, cc2)):
-                # infr.print('Merge creates inconsistency',)
-                infr.print('pos-between-clean-merge-dirty',)
-                infr._add_review_edge(edge, 'match')
-                new_nid = infr.pos_graph.node_label(edge[0])
-                infr._new_inconsistency(new_nid, 'positive')
-            else:
-                # infr.print('Consistent merge')
-                infr.print('pos-between-clean-merge-clean',)
-                infr._add_review_edge(edge, 'match')
-                new_nid = infr.pos_graph.node_label(edge[0])
-                infr.update_extern_neg_redun(new_nid, may_remove=False)
-                infr.update_pos_redun(new_nid, may_remove=False)
-
-    def _negative_decision(infr, edge):
-        nid1, nid2 = infr.pos_graph.node_labels(*edge)
-        incon1 = infr.recover_graph.has_node(edge[0])
-        incon2 = infr.recover_graph.has_node(edge[1])
-        all_consistent = not (incon1 or incon2)
-
-        infr._add_review_edge(edge, 'nomatch')
-        new_nid1, new_nid2 = infr.pos_graph.node_labels(*edge)
-
-        was_within = nid1 == nid2
-        was_split = was_within and new_nid1 != new_nid2
-
-        if was_within:
-            if was_split:
-                if all_consistent:
-                    # infr.print('Consistent split from negative')
-                    infr.print('neg-within-split-clean',)
-                    infr.purge_redun_flags(nid1)
-                    infr.update_pos_redun(new_nid1, may_remove=False)
-                    infr.update_pos_redun(new_nid2, may_remove=False)
-                    infr.update_extern_neg_redun(new_nid1, may_remove=False)
-                    infr.update_extern_neg_redun(new_nid2, may_remove=False)
-                else:
-                    # infr.print('Inconsistent split from negative')
-                    infr.print('neg-within-split-dirty',)
-                    if infr.recover_graph.has_edge(*edge):
-                        infr.recover_graph.remove_edge(*edge)
-                    infr.purge_redun_flags(nid1)
-                    infr._check_inconsistency(new_nid1)
-                    infr._check_inconsistency(new_nid2)
-            else:
-                if all_consistent:
-                    # infr.print('Negative added within clean PCC')
-                    infr.print('neg-within-clean',)
-                    infr.purge_redun_flags(nid1)
-                    infr._new_inconsistency(nid1, 'negative')
-                else:
-                    # infr.print('Negative added within inconsistent PCC')
-                    infr.print('neg-within-dirty',)
-                    pass
-        else:
-            if all_consistent:
-                # infr.print('Negative added between consistent PCCs')
-                infr.print('neg-between-clean',)
-                infr.update_neg_redun(nid1, nid2, may_remove=False)
-            else:
-                # infr.print('Negative added external to inconsistent PCC')
-                infr.print('neg-between-dirty',)
-                # nothing to do if a negative edge is added between two PCCs
-                # where at least one is inconsistent
-                pass
-
-    def _incomp_decision(infr, edge):
-        nid1, nid2 = infr.pos_graph.node_labels(*edge)
-        incon1 = infr.recover_graph.has_node(edge[0])
-        incon2 = infr.recover_graph.has_node(edge[1])
-        all_consistent = not (incon1 or incon2)
-
-        was_within = nid1 == nid2
-
-        overwrote_positive = infr.pos_graph.has_edge(*edge)
-        overwrote_negative = infr.neg_graph.has_edge(*edge)
-
-        if was_within:
-            infr._add_review_edge(edge, 'notcomp')
-            if overwrote_positive:
-                # changed an existing positive edge
-                if infr.recover_graph.has_edge(*edge):
-                    infr.recover_graph.remove_edge(*edge)
-                new_nid1, new_nid2 = infr.pos_graph.node_labels(*edge)
-                was_split = new_nid1 != new_nid2
-                if was_split:
-                    old_nid = nid1
-                    prev_neg_nids = infr.purge_redun_flags(old_nid)
-                    if all_consistent:
-                        # infr.print('Split CC from incomparable')
-                        infr.print('incon-within-pos-split-clean',)
-                        # split case
-                        for other_nid in prev_neg_nids:
-                            infr.update_neg_redun(new_nid1, other_nid)
-                            infr.update_neg_redun(new_nid2, other_nid)
-                        infr.update_neg_redun(new_nid1, new_nid2)
-                        infr.update_pos_redun(new_nid1, may_remove=False)
-                        infr.update_pos_redun(new_nid2, may_remove=False)
-                    else:
-                        # infr.print('Split inconsistent CC from incomparable')
-                        infr.print('incon-within-pos-split-dirty',)
-                        if infr.recover_graph.has_edge(*edge):
-                            infr.recover_graph.remove_edge(*edge)
-                        infr._check_inconsistency(new_nid1)
-                        infr._check_inconsistency(new_nid2)
-                elif all_consistent:
-                    # infr.print('Overwrote pos in CC with incomp')
-                    infr.print('incon-within-pos-clean',)
-                    infr.update_pos_redun(new_nid1, may_add=False)
-                else:
-                    # infr.print('Overwrote pos in inconsistent CC with incomp')
-                    infr.print('incon-within-pos-dirty',)
-                    # Overwriting a positive edge that is not a split
-                    # in an inconsistent component, means no inference.
-                    pass
-            elif overwrote_negative:
-                # infr.print('Overwrite negative within CC')
-                infr.print('incon-within-neg-dirty',)
-                assert not all_consistent
-                infr._check_inconsistency(nid1)
-            else:
-                if all_consistent:
-                    infr.print('incon-within-clean',)
-                    # infr.print('Incomp edge within consistent CC')
-                else:
-                    infr.print('incon-within-dirty',)
-                    # infr.print('Incomp edge within inconsistent CC')
-        else:
-            infr._add_review_edge(edge, 'notcomp')
-            if overwrote_negative:
-                if all_consistent:
-                    # changed and existing negative edge only influences
-                    # consistent pairs of PCCs
-                    # infr.print('Overwrote neg edge between CCs')
-                    infr.print('incon-between-neg-clean',)
-                    infr.update_neg_redun(nid1, nid2, may_add=False)
-                else:
-                    infr.print('incon-between-neg-dirty',)
-                    # infr.print('Overwrote pos edge between incon CCs')
-            else:
-                infr.print('incon-between',)
-                # infr.print('Incomp edge between CCs')
-
-    @profile
-    def dynamic_inference(infr, edge, decision):
-        if decision == 'match':
-            infr._positive_decision(edge)
-        elif decision == 'nomatch':
-            infr._negative_decision(edge)
-        elif decision == 'notcomp':
-            infr._incomp_decision(edge)
-        else:
-            raise AssertionError('Unknown decision=%r' % (decision,))
-        # print('infr.recover_graph = %r' % (infr.recover_graph,))
-
-    def _add_review_edges_from(infr, edges, decision):
-        infr.print('add decision=%r from %d reviews' % (
-            decision, len(edges)), 1)
-        # Add to review graph corresponding to decision
-        infr.review_graphs[decision].add_edges_from(edges)
-        # Remove from previously existing graphs
-        for k, G in infr.review_graphs.items():
-            if k != decision:
-                # print('replaced edge from %r graph' % (k,))
-                G.remove_edges_from(edges)
-
-    def _add_review_edge(infr, edge, decision):
-        infr.print('add review edge=%r, decision=%r' % (edge, decision), 20)
-        # Add to review graph corresponding to decision
-        infr.review_graphs[decision].add_edge(*edge)
-        # Remove from previously existing graphs
-        for k, G in infr.review_graphs.items():
-            if k != decision:
-                if G.has_edge(*edge):
-                    # print('replaced edge from %r graph' % (k,))
-                    G.remove_edge(*edge)
-
 
 class Recovery(object):
     """ recovery funcs """
@@ -369,10 +413,10 @@ class Recovery(object):
             if join_weight < cut_weight:
                 join_edgeset = {(s, t)}
                 chosen = join_edgeset
-                hypothesis = 'match'
+                hypothesis = POSTV
             else:
                 chosen = cut_edgeset
-                hypothesis = 'nomatch'
+                hypothesis = NEGTV
             for edge in chosen:
                 if edge not in maybe_error_edges:
                     maybe_error_edges.add(edge)
@@ -422,10 +466,35 @@ class Consistency(object):
             cc (set): nodes in a PCC
 
         Returns:
-            : bool: returns True unless cc contains any negative edges
+            flag: bool: returns True unless cc contains any negative edges
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=1, p_incon=1)
+            >>> assert not infr.is_consistent(next(infr.positive_components()))
+            >>> infr = demo.demodata_infr(num_pccs=1, p_incon=0)
+            >>> assert infr.is_consistent(next(infr.positive_components()))
         """
-        return (len(cc) <= 2 or
-                infr.neg_graph.subgraph(cc).number_of_edges() == 0)
+        return len(cc) <= 2 or not any(edges_inside(infr.neg_graph, cc))
+
+    def positive_components(infr, graph=None):
+        r"""
+        Generates the positive connected compoments (PCCs) in the graph
+        These will contain both consistent and inconsinstent PCCs.
+
+        Yields:
+            cc: set: nodes within the PCC
+        """
+        pos_graph = infr.pos_graph
+        if graph is None or graph is infr.graph:
+            ccs = pos_graph.connected_components()
+        else:
+            unique_labels = {
+                pos_graph.node_label(node) for node in graph.nodes()}
+            ccs = (pos_graph.connected_to(node) for node in unique_labels)
+        for cc in ccs:
+            yield cc
 
     def inconsistent_components(infr, graph=None):
         """
@@ -448,24 +517,6 @@ class Consistency(object):
         for cc in infr.positive_components(graph):
             if infr.is_consistent(cc):
                 yield cc
-
-    def positive_components(infr, graph=None):
-        r"""
-        Generates the positive connected compoments (PCCs) in the graph
-        These will contain both consistent and inconsinstent PCCs.
-
-        Yields:
-            cc: set: nodes within the PCC
-        """
-        pos_graph = infr.pos_graph
-        if graph is None or graph is infr.graph:
-            ccs = pos_graph.connected_components()
-        else:
-            unique_labels = {
-                pos_graph.node_label(node) for node in graph.nodes()}
-            ccs = (pos_graph.connected_to(node) for node in unique_labels)
-        for cc in ccs:
-            yield cc
 
 
 class Completeness(object):
@@ -505,7 +556,7 @@ class Completeness(object):
     @profile
     def check_prob_completeness(infr, node):
         """
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> import plottool as pt
             >>> pt.qtensure()
             >>> infr = testdata_infr2()
@@ -533,16 +584,15 @@ class Completeness(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> infr = testdata_infr2()
             >>> categories = infr.categorize_edges(graph)
-            >>> negative = categories['negative']
+            >>> negative = categories[NEGTV]
             >>> ne, edges = #list(categories['reviewed_negatives'].items())[0]
             >>> infr.graph.remove_edges_from(edges)
             >>> cc1, cc2, _edges = list(infr.non_complete_pcc_pairs())[0]
             >>> result = non_complete_pcc_pairs(infr)
             >>> print(result)
-
         """
         thresh = infr.queue_params['complete_thresh']
         pcc_set = list(infr.positive_connected_compoments())
@@ -577,11 +627,10 @@ class _RedundancyHelpers(object):
             edge: state
             for edge, state in infr.get_edge_attrs(
                 'decision', existing_edges,
-                default='unreviewed').items()
-            if state != 'unreviewed'
+                default=UNREV).items()
+            if state != UNREV
         }
-        n_neg = sum([state == 'nomatch'
-                     for state in reviewed_edges.values()])
+        n_neg = sum([state == NEGTV for state in reviewed_edges.values()])
         if n_neg < k:
             # Find k random negative edges
             check_edges = existing_edges - set(reviewed_edges)
@@ -741,7 +790,7 @@ class Redundancy(_RedundancyHelpers):
         """
         Get PCCs that are k-negative redundant with `cc`
 
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> import plottool as pt
             >>> pt.qtensure()
             >>> infr = testdata_infr2()
@@ -763,42 +812,6 @@ class Redundancy(_RedundancyHelpers):
             )
         ]
         return neg_nids
-
-    def is_pos_redundant(infr, cc, relax_size=False):
-        k = infr.queue_params['pos_redundancy']
-        if k == 1:
-            return True  # assumes cc is connected
-        else:
-            # if the nodes are not big enough for this amount of connectivity
-            # then we relax the requirement
-            if relax_size:
-                required_k = min(len(cc) - 1, k)
-            else:
-                required_k = k
-            assert isinstance(cc, set)
-            if required_k <= 1:
-                return True
-            if required_k == 2:
-                pos_subgraph = infr.pos_graph.subgraph(cc)
-                return nx.is_biconnected(pos_subgraph)
-            else:
-                pos_subgraph = infr.pos_graph.subgraph(cc)
-                pos_conn = nx.edge_connectivity(pos_subgraph)
-                return pos_conn >= required_k
-
-    def is_neg_redundant(infr, cc1, cc2):
-        k_neg = infr.queue_params['neg_redundancy']
-        neg_graph = infr.neg_graph
-        # from ibeis.algo.graph.nx_utils import edges_cross
-        # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
-        # return num_neg >= k_neg
-        neg_edge_gen = (
-            1 for u in cc1 for v in cc2.intersection(neg_graph.adj[u])
-        )
-        # do a lazy count of bridges
-        for count in neg_edge_gen:
-            if count >= k_neg:
-                return True
 
     def pos_redundant_pccs(infr, relax_size=False):
         for cc in infr.consistent_components():
@@ -831,6 +844,53 @@ class Redundancy(_RedundancyHelpers):
                 if nid1 < nid2:
                     yield nid1, nid2
 
+    def is_pos_redundant(infr, cc, relax_size=False):
+        k = infr.queue_params['pos_redundancy']
+        if k == 1:
+            return True  # assumes cc is connected
+        else:
+            # if the nodes are not big enough for this amount of connectivity
+            # then we relax the requirement
+            if relax_size:
+                required_k = min(len(cc) - 1, k)
+            else:
+                required_k = k
+            assert isinstance(cc, set)
+            if required_k <= 1:
+                return True
+            if required_k == 2:
+                pos_subgraph = infr.pos_graph.subgraph(cc)
+                # not quite, need bi-ege-connected, but this is stronger
+                return nx.is_biconnected(pos_subgraph)
+            else:
+                pos_subgraph = infr.pos_graph.subgraph(cc)
+                pos_conn = nx.edge_connectivity(pos_subgraph)
+                return pos_conn >= required_k
+
+    def is_neg_redundant(infr, cc1, cc2):
+        k_neg = infr.queue_params['neg_redundancy']
+        neg_graph = infr.neg_graph
+        # from ibeis.algo.graph.nx_utils import edges_cross
+        # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
+        # return num_neg >= k_neg
+        neg_edge_gen = (
+            1 for u in cc1 for v in cc2.intersection(neg_graph.adj[u])
+        )
+        # do a lazy count of bridges
+        for count in neg_edge_gen:
+            if count >= k_neg:
+                return True
+
+    def pos_redun_edge_flag(infr, edge):
+        """ Quickly check if edge is flagged as pos redundant """
+        nid1, nid2 = infr.pos_graph.node_labels(*edge)
+        return nid1 == nid2 and nid1 in infr.pos_redun_nids
+
+    def neg_redun_edge_flag(infr, edge):
+        """ Quickly check if edge is flagged as neg redundant """
+        nid1, nid2 = infr.pos_graph.node_labels(*edge)
+        return infr.neg_redun_nids.has_edge(nid1, nid2)
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class NonDynamicUpdate(object):
@@ -856,19 +916,19 @@ class NonDynamicUpdate(object):
 
         infr.set_edge_attrs(
             'inferred_state',
-            ut.dzip(ut.flatten(categories['positive'].values()), ['same'])
+            ut.dzip(ut.flatten(categories[POSTV].values()), ['same'])
         )
         infr.set_edge_attrs(
             'inferred_state',
-            ut.dzip(ut.flatten(categories['negative'].values()), ['diff'])
+            ut.dzip(ut.flatten(categories[NEGTV].values()), ['diff'])
         )
         infr.set_edge_attrs(
             'inferred_state',
-            ut.dzip(ut.flatten(categories['notcomp'].values()), ['notcomp'])
+            ut.dzip(ut.flatten(categories[INCMP].values()), [INCMP])
         )
         infr.set_edge_attrs(
             'inferred_state',
-            ut.dzip(ut.flatten(categories['unreviewed'].values()), [None])
+            ut.dzip(ut.flatten(categories[UNREV].values()), [None])
         )
         infr.set_edge_attrs(
             'inferred_state',
@@ -922,11 +982,11 @@ class NonDynamicUpdate(object):
         the dynamic state is lost.
 
         CommandLine:
-            python -m ibeis.algo.graph.core categorize_edges --profile
+            python -m ibeis.algo.graph.mixin_dynamic categorize_edges --profile
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> num_pccs = 250 if ut.get_argflag('--profile') else 100
             >>> kwargs = dict(num_pccs=100, p_incon=.3)
@@ -934,12 +994,7 @@ class NonDynamicUpdate(object):
             >>> graph = None
             >>> cat = infr.categorize_edges()
         """
-        POSTV = 'match'
-        NEGTV = 'nomatch'
-        INCMP = 'notcomp'
-        UNREV = 'unreviewed'
         states = (POSTV, NEGTV, INCMP, UNREV)
-
         rev_graph = {key: infr.review_graphs[key] for key in states}
         if graph is None or graph is infr.graph:
             graph = infr.graph
@@ -1044,10 +1099,10 @@ class NonDynamicUpdate(object):
         }
 
         ne_categories = {
-            'positive': positive,
-            'negative': negative,
-            'unreviewed': unreviewed,
-            'notcomp': notcomparable,
+            POSTV: positive,
+            NEGTV: negative,
+            UNREV: unreviewed,
+            INCMP: notcomparable,
             'inconsistent_internal': incon_internal,
             'inconsistent_external': incon_external,
         }

@@ -542,16 +542,16 @@ def submit_identification(**kwargs):
     # FIXME:
     # photobomb and scenerymatch tags should be disjoint from match-state
     if state == 'matched':
-        decision = const.REVIEW.MATCH
+        decision = const.REVIEW.POSITIVE
     elif state == 'notmatched':
-        decision = const.REVIEW.NON_MATCH
+        decision = const.REVIEW.NEGATIVE
     elif state == 'notcomparable':
-        decision = const.REVIEW.NOT_COMPARABLE
+        decision = const.REVIEW.INCOMPARABLE
     elif state == 'photobomb':
-        decision = const.REVIEW.NON_MATCH
+        decision = const.REVIEW.NEGATIVE
         tag_list = ['photobomb']
     elif state == 'scenerymatch':
-        decision = const.REVIEW.NON_MATCH
+        decision = const.REVIEW.NEGATIVE
         tag_list = ['scenerymatch']
     else:
         raise ValueError()

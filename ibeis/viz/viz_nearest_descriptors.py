@@ -131,7 +131,7 @@ def show_top_featmatches(qreq_, cm_list):
     annots = {aid: ibs.get_annot_lazy_dict(aid, config2_=qreq_.qparams)
               for aid in aids}
 
-    label_lists = ibs.get_aidpair_truths(aid1s, aid2s) == ibs.const.REVIEW.MATCH
+    label_lists = ibs.get_aidpair_truths(aid1s, aid2s) == ibs.const.REVIEW.POSITIVE
     patch_size = 64
 
     def extract_patches(annots, aid, fxs):

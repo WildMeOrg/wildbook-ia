@@ -11,7 +11,7 @@ print, rrr, profile = ut.inject2(__name__)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrIBEIS(object):
+class IBEISIO(object):
     """
     Direct interface into ibeis tables
     (most of these should not be used or be reworked)
@@ -287,9 +287,9 @@ class _AnnotInfrIBEIS(object):
             is_split, is_merge = flags_list
             is_split = np.array(is_split).astype(np.bool)
             is_merge = np.array(is_merge).astype(np.bool)
-            # truth[is_pb] = ibs.const.REVIEW.NON_MATCH
-            truth[is_split] = ibs.const.REVIEW.NON_MATCH
-            truth[is_merge] = ibs.const.REVIEW.MATCH
+            # truth[is_pb] = ibs.const.REVIEW.NEGATIVE
+            truth[is_split] = ibs.const.REVIEW.NEGATIVE
+            truth[is_merge] = ibs.const.REVIEW.POSITIVE
 
         infr.print('* making feedback dict', 2)
 
@@ -526,7 +526,7 @@ class _AnnotInfrIBEIS(object):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrGroundtruth(object):
+class IBEISGroundtruth(object):
     """
     Methods for generating training labels for classifiers
     """
@@ -570,9 +570,9 @@ class _AnnotInfrGroundtruth(object):
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
         truths = ut.replace_nones(ibs.get_annotmatch_truth(am_rowids), np.nan)
         truths = np.asarray(truths)
-        is_notcomp_have = truths == ibs.const.REVIEW.NOT_COMPARABLE
-        is_comp_have = ((truths == ibs.const.REVIEW.MATCH) |
-                        (truths == ibs.const.REVIEW.NON_MATCH))
+        is_notcomp_have = truths == ibs.const.REVIEW.INCOMPARABLE
+        is_comp_have = ((truths == ibs.const.REVIEW.POSITIVE) |
+                        (truths == ibs.const.REVIEW.NEGATIVE))
         is_comp[is_notcomp_have] = False
         is_comp[is_comp_have] = True
         return is_comp

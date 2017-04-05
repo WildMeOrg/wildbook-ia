@@ -126,9 +126,9 @@ def is_unknown(ibs, nid_list):
 def get_truth_color(truth, base255=False, lighten_amount=None):
     import ibeis.constants as const
     truth_colors = {
-        const.REVIEW.NON_MATCH: df2.FALSE_RED,
-        const.REVIEW.MATCH: df2.TRUE_GREEN,
-        const.REVIEW.NOT_COMPARABLE: df2.YELLOW,
+        const.REVIEW.NEGATIVE: df2.FALSE_RED,
+        const.REVIEW.POSITIVE: df2.TRUE_GREEN,
+        const.REVIEW.INCOMPARABLE: df2.YELLOW,
         const.REVIEW.UNKNOWN: df2.UNKNOWN_PURP,
         const.REVIEW.UNREVIEWED: df2.UNKNOWN_PURP,
     }

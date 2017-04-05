@@ -1207,10 +1207,10 @@ class _AnnotMatchConvenienceGetter(object):
         return top_truth_aids
 
     def get_top_gf_aids(cm, ibs, ntop=None):
-        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.NON_MATCH, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.NEGATIVE, ntop)
 
     def get_top_gt_aids(cm, ibs, ntop=None):
-        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.MATCH, ntop)
+        return cm.get_top_truth_aids(ibs, ibs.const.REVIEW.POSITIVE, ntop)
 
     #------------------
     # Getter Functions

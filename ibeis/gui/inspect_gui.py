@@ -652,7 +652,7 @@ def set_annot_pair_as_negative_match_(ibs, aid1, aid2, cm, qreq_, **kwargs):
             log('FLAG SplitCase: (annot_uuid_pair=%r)' % annot_uuid_pair)
             am_rowid = ibs.add_annotmatch_undirected([aid1], [aid2])[0]
             ibs.set_annotmatch_prop(prop, [am_rowid], [True])
-            ibs.set_annotmatch_truth([am_rowid], [ibs.const.REVIEW.NON_MATCH])
+            ibs.set_annotmatch_truth([am_rowid], [ibs.const.REVIEW.NEGATIVE])
         elif reply == options[1]:
             review_match(ibs, aid1, aid2, qreq_=qreq_, cm=cm, **kwargs)
     except guiexcept.UserCancel:

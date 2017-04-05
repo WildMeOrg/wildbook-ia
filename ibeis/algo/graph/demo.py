@@ -231,7 +231,7 @@ def demo2():
 
     _iter = infr.generate_reviews(randomness=.1, rng=rng, **queue_params)
     _iter2 = enumerate(_iter)
-    prog = ut.ProgIter(_iter2, bs=False, adjust=False)
+    prog = ut.ProgIter(_iter2, label='demo2', bs=False, adjust=False)
     for count, (aid1, aid2) in prog:
         msg = 'review #%d' % (count)
         print('\n----------')
@@ -263,7 +263,7 @@ def demo2():
 
         _iter = infr.generate_reviews(randomness=.1, rng=rng, **infr.queue_params)
         _iter2 = enumerate(_iter)
-        prog = ut.ProgIter(_iter2, bs=False, adjust=False)
+        prog = ut.ProgIter(_iter2, label='round2', bs=False, adjust=False)
         for count, (aid1, aid2) in prog:
             msg = 'reviewII #%d' % (count)
             print('\n----------')
@@ -380,7 +380,7 @@ def apply_dummy_scores(infr, rng=None):
     edges = list(infr.graph.edges())
     truths = [get_edge_truth(infr, n1, n2) for n1, n2 in ut.ProgIter(edges)]
     normscores = [randn_clip(rng, a_max=0, a_min=1, **dummy_params[truth])
-                  for truth in ut.ProgIter(truths)]
+                  for truth in ut.ProgIter(truths, label='clipping')]
     infr.set_edge_attrs('normscore', ut.dzip(edges, normscores))
     ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
 
@@ -1142,7 +1142,7 @@ def demodata_infr(**kwargs):
         >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> from ibeis.algo.graph import demo
         >>> import networkx as nx
-        >>> kwargs = dict(num_pccs=50, p_incon=.1)
+        >>> kwargs = dict(num_pccs=50, p_incon=.1, size_std=4)
         >>> infr = demo.demodata_infr(**kwargs)
         >>> pccs = list(infr.positive_components())
         >>> assert len(pccs) == kwargs['num_pccs']
@@ -1156,15 +1156,23 @@ def demodata_infr(**kwargs):
 
     def rand_normal(mean=0, std=1, shape=[]):
         return (rng.randn(*shape) * std) + mean
+    def kwalias(*args):
+        params = args[0:-1]
+        default = args[-1]
+        for key in params:
+            if key in kwargs:
+                return kwargs[key]
+        return default
 
     import itertools as it
     rng = np.random.RandomState(0)
     counter = 0
     new_ccs = []
-    num_pccs = kwargs.get('num_pccs', 16)
-    for i in ut.ProgIter(list(range(num_pccs))):
-        size_mean = kwargs.get('pcc_size_mean', 5)
-        size_std = kwargs.get('pcc_size_std', 4)
+    num_pccs = kwalias('num_pccs', 16)
+    size_mean = kwalias('pcc_size_mean', 'pcc_size', 'size', 5)
+    size_std = kwalias('pcc_size_std', 'size_std', 0)
+
+    for i in ut.ProgIter(list(range(num_pccs)), label='make pos-demo'):
         size = max(1, int(rand_normal(size_mean, size_std)))
 
         p = .1
@@ -1203,14 +1211,14 @@ def demodata_infr(**kwargs):
             # compute probability that any particular edge is inconsistent
             # to achieve probability the PCC is inconsistent
             p_edge_inconn = 1 - (1 - p_pcc_incon) ** (1 / len(complement_edges))
-            # print('p_edge_inconn = %r' % (p_edge_inconn,))
             p_edge_unrev = .1
             p_edge_notcomp = .05
             probs = np.array([p_edge_inconn, p_edge_unrev, p_edge_notcomp])
             # if the total probability is greater than 1 the parameters
             # are invalid, so we renormalize to "fix" it.
-            if probs.sum() > 1:
-                probs = probs / probs.sum()
+            # if probs.sum() > 1:
+            #     warnings.warn('probabilities sum to more than 1')
+            #     probs = probs / probs.sum()
             pcumsum = probs.cumsum()
             # Determine which mutually exclusive state each complement edge is in
             # print('pcumsum = %r' % (pcumsum,))
@@ -1237,7 +1245,8 @@ def demodata_infr(**kwargs):
 
     neg_edges = []
 
-    for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2))):
+    for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
+                                label='make neg-demo'):
         nodes1 = cc1[0]
         nodes2 = cc2[0]
         # print('checking pair')

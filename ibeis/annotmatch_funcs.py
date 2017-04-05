@@ -379,8 +379,8 @@ def set_annot_pair_as_reviewed(ibs, aid1, aid2):
         truth = ibs.const.REVIEW.UNKNOWN
     else:
         nid1, nid2 = ibs.get_annot_name_rowids((aid1, aid2))
-        truth = (ibs.const.REVIEW.MATCH if (nid1 == nid2) else
-                 ibs.const.REVIEW.NON_MATCH)
+        truth = (ibs.const.REVIEW.POSITIVE if (nid1 == nid2) else
+                 ibs.const.REVIEW.NEGATIVE)
 
     # Ensure a row exists for this pair
     annotmatch_rowids = ibs.add_annotmatch_undirected([aid1], [aid2])
@@ -461,7 +461,7 @@ def set_annot_pair_as_positive_match(ibs, aid1, aid2, dryrun=False,
     if nid1 == nid2:
         print('...images already matched')
         #truth = get_annot_pair_truth([aid1], [aid2])[0]
-        #if truth != ibs.const.REVIEW.MATCH:
+        #if truth != ibs.const.REVIEW.POSITIVE:
         status = None
         ibs.set_annot_pair_as_reviewed(aid1, aid2)
         if logger is not None:

@@ -7,12 +7,19 @@ from ibeis.algo.graph.nx_utils import edges_inside
 print, rrr, profile = ut.inject2(__name__)
 
 
-class NiceGraph(nx.Graph, ut.NiceRepr):
+class GraphHelperMixin(ut.NiceRepr):
     def __nice__(self):
         return 'nNodes={}, nEdges={}'.format(
             self.number_of_nodes(),
             self.number_of_edges(),
         )
+
+    def has_nodes(self, nodes):
+        return (self.has_node(node) for node in nodes)
+
+
+class NiceGraph(nx.Graph, GraphHelperMixin):
+    pass
 
 
 class nx_UnionFind(object):
@@ -61,12 +68,17 @@ class nx_UnionFind(object):
     def union(self, *objects):
         """Find the sets containing the objects and merge them all."""
         roots = [self[x] for x in objects]
-        # Find the heaviest root according to its weight.
-        heaviest = max(roots, key=lambda r: self.weights[r])
+        # HACK: use the lowest node number to preserve
+        # node labels through cuts. (has some runtime penalty)
+        if False:
+            # Find the best root with the maximum weight
+            best = max(roots, key=lambda r: self.weights[r])
+        else:
+            best = min(roots)
         for r in roots:
-            if r != heaviest:
-                self.weights[heaviest] += self.weights[r]
-                self.parents[r] = heaviest
+            if r != best:
+                self.weights[best] += self.weights[r]
+                self.parents[r] = best
 
     def remove_entire_cc(self, elements):
         # NOTE: this will not work in general. This only
@@ -89,7 +101,7 @@ class nx_UnionFind(object):
                 self.parents[x] = x
 
 
-class DynConnGraph(nx.Graph, ut.NiceRepr):
+class DynConnGraph(nx.Graph, GraphHelperMixin):
     """
     Dynamically connected graph.
 
@@ -100,24 +112,22 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
 
     Data Structure     | Insertion | Deletion | CC Find |
     -----------------------------------------------------
-    * UnionFind        | Yes       |   No     |  lg(n)
+    * UnionFind        | lg(n)     |    n     |  No
+    * UnionFind2       |    n*     |    n     |  1
     * EulerTourForest  | lg^2(n)   | lg^2(n)  |  lg(n) / lglg(n) - - Ammortized
+
+    * it seems to be very quick
 
     References:
         https://courses.csail.mit.edu/6.851/spring14/lectures/L20.pdf
         https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
         http://cs.stackexchange.com/questions/33595/maintaining-connecte
 
-    Args:
-        self (?):
-        *args:
-        **kwargs:
-
     CommandLine:
         python -m ibeis.algo.graph.nx_dynamic_graph DynConnGraph
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
         >>> self = DynConnGraph()
         >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
@@ -205,6 +215,8 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         for old_nid in [old_nid1, old_nid2]:
             if new_nid != old_nid:
                 parts = self._ccs.pop(old_nid)
+                # FIXME: this step can be quite bad for time complexity.
+                # An Euler Tour Tree might solve the issue
                 self._ccs[new_nid].update(parts)
 
     def _add_node(self, n):
@@ -266,7 +278,10 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         super(DynConnGraph, self).remove_nodes_from(nodes)
 
     def remove_node(self, n):
-        """
+        r"""
+        CommandLine:
+            python -m ibeis.algo.graph.nx_dynamic_graph remove_node
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.nx_dynamic_graph import *  # NOQA
@@ -295,7 +310,8 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.graph.nx_dynamic_graph
+        python -m ibeis.algo.graph all
+        python -m ibeis.algo.graph.nx_dynamic_graph all
         python -m ibeis.algo.graph.nx_dynamic_graph --allexamples
     """
     import multiprocessing

@@ -14,13 +14,8 @@ print, rrr, profile = ut.inject2(__name__)
 DEBUG_INCON = True
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrHelpers(object):
+class AttrAccess(object):
     """ Contains non-core helper functions """
-
-    @staticmethod
-    def e_(u, v):
-        return e_(u, v)
 
     def gen_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         return ut.util_graph.nx_gen_node_attrs(
@@ -100,12 +95,34 @@ class _AnnotInfrHelpers(object):
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
         return data
 
+    @property
+    def pos_graph(infr):
+        return infr.review_graphs['match']
+
+    @property
+    def neg_graph(infr):
+        return infr.review_graphs['nomatch']
+
+    @property
+    def incomp_graph(infr):
+        return infr.review_graphs['notcomp']
+
+    @property
+    def unreviewed_graph(infr):
+        return infr.review_graphs['unreviewed']
+
+
+class Convenience(object):
+    @staticmethod
+    def e_(u, v):
+        return e_(u, v)
+
     def print_graph_info(infr):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrDummy(object):
+class DummyEdges(object):
     def remove_dummy_edges(infr):
         infr.print('remove_dummy_edges', 2)
         edge_to_isdummy = infr.get_edge_attrs('_dummy_edge')
@@ -344,7 +361,7 @@ class _AnnotInfrDummy(object):
                                user_id='mst', verbose=False)
 
 
-class InfrInvariants(object):
+class AssertInvariants(object):
     def assert_invariants(infr, msg=''):
         infr.assert_disjoint_invariant(msg)
         infr.assert_consistency_invariant(msg)
@@ -386,3 +403,13 @@ class InfrInvariants(object):
         #         infr.print('infr.recovery_cc = %r' % (infr.recovery_cc,))
         #         infr.print('incon_cc = %r' % (incon_cc,))
 
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.graph.mixin_helpers
+        python -m ibeis.algo.graph.mixin_helpers --allexamples
+    """
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

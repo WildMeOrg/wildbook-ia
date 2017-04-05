@@ -1812,6 +1812,7 @@ class EdgeAPIHelper(object):
         aid1, aid2 = edge
         nid1 = self.graph.node[aid1]['name_label']
         nid2 = self.graph.node[aid2]['name_label']
+        # nid1, nid2 = self.infr.node_labels(aid1, aid2)
         data = self.infr.graph.get_edge_data(*edge)
         inferred_state = data.get('inferred_state', None)
         maybe_error = data.get('maybe_error', False)
@@ -2051,7 +2052,21 @@ def make_edge_api(infr, review_cfg={}):
     if review_cfg['hack_min_review']:
         assert False
     else:
-        aids1, aids2 = infr.get_filtered_edges(review_cfg)
+        edges_and_data = list(infr.edges(data=True))
+        if review_cfg['filter_photobombs']:
+            edges_and_data = [(edge, d) for edge, d in edges_and_data
+                              if 'photobomb' not in d.get('tags')]
+        if review_cfg['filter_reviewed']:
+            edges_and_data = [(edge, d) for edge, d in edges_and_data
+                              if d.get('decision', 'unreviewed') != 'unreviewed']
+        if review_cfg['filter_true_matches']:
+            edges_and_data = [(edge, d) for edge, d in edges_and_data
+                              if not infr.pos_redun_edge_flag(edge)]
+        if review_cfg['filter_false_matches']:
+            edges_and_data = [(edge, d) for edge, d in edges_and_data
+                              if not infr.neg_redun_edge_flag(*edge)]
+        aids1, aids2 = ut.listT(ut.take_column(edges_and_data, 0))
+        # aids1, aids2 = infr.get_filtered_edges(review_cfg)
 
     self = EdgeAPIHelper(infr)
     partial_headers = self.make_partial_edge_headers()
@@ -2320,6 +2335,8 @@ if __name__ == '__main__':
         python -m ibeis.viz.viz_graph2
         python -m ibeis.viz.viz_graph2 --allexamples
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7,8,9 --graph
+
+        python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

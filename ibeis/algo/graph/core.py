@@ -22,8 +22,7 @@ DEBUG_CC = False
 # DEBUG_CC = True
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrFeedback(object):
+class Feedback(object):
 
     def _check_edge(infr, edge):
         aid1, aid2 = edge
@@ -87,15 +86,15 @@ class _AnnotInfrFeedback(object):
             1, color='white')
 
         if decision == 'unreviewed':
-            raise NotImplementedError('not done yet')
+            # raise NotImplementedError('not done yet')
             feedback_item = None
             if edge in infr.external_feedback:
                 raise ValueError('External edge reviews cannot be undone')
             if edge in infr.internal_feedback:
                 del infr.internal_feedback[edge]
-            for G in infr.review_graphs.values():
-                if G.has_edge(*edge):
-                    G.remove_edge(*edge)
+            # for G in infr.review_graphs.values():
+            #     if G.has_edge(*edge):
+            #         G.remove_edge(*edge)
 
         # Keep track of sequential reviews and set properties on global graph
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
@@ -118,22 +117,9 @@ class _AnnotInfrFeedback(object):
             assert infr.dirty is False, (
                 'need to recompute before dynamic inference continues')
             # Update priority queue based on the new edge
-            infr.dynamic_inference(edge, decision)
-            # if infr.is_recovering():
-            #     infr.inconsistent_inference(edge, decision)
-            # else:
-            #     infr.consistent_inference(edge, decision)
+            infr.add_review_edge(edge, decision)
             if True:
-                sorted_ccs = sorted([
-                    tuple(cc) for cc in infr.pos_graph.connected_components()
-                ])
-                msg = '[' + ', '.join([
-                    repr(cc)
-                    if infr.is_consistent(cc) else
-                    ut.highlight_text(repr(cc), 'red')
-                    for cc in sorted_ccs]) + ']'
-                print(msg)
-
+                infr._print_debug_ccs()
         else:
             infr.dirty = True
             infr._add_review_edge(edge, decision)
@@ -147,6 +133,19 @@ class _AnnotInfrFeedback(object):
                 raise AssertionError('unknown user_id=%r' % (user_id,))
             infr.metrics_list.append(infr.measure_metrics())
         infr.verbose = prev_verbose
+
+    def _print_debug_ccs(infr):
+        assert all([ut.allsame(infr.node_labels(*cc))
+                    for cc in infr.positive_components()])
+        sorted_ccs = sorted([
+            set(cc) for cc in infr.pos_graph.connected_components()
+        ])
+        msg = '[' + ', '.join([
+            repr(cc)
+            if infr.is_consistent(cc) else
+            ut.highlight_text(repr(cc), 'red')
+            for cc in sorted_ccs]) + ']'
+        print(msg)
 
     @profile
     def apply_feedback_edges(infr, safe=True):
@@ -288,8 +287,7 @@ class _AnnotInfrFeedback(object):
         infr.set_node_attrs('name_label', distinct_names)
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrPriority(object):
+class OldPriority(object):
     """ for methods pertaining to the dynamic priority queue """
 
     PRIORITY_METRIC = 'normscore'
@@ -373,8 +371,14 @@ class _AnnotInfrPriority(object):
                 yield edge
 
 
-@six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrRelabel(object):
+class NameRelabel(object):
+
+    def node_label(infr, aid):
+        return infr.pos_graph.node_label(aid)
+
+    def node_labels(infr, *aids):
+        return infr.pos_graph.node_labels(*aids)
+
     def _next_nid(infr):
         if getattr(infr, 'nid_counter', None) is None:
             nids = nx.get_node_attributes(infr.graph, 'name_label')
@@ -498,7 +502,7 @@ class _AnnotInfrRelabel(object):
                 # Use union find labels
                 new_labels = {
                     count:
-                    infr.pos_graph.node_label(next(iter(subgraph.nodes())))
+                    infr.node_label(next(iter(subgraph.nodes())))
                     for count, subgraph in enumerate(cc_subgraphs)
                 }
             else:
@@ -544,22 +548,7 @@ class _AnnotInfrRelabel(object):
         return status
 
 
-class _InitHelpers(object):
-    @property
-    def pos_graph(infr):
-        return infr.review_graphs['match']
-
-    @property
-    def neg_graph(infr):
-        return infr.review_graphs['nomatch']
-
-    @property
-    def incomp_graph(infr):
-        return infr.review_graphs['notcomp']
-
-    @property
-    def unreviewed_graph(infr):
-        return infr.review_graphs['unreviewed']
+class MiscHelpers(object):
 
     def _rectify_nids(infr, aids, nids):
         if nids is None:
@@ -712,17 +701,72 @@ class _InitHelpers(object):
         print('--- <\LOG DUMP> ---')
 
 
+class AltConstructors(object):
+    _graph_cls = nx_dynamic_graph.NiceGraph
+    # _graph_cls = nx.Graph
+    # nx.Graph
+    # _graph_cls = nx.DiGraph
+
+    @classmethod
+    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
+        # infr.graph = G
+        # infr.update_node_attributes(G)
+        # aids = set(ut.flatten(aid_pairs))
+        import networkx as nx
+        G = AnnotInference._graph_cls()
+        assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
+        G.add_edges_from(aid_pairs)
+        if attrs is not None:
+            for key in attrs.keys():
+                nx.set_edge_attributes(G, key, ut.dzip(aid_pairs, attrs[key]))
+        infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
+        return infr
+
+    @classmethod
+    def from_netx(AnnotInference, G, ibs=None, verbose=False, infer=True):
+        aids = list(G.nodes())
+        nids = [-a for a in aids]
+        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
+        infr.initialize_graph(graph=G)
+        infr.update_node_attributes()
+        if infer:
+            infr.apply_nondynamic_update()
+        return infr
+
+    @classmethod
+    def from_qreq_(AnnotInference, qreq_, cm_list, autoinit=False):
+        """
+        Create a AnnotInference object using a precomputed query / results
+        """
+        # raise NotImplementedError('do not use')
+        aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
+        nids = qreq_.get_qreq_annot_nids(aids)
+        ibs = qreq_.ibs
+        infr = AnnotInference(ibs, aids, nids, verbose=False, autoinit=autoinit)
+        infr.cm_list = cm_list
+        infr.qreq_ = qreq_
+        return infr
+
+    def __nice__(infr):
+        if infr.graph is None:
+            return 'nAids=%r, G=None' % (len(infr.aids))
+        else:
+            return 'nAids={}, nEdges={}, nCCs={}'.format(
+                len(infr.aids),
+                infr.graph.number_of_edges(),
+                infr.pos_graph.number_of_components()
+            )
+
+
 @six.add_metaclass(ut.ReloadingMetaclass)
 class AnnotInference(ut.NiceRepr,
-                     _InitHelpers,
-                     _AnnotInfrFeedback,
-                     _AnnotInfrPriority,
-                     _AnnotInfrRelabel,
-                     mixin_helpers.InfrInvariants,
-                     mixin_helpers._AnnotInfrHelpers,
-                     mixin_ibeis._AnnotInfrIBEIS,
-                     mixin_ibeis._AnnotInfrGroundtruth,
-                     # Core algorithm stuffs
+                     # Old internal stuffs
+                     AltConstructors,
+                     MiscHelpers,
+                     Feedback,
+                     OldPriority,
+                     NameRelabel,
+                     # New core algorithm stuffs
                      mixin_dynamic.NonDynamicUpdate,
                      mixin_dynamic.Recovery,
                      mixin_dynamic.Consistency,
@@ -733,10 +777,19 @@ class AnnotInference(ut.NiceRepr,
                      mixin_matching.CandidateSearch,
                      mixin_matching.InfrLearning,
                      mixin_matching.AnnotInfrMatching,
+                     # General helpers
+                     mixin_helpers.AssertInvariants,
+                     mixin_helpers.DummyEdges,
+                     mixin_helpers.AttrAccess,
+                     # Algorithm loops and simulation
                      mixin_loops.SimulationHelpers,
                      mixin_loops.InfrReviewers,
                      mixin_loops.InfrLoops,
-                     mixin_viz._AnnotInfrViz,
+                     # Visualization
+                     mixin_viz.GraphVisualization,
+                     # plugging into IBEIS
+                     mixin_ibeis.IBEISIO,
+                     mixin_ibeis.IBEISGroundtruth,
                      # _dep_mixins._AnnotInfrDepMixin,
                      ):
     """
@@ -818,13 +871,7 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
         infr = <AnnotInference(nAids=6, nEdges=0)>
-
     """
-
-    _graph_cls = nx_dynamic_graph.NiceGraph
-    # _graph_cls = nx.Graph
-    # nx.Graph
-    # _graph_cls = nx.DiGraph
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
         # infr.verbose = verbose
@@ -933,56 +980,6 @@ class AnnotInference(ut.NiceRepr,
         infr2.error_edges = copy.deepcopy(infr.error_edges)
         return infr2
 
-    @classmethod
-    def from_pairs(AnnotInference, aid_pairs, attrs=None, ibs=None, verbose=False):
-        # infr.graph = G
-        # infr.update_node_attributes(G)
-        # aids = set(ut.flatten(aid_pairs))
-        import networkx as nx
-        G = AnnotInference._graph_cls()
-        assert not any([a1 == a2 for a1, a2 in aid_pairs]), 'cannot have self-edges'
-        G.add_edges_from(aid_pairs)
-        if attrs is not None:
-            for key in attrs.keys():
-                nx.set_edge_attributes(G, key, ut.dzip(aid_pairs, attrs[key]))
-        infr = AnnotInference.from_netx(G, ibs=ibs, verbose=verbose)
-        return infr
-
-    @classmethod
-    def from_netx(AnnotInference, G, ibs=None, verbose=False, infer=True):
-        aids = list(G.nodes())
-        nids = [-a for a in aids]
-        infr = AnnotInference(ibs, aids, nids, autoinit=False, verbose=verbose)
-        infr.initialize_graph(graph=G)
-        infr.update_node_attributes()
-        if infer:
-            infr.apply_nondynamic_update()
-        return infr
-
-    @classmethod
-    def from_qreq_(AnnotInference, qreq_, cm_list, autoinit=False):
-        """
-        Create a AnnotInference object using a precomputed query / results
-        """
-        # raise NotImplementedError('do not use')
-        aids = ut.unique(ut.flatten([qreq_.qaids, qreq_.daids]))
-        nids = qreq_.get_qreq_annot_nids(aids)
-        ibs = qreq_.ibs
-        infr = AnnotInference(ibs, aids, nids, verbose=False, autoinit=autoinit)
-        infr.cm_list = cm_list
-        infr.qreq_ = qreq_
-        return infr
-
-    def __nice__(infr):
-        if infr.graph is None:
-            return 'nAids=%r, G=None' % (len(infr.aids))
-        else:
-            return 'nAids={}, nEdges={}, nCCs={}'.format(
-                len(infr.aids),
-                infr.graph.number_of_edges(),
-                infr.pos_graph.number_of_components()
-            )
-
 
 def testdata_infr2(defaultdb='PZ_MTEST'):
     defaultdb = 'PZ_MTEST'
@@ -1029,6 +1026,9 @@ if __name__ == '__main__':
     CommandLine:
         python -m ibeis.viz.viz_graph2 make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
         python -m ibeis.algo.graph.core
+
+        python -m ibeis.algo.graph all
+
         python -m ibeis.algo.graph.core --allexamples
     """
     import multiprocessing

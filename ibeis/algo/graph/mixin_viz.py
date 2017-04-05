@@ -9,14 +9,8 @@ import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
 
-def _dz(a, b):
-    a = a.tolist() if isinstance(a, np.ndarray) else list(a)
-    b = b.tolist() if isinstance(b, np.ndarray) else list(b)
-    return ut.dzip(a, b)
-
-
 @six.add_metaclass(ut.ReloadingMetaclass)
-class _AnnotInfrViz(object):
+class GraphVisualization(object):
     """ contains plotting related code """
 
     def _get_truth_colors(infr):
@@ -76,7 +70,7 @@ class _AnnotInfrViz(object):
                                       thumbsize=221)
 
         # nx.set_node_attributes(graph, 'framewidth', 3.0)
-        # nx.set_node_attributes(graph, 'shape', _dz(annot_nodes, ['rect']))
+        # nx.set_node_attributes(graph, 'shape', ut.dzip(annot_nodes, ['rect']))
         ut.nx_delete_node_attr(graph, 'size')
         ut.nx_delete_node_attr(graph, 'width')
         ut.nx_delete_node_attr(graph, 'height')
@@ -258,21 +252,21 @@ class _AnnotInfrViz(object):
 
         # Set annotation node labels
         if not show_labels:
-            nx.set_node_attributes(graph, 'label', _dz(graph.nodes(), ['']))
+            nx.set_node_attributes(graph, 'label', ut.dzip(graph.nodes(), ['']))
         else:
-            node_to_aid = nx.get_node_attributes(graph, 'aid')
+            # node_to_aid = nx.get_node_attributes(graph, 'aid')
             node_to_nid = nx.get_node_attributes(graph, 'name_label')
             node_to_view = nx.get_node_attributes(graph, 'viewpoint')
             if node_to_view:
                 annotnode_to_label = {
-                    node: 'aid=%r%s\nnid=%r' % (aid, node_to_view[node],
-                                                node_to_nid[node])
-                    for node, aid in node_to_aid.items()
+                    aid: 'aid=%r%s\nnid=%r' % (aid, node_to_view[aid],
+                                                node_to_nid[aid])
+                    for aid in graph.nodes()
                 }
             else:
                 annotnode_to_label = {
-                    node: 'aid=%r\nnid=%r' % (aid, node_to_nid[node])
-                    for node, aid in node_to_aid.items()
+                    aid: 'aid=%r\nnid=%r' % (aid, node_to_nid[aid])
+                    for aid in graph.nodes()
                 }
             nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
@@ -318,9 +312,10 @@ class _AnnotInfrViz(object):
                                               nomatch_edges)
         nontrivial_inferred_edges = (nontrivial_inferred_same +
                                      nontrivial_inferred_diff)
+        nx_set_edge_attrs = nx.set_edge_attributes
 
         # EDGE_COLOR: based on edge_weight
-        nx.set_edge_attributes(graph, 'color', _dz(edges, edge_colors))
+        nx_set_edge_attrs(graph, 'color', ut.dzip(edges, edge_colors))
 
         # LINE_WIDTH: based on review_state
         # unreviewed_width = 2.0
@@ -328,57 +323,57 @@ class _AnnotInfrViz(object):
         unreviewed_width = 1.0
         reviewed_width = 2.0
         if highlight_reviews:
-            nx.set_edge_attributes(graph, 'linewidth', _dz(
+            nx_set_edge_attrs(graph, 'linewidth', ut.dzip(
                 reviewed_edges, [reviewed_width]))
-            nx.set_edge_attributes(graph, 'linewidth', _dz(
+            nx_set_edge_attrs(graph, 'linewidth', ut.dzip(
                 unreviewed_edges, [unreviewed_width]))
         else:
-            nx.set_edge_attributes(graph, 'linewidth', _dz(
+            nx_set_edge_attrs(graph, 'linewidth', ut.dzip(
                 edges, [unreviewed_width]))
 
         # EDGE_STROKE: based on decision and maybe_error
         # fg = pt.WHITE if dark_background else pt.BLACK
-        # nx.set_edge_attributes(graph, 'stroke', _dz(reviewed_edges, [
+        # nx_set_edge_attrs(graph, 'stroke', ut.dzip(reviewed_edges, [
         #     {'linewidth': 3, 'foreground': fg}]))
-        nx.set_edge_attributes(graph, 'stroke', _dz(recheck_edges, [
+        nx_set_edge_attrs(graph, 'stroke', ut.dzip(recheck_edges, [
             {'linewidth': 5, 'foreground': pt.ORANGE}]))
 
         # Cut edges are implicit and dashed
-        nx.set_edge_attributes(graph, 'implicit', _dz(cut_edges, [True]))
-        nx.set_edge_attributes(graph, 'linestyle', _dz(cut_edges, ['dashed']))
-        nx.set_edge_attributes(graph, 'alpha', _dz(cut_edges, [alpha_med]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(cut_edges, [True]))
+        nx_set_edge_attrs(graph, 'linestyle', ut.dzip(cut_edges, ['dashed']))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(cut_edges, [alpha_med]))
 
-        nx.set_edge_attributes(graph, 'implicit', _dz(uncompared_edges, [True]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(uncompared_edges, [True]))
 
         # Only matching edges should impose constraints on the graph layout
-        nx.set_edge_attributes(graph, 'implicit', _dz(nomatch_edges, [True]))
-        nx.set_edge_attributes(graph, 'alpha', _dz(nomatch_edges, [alpha_med]))
-        nx.set_edge_attributes(graph, 'implicit', _dz(notcomp_edges, [True]))
-        nx.set_edge_attributes(graph, 'alpha', _dz(notcomp_edges, [alpha_med]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(nomatch_edges, [True]))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(nomatch_edges, [alpha_med]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(notcomp_edges, [True]))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(notcomp_edges, [alpha_med]))
 
         # Ensure reviewed edges are visible
-        nx.set_edge_attributes(graph, 'implicit', _dz(reviewed_edges, [False]))
-        nx.set_edge_attributes(graph, 'alpha', _dz(reviewed_edges,
-                                                   [alpha_high]))
+        nx_set_edge_attrs(graph, 'implicit', ut.dzip(reviewed_edges, [False]))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(reviewed_edges,
+                                                       [alpha_high]))
 
         if True:
             # Infered same edges can be allowed to constrain in order
             # to make things look nice sometimes
-            nx.set_edge_attributes(graph, 'implicit', _dz(inferred_same,
-                                                          [False]))
-            nx.set_edge_attributes(graph, 'alpha', _dz(inferred_same,
-                                                       [alpha_high]))
+            nx_set_edge_attrs(graph, 'implicit', ut.dzip(inferred_same,
+                                                              [False]))
+            nx_set_edge_attrs(graph, 'alpha', ut.dzip(inferred_same,
+                                                           [alpha_high]))
 
         # SKETCH: based on inferred_edges
         # Make inferred edges wavy
-        nx.set_edge_attributes(
-            graph, 'sketch', _dz(nontrivial_inferred_edges, [
+        nx_set_edge_attrs(
+            graph, 'sketch', ut.dzip(nontrivial_inferred_edges, [
                 dict(scale=10.0, length=64.0, randomness=None)]
                 # dict(scale=3.0, length=18.0, randomness=None)]
             ))
 
         # Make dummy edges more transparent
-        nx.set_edge_attributes(graph, 'alpha', _dz(dummy_edges, [alpha_low]))
+        nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
 
         # SHADOW: based on review_timestamp
         # Increase visibility of nodes with the most recently changed timestamp
@@ -388,7 +383,7 @@ class _AnnotInfrViz(object):
             recent_edges = ut.take(list(edge_to_timestamp.keys()), recent_idxs)
             # TODO: add photoshop-like parameters like
             # spread and size. offset is the same as angle and distance.
-            nx.set_edge_attributes(graph, 'shadow', _dz(recent_edges, [{
+            nx_set_edge_attrs(graph, 'shadow', ut.dzip(recent_edges, [{
                 'rho': .3,
                 'alpha': .6,
                 'shadow_color': 'w' if dark_background else 'k',
@@ -400,38 +395,38 @@ class _AnnotInfrViz(object):
 
         # Z_ORDER: make sure nodes are on top
         nodes = list(graph.nodes())
-        nx.set_node_attributes(graph, 'zorder', _dz(nodes, [10]))
-        nx.set_edge_attributes(graph, 'zorder', _dz(edges, [0]))
-        nx.set_edge_attributes(graph, 'picker', _dz(edges, [10]))
+        nx.set_node_attributes(graph, 'zorder', ut.dzip(nodes, [10]))
+        nx_set_edge_attrs(graph, 'zorder', ut.dzip(edges, [0]))
+        nx_set_edge_attrs(graph, 'picker', ut.dzip(edges, [10]))
 
         # VISIBILITY: Set visibility of edges based on arguments
         if not show_reviewed_edges:
-            nx.set_edge_attributes(graph, 'style',
-                                   _dz(reviewed_edges, ['invis']))
+            nx_set_edge_attrs(graph, 'style',
+                                   ut.dzip(reviewed_edges, ['invis']))
 
         if not show_unreviewed_edges:
-            nx.set_edge_attributes(graph, 'style',
-                                   _dz(unreviewed_edges, ['invis']))
+            nx_set_edge_attrs(graph, 'style',
+                                   ut.dzip(unreviewed_edges, ['invis']))
 
         # if not show_unreviewed_cuts:
-        #     nx.set_edge_attributes(graph, 'style', _dz(
+        #     nx_set_edge_attrs(graph, 'style', ut.dzip(
         #         unreviewed_cut_edges, ['invis']))
         if not show_reviewed_cuts:
-            nx.set_edge_attributes(graph, 'style', _dz(
+            nx_set_edge_attrs(graph, 'style', ut.dzip(
                 reviewed_cut_edges, ['invis']))
 
         if not show_inferred_same:
-            nx.set_edge_attributes(graph, 'style', _dz(
+            nx_set_edge_attrs(graph, 'style', ut.dzip(
                 nontrivial_inferred_same, ['invis']))
 
         if not show_inferred_diff:
-            nx.set_edge_attributes(graph, 'style', _dz(
+            nx_set_edge_attrs(graph, 'style', ut.dzip(
                 nontrivial_inferred_diff, ['invis']))
 
         if show_recent_review and edge_to_timestamp:
             # Always show the most recent review (remove setting of invis)
-            nx.set_edge_attributes(graph, 'style',
-                                   _dz(recent_edges, ['']))
+            nx_set_edge_attrs(graph, 'style',
+                                   ut.dzip(recent_edges, ['']))
 
         if reposition:
             # LAYOUT: update the positioning layout
