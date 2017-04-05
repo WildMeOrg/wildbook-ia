@@ -756,7 +756,7 @@ def remerge_subset():
         print('Annot properties are in sync. Nothing to change')
 
     # Step 2) Update annotmatch - pairwise relationships
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph_iden import graph_iden
     infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
     fb1 = infr1.read_ibeis_annotmatch_feedback()
     infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2,
@@ -800,8 +800,8 @@ def remerge_subset():
 
         new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
 
-        from ibeis.algo.hots import sim_graph_iden
-        c = sim_graph_iden.compare_groups(
+        from ibeis.algo.hots import simulate
+        c = simulate.compare_groups(
             list(new_groups.values()),
             list(old_groups.values()),
         )
@@ -821,7 +821,7 @@ def remerge_subset():
     if False:
         # import ibeis
         ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
-        from ibeis.algo.hots import graph_iden
+        from ibeis.algo.graph_iden import graph_iden
         infr1 = graph_iden.AnnotInference(aids='all', ibs=ibs1, verbose=3)
         infr1.initialize_graph()
         # infr1.reset_feedback('staging')

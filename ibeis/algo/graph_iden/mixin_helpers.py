@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import operator
 import utool as ut
 import networkx as nx
-from ibeis.algo.hots.graph_iden_utils import e_
-from ibeis.algo.hots.graph_iden_utils import ensure_multi_index
+from ibeis.algo.graph_iden.core_utils import e_
+from ibeis.algo.graph_iden.core_utils import ensure_multi_index
 import six
 print, rrr, profile = ut.inject2(__name__)
 

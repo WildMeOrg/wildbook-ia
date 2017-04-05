@@ -60,7 +60,7 @@ try:
     from ibeis.control.IBEISControl import IBEISController
     from ibeis.algo.hots.query_request import QueryRequest
     from ibeis.algo.hots.chip_match import ChipMatch, AnnotMatch
-    from ibeis.algo.hots.graph_iden import AnnotInference
+    from ibeis.algo.graph_iden.core import AnnotInference
     from ibeis.init.sysres import (get_workdir, set_workdir, ensure_pz_mtest,
                                    ensure_nauts, ensure_wilddogs, list_dbs)
     from ibeis.init import main_helpers

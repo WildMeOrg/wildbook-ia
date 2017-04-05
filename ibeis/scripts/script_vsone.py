@@ -627,14 +627,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
 
-        from ibeis.algo.hots import sim_graph_iden
+        from ibeis.algo.hots import simulate
 
         primary_probs = task_probs[primary_task]
         is_auto = primary_auto_flags.any(axis=1)
         auto_decisions = primary_auto_flags[is_auto].idxmax(axis=1)
         auto_decisions = auto_decisions.sort_values()
 
-        sim = sim_graph_iden.InfrSimulation(infr, primary_truth, primary_probs,
+        sim = simulate.InfrSimulation(infr, primary_truth, primary_probs,
                                             auto_decisions)
 
         sim.initialize()
@@ -1347,21 +1347,21 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     @ut.memoize
     def is_same(samples):
         # Hack to use infr implementation
-        from ibeis.algo.hots.graph_iden import AnnotInference
+        from ibeis.algo.graph_iden.core import AnnotInference
         infr = AnnotInference(ibs=samples.ibs)
         return infr.is_same(samples.aid_pairs)
 
     @ut.memoize
     def is_photobomb(samples):
         # Hack to use infr implementation
-        from ibeis.algo.hots.graph_iden import AnnotInference
+        from ibeis.algo.graph_iden.core import AnnotInference
         infr = AnnotInference(ibs=samples.ibs)
         return infr.is_photobomb(samples.aid_pairs)
 
     @ut.memoize
     def is_comparable(samples):
         # Hack to use infr implementation
-        from ibeis.algo.hots.graph_iden import AnnotInference
+        from ibeis.algo.graph_iden.core import AnnotInference
         infr = AnnotInference(ibs=samples.ibs)
         return infr.is_comparable(samples.aid_pairs, allow_guess=True)
 

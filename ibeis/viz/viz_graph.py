@@ -764,12 +764,12 @@ def make_name_graph_interaction(ibs, nids=None, aids=None, selected_aids=[],
     #aids = aids[0:10]
 
     nids = ibs.get_annot_name_rowids(aids)
-    #from ibeis.algo.hots import graph_iden
+    #from ibeis.algo.graph_iden import graph_iden
     #infr = graph_iden.AnnotInference(aids, nids, temp_nids)  # NOQA
     #import utool
     #utool.embed()
 
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph_iden import graph_iden
     infr = graph_iden.AnnotInference(ibs, aids, nids, temp_nids)
     infr.initialize_graph()
     #infr.apply_scores()

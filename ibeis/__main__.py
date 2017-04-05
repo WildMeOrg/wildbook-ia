@@ -94,7 +94,7 @@ def run_ibeis():
         '_autogen_explicit_controller']
     ignore_suffix = ['_grave']
     func_to_module_dict = {
-        'demo_bayesnet': 'ibeis.algo.hots.demobayes',
+        'demo_bayesnet': 'ibeis.algo.graph_iden.demobayes',
     }
     ut.main_function_tester('ibeis', ignore_prefix, ignore_suffix,
                             func_to_module_dict=func_to_module_dict)

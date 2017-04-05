@@ -241,7 +241,7 @@ def dans_splits(ibs):
     #num_nondan = sum(all_has_split) - num_had_split
     #print('num_nondan = %r' % (num_nondan,))
 
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph_iden import graph_iden
     from ibeis.viz import viz_graph2
     import guitool as gt
     import plottool as pt
@@ -292,7 +292,7 @@ def fix_splits_interaction(ibs):
     print('len(tosplit_annots) = %r' % (len(tosplit_annots),))
     aids_list = [a.aids for a in tosplit_annots]
 
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph_iden import graph_iden
     from ibeis.viz import viz_graph2
     import guitool as gt
     import plottool as pt
@@ -429,7 +429,7 @@ def split_analysis(ibs):
     print('%d annots with large speed' % (len(flagged_ok_annots),))
     print('Marking all pairs of annots above the threshold as non-matching')
 
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph_iden import graph_iden
     import networkx as nx
     progkw = dict(freq=1, bs=True, est_window=len(flagged_annots))
 

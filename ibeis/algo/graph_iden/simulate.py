@@ -8,7 +8,7 @@ def compare_groups(true_groups, pred_groups):
     r"""
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.sim_graph_iden import *  # NOQA
+        >>> from ibeis.algo.graph_iden.simulate import *  # NOQA
         >>> true_groups = [
         >>>   [20, 21], [22, 23], [1, 2], [12, 13, 14], [4], [5, 6, 3], [7, 8],
         >>>   [9, 10, 11], [31, 32, 33, 34, 35],   [41, 42, 43, 44], [45], [50]
@@ -328,8 +328,8 @@ class InfrSimulation(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.sim_graph_iden
-        python -m ibeis.algo.hots.sim_graph_iden --allexamples
+        python -m ibeis.algo.graph_iden.simulate
+        python -m ibeis.algo.graph_iden.simulate --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

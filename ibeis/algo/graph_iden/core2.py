@@ -7,8 +7,8 @@ import pandas as pd
 import itertools as it
 import networkx as nx
 import vtool as vt
-from ibeis.algo.hots.graph_iden_utils import e_
-from ibeis.algo.hots.graph_iden_utils import (
+from ibeis.algo.graph_iden.core_utils import e_
+from ibeis.algo.graph_iden.core_utils import (
     edges_inside, edges_cross, edges_outgoing, ensure_multi_index)
 print, rrr, profile = ut.inject2(__name__)
 
@@ -187,8 +187,8 @@ class InfrLoops(object):
             infr.assert_consistency_invariant()
         # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
         # pred_groups = list(infr.positive_connected_compoments())
-        # from ibeis.algo.hots import sim_graph_iden
-        # comparisons = sim_graph_iden.compare_groups(true_groups, pred_groups)
+        # from ibeis.algo.hots import simulate
+        # comparisons = simulate.compare_groups(true_groups, pred_groups)
         # pred_merges = comparisons['pred_merges']
         # print(pred_merges)
         infr.print('Exiting main loop')
@@ -413,7 +413,7 @@ class AnnotInfrMatching(object):
         Uses graph name labeling and ignores ibeis labeling
         """
         infr.print('exec_matching', 1)
-        #from ibeis.algo.hots import graph_iden
+        #from ibeis.algo.graph_iden import graph_iden
         ibs = infr.ibs
         aids = infr.aids
         if cfgdict is None:
@@ -447,11 +447,11 @@ class AnnotInfrMatching(object):
             prog_hook (None): (default = None)
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden exec_vsone
+            python -m ibeis.algo.graph_iden.core exec_vsone
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.ensure_full()
             >>> result = infr.exec_vsone()
@@ -654,11 +654,11 @@ class AnnotInfrMatching(object):
             prog_hook (None): (default = None)
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden exec_vsone
+            python -m ibeis.algo.graph_iden.core exec_vsone
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> config = {}
             >>> infr.ensure_full()
@@ -724,7 +724,7 @@ class AnnotInfrMatching(object):
 
     def _cm_breaking(infr, review_cfg={}):
         """
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> review_cfg = {}
         """
         cm_list = infr.cm_list
@@ -760,11 +760,11 @@ class AnnotInfrMatching(object):
         Constructs training data for a pairwise classifier
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden _cm_training_pairs
+            python -m ibeis.algo.graph_iden.core _cm_training_pairs
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching(cfgdict={
             >>>     'can_match_samename': True,
@@ -773,7 +773,7 @@ class AnnotInfrMatching(object):
             >>>     'prescore_method': 'csum',
             >>>     'score_method': 'csum'
             >>> })
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> exec(ut.execstr_funckw(infr._cm_training_pairs))
             >>> rng = np.random.RandomState(42)
             >>> aid_pairs = np.array(infr._cm_training_pairs(rng=rng))
@@ -870,11 +870,11 @@ class AnnotInfrMatching(object):
         this.
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden apply_match_scores --show
+            python -m ibeis.algo.graph_iden.core apply_match_scores --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('PZ_MTEST')
             >>> infr.exec_matching()
             >>> infr.apply_match_edges()
@@ -1714,7 +1714,7 @@ class AnnotInfrRedundancy(object):
         """
         Get PCCs that are k-negative redundant with `cc`
 
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> import plottool as pt
             >>> pt.qtensure()
             >>> infr = testdata_infr2()
@@ -1773,7 +1773,7 @@ class AnnotInfrRedundancy(object):
     @profile
     def check_prob_completeness(infr, node):
         """
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> import plottool as pt
             >>> pt.qtensure()
             >>> infr = testdata_infr2()
@@ -1801,7 +1801,7 @@ class AnnotInfrRedundancy(object):
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr2()
             >>> categories = infr.categorize_edges(graph)
             >>> negative = categories['negative']
@@ -1856,7 +1856,7 @@ class AnnotInfrRedundancy(object):
     def is_neg_redundant(infr, cc1, cc2):
         k_neg = infr.queue_params['neg_redundancy']
         neg_graph = infr.neg_graph
-        # from ibeis.algo.hots.graph_iden_utils import edges_cross
+        # from ibeis.algo.graph_iden.core_utils import edges_cross
         # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
         # return num_neg >= k_neg
         neg_edge_gen = (
@@ -1912,8 +1912,8 @@ class AnnotInfr2(InfrRecovery2, CandidateSearch2, InfrReviewers,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ibeis.algo.hots.graph_iden_new
-        python -m ibeis.algo.hots.graph_iden_new --allexamples
+        python -m ibeis.algo.graph_iden.core2
+        python -m ibeis.algo.graph_iden.core2 --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

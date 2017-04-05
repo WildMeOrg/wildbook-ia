@@ -6,13 +6,13 @@ import vtool as vt
 import logging
 import itertools as it
 import six
-from ibeis.algo.hots import viz_graph_iden
-from ibeis.algo.hots import graph_iden_depmixin
-from ibeis.algo.hots import graph_iden_mixins
-from ibeis.algo.hots import graph_iden_utils
-from ibeis.algo.hots.graph_iden_utils import e_, _dz
-from ibeis.algo.hots.graph_iden_utils import group_name_edges
-from ibeis.algo.hots.graph_iden_new import AnnotInfr2
+from ibeis.algo.graph_iden import viz_graph_iden
+# from ibeis.algo.graph_iden import _dep_mixins
+from ibeis.algo.graph_iden import mixin_helpers
+from ibeis.algo.graph_iden import nx_dynamic_graph
+from ibeis.algo.graph_iden.core_utils import e_, _dz
+from ibeis.algo.graph_iden.core_utils import group_name_edges
+from ibeis.algo.graph_iden.core2 import AnnotInfr2
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -482,11 +482,11 @@ class _AnnotInfrIBEIS(object):
             only_existing_edges (bool): if True only reads info existing edges
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden read_ibeis_annotmatch_feedback
+            python -m ibeis.algo.graph_iden.core read_ibeis_annotmatch_feedback
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> feedback = infr.read_ibeis_annotmatch_feedback()
             >>> items = feedback[(2, 3)]
@@ -635,11 +635,11 @@ class _AnnotInfrIBEIS(object):
             tuple: (new_df, old_df)
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden match_state_delta
+            python -m ibeis.algo.graph_iden.core match_state_delta
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
             >>> infr.add_feedback_from([(2, 3), 'match') (5, 6), 'nomatch')
@@ -668,11 +668,11 @@ class _AnnotInfrIBEIS(object):
     def _make_state_delta(old_feedback, new_feedback):
         r"""
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden _make_state_delta
+            python -m ibeis.algo.graph_iden.core _make_state_delta
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> import pandas as pd
             >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> new_feedback = old_feedback = pd.DataFrame([
@@ -688,7 +688,7 @@ class _AnnotInfrIBEIS(object):
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> import pandas as pd
             >>> columns = ['decision', 'aid1', 'aid2', 'am_rowid', 'tags']
             >>> old_feedback = pd.DataFrame([
@@ -796,7 +796,7 @@ class _AnnotInfrFeedback(object):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback((5, 6), 'match')
             >>> infr.add_feedback((5, 6), 'nomatch', ['Photobomb'])
@@ -908,11 +908,11 @@ class _AnnotInfrFeedback(object):
         Transforms the feedback dictionaries into nx graph edge attributes
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden apply_feedback_edges
+            python -m ibeis.algo.graph_iden.core apply_feedback_edges
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
             >>> #infr.add_feedback((1, 2), 'unknown', tags=[])
@@ -1216,15 +1216,15 @@ class _AnnotInfrUpdates(object):
         the dynamic state is lost.
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden categorize_edges --profile
+            python -m ibeis.algo.graph_iden.core categorize_edges --profile
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> from ibeis.algo.hots import demo_graph_iden
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
+            >>> from ibeis.algo.hots import demo
             >>> num_pccs = 250 if ut.get_argflag('--profile') else 100
             >>> kwargs = dict(num_pccs=100, p_incon=.3)
-            >>> infr = demo_graph_iden.demodata_infr(infer=False, **kwargs)
+            >>> infr = demo.demodata_infr(infer=False, **kwargs)
             >>> graph = None
             >>> cat1 = infr.categorize_edges_old()['ne_categories']
             >>> cat2 = infr.categorize_edges()
@@ -1556,11 +1556,11 @@ class _AnnotInfrRelabel(object):
             dict: num_inconsistent, num_names_max
 
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden connected_component_status
+            python -m ibeis.algo.graph_iden.core connected_component_status
 
         Example:
             >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.add_feedback_from([(2, 3), 'nomatch') (5, 6), 'nomatch')
             >>>                         (1, 2), 'match')]
@@ -1585,9 +1585,9 @@ class AnnotInference(ut.NiceRepr,
                      _AnnotInfrIBEIS,
                      _AnnotInfrFeedback, _AnnotInfrUpdates,
                      _AnnotInfrPriority, _AnnotInfrRelabel, _AnnotInfrDummy,
-                     graph_iden_mixins._AnnotInfrHelpers,
-                     graph_iden_mixins._AnnotInfrGroundtruth,
-                     graph_iden_depmixin._AnnotInfrDepMixin,
+                     mixin_helpers._AnnotInfrHelpers,
+                     mixin_helpers._AnnotInfrGroundtruth,
+                     # _dep_mixins._AnnotInfrDepMixin,
                      AnnotInfr2,
                      viz_graph_iden._AnnotInfrViz):
     """
@@ -1603,7 +1603,7 @@ class AnnotInference(ut.NiceRepr,
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> from ibeis.algo.graph_iden.core import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aids = [1, 2, 3, 4, 5, 6]
@@ -1620,7 +1620,7 @@ class AnnotInference(ut.NiceRepr,
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> from ibeis.algo.graph_iden.core import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
@@ -1644,7 +1644,7 @@ class AnnotInference(ut.NiceRepr,
 
     Example:
         >>> # SCRIPT
-        >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+        >>> from ibeis.algo.graph_iden.core import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
         >>> aids = [1, 2, 3, 4, 5, 6, 7, 9]
@@ -1672,7 +1672,7 @@ class AnnotInference(ut.NiceRepr,
 
     """
 
-    _graph_cls = graph_iden_utils.NiceGraph
+    _graph_cls = nx_dynamic_graph.NiceGraph
     # _graph_cls = nx.Graph
     # nx.Graph
     # _graph_cls = nx.DiGraph
@@ -1759,7 +1759,7 @@ class AnnotInference(ut.NiceRepr,
 
         # graph holding positive edges of inconsistent PCCs
         # infr.recover_graph = infr._graph_cls()
-        infr.recover_graph = graph_iden_utils.DynConnGraph()
+        infr.recover_graph = nx_dynamic_graph.DynConnGraph()
         # infr._graph_cls()
         infr.recover_prev_neg_nids = None
         # Set of PCCs that are positive redundant
@@ -1917,11 +1917,11 @@ class AnnotInference(ut.NiceRepr,
     def add_aids(infr, aids, nids=None):
         """
         CommandLine:
-            python -m ibeis.algo.hots.graph_iden add_aids --show
+            python -m ibeis.algo.graph_iden.core add_aids --show
 
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
+            >>> from ibeis.algo.graph_iden.core import *  # NOQA
             >>> aids_ = [1, 2, 3, 4, 5, 6, 7, 9]
             >>> infr = AnnotInference(ibs=None, aids=aids_, autoinit=True)
             >>> aids = [2, 22, 7, 9, 8]
@@ -1987,7 +1987,7 @@ class AnnotInference(ut.NiceRepr,
         else:
             infr.graph = graph
 
-        infr.review_graphs['match'] = graph_iden_utils.DynConnGraph()
+        infr.review_graphs['match'] = nx_dynamic_graph.DynConnGraph()
         infr.review_graphs['nomatch'] = infr._graph_cls()
         infr.review_graphs['notcomp'] = infr._graph_cls()
         infr.review_graphs['unreviewed'] = infr._graph_cls()
@@ -2045,8 +2045,8 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         ibeis make_qt_graph_interface --show --aids=1,2,3,4,5,6,7 --graph --match=1,4 --nomatch=3,1,5,7
-        python -m ibeis.algo.hots.graph_iden
-        python -m ibeis.algo.hots.graph_iden --allexamples
+        python -m ibeis.algo.graph_iden.core
+        python -m ibeis.algo.graph_iden.core --allexamples
     """
     import multiprocessing
     multiprocessing.freeze_support()  # for win32

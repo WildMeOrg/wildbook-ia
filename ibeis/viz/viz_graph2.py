@@ -11,7 +11,7 @@ import numpy as np
 import dtool
 import networkx as nx
 import itertools as it
-from ibeis.algo.hots import graph_iden
+from ibeis.algo.graph_iden import graph_iden
 import guitool as gt
 import plottool as pt
 from plottool import abstract_interaction

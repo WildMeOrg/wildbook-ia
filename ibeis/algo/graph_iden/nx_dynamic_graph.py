@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import numpy as np
 import utool as ut
-import vtool as vt  # NOQA
 import networkx as nx
-from collections import defaultdict
+from ibeis.algo.graph_iden.nx_utils import edges_inside
 print, rrr, profile = ut.inject2(__name__)
+
+
+class NiceGraph(nx.Graph, ut.NiceRepr):
+    def __nice__(self):
+        return 'nNodes={}, nEdges={}'.format(
+            self.number_of_nodes(),
+            self.number_of_edges(),
+        )
 
 
 class nx_UnionFind(object):
@@ -83,14 +89,6 @@ class nx_UnionFind(object):
                 self.parents[x] = x
 
 
-class NiceGraph(nx.Graph, ut.NiceRepr):
-    def __nice__(self):
-        return 'nNodes={}, nEdges={}'.format(
-            self.number_of_nodes(),
-            self.number_of_edges(),
-        )
-
-
 class DynConnGraph(nx.Graph, ut.NiceRepr):
     """
     Dynamically connected graph.
@@ -116,11 +114,11 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         **kwargs:
 
     CommandLine:
-        python -m ibeis.algo.hots.graph_iden_utils DynConnGraph
+        python -m ibeis.algo.graph_iden.nx_dynamic_graph DynConnGraph
 
     Example:
         >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.graph_iden_utils import *  # NOQA
+        >>> from ibeis.algo.graph_iden.nx_dynamic_graph import *  # NOQA
         >>> self = DynConnGraph()
         >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (6, 7), (7, 4)])
         >>> self.add_edges_from([(10, 20), (20, 30), (40, 50), (60, 70), (70, 40)])
@@ -271,7 +269,7 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         """
         Example:
             >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden_utils import *  # NOQA
+            >>> from ibeis.algo.graph_iden.nx_dynamic_graph import *  # NOQA
             >>> self = DynConnGraph()
             >>> self.add_edges_from([(1, 2), (2, 3), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9)])
             >>> assert self._ccs == {1: {1, 2, 3}, 4: {4, 5, 6, 7, 8, 9}}
@@ -294,114 +292,13 @@ class DynConnGraph(nx.Graph, ut.NiceRepr):
         return H
 
 
-def _dz(a, b):
-    a = a.tolist() if isinstance(a, np.ndarray) else list(a)
-    b = b.tolist() if isinstance(b, np.ndarray) else list(b)
-    return ut.dzip(a, b)
-
-
-def e_(u, v):
-    return (u, v) if u < v else (v, u)
-
-
-def edges_inside(graph, nodes):
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ibeis.algo.graph_iden.nx_dynamic_graph
+        python -m ibeis.algo.graph_iden.nx_dynamic_graph --allexamples
     """
-    Finds edges within a set of nodes
-    Running time is O(len(nodes) ** 2)
-
-    Args:
-        graph (nx.Graph): an undirected graph
-        nodes1 (set): a set of nodes
-    """
-    result = set([])
-    upper = nodes.copy()
-    graph_adj = graph.adj
-    for u in nodes:
-        for v in upper.intersection(graph_adj[u]):
-            result.add(e_(u, v))
-        upper.remove(u)
-    return result
-
-
-def edges_outgoing(graph, nodes1):
-    """
-    Finds edges between two sets of disjoint nodes.
-    Running time is O(len(nodes1) * len(nodes2))
-
-    Args:
-        graph (nx.Graph): an undirected graph
-        nodes1 (set): set of nodes disjoint from `nodes2`
-        nodes2 (set): set of nodes disjoint from `nodes1`.
-    """
-    nodes1 = set(nodes1)
-    return {e_(u, v) for u in nodes1 for v in graph.adj[u] if v not in nodes1}
-
-
-def edges_cross(graph, nodes1, nodes2):
-    """
-    Finds edges between two sets of disjoint nodes.
-    Running time is O(len(nodes1) * len(nodes2))
-
-    Args:
-        graph (nx.Graph): an undirected graph
-        nodes1 (set): set of nodes disjoint from `nodes2`
-        nodes2 (set): set of nodes disjoint from `nodes1`.
-    """
-    return {e_(u, v) for u in nodes1
-            for v in nodes2.intersection(graph.adj[u])}
-
-
-def group_name_edges(g, node_to_label):
-    ne_to_edges = defaultdict(set)
-    for u, v in g.edges():
-        name_edge = e_(node_to_label[u], node_to_label[v])
-        ne_to_edges[name_edge].add(e_(u, v))
-    return ne_to_edges
-
-
-def ensure_multi_index(index, names):
-    import pandas as pd
-    if not isinstance(index, (pd.MultiIndex, pd.Index)):
-        names = ('aid1', 'aid2')
-        if len(index) == 0:
-            index = pd.MultiIndex([[], []], [[], []], names=names)
-        else:
-            index = pd.MultiIndex.from_tuples(index, names=names)
-    return index
-
-
-# @profile
-# def bridges(graph, cc1, cc2=None):
-#     if cc2 is None or cc2 is cc1:
-#         yielder = []
-#         both = set(cc1)
-#         both_upper = both.copy()
-#         for u in both:
-#             neighbs = set(graph.adj[u])
-#             neighbsBB_upper = neighbs.intersection(both_upper)
-#             for v in neighbsBB_upper:
-#                 yielder.append(e_(u, v))
-#                 # yield e_(u, v)
-#             both_upper.remove(u)
-#         return yielder
-#     else:
-#         yielder = []
-#         # assume cc1 and cc2 are disjoint
-#         only1 = set(cc1)
-#         only2 = set(cc2)
-#         for u in only1:
-#             neighbs = set(graph.adj[u])
-#             neighbs12 = neighbs.intersection(only2)
-#             for v in neighbs12:
-#                 yielder.append(e_(u, v))
-#                 # yield e_(u, v)
-#         return yielder
-    # test2 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-    #                                                    assume_sparse=True,
-    #                                                    assume_disjoint=True)]
-    # test3 =  [e_(u, v) for u, v in ut.nx_edges_between(graph, cc1, cc2,
-    #                                                    assume_sparse=False,
-    #                                                    assume_disjoint=True)]
-    # assert sorted(test1) == sorted(test2)
-    # assert sorted(test1) == sorted(test3)
-    # return test1
+    import multiprocessing
+    multiprocessing.freeze_support()  # for win32
+    import utool as ut  # NOQA
+    ut.doctest_funcs()

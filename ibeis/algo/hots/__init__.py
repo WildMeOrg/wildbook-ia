@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from ibeis.algo.hots import _pipeline_helpers
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import exceptions
-from ibeis.algo.hots import graph_iden
+from ibeis.algo.graph_iden import graph_iden
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import match_chips4
 from ibeis.algo.hots import multi_index
@@ -14,7 +14,6 @@ from ibeis.algo.hots import neighbor_index
 from ibeis.algo.hots import neighbor_index_cache
 from ibeis.algo.hots import nn_weights
 from ibeis.algo.hots import old_chip_match
-from ibeis.algo.hots import orig_graph_iden
 from ibeis.algo.hots import pipeline
 from ibeis.algo.hots import query_params
 from ibeis.algo.hots import query_request
@@ -85,7 +84,6 @@ def reload_subs(verbose=True):
     get_rrr(neighbor_index_cache)(verbose=verbose)
     get_rrr(nn_weights)(verbose=verbose)
     get_rrr(old_chip_match)(verbose=verbose)
-    get_rrr(orig_graph_iden)(verbose=verbose)
     get_rrr(pipeline)(verbose=verbose)
     get_rrr(query_params)(verbose=verbose)
     get_rrr(query_request)(verbose=verbose)
@@ -112,7 +110,6 @@ IMPORT_TUPLES = [
     ('neighbor_index_cache', None),
     ('nn_weights', None),
     ('old_chip_match', None),
-    ('orig_graph_iden', None),
     ('pipeline', None),
     ('query_params', None),
     ('query_request', None),
