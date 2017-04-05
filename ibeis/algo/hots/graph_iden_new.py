@@ -1207,9 +1207,6 @@ class InfrDynamicSubroutines(object):
             for error_edge in old_error_edges:
                 infr.queue[error_edge] = 0
 
-        # print('Checking cc = %r' % (cc,))
-        # print('neg_edges = %r' % (neg_edges,))
-        # print('infr.recover_graph = %r' % (infr.recover_graph,))
         if neg_edges:
             hypothesis = dict(infr.hypothesis_errors(
                 pos_subgraph, neg_edges))
@@ -1227,8 +1224,6 @@ class InfrDynamicSubroutines(object):
                     data = infr.graph.get_edge_data(*error_edge)
                     base = data.get('prob_match', 1e-9)
                     infr.queue[error_edge] = -(10 + base)
-            # print('Found neg_edges = %r' % (neg_edges,))
-            return True
         else:
             infr.recover_graph.remove_nodes_from(cc)
             num = infr.recover_graph.number_of_components()
@@ -1238,7 +1233,6 @@ class InfrDynamicSubroutines(object):
             infr.print(msg, color='green')
             infr.update_pos_redun(nid, force=True)
             infr.update_extern_neg_redun(nid, force=True)
-            return False
 
     def _positive_decision(infr, edge):
         nid1, nid2 = infr.pos_graph.node_labels(*edge)
@@ -1342,57 +1336,6 @@ class InfrDynamicSubroutines(object):
                 pass
 
     def _incomp_decision(infr, edge):
-        """
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden_new _incomp_decision
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> from ibeis.algo.hots import demo_graph_iden
-            >>> kwargs = dict(num_pccs=0)
-            >>> infr = demo_graph_iden.demodata_infr(infer=False, **kwargs)
-            >>> infr.verbose = 10
-            >>> c = ut.identity
-            >>> # Make 2 consistent and 2 inconsistent CCs
-            >>> infr.add_feedback(( 1,  2), 'match')
-            >>> infr.add_feedback(( 2,  3), 'match')
-            >>> infr.add_feedback(( 3,  4), 'match')
-            >>> infr.add_feedback(( 4,  1), 'match')
-            >>> # -----
-            >>> infr.add_feedback((11, 12), 'match')
-            >>> infr.add_feedback((12, 13), 'match')
-            >>> infr.add_feedback((13, 14), 'match')
-            >>> infr.add_feedback((14, 11), 'match')
-            >>> infr.add_feedback((12, 14), 'nomatch')
-            >>> # -----
-            >>> infr.add_feedback((21, 22), 'match')
-            >>> infr.add_feedback((22, 23), 'match')
-            >>> infr.add_feedback((23, 21), 'nomatch')
-            >>> # -----
-            >>> infr.add_feedback((31, 32), 'match')
-            >>> infr.add_feedback((32, 33), 'match')
-            >>> infr.add_feedback((33, 31), 'match')
-            >>> infr.add_feedback(( 2, 32), 'nomatch')
-            >>> infr.add_feedback(( 3, 33), 'nomatch')
-            >>> infr.add_feedback((12, 21), 'nomatch')
-            >>> # -----
-            >>> # Incomparable within CCs
-            >>> print('==========================')
-            >>> infr.add_feedback(( 1, 3), 'incomp')
-            >>> infr.add_feedback(( 1, 4), 'incomp')
-            >>> infr.add_feedback(( 1, 2), 'incomp')
-            >>> infr.add_feedback((11, 13), 'incomp')
-            >>> infr.add_feedback((11, 14), 'incomp')
-            >>> infr.add_feedback((11, 12), 'incomp')
-            >>> infr.add_feedback(( 1, 31), 'incomp')
-            >>> infr.add_feedback(( 2, 32), 'incomp')
-            >>> infr.add_feedback((12, 21), 'incomp')
-            >>> infr.add_feedback((23, 21), 'incomp')
-            >>> infr.add_feedback((12, 14), 'incomp')
-            >>> print('Final state:')
-            >>> print(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
-        """
         nid1, nid2 = infr.pos_graph.node_labels(*edge)
         incon1 = infr.recover_graph.has_node(edge[0])
         incon2 = infr.recover_graph.has_node(edge[1])
@@ -1471,59 +1414,6 @@ class InfrDynamicSubroutines(object):
 
     @profile
     def dynamic_inference(infr, edge, decision):
-        """
-        CommandLine:
-            python -m ibeis.algo.hots.graph_iden_new dynamic_inference
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.graph_iden import *  # NOQA
-            >>> from ibeis.algo.hots import demo_graph_iden
-            >>> kwargs = dict(num_pccs=0)
-            >>> infr = demo_graph_iden.demodata_infr(infer=False, **kwargs)
-            >>> infr.verbose = 10
-            >>> c = ut.identity
-            >>> # Make 3 inconsistent CCs
-            >>> infr.add_feedback(( 1,  2), 'match'), c('Consistent merge')
-            >>> infr.add_feedback(( 2,  3), 'match'), c('Consistent merge')
-            >>> infr.add_feedback(( 3,  4), 'match'), c('Consistent merge')
-            >>> infr.add_feedback(( 4,  1), 'match'), c('Consistent merge')
-            >>> infr.add_feedback(( 1,  3), 'nomatch')
-            >>> # -----
-            >>> infr.add_feedback((11, 12), 'match')
-            >>> infr.add_feedback((12, 13), 'match')
-            >>> infr.add_feedback((13, 11), 'nomatch')
-            >>> # -----
-            >>> infr.add_feedback((21, 22), 'match')
-            >>> infr.add_feedback((22, 23), 'match')
-            >>> infr.add_feedback((23, 21), 'nomatch')
-            >>> # -----
-            >>> # Fix inconsistency
-            >>> infr.add_feedback((23, 21), 'match')
-            >>> # Merge inconsistent CCS
-            >>> infr.add_feedback(( 1, 11), 'match')
-            >>> # Negative edge within an inconsistent CC
-            >>> infr.add_feedback(( 2, 13), 'nomatch')
-            >>> # Negative edge external to an inconsistent CC
-            >>> infr.add_feedback((12, 21), 'nomatch')
-            >>> # -----
-            >>> # Make inconsistency from positive
-            >>> infr.add_feedback((31, 32), 'match')
-            >>> infr.add_feedback((33, 34), 'match')
-            >>> infr.add_feedback((31, 33), 'nomatch')
-            >>> infr.add_feedback((32, 34), 'nomatch')
-            >>> infr.add_feedback((31, 34), 'match')
-            >>> # Fix everything
-            >>> infr.add_feedback(( 1,  3), 'match')
-            >>> infr.add_feedback(( 2,  4), 'match')
-            >>> infr.add_feedback((32, 34), 'match')
-            >>> infr.add_feedback((31, 33), 'match')
-            >>> infr.add_feedback((13, 11), 'match')
-            >>> infr.add_feedback((23, 21), 'match')
-            >>> infr.add_feedback(( 1, 11), 'nomatch')
-            >>> print('Final state:')
-            >>> print(ut.repr4(sorted(infr.gen_edge_attrs('decision'))))
-        """
         if decision == 'match':
             infr._positive_decision(edge)
         elif decision == 'nomatch':
