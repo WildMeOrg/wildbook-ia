@@ -56,11 +56,14 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
-                   get_index_data=None, total=None):
+                   get_index_data=None, total=None, hack_write=True):
+
         from ibeis.gui import inspect_gui
         self.infr = infr
         if infr is not None:
             ibs = infr.ibs
+
+        self.hack_write = hack_write
 
         self.annot_state1 = AnnotStateDialog(ibs=ibs)
         self.annot_state2 = AnnotStateDialog(ibs=ibs)
@@ -117,6 +120,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         np_bar = rbox.addNewHWidget()
         self.count = None
         self.total = None
+        self.was_confirmed = False
 
         if total is not None:
             self.get_index_data = get_index_data
@@ -136,14 +140,16 @@ class AnnotPairDialog(gt.GuitoolWidget):
         index = int(self.index_edit.text().split('/')[0])
         self.seek(index)
 
-    def accept(self):
+    def feedback_dict(self):
+        return self.annot_review.feedback_dict()
 
+    def write_review(self):
         # TODO: eventually stage annotation attributes
         self.annot_state1.ibeis_write()
         self.annot_state2.ibeis_write()
         # Stage edge attributes
         # edge = self.annot_review.edge
-        feedback = self.annot_review.feedback_dict()
+        feedback = self.feedback_dict()
         print('feedback = %s' % (ut.repr4(feedback),))
         infr = self.infr
         if infr is not None:
@@ -154,9 +160,19 @@ class AnnotPairDialog(gt.GuitoolWidget):
         else:
             print('Edge feedback not recoreded')
 
-        if self.count is not None:
-            # Move to the next item
-            self.step_by(1)
+    def accept(self):
+        self.was_confirmed = True
+        if self.hack_write:
+            self.write_review()
+            if self.count is not None:
+                # Move to the next item
+                self.step_by(1)
+        else:
+            # even more of a hack, this should be returned to something so it
+            # can write the properties
+            self.annot_state1.ibeis_write()
+            self.annot_state2.ibeis_write()
+            self.close()
 
     def set_edge(self, edge, info_text=None):
         edge_data = (None if self.infr is None else

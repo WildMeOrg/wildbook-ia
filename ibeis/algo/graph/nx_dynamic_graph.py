@@ -34,6 +34,10 @@ class nx_UnionFind(object):
         self.weights = {}
         self.add_elements(elements)
 
+    def clear(self):
+        self.parents = {}
+        self.weights = {}
+
     def __getitem__(self, element):
         # check for previously unknown element
         if self.add_element(element):
@@ -154,6 +158,11 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         self._ccs = {}
         self._union_find = nx_UnionFind()
         super(DynConnGraph, self).__init__(*args, **kwargs)
+
+    def clear(self):
+        super(DynConnGraph, self).clear()
+        self._ccs = {}
+        self._union_find.clear()
 
     def __nice__(self):
         return 'nNodes={}, nEdges={}, nCCs={}'.format(

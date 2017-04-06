@@ -546,19 +546,6 @@ class InfrLearning(object):
 
 class CandidateSearch(object):
     """ Search for candidate edges """
-
-    @profile
-    def filter_nonredun_edges(infr, edges):
-        for u, v in edges:
-            pos_graph = infr.pos_graph
-            nidu, nidv = pos_graph.node_labels(u, v)
-            if nidu == nidv:
-                if nidu not in infr.pos_redun_nids:
-                    yield (u, v)
-            elif nidu != nidv:
-                if not infr.neg_redun_nids.has_edge(nidu, nidv):
-                    yield (u, v)
-
     @profile
     def find_lnbnn_candidate_edges(infr):
         # Refresh the name labels

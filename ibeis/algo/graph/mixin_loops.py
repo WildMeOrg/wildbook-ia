@@ -122,7 +122,12 @@ class InfrLoops(object):
         while infr.is_recovering():
             edge, priority = infr.pop()
             num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
-            feedback = infr.request_user_review(edge)
+            try:
+                feedback = infr.request_user_review(edge)
+            except ReviewCanceled:
+                if not infr.is_redundant(edge):
+                    infr.queue[edge] = priority
+                continue
             infr.print(
                 'RECOVERY LOOP edge={}, decision={}, priority={}, '
                 'n_reviews={}, len(recover_ccs)={}'.format(
@@ -171,12 +176,15 @@ class InfrLoops(object):
                 for u, v, data in subgraph.edges(data=True):
                     edge = infr.e_(u, v)
                     if data.get('user_id', '').startswith('auto'):
-                        feedback = infr.request_user_review(edge)
+                        try:
+                            feedback = infr.request_user_review(edge)
+                        except ReviewCanceled:
+                            raise
                         infr.add_feedback(edge=edge, **feedback)
             # Check for inconsistency recovery
             infr.recovery_review_loop()
 
-        if infr.enable_inference and DEBUG_INCON:
+        if infr.enable_inference:
             infr.assert_consistency_invariant()
         # true_groups = list(map(set, infr.nid_to_gt_cc.values()))
         # pred_groups = list(infr.positive_connected_compoments())
@@ -185,6 +193,10 @@ class InfrLoops(object):
         # pred_merges = comparisons['pred_merges']
         # print(pred_merges)
         infr.print('Exiting main loop')
+
+
+class ReviewCanceled(Exception):
+    pass
 
 
 class InfrReviewers(object):
@@ -251,7 +263,17 @@ class InfrReviewers(object):
             feedback = infr.oracle.review(
                 edge, truth, infr.is_recovering())
         else:
-            raise NotImplementedError('no user review')
+            from ibeis.viz import viz_graph2
+            dlg = viz_graph2.AnnotPairDialog.as_dialog(
+                infr=infr, edge=edge, hack_write=False)
+            # dlg.resize(700, 500)
+            dlg.exec_()
+            if dlg.widget.was_confirmed:
+                feedback = dlg.widget.feedback_dict()
+                feedback.pop('edge', None)
+            else:
+                raise ReviewCanceled('user canceled')
+            # raise NotImplementedError('no user review')
         return feedback
 
 

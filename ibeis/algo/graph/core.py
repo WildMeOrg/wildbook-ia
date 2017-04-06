@@ -119,7 +119,7 @@ class Feedback(object):
                 'need to recompute before dynamic inference continues')
             # Update priority queue based on the new edge
             infr.add_review_edge(edge, decision)
-            if True:
+            if False:
                 infr._print_debug_ccs()
         else:
             infr.dirty = True
@@ -286,90 +286,6 @@ class Feedback(object):
             node: -aid for node, aid in infr.get_node_attrs('aid').items()
         }
         infr.set_node_attrs('name_label', distinct_names)
-
-
-class OldPriority(object):
-    """ for methods pertaining to the dynamic priority queue """
-
-    PRIORITY_METRIC = 'normscore'
-
-    def remaining_reviews(infr):
-        assert infr.queue is not None
-        return len(infr.queue)
-
-    def _get_priorites(infr, edges, is_uvd=False):
-        """
-        returns priorities based on PRIORITY_METRIC and state of 'maybe_error'
-        """
-        if not is_uvd:
-            uvds = ((u, v, infr.graph.get_edge_data(u, v)) for (u, v) in edges)
-        else:
-            uvds = edges
-        new_priorities = np.array([
-            d.get(infr.PRIORITY_METRIC, -1) + (2 * d.get('maybe_error', None))
-            for u, v, d in uvds
-        ])
-        flags = np.isnan(new_priorities)
-        if np.any(flags):
-            # give nan values very small priority
-            new_priorities[flags] = 1e-9
-        # Need to augment priority of suggested fixes
-        return new_priorities
-
-    def _init_priority_queue(infr, randomness=0, rng=None):
-        infr.print('_init_priority_queue', 1)
-        graph = infr.graph
-
-        infr.unreviewed_graph
-
-        # Candidate edges are unreviewed
-        cand_uvds = [
-            (u, v, d) for u, v, d in graph.edges(data=True)
-            if (d.get('decision', UNREV) == UNREV or
-                d.get('maybe_error', None))
-        ]
-
-        # Sort edges to review
-        priorities = infr._get_priorites(cand_uvds, is_uvd=True)
-        edges = [e_(u, v) for u, v, d in cand_uvds]
-
-        if len(priorities) > 0 and randomness > 0:
-            rng = ut.ensure_rng(rng)
-            minval = priorities.min()
-            spread = priorities.max() - minval
-            perb = (spread * rng.rand(len(priorities)) + minval)
-            priorities = randomness * perb + (1 - randomness) * priorities
-
-        # All operations on a treap except sorting use O(log(N)) time
-        infr.queue = ut.PriorityQueue(zip(edges, -priorities))
-
-    def pop(infr):
-        try:
-            edge, priority = infr.queue.pop()
-        except IndexError:
-            raise StopIteration('no more to review!')
-            # raise StopIteration('no more to review!') from None
-        else:
-            assert edge[0] < edge[1]
-            return edge, (priority * -1)
-
-    def generate_reviews(infr, randomness=0, rng=None, pos_redundancy=None,
-                         neg_redundancy=None, data=False):
-        """
-        Dynamic generator that yeilds high priority reviews
-        """
-        infr.queue_params['pos_redundancy'] = pos_redundancy
-        infr.queue_params['neg_redundancy'] = neg_redundancy
-        infr._init_priority_queue(randomness, rng)
-
-        if data:
-            while True:
-                edge, priority = infr.pop()
-                yield edge, priority
-        else:
-            while True:
-                edge, priority = infr.pop()
-                yield edge
 
 
 class NameRelabel(object):
@@ -765,7 +681,6 @@ class AnnotInference(ut.NiceRepr,
                      AltConstructors,
                      MiscHelpers,
                      Feedback,
-                     OldPriority,
                      NameRelabel,
                      # New core algorithm stuffs
                      mixin_dynamic.NonDynamicUpdate,
@@ -912,8 +827,7 @@ class AnnotInference(ut.NiceRepr,
         infr.term = None
 
         # Dynamic Properties (requires bookkeeping)
-        infr.error_edges = set([])
-        infr.error_edges2 = {}
+        infr.nid_to_errors = {}
         infr.recovery_ccs = []
         # TODO: keep one main recovery cc but once it is done pop the next one
         # from recovery_ccs until none are left
@@ -944,8 +858,8 @@ class AnnotInference(ut.NiceRepr,
         infr.nid_counter = None
         infr.queue = None
         infr.queue_params = {
-            'pos_redundancy': 1,
-            'neg_redundancy': 1,
+            'pos_redun': 1,
+            'neg_redun': 1,
             'complete_thresh': 1.0,
         }
         infr.add_aids(aids, nids)
@@ -978,7 +892,7 @@ class AnnotInference(ut.NiceRepr,
         infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
 
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
-        infr2.error_edges = copy.deepcopy(infr.error_edges)
+        infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
         return infr2
 
 

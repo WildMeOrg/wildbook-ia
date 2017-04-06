@@ -131,6 +131,11 @@ class IBEISIO(object):
     def get_ibeis_name_delta(infr, ignore_unknown=True):
         """
         Rectifies internal name_labels with the names stored in the name table.
+
+        Returns:
+            df: pd.DataFrame: data frame where each row specifies an aid
+                and its `old_name` which is in the ibeis database and the
+                `new_name` which is what we infer it should be renamed to.
         """
         infr.print('constructing name delta', 3)
         import pandas as pd

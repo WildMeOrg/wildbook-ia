@@ -2,28 +2,67 @@ import numpy as np
 import pandas as pd
 import utool as ut
 import pathlib
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 print, rrr, profile = ut.inject2(__name__)
 
 
 def qt_review():
+    """
+    CommandLine:
+        python -m ibeis.scripts.iccv qt_review
+    """
+    import guitool as gt
+    app = gt.ensure_qapp()[0]  # NOQA
+
     import ibeis
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
     ibs = ibeis.opendb(defaultdb=defaultdb)
     infr = ibeis.AnnotInference(ibs=ibs, aids='all',
                                 autoinit=True, verbose=True)
+
+    annots = ibs.annots(infr.aids)
+
+    # Yikes not the same
+    ut.get_stats(ut.lmap(len, ut.group_items(annots.aids, annots.nids).values()))
+    ut.get_stats(ut.lmap(len, ut.group_items(annots.aids, annots.names).values()))
+
+    infr.set_node_attrs(
+        'name_label', ut.dzip(annots.aids, annots.names),
+    )
+    infr.review_dummy_edges(method=1)
+    infr.apply_nondynamic_update()
+    for edge, vals in infr.read_ibeis_staging_feedback().items():
+        feedback = infr._rectify_feedback_item(vals)
+        infr.add_feedback(edge, **feedback)
+
+
+    # infr.reset_feedback('staging', apply=True)
+    infr.review_dummy_edges(method=2)
     infr.reset_feedback('staging', apply=True)
     infr.relabel_using_reviews()
 
-    nodes = ut.flatten(infr.recovery_ccs)
+    infr.prioritize()
+
+    infr.recovery_review_loop()
+    infr.write_ibeis_staging_feedback()
+
+    win = infr.start_qt_interface(loop=False)
+    win.show()
+    gt.qtapp_loop(qwin=win, freq=10)
+
+    if False:
+        infr.relabel_using_reviews(rectify=True)
+
+    # USE THE RECOVERY LOOP
+
+    # nodes = ut.flatten(infr.recovery_ccs)
     # graph = infr.graph.subgraph(nodes)
     # infr.show_graph(graph=graph)
-
-    infr = ibeis.AnnotInference(ibs=ibs, aids=nodes, autoinit=True,
-                                verbose=True)
-    infr.reset_feedback('staging', apply=True)
-    infr.relabel_using_reviews()
-    win = infr.start_qt_interface(loop=False)
+    # infr = ibeis.AnnotInference(ibs=ibs, aids=nodes, autoinit=True,
+    #                             verbose=True)
+    # infr.reset_feedback('staging', apply=True)
+    # infr.relabel_using_reviews()
+    # win = infr.start_qt_interface(loop=False)
 
 
 def gt_review():
