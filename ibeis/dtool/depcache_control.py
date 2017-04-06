@@ -11,7 +11,7 @@ from dtool import sql_control
 from dtool import depcache_table
 from dtool import base
 from collections import defaultdict
-(print, rrr, profile) = ut.inject2(__name__, '[depcache]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # global function registry
