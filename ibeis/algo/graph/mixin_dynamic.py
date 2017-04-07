@@ -322,8 +322,9 @@ class Recovery(object):
         # Remove priority from old error edges
         infr.set_edge_attrs('maybe_error', ut.dzip(old_error_edges, [None]))
         if infr.queue is not None:
-            for error_edge in old_error_edges:
-                infr.queue[error_edge] = 0
+            infr._remove_edge_priority(old_error_edges)
+            # for error_edge in old_error_edges:
+            #     infr.queue[error_edge] = 0
 
     def _set_error_edges(infr, nid, new_error_edges):
         # flag error edges
@@ -423,88 +424,6 @@ class Recovery(object):
                     maybe_error_edges.add(edge)
                     yield (edge, hypothesis)
         # return maybe_error_edges
-
-
-class Priority(object):
-
-    def remaining_reviews(infr):
-        assert infr.queue is not None
-        return len(infr.queue)
-
-    def prioritize(infr, metric=None):
-        if infr.queue is None:
-            infr.queue = ut.PriorityQueue()
-        low = 1e-9
-        metric = 'prob_match'
-        # Get unreviewed and error edges that are not redundant
-        edges = list(infr.filter_nonredun_edges(infr.unreviewed_graph.edges()))
-        priorities = list(infr.gen_edge_values(metric, edges, default=low))
-        priorities = np.array(priorities)
-        priorities[np.isnan(priorities)] = low
-        for edge, priority in zip(edges, priorities):
-            infr.queue[edge] = -priority
-        # Increase priority of any edge flagged as maybe_error
-        for edge in ut.iflatten(infr.nid_to_errors.values()):
-            infr.queue[edge] = infr.queue.pop(edge, low) - 10
-
-    def pop(infr):
-        try:
-            edge, priority = infr.queue.pop()
-        except IndexError:
-            raise StopIteration('no more to review!')
-        else:
-            assert edge[0] < edge[1]
-            return edge, (priority * -1)
-
-    def generate_reviews(infr, pos_redun=None, neg_redun=None,
-                         data=False):
-        """
-        Dynamic generator that yeilds high priority reviews
-        """
-        if pos_redun is not None:
-            infr.queue_params['pos_redun'] = pos_redun
-        if neg_redun is not None:
-            infr.queue_params['neg_redun'] = neg_redun
-        infr.prioritize()
-
-        if data:
-            while True:
-                edge, priority = infr.pop()
-                yield edge, priority
-        else:
-            while True:
-                edge, priority = infr.pop()
-                yield edge
-
-    def remove_internal_priority(infr, cc):
-        infr.queue.delete_items(edges_inside(infr.graph, cc))
-
-    def remove_external_priority(infr, cc):
-        infr.queue.delete_items(edges_outgoing(infr.graph, cc))
-
-    def remove_between_priority(infr, cc1, cc2):
-        infr.queue.delete_items(edges_cross(infr.graph, cc1, cc2))
-
-    def reinstate_between_priority(infr, cc1, cc2):
-        # Reinstate the appropriate edges into the queue
-        edges = edges_cross(infr.unreviewed_graph, cc1, cc2)
-        infr.reinstate_edge_priority(edges)
-
-    def reinstate_internal_priority(infr, cc):
-        # Reinstate the appropriate edges into the queue
-        edges = edges_inside(infr.unreviewed_graph, cc)
-        infr.reinstate_edge_priority(edges)
-
-    def reinstate_external_priority(infr, cc):
-        # Reinstate the appropriate edges into the queue
-        edges = edges_outgoing(infr.unreviewed_graph, cc)
-        infr.reinstate_edge_priority(edges)
-
-    def reinstate_edge_priority(infr, edges):
-        prob_match = np.array(list(infr.gen_edge_values(
-            'prob_match', edges, default=1e-9)))
-        priority = -prob_match
-        infr.queue.update(ut.dzip(edges, priority))
 
 
 class Consistency(object):
@@ -660,6 +579,91 @@ class Completeness(object):
             if len(check_edges) > 0:
                 # no check edges means we can't do anything
                 yield (c1_nodes, c2_nodes, check_edges)
+
+
+class Priority(object):
+
+    def remaining_reviews(infr):
+        assert infr.queue is not None
+        return len(infr.queue)
+
+    def prioritize(infr, metric=None):
+        if infr.queue is None:
+            infr.queue = ut.PriorityQueue()
+        low = 1e-9
+        metric = 'prob_match'
+        # Get unreviewed and error edges that are not redundant
+        edges = list(infr.filter_nonredun_edges(infr.unreviewed_graph.edges()))
+        priorities = list(infr.gen_edge_values(metric, edges, default=low))
+        priorities = np.array(priorities)
+        priorities[np.isnan(priorities)] = low
+        for edge, priority in zip(edges, priorities):
+            infr.queue[edge] = -priority
+        # Increase priority of any edge flagged as maybe_error
+        for edge in ut.iflatten(infr.nid_to_errors.values()):
+            infr.queue[edge] = infr.queue.pop(edge, low) - 10
+
+    def pop(infr):
+        try:
+            edge, priority = infr.queue.pop()
+        except IndexError:
+            raise StopIteration('no more to review!')
+        else:
+            assert edge[0] < edge[1]
+            return edge, (priority * -1)
+
+    def generate_reviews(infr, pos_redun=None, neg_redun=None,
+                         data=False):
+        """
+        Dynamic generator that yeilds high priority reviews
+        """
+        if pos_redun is not None:
+            infr.queue_params['pos_redun'] = pos_redun
+        if neg_redun is not None:
+            infr.queue_params['neg_redun'] = neg_redun
+        infr.prioritize()
+
+        if data:
+            while True:
+                edge, priority = infr.pop()
+                yield edge, priority
+        else:
+            while True:
+                edge, priority = infr.pop()
+                yield edge
+
+    def remove_internal_priority(infr, cc):
+        infr._remove_edge_priority(edges_inside(infr.graph, cc))
+
+    def remove_external_priority(infr, cc):
+        infr._remove_edge_priority(edges_outgoing(infr.graph, cc))
+
+    def remove_between_priority(infr, cc1, cc2):
+        infr._remove_edge_priority(edges_cross(infr.graph, cc1, cc2))
+
+    def reinstate_between_priority(infr, cc1, cc2):
+        # Reinstate the appropriate edges into the queue
+        edges = edges_cross(infr.unreviewed_graph, cc1, cc2)
+        infr._reinstate_edge_priority(edges)
+
+    def reinstate_internal_priority(infr, cc):
+        # Reinstate the appropriate edges into the queue
+        edges = edges_inside(infr.unreviewed_graph, cc)
+        infr._reinstate_edge_priority(edges)
+
+    def reinstate_external_priority(infr, cc):
+        # Reinstate the appropriate edges into the queue
+        edges = edges_outgoing(infr.unreviewed_graph, cc)
+        infr._reinstate_edge_priority(edges)
+
+    def _remove_edge_priority(infr, edges):
+        infr.queue.delete_items(edges)
+
+    def _reinstate_edge_priority(infr, edges):
+        prob_match = np.array(list(infr.gen_edge_values(
+            'prob_match', edges, default=1e-9)))
+        priority = -prob_match
+        infr.queue.update(ut.dzip(edges, priority))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

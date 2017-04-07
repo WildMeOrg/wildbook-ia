@@ -27,15 +27,17 @@ def demo2():
 
     # ---- Synthetic data params
     queue_params = {
-        'pos_redun': None,
-        'neg_redun': None,
+        # 'pos_redun': None,
+        # 'neg_redun': None,
+        'pos_redun': 2,
+        'neg_redun': 2,
     }
     oracle_accuracy = .8
 
-    round2_params = {
-        'pos_redun': 2,
-        'neg_redun': 3,
-    }
+    # round2_params = {
+    #     'pos_redun': 2,
+    #     'neg_redun': 3,
+    # }
 
     # --- draw params
 
@@ -167,30 +169,30 @@ def demo2():
     show_graph(infr, 'post-review', final=True)
 
     # ROUND 2 FIGHT
-    if TARGET_REVIEW is None and round2_params is not None:
-        # HACK TO GET NEW THINGS IN QUEUE
-        infr.queue_params = round2_params
+    # if TARGET_REVIEW is None and round2_params is not None:
+    #     # HACK TO GET NEW THINGS IN QUEUE
+    #     infr.queue_params = round2_params
 
-        _iter2 = enumerate(infr.generate_reviews(**queue_params))
-        prog = ut.ProgIter(_iter2, label='round2', bs=False, adjust=False,
-                           enabled=False)
-        for count, (aid1, aid2) in prog:
-            msg = 'reviewII #%d' % (count)
-            print('\n----------')
-            print(msg)
-            print('remaining_reviews = %r' % (infr.remaining_reviews()),)
-            # Make the next review decision
-            feedback = infr.request_oracle_review(edge)
-            if count == TARGET_REVIEW:
-                infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
-            infr.add_feedback(edge, **feedback)
-            # Show the result
-            if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
-                show_graph(infr, msg)
-            if count == TARGET_REVIEW:
-                break
+    #     _iter2 = enumerate(infr.generate_reviews(**queue_params))
+    #     prog = ut.ProgIter(_iter2, label='round2', bs=False, adjust=False,
+    #                        enabled=False)
+    #     for count, (aid1, aid2) in prog:
+    #         msg = 'reviewII #%d' % (count)
+    #         print('\n----------')
+    #         print(msg)
+    #         print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+    #         # Make the next review decision
+    #         feedback = infr.request_oracle_review(edge)
+    #         if count == TARGET_REVIEW:
+    #             infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
+    #         infr.add_feedback(edge, **feedback)
+    #         # Show the result
+    #         if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
+    #             show_graph(infr, msg)
+    #         if count == TARGET_REVIEW:
+    #             break
 
-        show_graph(infr, 'post-re-review', final=True)
+    #     show_graph(infr, 'post-re-review', final=True)
 
     if not getattr(infr, 'EMBEDME', False):
         if ut.get_computer_name().lower() in ['hyrule', 'ooo']:
