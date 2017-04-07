@@ -1073,12 +1073,14 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     # Draw Edges
     # NEW WAY OF DRAWING EDGEES
     edge_pos = layout_info['edge'].get('ctrl_pts', None)
+    n_invis_edge = 0
     if edge_pos is not None:
         for edge, pts in ut.ProgIter(edge_pos.items(), nTotal=len(edge_pos),
                                      enabled=large_graph, lbl='drawing edges'):
             data = get_default_edge_data(graph, edge)
 
             if data.get('style', None) == 'invis':
+                n_invis_edge += 1
                 continue
 
             alpha = data.get('alpha', None)
@@ -1313,6 +1315,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
     if verbose:
         print('Adding %r node patches ' % (len(patch_dict['node_patch_dict'],)))
         print('Adding %r edge patches ' % (len(patch_dict['edge_patch_dict'],)))
+        print('n_invis_edge = %r' % (n_invis_edge,))
 
     for frame in patch_dict['patch_frame_dict'].values():
         ax.add_patch(frame)
