@@ -30,7 +30,7 @@ def demo2():
         # 'pos_redun': None,
         # 'neg_redun': None,
         'pos_redun': 2,
-        'neg_redun': 2,
+        'neg_redun': 1,
     }
     oracle_accuracy = .8
 
@@ -41,14 +41,13 @@ def demo2():
 
     # --- draw params
 
-    VISUALIZE = False
-    VISUALIZE = True
+    VISUALIZE = ut.get_argflag('--viz')
 
-    SHOW_GT = True
+    SHOW_GT = VISUALIZE
     # QUIT_OR_EMEBED = 'embed'
     QUIT_OR_EMEBED = 'quit'
     TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
-    PRESHOW = True
+    PRESHOW = VISUALIZE
 
     fontsize = 12
     # fontname = 'Ubuntu'
@@ -85,6 +84,7 @@ def demo2():
     def show_graph(infr, title, final=False):
         if not VISUALIZE:
             return
+        latest = '\n'.join(infr.latest_logs())
         showkw = dict(
             fontsize=fontsize, fontname=fontname,
             show_unreviewed_edges=True,
@@ -110,10 +110,14 @@ def demo2():
         print('status ' + ut.repr4(infr_.status()))
         # infr.show(**showkw)
         pt.set_title(title)
-        pt.adjust_subplots(top=.95, left=0, right=1, bottom=.01)
-        pt.gca().set_aspect('equal')
+        ax = pt.gca()
+        fig = pt.gcf()
+        pt.adjust_subplots(top=.95, left=0, right=1, bottom=.2, fig=fig)
+        ax.set_aspect('equal')
+        ax.set_xlabel(latest)
         dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
         pt.save_figure(dpath=dpath, dpi=128)
+        infr.latest_logs()
 
     if VISUALIZE:
         infr.update_visual_attrs(splines=splines, groupby='name_label')
@@ -121,18 +125,20 @@ def demo2():
         print(ut.repr4(infr.graph.node[1]))
 
     if SHOW_GT:
+        infr.latest_logs()
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')
 
     # Dummy scoring
     # infr.ensure_full()
-    apply_dummy_scores(infr, rng)
     infr.apply_edge_truth()
+    apply_dummy_scores(infr, rng)
 
     print(ut.repr4(infr.status()))
     infr.clear_feedback()
     infr.clear_name_labels()
     print(ut.repr4(infr.status()))
+    infr.latest_logs()
 
     if VISUALIZE:
         infr.update_visual_attrs(splines=splines)
@@ -147,16 +153,20 @@ def demo2():
     # prog = ut.ProgIter(_iter2, label='demo2', bs=False, adjust=False,
     #                    enabled=False)
     count = 0
-    for edge in infr.generate_reviews(**queue_params):
-        msg = 'review #%d' % (count)
+    infr.prioritize('prob_match')
+    infr.queue_params.update(**queue_params)
+    for edge, priority in infr._generate_reviews(data=True):
+        msg = 'review #%d, priority=%r' % (count, priority)
         print('\n----------')
-        print(msg)
-        print('remaining_reviews = %r' % (infr.remaining_reviews()),)
+        infr.print(msg)
+        # print('remaining_reviews = %r' % (infr.remaining_reviews()),)
         # Make the next review decision
         feedback = infr.request_oracle_review(edge)
         if count == TARGET_REVIEW:
             infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
         infr.add_feedback(edge, **feedback)
+        infr.print('len(queue) = %r' % (len(infr.queue)))
+        # infr.apply_nondynamic_update()
         # Show the result
         if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
             show_graph(infr, msg)
@@ -205,8 +215,6 @@ def demo2():
 def randn(mean=0, std=1, shape=[], a_max=None, a_min=None, rng=None):
     a = (rng.randn(*shape) * std) + mean
     if a_max is not None or a_min is not None:
-        a_max = np.inf if a_max is None else a_max
-        a_min = np.inf if a_min is None else a_min
         a = np.clip(a, a_min, a_max)
     return a
 
@@ -261,13 +269,16 @@ def apply_dummy_scores(infr, rng=None):
         >>> infr = make_dummy_infr([100] * 2)
         >>> infr.ensure_full()
         >>> rng = None
+        >>> infr.apply_edge_truth()
         >>> apply_dummy_scores(infr, rng)
         >>> edges = list(infr.graph.edges())
-        >>> truths = np.array([get_edge_truth(infr, n1, n2) for n1, n2 in edges])
-        >>> edge_to_normscore = infr.get_edge_attrs('normscore')
+        >>> truths = np.array(ut.take(infr.edge_truth, edges))
+        >>> edge_to_normscore = infr.get_edge_attrs('prob_match')
         >>> scores = np.array(list(ut.take(edge_to_normscore, edges)))
         >>> scorenorm = vt.ScoreNormalizer()
-        >>> scorenorm.fit(scores, truths)
+        >>> import ibeis.constants as const
+        >>> truth_enc = np.array(ut.take(const.REVIEW.CODE_TO_INT, truths))
+        >>> scorenorm.fit(scores, truth_enc)
         >>> ut.quit_if_noshow()
         >>> scorenorm.visualize()
         >>> ut.show_if_requested()
@@ -275,16 +286,16 @@ def apply_dummy_scores(infr, rng=None):
     print('[demo] apply dummy scores')
     rng = ut.ensure_rng(rng)
     dummy_params = {
-        0: {'mean': .2, 'std': .5},
-        1: {'mean': .8, 'std': .4},
-        2: {'mean': .2, 'std': .8},
+        NEGTV: {'mean': .2, 'std': .25},
+        POSTV: {'mean': .8, 'std': .2},
+        INCMP: {'mean': .2, 'std': .4},
     }
     edges = list(infr.graph.edges())
-    truths = [get_edge_truth(infr, n1, n2) for n1, n2 in ut.ProgIter(edges)]
-    normscores = [randn(rng=rng, a_max=0, a_min=1, **dummy_params[truth])
-                  for truth in ut.ProgIter(truths, label='clipping')]
-    infr.set_edge_attrs('normscore', ut.dzip(edges, normscores))
-    ut.nx_delete_edge_attr(infr.graph, 'dummy')
+    grouped_edges = ut.group_pairs(infr.edge_truth.items())
+    for key, group in grouped_edges.items():
+        probs = randn(shape=[len(group)], rng=rng, a_max=1, a_min=0,
+                      **dummy_params[key])
+        infr.set_edge_attrs('prob_match', ut.dzip(group, probs))
 
 
 def apply_dummy_viewpoints(infr):
@@ -342,7 +353,7 @@ def make_demo_infr(ccs, edges, nodes=[], infer=True):
             if decision == INCMP:
                 d['reviewed_weight'] = 0.5
         else:
-            d['normscore'] = rng.rand()
+            d['prob_match'] = rng.rand()
 
     G.add_edges_from(edges)
     infr = ibeis.AnnotInference.from_netx(G, infer=infer)

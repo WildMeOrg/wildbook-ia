@@ -81,9 +81,9 @@ class Feedback(object):
         if True:
             print('')
 
-        msg = 'add_feedback {}, {} '.format(aid1, aid2)
+        msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
-        msg += ' '.join([
+        msg += ', '.join([
             key + '=' + str(val)
             for key, val in ((key, loc[key])
                              for key in 'decision tags user_id confidence'.split())
@@ -258,14 +258,17 @@ class Feedback(object):
 
         # Move reviewed edges back into the unreviewed graph
         for key in (POSTV, NEGTV, INCMP):
-            rev_graph = infr.review_graphs[key]
-            prev_edges = ut.compress(edges, list(rev_graph.has_edges(edges)))
-            rev_graph.remove_edges_from(prev_edges)
+            subgraph = infr.review_graphs[key]
+            prev_edges = ut.compress(edges, list(subgraph.has_edges(edges)))
+            subgraph.remove_edges_from(prev_edges)
             infr.review_graphs[UNREV].add_edges_from(prev_edges)
 
         infr.pos_redun_nids.clear()
         infr.neg_redun_nids.clear()
         infr.nid_to_errors.clear()
+
+        if __debug__:
+            infr.assert_disjoint_invariant()
 
     def clear_edges(infr):
         """
@@ -628,16 +631,24 @@ class MiscHelpers(object):
     def init_logging(infr):
         import collections
         infr.logs = collections.deque(maxlen=10000)
+        infr.log_index = 0
 
     def log_message(infr, msg, level=logging.NOTSET, color=None):
         if color is None:
             color = 'blue'
         if True:
             infr.logs.append((msg, color))
+            if len(infr.logs) == infr.logs.maxlen:
+                infr.log_index = max(infr.log_index - 1, 0)
         if infr.verbose >= level:
             ut.cprint('[infr] ' + msg, color)
 
     print = log_message
+
+    def latest_logs(infr):
+        index = infr.log_index
+        infr.log_index = len(infr.logs)
+        return [infr.logs[x][0] for x in range(index, len(infr.logs))]
 
     def dump_logs(infr):
         print('--- <LOG DUMP> ---')

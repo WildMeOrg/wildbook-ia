@@ -597,11 +597,17 @@ class Priority(object):
         priorities = list(infr.gen_edge_values(metric, edges, default=low))
         priorities = np.array(priorities)
         priorities[np.isnan(priorities)] = low
+        num_new = 0
         for edge, priority in zip(edges, priorities):
+            if edge not in infr.queue:
+                num_new += 1
             infr.queue[edge] = -priority
         # Increase priority of any edge flagged as maybe_error
         for edge in ut.iflatten(infr.nid_to_errors.values()):
+            if edge not in infr.queue:
+                num_new += 1
             infr.queue[edge] = infr.queue.pop(edge, low) - 10
+        infr.print('added %d edges to the queue' % (num_new,))
 
     def pop(infr):
         try:
@@ -622,9 +628,13 @@ class Priority(object):
         if neg_redun is not None:
             infr.queue_params['neg_redun'] = neg_redun
         infr.prioritize()
+        return infr._generate_reviews(data=data)
 
+    def _generate_reviews(infr, data=False):
         if data:
             while True:
+                if len(infr.queue) == 0:
+                    pass
                 edge, priority = infr.pop()
                 yield edge, priority
         else:

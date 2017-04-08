@@ -150,12 +150,12 @@ class DummyEdges(object):
 
     def ensure_full(infr):
         infr.print('ensure_full with %d nodes' % (len(infr.graph)), 2)
-        new_edges = nx.complement(infr.graph).edges()
+        new_edges = list(nx.complement(infr.graph).edges())
         # if infr.verbose:
         #     infr.print('adding %d complement edges' % (len(new_edges)))
-        infr.graph.add_edges_from(new_edges)
+        infr.graph.add_edges_from(new_edges, decision=UNREV, _dummy_edge=True)
         infr.unreviewed_graph.add_edges_from(new_edges)
-        infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
+        # infr.assert_disjoint_invariant()
 
     def ensure_cliques(infr, label='name_label'):
         """
@@ -172,8 +172,9 @@ class DummyEdges(object):
                     new_edges.append(edge)
         infr.print('adding %d clique edges' % (len(new_edges)), 2)
         infr.graph.add_edges_from(new_edges)
-        infr.unreviewed_graph.add_edges_from(new_edges)
-        infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
+        infr.unreviewed_graph.add_edges_from(new_edges, decision=UNREV,
+                                             _dummy_edge=True)
+        # infr.assert_disjoint_invariant()
 
     def find_connecting_edges(infr):
         """
@@ -413,19 +414,27 @@ class AssertInvariants(object):
         infr.assert_recovery_invariant(msg)
 
     def assert_disjoint_invariant(infr, msg=''):
-        edge_sets = [
-            set(it.starmap(e_, graph.edges()))
+        # infr.print('assert_disjoint_invariant', 200)
+        edge_sets = {
+            key: set(it.starmap(e_, graph.edges()))
             for key, graph in infr.review_graphs.items()
-        ]
-        for es1, es2 in it.combinations(edge_sets, 2):
+        }
+        for es1, es2 in it.combinations(edge_sets.values(), 2):
             assert es1.isdisjoint(es2), 'edge sets must be disjoint'
         all_edges = set(it.starmap(e_, infr.graph.edges()))
-        edge_union = set.union(*edge_sets)
-        assert edge_union == all_edges, 'edge sets must have full union'
+        edge_union = set.union(*edge_sets.values())
+        if edge_union != all_edges:
+            print('ERROR STATUS DUMP:')
+            print(ut.repr4(infr.status()))
+            raise AssertionError(
+                'edge sets must have full union. Found union=%d vs all=%d' % (
+                    len(edge_union), len(all_edges)
+                ))
 
     def assert_consistency_invariant(infr, msg=''):
         if not DEBUG_INCON:
             return
+        # infr.print('assert_consistency_invariant', 200)
         if infr.enable_inference:
             incon_ccs = list(infr.inconsistent_components())
             with ut.embed_on_exception_context:
@@ -436,6 +445,7 @@ class AssertInvariants(object):
     def assert_recovery_invariant(infr, msg=''):
         if not DEBUG_INCON:
             return
+        # infr.print('assert_recovery_invariant', 200)
         inconsistent_ccs = list(infr.inconsistent_components())
         incon_cc = set(ut.flatten(inconsistent_ccs))  # NOQA
         # import utool
