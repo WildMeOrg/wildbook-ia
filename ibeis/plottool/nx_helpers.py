@@ -379,10 +379,69 @@ def apply_graph_layout_attrs(graph, layout_info):
     graph.graph.update(graph_attrs)
 
 
+def patch_pygraphviz():
+    """
+    Hacks around a python3 problem in 1.3.1 of pygraphviz
+    """
+    import pygraphviz
+    if pygraphviz.__version__ != '1.3.1':
+        return
+    if hasattr(pygraphviz.agraph.AGraph, '_run_prog_patch'):
+        return
+    def _run_prog(self, prog='nop', args=''):
+        """Apply graphviz program to graph and return the result as a string.
+
+        >>> A = AGraph()
+        >>> s = A._run_prog() # doctest: +SKIP
+        >>> s = A._run_prog(prog='acyclic') # doctest: +SKIP
+
+        Use keyword args to add additional arguments to graphviz programs.
+        """
+        from pygraphviz.agraph import (shlex, subprocess, PipeReader, warnings)
+        runprog = r'"%s"' % self._get_prog(prog)
+        cmd = ' '.join([runprog, args])
+        dotargs = shlex.split(cmd)
+        p = subprocess.Popen(dotargs,
+                             shell=False,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=False)
+        (child_stdin,
+         child_stdout,
+         child_stderr) = (p.stdin, p.stdout, p.stderr)
+        # Use threading to avoid blocking
+        data = []
+        errors = []
+        threads = [PipeReader(data, child_stdout),
+                   PipeReader(errors, child_stderr)]
+        for t in threads:
+            t.start()
+
+        self.write(child_stdin)
+        child_stdin.close()
+
+        for t in threads:
+            t.join()
+
+        if not data:
+            raise IOError(b"".join(errors))
+
+        if len(errors) > 0:
+            warnings.warn(str(b"".join(errors)), RuntimeWarning)
+
+        return b"".join(data)
+    # Patch error in pygraphviz
+    pygraphviz.agraph.AGraph._run_prog_patch = _run_prog
+    pygraphviz.agraph.AGraph._run_prog_orig = pygraphviz.agraph.AGraph._run_prog
+    pygraphviz.agraph.AGraph._run_prog = _run_prog
+
+
 def make_agraph(graph_):
     # FIXME; make this not an inplace operation
     import networkx as nx
     import pygraphviz
+    patch_pygraphviz()
     # Convert to agraph format
 
     num_nodes = len(graph_)
