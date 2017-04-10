@@ -78,7 +78,7 @@ class DynamicUpdate(object):
                 G.remove_edges_from(edges)
 
     def _add_review_edge(infr, edge, decision):
-        infr.print('add review edge=%r, decision=%r' % (edge, decision), 20)
+        # infr.print('add review edge=%r, decision=%r' % (edge, decision), 20)
         # Add to review graph corresponding to decision
         infr.review_graphs[decision].add_edge(*edge)
         # Remove from previously existing graphs
@@ -667,12 +667,16 @@ class Priority(object):
         infr._reinstate_edge_priority(edges)
 
     def _remove_edge_priority(infr, edges):
+        edges = [edge for edge in edges if edge in infr.queue]
+        infr.print('removed priority from %d edges' % (len(edges),))
         infr.queue.delete_items(edges)
 
     def _reinstate_edge_priority(infr, edges):
+        edges = [edge for edge in edges if edge not in infr.queue]
         prob_match = np.array(list(infr.gen_edge_values(
             'prob_match', edges, default=1e-9)))
         priority = -prob_match
+        infr.print('reinstate priority from %d edges' % (len(edges),))
         infr.queue.update(ut.dzip(edges, priority))
 
 
@@ -789,28 +793,35 @@ class Redundancy(_RedundancyHelpers):
         Checks if two PCCs are newly or no longer negative redundant.
         Edges are either removed or added to the queue appropriately.
         """
+        infr.print('update_neg_redun')
         need_add = False
         need_remove = False
         force = True
+        was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
         if force:
             cc1 = infr.pos_graph.component(nid1)
             cc2 = infr.pos_graph.component(nid2)
             need_add = infr.is_neg_redundant(cc1, cc2)
             need_remove = not need_add
         else:
-            was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
             if may_add and not was_neg_redun:
                 cc1 = infr.pos_graph.component(nid1)
                 cc2 = infr.pos_graph.component(nid2)
                 need_add = infr.is_neg_redundant(cc1, cc2)
             elif may_remove and not was_neg_redun:
                 need_remove = not infr.is_neg_redundant(cc1, cc2)
+        # if force:
+        #     infr.print('is_neg_redun=%r' % (need_add,))
         if need_add:
             # Flag ourselves as negative redundant and remove priorities
+            if not was_neg_redun:
+                infr.print('flag_neg_redun=%r,%r' % (nid1, nid2,))
             infr.neg_redun_nids.add_edge(nid1, nid2)
             if infr.queue is not None:
                 infr.remove_between_priority(cc1, cc2)
         elif need_remove:
+            if was_neg_redun:
+                infr.print('unflag_neg_redun=%r,%r' % (nid1, nid2,))
             try:
                 infr.neg_redun_nids.remove_edge(nid1, nid2)
             except nx.exception.NetworkXError:
@@ -826,6 +837,7 @@ class Redundancy(_RedundancyHelpers):
         Checks if a PCC is newly, or no longer positive redundant.
         Edges are either removed or added to the queue appropriately.
         """
+        infr.print('update_pos_redun')
         need_add = False
         need_remove = False
         if force:
@@ -927,18 +939,34 @@ class Redundancy(_RedundancyHelpers):
                 nx_utils.is_edge_connected(pos_subgraph, k=required_k)
 
     def is_neg_redundant(infr, cc1, cc2):
+        r"""
+        Tests if two groups of nodes are negative redundant
+        (ie. have at least k negative edges between them).
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.make_demo_infr(ccs=[(1, 2), (3, 4)])
+            >>> infr.queue_params['neg_redun'] = 2
+            >>> cc1 = infr.pos_graph.connected_to(1)
+            >>> cc2 = infr.pos_graph.connected_to(3)
+            >>> flag1 = infr.is_neg_redundant(cc1, cc2)
+            >>> infr.add_feedback((1, 3), decision=NEGTV)
+            >>> flag2 = infr.is_neg_redundant(cc1, cc2)
+            >>> infr.add_feedback((2, 4), decision=NEGTV)
+            >>> flag3 = infr.is_neg_redundant(cc1, cc2)
+            >>> flags = [flag1, flag2, flag3]
+            >>> print('flags = %r' % (flags,))
+            >>> assert flags == [False, False, True]
+        """
         k_neg = infr.queue_params['neg_redun']
-        neg_graph = infr.neg_graph
-        # from ibeis.algo.graph.nx_utils import edges_cross
-        # num_neg = len(list(edges_cross(neg_graph, cc1, cc2)))
-        # return num_neg >= k_neg
-        neg_edge_gen = (
-            1 for u in cc1 for v in cc2.intersection(neg_graph.adj[u])
-        )
-        # do a lazy count of bridges
-        for count in neg_edge_gen:
+        neg_edge_gen = edges_cross(infr.neg_graph, cc1, cc2)
+        # do a lazy count of negative edges
+        for count, _ in enumerate(neg_edge_gen, start=1):
             if count >= k_neg:
                 return True
+        return False
 
     # def pos_redun_edge_flag(infr, edge):
     #     """ Quickly check if edge is flagged as pos redundant """

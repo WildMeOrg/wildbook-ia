@@ -21,7 +21,7 @@ def make_dummy_infr(annots_per_name):
 def demo2():
     """
     CommandLine:
-        python -m ibeis.algo.graph.demo demo2
+        python -m ibeis.algo.graph.demo demo2 --viz
     """
     import plottool as pt
 
@@ -29,10 +29,11 @@ def demo2():
     queue_params = {
         # 'pos_redun': None,
         # 'neg_redun': None,
-        'pos_redun': 2,
-        'neg_redun': 1,
+        'pos_redun': 1,
+        'neg_redun': 2,
     }
-    oracle_accuracy = .8
+    # oracle_accuracy = .98
+    oracle_accuracy = 1.0
 
     # round2_params = {
     #     'pos_redun': 2,
@@ -116,7 +117,7 @@ def demo2():
         ax.set_aspect('equal')
         ax.set_xlabel(latest)
         dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
-        pt.save_figure(dpath=dpath, dpi=128)
+        pt.save_figure(dpath=dpath, dpi=128, figsize=(8, 8))
         infr.latest_logs()
 
     if VISUALIZE:
@@ -156,7 +157,7 @@ def demo2():
     infr.prioritize('prob_match')
     infr.queue_params.update(**queue_params)
     for edge, priority in infr._generate_reviews(data=True):
-        msg = 'review #%d, priority=%r' % (count, priority)
+        msg = 'review #%d, priority=%.2f' % (count, priority)
         print('\n----------')
         infr.print(msg)
         # print('remaining_reviews = %r' % (infr.remaining_reviews()),)
@@ -327,7 +328,7 @@ def apply_dummy_viewpoints(infr):
     infr.set_node_attrs('viewpoint', node_to_view)
 
 
-def make_demo_infr(ccs, edges, nodes=[], infer=True):
+def make_demo_infr(ccs, edges=[], nodes=[], infer=True):
     import ibeis
     import networkx as nx
 

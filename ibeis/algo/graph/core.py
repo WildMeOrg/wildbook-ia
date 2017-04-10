@@ -49,7 +49,7 @@ class Feedback(object):
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
                      confidence=None, timestamp=None, verbose=None):
-        """
+        r"""
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.core import *  # NOQA
@@ -84,9 +84,11 @@ class Feedback(object):
         msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
         msg += ', '.join([
-            key + '=' + str(val)
-            for key, val in ((key, loc[key])
-                             for key in 'decision tags user_id confidence'.split())
+            str(val)
+            # key + '=' + str(val)
+            for key, val in (
+                (key, loc[key])
+                for key in ['decision', 'tags', 'user_id', 'confidence'])
             if val is not None
         ])
         infr.print(
