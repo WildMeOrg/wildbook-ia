@@ -113,6 +113,7 @@ class Feedback(object):
         num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
         if timestamp is None:
             timestamp = ut.get_timestamp('int', isutc=True)
+        review_id = next(infr.review_counter)
         feedback_item = {
             'decision': decision,
             'tags': tags,
@@ -120,6 +121,7 @@ class Feedback(object):
             'confidence': confidence,
             'user_id': user_id,
             'num_reviews': num_reviews + 1,
+            'review_id': review_id,
         }
         infr.internal_feedback[edge].append(feedback_item)
         infr.set_edge_attr(edge, feedback_item)
@@ -862,6 +864,7 @@ class AnnotInference(ut.NiceRepr,
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
         # infr.verbose = verbose
+        infr.review_counter = it.count(0)
         infr.verbose = 100
         infr.init_logging()
         infr.print('__init__', level=1)
@@ -889,6 +892,7 @@ class AnnotInference(ut.NiceRepr,
 
         infr.enable_inference = True
         infr.test_mode = False
+        infr.simulation_mode = False
         infr.edge_truth = {}
 
         # Criteria
@@ -933,6 +937,7 @@ class AnnotInference(ut.NiceRepr,
             'complete_thresh': 1.0,
         }
         infr.add_aids(aids, nids)
+        infr.enable_attr_update = True
 
         infr.manual_wgt = None
 

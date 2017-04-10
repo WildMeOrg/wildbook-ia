@@ -27,24 +27,17 @@ def demo2():
 
     # ---- Synthetic data params
     queue_params = {
-        # 'pos_redun': None,
-        # 'neg_redun': None,
-        'pos_redun': 1,
+        'pos_redun': 2,
         'neg_redun': 2,
     }
     # oracle_accuracy = .98
-    oracle_accuracy = 1.0
-
-    # round2_params = {
-    #     'pos_redun': 2,
-    #     'neg_redun': 3,
-    # }
+    # oracle_accuracy = .90
+    oracle_accuracy = .8
+    # oracle_accuracy = 1.0
 
     # --- draw params
 
     VISUALIZE = ut.get_argflag('--viz')
-
-    SHOW_GT = VISUALIZE
     # QUIT_OR_EMEBED = 'embed'
     QUIT_OR_EMEBED = 'quit'
     TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
@@ -61,11 +54,15 @@ def demo2():
 
     rng = np.random.RandomState(42)
 
-    infr = demodata_infr(num_pccs=4, size=3, size_std=1, p_incon=0)
-    apply_dummy_viewpoints(infr)
+    # infr = demodata_infr(num_pccs=4, size=3, size_std=1, p_incon=0)
+    infr = demodata_infr(num_pccs=6, size=7, size_std=1, p_incon=0)
+    # apply_dummy_viewpoints(infr)
     # infr.ensure_cliques()
+    infr.review_dummy_edges(method='clique')
     infr.ensure_full()
-    print(ut.repr4(infr.status()))
+    infr.apply_edge_truth()
+    # Dummy scoring
+    apply_dummy_scores(infr, rng)
 
     infr.set_node_attrs('shape', 'circle')
     infr.graph.graph['ignore_labels'] = True
@@ -76,8 +73,9 @@ def demo2():
     infr.set_node_attrs('fontname', fontname)
     infr.set_node_attrs('fixed_size', True)
 
-    infr.init_simulation(oracle_accuracy=oracle_accuracy)
-    print(ut.repr4(infr.status()))
+    infr.init_simulation(oracle_accuracy=oracle_accuracy, name='demo2')
+
+    infr_gt = infr.copy()
 
     dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
     ut.remove_files_in_dir(dpath)
@@ -89,13 +87,12 @@ def demo2():
         showkw = dict(
             fontsize=fontsize, fontname=fontname,
             show_unreviewed_edges=True,
-            # show_inferred_same=False,
-            # show_inferred_diff=False,
-            show_inferred_same=True,
-            show_inferred_diff=True,
+            show_inferred_same=False,
+            show_inferred_diff=False,
+            # show_inferred_same=True,
+            # show_inferred_diff=True,
             show_labels=True,
-            show_recent_review=True,
-            # show_recent_review=not final,
+            show_recent_review=not final,
             splines=splines,
             reposition=False,
             # with_colorbar=True
@@ -117,7 +114,7 @@ def demo2():
         ax.set_aspect('equal')
         ax.set_xlabel(latest)
         dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
-        pt.save_figure(dpath=dpath, dpi=128, figsize=(8, 8))
+        pt.save_figure(dpath=dpath, dpi=128, figsize=(9, 10))
         infr.latest_logs()
 
     if VISUALIZE:
@@ -125,27 +122,65 @@ def demo2():
         infr.set_node_attrs('pin', 'true')
         print(ut.repr4(infr.graph.node[1]))
 
-    if SHOW_GT:
+    if VISUALIZE:
         infr.latest_logs()
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')
 
-    # Dummy scoring
-    # infr.ensure_full()
-    infr.apply_edge_truth()
-    apply_dummy_scores(infr, rng)
+    def dummy_ranker(u):
+        u_edges = list(infr_gt.graph.neighbors(u))
+        u_probs = []
+        for v in u_edges:
+            prob = infr_gt.graph.edge[u][v]['prob_match']
+            u_probs.append(prob)
+        k = 10
+        sortx = np.argsort(u_probs)[::-1][0:k]
+        ranked_edges = [(u, v) if u < v else (v, u)
+                        for v in ut.take(u_edges, sortx)]
+        assert len(ranked_edges) == k
+        return ranked_edges
+
+    def dummy_predictor(edges):
+        prob_match = list(infr_gt.gen_edge_values('prob_match', edges=edges))
+        prob_match = np.array(prob_match)
+        return prob_match
+
+    infr.dummy_predictor = dummy_predictor
+
+    def find_dummy_candidate_edges():
+        new_edges = []
+        for u in infr.graph.nodes():
+            new_edges.extend(dummy_ranker(u))
+        new_edges = set(new_edges)
+        return new_edges
 
     print(ut.repr4(infr.status()))
     infr.clear_feedback()
     infr.clear_name_labels()
+    infr.clear_edges()
     print(ut.repr4(infr.status()))
     infr.latest_logs()
 
     if VISUALIZE:
         infr.update_visual_attrs(splines=splines)
 
+    infr.prioritize('prob_match')
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
         show_graph(infr, 'pre-reveiw')
+
+    def on_new_candidate_edges(infr, edges):
+        # hack updateing visual attrs as a callback
+        infr.update_visual_attrs(splines=splines)
+
+    infr.on_new_candidate_edges = on_new_candidate_edges
+
+    infr.queue_params.update(**queue_params)
+    infr.print('Searching for candidates')
+    new_edges = find_dummy_candidate_edges()
+    infr.add_new_candidate_edges(new_edges)
+
+    if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
+        show_graph(infr, 'find-candidates')
 
     # _iter2 = enumerate(infr.generate_reviews(**queue_params))
     # _iter2 = list(_iter2)
@@ -154,8 +189,6 @@ def demo2():
     # prog = ut.ProgIter(_iter2, label='demo2', bs=False, adjust=False,
     #                    enabled=False)
     count = 0
-    infr.prioritize('prob_match')
-    infr.queue_params.update(**queue_params)
     for edge, priority in infr._generate_reviews(data=True):
         msg = 'review #%d, priority=%.2f' % (count, priority)
         print('\n----------')

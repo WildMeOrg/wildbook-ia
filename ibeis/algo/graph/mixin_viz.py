@@ -304,7 +304,7 @@ class GraphVisualization(object):
         # dummy_edges = [edge for edge, flag in
         #                nx.get_edge_attributes(graph, '_dummy_edge').items()
         #                if flag]
-        edge_to_timestamp = nx.get_edge_attributes(graph, 'review_timestamp')
+        edge_to_reviewid = nx.get_edge_attributes(graph, 'review_id')
         recheck_edges = [edge for edge, split in
                          nx.get_edge_attributes(graph, 'maybe_error').items()
                          if split]
@@ -392,10 +392,10 @@ class GraphVisualization(object):
 
         # SHADOW: based on review_timestamp
         # Increase visibility of nodes with the most recently changed timestamp
-        if show_recent_review and edge_to_timestamp:
-            timestamps = list(edge_to_timestamp.values())
+        if show_recent_review and edge_to_reviewid:
+            timestamps = list(edge_to_reviewid.values())
             recent_idxs = ut.where(ut.equal([max(timestamps)], timestamps))
-            recent_edges = ut.take(list(edge_to_timestamp.keys()), recent_idxs)
+            recent_edges = ut.take(list(edge_to_reviewid.keys()), recent_idxs)
             # TODO: add photoshop-like parameters like
             # spread and size. offset is the same as angle and distance.
             nx_set_edge_attrs(graph, 'shadow', ut.dzip(recent_edges, [{
@@ -435,8 +435,9 @@ class GraphVisualization(object):
             nx_set_edge_attrs(graph, 'style', ut.dzip(
                 nontrivial_inferred_diff, ['invis']))
 
-        if show_recent_review and edge_to_timestamp:
+        if show_recent_review and edge_to_reviewid:
             # Always show the most recent review (remove setting of invis)
+            infr.print('recent_edges = %r' % (recent_edges,))
             nx_set_edge_attrs(graph, 'style',
                                    ut.dzip(recent_edges, ['']))
 

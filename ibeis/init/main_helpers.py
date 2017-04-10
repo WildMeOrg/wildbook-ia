@@ -228,7 +228,6 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
     return pcfgdict
 
 
-@profile
 def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
                            default_qaids=None, default_daids=None,
                            qaid_override=None, daid_override=None,

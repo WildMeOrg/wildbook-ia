@@ -98,6 +98,7 @@ class DynamicUpdate(object):
         infr.set_node_attrs('name_label', ut.dzip(cc1, [new_nid1]))
         infr.set_node_attrs('name_label', ut.dzip(cc2, [new_nid2]))
 
+    @profile
     def _positive_decision(infr, edge):
         r"""
         Ignore:
@@ -132,8 +133,6 @@ class DynamicUpdate(object):
             cc1 = infr.pos_graph.component(nid1)
             cc2 = infr.pos_graph.component(nid2)
 
-            infr._purge_redun_flags(nid1, nid2)
-
             if any_inconsistent:
                 # infr.print('Inconsistent merge',)
                 infr.print('pos-between-dirty-merge',)
@@ -142,18 +141,24 @@ class DynamicUpdate(object):
                 else:
                     recover_edges = list(edges_inside(infr.pos_graph, cc2))
                 infr.recover_graph.add_edges_from(recover_edges)
+                infr._purge_redun_flags(nid1)
+                infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, POSTV)
                 infr.recover_graph.add_edge(*edge)
                 new_nid = infr.pos_graph.node_label(edge[0])
             elif any(edges_cross(infr.neg_graph, cc1, cc2)):
                 # infr.print('Merge creates inconsistency',)
                 infr.print('pos-between-clean-merge-dirty',)
+                infr._purge_redun_flags(nid1)
+                infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, POSTV)
                 new_nid = infr.pos_graph.node_label(edge[0])
                 infr._new_inconsistency(new_nid, POSTV)
             else:
                 # infr.print('Consistent merge')
                 infr.print('pos-between-clean-merge-clean',)
+                infr._purge_redun_flags(nid1)
+                infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, POSTV)
                 new_nid = infr.pos_graph.node_label(edge[0])
                 infr.update_extern_neg_redun(new_nid, may_remove=False)
@@ -161,6 +166,7 @@ class DynamicUpdate(object):
 
             infr.on_merge(nid1, nid2, new_nid)
 
+    @profile
     def _negative_decision(infr, edge):
         nid1, nid2 = infr.node_labels(*edge)
         incon1, incon2 = infr.recover_graph.has_nodes(edge)
@@ -204,7 +210,7 @@ class DynamicUpdate(object):
                 else:
                     # infr.print('Negative added within inconsistent PCC')
                     infr.print('neg-within-dirty',)
-                    pass
+                    infr._check_inconsistency(new_nid1)
         else:
             if all_consistent:
                 # infr.print('Negative added between consistent PCCs')
@@ -217,6 +223,7 @@ class DynamicUpdate(object):
                 # where at least one is inconsistent
                 pass
 
+    @profile
     def _uninferable_decision(infr, edge, decision):
         """
         Adds either an incomparable or unreview decision
@@ -317,20 +324,24 @@ class Recovery(object):
     def is_recovering(infr):
         return len(infr.recover_graph) > 0
 
+    @profile
     def _purge_error_edges(infr, nid):
         old_error_edges = infr.nid_to_errors.pop(nid, [])
         # Remove priority from old error edges
-        infr.set_edge_attrs('maybe_error', ut.dzip(old_error_edges, [None]))
+        if infr.enable_attr_update:
+            infr.set_edge_attrs('maybe_error',
+                                ut.dzip(old_error_edges, [None]))
         if infr.queue is not None:
             infr._remove_edge_priority(old_error_edges)
-            # for error_edge in old_error_edges:
-            #     infr.queue[error_edge] = 0
 
+    @profile
     def _set_error_edges(infr, nid, new_error_edges):
         # flag error edges
         infr.nid_to_errors[nid] = new_error_edges
         # choose one and give it insanely high priority
-        infr.set_edge_attrs('maybe_error', ut.dzip(new_error_edges, [True]))
+        if infr.enable_attr_update:
+            infr.set_edge_attrs('maybe_error',
+                                ut.dzip(new_error_edges, [True]))
         if infr.queue is not None:
             for error_edge in new_error_edges:
                 data = infr.graph.get_edge_data(*error_edge)
@@ -347,6 +358,7 @@ class Recovery(object):
         infr.print(msg, color='red')
         infr._check_inconsistency(nid, cc=cc)
 
+    @profile
     def _check_inconsistency(infr, nid, cc=None):
         if cc is None:
             cc = infr.pos_graph.component(nid)
@@ -373,7 +385,6 @@ class Recovery(object):
             infr.update_pos_redun(nid, force=True)
             infr.update_extern_neg_redun(nid, force=True)
 
-    @profile
     def hypothesis_errors(infr, pos_subgraph, neg_edges):
         if not nx.is_connected(pos_subgraph):
             raise AssertionError('Not connected' + repr(pos_subgraph))
@@ -489,7 +500,6 @@ class Consistency(object):
 
 
 class Completeness(object):
-    @profile
     def prob_complete(infr, cc):
         if infr.term is None:
             assert False
@@ -522,7 +532,6 @@ class Completeness(object):
             p_complete = sum([phi[r] for r in neg_ranks])
             return p_complete
 
-    @profile
     def check_prob_completeness(infr, node):
         """
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
@@ -545,7 +554,6 @@ class Completeness(object):
                 return True
         return False
 
-    @profile
     def non_complete_pcc_pairs(infr):
         """
         Get pairs of PCCs that are not complete.
@@ -587,6 +595,20 @@ class Priority(object):
         assert infr.queue is not None
         return len(infr.queue)
 
+    def _remove_edge_priority(infr, edges):
+        edges = [edge for edge in edges if edge in infr.queue]
+        infr.print('removed priority from %d edges' % (len(edges),))
+        infr.queue.delete_items(edges)
+
+    def _reinstate_edge_priority(infr, edges):
+        edges = [edge for edge in edges if edge not in infr.queue]
+        prob_match = np.array(list(infr.gen_edge_values(
+            'prob_match', edges, default=1e-9)))
+        priority = -prob_match
+        infr.print('reinstate priority from %d edges' % (len(edges),))
+        infr.queue.update(ut.dzip(edges, priority))
+
+    @profile
     def prioritize(infr, metric=None):
         if infr.queue is None:
             infr.queue = ut.PriorityQueue()
@@ -609,12 +631,33 @@ class Priority(object):
             infr.queue[edge] = infr.queue.pop(edge, low) - 10
         infr.print('added %d edges to the queue' % (num_new,))
 
+    @profile
     def pop(infr):
         try:
             edge, priority = infr.queue.pop()
         except IndexError:
-            raise StopIteration('no more to review!')
+            new_edges = infr.find_pos_redun_candidate_edges()
+            if new_edges:
+                # Add edges to complete redundancy
+                infr.add_new_candidate_edges(new_edges)
+                return infr.pop()
+            else:
+                raise StopIteration('no more to review!')
         else:
+            u, v = edge
+            nid1, nid2 = infr.node_labels(u, v)
+            pos_graph = infr.pos_graph
+            pos_graph[nid1]
+            if nid1 == nid2:
+                if nid1 not in infr.nid_to_errors:
+                    # skip edges that increase local connectivity beyond
+                    # redundancy thresholds.
+                    pos_conn = nx.connectivity.local_edge_connectivity(
+                        infr.pos_graph, u, v)
+                    if pos_conn >= infr.queue_params['pos_redun']:
+                        return infr.pop()
+            #     import utool
+            #     utool.embed()
             assert edge[0] < edge[1]
             return edge, (priority * -1)
 
@@ -666,25 +709,11 @@ class Priority(object):
         edges = edges_outgoing(infr.unreviewed_graph, cc)
         infr._reinstate_edge_priority(edges)
 
-    def _remove_edge_priority(infr, edges):
-        edges = [edge for edge in edges if edge in infr.queue]
-        infr.print('removed priority from %d edges' % (len(edges),))
-        infr.queue.delete_items(edges)
-
-    def _reinstate_edge_priority(infr, edges):
-        edges = [edge for edge in edges if edge not in infr.queue]
-        prob_match = np.array(list(infr.gen_edge_values(
-            'prob_match', edges, default=1e-9)))
-        priority = -prob_match
-        infr.print('reinstate priority from %d edges' % (len(edges),))
-        infr.queue.update(ut.dzip(edges, priority))
-
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class _RedundancyHelpers(object):
     """ methods for computing redundancy """
 
-    @profile
     def rand_neg_check_edges(infr, c1_nodes, c2_nodes):
         """
         Find enough edges to between two pccs to make them k-negative complete
@@ -751,93 +780,57 @@ class _RedundancyHelpers(object):
 class Redundancy(_RedundancyHelpers):
     """ methods for computing redundancy """
 
-    def _purge_redun_flags(infr, *nids):
+    @profile
+    def _purge_redun_flags(infr, nid):
         """
         Removes positive and negative redundancy from nids and all other PCCs
         touching nids respectively. Return the external PCC nids.
         """
-        neighbs = (infr.neg_redun_nids.neighbors(nid) for nid in nids
-                   if infr.neg_redun_nids.has_node(nid))
-        prev_neg_nids = set(ut.iflatten(neighbs))
-        prev_neg_nids -= set(nids)
-        infr.neg_redun_nids.remove_nodes_from(nids)
-        infr.pos_redun_nids.difference_update(set(nids))
+        if infr.neg_redun_nids.has_node(nid):
+            prev_neg_nids = set(infr.neg_redun_nids.neighbors(nid))
+        else:
+            prev_neg_nids = []
+        # infr.print('_purge, nid=%r, prev_neg_nids = %r' % (nid, prev_neg_nids,))
+        # for other_nid in prev_neg_nids:
+        #     flag = False
+        #     if other_nid not in infr.pos_graph._ccs:
+        #         flag = True
+        #         infr.print('!!nid=%r did not update' % (other_nid,))
+        #     if flag:
+        #         assert flag, 'nids not maintained'
+        for other_nid in prev_neg_nids:
+            infr._set_neg_redun_flag((nid, other_nid), False)
+        if nid in infr.pos_redun_nids:
+            infr._set_pos_redun_flag(nid, False)
+        # infr.update_pos_redun(nid, may_remove=True, may_add=False)
+        # if nid in infr.
         return prev_neg_nids
 
+    @profile
     def update_extern_neg_redun(infr, nid, may_add=True, may_remove=True,
                                 force=False):
+        infr.print('update_extern_neg_redun')
         k_neg = infr.queue_params['neg_redun']
         cc1 = infr.pos_graph.component(nid)
-        if force or True:
+        force = True
+        if force:
             # TODO: non-force versions
             freqs = infr.find_external_neg_nid_freq(cc1)
             for other_nid, freq in freqs.items():
                 if freq >= k_neg:
-                    cc2 = infr.pos_graph.component(other_nid)
-                    infr.neg_redun_nids.add_edge(nid, other_nid)
-                    if infr.queue is not None:
-                        infr.remove_between_priority(cc1, cc2)
+                    infr._set_neg_redun_flag((nid, other_nid), True)
                 elif may_remove:
-                    try:
-                        infr.neg_redun_nids.remove_edge(nid, other_nid)
-                    except nx.exception.NetworkXError:
-                        pass
-                    else:
-                        if infr.queue is not None:
-                            infr.reinstate_between_priority(cc1, cc2)
+                    infr._set_neg_redun_flag((nid, other_nid), False)
 
     @profile
-    def update_neg_redun(infr, nid1, nid2, may_add=True, may_remove=True,
-                         force=False):
-        """
-        Checks if two PCCs are newly or no longer negative redundant.
-        Edges are either removed or added to the queue appropriately.
-        """
-        infr.print('update_neg_redun')
-        need_add = False
-        need_remove = False
-        force = True
-        was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
-        if force:
-            cc1 = infr.pos_graph.component(nid1)
-            cc2 = infr.pos_graph.component(nid2)
-            need_add = infr.is_neg_redundant(cc1, cc2)
-            need_remove = not need_add
-        else:
-            if may_add and not was_neg_redun:
-                cc1 = infr.pos_graph.component(nid1)
-                cc2 = infr.pos_graph.component(nid2)
-                need_add = infr.is_neg_redundant(cc1, cc2)
-            elif may_remove and not was_neg_redun:
-                need_remove = not infr.is_neg_redundant(cc1, cc2)
-        # if force:
-        #     infr.print('is_neg_redun=%r' % (need_add,))
-        if need_add:
-            # Flag ourselves as negative redundant and remove priorities
-            if not was_neg_redun:
-                infr.print('flag_neg_redun=%r,%r' % (nid1, nid2,))
-            infr.neg_redun_nids.add_edge(nid1, nid2)
-            if infr.queue is not None:
-                infr.remove_between_priority(cc1, cc2)
-        elif need_remove:
-            if was_neg_redun:
-                infr.print('unflag_neg_redun=%r,%r' % (nid1, nid2,))
-            try:
-                infr.neg_redun_nids.remove_edge(nid1, nid2)
-            except nx.exception.NetworkXError:
-                pass
-            cc1 = infr.pos_graph.component(nid1)
-            cc2 = infr.pos_graph.component(nid2)
-            if infr.queue is not None:
-                infr.reinstate_between_priority(cc1, cc2)
-
     def update_pos_redun(infr, nid, may_add=True, may_remove=True,
                          force=False):
         """
         Checks if a PCC is newly, or no longer positive redundant.
         Edges are either removed or added to the queue appropriately.
         """
-        infr.print('update_pos_redun')
+        # force = True
+        # infr.print('update_pos_redun')
         need_add = False
         need_remove = False
         if force:
@@ -852,79 +845,70 @@ class Redundancy(_RedundancyHelpers):
             elif may_remove and not was_pos_redun:
                 need_remove = not infr.is_pos_redundant(cc)
         if need_add:
-            # If checks pass, flag nid as pos-redun
-            infr.pos_redun_nids.add(nid)
-            if infr.queue is not None:
-                infr.remove_internal_priority(cc)
+            infr._set_pos_redun_flag(nid, True)
         elif need_remove:
-            # If the checks fails then, unflag the nid
-            infr.pos_redun_nids -= {nid}
-            if infr.queue is not None:
-                infr.reinstate_internal_priority(cc)
+            infr._set_pos_redun_flag(nid, False)
+        else:
+            infr.print('update_pos_redun. nothing to do.')
 
-    def negative_redundant_nids(infr, cc):
+    @profile
+    def update_neg_redun(infr, nid1, nid2, may_add=True, may_remove=True,
+                         force=False):
         """
-        Get PCCs that are k-negative redundant with `cc`
+        Checks if two PCCs are newly or no longer negative redundant.
+        Edges are either removed or added to the queue appropriately.
+        """
+        infr.print('update_neg_redun')
+        need_add = False
+        need_remove = False
+        force = True
+        if force:
+            cc1 = infr.pos_graph.component(nid1)
+            cc2 = infr.pos_graph.component(nid2)
+            need_add = infr.is_neg_redundant(cc1, cc2)
+            need_remove = not need_add
+        else:
+            was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
+            if may_add and not was_neg_redun:
+                cc1 = infr.pos_graph.component(nid1)
+                cc2 = infr.pos_graph.component(nid2)
+                need_add = infr.is_neg_redundant(cc1, cc2)
+            elif may_remove and not was_neg_redun:
+                need_remove = not infr.is_neg_redundant(cc1, cc2)
+        if need_add:
+            # Flag ourselves as negative redundant and remove priorities
+            infr._set_neg_redun_flag((nid1, nid2), True)
+        elif need_remove:
+            infr._set_neg_redun_flag((nid1, nid2), False)
+        else:
+            infr.print('update_neg_redun. nothing to do.')
 
+    @profile
+    def is_pos_redundant(infr, cc, relax_size=None):
+        """
+        Tests if a group of nodes is positive redundant.
+        (ie. if the group is k-edge-connected)
+
+        Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
-            >>> import plottool as pt
-            >>> pt.qtensure()
-            >>> infr = testdata_infr2()
-            >>> node = 20
-            >>> cc = infr.pos_graph.connected_to(node)
-            >>> infr.queue_params['neg_redun'] = 2
-            >>> infr.negative_redundant_nids(cc)
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5)])
+            >>> infr.queue_params['pos_redun'] = 2
+            >>> cc = infr.pos_graph.connected_to(1)
+            >>> flag1 = infr.is_pos_redundant(cc)
+            >>> infr.add_feedback((1, 5), decision=POSTV)
+            >>> flag2 = infr.is_pos_redundant(cc)
+            >>> flags = [flag1, flag2]
+            >>> print('flags = %r' % (flags,))
+            >>> assert flags == [False, True]
         """
-        neg_nid_freq = infr.find_external_neg_nid_freq(cc)
-        # check for k-negative redundancy
-        k_neg = infr.queue_params['neg_redun']
-        pos_graph = infr.pos_graph
-        neg_nids = [
-            nid2 for nid2, freq in neg_nid_freq.items()
-            if (
-                freq >= k_neg or
-                freq == len(cc) or
-                freq == len(pos_graph.connected_to(nid2))
-            )
-        ]
-        return neg_nids
-
-    def pos_redundant_pccs(infr, relax_size=False):
-        for cc in infr.consistent_components():
-            if len(cc) == 2:
-                continue
-            if infr.is_pos_redundant(cc, relax_size):
-                yield cc
-
-    def non_pos_redundant_pccs(infr, relax_size=False):
-        """
-        Get PCCs that are not k-positive-redundant
-        """
-        for cc in infr.consistent_components():
-            if not infr.is_pos_redundant(cc, relax_size):
-                yield cc
-
-    def find_pos_redun_nids(infr):
-        """ recomputes infr.pos_redun_nids """
-        for cc in infr.pos_redundant_pccs():
-            node = next(iter(cc))
-            nid = infr.pos_graph.node_label(node)
-            yield nid
-
-    def find_neg_redun_nids(infr):
-        """ recomputes edges in infr.neg_redun_nids """
-        for cc in infr.consistent_components():
-            node = next(iter(cc))
-            nid1 = infr.pos_graph.node_label(node)
-            for nid2 in infr.negative_redundant_nids(cc):
-                if nid1 < nid2:
-                    yield nid1, nid2
-
-    def is_pos_redundant(infr, cc, relax_size=False):
         k = infr.queue_params['pos_redun']
         if k == 1:
             return True  # assumes cc is connected
         else:
+            if relax_size is None:
+                relax_size = True
             # if the nodes are not big enough for this amount of connectivity
             # then we relax the requirement
             if relax_size:
@@ -936,8 +920,10 @@ class Redundancy(_RedundancyHelpers):
                 return True
             else:
                 pos_subgraph = infr.pos_graph.subgraph(cc)
-                nx_utils.is_edge_connected(pos_subgraph, k=required_k)
+                return nx_utils.is_edge_connected(pos_subgraph, k=required_k)
+        raise AssertionError('impossible state')
 
+    @profile
     def is_neg_redundant(infr, cc1, cc2):
         r"""
         Tests if two groups of nodes are negative redundant
@@ -978,7 +964,6 @@ class Redundancy(_RedundancyHelpers):
     #     nid1, nid2 = infr.pos_graph.node_labels(*edge)
     #     return infr.neg_redun_nids.has_edge(nid1, nid2)
 
-    @profile
     def is_redundant(infr, edge):
         nidu, nidv = infr.node_labels(*edge)
         if nidu == nidv:
@@ -1008,9 +993,155 @@ class Redundancy(_RedundancyHelpers):
             if not infr.is_redundant(edge):
                 yield edge
 
+    @profile
+    def negative_redundant_nids(infr, cc):
+        """
+        Get PCCs that are k-negative redundant with `cc`
+
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> infr = testdata_infr2()
+            >>> node = 20
+            >>> cc = infr.pos_graph.connected_to(node)
+            >>> infr.queue_params['neg_redun'] = 2
+            >>> infr.negative_redundant_nids(cc)
+        """
+        neg_nid_freq = infr.find_external_neg_nid_freq(cc)
+        # check for k-negative redundancy
+        k_neg = infr.queue_params['neg_redun']
+        pos_graph = infr.pos_graph
+        neg_nids = [
+            nid2 for nid2, freq in neg_nid_freq.items()
+            if (
+                freq >= k_neg or
+                freq == len(cc) or
+                freq == len(pos_graph.connected_to(nid2))
+            )
+        ]
+        return neg_nids
+
+    def pos_redundant_pccs(infr, relax_size=None):
+        for cc in infr.consistent_components():
+            if len(cc) == 2:
+                continue
+            if infr.is_pos_redundant(cc, relax_size):
+                yield cc
+
+    def non_pos_redundant_pccs(infr, relax_size=None):
+        """
+        Get PCCs that are not k-positive-redundant
+        """
+        for cc in infr.consistent_components():
+            # print('cc = %r' % (cc,))
+            flag = infr.is_pos_redundant(cc, relax_size)
+            # print('flag = %r' % (flag,))
+            if not infr.is_pos_redundant(cc, relax_size):
+                yield cc
+
+    def find_pos_redun_nids(infr):
+        """ recomputes infr.pos_redun_nids """
+        for cc in infr.pos_redundant_pccs():
+            node = next(iter(cc))
+            nid = infr.pos_graph.node_label(node)
+            yield nid
+
+    def find_neg_redun_nids(infr):
+        """ recomputes edges in infr.neg_redun_nids """
+        for cc in infr.consistent_components():
+            node = next(iter(cc))
+            nid1 = infr.pos_graph.node_label(node)
+            for nid2 in infr.negative_redundant_nids(cc):
+                if nid1 < nid2:
+                    yield nid1, nid2
+
+    @profile
+    def _set_pos_redun_flag(infr, nid, flag):
+        """
+        Flags or unflags an nid as positive redundant.
+        """
+        was_pos_redun = nid in infr.pos_redun_nids
+        if flag:
+            if not was_pos_redun:
+                infr.print('flag_pos_redun nid=%r' % (nid,))
+            else:
+                infr.print('flag_pos_redun nid=%r (already done)' % (nid,))
+            infr.pos_redun_nids.add(nid)
+            cc = infr.pos_graph.component(nid)
+            if infr.queue is not None:
+                infr.remove_internal_priority(cc)
+            if infr.enable_attr_update:
+                infr.set_edge_attrs(
+                    'inferred_state',
+                    ut.dzip(edges_inside(infr.graph, cc), ['same'])
+                )
+        else:
+            if was_pos_redun:
+                infr.print('unflag_pos_redun nid=%r' % (nid,))
+            else:
+                infr.print('unflag_pos_redun nid=%r (already done)' % (nid,))
+            cc = infr.pos_graph.component(nid)
+            infr.pos_redun_nids -= {nid}
+            if infr.queue is not None:
+                infr.reinstate_internal_priority(cc)
+            if infr.enable_attr_update:
+                infr.set_edge_attrs(
+                    'inferred_state',
+                    ut.dzip(edges_inside(infr.graph, cc), [None])
+                )
+
+    @profile
+    def _set_neg_redun_flag(infr, nid_edge, flag):
+        """
+        Flags or unflags an nid as negative redundant.
+        """
+        nid1, nid2 = nid_edge
+        was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
+        if flag:
+            if not was_neg_redun:
+                infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2))
+            else:
+                infr.print('flag_neg_redun nids=%r,%r (already done)' % (
+                    nid1, nid2))
+
+            infr.neg_redun_nids.add_edge(nid1, nid2)
+            cc1 = infr.pos_graph.component(nid1)
+            cc2 = infr.pos_graph.component(nid2)
+            if infr.queue is not None:
+                infr.remove_between_priority(cc1, cc2)
+            if infr.enable_attr_update:
+                infr.set_edge_attrs(
+                    'inferred_state',
+                    ut.dzip(edges_cross(infr.graph, cc1, cc2), ['diff'])
+                )
+        else:
+            was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
+            if was_neg_redun:
+                infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2))
+            else:
+                infr.print('unflag_neg_redun nids=%r,%r (already done)' % (
+                    nid1, nid2))
+            try:
+                infr.neg_redun_nids.remove_edge(nid1, nid2)
+            except nx.exception.NetworkXError:
+                pass
+            # import utool
+            # with utool.embed_on_exception_context:
+            cc1 = infr.pos_graph.component(nid1)
+            cc2 = infr.pos_graph.component(nid2)
+            if infr.queue is not None:
+                infr.reinstate_between_priority(cc1, cc2)
+            if infr.enable_attr_update:
+                infr.set_edge_attrs(
+                    'inferred_state',
+                    ut.dzip(edges_cross(infr.graph, cc1, cc2), [None])
+                )
+
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class NonDynamicUpdate(object):
+
+    @profile
     def apply_nondynamic_update(infr, graph=None):
         r"""
         Recomputes all dynamic bookkeeping for a graph in any state.

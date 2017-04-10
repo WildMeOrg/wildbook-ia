@@ -142,7 +142,18 @@ def is_edge_connected(G, k):
 
 
 def is_bridge_connected(G):
-    return any(find_bridges(G))
+    """
+    Example:
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> from ibeis.algo.graph import demo
+        >>> G1 = nx.Graph()
+        >>> nx.add_path(G1, [1, 2, 3, 4, 5])
+        >>> G2 = G1.copy()
+        >>> G2.add_edge(1, 5)
+        >>> assert not is_bridge_connected(G1)
+        >>> assert is_bridge_connected(G2)
+    """
+    return not any(find_bridges(G))
 
 
 def find_bridges(G):
@@ -165,8 +176,12 @@ def find_bridges(G):
         >>> pt.qtensure()
         >>> pt.show_nx(G)
     """
-    chain_edges = set(it.starmap(e_, it.chain(*nx.chain_decomposition(G))))
-    bridges = set(it.starmap(e_, G.edges())) - chain_edges
+    if G.is_directed():
+        chain_edges = set(it.chain(*nx.chain_decomposition(G)))
+        bridges = set(G.edges()) - chain_edges
+    else:
+        chain_edges = set(it.starmap(e_, it.chain(*nx.chain_decomposition(G))))
+        bridges = set(it.starmap(e_, G.edges())) - chain_edges
     return bridges
 
 

@@ -259,7 +259,7 @@ class InfrReviewers(object):
             flag, feedback = infr.try_auto_review(edge)
             if flag:
                 return feedback
-        if infr.test_mode:
+        if infr.simulation_mode:
             feedback = infr.request_oracle_review(edge)
             return feedback
         else:
@@ -328,7 +328,7 @@ class InfrReviewers(object):
         return feedback
 
     def request_user_review(infr, edge):
-        if infr.test_mode:
+        if infr.simulation_mode:
             feedback = infr.request_oracle_review(edge)
         else:
             feedback = infr.manual_review(edge)
@@ -366,7 +366,7 @@ class SimulationHelpers(object):
             'match_state': pd.Series(match_state_thresh)
         }
 
-        infr.test_mode = True
+        infr.simulation_mode = True
         infr.edge_truth = {}
         infr.metrics_list = []
         infr.test_state = {

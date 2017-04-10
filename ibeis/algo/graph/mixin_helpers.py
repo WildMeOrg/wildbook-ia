@@ -24,14 +24,14 @@ class AttrAccess(object):
                 infr.graph, key, nodes=nodes, default=default)
 
     def gen_edge_attrs(infr, key, edges=None, default=ut.NoParam,
-                       check_exist=True):
+                       check_exist=False):
         """ maybe change to gen edge items """
         return ut.util_graph.nx_gen_edge_attrs(
                 infr.graph, key, edges=edges, default=default,
                 check_exist=check_exist)
 
     def gen_edge_values(infr, key, edges=None, default=ut.NoParam,
-                        check_exist=True):
+                        check_exist=False):
         return (t[1] for t in ut.util_graph.nx_gen_edge_attrs(
                 infr.graph, key, edges=edges, default=default,
                 check_exist=check_exist))
@@ -157,11 +157,7 @@ class DummyEdges(object):
         infr.unreviewed_graph.add_edges_from(new_edges)
         # infr.assert_disjoint_invariant()
 
-    def ensure_cliques(infr, label='name_label'):
-        """
-        Force each name label to be a clique
-        """
-        infr.print('ensure_cliques', 1)
+    def find_clique_edges(infr, label='name_label'):
         node_to_label = infr.get_node_attrs(label)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
@@ -170,6 +166,14 @@ class DummyEdges(object):
             for edge in it.combinations(nodes, 2):
                 if not infr.has_edge(edge):
                     new_edges.append(edge)
+        return new_edges
+
+    def ensure_cliques(infr, label='name_label'):
+        """
+        Force each name label to be a clique
+        """
+        infr.print('ensure_cliques', 1)
+        new_edges = infr.find_clique_edges(label)
         infr.print('adding %d clique edges' % (len(new_edges)), 2)
         infr.graph.add_edges_from(new_edges)
         infr.unreviewed_graph.add_edges_from(new_edges, decision=UNREV,
@@ -394,7 +398,9 @@ class DummyEdges(object):
         relabel_using_reviews is called. (if the existing edges are consistent).
         """
         infr.print('review_dummy_edges', 2)
-        if method == 2:
+        if method == 'clique':
+            new_edges = infr.find_clique_edges()
+        elif method == 2:
             new_edges = infr.find_mst_edges2()
         elif method == 1:
             new_edges = infr.find_mst_edges()

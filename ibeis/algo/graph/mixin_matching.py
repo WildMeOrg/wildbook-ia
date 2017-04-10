@@ -6,8 +6,10 @@ import utool as ut
 import itertools as it
 import networkx as nx
 import vtool as vt
+from ibeis.algo.graph import nx_utils
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)
+from ibeis.algo.graph.state import UNREV
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -591,9 +593,12 @@ class CandidateSearch(object):
 
             # Get edges between biconnected (nodes) components
             sub_comp = nx.complement(sub)
-            bicon = list(nx.biconnected_components(sub))
+
+            pos_k = infr.queue_params['pos_redun']
+            kcon_ccs = list(nx_utils.edge_connected_components(sub, pos_k))
+            # bicon = list(nx.biconnected_components(sub))
             check_edges = set([])
-            for c1, c2 in it.combinations(bicon, 2):
+            for c1, c2 in it.combinations(kcon_ccs, 2):
                 check_edges.update(edges_cross(sub_comp, c1, c2))
             # Very agressive, need to tone down
             check_edges = set(it.starmap(e_, check_edges))
@@ -629,11 +634,13 @@ class CandidateSearch(object):
     @profile
     def add_new_candidate_edges(infr, new_edges):
         new_edges = list(new_edges)
+        infr.print('Adding %d new candidate edges' % (len(new_edges)))
+        new_edges = list(new_edges)
         if len(new_edges) == 0:
             return
 
-        infr.graph.add_edges_from(new_edges)
-        infr.set_edge_attrs('num_reviews', ut.dzip(new_edges, [0]))
+        infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
+        infr.unreviewed_graph.add_edges_from(new_edges)
 
         if infr.test_mode:
             infr.apply_edge_truth(new_edges)
@@ -678,6 +685,10 @@ class CandidateSearch(object):
 
             # Insert all the new edges into the priority queue
             infr.queue.update((-default_priority).to_dict())
+        elif hasattr(infr, 'dummy_predictor'):
+            prob_match = infr.dummy_predictor(new_edges)
+            infr.set_edge_attrs('prob_match', ut.dzip(new_edges, prob_match))
+            infr.queue.update(ut.dzip(new_edges, -prob_match))
         else:
             infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
@@ -685,6 +696,10 @@ class CandidateSearch(object):
             scores = infr._make_lnbnn_scores(new_edges)
             infr.set_edge_attrs('normscore', ut.dzip(new_edges, scores))
             infr.queue.update(ut.dzip(new_edges, -scores))
+        if hasattr(infr, 'on_new_candidate_edges'):
+            # hack callback for demo
+            infr.on_new_candidate_edges(infr, new_edges)
+
 
     @profile
     def refresh_candidate_edges(infr, ranking=True):
