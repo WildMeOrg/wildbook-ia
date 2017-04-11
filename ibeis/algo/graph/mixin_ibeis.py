@@ -141,8 +141,7 @@ class IBEISIO(object):
         import pandas as pd
         graph = infr.graph
         node_to_new_label = nx.get_node_attributes(graph, 'name_label')
-        nodes = list(node_to_new_label.keys())
-        aids = ut.take(infr.node_to_aid, nodes)
+        aids = list(node_to_new_label.keys())
         old_names = infr.ibs.get_annot_name_texts(aids)
         # Indicate that unknown names should be replaced
         old_names = [None if n == infr.ibs.const.UNKNOWN else n
@@ -168,7 +167,7 @@ class IBEISIO(object):
                 node: label for node, label in node_to_new_label.items()
                 if label not in unknown_labels_
             }
-        aid_list = ut.take(infr.node_to_aid, node_to_new_label.keys())
+        aid_list = list(node_to_new_label.keys())
         new_name_list = ut.take(label_to_name, node_to_new_label.values())
         old_name_list = infr.ibs.get_annot_name_texts(aid_list)
         # Put into a dataframe for convinience

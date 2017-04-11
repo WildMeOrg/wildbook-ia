@@ -423,8 +423,6 @@ class AnnotInfrMatching(object):
 
     def _get_cm_agg_aid_ranking(infr, cc):
         aid_to_cm = {cm.qaid: cm for cm in infr.cm_list}
-        # node_to_cm = {infr.aid_to_node[cm.qaid]:
-        #               cm for cm in infr.cm_list}
         all_scores = ut.ddict(list)
         for qaid in cc:
             cm = aid_to_cm[qaid]
@@ -436,26 +434,22 @@ class AnnotInfrMatching(object):
                             for aid, scores in all_scores.items())[::-1]
         ranked_aids = ut.take_column(max_scores, 1)
         return ranked_aids
-        # aid = infr.aid_to_node[node]
-        # node_to
 
     def _get_cm_edge_data(infr, edges):
         symmetric = True
 
         # Find scores for the edges that exist in the graph
         edge_to_data = ut.ddict(dict)
-        node_to_cm = {infr.aid_to_node[cm.qaid]:
-                      cm for cm in infr.cm_list}
+        aid_to_cm = {cm.qaid: cm for cm in infr.cm_list}
         for u, v in edges:
             if symmetric:
                 u, v = e_(u, v)
-            cm1 = node_to_cm.get(u, None)
-            cm2 = node_to_cm.get(v, None)
+            cm1 = aid_to_cm.get(u, None)
+            cm2 = aid_to_cm.get(v, None)
             scores = []
             ranks = []
             for cm in ut.filter_Nones([cm1, cm2]):
-                for node in [u, v]:
-                    aid = infr.node_to_aid[node]
+                for aid in [u, v]:
                     idx = cm.daid2_idx.get(aid, None)
                     if idx is None:
                         continue

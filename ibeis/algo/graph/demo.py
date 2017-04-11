@@ -909,7 +909,7 @@ def case_flag_merge():
     infr1, infr2, check = do_infr_test(ccs, edges, new_edges)
     @check.custom_precheck
     def check_pre_state(infr):
-        assert infr.error_edges == {(1, 4)}
+        assert infr.nid_to_errors[1] == {(1, 4)}
 
     check(infr1, 2, 4, 'maybe_error', None, 'match edge should flag first None')
     check(infr1, 1, 4, 'maybe_error', True, 'match edge should flag first True')

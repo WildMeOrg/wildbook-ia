@@ -333,7 +333,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
         >>> grouped_oldnames = [['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
-        >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> new_names = find_consistent_labeling(grouped_oldnames, verbose=1)
         >>> result = ut.repr2(new_names)
         >>> print(new_names)
         ['a', 'b', 'e']
@@ -345,7 +345,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        ['a', 'b', 'e']
+        ['b', 'a', '_extra_name0']
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -354,7 +354,7 @@ def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
         >>> new_names = find_consistent_labeling(grouped_oldnames)
         >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        ['a', 'b', 'e']
+        ['b', 'e', 'a', '_extra_name0', '_extra_name1', 'd']
 
     Example:
         >>> # ENABLE_DOCTEST

@@ -68,7 +68,9 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> nns_list, nnvalid0_list = args
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
         >>> constvote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
         >>> result = ('constvote_weight_list = %s' % (str(constvote_weight_list),))
@@ -92,8 +94,10 @@ def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> nns_list, nnvalid0_list = args
         >>> bordavote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
         >>> result = ('bordavote_weight_list = %s' % (str(bordavote_weight_list),))
         >>> print(result)
@@ -121,8 +125,10 @@ def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> from ibeis.algo.hots import nn_weights
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
+        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST', p=['default:cos_on=True,K=5,Knorm=5'])
+        >>> nns_list, nnvalid0_list = args
         >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
         >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
     """
@@ -155,8 +161,10 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> nns_list, nnvalid0_list = args
         >>> print(ut.dict_str(qreq_.qparams.__dict__, sorted_=True))
         >>> assert qreq_.qparams.fg_on == True, 'bug setting custom params fg_on'
         >>> fgvotes_list = fg_match_weighter(nns_list, nnvalid0_list, qreq_)
@@ -183,12 +191,12 @@ def distinctiveness_match_weighter(qreq_):
     r"""
     TODO: finish intergration
 
-    Example:
-        >>> # SLOW_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', codename='vsone_dist_extern_distinctiveness')
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+    # Example:
+    #     >>> # SLOW_DOCTEST
+    #     >>> from ibeis.algo.hots.nn_weights import *  # NOQA
+    #     >>> from ibeis.algo.hots import nn_weights
+    #     >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', codename='vsone_dist_extern_distinctiveness')
+    #     >>> ibs, qreq_, nns_list, nnvalid0_list = tup
     """
     raise NotImplementedError('Not finished')
     dstcnvs_normer = qreq_.dstcnvs_normer
@@ -225,8 +233,10 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> nns_list, nnvalid0_list = args
         >>> normweight_fn = lnbnn_fn
         >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
@@ -239,8 +249,9 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> nns_list, nnvalid0_list = args
         >>> normweight_fn = ratio_fn
         >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
@@ -275,8 +286,10 @@ def get_normk(qreq_, qaid, neighb_idx, Knorm, normalizer_rule):
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
         >>>            'dim_size': 450, 'resize_dim': 'area'}
-        >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                p=['default:K=10,Knorm=10,normalizer_rule=name,dim_size=450,resize_dim=area'])
+        >>> nns_list, nnvalid0_list = args
         >>> (neighb_idx, neighb_dist) = nns_list[0]
         >>> qaid = qreq_.qaids[0]
         >>> K = qreq_.qparams.K
@@ -323,10 +336,12 @@ def apply_normweight(normweight_fn, neighb_normk, neighb_idx, neighb_dist, Knorm
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> from ibeis.algo.hots import nn_weights
-        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
-        >>>            'dim_size': 450, 'resize_dim': 'area'}
-        >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name',
+        >>> #           'dim_size': 450, 'resize_dim': 'area'}
+        >>> #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                p=['default:K=10,Knorm=10,normalizer_rule=name,dim_size=450,resize_dim=area'])
+        >>> nns_list, nnvalid0_list = args
         >>> qaid = qreq_.qaids[0]
         >>> Knorm = qreq_.qparams.Knorm
         >>> normweight_fn = lnbnn_fn
@@ -366,9 +381,11 @@ def get_name_normalizers(qaid, qreq_, Knorm, neighb_idx):
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> from ibeis.algo.hots import nn_weights
-        >>> cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
-        >>> tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
-        >>> ibs, qreq_, nns_list, nnvalid0_list = tup
+        >>> #cfgdict = {'K':10, 'Knorm': 10, 'normalizer_rule': 'name'}
+        >>> #tup = plh.testdata_pre_weight_neighbors(cfgdict=cfgdict)
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='testdb1',
+        >>>                                p=['default:K=10,Knorm=10,normalizer_rule=name'])
+        >>> nns_list, nnvalid0_list = args
         >>> Knorm = qreq_.qparams.Knorm
         >>> (neighb_idx, neighb_dist) = nns_list[0]
         >>> qaid = qreq_.qaids[0]

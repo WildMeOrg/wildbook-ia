@@ -63,9 +63,6 @@ class GraphVisualization(object):
         # import networkx as nx
         if graph is None:
             graph = infr.graph
-        # aid_to_node = infr.aid_to_node
-        # aid_list = list(aid_to_node.keys())
-        # annot_nodes = ut.take(aid_to_node, aid_list)
         infr._viz_image_config = dict(in_image=False,
                                       thumbsize=221)
 

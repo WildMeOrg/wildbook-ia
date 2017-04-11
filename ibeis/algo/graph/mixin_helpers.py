@@ -75,8 +75,7 @@ class AttrAccess(object):
 
     def get_annot_attrs(infr, key, aids):
         """ Wrapper around get_node_attrs specific to annotation nodes """
-        nodes = ut.take(infr.aid_to_node, aids)
-        attr_list = list(infr.get_node_attrs(key, nodes).values())
+        attr_list = list(infr.get_node_attrs(key, aids).values())
         return attr_list
 
     def edges(infr, data=False):
@@ -344,10 +343,9 @@ class DummyEdges(object):
 
         try:
             # Try linking by time for lynx data
-            nodes = list(set(ut.iflatten(candidate_mst_edges)))
-            aids = ut.take(infr.node_to_aid, nodes)
+            aids = list(set(ut.iflatten(candidate_mst_edges)))
             times = infr.ibs.annots(aids).time
-            node_to_time = ut.dzip(nodes, times)
+            node_to_time = ut.dzip(aids, times)
             time_deltas = np.array([
                 abs(node_to_time[u] - node_to_time[v])
                 for u, v in candidate_mst_edges
