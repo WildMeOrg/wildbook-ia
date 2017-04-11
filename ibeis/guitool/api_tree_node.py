@@ -5,7 +5,7 @@ from types import GeneratorType
 from six.moves import zip, range
 import utool
 import utool as ut
-(print, print_, printDBG, rrr, profile) = utool.inject(__name__, '[tree_node]', DEBUG=False)
+(print, print_, rrr) = utool.inject2(__name__)
 
 
 TREE_NODE_BASE = QtCore.QObject
@@ -176,7 +176,6 @@ def tree_node_string(self, indent='', charids=True, id_dict=None, last=None):
     return str_
 
 
-@profile
 def _populate_tree_iterative(root_node, num_levels, ider_list):
     """ Iteratively builds the tree structure. I dont quite trust this yet
     #@cython.boundscheck(False)
@@ -258,7 +257,6 @@ def _populate_tree_iterative(root_node, num_levels, ider_list):
         ids_list = new_ids_lists
 
 
-#@profile
 def _populate_tree_recursive(parent_node, child_ids, num_levels, ider_list, level):
     """
     Recursively builds the tree structure
@@ -366,7 +364,6 @@ def _populate_tree_recursive_lazy(parent_node, child_ids, num_levels, ider_list,
     return parent_node
 
 
-@profile
 def build_internal_structure(model):
     """
     Cyth:
