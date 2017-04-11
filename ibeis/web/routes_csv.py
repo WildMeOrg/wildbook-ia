@@ -217,6 +217,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
     sex_list = ibs.get_name_sex_text(nid_list)
     age_list = ibs.get_annot_age_months_est_texts(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
+    contrib_list = ibs.get_image_contributor_tag(gid_list)
     gname_list = ibs.get_image_gnames(gid_list)
     imageset_rowids_list = ibs.get_image_imgsetids(gid_list)
     imageset_rowids_set = map(set, imageset_rowids_list)
@@ -258,6 +259,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         sex_list,
         age_list,
         gname_list,
+        contrib_list,
         imageset_list,
         imageset_text_list,
         imageset_metadata_list,
@@ -274,6 +276,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
             sex,
             age,
             gname,
+            contrib,
             imageset_rowid,
             imageset_text,
             imageset_metadata_dict,
@@ -287,9 +290,9 @@ def get_annotation_special_info(target_species=None, **kwargs):
             continue
 
         line_list_ = [
-            ibs.dbname,
-            aid,
+            contrib.split(',')[0],
             annot_uuid,
+            aid,
             nid,
             name,
             species,
@@ -298,12 +301,12 @@ def get_annotation_special_info(target_species=None, **kwargs):
             gname,
             imageset_rowid,
             imageset_text,
-            '',
+            '|',
         ] + [
             imageset_metadata_dict.get(imageset_metadata_key, '')
             for imageset_metadata_key in imageset_metadata_key_list
         ] + [
-            '',
+            '|',
         ] + [
             annot_metadata_dict.get(annot_metadata_key, '')
             for annot_metadata_key in annot_metadata_key_list
@@ -316,7 +319,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'DB,AID,Annotation UUID,NID,Name,Sex,Age,Image Name,Encounter ID,Encounter Name,,%s,,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,Annotation UUID,AID,NID,Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,|,%s,|,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
