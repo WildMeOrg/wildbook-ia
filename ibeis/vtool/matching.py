@@ -564,7 +564,8 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     def make_feature_vector(match, local_keys=None, global_keys=None,
-                            summary_ops=None, sorters='ratio', indices=3):
+                            summary_ops=None, sorters='ratio', indices=3,
+                            bin_key=None):
         """
         Constructs the pairwise feature vector that represents a match
 
@@ -599,10 +600,312 @@ class PairwiseMatch(ut.NiceRepr):
             warnings.simplefilter("ignore", category=RuntimeWarning)
             feat.update(match._make_global_feature_vector(global_keys))
             feat.update(match._make_local_summary_feature_vector(
-                local_keys, summary_ops))
+                local_keys, summary_ops, bin_key=bin_key))
             feat.update(match._make_local_top_feature_vector(
                 local_keys, sorters=sorters, indices=indices))
         return feat
+
+
+@ut.reloadable_class
+class AnnotPairFeatInfo(object):
+    """
+    Information class about feature dimensions of PairwiseMatch.
+
+    Notes:
+        * Can be used to compute marginal importances over groups of features
+        used in the pairwise one-vs-one scoring algorithm
+
+        * Can be used to construct an appropriate cfgdict for a new
+        PairwiseMatch.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
+        >>> from vtool.inspect_matches import lazy_test_annot
+        >>> import vtool as vt
+        >>> annot1 = lazy_test_annot('easy1.png')
+        >>> annot2 = lazy_test_annot('easy2.png')
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> match.apply_all({})
+        >>> feat = match.make_feature_vector()
+        >>> import pandas as pd
+        >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
+        >>> X = pd.DataFrame(feat, index=index)
+        >>> featinfo = AnnotPairFeatInfo(X)
+        >>> pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        >>> print(featinfo.get_infostr())
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.matching import *  # NOQA
+        >>> from vtool.inspect_matches import lazy_test_annot
+        >>> import vtool as vt
+        >>> annot1 = lazy_test_annot('easy1.png')
+        >>> annot2 = lazy_test_annot('easy2.png')
+        >>> match = vt.PairwiseMatch(annot1, annot2)
+        >>> match.apply_all({})
+        >>> feat = match.make_feature_vector(indices=0, bin_key='ratio')
+        >>> import pandas as pd
+        >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
+        >>> X = pd.DataFrame(feat, index=index)
+        >>> featinfo = AnnotPairFeatInfo(X)
+        >>> print(featinfo.get_infostr())
+        >>> pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+    """
+    def __init__(featinfo, X, importances=None):
+        featinfo.X = X
+        featinfo.importances = importances
+        if importances is not None:
+            assert isinstance(importances, dict), 'must be a dict'
+        featinfo._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
+
+    def make_pairfeat_cfg(featinfo):
+        criteria = [('measure_type', '==', 'local')]
+        indices = sorted(map(int, set(map(
+            featinfo.local_rank, featinfo.select_columns(criteria)))))
+        sorters = sorted(set(map(
+            featinfo.local_sorter, featinfo.select_columns(criteria))))
+
+        criteria = [('measure_type', '==', 'global')]
+        global_measures = sorted(set(map(
+            featinfo.global_measure, featinfo.select_columns(criteria))))
+        global_keys = sorted(set([key.split('_')[0]
+                                  for key in global_measures]))
+        if 'speed' in global_keys:
+            global_keys.remove('speed')  # hack
+
+        criteria = [('measure_type', '==', 'summary')]
+        summary_ops = sorted(set(map(
+            featinfo.summary_op, featinfo.select_columns(criteria))))
+        summary_measures = sorted(set(map(
+            featinfo.summary_measure, featinfo.select_columns(criteria))))
+        if 'matches' in summary_measures:
+            summary_measures.remove('matches')
+        pairfeat_cfg = {
+            'summary_ops': summary_ops,
+            'local_keys': summary_measures,
+            'sorters': sorters,
+            'indices': indices,
+        }
+        return pairfeat_cfg, global_keys
+
+    def select_columns(featinfo, criteria, op='and'):
+        """
+        featinfo.select_columns([
+            ('measure_type', '==', 'local'),
+            ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
+        ])
+        """
+        if op == 'and':
+            cols = set(featinfo.X.columns)
+            update = cols.intersection_update
+        elif op == 'or':
+            cols = set([])
+            update = cols.update
+        else:
+            raise Exception(op)
+        for group_id, op, value in criteria:
+            found = featinfo.find(group_id, op, value)
+            update(found)
+        return cols
+
+    def find(featinfo, group_id, op, value):
+        import six
+        if isinstance(op, six.text_type):
+            opdict = ut.get_comparison_operators()
+            op = opdict.get(op)
+        grouper = getattr(featinfo, group_id)
+        found = []
+        for col in featinfo.X.columns:
+            value1 = grouper(col)
+            if value1 is None:
+                # Only filter out/in comparable things
+                found.append(col)
+            else:
+                try:
+                    if value1 is not None:
+                        if isinstance(value, int):
+                            value1 = int(value1)
+                        elif isinstance(value, list):
+                            if len(value) > 0 and isinstance(value[0], int):
+                                value1 = int(value1)
+                    if op(value1, value):
+                        found.append(col)
+                except:
+                    pass
+        return found
+
+    def group_importance(featinfo, item):
+        import pandas as pd
+        name, keys = item
+        num = len(keys)
+        weight = sum(ut.take(featinfo.importances, keys))
+        ave_w = weight / num
+        tup = ave_w, weight, num
+        # return tup
+        df = pd.DataFrame([tup], columns=['ave_w', 'weight', 'num'],
+                          index=[name])
+        return df
+
+    def print_margins(featinfo, group_id, ignore_trivial=True):
+        import pandas as pd
+        X = featinfo.X
+        if isinstance(group_id, list):
+            cols = featinfo.select_columns(criteria=group_id)
+            _keys = [(c, [c]) for c in cols]
+            try:
+                _weights = pd.concat(ut.lmap(featinfo.group_importance, _keys))
+            except ValueError:
+                _weights = []
+                pass
+            nice = str(group_id)
+        else:
+            grouper = getattr(featinfo, group_id)
+            _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+            _weights = pd.concat(ut.lmap(featinfo.group_importance, _keys.items()))
+            nice = ut.get_funcname(grouper).replace('_', ' ')
+            nice = ut.pluralize(nice)
+        try:
+            _weights = _weights.iloc[_weights['ave_w'].argsort()[::-1]]
+        except Exception:
+            pass
+        if not ignore_trivial or len(_weights) > 1:
+            ut.cprint('\nMarginal importance of ' + nice, 'white')
+            print(_weights)
+
+    def group_counts(featinfo, item):
+        import pandas as pd
+        name, keys = item
+        num = len(keys)
+        tup = (num,)
+        # return tup
+        df = pd.DataFrame([tup], columns=['num'], index=[name])
+        return df
+
+    def print_counts(featinfo, group_id):
+        import pandas as pd
+        X = featinfo.X
+        grouper = getattr(featinfo, group_id)
+        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+        _weights = pd.concat(ut.lmap(featinfo.group_counts, _keys.items()))
+        _weights = _weights.iloc[_weights['num'].argsort()[::-1]]
+        nice = ut.get_funcname(grouper).replace('_', ' ')
+        nice = ut.pluralize(nice)
+        print('\nCounts of ' + nice)
+        print(_weights)
+
+    def measure(featinfo, key):
+        start = key.find('(') + 1  # )
+        stop = key[start:].find('[')  # ]
+        if stop > -1:
+            stop += start
+        return key[start:stop]
+
+    def feature(featinfo, key):
+        return key
+
+    def measure_type(featinfo, key):
+        if key.startswith('global'):
+            return 'global'
+        if key.startswith('loc'):
+            return 'local'
+        if any(key.startswith(p) for p in featinfo._summary_keys):
+            # if '[b' in key:  # ]
+            #     return 'binned_summary'
+            # else:
+            return 'summary'
+
+    def summary_measure(featinfo, key):
+        if any(key.startswith(p) for p in featinfo._summary_keys):
+            return featinfo.measure(key)
+
+    def local_measure(featinfo, key):
+        if key.startswith('loc'):
+            return featinfo.measure(key)
+
+    def global_measure(featinfo, key):
+        if key.startswith('global'):
+            return featinfo.measure(key)
+
+    def summary_op(featinfo, key):
+        for p in featinfo._summary_keys:
+            if key.startswith(p):
+                return key[0:key.find('(')]  # )
+
+    def local_sorter(featinfo, key):
+        if key.startswith('loc'):
+            return key[key.find('[') + 1:key.find(',')]  # ]
+
+    def local_rank(featinfo, key):
+        if key.startswith('loc'):
+            return key[key.find(',') + 1:key.find(']')]
+
+    def summary_bin(featinfo, key):
+        for p in featinfo._summary_keys:
+            if key.startswith(p) and '[b' in key:  # ]
+                return key[key.find('[b') + 1:key.find(']')]
+
+    def get_infostr(featinfo):
+        """
+        Summarizes the types (global, local, summary) of features in X based on
+        standardized dimension names.
+        """
+        grouped_keys = ut.ddict(list)
+        for key in featinfo.X.columns:
+            type_ = featinfo.measure_type(key)
+            grouped_keys[type_].append(key)
+
+        info_items = ut.odict([
+            ('global_measures', ut.lmap(featinfo.global_measure,
+                                        grouped_keys['global'])),
+
+            ('local_sorters', set(map(featinfo.local_sorter,
+                                       grouped_keys['local']))),
+            ('local_ranks', set(map(featinfo.local_rank,
+                                     grouped_keys['local']))),
+            ('local_measures', set(map(featinfo.local_measure,
+                                        grouped_keys['local']))),
+
+            ('summary_measures', set(map(featinfo.summary_measure,
+                                          grouped_keys['summary']))),
+            ('summary_ops', set(map(featinfo.summary_op,
+                                     grouped_keys['summary']))),
+            ('summary_bins', set(map(featinfo.summary_bin,
+                                     grouped_keys['summary']))),
+        ])
+
+        import textwrap
+        def _wrap(list_):
+            unwrapped = ', '.join(sorted(list_))
+            indent = (' ' * 4)
+            lines_ = textwrap.wrap(unwrapped, width=80 - len(indent))
+            lines = ['    ' + line for line in lines_]
+            return lines
+
+        lines = []
+        for item  in info_items.items():
+            key, list_ = item
+            list_ = {a for a in list_ if a is not None}
+            if len(list_):
+                title = key.replace('_', ' ').title()
+                if key.endswith('_measures'):
+                    groupid = key.replace('_measures', '')
+                    num = len(grouped_keys[groupid])
+                    title = title + ' (%d)' % (num,)
+                lines.append(title + ':')
+                if key == 'summary_measures':
+                    other = info_items['local_measures']
+                    if other.issubset(list_) and len(other) > 0:
+                        remain = list_ - other
+                        lines.extend(_wrap(['<same as local_measures>'] + list(remain)))
+                    else:
+                        lines.extend(_wrap(list_))
+                else:
+                    lines.extend(_wrap(list_))
+
+        infostr = '\n'.join(lines)
+        return infostr
+        # print(infostr)
 
 
 def gridsearch_match_operation(matches, op_name, basis):
