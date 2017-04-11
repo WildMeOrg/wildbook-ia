@@ -36,12 +36,13 @@ function update_label()
 function add_species()
 {
   value = $('input[name="species-add"]').val()
-  console.log(value);ww
+  console.log(value);
 
-  $('select[name="viewpoint-species"]')
+  $('select[name="ia-annotation-species"]')
      .append($("<option></option>")
      .attr("value", value)
      .text(value));
+   $('select[name="ia-annotation-species"] option[value="' + value + '"]').prop('selected', true)
 }
 
 var hotkeys_disabled = false;

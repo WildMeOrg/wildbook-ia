@@ -1680,7 +1680,8 @@ def compute_classifications(depc, aid_list, config=None):
     ibs = depc.controller
     depc = ibs.depc_annot
     config = {
-        'dim_size' : (128, 128),
+        # 'dim_size' : (128, 128),
+        'dim_size' : (192, 192),
         'resize_dim' : 'wh',
     }
     chip_list = depc.get_property('chips', aid_list, 'img', config=config)

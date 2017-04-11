@@ -208,9 +208,12 @@ def get_annotation_special_info(**kwargs):
     filename = 'special.csv'
 
     aid_list = sorted(ibs.get_valid_aids())
+    annot_uuid_list = ibs.get_annot_uuids(aid_list)
     print('Found %d aids' % (len(aid_list), ))
     nid_list = ibs.get_annot_nids(aid_list)
     nid_list = ibs.get_annot_nids(aid_list)
+    name_list = ibs.get_name_texts(nid_list)
+    sex_list = ibs.get_name_sex_text(nid_list)
     gid_list = ibs.get_annot_gids(aid_list)
     gname_list = ibs.get_image_gnames(gid_list)
     imageset_rowids_list = ibs.get_image_imgsetids(gid_list)
@@ -223,8 +226,11 @@ def get_annotation_special_info(**kwargs):
     ]
 
     imageset_list = [ _[0] for _ in imagesets_list ]
+    imageset_text_list = ibs.get_imageset_text(imageset_list)
     imageset_metadata_list = ibs.get_imageset_metadata(imageset_list)
     annot_metadata_list = ibs.get_annot_metadata(aid_list)
+
+    assert len(imageset_metadata_list) == len(annot_metadata_list)
 
     imageset_metadata_list_ = ibs.get_imageset_metadata(ibs.get_valid_imgsetids())
     imageset_metadata_key_list = sorted(set(ut.flatten([
@@ -241,18 +247,51 @@ def get_annotation_special_info(**kwargs):
     annot_metadata_key_str = ','.join(annot_metadata_key_list)
 
     line_list = []
-    zipped = zip(nid_list, aid_list, gname_list, imageset_metadata_list, annot_metadata_list)
+    zipped = zip(
+        nid_list,
+        aid_list,
+        annot_uuid_list,
+        name_list,
+        sex_list,
+        gname_list,
+        imageset_list,
+        imageset_text_list,
+        imageset_metadata_list,
+        annot_metadata_list
+    )
     zipped = sorted(list(zipped))
-    for nid, aid, gname, imageset_metadata_dict, annot_metadata_dict in zipped:
+    for args in zipped:
+        (
+            nid,
+            aid,
+            annot_uuid,
+            name,
+            sex,
+            gname,
+            imageset_rowid,
+            imageset_text,
+            imageset_metadata_dict,
+            annot_metadata_dict
+        ) = args
+
         if nid <= 0:
             continue
         line_list_ = [
+            ibs.dbname,
             aid,
+            annot_uuid,
             nid,
+            name,
+            sex,
             gname,
+            imageset_rowid,
+            imageset_text,
+            '',
         ] + [
             imageset_metadata_dict.get(imageset_metadata_key, '')
             for imageset_metadata_key in imageset_metadata_key_list
+        ] + [
+            '',
         ] + [
             annot_metadata_dict.get(annot_metadata_key, '')
             for annot_metadata_key in annot_metadata_key_list
@@ -265,7 +304,7 @@ def get_annotation_special_info(**kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'AID,NID,Image Name,%s,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,AID,Annotation UUID,NID,Name,Sex,Image Name,Encounter ID,Encounter Name,,%s,,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 

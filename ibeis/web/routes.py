@@ -1620,17 +1620,36 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         annot_bbox_list = ibs.get_annot_bboxes(aid_list)
         annot_thetas_list = ibs.get_annot_thetas(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
+        viewpoint_list = ibs.get_annot_yaws(aid_list)
+        quality_list = ibs.get_annot_qualities(aid_list)
+        multiple_list = ibs.get_annot_multiple(aid_list)
+        interest_list = [1] * len(aid_list)
         # Get annotation bounding boxes
         annotation_list = []
-        for aid, annot_bbox, annot_theta, species in zip(aid_list, annot_bbox_list, annot_thetas_list, species_list):
+        zipped = zip(aid_list, annot_bbox_list, annot_thetas_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list)
+        for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
+            if quality in [-1, None]:
+                quality = -1
+            elif quality > 2:
+                quality = 2
+            elif quality <= 2:
+                quality = 1
+            if viewpoint in [None]:
+                viewpoint = -1
+            else:
+                viewpoint = appf.convert_yaw_to_old_viewpoint(viewpoint)
             temp = {}
-            temp['left']   = 100.0 * (annot_bbox[0] / width)
-            temp['top']    = 100.0 * (annot_bbox[1] / height)
-            temp['width']  = 100.0 * (annot_bbox[2] / width)
-            temp['height'] = 100.0 * (annot_bbox[3] / height)
-            temp['label']  = species
-            temp['id']     = aid
-            temp['theta']  = float(annot_theta)
+            temp['left']      = 100.0 * (annot_bbox[0] / width)
+            temp['top']       = 100.0 * (annot_bbox[1] / height)
+            temp['width']     = 100.0 * (annot_bbox[2] / width)
+            temp['height']    = 100.0 * (annot_bbox[3] / height)
+            temp['species']   = species
+            temp['viewpoint'] = viewpoint
+            temp['quality']   = quality
+            temp['multiple']  = 'true' if multiple == 1 else 'false'
+            temp['interest']  = 'true' if interest == 1 else 'false'
+            temp['id']        = aid
+            temp['theta']     = float(annot_theta)
             annotation_list.append(temp)
         if len(species_list) > 0:
             species = max(set(species_list), key=species_list.count)  # Get most common species
@@ -1643,6 +1662,18 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         species = None
         image_src = None
         annotation_list = []
+
+    species_rowids = ibs._get_all_species_rowids()
+    species_nice_list = ibs.get_species_nice(species_rowids)
+
+    combined_list = sorted(zip(species_nice_list, species_rowids))
+    species_nice_list = [ combined[0] for combined in combined_list ]
+    species_rowids = [ combined[1] for combined in combined_list ]
+
+    species_text_list = ibs.get_species_texts(species_rowids)
+    species_list = zip(species_nice_list, species_text_list)
+    species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
+
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
@@ -1655,6 +1686,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          imagesettext=imagesettext,
                          progress=progress,
                          finished=finished,
+                         species_list=species_list,
                          annotation_list=annotation_list,
                          display_instructions=display_instructions,
                          display_species_examples=display_species_examples,
