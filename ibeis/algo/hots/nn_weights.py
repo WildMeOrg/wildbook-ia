@@ -235,22 +235,25 @@ def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
         >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors',
+        >>>                                defaultdb='PZ_MTEST')
         >>> nns_list, nnvalid0_list = args
         >>> normweight_fn = lnbnn_fn
-        >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)
+        >>> weights_list1, normk_list1 = nn_normalized_weight(
+        >>>     normweight_fn, nns_list, nnvalid0_list, qreq_)
         >>> weights1 = weights_list1[0]
         >>> nn_normonly_weight = NN_WEIGHT_FUNC_DICT['lnbnn']
         >>> weights_list2, normk_list2 = nn_normonly_weight(nns_list, nnvalid0_list, qreq_)
         >>> weights2 = weights_list2[0]
         >>> assert np.all(weights1 == weights2)
-        >>> ut.assert_inbounds(weights1.sum(), 100, 310)
+        >>> ut.assert_inbounds(weights1.sum(), 100, 510)
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.nn_weights import *  # NOQA
         >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
+        >>> qreq_, args = plh.testdata_pre('weight_neighbors',
+        >>>                                defaultdb='PZ_MTEST')
         >>> nns_list, nnvalid0_list = args
         >>> normweight_fn = ratio_fn
         >>> weights_list1, normk_list1 = nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_)

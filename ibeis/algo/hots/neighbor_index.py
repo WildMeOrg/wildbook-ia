@@ -42,10 +42,14 @@ def get_support_data(qreq_, daid_list):
         >>> assert all([np.all(fgws > .9) for fgws in fgws_list])
         >>> result = ('depth_profile = %r' % (ut.depth_profile(tup),))
         >>> print(result)
+
         depth_profile = [[(128, 128), (174, 128)], [128, 174], [128, 174]]
 
-        I can't figure out why this tests isn't determenistic all the time
-        and I can't get it to reproduce non-determenism
+        I can't figure out why this tests isn't determenistic all the time and
+        I can't get it to reproduce non-determenism.
+
+        This could be due to theano.
+
         depth_profile = [[(39, 128), (22, 128)], [39, 22], [39, 22]]
         depth_profile = [[(35, 128), (24, 128)], [35, 24], [35, 24]]
         depth_profile = [[(34, 128), (31, 128)], [34, 31], [34, 31]]
@@ -634,10 +638,10 @@ class NeighborIndex(object):
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> indexer, qreq_, ibs = testdata_indexer()
+            >>> indexer, qreq_, ibs = testdata_nnindexer()
             >>> qfx2_vec = ibs.get_annot_vecs(1, config2_=qreq_.get_internal_query_config2())
             >>> K = 2
-            >>> indexer.debug_indexer()
+            >>> indexer.debug_nnindexer()
             >>> assert vt.check_sift_validity(qfx2_vec), 'bad SIFT properties'
             >>> (qfx2_idx, qfx2_dist) = indexer.knn(qfx2_vec, K)
             >>> result = str(qfx2_idx.shape) + ' ' + str(qfx2_dist.shape)
@@ -657,7 +661,7 @@ class NeighborIndex(object):
         Example2:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.neighbor_index import *  # NOQA
-            >>> indexer, qreq_, ibs = testdata_indexer()
+            >>> indexer, qreq_, ibs = testdata_nnindexer()
             >>> qfx2_vec = np.empty((0, 128), dtype=indexer.get_dtype())
             >>> K = 2
             >>> (qfx2_idx, qfx2_dist) = indexer.knn(qfx2_vec, K)

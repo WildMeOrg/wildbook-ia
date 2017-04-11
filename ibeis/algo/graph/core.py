@@ -166,7 +166,7 @@ class Feedback(object):
     def feedback_keys(infr):
         """ edge attribute keys used for feedback """
         return ['decision', 'num_reviews', 'tags', 'user_id', 'timestamp',
-                'confidence']
+                'confidence', 'review_id']
         # 'reviewed_weight'
 
     @profile
@@ -182,13 +182,14 @@ class Feedback(object):
             >>> from ibeis.algo.graph.core import *  # NOQA
             >>> infr = testdata_infr('testdb1')
             >>> infr.reset_feedback()
+            >>> infr.enable_inference = False
             >>> #infr.add_feedback((1, 2), 'unknown', tags=[])
             >>> infr.add_feedback((1, 2), INCMP, tags=[])
             >>> infr.apply_feedback_edges()
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
             >>> print(result)
-            <AnnotInference(nAids=6, nEdges=3)>
+            <AnnotInference(nNodes=6, nEdges=3, nCCs=4, nN=0)>
         """
         infr.print('apply_feedback_edges', 1)
         # Transforms dictionary feedback into numpy array
@@ -198,11 +199,14 @@ class Feedback(object):
             # hack for feedback rectification
             edges.append(edge)
             feedback_item = infr._rectify_feedback_item(vals)
+            feedback_item['review_id'] = next(infr.review_counter)
             feedback_item['num_reviews'] = len(vals)
             if feedback_item['decision'] == 'unknown':
                 continue
-            assert feedback_item.keys() == attr_lists.keys(), str((
-                set(feedback_item.keys()), set(attr_lists.keys())))
+            if feedback_item.keys() != attr_lists.keys():
+                raise AssertionError(str((
+                    set(feedback_item.keys()), set(attr_lists.keys())))
+                )
             for key, val in feedback_item.items():
                 attr_lists[key].append(val)
 
@@ -807,7 +811,7 @@ class AnnotInference(ut.NiceRepr,
         >>> # Note that there are initially no edges
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
-        infr = <AnnotInference(nAids=6, nEdges=0)>
+        infr = <AnnotInference(nNodes=6, nEdges=0, nCCs=6, nN=0)>
 
     Example:
         >>> # SCRIPT
@@ -831,7 +835,6 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
-        infr = <AnnotInference(nAids=6, nEdges=0)>
 
     Example:
         >>> # SCRIPT
@@ -859,7 +862,6 @@ class AnnotInference(ut.NiceRepr,
         >>> infr.apply_feedback_edges()
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
-        infr = <AnnotInference(nAids=6, nEdges=0)>
     """
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):

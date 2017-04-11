@@ -688,7 +688,7 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
         python -m ibeis.init.filter_annots encounter_crossval
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> from ibeis.init import main_helpers
         >>> import ibeis
@@ -778,7 +778,7 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
 
     if confusors:
         # Add confusors the the dataset
-        confusor_aids = ut.flatten(nid_to_confusors.values())
+        confusor_aids = ut.flatten(ut.flatten(nid_to_confusors.values()))
         expanded_aids_list = [(qaids, sorted(daids + confusor_aids))
                               for qaids, daids in expanded_aids_list]
     return expanded_aids_list
