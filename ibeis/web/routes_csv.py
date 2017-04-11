@@ -13,7 +13,7 @@ from ibeis.web import routes
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def get_associations_dict(ibs, **kwargs):
+def get_associations_dict(ibs, target_species=None, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
@@ -28,6 +28,20 @@ def get_associations_dict(ibs, **kwargs):
 
     assoc_dict = {}
     for imageset_rowid, time_, nid_list in zip(imageset_list, time_list, nids_list):
+        if target_species is not None:
+            def _get_primary_species(aid_list):
+                species_list = ibs.get_annot_species_texts(aid_list)
+                species = max(set(species_list), key=species_list.count)
+                return species
+
+            aids_list = ibs.get_name_aids(nid_list)
+            species_list = map(_get_primary_species, aids_list)
+            nid_list = [
+                nid
+                for nid, species in zip(nid_list, species_list)
+                if species == target_species
+            ]
+
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
         for name in name_list:
@@ -44,7 +58,7 @@ def get_associations_dict(ibs, **kwargs):
 def download_associations_list(**kwargs):
     ibs = current_app.ibs
     filename = 'associations.list.csv'
-    assoc_dict = get_associations_dict(ibs)
+    assoc_dict = get_associations_dict(ibs, **kwargs)
 
     combined_list = []
     max_length = 0
@@ -74,7 +88,7 @@ def download_associations_list(**kwargs):
 def download_associations_matrix(**kwargs):
     ibs = current_app.ibs
     filename = 'associations.matrix.csv'
-    assoc_dict = get_associations_dict(ibs)
+    assoc_dict = get_associations_dict(ibs, **kwargs)
     assoc_list = sorted(assoc_dict.keys())
     max_length = len(assoc_list)
 
@@ -319,7 +333,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'DB,Annotation UUID,AID,NID,Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,|,%s,|,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,Annotation UUID,AID,NID,Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
