@@ -67,7 +67,7 @@ VSONE_PI_DICT = {
 @ut.reloadable_class
 class PairwiseMatch(ut.NiceRepr):
     """
-    Newest (Sept-16) object oriented one-vs-one matching interface
+    Newest (Sept-16-2016) object oriented one-vs-one matching interface
 
     Creates an object holding two annotations
     Then a pipeline of operations can be applied to
@@ -81,7 +81,6 @@ class PairwiseMatch(ut.NiceRepr):
 
         Optional annotation attributes:
             aid, nid, flann, rchip, dlen_sqrd, weight
-
     """
     def __init__(match, annot1=None, annot2=None):
         match.annot1 = annot1
@@ -101,8 +100,8 @@ class PairwiseMatch(ut.NiceRepr):
         take parameter info from config using default values defined in module
         constants.
         """
-        if isinstance(keys, six.string_types):
-            keys = keys.split(', ')
+        # if isinstance(keys, six.string_types):
+        #     keys = keys.split(', ')
         return [config.get(key, VSONE_PI_DICT[key].default) for key in keys]
 
     def __getstate__(match):
@@ -175,9 +174,25 @@ class PairwiseMatch(ut.NiceRepr):
         return ax, xywh1, xywh2
 
     def ishow(match):
+        """
+        CommandLine:
+            python -m vtool.matching ishow
+
+        Example:
+            >>> # SCRIPT
+            >>> from vtool.matching import *  # NOQA
+            >>> from vtool.inspect_matches import lazy_test_annot
+            >>> import vtool as vt
+            >>> annot1 = lazy_test_annot('easy1.png')
+            >>> annot2 = lazy_test_annot('easy2.png')
+            >>> match = vt.PairwiseMatch(annot1, annot2)
+            >>> self = match.ishow()
+            >>> ut.quit_if_noshow()
+        """
         from vtool.inspect_matches import MatchInspector
         self = MatchInspector(match=match)
         self.show()
+        return self
 
     def add_global_measures(match, global_keys):
         for key in global_keys:
@@ -268,9 +283,9 @@ class PairwiseMatch(ut.NiceRepr):
 
         >>> from vtool.matching import *  # NOQA
         """
-        K, Knorm, symmetric, checks, weight_key = match._take_params(
-            cfgdict,
-            'K, Knorm, symmetric, checks, weight')
+        params = match._take_params(cfgdict, ['K', 'Knorm', 'symmetric',
+                                              'checks', 'weight'])
+        K, Knorm, symmetric, checks, weight_key = params
         annot1 = match.annot1
         annot2 = match.annot2
 
@@ -325,7 +340,7 @@ class PairwiseMatch(ut.NiceRepr):
         return match
 
     def ratio_test_flags(match, cfgdict={}):
-        ratio_thresh = match._take_params(cfgdict, 'ratio_thresh')
+        ratio_thresh = match._take_params(cfgdict, ['ratio_thresh'])[0]
         ratio = match.local_measures['ratio']
         flags = np.less(ratio, ratio_thresh)
         return flags
@@ -334,8 +349,8 @@ class PairwiseMatch(ut.NiceRepr):
         from vtool import spatial_verification as sver
         import vtool as vt
         params = match._take_params(
-            cfgdict,
-            'sver_xy_thresh, sver_ori_thresh, sver_scale_thresh, refine_method')
+            cfgdict, ['sver_xy_thresh', 'sver_ori_thresh', 'sver_scale_thresh',
+                      'refine_method'])
         sver_xy_thresh, sver_ori_thresh, sver_scale_thresh, refine_method = params
 
         kpts1 = match.annot1['kpts']
@@ -373,7 +388,7 @@ class PairwiseMatch(ut.NiceRepr):
         match.local_measures = ut.odict([])
         match.assign(cfgdict)
         match.apply_ratio_test(cfgdict, inplace=True)
-        sv_on = match._take_params(cfgdict, 'sv_on')
+        sv_on = match._take_params(cfgdict, ['sv_on'])[0]
 
         if sv_on:
             match.apply_sver(cfgdict, inplace=True)
@@ -433,29 +448,88 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
     def _make_local_summary_feature_vector(match, local_keys=None,
-                                           summary_ops=None):
-        """ Summary statistics of local features """
+                                           summary_ops=None, bin_key=None,
+                                           bins=4):
+        r"""
+        Summary statistics of local features
+
+        CommandLine:
+            python -m vtool.matching make_feature_vector
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from vtool.matching import *  # NOQA
+            >>> from vtool.inspect_matches import lazy_test_annot
+            >>> import vtool as vt
+            >>> annot1 = lazy_test_annot('easy1.png')
+            >>> annot2 = lazy_test_annot('easy2.png')
+            >>> match = vt.PairwiseMatch(annot1, annot2)
+            >>> cfgdict = {'ratio_thresh': .95, 'sv_on': False}
+            >>> match.apply_all(cfgdict)
+            >>> summary_ops = {'len', 'sum'}
+            >>> bin_key = 'ratio'
+            >>> bins = 4
+            >>> bins = [.5, .625, .7, .9]
+            >>> local_keys = ['ratio', 'norm_dist']
+            >>> feat = match._make_local_summary_feature_vector(
+            >>>     local_keys=local_keys,
+            >>>     bin_key=bin_key, summary_ops=summary_ops, bins=bins)
+            >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
+            >>> print(result)
+        """
         if summary_ops is None:
             summary_ops = {'sum', 'mean', 'std', 'len'}
         if local_keys is None:
             local_measures = match.local_measures
         else:
             local_measures = ut.dict_subset(match.local_measures, local_keys)
+
+        ops = {
+            # 'len'    : len,
+            'sum'    : np.sum,
+            'mean'   : np.mean,
+            'median' : np.median,
+            'std'    : np.std,
+        }
+
         feat = ut.odict([])
-        if 'len' in summary_ops:
-            feat['len(matches)'] = len(match.fm)
-        if 'sum' in summary_ops:
-            for k, vs in six.iteritems(local_measures):
-                feat['sum(%s)' % (k,)] = vs.sum()
-        if 'mean' in summary_ops:
-            for k, vs in six.iteritems(local_measures):
-                feat['mean(%s)' % (k,)] = np.mean(vs)
-        if 'std' in summary_ops:
-            for k, vs in six.iteritems(local_measures):
-                feat['std(%s)' % (k,)] = np.std(vs)
-        if 'med' in summary_ops:
-            for k, vs in six.iteritems(local_measures):
-                feat['med(%s)' % (k,)] = np.median(vs)
+        if bin_key is not None:
+            # binned ratio feature vectors
+            if isinstance(bins, int):
+                bins = np.linspace(0, 1.0, bins + 1)
+            else:
+                bins = [0] + list(bins)
+            local_bin_ids = np.searchsorted(bins, match.local_measures[bin_key])
+            dimkey_fmt = '{opname}({measure}[b{binid}])'
+            for binid in range(1, len(bins)):
+                fxs = np.where(local_bin_ids <= binid)[0]
+                if 'len' in summary_ops:
+                    dimkey = dimkey_fmt.format(
+                        opname='len', measure='matches', binid=binid
+                    )
+                    feat[dimkey] = len(fxs)
+                for opname in sorted(summary_ops - {'len'}):
+                    op = ops[opname]
+                    for k, vs in local_measures.items():
+                        dimkey = dimkey_fmt.format(
+                            opname=opname, measure=k, binid=binid
+                        )
+                        feat[dimkey] = op(vs[fxs])
+        else:
+            if 'len' in summary_ops:
+                feat['len(matches)'] = len(match.fm)
+            if 'sum' in summary_ops:
+                for k, vs in six.iteritems(local_measures):
+                    feat['sum(%s)' % (k,)] = vs.sum()
+            if 'mean' in summary_ops:
+                for k, vs in six.iteritems(local_measures):
+                    feat['mean(%s)' % (k,)] = np.mean(vs)
+            if 'std' in summary_ops:
+                for k, vs in six.iteritems(local_measures):
+                    feat['std(%s)' % (k,)] = np.std(vs)
+            if 'med' in summary_ops:
+                for k, vs in six.iteritems(local_measures):
+                    feat['med(%s)' % (k,)] = np.median(vs)
         return feat
 
     def _make_local_top_feature_vector(match, local_keys=None, sorters='ratio',
