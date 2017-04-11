@@ -55,7 +55,7 @@ except Exception as ex:
     if False:
         raise
 
-(print, rrr, profile) = ut.inject2(__name__, '[sver]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 VERBOSE_SVER = ut.get_argflag('--verb-sver')
@@ -65,7 +65,6 @@ INDEX_DTYPE = np.int32
 TAU = 2 * np.pi  # tauday.org
 
 
-@profile
 def build_lstsqrs_Mx9(xy1_mn, xy2_mn):
     """ Builds the M x 9 least squares matrix
 
@@ -254,7 +253,6 @@ def build_affine_lstsqrs_Mx6(xy1_man, xy2_man):
     #return Mx6
 
 
-@profile
 def compute_affine(xy1_man, xy2_man):
     """
     Args:
@@ -314,7 +312,6 @@ def compute_affine(xy1_man, xy2_man):
     return A
 
 
-@profile
 def compute_homog(xy1_mn, xy2_mn):
     """
     Generate 6 degrees of freedom homography transformation
@@ -410,7 +407,6 @@ def testdata_matching_affine_inliers_normalized():
     return xy1_man, xy2_man, rchip1, rchip2, T1, T2
 
 
-@profile
 def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
                              xy_thresh_sqrd, scale_thresh_sqrd, ori_thresh):
     """
@@ -494,7 +490,6 @@ def _test_hypothesis_inliers(Aff, invVR1s_m, xy2_m, det2_m, ori2_m,
     return hypo_inliers, hypo_errors
 
 
-@profile
 def get_affine_inliers(kpts1, kpts2, fm, fs,
                         xy_thresh_sqrd,
                         scale_thresh_sqrd,
@@ -598,7 +593,6 @@ def get_affine_inliers(kpts1, kpts2, fm, fs,
     return aff_inliers_list, aff_errors_list, Aff_mats
 
 
-@profile
 def get_best_affine_inliers(kpts1, kpts2, fm, fs, xy_thresh_sqrd, scale_thresh,
                             ori_thresh, forcepy=False):
     """ Tests each hypothesis and returns only the best transformation and inliers
@@ -884,7 +878,6 @@ def test_affine_errors(H, kpts1, kpts2, fm, xy_thresh_sqrd, scale_thresh_sqrd,
     return refined_tup1
 
 
-@profile
 def refine_inliers(kpts1, kpts2, fm, aff_inliers, xy_thresh_sqrd,
                    scale_thresh=2.0, ori_thresh=1.57, full_homog_checks=True,
                    refine_method='homog'):
@@ -961,7 +954,6 @@ def get_best_affine_inliers_(kpts1, kpts2, fm, fs, xy_thresh_sqrd,
     return aff_inliers, aff_errors, Aff
 
 
-#@profile
 def spatially_verify_kpts(kpts1, kpts2, fm,
                           xy_thresh=.01,
                           scale_thresh=2.0,

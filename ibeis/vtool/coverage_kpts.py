@@ -26,7 +26,6 @@ COVKPTS_DEFAULT = ut.ParamInfoList('coverage_kpts', [
 ])
 
 
-@profile
 #@ut.memprof
 def make_kpts_coverage_mask(
         kpts, chipsize,
@@ -113,7 +112,6 @@ def make_kpts_coverage_mask(
         return dstimg
 
 
-@profile
 def warp_patch_onto_kpts(
         kpts, patch, chipshape,
         weights=None,

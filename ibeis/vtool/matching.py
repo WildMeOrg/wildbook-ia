@@ -220,7 +220,6 @@ class PairwiseMatch(ut.NiceRepr):
     def matched_vecs2(match):
         return match.annot2['vecs'].take(match.fm.T[1], axis=0)
 
-    @profile
     def _next_instance(match, inplace=None):
         """
         Returns either the same or a new instance of a match object with the
@@ -238,7 +237,6 @@ class PairwiseMatch(ut.NiceRepr):
             match_.global_measures = match.global_measures.copy()
         return match_
 
-    @profile
     def copy(match):
         match_ = match._next_instance(inplace=False)
         if match.fm is not None:
@@ -248,7 +246,6 @@ class PairwiseMatch(ut.NiceRepr):
                 lambda a: a.copy(), match.local_measures)
         return match_
 
-    @profile
     def compress(match, flags, inplace=None):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.compress(flags, axis=0)
@@ -257,7 +254,6 @@ class PairwiseMatch(ut.NiceRepr):
                 lambda a: a.compress(flags), match.local_measures)
         return match_
 
-    @profile
     def take(match, indicies, inplace=None):
         match_ = match._next_instance(inplace)
         match_.fm = match.fm.take(indicies, axis=0)
@@ -266,7 +262,6 @@ class PairwiseMatch(ut.NiceRepr):
                 lambda a: a.take(indicies), match.local_measures)
         return match_
 
-    @profile
     def assign(match, cfgdict={}, verbose=None):
         """
         Assign feature correspondences between annots
@@ -329,14 +324,12 @@ class PairwiseMatch(ut.NiceRepr):
         match.fm_norm = np.vstack([fx1_norm, fm.T[1]]).T
         return match
 
-    @profile
     def ratio_test_flags(match, cfgdict={}):
         ratio_thresh = match._take_params(cfgdict, 'ratio_thresh')
         ratio = match.local_measures['ratio']
         flags = np.less(ratio, ratio_thresh)
         return flags
 
-    @profile
     def sver_flags(match, cfgdict={}, return_extra=False):
         from vtool import spatial_verification as sver
         import vtool as vt
@@ -374,7 +367,6 @@ class PairwiseMatch(ut.NiceRepr):
         else:
             return flags
 
-    @profile
     def apply_all(match, cfgdict):
         match.H_21 = None
         match.H_12 = None
@@ -386,13 +378,11 @@ class PairwiseMatch(ut.NiceRepr):
         if sv_on:
             match.apply_sver(cfgdict, inplace=True)
 
-    @profile
     def apply_ratio_test(match, cfgdict={}, inplace=None):
         flags = match.ratio_test_flags(cfgdict)
         match_ = match.compress(flags, inplace=inplace)
         return match_
 
-    @profile
     def apply_sver(match, cfgdict={}, inplace=None):
         flags, errors, H_12 = match.sver_flags(cfgdict,
                                                return_extra=True)
@@ -404,7 +394,6 @@ class PairwiseMatch(ut.NiceRepr):
         match_.H_12 = H_12
         return match_
 
-    @profile
     def _make_global_feature_vector(match, global_keys=None):
         """ Global annotation properties and deltas """
         import vtool as vt
@@ -443,7 +432,6 @@ class PairwiseMatch(ut.NiceRepr):
             feat['global(speed)'] = feat['global(gps_delta)'] / hour_delta
         return feat
 
-    @profile
     def _make_local_summary_feature_vector(match, local_keys=None,
                                            summary_ops=None):
         """ Summary statistics of local features """
@@ -470,7 +458,6 @@ class PairwiseMatch(ut.NiceRepr):
                 feat['med(%s)' % (k,)] = np.median(vs)
         return feat
 
-    @profile
     def _make_local_top_feature_vector(match, local_keys=None, sorters='ratio',
                                        indices=3):
         """ Selected subsets of top features """
@@ -502,7 +489,6 @@ class PairwiseMatch(ut.NiceRepr):
         ])
         return feat
 
-    @profile
     def make_feature_vector(match, local_keys=None, global_keys=None,
                             summary_ops=None, sorters='ratio', indices=3):
         """
@@ -976,7 +962,6 @@ def unconstrained_ratio_match(flann, vecs2, unc_ratio_thresh=.625,
     return ratio_tup
 
 
-@profile
 def spatially_constrained_ratio_match(flann, vecs2, kpts1, kpts2, H, chip2_dlen_sqrd,
                                       match_xy_thresh=1.0, scr_ratio_thresh=.625, scr_K=7,
                                       norm_xy_bounds=(0.0, 1.0),

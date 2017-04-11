@@ -17,8 +17,7 @@ import utool as ut
 import warnings
 from utool import util_time
 from vtool import image_shared
-(print, print_, printDBG, rrr, profile) = ut.inject(
-    __name__, '[exif]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # Inverse of PIL.ExifTags.TAGS
@@ -61,7 +60,6 @@ ORIENTATION_DICT_INVERSE = {
 }
 
 
-@profile
 def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     if default_list is None:
         default_list = [None for _ in range(len(exif_tagid_list))]
@@ -71,7 +69,6 @@ def read_exif_tags(pil_img, exif_tagid_list, default_list=None):
     return exif_val_list
 
 
-@profile
 def get_exif_dict(pil_img):
     """ Returns exif dictionary by TAGID """
     try:
@@ -87,7 +84,6 @@ def get_exif_dict(pil_img):
     return exif_dict
 
 
-@profile
 def get_exif_dict2(pil_img):
     """ Returns exif dictionary by TAG (less efficient)"""
     try:
@@ -109,7 +105,6 @@ def make_exif_dict_human_readable(exif_dict):
     return exif_dict2
 
 
-@profile
 def check_exif_keys(pil_img):
     info_ = pil_img._getexif()
     valid_keys = []
@@ -126,7 +121,6 @@ def check_exif_keys(pil_img):
     #exec(df2.present())
 
 
-@profile
 def read_all_exif_tags(pil_img):
     info_ = pil_img._getexif()
     exif = {} if info_ is None else {
@@ -136,13 +130,11 @@ def read_all_exif_tags(pil_img):
     return exif
 
 
-@profile
 def get_exif_tagids(tag_list):
     tagid_list = [EXIF_TAG_TO_TAGID[tag] for tag in tag_list]
     return tagid_list
 
 
-@profile
 def read_one_exif_tag(pil_img, tag):
     try:
         exif_key = TAGS.keys()[TAGS.values().index(tag)]
@@ -157,7 +149,6 @@ def read_one_exif_tag(pil_img, tag):
     return exif_val
 
 
-@profile
 def read_exif(fpath, tag=None):
     try:
         pil_img = Image.open(fpath)
@@ -176,7 +167,6 @@ def read_exif(fpath, tag=None):
     return exif
 
 
-@profile
 def get_exist(data, key):
     if key in data:
         return data[key]
@@ -212,7 +202,6 @@ GPSLONGITUDE_CODE    = GPS_TAG_TO_GPSID['GPSLongitude']
 GPSLONGITUDEREF_CODE = GPS_TAG_TO_GPSID['GPSLongitudeRef']
 
 
-@profile
 def get_lat_lon(exif_dict, default=(-1, -1)):
     r"""
     Returns the latitude and longitude, if available, from the provided

@@ -5,7 +5,7 @@ import numpy as np
 import utool as ut
 import cv2
 from vtool import coverage_kpts
-print, print_, profile = ut.inject2(__name__, '[covgrid]', DEBUG=False)
+print, print_, profile = ut.inject2(__name__)
 
 
 # TODO: integrate more

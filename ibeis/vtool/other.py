@@ -6,7 +6,7 @@ import six
 import functools  # NOQA
 from six import next
 from six.moves import zip, range  # NOQA
-(print, rrr, profile) = ut.inject2(__name__, '[other]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def multiaxis_reduce(ufunc, arr, startaxis=0):
@@ -628,12 +628,10 @@ def compute_unique_integer_data_ids(data):
     return dataid_list
 
 
-@profile
 def trytake(list_, index_list):
     return None if list_ is None else list_take_(list_, index_list)
 
 
-@profile
 def list_take_(list_, index_list):
     if isinstance(list_, np.ndarray):
         return list_.take(index_list, axis=0)
@@ -655,7 +653,6 @@ def take2(arr, index_list, axis=None, out=None):
     return np.take(arr, index_list, axis=axis, out=out)
 
 
-@profile
 def list_compress_(list_, flag_list):
     if isinstance(list_, np.ndarray):
         return list_.compress(flag_list, axis=0)
@@ -1296,7 +1293,6 @@ def intersect2d_numpy(A, B, assume_unique=False, return_indices=False):
         return C
 
 
-@profile
 def nearest_point(x, y, pts, mode='random'):
     """ finds the nearest point(s) in pts to (x, y) """
     dists = (pts.T[0] - x) ** 2 + (pts.T[1] - y) ** 2
@@ -1460,7 +1456,6 @@ def and_lists(*args):
     return np.logical_and.reduce(args)
 
 
-@profile
 def axiswise_operation2(arr1, arr2, op, axis=0):
     """
     Apply opperation to each row
@@ -1483,7 +1478,6 @@ def axiswise_operation2(arr1, arr2, op, axis=0):
     raise NotImplementedError()
 
 
-@profile
 def rowwise_operation(arr1, arr2, op):
     """
     DEPRICATE THIS IS POSSIBLE WITH STRICTLY BROADCASTING AND
@@ -1525,7 +1519,6 @@ def compare_matrix_columns(matrix, columns, comp_op=np.equal, logic_op=np.logica
     return compare_matrix_to_rows(matrix.T, columns.T, comp_op=comp_op, logic_op=logic_op).T
 
 
-@profile
 def compare_matrix_to_rows(row_matrix, row_list, comp_op=np.equal, logic_op=np.logical_or):
     """
     Compares each row in row_list to each row in row matrix using comp_op
@@ -1900,7 +1893,6 @@ def safe_div(a, b):
     return None if a is None or b is None else a / b
 
 
-@profile
 def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
     r"""
     Slow version of multigroup_lookup. Makes a call to custom_func for each
@@ -1919,7 +1911,6 @@ def multigroup_lookup_naive(lazydict, keys_list, subkeys_list, custom_func):
     return data_lists
 
 
-@profile
 def multigroup_lookup(lazydict, keys_list, subkeys_list, custom_func):
     r"""
     Efficiently calls custom_func for each item in zip(keys_list, subkeys_list)

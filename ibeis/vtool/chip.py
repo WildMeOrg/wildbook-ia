@@ -14,7 +14,6 @@ except ImportError as ex:
 (print, rrr, profile) = ut.inject2(__name__)
 
 
-@profile
 def get_image_to_chip_transform(bbox, chipsz, theta):
     """
     transforms image space into chipspace
@@ -86,7 +85,6 @@ def get_image_to_chip_transform(bbox, chipsz, theta):
     return C
 
 
-@profile
 def _get_chip_to_image_transform(bbox, chipsz, theta):
     """ transforms chip space into imgspace
         bbox   - bounding box of chip in image space
@@ -98,7 +96,6 @@ def _get_chip_to_image_transform(bbox, chipsz, theta):
     return invC
 
 
-@profile
 def extract_chip_from_gpath(gfpath, bbox, theta, new_size, interpolation=cv2.INTER_LANCZOS4):
     imgBGR = gtool.imread(gfpath)  # Read parent image
     chipBGR = extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation)
@@ -119,7 +116,6 @@ def extract_chip_from_gpath_into_square(args):
     return extract_chip_into_square(imgBGR, bbox, theta, target_size)
 
 
-@profile
 def extract_chip_from_img(imgBGR, bbox, theta, new_size, interpolation=cv2.INTER_LANCZOS4):
     """ Crops chip from image ; Rotates and scales;
 
@@ -325,7 +321,6 @@ def get_scaled_sizes_with_area(target_area, size_list):
     return [get_scaled_size_with_area(target_area, w, h) for (w, h) in size_list]
 
 
-#@profile
 def compute_chip(gfpath, bbox, theta, new_size, filter_list=[],
                  interpolation=cv2.INTER_LANCZOS4):
     r""" Extracts a chip and applies filters

@@ -19,13 +19,12 @@ except ImportError as ex:
     cv2.INTER_CUBIC = None
     cv2.BORDER_CONSTANT = None
     cv2.BORDER_REPLICATE = None
-(print, rrr, profile) = ut.inject2(__name__, '[patch]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 TAU = np.pi * 2  # References: tauday.com
 
 
-@profile
 def patch_gradient(patch, ksize=1, gaussian_weighted=False):
     patch_ = np.array(patch, dtype=np.float64)
     gradx = cv2.Sobel(patch_, cv2.CV_64F, 1, 0, ksize=ksize)
@@ -512,7 +511,6 @@ def gaussian_patch(shape=(7, 7), sigma=1.0):
 #    return gausspatch
 
 
-@profile
 def get_unwarped_patches(img, kpts):
     r"""
     Returns cropped unwarped (keypoint is still elliptical) patch around a
@@ -547,7 +545,6 @@ def get_unwarped_patches(img, kpts):
     return patches, subkpts
 
 
-@profile
 def get_warped_patches(img, kpts, flags=cv2.INTER_LANCZOS4,
                        borderMode=cv2.BORDER_REPLICATE, patch_size=41,
                        use_cpp=False):
@@ -888,7 +885,6 @@ def gaussian_weight_patch(patch, sigma=None):
     return weighted_patch
 
 
-@profile
 def get_warped_patch(imgBGR, kp, gray=False, flags=cv2.INTER_LANCZOS4,
                      borderMode=cv2.BORDER_REPLICATE, patch_size=41):
     r"""
@@ -1010,7 +1006,6 @@ def GaussianBlurInplace(img, sigma, size=None):
     return img
 
 
-@profile
 def get_unwarped_patch(imgBGR, kp, gray=False):
     """Returns unwarped warped patch around a keypoint
 
@@ -1029,7 +1024,6 @@ def get_unwarped_patch(imgBGR, kp, gray=False):
     return upatch, ukp
 
 
-@profile
 def find_kpts_direction(imgBGR, kpts, DEBUG_ROTINVAR=False):
     r"""
     Args:
@@ -1371,7 +1365,6 @@ def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
     return new_oris
 
 
-@profile
 def get_orientation_histogram(gori, gori_weights, bins=36, DEBUG_ROTINVAR=False):
     r"""
     Args:

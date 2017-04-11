@@ -14,7 +14,7 @@ except ImportError as ex:
     cv2 = None
 from vtool import exif
 import utool as ut
-(print, rrr, profile) = ut.inject2(__name__, '[img]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 TAU = np.pi * 2
@@ -561,7 +561,6 @@ def get_num_channels(img):
     return nChannels
 
 
-@profile
 def subpixel_values(img, pts):
     """
     References:
@@ -683,7 +682,6 @@ def cvt_BGR2RGB(imgBGR):
     return imgRGB
 
 
-@profile
 def warpAffine(img, Aff, dsize):
     """
     dsize = (width, height) of return image
@@ -735,7 +733,6 @@ def warpAffine(img, Aff, dsize):
     return warped_img
 
 
-@profile
 def warpHomog(img, Homog, dsize):
     """
     dsize = (width, height) of return image
@@ -1127,7 +1124,6 @@ def shear(img, x_shear, y_shear, dsize=None, **kwargs):
     return imgSh
 
 
-@profile
 def affine_warp_around_center(img, sx=1, sy=1, theta=0, shear=0, tx=0, ty=0,
                               dsize=None, borderMode=cv2.BORDER_CONSTANT,
                               flags=cv2.INTER_LANCZOS4, out=None, **kwargs):

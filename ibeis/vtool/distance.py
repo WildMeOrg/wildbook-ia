@@ -6,7 +6,7 @@ import itertools
 from six.moves import range, zip
 from collections import OrderedDict
 import scipy.spatial.distance as spdist
-(print, rrr, profile) = ut.inject2(__name__, '[dist]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 #TEMP_VEC_DTYPE = np.float32
 TEMP_VEC_DTYPE = np.float64
@@ -93,7 +93,6 @@ def signed_ori_distance(ori1, ori2):
     return ori_dist
 
 
-#@profile
 def ori_distance(ori1, ori2, out=None):
     r"""
     Returns the unsigned distance between two angles
@@ -208,7 +207,6 @@ def cyclic_distance(arr1, arr2, modulo, out=None):
     return arr_dist
 
 
-#@profile
 def det_distance(det1, det2):
     """ Returns how far off determinants are from one another
 
@@ -392,7 +390,6 @@ def L2(hist1, hist2):
     return np.sqrt(L2_sqrd(hist1, hist2))
 
 
-@profile
 def hist_isect(hist1, hist2):
     """ returns histogram intersection distance between two histograms """
     numer = (np.dstack([hist1, hist2])).min(-1).sum(-1)
@@ -757,7 +754,6 @@ def closest_point(pt, pt_arr, distfunc=L2_sqrd):
     return index, dist
 
 
-#@profile
 def haversine(latlon1, latlon2):
     r"""
     Calculate the great circle distance between two points

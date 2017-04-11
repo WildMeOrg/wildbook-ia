@@ -16,10 +16,9 @@ try:
 except ImportError as ex:
     print('ERROR: import cv2 is failing!')
     cv2 = ut.DynStruct()
-(print, rrr, profile) = ut.inject2(__name__, '[ellipse]', DEBUG=False)
+(print, rrr, profile) = ut.inject2(__name__)
 
 
-@profile
 def adaptive_scale(img_fpath, kpts, nScales=4, low=-.5, high=.5, nSamples=16):
     #imgBGR = cv2.imread(img_fpath, flags=cv2.CV_LOAD_IMAGE_COLOR)
     imgBGR = gtool.imread(img_fpath)
@@ -48,7 +47,6 @@ def adaptive_scale(img_fpath, kpts, nScales=4, low=-.5, high=.5, nSamples=16):
     return adapted_kpts
 
 
-@profile
 def check_kpts_in_bounds(kpts_, width, height):
     # Test to make sure the extents of the keypoints are in bounds
     unit_bbox = np.array([(-1, -1, 1),
@@ -66,7 +64,6 @@ def check_kpts_in_bounds(kpts_, width, height):
     return isvalid
 
 
-@profile
 def expand_scales(kpts, nScales, low, high):
     scales = 2 ** np.linspace(low, high, nScales)
     expanded_kpts_list = expand_kpts(kpts, scales)
@@ -76,7 +73,6 @@ def expand_scales(kpts, nScales, low, high):
     return expanded_kpts
 
 
-@profile
 def sample_ell_border_pts(expanded_kpts, nSamples):
     ell_border_pts_list = sample_uniform(expanded_kpts, nSamples)
     #assert len(ell_border_pts_list) == nKp * nScales
@@ -87,7 +83,6 @@ def sample_ell_border_pts(expanded_kpts, nSamples):
     return ell_border_pts
 
 
-@profile
 def sample_ell_border_vals(imgBGR, expanded_kpts, nKp, nScales, nSamples):
     # Sample points uniformly across the boundary
     ell_border_pts = sample_ell_border_pts(expanded_kpts, nSamples)
@@ -111,7 +106,6 @@ def interpolate_between(peak_list, nScales, high, low):
     return subscale_list
 
 
-@profile
 def subscale_peaks(border_vals_sum, kpts, nScales, low, high):
     peak_list = interpolate_maxima(border_vals_sum)
     subscale_list = interpolate_between(peak_list, nScales, high, low)
@@ -176,7 +170,6 @@ def interpolate_peaks2(x_data_list, y_data_list):
             coeff_list.append(coeff)
 
 
-@profile
 def interpolate_peaks(x_data_list, y_data_list):
     #http://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-point
     peak_list = []
@@ -196,7 +189,6 @@ def interpolate_peaks(x_data_list, y_data_list):
     return peak_list
 
 
-@profile
 def sample_uniform(kpts, nSamples=128):
     """
     SeeAlso:
@@ -386,7 +378,6 @@ def gradient_magnitude(img):
 #    #return invV
 
 
-@profile
 def kpts_matrices(kpts):
     # We are given the keypoint in invA format
     # invV = perdoch.invA
@@ -400,7 +391,6 @@ def kpts_matrices(kpts):
     return invV, V, Z
 
 
-@profile
 def homogenous_circle_pts(nSamples):
     """  Make a list of homogenous circle points """
     tau = 2 * np.pi
@@ -409,7 +399,6 @@ def homogenous_circle_pts(nSamples):
     return circle_pts
 
 
-@profile
 def circular_distance(arr=None):
     dist_head_ = ((arr[0:-1] - arr[1:]) ** 2).sum(1)
     dist_tail_  = ((arr[-1] - arr[0]) ** 2).sum(0)

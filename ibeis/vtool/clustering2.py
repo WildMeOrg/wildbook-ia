@@ -13,7 +13,7 @@ import numpy as np
 import scipy.sparse as spsparse
 import vtool.nearest_neighbors as nntool
 
-(print, rrr, profile) = ut.inject2(__name__, '[clustering2]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 CLUSTERS_FNAME = 'akmeans_centroids'
@@ -157,7 +157,6 @@ def k_means_pp_cv2(data, K):
                                          flags=cv2.KMEANS_PP_CENTERS)
 
 
-@profile
 def akmeans_plusplus_init(data, K, num_samples=None, flann_params=None,
                           rng=None):
     """
@@ -827,7 +826,6 @@ def groupedzip(id_list, datas_list):
     return unique_ids, grouped_iter
 
 
-#@profile
 def group_indices(idx2_groupid, assume_sorted=False):
     r"""
     group_indices
