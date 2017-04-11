@@ -304,7 +304,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
             continue
 
         line_list_ = [
-            ibs.dbname if contrib is None else contrib.split(',')[0],
+            '' if contrib is None else contrib.split(',')[0],
             annot_uuid,
             aid,
             nid,
