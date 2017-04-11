@@ -227,7 +227,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         for imageset_rowid_set in imageset_rowids_set
     ]
 
-    imageset_list = [ _[0] for _ in imagesets_list ]
+    imageset_list = [ _[0] if len(_) > 0 else None for _ in imagesets_list ]
     imageset_text_list = ibs.get_imageset_text(imageset_list)
     imageset_metadata_list = ibs.get_imageset_metadata(imageset_list)
     annot_metadata_list = ibs.get_annot_metadata(aid_list)
