@@ -33,15 +33,12 @@ except ImportError as ex:
     print('ERROR PLOTTOOL CANNOT IMPORT CV2')
     print(ex)
 from plottool import mpl_keypoint as mpl_kp
-from plottool import color_funcs as color_fns  # NOQA
-from plottool import custom_constants  # NOQA
+from plottool import color_funcs as color_fns
+from plottool import custom_constants
 from plottool import custom_figure
 from plottool import fig_presenter
-
 DEBUG = False
-# Try not injecting into plotting things
-#ut.noinject(__name__, '[df2]')
-(print, rrr, profile) = ut.inject2(__name__, '[df2]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 def is_texmode():
