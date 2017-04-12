@@ -221,11 +221,30 @@ def get_annotation_special_info(target_species=None, **kwargs):
     ibs = current_app.ibs
     filename = 'special.csv'
 
+    def _process_annot_name_uuids_dict(ibs, filepath):
+        import uuid
+        auuid_list = []
+        nuuid_list = []
+        with open(filepath, 'r') as file_:
+            for line in file_.readlines():
+                line = line.strip().split(',')
+                auuid = uuid.UUID(line[0])
+                nuuid = None if line[1] == 'None' else uuid.UUID(line[1])
+                auuid_list.append(auuid)
+                nuuid_list.append(nuuid)
+
+        annot_rowid_list = ibs.get_annot_aids_from_uuid(auuid_list)
+        name_rowid_list = ibs.get_name_rowids_from_uuid(nuuid_list)
+
+        zipped = zip(annot_rowid_list, name_rowid_list)
+        mapping_dict = { aid: nid for aid, nid in zipped if aid is not None}
+        return mapping_dict
+
     aid_list = sorted(ibs.get_valid_aids())
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     print('Found %d aids' % (len(aid_list), ))
     nid_list = ibs.get_annot_nids(aid_list)
-    nid_list = ibs.get_annot_nids(aid_list)
+    name_uuid_list = ibs.get_name_uuids(nid_list)
     name_list = ibs.get_name_texts(nid_list)
     species_list = ibs.get_annot_species_texts(aid_list)
     sex_list = ibs.get_name_sex_text(nid_list)
@@ -267,6 +286,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
     zipped = zip(
         nid_list,
         aid_list,
+        name_uuid_list,
         annot_uuid_list,
         name_list,
         species_list,
@@ -284,6 +304,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         (
             nid,
             aid,
+            name_uuid,
             annot_uuid,
             name,
             species,
@@ -303,12 +324,34 @@ def get_annotation_special_info(target_species=None, **kwargs):
         if nid <= 0:
             continue
 
+        nid_old = ''
+        name_old = ''
+
+        # if 'Monica-Laurel' in ibs.dbdir:
+        #     monica_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/monica.aids.txt')
+        #     laurel_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/laurel.aids.txt')
+
+        #     different = 0
+        #     for aid, nid in zip(aid_list, nid_list):
+        #         if aid in monica_mapping_dict:
+        #             assert aid not in laurel_mapping_dict
+        #             nid_old = monica_mapping_dict[aid]
+        #         elif aid in laurel_mapping_dict:
+        #             assert aid not in monica_mapping_dict
+        #             nid_old = laurel_mapping_dict[aid]
+        #         else:
+        #             assert False
+
+        #         print(aid, nid_old, nid)
+
         line_list_ = [
             '' if contrib is None else contrib.split(',')[0],
             annot_uuid,
             aid,
             nid,
             name,
+            nid_old,
+            name_old,
             species,
             sex,
             age,
@@ -333,7 +376,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'DB,Annotation UUID,AID,NID,Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,Annotation UUID,AID,NID,Name,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
