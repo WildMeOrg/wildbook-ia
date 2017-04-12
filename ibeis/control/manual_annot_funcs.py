@@ -1887,17 +1887,18 @@ def get_annot_name_uuids(ibs, aid_list, **kwargs):
 @register_ibs_method
 @accessor_decors.getter_1to1
 # @register_api('/api/annot/name/', methods=['GET'])
-def get_annot_names(ibs, aid_list):
+def get_annot_names(ibs, aid_list, distinguish_unknowns=False):
     r"""
     alias
     """
-    return ibs.get_annot_name_texts(aid_list)
+    return ibs.get_annot_name_texts(aid_list,
+                                    distinguish_unknowns=distinguish_unknowns)
 
 
 @register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/annot/name/text/', methods=['GET'])
-def get_annot_name_texts(ibs, aid_list):
+def get_annot_name_texts(ibs, aid_list, distinguish_unknowns=False):
     r"""
     Args:
         aid_list (list):
@@ -1922,9 +1923,23 @@ def get_annot_name_texts(ibs, aid_list):
         >>> result = ut.list_str(get_annot_name_texts(ibs, aid_list), nl=False)
         >>> print(result)
         ['____', 'easy', 'hard', 'jeff', '____', '____', 'zebra']
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> aid_list = ibs.get_valid_aids()[::2]
+        >>> result = ut.list_str(get_annot_name_texts(ibs, aid_list, True), nl=False)
+        >>> print(result)
+        ['____1', 'easy', 'hard', 'jeff', '____9', '____11', 'zebra']
     """
+    aid_list = list(aid_list)
     nid_list = ibs.get_annot_name_rowids(aid_list)
     name_list = ibs.get_name_texts(nid_list)
+    if distinguish_unknowns:
+        name_list = [name if nid >= 0 else name + '%d' % -nid
+                     for nid, name in zip(nid_list, name_list)]
     #name_list = ibs.get_annot_lblannot_value_of_lbltype(aid_list,
     #const.INDIVIDUAL_KEY, ibs.get_name_texts)
     return name_list

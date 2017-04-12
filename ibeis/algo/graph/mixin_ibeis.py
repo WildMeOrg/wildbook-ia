@@ -16,21 +16,97 @@ class IBEISIO(object):
     (most of these should not be used or be reworked)
     """
 
-    def _pandas_feedback_format2(infr, feedback):
+    def ibeis_delta_info(infr, edge_delta_df=None, name_delta_df=None):
+        if edge_delta_df is None:
+            edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
+        if name_delta_df is None:
+            name_delta_df = infr.get_ibeis_name_delta()
+
+        aids = infr.aids
+        new_names = list(infr.gen_node_values('name_label', aids))
+
+        old_names = infr.ibs.get_annot_name_texts(
+            aids, distinguish_unknowns=True)
+
+        # Look at what changed
+        tag_flags = (edge_delta_df['old_tags'] != edge_delta_df['new_tags'])
+        decision_flags = (edge_delta_df['old_decision'] !=
+                          edge_delta_df['new_decision'])
+        is_added = edge_delta_df['am_rowid'].isnull()
+
+        num_inconsistent = len(list(infr.inconsistent_components()))
+
+        info = {
+            'num_names_inconsistent'    : num_inconsistent,
+            'num_annots_with_names_changed' : len(name_delta_df),
+            'num_edges_added'           : is_added.sum(),
+            'num_edges_modified'        : (~is_added).sum(),
+            'num_changed_decision_and_tags' : (tag_flags & decision_flags &
+                                               ~is_added).sum(),
+            'num_changed_tags'              : (tag_flags & ~decision_flags &
+                                               ~is_added).sum(),
+            'num_changed_decision'          : (~tag_flags & decision_flags &
+                                               ~is_added).sum(),
+        }
+        return info
+
+    def name_label_group_delta_info(infr):
+        """
+        If the name labeling delta is non-zero then you need to rectify names
+
+        infr.relabel_using_reviews(rectify=False)
+        """
+        aids = infr.aids
+        name_labels = list(infr.gen_node_values('name_label', aids))
+        old_ccs = list(ut.group_items(aids, name_labels).values())
+        new_ccs = list(infr.positive_components())
+        infr.name_group_delta_info(old_ccs, new_ccs)
+
+    def ibeis_name_group_delta_info(infr):
+        aids = infr.aids
+        new_names = list(infr.gen_node_values('name_label', aids))
+        new_ccs = list(ut.group_items(aids, new_names).values())
+
+        old_names = infr.ibs.get_annot_name_texts(
+            aids, distinguish_unknowns=True)
+        old_ccs = list(ut.group_items(aids, old_names).values())
+
+        infr.name_group_delta_info(old_ccs, new_ccs)
+        pass
+
+    def name_group_delta_info(infr, old_ccs, new_ccs, verbose=False):
+        group_delta = ut.grouping_delta(old_ccs, new_ccs)
+
+        stats = ut.odict()
+        unchanged = group_delta['unchanged']
+        splits = group_delta['splits']
+        merges = group_delta['merges']
+        hybrid = group_delta['hybrid']
+        stats['unchanged'] = ut.get_stats(map(len, unchanged))
+        stats['old_split'] = ut.get_stats(map(len, splits['old']))
+        stats['new_split'] = ut.get_stats(map(len, ut.flatten(splits['new'])))
+        stats['old_merge'] = ut.get_stats(map(len, ut.flatten(merges['old'])))
+        stats['new_merge'] = ut.get_stats(map(len, merges['new']))
+        stats['old_hybrid'] = ut.get_stats(map(len, hybrid['old']))
+        stats['new_hybrid'] = ut.get_stats(map(len, hybrid['new']))
+        for k, v in stats.items():
+            if v.get('empty_list', False):
+                v['shape'] = 0
+            else:
+                v['shape'] = v['shape'][0]
         import pandas as pd
-        #am_rowids = np.array(ut.replace_nones(am_rowids, np.nan))
-        dicts = []
-        feedback = infr.internal_feedback
-        for (u, v), vals in feedback.items():
-            for val in vals:
-                val = val.copy()
-                val['aid1'] = u
-                val['aid2'] = v
-                val['tags'] = ';'.join(val['tags'])
-                dicts.append(val)
-        df = pd.DataFrame.from_dict(dicts)
-        # df.sort('timestamp')
+        df = pd.DataFrame.from_dict(stats, orient='index')
+        df = df.loc[list(stats.keys())]
+        if verbose:
+            print('Name Group changes:')
+            print(df.to_string(float_format='%.2f'))
         return df
+
+    @profile
+    def reset_labels_to_ibeis(infr):
+        """ Sets to IBEIS de-facto labels if available """
+        nids = infr.ibs.get_annot_nids(infr.aids)
+        infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
     def write_ibeis_staging_feedback(infr):
         """
@@ -142,9 +218,10 @@ class IBEISIO(object):
         graph = infr.graph
         node_to_new_label = nx.get_node_attributes(graph, 'name_label')
         aids = list(node_to_new_label.keys())
-        old_names = infr.ibs.get_annot_name_texts(aids)
+        old_names = infr.ibs.get_annot_name_texts(
+            aids, distinguish_unknowns=True)
         # Indicate that unknown names should be replaced
-        old_names = [None if n == infr.ibs.const.UNKNOWN else n
+        old_names = [None if n.startswith(infr.ibs.const.UNKNOWN) else n
                      for n in old_names]
         new_labels = ut.take(node_to_new_label, aids)
         # Recycle as many old names as possible
@@ -169,7 +246,8 @@ class IBEISIO(object):
             }
         aid_list = list(node_to_new_label.keys())
         new_name_list = ut.take(label_to_name, node_to_new_label.values())
-        old_name_list = infr.ibs.get_annot_name_texts(aid_list)
+        old_name_list = infr.ibs.get_annot_name_texts(
+            aid_list, distinguish_unknowns=True)
         # Put into a dataframe for convinience
         name_delta_df_ = pd.DataFrame(
             {'old_name': old_name_list, 'new_name': new_name_list},

@@ -30,11 +30,13 @@ class AttrAccess(object):
                 infr.graph, key, edges=edges, default=default,
                 check_exist=check_exist)
 
-    def gen_edge_values(infr, key, edges=None, default=ut.NoParam,
-                        check_exist=False):
-        return (t[1] for t in ut.util_graph.nx_gen_edge_attrs(
-                infr.graph, key, edges=edges, default=default,
-                check_exist=check_exist))
+    def gen_node_values(infr, key, nodes, default=ut.NoParam):
+        return ut.util_graph.nx_gen_node_values(
+            infr.graph, key, nodes, default=default)
+
+    def gen_edge_values(infr, key, edges, default=ut.NoParam):
+        return ut.util_graph.nx_gen_edge_values(
+            infr.graph, key, edges, default=default)
 
     def get_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         """ Networkx node getter helper """

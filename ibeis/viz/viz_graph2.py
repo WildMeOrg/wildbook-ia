@@ -1529,30 +1529,17 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         infr = self.infr
 
         # Ensure internal state is up to date
-        num_new_names, num_inconsistent = infr.relabel_using_reviews()
+        infr.relabel_using_reviews(rectify=True)
 
-        # keep track of residual data
-        name_delta_df = infr.get_ibeis_name_delta()
         edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
+        name_delta_df = infr.get_ibeis_name_delta()
 
-        # Look at what changed
-        tag_flags = (edge_delta_df['old_tags'] != edge_delta_df['new_tags'])
-        decision_flags = (edge_delta_df['old_decision'] != edge_delta_df['new_decision'])
-        is_added = edge_delta_df['am_rowid'].isnull()
-        info = {
-            'num_names_inconsistent'    : num_inconsistent,
-            'num_names_changed'         : len(name_delta_df),
-            'num_edges_added'           : is_added.sum(),
-            'num_edges_modified'        : (~is_added).sum(),
-            'num_changed_decision_and_tags' : (tag_flags & decision_flags & ~is_added).sum(),
-            'num_changed_tags'              : (tag_flags & ~decision_flags & ~is_added).sum(),
-            'num_changed_decision'          : (~tag_flags & decision_flags & ~is_added).sum(),
-        }
+        info = infr.ibeis_delta_info(edge_delta_df, name_delta_df)
 
         msg = ut.codeblock(
             '''
             Are you sure this is correct?
-            #names_changed={num_names_changed}
+            #annot_names_changed={num_annots_with_names_changed}
             #edges_added={num_edges_added}
             #edges_modified={num_edges_modified}
             #edge_tags_modified={num_changed_tags}

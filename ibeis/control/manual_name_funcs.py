@@ -923,10 +923,12 @@ def get_name_texts(ibs, name_rowid_list, apply_fix=True):
     #name_text_list = ibs.get_lblannot_values(nid_list, const.INDIVIDUAL_KEY)
     name_text_list = ibs.db.get(const.NAME_TABLE, (NAME_TEXT,), name_rowid_list)
     if apply_fix:
-        name_text_list = [const.UNKNOWN
-                          if rowid == const.UNKNOWN_NAME_ROWID or name_text is None
-                          else name_text
-                          for name_text, rowid in zip(name_text_list, name_rowid_list)]
+        name_text_list = [
+            const.UNKNOWN
+            if rowid == const.UNKNOWN_NAME_ROWID or name_text is None
+            else name_text
+            for name_text, rowid in zip(name_text_list, name_rowid_list)
+        ]
     return name_text_list
 
 

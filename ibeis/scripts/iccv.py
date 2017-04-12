@@ -62,7 +62,10 @@ def qt_review():
     win.show()
     gt.qtapp_loop(qwin=win, freq=10)
     if False:
-        infr.relabel_using_reviews(rectify=True)
+        infr.reset_labels_to_ibeis()
+
+        infr.relabel_using_reviews(rectify=False)
+        infr.relabel_using_reviews(rectify=False)
 
     # USE THE RECOVERY LOOP
 

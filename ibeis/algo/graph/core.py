@@ -318,6 +318,33 @@ class Feedback(object):
         else:
             raise ValueError('Unknown state=%r' % (state,))
 
+    def check_name_label_consistency(infr):
+        aids = infr.aids
+        name_labels = list(infr.gen_node_values('name_label', aids))
+        name_ccs = list(ut.group_items(aids, name_labels).values())
+        edge_ccs = list(infr.positive_components())
+
+        group_delta = ut.grouping_delta(name_ccs, edge_ccs)
+
+        stats = ut.odict()
+        unchanged = group_delta['unchanged']
+        splits = group_delta['splits']
+        merges = group_delta['merges']
+        hybrid = group_delta['hybrid']
+        stats['unchanged'] = ut.get_stats(map(len, unchanged))
+        stats['old_split'] = ut.get_stats(map(len, splits['old']))
+        stats['new_split'] = ut.get_stats(map(len, ut.flatten(splits['new'])))
+        stats['old_merge'] = ut.get_stats(map(len, ut.flatten(merges['old'])))
+        stats['new_merge'] = ut.get_stats(map(len, merges['new']))
+        stats['old_hybrid'] = ut.get_stats(map(len, hybrid['old']))
+        stats['new_hybrid'] = ut.get_stats(map(len, hybrid['new']))
+        for k, v in stats.items():
+            v['shape'] = v['shape'][0]
+        import pandas as pd
+        df = pd.DataFrame.from_dict(stats, orient='index')
+        df.loc[list(stats.keys())]
+        print(df.to_string(float_format='%.2f'))
+
     def reset_name_labels(infr):
         """ Resets all annotation node name labels to their initial values """
         infr.print('reset_name_labels', 1)
@@ -349,12 +376,6 @@ class NameRelabel(object):
         infr.nid_counter += 1
         new_nid = infr.nid_counter
         return new_nid
-
-    @profile
-    def reset_labels_to_ibeis(infr):
-        """ Sets to IBEIS de-facto labels if available """
-        nids = infr._rectify_nids(infr.aids, None)
-        infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
     def _rectify_names(infr, old_names, new_labels):
         """

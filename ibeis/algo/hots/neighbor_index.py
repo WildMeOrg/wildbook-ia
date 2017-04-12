@@ -12,7 +12,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 import pyflann
-import itertools as it
+# import itertools as it
 #import lockfile
 from os.path import basename
 from six.moves import range, zip, map  # NOQA
