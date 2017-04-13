@@ -1955,7 +1955,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), *
     fig_ = plt.figure(figsize=figsize)
 
     label = 'Camera Trap Classifier'
-    kwargs['classifier_weight_filepath'] = 'classifier_cameratrap_megan'
+    kwargs['classifier_weight_filepath'] = 'megan'
     positive_imageset_id = 6
     negative_imageset_id = 7
 
