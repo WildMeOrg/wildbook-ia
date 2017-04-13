@@ -39,6 +39,9 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 
 
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+
+
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
 def postinject_func(ibs):
     r"""
@@ -3066,6 +3069,7 @@ def inspect_nonzero_yaws(ibs):
 
 
 @register_ibs_method
+@register_api('/api/annot/exemplar/', methods=['POST'])
 def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
                                              exemplars_per_view=None, imgsetid=None,
                                              dry_run=False, verbose=True, prog_hook=None):
