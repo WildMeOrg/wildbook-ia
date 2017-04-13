@@ -1861,6 +1861,151 @@ def localizer_classifications_confusion_matrix_algo_display_animate(ibs, total=1
         ibs.localizer_classifications_confusion_matrix_algo_display(conf, **kwargs)
 
 
+def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+    depc = ibs.depc_image
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set_ = list(test_gid_set_)
+
+    positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
+    negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
+
+    test_gid_set = []
+    label_list = []
+    for gid in test_gid_set_:
+        if gid in positive_gid_set:
+            label = 'positive'
+        elif gid in negative_gid_set:
+            label = 'negative'
+        else:
+            # label = 'unknown'
+            continue
+        test_gid_set.append(gid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+
+
+def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+
+
+def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    kwargs['invert'] = True
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+
+
+def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    depc = ibs.depc_image
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set_ = list(test_gid_set_)
+
+    positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
+    negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
+
+    test_gid_set = []
+    label_list = []
+    for gid in test_gid_set_:
+        if gid in positive_gid_set:
+            label = 'positive'
+        elif gid in negative_gid_set:
+            label = 'negative'
+        else:
+            # label = 'unknown'
+            continue
+        test_gid_set.append(gid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
+
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
+
+
+@register_ibs_method
+def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
+    import matplotlib.pyplot as plt
+
+    fig_ = plt.figure(figsize=figsize)
+
+    label = 'Camera Trap Classifier'
+    kwargs['classifier_weight_filepath'] = 'classifier_cameratrap_megan'
+    positive_imageset_id = 6
+    negative_imageset_id = 7
+
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area, best_conf1, _ = classifier_cameratrap_precision_recall_algo_plot(ibs, label=label, color='r', positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area, best_conf2, _ = classifier_cameratrap_roc_algo_plot(ibs, label=label, color='r', positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(223)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+
+    fig_filename = 'classifier-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
     depc = ibs.depc_image
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
