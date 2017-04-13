@@ -1960,7 +1960,7 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
             image = cv2.resize(image, (192, 192), **warpkw)
             # Get path
             image_path = positive_path if label == 'positive' else negative_path
-            image_filename = 'hardidx_%d_pred_%r_case_fail.jpg' (gid, prediction, )
+            image_filename = 'hardidx_%d_pred_%r_case_fail.jpg' % (gid, prediction, )
             image_filepath = join(image_path, image_filename)
             # Save path
             cv2.imwrite(image_filepath, image)
