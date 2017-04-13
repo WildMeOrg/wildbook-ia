@@ -579,25 +579,64 @@ class CandidateSearch(object):
         return candidate_edges
 
     @profile
-    def find_pos_redun_candidate_edges(infr):
+    def find_pos_redun_candidate_edges(infr, verbose=False):
+        r"""
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_matching find_pos_redun_candidate_edges
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_matching import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5), (7, 8, 9, 10)])
+            >>> infr.add_feedback((2, 5), decision='match')
+            >>> infr.add_feedback((1, 5), decision='notcomp')
+            >>> infr.queue_params['pos_redun'] = 2
+            >>> candidate_edges = infr.find_pos_redun_candidate_edges()
+            >>> result = ('candidate_edges = %s' % (ut.repr2(candidate_edges),))
+            >>> print(result)
+            candidate_edges = {(1, 3), (7, 10)}
+        """
         # Add random edges between exisiting non-redundant PCCs
+        pos_k = infr.queue_params['pos_redun']
         candidate_edges = set([])
-        for pcc in infr.non_pos_redundant_pccs(relax_size=True):
-            sub = infr.graph.subgraph(pcc)
+        pcc_gen = list(infr.non_pos_redundant_pccs(relax_size=True))
+        pcc_gen = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
+        for pcc in pcc_gen:
+            pos_sub = infr.pos_graph.subgraph(pcc)
 
-            # Get edges between biconnected (nodes) components
-            sub_comp = nx.complement(sub)
-
-            pos_k = infr.queue_params['pos_redun']
-            kcon_ccs = list(nx_utils.edge_connected_components(sub, pos_k))
-            # bicon = list(nx.biconnected_components(sub))
-            check_edges = set([])
-            for c1, c2 in it.combinations(kcon_ccs, 2):
-                check_edges.update(edges_cross(sub_comp, c1, c2))
-            # Very agressive, need to tone down
+            # First try to augment only with unreviewed existing edges
+            avail = list(nx_utils.edges_inside(infr.unreviewed_graph, pcc))
+            check_edges = nx_utils.edge_connected_augmentation(
+                pos_sub, pos_k, avail=avail)
+            if not check_edges:
+                # Allow new edges to be introduced
+                full_sub = infr.graph.subgraph(pcc)
+                avail += list(nx.complement(full_sub).edges())
+                n_max = (len(pos_sub) * (len(pos_sub) - 1)) // 2
+                n_comp = n_max - pos_sub.number_of_edges()
+                if len(avail) == n_comp:
+                    # can use the faster algorithm
+                    check_edges = nx_utils.edge_connected_augmentation(
+                        pos_sub, pos_k)
+                else:
+                    # have to use the slow approximate algo
+                    check_edges = nx_utils.edge_connected_augmentation(
+                        pos_sub, pos_k, avail=avail)
             check_edges = set(it.starmap(e_, check_edges))
-            # check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
             candidate_edges.update(check_edges)
+
+            # kcon_ccs = list(nx_utils.edge_connected_components(sub, pos_k))
+            # bicon = list(nx.biconnected_components(sub))
+            # check_edges = set([])
+            # Get edges between k-edge-connected components
+            # sub_comp = nx.complement(sub)
+            # for c1, c2 in it.combinations(kcon_ccs, 2):
+            #     check_edges.update(edges_cross(sub_comp, c1, c2))
+            # Very agressive, need to tone down
+            # check_edges = set(it.starmap(e_, check_edges))
+            # check_edges = set(it.starmap(e_, nx.complement(sub).edges()))
+            # candidate_edges.update(check_edges)
         return candidate_edges
 
     @profile
