@@ -416,25 +416,6 @@
     return BBoxSelector;
   })();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   this.BBoxAnnotator = (function() {
     function BBoxAnnotator(url, options) {
       var options;
@@ -456,7 +437,9 @@
       this.options = options
 
       this.entries = [];
-      this.elements = {}
+      this.elements = {
+        entries: [],
+      }
       this.state = {
         status:   "free",
         adding:   false,
@@ -550,6 +533,131 @@
 
 
 
+///////////////
+///////////////
+///////////////
+///////////////
+
+
+    BBoxAnnotator.prototype.add_entry_from_selection = function() {
+      var data;
+      switch (this.state.status) {
+        case "input":
+          data = this.bbs.finish();
+          this.add_entry(data);
+          this.state.status = "free";
+      }
+      this.state.adding = false;
+      this.state.moving = true;
+      return true;
+    };
+
+    BBoxAnnotator.prototype.update_style_hover = function(box_element, text_box, resizable_button, rotate_button, close_button)
+    {
+        if(! this.state.targeting)
+        {
+          box_element.css("outline", "none");
+          box_element.css("border-color", "#f0ad4e");
+          box_element.css("opacity", "1.0");
+          box_element.css("cursor", "move");
+          box_element.css("background-color", "rgba(0, 0, 0, 0.2)");
+          box_element.addClass("ia-annotated-bounding-box-active");
+          box_element.removeClass("ia-annotated-bounding-box-target");
+          text_box.css("background-color", "#f0ad4e");
+          text_box.css("opacity", "1.0");
+          text_box.css("color", "black");
+          resizable_button.show();
+          rotate_button.show();
+          close_button.show();
+          $(".ia-annotated-bounding-box").css("visibility", "visible");
+          this.hit_menuitem = true;
+        }
+    }
+
+    BBoxAnnotator.prototype.update_style_editing = function(box_element, text_box, resizable_button, rotate_button, close_button)
+    {
+        if((this.state.adding || ! this.state.hovering) && ! this.state.targeting)
+        {
+          box_element.css("outline", "none");
+          box_element.css("border-color", this.options.colors.default);
+          box_element.css("opacity", "0.8");
+          box_element.css("cursor", "crosshair");
+          box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
+          box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
+          box_element.removeClass("ia-annotated-bounding-box-active");
+          box_element.removeClass("ia-annotated-bounding-box-target");
+          text_box.css("background-color", this.options.colors.default);
+          text_box.css("opacity", "0.8");
+          text_box.css("color", "black");
+          this.hit_menuitem = false;
+          resizable_button.show();
+          rotate_button.hide();
+          close_button.hide();
+          $(".ia-annotated-bounding-box").css("visibility", "visible");
+        }
+    }
+
+    BBoxAnnotator.prototype.update_style_target = function(box_element, text_box, resizable_button, rotate_button, close_button)
+    {
+        box_element.css("outline", "1000px solid rgba(0, 0, 0, 0.2)");
+        box_element.css("border-color", "#eb2a18");
+        box_element.css("opacity", "1.0");
+        box_element.css("cursor", "cell");
+        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
+        box_element.addClass("ia-annotated-bounding-box-target");
+        text_box.css("background-color", "#eb2a18");
+        text_box.css("opacity", "1.0");
+        text_box.css("color", "white");
+        $(".ia-annotated-bounding-box").not(".ia-annotated-bounding-box-target").css("visibility", "hidden");
+        this.hit_menuitem = true;
+        rotate_button.hide();
+        resizable_button.hide();
+        close_button.hide();
+    }
+
+    BBoxAnnotator.prototype.update_dimensions = function(entry, box_element)
+    {
+        var img_width = parseFloat(this.elements.frame.css("width")) - 2.0;
+        var img_height = parseFloat(this.elements.frame.css("height")) - 2.0;
+
+        var left   = parseFloat(box_element.css("left"));
+        var top    = parseFloat(box_element.css("top"));
+        var width  = parseFloat(box_element.css("width"));
+        var height = parseFloat(box_element.css("height"));
+
+        var left   = 100.0 * left   / img_width;
+        var top    = 100.0 * top    / img_height;
+        var width  = 100.0 * width  / img_width;
+        var height = 100.0 * height / img_height;
+
+        box_element.css("left", left + "%");
+        box_element.css("top", top + "%");
+        box_element.css("width", width + "%");
+        box_element.css("height", height + "%");
+
+        entry["left"]   = left;
+        entry["top"]    = top;
+        entry["width"]  = width;
+        entry["height"] = height;
+        this.refresh();
+    }
+
+    BBoxAnnotator.prototype.update_theta = function(entry, theta)
+    {
+        function mod(x, n) {
+          // Javascript % is not modulus, it is remainder (wtf?)
+          return ((x % n) + n) % n;
+        }
+        entry["theta"] = mod(theta, 2.0 * Math.PI);
+        this.refresh();
+    }
+
+
+
+
+
+
+
 
 
 
@@ -566,176 +674,7 @@
       });
 
 
-
-      $(".ia-detection-form-value").change(function(e)
-      {
-        var active_box, index;
-        active_box = $(".ia-annotated-bounding-box-active");
-
-        if(active_box.length > 0)
-        {
-          index = active_box.prevAll(".ia-annotated-bounding-box").length;
-          entry = bba.entries[index];
-          entry.metadata.viewpoint = $('input[id="ia-detection-viewpoint"]').val();
-          entry.metadata.quality = $('input[id="ia-detection-quality"]').val();
-          entry.metadata.species = $('select[name="ia-detection-species"]').find("option:selected").val();
-          entry.metadata.multiple = $('input[id="ia-detection-multiple"]').is(":checked")
-          entry.metadata.interest = $('input[id="ia-detection-interest"]').is(":checked")
-          bba.refresh();
-        }
-      });
-
-      this.elements.container.dblclick(function(e) {
-        if (e.which === 1) {
-          bba.bbs.start(e.pageX, e.pageY);
-          bba.state.status = "hold";
-          bba.state.adding = true;
-          bba.state.editing = false;
-          bba.state.targeting = false;
-          bba.hit_menuitem = false;
-          $(".ia-annotated-bounding-box").trigger("mouseenter");
-        }
-      })
-      .contextmenu(function(e) {
-          // e.preventDefault();
-          return $("input.context_menu_checkbox")[0].checked;
-      })
-      .mousedown(function(e) {
-        if( bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 1))
-        {
-          $(".ia-annotated-bounding-box").css("opacity", "1.00");
-        }
-
-        if (!bba.hit_menuitem) {
-          switch (bba.state.status) {
-            case "free":
-            case "input":
-              if (bba.state.status === "input") {
-                add_entry_from_selection();
-              }
-              if (e.which === 1) {
-                bba.bbs.start(e.pageX, e.pageY);
-                bba.state.status = "hold";
-                bba.state.adding = true;
-                bba.state.editing = false;
-              }
-              else if (e.which === 3) {
-                // pass
-              }
-              break;
-            case "hold":
-              bba.bbs.update_cursor(e.pageX, e.pageY);
-              if(bba.bbs.options.mode == "rectangle")
-              {
-                bba.state.status = "input";
-                add_entry_from_selection();
-              }
-              else
-              {
-                if(bba.bbs.current_stage == 0)
-                {
-                  bba.bbs.stage(e.pageX, e.pageY)
-                }
-                else
-                {
-                  bba.bbs.current_stage = 2
-                  // bba.state.adding = false
-                  bba.state.status = "input";
-                  add_entry_from_selection();
-                }
-              }
-          }
-        }
-        else if (bba.hit_menuitem)
-        {
-            switch (bba.state.status) {
-                case "free":
-                case "input":
-                    if (e.which === 1) {
-                      // pass
-                    }
-                    else if (e.which === 3) {
-                        bba.state.editing = true;
-                        $(".ia-label-text-box").css("opacity", "0.0");
-                    }
-            }
-        }
-        else if(!bba.state.editing)
-        {
-          // bba.hit_menuitem = false;
-        }
-        return true;
-      });
-
-      $(window).mousemove(function(e) {
-
-        function lineDistance( p1x, p1y, p2x, p2y ) { return Math.sqrt( (p2x - p1x) * (p2x - p1x) + (p2y - p1y) * (p2y - p1y) ); }
-
-        var active_box;
-        active_box = $(".ia-annotated-bounding-box-active");
-        var furthest_dist = 0;
-        var furthest_anchor = null;
-        active_box.find(".ui-resizable-handle").each(function() {
-            position_handle = $(this).offset();
-            position_handle_x = position_handle.left;
-            position_handle_y = position_handle.top;
-            distance = lineDistance(position_handle_x, position_handle_y, e.pageX, e.pageY);
-            $(this).css("background-color", "white");
-            $(this).css("border", "1px solid #000");
-
-            if(distance > furthest_dist)
-            {
-                furthest_anchor = this;
-                furthest_dist = distance;
-            }
-        });
-
-        $(furthest_anchor).css("background-color", "#d9534f");
-        $(furthest_anchor).css("border", "1px solid #fff");
-
-        if(bba.state.editing)
-        {
-          bba.state.moving = true;
-        }
-
-        switch (bba.state.status) {
-          case "hold":
-            bba.bbs.update_cursor(e.pageX, e.pageY);
-            $(".ia-annotated-bounding-box").css("opacity", "0.25");
-            $(".ia-label-text-box").css("opacity", "0.0");
-        }
-        return true;
-      })
-      .mouseup(function(e) {
-        if(bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 2))
-        {
-          $(".ia-annotated-bounding-sbox").css("opacity", "1.00");
-          $(".ia-label-text-box").css("opacity", "0.8");
-        }
-
-        switch (bba.state.status) {
-          case "hold":
-            bba.bbs.update_cursor(e.pageX, e.pageY);
-            if(bba.bbs.options.mode == "rectangle")
-            {
-              bba.state.adding = false;
-              bba.state.status = "input";
-              add_entry_from_selection();
-            }
-            else
-            {
-              if(bba.bbs.current_stage == 2)
-              {
-                bba.state.adding = false;
-                bba.state.status = "input";
-                add_entry_from_selection();
-              }
-            }
-        }
-        return true;
-      });
-
-      $("body").keydown(function(e) {
+      $(window).keydown(function(e) {
 
         if(e.which === 27 || e.which === 75 || e.which === 8)
         {
@@ -797,7 +736,6 @@
                 entry = bba.entries.splice(index, 1);
                 bba.entries.unshift(entry[0]);
                 bba.refresh();
-//                 temp.trigger("mouseenter");
               }
 
               if(e.which === 37)
@@ -848,241 +786,136 @@
         }
       });
 
+      this.elements.container.mousedown(function(e) {
+        if( bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 1))
+        {
+          $(".ia-annotated-bounding-box").css("opacity", "1.00");
+        }
+
+        if (!bba.hit_menuitem) {
+          switch (bba.state.status) {
+            case "free":
+            case "input":
+              if (bba.state.status === "input") {
+                bba.add_entry_from_selection();
+              }
+              if (e.which === 1) {
+                bba.bbs.start(e.pageX, e.pageY);
+                bba.state.status = "hold";
+                bba.state.adding = true;
+                bba.state.editing = false;
+              }
+              else if (e.which === 3) {
+                // pass
+              }
+              break;
+            case "hold":
+              bba.bbs.update_cursor(e.pageX, e.pageY);
+              if(bba.bbs.options.mode == "rectangle")
+              {
+                bba.state.status = "input";
+                bba.add_entry_from_selection();
+              }
+              else
+              {
+                if(bba.bbs.current_stage == 0)
+                {
+                  bba.bbs.stage(e.pageX, e.pageY)
+                }
+                else
+                {
+                  bba.bbs.current_stage = 2
+                  // bba.state.adding = false
+                  bba.state.status = "input";
+                  bba.add_entry_from_selection();
+                }
+              }
+          }
+        }
+        else if (bba.hit_menuitem)
+        {
+            switch (bba.state.status) {
+                case "free":
+                case "input":
+                    if (e.which === 1) {
+                      // pass
+                    }
+                    else if (e.which === 3) {
+                        bba.state.editing = true;
+                        $(".ia-label-text-box").css("opacity", "0.0");
+                    }
+            }
+        }
+        else if(!bba.state.editing)
+        {
+          // bba.hit_menuitem = false;
+        }
+        return true;
+      });
+
+      $(window).mousemove(function(e) {
+
+        if(bba.state.editing)
+        {
+          bba.state.moving = true;
+        }
+
+        switch (bba.state.status) {
+          case "hold":
+            bba.bbs.update_cursor(e.pageX, e.pageY);
+            $(".ia-annotated-bounding-box").css("opacity", "0.25");
+            $(".ia-label-text-box").css("opacity", "0.0");
+        }
+        return true;
+      });
+
+
+      $(window).mouseup(function(e) {
+        if(bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 2))
+        {
+          $(".ia-annotated-bounding-sbox").css("opacity", "1.00");
+          $(".ia-label-text-box").css("opacity", "0.8");
+        }
+
+        switch (bba.state.status) {
+          case "hold":
+            bba.bbs.update_cursor(e.pageX, e.pageY);
+            if(bba.bbs.options.mode == "rectangle")
+            {
+              bba.state.adding = false;
+              bba.state.status = "input";
+              bba.add_entry_from_selection();
+            }
+            else
+            {
+              if(bba.bbs.current_stage == 2)
+              {
+                bba.state.adding = false;
+                bba.state.status = "input";
+                bba.add_entry_from_selection();
+              }
+            }
+        }
+        return true;
+      });
+
+
       this.resize();
     };
 
 
-    BBoxAnnotator.prototype.add_entry_from_selection = function() {
-      var data;
-      switch (bba.state.status) {
-        case "input":
-          data = bba.bbs.finish();
-          console.log(data)
-          bba.add_entry(data);
-          bba.refresh();
-          bba.state.status = "free";
-      }
-      bba.state.adding = false;
-      bba.state.moving = true;
-      return true;
-    };
 
 
     BBoxAnnotator.prototype.add_entry = function(entry) {
-      var bba, box_element, close_button, untarget_button, resizable_button, rotate_button, text_box;
+      var bba, box_element, close_button, resizable_button, rotate_button, text_box;
 
       bba = this;
-
-      function update_text_label(entry)
-      {
-        var text = "";
-        if(entry.metadata.id !== null)
-        {
-          text = entry.metadata.id;
-        }
-
-        if(entry.metadata.interest)
-        {
-          text += "*";
-        }
-
-        text_box.text(text);
-        if(text == "")
-        {
-            text_box.css("padding", "0px");
-        }
-        else
-        {
-          text_box.css("padding", "1px 3px");
-        }
-      }
-
-      function update_style_hover(e)
-      {
-        if(! bba.state.targeting)
-        {
-          box_element.css("outline", "none");
-          box_element.css("border-color", "#f0ad4e");
-          box_element.css("opacity", "1.0");
-          box_element.css("cursor", "move");
-          box_element.css("background-color", "rgba(0, 0, 0, 0.2)");
-          box_element.addClass("ia-annotated-bounding-box-active");
-          box_element.removeClass("ia-annotated-bounding-box-target");
-          text_box.css("background-color", "#f0ad4e");
-          text_box.css("opacity", "1.0");
-          text_box.css("color", "black");
-          resizable_button.show();
-          rotate_button.show();
-          close_button.show();
-          untarget_button.hide();
-          $(".ia-annotated-bounding-box").css("visibility", "visible");
-          bba.hit_menuitem = true;
-
-          $('input[id="ia-detection-viewpoint"]').prop("disabled", true);
-          $('input[id="ia-detection-quality"]').prop("disabled", true);
-          $('input[id="ia-detection-multiple"]').prop("disabled", true);
-          $('input[id="ia-detection-interest"]').prop("disabled", true);
-          $('select[name="ia-detection-species"]').prop("disabled", true);
-          $('span[data-target="#species-add"]').css("visibility", "hidden");
-          $(".ia-detection-form-label").css("color", "#777");
-          $("#ia-detection-form-warning").css("visibility", "visible");
-
-          hotkeys_disabled = false;
-        }
-        else
-        {
-          hotkeys_disabled = true;
-        }
-      }
-
-      function update_style_editing(e)
-      {
-        if((bba.state.adding || ! bba.state.hovering) && ! bba.state.targeting)
-        {
-          box_element.css("outline", "none");
-          if(entry.metadata.interest)
-          {
-            box_element.css("border-color", "#2e63ff");
-          }
-          else
-          {
-            box_element.css("border-color", bba.options.colors.default);
-          }
-          box_element.css("opacity", "0.8");
-          box_element.css("cursor", "crosshair");
-          box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-          box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-          box_element.removeClass("ia-annotated-bounding-box-active");
-          box_element.removeClass("ia-annotated-bounding-box-target");
-          if(entry.metadata.interest)
-          {
-            text_box.css("background-color", "#2e63ff");
-          }
-          else
-          {
-            text_box.css("background-color", bba.options.colors.default);
-          }
-          update_text_label(entry)
-          text_box.css("opacity", "0.8");
-          text_box.css("color", "black");
-          bba.hit_menuitem = false;
-          resizable_button.show();
-          rotate_button.hide();
-          close_button.hide();
-          untarget_button.hide();
-          $(".ia-annotated-bounding-box").css("visibility", "visible");
-
-          hotkeys_disabled = true;
-        }
-        else
-        {
-          hotkeys_disabled = false;
-        }
-      }
-
-      function update_style_target(e)
-      {
-        box_element.css("outline", "1000px solid rgba(0, 0, 0, 0.2)");
-        box_element.css("border-color", "#eb2a18");
-        box_element.css("opacity", "1.0");
-        box_element.css("cursor", "cell");
-        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-        box_element.addClass("ia-annotated-bounding-box-target");
-        text_box.css("background-color", "#eb2a18");
-        text_box.css("opacity", "1.0");
-        text_box.css("color", "white");
-        $(".ia-annotated-bounding-box").not(".ia-annotated-bounding-box-target").css("visibility", "hidden");
-        bba.hit_menuitem = true;
-        rotate_button.hide();
-        resizable_button.hide();
-        close_button.hide();
-        untarget_button.show();
-
-        $('input[id="ia-detection-viewpoint"]').prop("disabled", false);
-        $('input[id="ia-detection-quality"]').prop("disabled", false);
-        $('input[id="ia-detection-multiple"]').prop("disabled", false);
-        $('input[id="ia-detection-interest"]').prop("disabled", false);
-        $('select[name="ia-detection-species"]').prop("disabled", false);
-        $('span[data-target="#species-add"]').css("visibility", "visible");
-        $(".ia-detection-form-label").css("color", "#000");
-        $("#ia-detection-form-warning").css("visibility", "hidden");
-        hotkeys_disabled = false;
-      }
-
-      function update_dimensions()
-      {
-        var img_width = parseFloat(bba.elements.frame.css("width")) - 2.0;
-        var img_height = parseFloat(bba.elements.frame.css("height")) - 2.0;
-
-        var left   = parseFloat(box_element.css("left"));
-        var top    = parseFloat(box_element.css("top"));
-        var width  = parseFloat(box_element.css("width"));
-        var height = parseFloat(box_element.css("height"));
-
-        var left   = 100.0 * left   / img_width;
-        var top    = 100.0 * top    / img_height;
-        var width  = 100.0 * width  / img_width;
-        var height = 100.0 * height / img_height;
-
-        box_element.css("left", left + "%");
-        box_element.css("top", top + "%");
-        box_element.css("width", width + "%");
-        box_element.css("height", height + "%");
-
-        entry["left"]   = left;
-        entry["top"]    = top;
-        entry["width"]  = width;
-        entry["height"] = height;
-        bba.refresh();
-      }
-
-      function show_metadata(e)
-      {
-        if(entry.metadata.viewpoint != -1)
-        {
-          $('input[id="ia-detection-viewpoint"]').val(entry.metadata.viewpoint);
-        }
-        // else
-        // {
-        //   $('input[id="ia-detection-viewpoint"]').val(0);
-        // }
-
-        if(entry.metadata.quality != -1)
-        {
-          $('input[id="ia-detection-quality"]').val(entry.metadata.quality);
-        }
-        // else
-        // {
-          // $('input[id="ia-detection-quality"]').val(2);
-        // }
-
-        $('select[name="ia-detection-species"] option[value="' + entry.metadata.species + '"]').prop("selected", true);
-        $('input[id="ia-detection-multiple"]').prop("checked", entry.metadata.multiple);
-        $('input[id="ia-detection-interest"]').prop("checked", entry.metadata.interest);
-        update_label();
-      }
-
-      function update_metadata(e)
-      {
-        entry.metadata.viewpoint = $('input[id="ia-detection-viewpoint"]').val();
-        entry.metadata.quality = $('input[id="ia-detection-quality"]').val();
-        entry.metadata.species = $('select[name="ia-detection-species"]').find("option:selected").val();
-        entry.metadata.multiple = $('input[id="ia-detection-multiple"]').is(":checked")
-        entry.metadata.interest = $('input[id="ia-detection-interest"]').is(":checked")
-      }
-
-      function update_theta(theta)
-      {
-        function mod(x, n) {
-          // Javascript % is not modulus, it is remainder (wtf?)
-          return ((x % n) + n) % n;
-        }
-        entry["theta"] = mod(theta, 2.0 * Math.PI);
-        bba.refresh();
-      }
-
       this.entries.push(entry);
+
+
       box_element = $('<div class="ia-annotated-bounding-box ui-widget-content"></div>');
+
+
       var resize_params = {
           start: function(e, ui) {
             bba.state.editing = true;
@@ -1091,8 +924,8 @@
           stop: function(e, ui) {
             $(".ia-label-text-box").css("opacity", "0.80");
             bba.state.editing = false;
-            update_dimensions();
-            update_style_editing(bba, e);
+            bba.update_dimensions(entry, box_element);
+            bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
           },
           containment: "#ia-bbox-annotator-container",
           handles: "n, s, e, w, ne, se, nw, sw",
@@ -1106,8 +939,8 @@
           stop: function(e, ui) {
             $(".ia-label-text-box").css("opacity", "0.80");
             bba.state.editing = false;
-            update_theta(ui.theta);
-            update_style_editing(bba, e);
+            bba.update_theta(entry, ui.theta);
+            bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
           },
           angle: entry.angles.theta,
       };
@@ -1119,8 +952,8 @@
           stop: function(e, ui) {
             $(".ia-label-text-box").css("opacity", "0.80");
             bba.state.editing = false;
-            update_dimensions();
-            update_style_editing(bba, e);
+            bba.update_dimensions(entry, box_element);
+            bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
           },
           drag: function(e, ui) {
             return ! bba.state.adding && ! bba.state.targeting;
@@ -1130,9 +963,13 @@
       box_element.rotatable(rotate_params);
       box_element.draggable(drag_params);
       box_element.resizable(resize_params);
+
+
       resizable_button = box_element.find(".ui-resizable-handle");
       rotate_button = box_element.find(".ui-rotatable-handle");
-      box_element.appendTo(this.elements.frame).css({
+
+      box_element.appendTo(this.elements.frame);
+      box_element.css({
         "border": this.options.border.width + "px solid " + bba.options.colors.default,
         "position": "absolute",
         "top": entry.percent.top + "%",
@@ -1143,7 +980,10 @@
         "font-family": "monospace",
         "font-size": "small",
       });
-      close_button = $("<div></div>").appendTo(box_element).css({
+
+      close_button = $("<div></div>");
+      close_button.appendTo(box_element);
+      close_button.css({
         "position": "absolute",
         "top": "5px",
         "right": "5px",
@@ -1164,7 +1004,10 @@
         "user-select": "none",
         "text-align": "center",
       });
-      $("<div></div>").appendTo(close_button).html("&#215;").css({
+
+      temp = $("<div></div>");
+      temp.appendTo(close_button);
+      temp.html("&#215;").css({
         "display": "block",
         "text-align": "center",
         "width": "16px",
@@ -1174,38 +1017,10 @@
         "font-size": "20px",
         "line-height": "20px",
       });
-      untarget_button = $("<div></div>").appendTo(box_element).css({
-        "position": "absolute",
-        "top": "5px",
-        "right": "5px",
-        "margin-left": "-10px",
-        "width": "20px",
-        "height": "0",
-        "padding": "16px 0 0 0",
-        "overflow": "visible",
-        "color": "#444",
-        "background-color": bba.options.colors.default,
-        "border": "2px solid #444",
-        "-moz-border-radius": "18px",
-        "-webkit-border-radius": "18px",
-        "border-radius": "18px",
-        "cursor": "pointer",
-        "-moz-user-select": "none",
-        "-webkit-user-select": "none",
-        "user-select": "none",
-        "text-align": "center",
-      });
-      $("<div></div>").appendTo(untarget_button).html("&#10004;").css({
-        "display": "block",
-        "text-align": "center",
-        "width": "17px",
-        "position": "absolute",
-        "top": "2px",
-        "left": "0",
-        "font-size": "14px",
-        "line-height": "14px",
-      });
-      text_box = $('<div class="ia-label-text-box"></div>').appendTo(box_element).css({
+
+      text_box = $('<div class="ia-label-text-box"></div>');
+      text_box.appendTo(box_element);
+      text_box.css({
         "overflow": "visible",
         "display": "inline-block",
         "background-color": bba.options.colors.default,
@@ -1216,8 +1031,6 @@
         // "top": "-20px",
       });
 
-      update_text_label(entry);
-
       bba.state.hovering = false;
 
       box_element.mouseup(function(e) {
@@ -1227,7 +1040,7 @@
             if(! bba.state.targeting)
             {
               bba.state.targeting = true;
-              update_style_target(bba, e);
+              bba.update_style_target(box_element, text_box, resizable_button, rotate_button, close_button);
             }
           }
         }
@@ -1237,35 +1050,34 @@
 
       box_element.hover((function(e) {
         bba.state.hovering = true;
-        show_metadata(e);
 
         if( ! bba.state.adding)
         {
           if( ! bba.state.editing)
           {
-            update_style_hover(e);
+            bba.update_style_hover(box_element, text_box, resizable_button, rotate_button, close_button);
           }
         }
         else
         {
-          update_style_editing(e);
+          bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
         }
       }), (function(e) {
         bba.state.hovering = false;
         if( ! bba.state.editing)
         {
-          update_style_editing(e);
+          bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
         }
       }));
 
-      close_button.mousedown(function(e) {
+      close_button.mouseup(function(e) {
+        var clicked_box, index;
+
         this.state.editing = false;
         // bba.state.moving = true;
         bba.state.targeting = false;
         bba.hit_menuitem = true;
-      });
-      close_button.click(function(e) {
-        var clicked_box, index;
+
         clicked_box = close_button.parent(".ia-annotated-bounding-box");
         index = clicked_box.prevAll(".ia-annotated-bounding-box").length;
         clicked_box.detach();
@@ -1274,22 +1086,11 @@
         bba.state.targeting = false;
         $(".ia-annotated-bounding-box").css("visibility", "visible");
         return bba.refresh();
-      });
 
-      untarget_button.mousedown(function(e) {
-        this.state.editing = false;
-        // bba.state.moving = true;
-        bba.state.targeting = false;
-        bba.hit_menuitem = true;
-      });
-      untarget_button.click(function(e) {
-        bba.state.targeting = false;
-        update_style_hover(e);
       });
 
       rotate_button.hide();
       close_button.hide();
-      untarget_button.hide()
 
       bba.refresh();
     };
