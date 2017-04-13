@@ -1023,8 +1023,6 @@ class Redundancy(_RedundancyHelpers):
 
     def pos_redundant_pccs(infr, relax_size=None):
         for cc in infr.consistent_components():
-            if len(cc) == 2:
-                continue
             if infr.is_pos_redundant(cc, relax_size):
                 yield cc
 
@@ -1033,9 +1031,6 @@ class Redundancy(_RedundancyHelpers):
         Get PCCs that are not k-positive-redundant
         """
         for cc in infr.consistent_components():
-            # print('cc = %r' % (cc,))
-            flag = infr.is_pos_redundant(cc, relax_size)
-            # print('flag = %r' % (flag,))
             if not infr.is_pos_redundant(cc, relax_size):
                 yield cc
 

@@ -22,6 +22,11 @@ def qt_review():
     infr.queue_params['neg_redun'] = 2
 
     infr.reset_feedback('staging', apply=True)
+    if False:
+        infr.relabel_using_reviews(rectify=False)
+        infr.reset_labels_to_ibeis()
+        infr.relabel_using_reviews(rectify=True)
+
     # After we ensure that the annotmatch stuff is in staging, and all our
     # reviews are there we load them. Then we rectify the old name label
     # id-scheme by reviewing dummy edges. These edges should be saved to the
@@ -61,11 +66,6 @@ def qt_review():
     win = infr.start_qt_interface(loop=False)
     win.show()
     gt.qtapp_loop(qwin=win, freq=10)
-    if False:
-        infr.reset_labels_to_ibeis()
-
-        infr.relabel_using_reviews(rectify=False)
-        infr.relabel_using_reviews(rectify=False)
 
     # USE THE RECOVERY LOOP
 

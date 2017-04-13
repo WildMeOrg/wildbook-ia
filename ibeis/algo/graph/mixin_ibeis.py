@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import networkx as nx
+import pandas as pd
 import utool as ut
 import numpy as np
 import vtool as vt
@@ -15,39 +16,44 @@ class IBEISIO(object):
     Direct interface into ibeis tables
     (most of these should not be used or be reworked)
     """
-
     def ibeis_delta_info(infr, edge_delta_df=None, name_delta_df=None):
-        if edge_delta_df is None:
-            edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
         if name_delta_df is None:
             name_delta_df = infr.get_ibeis_name_delta()
 
-        aids = infr.aids
-        new_names = list(infr.gen_node_values('name_label', aids))
+        name_stats_df = infr.name_group_stats()
+        name_delta_stats_df = infr.ibeis_name_group_delta_info()
 
-        old_names = infr.ibs.get_annot_name_texts(
-            aids, distinguish_unknowns=True)
+        edge_delta_info = infr.ibeis_edge_delta_info(edge_delta_df)
+
+        info = ut.odict([
+            ('num_annots_with_names_changed' , len(name_delta_df)),
+        ])
+        info.update(edge_delta_info)
+        for key, val in name_stats_df.iterrows():
+            info['num_' + key] = int(val['size'])
+        for key, val in name_delta_stats_df.iterrows():
+            info['num_' + key] = int(val['size'])
+        return info
+
+    def ibeis_edge_delta_info(infr, edge_delta_df=None):
+        if edge_delta_df is None:
+            edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
 
         # Look at what changed
-        tag_flags = (edge_delta_df['old_tags'] != edge_delta_df['new_tags'])
-        decision_flags = (edge_delta_df['old_decision'] !=
-                          edge_delta_df['new_decision'])
+        tag_flags = edge_delta_df['old_tags'] != edge_delta_df['new_tags']
+        state_flags = edge_delta_df['old_decision'] != edge_delta_df['new_decision']
         is_added = edge_delta_df['am_rowid'].isnull()
-
-        num_inconsistent = len(list(infr.inconsistent_components()))
-
-        info = {
-            'num_names_inconsistent'    : num_inconsistent,
-            'num_annots_with_names_changed' : len(name_delta_df),
-            'num_edges_added'           : is_added.sum(),
-            'num_edges_modified'        : (~is_added).sum(),
-            'num_changed_decision_and_tags' : (tag_flags & decision_flags &
-                                               ~is_added).sum(),
-            'num_changed_tags'              : (tag_flags & ~decision_flags &
-                                               ~is_added).sum(),
-            'num_changed_decision'          : (~tag_flags & decision_flags &
-                                               ~is_added).sum(),
-        }
+        info = ut.odict([
+            ('num_edges_added' , is_added.sum()),
+            ('num_edges_modified' , (~is_added).sum()),
+            ('num_changed_decision_and_tags' , (
+                (tag_flags & state_flags & ~is_added).sum())),
+            ('num_changed_tags'              , (
+                (tag_flags & ~state_flags & ~is_added).sum())),
+            ('num_changed_decision'          , (
+                (~tag_flags & state_flags & ~is_added).sum())),
+            # 'num_non_pos_redundant': num_non_pos_redundant,
+        ])
         return info
 
     def name_label_group_delta_info(infr):
@@ -60,7 +66,7 @@ class IBEISIO(object):
         name_labels = list(infr.gen_node_values('name_label', aids))
         old_ccs = list(ut.group_items(aids, name_labels).values())
         new_ccs = list(infr.positive_components())
-        infr.name_group_delta_info(old_ccs, new_ccs)
+        return infr.name_group_delta_stats(old_ccs, new_ccs)
 
     def ibeis_name_group_delta_info(infr):
         aids = infr.aids
@@ -71,10 +77,23 @@ class IBEISIO(object):
             aids, distinguish_unknowns=True)
         old_ccs = list(ut.group_items(aids, old_names).values())
 
-        infr.name_group_delta_info(old_ccs, new_ccs)
-        pass
+        return infr.name_group_delta_stats(old_ccs, new_ccs)
 
-    def name_group_delta_info(infr, old_ccs, new_ccs, verbose=False):
+    def name_group_stats(infr, verbose=False):
+        stats = ut.odict()
+        statsmap = ut.partial(lambda x: ut.stats_dict(map(len, x), size=True))
+        stats['pos_redun'] = statsmap(infr.pos_redundant_pccs())
+        stats['non_pos_redun'] = statsmap(infr.non_pos_redundant_pccs())
+        stats['inconsistent'] = statsmap(infr.inconsistent_components())
+        stats['consistent'] = statsmap(infr.consistent_components())
+        df = pd.DataFrame.from_dict(stats, orient='index')
+        df = df.loc[list(stats.keys())]
+        if verbose:
+            print('Name Group stats:')
+            print(df.to_string(float_format='%.2f'))
+        return df
+
+    def name_group_delta_stats(infr, old_ccs, new_ccs, verbose=False):
         group_delta = ut.grouping_delta(old_ccs, new_ccs)
 
         stats = ut.odict()
@@ -82,19 +101,14 @@ class IBEISIO(object):
         splits = group_delta['splits']
         merges = group_delta['merges']
         hybrid = group_delta['hybrid']
-        stats['unchanged'] = ut.get_stats(map(len, unchanged))
-        stats['old_split'] = ut.get_stats(map(len, splits['old']))
-        stats['new_split'] = ut.get_stats(map(len, ut.flatten(splits['new'])))
-        stats['old_merge'] = ut.get_stats(map(len, ut.flatten(merges['old'])))
-        stats['new_merge'] = ut.get_stats(map(len, merges['new']))
-        stats['old_hybrid'] = ut.get_stats(map(len, hybrid['old']))
-        stats['new_hybrid'] = ut.get_stats(map(len, hybrid['new']))
-        for k, v in stats.items():
-            if v.get('empty_list', False):
-                v['shape'] = 0
-            else:
-                v['shape'] = v['shape'][0]
-        import pandas as pd
+        statsmap = ut.partial(lambda x: ut.stats_dict(map(len, x), size=True))
+        stats['unchanged'] = statsmap(unchanged)
+        stats['old_split'] = statsmap(splits['old'])
+        stats['new_split'] = statsmap(ut.flatten(splits['new']))
+        stats['old_merge'] = statsmap(ut.flatten(merges['old']))
+        stats['new_merge'] = statsmap(merges['new'])
+        stats['old_hybrid'] = statsmap(hybrid['old'])
+        stats['new_hybrid'] = statsmap(hybrid['new'])
         df = pd.DataFrame.from_dict(stats, orient='index')
         df = df.loc[list(stats.keys())]
         if verbose:

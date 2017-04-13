@@ -1533,28 +1533,24 @@ class AnnotGraphWidget(gt.GuitoolWidget):
 
         edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
         name_delta_df = infr.get_ibeis_name_delta()
+        name_stats_df = infr.name_group_stats()
+        name_delta_stats_df = infr.ibeis_name_group_delta_info()
 
-        info = infr.ibeis_delta_info(edge_delta_df, name_delta_df)
-
-        msg = ut.codeblock(
-            '''
-            Are you sure this is correct?
-            #annot_names_changed={num_annots_with_names_changed}
-            #edges_added={num_edges_added}
-            #edges_modified={num_edges_modified}
-            #edge_tags_modified={num_changed_tags}
-            #edge_tags+decisions_modified={num_changed_decision_and_tags}
-            #edge_decision_modified={num_changed_decision}
-            #inconsistent={num_names_inconsistent}
-            ''').format(**info)
+        msg = infr.ibeis_delta_msg(edge_delta_df, name_delta_df)
 
         lines = []
         print_ = lines.append
         print_('=================')
         print_(msg)
+        pdkw = dict(float_format='%.2f')
+        print_('---DATAFRAME\nname_delta_stats_df =\n' +
+               name_delta_stats_df.to_string(**pdkw))
+        print_('---DATAFRAME\nname_stats_df =\n' +
+               name_stats_df.to_string(**pdkw))
+
         pdkw = dict(max_rows=len(name_delta_df) + 1)
+        print_('internal_feedback = ' + ut.repr2(infr.internal_feedback, nl=1))
         print_('---DATAFRAME\nname_delta_df =\n' + name_delta_df.to_string(**pdkw))
-        print_('internal_feedback = ' + ut.repr2(self.infr.internal_feedback, nl=1))
         pdkw = dict(max_rows=len(edge_delta_df) + 1)
         print_('---DATAFRAME\nedge_delta_df =\n' + edge_delta_df.to_string(**pdkw))
 
