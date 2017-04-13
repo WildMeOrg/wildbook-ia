@@ -13,7 +13,7 @@ from ibeis.web import routes
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
-def get_associations_dict(ibs, **kwargs):
+def get_associations_dict(ibs, target_species=None, **kwargs):
     import itertools
     imageset_list = ibs.get_valid_imgsetids(is_special=False)
     time_list = ibs.get_imageset_start_time_posix(imageset_list)
@@ -28,6 +28,20 @@ def get_associations_dict(ibs, **kwargs):
 
     assoc_dict = {}
     for imageset_rowid, time_, nid_list in zip(imageset_list, time_list, nids_list):
+        if target_species is not None:
+            def _get_primary_species(aid_list):
+                species_list = ibs.get_annot_species_texts(aid_list)
+                species = max(set(species_list), key=species_list.count)
+                return species
+
+            aids_list = ibs.get_name_aids(nid_list)
+            species_list = map(_get_primary_species, aids_list)
+            nid_list = [
+                nid
+                for nid, species in zip(nid_list, species_list)
+                if species == target_species
+            ]
+
         name_list = ibs.get_name_texts(nid_list)
         # Add singles
         for name in name_list:
@@ -44,7 +58,7 @@ def get_associations_dict(ibs, **kwargs):
 def download_associations_list(**kwargs):
     ibs = current_app.ibs
     filename = 'associations.list.csv'
-    assoc_dict = get_associations_dict(ibs)
+    assoc_dict = get_associations_dict(ibs, **kwargs)
 
     combined_list = []
     max_length = 0
@@ -74,7 +88,7 @@ def download_associations_list(**kwargs):
 def download_associations_matrix(**kwargs):
     ibs = current_app.ibs
     filename = 'associations.matrix.csv'
-    assoc_dict = get_associations_dict(ibs)
+    assoc_dict = get_associations_dict(ibs, **kwargs)
     assoc_list = sorted(assoc_dict.keys())
     max_length = len(assoc_list)
 
@@ -203,18 +217,40 @@ def get_demographic_info(**kwargs):
 
 
 @register_route('/csv/princeton/special/', methods=['GET'])
-def get_annotation_special_info(**kwargs):
+def get_annotation_special_info(target_species=None, **kwargs):
     ibs = current_app.ibs
     filename = 'special.csv'
+
+    def _process_annot_name_uuids_dict(ibs, filepath):
+        import uuid
+        auuid_list = []
+        nuuid_list = []
+        with open(filepath, 'r') as file_:
+            for line in file_.readlines():
+                line = line.strip().split(',')
+                auuid = uuid.UUID(line[0])
+                nuuid = None if line[1] == 'None' else uuid.UUID(line[1])
+                auuid_list.append(auuid)
+                nuuid_list.append(nuuid)
+
+        annot_rowid_list = ibs.get_annot_aids_from_uuid(auuid_list)
+        name_rowid_list = ibs.get_name_rowids_from_uuid(nuuid_list)
+
+        zipped = zip(annot_rowid_list, name_rowid_list)
+        mapping_dict = { aid: nid for aid, nid in zipped if aid is not None}
+        return mapping_dict
 
     aid_list = sorted(ibs.get_valid_aids())
     annot_uuid_list = ibs.get_annot_uuids(aid_list)
     print('Found %d aids' % (len(aid_list), ))
     nid_list = ibs.get_annot_nids(aid_list)
-    nid_list = ibs.get_annot_nids(aid_list)
+    name_uuid_list = ibs.get_name_uuids(nid_list)
     name_list = ibs.get_name_texts(nid_list)
+    species_list = ibs.get_annot_species_texts(aid_list)
     sex_list = ibs.get_name_sex_text(nid_list)
+    age_list = ibs.get_annot_age_months_est_texts(aid_list)
     gid_list = ibs.get_annot_gids(aid_list)
+    contrib_list = ibs.get_image_contributor_tag(gid_list)
     gname_list = ibs.get_image_gnames(gid_list)
     imageset_rowids_list = ibs.get_image_imgsetids(gid_list)
     imageset_rowids_set = map(set, imageset_rowids_list)
@@ -225,7 +261,7 @@ def get_annotation_special_info(**kwargs):
         for imageset_rowid_set in imageset_rowids_set
     ]
 
-    imageset_list = [ _[0] for _ in imagesets_list ]
+    imageset_list = [ _[0] if len(_) > 0 else None for _ in imagesets_list ]
     imageset_text_list = ibs.get_imageset_text(imageset_list)
     imageset_metadata_list = ibs.get_imageset_metadata(imageset_list)
     annot_metadata_list = ibs.get_annot_metadata(aid_list)
@@ -250,10 +286,14 @@ def get_annotation_special_info(**kwargs):
     zipped = zip(
         nid_list,
         aid_list,
+        name_uuid_list,
         annot_uuid_list,
         name_list,
+        species_list,
         sex_list,
+        age_list,
         gname_list,
+        contrib_list,
         imageset_list,
         imageset_text_list,
         imageset_metadata_list,
@@ -264,34 +304,67 @@ def get_annotation_special_info(**kwargs):
         (
             nid,
             aid,
+            name_uuid,
             annot_uuid,
             name,
+            species,
             sex,
+            age,
             gname,
+            contrib,
             imageset_rowid,
             imageset_text,
             imageset_metadata_dict,
             annot_metadata_dict
         ) = args
 
+        if target_species is not None and species != target_species:
+            continue
+
         if nid <= 0:
             continue
+
+        nid_old = ''
+        name_old = ''
+
+        # if 'Monica-Laurel' in ibs.dbdir:
+        #     monica_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/monica.aids.txt')
+        #     laurel_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/laurel.aids.txt')
+
+        #     different = 0
+        #     for aid, nid in zip(aid_list, nid_list):
+        #         if aid in monica_mapping_dict:
+        #             assert aid not in laurel_mapping_dict
+        #             nid_old = monica_mapping_dict[aid]
+        #         elif aid in laurel_mapping_dict:
+        #             assert aid not in monica_mapping_dict
+        #             nid_old = laurel_mapping_dict[aid]
+        #         else:
+        #             assert False
+
+        #         print(aid, nid_old, nid)
+
         line_list_ = [
-            ibs.dbname,
+            '' if contrib is None else contrib.split(',')[0],
+            annot_uuid,
             aid,
             annot_uuid,
             nid,
             name,
+            nid_old,
+            name_old,
+            species,
             sex,
+            age,
             gname,
             imageset_rowid,
             imageset_text,
-            '',
+            '|',
         ] + [
             imageset_metadata_dict.get(imageset_metadata_key, '')
             for imageset_metadata_key in imageset_metadata_key_list
         ] + [
-            '',
+            '|',
         ] + [
             annot_metadata_dict.get(annot_metadata_key, '')
             for annot_metadata_key in annot_metadata_key_list
@@ -304,7 +377,7 @@ def get_annotation_special_info(**kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'DB,AID,Annotation UUID,NID,Name,Sex,Image Name,Encounter ID,Encounter Name,,%s,,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,Annotation UUID,AID,NID,Name,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 

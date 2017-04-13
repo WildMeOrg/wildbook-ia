@@ -3081,7 +3081,7 @@ def get_annot_age_months_est_min_texts(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_min_list = ibs.get_annot_age_months_est_min(aid_list)
     annot_age_months_est_min_text_list = [
-        '%d Months' % (age_min, )
+        'Unknown' if age_min is None else '%d Months' % (age_min, )
         for age_min in annot_age_months_est_min_list
     ]
     return annot_age_months_est_min_text_list
@@ -3108,7 +3108,7 @@ def get_annot_age_months_est_max_texts(ibs, aid_list, eager=True, nInput=None):
     """
     annot_age_months_est_max_list = ibs.get_annot_age_months_est_max(aid_list)
     annot_age_months_est_max_text_list = [
-        '%d Months' % (age_max, )
+        'Unknown' if age_max is None else '%d Months' % (age_max, )
         for age_max in annot_age_months_est_max_list
     ]
     return annot_age_months_est_max_text_list

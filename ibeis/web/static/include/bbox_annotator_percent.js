@@ -675,6 +675,7 @@
 
 
       $(window).keydown(function(e) {
+        console.log('WINDOW KEYDOWN')
 
         if(e.which === 27 || e.which === 75 || e.which === 8)
         {
@@ -787,6 +788,8 @@
       });
 
       this.elements.container.mousedown(function(e) {
+        console.log('CONTAINER MOUSEDOWN')
+
         if( bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 1))
         {
           $(".ia-annotated-bounding-box").css("opacity", "1.00");
@@ -854,6 +857,7 @@
       });
 
       $(window).mousemove(function(e) {
+        console.log('WINDOW MOUSEMOVE')
 
         if(bba.state.editing)
         {
@@ -871,6 +875,8 @@
 
 
       $(window).mouseup(function(e) {
+        console.log('WINDOW MOUSEUP')
+
         if(bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 2))
         {
           $(".ia-annotated-bounding-sbox").css("opacity", "1.00");
@@ -1033,22 +1039,20 @@
 
       bba.state.hovering = false;
 
-      box_element.mouseup(function(e) {
-        if (e.which === 1) {
-          if( ! bba.state.moving && ! bba.state.adding)
-          {
-            if(! bba.state.targeting)
-            {
-              bba.state.targeting = true;
-              bba.update_style_target(box_element, text_box, resizable_button, rotate_button, close_button);
-            }
-          }
-        }
-        bba.state.adding = false;
-        bba.state.moving = false;
-      })
+      rotate_button.hide();
+      close_button.hide();
+
+      bba.refresh();
+
+
+      ///////////////////
+      ///////////////////
+      ///////////////////
+      ///////////////////
+
 
       box_element.hover((function(e) {
+        console.log('BOX_ELEMENT HOVER')
         bba.state.hovering = true;
 
         if( ! bba.state.adding)
@@ -1070,7 +1074,24 @@
         }
       }));
 
+      box_element.mouseup(function(e) {
+        console.log('BOX_ELEMENT MOUSEUP')
+        if (e.which === 1) {
+          if( ! bba.state.moving && ! bba.state.adding)
+          {
+            if(! bba.state.targeting)
+            {
+              bba.state.targeting = true;
+              bba.update_style_target(box_element, text_box, resizable_button, rotate_button, close_button);
+            }
+          }
+        }
+        bba.state.adding = false;
+        bba.state.moving = false;
+      })
+
       close_button.mouseup(function(e) {
+        console.log('BOX_ELEMENT CLOSEBUTTON MOUSEUP')
         var clicked_box, index;
 
         this.state.editing = false;
@@ -1088,11 +1109,6 @@
         return bba.refresh();
 
       });
-
-      rotate_button.hide();
-      close_button.hide();
-
-      bba.refresh();
     };
 
     return BBoxAnnotator;

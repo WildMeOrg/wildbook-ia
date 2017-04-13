@@ -39,6 +39,9 @@ CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
 
 
+register_api   = controller_inject.get_ibeis_flask_api(__name__)
+
+
 @ut.make_class_postinject_decorator(CLASS_INJECT_KEY, __name__)
 def postinject_func(ibs):
     r"""
@@ -3066,6 +3069,7 @@ def inspect_nonzero_yaws(ibs):
 
 
 @register_ibs_method
+@register_api('/api/annot/exemplar/', methods=['POST'])
 def set_exemplars_from_quality_and_viewpoint(ibs, aid_list=None,
                                              exemplars_per_view=None, imgsetid=None,
                                              dry_run=False, verbose=True, prog_hook=None):
@@ -6257,6 +6261,7 @@ def princeton_process_encounters(ibs, input_file_path, assert_valid=True, **kwar
             for line in line_list
         ]
 
+    header_list = [ _.strip() for _ in header_list ]
     imageset_text_set = set(ibs.get_imageset_text(ibs.get_valid_imgsetids(is_special=False)))
 
     seen_set = set([])
@@ -6322,6 +6327,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             for line in line_list
         ]
 
+    header_list = [ _.strip() for _ in header_list ]
     aid_list = ibs.get_valid_aids()
     # aid_set = set(aid_list)
     gid_list = ibs.get_valid_gids()
@@ -6445,6 +6451,7 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
         # Set demographics to names
         name_sex_dict = {}
         name_species_dict = {}
+        name_age_dict = {}
         for annot_rowid, metadata_dict in zip(annot_rowid_list, metadata_list):
             name_rowid = ibs.get_annot_nids(annot_rowid)
             if name_rowid < 0:
@@ -6456,6 +6463,9 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             species_symbol = metadata_dict['Species']
             if species_symbol is not None:
                 species_symbol = species_symbol.upper()
+            age_symbol = metadata_dict['Age']
+            if age_symbol is not None:
+                age_symbol = age_symbol.upper()
             # Get names
             if name_rowid not in name_sex_dict:
                 name_sex_dict[name_rowid] = []
@@ -6470,6 +6480,13 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
                 name_species_dict[name_rowid].append(species_symbol)
             elif sex_symbol not in [None]:
                 raise ValueError('INVALID SPECIES: %r' % (species_symbol, ))
+            # Get age
+            if name_rowid not in name_age_dict:
+                name_age_dict[name_rowid] = []
+            if age_symbol in ['ADULT', 'JUVENILE', 'JUVENILE (6-9MO)', 'JUVENILE (1-1.5YR)']:
+                name_age_dict[name_rowid].append(age_symbol)
+            elif age_symbol not in [None]:
+                raise ValueError('INVALID AGE: %r' % (age_symbol, ))
 
         aid_list_ = []
         species_text_ = []
@@ -6498,6 +6515,27 @@ def princeton_process_individuals(ibs, input_file_path, **kwargs):
             aid_list = ibs.get_name_aids(name_rowid)
             aid_list_ += aid_list
             species_text_ += [species_text] * len(aid_list)
+
+            name_age_list = name_age_dict[name_rowid]
+            if len(name_age_list) == 0:
+                age_tuple = (-1, -1, )
+            else:
+                if 'JUVENILE (6-9MO)' in name_age_list:
+                    assert 'JUVENILE (1-1.5YR)' not in name_age_list
+                    age_tuple = (6, 12, )
+                elif 'JUVENILE (1-1.5YR)' in name_age_list:
+                    assert 'JUVENILE (6-9MO)' not in name_age_list
+                    age_tuple = (12, 24, )
+                else:
+                    age_tag = max(set(name_age_list), key=name_age_list.count)
+                    assert age_tag in ['ADULT', 'JUVENILE']
+                    if age_tag == 'ADULT':
+                        age_tuple = (36, None)
+                    else:
+                        age_tuple = (-1, -1, )
+            aid_list_ = ibs.get_name_aids(name_rowid)
+            ibs.set_annot_age_months_est_min(aid_list_, [age_tuple[0]] * len(aid_list_))
+            ibs.set_annot_age_months_est_max(aid_list_, [age_tuple[1]] * len(aid_list_))
         ibs.set_annot_species(aid_list_, species_text_)
 
 
