@@ -387,15 +387,18 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     for conf in sorted(conf_dict.keys(), reverse=True):
         error_list = conf_dict[conf]
         tp, tn, fp, fn = error_list
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-        tpr = tp / (tp + fn)
-        fpr = fp / (fp + tn)
-        conf_list_.append(conf)
-        pr_list.append(pr)
-        re_list.append(re)
-        tpr_list.append(tpr)
-        fpr_list.append(fpr)
+        try:
+            pr = tp / (tp + fp)
+            re = tp / (tp + fn)
+            tpr = tp / (tp + fn)
+            fpr = fp / (fp + tn)
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
+        except ZeroDivisionError:
+            pass
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -1881,7 +1884,6 @@ def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negat
             continue
         test_gid_set.append(gid)
         label_list.append(label)
-
 
     ut.embed()
 
