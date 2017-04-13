@@ -578,6 +578,31 @@ class CandidateSearch(object):
             len(already_reviewed)), 1)
         return candidate_edges
 
+    def find_pos_augment_edges(infr, pcc):
+        pos_k = infr.queue_params['pos_redun']
+        pos_sub = infr.pos_graph.subgraph(pcc)
+
+        # First try to augment only with unreviewed existing edges
+        avail = list(nx_utils.edges_inside(infr.unreviewed_graph, pcc))
+        check_edges = nx_utils.edge_connected_augmentation(
+            pos_sub, pos_k, avail=avail)
+        if not check_edges:
+            # Allow new edges to be introduced
+            full_sub = infr.graph.subgraph(pcc)
+            avail += list(nx.complement(full_sub).edges())
+            n_max = (len(pos_sub) * (len(pos_sub) - 1)) // 2
+            n_comp = n_max - pos_sub.number_of_edges()
+            if len(avail) == n_comp:
+                # can use the faster algorithm
+                check_edges = nx_utils.edge_connected_augmentation(
+                    pos_sub, pos_k)
+            else:
+                # have to use the slow approximate algo
+                check_edges = nx_utils.edge_connected_augmentation(
+                    pos_sub, pos_k, avail=avail)
+        check_edges = set(it.starmap(e_, check_edges))
+        return check_edges
+
     @profile
     def find_pos_redun_candidate_edges(infr, verbose=False):
         r"""
@@ -598,34 +623,12 @@ class CandidateSearch(object):
             candidate_edges = {(1, 3), (7, 10)}
         """
         # Add random edges between exisiting non-redundant PCCs
-        pos_k = infr.queue_params['pos_redun']
         candidate_edges = set([])
         pcc_gen = list(infr.non_pos_redundant_pccs(relax_size=True))
         pcc_gen = ut.ProgIter(pcc_gen, enabled=verbose, freq=1, adjust=False)
         for pcc in pcc_gen:
-            pos_sub = infr.pos_graph.subgraph(pcc)
-
-            # First try to augment only with unreviewed existing edges
-            avail = list(nx_utils.edges_inside(infr.unreviewed_graph, pcc))
-            check_edges = nx_utils.edge_connected_augmentation(
-                pos_sub, pos_k, avail=avail)
-            if not check_edges:
-                # Allow new edges to be introduced
-                full_sub = infr.graph.subgraph(pcc)
-                avail += list(nx.complement(full_sub).edges())
-                n_max = (len(pos_sub) * (len(pos_sub) - 1)) // 2
-                n_comp = n_max - pos_sub.number_of_edges()
-                if len(avail) == n_comp:
-                    # can use the faster algorithm
-                    check_edges = nx_utils.edge_connected_augmentation(
-                        pos_sub, pos_k)
-                else:
-                    # have to use the slow approximate algo
-                    check_edges = nx_utils.edge_connected_augmentation(
-                        pos_sub, pos_k, avail=avail)
-            check_edges = set(it.starmap(e_, check_edges))
+            check_edges = infr.find_pos_augment_edges(pcc)
             candidate_edges.update(check_edges)
-
             # kcon_ccs = list(nx_utils.edge_connected_components(sub, pos_k))
             # bicon = list(nx.biconnected_components(sub))
             # check_edges = set([])
@@ -722,17 +725,21 @@ class CandidateSearch(object):
             prob_match = infr.dummy_predictor(new_edges)
             infr.set_edge_attrs('prob_match', ut.dzip(new_edges, prob_match))
             infr.queue.update(ut.dzip(new_edges, -prob_match))
-        else:
+        elif infr.cm_list is not None:
             infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
             infr.task_probs = None
             scores = infr._make_lnbnn_scores(new_edges)
             infr.set_edge_attrs('normscore', ut.dzip(new_edges, scores))
             infr.queue.update(ut.dzip(new_edges, -scores))
+        else:
+            infr.print('No information to prioritize edges')
+            scores = np.zeros(len(new_edges)) + 1e-6
+            infr.queue.update(ut.dzip(new_edges, -scores))
+
         if hasattr(infr, 'on_new_candidate_edges'):
             # hack callback for demo
             infr.on_new_candidate_edges(infr, new_edges)
-
 
     @profile
     def refresh_candidate_edges(infr, ranking=True):

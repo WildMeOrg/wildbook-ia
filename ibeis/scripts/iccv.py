@@ -26,6 +26,9 @@ def qt_review():
         infr.relabel_using_reviews(rectify=False)
         infr.reset_labels_to_ibeis()
         infr.relabel_using_reviews(rectify=True)
+        infr.ibeis_delta_info()
+        infr.name_group_stats(verbose=1)
+        infr.ibeis_name_group_delta_info(verbose=1)
 
     # After we ensure that the annotmatch stuff is in staging, and all our
     # reviews are there we load them. Then we rectify the old name label
@@ -37,6 +40,13 @@ def qt_review():
         infr.write_ibeis_staging_feedback()
 
     infr.prioritize()
+    infr.classifiers = None
+    if False:
+        pccs = list(infr.non_pos_redundant_pccs())
+        pccs = ut.sortedby(pccs, ut.lmap(len, pccs))
+        pcc = pccs[-1]
+        aug_edges = infr.find_pos_augment_edges(pcc)
+        infr.add_new_candidate_edges(aug_edges)
     infr.qt_review_loop()
     gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
     return

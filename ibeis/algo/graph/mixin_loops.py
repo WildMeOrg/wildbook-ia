@@ -25,6 +25,53 @@ class RefreshCriteria(object):
         refresh.frac_thresh = 3 / refresh.window
         refresh.pos_thresh = 2
 
+    def estimate_poison(refresh):
+        """
+        Ignore:
+
+            This only works if reviewing in a random order
+
+            num_annots = 1000
+            annots_per_name = 4
+            num_names = num_annots / annots_per_name
+
+            num_edges = int((num_names * (num_names - 1)) / 2)
+
+            window_size = 100
+            num_correct = 1
+
+            bounds = []
+
+            for k in range(num_edges):
+                mu = num_correct / window_size
+                window_size += 1
+                remain = num_edges - k - 1
+                bound = mu * remain
+                bounds.append(bound)
+            import plottool as pt
+            pt.plot(bounds)
+
+            infr = demo.simple_simulation()
+
+            window = 500
+            gen = ut.iter_window(infr.refresh.manual_decisions, window)
+            means_ = [np.mean(x) for x in gen]
+            # means_prefix = (np.cumsum(infr.refresh.manual_decisions[:window]) / np.arange(1, window + 1)).tolist()
+            means = means_
+            import plottool as pt
+            pt.qtensure()
+            pt.plot(means)
+
+            mu = .1
+        """
+        import scipy.stats
+        mu = refresh.pos_frac
+        rv = scipy.stats.poisson(mu)
+        return rv
+        # Multipling mu * n_remain_steps gives a probabilistic upper bound on
+        # the number of errors remaning.
+        pass
+
     def reset(refresh):
         refresh.manual_decisions = []
         refresh.num_pos = 0
@@ -85,6 +132,9 @@ class InfrLoops(object):
     """
     Algorithm control flow loops
     """
+
+    def init_refresh(infr):
+        infr.refresh = RefreshCriteria()
 
     def inner_loop(infr):
         """

@@ -334,7 +334,8 @@ def weighted_bridge_connected_augmentation(G, avail):
         >>> print('aug_edges = %r' % (aug_edges,))
         aug_edges = [(6, 13), (2, 10), (1, 17)]
     """
-    G = G.copy()
+    G_orig = G
+    G = G_orig.copy()
     if not nx.is_connected(G):
         # increases the approximation ratio to a factor of 3
         aug_edges = weighted_one_edge_connected_augmentation(G, avail)
@@ -361,6 +362,8 @@ def weighted_bridge_connected_augmentation(G, avail):
     feasible_mapped_uv = {
         e_(mapping[u], mapping[v]): e_(u, v) for u, v in feasible_uv
     }
+    if len(feasible_mapped_uv) == 0:
+        return []
 
     def simple_paths_(G, r, u):
         assert G.is_directed()
@@ -410,7 +413,9 @@ def weighted_bridge_connected_augmentation(G, avail):
     CD2 = CD
     # root the graph to compute a minimum rooted branching
     CD2.remove_edges_from([(root, u) for u in CD.successors(root)])
-    edges = list(nx.minimum_spanning_arborescence(nx.reverse(CD2)).edges(data=True))
+    import utool
+    with utool.embed_on_exception_context:
+        edges = list(nx.minimum_spanning_arborescence(nx.reverse(CD2)).edges(data=True))
     # edges = list(nx.minimum_branching(nx.reverse(CD2)).edges())
     for u, v, d in edges:
         edge = e_(u, v)

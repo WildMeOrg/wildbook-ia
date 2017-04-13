@@ -17,6 +17,97 @@ def make_dummy_infr(annots_per_name):
     return infr
 
 
+def simple_simulation():
+    # ---- Synthetic data params
+    queue_params = {
+        'pos_redun': 2,
+        'neg_redun': 2,
+    }
+    oracle_accuracy = 1.0
+    # .99
+
+    infr = demodata_infr(num_pccs=200, size=4, size_std=1, ignore_pair=True)
+    infr.queue_params.update(**queue_params)
+    infr.review_dummy_edges(method='clique')
+
+    # FIXME: make an implicit negative edge truth state
+
+    infr.ensure_full()
+    infr.apply_edge_truth()
+    # Dummy scoring
+    rng = np.random.RandomState(0)
+    apply_dummy_scores(infr, rng)
+    infr.init_simulation(oracle_accuracy=oracle_accuracy, name='simple_sim')
+    infr_gt = infr.copy()
+
+    def dummy_ranker(u):
+        u_edges = list(infr_gt.graph.neighbors(u))
+        u_probs = []
+        for v in u_edges:
+            prob = infr_gt.graph.edge[u][v]['prob_match']
+            u_probs.append(prob)
+        k = 10
+        sortx = np.argsort(u_probs)[::-1][0:k]
+        ranked_edges = [(u, v) if u < v else (v, u)
+                        for v in ut.take(u_edges, sortx)]
+        assert len(ranked_edges) == k
+        return ranked_edges
+
+    def dummy_predictor(edges):
+        prob_match = list(infr_gt.gen_edge_values('prob_match', edges=edges))
+        prob_match = np.array(prob_match)
+        return prob_match
+
+    infr.dummy_predictor = dummy_predictor
+
+    def find_dummy_candidate_edges():
+        new_edges = []
+        for u in infr.graph.nodes():
+            new_edges.extend(dummy_ranker(u))
+        new_edges = set(new_edges)
+        return new_edges
+
+    infr.clear_feedback()
+    infr.clear_name_labels()
+    infr.clear_edges()
+
+    infr.prioritize('prob_match')
+    new_edges = find_dummy_candidate_edges()
+    infr.add_new_candidate_edges(new_edges)
+    infr.init_refresh()
+
+    remains = []
+    mus = []
+    window = 500
+
+    for edge, priority in infr._generate_reviews(data=True):
+        if len(infr.queue) <= 10:
+            break
+        feedback = infr.request_oracle_review(edge)
+        infr.add_feedback(edge, **feedback)
+
+        num_pccs = infr.pos_graph.number_of_components()
+        num_edges_remain = (num_pccs * num_pccs - 1) / 2
+        num_neg_redun = infr.neg_redun_nids.number_of_edges()
+        num_edges_need = num_edges_remain - num_neg_redun
+
+        mu = np.mean(infr.refresh.manual_decisions[-window:])
+        remains.append(num_edges_need)
+        mus.append(mu)
+
+    remains = np.array(remains)
+    mus = np.array(mus)
+
+    upper_bound_left = remains[window:] * mus[window:]
+    print(upper_bound_left.min())
+
+    pt.plot(upper_bound_left, label=window)
+    pt.set_xlabel('number of manual reviews')
+    pt.set_ylabel('upper bound on expected number of remaining merges')
+    pt.set_title('Poisson Convergence')
+    return infr
+
+
 @profile
 def demo2():
     """
@@ -1148,36 +1239,37 @@ def demodata_infr(**kwargs):
 
     neg_edges = []
 
-    p_pair_neg = kwalias('p_pair_neg', .4)
-    p_pair_incmp = kwalias('p_pair_incmp', .2)
-    p_pair_unrev = kwalias('p_pair_unrev', .2)
-    # p_pair_neg = 1
-    for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
-                                label='make neg-demo'):
-        nodes1 = cc1[0]
-        nodes2 = cc2[0]
+    if not kwalias('ignore_pair', False):
+        p_pair_neg = kwalias('p_pair_neg', .4)
+        p_pair_incmp = kwalias('p_pair_incmp', .2)
+        p_pair_unrev = kwalias('p_pair_unrev', .2)
+        # p_pair_neg = 1
+        for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
+                                    label='make neg-demo'):
+            nodes1 = cc1[0]
+            nodes2 = cc2[0]
 
-        if len(nodes1) == 0 or len(nodes2) == 0:
-            continue
+            if len(nodes1) == 0 or len(nodes2) == 0:
+                continue
 
-        possible_edges = list(it.product(nodes1, nodes2))
-        # probability that any edge between these PCCs is negative
-        p_edge_neg = 1 - (1 - p_pair_neg) ** (1 / len(possible_edges))
-        p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / len(possible_edges))
-        p_edge_unrev = 1 - (1 - p_pair_unrev) ** (1 / len(possible_edges))
-        pcumsum = np.cumsum([p_edge_neg, p_edge_incmp, p_edge_unrev])
-        states = np.searchsorted(pcumsum, rng.rand(len(possible_edges)))
+            possible_edges = list(it.product(nodes1, nodes2))
+            # probability that any edge between these PCCs is negative
+            p_edge_neg = 1 - (1 - p_pair_neg) ** (1 / len(possible_edges))
+            p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / len(possible_edges))
+            p_edge_unrev = 1 - (1 - p_pair_unrev) ** (1 / len(possible_edges))
+            pcumsum = np.cumsum([p_edge_neg, p_edge_incmp, p_edge_unrev])
+            states = np.searchsorted(pcumsum, rng.rand(len(possible_edges)))
 
-        # print('checking pair')
-        for (u, v), state in zip(possible_edges, states):
-            u, v = (u, v) if u < v else (v, u)
-            # Add in candidate edges
-            if state == 0:
-                neg_edges.append((u, v, {'decision': NEGTV}))
-            elif state == 1:
-                neg_edges.append((u, v, {'decision': INCMP}))
-            elif state == 2:
-                neg_edges.append((u, v, {'decision': UNREV}))
+            # print('checking pair')
+            for (u, v), state in zip(possible_edges, states):
+                u, v = (u, v) if u < v else (v, u)
+                # Add in candidate edges
+                if state == 0:
+                    neg_edges.append((u, v, {'decision': NEGTV}))
+                elif state == 1:
+                    neg_edges.append((u, v, {'decision': INCMP}))
+                elif state == 2:
+                    neg_edges.append((u, v, {'decision': UNREV}))
 
     edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
     edges = [(int(u), int(v), d) for u, v, d in edges]

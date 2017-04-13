@@ -68,7 +68,7 @@ class IBEISIO(object):
         new_ccs = list(infr.positive_components())
         return infr.name_group_delta_stats(old_ccs, new_ccs)
 
-    def ibeis_name_group_delta_info(infr):
+    def ibeis_name_group_delta_info(infr, verbose=None):
         aids = infr.aids
         new_names = list(infr.gen_node_values('name_label', aids))
         new_ccs = list(ut.group_items(aids, new_names).values())
@@ -77,9 +77,9 @@ class IBEISIO(object):
             aids, distinguish_unknowns=True)
         old_ccs = list(ut.group_items(aids, old_names).values())
 
-        return infr.name_group_delta_stats(old_ccs, new_ccs)
+        return infr.name_group_delta_stats(old_ccs, new_ccs, verbose)
 
-    def name_group_stats(infr, verbose=False):
+    def name_group_stats(infr, verbose=None):
         stats = ut.odict()
         statsmap = ut.partial(lambda x: ut.stats_dict(map(len, x), size=True))
         stats['pos_redun'] = statsmap(infr.pos_redundant_pccs())
