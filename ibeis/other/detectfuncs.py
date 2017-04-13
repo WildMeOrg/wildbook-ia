@@ -398,7 +398,7 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
             tpr_list.append(tpr)
             fpr_list.append(fpr)
         except ZeroDivisionError:
-            print('Zero division error (%r): tp: %r tn: %r fp: %r fn: %r' % (tp, tn, fp, fn, ))
+            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -2233,14 +2233,13 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
             re = tp / (tp + fn)
             tpr = tp / (tp + fn)
             fpr = fp / (fp + tn)
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
         except ZeroDivisionError:
-            print('\tbad conf %0.05f - %d %d %d %d' % (conf, tp, tn, fp, fn, ))
-            continue
-        conf_list_.append(conf)
-        pr_list.append(pr)
-        re_list.append(re)
-        tpr_list.append(tpr)
-        fpr_list.append(fpr)
+            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
