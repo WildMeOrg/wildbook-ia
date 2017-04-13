@@ -1909,7 +1909,7 @@ def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
 
 
-def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, **kwargs):
+def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
     depc = ibs.depc_image
     test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -1941,6 +1941,29 @@ def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, po
         'positive' if confidence >= conf else 'negative'
         for confidence in confidence_list
     ]
+
+    if output_cases:
+        output_path = 'confusion-incorrect'
+        output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
+        positive_path = join(output_path, 'positive')
+        negative_path = join(output_path, 'negative')
+        ut.ensuredir(output_path)
+        ut.ensuredir(positive_path)
+        ut.ensuredir(negative_path)
+
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
+        for gid, label, prediction in zip(test_gid_set, label_list, prediction_list):
+            if label == prediction:
+                continue
+            image = ibs.get_images(gid)
+            image = cv2.resize(image, (192, 192), **warpkw)
+            # Get path
+            image_path = positive_path if label == 'positive' else negative_path
+            image_filename = 'hardidx_%d_pred_%r_case_fail.jpg' (gid, prediction, )
+            image_filepath = join(image_path, image_filename)
+            # Save path
+            cv2.imwrite(image_filepath, image)
 
     category_list = ['positive', 'negative']
     category_mapping = {
@@ -1990,7 +2013,7 @@ def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), *
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
-    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, output_cases=True, **kwargs)
     axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
     axes_.set_ylabel('Ground-Truth')
     plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
