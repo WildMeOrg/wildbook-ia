@@ -337,6 +337,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         name_changed = False
 
         try:
+            print('Processing: %d' % (aid, ))
             if ibs1 is not None and ibs2 is not None:
                 aid1 = ibs1.get_annot_aids_from_uuid(annot_uuid)
                 aid2 = ibs2.get_annot_aids_from_uuid(annot_uuid)
@@ -353,7 +354,6 @@ def get_annotation_special_info(target_species=None, **kwargs):
                 if name_uuid_old != name_uuid:
                     name_changed = True
                     nid_old = ibs.get_name_rowids_from_uuid(name_uuid_old)
-                    assert nid_old is not None
                     name_old = ibs.get_name_texts(nid_old)
         except:
             print('ERROR WITH ABOVE')
