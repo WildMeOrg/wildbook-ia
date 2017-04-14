@@ -619,7 +619,9 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
     pinned_groups = False
 
     if groupby is not None:
-        has_pins = any([v.lower() == 'true' for v in nx.get_node_attributes(graph_, 'pin').values()])
+        has_pins = any([
+            v.lower() == 'true'
+            for v in nx.get_node_attributes(graph_, 'pin').values()])
         has_pins &= all('pos' in d for n, d in graph_.node.items())
         if has_pins:
             # print('WARNING: GROUPING WOULD CLOBBER PINS. NOT GROUPING')
@@ -629,16 +631,34 @@ def nx_agraph_layout(orig_graph, inplace=False, verbose=None,
             node_to_group = nx.get_node_attributes(graph_, groupby)
             group_to_nodes = ut.invert_dict(node_to_group, unique_vals=False)
             subgraph_list = []
+
+            def subgraph_grid(subgraphs, hpad=None, vpad=None):
+                n_cols = int(np.ceil(np.sqrt(len(subgraphs))))
+                columns = [ut.stack_graphs(chunk, vert=False, pad=hpad)
+                           for chunk in ut.ichunks(subgraphs, n_cols)]
+                new_graph = ut.stack_graphs(columns, vert=True, pad=vpad)
+                return new_graph
+
+            group_grid = orig_graph.graph.get('group_grid', None)
+
             for group, nodes in group_to_nodes.items():
-                subgraph = graph_.subgraph(nodes)
+                if group_grid:
+                    subnode_list = [graph_.subgraph([node]) for node in nodes]
+                    for sub in subnode_list:
+                        sub.graph.update(graph_.graph)
+                        nx_agraph_layout(sub, inplace=True, groupby=None, **layoutkw)
+                    subgraph = subgraph_grid(subnode_list)
+                    # subgraph = graph_.subgraph(nodes)
+                else:
+                    subgraph = graph_.subgraph(nodes)
                 subgraph.graph.update(graph_.graph)
                 nx_agraph_layout(subgraph, inplace=True, groupby=None, **layoutkw)
                 subgraph_list.append(subgraph)
 
-            n_cols = int(np.ceil(np.sqrt(len(subgraph_list))))
-            column_graph = [ut.stack_graphs(chunk, vert=False)
-                            for chunk in ut.ichunks(subgraph_list, n_cols)]
-            graph_ = ut.stack_graphs(column_graph, vert=True)
+            hpad = orig_graph.graph.get('hpad', None)
+            vpad = orig_graph.graph.get('vpad', None)
+            graph_ = subgraph_grid(subgraph_list, hpad, vpad)
+
             # graph_ = ut.stack_graphs(subgraph_list)
             nx.set_node_attributes(graph_, 'pin', 'true')
             pinned_groups = True

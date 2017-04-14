@@ -864,7 +864,7 @@ def show_if_requested(N=1):
         if ut.is_developer() and len(fpath_list) <= 4:
             if len(fpath_list) == 1:
                 latex_block = (
-                    '\ImageCommandII{' + ''.join(fpath_list) + '}{' +
+                    '\ImageCommand{' + ''.join(fpath_list) + '}{' +
                     width_str + '}{\n' + caption_str + '\n}{' + label_str + '}')
             else:
                 width_str = '1'
@@ -2155,7 +2155,7 @@ def plot_bars(y_data, nColorSplits=1):
         ax.bar(x_dat, y_dat, width, color=color, edgecolor=np.array(color) * .8)
 
 
-def append_phantom_legend_label(label, color, type_='circle', alpha=1.0):
+def append_phantom_legend_label(label, color, type_='circle', alpha=1.0, ax=None):
     """
     adds a legend label without displaying an actor
 
@@ -2165,23 +2165,27 @@ def append_phantom_legend_label(label, color, type_='circle', alpha=1.0):
         loc (str):
 
     CommandLine:
-        python -m plottool.draw_func2 --test-append_phantom_legend_label
+        python -m plottool.draw_func2 --test-append_phantom_legend_label --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
-        >>> # build test data
+        >>> import plottool as pt
         >>> label = 'some label'
         >>> color = 'b'
         >>> loc = 'upper right'
-        >>> # execute function
-        >>> result = append_phantom_legend_label(label, color, loc)
-        >>> # verify results
+        >>> fig = pt.figure()
+        >>> ax = pt.gca()
+        >>> result = append_phantom_legend_label(label, color, loc, ax=ax)
         >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> pt.show_phantom_legend_labels(ax=ax)
+        >>> ut.show_if_requested()
     """
     #pass
     #, loc=loc
-    ax = gca()
+    if ax is None:
+        ax = gca()
     _phantom_legend_list = getattr(ax, '_phantom_legend_list', None)
     if _phantom_legend_list is None:
         _phantom_legend_list = []
@@ -2198,14 +2202,16 @@ def append_phantom_legend_label(label, color, type_='circle', alpha=1.0):
     #plt.legend(*zip(*legend_tups), framealpha=.2)
 
 
-def show_phantom_legend_labels(loc='upper right'):
-    ax = gca()
+def show_phantom_legend_labels(ax=None, **kwargs):
+    if ax is None:
+        ax = gca()
     _phantom_legend_list = getattr(ax, '_phantom_legend_list', None)
     if _phantom_legend_list is None:
         _phantom_legend_list = []
         setattr(ax, '_phantom_legend_list', _phantom_legend_list)
     #print(_phantom_legend_list)
-    ax.legend(handles=_phantom_legend_list, framealpha=.2)
+    legend(handles=_phantom_legend_list, ax=ax, **kwargs)
+    # ax.legend(handles=_phantom_legend_list, framealpha=.2)
 
 
 LEGEND_LOCATION = {
@@ -2224,7 +2230,7 @@ LEGEND_LOCATION = {
 
 #def legend(loc='upper right', fontproperties=None):
 def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
-           ax=None):
+           ax=None, handles=None):
     r"""
     Args:
         loc (str): (default = 'best')
@@ -2260,7 +2266,10 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
         prop['family'] = 'DejaVu Sans'
     else:
         prop = fontproperties
-    legend = ax.legend(loc=loc, prop=prop)
+    legendkw = dict(loc=loc, prop=prop)
+    if handles is not None:
+        legendkw['handles'] = handles
+    legend = ax.legend(**legendkw)
     legend.get_frame().set_fc(fc)
     legend.get_frame().set_alpha(alpha)
 
