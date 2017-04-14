@@ -843,6 +843,7 @@ class Redundancy(_RedundancyHelpers):
                 cc = infr.pos_graph.component(nid)
                 need_add = infr.is_pos_redundant(cc)
             elif may_remove and not was_pos_redun:
+                cc = infr.pos_graph.component(nid)
                 need_remove = not infr.is_pos_redundant(cc)
         if need_add:
             infr._set_pos_redun_flag(nid, True)
@@ -922,6 +923,21 @@ class Redundancy(_RedundancyHelpers):
                 pos_subgraph = infr.pos_graph.subgraph(cc)
                 return nx_utils.is_edge_connected(pos_subgraph, k=required_k)
         raise AssertionError('impossible state')
+
+    def pos_redundancy(infr, cc):
+        pos_subgraph = infr.pos_graph.subgraph(cc)
+        if nx_utils.is_complete(pos_subgraph):
+            return np.inf
+        else:
+            return nx.edge_connectivity(pos_subgraph)
+
+    def neg_redundancy(infr, cc1, cc2):
+        neg_edge_gen = edges_cross(infr.neg_graph, cc1, cc2)
+        num_neg = len(list(neg_edge_gen))
+        if num_neg == len(cc1) or num_neg == len(cc2):
+            return np.inf
+        else:
+            return num_neg
 
     @profile
     def is_neg_redundant(infr, cc1, cc2):

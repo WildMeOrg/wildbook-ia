@@ -46,7 +46,7 @@ def simple_simulation():
         for v in u_edges:
             prob = infr_gt.graph.edge[u][v]['prob_match']
             u_probs.append(prob)
-        k = 10
+        k = 5
         sortx = np.argsort(u_probs)[::-1][0:k]
         ranked_edges = [(u, v) if u < v else (v, u)
                         for v in ut.take(u_edges, sortx)]
@@ -76,9 +76,9 @@ def simple_simulation():
     infr.add_new_candidate_edges(new_edges)
     infr.init_refresh()
 
-    remains = []
-    mus = []
-    window = 500
+    # remains = []
+    # mus = []
+    # window = 500
 
     for edge, priority in infr._generate_reviews(data=True):
         if len(infr.queue) <= 10:
@@ -86,25 +86,25 @@ def simple_simulation():
         feedback = infr.request_oracle_review(edge)
         infr.add_feedback(edge, **feedback)
 
-        num_pccs = infr.pos_graph.number_of_components()
-        num_edges_remain = (num_pccs * num_pccs - 1) / 2
-        num_neg_redun = infr.neg_redun_nids.number_of_edges()
-        num_edges_need = num_edges_remain - num_neg_redun
+        # num_pccs = infr.pos_graph.number_of_components()
+        # num_edges_remain = (num_pccs * num_pccs - 1) / 2
+        # num_neg_redun = infr.neg_redun_nids.number_of_edges()
+        # num_edges_need = num_edges_remain - num_neg_redun
 
-        mu = np.mean(infr.refresh.manual_decisions[-window:])
-        remains.append(num_edges_need)
-        mus.append(mu)
+        # mu = np.mean(infr.refresh.manual_decisions[-window:])
+        # remains.append(num_edges_need)
+        # mus.append(mu)
 
-    remains = np.array(remains)
-    mus = np.array(mus)
+    # remains = np.array(remains)
+    # mus = np.array(mus)
 
-    upper_bound_left = remains[window:] * mus[window:]
-    print(upper_bound_left.min())
+    # upper_bound_left = remains[window:] * mus[window:]
+    # print(upper_bound_left.min())
 
-    pt.plot(upper_bound_left, label=window)
-    pt.set_xlabel('number of manual reviews')
-    pt.set_ylabel('upper bound on expected number of remaining merges')
-    pt.set_title('Poisson Convergence')
+    # pt.plot(upper_bound_left, label=window)
+    # pt.set_xlabel('number of manual reviews')
+    # pt.set_ylabel('upper bound on expected number of remaining merges')
+    # pt.set_title('Poisson Convergence')
     return infr
 
 
@@ -134,13 +134,6 @@ def demo2():
     TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
     PRESHOW = VISUALIZE
 
-    fontsize = 12
-    # fontname = 'Ubuntu'
-    fontname = 'sans'
-    splines = 'spline'
-    # splines = 'ortho'
-    # splines = 'line'
-
     # ------------------
 
     rng = np.random.RandomState(42)
@@ -155,15 +148,6 @@ def demo2():
     # Dummy scoring
     apply_dummy_scores(infr, rng)
 
-    infr.set_node_attrs('shape', 'circle')
-    infr.graph.graph['ignore_labels'] = True
-    infr.graph.graph['dark_background'] = False
-    infr.set_node_attrs('width', 29)
-    infr.set_node_attrs('height', 29)
-    infr.set_node_attrs('fontsize', fontsize)
-    infr.set_node_attrs('fontname', fontname)
-    infr.set_node_attrs('fixed_size', True)
-
     infr.init_simulation(oracle_accuracy=oracle_accuracy, name='demo2')
 
     infr_gt = infr.copy()
@@ -176,7 +160,8 @@ def demo2():
             return
         latest = '\n'.join(infr.latest_logs())
         showkw = dict(
-            fontsize=fontsize, fontname=fontname,
+            # fontsize=infr.graph.graph['fontsize'],
+            # fontname=infr.graph.graph['fontname'],
             show_unreviewed_edges=True,
             show_inferred_same=False,
             show_inferred_diff=False,
@@ -184,11 +169,10 @@ def demo2():
             # show_inferred_diff=True,
             show_labels=True,
             show_recent_review=not final,
-            splines=splines,
+            # splines=infr.graph.graph['splines'],
             reposition=False,
             # with_colorbar=True
         )
-        # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
         verbose = infr.verbose
         infr.verbose = 0
         infr_ = infr.copy()
@@ -209,7 +193,7 @@ def demo2():
         infr.latest_logs()
 
     if VISUALIZE:
-        infr.update_visual_attrs(splines=splines, groupby='name_label')
+        infr.update_visual_attrs(groupby='name_label')
         infr.set_node_attrs('pin', 'true')
         print(ut.repr4(infr.graph.node[1]))
 
@@ -253,7 +237,7 @@ def demo2():
     infr.latest_logs()
 
     if VISUALIZE:
-        infr.update_visual_attrs(splines=splines)
+        infr.update_visual_attrs()
 
     infr.prioritize('prob_match')
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
@@ -261,7 +245,7 @@ def demo2():
 
     def on_new_candidate_edges(infr, edges):
         # hack updateing visual attrs as a callback
-        infr.update_visual_attrs(splines=splines)
+        infr.update_visual_attrs()
 
     infr.on_new_candidate_edges = on_new_candidate_edges
 
@@ -415,7 +399,7 @@ def apply_dummy_scores(infr, rng=None):
         POSTV: {'mean': .8, 'std': .2},
         INCMP: {'mean': .2, 'std': .4},
     }
-    edges = list(infr.graph.edges())
+    # edges = list(infr.graph.edges())
     grouped_edges = ut.group_pairs(infr.edge_truth.items())
     for key, group in grouped_edges.items():
         probs = randn(shape=[len(group)], rng=rng, a_max=1, a_min=0,
@@ -1161,7 +1145,7 @@ def demodata_infr(**kwargs):
         return default
 
     rng = np.random.RandomState(0)
-    counter = 0
+    counter = 1
     new_ccs = []
     num_pccs = kwalias('num_pccs', 16)
     size_mean = kwalias('pcc_size_mean', 'pcc_size', 'size', 5)
@@ -1170,7 +1154,13 @@ def demodata_infr(**kwargs):
     p_pcc_incon = kwargs.get('p_incon', 0)
     p_pcc_incomp = kwargs.get('p_incomp', 0)
 
-    for i in ut.ProgIter(list(range(num_pccs)), label='make pos-demo'):
+    # number of maximum inconsistent edges per pcc
+    max_n_incon = kwargs.get('n_incon', 3)
+
+    pcc_iter = list(range(num_pccs))
+    pcc_iter = ut.ProgIter(pcc_iter, enabled=num_pccs > 20,
+                           label='make pos-demo')
+    for i in pcc_iter:
         size = int(randn(size_mean, size_std, rng=rng, a_min=1))
         p = .1
         import networkx as nx
@@ -1178,7 +1168,8 @@ def demodata_infr(**kwargs):
         want_connectivity = min(size - 1, want_connectivity)
         # print('want_connectivity = %r' % (want_connectivity,))
         while True:
-            g = nx.fast_gnp_random_graph(size, p)
+            import sys
+            g = nx.fast_gnp_random_graph(size, p, seed=rng.randint(sys.maxsize))
             conn = nx.edge_connectivity(g)
             if conn == want_connectivity:
                 break
@@ -1219,6 +1210,13 @@ def demodata_infr(**kwargs):
             # Determine which mutually exclusive state each complement edge is in
             # print('pcumsum = %r' % (pcumsum,))
             states = np.searchsorted(pcumsum, rng.rand(len(complement_edges)))
+
+            incon_idxs = np.where(states == 0)[0]
+            if len(incon_idxs) > max_n_incon:
+                print('max_n_incon = %r' % (max_n_incon,))
+                chosen = rng.choice(incon_idxs, max_n_incon, replace=False)
+                states[np.setdiff1d(incon_idxs, chosen)] = len(probs)
+
             # print('states = %r' % (states,))
             for (u, v), state in zip(complement_edges, states):
                 u, v = (u, v) if u < v else (v, u)
@@ -1276,6 +1274,24 @@ def demodata_infr(**kwargs):
     nodes = ut.flatten(ut.take_column(new_ccs, 0))
     infr = make_demo_infr([], edges, nodes=nodes,
                           infer=kwargs.get('infer', True))
+
+    # fontname = 'Ubuntu'
+    fontsize = 12
+    fontname = 'sans'
+    splines = 'spline'
+    # splines = 'ortho'
+    # splines = 'line'
+    infr.set_node_attrs('shape', 'circle')
+    infr.graph.graph['ignore_labels'] = True
+    infr.graph.graph['dark_background'] = False
+    infr.graph.graph['fontname'] = fontname
+    infr.graph.graph['fontsize'] = fontsize
+    infr.graph.graph['splines'] = splines
+    infr.set_node_attrs('width', 29)
+    infr.set_node_attrs('height', 29)
+    infr.set_node_attrs('fontsize', fontsize)
+    infr.set_node_attrs('fontname', fontname)
+    infr.set_node_attrs('fixed_size', True)
     return infr
 
 

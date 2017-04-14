@@ -223,9 +223,11 @@ class GraphVisualization(object):
                             show_inferred_same=True,
                             show_recent_review=True,
                             highlight_reviews=True,
+                            show_inconsistency=True,
+                            wavy=True,
+                            simple_labels=False,
                             show_labels=True,
                             reposition=True,
-                            splines='line',
                             use_image=False,
                             **kwargs
                             # hide_unreviewed_inferred=True
@@ -257,7 +259,7 @@ class GraphVisualization(object):
         if show_cand is not None:
             show_unreviewed_edges = show_cand
 
-        alpha_low = .5
+        # alpha_low = .5
         alpha_med = .9
         alpha_high = 1.0
 
@@ -271,20 +273,23 @@ class GraphVisualization(object):
         if not show_labels:
             nx.set_node_attributes(graph, 'label', ut.dzip(graph.nodes(), ['']))
         else:
-            node_to_nid = nx.get_node_attributes(graph, 'name_label')
-            node_to_view = nx.get_node_attributes(graph, 'viewpoint')
-            if node_to_view:
-                annotnode_to_label = {
-                    aid: 'aid=%r%s\nnid=%r' % (aid, node_to_view[aid],
-                                                node_to_nid[aid])
-                    for aid in graph.nodes()
-                }
+            if simple_labels:
+                nx.set_node_attributes(graph, 'label', {n: str(n) for n in graph.nodes()})
             else:
-                annotnode_to_label = {
-                    aid: 'aid=%r\nnid=%r' % (aid, node_to_nid[aid])
-                    for aid in graph.nodes()
-                }
-            nx.set_node_attributes(graph, 'label', annotnode_to_label)
+                node_to_nid = nx.get_node_attributes(graph, 'name_label')
+                node_to_view = nx.get_node_attributes(graph, 'viewpoint')
+                if node_to_view:
+                    annotnode_to_label = {
+                        aid: 'aid=%r%s\nnid=%r' % (aid, node_to_view[aid],
+                                                    node_to_nid[aid])
+                        for aid in graph.nodes()
+                    }
+                else:
+                    annotnode_to_label = {
+                        aid: 'aid=%r\nnid=%r' % (aid, node_to_nid[aid])
+                        for aid in graph.nodes()
+                    }
+                nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # NODE_COLOR: based on name_label
         ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.4)
@@ -347,8 +352,9 @@ class GraphVisualization(object):
         # fg = pt.WHITE if dark_background else pt.BLACK
         # nx_set_edge_attrs(graph, 'stroke', ut.dzip(reviewed_edges, [
         #     {'linewidth': 3, 'foreground': fg}]))
-        nx_set_edge_attrs(graph, 'stroke', ut.dzip(recheck_edges, [
-            {'linewidth': 5, 'foreground': pt.ORANGE}]))
+        if show_inconsistency:
+            nx_set_edge_attrs(graph, 'stroke', ut.dzip(recheck_edges, [
+                {'linewidth': 5, 'foreground': pt.ORANGE}]))
 
         # Cut edges are implicit and dashed
         # nx_set_edge_attrs(graph, 'implicit', ut.dzip(cut_edges, [True]))
@@ -378,11 +384,12 @@ class GraphVisualization(object):
 
         # SKETCH: based on inferred_edges
         # Make inferred edges wavy
-        nx_set_edge_attrs(
-            graph, 'sketch', ut.dzip(nontrivial_inferred_edges, [
-                dict(scale=10.0, length=64.0, randomness=None)]
-                # dict(scale=3.0, length=18.0, randomness=None)]
-            ))
+        if wavy:
+            nx_set_edge_attrs(
+                graph, 'sketch', ut.dzip(nontrivial_inferred_edges, [
+                    dict(scale=10.0, length=64.0, randomness=None)]
+                    # dict(scale=3.0, length=18.0, randomness=None)]
+                ))
 
         # Make dummy edges more transparent
         # nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
@@ -440,10 +447,18 @@ class GraphVisualization(object):
 
         if reposition:
             # LAYOUT: update the positioning layout
-            layoutkw = dict(prog='neato',
-                            # splines='spline',
-                            splines=splines,
-                            sep=10 / 72, esep=1 / 72, nodesep=.1)
+            def get_layoutkw(key, default):
+                return kwargs.get(key, graph.graph.get(key, default))
+
+            layoutkw = dict(
+                prog='neato',
+                splines=get_layoutkw('splines', 'line'),
+                fontsize=get_layoutkw('fontsize', None),
+                fontname=get_layoutkw('fontname', None),
+                sep=10 / 72,
+                esep=1 / 72,
+                nodesep=.1
+            )
             layoutkw.update(kwargs)
             # print(ut.repr3(graph.edge))
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)

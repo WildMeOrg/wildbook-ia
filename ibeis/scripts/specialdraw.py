@@ -1321,6 +1321,134 @@ def event_space():
     #              linewidth=0))
 
 
+def draw_inconsistent_pcc():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw draw_inconsistent_pcc --show
+    """
+    from ibeis.algo.graph import demo
+    import plottool as pt
+    kwargs = dict(num_pccs=1, n_incon=1, p_incon=1, size=4)
+    infr = demo.demodata_infr(**kwargs)
+    infr.set_node_attrs('pos', {
+        1: (30, 40),
+        3: (70,  40),
+        4: ( 0,  0),
+        2: (100,  0),
+    })
+    infr.set_node_attrs('pin', True)
+    # infr.set_node_attrs('fixed_size', False)
+    # infr.set_node_attrs('scale', .1)
+    # infr.set_node_attrs('width', 16)
+    infr.show(show_inconsistency=False, simple_labels=True, pickable=True)
+    ax = pt.gca()
+    truth_colors = infr._get_truth_colors()
+    from ibeis.algo.graph.state import POSTV, NEGTV
+    pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
+    pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
+    # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
+    pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
+    # ax.set_aspect('equal')
+    ut.show_if_requested()
+
+
+def draw_graph_id():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw draw_graph_id --show
+    """
+    from ibeis.algo.graph import demo
+    import plottool as pt
+    kwargs = dict(num_pccs=5, p_incon=0, size=4, size_std=1,
+                  p_incomp=.2,
+                  p_pair_neg=.5, p_pair_incmp=.4)
+    infr = demo.demodata_infr(**kwargs)
+    infr.graph.graph['hpad'] = 50
+    infr.graph.graph['vpad'] = 10
+    infr.graph.graph['group_grid'] = True
+    infr.show(show_inconsistency=False,
+              simple_labels=True,
+              wavy=False, groupby='name_label', pickable=True)
+    ax = pt.gca()
+    truth_colors = infr._get_truth_colors()
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
+    pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
+    pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
+    pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
+    pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
+    ax.set_aspect('equal')
+    ut.show_if_requested()
+
+
+def redun_demo2():
+    r"""
+    python -m ibeis.scripts.specialdraw redun_demo2 --show
+    """
+    from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+    from ibeis.algo.graph import demo
+    # from ibeis.algo.graph import nx_utils
+    import plottool as pt
+
+    # import networkx as nx
+    pt.ensureqt()
+
+    fnum = 1
+    showkw = dict(show_inconsistency=False, show_labels=True,
+                  simple_labels=True,
+                  show_recent_review=False, wavy=False, groupby='name_label',
+                  pickable=True, fnum=fnum)
+
+    graphkw = dict(hpad=50, vpad=50, group_grid=True)
+    pnum_ = pt.make_pnum_nextgen(2, 3)
+
+    def show_redun(infr):
+        infr.graph.graph.update(graphkw)
+        infr.show(pnum=pnum_(), **showkw)
+        ax = pt.gca()
+        ax.set_aspect('equal')
+        ccs = list(infr.positive_components())
+        if len(ccs) == 1:
+            cc = ccs[0]
+            ax.set_xlabel(str(infr.pos_redundancy(cc)) + '-positive-redundant')
+        else:
+            cc1, cc2 = ccs
+            ax.set_xlabel(str(infr.neg_redundancy(cc1, cc2)) + '-negative-redundant')
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4)])
+    # infr.add_feedback((1, 4), decision=POSTV)
+    # infr.add_feedback((3, 4), decision='unreviewed')
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5)])
+    infr.add_feedback((1, 4), decision=POSTV)
+    infr.add_feedback((3, 4), decision='unreviewed')
+    infr.add_feedback((3, 5), decision=POSTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5)])
+    infr.add_feedback((1, 4), decision=POSTV)
+    infr.add_feedback((3, 5), decision=POSTV)
+    infr.add_feedback((1, 5), decision=POSTV)
+    infr.add_feedback((2, 5), decision=POSTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
+    infr.add_feedback((2, 11), decision=NEGTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
+    infr.add_feedback((2, 11), decision=NEGTV)
+    infr.add_feedback((4, 14), decision=NEGTV)
+    show_redun(infr)
+
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])
+    infr.add_feedback((2, 11), decision=NEGTV)
+    infr.add_feedback((4, 14), decision=NEGTV)
+    infr.add_feedback((2, 14), decision=NEGTV)
+    show_redun(infr)
+    ut.show_if_requested()
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

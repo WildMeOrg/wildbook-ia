@@ -729,6 +729,19 @@ def query_aux_graph(A, k):
     return nx.connected_components(relevant_graph)
 
 
+def is_complete(G, self_loops=False):
+    assert not G.is_multigraph()
+    n_edges = G.number_of_edges()
+    n_nodes = G.number_of_nodes()
+    if G.is_directed():
+        n_need = (n_nodes * (n_nodes - 1))
+    else:
+        n_need = (n_nodes * (n_nodes - 1)) // 2
+    if self_loops:
+        n_need += n_nodes
+    return n_edges == n_need
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

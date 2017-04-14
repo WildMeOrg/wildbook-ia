@@ -148,14 +148,6 @@ class DummyEdges(object):
         # Remove old MST edges
         infr.remove_dummy_edges()
         infr.ensure_mst()
-
-    def ensure_full(infr):
-        infr.print('ensure_full with %d nodes' % (len(infr.graph)), 2)
-        new_edges = list(nx.complement(infr.graph).edges())
-        # if infr.verbose:
-        #     infr.print('adding %d complement edges' % (len(new_edges)))
-        infr.graph.add_edges_from(new_edges, decision=UNREV, _dummy_edge=True)
-        infr.unreviewed_graph.add_edges_from(new_edges)
         # infr.assert_disjoint_invariant()
 
     def find_clique_edges(infr, label='name_label'):
@@ -169,17 +161,24 @@ class DummyEdges(object):
                     new_edges.append(edge)
         return new_edges
 
-    def ensure_cliques(infr, label='name_label'):
+    def ensure_cliques(infr, label='name_label', decision=UNREV):
         """
         Force each name label to be a clique
         """
         infr.print('ensure_cliques', 1)
         new_edges = infr.find_clique_edges(label)
         infr.print('adding %d clique edges' % (len(new_edges)), 2)
-        infr.graph.add_edges_from(new_edges)
-        infr.unreviewed_graph.add_edges_from(new_edges, decision=UNREV,
-                                             _dummy_edge=True)
+        infr.graph.add_edges_from(new_edges, decision=decision, _dummy_edge=True)
+        infr.review_graphs[decision].add_edges_from(new_edges)
         # infr.assert_disjoint_invariant()
+
+    def ensure_full(infr):
+        infr.print('ensure_full with %d nodes' % (len(infr.graph)), 2)
+        new_edges = list(nx.complement(infr.graph).edges())
+        # if infr.verbose:
+        #     infr.print('adding %d complement edges' % (len(new_edges)))
+        infr.graph.add_edges_from(new_edges, decision=UNREV, _dummy_edge=True)
+        infr.review_graphs[UNREV].add_edges_from(new_edges)
 
     def find_connecting_edges(infr):
         """
