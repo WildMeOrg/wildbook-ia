@@ -286,6 +286,10 @@ def get_annotation_special_info(target_species=None, **kwargs):
         import ibeis
         ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/', web=False)
         ibs2 = ibeis.opendb('/home/zebra/Desktop/Laurel/', web=False)
+    if 'Monica-Max' in ibs.dbdir:
+        import ibeis
+        ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/', web=False)
+        ibs2 = ibeis.opendb('/home/zebra/Desktop/Max/', web=False)
     else:
         ibs1 = None
         ibs2 = None
@@ -340,7 +344,6 @@ def get_annotation_special_info(target_species=None, **kwargs):
         cross_database_match = False
 
         try:
-            print('Processing: %d' % (aid, ))
             if ibs1 is not None and ibs2 is not None:
                 aid1 = ibs1.get_annot_aids_from_uuid(annot_uuid)
                 aid2 = ibs2.get_annot_aids_from_uuid(annot_uuid)
