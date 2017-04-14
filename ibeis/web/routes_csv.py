@@ -282,6 +282,18 @@ def get_annotation_special_info(target_species=None, **kwargs):
     ])))
     annot_metadata_key_str = ','.join(annot_metadata_key_list)
 
+    if 'Monica-Laurel' in ibs.dbdir:
+        import ibeis
+        ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/', web=False)
+        ibs2 = ibeis.opendb('/home/zebra/Desktop/Laurel/', web=False)
+    if 'Monica-Max' in ibs.dbdir:
+        import ibeis
+        ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/', web=False)
+        ibs2 = ibeis.opendb('/home/zebra/Desktop/Max/', web=False)
+    else:
+        ibs1 = None
+        ibs2 = None
+
     line_list = []
     zipped = zip(
         nid_list,
@@ -318,6 +330,8 @@ def get_annotation_special_info(target_species=None, **kwargs):
             annot_metadata_dict
         ) = args
 
+        contrib_str = '' if contrib is None else contrib.split(',')[0].upper()
+
         if target_species is not None and species != target_species:
             continue
 
@@ -326,31 +340,46 @@ def get_annotation_special_info(target_species=None, **kwargs):
 
         nid_old = ''
         name_old = ''
+        name_changed = False
+        cross_database_match = False
 
-        # if 'Monica-Laurel' in ibs.dbdir:
-        #     monica_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/monica.aids.txt')
-        #     laurel_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/laurel.aids.txt')
+        try:
+            if ibs1 is not None and ibs2 is not None:
+                aid1 = ibs1.get_annot_aids_from_uuid(annot_uuid)
+                aid2 = ibs2.get_annot_aids_from_uuid(annot_uuid)
 
-        #     different = 0
-        #     for aid, nid in zip(aid_list, nid_list):
-        #         if aid in monica_mapping_dict:
-        #             assert aid not in laurel_mapping_dict
-        #             nid_old = monica_mapping_dict[aid]
-        #         elif aid in laurel_mapping_dict:
-        #             assert aid not in monica_mapping_dict
-        #             nid_old = laurel_mapping_dict[aid]
-        #         else:
-        #             assert False
+                if aid1 is not None:
+                    assert aid2 is None
+                    name_uuid_old = ibs1.get_annot_name_uuids(aid1)
+                elif aid2 is not None:
+                    assert aid1 is None
+                    name_uuid_old = ibs2.get_annot_name_uuids(aid2)
+                else:
+                    raise AssertionError('Should be in one of these original databases')
 
-        #         print(aid, nid_old, nid)
+                if name_uuid_old != name_uuid:
+                    name_changed = True
+                    if name_uuid_old is None:
+                        nid_old = 'UNKNOWN NID'
+                        name_old = 'UNKNOWN NAME'
+                    else:
+                        nid_old = ibs.get_name_rowids_from_uuid(name_uuid_old)
+                        name_old = ibs.get_name_texts(nid_old)
+
+                    cross_database_match = not name.startswith(contrib_str)
+        except:
+            print('ERROR WITH ABOVE')
+            ut.embed()
 
         line_list_ = [
-            '' if contrib is None else contrib.split(',')[0],
+            contrib_str,
             annot_uuid,
             aid,
             annot_uuid,
             nid,
             name,
+            'Yes' if name_changed else '',
+            'Yes' if cross_database_match else '',
             nid_old,
             name_old,
             species,
@@ -377,7 +406,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'DB,Annotation UUID,AID,NID,Name,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,Annotation UUID,AID,NID,Name,Name Changed,Cross-Database Match,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 

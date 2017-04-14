@@ -387,15 +387,18 @@ def general_precision_recall_algo(ibs, label_list, confidence_list, category='po
     for conf in sorted(conf_dict.keys(), reverse=True):
         error_list = conf_dict[conf]
         tp, tn, fp, fn = error_list
-        pr = tp / (tp + fp)
-        re = tp / (tp + fn)
-        tpr = tp / (tp + fn)
-        fpr = fp / (fp + tn)
-        conf_list_.append(conf)
-        pr_list.append(pr)
-        re_list.append(re)
-        tpr_list.append(tpr)
-        fpr_list.append(fpr)
+        try:
+            pr = tp / (tp + fp)
+            re = tp / (tp + fn)
+            tpr = tp / (tp + fn)
+            fpr = fp / (fp + tn)
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
+        except ZeroDivisionError:
+            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -1861,6 +1864,174 @@ def localizer_classifications_confusion_matrix_algo_display_animate(ibs, total=1
         ibs.localizer_classifications_confusion_matrix_algo_display(conf, **kwargs)
 
 
+def classifier_cameratrap_precision_recall_algo(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+    depc = ibs.depc_image
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set_ = list(test_gid_set_)
+
+    positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
+    negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
+
+    test_gid_set = []
+    label_list = []
+    for gid in test_gid_set_:
+        if gid in positive_gid_set:
+            label = 'positive'
+        elif gid in negative_gid_set:
+            label = 'negative'
+        else:
+            # label = 'unknown'
+            continue
+        test_gid_set.append(gid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
+
+
+def classifier_cameratrap_precision_recall_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    print('Processing Precision-Recall for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, re_list, pr_list, **kwargs)
+
+
+def classifier_cameratrap_roc_algo_plot(ibs, **kwargs):
+    label = kwargs['label']
+    kwargs['invert'] = True
+    print('Processing ROC for: %r' % (label, ))
+    conf_list, pr_list, re_list, tpr_list, fpr_list = classifier_cameratrap_precision_recall_algo(ibs, **kwargs)
+    return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
+
+
+def classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, color, conf, positive_imageset_id, negative_imageset_id, output_cases=False, **kwargs):
+    print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
+    depc = ibs.depc_image
+    test_gid_set_ = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set_ = list(test_gid_set_)
+
+    positive_gid_set = set(ibs.get_imageset_gids(positive_imageset_id))
+    negative_gid_set = set(ibs.get_imageset_gids(negative_imageset_id))
+
+    test_gid_set = []
+    label_list = []
+    for gid in test_gid_set_:
+        if gid in positive_gid_set:
+            label = 'positive'
+        elif gid in negative_gid_set:
+            label = 'negative'
+        else:
+            # label = 'unknown'
+            continue
+        test_gid_set.append(gid)
+        label_list.append(label)
+
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
+
+    if output_cases:
+        output_path = 'confusion-incorrect'
+        output_path = abspath(expanduser(join('~', 'Desktop', output_path)))
+        positive_path = join(output_path, 'positive')
+        negative_path = join(output_path, 'negative')
+        ut.ensuredir(output_path)
+        ut.ensuredir(positive_path)
+        ut.ensuredir(negative_path)
+
+        interpolation = cv2.INTER_LANCZOS4
+        warpkw = dict(interpolation=interpolation)
+        for gid, label, prediction in zip(test_gid_set, label_list, prediction_list):
+            if label == prediction:
+                continue
+            image = ibs.get_images(gid)
+            image = cv2.resize(image, (192, 192), **warpkw)
+            # Get path
+            image_path = positive_path if label == 'positive' else negative_path
+            image_filename = 'hardidx_%d_pred_%s_case_fail.jpg' % (gid, prediction, )
+            image_filepath = join(image_path, image_filename)
+            # Save path
+            cv2.imwrite(image_filepath, image)
+
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
+
+
+@register_ibs_method
+def classifier_cameratrap_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
+    import matplotlib.pyplot as plt
+
+    fig_ = plt.figure(figsize=figsize)
+
+    label = 'Camera Trap Classifier'
+    kwargs['classifier_weight_filepath'] = 'megan'
+    positive_imageset_id = 6
+    negative_imageset_id = 7
+
+    axes_ = plt.subplot(221)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('Recall')
+    axes_.set_ylabel('Precision')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area, best_conf1, _ = classifier_cameratrap_precision_recall_algo_plot(ibs, label=label, color='r', positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
+    area, best_conf2, _ = classifier_cameratrap_roc_algo_plot(ibs, label=label, color='r', positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
+
+    axes_ = plt.subplot(223)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, output_cases=True, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
+
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    correct_rate, _ = classifier_cameratrap_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, positive_imageset_id=positive_imageset_id, negative_imageset_id=negative_imageset_id, **kwargs)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+
+    fig_filename = 'classifier-precision-recall-roc.png'
+    fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
+    plt.savefig(fig_path, bbox_inches='tight')
+
+
 def classifier_precision_recall_algo(ibs, category_set, **kwargs):
     depc = ibs.depc_image
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2085,14 +2256,13 @@ def labeler_precision_recall_algo(ibs, category_list, label_dict, **kwargs):
             re = tp / (tp + fn)
             tpr = tp / (tp + fn)
             fpr = fp / (fp + tn)
+            conf_list_.append(conf)
+            pr_list.append(pr)
+            re_list.append(re)
+            tpr_list.append(tpr)
+            fpr_list.append(fpr)
         except ZeroDivisionError:
-            print('\tbad conf %0.05f - %d %d %d %d' % (conf, tp, tn, fp, fn, ))
-            continue
-        conf_list_.append(conf)
-        pr_list.append(pr)
-        re_list.append(re)
-        tpr_list.append(tpr)
-        fpr_list.append(fpr)
+            print('Zero division error (%r) - tp: %r tn: %r fp: %r fn: %r' % (conf, tp, tn, fp, fn, ))
 
     return conf_list_, pr_list, re_list, tpr_list, fpr_list
 
@@ -3894,6 +4064,24 @@ def classifier_train(ibs, species_list, **kwargs):
     assert 'species_list' not in model_state
     model_state['species_list'] = species_list
     save_model(model_state, model_path)
+    # Return model path
+    return model_path
+
+
+@register_ibs_method
+def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images
+    from ibeis_cnn.process import numpy_processed_directory2
+    from ibeis_cnn.models.classifier import train_classifier
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    extracted_path = get_cnn_classifier_cameratrap_binary_training_images(ibs,
+                                                                          positive_imageset_id,
+                                                                          negative_imageset_id,
+                                                                          dest_path=data_path,
+                                                                          **kwargs)
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'classifier-cameratrap')
+    model_path = train_classifier(output_path, X_file, y_file)
     # Return model path
     return model_path
 
