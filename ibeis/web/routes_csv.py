@@ -327,22 +327,26 @@ def get_annotation_special_info(target_species=None, **kwargs):
         nid_old = ''
         name_old = ''
 
-        # if 'Monica-Laurel' in ibs.dbdir:
-        #     monica_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/monica.aids.txt')
-        #     laurel_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/laurel.aids.txt')
+        if 'Monica-Laurel' in ibs.dbdir:
+            import ibeis
+            ut.embed()
+            ibs1 = ibeis.opendb('/home/zebra/Desktop/Monica/')
+            ibs2 = ibeis.opendb('/home/zebra/Desktop/Laurel/')
+            # monica_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/monica.aids.txt')
+            # laurel_mapping_dict = _process_annot_name_uuids_dict(ibs, '/home/jparham/laurel.aids.txt')
 
-        #     different = 0
-        #     for aid, nid in zip(aid_list, nid_list):
-        #         if aid in monica_mapping_dict:
-        #             assert aid not in laurel_mapping_dict
-        #             nid_old = monica_mapping_dict[aid]
-        #         elif aid in laurel_mapping_dict:
-        #             assert aid not in monica_mapping_dict
-        #             nid_old = laurel_mapping_dict[aid]
-        #         else:
-        #             assert False
+            # different = 0
+            # for aid, nid in zip(aid_list, nid_list):
+            #     if aid in monica_mapping_dict:
+            #         assert aid not in laurel_mapping_dict
+            #         nid_old = monica_mapping_dict[aid]
+            #     elif aid in laurel_mapping_dict:
+            #         assert aid not in monica_mapping_dict
+            #         nid_old = laurel_mapping_dict[aid]
+            #     else:
+            #         assert False
 
-        #         print(aid, nid_old, nid)
+            #     print(aid, nid_old, nid)
 
         line_list_ = [
             '' if contrib is None else contrib.split(',')[0],
