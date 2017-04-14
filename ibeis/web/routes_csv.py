@@ -326,6 +326,8 @@ def get_annotation_special_info(target_species=None, **kwargs):
             annot_metadata_dict
         ) = args
 
+        contrib_str = '' if contrib is None else contrib.split(',')[0].upper()
+
         if target_species is not None and species != target_species:
             continue
 
@@ -335,6 +337,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         nid_old = ''
         name_old = ''
         name_changed = False
+        cross_database_match = False
 
         try:
             print('Processing: %d' % (aid, ))
@@ -353,19 +356,26 @@ def get_annotation_special_info(target_species=None, **kwargs):
 
                 if name_uuid_old != name_uuid:
                     name_changed = True
-                    nid_old = ibs.get_name_rowids_from_uuid(name_uuid_old)
-                    name_old = ibs.get_name_texts(nid_old)
+                    if name_uuid_old is None:
+                        nid_old = 'UNKNOWN NID'
+                        name_old = 'UNKNOWN NAME'
+                    else:
+                        nid_old = ibs.get_name_rowids_from_uuid(name_uuid_old)
+                        name_old = ibs.get_name_texts(nid_old)
+
+                    cross_database_match = not name.startswith(contrib_str)
         except:
             print('ERROR WITH ABOVE')
             ut.embed()
 
         line_list_ = [
-            '' if contrib is None else contrib.split(',')[0],
+            contrib_str,
             annot_uuid,
             aid,
             nid,
             name,
-            name_changed,
+            'Yes' if name_changed else '',
+            'Yes' if cross_database_match else '',
             nid_old,
             name_old,
             species,
@@ -392,7 +402,7 @@ def get_annotation_special_info(target_species=None, **kwargs):
         line_list.append(line)
 
     combined_str = '\n'.join(line_list)
-    combined_str = 'DB,Annotation UUID,AID,NID,Name,Name Changed,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
+    combined_str = 'DB,Annotation UUID,AID,NID,Name,Name Changed,Cross-Database Match,Old NID,Old Name,Species,Sex,Age,Image Name,Encounter ID,Encounter Name,| SEPERATOR |,%s,| SEPERATOR |,%s\n' % (imageset_metadata_key_str, annot_metadata_key_str, ) + combined_str
     return appf.send_csv_file(combined_str, filename)
 
 
