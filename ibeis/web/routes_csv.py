@@ -343,10 +343,12 @@ def get_annotation_special_info(target_species=None, **kwargs):
 
                 if aid1 is not None:
                     assert aid2 is None
-                    name_uuid_old = ibs1.get_annot_name_uuid(aid1)
+                    name_uuid_old = ibs1.get_annot_name_uuids(aid1)
                 elif aid2 is not None:
                     assert aid1 is None
-                    name_uuid_old = ibs2.get_annot_name_uuid(aid2)
+                    name_uuid_old = ibs2.get_annot_name_uuids(aid2)
+                else:
+                    raise AssertionError('Should be in one of these original databases')
 
                 if name_uuid_old != name_uuid:
                     name_changed = True
