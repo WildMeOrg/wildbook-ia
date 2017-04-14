@@ -402,11 +402,11 @@
 
       // Rotate the boxes based on the appropriate values
       css_rotate = {
-        "-webkit-transform": "rotate(" + css_theta + "rad)",
-        "-moz-transform":    "rotate(" + css_theta + "rad)",
-        "-ms-transform":     "rotate(" + css_theta + "rad)",
-        "-o-transform":      "rotate(" + css_theta + "rad)",
         "transform":         "rotate(" + css_theta + "rad)",
+        "-o-transform":      "rotate(" + css_theta + "rad)",
+        "-ms-transform":     "rotate(" + css_theta + "rad)",
+        "-moz-transform":    "rotate(" + css_theta + "rad)",
+        "-webkit-transform": "rotate(" + css_theta + "rad)",
       }
 
       this.elements.rectangle.css(css_rotate);
@@ -416,12 +416,27 @@
     return BBoxSelector;
   })();
 
+
+
+
+
+
+
+
+
   this.BBoxAnnotator = (function() {
     function BBoxAnnotator(url, options) {
       var options;
 
       options                 || (options = {});
-      options.container       || (options.container = "#ia-bbox-annotator-container");
+      options.ids             || (options.ids = {});
+      options.ids.container   || (options.ids.container  = "#ia-bbox-annotator-container");
+      options.classes         || (options.classes = {});
+      options.classes.bbox    || (options.classes.bbox   = ".ia-bbox-annotator-bbox");
+      options.classes.label   || (options.classes.label  = ".ia-bbox-annotator-bbox-label");
+      options.classes.close   || (options.classes.close  = ".ia-bbox-annotator-bbox-close");
+      options.classes.resize  || (options.classes.resize = ".ia-bbox-annotator-bbox-resize");
+      options.classes.rotate  || (options.classes.rotate = ".ia-bbox-annotator-bbox-rotate");
       options.colors          || (options.colors = {});
       options.colors.default  || (options.colors.default = "#7FFF7F");
       options.colors.hover    || (options.colors.hover = "#F0AD4E");
@@ -440,13 +455,11 @@
       this.elements = {
         entries: [],
       }
+
+      // Keep track of the current state of the annotator
       this.state = {
-        status:   "free",
-        adding:   false,
-        editing:  false,
-        moving:   false,
-        target:   false,
-        hovering: false,
+        status: "free",
+        hover:  null,
       }
 
       this.create_annotator_elements(url);
@@ -458,7 +471,7 @@
       bba = this;
 
       // Define the container
-      this.elements.container = $(this.options.container);
+      this.elements.container = $(this.options.ids.container);
       this.elements.container.css({
         "width":        "100%",
         "max-width":    "1200px",
@@ -472,7 +485,7 @@
         "position":          "relative",
         "width":             "100%",
         "height":            "100%",
-        "border":            "#333 solid 1px",
+        "border":            "#333333 solid 1px",
         "margin":            "0px auto",
         "background-size":   "100% auto",
         "background-repeat": "no-repeat",
@@ -496,7 +509,7 @@
         bba.bbs = new BBoxSelector(bba.elements.frame, bba.options);
 
         // This is the last stage of the constructor's initialization
-        bba.register_event_bindings();
+        bba.register_global_event_bindings();
       };
 
       // If the image failed to load, add a message to the console.
@@ -529,8 +542,161 @@
       }
     };
 
+    BBoxAnnotator.prototype.delete_entry = function(index) {
+        // Detatch the bbox HTML elements at index
+        this.elements.entries[index].bbox.detach();
+
+        // Slice out the JSON entry and HTML elements from their respective list
+        this.entries.splice(index, 1);
+        this.elements.entries.splice(index, 1);
+
+        // Refresh the display
+        this.refresh();
+    }
+
+    BBoxAnnotator.prototype.update_hover = function(index) {
+        console.log('HOVER ' + index)
+        this.state.hover = index;
+    }
 
 
+    BBoxAnnotator.prototype.add_entry = function(entry) {
+      var element;
+
+      element = {};
+      console.log('[BBoxAnnotator] Add entry: ' + entry);
+
+      // Create the bbox container
+      element.bbox = $('<div class="' + this.options.classes.bbox + '"></div>');
+      element.bbox.css({
+        "position":              "absolute",
+        "top":                   entry.percent.top + "%",
+        "left":                  entry.percent.left + "%",
+        "width":                 entry.percent.width + "%",
+        "height":                entry.percent.height + "%",
+        "border":                this.options.border.width + "px solid " + this.options.colors.default,
+        "color":                 "#FFFFFF",
+        "font-family":           "monospace",
+        "font-size":             "small",
+      });
+      // Apply orientation to the bbox
+      css_rotate = {
+        "transform":             "rotate(" + entry.angles.theta + "rad)",
+        "-o-transform":          "rotate(" + entry.angles.theta + "rad)",
+        "-ms-transform":         "rotate(" + entry.angles.theta + "rad)",
+        "-moz-transform":        "rotate(" + entry.angles.theta + "rad)",
+        "-webkit-transform":     "rotate(" + entry.angles.theta + "rad)",
+      }
+      element.bbox.css(css_rotate);
+      this.elements.frame.append(element.bbox);
+
+      // Add the label to the bbox to denote the ID
+      element.label = $('<div class="' + this.options.classes.label + '"></div>');
+      element.label.css({
+        "overflow":              "visible",
+        "display":               "inline-block",
+        "background-color":      this.options.colors.default,
+        "opacity":               "0.8",
+        "color":                 "#333333",
+        "padding":               "1px 3px",
+      });
+      element.bbox.append(element.label);
+
+      // Add the close button to the bbox
+      element.close = $('<div class="' + this.options.classes.close + '"></div>');
+      element.close.css({
+        "position":              "absolute",
+        "top":                   "5px",
+        "right":                 "5px",
+        "width":                 "20px",
+        "height":                "0",
+        "border":                "2px solid #FFFFFF",
+        "margin-left":           "-10px",
+        "padding":               "16px 0 0 0",
+        "color":                 "#FFFFFF",
+        "background-color":      "#003300",
+        "cursor":                "pointer",
+        "user-select":           "none",
+        "text-align":            "center",
+        "overflow":              "visible",
+        "border-radius":         "18px",
+        "-moz-border-radius":    "18px",
+        "-webkit-border-radius": "18px",
+        "-moz-user-select":      "none",
+        "-webkit-user-select":   "none",
+      });
+      element.bbox.append(element.close);
+
+      // Add the X to the close button, which we do not need to keep track of
+      temp = $("<div></div>");
+      temp.html("&#215;").css({
+        "position":              "absolute",
+        "top":                   "-2px",
+        "left":                  "0",
+        "width":                 "16px",
+        "display":               "block",
+        "text-align":            "center",
+        "font-size":             "20px",
+        "line-height":           "20px",
+      });
+      element.close.append(temp);
+
+      // Add the rotation handle to the bbox
+      element.rotate = $('<div class="' + this.options.classes.rotate + '"></div>');
+      element.rotate.css({
+        "position":              "absolute",
+        "top":                   "5px",
+        "right":                 "50%",
+        "width":                 "10px",
+        "height":                "10px",
+        "border":                "1px solid #333333",
+        "margin-left":           "-10px",
+        "background-color":      this.options.colors.default,
+        "cursor":                "pointer",
+        "border-radius":         "10px",
+        "-moz-border-radius":    "10px",
+        "-webkit-border-radius": "10px",
+      });
+      element.bbox.append(element.rotate);
+
+      // Register entry event bindings for this new element
+      this.register_entry_event_bindings(element);
+
+      // Add the entry JSON and also the jQuery elements
+      this.entries.push(entry);
+      this.elements.entries.push(element);
+
+      // Refresh the view now that the new bbox has been added
+      this.refresh();
+    };
+
+    BBoxAnnotator.prototype.register_entry_event_bindings = function(element) {
+      var bba;
+
+      bba = this;
+
+      // Register events for when the box is hovered and unhovered
+      element.bbox.hover((function(e) {
+        var index;
+
+        index = $(this).prevAll(bba.options.classes.bbox).length;
+        bba.update_hover(index)
+      }), (function(e) {
+        bba.update_hover(null)
+      }));
+
+      // Register event for when the close button is selected for a specific bbox
+      element.close.mouseup(function(e) {
+        var index;
+
+        // Find the parent bbox of the close button and the bbox's index
+        parent = $(this).parent(bba.options.classes.bbox)
+        index = parent.prevAll(bba.options.classes.bbox).length;
+
+        // Delete the entry from the annotator
+        bba.delete_entry(index);
+      });
+    };
 
 
 ///////////////
@@ -538,8 +704,15 @@
 ///////////////
 ///////////////
 
+    BBoxAnnotator.prototype.selector_start = function(pageX, pageY) {
+        this.bbs.start(pageX, pageY);
+        this.state.status = "hold";
+        this.state.adding = true;
+        this.state.editing = false;
+    };
 
-    BBoxAnnotator.prototype.add_entry_from_selection = function() {
+
+    BBoxAnnotator.prototype.selector_finish = function() {
       var data;
       switch (this.state.status) {
         case "input":
@@ -554,92 +727,57 @@
 
     BBoxAnnotator.prototype.update_style_hover = function(box_element, text_box, resizable_button, rotate_button, close_button)
     {
-        if(! this.state.targeting)
-        {
-          box_element.css("outline", "none");
-          box_element.css("border-color", "#f0ad4e");
-          box_element.css("opacity", "1.0");
-          box_element.css("cursor", "move");
-          box_element.css("background-color", "rgba(0, 0, 0, 0.2)");
-          box_element.addClass("ia-annotated-bounding-box-active");
-          box_element.removeClass("ia-annotated-bounding-box-target");
-          text_box.css("background-color", "#f0ad4e");
-          text_box.css("opacity", "1.0");
-          text_box.css("color", "black");
-          resizable_button.show();
-          rotate_button.show();
-          close_button.show();
-          $(".ia-annotated-bounding-box").css("visibility", "visible");
-          this.hit_menuitem = true;
-        }
+        box_element.css("outline", "none");
+        box_element.css("border-color", this.options.colors.hover);
+        box_element.css("opacity", "1.0");
+        box_element.css("cursor", "move");
+        box_element.css("background-color", "rgba(0, 0, 0, 0.2)");
+        box_element.addClass("ia-annotated-bounding-box-active");
+        box_element.removeClass("ia-annotated-bounding-box-target");
+        text_box.css("background-color", this.options.colors.hover);
+        text_box.css("opacity", "1.0");
+        text_box.css("color", "black");
+
+        resizable_button.show();
+        rotate_button.show();
+        close_button.show();
     }
 
     BBoxAnnotator.prototype.update_style_editing = function(box_element, text_box, resizable_button, rotate_button, close_button)
     {
-        if((this.state.adding || ! this.state.hovering) && ! this.state.targeting)
-        {
-          box_element.css("outline", "none");
-          box_element.css("border-color", this.options.colors.default);
-          box_element.css("opacity", "0.8");
-          box_element.css("cursor", "crosshair");
-          box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-          box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-          box_element.removeClass("ia-annotated-bounding-box-active");
-          box_element.removeClass("ia-annotated-bounding-box-target");
-          text_box.css("background-color", this.options.colors.default);
-          text_box.css("opacity", "0.8");
-          text_box.css("color", "black");
-          this.hit_menuitem = false;
-          resizable_button.show();
-          rotate_button.hide();
-          close_button.hide();
-          $(".ia-annotated-bounding-box").css("visibility", "visible");
-        }
+        box_element.css("outline", "none");
+        box_element.css("border-color", this.options.colors.default);
+        box_element.css("opacity", "0.8");
+        box_element.css("cursor", "crosshair");
+        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
+        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
+        box_element.removeClass("ia-annotated-bounding-box-active");
+        box_element.removeClass("ia-annotated-bounding-box-target");
+        text_box.css("background-color", this.options.colors.default);
+        text_box.css("opacity", "0.8");
+        text_box.css("color", "black");
+
+        resizable_button.show();
+        rotate_button.hide();
+        close_button.hide();
     }
 
     BBoxAnnotator.prototype.update_style_target = function(box_element, text_box, resizable_button, rotate_button, close_button)
     {
         box_element.css("outline", "1000px solid rgba(0, 0, 0, 0.2)");
-        box_element.css("border-color", "#eb2a18");
+        box_element.css("border-color", this.options.colors.target);
         box_element.css("opacity", "1.0");
         box_element.css("cursor", "cell");
         box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
         box_element.addClass("ia-annotated-bounding-box-target");
-        text_box.css("background-color", "#eb2a18");
+        text_box.css("background-color", this.options.colors.target);
         text_box.css("opacity", "1.0");
         text_box.css("color", "white");
         $(".ia-annotated-bounding-box").not(".ia-annotated-bounding-box-target").css("visibility", "hidden");
-        this.hit_menuitem = true;
+
         rotate_button.hide();
         resizable_button.hide();
         close_button.hide();
-    }
-
-    BBoxAnnotator.prototype.update_dimensions = function(entry, box_element)
-    {
-        var img_width = parseFloat(this.elements.frame.css("width")) - 2.0;
-        var img_height = parseFloat(this.elements.frame.css("height")) - 2.0;
-
-        var left   = parseFloat(box_element.css("left"));
-        var top    = parseFloat(box_element.css("top"));
-        var width  = parseFloat(box_element.css("width"));
-        var height = parseFloat(box_element.css("height"));
-
-        var left   = 100.0 * left   / img_width;
-        var top    = 100.0 * top    / img_height;
-        var width  = 100.0 * width  / img_width;
-        var height = 100.0 * height / img_height;
-
-        box_element.css("left", left + "%");
-        box_element.css("top", top + "%");
-        box_element.css("width", width + "%");
-        box_element.css("height", height + "%");
-
-        entry["left"]   = left;
-        entry["top"]    = top;
-        entry["width"]  = width;
-        entry["height"] = height;
-        this.refresh();
     }
 
     BBoxAnnotator.prototype.update_theta = function(entry, theta)
@@ -656,12 +794,7 @@
 
 
 
-
-
-
-
-
-    BBoxAnnotator.prototype.register_event_bindings = function(selector, options) {
+    BBoxAnnotator.prototype.register_global_event_bindings = function(selector, options) {
       var bba;
 
       bba = this;
@@ -800,13 +933,10 @@
             case "free":
             case "input":
               if (bba.state.status === "input") {
-                bba.add_entry_from_selection();
+                bba.selector_finish();
               }
               if (e.which === 1) {
-                bba.bbs.start(e.pageX, e.pageY);
-                bba.state.status = "hold";
-                bba.state.adding = true;
-                bba.state.editing = false;
+                bba.selector_start(e.pageX, e.pageY);
               }
               else if (e.which === 3) {
                 // pass
@@ -817,7 +947,7 @@
               if(bba.bbs.options.mode == "rectangle")
               {
                 bba.state.status = "input";
-                bba.add_entry_from_selection();
+                bba.selector_finish();
               }
               else
               {
@@ -830,7 +960,7 @@
                   bba.bbs.current_stage = 2
                   // bba.state.adding = false
                   bba.state.status = "input";
-                  bba.add_entry_from_selection();
+                  bba.selector_finish();
                 }
               }
           }
@@ -856,8 +986,39 @@
         return true;
       });
 
+      this.elements.container.mouseup(function(e) {
+        console.log('CONTAINER MOUSEUP')
+
+        if(bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 2))
+        {
+          $(".ia-annotated-bounding-sbox").css("opacity", "1.00");
+          $(".ia-label-text-box").css("opacity", "0.8");
+        }
+
+        switch (bba.state.status) {
+          case "hold":
+            bba.bbs.update_cursor(e.pageX, e.pageY);
+            if(bba.bbs.options.mode == "rectangle")
+            {
+              bba.state.adding = false;
+              bba.state.status = "input";
+              bba.selector_finish();
+            }
+            else
+            {
+              if(bba.bbs.current_stage == 2)
+              {
+                bba.state.adding = false;
+                bba.state.status = "input";
+                bba.selector_finish();
+              }
+            }
+        }
+        return true;
+      });
+
       $(window).mousemove(function(e) {
-        console.log('WINDOW MOUSEMOVE')
+        // console.log('WINDOW MOUSEMOVE')
 
         if(bba.state.editing)
         {
@@ -874,242 +1035,11 @@
       });
 
 
-      $(window).mouseup(function(e) {
-        console.log('WINDOW MOUSEUP')
-
-        if(bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 2))
-        {
-          $(".ia-annotated-bounding-sbox").css("opacity", "1.00");
-          $(".ia-label-text-box").css("opacity", "0.8");
-        }
-
-        switch (bba.state.status) {
-          case "hold":
-            bba.bbs.update_cursor(e.pageX, e.pageY);
-            if(bba.bbs.options.mode == "rectangle")
-            {
-              bba.state.adding = false;
-              bba.state.status = "input";
-              bba.add_entry_from_selection();
-            }
-            else
-            {
-              if(bba.bbs.current_stage == 2)
-              {
-                bba.state.adding = false;
-                bba.state.status = "input";
-                bba.add_entry_from_selection();
-              }
-            }
-        }
-        return true;
-      });
-
-
       this.resize();
     };
 
 
 
-
-    BBoxAnnotator.prototype.add_entry = function(entry) {
-      var bba, box_element, close_button, resizable_button, rotate_button, text_box;
-
-      bba = this;
-      this.entries.push(entry);
-
-
-      box_element = $('<div class="ia-annotated-bounding-box ui-widget-content"></div>');
-
-
-      var resize_params = {
-          start: function(e, ui) {
-            bba.state.editing = true;
-            $(".ia-label-text-box").css("opacity", "0.0");
-          },
-          stop: function(e, ui) {
-            $(".ia-label-text-box").css("opacity", "0.80");
-            bba.state.editing = false;
-            bba.update_dimensions(entry, box_element);
-            bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
-          },
-          containment: "#ia-bbox-annotator-container",
-          handles: "n, s, e, w, ne, se, nw, sw",
-      };
-      var rotate_params = {
-          start: function(e, ui) {
-            bba.state.editing = true;
-            bba.state.moving = true;
-            $(".ia-label-text-box").css("opacity", "0.0");
-          },
-          stop: function(e, ui) {
-            $(".ia-label-text-box").css("opacity", "0.80");
-            bba.state.editing = false;
-            bba.update_theta(entry, ui.theta);
-            bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
-          },
-          angle: entry.angles.theta,
-      };
-      var drag_params = {
-          start: function(e, ui) {
-            bba.state.editing = true;
-            $(".ia-label-text-box").css("opacity", "0.0");
-          },
-          stop: function(e, ui) {
-            $(".ia-label-text-box").css("opacity", "0.80");
-            bba.state.editing = false;
-            bba.update_dimensions(entry, box_element);
-            bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
-          },
-          drag: function(e, ui) {
-            return ! bba.state.adding && ! bba.state.targeting;
-          },
-          containment: "#ia-bbox-annotator-container",
-      };
-      box_element.rotatable(rotate_params);
-      box_element.draggable(drag_params);
-      box_element.resizable(resize_params);
-
-
-      resizable_button = box_element.find(".ui-resizable-handle");
-      rotate_button = box_element.find(".ui-rotatable-handle");
-
-      box_element.appendTo(this.elements.frame);
-      box_element.css({
-        "border": this.options.border.width + "px solid " + bba.options.colors.default,
-        "position": "absolute",
-        "top": entry.percent.top + "%",
-        "left": entry.percent.left + "%",
-        "width": entry.percent.width + "%",
-        "height": entry.percent.height + "%",
-        "color": "rgb(255, 255, 255)",
-        "font-family": "monospace",
-        "font-size": "small",
-      });
-
-      close_button = $("<div></div>");
-      close_button.appendTo(box_element);
-      close_button.css({
-        "position": "absolute",
-        "top": "5px",
-        "right": "5px",
-        "margin-left": "-10px",
-        "width": "20px",
-        "height": "0",
-        "padding": "16px 0 0 0",
-        "overflow": "visible",
-        "color": "#fff",
-        "background-color": "#030",
-        "border": "2px solid #fff",
-        "-moz-border-radius": "18px",
-        "-webkit-border-radius": "18px",
-        "border-radius": "18px",
-        "cursor": "pointer",
-        "-moz-user-select": "none",
-        "-webkit-user-select": "none",
-        "user-select": "none",
-        "text-align": "center",
-      });
-
-      temp = $("<div></div>");
-      temp.appendTo(close_button);
-      temp.html("&#215;").css({
-        "display": "block",
-        "text-align": "center",
-        "width": "16px",
-        "position": "absolute",
-        "top": "-2px",
-        "left": "0",
-        "font-size": "20px",
-        "line-height": "20px",
-      });
-
-      text_box = $('<div class="ia-label-text-box"></div>');
-      text_box.appendTo(box_element);
-      text_box.css({
-        "overflow": "visible",
-        "display": "inline-block",
-        "background-color": bba.options.colors.default,
-        "opacity": "0.8",
-        "color": "#333",
-        "padding": "1px 3px",
-        // "position": "absolute",
-        // "top": "-20px",
-      });
-
-      bba.state.hovering = false;
-
-      rotate_button.hide();
-      close_button.hide();
-
-      bba.refresh();
-
-
-      ///////////////////
-      ///////////////////
-      ///////////////////
-      ///////////////////
-
-
-      box_element.hover((function(e) {
-        console.log('BOX_ELEMENT HOVER')
-        bba.state.hovering = true;
-
-        if( ! bba.state.adding)
-        {
-          if( ! bba.state.editing)
-          {
-            bba.update_style_hover(box_element, text_box, resizable_button, rotate_button, close_button);
-          }
-        }
-        else
-        {
-          bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
-        }
-      }), (function(e) {
-        bba.state.hovering = false;
-        if( ! bba.state.editing)
-        {
-          bba.update_style_editing(box_element, text_box, resizable_button, rotate_button, close_button);
-        }
-      }));
-
-      box_element.mouseup(function(e) {
-        console.log('BOX_ELEMENT MOUSEUP')
-        if (e.which === 1) {
-          if( ! bba.state.moving && ! bba.state.adding)
-          {
-            if(! bba.state.targeting)
-            {
-              bba.state.targeting = true;
-              bba.update_style_target(box_element, text_box, resizable_button, rotate_button, close_button);
-            }
-          }
-        }
-        bba.state.adding = false;
-        bba.state.moving = false;
-      })
-
-      close_button.mouseup(function(e) {
-        console.log('BOX_ELEMENT CLOSEBUTTON MOUSEUP')
-        var clicked_box, index;
-
-        this.state.editing = false;
-        // bba.state.moving = true;
-        bba.state.targeting = false;
-        bba.hit_menuitem = true;
-
-        clicked_box = close_button.parent(".ia-annotated-bounding-box");
-        index = clicked_box.prevAll(".ia-annotated-bounding-box").length;
-        clicked_box.detach();
-        bba.entries.splice(index, 1);
-        // bba.state.moving = true;
-        bba.state.targeting = false;
-        $(".ia-annotated-bounding-box").css("visibility", "visible");
-        return bba.refresh();
-
-      });
-    };
 
     return BBoxAnnotator;
 
