@@ -1,16 +1,61 @@
 (function() {
   var BBoxSelector;
 
+  function calculate_angle(pointa, pointb) {
+    var xa, ya, xb, yb, x1, x2, y1, y2, x, y, angle;
+
+    // Get the points and coordinates of extrema
+    xa = pointa.x
+    ya = pointa.y
+    xb = pointb.x
+    yb = pointb.y
+    x1 = Math.min(xa, xb);
+    x2 = Math.max(xa, xb);
+    y1 = Math.min(ya, yb);
+    y2 = Math.max(ya, yb);
+    x = x2 - x1
+    y = y2 - y1
+
+    // calculate the angle, preserving sign after arctangent
+    if(xa < xb && ya < yb) {
+      angle  = Math.atan2(y, x);
+    }
+    else if(xa < xb && ya >= yb) {
+      angle  = Math.atan2(y, x);
+      angle *= -1.0
+    }
+    else if(xa >= xb && ya < yb) {
+      angle  = Math.atan2(x, y);
+      angle += 0.5 * Math.PI
+    }
+    else if(xa >= xb && ya >= yb) {
+      angle  = Math.atan2(y, x);
+      angle += Math.PI
+    }
+
+    // Normalize the angle to be between 0 and 2*PI
+    while(angle < 0) {
+      angle += 2.0 * Math.PI
+    }
+    while(angle > 2.0 * Math.PI) {
+      angle -= 2.0 * Math.PI
+    }
+    return angle;
+  }
+
   BBoxSelector = (function() {
     function BBoxSelector(frame, options) {
       var options;
 
-      options              || (options = {});
-      options.border       || (options.border = {});
-      options.border.color || (options.border.color = "#7FFF7F");
-      options.border.width || (options.border.width = 2);
-      options.mode         || (options.mode = "diagonal");
-      options.debug        || (options.debug = false);
+      options               || (options = {});
+      options.ids           || (options.ids = {});
+      options.ids.rectangle || (options.ids.rectangle = "ia-bbox-selector-rectangle");
+      options.ids.diagonal  || (options.ids.diagonal  = "ia-bbox-selector-diagonal");
+      options.border        || (options.border = {});
+      options.border.color  || (options.border.color = "#7FFF7F");
+      options.border.width  || (options.border.width = 2);
+      options.mode          || (options.mode = "diagonal");
+      options.debug         || (options.debug = false);
 
       // Global attributes
       this.options = options;
@@ -41,13 +86,13 @@
       }
 
       // Create rectangle selector object
-      this.elements.rectangle = $('<div class="ia-bbox-selector-rectangle"></div>');
+      this.elements.rectangle = $('<div id="' + this.options.ids.rectangle + '"></div>');
       this.elements.rectangle.css(selector_style);
       this.elements.frame.append(this.elements.rectangle);
       this.elements.rectangle.hide();
 
       // Create diagonal selector object
-      this.elements.diagonal = $('<div class="ia-bbox-selector-diagonal"></div>');
+      this.elements.diagonal = $('<div id="' + this.options.ids.diagonal + '"></div>');
       this.elements.diagonal.css(selector_style);
       this.elements.frame.append(this.elements.diagonal);
 
@@ -66,7 +111,7 @@
         }
 
         colors = ["red", "green", "blue"]
-        for (index = 0; index < colors.length; index++) {
+        for(index = 0; index < colors.length; index++) {
           this.debug.push( $("<div></div>") );
           this.debug[index].css(debug_style);
           this.debug[index].css({
@@ -92,13 +137,13 @@
       return this.options.mode
     }
 
-    BBoxSelector.prototype.check_boundaries = function(pageX, pageY) {
+    BBoxSelector.prototype.check_boundaries = function(event) {
       var offset, point;
 
       offset = this.elements.frame.offset()
       point = {
-        x: pageX - offset.left,
-        y: pageY - offset.top,
+        x: event.pageX - offset.left,
+        y: event.pageY - offset.top,
       };
       // Check lower boundaries
       point.x = Math.max(point.x, 0);
@@ -109,8 +154,8 @@
       return point;
     };
 
-    BBoxSelector.prototype.start = function(pageX, pageY) {
-      this.points.origin = this.check_boundaries(pageX, pageY);
+    BBoxSelector.prototype.start = function(event) {
+      this.points.origin = this.check_boundaries(event);
       this.points.middle = {
         x: NaN,
         y: NaN,
@@ -120,7 +165,7 @@
       this.current_stage = 0;
 
       // Show selectors, as needed
-      if(this.options.mode === "rectangle")
+      if(this.options.mode == "rectangle")
       {
         this.elements.rectangle.show();
         this.elements.diagonal.hide();
@@ -147,24 +192,37 @@
       };
 
       // Don't refresh until we get new coordinates from the BBoxAnnotator
-      // this.refresh();
+      // this.refresh(event);
     };
 
-    BBoxSelector.prototype.stage = function(pageX, pageY) {
+    BBoxSelector.prototype.stage = function(event) {
+      var finish;
+
+      finish = false;
+
       // Used only for a multi-staging selection (i.e. diagonal)
-      if(this.options.mode == "diagonal" && this.current_stage == 0)
-      {
-        this.current_stage = 1 // We only want to stage once
-        this.elements.rectangle.show();
+      if(this.options.mode == "rectangle") {
+        finish = true;
       }
-      this.refresh();
+      if(this.options.mode == "diagonal") {
+        if(this.current_stage == 0) {
+          this.current_stage = 1 // We only want to stage once
+          this.elements.rectangle.show();
+        }
+        else {
+          finish = true;
+        }
+      }
+      this.refresh(event);
+
+      return finish;
     };
 
 
-    BBoxSelector.prototype.finish = function() {
+    BBoxSelector.prototype.finish = function(event) {
       var data;
 
-      data = this.get_selector_data();
+      data = this.get_selector_data(event);
 
       // Hide selectors
       this.elements.rectangle.hide();
@@ -179,60 +237,18 @@
       return data;
     };
 
-    BBoxSelector.prototype.update_cursor = function(pageX, pageY) {
+    BBoxSelector.prototype.update_cursor = function(event) {
       // Update the selector based on the current cursor location
-      this.points.cursor = this.check_boundaries(pageX, pageY);
+      this.points.cursor = this.check_boundaries(event);
       if(this.current_stage != 1)
       {
         this.points.middle = this.points.cursor
       }
 
-      this.refresh();
+      this.refresh(event);
     };
 
-    BBoxSelector.prototype.calculate_angle = function(pointa, pointb) {
-      var xa, ya, xb, yb, x1, x2, y1, y2, x, y, angle;
-
-      // Get the points and coordinates of extrema
-      xa = pointa.x
-      ya = pointa.y
-      xb = pointb.x
-      yb = pointb.y
-      x1 = Math.min(xa, xb);
-      x2 = Math.max(xa, xb);
-      y1 = Math.min(ya, yb);
-      y2 = Math.max(ya, yb);
-      x = x2 - x1
-      y = y2 - y1
-
-      // calculate the angle, preserving sign after arctangent
-      if(xa < xb && ya < yb) {
-        angle  = Math.atan2(y, x);
-      }
-      else if(xa < xb && ya >= yb) {
-        angle  = Math.atan2(y, x);
-        angle *= -1.0
-      }
-      else if(xa >= xb && ya < yb) {
-        angle  = Math.atan2(x, y);
-        angle += 0.5 * Math.PI
-      }
-      else if(xa >= xb && ya >= yb) {
-        angle  = Math.atan2(y, x);
-        angle += Math.PI
-      }
-
-      // Normalize the angle to be between 0 and 2*PI
-      while(angle < 0) {
-        angle += 2.0 * Math.PI
-      }
-      while(angle > 2.0 * Math.PI) {
-        angle -= 2.0 * Math.PI
-      }
-      return angle;
-    }
-
-    BBoxSelector.prototype.get_selector_data = function() {
+    BBoxSelector.prototype.get_selector_data = function(event) {
       var width, height, data, diff_x, diff_y;
 
       // Create the selector data object
@@ -262,8 +278,8 @@
       diff_y              = data.pixels.middle.y - data.pixels.cursor.y
       data.pixels.right   = Math.sqrt(diff_x ** 2 + diff_y ** 2);
 
-      data.angles.origin  = this.calculate_angle(data.pixels.origin, data.pixels.middle)
-      data.angles.middle  = this.calculate_angle(data.pixels.middle, data.pixels.cursor)
+      data.angles.origin  = calculate_angle(data.pixels.origin, data.pixels.middle)
+      data.angles.middle  = calculate_angle(data.pixels.middle, data.pixels.cursor)
       data.angles.right   = data.angles.origin - Math.PI * 0.5
       data.angles.theta   = data.angles.origin
 
@@ -351,10 +367,10 @@
       return data;
     };
 
-    BBoxSelector.prototype.refresh = function() {
+    BBoxSelector.prototype.refresh = function(event) {
       var data, css_theta, css_rotate;
 
-      data = this.get_selector_data();
+      data = this.get_selector_data(event);
 
       if(this.options.mode == "rectangle") {
         css_theta = data.angles.theta
@@ -403,9 +419,11 @@
       // Rotate the boxes based on the appropriate values
       css_rotate = {
         "transform":         "rotate(" + css_theta + "rad)",
+        "msTransform":       "rotate(" + css_theta + "rad)",
         "-o-transform":      "rotate(" + css_theta + "rad)",
         "-ms-transform":     "rotate(" + css_theta + "rad)",
         "-moz-transform":    "rotate(" + css_theta + "rad)",
+        "-sand-transform":   "rotate(" + css_theta + "rad)",
         "-webkit-transform": "rotate(" + css_theta + "rad)",
       }
 
@@ -416,27 +434,19 @@
     return BBoxSelector;
   })();
 
-
-
-
-
-
-
-
-
   this.BBoxAnnotator = (function() {
     function BBoxAnnotator(url, options) {
       var options;
 
       options                 || (options = {});
       options.ids             || (options.ids = {});
-      options.ids.container   || (options.ids.container  = "#ia-bbox-annotator-container");
+      options.ids.container   || (options.ids.container  = "ia-bbox-annotator-container");
       options.classes         || (options.classes = {});
-      options.classes.bbox    || (options.classes.bbox   = ".ia-bbox-annotator-bbox");
-      options.classes.label   || (options.classes.label  = ".ia-bbox-annotator-bbox-label");
-      options.classes.close   || (options.classes.close  = ".ia-bbox-annotator-bbox-close");
-      options.classes.resize  || (options.classes.resize = ".ia-bbox-annotator-bbox-resize");
-      options.classes.rotate  || (options.classes.rotate = ".ia-bbox-annotator-bbox-rotate");
+      options.classes.bbox    || (options.classes.bbox   = "ia-bbox-annotator-bbox");
+      options.classes.label   || (options.classes.label  = "ia-bbox-annotator-bbox-label");
+      options.classes.close   || (options.classes.close  = "ia-bbox-annotator-bbox-close");
+      options.classes.resize  || (options.classes.resize = "ia-bbox-annotator-bbox-resize");
+      options.classes.rotate  || (options.classes.rotate = "ia-bbox-annotator-bbox-rotate");
       options.colors          || (options.colors = {});
       options.colors.default  || (options.colors.default = "#7FFF7F");
       options.colors.hover    || (options.colors.hover = "#F0AD4E");
@@ -445,6 +455,9 @@
       options.border          || (options.border = {});
       options.border.color    || (options.border.color = options.colors.default);
       options.border.width    || (options.border.width = 2);
+      options.blocks          || (options.blocks = {});
+      options.blocks.move     || (options.blocks.move = 10.0);
+      options.blocks.rotate   || (options.blocks.rotate = Math.PI / 4.0);
       options.mode            || (options.mode = "diagonal");
       options.debug           || (options.debug = false);
 
@@ -455,23 +468,27 @@
       this.elements = {
         entries: [],
       }
+      this.debug = [];
 
       // Keep track of the current state of the annotator
       this.state = {
-        status: "free",
-        hover:  null,
+        mode:    "free",
+        hover:   null,
+        drag:    false,
+        anchors: {},
       }
+
 
       this.create_annotator_elements(url);
     }
 
     BBoxAnnotator.prototype.create_annotator_elements = function(url) {
-      var bba;
+      var bba, debug_style;
 
       bba = this;
 
       // Define the container
-      this.elements.container = $(this.options.ids.container);
+      this.elements.container = $("#" + this.options.ids.container);
       this.elements.container.css({
         "width":        "100%",
         "max-width":    "1200px",
@@ -494,6 +511,33 @@
       });
       this.elements.container.append(this.elements.frame);
 
+      // Create the debug objects for visual purposes
+      if(this.options.debug) {
+        debug_style = {
+          "left":          "0.0",
+          "top":           "0.0",
+          "width":         "10px",
+          "height":        "10px",
+          "position":      "absolute",
+          "border-radius": "10px",
+          "border":        "1px solid #fff",
+          "margin-top":    "-6px",
+          "margin-left":   "-6px",
+        }
+
+        colors = ["red", "green", "blue"]
+        for(index = 0; index < colors.length; index++) {
+          this.debug.push( $("<div></div>") );
+          this.debug[index].css(debug_style);
+          this.debug[index].css({
+            "background-color": colors[index],
+          })
+          this.elements.frame.append(this.debug);
+        }
+      }
+
+      ////////////////////////////////////////////////////////////////////////////////////
+
       // Create a new Javascript Image object and load the src provided by the user
       this.elements.image = new Image();
       this.elements.image.src = url;
@@ -509,7 +553,10 @@
         bba.bbs = new BBoxSelector(bba.elements.frame, bba.options);
 
         // This is the last stage of the constructor's initialization
+        bba.register_global_key_bindings();
         bba.register_global_event_bindings();
+
+        bba.resize();
       };
 
       // If the image failed to load, add a message to the console.
@@ -530,6 +577,8 @@
       this.elements.container.css({
         "height": h2 + "px",
       });
+
+      this.refresh();
     }
 
     BBoxAnnotator.prototype.update_mode = function(proposed_mode) {
@@ -554,17 +603,34 @@
         this.refresh();
     }
 
-    BBoxAnnotator.prototype.update_hover = function(index) {
-        console.log('HOVER ' + index)
-        this.state.hover = index;
+    BBoxAnnotator.prototype.rotate_element = function(element, angle) {
+      var css_rotate;
+
+      css_rotate = {
+        "transform":             "rotate(" + angle + "rad)",
+        "msTransform":           "rotate(" + angle + "rad)",
+        "-o-transform":          "rotate(" + angle + "rad)",
+        "-ms-transform":         "rotate(" + angle + "rad)",
+        "-moz-transform":        "rotate(" + angle + "rad)",
+        "-sand-transform":       "rotate(" + angle + "rad)",
+        "-webkit-transform":     "rotate(" + angle + "rad)",
+      }
+      element.css(css_rotate);
     }
 
-
     BBoxAnnotator.prototype.add_entry = function(entry) {
-      var element;
+      var element, css_no_select;
+
+      console.log('[BBoxAnnotator] Add entry: ' + entry);
 
       element = {};
-      console.log('[BBoxAnnotator] Add entry: ' + entry);
+      css_no_select = {
+        "user-select":           "none",
+        "-o-user-select":        "none",
+        "-moz-user-select":      "none",
+        "-khtml-user-select":    "none",
+        "-webkit-user-select":   "none",
+      };
 
       // Create the bbox container
       element.bbox = $('<div class="' + this.options.classes.bbox + '"></div>');
@@ -579,15 +645,10 @@
         "font-family":           "monospace",
         "font-size":             "small",
       });
-      // Apply orientation to the bbox
-      css_rotate = {
-        "transform":             "rotate(" + entry.angles.theta + "rad)",
-        "-o-transform":          "rotate(" + entry.angles.theta + "rad)",
-        "-ms-transform":         "rotate(" + entry.angles.theta + "rad)",
-        "-moz-transform":        "rotate(" + entry.angles.theta + "rad)",
-        "-webkit-transform":     "rotate(" + entry.angles.theta + "rad)",
-      }
-      element.bbox.css(css_rotate);
+      element.bbox.css(css_no_select);
+      // Apply rotation to the bbox
+      this.rotate_element(element.bbox, entry.angles.theta);
+
       this.elements.frame.append(element.bbox);
 
       // Add the label to the bbox to denote the ID
@@ -616,14 +677,11 @@
         "color":                 "#FFFFFF",
         "background-color":      "#003300",
         "cursor":                "pointer",
-        "user-select":           "none",
         "text-align":            "center",
         "overflow":              "visible",
         "border-radius":         "18px",
         "-moz-border-radius":    "18px",
         "-webkit-border-radius": "18px",
-        "-moz-user-select":      "none",
-        "-webkit-user-select":   "none",
       });
       element.bbox.append(element.close);
 
@@ -670,159 +728,464 @@
       this.refresh();
     };
 
+    BBoxAnnotator.prototype.hover_entry = function(index) {
+      // Do not update the hover entry if currently selecting
+      if(this.state.mode == "selector") {
+        return
+      }
+      // Do not update the hover entry if currently dragging
+      if(this.state.mode == "drag") {
+        return
+      }
+      // Do not update the hover entry if currently dragging
+      if(this.state.mode == "rotate") {
+        return
+      }
+      // Do not update the hover entry if currently dragging
+      if(this.state.mode == "resize") {
+        return
+      }
+
+      console.log('HOVER ' + index + ' ' +  this.state.mode)
+
+      // Update the state for the hover index
+      this.state.hover = index;
+
+      // Update the style of the correct element
+      if(index !== null) {
+        this.entry_style_hover(index);
+      }
+      else {
+        for(index = 0; index < this.elements.entries.length; index++) {
+          this.entry_style_default(index);
+        }
+      }
+    }
+
+    BBoxAnnotator.prototype.anchor_update = function(event) {
+      var index, element, offset, position;
+
+      console.log("[BBoxAnnotator] Update anchor");
+
+      index = this.state.hover
+
+      if(index == null) {
+        return
+      }
+
+      entry = this.entries[index];
+      element = this.elements.entries[index]
+      offset = this.elements.container.offset();
+
+      // We need to un-rotate the box before we can get a correct position
+      this.rotate_element(element.bbox, 0.0)
+      // Get the accurate position from jQuery
+      position = element.bbox.position()
+      // Re-rotate the box now that we have accurate coordinates
+      this.rotate_element(element.bbox, entry.angles.theta)
+
+      // Update the cursor and element anchors
+      this.state.anchors = {}
+      this.state.anchors.cursor = {
+        x: event.pageX - offset.left,
+        y: event.pageY - offset.top,
+      }
+      this.state.anchors.element = {
+        x: position.left,
+        y: position.top,
+        width: element.bbox.width(),
+        height: element.bbox.height(),
+        theta: entry.angles.theta,
+      }
+    };
+
+    BBoxAnnotator.prototype.move_entry = function(event) {
+      var index, entry, element, offset, correction, width, height;
+
+      index = this.state.hover
+      // Do not update if there is not a hover entry
+      if(index == null) {
+        return
+      }
+
+      entry = this.entries[index];
+      element = this.elements.entries[index];
+      offset = this.elements.container.offset();
+
+      offset = {
+        x: event.pageX - offset.left - this.state.anchors.cursor.x,
+        y: event.pageY - offset.top - this.state.anchors.cursor.y,
+      }
+
+      correction = {
+        x: this.state.anchors.element.x + offset.x,
+        y: this.state.anchors.element.y + offset.y,
+      }
+
+      width  = this.elements.frame.width();
+      height = this.elements.frame.height();
+
+      // Calculate the final values in percentage space
+      entry.percent.left = 100.0 * correction.x / width;
+      entry.percent.top = 100.0 * correction.y / height;
+
+      element.bbox.css({
+        "left": entry.percent.left  + "%",
+        "top":  entry.percent.top + "%",
+      })
+    }
+
+    BBoxAnnotator.prototype.rotate_entry = function(event) {
+      var index, entry, element, offset, center, cursor, angles, delta, correction;
+
+      index = this.state.hover
+      // Do not update if there is not a hover entry
+      if(index == null) {
+        return
+      }
+
+      entry = this.entries[index];
+      element = this.elements.entries[index];
+      offset = this.elements.container.offset();
+
+      center = {
+        x: this.state.anchors.element.x + this.state.anchors.element.width * 0.5,
+        y: this.state.anchors.element.y + this.state.anchors.element.height * 0.5,
+      }
+      cursor = {
+        x: event.pageX - offset.left,
+        y: event.pageY - offset.top,
+      }
+
+      angles = {}
+      angles.anchor = calculate_angle(center, this.state.anchors.cursor)
+      angles.cursor = calculate_angle(center, cursor)
+
+      delta = angles.cursor - angles.anchor
+      correction = this.state.anchors.element.theta + delta
+
+      // If the Shift key is pressed, block to steps
+      if(event.shiftKey) {
+        correction /= this.options.blocks.rotate
+        correction = Math.round(correction)
+        correction *= this.options.blocks.rotate
+      }
+
+      entry.angles.theta = correction
+      this.rotate_element(element.bbox, entry.angles.theta)
+    }
+
+    BBoxAnnotator.prototype.selector_start = function(event) {
+        console.log("[BBoxAnnotator] Start selection");
+
+        // Remove any current hover styles
+        this.hover_entry(null);
+
+        // Start the BBoxSelector
+        this.bbs.start(event);
+        this.state.mode = "selector";
+    };
+
+    BBoxAnnotator.prototype.selector_update = function(event) {
+        // Update the BBoxSelector
+        this.bbs.update_cursor(event);
+    };
+
+    BBoxAnnotator.prototype.selector_stage = function(event) {
+        var finish;
+
+        console.log("[BBoxAnnotator] Stage selection " + finish);
+
+        // Stage the BBoxSelector
+        finish = this.bbs.stage(event);
+
+        if(finish) {
+          this.selector_finish(event);
+        }
+    };
+
+    BBoxAnnotator.prototype.selector_cancel = function(event) {
+      console.log("[BBoxAnnotator] Cancel selection");
+
+      if(this.state.mode == "selector") {
+          // Get the entry data by finishing the BBoxSelector
+          this.bbs.finish(event);
+
+          // Release the mode to "free"
+          this.state.mode = "free";
+      }
+    };
+
+    BBoxAnnotator.prototype.selector_finish = function(event) {
+      var data;
+
+      console.log("[BBoxAnnotator] Finish selection");
+
+      // If we are in the "selector" mode, finish the BBoxSelector and add the entry
+      if(this.state.mode == "selector") {
+          // Get the entry data by finishing the BBoxSelector
+          data = this.bbs.finish(event);
+
+          // Add the returned entry data reported by the BBoxSelector as a new entry
+          this.add_entry(data);
+
+          // Release the mode to "free"
+          this.state.mode = "free";
+      }
+    };
+
+    BBoxAnnotator.prototype.entry_style_default = function(index)
+    {
+        var element;
+
+        // Get the appropriate entry element
+        element = this.elements.entries[index]
+
+        // Update classes
+        element.bbox.removeClass(this.options.classes.bbox + "-active");
+        element.bbox.removeClass(this.options.classes.bbox + "-target");
+
+        // Update element CSS
+        element.bbox.css({
+          "outline":          "none",
+          "border-color":     this.options.colors.default,
+          "opacity":          "0.8",
+          "cursor":           "crosshair",
+          "background-color": "rgba(0, 0, 0, 0.0)",
+          "background-color": "rgba(0, 0, 0, 0.0)",
+        });
+
+        element.label.css({
+          "background-color": this.options.colors.default,
+          "opacity":          "0.8",
+          "color":            "black",
+        });
+
+        // Update bbox buttons and handles
+        element.close.hide();
+        element.rotate.hide();
+    }
+
+    BBoxAnnotator.prototype.entry_style_hover = function(index)
+    {
+        var element;
+
+        // Get the appropriate entry element
+        element = this.elements.entries[index]
+
+        // Update classes
+        element.bbox.addClass(this.options.classes.bbox + "-active");
+        element.bbox.removeClass(this.options.classes.bbox + "-target");
+
+        // Update element CSS
+        element.bbox.css({
+          "outline":          "none",
+          "border-color":     this.options.colors.hover,
+          "opacity":          "1.0",
+          "cursor":           "move",
+          "background-color": "rgba(0, 0, 0, 0.2)",
+        });
+
+        element.label.css({
+          "background-color": this.options.colors.hover,
+          "opacity":          "1.0",
+          "color":            "black",
+        });
+
+        // Update bbox buttons and handles
+        element.close.show();
+        element.rotate.show();
+    }
+
+    BBoxAnnotator.prototype.entry_style_target = function(index)
+    {
+        var element;
+
+        // Get the appropriate entry element
+        element = this.elements.entries[index]
+
+        // Update classes
+        element.bbox.addClass(this.options.classes.bbox + "-target");
+
+        // Update element CSS
+        element.bbox.css({
+          "outline":          "1000px solid rgba(0, 0, 0, 0.2)",
+          "border-color":     this.options.colors.target,
+          "opacity":          "1.0",
+          "cursor":           "cell",
+          "background-color": "rgba(0, 0, 0, 0.0)",
+        });
+
+        element.label.css({
+          "background-color": this.options.colors.target,
+          "opacity":          "1.0",
+          "color":            "white",
+        });
+
+        // Update bbox buttons and handles
+        element.close.hide();
+        element.rotate.hide();
+    }
+
+    BBoxAnnotator.prototype.drag_start = function() {
+      this.state.drag = true;
+      document.onselectstart = function() {
+        return false;
+      };
+    };
+
+    BBoxAnnotator.prototype.drag_finish = function() {
+      this.state.drag = false;
+      document.onselectstart = null;
+    };
+
     BBoxAnnotator.prototype.register_entry_event_bindings = function(element) {
       var bba;
 
       bba = this;
 
       // Register events for when the box is hovered and unhovered
-      element.bbox.hover((function(e) {
+      element.bbox.hover((function() {
         var index;
 
-        index = $(this).prevAll(bba.options.classes.bbox).length;
-        bba.update_hover(index)
-      }), (function(e) {
-        bba.update_hover(null)
+        index = $(this).prevAll("." + bba.options.classes.bbox).length;
+        bba.hover_entry(index)
+      }), (function() {
+        bba.hover_entry(null)
       }));
 
       // Register event for when the close button is selected for a specific bbox
-      element.close.mouseup(function(e) {
+      element.close.mouseup(function(event) {
         var index;
 
         // Find the parent bbox of the close button and the bbox's index
-        parent = $(this).parent(bba.options.classes.bbox)
-        index = parent.prevAll(bba.options.classes.bbox).length;
+        parent = $(this).parent("." + bba.options.classes.bbox)
+        index = parent.prevAll("." + bba.options.classes.bbox).length;
+
+        // We want to prevent the selector mode from firing from "free"
+        bba.state.mode = "close"
 
         // Delete the entry from the annotator
         bba.delete_entry(index);
       });
+
+      // Register event for when the close button is selected for a specific bbox
+      element.rotate.mousedown(function(event) {
+        var index;
+
+        // Find the parent bbox of the close button and the bbox's index
+        parent = $(this).parent("." + bba.options.classes.bbox)
+        index = parent.prevAll("." + bba.options.classes.bbox).length;
+
+        // We want to prevent the selector mode from firing from "free"
+        bba.state.mode = "rotate"
+        document.onselectstart = function() {
+          return false;
+        };
+        bba.anchor_update(event);
+      });
     };
-
-
-///////////////
-///////////////
-///////////////
-///////////////
-
-    BBoxAnnotator.prototype.selector_start = function(pageX, pageY) {
-        this.bbs.start(pageX, pageY);
-        this.state.status = "hold";
-        this.state.adding = true;
-        this.state.editing = false;
-    };
-
-
-    BBoxAnnotator.prototype.selector_finish = function() {
-      var data;
-      switch (this.state.status) {
-        case "input":
-          data = this.bbs.finish();
-          this.add_entry(data);
-          this.state.status = "free";
-      }
-      this.state.adding = false;
-      this.state.moving = true;
-      return true;
-    };
-
-    BBoxAnnotator.prototype.update_style_hover = function(box_element, text_box, resizable_button, rotate_button, close_button)
-    {
-        box_element.css("outline", "none");
-        box_element.css("border-color", this.options.colors.hover);
-        box_element.css("opacity", "1.0");
-        box_element.css("cursor", "move");
-        box_element.css("background-color", "rgba(0, 0, 0, 0.2)");
-        box_element.addClass("ia-annotated-bounding-box-active");
-        box_element.removeClass("ia-annotated-bounding-box-target");
-        text_box.css("background-color", this.options.colors.hover);
-        text_box.css("opacity", "1.0");
-        text_box.css("color", "black");
-
-        resizable_button.show();
-        rotate_button.show();
-        close_button.show();
-    }
-
-    BBoxAnnotator.prototype.update_style_editing = function(box_element, text_box, resizable_button, rotate_button, close_button)
-    {
-        box_element.css("outline", "none");
-        box_element.css("border-color", this.options.colors.default);
-        box_element.css("opacity", "0.8");
-        box_element.css("cursor", "crosshair");
-        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-        box_element.removeClass("ia-annotated-bounding-box-active");
-        box_element.removeClass("ia-annotated-bounding-box-target");
-        text_box.css("background-color", this.options.colors.default);
-        text_box.css("opacity", "0.8");
-        text_box.css("color", "black");
-
-        resizable_button.show();
-        rotate_button.hide();
-        close_button.hide();
-    }
-
-    BBoxAnnotator.prototype.update_style_target = function(box_element, text_box, resizable_button, rotate_button, close_button)
-    {
-        box_element.css("outline", "1000px solid rgba(0, 0, 0, 0.2)");
-        box_element.css("border-color", this.options.colors.target);
-        box_element.css("opacity", "1.0");
-        box_element.css("cursor", "cell");
-        box_element.css("background-color", "rgba(0, 0, 0, 0.0)");
-        box_element.addClass("ia-annotated-bounding-box-target");
-        text_box.css("background-color", this.options.colors.target);
-        text_box.css("opacity", "1.0");
-        text_box.css("color", "white");
-        $(".ia-annotated-bounding-box").not(".ia-annotated-bounding-box-target").css("visibility", "hidden");
-
-        rotate_button.hide();
-        resizable_button.hide();
-        close_button.hide();
-    }
-
-    BBoxAnnotator.prototype.update_theta = function(entry, theta)
-    {
-        function mod(x, n) {
-          // Javascript % is not modulus, it is remainder (wtf?)
-          return ((x % n) + n) % n;
-        }
-        entry["theta"] = mod(theta, 2.0 * Math.PI);
-        this.refresh();
-    }
-
-
-
-
 
     BBoxAnnotator.prototype.register_global_event_bindings = function(selector, options) {
       var bba;
 
       bba = this;
 
-      this.hit_menuitem = false;
-
-
+      // Resize the container dynamically, as needed, when the window resizes
       $(window).bind("resize", function(){
         bba.resize();
       });
 
+      // Catch when a mouse down event happens inside (and only inside) the container
+      this.elements.container.mousedown(function(event) {
+        console.log('CONTAINER MOUSEDOWN ' + bba.state.mode)
 
-      $(window).keydown(function(e) {
-        console.log('WINDOW KEYDOWN')
+        if(bba.state.mode != "rotate" && bba.state.mode != "resize") {
+          bba.drag_start();
+        }
+      });
 
-        if(e.which === 27 || e.which === 75 || e.which === 8)
-        {
-          // Esc
-          bba.state.adding = false;
-          bba.state.editing = false;
+      // Catch the event when the mouse moves
+      $(window).mousemove(function(event) {
+        // console.log('WINDOW MOUSEMOVE ' + bba.state.mode)
+
+        if(bba.state.mode == "selector") {
+          // Update the active BBoxSelector location
+          bba.selector_update(event);
+        }
+        else if(bba.state.drag && bba.state.mode != "drag") {
+          // We are dragging the cursor, move the entry if hovered
+          if(bba.state.hover !== null) {
+            bba.state.mode = "drag"
+            bba.anchor_update(event);
+          }
+          else {
+            // This happens when we mousedown over nothing then drag over a bbox
+            bba.state.mode = "junk"
+            bba.drag_finish();
+          }
         }
 
-        switch (bba.state.status) {
+        // If we are modifying a bounding box via a drag, notify that the mouse has moved
+        if(bba.state.mode == "drag") {
+          bba.move_entry(event);
+        }
+
+        // If we are rotating a bounding box via a drag, notify the bbox that the mouse has moved
+        if(bba.state.mode == "rotate") {
+          bba.rotate_entry(event);
+        }
+      });
+
+      // Catch the mouse up event (wherever it may appear on the screen)
+      $(window).mouseup(function(event) {
+        console.log('CONTAINER MOUSEUP ' + bba.state.mode)
+
+        if(bba.state.mode == "free") {
+          bba.selector_start(event);
+        }
+        else if(bba.state.mode == "selector") {
+          bba.selector_stage(event)
+        }
+        else if (bba.state.mode == "drag") {
+          bba.state.mode = "free"
+        }
+        else if (bba.state.mode == "rotate") {
+          document.onselectstart = null;
+          bba.state.mode = "free"
+        }
+        else if (bba.state.mode == "close") {
+          bba.state.mode = "free"
+        }
+        else if (bba.state.mode == "junk") {
+          bba.state.mode = "free"
+        }
+
+        bba.drag_finish();
+      });
+    };
+
+
+
+///////////////
+///////////////
+///////////////
+///////////////
+
+
+
+    BBoxAnnotator.prototype.register_global_key_bindings = function(selector, options) {
+      var bba;
+
+      bba = this;
+
+      $(window).keydown(function(event) {
+        console.log('WINDOW KEYDOWN ' + bba.state.mode)
+
+        switch (bba.state.mode) {
           case "hold":
-            if (e.which === 27 || e.which === 75 || e.which === 8) {
-              data = bba.bbs.finish();
-              bba.state.adding = false;
-              bba.state.status = "free";
+            if (event.which === 27 || event.which === 75 || event.which === 8) {
+              bba.selector_cancel(event);
             }
             break;
           case "free":
@@ -833,12 +1196,12 @@
             {
               index = active_box.prevAll(".ia-annotated-bounding-box").length;
               move = 1.0
-              if(e.shiftKey) {
+              if(event.shiftKey) {
                 move *= 10.0;
               }
               img_width = parseInt(bba.elements.frame.css("width"));
               img_height = parseInt(bba.elements.frame.css("height"));
-              if(e.which === 27 || e.which === 75 || e.which === 8)
+              if(event.which === 27 || event.which === 75 || event.which === 8)
               {
                 if(bba.state.targeting)
                 {
@@ -862,7 +1225,7 @@
                 }
               }
 
-              if(e.which === 66)
+              if(event.which === 66)
               {
                 // Send to front
                 temp = active_box.detach();
@@ -872,7 +1235,7 @@
                 bba.refresh();
               }
 
-              if(e.which === 37)
+              if(event.which === 37)
               {
                 // Left
                 proposed = parseFloat(active_box.css("left")) - move;
@@ -882,7 +1245,7 @@
                 entry.left = proposed;
                 bba.refresh();
               }
-              else if(e.which === 38)
+              else if(event.which === 38)
               {
                 // Up
                 proposed = parseFloat(active_box.css("top")) - move;
@@ -891,10 +1254,10 @@
                 entry = bba.entries[index];
                 entry.top = proposed;
                 bba.refresh();
-                    e.preventDefault();
+                event.preventDefault();
                 return false;
               }
-              else if(e.which === 39)
+              else if(event.which === 39)
               {
                 // Right
                 proposed = parseFloat(active_box.css("left")) + move;
@@ -904,7 +1267,7 @@
                 entry.left = proposed;
                 bba.refresh();
               }
-              else if(e.which === 40)
+              else if(event.which === 40)
               {
                 // Down
                 proposed = parseFloat(active_box.css("top")) + move;
@@ -913,133 +1276,13 @@
                 entry = bba.entries[index];
                 entry.top  = proposed;
                 bba.refresh();
-                e.preventDefault();
+                event.preventDefault();
                 return false;
               }
             }
         }
       });
-
-      this.elements.container.mousedown(function(e) {
-        console.log('CONTAINER MOUSEDOWN')
-
-        if( bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 1))
-        {
-          $(".ia-annotated-bounding-box").css("opacity", "1.00");
-        }
-
-        if (!bba.hit_menuitem) {
-          switch (bba.state.status) {
-            case "free":
-            case "input":
-              if (bba.state.status === "input") {
-                bba.selector_finish();
-              }
-              if (e.which === 1) {
-                bba.selector_start(e.pageX, e.pageY);
-              }
-              else if (e.which === 3) {
-                // pass
-              }
-              break;
-            case "hold":
-              bba.bbs.update_cursor(e.pageX, e.pageY);
-              if(bba.bbs.options.mode == "rectangle")
-              {
-                bba.state.status = "input";
-                bba.selector_finish();
-              }
-              else
-              {
-                if(bba.bbs.current_stage == 0)
-                {
-                  bba.bbs.stage(e.pageX, e.pageY)
-                }
-                else
-                {
-                  bba.bbs.current_stage = 2
-                  // bba.state.adding = false
-                  bba.state.status = "input";
-                  bba.selector_finish();
-                }
-              }
-          }
-        }
-        else if (bba.hit_menuitem)
-        {
-            switch (bba.state.status) {
-                case "free":
-                case "input":
-                    if (e.which === 1) {
-                      // pass
-                    }
-                    else if (e.which === 3) {
-                        bba.state.editing = true;
-                        $(".ia-label-text-box").css("opacity", "0.0");
-                    }
-            }
-        }
-        else if(!bba.state.editing)
-        {
-          // bba.hit_menuitem = false;
-        }
-        return true;
-      });
-
-      this.elements.container.mouseup(function(e) {
-        console.log('CONTAINER MOUSEUP')
-
-        if(bba.bbs.options.mode == "rectangle" || (! bba.bbs.options.mode == "rectangle" && bba.bbs.current_stage == 2))
-        {
-          $(".ia-annotated-bounding-sbox").css("opacity", "1.00");
-          $(".ia-label-text-box").css("opacity", "0.8");
-        }
-
-        switch (bba.state.status) {
-          case "hold":
-            bba.bbs.update_cursor(e.pageX, e.pageY);
-            if(bba.bbs.options.mode == "rectangle")
-            {
-              bba.state.adding = false;
-              bba.state.status = "input";
-              bba.selector_finish();
-            }
-            else
-            {
-              if(bba.bbs.current_stage == 2)
-              {
-                bba.state.adding = false;
-                bba.state.status = "input";
-                bba.selector_finish();
-              }
-            }
-        }
-        return true;
-      });
-
-      $(window).mousemove(function(e) {
-        // console.log('WINDOW MOUSEMOVE')
-
-        if(bba.state.editing)
-        {
-          bba.state.moving = true;
-        }
-
-        switch (bba.state.status) {
-          case "hold":
-            bba.bbs.update_cursor(e.pageX, e.pageY);
-            $(".ia-annotated-bounding-box").css("opacity", "0.25");
-            $(".ia-label-text-box").css("opacity", "0.0");
-        }
-        return true;
-      });
-
-
-      this.resize();
     };
-
-
-
 
     return BBoxAnnotator;
 
