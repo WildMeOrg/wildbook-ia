@@ -16,6 +16,91 @@ except ImportError:
     print('Warning: pyflann failed to import')
 
 
+class AnnoyWrapper(object):
+    """
+    Wrapper for annoy to use the FLANN api
+    """
+    def __init__(self):
+        self.ann = None
+        self.params = {
+            'trees': 8,
+            'checks': 512,
+        }
+
+    def build_index(self, dvecs, **kwargs):
+        import annoy
+        self.params.update(kwargs)
+        self.ann = annoy.AnnoyIndex(f=dvecs.shape[1], metric='euclidean')
+        for i, dvec in enumerate(dvecs):
+            ann.add_item(i, dvec)
+        ann.build(n_trees=self.params['trees'])
+
+    def nn_index(self, qvecs, num_neighbs, checks=None):
+        if checks is None:
+            checks = self.params['checks']
+        idxs = np.empty((len(qvecs), num_neighbs), dtype=np.int)
+        dists = np.empty((len(qvecs), num_neighbs), dtype=np.float)
+        for i, qvec in enumerate(qvecs):
+            idxs[i], dists[i] = ann.get_nns_by_vector(
+                qvec, n=num_neighbs, search_k=checks, include_distances=True)
+        return idxs, dists
+
+
+def test_annoy():
+    from vtool.tests import dummy
+    import pyflann
+    import annoy
+    import utool
+    qvecs = dummy.testdata_dummy_sift(2 * 1000)
+    dvecs = dummy.testdata_dummy_sift(100 * 1000)
+    dim = dpts.shape[1]
+
+    checks = 200
+    num_neighbs = 10
+    num_trees = 8
+
+    trials = 10
+
+    for timer in utool.Timerit(trials, label='build annoy'):
+        with timer:
+            ann = annoy.AnnoyIndex(dim, metric='euclidean')
+            for i, vec in enumerate(dvecs):
+                ann.add_item(i, vec)
+            ann.build(n_trees=num_trees)
+
+    for timer in utool.Timerit(trials, label='annoy query'):
+        with timer:
+            for qvec in qvecs:
+                ann.get_nns_by_vector(qvec, n=num_neighbs, search_k=checks,
+                                      include_distances=True)
+
+    # ---------------
+
+    for timer in utool.Timerit(trials, label='build flann'):
+        with timer:
+            flann = pyflann.FLANN()
+            flann.build_index(dvecs, algorithm='kdtree', trees=num_trees,
+                              checks=checks, cores=1)
+
+    for timer in utool.Timerit(trials, label='flann query'):
+        with timer:
+            flann.nn_index(qvecs, num_neighbs, checks=checks)
+
+    # ---------------
+
+    for timer in utool.Timerit(trials, label='build annoy wrapper'):
+        with timer:
+            index = AnnoyWrapper()
+            index.build_index(dvecs, trees=num_trees, checks=checks)
+
+    for timer in utool.Timerit(trials, label='query annoy wrapper'):
+        with timer:
+            index.nn_index(qvecs, num_neighbs, checks=checks)
+
+
+
+
+
 def test_cv2_flann():
     """
     Ignore:
