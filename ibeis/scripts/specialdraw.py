@@ -1336,11 +1336,13 @@ def draw_inconsistent_pcc():
         4: ( 0,  0),
         2: (100,  0),
     })
+    fnum = 1
     infr.set_node_attrs('pin', True)
     # infr.set_node_attrs('fixed_size', False)
     # infr.set_node_attrs('scale', .1)
     # infr.set_node_attrs('width', 16)
-    infr.show(show_inconsistency=False, simple_labels=True, pickable=True)
+    infr.show(show_inconsistency=False, simple_labels=True, pickable=True,
+              pnum=(1, 2, 1), fnum=fnum)
     ax = pt.gca()
     truth_colors = infr._get_truth_colors()
     from ibeis.algo.graph.state import POSTV, NEGTV
@@ -1348,7 +1350,20 @@ def draw_inconsistent_pcc():
     pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
     # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
     pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
+    ax.set_aspect('equal')
+
+    infr.show(show_inconsistency=True, simple_labels=True, pickable=True,
+              pnum=(1, 2, 2), fnum=fnum)
+    ax = pt.gca()
+    truth_colors = infr._get_truth_colors()
+    from ibeis.algo.graph.state import POSTV, NEGTV
+    pt.append_phantom_legend_label('positive', truth_colors[POSTV], ax=ax)
+    pt.append_phantom_legend_label('negative', truth_colors[NEGTV], ax=ax)
+    pt.append_phantom_legend_label('hypothesis', infr._error_color, ax=ax)
+    # pt.append_phantom_legend_label('incomparble', truth_colors[INCMP], ax=ax)
+    pt.show_phantom_legend_labels(size=infr.graph.graph['fontsize'])
     # ax.set_aspect('equal')
+    ax.set_aspect('equal')
     ut.show_if_requested()
 
 

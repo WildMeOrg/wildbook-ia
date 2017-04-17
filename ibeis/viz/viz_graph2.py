@@ -1536,7 +1536,22 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         name_stats_df = infr.name_group_stats()
         name_delta_stats_df = infr.ibeis_name_group_delta_info()
 
-        msg = infr.ibeis_delta_msg(edge_delta_df, name_delta_df)
+        info = infr.ibeis_delta_info(edge_delta_df, name_delta_df)
+        msg = ut.codeblock(
+            '''
+            Are you sure this is correct?
+            strictly split {num_old_split} into {num_new_split} names.
+            strictly merged {num_old_merge} into {num_new_merge} names.
+            hybrid split/merged {num_old_hybrid} into {num_new_hybrid} names.
+            #annot_names_changed={num_annots_with_names_changed}
+            #edges_added={num_edges_added}
+            #edges_modified={num_edges_modified}
+            #inconsistent:consistent={num_inconsistent}:{num_consistent}
+            #redundant:nonredundant={num_pos_redun}:{num_non_pos_redun}
+            ''').format(**info)
+        #tags_modified={num_changed_tags}
+        #tags+decisions_modified={num_changed_decision_and_tags}
+        #decision_modified={num_changed_decision}
 
         lines = []
         print_ = lines.append

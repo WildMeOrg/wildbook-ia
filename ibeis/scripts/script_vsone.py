@@ -87,7 +87,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def __init__(pblm, qreq_=None, ibs=None, defaultdb=None,
                  qaid_override=None, daid_override=None, verbose=None):
         if defaultdb is None:
-            defaultdb = 'PZ_PB_RF_TRAIN'
+            # defaultdb = 'PZ_PB_RF_TRAIN'
+            defaultdb = 'GZ_Master1'
 
         pblm.default_clf_key = 'RF'
         pblm.default_data_key = 'learn(sum,glob)'
@@ -1417,24 +1418,10 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
 AnnotPairFeatInfo = vt.AnnotPairFeatInfo
 
 
-def build_features(qreq_, hyper_params):
-    """
-    Cached output of one-vs-one matches
-
-    Example:
-        >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem()
-        >>> qreq_ = pblm.qreq_
-        >>> hyper_params = pblm.hyper_params
-    """
-    import pandas as pd
+def build_training_pairs(qreq_, hyper_params):
+    # Get a set of training pairs
     import vtool as vt
     import ibeis
-
-    # ==================================
-    # Compute or load one-vs-one results
-    # ==================================
-    # Get a set of training pairs
     ibs = qreq_.ibs
     cm_list = qreq_.execute()
     infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
@@ -1450,6 +1437,26 @@ def build_features(qreq_, hyper_params):
     aid_pairs = ut.lmap(tuple, vt.unique_rows(aid_pairs).tolist())
     # Keep only a random subset
     assert hyper_params.subsample is None
+    return infr, aid_pairs
+
+
+def build_features(qreq_, hyper_params):
+    """
+    Cached output of one-vs-one matches
+
+    Example:
+        >>> from ibeis.scripts.script_vsone import *  # NOQA
+        >>> pblm = OneVsOneProblem()
+        >>> qreq_ = pblm.qreq_
+        >>> hyper_params = pblm.hyper_params
+    """
+    import pandas as pd
+
+    infr, aid_pairs = build_training_pairs(qreq_, hyper_params)
+
+    # ==================================
+    # Compute or load one-vs-one results
+    # ==================================
 
     config = hyper_params.vsone_assign
     pairfeat_cfg = hyper_params.pairwise_feats

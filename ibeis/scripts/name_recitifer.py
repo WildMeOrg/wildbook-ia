@@ -184,6 +184,22 @@ def testdata_oldnames(n_incon_groups=10, n_con_groups=2, n_per_con=5,
 
 def simple_munkres(part_oldnames):
     """
+    Defines a munkres problem to solve name rectification.
+
+    Notes:
+        We create a matrix where each rows represents a group of annotations in
+        the same PCC and each column represents an original name. If there are
+        more PCCs than original names the columns are padded with extra values.
+        The matrix is first initialized to be negative infinity representing
+        impossible assignments. Then for each column representing a padded
+        name, we set we its value to $1$ indicating that each new name could be
+        assigned to a padded name for some small profit.  Finally, let $f_{rc}$
+        be the the number of annotations in row $r$ with an original name of
+        $c$. Each matrix value $(r, c)$ is set to $f_{rc} + 1$ if $f_{rc} > 0$,
+        to represent how much each name ``wants'' to be labeled with a
+        particular original name, and the extra one ensures that these original
+        names are always preferred over padded names.
+
     CommandLine:
         python -m ibeis.scripts.name_recitifer simple_munkres
 
@@ -207,67 +223,90 @@ def simple_munkres(part_oldnames):
         [None, 'a', None, 'b', None]
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.name_recitifer import *  # NOQA
-        >>> grouped_oldnames = [['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
-        >>> new_names = find_consistent_labeling(grouped_oldnames)
+        >>> part_oldnames = [[], ['b'], ['a', 'b', 'c'], ['b', 'c'], ['c', 'e', 'e']]
+        >>> new_names = find_consistent_labeling(part_oldnames)
         >>> result = ut.repr2(new_names)
         >>> print(new_names)
-        ['a', 'b', 'e']
+        ['_extra_name0', 'b', 'a', 'c', 'e']
+
+        Profit Matrix
+            b   a   c   e  _0
+        0 -10 -10 -10 -10   1
+        1   2 -10 -10 -10   1
+        2   2   2   2 -10   1
+        3   2 -10   2 -10   1
+        4 -10 -10   2   3   1
     """
-    import utool
-    with utool.embed_on_exception_context:
-        import numpy as np
-        import scipy.optimize
-        unique_old_names = ut.unique(ut.flatten(part_oldnames))
-        num_new_names = len(part_oldnames)
-        num_old_names = len(unique_old_names)
+    import numpy as np
+    import scipy.optimize
+    unique_old_names = ut.unique(ut.flatten(part_oldnames))
+    num_new_names = len(part_oldnames)
+    num_old_names = len(unique_old_names)
 
-        # Create padded dummy values.  This accounts for the case where it is
-        # impossible to uniquely map to the old db
-        num_pad = max(num_new_names - num_old_names, 0)
-        total = num_old_names + num_pad
-        shape = (total, total)
+    # Create padded dummy values.  This accounts for the case where it is
+    # impossible to uniquely map to the old db
+    num_pad = max(num_new_names - num_old_names, 0)
+    total = num_old_names + num_pad
+    shape = (total, total)
 
-        # Allocate assignment matrix.
-        # rows are new-names and cols are old-names.
-        # Initially the profit of any assignment is effectively -inf
-        # This effectively marks all assignments as invalid
-        profit_matrix = np.full(shape, -2 * total, dtype=np.int)
-        # Overwrite valid assignments with positive profits
-        oldname2_idx = ut.make_index_lookup(unique_old_names)
-        name_freq_list = [ut.dict_hist(names) for names in part_oldnames]
-        # Initialize profit of a valid assignment as 1 + freq
-        # This incentivizes using a previously used name
-        for rowx, name_freq in enumerate(name_freq_list):
-            for name, freq in name_freq.items():
-                colx = oldname2_idx[name]
-                profit_matrix[rowx, colx] = freq + 1
-        # Set a much smaller profit for using an extra name
-        # This allows the solution to always exist
-        profit_matrix[:, num_old_names:total] = 1
+    # Allocate assignment matrix.
+    # rows are new-names and cols are old-names.
+    # Initially the profit of any assignment is effectively -inf
+    # This effectively marks all assignments as invalid
+    profit_matrix = np.full(shape, -2 * total, dtype=np.int)
+    # Overwrite valid assignments with positive profits
+    oldname2_idx = ut.make_index_lookup(unique_old_names)
+    name_freq_list = [ut.dict_hist(names) for names in part_oldnames]
+    # Initialize profit of a valid assignment as 1 + freq
+    # This incentivizes using a previously used name
+    for rowx, name_freq in enumerate(name_freq_list):
+        for name, freq in name_freq.items():
+            colx = oldname2_idx[name]
+            profit_matrix[rowx, colx] = freq + 1
+    # Set a much smaller profit for using an extra name
+    # This allows the solution to always exist
+    profit_matrix[:, num_old_names:total] = 1
 
-        # Convert to minimization problem
-        big_value = (profit_matrix.max()) - (profit_matrix.min())
-        cost_matrix = big_value - profit_matrix
+    # Convert to minimization problem
+    big_value = (profit_matrix.max()) - (profit_matrix.min())
+    cost_matrix = big_value - profit_matrix
 
-        # Use scipy implementation of munkres algorithm.
-        rx2_cx = dict(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
+    # Use scipy implementation of munkres algorithm.
+    rx2_cx = dict(zip(*scipy.optimize.linear_sum_assignment(cost_matrix)))
 
-        # Each row (new-name) has now been assigned a column (old-name)
-        # Map this back to the input-space (using None to indicate extras)
-        cx2_name = dict(enumerate(unique_old_names))
+    # Each row (new-name) has now been assigned a column (old-name)
+    # Map this back to the input-space (using None to indicate extras)
+    cx2_name = dict(enumerate(unique_old_names))
 
-        assignment_ = [cx2_name.get(rx2_cx[rx], None)
-                       for rx in range(num_new_names)]
-        return assignment_
+    if False:
+        import pandas as pd
+        columns = unique_old_names + ['_%r' % x for x in range(num_pad)]
+        print('Profit Matrix')
+        print(pd.DataFrame(profit_matrix, columns=columns))
+
+        print('Cost Matrix')
+        print(pd.DataFrame(cost_matrix, columns=columns))
+
+    assignment_ = [cx2_name.get(rx2_cx[rx], None)
+                   for rx in range(num_new_names)]
+    return assignment_
 
 
 def find_consistent_labeling(grouped_oldnames, extra_prefix='_extra_name',
                              verbose=False):
     r"""
     Solves a a maximum bipirtite matching problem to find a consistent
-    name assignment.
+    name assignment that minimizes the number of annotations with different
+    names. For each new grouping of annotations we assign
+
+    For each group of annotations we must assign them all the same name, either from
+
+
+
+
+    To reduce the running time
 
     Args:
         gropued_oldnames (list): A group of old names where the grouping is

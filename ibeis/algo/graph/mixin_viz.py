@@ -25,6 +25,11 @@ class GraphVisualization(object):
         }
         return truth_colors
 
+    @property
+    def _error_color(infr):
+        import plottool as pt
+        return pt.ORANGE
+
     def _get_cmap(infr):
         import plottool as pt
         # return pt.plt.cm.RdYlBu
@@ -354,7 +359,7 @@ class GraphVisualization(object):
         #     {'linewidth': 3, 'foreground': fg}]))
         if show_inconsistency:
             nx_set_edge_attrs(graph, 'stroke', ut.dzip(recheck_edges, [
-                {'linewidth': 5, 'foreground': pt.ORANGE}]))
+                {'linewidth': 5, 'foreground': infr._error_color}]))
 
         # Cut edges are implicit and dashed
         # nx_set_edge_attrs(graph, 'implicit', ut.dzip(cut_edges, [True]))

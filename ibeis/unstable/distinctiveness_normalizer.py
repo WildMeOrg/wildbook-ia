@@ -2,11 +2,12 @@
 """
 External mechanism for computing feature distinctiveness
 
+DEPRICATE
+
 stores some set of vectors which lose their association with
 their parent.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import vtool as vt
 import utool as ut
 import numpy as np
 from six.moves import map
@@ -234,8 +235,8 @@ class DistinctivnessNormalizer(ut.Cachable):
         dstcnvs_normer.rebuild(verbose=verbose)
 
     def rebuild(dstcnvs_normer, verbose=True, quiet=False):
-        dstcnvs_normer.flann = vt.build_flann_index(
-            dstcnvs_normer.vecs, dstcnvs_normer.flann_params, verbose=verbose)
+        # dstcnvs_normer.flann = vt.build_flann_index(
+        #     dstcnvs_normer.vecs, dstcnvs_normer.flann_params, verbose=verbose)
         if dstcnvs_normer.vecs.dtype == hstypes.VEC_TYPE:
             dstcnvs_normer.max_distance = hstypes.VEC_PSEUDO_MAX_DISTANCE
             dstcnvs_normer.max_distance_sqrd = dstcnvs_normer.max_distance ** 2
