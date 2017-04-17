@@ -317,7 +317,6 @@ def get_flann_cfgstr(dpts, flann_params, cfgstr='', use_params_hash=True,
     return flann_cfgstr
 
 
-#@ut.indent_func
 def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
                     use_params_hash=True, use_data_hash=True, appname='vtool',
                     verbose=True):
@@ -338,51 +337,6 @@ def get_flann_fpath(dpts, cache_dir='default', cfgstr='', flann_params={},
     return flann_fpath
 
 
-def build_flann_index(dpts, flann_params, verbose=True, flann=None):
-    """
-    build flann with some verbosity
-
-    Args:
-        dpts (ndarray): database vectors
-        flann_params (dict):
-        verbose (bool):  verbosity flag
-        flann (None): outvar
-
-    Returns:
-        pyflann.FLANN: flann
-
-    CommandLine:
-        python -m vtool.nearest_neighbors --test-build_flann_index
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.nearest_neighbors import *  # NOQA
-        >>> # build test data
-        >>> dpts = '?'
-        >>> flann_params = '?'
-        >>> verbose = True
-        >>> flann = None
-        >>> # execute function
-        >>> flann = build_flann_index(dpts, flann_params, verbose, flann)
-        >>> # verify results
-        >>> result = str(flann)
-        >>> print(result)
-    """
-    num_dpts = len(dpts)
-    if flann is None:
-        flann = pyflann.FLANN()
-    if verbose > 1 or (verbose > 0 and num_dpts > 1E6):
-        print('...building kdtree over %d points (this may take a sec).' % num_dpts)
-    if num_dpts == 0:
-        print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
-        return flann
-    sys.stdout.flush()
-    ut.util_logging.__UTOOL_FLUSH__()
-    flann.build_index(dpts, **flann_params)
-    return flann
-
-
-#@ut.indent_func
 def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
                 use_cache=True, save=True, use_params_hash=True,
                 use_data_hash=True, appname='vtool', verbose=None):
@@ -419,7 +373,15 @@ def flann_cache(dpts, cache_dir='default', cfgstr='', flann_params={},
     # Rebuild the index otherwise
     if verbose > 0:
         print('...flann cache miss.')
-    flann = build_flann_index(dpts, flann_params, verbose=verbose, flann=flann)
+    num_dpts = len(dpts)
+    if flann is None:
+        flann = pyflann.FLANN()
+    if verbose > 1 or (verbose > 0 and num_dpts > 1E6):
+        print('...building kdtree over %d points (this may take a sec).' % num_dpts)
+    if num_dpts == 0:
+        print('WARNING: CANNOT BUILD FLANN INDEX OVER 0 POINTS. THIS MAY BE A SIGN OF A DEEPER ISSUE')
+        return flann
+    flann.build_index(dpts, **flann_params)
     if verbose > 1:
         print('flann.save_index(%r)' % ut.path_ndir_split(flann_fpath, n=2))
     if save:

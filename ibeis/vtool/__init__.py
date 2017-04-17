@@ -58,7 +58,6 @@ from vtool import trig
 from vtool import math
 from vtool import matching
 from vtool import geometry
-from vtool import clustering
 from vtool import nearest_neighbors
 from vtool import clustering2
 from vtool import other
@@ -168,7 +167,7 @@ if DOELSE:
                              stack_multi_images2, stack_square_images, 
                              subpixel_values, testdata_imglist, warpAffine, 
                              warpHomog,) 
-    from vtool.histogram import (argsubmaxima, get_histinfo_str, 
+    from vtool.histogram import (argsubmax, argsubmaxima, get_histinfo_str, 
                                  hist_argmaxima, hist_argmaxima2, 
                                  hist_edges_to_centers, interpolate_submaxima, 
                                  interpolated_histogram, maxima_neighbors, 
@@ -182,14 +181,14 @@ if DOELSE:
                             GPSLONGITUDE_CODE, GPSTAGS, GPS_TAG_TO_GPSID, 
                             ORIENTATION_000, ORIENTATION_090, ORIENTATION_180, 
                             ORIENTATION_270, ORIENTATION_CODE, 
-                            ORIENTATION_DICT, ORIENTATION_UNDEFINED, 
-                            SENSITIVITYTYPE_CODE, TAGS, check_exif_keys, 
-                            convert_degrees, get_exif_dict, get_exif_dict2, 
-                            get_exif_tagids, get_exist, get_lat_lon, 
-                            get_orientation, get_orientation_str, get_unixtime, 
-                            make_exif_dict_human_readable, parse_exif_unixtime, 
-                            read_all_exif_tags, read_exif, read_exif_tags, 
-                            read_one_exif_tag,) 
+                            ORIENTATION_DICT, ORIENTATION_DICT_INVERSE, 
+                            ORIENTATION_UNDEFINED, SENSITIVITYTYPE_CODE, TAGS, 
+                            check_exif_keys, convert_degrees, get_exif_dict, 
+                            get_exif_dict2, get_exif_tagids, get_exist, 
+                            get_lat_lon, get_orientation, get_orientation_str, 
+                            get_unixtime, make_exif_dict_human_readable, 
+                            parse_exif_unixtime, read_all_exif_tags, read_exif, 
+                            read_exif_tags, read_one_exif_tag,) 
     from vtool.keypoint import (GRAVITY_THETA, KPTS_DTYPE, LOC_DIMS, ORI_DIM, 
                                 SCAX_DIM, SCAY_DIM, SHAPE_DIMS, SKEW_DIM, XDIM, 
                                 YDIM, augment_2x2_with_translation, cast_split, 
@@ -221,11 +220,10 @@ if DOELSE:
                                 extract_feature_from_patch, extract_features, 
                                 get_extract_features_default_params, 
                                 test_mser,) 
-    from vtool.linalg import (OLD_pdf_norm2d, TRANSFORM_DTYPE, 
-                              add_homogenous_coordinate, affine_around_mat3x3, 
-                              affine_around_mat3x3_old, affine_mat3x3, 
-                              det_ltri, dot_ltri, gauss2d_pdf, inv_ltri, 
-                              normalize, normalize_rows, random_affine_args, 
+    from vtool.linalg import (TRANSFORM_DTYPE, add_homogenous_coordinate, 
+                              affine_around_mat3x3, affine_mat3x3, det_ltri, 
+                              dot_ltri, gauss2d_pdf, inv_ltri, normalize, 
+                              normalize_rows, random_affine_args, 
                               random_affine_transform, 
                               remove_homogenous_coordinate, 
                               rotation_around_bbox_mat3x3, 
@@ -296,28 +294,29 @@ if DOELSE:
                             non_decreasing, non_increasing, 
                             strictly_decreasing, strictly_increasing, 
                             test_language_modulus,) 
-    from vtool.matching import (AssignTup, MatchTup2, MatchTup3, MatchingError, 
-                                PSEUDO_MAX_DIST, PSEUDO_MAX_DIST_SQRD, 
-                                PSEUDO_MAX_VEC_COMPONENT, PairwiseMatch, 
-                                SingleMatch, VSONE_DEFAULT_CONFIG, 
+    from vtool.matching import (AnnotPairFeatInfo, AssignTup, MatchTup2, 
+                                MatchTup3, MatchingError, PSEUDO_MAX_DIST, 
+                                PSEUDO_MAX_DIST_SQRD, PSEUDO_MAX_VEC_COMPONENT, 
+                                PairwiseMatch, VSONE_ASSIGN_CONFIG, 
+                                VSONE_DEFAULT_CONFIG, VSONE_PI_DICT, 
+                                VSONE_RATIO_CONFIG, VSONE_SVER_CONFIG, 
                                 assign_spatially_constrained_matches, 
                                 assign_unconstrained_matches, empty_neighbors, 
                                 ensure_fsv_list, ensure_metadata_dlen_sqrd, 
                                 ensure_metadata_feats, ensure_metadata_flann, 
-                                ensure_metadata_vsone, flag_symmetric_matches, 
-                                marge_matches, match_spatial_verification, 
+                                ensure_metadata_normxy, ensure_metadata_vsone, 
+                                flag_symmetric_matches, 
+                                gridsearch_match_operation, marge_matches, 
                                 namedtuple, normalized_nearest_neighbors, 
                                 ratio_test, spatially_constrained_ratio_match, 
                                 testdata_annot_metadata, 
-                                unconstrained_ratio_match, 
-                                vsone_feature_matching, 
-                                vsone_image_fpath_matching, vsone_matching,) 
+                                unconstrained_ratio_match,) 
     from vtool.geometry import (bbox_center, bbox_from_center_wh, 
                                 bbox_from_extent, bbox_from_verts, 
                                 bbox_from_xywh, bboxes_from_vert_list, 
                                 closest_point_on_bbox, closest_point_on_line, 
                                 closest_point_on_line_segment, 
-                                closest_point_on_verts, 
+                                closest_point_on_vert_segments, 
                                 cvt_bbox_xywh_to_pt1pt2, distance_to_lineseg, 
                                 draw_border, draw_verts, extent_from_bbox, 
                                 extent_from_verts, get_pointset_extent_wh, 
@@ -326,45 +325,36 @@ if DOELSE:
                                 scaled_verts_from_bbox, 
                                 scaled_verts_from_bbox_gen, union_extents, 
                                 verts_from_bbox, verts_list_from_bboxes_list,) 
-    from vtool.nearest_neighbors import (ann_flann_once, assign_to_centroids, 
-                                         build_flann_index, flann_augment, 
+    from vtool.nearest_neighbors import (AnnoyWrapper, ann_flann_once, 
+                                         assign_to_centroids, flann_augment, 
                                          flann_cache, 
                                          flann_index_time_experiment, 
                                          get_flann_cfgstr, get_flann_fpath, 
                                          get_flann_params, 
                                          get_flann_params_cfgstr, 
                                          get_kdtree_flann_params, 
-                                         invertible_stack, test_cv2_flann, 
-                                         tune_flann,) 
-    from vtool.clustering2 import (ANNOY, AnnoyWraper, CLUSTERS_FNAME, akmeans, 
-                                   akmeans_iterations, akmeans_plusplus_init, 
-                                   apply_grouping, apply_grouping_, 
-                                   apply_grouping_iter, apply_grouping_iter2, 
-                                   apply_jagged_grouping, 
-                                   approximate_assignments, 
-                                   approximate_distances, assert_centroids, 
-                                   cached_akmeans, compute_centroids, 
-                                   double_group, example_binary, 
-                                   find_duplicate_items, get_akmeans_cfgstr, 
+                                         invertible_stack, test_annoy, 
+                                         test_cv2_flann, tune_flann,) 
+    from vtool.clustering2 import (AnnoyWraper, apply_grouping, 
+                                   apply_grouping_, apply_grouping_iter, 
+                                   apply_grouping_iter2, apply_jagged_grouping, 
+                                   example_binary, find_duplicate_items, 
                                    group_indices, groupby, groupby_dict, 
                                    groupby_gen, groupedzip, 
-                                   initialize_centroids, invert_apply_grouping, 
+                                   invert_apply_grouping, 
                                    invert_apply_grouping2, 
                                    invert_apply_grouping3, jagged_group, 
-                                   k_means_pp_cv2, kmeans_plusplus_sklearn, 
-                                   plot_centroids, refine_akmeans, 
-                                   sparse_multiply_rows, sparse_normalize_rows, 
-                                   testdata_kmeans, tune_flann2, 
-                                   uniform_sample_hypersphere, 
+                                   plot_centroids, sorted_indices_ranges, 
+                                   tune_flann2, uniform_sample_hypersphere, 
                                    unsupervised_multicut_labeling,) 
     from vtool.distance import (L1, L2, L2_root_sift, L2_sift, L2_sift_sqrd, 
                                 L2_sqrd, OrderedDict, TEMP_VEC_DTYPE, 
                                 VALID_DISTS, bar_L2_sift, bar_cos_sift, 
                                 closest_point, compute_distances, cos_sift, 
-                                cosine_dist, det_distance, emd, haversine, 
-                                hist_isect, nearest_point, ori_distance, 
-                                pdist_argsort, pdist_indicies, safe_pdist, 
-                                signed_ori_distance, testdata_hist, 
+                                cosine_dist, cyclic_distance, det_distance, 
+                                emd, haversine, hist_isect, nearest_point, 
+                                ori_distance, pdist_argsort, pdist_indicies, 
+                                safe_pdist, signed_ori_distance, testdata_hist, 
                                 testdata_sift2, understanding_pseudomax_props, 
                                 wrapped_distance,) 
     from vtool.other import (and_lists, argsort_groups, argsort_records, 
@@ -398,17 +388,17 @@ if DOELSE:
                              norm01, or_lists, rebuild_partition, 
                              rowwise_operation, safe_cat, safe_div, 
                              safe_extreme, safe_max, safe_min, safe_vstack, 
-                             take2, to_undirected_edges, trytake, 
-                             unique_row_indexes, unique_rows, 
+                             structure_rows, take2, take_col_per_row, 
+                             to_undirected_edges, trytake, unique_row_indexes, 
+                             unique_rows, unstructure_rows, 
                              weighted_average_scoring, weighted_geometic_mean, 
                              weighted_geometic_mean_unnormalized, zipcat, 
                              zipcompress, zipcompress_safe, ziptake, 
                              zstar_value,) 
     from vtool.confusion import (ConfusionMetrics, draw_precision_recall_curve, 
-                                 draw_roc_curve, get_confusion_metrics, 
-                                 interact_roc_factory, 
+                                 draw_roc_curve, interact_roc_factory, 
                                  interpolate_precision_recall, 
-                                 interpolate_replbounds, 
+                                 interpolate_replbounds, nan_to_num, 
                                  testdata_scores_labels,) 
     from vtool.score_normalization import (ScoreNormVisualizeClass, 
                                            ScoreNormalizer, 
@@ -424,6 +414,7 @@ if DOELSE:
                                            test_score_normalization, 
                                            testdata_score_normalier,) 
     from vtool.blend import (blend_images, blend_images_average, 
+                             blend_images_average_stack, 
                              blend_images_mult_average, blend_images_multiply, 
                              gamma_adjust, gridsearch_addWeighted, 
                              gridsearch_image_function, testdata_blend,) 
@@ -434,9 +425,10 @@ if DOELSE:
     print, rrr, profile = utool.inject2(__name__, '[vtool]')
     
     
-    def reassign_submodule_attributes(verbose=True):
+    def reassign_submodule_attributes(verbose=1):
         """
-        why reloading all the modules doesnt do this I don't know
+        Updates attributes in the __init__ modules with updated attributes
+        in the submodules.
         """
         import sys
         if verbose and '--quiet' not in sys.argv:
@@ -462,19 +454,16 @@ if DOELSE:
                 setattr(vtool, attr, getattr(submod, attr))
     
     
-    def reload_subs(verbose=True):
+    def reload_subs(verbose=1):
         """ Reloads vtool and submodules """
         if verbose:
-            print('Reloading submodules')
-        rrr(verbose=verbose)
+            print('Reloading vtool submodules')
+        rrr(verbose > 1)
         def wrap_fbrrr(mod):
             def fbrrr(*args, **kwargs):
                 """ fallback reload """
-                if verbose:
-                    print('No fallback relaod for mod=%r' % (mod,))
-                # Breaks ut.Pref (which should be depricated anyway)
-                # import imp
-                # imp.reload(mod)
+                if verbose > 0:
+                    print('Auto-reload (using rrr) not setup for mod=%r' % (mod,))
             return fbrrr
         def get_rrr(mod):
             if hasattr(mod, 'rrr'):
@@ -483,29 +472,29 @@ if DOELSE:
                 return wrap_fbrrr(mod)
         def get_reload_subs(mod):
             return getattr(mod, 'reload_subs', wrap_fbrrr(mod))
-        get_rrr(image)(verbose=verbose)
-        get_rrr(histogram)(verbose=verbose)
-        get_rrr(image)(verbose=verbose)
-        get_rrr(exif)(verbose=verbose)
-        get_rrr(keypoint)(verbose=verbose)
-        get_rrr(features)(verbose=verbose)
-        get_rrr(linalg)(verbose=verbose)
-        get_rrr(patch)(verbose=verbose)
-        get_rrr(chip)(verbose=verbose)
-        get_rrr(spatial_verification)(verbose=verbose)
-        get_rrr(trig)(verbose=verbose)
-        get_rrr(math)(verbose=verbose)
-        get_rrr(matching)(verbose=verbose)
-        get_rrr(geometry)(verbose=verbose)
-        get_rrr(nearest_neighbors)(verbose=verbose)
-        get_rrr(clustering2)(verbose=verbose)
-        get_rrr(distance)(verbose=verbose)
-        get_rrr(other)(verbose=verbose)
-        get_rrr(confusion)(verbose=verbose)
-        get_rrr(score_normalization)(verbose=verbose)
-        get_rrr(blend)(verbose=verbose)
-        get_rrr(symbolic)(verbose=verbose)
-        rrr(verbose=verbose)
+        get_rrr(image)(verbose > 1)
+        get_rrr(histogram)(verbose > 1)
+        get_rrr(image)(verbose > 1)
+        get_rrr(exif)(verbose > 1)
+        get_rrr(keypoint)(verbose > 1)
+        get_rrr(features)(verbose > 1)
+        get_rrr(linalg)(verbose > 1)
+        get_rrr(patch)(verbose > 1)
+        get_rrr(chip)(verbose > 1)
+        get_rrr(spatial_verification)(verbose > 1)
+        get_rrr(trig)(verbose > 1)
+        get_rrr(math)(verbose > 1)
+        get_rrr(matching)(verbose > 1)
+        get_rrr(geometry)(verbose > 1)
+        get_rrr(nearest_neighbors)(verbose > 1)
+        get_rrr(clustering2)(verbose > 1)
+        get_rrr(distance)(verbose > 1)
+        get_rrr(other)(verbose > 1)
+        get_rrr(confusion)(verbose > 1)
+        get_rrr(score_normalization)(verbose > 1)
+        get_rrr(blend)(verbose > 1)
+        get_rrr(symbolic)(verbose > 1)
+        rrr(verbose > 1)
         try:
             # hackish way of propogating up the new reloaded submodule attributes
             reassign_submodule_attributes(verbose=verbose)
