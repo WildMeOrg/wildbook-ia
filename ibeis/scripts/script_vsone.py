@@ -78,36 +78,25 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem()
+        >>> pblm = OneVsOneProblem(defaultdb='PZ_MTEST')
         >>> pblm.load_features()
         >>> pblm.load_samples()
     """
     appname = 'vsone_rf_train'
 
-    def __init__(pblm, qreq_=None, ibs=None, defaultdb=None,
-                 qaid_override=None, daid_override=None, verbose=None):
+    def __init__(pblm, ibs=None, defaultdb=None, aids=None, verbose=None):
         if defaultdb is None:
-            # defaultdb = 'PZ_PB_RF_TRAIN'
-            defaultdb = 'GZ_Master1'
-
+            defaultdb = 'PZ_PB_RF_TRAIN'
+            # defaultdb = 'GZ_Master1'
+        if verbose is None:
+            verbose = 2
         pblm.default_clf_key = 'RF'
         pblm.default_data_key = 'learn(sum,glob)'
         pblm.primary_task_key = 'match_state'
-
-        if verbose is None:
-            verbose = 2
         pblm.verbose = verbose
-        import ibeis
-        if qreq_ is None:
-            # ut.aug_sysargv('--db PZ_Master1')
-            qreq_ = ibeis.testdata_qreq_(
-                ibs=ibs, defaultdb=defaultdb, qaid_override=qaid_override,
-                daid_override=daid_override,
-                a=':mingt=3,species=primary',
-                t=('default:K=4,Knorm=1,requery=True,'
-                   'score_method=csum,prescore_method=csum'),
-                verbose=max(0, verbose - 1),
-            )
+        pblm.aids = aids
+        pblm.qreq_ = None
+
         hyper_params = dt.Config.from_dict(ut.odict([
             ('subsample', None),
             ('pair_sample', PairSampleConfig()),
@@ -116,22 +105,48 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         ]),
             tablename='HyperParams'
         )
-        if qreq_.qparams.featweight_enabled:
-            hyper_params.vsone_assign['weight'] = 'fgweights'
-            hyper_params.pairwise_feats['sorters'] = ut.unique(
-                hyper_params.pairwise_feats['sorters'] +
+        pblm.defaultdb = defaultdb
+        pblm.hyper_params = hyper_params
+        pblm.ibs = ibs
+
+    def load_samples(pblm):
+        if pblm.qreq_ is None:
+            import ibeis
+            qreq_ = ibeis.testdata_qreq_(
+                ibs=pblm.ibs, defaultdb=pblm.defaultdb, qaid_override=pblm.aids,
+                daid_override=pblm.aids,
+                a=':mingt=3,species=primary',
+                t=('default:K=4,Knorm=1,requery=True,'
+                   'score_method=csum,prescore_method=csum'),
+                verbose=max(0, pblm.verbose - 1),
+            )
+            pblm.qreq_ = qreq_
+        if pblm.qreq_.qparams.featweight_enabled:
+            pblm.hyper_params.vsone_assign['weight'] = 'fgweights'
+            pblm.hyper_params.pairwise_feats['sorters'] = ut.unique(
+                pblm.hyper_params.pairwise_feats['sorters'] +
                 [
                     'weighted_ratio',
                     # 'weighted_lnbnn'
                 ]
             )
         else:
-            hyper_params.vsone_assign['weight'] = None
+            pblm.hyper_params.vsone_assign['weight'] = None
+
+        pblm.ibs = qreq_.ibs
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
-        pblm.hyper_params = hyper_params
-        pblm.qreq_ = qreq_
-        pblm.ibs = qreq_.ibs
+
+        infr, aid_pairs = build_training_pairs(pblm.qreq_, pblm.hyper_params)
+
+        # WIP: make this happen before load_features
+        if pblm.verbose > 0:
+            print('[pblm] load_samples')
+        pblm.samples = AnnotPairSamples(
+            ibs=pblm.ibs,
+            simple_scores=copy.deepcopy(pblm.raw_simple_scores),
+            X_dict=copy.deepcopy(pblm.raw_X_dict),
+        )
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
@@ -261,15 +276,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.raw_aid_pairs = aid_pairs
         pblm.raw_X_dict = {'learn(all)': X_all}
         pblm.raw_simple_scores = simple_scores
-
-    def load_samples(pblm):
-        if pblm.verbose > 0:
-            print('[pblm] load_samples')
-        pblm.samples = AnnotPairSamples(
-            ibs=pblm.ibs,
-            simple_scores=copy.deepcopy(pblm.raw_simple_scores),
-            X_dict=copy.deepcopy(pblm.raw_X_dict),
-        )
 
     def evaluate_classifiers(pblm):
         """
