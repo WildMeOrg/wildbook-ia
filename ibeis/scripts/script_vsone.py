@@ -330,8 +330,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            # >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
-            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm.evaluate_classifiers()
         """
         pblm.setup_evaluation()

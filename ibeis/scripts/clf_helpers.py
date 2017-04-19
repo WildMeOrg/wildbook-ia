@@ -507,7 +507,8 @@ class ClfProblem(ut.NiceRepr):
         # TODO: add in params used to construct features into the cfgstr
         sample_hashid = pblm.samples.sample_hashid()
         feat_cfgstr = ut.hashstr_arr27(
-            pblm.samples.X_dict[data_key].columns.values, 'featdims')
+            pblm.samples.X_dict[data_key].columns.values.tolist(),
+            'featdims')
         # cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
         cfg_prefix = sample_hashid + feat_cfgstr
 
@@ -517,7 +518,8 @@ class ClfProblem(ut.NiceRepr):
         cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
                            data_key, clf_key])
 
-        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=5)
+        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=1)
+        # import ubelt as ub
         cacher_clf = ut.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
 
         data = cacher_clf.tryload()
@@ -563,7 +565,7 @@ class ClfProblem(ut.NiceRepr):
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
             X_train = X_df.iloc[train_idx].values
-            y_train = labels.encoded_df.iloc[train_idx].values
+            y_train = labels.encoded_df.iloc[train_idx].values.ravel()
             clf = clf_partial()
             clf.fit(X_train, y_train)
             # Evaluate results
