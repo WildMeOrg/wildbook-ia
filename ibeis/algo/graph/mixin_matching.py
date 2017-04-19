@@ -176,6 +176,10 @@ class AnnotInfrMatching(object):
 
     def _enriched_pairwise_matches(infr, edges, config={}, global_keys=None,
                                    need_lnbnn=True, prog_hook=None):
+        """
+        Adds extra domain specific local and global properties that the match
+        object doesnt directly provide.
+        """
         if global_keys is None:
             global_keys = ['yaw', 'qual', 'gps', 'time']
         matches = infr._exec_pairwise_match(edges, config=config,

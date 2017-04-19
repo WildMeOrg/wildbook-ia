@@ -46,22 +46,20 @@ class PairFeatureConfig(dt.Config):
         ut.ParamInfo('indices', slice(0, 26, 5)),
         ut.ParamInfo('summary_ops', {'sum', 'std', 'mean', 'len', 'med'}),
         ut.ParamInfo('local_keys', None),
-        # ut.ParamInfo('local_keys', [...]),
         ut.ParamInfo('sorters', [
             'ratio', 'norm_dist', 'match_dist'
             # 'lnbnn', 'lnbnn_norm_dist',
         ]),
+        # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
+        ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
+        # ut.ParamInfo('need_lnbnn', False),
 
-        # ut.ParamInfo('sum', True),
-        # ut.ParamInfo('std', True),
-        # ut.ParamInfo('mean', True),
-        # ut.ParamInfo('len', True),
         # ut.ParamInfo('med', True),
     ]
 
 
-class VsOneAssignConfig(dt.Config):
-    _param_info_list = vt.matching.VSONE_ASSIGN_CONFIG
+class VsOneMatchConfig(dt.Config):
+    _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG
 
 
 @ut.reloadable_class
@@ -100,13 +98,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params = dt.Config.from_dict(ut.odict([
             ('subsample', None),
             ('pair_sample', PairSampleConfig()),
-            ('vsone_assign', VsOneAssignConfig()),
+            ('vsone_match', VsOneMatchConfig()),
             ('pairwise_feats', PairFeatureConfig()),
             ('sample_search', dict(K=4, Knorm=1, requery=True,
                                    score_method='csum', prescore_method='csum')),
         ]),
             tablename='HyperParams'
         )
+        hyper_params['vsone_match']['ratio_thresh'] = .9
         pblm.hyper_params = hyper_params
 
     @classmethod
@@ -140,7 +139,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     def _fix_hyperparams(pblm, qreq_):
         if qreq_.qparams.featweight_enabled:
-            pblm.hyper_params.vsone_assign['weight'] = 'fgweights'
+            pblm.hyper_params.vsone_match['weight'] = 'fgweights'
             pblm.hyper_params.pairwise_feats['sorters'] = ut.unique(
                 pblm.hyper_params.pairwise_feats['sorters'] +
                 [
@@ -149,7 +148,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ]
             )
         else:
-            pblm.hyper_params.vsone_assign['weight'] = None
+            pblm.hyper_params.vsone_match['weight'] = None
 
     @profile
     def make_training_pairs(pblm):
@@ -242,12 +241,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
         # use_cache = False
-        cacher = ut.Cacher('pairwise_data_v14', cfgstr=cfgstr,
+        cacher = ut.Cacher('pairwise_data_v15', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose)
         data = cacher.tryload()
         if not data:
-            config = hyper_params.vsone_assign
+            config = hyper_params.vsone_match
             pairfeat_cfg = hyper_params.pairwise_feats
             need_lnbnn = False
             if need_lnbnn:
@@ -327,6 +326,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         CommandLine:
             python -m ibeis.scripts.script_vsone evaluate_classifiers
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
@@ -358,11 +358,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         ut.cprint('\n--- FEATURE INFO ---', 'blue')
         pblm.build_feature_subsets()
 
-        if 1:
-            for data_key in pblm.samples.X_dict.keys():
-                print('\nINFO(samples.X_dict[%s])' % (data_key,))
-                featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
-                print(ut.indent(featinfo.get_infostr()))
+        pblm.samples.print_featinfo()
 
         task_keys = list(pblm.samples.subtasks.keys())
         task_keys = [pblm.primary_task_key]
@@ -599,7 +595,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
         # print(featinfo.get_infostr())
         print('Building need features')
-        config = pblm.hyper_params.vsone_assign
+        config = pblm.hyper_params.vsone_match
         matches, X = infr._make_pairwise_features(
             candidate_edges, config=config, pairfeat_cfg=pairfeat_cfg,
             need_lnbnn=need_lnbnn)
@@ -654,14 +650,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             task_keys = [pblm.primary_task_key]
         # Construct the matches
         # TODO: move probability predictions into the depcache
-        config = pblm.hyper_params.vsone_assign
         prob_cfgstr = '_'.join([
             infr.ibs.dbname,
             ut.hashstr3(np.array(want_edges)),
             data_key,
             clf_key,
             repr(task_keys),
-            config.get_cfgstr()
+            pblm.hyper_params.vsone_match.get_cfgstr()
         ])
         cacher2 = ut.Cacher('full_eval_probs', prob_cfgstr,
                             appname=pblm.appname, verbose=20)
@@ -818,6 +813,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         Try to identify a useful subset of features to reduce problem
         dimensionality
+
+        CommandLine:
+            python -m ibeis.scripts.script_vsone build_feature_subsets --db GZ_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
+            >>> pblm.load_samples()
+            >>> pblm.load_features()
+            >>> pblm.build_feature_subsets()
+            >>> pblm.samples.print_featinfo()
         """
         if pblm.verbose:
             print('[pblm] build_feature_subsets')
@@ -862,6 +870,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ])
             cols.update(featinfo.select_columns([
                 ('measure_type', '==', 'global'),
+                    ('measure', 'not in', [
+                        'min_qual', 'max_qual'
+                    ]),
             ]))
             X_dict['learn(sum,glob)'] = featinfo.X[sorted(cols)]
 
@@ -874,7 +885,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 cols = set.difference(cols, view_cols)
                 X_dict['learn(sum,glob,-view)'] = featinfo.X[sorted(cols)]
 
-            if 1:
+            if 0:
                 cols = featinfo.select_columns([
                     ('measure_type', '==', 'summary'),
                 ])
@@ -883,6 +894,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 ]))
                 cols = [c for c in cols if 'lnbnn' not in c]
                 X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
+
+            if 1:
+                cols = featinfo.select_columns([
+                    ('measure_type', '==', 'global'),
+                    ('measure', 'not in', [
+                        'qual_1', 'qual_2', 'yaw_1', 'yaw_2', 'gps_1', 'gps_2',
+                        'time_1', 'time_2',
+                    ]),
+                ])
+                cols.update(featinfo.select_columns([
+                    ('measure_type', '==', 'summary'),
+                ]))
+                cols = [c for c in cols if 'lnbnn' not in c]
+                X_dict['learn(sum,glob,5)'] = featinfo.X[sorted(cols)]
 
         if True:
             # Only allow very specific summary features
@@ -975,13 +1000,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             #     ]))
             #     X_dict['learn(loc,sum,glob,5)'] = featinfo.X[sorted(cols)]
         pblm.samples.X_dict = X_dict
-
-    def print_featinfo(pblm, data_key=None):
-        if data_key is None:
-            data_key = pblm.default_data_key
-        X = pblm.samples.X_dict[data_key]
-        featinfo = AnnotPairFeatInfo(X)
-        print(featinfo.get_infostr())
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """
@@ -1210,7 +1228,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             vt.matching.ensure_metadata_normxy(annot1)
             vt.matching.ensure_metadata_normxy(annot2)
             match = vt.PairwiseMatch(annot1, annot2)
-            cfgdict = pblm.hyper_params.vsone_assign.asdict()
+            cfgdict = pblm.hyper_params.vsone_match.asdict()
             match.apply_all(cfgdict)
             pt.figure(fnum=fnum, pnum=pnum_())
             match.show(show_ell=False, show_ori=False)
@@ -1417,6 +1435,12 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         # together. This will prevent identity-specific effects.
         group_ids = vt.get_undirected_edge_ids(name_edges)
         return group_ids
+
+    def print_featinfo(samples):
+        for data_key in samples.X_dict.keys():
+            print('\nINFO(samples.X_dict[%s])' % (data_key,))
+            featinfo = AnnotPairFeatInfo(samples.X_dict[data_key])
+            print(ut.indent(featinfo.get_infostr()))
 
 
 AnnotPairFeatInfo = vt.AnnotPairFeatInfo
