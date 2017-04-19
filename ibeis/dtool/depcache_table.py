@@ -1621,7 +1621,7 @@ class _TableComputeHelper(object):
             ut.printex(ex, 'error in add_rowids', keys=[
                 'table', 'table.parents()', 'config', 'argsT', 'config_rowid',
                 'dirty_parent_ids', 'table.preproc_func',
-            ])
+            ], tb=True)
             raise
 
 
