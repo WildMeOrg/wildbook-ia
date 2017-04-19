@@ -624,7 +624,7 @@ class SQLDatabaseController(object):
     def get_row_count(db, tblname):
         fmtdict = {'tblname': tblname, }
         operation_fmt = 'SELECT COUNT(*) FROM {tblname}'
-        count = db._executeone_operation_fmt(operation_fmt, fmtdict)
+        count = db._executeone_operation_fmt(operation_fmt, fmtdict)[0]
         return count
 
     def get_all_rowids(db, tblname, **kwargs):
