@@ -1827,8 +1827,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         if num_dirty > 0:
             with ut.Indenter('[ADD]', enabled=_debug):
                 if verbose or _debug:
-                    tup = (num_dirty, num_total, table.tablename,)
-                    print('Add %d / %d new props to %r' % tup)
+                    print('Add %d / %d new rows to %r' % (
+                        num_dirty, num_total, table.tablename,))
                     print('[deptbl.add]  * config_rowid = %r' % (config_rowid,))
                     print('[deptbl.add]  * config = %s' % (config,))
 
