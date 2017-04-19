@@ -2557,6 +2557,14 @@ def interpolated_colormap(color_frac_list, resolution=64):
         >>>     (pt.YELLOW, .5),
         >>>     (pt.FALSE_RED, 1.0),
         >>> ]
+        >>> color_frac_list = [
+        >>>     (pt.RED, 0),
+        >>>     (pt.PINK, .1),
+        >>>     (pt.ORANGE, .2),
+        >>>     (pt.GREEN, .5),
+        >>>     (pt.TRUE_BLUE, .7),
+        >>>     (pt.PURPLE, 1.0),
+        >>> ]
         >>> resolution = 16 + 1
         >>> cmap = interpolated_colormap(color_frac_list, resolution)
         >>> ut.quit_if_noshow()
@@ -2567,6 +2575,10 @@ def interpolated_colormap(color_frac_list, resolution=64):
         >>> ut.show_if_requested()
     """
     import colorsys
+
+    if len(color_frac_list[0]) != 2:
+        color_frac_list = list(zip(color_frac_list,
+                                   np.linspace(0, 1, len(color_frac_list))))
 
     colors = ut.take_column(color_frac_list, 0)
     fracs = ut.take_column(color_frac_list, 1)
@@ -2582,8 +2594,12 @@ def interpolated_colormap(color_frac_list, resolution=64):
 
     # import colorspacious
     # import colormath
-    from colormath import color_objects
     from colormath import color_conversions
+    # FIXME: need to ensure monkeypatch for networkx 2.0 in colormath
+    # color_conversions._conversion_manager = color_conversions.GraphConversionManager()
+
+    from colormath import color_objects
+    # from colormath import color_conversions
 
     def new_convertor(target_obj):
         source_obj = color_objects.sRGBColor
@@ -2660,7 +2676,7 @@ def interpolated_colormap(color_frac_list, resolution=64):
         cpool.append(new_c)
 
     cpool = np.array(cpool)
-    print('cpool = %r' % (cpool,))
+    # print('cpool = %r' % (cpool,))
     cmap = mpl.colors.ListedColormap(cpool, 'indexed')
     return cmap
 
@@ -3726,9 +3742,10 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
     return None
 
 
-def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0):
-    'draws a big red x. redx'
-    ax = gca()
+def draw_boxedX(xywh=None, color=RED, lw=2, alpha=.5, theta=0, ax=None):
+    """ draws a big red x """
+    if ax is None:
+        ax = gca()
     if xywh is None:
         xy, w, h = get_axis_xy_width_height(ax)
         xywh = (xy[0], xy[1], w, h)
@@ -3954,16 +3971,41 @@ def remove_patches(ax=None):
         del patch
 
 
-def imshow_null(msg=None, **kwargs):
+def imshow_null(msg=None, ax=None, **kwargs):
+    r"""
+    Args:
+        msg (None): (default = None)
+        ax (None): (default = None)
+        **kwargs: fnum, title, figtitle, pnum, interpolation, cmap, heatmap,
+                  data_colorbar, darken, update, xlabel, redraw_image, alpha,
+                  docla, doclf, projection, use_gridspec
+
+    CommandLine:
+        python -m plottool.draw_func2 imshow_null --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> msg = None
+        >>> ax = None
+        >>> result = imshow_null(msg, ax)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    if ax is None:
+        ax = gca()
     subkeys = [key for key in ['fontsize'] if key in kwargs]
     print('kwargs = %r' % (kwargs,))
     kwargs_ = ut.dict_subset(kwargs, subkeys)
     print('kwargs_ = %r' % (kwargs_,))
-    imshow(np.zeros((10, 10), dtype=np.uint8), **kwargs)
+    imshow(np.zeros((10, 10), dtype=np.uint8), ax=ax, **kwargs)
     if msg is None:
-        draw_boxedX()
+        draw_boxedX(ax=ax)
     else:
-        ax_relative_text(.5, .5, msg, color='r', horizontalalignment='center', **kwargs_)
+        ax_relative_text(.5, .5, msg, color='r', horizontalalignment='center',
+                         ax=ax, **kwargs_)
 
 
 def axes_bottom_button_bar(ax, text_list=[]):

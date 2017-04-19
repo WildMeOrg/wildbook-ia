@@ -2200,17 +2200,45 @@ def wordcloud(text, fnum=None, pnum=None):
     from wordcloud import WordCloud
     fnum = pt.ensure_fnum(fnum)
     pt.figure(fnum=fnum, pnum=pnum)
+    ax = pt.gca()
+
+    background_color = 'black' if is_default_dark_bg() else 'white'
+    # font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    # font_path = '/usr/share/fonts/truetype/freefont/FreeMono.ttf'
+    font_path = ut.truepath('~/.local/share/fonts/Inconsolata-Regular.ttf')
+
+    from os.path import exists
+    if not exists(font_path):
+        font_path = False
+
+    colormap = pt.interpolated_colormap([
+            (pt.RED, 0),
+            (pt.PINK, .15),
+            (pt.ORANGE, .3),
+            (pt.GREEN, .55),
+            (pt.TRUE_BLUE, .75),
+            (pt.PURPLE, 1.0),
+    ])
 
     if len(text) > 0:
-        _wc = WordCloud(background_color='black' if is_default_dark_bg() else 'white')
+        _wc = WordCloud(
+            font_path=font_path,
+            background_color=background_color,
+            # min_font_size=12,
+            width=600, height=300,
+            # relative_scaling=.8,
+            # colormap='rainbow'
+            colormap=colormap,
+        )
         if isinstance(text, dict):
-            wordcloud = _wc.fit_words(list(text.items()))
+            # wordcloud = _wc.fit_words(list(text.items()))
+            wordcloud = _wc.generate_from_frequencies(text)
         else:
             wordcloud = _wc.generate(text)
-        pt.plt.imshow(wordcloud)
+        ax.imshow(wordcloud, interpolation='bilinear')
     else:
-        pt.imshow_null('NO WORDCLOUD DATA')
-    pt.plt.axis('off')
+        pt.imshow_null('NO WORDCLOUD DATA', ax=ax)
+    ax.axis('off')
 
 
 if __name__ == '__main__':
