@@ -415,7 +415,7 @@ class PairwiseMatch(ut.NiceRepr):
         feat = ut.odict([])
 
         if global_keys is None:
-            # FIXME: speed
+            # speed should need to be requested
             global_keys = sorted(match.global_measures.keys())
         global_measures = ut.dict_subset(match.global_measures, global_keys)
 
@@ -441,6 +441,16 @@ class PairwiseMatch(ut.NiceRepr):
                 else:
                     delta = np.abs(v1 - v2)
             feat['global(%s_delta)' % (k,)] = delta
+
+        # Impose ordering on these keys to add symmetry
+        keys_to_order = ['qual', 'yaw']
+        for key in keys_to_order:
+            k1 = '%s_1' % key
+            k2 = '%s_2' % key
+            if k1 in feat and k2 in feat:
+                minv, maxv = np.sort([feat[k1], feat[k2]])
+                feat['global(min_%s)' % key] = minv
+                feat['global(max_%s)' % key] = maxv
 
         if 'global(gps_delta)' in feat and 'global(time_delta)' in feat:
             hour_delta = feat['global(time_delta)'] / 360
@@ -488,8 +498,8 @@ class PairwiseMatch(ut.NiceRepr):
             # 'len'    : len,
             'sum'    : np.sum,
             'mean'   : np.mean,
-            'median' : np.median,
             'std'    : np.std,
+            'med' : np.median,
         }
 
         feat = ut.odict([])
