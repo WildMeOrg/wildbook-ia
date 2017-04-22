@@ -54,10 +54,10 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         sifts (None):
 
     References:
-        http://stackoverflow.com/questions/28401788/using-homogeneous-transforms-non-affine-with-matplotlib-patches
+        http://stackoverflow.com/questions/28401788/transforms-non-affine-patch
 
     CommandLine:
-        python -m plottool.mpl_keypoint --test-draw_keypoints --show
+        python -m plottool.mpl_keypoint draw_keypoints --show
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -67,8 +67,8 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> import vtool as vt
         >>> imgBGR = vt.get_star_patch(jitter=True)
         >>> H = np.array([[1, 0, 0], [.5, 2, 0], [0, 0, 1]])
-        >>> H = np.array([[.5, 0, 0], [0, .5, 0], [0, 0, 1]])
-        >>> #H = None
+        >>> H = np.array([[.8, 0, 0], [0, .8, 0], [0, 0, 1]])
+        >>> H = None
         >>> TAU = 2 * np.pi
         >>> kpts_ = vt.make_test_image_keypoints(imgBGR, scale=.5, skew=2, theta=TAU / 8.0)
         >>> scale_factor=1.0
@@ -83,9 +83,11 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         >>> # make random sifts
         >>> sifts = mpl_sift.testdata_sifts()
         >>> siftkw = {}
-        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1], eig_color=[1, 1, 0], pts_size=.1)
+        >>> kwargs = dict(ori_color=[0, 1, 0], rect_color=[0, 0, 1],
+        >>>               eig_color=[1, 1, 0], pts_size=.1)
         >>> w, h = imgBGR.shape[0:2][::-1]
-        >>> imgBGR_ = imgBGR if H is None else vt.warpAffine(imgBGR, H, (w * 2, h * 2))
+        >>> imgBGR_ = imgBGR if H is None else vt.warpAffine(
+        >>>     imgBGR, H, (int(w * .8), int(h * .8)))
         >>> fig, ax = pt.imshow(imgBGR_ * 255)
         >>> draw_keypoints(ax, kpts_, scale_factor, offset, rotation, ell, pts,
         ...                rect, eig, ori, sifts, siftkw, H=H, **kwargs)

@@ -3449,6 +3449,7 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
 def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
+                    modifysize=False,
                     draw_fmatch=True, darken=DARKEN, H1=None, H2=None,
                     sel_fm=[], ax=None, **kwargs):
     """
@@ -3473,88 +3474,52 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
          ax, xywh1, xywh2
 
     CommandLine:
-        python -m plottool.draw_func2 --test-show_chipmatch2 --show
+        python -m plottool.draw_func2 show_chipmatch2 --show
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
         >>> import vtool as vt
-        >>> # build test data
         >>> fname1 = ut.get_argval('--fname1', type_=str, default='easy1.png')
         >>> fname2 = ut.get_argval('--fname2', type_=str, default='easy2.png')
         >>> rchip1 = vt.imread(ut.grab_test_imgpath(fname1))
         >>> rchip2 = vt.imread(ut.grab_test_imgpath(fname2))
-        >>> kpts1 = np.array([[10,  10,   30,   0,    30,    0.  ],
-        ...                   [ 355.89,  142.95,   10.46,   -0.63,    8.59,    0.  ],
-        ...                   [ 356.35,  147.  ,    8.38,    1.08,   11.68,    0.  ],
-        ...                   [ 361.4 ,  150.64,    7.44,    3.45,   13.63,    0.  ]], dtype=np.float64)
-        >>> kpts2 = np.array([[ 10,   10,   30,   0,    30,    0.  ],
-        ...                   [ 376.98,   50.61,   11.91,   -2.9 ,    9.77,    0.  ],
-        ...                   [ 377.59,   54.89,    9.7 ,   -1.4 ,   13.72,    0.  ],
-        ...                   [ 382.8 ,   58.2 ,    7.87,   -0.31,   15.23,    0.  ]], dtype=np.float64)
+        >>> kpts1 = np.array([
+        >>>     [10,  10,   30,   0,    30,    0.  ],
+        >>>     [ 355.89,  142.95,   10.46,   -0.63,    8.59,    0.  ],
+        >>>     [ 356.35,  147.  ,    8.38,    1.08,   11.68,    0.  ],
+        >>>     [ 361.4 ,  150.64,    7.44,    3.45,   13.63,    0.  ]
+        >>> ], dtype=np.float64)
+        >>> kpts2 = np.array([
+        >>>     [ 10,   10,   30,   0,    30,    0.  ],
+        >>>     [ 376.98,   50.61,   11.91,   -2.9 ,    9.77,    0.  ],
+        >>>     [ 377.59,   54.89,    9.7 ,   -1.4 ,   13.72,    0.  ],
+        >>>     [ 382.8 ,   58.2 ,    7.87,   -0.31,   15.23,    0.  ]
+        >>> ], dtype=np.float64)
         >>> fm = None
         >>> fs = None
-        >>> H1 = np.array([[ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
-        ...                [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
-        ...                [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
+        >>> H1 = np.array([
+        >>>     [ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
+        >>>     [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
+        >>>     [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
         >>> H2 = None
-        >>> H_half = np.array([[.2, 0, 0], [0, .2, 0], [0, 0, 1]])
-        >>> #H1 = None
-        >>> H1 = H_half
-        >>> H2 = H_half
-        >>> # execute function
-        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2, fm=fm, line_alpha=[1, .3, .3, .3], lw=10, ell_linewidth=5)
-        >>> # verify results
-        >>> print(result)
+        >>> #H_half = np.array([[.2, 0, 0], [0, .2, 0], [0, 0, 1]])
+        >>> #H1 = H_half
+        >>> #H2 = H_half
+        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2,
+        >>>                          fm=fm, line_alpha=[1, .3, .3, .3], lw=10,
+        >>>                          ell_linewidth=5)
         >>> pt.show_if_requested()
-
-    Ignore:
-        print(ut.doctest_repr(kpts1[fm.T[0]][0:4], precision=2, varname='kpts1'))
-        print(ut.doctest_repr(kpts2[fm.T[1]][0:4], precision=2, varname='kpts2'))
-        print(ut.numpy_str2(kpts2[fm.T[1]][0:4], precision=1))
-        #>>> fm = np.array([[ 244,  132], [ 604,  602], [ 187,  604], [ 200,  610],
-        #...                [ 243,  627], [ 831,  819], [ 601,  851], [ 602,  852],
-        #...                [ 610,  855], [ 609,  857], [ 865,  860], [ 617,  863],
-        #...                [ 979,  984], [ 860, 1013], [ 605, 1020], [ 866, 1027],
-        #...                [ 667, 1071], [1022, 1163], [1135, 1165]])
-        #>>> ibs = ibeis.opendb('testdb1')
-        #>>> aid1 = 1
-        #>>> aid2 = 3
-        #>>> chip1, chip2 = ibs.get_annot_chips((aid1, aid2))
-        #>>> kpts1, kpts2 = ibs.get_annot_kpts((aid1, aid2))
     """
     if ut.VERBOSE:
         print('[df2] show_chipmatch2() fnum=%r, pnum=%r, ax=%r' % (fnum, pnum, ax))
     wh1 = vt.get_size(rchip1)
     wh2 = vt.get_size(rchip2)
-    # Test if the image should be smaller
-    #def test_homography_is_smaller(H, wh):
-    #    w, h = wh
-    #    corners = np.array(vt.verts_from_bbox([0, 0, w, h]))
-    #    tl, tr, br, bl = corners
-    #    corners_t = vt.linalg.transform_points_with_homography(H, corners.T)
-    #    flag = np.all(corners_t <= br[:, None]) and np.all(corners_t >= tl[:, None])
-    #    new_wh = np.round(corners_t[:, 2]).astype(np.int)
-    #    #print('wh = %r' % (wh,))
-    #    #print('flag = %r' % (flag,))
-    #    #print('new_wh = %r' % (new_wh,))
-    #    if not flag:
-    #        new_wh = wh
-    #    return flag, new_wh
     if True:  # if H1 is None and H2 is not None or H2 is None and H1 is not None:
         # We are warping one chip into the space of the other
         dsize1 = wh2
         dsize2 = wh1
-    #else:
-    #    if H1 is not None:
-    #        _, wh1 = test_homography_is_smaller(H1, wh1)
-    #    if H2 is not None:
-    #        _, wh2 = test_homography_is_smaller(H2, wh2)
-    #    # We are doing funky things
-    #    print('funky')
-    #    dsize1 = wh1
-    #    dsize2 = wh2
     # Warp if homography is specified
     rchip1_ = vt.warpHomog(rchip1, H1, dsize1) if H1 is not None else rchip1
     rchip2_ = vt.warpHomog(rchip2, H2, dsize2) if H2 is not None else rchip2
@@ -3562,7 +3527,9 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     (w1, h1) = vt.get_size(rchip1_)
     (w2, h2) = vt.get_size(rchip2_)
     # Stack the compared chips
-    match_img, offset_tup, sf_tup = vt.stack_images(rchip1_, rchip2_, vert, return_sf=True)
+    # modifysize = True
+    match_img, offset_tup, sf_tup = vt.stack_images(
+        rchip1_, rchip2_, vert, modifysize=modifysize, return_sf=True)
     (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)
     xywh2 = (woff, hoff, w2, h2)
@@ -3571,13 +3538,14 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                      heatmap=heatmap, darken=darken)
     # Overlay feature match nnotations
     if draw_fmatch and kpts1 is not None and kpts2 is not None:
+        sf1, sf2 = sf_tup
         plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm=fm_norm, H1=H1,
+                    scale_factor1=sf1, scale_factor2=sf2,
                     H2=H2, ax=ax, **kwargs)
         if len(sel_fm) > 0:
             # Draw any selected matches in blue
             sm_kw = dict(rect=True, colors=BLUE)
             plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, ax=ax, **sm_kw)
-
     return ax, xywh1, xywh2
 
 
@@ -3641,7 +3609,9 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
         >>> H2 = None
         >>> scale_factor1 = None
         >>> scale_factor2 = None
-        >>> None = plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm, lbl1, lbl2, fnum, pnum, rect, colorbar_, draw_border, cmap, H1, H2, scale_factor1, scale_factor2)
+        >>> plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs, fm_norm, lbl1, lbl2,
+        >>>             fnum, pnum, rect, colorbar_, draw_border, cmap, h1, h2,
+        >>>             scale_factor1, scale_factor2)
         >>> result = ('None = %s' % (str(None),))
         >>> print(result)
     """
