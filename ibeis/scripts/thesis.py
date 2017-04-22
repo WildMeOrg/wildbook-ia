@@ -20,6 +20,9 @@ TMP_RC = {
 def chapter4_collect(defaultdb):
     """
     CommandLine:
+        python -m ibeis.scripts.thesis chapter4_collect --db PZ_PB_RF_TRAIN
+        python -m ibeis.scripts.thesis chapter4_collect --db GZ_Master1
+        python -m ibeis.scripts.thesis chapter4_collect --db PZ_MTEST
         python -m ibeis.scripts.thesis chapter4_collect
 
     Example:
@@ -28,6 +31,7 @@ def chapter4_collect(defaultdb):
         >>> #defaultdb = 'GZ_Master1'
         >>> defaultdb = 'PZ_MTEST'
         >>> self = chapter4_collect(defaultdb)
+        >>> self.draw()
     """
     pblm = OneVsOneProblem.from_empty(defaultdb)
     data_key = pblm.default_data_key
@@ -82,7 +86,7 @@ def chapter4_collect(defaultdb):
 
     task_key = 'photobomb_state'
     if task_key in pblm.eval_task_keys:
-        self.build_roc_data_photobomb(pblm)
+        # self.build_roc_data_photobomb(pblm)
         self.build_importance_data(pblm, task_key)
         self.build_metrics(pblm, task_key)
 
@@ -229,7 +233,7 @@ class ExptChapter4(object):
             ]
         }
 
-    def build_roc_data_photobomb(self, pblm, task_key):
+    def build_roc_data_photobomb(self, pblm):
         task_key = 'photobomb_state'
         target_class = 'pb'
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
