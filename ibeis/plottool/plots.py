@@ -312,6 +312,10 @@ def multi_plot(xdata, ydata_list, **kwargs):
     yticksize = kwargs.get('ticksize', mplrc['ytick.labelsize'])
     family = kwargs.get('fontfamily', mplrc['font.family'])
 
+    tickformat = kwargs.get('tickformat', None)
+    ytickformat = kwargs.get('ytickformat', tickformat)
+    xtickformat = kwargs.get('xtickformat', tickformat)
+
     # 'DejaVu Sans','Verdana', 'Arial'
     weight = kwargs.get('fontweight', None)
     if weight is None:
@@ -340,6 +344,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
         for ticklabel in ax.get_yticklabels():
             ticklabel.set_fontsize(yticksize)
 
+    if xtickformat is not None:
+        # mpl.ticker.StrMethodFormatter  # newstyle
+        # mpl.ticker.FormatStrFormatter  # oldstyle
+        ax.xaxis.set_major_formatter(mpl.ticker.FormatStrFormatter(xtickformat))
+    if ytickformat is not None:
+        ax.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter(ytickformat))
+
     xtick_kw = ytick_kw = {
         'width': kwargs.get('tickwidth', None),
         'length': kwargs.get('ticklength', None),
@@ -348,6 +359,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ytick_kw = ut.dict_filter_nones(ytick_kw)
     ax.xaxis.set_tick_params(**xtick_kw)
     ax.yaxis.set_tick_params(**ytick_kw)
+
+        #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
 
     # Setup axes limits
     if 'xlim' in kwargs:
@@ -1980,7 +1993,6 @@ def word_histogram2(text_list, weight_list=None, **kwargs):
 
     width = .95
     ymax = freq.max() if len(freq) > 0 else 0
-    print('ymax = %r' % (ymax,))
 
     if len(freq) == 0:
         freq_max = 1
@@ -2102,8 +2114,8 @@ def draw_time_distribution(unixtime_list, bw=None):
 
         num_nan = sum(nanflags)
         num_nonnan = len(unixtimes)
-        print('num_nan = %r' % (num_nan,))
-        print('num_nonnan = %r' % (num_nonnan,))
+        # print('num_nan = %r' % (num_nan,))
+        # print('num_nonnan = %r' % (num_nonnan,))
 
         if bw is None:
             from sklearn.model_selection import GridSearchCV
@@ -2119,7 +2131,7 @@ def draw_time_distribution(unixtime_list, bw=None):
                                 grid_params, cv=3, verbose=3, n_jobs=7)
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
-            print('bw = %r' % (bw,))
+            # print('bw = %r' % (bw,))
         # else:
         #     # scott_bw = len(unixtimes) ** (-1 / 4)
         #     # 3 days bandwidth
@@ -2160,7 +2172,7 @@ def draw_time_distribution(unixtime_list, bw=None):
     #**kwargs)
 
 
-def wordcloud(text, fnum=None, pnum=None):
+def wordcloud(text, size=None, fnum=None, pnum=None, ax=None):
     """
     References:
         bioinfoexpert.com/?p=592
@@ -2198,18 +2210,24 @@ def wordcloud(text, fnum=None, pnum=None):
     """
     import plottool as pt
     from wordcloud import WordCloud
-    fnum = pt.ensure_fnum(fnum)
-    pt.figure(fnum=fnum, pnum=pnum)
-    ax = pt.gca()
+    if ax is None:
+        fnum = pt.ensure_fnum(fnum)
+        pt.figure(fnum=fnum, pnum=pnum)
+        ax = pt.gca()
+    else:
+        assert fnum is None, 'dont pass ax with fnum'
+        assert pnum is None, 'dont pass ax with pnum'
 
     background_color = 'black' if is_default_dark_bg() else 'white'
     # font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
     # font_path = '/usr/share/fonts/truetype/freefont/FreeMono.ttf'
     font_path = ut.truepath('~/.local/share/fonts/Inconsolata-Regular.ttf')
+    font_path = '/usr/share/fonts/opentype/Inconsolata.otf'
+    # /home/joncrall/.local/share/fonts/Inconsolata-Regular.ttf
 
     from os.path import exists
     if not exists(font_path):
-        font_path = False
+        font_path = None
 
     colormap = pt.interpolated_colormap([
             (pt.RED, 0),
@@ -2220,12 +2238,16 @@ def wordcloud(text, fnum=None, pnum=None):
             (pt.PURPLE, 1.0),
     ])
 
+    if size is None:
+        size = (600, 300)
+    width, height = size
+
     if len(text) > 0:
         _wc = WordCloud(
             font_path=font_path,
             background_color=background_color,
             # min_font_size=12,
-            width=600, height=300,
+            width=width, height=height,
             # relative_scaling=.8,
             # colormap='rainbow'
             colormap=colormap,
