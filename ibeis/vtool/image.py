@@ -973,6 +973,8 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
 
 def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     r"""
+    Strips white borders off an image on disk
+
     Args:
         fpath_in (str):
         fpath_out (None): (default = None)
@@ -987,14 +989,23 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     import vtool as vt
     if fpath_out is None:
         fpath_out = ut.augpath(fpath_in, '_clipwhite')
-    # thresh = 128
-    thresh = 64
-
     img = vt.imread(fpath_in, flags=cv2.IMREAD_UNCHANGED)
     if verbose:
         print('[clipwhite] img.shape = %r' % (img.shape,))
+    cropped_img = clipwhite(img)
+    if verbose:
+        print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
+    vt.imwrite(fpath_out, cropped_img)
+    return fpath_out
 
+
+def clipwhite(img):
+    """
+    Strips white borders off an image
+    """
     nChannels = get_num_channels(img)
+    # thresh = 128
+    thresh = 64
     if nChannels == 4:
         # alpha
         thresh = 12
@@ -1010,14 +1021,13 @@ def clipwhite_ondisk(fpath_in, fpath_out=None, verbose=ut.NOT_QUIET):
     else:
         fillval = np.array([255] * nChannels)
         cropped_img = crop_out_imgfill(img, fillval=fillval, thresh=thresh)
-    if verbose:
-        print('[clipwhite] cropped_img.shape = %r' % (cropped_img.shape,))
-    vt.imwrite(fpath_out, cropped_img)
-    return fpath_out
+    return cropped_img
 
 
 def rotate_image_ondisk(img_fpath, theta, out_fpath=None, **kwargs):
     r"""
+    Rotates an image on disk
+
     Args:
         img_fpath (?):
         theta (?):

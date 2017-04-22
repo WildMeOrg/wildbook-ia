@@ -543,7 +543,7 @@ class ConfusionMetrics(object):
             >>> thresh = 0
 
         Example:
-            >>> # DISABLE_DOCTEST
+            >>> # ENABLE_DOCTEST
             >>> from vtool.confusion import *  # NOQA
             >>> scores, labels = testdata_scores_labels()
             >>> self = ConfusionMetrics().fit(scores, labels)
@@ -560,7 +560,8 @@ class ConfusionMetrics(object):
         else:
             thresh = np.asarray(thresh)
         # Assert decreasing
-        assert self.thresholds[0] > self.thresholds[-1]
+        assert (len(self.thresholds) == 1 or
+                self.thresholds[0] > self.thresholds[-1])
         sortx = np.argsort(self.thresholds)
         thresh_ = np.clip(thresh, self.thresholds[-1], self.thresholds[0])
         r = np.searchsorted(self.thresholds, thresh_, side='left', sorter=sortx)
