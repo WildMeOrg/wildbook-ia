@@ -13,11 +13,16 @@ except ImportError:
 
 
 def lazy_test_annot(key):
+    import numpy as np
     rchip_fpath = ut.grab_test_imgpath(key)
     annot = ut.LazyDict({
         'aid': key.split('.')[0],
         'nid': key[0:4],
-        'rchip_fpath': rchip_fpath
+        'rchip_fpath': rchip_fpath,
+        'gps': (np.nan, np.nan),
+        'yaw': np.nan,
+        'qual': np.nan,
+        'time': np.nan,
     })
     return annot
 
@@ -198,15 +203,16 @@ class MatchInspector(INSPECT_BASE):
     def _setup_configs(self):
         from vtool import matching
         import dtool
+        # import pyhesaff
 
-        import vtool as vt
-
-        default_dict = vt.get_extract_features_default_params()
-        TmpFeatConfig = dtool.from_param_info_list([
-            ut.ParamInfo(key, val) for key, val in default_dict.items()
-            # ut.ParamInfo('affine_invariance', True),
-            # ut.ParamInfo('rotation_invariance', False),
-        ])
+        # default_dict = pyhesaff.get_hesaff_default_params()
+        # default_dict = vt.get_extract_features_default_params()
+        TmpFeatConfig = dtool.from_param_info_list(matching.VSONE_FEAT_CONFIG)
+        # [
+        #     ut.ParamInfo(key, val) for key, val in default_dict.items()
+        #     # ut.ParamInfo('affine_invariance', True),
+        #     # ut.ParamInfo('rotation_invariance', False),
+        # ])
 
         self.featconfig = TmpFeatConfig()
         self.featconfig_widget = self._new_config_widget(
@@ -230,6 +236,8 @@ class MatchInspector(INSPECT_BASE):
             ut.ParamInfo('show_lines', True, hideif=lambda cfg: not cfg['overlay']),
             ut.ParamInfo('show_rect', False, hideif=':not overlay'),
             ut.ParamInfo('show_eig', False, hideif=':not overlay'),
+            ut.ParamInfo('ell_alpha', 0.6, min_=0, max_=1, hideif=':not overlay'),
+            ut.ParamInfo('line_alpha', 0.35, min_=0, max_=1, hideif=':not overlay'),
         ])
         self.disp_config = TmpDisplayConfig()
         self.disp_config_widget = self._new_config_widget(

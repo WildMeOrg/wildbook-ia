@@ -603,10 +603,12 @@ class ConfusionMetrics(object):
         y_metric = 'fpr'
         """
         import plottool as pt
-        pt.qt4ensure()
-        xdata = self.thresholds
+        # pt.qtensure()
+        # xdata = self.thresholds
+        xdata = getattr(self, x_metric)
         ydata_list = [getattr(self, y_metric)]
-        pt.multi_plot(xdata, ydata_list, label_list=[y_metric],
+        pt.multi_plot(xdata, ydata_list,
+                      # label_list=[y_metric],
                       xlabel=x_metric, marker='',
                       ylabel=y_metric, use_legend=True)
 

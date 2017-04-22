@@ -9,8 +9,11 @@ import six
 import warnings
 import utool as ut
 import numpy as np
+import parse
+import pyhesaff
 from collections import namedtuple
 (print, rrr, profile) = ut.inject2(__name__)
+
 
 MatchTup3 = namedtuple('MatchTup3', ('fm', 'fs', 'fm_norm'))
 MatchTup2 = namedtuple('MatchTup2', ('fm', 'fs'))
@@ -27,6 +30,12 @@ TAU = 2 * np.pi  # tauday.org
 
 class MatchingError(Exception):
     pass
+
+
+VSONE_FEAT_CONFIG = [
+    ut.ParamInfo(key, val)
+    for key, val in pyhesaff.get_hesaff_default_params().items()
+]
 
 
 VSONE_ASSIGN_CONFIG = [
@@ -62,6 +71,27 @@ VSONE_DEFAULT_CONFIG = (
 VSONE_PI_DICT = {
     pi.varname: pi for pi in VSONE_DEFAULT_CONFIG
 }
+
+
+def demodata_match(cfgdict={}, use_cache=True):
+    import vtool as vt
+    from vtool.inspect_matches import lazy_test_annot
+    # hashid based on the state of the code
+    hashid = ut.hashstr27(ut.get_func_sourcecode(vt.matching.PairwiseMatch))
+    cfgstr = ut.get_dict_hashid(cfgdict) + hashid
+    cacher = ut.Cacher('test_match_v5', cfgstr=cfgstr, appname='vtool',
+                       enabled=use_cache)
+    match = cacher.tryload()
+    annot1 = lazy_test_annot('easy1.png')
+    annot2 = lazy_test_annot('easy2.png')
+    if match is None:
+        match = vt.PairwiseMatch(annot1, annot2)
+        match.apply_all(cfgdict)
+        cacher.save(match)
+    else:
+        match.annot1 = annot1
+        match.annot2 = annot2
+    return match
 
 
 @ut.reloadable_class
@@ -105,7 +135,12 @@ class PairwiseMatch(ut.NiceRepr):
         return [config.get(key, VSONE_PI_DICT[key].default) for key in keys]
 
     def __getstate__(match):
-        # The state ignores most of the annotation objects
+        """
+        The state of Pariwise Match ignores most of the annotation objects.
+
+        This means that if you need properties of annots, you must reapply
+        them after you load a PairwiseMatch object.
+        """
         _annot1 = {}
         if 'aid' in match.annot1:
             _annot1['aid'] = match.annot1['aid']
@@ -128,8 +163,9 @@ class PairwiseMatch(ut.NiceRepr):
         match.__dict__.update(state)
 
     def show(match, ax=None, show_homog=False, show_ori=True, show_ell=True,
-             show_pts=True, show_lines=True, show_rect=False, show_eig=False,
-             show_all_kpts=False, mask_blend=0, overlay=True):
+             show_pts=False, show_lines=True, show_rect=False, show_eig=False,
+             show_all_kpts=False, mask_blend=0, ell_alpha=.6, line_alpha=.35,
+             modifysize=False, vert=None, overlay=True):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
@@ -167,9 +203,11 @@ class PairwiseMatch(ut.NiceRepr):
         ax, xywh1, xywh2 = pt.show_chipmatch2(
             rchip1, rchip2, kpts1, kpts2, fm, fs, colorbar_=False,
             H1=H1, ax=ax,
+            modifysize=modifysize,
             ori=show_ori, rect=show_rect, eig=show_eig, ell=show_ell,
             pts=show_pts, draw_lines=show_lines,
-            all_kpts=show_all_kpts,
+            all_kpts=show_all_kpts, line_alpha=line_alpha,
+            ell_alpha=ell_alpha, vert=vert,
         )
         return ax, xywh1, xywh2
 
@@ -181,11 +219,8 @@ class PairwiseMatch(ut.NiceRepr):
         Example:
             >>> # SCRIPT
             >>> from vtool.matching import *  # NOQA
-            >>> from vtool.inspect_matches import lazy_test_annot
             >>> import vtool as vt
-            >>> annot1 = lazy_test_annot('easy1.png')
-            >>> annot2 = lazy_test_annot('easy2.png')
-            >>> match = vt.PairwiseMatch(annot1, annot2)
+            >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
             >>> ut.quit_if_noshow()
         """
@@ -445,8 +480,8 @@ class PairwiseMatch(ut.NiceRepr):
         # Impose ordering on these keys to add symmetry
         keys_to_order = ['qual', 'yaw']
         for key in keys_to_order:
-            k1 = '%s_1' % key
-            k2 = '%s_2' % key
+            k1 = 'global(%s_1)' % key
+            k2 = 'global(%s_2)' % key
             if k1 in feat and k2 in feat:
                 minv, maxv = np.sort([feat[k1], feat[k2]])
                 feat['global(min_%s)' % key] = minv
@@ -459,27 +494,23 @@ class PairwiseMatch(ut.NiceRepr):
 
     def _make_local_summary_feature_vector(match, local_keys=None,
                                            summary_ops=None, bin_key=None,
-                                           bins=4):
+                                           bins=None):
         r"""
         Summary statistics of local features
 
         CommandLine:
-            python -m vtool.matching make_feature_vector
+            python -m vtool.matching _make_local_summary_feature_vector
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from vtool.matching import *  # NOQA
-            >>> from vtool.inspect_matches import lazy_test_annot
             >>> import vtool as vt
-            >>> annot1 = lazy_test_annot('easy1.png')
-            >>> annot2 = lazy_test_annot('easy2.png')
-            >>> match = vt.PairwiseMatch(annot1, annot2)
-            >>> cfgdict = {'ratio_thresh': .95, 'sv_on': False}
+            >>> match = demodata_match(cfgdict)
             >>> match.apply_all(cfgdict)
             >>> summary_ops = {'len', 'sum'}
             >>> bin_key = 'ratio'
             >>> bins = 4
-            >>> bins = [.5, .625, .7, .9]
+            >>> bins = [.625, .725, .9]
             >>> local_keys = ['ratio', 'norm_dist']
             >>> feat = match._make_local_summary_feature_vector(
             >>>     local_keys=local_keys,
@@ -504,27 +535,35 @@ class PairwiseMatch(ut.NiceRepr):
 
         feat = ut.odict([])
         if bin_key is not None:
+            if bins is None:
+                bins = [.625, .725, .9]
             # binned ratio feature vectors
             if isinstance(bins, int):
                 bins = np.linspace(0, 1.0, bins + 1)
             else:
-                bins = [0] + list(bins)
-            local_bin_ids = np.searchsorted(bins, match.local_measures[bin_key])
-            dimkey_fmt = '{opname}({measure}[b{binid}])'
-            for binid in range(1, len(bins)):
-                fxs = np.where(local_bin_ids <= binid)[0]
+                bins = list(bins)
+            bin_ids = np.searchsorted(bins, match.local_measures[bin_key])
+
+            dimkey_fmt = '{opname}({measure}[{bin_key}<{binval}])'
+            for binid, binval in enumerate(bins, start=1):
+                fxs = np.where(bin_ids <= binid)[0]
                 if 'len' in summary_ops:
                     dimkey = dimkey_fmt.format(
-                        opname='len', measure='matches', binid=binid
+                        opname='len', measure='matches',
+                        bin_key=bin_key,
+                        binval=binval,
                     )
                     feat[dimkey] = len(fxs)
                 for opname in sorted(summary_ops - {'len'}):
                     op = ops[opname]
                     for k, vs in local_measures.items():
                         dimkey = dimkey_fmt.format(
-                            opname=opname, measure=k, binid=binid
+                            opname=opname, measure=k,
+                            bin_key=bin_key,
+                            binval=binval,
                         )
                         feat[dimkey] = op(vs[fxs])
+
         else:
             if 'len' in summary_ops:
                 feat['len(matches)'] = len(match.fm)
@@ -565,8 +604,9 @@ class PairwiseMatch(ut.NiceRepr):
             match.local_measures[sorter].argsort()[::-1][indices]
             for sorter in sorters
         ]
+        loc_fmt = 'loc[{sorter},{rank}]({measure})'
         feat = ut.odict([
-            ('loc[%s,%d](%s)' % (sorter, rank, k), v)
+            (loc_fmt.format(sorter=sorter, rank=rank, measure=k), v)
             for sorter, topxs in zip(sorters, chosen_xs)
             for k, vs in six.iteritems(local_measures)
             for rank, v in zip(indices, vs[topxs])
@@ -575,7 +615,7 @@ class PairwiseMatch(ut.NiceRepr):
 
     def make_feature_vector(match, local_keys=None, global_keys=None,
                             summary_ops=None, sorters='ratio', indices=3,
-                            bin_key=None):
+                            bin_key=None, bins=None):
         """
         Constructs the pairwise feature vector that represents a match
 
@@ -595,12 +635,8 @@ class PairwiseMatch(ut.NiceRepr):
         Example:
             >>> # DISABLE_DOCTEST
             >>> from vtool.matching import *  # NOQA
-            >>> from vtool.inspect_matches import lazy_test_annot
             >>> import vtool as vt
-            >>> annot1 = lazy_test_annot('easy1.png')
-            >>> annot2 = lazy_test_annot('easy2.png')
-            >>> match = vt.PairwiseMatch(annot1, annot2)
-            >>> match.apply_all({})
+            >>> match = demodata_match({})
             >>> feat = match.make_feature_vector(indices=[0, 1])
             >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
             >>> print(result)
@@ -610,7 +646,7 @@ class PairwiseMatch(ut.NiceRepr):
             warnings.simplefilter("ignore", category=RuntimeWarning)
             feat.update(match._make_global_feature_vector(global_keys))
             feat.update(match._make_local_summary_feature_vector(
-                local_keys, summary_ops, bin_key=bin_key))
+                local_keys, summary_ops, bin_key=bin_key, bins=bins))
             feat.update(match._make_local_top_feature_vector(
                 local_keys, sorters=sorters, indices=indices))
         return feat
@@ -628,43 +664,42 @@ class AnnotPairFeatInfo(object):
         * Can be used to construct an appropriate cfgdict for a new
         PairwiseMatch.
 
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.matching import *  # NOQA
-        >>> from vtool.inspect_matches import lazy_test_annot
-        >>> import vtool as vt
-        >>> annot1 = lazy_test_annot('easy1.png')
-        >>> annot2 = lazy_test_annot('easy2.png')
-        >>> match = vt.PairwiseMatch(annot1, annot2)
-        >>> match.apply_all({})
-        >>> feat = match.make_feature_vector()
-        >>> import pandas as pd
-        >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
-        >>> X = pd.DataFrame(feat, index=index)
-        >>> featinfo = AnnotPairFeatInfo(X)
-        >>> pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-        >>> print(featinfo.get_infostr())
+    CommandLine:
+        python -m vtool.matching AnnotPairFeatInfo
 
     Example:
         >>> # ENABLE_DOCTEST
         >>> from vtool.matching import *  # NOQA
-        >>> from vtool.inspect_matches import lazy_test_annot
         >>> import vtool as vt
-        >>> annot1 = lazy_test_annot('easy1.png')
-        >>> annot2 = lazy_test_annot('easy2.png')
-        >>> match = vt.PairwiseMatch(annot1, annot2)
-        >>> match.apply_all({})
-        >>> feat = match.make_feature_vector(indices=0, bin_key='ratio')
         >>> import pandas as pd
+        >>> match = demodata_match({})
         >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
+        >>> # Feat info without bins
+        >>> feat = match.make_feature_vector()
         >>> X = pd.DataFrame(feat, index=index)
+        >>> print(X.keys())
         >>> featinfo = AnnotPairFeatInfo(X)
-        >>> print(featinfo.get_infostr())
         >>> pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        >>> print('pairfeat_cfg = %r' % (pairfeat_cfg,))
+        >>> print('global_keys = %r' % (global_keys,))
+        >>> ut.cprint(featinfo.get_infostr(), 'blue')
+        >>> # Feat info with bins
+        >>> feat = match.make_feature_vector(indices=0, bin_key='ratio')
+        >>> X = pd.DataFrame(feat, index=index)
+        >>> print(X.keys())
+        >>> featinfo = AnnotPairFeatInfo(X)
+        >>> pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        >>> print('pairfeat_cfg = %s' % (ut.repr4(pairfeat_cfg),))
+        >>> print('global_keys = %r' % (global_keys,))
+        >>> ut.cprint(featinfo.get_infostr(), 'blue')
     """
-    def __init__(featinfo, X, importances=None):
+    def __init__(featinfo, X=None, importances=None):
         featinfo.X = X
         featinfo.importances = importances
+        if X is not None:
+            featinfo.columns = X.columns
+        else:
+            featinfo.columns = list(importances.keys())
         if importances is not None:
             assert isinstance(importances, dict), 'must be a dict'
         featinfo._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
@@ -684,18 +719,33 @@ class AnnotPairFeatInfo(object):
         if 'speed' in global_keys:
             global_keys.remove('speed')  # hack
 
-        criteria = [('measure_type', '==', 'summary')]
-        summary_ops = sorted(set(map(
-            featinfo.summary_op, featinfo.select_columns(criteria))))
-        summary_measures = sorted(set(map(
-            featinfo.summary_measure, featinfo.select_columns(criteria))))
+        summary_cols = featinfo.select_columns([
+            ('measure_type', '==', 'summary')])
+        summary_ops = sorted(set(map(featinfo.summary_op, summary_cols)))
+        summary_measures = sorted(set(map(featinfo.summary_measure,
+                                          summary_cols)))
+        summary_binvals = sorted(set(map(featinfo.summary_binval,
+                                         summary_cols)))
+        summary_binvals = ut.filter_Nones(summary_binvals)
+        summary_binkeys = sorted(set(map(featinfo.summary_binkey,
+                                         summary_cols)))
+        summary_binkeys = ut.filter_Nones(summary_binkeys)
         if 'matches' in summary_measures:
             summary_measures.remove('matches')
+
+        if len(summary_binkeys) == 0:
+            bin_key = None
+        else:
+            assert len(summary_binkeys) == 1
+            bin_key = summary_binkeys[0]
+
         pairfeat_cfg = {
             'summary_ops': summary_ops,
             'local_keys': summary_measures,
             'sorters': sorters,
             'indices': indices,
+            'bins': ut.lmap(float, summary_binvals),
+            'bin_key': bin_key,
         }
         return pairfeat_cfg, global_keys
 
@@ -707,7 +757,7 @@ class AnnotPairFeatInfo(object):
         ])
         """
         if op == 'and':
-            cols = set(featinfo.X.columns)
+            cols = set(featinfo.columns)
             update = cols.intersection_update
         elif op == 'or':
             cols = set([])
@@ -726,7 +776,7 @@ class AnnotPairFeatInfo(object):
             op = opdict.get(op)
         grouper = getattr(featinfo, group_id)
         found = []
-        for col in featinfo.X.columns:
+        for col in featinfo.columns:
             value1 = grouper(col)
             if value1 is None:
                 # Only filter out/in comparable things
@@ -759,7 +809,7 @@ class AnnotPairFeatInfo(object):
 
     def print_margins(featinfo, group_id, ignore_trivial=True):
         import pandas as pd
-        X = featinfo.X
+        columns = featinfo.columns
         if isinstance(group_id, list):
             cols = featinfo.select_columns(criteria=group_id)
             _keys = [(c, [c]) for c in cols]
@@ -771,7 +821,7 @@ class AnnotPairFeatInfo(object):
             nice = str(group_id)
         else:
             grouper = getattr(featinfo, group_id)
-            _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+            _keys = ut.group_items(columns, ut.lmap(grouper, columns))
             _weights = pd.concat(ut.lmap(featinfo.group_importance, _keys.items()))
             nice = ut.get_funcname(grouper).replace('_', ' ')
             nice = ut.pluralize(nice)
@@ -794,9 +844,9 @@ class AnnotPairFeatInfo(object):
 
     def print_counts(featinfo, group_id):
         import pandas as pd
-        X = featinfo.X
+        columns = featinfo.columns
         grouper = getattr(featinfo, group_id)
-        _keys = ut.group_items(X.columns, ut.lmap(grouper, X.columns))
+        _keys = ut.group_items(columns, ut.lmap(grouper, columns))
         _weights = pd.concat(ut.lmap(featinfo.group_counts, _keys.items()))
         _weights = _weights.iloc[_weights['num'].argsort()[::-1]]
         nice = ut.get_funcname(grouper).replace('_', ' ')
@@ -804,15 +854,142 @@ class AnnotPairFeatInfo(object):
         print('\nCounts of ' + nice)
         print(_weights)
 
-    def measure(featinfo, key):
-        start = key.find('(') + 1  # )
-        stop = key[start:].find('[')  # ]
-        if stop > -1:
-            stop += start
-        return key[start:stop]
-
     def feature(featinfo, key):
         return key
+
+    def measure(featinfo, key):
+        parsed = parse.parse('{type}({measure})', key)
+        if parsed is None:
+            parsed = parse.parse('{type}({measure}[{bin}])', key)
+        if parsed is not None:
+            return parsed['measure']
+
+    def global_measure(featinfo, key):
+        parsed = parse.parse('global({measure})', key)
+        if parsed is not None:
+            return parsed['measure']
+
+    loc_fmt = 'loc[{sorter},{rank}]({measure})'
+
+    def local_measure(featinfo, key):
+        parsed = parse.parse(featinfo.loc_fmt, key)
+        if parsed is not None:
+            return parsed['measure']
+
+    def local_sorter(featinfo, key):
+        parsed = parse.parse(featinfo.loc_fmt, key)
+        if parsed is not None:
+            return parsed['sorter']
+
+    def local_rank(featinfo, key):
+        parsed = parse.parse(featinfo.loc_fmt, key)
+        if parsed is not None:
+            return parsed['rank']
+
+    sum_fmt = '{op}({measure})'
+    binsum_fmt = '{op}({measure}[{bin_key}<{binval}])'
+
+    def summary_measure(featinfo, key):
+        parsed = parse.parse(featinfo.binsum_fmt, key)
+        if parsed is None:
+            parsed = parse.parse(featinfo.sum_fmt, key)
+        if parsed is not None:
+            if parsed['op'] in featinfo._summary_keys:
+                return parsed['measure']
+
+    def summary_op(featinfo, key):
+        parsed = parse.parse(featinfo.binsum_fmt, key)
+        if parsed is None:
+            parsed = parse.parse(featinfo.sum_fmt, key)
+        if parsed is not None:
+            if parsed['op'] in featinfo._summary_keys:
+                return parsed['op']
+
+    # def summary_bin(featinfo, key):
+    #     parsed = parse.parse(featinfo.binsum_fmt, key)
+    #     if parsed is not None:
+    #         return parsed['bin_key'] + '<' + parsed['binval']
+
+    def summary_binkey(featinfo, key):
+        parsed = parse.parse(featinfo.binsum_fmt, key)
+        if parsed is not None:
+            return parsed['bin_key']
+
+    def summary_binval(featinfo, key):
+        parsed = parse.parse(featinfo.binsum_fmt, key)
+        if parsed is not None:
+            return parsed['binval']
+
+    def dimkey_grammar(featinfo):
+        """
+        CommandLine:
+            python -m vtool.matching AnnotPairFeatInfo.dimkey_grammar
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from vtool.matching import *  # NOQA
+            >>> import vtool as vt
+            >>> import pandas as pd
+            >>> match = demodata_match({})
+            >>> match.add_global_measures(['yaw', 'qual', 'gps', 'time'])
+            >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
+            >>> # Feat info without bins
+            >>> feat = match.make_feature_vector()
+            >>> X = pd.DataFrame(feat, index=index)
+            >>> featinfo = AnnotPairFeatInfo(X)
+            >>> feat_grammar = featinfo.dimkey_grammar()
+            >>> for key in X.keys():
+            >>>     print(key)
+            >>>     print(feat_grammar.parseString(key))
+        """
+        # Here is a start of a grammer if we need to get serious
+        # with feature dimension name encoding
+        import pyparsing as pp
+        _summary_keys = featinfo._summary_keys
+        _summary_keys = ['sum', 'mean', 'med', 'std', 'len']
+        S = pp.Suppress
+        class Nestings(object):
+            """ allows for a bit of syntactic sugar """
+            def __call__(self, x):
+                return pp.Suppress('(') + x + pp.Suppress(')')
+            def __getitem__(self, x):
+                return pp.Suppress('[') + x + pp.Suppress(']')
+        brak = paren = Nestings()
+        unary_id = pp.Regex('[12]')
+        # takes care of non-greedy matching of underscores
+        # http://stackoverflow.com/questions/1905278/keyword-matching-in-
+        unary_measure = pp.Combine(
+            pp.Word(pp.alphanums) +
+            pp.ZeroOrMore('_' + ~unary_id + pp.Word(pp.alphanums)))
+        unary_sub = brak[pp.Word(pp.nums)]
+        global_unary = (unary_measure + S('_') + unary_id + pp.ZeroOrMore(unary_sub))
+        global_relation = pp.Word(pp.alphas + '_')
+        global_measure = global_unary | global_relation
+        global_feature = 'global' + paren(global_measure)
+        # Local
+        local_measure = pp.Word(pp.alphas + '_')
+        local_sorter = pp.Word(pp.alphas + '_')
+        local_rank = pp.Word(pp.nums)
+        local_feature = (
+            'loc' + brak[local_sorter + S(',') + local_rank] +
+            paren(local_measure)
+        )
+        # Summary
+        summary_measure = pp.Word(pp.alphas + '_')
+        summary_binkey = pp.Word(pp.alphas + '_')
+        summary_binval = pp.Word(pp.nums + '.')
+        summary_bin = brak[summary_binkey + '<' + summary_binval]
+        summary_op = pp.Or(_summary_keys)
+        summary_feature = (
+            summary_op + pp.ZeroOrMore(summary_bin) + paren(summary_measure)
+        )
+        feat_grammar = local_feature | global_feature | summary_feature
+        if False:
+            global_feature.parseString('global(qual_1)')
+            feat_grammar.parseString('global(min_qual)')
+            feat_grammar.parseString('loc[ratio,1](norm_dist)')
+            feat_grammar.parseString('mean[ratio<1](dist)')
+        return feat_grammar
 
     def measure_type(featinfo, key):
         if key.startswith('global'):
@@ -824,36 +1001,6 @@ class AnnotPairFeatInfo(object):
             #     return 'binned_summary'
             # else:
             return 'summary'
-
-    def summary_measure(featinfo, key):
-        if any(key.startswith(p) for p in featinfo._summary_keys):
-            return featinfo.measure(key)
-
-    def local_measure(featinfo, key):
-        if key.startswith('loc'):
-            return featinfo.measure(key)
-
-    def global_measure(featinfo, key):
-        if key.startswith('global'):
-            return featinfo.measure(key)
-
-    def summary_op(featinfo, key):
-        for p in featinfo._summary_keys:
-            if key.startswith(p):
-                return key[0:key.find('(')]  # )
-
-    def local_sorter(featinfo, key):
-        if key.startswith('loc'):
-            return key[key.find('[') + 1:key.find(',')]  # ]
-
-    def local_rank(featinfo, key):
-        if key.startswith('loc'):
-            return key[key.find(',') + 1:key.find(']')]
-
-    def summary_bin(featinfo, key):
-        for p in featinfo._summary_keys:
-            if key.startswith(p) and '[b' in key:  # ]
-                return key[key.find('[b') + 1:key.find(']')]
 
     def get_infostr(featinfo):
         """
@@ -880,8 +1027,12 @@ class AnnotPairFeatInfo(object):
                                           grouped_keys['summary']))),
             ('summary_ops', set(map(featinfo.summary_op,
                                      grouped_keys['summary']))),
-            ('summary_bins', set(map(featinfo.summary_bin,
-                                     grouped_keys['summary']))),
+            # ('summary_bins', set(map(featinfo.summary_bin,
+            #                          grouped_keys['summary']))),
+            ('summary_binvals', set(map(featinfo.summary_binval,
+                                        grouped_keys['summary']))),
+            ('summary_binkeys', set(map(featinfo.summary_binkey,
+                                        grouped_keys['summary']))),
         ])
 
         import textwrap
@@ -893,6 +1044,7 @@ class AnnotPairFeatInfo(object):
             return lines
 
         lines = []
+        lines.append('Feature Dimensions: %d' % (len(featinfo.X.columns)))
         for item  in info_items.items():
             key, list_ = item
             list_ = {a for a in list_ if a is not None}
