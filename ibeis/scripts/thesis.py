@@ -27,7 +27,7 @@ def chapter4_collect(defaultdb):
 
     Example:
         >>> from ibeis.scripts.thesis import *
-        >>> #defaultdb = 'PZ_PB_RF_TRAIN'
+        >>> defaultdb = 'PZ_PB_RF_TRAIN'
         >>> #defaultdb = 'GZ_Master1'
         >>> defaultdb = 'PZ_MTEST'
         >>> self = chapter4_collect(defaultdb)
@@ -48,15 +48,15 @@ def chapter4_collect(defaultdb):
     species_code = ibs.get_database_species(pblm.infr.aids)[0]
     if species_code == 'zebra_plains':
         species = 'Plains Zebras'
-        data_code = 'PZ_%d' % len(pblm.samples)
+        dbcode = 'PZ_%d' % len(pblm.samples)
     if species_code == 'zebra_grevys':
         species = 'Grévy\'s Zebras'
-        data_code = 'GZ_%d' % len(pblm.samples)
+        dbcode = 'GZ_%d' % len(pblm.samples)
 
     self = ExptChapter4()
     self.eval_task_keys = pblm.eval_task_keys
     self.species = species
-    self.data_code = data_code
+    self.dbcode = dbcode
     self.data_key = data_key
     self.clf_key = clf_key
 
@@ -72,6 +72,9 @@ def chapter4_collect(defaultdb):
         self.dpath = pathlib.Path(self.dpath)
         ut.ensuredir(self.dpath)
         # ut.vd(self.dpath)
+    self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
+    self.dpath = pathlib.Path(self.dpath)
+    ut.ensuredir(self.dpath)
 
     #-----------
     # COLLECTION
@@ -90,7 +93,7 @@ def chapter4_collect(defaultdb):
         self.build_importance_data(pblm, task_key)
         self.build_metrics(pblm, task_key)
 
-    fname = 'collected_data_{}.pkl'.format(self.data_code)
+    fname = 'collected_data_{}.pkl'.format(self.dbcode)
     ut.save_data(str(self.dpath.joinpath(fname)), self)
     return self
 
@@ -128,7 +131,7 @@ class ExptChapter4(object):
         self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
         self.dpath = pathlib.Path(self.dpath)
         self.species = None
-        self.data_code = None
+        self.dbcode = None
         self.data_key = None
         self.clf_key = None
         # info
@@ -261,7 +264,7 @@ class ExptChapter4(object):
         for (pred, real), group in failure_cases.groupby(('pred', 'real')):
             # Prefer examples we have manually reviewed before
             group = group.sort_values(['real_conf', 'easiness'])
-            for idx in range(num_top):
+            for idx in range(min(num_top, len(group))):
                 case = group.iloc[idx]
                 edge = tuple(ut.take(case, ['aid1', 'aid2']))
                 cases.append({
@@ -286,7 +289,7 @@ class ExptChapter4(object):
 
     def draw_hard_cases(self, task_key):
         """ draw hard cases with and without overlay """
-        subdir = 'cases_{}_{}'.format(task_key, self.data_code)
+        subdir = 'cases_{}_{}'.format(task_key, self.dbcode)
         dpath = self.dpath.joinpath(subdir)
         ut.ensuredir(dpath)
         code_to_nice = self.task_nice_lookup[task_key]
@@ -349,11 +352,11 @@ class ExptChapter4(object):
         fig2 = self._draw_score_hist(freqs, 'LNBNN score', 2)
 
         fname = 'score_hist_pos_{}_{}.png'.format(
-            self.data_key, self.data_code)
+            self.data_key, self.dbcode)
         self.savefig(fig1, str(self.dpath.joinpath(fname)))
 
         fname = 'score_hist_lnbnn_{}_{}.png'.format(
-            self.data_key, self.data_code)
+            self.data_key, self.dbcode)
         self.savefig(fig2, str(self.dpath.joinpath(fname)))
 
     def draw_roc(self, task_key):
@@ -374,7 +377,7 @@ class ExptChapter4(object):
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([7.4375,  3.125])
 
-        fname = 'roc_{}_{}.png'.format(task_key, self.data_code)
+        fname = 'roc_{}_{}.png'.format(task_key, self.dbcode)
         self.savefig(fig, str(self.dpath.joinpath(fname)))
 
     def draw_wordcloud(self, task_key):
@@ -384,7 +387,7 @@ class ExptChapter4(object):
         fig = pt.figure(fnum=1)
         pt.wordcloud(importances, ax=fig.axes[0])
 
-        fname = 'wc_{}_{}.png'.format(task_key, self.data_code)
+        fname = 'wc_{}_{}.png'.format(task_key, self.dbcode)
         fig_fpath = str(self.dpath.joinpath(fname))
         self.savefig(fig, fig_fpath)
 

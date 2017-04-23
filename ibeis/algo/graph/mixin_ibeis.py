@@ -635,7 +635,8 @@ class IBEISGroundtruth(object):
         dists = vt.ori_distance(yaws1, yaws2)
         tau = np.pi * 2
         # scores = np.full(len(aid_pairs), np.nan)
-        comp_by_viewpoint = (dists < tau / 8.1) | np.isnan(dists)
+        # comp_by_viewpoint = (dists < tau / 8.1) | np.isnan(dists)
+        comp_by_viewpoint = (dists < tau / 3) | np.isnan(dists)
         # comp_by_score = (scores > .1)
         # is_comp = comp_by_score | comp_by_viewpoint
         is_comp_guess = comp_by_viewpoint

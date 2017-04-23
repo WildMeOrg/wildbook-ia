@@ -76,7 +76,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     CommandLine:
         python -m ibeis.scripts.script_vsone evaluate_classifiers
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
+        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --profile
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_MTEST --show
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_Master1 --show
@@ -198,7 +198,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                       custom_nid_lookup=custom_nid_lookup)
         pblm._fix_hyperparams(qreq_)
 
-        use_cache = True
+        use_cache = False
         cfgstr = qreq_.get_cfgstr(with_input=True)
         cacher1 = ut.Cacher('pairsample_1_v4', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
@@ -279,9 +279,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         dbname = infr.ibs.get_dbname()
         aid_pairs = ut.lmap(tuple, pblm.samples.aid_pairs.tolist())
         hyper_params = pblm.hyper_params
-        edge_hashid = pblm.samples.edge_hashid()
+        # TODO: features should also rely on global attributes
+        # fornow using edge+label hashids is good enough
+        sample_hashid = pblm.samples.sample_hashid()
         feat_cfgstr = hyper_params.get_cfgstr()
-        feat_hashid = ut.hashstr27(edge_hashid + feat_cfgstr)
+        feat_hashid = ut.hashstr27(sample_hashid + feat_cfgstr)
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
         # use_cache = False
@@ -1359,8 +1361,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
 
     @property
     def primary_task(samples):
-        primary_task_key = 'match_state'
-        primary_task =  samples.subtasks[primary_task_key]
+        primary_task =  samples.subtasks[pblm.primary_task_key]
         return primary_task
 
     def compress(samples, flags):

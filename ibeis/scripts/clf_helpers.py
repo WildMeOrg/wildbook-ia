@@ -241,7 +241,8 @@ class ClfProblem(ut.NiceRepr):
                 'min_samples_leaf': 5,
                 'min_samples_split': 2,
                 'missing_values': np.nan,
-                'n_estimators': 64,
+                # 'n_estimators': 64,
+                'n_estimators': 256,
             }
             est_kw2 = {
                 'random_state': 3915904814,
