@@ -597,7 +597,9 @@ class ClfResult(ut.NiceRepr):
             ibs = infr.ibs
             edges = list(meta.index.tolist())
             CONFIDENCE = ibs.const.CONFIDENCE
-            conf_dict = infr.get_edge_attrs('confidence', edges, check_exist=True)
+            conf_dict = infr.get_edge_attrs('confidence', edges,
+                                            check_exist=True,
+                                            default=CONFIDENCE.INT_TO_CODE[None])
             conf_df = pd.DataFrame.from_dict(conf_dict, orient='index')
             conf_df = conf_df[0].map(CONFIDENCE.CODE_TO_INT)
             meta = meta.assign(real_conf=conf_df)

@@ -1242,26 +1242,66 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         return conf
 
     def qt_review_hardcases(pblm):
+        """
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm.evaluate_classifiers()
+            >>> win = pblm.qt_review_hardcases()
+
+        Ignore:
+            >>> # TEST to ensure we can priorizite reviewed edges without inference
+            >>> import networkx as nx
+            >>> from ibeis.algo.graph import demo
+            >>> kwargs = dict(num_pccs=6, p_incon=.4, size_std=2)
+            >>> infr = demo.demodata_infr(**kwargs)
+            >>> infr.queue_params['pos_redun'] = 1
+            >>> infr.queue_params['neg_redun'] = 1
+            >>> infr.apply_nondynamic_update()
+            >>> edges = list(infr.edges())
+            >>> prob_match = ut.dzip(edges, infr.dummy_matcher.predict(edges))
+            >>> infr.set_edge_attrs('prob_match', prob_match)
+            >>> infr.enable_redundancy = True
+            >>> infr.prioritize('prob_match', edges)
+            >>> order = []
+            >>> while True:
+            >>>     order.append(infr.pop())
+            >>> print(len(order))
+        """
         task_key = pblm.primary_task_key
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         res = pblm.task_combo_res[task_key][clf_key][data_key]
 
-        case_df = res.hardness_analysis(pblm.samples, pblm.infr)
+        samples = pblm.samples
         infr = pblm.infr
         ibs = infr.ibs
+        case_df = res.hardness_analysis(samples, infr)
         # Remove very confidenct cases
-        CONFIDENCE = ibs.const.CONFIDENCE
-        flags = case_df['real_conf'] <= CONFIDENCE.CODE_TO_INT['pretty_sure']
+        # CONFIDENCE = ibs.const.CONFIDENCE
+        # flags = case_df['real_conf'] < CONFIDENCE.CODE_TO_INT['pretty_sure']
+        flags = case_df['real_conf'] < 2
         unsure_cases = case_df[flags]
 
         # Only review failure cases
         unsure_cases = unsure_cases[unsure_cases['failed']]
         unsure_cases = unsure_cases.sort_values('hardness', ascending=False)
 
-        mode = 1
+        # only review big ccs
+        n_other1 = np.array([len(infr.pos_graph.connected_to(a)) for a in unsure_cases['aid1']])
+        n_other2 = np.array([len(infr.pos_graph.connected_to(a)) for a in unsure_cases['aid2']])
+        unsure_cases = unsure_cases[(n_other2 > 10) & (n_other1 > 10)]
 
-        if mode == 1:
+        # check only split cases
+        nids1 = np.array([infr.pos_graph.node_label(a) for a in unsure_cases['aid1']])
+        nids2 = np.array([infr.pos_graph.node_label(a) for a in unsure_cases['aid2']])
+        unsure_cases = unsure_cases[nids1 == nids2]
+
+        mode = 1
+        infr.enable_redundancy = False
+        infr.enable_split_check_mode = False
+
+        if mode == 0:
             def get_index_data(count):
                 edge = unsure_cases.index[count]
                 info_text = str(unsure_cases.loc[edge])
@@ -1277,8 +1317,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         else:
             # TODO: force it to re-review non-confident edges with the hardness
             # as priority ignoring the connectivity criteria
+            edges = unsure_cases.index.tolist()
+            infr.ensure_edges(edges)
+            infr.set_edge_attrs('hardness', unsure_cases['hardness'].to_dict())
+            for key in ['pred', 'real']:
+                vals = unsure_cases[key].map(ibs.const.REVIEW.INT_TO_CODE)
+                infr.set_edge_attrs(key, vals.to_dict())
+            infr.queue = None
+            infr.prioritize('hardness', unsure_cases['hardness'].to_dict())
+            infr.apply_nondynamic_update()
 
-            infr.prioritize()
+            infr.enable_redundancy = False
             infr.classifiers = None
             if False:
                 pccs = list(infr.non_pos_redundant_pccs())
@@ -1286,7 +1335,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 pcc = pccs[-1]
                 aug_edges = infr.find_pos_augment_edges(pcc)
                 infr.add_new_candidate_edges(aug_edges)
-            infr.qt_review_loop()
+            win = infr.qt_review_loop()
             # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
 
         return win
@@ -1359,19 +1408,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         samples.X_dict = X_dict
         samples.simple_scores = simple_scores
 
-    @property
-    def primary_task(samples):
-        primary_task =  samples.subtasks[pblm.primary_task_key]
-        return primary_task
-
     def compress(samples, flags):
-        """
-        flags = np.zeros(len(samples), dtype=np.bool)
-        flags[0] = True
-        flags[3] = True
-        flags[4] = True
-        flags[-1] = True
-        """
         assert len(flags) == len(samples), 'mask has incorrect size'
         infr = samples.infr
         simple_scores = samples.simple_scores[flags]

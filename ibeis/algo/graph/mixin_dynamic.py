@@ -7,7 +7,8 @@ import itertools as it
 import networkx as nx
 from ibeis.algo.graph import nx_utils
 from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
+from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN,
+                                    UNINFERABLE)
 from ibeis.algo.graph.nx_utils import (edges_inside, edges_cross,
                                        edges_outgoing)
 print, rrr, profile = ut.inject2(__name__)
@@ -42,14 +43,14 @@ class DynamicUpdate(object):
         * might add to incon-neg-external
         * neg-redun not tracked for incon.
 
-    INCOMPARABLE, WITHIN, CONSISTENT
+    UNINFERABLE, WITHIN, CONSISTENT
         * might remove pos-redun
         * might split PCC, results will be consistent
-    INCOMPARABLE, WITHIN, INCONSISTENT
+    UNINFERABLE, WITHIN, INCONSISTENT
         * might split PCC, results may be inconsistent
-    INCOMPARABLE, BETWEEN, BOTH_CONSISTENT
+    UNINFERABLE, BETWEEN, BOTH_CONSISTENT
         * might remove neg-redun
-    INCOMPARABLE, BETWEEN, ANY_INCONSISTENT
+    UNINFERABLE, BETWEEN, ANY_INCONSISTENT
         * might remove incon-neg-external
     """
 
@@ -59,16 +60,15 @@ class DynamicUpdate(object):
             infr._positive_decision(edge)
         elif decision == NEGTV:
             infr._negative_decision(edge)
-        elif decision in (INCMP, UNREV):
+        elif decision in UNINFERABLE:
             # incomparable and unreview have the same inference structure
             infr._uninferable_decision(edge, decision)
         else:
             raise AssertionError('Unknown decision=%r' % (decision,))
         # print('infr.recover_graph = %r' % (infr.recover_graph,))
 
-    def _add_review_edges_from(infr, edges, decision):
-        infr.print('add decision=%r from %d reviews' % (
-            decision, len(edges)), 1)
+    def _add_review_edges_from(infr, edges, decision=UNREV):
+        infr.print('add %d edges decision=%r' % (len(edges), decision), 1)
         # Add to review graph corresponding to decision
         infr.review_graphs[decision].add_edges_from(edges)
         # Remove from previously existing graphs
@@ -177,9 +177,6 @@ class DynamicUpdate(object):
         was_within = nid1 == nid2
         was_split = was_within and new_nid1 != new_nid2
 
-        # FIXME: REMOVING POSITIVE EDGES MIGHT CHANGE THE NAME LABEL EVEN IF
-        # THE PCC IS NOT SPLIT
-
         if was_within:
             if was_split:
                 if all_consistent:
@@ -226,7 +223,7 @@ class DynamicUpdate(object):
     @profile
     def _uninferable_decision(infr, edge, decision):
         """
-        Adds either an incomparable or unreview decision
+        Adds either an incomparable, unreview, or unknown decision
         """
         nid1, nid2 = infr.pos_graph.node_labels(*edge)
         incon1 = infr.recover_graph.has_node(edge[0])
@@ -235,9 +232,6 @@ class DynamicUpdate(object):
 
         was_within = nid1 == nid2
 
-        # FIXME: REMOVING POSITIVE EDGES MIGHT CHANGE THE NAME LABEL EVEN IF
-        # THE PCC IS NOT SPLIT
-
         overwrote_positive = infr.pos_graph.has_edge(*edge)
         overwrote_negative = infr.neg_graph.has_edge(*edge)
 
@@ -245,8 +239,10 @@ class DynamicUpdate(object):
             prefix = 'incmp'
         elif decision == UNREV:
             prefix = 'unrev'
+        elif decision == UNKWN:
+            prefix = 'unkown'
         else:
-            raise KeyError('decision can only be UNREV or INCMP')
+            raise KeyError('decision can only be UNREV, INCMP, or UNKWN')
 
         infr._add_review_edge(edge, decision)
 
@@ -397,6 +393,20 @@ class Recovery(object):
         # Generate weights for edges
         default = 0
         # default = 1e-6
+
+        pos_conf_gen = list(infr.gen_edge_values('confidence', pos_edges,
+                                                 default='unspecified'))
+        from ibeis.constants import CONFIDENCE
+        confs = [CONFIDENCE.CODE_TO_INT[c] for c in pos_conf_gen]
+        confs = [0 if c is None else c for c in confs]
+        pos_confs = np.array(confs)
+
+        neg_conf_gen = list(infr.gen_edge_values('confidence', neg_edges,
+                                                 default='unspecified'))
+        confs = [CONFIDENCE.CODE_TO_INT[c] for c in neg_conf_gen]
+        confs = [0 if c is None else c for c in confs]
+        neg_confs = np.array(confs)
+
         pos_gen = infr.gen_edge_values('prob_match', pos_edges, default=default)
         neg_gen = infr.gen_edge_values('prob_match', neg_edges, default=default)
         pos_prob = list(pos_gen)
@@ -407,6 +417,10 @@ class Recovery(object):
         neg_weight = neg_n
         pos_weight = np.add(pos_prob, np.array(pos_n))
         neg_weight = np.add(neg_prob, np.array(neg_n))
+
+        pos_weight = pos_weight + pos_confs
+        neg_weight = neg_weight + neg_confs
+
         capacity = 'weight'
         nx.set_edge_attributes(pos_subgraph, capacity,
                                ut.dzip(pos_edges, pos_weight))
@@ -609,13 +623,16 @@ class Priority(object):
         infr.queue.update(ut.dzip(edges, priority))
 
     @profile
-    def prioritize(infr, metric=None):
+    def prioritize(infr, metric=None, edges=None):
         if infr.queue is None:
             infr.queue = ut.PriorityQueue()
         low = 1e-9
-        metric = 'prob_match'
-        # Get unreviewed and error edges that are not redundant
-        edges = list(infr.filter_nonredun_edges(infr.unreviewed_graph.edges()))
+        if metric is None:
+            metric = 'prob_match'
+        if edges is None:
+            # If edges are not explicilty specified get unreviewed and error
+            # edges that are not redundant
+            edges = list(infr.filter_nonredun_edges(infr.unreviewed_graph.edges()))
         priorities = list(infr.gen_edge_values(metric, edges, default=low))
         priorities = np.array(priorities)
         priorities[np.isnan(priorities)] = low
@@ -636,28 +653,37 @@ class Priority(object):
         try:
             edge, priority = infr.queue.pop()
         except IndexError:
-            new_edges = infr.find_pos_redun_candidate_edges()
-            if new_edges:
-                # Add edges to complete redundancy
-                infr.add_new_candidate_edges(new_edges)
-                return infr.pop()
+            if infr.enable_redundancy:
+                new_edges = infr.find_pos_redun_candidate_edges()
+                if new_edges:
+                    # Add edges to complete redundancy
+                    infr.add_new_candidate_edges(new_edges)
+                    return infr.pop()
+                else:
+                    raise StopIteration('no more to review!')
             else:
                 raise StopIteration('no more to review!')
         else:
-            u, v = edge
-            nid1, nid2 = infr.node_labels(u, v)
-            pos_graph = infr.pos_graph
-            pos_graph[nid1]
-            if nid1 == nid2:
-                if nid1 not in infr.nid_to_errors:
-                    # skip edges that increase local connectivity beyond
-                    # redundancy thresholds.
-                    pos_conn = nx.connectivity.local_edge_connectivity(
-                        infr.pos_graph, u, v)
-                    if pos_conn >= infr.queue_params['pos_redun']:
-                        return infr.pop()
-            #     import utool
-            #     utool.embed()
+            if infr.enable_redundancy:
+                u, v = edge
+                nid1, nid2 = infr.node_labels(u, v)
+                pos_graph = infr.pos_graph
+                pos_graph[nid1]
+                if nid1 == nid2:
+                    if nid1 not in infr.nid_to_errors:
+                        # skip edges that increase local connectivity beyond
+                        # redundancy thresholds.
+                        pos_conn = nx.connectivity.local_edge_connectivity(
+                            infr.pos_graph, u, v)
+                        if pos_conn >= infr.queue_params['pos_redun']:
+                            return infr.pop()
+                #     import utool
+                #     utool.embed()
+            if getattr(infr, 'enable_split_check_mode', False):
+                # only checking edges within a name
+                nid1, nid2 = infr.pos_graph.name_labels(*edge)
+                if nid1 != nid2:
+                    return infr.pop()
             assert edge[0] < edge[1]
             return edge, (priority * -1)
 
@@ -786,6 +812,8 @@ class Redundancy(_RedundancyHelpers):
         Removes positive and negative redundancy from nids and all other PCCs
         touching nids respectively. Return the external PCC nids.
         """
+        if not infr.enable_redundancy:
+            return []
         if infr.neg_redun_nids.has_node(nid):
             prev_neg_nids = set(infr.neg_redun_nids.neighbors(nid))
         else:
@@ -809,6 +837,8 @@ class Redundancy(_RedundancyHelpers):
     @profile
     def update_extern_neg_redun(infr, nid, may_add=True, may_remove=True,
                                 force=False):
+        if not infr.enable_redundancy:
+            return
         infr.print('update_extern_neg_redun')
         k_neg = infr.queue_params['neg_redun']
         cc1 = infr.pos_graph.component(nid)
@@ -829,6 +859,8 @@ class Redundancy(_RedundancyHelpers):
         Checks if a PCC is newly, or no longer positive redundant.
         Edges are either removed or added to the queue appropriately.
         """
+        if not infr.enable_redundancy:
+            return
         # force = True
         # infr.print('update_pos_redun')
         need_add = False
@@ -859,6 +891,8 @@ class Redundancy(_RedundancyHelpers):
         Checks if two PCCs are newly or no longer negative redundant.
         Edges are either removed or added to the queue appropriately.
         """
+        if not infr.enable_redundancy:
+            return
         infr.print('update_neg_redun')
         need_add = False
         need_remove = False
@@ -1185,6 +1219,10 @@ class NonDynamicUpdate(object):
         )
         infr.set_edge_attrs(
             'inferred_state',
+            ut.dzip(ut.flatten(categories[UNKWN].values()), [UNKWN])
+        )
+        infr.set_edge_attrs(
+            'inferred_state',
             ut.dzip(ut.flatten(categories[UNREV].values()), [None])
         )
         infr.set_edge_attrs(
@@ -1250,7 +1288,7 @@ class NonDynamicUpdate(object):
             >>> graph = None
             >>> cat = infr.categorize_edges()
         """
-        states = (POSTV, NEGTV, INCMP, UNREV)
+        states = (POSTV, NEGTV, INCMP, UNREV, UNKWN)
         rev_graph = {key: infr.review_graphs[key] for key in states}
         if graph is None or graph is infr.graph:
             graph = infr.graph
@@ -1277,7 +1315,7 @@ class NonDynamicUpdate(object):
         name_edges = {key: set(ne_to_edges[key].keys()) for key in states}
 
         # Positive and negative decisions override incomparable and unreviewed
-        for key in (INCMP, UNREV):
+        for key in UNINFERABLE:
             name_edges[key].difference_update(name_edges[POSTV])
             name_edges[key].difference_update(name_edges[NEGTV])
 
@@ -1292,6 +1330,7 @@ class NonDynamicUpdate(object):
                 'All positive edges should be internal to a PCC')
             assert len(name_edges[INCMP].intersection(incon_internal_ne)) == 0
             assert len(name_edges[UNREV].intersection(incon_internal_ne)) == 0
+            assert len(name_edges[UNKWN].intersection(incon_internal_ne)) == 0
             assert all(n1 == n2 for n1, n2 in incon_internal_ne), (
                 'incon_internal edges should be internal to a PCC')
 
@@ -1299,12 +1338,12 @@ class NonDynamicUpdate(object):
         incon_internal_nids = {n1 for n1, n2 in incon_internal_ne}
         incon_external_ne = set([])
         # Find all edges leaving an inconsistent PCC
-        for key in (NEGTV, INCMP, UNREV):
+        for key in (NEGTV,) + UNINFERABLE:
             incon_external_ne.update({
                 (nid1, nid2) for nid1, nid2 in name_edges[key]
                 if nid1 in incon_internal_nids or nid2 in incon_internal_nids
             })
-        for key in (NEGTV, INCMP, UNREV):
+        for key in (NEGTV,) + UNINFERABLE:
             name_edges[key].difference_update(incon_external_ne)
 
         # Inference between names is now complete.
@@ -1318,29 +1357,35 @@ class NonDynamicUpdate(object):
         positive = {
             nid1: union(
                 ne_to_edges[key][(nid1, nid2)]
-                for key in (POSTV, INCMP, UNREV))
+                for key in (POSTV,) + UNINFERABLE)
             for nid1, nid2 in name_edges[POSTV]
         }
         # Find edges between 1-negative-redundant consistent PCCs
         negative = {
             (nid1, nid2): union(
                 ne_to_edges[key][(nid1, nid2)]
-                for key in (NEGTV, INCMP, UNREV))
+                for key in (NEGTV,) + UNINFERABLE)
             for nid1, nid2 in name_edges[NEGTV]
         }
         # Find edges internal to inconsistent PCCs
         incon_internal = {
             nid: union(
                 ne_to_edges[key][(nid, nid)]
-                for key in (POSTV, NEGTV, INCMP, UNREV))
+                for key in (POSTV, NEGTV,) + UNINFERABLE)
             for nid in incon_internal_nids
         }
         # Find edges leaving inconsistent PCCs
         incon_external = {
             (nid1, nid2): union(
                 ne_to_edges[key][(nid1, nid2)]
-                for key in (NEGTV, INCMP, UNREV))
+                for key in (NEGTV,) + UNINFERABLE)
             for nid1, nid2 in incon_external_ne
+        }
+        # Unknown names may have been comparable but the reviewer did not
+        # know and could not guess. Likely bad quality.
+        unknown = {
+            (nid1, nid2): ne_to_edges[UNKWN][(nid1, nid2)]
+            for (nid1, nid2) in name_edges[UNKWN]
         }
         # Incomparable names cannot make inference about any other edges
         notcomparable = {
@@ -1359,6 +1404,7 @@ class NonDynamicUpdate(object):
             NEGTV: negative,
             UNREV: unreviewed,
             INCMP: notcomparable,
+            UNKWN: unknown,
             'inconsistent_internal': incon_internal,
             'inconsistent_external': incon_external,
         }

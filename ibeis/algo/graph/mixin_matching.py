@@ -687,6 +687,14 @@ class CandidateSearch(object):
         }
         return new_edges
 
+    def ensure_edges(infr, edges):
+        """
+        Adds any new edges as unreviewed edges
+        """
+        missing_edges = ut.compress(edges, [not infr.has_edge(e) for e in edges])
+        infr.graph.add_edges_from(missing_edges, decision=UNREV, num_reviews=0)
+        infr._add_review_edges_from(missing_edges, decision=UNREV)
+
     @profile
     def add_new_candidate_edges(infr, new_edges):
         new_edges = list(new_edges)
@@ -741,8 +749,8 @@ class CandidateSearch(object):
 
             # Insert all the new edges into the priority queue
             infr.queue.update((-default_priority).to_dict())
-        elif hasattr(infr, 'dummy_predictor'):
-            prob_match = infr.dummy_predictor(new_edges)
+        elif hasattr(infr, 'dummy_matcher'):
+            prob_match = infr.dummy_matcher.predict(new_edges)
             infr.set_edge_attrs('prob_match', ut.dzip(new_edges, prob_match))
             infr.queue.update(ut.dzip(new_edges, -prob_match))
         elif infr.cm_list is not None:

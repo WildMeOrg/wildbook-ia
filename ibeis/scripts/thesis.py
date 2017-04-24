@@ -17,21 +17,15 @@ TMP_RC = {
     'ytick.labelsize': 14,
 }
 
-def chapter4_collect(defaultdb):
-    """
-    CommandLine:
-        python -m ibeis.scripts.thesis chapter4_collect --db PZ_PB_RF_TRAIN
-        python -m ibeis.scripts.thesis chapter4_collect --db GZ_Master1
-        python -m ibeis.scripts.thesis chapter4_collect --db PZ_MTEST
-        python -m ibeis.scripts.thesis chapter4_collect
 
+def precollect(defaultdb):
+    """
     Example:
         >>> from ibeis.scripts.thesis import *
-        >>> defaultdb = 'PZ_PB_RF_TRAIN'
-        >>> #defaultdb = 'GZ_Master1'
-        >>> defaultdb = 'PZ_MTEST'
-        >>> self = chapter4_collect(defaultdb)
-        >>> self.draw()
+        >>> defaultdb = 'GZ_Master1'
+        >>> self, pblm = precollect(defaultdb)
+        >>> task_key = 'match_state'
+        >>> self.build_metrics(pblm, task_key)()
     """
     pblm = OneVsOneProblem.from_empty(defaultdb)
     data_key = pblm.default_data_key
@@ -48,10 +42,11 @@ def chapter4_collect(defaultdb):
     species_code = ibs.get_database_species(pblm.infr.aids)[0]
     if species_code == 'zebra_plains':
         species = 'Plains Zebras'
-        dbcode = 'PZ_%d' % len(pblm.samples)
+        # dbcode = 'PZ_%d' % len(pblm.samples)
     if species_code == 'zebra_grevys':
         species = 'Grévy\'s Zebras'
-        dbcode = 'GZ_%d' % len(pblm.samples)
+        # dbcode = 'GZ_%d' % len(pblm.samples)
+    dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
     self = ExptChapter4()
     self.eval_task_keys = pblm.eval_task_keys
@@ -63,19 +58,38 @@ def chapter4_collect(defaultdb):
     self.task_nice_lookup = {
         'match_state': ibs.const.REVIEW.CODE_TO_NICE,
         'photobomb_state': {
-            'pb': 'Phototomb'
+            'pb': 'Phototomb',
+            'notpb': 'Not Phototomb',
         }
     }
 
     if ibs.dbname == 'PZ_MTEST':
-        self.dpath = ut.truepath('~/Desktop/mtest_plots')
-        self.dpath = pathlib.Path(self.dpath)
-        ut.ensuredir(self.dpath)
-        # ut.vd(self.dpath)
-    self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
+        self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
+    else:
+        base = '~/latex/crall-thesis-2017/figures_pairclf'
+        self.dpath = ut.truepath(base + '/' + self.dbcode)
     self.dpath = pathlib.Path(self.dpath)
     ut.ensuredir(self.dpath)
+    return self, pblm
 
+
+def chapter4_collect(defaultdb):
+    """
+    CommandLine:
+        python -m ibeis.scripts.thesis chapter4_collect --db PZ_PB_RF_TRAIN
+        python -m ibeis.scripts.thesis chapter4_collect --db GZ_Master1
+        python -m ibeis.scripts.thesis chapter4_collect --db PZ_MTEST
+        python -m ibeis.scripts.thesis chapter4_collect
+
+    Example:
+        >>> from ibeis.scripts.thesis import *
+        >>> defaultdb = 'PZ_PB_RF_TRAIN'
+        >>> #defaultdb = 'GZ_Master1'
+        >>> defaultdb = 'PZ_MTEST'
+        >>> self = chapter4_collect(defaultdb)
+        >>> self.draw()
+    """
+    self, pblm = precollect(defaultdb)
     #-----------
     # COLLECTION
     #-----------
@@ -119,13 +133,13 @@ class ExptChapter4(object):
             self.draw_roc(task_key)
 
             self.draw_wordcloud(task_key)
-            self.print_top_importance(task_key)
-            self.print_metrics(task_key)
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
 
         task_key = 'photobomb_state'
         if task_key in self.eval_task_keys:
-            self.print_top_importance(task_key)
-            self.print_metrics(task_key)
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
 
     def __init__(self):
         self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
@@ -147,7 +161,6 @@ class ExptChapter4(object):
         self.score_hist_pos = None
 
     def build_metrics(self, pblm, task_key):
-        import sklearn.metrics
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         res.augment_if_needed()
         pred_enc = res.clf_probs.argmax(axis=1)
@@ -161,11 +174,29 @@ class ExptChapter4(object):
             y_true, y_pred, target_names, sample_weight, verbose=False)
         self.task_confusion[task_key] = confusion_df
         self.task_metrics[task_key] = metric_df
+        return ut.partial(self.write_metrics, task_key)
 
-    def print_metrics(self, task_key):
+    def write_metrics(self, task_key='match_state'):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis ExptChapter4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
+            python -m ibeis.scripts.thesis ExptChapter4.write_metrics --db GZ_Master1 --task-key=match_state
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> kwargs = ut.argparse_funckw(ExptChapter4.write_metrics)
+            >>> defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> self, pblm = precollect(defaultdb)
+            >>> task_key = kwargs['task_key']
+            >>> self.build_metrics(pblm, task_key)
+            >>> self.write_metrics(task_key)
+        """
         df = self.task_confusion[task_key]
         df = df.rename_axis(self.task_nice_lookup[task_key], 0)
         df = df.rename_axis(self.task_nice_lookup[task_key], 1)
+        df.index.name = None
+        df.columns.name = None
 
         latex_str = df.to_latex(
             float_format=lambda x: '' if np.isnan(x) else str(int(x)),
@@ -181,17 +212,27 @@ class ExptChapter4(object):
         lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
         latex_str = '\n'.join(lines)
         latex_str = latex_str.replace('midrule', 'hline')
-        # sum_real = '\\sum real'
+
+        fname = 'confusion_{}.tex'.format(task_key)
         print(latex_str)
+        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
+        # sum_real = '\\sum real'
 
         df = self.task_metrics[task_key]
         df = df.rename_axis(self.task_nice_lookup[task_key], 0)
         df = df.drop(['markedness', 'bookmaker'], axis=1)
+        df.index.name = None
+        df.columns.name = None
         df['support'] = df['support'].astype(np.int)
         latex_str = df.to_latex(
             float_format=lambda x: '%.2f' % (x)
         )
+        lines = latex_str.split('\n')
+        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
+        latex_str = '\n'.join(lines)
         print(latex_str)
+        fname = 'eval_metrics_{}.tex'.format(task_key)
+        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
 
     def build_importance_data(self, pblm, task_key):
         self.task_importance[task_key] = pblm.feature_importance(task_key=task_key)
@@ -220,7 +261,6 @@ class ExptChapter4(object):
         neg_freq = neg_freq / neg_freq.sum()
         freqs = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
         self.score_hist_lnbnn = freqs
-
 
     def build_roc_data_positive(self, pblm):
         task_key = 'match_state'
@@ -363,7 +403,6 @@ class ExptChapter4(object):
         mpl.rcParams.update(TMP_RC)
 
         roc_data = self.task_rocs[task_key]
-        target_class = class_alias(roc_data['target_class'])
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
@@ -391,7 +430,7 @@ class ExptChapter4(object):
         fig_fpath = str(self.dpath.joinpath(fname))
         self.savefig(fig, fig_fpath)
 
-    def print_top_importance(self, task_key):
+    def write_importance(self, task_key):
         # Print info for latex table
         importances = self.task_importance[task_key]
         vals = importances.values()
@@ -411,12 +450,6 @@ class ExptChapter4(object):
         # image = vt.clipwhite(image)
         vt.imwrite(fpath, image)
 
-
-def class_alias(k):
-    if k == 'match':
-        return 'Positive'
-    if k == 'pb':
-        return 'Photobomb'
 
 def feat_alias(k):
     # presentation values for feature dimension

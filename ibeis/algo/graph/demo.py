@@ -33,7 +33,7 @@ def simple_simulation():
     # FIXME: make an implicit negative edge truth state
 
     infr.ensure_full()
-    infr.apply_edge_truth()
+    # infr.apply_edge_truth()
     # Dummy scoring
     rng = np.random.RandomState(0)
     apply_dummy_scores(infr, rng)
@@ -52,13 +52,6 @@ def simple_simulation():
                         for v in ut.take(u_edges, sortx)]
         assert len(ranked_edges) == k
         return ranked_edges
-
-    def dummy_predictor(edges):
-        prob_match = list(infr_gt.gen_edge_values('prob_match', edges=edges))
-        prob_match = np.array(prob_match)
-        return prob_match
-
-    infr.dummy_predictor = dummy_predictor
 
     def find_dummy_candidate_edges():
         new_edges = []
@@ -136,7 +129,7 @@ def demo2():
 
     # ------------------
 
-    rng = np.random.RandomState(42)
+    # rng = np.random.RandomState(42)
 
     # infr = demodata_infr(num_pccs=4, size=3, size_std=1, p_incon=0)
     infr = demodata_infr(num_pccs=6, size=7, size_std=1, p_incon=0)
@@ -144,9 +137,9 @@ def demo2():
     # infr.ensure_cliques()
     infr.review_dummy_edges(method='clique')
     infr.ensure_full()
-    infr.apply_edge_truth()
+    # infr.apply_edge_truth()
     # Dummy scoring
-    apply_dummy_scores(infr, rng)
+    # apply_dummy_scores(infr, rng)
 
     infr.init_simulation(oracle_accuracy=oracle_accuracy, name='demo2')
 
@@ -214,13 +207,6 @@ def demo2():
                         for v in ut.take(u_edges, sortx)]
         assert len(ranked_edges) == k
         return ranked_edges
-
-    def dummy_predictor(edges):
-        prob_match = list(infr_gt.gen_edge_values('prob_match', edges=edges))
-        prob_match = np.array(prob_match)
-        return prob_match
-
-    infr.dummy_predictor = dummy_predictor
 
     def find_dummy_candidate_edges():
         new_edges = []
@@ -321,13 +307,6 @@ def demo2():
         ut.show_if_requested()
 
 
-def randn(mean=0, std=1, shape=[], a_max=None, a_min=None, rng=None):
-    a = (rng.randn(*shape) * std) + mean
-    if a_max is not None or a_min is not None:
-        a = np.clip(a, a_min, a_max)
-    return a
-
-
 valid_views = ['L', 'F', 'R', 'B']
 adjacent_views = {
     v: [valid_views[(count + i) % len(valid_views)] for i in [-1, 0, 1]]
@@ -378,7 +357,7 @@ def apply_dummy_scores(infr, rng=None):
         >>> infr = make_dummy_infr([100] * 2)
         >>> infr.ensure_full()
         >>> rng = None
-        >>> infr.apply_edge_truth()
+        >>> #infr.apply_edge_truth()
         >>> apply_dummy_scores(infr, rng)
         >>> edges = list(infr.graph.edges())
         >>> truths = np.array(ut.take(infr.edge_truth, edges))
@@ -1183,7 +1162,7 @@ def demodata_infr(**kwargs):
         new_nodes += counter
         counter = new_nodes.max() + 1
         new_edges = [
-            (int(min(u, v)), int(max(u, v)), {'decision': POSTV})
+            (int(min(u, v)), int(max(u, v)), {'decision': POSTV, 'truth': POSTV})
             for u, v in new_edges_
         ]
         new_g = nx.Graph(new_edges)
@@ -1221,13 +1200,24 @@ def demodata_infr(**kwargs):
             for (u, v), state in zip(complement_edges, states):
                 u, v = (u, v) if u < v else (v, u)
                 # Add in candidate edges
+                truth = POSTV
                 if state == 0:
                     # Add in inconsistent edges
-                    new_edges.append((u, v, {'decision': NEGTV}))
+                    decision = NEGTV
+                    # TODO: truth could be INCMP or POSTV
+                    # new_edges.append((u, v, {'decision': NEGTV}))
                 elif state == 1:
-                    new_edges.append((u, v, {'decision': UNREV}))
+                    decision = UNREV
+                    # TODO: truth could be INCMP or POSTV
+                    # new_edges.append((u, v, {'decision': UNREV}))
                 elif state == 2:
-                    new_edges.append((u, v, {'decision': INCMP}))
+                    decision = INCMP
+                    truth = INCMP
+                    # new_edges.append((u, v, {'decision': INCMP}))
+                else:
+                    continue
+                new_edges.append((u, v, {'decision': decision, 'truth':
+                                         truth}))
         new_ccs.append((new_nodes, new_edges))
 
     import networkx as nx
@@ -1237,10 +1227,13 @@ def demodata_infr(**kwargs):
 
     neg_edges = []
 
+    print('makingxx pairs')
     if not kwalias('ignore_pair', False):
+        print('making pairs')
         p_pair_neg = kwalias('p_pair_neg', .4)
         p_pair_incmp = kwalias('p_pair_incmp', .2)
         p_pair_unrev = kwalias('p_pair_unrev', .2)
+        print('p_pair_neg = %r' % (p_pair_neg,))
         # p_pair_neg = 1
         for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
                                     label='make neg-demo'):
@@ -1263,11 +1256,20 @@ def demodata_infr(**kwargs):
                 u, v = (u, v) if u < v else (v, u)
                 # Add in candidate edges
                 if state == 0:
-                    neg_edges.append((u, v, {'decision': NEGTV}))
+                    decision == NEGTV
+                    truth = NEGTV
                 elif state == 1:
-                    neg_edges.append((u, v, {'decision': INCMP}))
+                    decision = INCMP
+                    # TODO: could be incomp or neg
+                    truth = INCMP
                 elif state == 2:
-                    neg_edges.append((u, v, {'decision': UNREV}))
+                    decision = UNREV
+                    # TODO: could be incomp or neg
+                    truth = NEGTV
+                    # neg_edges.append((u, v, {'decision': UNREV}))
+                else:
+                    continue
+                neg_edges.append((u, v, {'decision': decision, 'truth': truth}))
 
     edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
     edges = [(int(u), int(v), d) for u, v, d in edges]
@@ -1292,7 +1294,70 @@ def demodata_infr(**kwargs):
     infr.set_node_attrs('fontsize', fontsize)
     infr.set_node_attrs('fontname', fontname)
     infr.set_node_attrs('fixed_size', True)
+
+    # Set synthetic ground-truth attributes for testing
+    # infr.apply_edge_truth()
+    infr.edge_truth = infr.get_edge_attrs('truth')
+    # Make synthetic matcher
+    infr.dummy_matcher = DummyMatcher(infr)
+
     return infr
+
+
+def randn(mean=0, std=1, shape=[], a_max=None, a_min=None, rng=None):
+    a = (rng.randn(*shape) * std) + mean
+    if a_max is not None or a_min is not None:
+        a = np.clip(a, a_min, a_max)
+    return a
+
+
+class DummyMatcher(object):
+    """
+    generates dummy scores between edges (not necesarilly in the graph)
+    """
+    def __init__(matcher, infr):
+        matcher.infr = infr
+        matcher.cache = {}
+        matcher.rng = np.random.RandomState(0)
+        matcher.dummy_params = {
+            NEGTV: {'mean': .2, 'std': .25},
+            POSTV: {'mean': .8, 'std': .2},
+            INCMP: {'mean': .2, 'std': .4},
+        }
+
+    def predict(matcher, edges):
+        edges = list(edges)
+        infr = matcher.infr
+        is_miss = np.array([e not in matcher.cache for e in edges])
+        # is_hit = ~is_miss
+        if np.any(is_miss):
+            miss_edges = ut.compress(edges, is_miss)
+            def guess_truth(edge):
+                nid1 = infr.graph.node[edge[0]]['orig_name_label']
+                nid2 = infr.graph.node[edge[1]]['orig_name_label']
+                return POSTV if nid1 == nid2 else NEGTV
+            miss_truths = [
+                infr.edge_truth[edge] if edge in infr.edge_truth else
+                guess_truth(edge)
+                for edge in miss_edges
+            ]
+            grouped_edges = ut.group_items(miss_edges, miss_truths)
+            for key, group in grouped_edges.items():
+                probs = randn(shape=[len(group)], rng=matcher.rng, a_max=1, a_min=0,
+                              **matcher.dummy_params[key])
+                for edge, prob in zip(group, probs):
+                    matcher.cache[edge] = prob
+
+        return ut.take(matcher.cache, edges)
+
+    # print('[demo] apply dummy scores')
+    # rng = ut.ensure_rng(rng)
+    # # edges = list(infr.graph.edges())
+    # grouped_edges = ut.group_pairs(infr.edge_truth.items())
+    # for key, group in grouped_edges.items():
+    #     probs = randn(shape=[len(group)], rng=rng, a_max=1, a_min=0,
+    #                   **dummy_params[key])
+    #     infr.set_edge_attrs('prob_match', ut.dzip(group, probs))
 
 
 # TODO: inconsistent out of subgraph modification
@@ -1315,4 +1380,4 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
-    .doctest_funcs()
+    ut.doctest_funcs()

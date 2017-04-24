@@ -317,19 +317,24 @@ class InfrReviewers(object):
             return None
 
     def emit_manual_review(infr, edge, priority):
-        edge_data = infr.get_nonvisual_edge_data(edge)
-
+        edge_data = infr.get_nonvisual_edge_data(edge).copy()
+        edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+        edge_data['n_ccs'] = (len(infr.pos_graph.connected_to(edge[0])), len(infr.pos_graph.connected_to(edge[1])))
         info_text = 'priority=%r' % (priority,)
         info_text += '\n' + ut.repr4(edge_data)
         infr.manual_wgt.set_edge(edge, info_text)
         infr.manual_wgt.show()
 
     def qt_review_loop(infr):
+        import guitool as gt
+        gt.ensure_qapp()
         from ibeis.viz import viz_graph2
         infr.manual_wgt = viz_graph2.AnnotPairDialog(
             infr=infr, standalone=False)
         infr.manual_wgt.accepted.connect(infr.on_accept)
+        infr.manual_wgt.skipped.connect(infr.continue_review)
         infr.continue_review()
+        return infr.manual_wgt
 
     def continue_review(infr):
         try:

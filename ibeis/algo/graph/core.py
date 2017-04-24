@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import logging
+# import logging
 import itertools as it
 import six
 from ibeis.algo.graph import nx_dynamic_graph
@@ -620,13 +620,13 @@ class MiscHelpers(object):
         infr.review_graphs[POSTV] = nx_dynamic_graph.DynConnGraph()
         infr.review_graphs[NEGTV] = infr._graph_cls()
         infr.review_graphs[INCMP] = infr._graph_cls()
-        # infr.review_graphs[UNKWN] = infr._graph_cls()
+        infr.review_graphs[UNKWN] = infr._graph_cls()
         infr.review_graphs[UNREV] = infr._graph_cls()
 
         if graph is not None:
             for u, v, d in graph.edges(data=True):
                 decision = d.get('decision', UNREV)
-                if decision in {POSTV, NEGTV, INCMP, UNREV}:
+                if decision in {POSTV, NEGTV, INCMP, UNREV, UNKWN}:
                     infr.review_graphs[decision].add_edge(u, v)
 
         infr.update_node_attributes()
@@ -900,10 +900,14 @@ class AnnotInference(ut.NiceRepr,
             POSTV: None,
             NEGTV: None,
             INCMP: None,
-            # UNKWN: None,
+            UNKWN: None,
             UNREV: None,
         }
 
+        # if enable_redundancy is True, then redundant edges will be ignored by
+        # the priority queue and extra edges needed to achieve minimum
+        # redundancy will be searched for if the queue is empty.
+        infr.enable_redundancy = True
         infr.enable_inference = True
         infr.test_mode = False
         infr.simulation_mode = False

@@ -56,6 +56,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
         >>> gt.qtapp_loop(qwin=win, freq=10)
     """
     accepted = QtCore.pyqtSignal(dict)
+    skipped = QtCore.pyqtSignal()
 
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
                    get_index_data=None,
@@ -63,6 +64,9 @@ class AnnotPairDialog(gt.GuitoolWidget):
 
         from ibeis.gui import inspect_gui
         self.infr = infr
+
+        self.history = []
+
         if infr is not None:
             ibs = infr.ibs
 
@@ -119,6 +123,8 @@ class AnnotPairDialog(gt.GuitoolWidget):
         #     self, annot_state=['sizePolicy', 'minimumHeight'], skip=True)
 
         self.accept_button = rbox.addNewButton('Accept', pressed=self.accept)
+        if not standalone:
+            self.skip_button = rbox.addNewButton('Skip', pressed=self.skip)
 
         np_bar = rbox.addNewHWidget()
         self.count = None
@@ -173,6 +179,9 @@ class AnnotPairDialog(gt.GuitoolWidget):
             # Move to the next item
             self.step_by(1)
 
+    def skip(self):
+        self.skipped.emit()
+
     def accept(self):
         self.was_confirmed = True
         feedback = self.feedback_dict()
@@ -183,6 +192,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.accepted.emit(feedback)
 
     def set_edge(self, edge, info_text=None):
+        self.history.append(edge)
         self.was_confirmed = False
         edge_data = (None if self.infr is None else
                      self.infr.get_nonvisual_edge_data(edge))
