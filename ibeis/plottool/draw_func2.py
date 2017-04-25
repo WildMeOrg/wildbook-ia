@@ -3451,7 +3451,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
                     modifysize=False,
                     draw_fmatch=True, darken=DARKEN, H1=None, H2=None,
-                    sel_fm=[], ax=None, **kwargs):
+                    sel_fm=[], ax=None, heatmask=False, **kwargs):
     """
     Draws two chips and the feature matches between them. feature matches
     kpts1 and kpts2 use the (x,y,a,c,d)
@@ -3503,13 +3503,14 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         >>>     [ -4.68815126e-01,   7.80306795e-02,  -2.23674587e+01],
         >>>     [  4.54394231e-02,  -7.67438835e-01,   5.92158624e+01],
         >>>     [  2.12918867e-04,  -8.64851418e-05,  -6.21472492e-01]])
+        >>> H1 = None
         >>> H2 = None
         >>> #H_half = np.array([[.2, 0, 0], [0, .2, 0], [0, 0, 1]])
         >>> #H1 = H_half
         >>> #H2 = H_half
-        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, H1=H1, H2=H2,
-        >>>                          fm=fm, line_alpha=[1, .3, .3, .3], lw=10,
-        >>>                          ell_linewidth=5)
+        >>> kwargs = dict(H1=H1, H2=H2, fm=fm, draw_lines=False, draw_ell=False)
+        >>> kwargs.update(ell_linewidth=5, lw=10, line_alpha=[1, .3, .3, .3])
+        >>> result = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, **kwargs)
         >>> pt.show_if_requested()
     """
     if ut.VERBOSE:
@@ -3520,6 +3521,21 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         # We are warping one chip into the space of the other
         dsize1 = wh2
         dsize2 = wh1
+
+    if heatmask:
+        from vtool.coverage_kpts import make_kpts_heatmask
+        if not kwargs.get('all_kpts', False) and fm is not None:
+            kpts1_m = kpts1[fm.T[0]]
+            kpts2_m = kpts2[fm.T[1]]
+        else:
+            kpts1_m = kpts1
+            kpts2_m = kpts2
+
+        heatmask1 = make_kpts_heatmask(kpts1_m, wh1)
+        heatmask2 = make_kpts_heatmask(kpts2_m, wh2)
+        rchip1 = vt.overlay_alpha_images(heatmask1, rchip1)
+        rchip2 = vt.overlay_alpha_images(heatmask2, rchip2)
+
     # Warp if homography is specified
     rchip1_ = vt.warpHomog(rchip1, H1, dsize1) if H1 is not None else rchip1
     rchip2_ = vt.warpHomog(rchip2, H2, dsize2) if H2 is not None else rchip2
@@ -3530,6 +3546,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
     # modifysize = True
     match_img, offset_tup, sf_tup = vt.stack_images(
         rchip1_, rchip2_, vert, modifysize=modifysize, return_sf=True)
+
     (woff, hoff) = offset_tup[1]
     xywh1 = (0, 0, w1, h1)
     xywh2 = (woff, hoff, w2, h2)
