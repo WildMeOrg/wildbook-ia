@@ -316,16 +316,29 @@ class InfrReviewers(object):
             infr.emit_manual_review(edge, priority)
             return None
 
-    def emit_manual_review(infr, edge, priority):
-        edge_data = infr.get_nonvisual_edge_data(edge).copy()
-        edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
-        edge_data['n_ccs'] = (len(infr.pos_graph.connected_to(edge[0])), len(infr.pos_graph.connected_to(edge[1])))
-        info_text = 'priority=%r' % (priority,)
-        info_text += '\n' + ut.repr4(edge_data)
-        infr.manual_wgt.set_edge(edge, info_text)
-        infr.manual_wgt.show()
-
     def qt_review_loop(infr):
+        r"""
+        TODO: The loop parts should be a non-mixin class
+
+        Qt review loop entry point
+
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_loops qt_review_loop --show
+
+        Example:
+            >>> # SCRIPT
+            >>> import utool as ut
+            >>> import ibeis
+            >>> ibs = ibeis.opendb('PZ_MTEST')
+            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> infr.ensure_mst()
+            >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
+            >>> infr.prioritize('prob_match', infr.edges(), reset=True)
+            >>> infr.enable_redundancy = False
+            >>> win = infr.qt_review_loop()
+            >>> import guitool as gt
+            >>> gt.qtapp_loop(qwin=win, freq=10)
+        """
         import guitool as gt
         gt.ensure_qapp()
         from ibeis.viz import viz_graph2
@@ -333,8 +346,21 @@ class InfrReviewers(object):
             infr=infr, standalone=False)
         infr.manual_wgt.accepted.connect(infr.on_accept)
         infr.manual_wgt.skipped.connect(infr.continue_review)
+        infr.manual_wgt.request.connect(infr.emit_manual_review)
         infr.continue_review()
         return infr.manual_wgt
+
+    def emit_manual_review(infr, edge, priority=None):
+        edge_data = infr.get_nonvisual_edge_data(edge).copy()
+        edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
+        edge_data['n_ccs'] = (
+            len(infr.pos_graph.connected_to(edge[0])),
+            len(infr.pos_graph.connected_to(edge[1]))
+        )
+        info_text = 'priority=%r' % (priority,)
+        info_text += '\n' + ut.repr4(edge_data)
+        infr.manual_wgt.set_edge(edge, info_text)
+        infr.manual_wgt.show()
 
     def continue_review(infr):
         try:
@@ -346,7 +372,15 @@ class InfrReviewers(object):
                     break
                 infr.add_feedback(edge, **feedback)
         except StopIteration:
-            print('review loop complete')
+            infr.on_queue_empty()
+
+    def on_queue_empty(infr):
+        # TODO: refresh criteria
+        if infr.manual_wgt is not None:
+            if infr.manual_wgt.isVisible():
+                import guitool as gt
+                gt.user_info(infr.manual_wgt, 'Review Complete')
+        print('review loop complete')
 
     def on_accept(infr, feedback):
         annot1_state = feedback.pop('annot1_state', None)

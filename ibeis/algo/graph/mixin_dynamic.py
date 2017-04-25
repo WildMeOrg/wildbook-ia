@@ -390,36 +390,25 @@ class Recovery(object):
 
         pos_edges = list(pos_subgraph.edges())
 
-        # Generate weights for edges
-        default = 0
-        # default = 1e-6
+        def mincut_edge_weights(edges_):
+            from ibeis.constants import CONFIDENCE
+            conf_gen = infr.gen_edge_values('confidence', edges_,
+                                            default='unspecified')
+            conf_gen = list(conf_gen)
+            confs = ut.take(CONFIDENCE.CODE_TO_INT, conf_gen)
+            confs = np.array([0 if c is None else c for c in confs])
 
-        pos_conf_gen = list(infr.gen_edge_values('confidence', pos_edges,
-                                                 default='unspecified'))
-        from ibeis.constants import CONFIDENCE
-        confs = [CONFIDENCE.CODE_TO_INT[c] for c in pos_conf_gen]
-        confs = [0 if c is None else c for c in confs]
-        pos_confs = np.array(confs)
+            prob_gen = infr.gen_edge_values('prob_match', edges_, default=0)
+            probs = np.array(list(prob_gen))
 
-        neg_conf_gen = list(infr.gen_edge_values('confidence', neg_edges,
-                                                 default='unspecified'))
-        confs = [CONFIDENCE.CODE_TO_INT[c] for c in neg_conf_gen]
-        confs = [0 if c is None else c for c in confs]
-        neg_confs = np.array(confs)
+            nrev_gen = infr.gen_edge_values('num_reviews', edges_, default=0)
+            nrev = np.array(list(nrev_gen))
 
-        pos_gen = infr.gen_edge_values('prob_match', pos_edges, default=default)
-        neg_gen = infr.gen_edge_values('prob_match', neg_edges, default=default)
-        pos_prob = list(pos_gen)
-        neg_prob = list(neg_gen)
-        pos_n = list(infr.gen_edge_values('num_reviews', pos_edges, default=0))
-        neg_n = list(infr.gen_edge_values('num_reviews', neg_edges, default=0))
-        pos_weight = pos_n
-        neg_weight = neg_n
-        pos_weight = np.add(pos_prob, np.array(pos_n))
-        neg_weight = np.add(neg_prob, np.array(neg_n))
+            weight = nrev + probs + confs
+            return weight
 
-        pos_weight = pos_weight + pos_confs
-        neg_weight = neg_weight + neg_confs
+        neg_weight = mincut_edge_weights(neg_edges)
+        pos_weight = mincut_edge_weights(pos_edges)
 
         capacity = 'weight'
         nx.set_edge_attributes(pos_subgraph, capacity,
@@ -623,8 +612,8 @@ class Priority(object):
         infr.queue.update(ut.dzip(edges, priority))
 
     @profile
-    def prioritize(infr, metric=None, edges=None):
-        if infr.queue is None:
+    def prioritize(infr, metric=None, edges=None, reset=False):
+        if reset or infr.queue is None:
             infr.queue = ut.PriorityQueue()
         low = 1e-9
         if metric is None:
@@ -633,6 +622,8 @@ class Priority(object):
             # If edges are not explicilty specified get unreviewed and error
             # edges that are not redundant
             edges = list(infr.filter_nonredun_edges(infr.unreviewed_graph.edges()))
+        else:
+            edges = list(edges)
         priorities = list(infr.gen_edge_values(metric, edges, default=low))
         priorities = np.array(priorities)
         priorities[np.isnan(priorities)] = low
@@ -679,12 +670,32 @@ class Priority(object):
                             return infr.pop()
                 #     import utool
                 #     utool.embed()
-            if getattr(infr, 'enable_split_check_mode', False):
+            if getattr(infr, 'fix_mode_split', False):
                 # only checking edges within a name
-                nid1, nid2 = infr.pos_graph.name_labels(*edge)
+                nid1, nid2 = infr.pos_graph.node_labels(*edge)
                 if nid1 != nid2:
                     return infr.pop()
+            if getattr(infr, 'fix_mode_merge', False):
+                # only checking edges within a name
+                nid1, nid2 = infr.pos_graph.node_labels(*edge)
+                if nid1 == nid2:
+                    return infr.pop()
+            if getattr(infr, 'fix_mode_predict', False):
+                u, v = edge
+                nid1, nid2 = infr.node_labels(*edge)
+                pred = infr.get_edge_data(edge).get('pred', None)
+                # only report cases where the prediction differs
+                if (priority * -1) < 10:
+                    if pred == POSTV and nid1 == nid2:
+                        # print('skip pos')
+                        return infr.pop()
+                    if pred == NEGTV and nid1 != nid2:
+                        # print('skip neg')
+                        return infr.pop()
+                else:
+                    print('in error recover mode')
             assert edge[0] < edge[1]
+            print('Poppin edge %r' % (edge,))
             return edge, (priority * -1)
 
     def generate_reviews(infr, pos_redun=None, neg_redun=None,

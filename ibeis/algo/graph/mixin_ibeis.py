@@ -126,6 +126,8 @@ class IBEISIO(object):
         """
         Commit all reviews in internal_feedback into the staging table.  The
         edges are removed from interal_feedback and added to external feedback.
+        The staging tables stores each review in the order it happened so
+        history is fully reconstructable if staging is never deleted.
         """
         infr.print('write_ibeis_staging_feedback %d' %
                    (len(infr.internal_feedback),), 1)
@@ -136,8 +138,8 @@ class IBEISIO(object):
         decision_list = []
         timestamp_list = []
         tags_list = []
-        user_confidence_list = []
-        identity_list = []
+        confidence_list = []
+        userid_list = []
         ibs = infr.ibs
         _iter = (
             (aid1, aid2, feedback_item)
@@ -160,14 +162,14 @@ class IBEISIO(object):
             aid_2_list.append(aid2)
             decision_list.append(decision_int)
             tags_list.append(tags)
-            user_confidence_list.append(confidence_int)
+            confidence_list.append(confidence_int)
             timestamp_list.append(timestamp)
-            identity_list.append(user_id)
+            userid_list.append(user_id)
         review_id_list = ibs.add_review(
                 aid_1_list, aid_2_list, decision_list,
                 tags_list=tags_list,
-                identity_list=identity_list,
-                user_confidence_list=user_confidence_list,
+                identity_list=userid_list,
+                user_confidence_list=confidence_list,
                 timestamp_list=timestamp_list)
         assert len(ut.find_duplicate_items(review_id_list)) == 0
         # Copy internal feedback into external
@@ -179,7 +181,7 @@ class IBEISIO(object):
     def write_ibeis_annotmatch_feedback(infr, edge_delta_df=None):
         """
         Commits the current state in external and internal into the annotmatch
-        table.
+        table. Annotmatch only stores the final review in the history of reviews.
         """
         if edge_delta_df is None:
             edge_delta_df = infr.match_state_delta(old='annotmatch', new='all')
@@ -200,9 +202,9 @@ class IBEISIO(object):
                             edge_delta_df_['new_decision'])
         new_tags = [';'.join(tags) for tags in edge_delta_df_['new_tags']]
         new_conf = ut.dict_take(ibs.const.CONFIDENCE.CODE_TO_INT,
-                                edge_delta_df_['new_user_confidence'], None)
-        new_timestamp = edge_delta_df_['timestamp']
-        new_reviewer = edge_delta_df_['user_id']
+                                edge_delta_df_['new_confidence'], None)
+        new_timestamp = edge_delta_df_['new_timestamp']
+        new_reviewer = edge_delta_df_['new_user_id']
         am_rowids = edge_delta_df_['am_rowid'].values
         ibs.set_annotmatch_truth(am_rowids, new_truth)
         ibs.set_annotmatch_tag_text(am_rowids, new_tags)
@@ -446,12 +448,16 @@ class IBEISIO(object):
         decision = ut.dict_take_column(rectified_feedback, 'decision')
         tags = ut.dict_take_column(rectified_feedback, 'tags')
         confidence = ut.dict_take_column(rectified_feedback, 'confidence')
+        timestamp = ut.dict_take_column(rectified_feedback, 'timestamp')
+        user_id = ut.dict_take_column(rectified_feedback, 'user_id')
         df = pd.DataFrame([])
         df['decision'] = decision
         df['aid1'] = aids1
         df['aid2'] = aids2
         df['tags'] = tags
         df['confidence'] = confidence
+        df['timestamp'] = timestamp
+        df['user_id'] = user_id
         df['am_rowid'] = am_rowids
         df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
         return df
@@ -570,6 +576,7 @@ class IBEISIO(object):
 
         # If any important column is different we mark the row as changed
         data_columns = ['decision', 'tags', 'confidence']
+        data_columns += ['timestamp', 'user_id']
         important_columns = ['decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:

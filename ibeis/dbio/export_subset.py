@@ -693,6 +693,25 @@ def remerge_subset():
     TODO: annotmatch table must have non-directional edges for this to work.
     I.e. u < v
 
+    Ignore:
+
+        # Ensure annotmatch and names are up to date with staging
+
+        # Load graph
+        import ibei
+        ibs = ibeis.opendb('PZ_PB_RF_TRAIN')
+        infr = ibeis.AnnotInference(aids='all', ibs=ibs, verbose=3)
+        infr.reset_feedback('staging', apply=True)
+        infr.relabel_using_reviews()
+
+        # Check deltas
+        infr.ibeis_name_group_delta_info()
+        infr.ibeis_delta_info()
+
+        # Write if it looks good
+        infr.write_ibeis_annotmatch_feedback()
+        infr.write_ibeis_name_assignment()
+
     CommandLine:
         python -m ibeis.dbio.export_subset remerge_subset
     """
@@ -717,7 +736,7 @@ def remerge_subset():
     import numpy as np
 
     to_aids2 = dict(zip(aids1, aids2))
-    to_aids1 = dict(zip(aids2, aids1))
+    # to_aids1 = dict(zip(aids2, aids1))
 
     # Step 1) Update individual annot properties
     # These annots need updates
@@ -756,80 +775,80 @@ def remerge_subset():
         print('Annot properties are in sync. Nothing to change')
 
     # Step 2) Update annotmatch - pairwise relationships
-    from ibeis.algo.graph import graph_iden
-    infr1 = graph_iden.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3)
+    infr1 = ibeis.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3,
+                                 autoinit=False)
+    infr2 = ibeis.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
+    infr2.reset_feedback('annotmatch')
+
+    # map feedback from ibs1 onto ibs2 using ibs2 aids.
     fb1 = infr1.read_ibeis_annotmatch_feedback()
-    infr2 = graph_iden.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2,
-                                      verbose=3)
-    infr2.initialize_graph()
-    infr2.reset_feedback()
+    fb1_t = {(to_aids2[u], to_aids2[v]): val for (u, v), val in fb1.items()}
+    fb1_df_t = infr2._pandas_feedback_format(fb1_t).drop('am_rowid', axis=1)
 
-    # map into ibs2 aids
-    fb1_t = {(to_aids2[u], to_aids2[v]): val
-             for (u, v), val in fb1.items()}
-    fb1_df_t = infr2._pandas_feedback_format(fb1_t)
-    infr2.add_feedback_df(fb1_df_t)
-
-    infr = infr2
-    infr2.apply_feedback_edges()
-    infr2.review_dummy_edges(method=2)
-
-    # infr2.inconsistent_components()
+    # Add transformed feedback into ibs2
+    infr2.add_feedback_from(fb1_df_t)
     infr2.relabel_using_reviews(rectify=True)
-    infr.apply_review_inference()
-
-    name_delta = infr2.get_ibeis_name_delta()
-
-    # Fix any inconsistency
-    infr2.start_qt_interface(loop=False)
+    infr2.apply_nondynamic_update()
 
     if False:
-        test_nodes = [5344, 5430, 5349, 5334, 5383, 2280, 2265, 2234, 5399,
-                      5338, 2654]
-        import networkx as nx
-        nx.is_connected(infr2.graph.subgraph(test_nodes))
-        # infr = graph_iden.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
+        infr2.ibeis_delta_info()
+        infr2.ibeis_name_group_delta_info()
 
-        # randomly sample some new labels to verify
-        import guitool as gt
-        from ibeis.gui import inspect_gui
-        gt.ensure_qapp()
-        ut.qtensure()
-        old_groups = ut.group_items(name_delta.index.tolist(), name_delta['old_name'])
-        del old_groups['____']
+    if len(list(infr2.inconsistent_components())) > 0:
+        raise NotImplementedError('need to fix inconsistencies first')
+        infr2.prioritize()
+        infr2.qt_review_loop()
+    else:
+        infr2.write_ibeis_staging_feedback()
+        infr2.write_ibeis_annotmatch_feedback()
+        infr2.write_ibeis_name_assignment()
 
-        new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
+    # if False:
+    #     # Fix any inconsistency
+    #     infr2.start_qt_interface(loop=False)
+    #     test_nodes = [5344, 5430, 5349, 5334, 5383, 2280, 2265, 2234, 5399,
+    #                   5338, 2654]
+    #     import networkx as nx
+    #     nx.is_connected(infr2.graph.subgraph(test_nodes))
+    #     # infr = ibeis.AnnotInference(aids=test_nodes, ibs=ibs2, verbose=5)
 
-        from ibeis.algo.hots import simulate
-        c = simulate.compare_groups(
-            list(new_groups.values()),
-            list(old_groups.values()),
-        )
-        ut.map_vals(len, c)
-        for aids in c['pred_splits']:
-            old_nids = ibs2.get_annot_nids(aids)
-            new_nids = ut.take_column(infr2.gen_node_attrs('name_label', aids), 1)
-            split_aids = ut.take_column(ut.group_items(aids, new_nids).values(), 0)
-            aid1, aid2 = split_aids[0:2]
+    #     # randomly sample some new labels to verify
+    #     import guitool as gt
+    #     from ibeis.gui import inspect_gui
+    #     gt.ensure_qapp()
+    #     ut.qtensure()
+    #     old_groups = ut.group_items(name_delta.index.tolist(), name_delta['old_name'])
+    #     del old_groups['____']
 
-            if False:
-                inspect_gui.show_vsone_tuner(ibs2, aid1, aid2)
+    #     new_groups = ut.group_items(name_delta.index.tolist(), name_delta['new_name'])
 
-    infr2.start_qt_interface(loop=False)
+    #     from ibeis.algo.hots import simulate
+    #     c = simulate.compare_groups(
+    #         list(new_groups.values()),
+    #         list(old_groups.values()),
+    #     )
+    #     ut.map_vals(len, c)
+    #     for aids in c['pred_splits']:
+    #         old_nids = ibs2.get_annot_nids(aids)
+    #         new_nids = ut.take_column(infr2.gen_node_attrs('name_label', aids), 1)
+    #         split_aids = ut.take_column(ut.group_items(aids, new_nids).values(), 0)
+    #         aid1, aid2 = split_aids[0:2]
 
+    #         if False:
+    #             inspect_gui.show_vsone_tuner(ibs2, aid1, aid2)
+    #     infr2.start_qt_interface(loop=False)
 
-    if False:
-        # import ibeis
-        ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
-        from ibeis.algo.graph import graph_iden
-        infr1 = graph_iden.AnnotInference(aids='all', ibs=ibs1, verbose=3)
-        infr1.initialize_graph()
-        # infr1.reset_feedback('staging')
-        infr1.reset_feedback('annotmatch')
-        infr1.apply_feedback_edges()
-        infr1.relabel_using_reviews()
-        infr1.apply_review_inference()
-        infr1.start_qt_interface(loop=False)
+    # if False:
+    #     # import ibeis
+    #     ibs1 = ibeis.opendb('PZ_PB_RF_TRAIN')
+    #     infr1 = ibeis.AnnotInference(aids='all', ibs=ibs1, verbose=3)
+    #     infr1.initialize_graph()
+    #     # infr1.reset_feedback('staging')
+    #     infr1.reset_feedback('annotmatch')
+    #     infr1.apply_feedback_edges()
+    #     infr1.relabel_using_reviews()
+    #     infr1.apply_review_inference()
+    #     infr1.start_qt_interface(loop=False)
     # delta = infr2.match_state_delta()
     # print('delta = %r' % (delta,))
 
@@ -943,7 +962,6 @@ def check_database_overlap(ibs1, ibs2):
         >>> check_database_overlap(ibs1, ibs2)
     """
     import numpy as np
-    import vtool as vt
 
     def print_isect(items1, items2, lbl=''):
         set1_ = set(items1)
@@ -1125,36 +1143,6 @@ def check_database_overlap(ibs1, ibs2):
     print('images_without_annots2 = %r' % (images_without_annots2,))
 
     nAnnots_per_image1
-
-    class AlignedIndex(object):
-
-        def __init__(self):
-            self.iddict_ = {}
-
-        def make_aligned_arrays(self, id_lists, data_lists):
-            idx_lists = [vt.compute_unique_data_ids_(
-                id_list, iddict_=self.iddict_) for id_list in id_lists]
-            aligned_data = []
-            for idx_list, data_array in zip(idx_lists, data_lists):
-                array = np.full(len(self.iddict_), None)
-                array[idx_list] = data_array
-                aligned_data.append(array)
-            return aligned_data
-
-    # Try to figure out the conflicts
-    # TODO: finishme
-
-    # self = AlignedIndex()
-    # id_lists = (image_uuids1, image_uuids2)
-    # data_lists = (nAnnots_per_image1, nAnnots_per_image2)
-    # aligned_data = self.make_aligned_arrays(id_lists, data_lists)
-    # nAnnots1_aligned, nAnnots2_aligned = aligned_data
-
-    # nAnnots_difference = nAnnots1_aligned - nAnnots2_aligned
-    # nAnnots_difference = np.nan_to_num(nAnnots_difference)
-    # print('images_with_different_num_annnots = %r' %
-    #       (len(np.nonzero(nAnnots_difference)[0]),))
-
 
 """
 def MERGE_NNP_MASTER_SCRIPT():

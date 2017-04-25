@@ -166,6 +166,8 @@ class DummyEdges(object):
             new_edges = infr.find_mst_edges()
         elif method == 3:
             new_edges = infr.find_connecting_edges()
+        else:
+            raise ValueError('unknown method')
         infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
         # TODO apply set of new edges in bulk
         for u, v in new_edges:

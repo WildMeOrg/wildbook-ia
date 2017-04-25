@@ -57,15 +57,15 @@ class AnnotPairDialog(gt.GuitoolWidget):
     """
     accepted = QtCore.pyqtSignal(dict)
     skipped = QtCore.pyqtSignal()
+    request = QtCore.pyqtSignal(tuple)
 
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
-                   get_index_data=None,
-                   total=None, standalone=True):
+                   get_index_data=None, total=None, standalone=True):
 
         from ibeis.gui import inspect_gui
         self.infr = infr
 
-        self.history = []
+        self.history = ut.oset()
 
         if infr is not None:
             ibs = infr.ibs
@@ -122,19 +122,20 @@ class AnnotPairDialog(gt.GuitoolWidget):
         # gt.print_widget_heirarchy(
         #     self, annot_state=['sizePolicy', 'minimumHeight'], skip=True)
 
-        self.accept_button = rbox.addNewButton('Accept', pressed=self.accept)
+        butbar = rbox.addNewHWidget()
+        self.accept_button = butbar.addNewButton('Accept', pressed=self.accept)
         if not standalone:
-            self.skip_button = rbox.addNewButton('Skip', pressed=self.skip)
+            self.skip_but = butbar.addNewButton('Skip', pressed=self.skip)
 
         np_bar = rbox.addNewHWidget()
         self.count = None
-        self.total = None
+        self._total = None
         self.was_confirmed = False
 
         if total is not None:
             self.get_index_data = get_index_data
             self.count = 0
-            self.total = total
+            self._total = total
             self.prev_but = np_bar.addNewButton(
                 'Prev', pressed=lambda: self.step_by(-1))
             self.index_edit = np_bar.addNewLineEdit(
@@ -142,13 +143,25 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.next_but = np_bar.addNewButton(
                 'Next', pressed=lambda: self.step_by(1))
             # self.accepted.connect(standalone_write)
+        elif not self.standalone:
+            self.count = 0
+            self.prev_but = np_bar.addNewButton(
+                'Prev', pressed=lambda: self.step_by(-1))
+            self.index_edit = np_bar.addNewLineEdit(
+                str(self.count), editingFinishedSlot=self.edit_jump)
+            self.next_but = np_bar.addNewButton(
+                'Next', pressed=lambda: self.step_by(1))
+            self.next_but.setEnabled(False)
 
         if edge is not None:
             self.set_edge(edge, info_text)
 
-    def edit_jump(self):
-        index = int(self.index_edit.text().split('/')[0])
-        self.seek(index)
+    @property
+    def total(self):
+        if not self.standalone:
+            return len(self.history)
+        else:
+            return self._total
 
     def feedback_dict(self):
         feedback = self.annot_review.feedback_dict()
@@ -174,11 +187,6 @@ class AnnotPairDialog(gt.GuitoolWidget):
         else:
             print('Edge feedback not recoreded')
 
-    def goto_next(self):
-        if self.count is not None:
-            # Move to the next item
-            self.step_by(1)
-
     def skip(self):
         self.skipped.emit()
 
@@ -191,8 +199,28 @@ class AnnotPairDialog(gt.GuitoolWidget):
         else:
             self.accepted.emit(feedback)
 
+    def goto_next(self):
+        if self.count is not None:
+            # Move to the next item
+            self.step_by(1)
+
     def set_edge(self, edge, info_text=None):
-        self.history.append(edge)
+        print('set edge = %r' % (edge,))
+        self.history.add(edge)
+        assert edge in self.history
+        if not self.standalone:
+            index = self.history.index(edge)
+            self.count = index
+            self.count = max(self.count, 0)
+            self.count = min(self.count, self.total - 1)
+
+            self.skip_but.setEnabled(self.count == self.total - 1)
+            self.next_but.setEnabled(self.count != self.total - 1)
+            self.prev_but.setEnabled(self.count != 0)
+
+            self.index_edit.setText('{} / {}'.format(self.count + 1,
+                                                     self.total))
+
         self.was_confirmed = False
         edge_data = (None if self.infr is None else
                      self.infr.get_nonvisual_edge_data(edge))
@@ -200,6 +228,12 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self.annot_state1.set_aid(edge[0])
         self.annot_state2.set_aid(edge[1])
         self.annot_review.set_edge(edge, edge_data)
+
+    def edit_jump(self):
+        index = int(self.index_edit.text().split('/')[0]) - 1
+        index = max(0, index)
+        index = min(self.total - 1, index)
+        self.seek(index)
 
     def step_by(self, amount=1):
         self.seek(self.count + amount)
@@ -209,9 +243,13 @@ class AnnotPairDialog(gt.GuitoolWidget):
         self.count = index
         self.count = max(self.count, 0)
         self.count = min(self.count, self.total - 1)
-        edge, info_text = self.get_index_data(self.count)
-        self.index_edit.setText('{} / {}'.format(self.count, self.total))
-        self.set_edge(edge, info_text)
+        if self.standalone:
+            self.index_edit.setText('{} / {}'.format(self.count, self.total))
+            edge, info_text = self.get_index_data(self.count)
+            self.set_edge(edge, info_text)
+        else:
+            edge = self.history[index]
+            self.request.emit(edge)
 
 
 class AnnotStateDialog(gt.GuitoolWidget):
@@ -515,9 +553,11 @@ class EdgeReviewDialog(gt.GuitoolWidget):
         self.edge = edge_state['edge']
         self.edge_label.setText(repr(edge_state['edge']))
         self.match_state_combo.setCurrentValue(edge_state['decision'])
-        remaining_tags = edge_state['tags'][:]
+        tags = edge_state['tags']
+        tags = [] if tags is None else tags[:]
+        remaining_tags = tags[:]
         for tagname, checkbox in self.tag_checkboxes.items():
-            if tagname in edge_state['tags']:
+            if tagname in tags:
                 checkbox.setChecked(True)
                 remaining_tags.remove(tagname)
             else:

@@ -1246,6 +1246,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm.evaluate_classifiers()
             >>> win = pblm.qt_review_hardcases()
 
@@ -1283,61 +1284,54 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         flags = case_df['real_conf'] < 2
         unsure_cases = case_df[flags]
 
+        # only review big ccs
+        if False:
+            n_other1 = np.array([len(infr.pos_graph.connected_to(a))
+                                 for a in unsure_cases['aid1']])
+            n_other2 = np.array([len(infr.pos_graph.connected_to(a))
+                                 for a in unsure_cases['aid2']])
+            unsure_cases = unsure_cases[(n_other2 > 10) & (n_other1 > 10)]
+
+        infr.enable_redundancy = False
+        infr.fix_mode_split = False
+        infr.fix_mode_merge = False
+        infr.fix_mode_predict = True
+
+        # TODO: force it to re-review non-confident edges with the hardness
+        # as priority ignoring the connectivity criteria
+        edges = unsure_cases.index.tolist()
+        infr.ensure_edges(edges)
+
+        # Assign probs to edges for propper weighting
+        pred_edges = [e for e in infr.edges() if e in res.probs_df.index]
+        prob_matches = res.probs_df[POSTV].loc[pred_edges].to_dict()
+        infr.set_edge_attrs('prob_match', prob_matches)
+
+        # Assign hardness to hard cases
+        # infr.set_edge_attrs('hardness', unsure_cases['hardness'].to_dict())
+
         # Only review failure cases
         unsure_cases = unsure_cases[unsure_cases['failed']]
         unsure_cases = unsure_cases.sort_values('hardness', ascending=False)
 
-        # only review big ccs
-        n_other1 = np.array([len(infr.pos_graph.connected_to(a)) for a in unsure_cases['aid1']])
-        n_other2 = np.array([len(infr.pos_graph.connected_to(a)) for a in unsure_cases['aid2']])
-        unsure_cases = unsure_cases[(n_other2 > 10) & (n_other1 > 10)]
+        infr.set_edge_attrs('hardness', unsure_cases['hardness'].to_dict())
+        infr.set_edge_attrs('probs', res.probs_df.loc[edges].to_dict('index'))
+        for key in ['pred', 'real']:
+            vals = unsure_cases[key].map(ibs.const.REVIEW.INT_TO_CODE)
+            infr.set_edge_attrs(key, vals.to_dict())
+        infr.prioritize('hardness', unsure_cases['hardness'].to_dict(), reset=True)
+        infr.apply_nondynamic_update()
 
-        # check only split cases
-        nids1 = np.array([infr.pos_graph.node_label(a) for a in unsure_cases['aid1']])
-        nids2 = np.array([infr.pos_graph.node_label(a) for a in unsure_cases['aid2']])
-        unsure_cases = unsure_cases[nids1 == nids2]
-
-        mode = 1
         infr.enable_redundancy = False
-        infr.enable_split_check_mode = False
-
-        if mode == 0:
-            def get_index_data(count):
-                edge = unsure_cases.index[count]
-                info_text = str(unsure_cases.loc[edge])
-                return edge, info_text
-
-            from ibeis.viz import viz_graph2
-            win = viz_graph2.AnnotPairDialog(
-                infr=infr, get_index_data=get_index_data, total=len(unsure_cases))
-            win.seek(0)
-            win.show()
-            win.activateWindow()
-            win.raise_()
-        else:
-            # TODO: force it to re-review non-confident edges with the hardness
-            # as priority ignoring the connectivity criteria
-            edges = unsure_cases.index.tolist()
-            infr.ensure_edges(edges)
-            infr.set_edge_attrs('hardness', unsure_cases['hardness'].to_dict())
-            for key in ['pred', 'real']:
-                vals = unsure_cases[key].map(ibs.const.REVIEW.INT_TO_CODE)
-                infr.set_edge_attrs(key, vals.to_dict())
-            infr.queue = None
-            infr.prioritize('hardness', unsure_cases['hardness'].to_dict())
-            infr.apply_nondynamic_update()
-
-            infr.enable_redundancy = False
-            infr.classifiers = None
-            if False:
-                pccs = list(infr.non_pos_redundant_pccs())
-                pccs = ut.sortedby(pccs, ut.lmap(len, pccs))
-                pcc = pccs[-1]
-                aug_edges = infr.find_pos_augment_edges(pcc)
-                infr.add_new_candidate_edges(aug_edges)
-            win = infr.qt_review_loop()
-            # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
-
+        infr.classifiers = None
+        if False:
+            pccs = list(infr.non_pos_redundant_pccs())
+            pccs = ut.sortedby(pccs, ut.lmap(len, pccs))
+            pcc = pccs[-1]
+            aug_edges = infr.find_pos_augment_edges(pcc)
+            infr.add_new_candidate_edges(aug_edges)
+        win = infr.qt_review_loop()
+        # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
         return win
 
 

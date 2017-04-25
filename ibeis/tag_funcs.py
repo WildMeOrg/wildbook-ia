@@ -855,6 +855,16 @@ def append_annot_case_tags(ibs, aid_list, tag_list):
     text_list = ibs.get_annot_tag_text(aid_list)
     orig_tags_list = [[] if note is None else _parse_tags(note) for note in text_list]
     new_tags_list = [ut.unique(t1 + t2) for t1, t2 in zip(tags_list, orig_tags_list)]
+    ibs.set_annot_case_tags(aid_list, new_tags_list)
+
+
+@register_ibs_method
+def set_annot_case_tags(ibs, aid_list, new_tags_list):
+    """
+    Completely overwrite case tags
+    """
+    for tag in new_tags_list:
+        assert isinstance(tag, list), 'each set of tags must be a list of strs'
     new_text_list = [';'.join(tags) for tags in new_tags_list]
     ibs.set_annot_tag_text(aid_list, new_text_list)
 

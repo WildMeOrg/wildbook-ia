@@ -15,6 +15,7 @@ from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
 from ibeis.algo.graph.nx_utils import e_
+import pandas as pd
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
@@ -33,9 +34,19 @@ class Feedback(object):
         if aid2 not in infr.aids_set:
             raise ValueError('aid2=%r is not part of the graph' % (aid2,))
 
-    def add_feedback_from(infr, items):
-        for item in items:
-            infr.add_feedback(*item)
+    def add_feedback_from(infr, items, verbose=None):
+        if verbose is None:
+            verbose = infr.verbose > 5
+        if isinstance(items, pd.DataFrame):
+            if list(items.index.names) == ['aid1', 'aid2']:
+                for edge, data in items.iterrows():
+                    infr.add_feedback(edge=edge, verbose=verbose, **data)
+            else:
+                raise ValueError(
+                    'Cannot interpret pd.DataFrame without edge index')
+        else:
+            for item in items:
+                infr.add_feedback(*item)
 
     def add_node_feedback(infr, aid, **attrs):
         infr.print('Writing annot aid=%r %s' % (aid, ut.repr2(attrs)))
@@ -197,18 +208,21 @@ class Feedback(object):
         attr_lists = {key: [] for key in infr.feedback_keys}
         for edge, vals in infr.all_feedback_items():
             # hack for feedback rectification
-            edges.append(edge)
             feedback_item = infr._rectify_feedback_item(vals)
             feedback_item['review_id'] = next(infr.review_counter)
             feedback_item['num_reviews'] = len(vals)
-            if feedback_item['decision'] == 'unknown':
-                continue
+            # if feedback_item['decision'] == 'unknown':
+            #     continue
             if feedback_item.keys() != attr_lists.keys():
                 raise AssertionError(str((
                     set(feedback_item.keys()), set(attr_lists.keys())))
                 )
             for key, val in feedback_item.items():
                 attr_lists[key].append(val)
+            edges.append(edge)
+
+        assert ut.allsame(list(map(len, attr_lists.values())))
+        assert len(edges) == len(next(iter(attr_lists.values())))
 
         # Put pair orders in context of the graph
         infr.print('_set_feedback_edges(nEdges=%d)' % (len(edges),), 3)
@@ -737,6 +751,7 @@ class AltConstructors(object):
             ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
             ('nPosRedunCCs', len(infr.pos_redun_nids)),
             ('nNegRedunPairs', infr.neg_redun_nids.number_of_edges()),
+            ('nInconCCs', len(infr.nid_to_errors)),
             #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
         ])
 
@@ -875,10 +890,10 @@ class AnnotInference(ut.NiceRepr,
         >>> ut.show_if_requested()
     """
 
-    def __init__(infr, ibs, aids=[], nids=None, autoinit=False, verbose=False):
+    def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
         # infr.verbose = verbose
         infr.review_counter = it.count(0)
-        infr.verbose = 100
+        infr.verbose = verbose
         infr.init_logging()
         infr.print('__init__', level=1)
         infr.ibs = ibs
