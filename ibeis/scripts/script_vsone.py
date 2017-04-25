@@ -199,8 +199,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm._fix_hyperparams(qreq_)
 
         use_cache = False
+        use_cache = True
         cfgstr = qreq_.get_cfgstr(with_input=True)
-        cacher1 = ut.Cacher('pairsample_1_v4', cfgstr=cfgstr,
+        cacher1 = ut.Cacher('pairsample_1_v5', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
                             verbose=pblm.verbose + 10)
         assert qreq_.qparams.can_match_samename is True
@@ -222,7 +223,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
-        cacher2 = ut.Cacher('pairsample_2_v4', cfgstr=cfgstr,
+        cacher2 = ut.Cacher('pairsample_2_v5', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
                             verbose=pblm.verbose + 10)
         data = cacher2.tryload()
@@ -1277,12 +1278,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         samples = pblm.samples
         infr = pblm.infr
         ibs = infr.ibs
-        case_df = res.hardness_analysis(samples, infr)
+        unsure_cases = res.hardness_analysis(samples, infr)
         # Remove very confidenct cases
         # CONFIDENCE = ibs.const.CONFIDENCE
-        # flags = case_df['real_conf'] < CONFIDENCE.CODE_TO_INT['pretty_sure']
-        flags = case_df['real_conf'] < 2
-        unsure_cases = case_df[flags]
+        # flags = unsure_cases['real_conf'] < CONFIDENCE.CODE_TO_INT['pretty_sure']
+
+        if False:
+            flags = unsure_cases['real_conf'] < 5
+            unsure_cases = unsure_cases[flags]
 
         # only review big ccs
         if False:
@@ -1296,6 +1299,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.fix_mode_split = False
         infr.fix_mode_merge = False
         infr.fix_mode_predict = True
+        infr.classifiers = None
 
         # TODO: force it to re-review non-confident edges with the hardness
         # as priority ignoring the connectivity criteria
@@ -1322,8 +1326,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.prioritize('hardness', unsure_cases['hardness'].to_dict(), reset=True)
         infr.apply_nondynamic_update()
 
-        infr.enable_redundancy = False
-        infr.classifiers = None
         if False:
             pccs = list(infr.non_pos_redundant_pccs())
             pccs = ut.sortedby(pccs, ut.lmap(len, pccs))

@@ -1339,15 +1339,19 @@ def get_dbinfo(ibs, verbose=True,
         annot_age_months_est_max = ibs.get_annot_age_months_est_max(aid_list)
         age_dict = ut.ddict((lambda : 0))
         for min_age, max_age in zip(annot_age_months_est_min, annot_age_months_est_max):
-            if (min_age is None or min_age < 12) and max_age < 12:
+            if max_age is None:
+                max_age = min_age
+            if min_age is None:
+                min_age = max_age
+            if max_age is None and min_age is None:
+                print('Found UNKNOWN Age: %r, %r' % (min_age, max_age, ))
+                age_dict['UNKNOWN'] += 1
+            elif (min_age is None or min_age < 12) and max_age < 12:
                 age_dict['Infant'] += 1
             elif 12 <= min_age and min_age < 36 and 12 <= max_age and max_age < 36:
                 age_dict['Juvenile'] += 1
-            elif 36 <= min_age and (36 <= max_age or max_age is None):
+            elif 36 <= min_age and (max_age is None or 36 <= max_age):
                 age_dict['Adult'] += 1
-            else:
-                print('Found UNKNOWN Age: %r, %r' % (min_age, max_age, ))
-                age_dict['UNKNOWN'] += 1
         return age_dict
 
     def get_annot_sex_stats(aid_list):
@@ -1638,8 +1642,8 @@ def show_image_time_distributions(ibs, gid_list):
         gid_list (list):
 
     CommandLine:
-        python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show
-        python -m ibeis.other.dbinfo --exec-show_image_time_distributions --show --db lynx
+        python -m ibeis.other.dbinfo show_image_time_distributions --show
+        python -m ibeis.other.dbinfo show_image_time_distributions --show --db lynx
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1694,14 +1698,16 @@ def show_time_distributions(ibs, unixtime_list):
         pt.gcf().autofmt_xdate()
 
         icon = ibs.get_database_icon()
-        if icon is not None:
+        if False and icon is not None:
             #import matplotlib as mpl
             #import vtool as vt
             ax = pt.gca()
             # Overlay a species icon
             # http://matplotlib.org/examples/pylab_examples/demo_annotation_box.html
             #icon = vt.convert_image_list_colorspace([icon], 'RGB', 'BGR')[0]
-            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1))
+            # pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1))
+            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
+                            as_artist=1, max_asize=(100, 200))
             #imagebox = mpl.offsetbox.OffsetImage(icon, zoom=1.0)
             ##xy = [ax.get_xlim()[0] + 5, ax.get_ylim()[1]]
             ##ax.set_xlim(1, 100)

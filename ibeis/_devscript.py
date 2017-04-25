@@ -9,7 +9,7 @@ def hack_argv(arg):
         hack_argv_key = '='.join(arg.split('=')[1:])
 
         common_args = [
-            '--dpath=~/latex/cand/',
+            '--dpath=~/latex/crall-thesis-2017/',
             '--clipwhite',
             '--contextadjust',
             '--dpi=256',

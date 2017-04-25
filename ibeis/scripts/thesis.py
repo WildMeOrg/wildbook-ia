@@ -42,10 +42,8 @@ def precollect(defaultdb):
     species_code = ibs.get_database_species(pblm.infr.aids)[0]
     if species_code == 'zebra_plains':
         species = 'Plains Zebras'
-        # dbcode = 'PZ_%d' % len(pblm.samples)
     if species_code == 'zebra_grevys':
         species = 'Grévy\'s Zebras'
-        # dbcode = 'GZ_%d' % len(pblm.samples)
     dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
     self = ExptChapter4()
@@ -98,7 +96,7 @@ def chapter4_collect(defaultdb):
         self.build_importance_data(pblm, task_key)
         self.build_roc_data_positive(pblm)
         self.build_score_freq_positive(pblm)
-        self.build_hard_cases(pblm, task_key, num_top=2)
+        self.build_hard_cases(pblm, task_key, num_top=4)
         self.build_metrics(pblm, task_key)
 
     task_key = 'photobomb_state'
@@ -107,7 +105,7 @@ def chapter4_collect(defaultdb):
         self.build_importance_data(pblm, task_key)
         self.build_metrics(pblm, task_key)
 
-    fname = 'collected_data_{}.pkl'.format(self.dbcode)
+    fname = 'collected_data.pkl'
     ut.save_data(str(self.dpath.joinpath(fname)), self)
     return self
 
@@ -124,9 +122,13 @@ class ExptChapter4(object):
     """
 
     def draw(self):
+        task_key = 'photobomb_state'
+        if task_key in self.eval_task_keys:
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
+
         task_key = 'match_state'
         if task_key in self.eval_task_keys:
-            self.draw_hard_cases(task_key)
 
             # self.build_score_freq_positive(pblm)
             self.draw_class_score_hist()
@@ -136,10 +138,8 @@ class ExptChapter4(object):
             self.write_importance(task_key)
             self.write_metrics(task_key)
 
-        task_key = 'photobomb_state'
-        if task_key in self.eval_task_keys:
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
+            if not ut.get_argflag('--nodraw'):
+                self.draw_hard_cases(task_key)
 
     def __init__(self):
         self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
@@ -233,6 +233,26 @@ class ExptChapter4(object):
         print(latex_str)
         fname = 'eval_metrics_{}.tex'.format(task_key)
         ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
+
+    def write_importance(self, task_key):
+        # Print info for latex table
+        importances = self.task_importance[task_key]
+        vals = importances.values()
+        items = importances.items()
+        top_dims = ut.sortedby(items, vals)[::-1]
+        lines = []
+        for k, v in top_dims[:5]:
+            k = feat_alias(k)
+            k = k.replace('_', '\\_')
+            lines.append('{} & {:.4f} \\\\'.format(k, v))
+        latex_str = '\n'.join(ut.align_lines(lines, '&'))
+
+        fname = 'feat_importance_{}.tex'.format(task_key)
+        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
+
+        print('TOP 5 importances for ' + task_key)
+        print('# of dimensions: %d' % (len(importances)))
+        print()
 
     def build_importance_data(self, pblm, task_key):
         self.task_importance[task_key] = pblm.feature_importance(task_key=task_key)
@@ -329,7 +349,7 @@ class ExptChapter4(object):
 
     def draw_hard_cases(self, task_key):
         """ draw hard cases with and without overlay """
-        subdir = 'cases_{}_{}'.format(task_key, self.dbcode)
+        subdir = 'cases_{}'.format(task_key)
         dpath = self.dpath.joinpath(subdir)
         ut.ensuredir(dpath)
         code_to_nice = self.task_nice_lookup[task_key]
@@ -354,16 +374,24 @@ class ExptChapter4(object):
             fig = pt.figure(fnum=1, clf=True)
             ax = pt.gca()
             # Draw with feature overlay
-            match.show(ax, vert=False, ell_alpha=.3, modifysize=True)
+            match.show(ax, vert=False,
+                       heatmask=True,
+                       show_lines=False,
+                       show_ell=False,
+                       show_ori=False,
+                       show_eig=False,
+                       # ell_alpha=.3,
+                       modifysize=True)
             ax.set_xlabel(xlabel)
-            fpath = str(dpath.joinpath(fname + '_overlay.jpg'))
-            self.savefig(fig, fpath)
-            # Draw without feature overlay
-            ax.cla()
-            match.show(ax, vert=False, overlay=False, modifysize=True)
-            ax.set_xlabel(xlabel)
+            # fpath = str(dpath.joinpath(fname + '_overlay.jpg'))
             fpath = str(dpath.joinpath(fname + '.jpg'))
             self.savefig(fig, fpath)
+            # Draw without feature overlay
+            # ax.cla()
+            # match.show(ax, vert=False, overlay=False, modifysize=True)
+            # ax.set_xlabel(xlabel)
+            # fpath = str(dpath.joinpath(fname + '.jpg'))
+            # self.savefig(fig, fpath)
 
     def _draw_score_hist(self, freqs, xlabel, fnum):
         """ helper """
@@ -391,12 +419,10 @@ class ExptChapter4(object):
         freqs = self.score_hist_lnbnn
         fig2 = self._draw_score_hist(freqs, 'LNBNN score', 2)
 
-        fname = 'score_hist_pos_{}_{}.png'.format(
-            self.data_key, self.dbcode)
+        fname = 'score_hist_pos_{}.png'.format(self.data_key)
         self.savefig(fig1, str(self.dpath.joinpath(fname)))
 
-        fname = 'score_hist_lnbnn_{}_{}.png'.format(
-            self.data_key, self.dbcode)
+        fname = 'score_hist_lnbnn.png'
         self.savefig(fig2, str(self.dpath.joinpath(fname)))
 
     def draw_roc(self, task_key):
@@ -416,7 +442,7 @@ class ExptChapter4(object):
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([7.4375,  3.125])
 
-        fname = 'roc_{}_{}.png'.format(task_key, self.dbcode)
+        fname = 'roc_{}.png'.format(task_key)
         self.savefig(fig, str(self.dpath.joinpath(fname)))
 
     def draw_wordcloud(self, task_key):
@@ -426,24 +452,9 @@ class ExptChapter4(object):
         fig = pt.figure(fnum=1)
         pt.wordcloud(importances, ax=fig.axes[0])
 
-        fname = 'wc_{}_{}.png'.format(task_key, self.dbcode)
+        fname = 'wc_{}.png'.format(task_key)
         fig_fpath = str(self.dpath.joinpath(fname))
         self.savefig(fig, fig_fpath)
-
-    def write_importance(self, task_key):
-        # Print info for latex table
-        importances = self.task_importance[task_key]
-        vals = importances.values()
-        items = importances.items()
-        top_dims = ut.sortedby(items, vals)[::-1]
-        lines = []
-        for k, v in top_dims[:5]:
-            k = feat_alias(k)
-            k = k.replace('_', '\\_')
-            lines.append('{} & {:.4f} \\\\'.format(k, v))
-        print('TOP 5 importances for ' + task_key)
-        print('# of dimensions: %d' % (len(importances)))
-        print('\n'.join(ut.align_lines(lines, '&')))
 
     def savefig(self, fig, fpath):
         image = pt.render_figure_to_image(fig, dpi=256)
@@ -455,6 +466,7 @@ def feat_alias(k):
     # presentation values for feature dimension
     k = k.replace('weighted_', 'wgt_')
     k = k.replace('norm_x', 'x')
+    k = k.replace('norm_y', 'y')
     k = k.replace('yaw', 'view')
     return k
 
