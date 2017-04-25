@@ -165,7 +165,7 @@ class PairwiseMatch(ut.NiceRepr):
     def show(match, ax=None, show_homog=False, show_ori=True, show_ell=True,
              show_pts=False, show_lines=True, show_rect=False, show_eig=False,
              show_all_kpts=False, mask_blend=0, ell_alpha=.6, line_alpha=.35,
-             modifysize=False, vert=None, overlay=True):
+             modifysize=False, vert=None, overlay=True, heatmask=False):
         import plottool as pt
         annot1 = match.annot1
         annot2 = match.annot2
@@ -207,7 +207,7 @@ class PairwiseMatch(ut.NiceRepr):
             ori=show_ori, rect=show_rect, eig=show_eig, ell=show_ell,
             pts=show_pts, draw_lines=show_lines,
             all_kpts=show_all_kpts, line_alpha=line_alpha,
-            ell_alpha=ell_alpha, vert=vert,
+            ell_alpha=ell_alpha, vert=vert, heatmask=heatmask,
         )
         return ax, xywh1, xywh2
 

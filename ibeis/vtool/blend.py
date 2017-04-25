@@ -41,6 +41,38 @@ def gridsearch_image_function(param_info, test_func, args=tuple(), show_func=Non
     pt.iup()
 
 
+def overlay_alpha_images(img1, img2):
+    """
+    places img1 on top of img2 respecting alpha channels
+
+    References:
+        http://stackoverflow.com/questions/25182421/overlay-numpy-alpha
+    """
+    import vtool as vt
+    img1 = vt.rectify_to_float01(img1)
+    img2 = vt.rectify_to_float01(img2)
+    img1, img2 = vt.make_channels_comparable(img1, img2)
+
+    alpha1 = img1[:, :, 3]
+    alpha2 = img2[:, :, 3]
+    rgb1 = img1[:, :, 0:3]
+    rgb2 = img2[:, :, 0:3]
+
+    alpha3 = alpha1 + alpha2 * (1 - alpha1)
+    rgb3 = rgb1 * alpha1[..., None] + rgb2 * alpha2[..., None]
+
+    numer1 = (rgb1 * alpha1[..., None])
+    numer2 = (rgb2 * alpha2[..., None] * (1.0 - alpha1[..., None]))
+    rgb3 = (numer1 + numer2) / alpha3[..., None]
+
+    img3 = np.dstack([rgb3, alpha3[..., None]])
+    return rgb3
+
+
+
+    pass
+
+
 def blend_images(img1, img2, mode='average', **kwargs):
     if mode == 'average':
         return blend_images_average(img1, img2, **kwargs)
