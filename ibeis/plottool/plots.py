@@ -2112,13 +2112,14 @@ def draw_time_distribution(unixtime_list, bw=None):
         maxtime = vt.safe_max(unixtimes)
         unixtime_domain = np.linspace(mintime, maxtime, 1000)
 
-        num_nan = sum(nanflags)
-        num_nonnan = len(unixtimes)
+        # num_nan = sum(nanflags)
+        # num_nonnan = len(unixtimes)
         # print('num_nan = %r' % (num_nan,))
         # print('num_nonnan = %r' % (num_nonnan,))
 
         if bw is None:
-            from sklearn.model_selection import GridSearchCV
+            from sklearn.model_selection import GridSearchCV  # NOQA
+            from sklearn.model_selection import RandomizedSearchCV
             day = 60 * 60 * 24
             # bw_low = day
             # bw_high = (maxtime - mintime) / 10
@@ -2127,8 +2128,11 @@ def draw_time_distribution(unixtime_list, bw=None):
                 # 'bandwidth': np.linspace(bw_low, bw_high, 30)
                 'bandwidth': np.linspace(day, day * 14, 14)
             }
-            grid = GridSearchCV(KernelDensity(kernel='gaussian'),
-                                grid_params, cv=3, verbose=3, n_jobs=7)
+            # searcher = ut.partial(GridSearchCV, n_jobs=7)
+            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
+            print('Searching for best bandwidth')
+            grid = searcher(KernelDensity(kernel='gaussian'),
+                                grid_params, cv=2, verbose=0)
             grid.fit(unixtimes[:, None])
             bw = grid.best_params_['bandwidth']
             # print('bw = %r' % (bw,))
