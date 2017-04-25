@@ -69,7 +69,7 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
     # use a disk instead of a gaussian
     import skimage.morphology
     cov_scale_factor = .25
-    radius = min(int(min(chipsize) * cov_scale_factor) // 2, 50)
+    radius = min(int((min(chipsize) * cov_scale_factor) // 2) - 1, 50)
     patch = skimage.morphology.disk(radius)
     mask = make_kpts_coverage_mask(kpts, chipsize, resize=True,
                                    cov_size_penalty_on=False,
@@ -85,7 +85,6 @@ def make_kpts_heatmask(kpts, chipsize, cmap='plasma'):
     # apply alpha channel
     heatmask[:, :, 3] = mask * .5
     return heatmask
-
 
 
 #@ut.memprof
