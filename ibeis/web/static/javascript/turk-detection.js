@@ -36,13 +36,27 @@ function update_label()
 function add_species()
 {
   value = $('input[name="species-add"]').val()
-  console.log(value);
 
-  $('select[name="ia-detection-species"]')
+  $('#ia-detection-annotation-class')
      .append($("<option></option>")
      .attr("value", value)
      .text(value));
-   $('select[name="ia-detection-species"] option[value="' + value + '"]').prop('selected', true)
+   $('#ia-detection-annotation-class option[value="' + value + '"]').prop("selected", true);
+   $('.ia-detection-form-annotation-value').trigger('change');
+}
+
+function add_part()
+{
+  value = $('input[name="part-add"]').val()
+
+  console.log("ADD PARTS "+ value)
+
+  $('#ia-detection-part-class')
+     .append($("<option></option>")
+     .attr("value", value)
+     .text(value));
+   $('#ia-detection-part-class option[value="' + value + '"]').prop("selected", true);
+   $('.ia-detection-form-part-value').trigger('change');
 }
 
 var hotkeys_disabled = true;
@@ -61,51 +75,79 @@ $(window).keydown(function(event) {
   console.log(key)
   console.log('disabled ' + hotkeys_disabled);
 
+  if (key == 84)
+  {
+    // T pressed
+    $('#ia-detection-annotation-mode-toggle').bootstrapToggle('toggle');
+  }
+  else if(key == 65)
+  {
+    // S pressed
+    var parts = $('#ia-detection-annotation-mode-parts-assignments').is(':checked')
+    $('#ia-detection-annotation-mode-parts-assignments').prop('checked', ! parts);
+    $('#ia-detection-annotation-mode-parts-assignments').trigger('change');
+  }
+  else if(key == 83)
+  {
+    // S pressed
+    var parts = $('#ia-detection-annotation-mode-parts-show').is(':checked')
+    $('#ia-detection-annotation-mode-parts-show').prop('checked', ! parts);
+    $('#ia-detection-annotation-mode-parts-show').trigger('change');
+  }
+  else if(key == 72 || key == 68)
+  {
+    // S pressed
+    var parts = $('#ia-detection-annotation-mode-parts-hide').is(':checked')
+    $('#ia-detection-annotation-mode-parts-hide').prop('checked', ! parts);
+    $('#ia-detection-annotation-mode-parts-hide').trigger('change');
+  }
+  else if(key == 13)
+  {
+    // Enter key pressed, submit form as accept
+    $('input#ia-turk-submit-accept').click();
+  }
+  else if(key == 32)
+  {
+    // Space key pressed, submit form as delete
+    $('input#ia-turk-submit-clear').click();
+  }
+  else if(key == 80)
+  {
+    // P key pressed, follow previous link
+    $('a#ia-turk-previous')[0].click();
+  }
+
+
   if( ! hotkeys_disabled)
   {
-    if(key == 13)
-    {
-      // Enter key pressed, submit form as accept
-      $('input#ia-turk-submit-accept').click();
-    }
-    else if(key == 32)
-    {
-      // Space key pressed, submit form as delete
-      $('input#ia-turk-submit-clear').click();
-    }
-    else if(key == 80)
-    {
-      // P key pressed, follow previous link
-      $('a#ia-turk-previous')[0].click();
-    }
-    else if(key == 81)
+    if(key == 81)
     {
       // Q key pressed, 1 star
-      $("#ia-detection-quality").val(1);
+      $("#ia-detection-annotation-quality").val(1);
       update_label();
-      $('.ia-detection-form-value').trigger('change');
+      $('.ia-detection-form-annotation-value').trigger('change');
     }
     else if(key == 87)
     {
       // W key pressed, 2 stars
-      $("#ia-detection-quality").val(2);
+      $("#ia-detection-annotation-quality").val(2);
       update_label();
-      $('.ia-detection-form-value').trigger('change');
+      $('.ia-detection-form-annotation-value').trigger('change');
     }
     else if(key == 69)
     {
       // E pressed
-      var multiple = $('input[id="ia-detection-multiple"]').is(':checked')
-      $('input[id="ia-detection-multiple"]').prop('checked', ! multiple);
-      $('.ia-detection-form-value').trigger('change');
+      var multiple = $('input[id="ia-detection-annotation-multiple"]').is(':checked')
+      $('input[id="ia-detection-annotation-multiple"]').prop('checked', ! multiple);
+      $('.ia-detection-form-annotation-value').trigger('change');
       // $('#ia-detection-multiple').trigger('click');
     }
     else if(key == 73)
     {
       // I pressed
-      var interest = $('input[id="ia-detection-interest"]').is(':checked')
-      $('input[id="ia-detection-interest"]').prop('checked', ! interest);
-      $('.ia-detection-form-value').trigger('change');
+      var interest = $('input[id="ia-detection-annotation-interest"]').is(':checked')
+      $('input[id="ia-detection-annotation-interest"]').prop('checked', ! interest);
+      $('.ia-detection-form-annotation-value').trigger('change');
       // $('#ia-detection-multiple').trigger('click');
     }
     // else if(key == 69)
@@ -130,7 +172,7 @@ $(window).keydown(function(event) {
     // else if(key == 85)
     // {
     //   // U key pressed, select Unspecified Animal in selection box
-    //   $('select[name="viewpoint-species"]').val("unspecified_animal");
+    //   $('select[name="viewpoint-class"]').val("unspecified_animal");
     // }
     else if(49 <= key && key <= 56)
     {
@@ -145,9 +187,9 @@ $(window).keydown(function(event) {
       // 56 == numeric key 8
       // 57 == numeric key 9
       value = key - 49; // offset by 49 so that the number one is the value of 0
-      $("#ia-detection-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-detection-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
       update_label();
-      $('.ia-detection-form-value').trigger('change');
+      $('.ia-detection-form-annotation-value').trigger('change');
     }
     else if(97 <= key && key <= 104)
     {
@@ -162,14 +204,9 @@ $(window).keydown(function(event) {
       // 104 == number pad key 8
       // 105 == number pad key 9
       value = key - 97; // offset by 97 so that the number one is the value of 0
-      $("#ia-detection-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-detection-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
       update_label();
-      $('.ia-detection-form-value').trigger('change');
+      $('.ia-detection-form-annotation-value').trigger('change');
     }
-  }
-
-  if (key == 84)
-  {
-    $('#ia-detection-annotation-mode-toggle').bootstrapToggle('toggle');
   }
 });

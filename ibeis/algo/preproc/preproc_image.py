@@ -78,6 +78,7 @@ def parse_imageinfo(gpath):
             # Open image with Exif support
             pil_img = Image.open(gpath, 'r')  # NOQA
         except IOError as ex:
+            # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
             return None
         if len(w) > 0:

@@ -1547,9 +1547,7 @@ def action_identification(**kwargs):
 
 
 @register_route('/turk/', methods=['GET'])
-def turk(**kwargs):
-    imgsetid = request.args.get('imgsetid', '')
-    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+def turk(imgsetid=None):
     return appf.template('turk', None, imgsetid=imgsetid)
 
 
@@ -1591,6 +1589,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
 
     ibs = current_app.ibs
 
+    imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
     reviewed_list = appf.imageset_image_processed(ibs, gid_list)
     try:
