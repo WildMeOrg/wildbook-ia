@@ -337,21 +337,28 @@ class RootMostInput(ut.HashComparable):
     def parent_level(rmi):
         """
         Returns rootmost inputs above this node
+
+        Example:
+            >>> from dtool.example_depcache2 import *  # NOQA
+            >>> depc = testdata_depc4()
+            >>> inputs = depc['smk_match'].rootmost_inputs
+            >>> rmi = inputs.rmi_list[1]
+            >>> assert len(rmi.parent_level()) == 2
         """
-        def yield_condition(G, child, edge):
+        def yield_if(G, child, edge):
             return G.node[child].get('root_specifiable')
-        def continue_condition(G, child, edge):
+        def continue_if(G, child, edge):
             return not G.node[child].get('root_specifiable')
-        # TODO: testme to make sure I still work
         bfs_iter = ut.bfs_conditional(
-            rmi.exi_graph, rmi.node, reverse=True, yield_nodes=True,
-            yield_condition=yield_condition,
-            continue_condition=continue_condition,
-            # visited_nodes={rmi.node}
-            yield_source=False
+            rmi.exi_graph, rmi.node, reverse=True,
+            yield_if=yield_if,
+            continue_if=continue_if,
+            yield_source=False,
+            yield_nodes=True,
         )
         bfs_iter = list(bfs_iter)
-        parent_level = [RootMostInput(node, rmi.sink, rmi.exi_graph) for node in bfs_iter]
+        parent_level = [RootMostInput(node, rmi.sink, rmi.exi_graph)
+                        for node in bfs_iter]
         return parent_level
 
     @property
