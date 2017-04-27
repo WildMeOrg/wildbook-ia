@@ -26,17 +26,24 @@
           </div>
         {% endif %}
 
-        Gid: {{ gid }}
-        <br/>
-        Species: {{ species }} <span data-toggle="modal" data-target="#turk-species-examples" style="margin-left: 50px; cursor: pointer; color: #428bca;">(What does this species look like?)</span>
-        <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
-        <br/>
-        Path: {{ image_path }}
-      {% include 'turk/detection_insert.html' %}
-    </div>
+        <div class="row">
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4"></div>
 
-    <div class="col-lg-1"></div>
-  </div>
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align: center;">
+            Image ID (GID): {{ gid }}
+          </div>
+
+          <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
+            <span class="glyphicon glyphicon-question-sign pull-right" data-toggle="modal" data-target="#turk-species-examples" style="font-size: 18px; margin-right: 5px;"></span>
+          </div>
+        </div>
+
+        {% include 'turk/detection_insert.html' %}
+      </div>
+
+      <div class="col-lg-1"></div>
+    </div>
 
   <!-- Modal -->
   <div class="modal fade" id="turk-species-examples" tabindex="-1" role="dialog" aria-labelledby="speciesModalLabel" aria-hidden="true">

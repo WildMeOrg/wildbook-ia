@@ -76,6 +76,21 @@
   margin-right: -11%;
 }
 
+.col-custom-span-6
+{
+  width: 20.0%;
+}
+
+.col-custom-span-6:first-child
+{
+  margin-left: -9%;
+}
+
+.col-custom-span-6:last-child
+{
+  margin-right: -9%;
+}
+
 .col-custom-span-7
 {
   width: 16.66%;

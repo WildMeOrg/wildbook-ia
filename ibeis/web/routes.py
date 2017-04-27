@@ -1673,6 +1673,22 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     species_list = zip(species_nice_list, species_text_list)
     species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
 
+    settings_key_list = [
+        'ia-detection-annotation-mode-orientation',
+        'ia-detection-annotation-mode-parts-assignments',
+        'ia-detection-annotation-mode-toggle-annotations',
+        'ia-detection-annotation-mode-toggle-parts',
+        'ia-detection-annotation-mode-parts-show',
+        'ia-detection-annotation-mode-parts-hide',
+    ]
+    for settings_key in settings_key_list:
+        print(settings_key, request.cookies.get(settings_key, None))
+
+    settings = {
+        settings_key: request.cookies.get(settings_key, None) == '1'
+        for settings_key in settings_key_list
+    }
+
     callback_url = '%s?imgsetid=%s' % (url_for('submit_detection'), imgsetid, )
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
@@ -1689,6 +1705,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          annotation_list=annotation_list,
                          display_instructions=display_instructions,
                          display_species_examples=display_species_examples,
+                         settings=settings,
                          callback_url=callback_url,
                          callback_method='POST',
                          EMBEDDED_CSS=None,

@@ -1,212 +1,371 @@
-function update_label()
-{
-  var viewpoint_strs = [];
-  viewpoint_strs[0] = 'Left';
-  viewpoint_strs[45] = 'Front-Left';
-  viewpoint_strs[90] = 'Front';
-  viewpoint_strs[135] = 'Front-Right';
-  viewpoint_strs[180] = 'Right';
-  viewpoint_strs[225] = 'Back-Right';
-  viewpoint_strs[270] = 'Back';
-  viewpoint_strs[315] = 'Back-Left';
-
-  value = parseFloat( $("#ia-detection-viewpoint").val() );
-  radians_sub = (value / 360.0) * 2.0;
-  $("#ia-viewpoint-label-degrees").html(value);
-  $("#ia-viewpoint-label-radians1").html((radians_sub * Math.PI).toFixed(4));
-  $("#ia-viewpoint-label-radians2").html((radians_sub).toFixed(4));
-  value = Math.round(value / 45.0) * 45;
-  if(value == 360) value = 0;
-  $("#ia-viewpoint-label-text").html(viewpoint_strs[value]);
-
-  var quality_strs = [];
-  // quality_strs[5] = 'Excellent';
-  // quality_strs[4] = 'Good';
-  // quality_strs[3] = 'OK';
-  // quality_strs[2] = 'Poor';
-  // quality_strs[1] = 'Junk';
-  quality_strs[2] = 'Good';
-  quality_strs[1] = 'Poor';
-
-  value = parseFloat( $("#ia-detection-quality").val() );
-  $("#ia-quality-label-value").html(value);
-  $("#ia-quality-label-text").html(quality_strs[value]);
+function hide_viewpoint_2_axis_panel(index){
+   $(".ia-viewpoint-version-2-" + index).hide()
 }
 
-function add_species()
-{
-  value = $('input[name="species-add"]').val()
-
-  $('#ia-detection-annotation-class')
-     .append($("<option></option>")
-     .attr("value", value)
-     .text(value));
-   $('#ia-detection-annotation-class option[value="' + value + '"]').prop("selected", true);
-   $('.ia-detection-form-annotation-value').trigger('change');
+function check_form(){
+    if(bba.entries.length == 0) {
+      return true
+    }
+    for (var index = 0; index < bba.entries.length; index++) {
+        if(bba.entries[index].highlighted) {
+          return true
+        }
+    }
+    alert('There are no highlighted annotations.\nPlease select at least one annotation of interest')
+    return false
 }
 
-function add_part()
-{
-  value = $('input[name="part-add"]').val()
+function update_metadata_panel(state) {
+    var css_active, css_inactive
 
-  console.log("ADD PARTS "+ value)
+    css_active = {
+      "background-color": "#286090",
+      "color": "#FFFFFF",
+      "border": "1px solid #286090",
+    }
+    css_inactive = {
+      "background-color": "#FFFFFF",
+      "color": "#333333",
+      "border": "1px solid #333333",
+    }
 
-  $('#ia-detection-part-class')
-     .append($("<option></option>")
-     .attr("value", value)
-     .text(value));
-   $('#ia-detection-part-class option[value="' + value + '"]').prop("selected", true);
-   $('.ia-detection-form-part-value').trigger('change');
+    if (state == "annotation") {
+      active_ids = ["#ia-metadata-badge-annotation"]
+      inactive_ids = ["#ia-metadata-badge-part"]
+      visible_ids = ['#ia-metadata-panel-annotation']
+      hidden_ids = ['#ia-metadata-panel-part']
+    } else if(state == "part") {
+      active_ids = ["#ia-metadata-badge-part"]
+      inactive_ids = ["#ia-metadata-badge-annotation"]
+      visible_ids = ['#ia-metadata-panel-part']
+      hidden_ids = ['#ia-metadata-panel-annotation']
+    } else {
+      active_ids = []
+      inactive_ids = ["#ia-metadata-badge-annotation", "#ia-metadata-badge-part"]
+      visible_ids = []
+      hidden_ids = ['#ia-metadata-panel-annotation', '#ia-metadata-panel-part']
+    }
+
+    for(var index = 0; index < active_ids.length; index++) {
+     $(active_ids[index]).css(css_active)
+    }
+    for(var index = 0; index < inactive_ids.length; index++) {
+     $(inactive_ids[index]).css(css_inactive)
+    }
+    for(var index = 0; index < visible_ids.length; index++) {
+     $(visible_ids[index]).show()
+    }
+    for(var index = 0; index < hidden_ids.length; index++) {
+     $(hidden_ids[index]).hide()
+    }
+
+    fix_metadata_panels();
+}
+
+function enable_metadata_annotations() {
+  $('#ia-detection-annotation-viewpoint-1').prop("disabled", false);
+  $('#ia-detection-annotation-viewpoint-2').prop("disabled", false);
+  $('#ia-detection-annotation-viewpoint-3').prop("disabled", false);
+  $('#ia-detection-annotation-quality').prop("disabled", false);
+  $('#ia-detection-annotation-multiple').prop("disabled", false);
+  $('#ia-detection-annotation-interest').prop("disabled", false);
+  $('#ia-detection-class').prop("disabled", false);
+  $('span[data-target="#species-add"]').css("visibility", "visible");
+  $("#ia-metadata-panel-annotation").css("color", "#000");
+  $("#ia-detection-form-annotation-warning").css("visibility", "hidden");
+}
+
+function disable_metadata_annotations() {
+  $('#ia-detection-annotation-viewpoint-1').prop("disabled", true);
+  $('#ia-detection-annotation-viewpoint-2').prop("disabled", true);
+  $('#ia-detection-annotation-viewpoint-3').prop("disabled", true);
+  $('#ia-detection-annotation-quality').prop("disabled", true);
+  $('#ia-detection-annotation-multiple').prop("disabled", true);
+  $('#ia-detection-annotation-interest').prop("disabled", true);
+  $('#ia-detection-class').prop("disabled", true);
+  $('span[data-target="#species-add"]').css("visibility", "hidden");
+  $("#ia-metadata-panel-annotation").css("color", "#777");
+  $("#ia-detection-form-annotation-warning").css("visibility", "visible");
+}
+
+function enable_metadata_parts() {
+  $('#ia-detection-part-quality').prop("disabled", false);
+  $('#ia-detection-part').prop("disabled", false);
+  $('span[data-target="#part-add"]').css("visibility", "visible");
+  $("#ia-metadata-panel-part").css("color", "#000");
+  $("#ia-detection-form-part-warning").css("visibility", "hidden");
+}
+
+function disable_metadata_parts() {
+  $('#ia-detection-part-quality').prop("disabled", true);
+  $('#ia-detection-part').prop("disabled", true);
+  $('span[data-target="#part-add"]').css("visibility", "hidden");
+  $("#ia-metadata-panel-part").css("color", "#777");
+  $("#ia-detection-form-part-warning").css("visibility", "visible");
+}
+
+function show_annotation_metadata(entry) {
+  console.log('ANNOTATION METADATA')
+  console.log(entry)
+  if(entry.metadata.viewpoint != -1) {
+    $('#ia-detection-annotation-viewpoint').val(entry.metadata.viewpoint);
+  }
+  if(entry.metadata.quality != -1) {
+    $('#ia-detection-annotation-quality').val(entry.metadata.quality);
+  }
+  $('#ia-detection-annotation-class option[value="' + entry.metadata.species + '"]').prop("selected", true);
+  $('#ia-detection-annotation-multiple').prop("checked", entry.metadata.multiple);
+  $('#ia-detection-annotation-interest').prop("checked", entry.highlighted);
+  update_label();
+}
+
+function fix_metadata_panels() {
+  x = $('#ia-metadata-panel-annotation').height()
+  y = $('#ia-metadata-panel-part').height()
+  height = Math.max(x, y)
+  $('#ia-metadata-panel-container').css({
+    "height": height,
+  })
+}
+
+function update_label() {
+    var viewpoint_strs = [];
+    viewpoint_strs[-1] = null;
+    viewpoint_strs[0] = 'Up';
+    viewpoint_strs[1] = 'Down';
+    viewpoint_strs[2] = 'Front';
+    viewpoint_strs[3] = 'Back';
+    viewpoint_strs[4] = 'Left';
+    viewpoint_strs[5] = 'Right';
+
+    for(var index = 0; index <= 6; index++) {
+        $("#col-viewpoint-ticks-2-" + index).css({
+            opacity: 1.0,
+        })
+        $("#col-viewpoint-ticks-3-" + index).css({
+            opacity: 1.0,
+        })
+    }
+
+    value1 = parseFloat($("#ia-detection-annotation-viewpoint-1").val());
+    value2 = parseFloat($("#ia-detection-annotation-viewpoint-2").val());
+    value3 = parseFloat($("#ia-detection-annotation-viewpoint-3").val());
+
+    if(value3 >= 0 && value1 == -1) {
+        value3 = -1
+        $("#ia-detection-annotation-viewpoint-3").val(value3)
+    }
+    if(value3 >= 0 && value2 == -1) {
+        value3 = -1
+        $("#ia-detection-annotation-viewpoint-3").val(value3)
+    }
+    if(value2 >= 0 && value1 == -1) {
+        value2 = -1
+        $("#ia-detection-annotation-viewpoint-2").val(value2)
+    }
+
+    if(value1 >= 0)  {
+        invalid1 = 2 * Math.floor(value1 / 2.0)
+        invalid2 = invalid1 + 1
+        $("#col-viewpoint-ticks-2-" + (invalid1 + 1)).css({
+            opacity: 0.0,
+        })
+        $("#col-viewpoint-ticks-2-" + (invalid2 + 1)).css({
+            opacity: 0.0,
+        })
+        $("#col-viewpoint-ticks-3-" + (invalid1 + 1)).css({
+            opacity: 0.0,
+        })
+        $("#col-viewpoint-ticks-3-" + (invalid2 + 1)).css({
+            opacity: 0.0,
+        })
+
+        if(value2 == invalid1 || value2 == invalid2) {
+            value2 = -1
+            value3 = -1
+            $("#ia-detection-annotation-viewpoint-2").val(value2)
+            $("#ia-detection-annotation-viewpoint-3").val(value2)
+        }
+
+        if(value2 >= 0)  {
+            invalid3 = 2 * Math.floor(value2 / 2.0)
+            invalid4 = invalid3 + 1
+            console.log(value1 + " " + value2 + " " + value3)
+            console.log(invalid1 + " " + invalid2 + " " + invalid3 + " " + invalid4)
+            $("#col-viewpoint-ticks-3-" + (invalid3 + 1)).css({
+                opacity: 0.0,
+            })
+            $("#col-viewpoint-ticks-3-" + (invalid4 + 1)).css({
+                opacity: 0.0,
+            })
+
+            if(value3 == invalid1 || value3 == invalid2 || value3 == invalid3 || value3 == invalid4) {
+                value3 = -1
+                $("#ia-detection-annotation-viewpoint-3").val(value3)
+            }
+        }
+    }
+
+    tag1 = viewpoint_strs[value1]
+    tag2 = viewpoint_strs[value2]
+    tag3 = viewpoint_strs[value3]
+
+    if(tag1 != null)  {
+        if(tag2 != null) {
+            if(tag3 != null) {
+                tag = tag1 + "-" + tag2 + "-" + tag3
+            } else {
+                tag = tag1 + "-" + tag2
+            }
+        } else {
+            tag = tag1
+        }
+    }
+    else {
+        tag = "<i>Unspecified</i>"
+    }
+
+    $("#ia-viewpoint-label-text").html(tag);
+
+    var quality_strs = [];
+    quality_strs[1] = 'Poor';
+    quality_strs[2] = 'Good';
+
+    value = parseFloat($("#ia-detection-quality").val());
+    $("#ia-quality-label-value").html(value);
+    $("#ia-quality-label-text").html(quality_strs[value]);
+}
+
+function add_species() {
+    value = $('input[name="species-add"]').val()
+
+    $('#ia-detection-annotation-class')
+        .append($("<option></option>")
+            .attr("value", value)
+            .text(value));
+    $('#ia-detection-annotation-class option[value="' + value + '"]').prop("selected", true);
+    $('.ia-detection-form-annotation-value').trigger('change');
+}
+
+function add_part() {
+    value = $('input[name="part-add"]').val()
+
+    console.log("ADD PARTS " + value)
+
+    $('#ia-detection-part-class')
+        .append($("<option></option>")
+            .attr("value", value)
+            .text(value));
+    $('#ia-detection-part-class option[value="' + value + '"]').prop("selected", true);
+    $('.ia-detection-form-part-value').trigger('change');
 }
 
 var hotkeys_disabled = true;
 
-$('#species-add').on('shown.bs.modal', function () {
-  $('input[name="species-add"]').val('')
-  hotkeys_disabled = true;
+$('#species-add').on('shown.bs.modal', function() {
+    $('input[name="species-add"]').val('')
+    hotkeys_disabled = true;
 });
 
-$('#species-add').on('hidden.bs.modal', function () {
-  hotkeys_disabled = false;
+$('#species-add').on('hidden.bs.modal', function() {
+    hotkeys_disabled = false;
 });
 
 $(window).keydown(function(event) {
-  key = event.which;
-  console.log(key)
-  console.log('disabled ' + hotkeys_disabled);
+    key = event.which;
+    console.log(key)
+    console.log('disabled ' + hotkeys_disabled);
 
-  if (key == 84)
-  {
-    // T pressed
-    $('#ia-detection-annotation-mode-toggle').bootstrapToggle('toggle');
-  }
-  else if(key == 65)
-  {
-    // S pressed
-    var parts = $('#ia-detection-annotation-mode-parts-assignments').is(':checked')
-    $('#ia-detection-annotation-mode-parts-assignments').prop('checked', ! parts);
-    $('#ia-detection-annotation-mode-parts-assignments').trigger('change');
-  }
-  else if(key == 83)
-  {
-    // S pressed
-    var parts = $('#ia-detection-annotation-mode-parts-show').is(':checked')
-    $('#ia-detection-annotation-mode-parts-show').prop('checked', ! parts);
-    $('#ia-detection-annotation-mode-parts-show').trigger('change');
-  }
-  else if(key == 72 || key == 68)
-  {
-    // S pressed
-    var parts = $('#ia-detection-annotation-mode-parts-hide').is(':checked')
-    $('#ia-detection-annotation-mode-parts-hide').prop('checked', ! parts);
-    $('#ia-detection-annotation-mode-parts-hide').trigger('change');
-  }
-  else if(key == 13)
-  {
-    // Enter key pressed, submit form as accept
-    $('input#ia-turk-submit-accept').click();
-  }
-  else if(key == 32)
-  {
-    // Space key pressed, submit form as delete
-    $('input#ia-turk-submit-clear').click();
-  }
-  else if(key == 80)
-  {
-    // P key pressed, follow previous link
-    $('a#ia-turk-previous')[0].click();
-  }
+    if (key == 84) {
+        // T pressed
+        $('#ia-detection-annotation-mode-toggle').bootstrapToggle('toggle');
+    } else if (key == 67) {
+        // C pressed
+        var element = $('#ia-detection-annotation-class')
+        var children = element.children('option')
+        var length = children.length;
+        var index = element.find("option:selected").index()
+        // Increment
+        index = (index + 1) % length
+        children.eq(index).prop('selected', true);
+        $('.ia-detection-form-part-value').trigger('change');
+    } else if (key == 77) {
+        // M pressed
+        var element = $('#ia-detection-annotation-mode-orientation')
+        element.prop('checked', ! element.is(':checked') ).trigger('change');
+    } else if (key == 65) {
+        // A pressed
+        var element = $('#ia-detection-annotation-mode-parts-assignments')
+        element.prop('checked', ! element.is(':checked') ).trigger('change');
+    } else if (key == 83) {
+        // S pressed
+        var element = $('#ia-detection-annotation-mode-parts-show')
+        element.prop('checked', ! element.is(':checked') ).trigger('change');
+    } else if (key == 72 || key == 68) {
+        // S pressed
+        var element = $('#ia-detection-annotation-mode-parts-hide')
+        element.prop('checked', ! element.is(':checked') ).trigger('change');
+    } else if (key == 13) {
+        // Enter key pressed, submit form as accept
+        $('input#ia-turk-submit-accept').click();
+    } else if (key == 32) {
+        // Space key pressed, submit form as delete
+        $('input#ia-turk-submit-clear').click();
+    } else if (key == 80) {
+        // P key pressed, follow previous link
+        $('a#ia-turk-previous')[0].click();
+    }
 
+    if ( ! hotkeys_disabled) {
+        if (key == 81) {
+            // Q key pressed, poor quality
+            $("#ia-detection-annotation-quality").val(1).trigger('change');
+        } else if (key == 87) {
+            // W key pressed, good quality
+            $("#ia-detection-annotation-quality").val(2).trigger('change');
+        } else if (key == 69) {
+            // E pressed
+            var element = $('#ia-detection-annotation-multiple')
+            element.prop('checked', ! element.is(':checked') ).trigger('change');
+        } else if (key == 73) {
+            // I pressed
+            var element = $('#ia-detection-annotation-interest')
+            element.prop('checked', ! element.is(':checked') ).trigger('change');
+        }
+        else if ((49 <= key && key <= 55) || (97 <= key && key <= 103)) {
+            // 48 == 48  == numeric key 0
+            // 49 == 97  == numeric key 1
+            // 50 == 98  == numeric key 2
+            // 51 == 99  == numeric key 3
+            // 52 == 100 == numeric key 4
+            // 53 == 101 == numeric key 5
+            // 54 == 102 == numeric key 6
+            // 55 == 103 == numeric key 7
+            // 56 == 104 == numeric key 8
+            // 57 == 105 == numeric key 9
 
-  if( ! hotkeys_disabled)
-  {
-    if(key == 81)
-    {
-      // Q key pressed, 1 star
-      $("#ia-detection-annotation-quality").val(1);
-      update_label();
-      $('.ia-detection-form-annotation-value').trigger('change');
+            value1 = parseFloat($("#ia-detection-annotation-viewpoint-1").val());
+            value2 = parseFloat($("#ia-detection-annotation-viewpoint-2").val());
+
+            if(value1 == -1 && event.altKey) {
+                return
+            }
+
+            if (! axis2 || value1 == -1 || event.shiftKey) {
+                element = "#ia-detection-annotation-viewpoint-1"
+            } else if(! axis3 || value2 == -1 || event.altKey) {
+                element = "#ia-detection-annotation-viewpoint-2"
+            } else {
+                element = "#ia-detection-annotation-viewpoint-3"
+            }
+
+            if (49 <= key && key <= 56) {
+                value = key - 49 - 1;
+            } else {
+                value = key - 97 - 1;
+            }
+
+            $(element).val(value).trigger('change');
+        }
     }
-    else if(key == 87)
-    {
-      // W key pressed, 2 stars
-      $("#ia-detection-annotation-quality").val(2);
-      update_label();
-      $('.ia-detection-form-annotation-value').trigger('change');
-    }
-    else if(key == 69)
-    {
-      // E pressed
-      var multiple = $('input[id="ia-detection-annotation-multiple"]').is(':checked')
-      $('input[id="ia-detection-annotation-multiple"]').prop('checked', ! multiple);
-      $('.ia-detection-form-annotation-value').trigger('change');
-      // $('#ia-detection-multiple').trigger('click');
-    }
-    else if(key == 73)
-    {
-      // I pressed
-      var interest = $('input[id="ia-detection-annotation-interest"]').is(':checked')
-      $('input[id="ia-detection-annotation-interest"]').prop('checked', ! interest);
-      $('.ia-detection-form-annotation-value').trigger('change');
-      // $('#ia-detection-multiple').trigger('click');
-    }
-    // else if(key == 69)
-    // {
-    //   $('#ia-detection-multiple').trigger('click');
-    //   E key pressed, 3 starts
-    //   $("#ia-detection-quality").val(3);
-    //   update_label();
-    // }
-    // else if(key == 82)
-    // {
-    //   // R key pressed, 4 stars
-    //   $("#ia-detection-quality").val(4);
-    //   update_label();
-    // }
-    // else if(key == 84)
-    // {
-    //   // T key pressed, 5 stars
-    //   $("#ia-detection-quality").val(5);
-    //   update_label();
-    // }
-    // else if(key == 85)
-    // {
-    //   // U key pressed, select Unspecified Animal in selection box
-    //   $('select[name="viewpoint-class"]').val("unspecified_animal");
-    // }
-    else if(49 <= key && key <= 56)
-    {
-      // 48 == numeric key 0
-      // 49 == numeric key 1
-      // 50 == numeric key 2
-      // 51 == numeric key 3
-      // 52 == numeric key 4
-      // 53 == numeric key 5
-      // 54 == numeric key 6
-      // 55 == numeric key 7
-      // 56 == numeric key 8
-      // 57 == numeric key 9
-      value = key - 49; // offset by 49 so that the number one is the value of 0
-      $("#ia-detection-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
-      update_label();
-      $('.ia-detection-form-annotation-value').trigger('change');
-    }
-    else if(97 <= key && key <= 104)
-    {
-      // 48 ==  number pad key 0
-      // 97 ==  number pad key 1
-      // 98 ==  number pad key 2
-      // 99 ==  number pad key 3
-      // 100 == number pad key 4
-      // 101 == number pad key 5
-      // 102 == number pad key 6
-      // 103 == number pad key 7
-      // 104 == number pad key 8
-      // 105 == number pad key 9
-      value = key - 97; // offset by 97 so that the number one is the value of 0
-      $("#ia-detection-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
-      update_label();
-      $('.ia-detection-form-annotation-value').trigger('change');
-    }
-  }
 });

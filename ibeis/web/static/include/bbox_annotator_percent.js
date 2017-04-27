@@ -65,7 +65,7 @@ TODO
             options.border          !== undefined || (options.border = {})
             options.border.color    !== undefined || (options.border.color = "#7FFF7F")
             options.border.width    !== undefined || (options.border.width = 2)
-            options.mode            !== undefined || (options.mode = "diagonal")
+            options.mode            !== undefined || (options.mode = "rectangle")
             options.debug           !== undefined || (options.debug = false)
 
             // Global attributes
@@ -139,6 +139,7 @@ TODO
             switch (proposed_mode) {
                 case "rectangle":
                 case "diagonal":
+                case "diagonal2":
                     this.options.mode = proposed_mode
                     break
                 default:
@@ -228,8 +229,7 @@ TODO
             // Used only for a multi-staging selection (i.e. diagonal)
             if (this.options.mode == "rectangle") {
                 finish = true
-            }
-            if (this.options.mode == "diagonal") {
+            } else {
                 if (this.current_stage == 0) {
                     this.current_stage = 1 // We only want to stage once
                     this.elements.rectangle.show()
@@ -327,7 +327,9 @@ TODO
                         y: Math.sin(data.angles.right) * data.pixels.adjacent,
                     }
 
-                    if (diff_len > 0) {
+                    data.angles.fixed = diff_len > 0
+                    if (data.angles.fixed) {
+
                         data.angles.theta += Math.PI
                     }
                 }
@@ -518,12 +520,13 @@ TODO
             options.limits.area              !== undefined || (options.limits.area = 100)
             options.limits.width             !== undefined || (options.limits.width = 10)
             options.limits.height            !== undefined || (options.limits.height = 10)
+            options.onload                   !== undefined || (options.onload = null)
             options.onadd                    !== undefined || (options.onadd = null)
             options.onselector               !== undefined || (options.onselector = null)
             options.onchange                 !== undefined || (options.onchange = null)
             options.onhover                  !== undefined || (options.onhover = null)
             options.onfocus                  !== undefined || (options.onfocus = null)
-            options.mode                     !== undefined || (options.mode = "diagonal")
+            options.mode                     !== undefined || (options.mode = "rectangle")
             options.debug                    !== undefined || (options.debug = false)
 
             // Global attributes
@@ -626,7 +629,13 @@ TODO
                 bba.register_global_key_bindings()
                 bba.register_global_event_bindings()
 
+                // Resize the image to the window
                 bba.resize()
+
+                // Trigger onload
+                if (bba.options.onload != null) {
+                    return bba.options.onload()
+                }
             }
 
             // If the image failed to load, add a message to the console.
@@ -865,8 +874,6 @@ TODO
                     } else if (bba.state.mode == "selector") {
                         bba.selector_stage(event)
                     } else if (bba.state.mode == "drag") {
-                        // Set the other entries to be transparent
-                        bba.entries_style_transparent(1.0)
 
                         if (bba.state.hover != null) {
                             entry = bba.entries[bba.state.hover]
@@ -880,6 +887,9 @@ TODO
 
                             if(bba.state.focus == null || bba.state.focus != bba.state.hover) {
                                 if(bba.state.focus2 == null) {
+                                    // Set the other entries to be transparent
+                                    bba.entries_style_transparent(1.0)
+
                                     if (bba.options.handles.close.enabled) {
                                         element.close.show()
                                     }
@@ -1376,11 +1386,13 @@ TODO
 
             // notify on adding entry from selection
             if (notify && this.options.onadd != null) {
-                return this.options.onadd(entry)
+                this.options.onadd(entry)
             }
 
             // Refresh the view now that the new bbox has been added
             this.refresh()
+
+            return index
         }
 
         BBoxAnnotator.prototype.hover_entry = function(index) {
@@ -1994,10 +2006,11 @@ TODO
             this.refresh()
         }
 
-        BBoxAnnotator.prototype.orient_entry = function(event, direction) {
+        BBoxAnnotator.prototype.orient_entry = function(event, direction, index) {
             var index, entry, element, holder, width, height
 
-            index = this.state.hover
+            index !== undefined || (index = this.state.hover)
+
                 // Do not update if there is not a hover entry
             if (index == null) {
                 return
@@ -2070,6 +2083,11 @@ TODO
                         index += 1
                         console.log('BACKGROUND UPDATE ' + index)
                     }
+                }
+            } else {
+                // Disallow background entry if in focus2 and a subentry
+                if(this.state.focus != null) {
+                    return
                 }
             }
 
@@ -2393,7 +2411,7 @@ TODO
         }
 
         BBoxAnnotator.prototype.selector_finish = function(event) {
-            var data, invalid
+            var data, invalid, index
 
             // If we are in the "selector" mode, finish the BBoxSelector and add the entry
             if (this.state.mode == "selector") {
@@ -2407,7 +2425,15 @@ TODO
 
                 // Add the returned entry data reported by the BBoxSelector as a new entry
                 if( ! invalid) {
-                    this.add_entry(data, true)
+                    index = this.add_entry(data, true)
+
+                    if (this.options.mode == "diagonal2") {
+                        if(data.angles.fixed) {
+                            bba.orient_entry(event, "right", index)
+                        } else {
+                            bba.orient_entry(event, "left", index)
+                        }
+                    }
                 }
 
                 // Release the mode to "free"
