@@ -347,6 +347,63 @@ def get_histinfo_str(hist, edges):
     return histinfo_str
 
 
+# def interpolated_wrapped_histogram2():
+#     # another stab at it
+#     data = np.array([ 0, .5,  2,  3.5,  3,  3,  3.9,  4])
+#     weights = np.ones(len(data))
+
+#     n_bins = 4
+#     # max_val = np.pi * 2
+#     max_val = 4
+#     # Define the edges of each bin (we will vote into the middle)
+#     # The first and last item are equivalent
+
+#     # bin_centers = np.linspace(0, max_val, n_bins + 1, endpoint=True)
+#     bin_centers = np.array([0, 1.5, 2, 3.5, 4])
+#     bin_offsets = np.diff(bin_centers) / 2
+
+#     # sort input data
+#     sortx = np.argsort(data)
+#     sa = data[sortx]
+
+
+#     right_edges = bin_centers[:-1] + bin_offsets
+#     wrapped_right = bin_centers[-1] + bin_offsets[0]
+
+#     # Find data in the wrap-around zone
+#     is_right_wrapped = (sa > right_edges[-1])
+
+#     rectified_left = sa[is_right_wrapped] - max_val
+#     # rectified_right = max_val - data[is_left_wrapped]
+
+#     right_idx = right_edges.searchsorted(sa)
+
+
+
+#     right_edges[-1] - data[]
+
+#     data % right_edges[-1]
+
+#     left_offsets = np.hstack([bin_offsets[-1], bin_offsets])
+#     right_offsets = np.hstack([bin_offsets, bin_offsets[0]])
+
+#     left_edges = bin_centers - left_offsets
+#     right_edges = bin_centers + right_offsets
+
+
+#     bin_edges = np.roll(bin_centers[1:] + bin_offsets, 1)
+
+
+#     first_left_edge =
+
+#     rssign_left = left_edges.searchsorted(sa)
+#     assign_right = right_edges.searchsorted(sa)
+
+#     # Find bins to the left and right of each point
+#     assign_left  = sa.searchsorted(bin_edges[:-1], 'left')
+#     assign_right = sa.searchsorted(bin_edges[-1], 'right')
+
+
 def interpolated_histogram(data, weights, range_, bins,
                            interpolation_wrap=True, _debug=False):
     r"""
@@ -679,7 +736,6 @@ def show_ori_image(gori, weights, patch, gradx=None, grady=None, gauss=None, fnu
     import vtool as vt
     gorimag_, offsets, sftup = vt.stack_images(bgr_ori, legend, vert=False,
                                                modifysize=True,
-                                               return_offset=True,
                                                return_sf=True)
     (woff, hoff) = offsets[1]
     if patch is None:
