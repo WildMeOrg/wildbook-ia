@@ -8,27 +8,30 @@
 
     <div class="col-lg-4 col-md-4 col-sm-4">
         <div style="text-align: left; margin-top: 8px;">
-          <input type="checkbox" id="ia-detection-annotation-mode-orientation" {% if settings['ia-detection-annotation-mode-orientation'] %}checked{% endif %}>
-          <i> Axis-to-Axis Mid-line</i>
+          <input type="checkbox" id="ia-detection-setting-orientation" {% if settings['ia-detection-setting-orientation'] %}checked{% endif %}>
+          <i> Axis-to-Axis Mid-line <span class="ia-detection-hotkey">(M)</span></i>
           <br/>
-          <input type="checkbox" id="ia-detection-annotation-mode-parts-assignments" {% if settings['ia-detection-annotation-mode-parts-assignments'] %}checked{% endif %}>
-          <i> Show Part Assignments</i>
+          <input type="checkbox" id="ia-detection-setting-parts-assignments" {% if settings['ia-detection-setting-parts-assignments'] %}checked{% endif %}>
+          <i> Show Part Assignments <span class="ia-detection-hotkey">(A)</span></i>
         </div>
     </div>
     <div class="col-lg-4 col-md-4 col-sm-4">
         <div style="text-align: center; margin-top: 10px; margin-bottom: 2px;">
-          <!-- <input type="checkbox" id="ia-detection-annotation-mode-toggle" checked> -->
-          <input type="checkbox" id="ia-detection-annotation-mode-toggle" data-width="150" {% if settings['ia-detection-annotation-mode-toggle-annotations'] %}checked{% endif %}>
+          <!-- <input type="checkbox" id="ia-detection-setting-toggle" checked> -->
+          <input type="checkbox" id="ia-detection-setting-toggle" data-width="150" {% if settings['ia-detection-setting-toggle-annotations'] %}checked{% endif %}>
           <br/>
-          <div id="ia-detection-annotation-mode-toggle-label" style="font-size: 10px; margin: 0px; line-height: 10px;">Annotation</div>
+          <div style="font-size: 10px; margin: 0px; line-height: 10px;">
+            <span id="ia-detection-setting-toggle-label">Annotation</span>
+            <span class="ia-detection-hotkey">(T)</span>
+          </div>
         </div>
     </div>
     <div class="col-lg-4 col-md-4 col-sm-4">
         <div style="text-align: right; margin-top: 8px;">
-          <i>Always Show Parts</i>
-          <input type="checkbox" id="ia-detection-annotation-mode-parts-show" {% if settings['ia-detection-annotation-mode-parts-show'] %}checked{% endif %}><br/>
-          <i>Always Hide Parts</i>
-          <input type="checkbox" id="ia-detection-annotation-mode-parts-hide" {% if settings['ia-detection-annotation-mode-parts-hide'] %}checked{% endif %}>
+          <i><span class="ia-detection-hotkey">(S)</span> Always Show Parts</i>
+          <input type="checkbox" id="ia-detection-setting-parts-show" {% if settings['ia-detection-setting-parts-show'] %}checked{% endif %}><br/>
+          <i><span class="ia-detection-hotkey">(D / H)</span> Always Hide Parts</i>
+          <input type="checkbox" id="ia-detection-setting-parts-hide" {% if settings['ia-detection-setting-parts-hide'] %}checked{% endif %}>
         </div>
     </div>
   </div>
@@ -36,7 +39,9 @@
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
     <div id="ia-bbox-annotator-container"></div>
     <div style="text-align: center; color: #aaa;">
-      <span>hover to highlight (in orange), press <b>B</b> to send a box to the back, press <b>Delete</b> to delete</a> and press <b>Esc</b> to cancel any action</span>
+      <span>left-click to add a new box, press <b>Esc</b> to cancel any action, press <b>Delete</b> to delete</a>, hover to highlight (in orange) a box</span>
+      <br/>
+      <span>press <b>R</b> to rotate a hovered box right by 90&#176; and <b>L</b> left by 90&#176;, press <b>B</b> to send a box to the background</span>
       <br/>
       <span>right-click or press <b>F</b> to focus (in red) where parts can be added and metadata can be changed below</span>
     </div>
@@ -77,82 +82,81 @@
     <div id="ia-metadata-panel-container" style="position: relative; width: 100%;">
       <div id="ia-metadata-panel-annotation" style="position: absolute; width: 100%;">
 
-        Viewpoint: <span id="ia-viewpoint-label-text"></span>
+        Viewpoint: <span id="ia-detection-annotation-viewpoint-label"></span>
         <br/>
         <div class="ia-viewpoint-axis-1">
-          Axis 1 (&#8679 / Shift)
+          Axis 1 <span class="ia-detection-hotkey">(&#8679 / Shift)</span>
           <span id="ia-detection-form-annotation-warning" class="pull-right" style="color: #ac2925;"><i>focus an annotation to edit these values</i></span>
           <br/>
-          <input id="ia-detection-annotation-viewpoint-1" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-1" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <input id="ia-detection-annotation-viewpoint-1" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-1" value="-1" min="-1" max="5" style="margin-bottom:5px;">
           <div class="row-custom-expand">
-            <div class="col-custom-span col-custom-span-7"><i>null</i></div>
-            <div class="col-custom-span col-custom-span-7">up</div>
-            <div class="col-custom-span col-custom-span-7">down</div>
-            <div class="col-custom-span col-custom-span-7">front</div>
-            <div class="col-custom-span col-custom-span-7">back</div>
-            <div class="col-custom-span col-custom-span-7">left</div>
-            <div class="col-custom-span col-custom-span-7">right</div>
+            <div class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+            <div class="col-custom-span col-custom-span-7">up <span class="ia-detection-hotkey">(1)</span></div>
+            <div class="col-custom-span col-custom-span-7">down <span class="ia-detection-hotkey">(2)</span></div>
+            <div class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+            <div class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+            <div class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+            <div class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
           </div>
           <br/>
         </div>
         <div class="ia-viewpoint-axis-2">
-          Axis 2 (&#8997; / Alt / Option)
+          Axis 2 <span class="ia-detection-hotkey">(&#8997; / Alt / Option)</span>
           <br/>
-          <input id="ia-detection-annotation-viewpoint-2" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-2" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <input id="ia-detection-annotation-viewpoint-2" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-2" value="-1" min="-1" max="5" style="margin-bottom:5px;">
           <div class="row-custom-expand">
-            <div id="col-viewpoint-ticks-2-0" class="col-custom-span col-custom-span-7"><i>null</i></div>
-            <div id="col-viewpoint-ticks-2-1" class="col-custom-span col-custom-span-7">up</div>
-            <div id="col-viewpoint-ticks-2-2" class="col-custom-span col-custom-span-7">down</div>
-            <div id="col-viewpoint-ticks-2-3" class="col-custom-span col-custom-span-7">front</div>
-            <div id="col-viewpoint-ticks-2-4" class="col-custom-span col-custom-span-7">back</div>
-            <div id="col-viewpoint-ticks-2-5" class="col-custom-span col-custom-span-7">left</div>
-            <div id="col-viewpoint-ticks-2-6" class="col-custom-span col-custom-span-7">right</div>
+            <div id="col-viewpoint-ticks-2-0" class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+            <div id="col-viewpoint-ticks-2-1" class="col-custom-span col-custom-span-7">up <span class="ia-detection-hotkey">(1)</span></div>
+            <div id="col-viewpoint-ticks-2-2" class="col-custom-span col-custom-span-7">down <span class="ia-detection-hotkey">(2)</span></div>
+            <div id="col-viewpoint-ticks-2-3" class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+            <div id="col-viewpoint-ticks-2-4" class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+            <div id="col-viewpoint-ticks-2-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+            <div id="col-viewpoint-ticks-2-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
           </div>
           <br/>
         </div>
         <div class="ia-viewpoint-axis-3">
           Axis 3
           <br/>
-          <input id="ia-detection-annotation-viewpoint-3" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-3" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5"style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <input id="ia-detection-annotation-viewpoint-3" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-3" value="-1" min="-1" max="5"style="margin-bottom:5px;">
           <div class="row-custom-expand">
-            <div id="col-viewpoint-ticks-3-0" class="col-custom-span col-custom-span-7"><i>null</i></div>
-            <div id="col-viewpoint-ticks-3-1" class="col-custom-span col-custom-span-7">up</div>
-            <div id="col-viewpoint-ticks-3-2" class="col-custom-span col-custom-span-7">down</div>
-            <div id="col-viewpoint-ticks-3-3" class="col-custom-span col-custom-span-7">front</div>
-            <div id="col-viewpoint-ticks-3-4" class="col-custom-span col-custom-span-7">back</div>
-            <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left</div>
-            <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right</div>
+            <div id="col-viewpoint-ticks-3-0" class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+            <div id="col-viewpoint-ticks-3-1" class="col-custom-span col-custom-span-7">up <span class="ia-detection-hotkey">(1)</span></div>
+            <div id="col-viewpoint-ticks-3-2" class="col-custom-span col-custom-span-7">down <span class="ia-detection-hotkey">(2)</span></div>
+            <div id="col-viewpoint-ticks-3-3" class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+            <div id="col-viewpoint-ticks-3-4" class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+            <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+            <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
           </div>
         </div>
 
         <div class="row">
           <div class="col-lg-6 col-md-6 col-sm-6">
-            Quality: <span id="ia-quality-label-value"></span> | Label: <span id="ia-quality-label-text"></span>
-            <input id="ia-detection-annotation-quality" class="ia-detection-form-annotation-value" type="range" name="ia-quality-value" value="{% if quality_value %}{{ quality_value }}{% else %}2{% endif %}" min="1" max="2" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+            Quality: <span id="ia-detection-annotation-quality-label"></span>
+            <input id="ia-detection-annotation-quality" class="ia-detection-form-annotation-value" type="range" name="ia-quality-value" value="2" min="1" max="2" style="margin-bottom:5px;">
             <div class="row-custom-expand">
               <div class="col-custom-span col-custom-span-2">
-                <span class="glyphicon glyphicon-remove"></span>
+                <span class="glyphicon glyphicon-remove"></span> <span class="ia-detection-hotkey">(Q)</span>
               </div>
               <div class="col-custom-span col-custom-span-2">
-                <span class="glyphicon glyphicon-ok"></span>
+                <span class="glyphicon glyphicon-ok"></span> <span class="ia-detection-hotkey">(W)</span>
               </div>
             </div>
           </div>
           <div class="col-lg-6 col-md-6 col-sm-6">
-              <div class="checkbox pull-right">
-                <label>
-                  <input id="ia-detection-annotation-multiple" class="ia-detection-form-annotation-value" name="ia-multiple-value" type="checkbox"> Multiple animals in image
-                  <br/>
-                  <input id="ia-detection-annotation-interest" class="ia-detection-form-annotation-value" name="ia-interest-value" type="checkbox"> Object of Interest
-                </label>
-              </div>
+            <div style="text-align: right;">
+              <span class="ia-detection-hotkey">(E)</span> Multiple animals in image
+              <input id="ia-detection-annotation-multiple" class="ia-detection-form-annotation-value" name="ia-multiple-value" type="checkbox"><br/>
+              <span class="ia-detection-hotkey">(I)</span> Object of Interest
+              <input id="ia-detection-annotation-interest" class="ia-detection-form-annotation-value" name="ia-interest-value" type="checkbox">
+            </div>
           </div>
         </div>
 
         <div class="row" style="margin-top: 20px;">
           <div class="col-lg-4">
-            Species:
-            <select id="ia-detection-annotation-class"  class="form-control ia-detection-form-annotation-value" name="ia-species-value" style="width: 200px;">
+            Species: <span class="ia-detection-hotkey">(C to cycle)</span>
+            <select id="ia-detection-annotation-class"  class="form-control ia-detection-form-annotation-value" name="ia-class-value" style="width: 200px;">
               {% for species_nice, species_text in species_list %}
                 <option value="{{ species_text }}">{{ species_nice }}</option>
               {% endfor %}
@@ -167,35 +171,35 @@
       </div>
 
       <div id="ia-metadata-panel-part" style="position: absolute; width: 100%;">
-        Viewpoint: <span id="ia-viewpoint-label-text"></span>
+        Viewpoint: <span id="ia-detection-part-viewpoint-label"></span>
         <br/>
         <div class="ia-viewpoint-axis-1">
-          Axis 1 (&#8679 / Shift)
+          Axis 1 <span class="ia-detection-hotkey">(&#8679 / Shift)</span>
           <span id="ia-detection-form-part-warning" class="pull-right" style="color: #ac2925;"><i>focus a part to edit these values</i></span>
           <br/>
-          <input id="ia-detection-part-viewpoint-1" class="ia-detection-form-part-value" type="range" name="ia-viewpoint-value-1" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <input id="ia-detection-part-viewpoint-1" class="ia-detection-form-part-value" type="range" name="ia-viewpoint-value-1" value="-1" min="-1" max="5" style="margin-bottom:5px;">
           <div class="row-custom-expand">
-            <div class="col-custom-span col-custom-span-7"><i>null</i></div>
-            <div class="col-custom-span col-custom-span-7">up</div>
-            <div class="col-custom-span col-custom-span-7">down</div>
-            <div class="col-custom-span col-custom-span-7">front</div>
-            <div class="col-custom-span col-custom-span-7">back</div>
-            <div class="col-custom-span col-custom-span-7">left</div>
-            <div class="col-custom-span col-custom-span-7">right</div>
+            <div class="col-custom-span col-custom-span-7"><i>null</i> <span class="ia-detection-hotkey">(0)</span></div>
+            <div class="col-custom-span col-custom-span-7">up <span class="ia-detection-hotkey">(1)</span></div>
+            <div class="col-custom-span col-custom-span-7">down <span class="ia-detection-hotkey">(2)</span></div>
+            <div class="col-custom-span col-custom-span-7">front <span class="ia-detection-hotkey">(3)</span></div>
+            <div class="col-custom-span col-custom-span-7">back <span class="ia-detection-hotkey">(4)</span></div>
+            <div class="col-custom-span col-custom-span-7">left <span class="ia-detection-hotkey">(5)</span></div>
+            <div class="col-custom-span col-custom-span-7">right <span class="ia-detection-hotkey">(6)</span></div>
           </div>
           <br/>
         </div>
 
         <div class="row">
           <div class="col-lg-6 col-md-6 col-sm-6">
-            Quality: <span id="ia-quality-label-text"></span>
-            <input id="ia-detection-part-quality" class="ia-detection-form-part-value" type="range" name="ia-quality-value" value="{% if quality_value %}{{ quality_value }}{% else %}2{% endif %}" min="1" max="2" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+            Quality: <span id="ia-detection-part-quality-label"></span>
+            <input id="ia-detection-part-quality" class="ia-detection-form-part-value" type="range" name="ia-quality-value" value="2" min="1" max="2" style="margin-bottom:5px;">
             <div class="row-custom-expand">
               <div class="col-custom-span col-custom-span-2">
-                <span class="glyphicon glyphicon-remove"></span>
+                <span class="glyphicon glyphicon-remove"></span> <span class="ia-detection-hotkey">(Q)</span>
               </div>
               <div class="col-custom-span col-custom-span-2">
-                <span class="glyphicon glyphicon-ok"></span>
+                <span class="glyphicon glyphicon-ok"></span> <span class="ia-detection-hotkey">(W)</span>
               </div>
             </div>
           </div>
@@ -204,7 +208,7 @@
 
         <div class="row" style="margin-top: 20px;">
           <div class="col-lg-4">
-            Part:
+            Part: <span class="ia-detection-hotkey">(C to cycle)</span>
             <select id="ia-detection-part-class" class="form-control ia-detection-form-part-value"  name="ia-part-value" style="width: 200px;">
               {% for species_nice, species_text in species_list %}
                 <option value="{{ species_text }}">{{ species_nice }}</option>
@@ -231,19 +235,20 @@
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
-    var bba, axis2, axis3
+    var bba, toggle, axis2, axis3, states, hotkeys_disabled, hotkeys_global_disabled
+
+    hotkeys_disabled = true
+    hotkeys_global_disabled = false
+    axis2 = true;
+    axis3 = false;
+
+    states = {
+      annotations: {% if settings['ia-detection-setting-toggle-annotations'] %}true{% else %}false{% endif %},
+      parts: {% if settings['ia-detection-setting-toggle-parts'] %}true{% else %}false{% endif %},
+      active: null,
+    }
 
     $(document).ready(function() {
-      var toggle;
-      var states;
-
-      states = {
-        annotations: {% if settings['ia-detection-annotation-mode-toggle-annotations'] %}true{% else %}false{% endif %},
-        parts: {% if settings['ia-detection-annotation-mode-toggle-parts'] %}true{% else %}false{% endif %},
-      }
-
-      axis2 = true;
-      axis3 = false;
 
       if( ! axis2) {
         hide_viewpoint_2_axis_panel(2)
@@ -256,8 +261,8 @@
           fix_metadata_panels()
       })
 
-      visible = {% if settings['ia-detection-annotation-mode-parts-show'] %}true{% else %}{% if settings['ia-detection-annotation-mode-parts-hide'] %}false{% else %}null{% endif %}{% endif %}
-      assignments = {% if settings['ia-detection-annotation-mode-parts-assignments'] %}true{% else %}false{% endif %}
+      visible = {% if settings['ia-detection-setting-parts-show'] %}true{% else %}{% if settings['ia-detection-setting-parts-hide'] %}false{% else %}null{% endif %}{% endif %}
+      assignments = {% if settings['ia-detection-setting-parts-assignments'] %}true{% else %}false{% endif %}
 
       // Initialize the bounding-box annotator.
       bba = new BBoxAnnotator("{{ image_src }}", {
@@ -283,6 +288,7 @@
             show_annotation_metadata(entry)
           } else {
             update_metadata_panel("part");
+            show_part_metadata(entry)
           }
           hotkeys_disabled = false;
         },
@@ -310,20 +316,20 @@
             }
           }
 
-          checked_mode = $("#ia-detection-annotation-mode-toggle").prop("checked");
+          checked_mode = $("#ia-detection-setting-toggle").prop("checked");
 
           if(bba.state.focus == null) {
-            $("#ia-detection-annotation-mode-toggle-label").html("Annotations")
+            $("#ia-detection-setting-toggle-label").html("Annotations")
             wanted_mode = states.annotations
           } else {
-            $("#ia-detection-annotation-mode-toggle-label").html("Parts")
+            $("#ia-detection-setting-toggle-label").html("Parts")
             wanted_mode = states.parts
           }
 
           if(wanted_mode) {
-            $('#ia-detection-annotation-mode-toggle').bootstrapToggle('on')
+            $('#ia-detection-setting-toggle').bootstrapToggle('on')
           } else {
-            $('#ia-detection-annotation-mode-toggle').bootstrapToggle('off')
+            $('#ia-detection-setting-toggle').bootstrapToggle('off')
           }
         },
       });
@@ -368,7 +374,7 @@
       {% endfor %}
 
       // Create the toggle's user interaction
-      toggle = $('#ia-detection-annotation-mode-toggle');
+      toggle = $('#ia-detection-setting-toggle');
 
       toggle.bootstrapToggle({
         on: 'Axis-to-Axis',
@@ -377,10 +383,10 @@
         offstyle: 'primary'
       });
 
-      $("#ia-detection-annotation-mode-toggle,#ia-detection-annotation-mode-orientation").change(function() {
+      $("#ia-detection-setting-toggle,#ia-detection-setting-orientation").change(function() {
         var checked_mode, diagonal_mode, checked_tag;
-        checked_mode = $("#ia-detection-annotation-mode-toggle").prop("checked");
-        diagonal_mode = $("#ia-detection-annotation-mode-orientation").prop("checked");
+        checked_mode = $("#ia-detection-setting-toggle").prop("checked");
+        diagonal_mode = $("#ia-detection-setting-orientation").prop("checked");
 
         // Save the mode
         if(bba.state.focus == null) {
@@ -389,9 +395,9 @@
           states.parts = checked_mode
         }
 
-        submit_cookie('ia-detection-annotation-mode-toggle-annotations', states.annotations ? '1' : '0');
-        submit_cookie('ia-detection-annotation-mode-toggle-parts', states.parts ? '1' : '0');
-        submit_cookie('ia-detection-annotation-mode-orientation', diagonal_mode ? '1' : '0');
+        submit_cookie('ia-detection-setting-toggle-annotations', states.annotations ? '1' : '0');
+        submit_cookie('ia-detection-setting-toggle-parts', states.parts ? '1' : '0');
+        submit_cookie('ia-detection-setting-orientation', diagonal_mode ? '1' : '0');
 
         if (diagonal_mode) {
           diagonal_tag = "diagonal"
@@ -403,39 +409,39 @@
         bba.update_mode(checked_tag);
       });
 
-      $("#ia-detection-annotation-mode-parts-assignments").change(function() {
+      $("#ia-detection-setting-parts-assignments").change(function() {
         var checked_mode, checked_tag;
         checked_mode = $(this).prop("checked");
 
-        submit_cookie('ia-detection-annotation-mode-parts-assignments', checked_mode ? '1' : '0');
+        submit_cookie('ia-detection-setting-parts-assignments', checked_mode ? '1' : '0');
 
         checked_tag = checked_mode ? true : null;
         bba.update_subentries_assignments(checked_tag);
       });
 
-      $("#ia-detection-annotation-mode-parts-show").change(function() {
+      $("#ia-detection-setting-parts-show").change(function() {
         var checked_mode, checked_tag
         checked_mode = $(this).prop("checked");
 
-        submit_cookie('ia-detection-annotation-mode-parts-show', checked_mode ? '1' : '0');
+        submit_cookie('ia-detection-setting-parts-show', checked_mode ? '1' : '0');
 
         if(checked_mode) {
-          $('#ia-detection-annotation-mode-parts-hide').prop('checked', false);
-          submit_cookie('ia-detection-annotation-mode-parts-hide', '0');
+          $('#ia-detection-setting-parts-hide').prop('checked', false);
+          submit_cookie('ia-detection-setting-parts-hide', '0');
         }
         checked_tag = checked_mode ? true : null;
         bba.update_subentries_visible(checked_tag);
       });
 
-      $("#ia-detection-annotation-mode-parts-hide").change(function() {
+      $("#ia-detection-setting-parts-hide").change(function() {
         var checked_mode, checked_tag
         checked_mode = $(this).prop("checked");
 
-        submit_cookie('ia-detection-annotation-mode-parts-hide', checked_mode ? '1' : '0');
+        submit_cookie('ia-detection-setting-parts-hide', checked_mode ? '1' : '0');
 
         if(checked_mode) {
-          $('#ia-detection-annotation-mode-parts-show').prop('checked', false);
-          submit_cookie('ia-detection-annotation-mode-parts-show', '0');
+          $('#ia-detection-setting-parts-show').prop('checked', false);
+          submit_cookie('ia-detection-setting-parts-show', '0');
         }
         checked_tag = checked_mode ? false : null;
         bba.update_subentries_visible(checked_tag);
@@ -447,13 +453,21 @@
         if(metadata == null) {
           return
         }
-        metadata.viewpoint = $('#ia-detection-annotation-viewpoint').val();
-        metadata.quality   = $('#ia-detection-annotation-quality').val();
-        metadata.species   = $('#ia-detection-annotation-class').find("option:selected").val();
-        metadata.multiple  = $('#ia-detection-annotation-multiple').is(":checked")
-        bba.set_metadata(metadata)
+        metadata.viewpoint1 = $('#ia-detection-annotation-viewpoint-1').val();
+        if (axis2) {
+          metadata.viewpoint2 = $('#ia-detection-annotation-viewpoint-2').val();
+        } else if (axis3) {
+          metadata.viewpoint3 = $('#ia-detection-annotation-viewpoint-3').val();
+        }
+        metadata.quality    = $('#ia-detection-annotation-quality').val();
+        metadata.species    = $('#ia-detection-annotation-class').find("option:selected").val();
+        metadata.multiple   = $('#ia-detection-annotation-multiple').is(":checked")
+
         // Set highlighted
+        bba.set_metadata(metadata)
         bba.set_highlighted($('#ia-detection-annotation-interest').is(":checked"))
+
+        update_label()
       });
 
       $(".ia-detection-form-part-value").change(function(e)
@@ -462,9 +476,38 @@
         if(metadata == null) {
           return
         }
+        metadata.viewpoint1 = $('#ia-detection-part-viewpoint-1').val();
         metadata.quality   = $('#ia-detection-part-quality').val();
         metadata.part      = $('#ia-detection-part-class').find("option:selected").val();
         bba.set_metadata(metadata)
+
+        update_label()
+      });
+
+      $('#species-add').on('shown.bs.modal', function() {
+          $('input[name="species-add"]').val('')
+          hotkeys_global_disabled = true;
+          bba.options.hotkeys.enabled = false
+          console.log(hotkeys_global_disabled)
+      });
+
+      $('#species-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+          bba.options.hotkeys.enabled = true
+          console.log(hotkeys_global_disabled)
+      });
+
+      $('#part-add').on('shown.bs.modal', function() {
+          $('input[name="part-add"]').val('')
+          hotkeys_global_disabled = true;
+          bba.options.hotkeys.enabled = false
+          console.log(hotkeys_global_disabled)
+      });
+
+      $('#part-add').on('hidden.bs.modal', function() {
+          hotkeys_global_disabled = false;
+          bba.options.hotkeys.enabled = true
+          console.log(hotkeys_global_disabled)
       });
 
       // Update metadata labels for form inputs
@@ -473,6 +516,7 @@
       disable_metadata_parts();
       update_metadata_panel();
       fix_metadata_panels();
+      $('.ia-detection-hotkey').hide();
 
       {% if display_instructions %}
         // $('#turk-instructions').modal('show');

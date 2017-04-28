@@ -1674,12 +1674,12 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
 
     settings_key_list = [
-        ('ia-detection-annotation-mode-orientation', '1' if 'zebra' in species else '0'),
-        ('ia-detection-annotation-mode-parts-assignments', '1'),
-        ('ia-detection-annotation-mode-toggle-annotations', '1'),
-        ('ia-detection-annotation-mode-toggle-parts', '0'),
-        ('ia-detection-annotation-mode-parts-show', '0'),
-        ('ia-detection-annotation-mode-parts-hide', '0'),
+        ('ia-detection-setting-orientation', '1' if 'zebra' in species else '0'),
+        ('ia-detection-setting-parts-assignments', '1'),
+        ('ia-detection-setting-toggle-annotations', '1'),
+        ('ia-detection-setting-toggle-parts', '0'),
+        ('ia-detection-setting-parts-show', '0'),
+        ('ia-detection-setting-parts-hide', '0'),
     ]
 
     settings = {
