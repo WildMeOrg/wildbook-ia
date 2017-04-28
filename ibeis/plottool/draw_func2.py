@@ -450,8 +450,11 @@ def render_figure_to_image(fig, **savekw):
     image = {}
     # Write matplotlib axes to an image
     axes_extents = pt.extract_axes_extents(fig)
-    assert len(axes_extents) == 1, 'more than one axes'
-    extent = axes_extents[0]
+    # assert len(axes_extents) == 1, 'more than one axes'
+    if len(axes_extents) == 1:
+        extent = axes_extents[0]
+    else:
+        extent = mpl.transforms.Bbox.union(axes_extents)
     with io.BytesIO() as stream:
         # This call takes 23% - 15% of the time depending on settings
         fig.savefig(stream, bbox_inches=extent, **savekw)
