@@ -77,53 +77,51 @@
     <div id="ia-metadata-panel-container" style="position: relative; width: 100%;">
       <div id="ia-metadata-panel-annotation" style="position: absolute; width: 100%;">
 
-        <div class="ia-viewpoint-version-2">
-          Viewpoint: <span id="ia-viewpoint-label-text"></span>
+        Viewpoint: <span id="ia-viewpoint-label-text"></span>
+        <br/>
+        <div class="ia-viewpoint-axis-1">
+          Axis 1 (&#8679 / Shift)
+          <span id="ia-detection-form-annotation-warning" class="pull-right" style="color: #ac2925;"><i>focus an annotation to edit these values</i></span>
           <br/>
-          <div class="ia-viewpoint-version-2-1">
-            Axis 1 (&#8679 / Shift)
-            <span id="ia-detection-form-annotation-warning" class="pull-right" style="color: #ac2925;"><i>focus an annotation to edit these values</i></span>
-            <br/>
-            <input id="ia-detection-annotation-viewpoint-1" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-1" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
-            <div class="row-custom-expand">
-              <div class="col-custom-span col-custom-span-7"><i>null</i></div>
-              <div class="col-custom-span col-custom-span-7">up</div>
-              <div class="col-custom-span col-custom-span-7">down</div>
-              <div class="col-custom-span col-custom-span-7">front</div>
-              <div class="col-custom-span col-custom-span-7">back</div>
-              <div class="col-custom-span col-custom-span-7">left</div>
-              <div class="col-custom-span col-custom-span-7">right</div>
-            </div>
-            <br/>
+          <input id="ia-detection-annotation-viewpoint-1" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-1" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <div class="row-custom-expand">
+            <div class="col-custom-span col-custom-span-7"><i>null</i></div>
+            <div class="col-custom-span col-custom-span-7">up</div>
+            <div class="col-custom-span col-custom-span-7">down</div>
+            <div class="col-custom-span col-custom-span-7">front</div>
+            <div class="col-custom-span col-custom-span-7">back</div>
+            <div class="col-custom-span col-custom-span-7">left</div>
+            <div class="col-custom-span col-custom-span-7">right</div>
           </div>
-          <div class="ia-viewpoint-version-2-2">
-            Axis 2 (&#8997; / Alt / Option)
-            <br/>
-            <input id="ia-detection-annotation-viewpoint-2" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-2" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
-            <div class="row-custom-expand">
-              <div id="col-viewpoint-ticks-2-0" class="col-custom-span col-custom-span-7"><i>null</i></div>
-              <div id="col-viewpoint-ticks-2-1" class="col-custom-span col-custom-span-7">up</div>
-              <div id="col-viewpoint-ticks-2-2" class="col-custom-span col-custom-span-7">down</div>
-              <div id="col-viewpoint-ticks-2-3" class="col-custom-span col-custom-span-7">front</div>
-              <div id="col-viewpoint-ticks-2-4" class="col-custom-span col-custom-span-7">back</div>
-              <div id="col-viewpoint-ticks-2-5" class="col-custom-span col-custom-span-7">left</div>
-              <div id="col-viewpoint-ticks-2-6" class="col-custom-span col-custom-span-7">right</div>
-            </div>
-            <br/>
+          <br/>
+        </div>
+        <div class="ia-viewpoint-axis-2">
+          Axis 2 (&#8997; / Alt / Option)
+          <br/>
+          <input id="ia-detection-annotation-viewpoint-2" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-2" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <div class="row-custom-expand">
+            <div id="col-viewpoint-ticks-2-0" class="col-custom-span col-custom-span-7"><i>null</i></div>
+            <div id="col-viewpoint-ticks-2-1" class="col-custom-span col-custom-span-7">up</div>
+            <div id="col-viewpoint-ticks-2-2" class="col-custom-span col-custom-span-7">down</div>
+            <div id="col-viewpoint-ticks-2-3" class="col-custom-span col-custom-span-7">front</div>
+            <div id="col-viewpoint-ticks-2-4" class="col-custom-span col-custom-span-7">back</div>
+            <div id="col-viewpoint-ticks-2-5" class="col-custom-span col-custom-span-7">left</div>
+            <div id="col-viewpoint-ticks-2-6" class="col-custom-span col-custom-span-7">right</div>
           </div>
-          <div class="ia-viewpoint-version-2-3">
-            Axis 3
-            <br/>
-            <input id="ia-detection-annotation-viewpoint-3" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-3" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5"style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
-            <div class="row-custom-expand">
-              <div id="col-viewpoint-ticks-3-0" class="col-custom-span col-custom-span-7"><i>null</i></div>
-              <div id="col-viewpoint-ticks-3-1" class="col-custom-span col-custom-span-7">up</div>
-              <div id="col-viewpoint-ticks-3-2" class="col-custom-span col-custom-span-7">down</div>
-              <div id="col-viewpoint-ticks-3-3" class="col-custom-span col-custom-span-7">front</div>
-              <div id="col-viewpoint-ticks-3-4" class="col-custom-span col-custom-span-7">back</div>
-              <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left</div>
-              <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right</div>
-            </div>
+          <br/>
+        </div>
+        <div class="ia-viewpoint-axis-3">
+          Axis 3
+          <br/>
+          <input id="ia-detection-annotation-viewpoint-3" class="ia-detection-form-annotation-value" type="range" name="ia-viewpoint-value-3" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5"style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <div class="row-custom-expand">
+            <div id="col-viewpoint-ticks-3-0" class="col-custom-span col-custom-span-7"><i>null</i></div>
+            <div id="col-viewpoint-ticks-3-1" class="col-custom-span col-custom-span-7">up</div>
+            <div id="col-viewpoint-ticks-3-2" class="col-custom-span col-custom-span-7">down</div>
+            <div id="col-viewpoint-ticks-3-3" class="col-custom-span col-custom-span-7">front</div>
+            <div id="col-viewpoint-ticks-3-4" class="col-custom-span col-custom-span-7">back</div>
+            <div id="col-viewpoint-ticks-3-5" class="col-custom-span col-custom-span-7">left</div>
+            <div id="col-viewpoint-ticks-3-6" class="col-custom-span col-custom-span-7">right</div>
           </div>
         </div>
 
@@ -169,10 +167,28 @@
       </div>
 
       <div id="ia-metadata-panel-part" style="position: absolute; width: 100%;">
+        Viewpoint: <span id="ia-viewpoint-label-text"></span>
         <br/>
+        <div class="ia-viewpoint-axis-1">
+          Axis 1 (&#8679 / Shift)
+          <span id="ia-detection-form-part-warning" class="pull-right" style="color: #ac2925;"><i>focus a part to edit these values</i></span>
+          <br/>
+          <input id="ia-detection-part-viewpoint-1" class="ia-detection-form-part-value" type="range" name="ia-viewpoint-value-1" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}-1{% endif %}" min="-1" max="5" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();">
+          <div class="row-custom-expand">
+            <div class="col-custom-span col-custom-span-7"><i>null</i></div>
+            <div class="col-custom-span col-custom-span-7">up</div>
+            <div class="col-custom-span col-custom-span-7">down</div>
+            <div class="col-custom-span col-custom-span-7">front</div>
+            <div class="col-custom-span col-custom-span-7">back</div>
+            <div class="col-custom-span col-custom-span-7">left</div>
+            <div class="col-custom-span col-custom-span-7">right</div>
+          </div>
+          <br/>
+        </div>
+
         <div class="row">
           <div class="col-lg-6 col-md-6 col-sm-6">
-            Quality: <span id="ia-quality-label-value"></span> | Label: <span id="ia-quality-label-text"></span>
+            Quality: <span id="ia-quality-label-text"></span>
             <input id="ia-detection-part-quality" class="ia-detection-form-part-value" type="range" name="ia-quality-value" value="{% if quality_value %}{{ quality_value }}{% else %}2{% endif %}" min="1" max="2" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
             <div class="row-custom-expand">
               <div class="col-custom-span col-custom-span-2">
@@ -183,9 +199,7 @@
               </div>
             </div>
           </div>
-          <div class="col-lg-6 col-md-6 col-sm-6">
-            <span id="ia-detection-form-part-warning" class="pull-right" style="color: #ac2925;"><i>focus a part to edit these values</i></span>
-          </div>
+          <div class="col-lg-6 col-md-6 col-sm-6"></div>
         </div>
 
         <div class="row" style="margin-top: 20px;">

@@ -1,5 +1,5 @@
 function hide_viewpoint_2_axis_panel(index){
-   $(".ia-viewpoint-version-2-" + index).hide()
+   $(".ia-viewpoint-axis-" + index).hide()
 }
 
 function check_form(){
@@ -105,8 +105,6 @@ function disable_metadata_parts() {
 }
 
 function show_annotation_metadata(entry) {
-  console.log('ANNOTATION METADATA')
-  console.log(entry)
   if(entry.metadata.viewpoint != -1) {
     $('#ia-detection-annotation-viewpoint').val(entry.metadata.viewpoint);
   }
@@ -190,8 +188,6 @@ function update_label() {
         if(value2 >= 0)  {
             invalid3 = 2 * Math.floor(value2 / 2.0)
             invalid4 = invalid3 + 1
-            console.log(value1 + " " + value2 + " " + value3)
-            console.log(invalid1 + " " + invalid2 + " " + invalid3 + " " + invalid4)
             $("#col-viewpoint-ticks-3-" + (invalid3 + 1)).css({
                 opacity: 0.0,
             })
@@ -250,8 +246,6 @@ function add_species() {
 function add_part() {
     value = $('input[name="part-add"]').val()
 
-    console.log("ADD PARTS " + value)
-
     $('#ia-detection-part-class')
         .append($("<option></option>")
             .attr("value", value)
@@ -273,8 +267,8 @@ $('#species-add').on('hidden.bs.modal', function() {
 
 $(window).keydown(function(event) {
     key = event.which;
-    console.log(key)
-    console.log('disabled ' + hotkeys_disabled);
+    // console.log(key)
+    // console.log('disabled ' + hotkeys_disabled);
 
     if (key == 84) {
         // T pressed

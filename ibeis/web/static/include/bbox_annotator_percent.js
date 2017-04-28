@@ -1,9 +1,10 @@
 /*
 
 TODO
-- Hold Shift to resize bbox while preserving aspect ratio
+- Hold Shift to resize bbox around center
 - Hold Shift to move bbox while also moving any inside sub-entries
-- Middle mouse button drag to resize bbox with the highlighed anchor point
+- Middle mouse button drag to resize bbox with the highlighted anchor point
+- On Selector finish/cancel, hover the correct box if actually hovering
 
 */
 
@@ -49,6 +50,23 @@ TODO
             angle -= 2.0 * Math.PI
         }
         return angle
+    }
+
+    $.fn.swapWith = function(that) {
+        // http://stackoverflow.com/a/38515050/1413865
+
+        var $this = this;
+        var $that = $(that);
+
+        // create temporary placeholder
+        var $temp = $("<div>");
+
+        // 3-step swap
+        $this.before($temp);
+        $that.before($this);
+        $temp.after($that).remove();
+
+        return $this;
     }
 
     BBoxSelector = (function() {
@@ -111,8 +129,8 @@ TODO
             // Create the debug objects for visual purposes
             if (this.options.debug) {
                 debug_style = {
-                    "left": "0.0",
                     "top": "0.0",
+                    "left": "0.0",
                     "width": "10px",
                     "height": "10px",
                     "position": "absolute",
@@ -353,16 +371,16 @@ TODO
 
                 if (this.debug.length > 0) {
                     this.debug[0].css({
-                        "left": data.pixels.xtl + "px",
                         "top": data.pixels.ytl + "px",
+                        "left": data.pixels.xtl + "px",
                     })
                     this.debug[1].css({
-                        "left": centers.hypo.x + "px",
                         "top": centers.hypo.y + "px",
+                        "left": centers.hypo.x + "px",
                     })
                     this.debug[2].css({
-                        "left": centers.rect.x + "px",
                         "top": centers.rect.y + "px",
+                        "left": centers.rect.x + "px",
                     })
                 }
 
@@ -404,8 +422,8 @@ TODO
 
                 // Update the appearance of the rectangle selection using percentages
                 this.elements.rectangle.css({
-                    "left": data.percent.left + "%",
                     "top": data.percent.top + "%",
+                    "left": data.percent.left + "%",
                     "width": data.percent.width + "%",
                     "height": data.percent.height + "%",
                     "opacity": "1.0",
@@ -416,14 +434,14 @@ TODO
                 if (this.current_stage == 0) {
                     // First stage of the diagonal selection: drawing the hypotenuse line
                     this.elements.diagonal.css({
-                        "left": data.pixels.origin.x + "px",
                         "top": data.pixels.origin.y + "px",
+                        "left": data.pixels.origin.x + "px",
                         "width": data.pixels.hypo + "px",
                         "opacity": "1.0",
                     })
                     this.elements.rectangle.css({
-                        "left": data.pixels.origin.x + "px",
                         "top": data.pixels.origin.y + "px",
+                        "left": data.pixels.origin.x + "px",
                         "width": data.pixels.hypo + "px",
                         "height": 0 + "px",
                     })
@@ -433,8 +451,8 @@ TODO
                         "opacity": "0.5",
                     })
                     this.elements.rectangle.css({
-                        "left": (data.pixels.origin.x + data.pixels.correction.x) + "px",
                         "top": (data.pixels.origin.y + data.pixels.correction.y) + "px",
+                        "left": (data.pixels.origin.x + data.pixels.correction.x) + "px",
                         "width": data.pixels.hypo + "px",
                         "height": 2.0 * data.pixels.adjacent + "px",
                     })
@@ -1290,8 +1308,8 @@ TODO
             element.rotate.prop(this.options.props.rotate, "true")
             element.rotate.css(css_handles)
             element.rotate.css({
-                "right": "50%",
                 "top": "15px",
+                "right": "50%",
             })
             if (!this.options.handles.rotate.enabled) {
                 element.rotate.hide()
@@ -1317,20 +1335,20 @@ TODO
             // Add the resize handle to the bbox
             configurations = {
                 "nw": {
-                    "left": "-6px",
                     "top": "0px",
+                    "left": "-6px",
                 },
                 "n": {
-                    "right": "50%",
                     "top": "0px",
+                    "right": "50%",
                 },
                 "ne": {
-                    "right": "0px",
                     "top": "0px",
+                    "right": "0px",
                 },
                 "e": {
-                    "right": "0px",
                     "top": "50%",
+                    "right": "0px",
                 },
                 "se": {
                     "right": "0px",
@@ -1345,8 +1363,8 @@ TODO
                     "bottom": "-6px",
                 },
                 "w": {
-                    "left": "-6px",
                     "top": "50%",
+                    "left": "-6px",
                 },
             }
             element.resize = {}
@@ -1399,7 +1417,6 @@ TODO
             var entry
 
             // Always update the state for the hover2 index
-            console.log('UPDATED HOVER2 ' + index)
             this.state.hover2 = index
 
             // Do not update the hover entry if currently selecting
@@ -1491,8 +1508,6 @@ TODO
         BBoxAnnotator.prototype.focus_entry = function(index) {
             var entry
 
-            console.log('FOCUS ' + index + " " + this.state.focus)
-
             if (index == null) {
                 return
             }
@@ -1523,7 +1538,6 @@ TODO
                     if (this.state.focus2 == null) {
                         var css_transparent
 
-                        console.log('SECOND FOCUS')
                         this.state.focus2 = index
 
                         // Set the style of the focused entry
@@ -1558,8 +1572,6 @@ TODO
                             return this.options.onfocus(this.state.focus2, entry)
                         }
                     } else {
-                        console.log('SECOND UN-FOCUS')
-
                         if(this.state.hover2 == this.state.focus2) {
                             // Set the style of the focused entry
                             this.entry_style_hover(this.state.focus2)
@@ -1893,8 +1905,8 @@ TODO
             // }
 
             element.bbox.css({
-                "left": entry.percent.left + "%",
                 "top": entry.percent.top + "%",
+                "left": entry.percent.left + "%",
             })
 
             // Update the assignments, if needed
@@ -1945,8 +1957,8 @@ TODO
             // }
 
             element.bbox.css({
-                "left": entry.percent.left + "%",
                 "top": entry.percent.top + "%",
+                "left": entry.percent.left + "%",
             })
 
             // Update the assignments, if needed
@@ -2039,8 +2051,8 @@ TODO
             entry.percent.top = center.y - (entry.percent.height * 0.5)
 
             element.bbox.css({
-                "left": entry.percent.left + "%",
                 "top": entry.percent.top + "%",
+                "left": entry.percent.left + "%",
                 "width": entry.percent.width + "%",
                 "height": entry.percent.height + "%",
             })
@@ -2058,8 +2070,6 @@ TODO
 
         BBoxAnnotator.prototype.background_entry = function(event, index) {
             var index, indices, entry, element, holder
-
-            console.log('BACKGROUND ' + index)
 
             // Do not update if there is not an index
             if (index == null) {
@@ -2081,14 +2091,66 @@ TODO
                     if(parent != null && parent == index) {
                         this.background_entry(entry, index_entry)
                         index += 1
-                        console.log('BACKGROUND UPDATE ' + index)
                     }
                 }
             } else {
                 // Disallow background entry if in focus2 and a subentry
-                if(this.state.focus != null) {
+                if(this.state.focus == null) {
                     return
                 }
+
+                if(this.state.focus2 != null) {
+                    return
+                }
+
+                // We want to take all of the subentries in this entry and rotate
+                // the elements that are lower in index than the currently hovered
+                // index.  Since all parent indices are not changing, we can do this
+                // as a drop-in action.
+
+                // Background all of the sub-entries related to this parent first
+                indices = []
+                for (var index_entry = 0; index_entry < this.entries.length; index_entry++) {
+                    var parent
+
+                    parent = this.entries[index_entry].parent
+                    if(parent != null && parent == this.state.focus) {
+                        indices.push(index_entry)
+                        // We want to get only the subentries before the indexed subentry
+                        if(index_entry == index) {
+                            break
+                        }
+                    }
+                }
+
+                // Save first index
+                if(indices.length > 1) {
+                    // Get indices of last two items
+                    index_last = indices[indices.length - 1]
+                    index_penultimate = indices[indices.length - 2]
+
+                    // Get last item
+                    entry_last = this.entries[index_last]
+                    element_last = this.elements.entries[index_last]
+
+                    entry_penultimate = this.entries[index_penultimate]
+                    element_penultimate = this.elements.entries[index_penultimate]
+
+                    // Swap last two items in entries and elements
+                    this.entries[index_last] = entry_penultimate
+                    this.elements.entries[index_last] = element_penultimate
+                    this.entries[index_penultimate] = entry_last
+                    this.elements.entries[index_penultimate] = element_last
+
+                    // Swap last two DOM elements
+                    element_last.bbox.swapWith(element_penultimate.bbox)
+
+                    // Continue, recursively
+                    this.background_entry(event, index_penultimate)
+                }
+
+                // Do not continue, simply return
+                return
             }
 
             // Keep track of the current indices
@@ -2267,6 +2329,8 @@ TODO
             }
 
             // Temporarily put the width and height to check for bounds check
+            top = this.state.anchors.element.y + offset.y
+            left = this.state.anchors.element.x + offset.x
             width = this.state.anchors.element.width + offset.width
             height = this.state.anchors.element.height + offset.height
 
@@ -2275,8 +2339,8 @@ TODO
                 return
             }
 
-            entry.pixels.left = this.state.anchors.element.x + offset.x
-            entry.pixels.top = this.state.anchors.element.y + offset.y
+            entry.pixels.top =
+            entry.pixels.left =
             entry.pixels.width = width
             entry.pixels.height = height
 
@@ -2284,14 +2348,14 @@ TODO
             height = this.elements.frame.height()
 
             // Calculate the final values in percentage space
-            entry.percent.left = 100.0 * entry.pixels.left / width
             entry.percent.top = 100.0 * entry.pixels.top / height
+            entry.percent.left = 100.0 * entry.pixels.left / width
             entry.percent.width = 100.0 * entry.pixels.width / width
             entry.percent.height = 100.0 * entry.pixels.height / height
 
             element.bbox.css({
-                "left": entry.percent.left + "%",
                 "top": entry.percent.top + "%",
+                "left": entry.percent.left + "%",
                 "width": entry.percent.width + "%",
                 "height": entry.percent.height + "%",
             })
@@ -2320,28 +2384,28 @@ TODO
             entry.percent.top = 100.0 * entry.pixels.top / height
 
             element.bbox.css({
-                "left": entry.percent.left + "%",
                 "top": entry.percent.top + "%",
+                "left": entry.percent.left + "%",
             })
 
             ////////////////////////////////////////////////////////////////////////////////////
 
             if (this.debug.length > 0) {
                 this.debug[0].css({
-                    "left": this.state.anchors.resize[anchor].x + "px",
                     "top": this.state.anchors.resize[anchor].y + "px",
+                    "left": this.state.anchors.resize[anchor].x + "px",
                 })
                 this.debug[1].css({
-                    "left": temp.x + "px",
                     "top": temp.y + "px",
+                    "left": temp.x + "px",
                 })
                 this.debug[2].css({
-                    "left": (this.state.anchors.cursor.x + components.x.x) + "px",
                     "top": (this.state.anchors.cursor.y + components.x.y) + "px",
+                    "left": (this.state.anchors.cursor.x + components.x.x) + "px",
                 })
                 this.debug[3].css({
-                    "left": (this.state.anchors.cursor.x + components.y.x) + "px",
                     "top": (this.state.anchors.cursor.y + components.y.y) + "px",
+                    "left": (this.state.anchors.cursor.x + components.y.x) + "px",
                 })
             }
 
