@@ -308,6 +308,7 @@ class SQLDatabaseController(object):
     Interface to an SQL database
     """
 
+    @profile
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
                  text_factory=six.text_type, inmemory=None, fpath=None,
                  readonly=None):
@@ -375,6 +376,8 @@ class SQLDatabaseController(object):
 
         db.text_factory = text_factory
 
+        is_new = not exists(db.fpath)
+
         # Create connection
         connection, uri = db._create_connection()
         db.connection = connection
@@ -397,7 +400,8 @@ class SQLDatabaseController(object):
             # print(db.cur.fetchall())
 
         # Optimize the database (if anything is set)
-        db.optimize()
+        if is_new:
+            db.optimize()
 
         if not db.readonly:
             db._ensure_metadata_table()
@@ -1919,6 +1923,10 @@ class SQLDatabaseController(object):
         tablename_list = db.cur.fetchall()
         return [str(tablename[0]) for tablename in tablename_list]
 
+    @property
+    def tablenames(db):
+        return db.get_table_names()
+
     def has_table(db, tablename, colnames=None, lazy=True):
         """ checks if a table exists """
         if not lazy or db._tablenames is None:
@@ -2084,7 +2092,8 @@ class SQLDatabaseController(object):
             ''' % (_column, _table))
         return column_vals
 
-    def get_table_as_pandas(db, tablename, rowids=None, exclude_columns=[]):
+    def get_table_as_pandas(db, tablename, rowids=None, columns=None,
+                            exclude_columns=[]):
         """
         aid = 30
         db = ibs.staging
@@ -2102,13 +2111,14 @@ class SQLDatabaseController(object):
         if rowids is None:
             rowids = db.get_all_rowids(tablename)
         column_list, column_names = db.get_table_column_data(
-            tablename, rowids=rowids, exclude_columns=exclude_columns)
+            tablename, rowids=rowids, columns=columns,
+            exclude_columns=exclude_columns)
         import pandas as pd
         index = pd.Index(rowids, name='rowid')
         df = pd.DataFrame(ut.dzip(column_names, column_list), index=index)
         return df
 
-    def get_table_column_data(db, tablename, exclude_columns=[], rowids=None):
+    def get_table_column_data(db, tablename, columns=None, exclude_columns=[], rowids=None):
         """
         Grabs a table of information
 
@@ -2124,8 +2134,11 @@ class SQLDatabaseController(object):
             >>> db = depc[tablename].db
             >>> column_list, column_names = db.get_table_column_data(tablename)
         """
-        all_column_names = db.get_column_names(tablename)
-        column_names = ut.setdiff(all_column_names, exclude_columns)
+        if columns is None:
+            all_column_names = db.get_column_names(tablename)
+            column_names = ut.setdiff(all_column_names, exclude_columns)
+        else:
+            column_names = columns
         if rowids is not None:
             column_list = [
                 db.get(tablename, (name,), rowids, unpack_scalars=True)
