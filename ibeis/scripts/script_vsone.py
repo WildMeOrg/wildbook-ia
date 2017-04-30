@@ -140,8 +140,50 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                verbose=verbose)
         return pblm
 
+    def _update_girm(self):
+        import ibeis
+        defaultdb = 'GIRM_Master1'
+        ibs, aids = ibeis.testdata_aids(defaultdb)
+        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        infr.reset_feedback('annotmatch', apply=True)
+
+        # The annotmatches do not agree with the names
+
+        # Assume name labels are correct, fix the annot matches
+        from ibeis.algo.graph import nx_utils
+        node_to_label = infr.get_node_attrs('name_label')
+        label_to_nodes = ut.group_items(node_to_label.keys(),
+                                        node_to_label.values())
+
+        bad_edges = []
+        for cc1, cc2 in it.combinations(label_to_nodes.values(), 2):
+            edges = nx_utils.edges_cross(infr.graph, set(cc1), set(cc2))
+            datas = [infr.get_edge_data(e) for e in edges]
+            bad = [e for e, d in zip(edges, datas) if d.get('decision') == POSTV]
+            bad_edges.extend(bad)
+
+
+        infr.enable_redundancy = False
+        infr.fix_mode_split = False
+        infr.fix_mode_merge = False
+        infr.fix_mode_predict = True
+        infr.classifiers = None
+
+        infr.set_edge_attrs('disagrees', ut.dzip(bad_edges, [True]))
+        infr.prioritize('disagrees', bad_edges, reset=True)
+
+        win = infr.qt_review_loop()
+
+
     @classmethod
     def from_empty(OneVsOneProblem, defaultdb=None):
+        """
+        >>> from ibeis.scripts.script_vsone import *  # NOQA
+        >>> defaultdb = 'GIRM_Master1'
+
+        infr.reset_feedback('annotmatch', apply=True)
+
+        """
         if defaultdb is None:
             defaultdb = 'PZ_PB_RF_TRAIN'
             # defaultdb = 'GZ_Master1'

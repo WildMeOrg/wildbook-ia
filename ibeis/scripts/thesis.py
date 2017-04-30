@@ -46,7 +46,7 @@ class Chap3(object):
         self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb=defaultdb)
         self.dbname = basename(self.dbdir)
         self.dpath = join(self.base_dpath, self.dbname)
-        # ut.ensuredir(self.dpath)
+        ut.ensuredir(self.dpath)
         # ut.vd(self.dpath)
         if init:
             self._precollect()
@@ -450,10 +450,22 @@ class Chap3(object):
 
     def measure_all(self):
         """
-        from ibeis.scripts.thesis import *
-        self = Chap3.collect('PZ_Master1', init=False)
-        self = Chap3.collect('GZ_Master1', init=False)
-        self.measure_all()
+
+        Example:
+            from ibeis.scripts.thesis import *
+            self = Chap3.collect('PZ_Master1', init=False)
+            self.measure_all()
+
+        Example:
+            from ibeis.scripts.thesis import *
+            self = Chap3.collect('GZ_Master1', init=False)
+            self.measure_all()
+
+        Example:
+            from ibeis.scripts.thesis import *
+            self = Chap3.collect('GIRM_Master1', init=False)
+            self.measure_all()
+
         self = Chap3.collect('PZ_Master0')
         """
         if self.ibs is None:

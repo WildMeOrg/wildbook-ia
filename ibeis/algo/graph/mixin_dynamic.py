@@ -632,11 +632,12 @@ class Priority(object):
             if edge not in infr.queue:
                 num_new += 1
             infr.queue[edge] = -priority
-        # Increase priority of any edge flagged as maybe_error
-        for edge in ut.iflatten(infr.nid_to_errors.values()):
-            if edge not in infr.queue:
-                num_new += 1
-            infr.queue[edge] = infr.queue.pop(edge, low) - 10
+        if infr.enable_inference:
+            # Increase priority of any edge flagged as maybe_error
+            for edge in ut.iflatten(infr.nid_to_errors.values()):
+                if edge not in infr.queue:
+                    num_new += 1
+                infr.queue[edge] = infr.queue.pop(edge, low) - 10
         infr.print('added %d edges to the queue' % (num_new,))
 
     @profile
