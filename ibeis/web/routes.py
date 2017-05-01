@@ -75,7 +75,7 @@ def view_viewpoints(**kwargs):
 
     aid_list = ibs.get_valid_aids()
     species_list = ibs.get_annot_species_texts(aid_list)
-    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
 
     species_tag_list = sorted(list(set(species_list)))
     species_rowid_list = ibs.get_species_rowids_from_text(species_tag_list)
@@ -94,8 +94,8 @@ def view_viewpoints(**kwargs):
                 viewpoint_dict[species][viewpoint] = 0
             viewpoint_dict[species][viewpoint] += 1
 
-    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
-    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    viewpoint_tag_list = const.VIEWTEXT_TO_VIEWPOINT_RADIANS.keys()
+    pie_label_list = [ str(const.VIEWPOINTALIAS_NICE[_]) for _ in viewpoint_tag_list ]
     pie_values_list = [
         (
             species_nice_dict[species],
@@ -695,7 +695,7 @@ def view_advanced1(**kwargs):
 
     aid_list = ibs.get_valid_aids()
     species_list = ibs.get_annot_species_texts(aid_list)
-    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     viewpoint_dict = {}
 
     for species, viewpoint in zip(species_list, viewpoint_list):
@@ -706,8 +706,8 @@ def view_advanced1(**kwargs):
                 viewpoint_dict[species][viewpoint] = 0
             viewpoint_dict[species][viewpoint] += 1
 
-    viewpoint_tag_list = const.VIEWTEXT_TO_YAW_RADIANS.keys()
-    pie_label_list = [ str(const.YAWALIAS_NICE[_]) for _ in viewpoint_tag_list ]
+    viewpoint_tag_list = const.VIEWTEXT_TO_VIEWPOINT_RADIANS.keys()
+    pie_label_list = [ str(const.VIEWPOINTALIAS_NICE[_]) for _ in viewpoint_tag_list ]
     pie_values_list = [
         (
             species_nice_dict[species],
@@ -738,7 +738,7 @@ def view_advanced1(**kwargs):
     gid_list = ibs.get_valid_gids()
     note_list = ibs.get_image_notes(gid_list)
     aids_list = ibs.get_image_aids(gid_list)
-    viewpoints_list = ut.unflat_map(ibs.get_annot_yaw_texts, aids_list)
+    viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
     dataset_tag_list = ['GGR', 'GZGC']
     pie_label_images_list = ['Correct Viewpoint', '+/- 45 Viewpoint', 'Unused']
     pie_values_images_dict = {
@@ -769,7 +769,6 @@ def view_advanced1(**kwargs):
         (_, pie_values_images_dict[_])
         for _ in dataset_tag_list
     ]
-    # ut.embed()
 
     nid_list = ibs.get_valid_nids()
     aids_list = ibs.get_name_aids(nid_list)
@@ -1053,7 +1052,7 @@ def view_advanced4(**kwargs):
     def filter_viewpoints_of_interest(gid_list, allowed_viewpoint_list):
         aids_list = ibs.get_image_aids(gid_list)
         wanted_set = set(allowed_viewpoint_list)
-        viewpoints_list = ut.unflat_map(ibs.get_annot_yaw_texts, aids_list)
+        viewpoints_list = ut.unflat_map(ibs.get_annot_viewpoints, aids_list)
         viewpoints_list = map(set, viewpoints_list)
         gid_list_filtered = []
         for gid, viewpoint_set in zip(gid_list, viewpoints_list):
@@ -1390,7 +1389,7 @@ def view_annotations(**kwargs):
         ibs.get_annot_names(aid_list),
         ibs.get_annot_exemplar_flags(aid_list),
         ibs.get_annot_species_texts(aid_list),
-        ibs.get_annot_yaw_texts(aid_list),
+        ibs.get_annot_viewpoints(aid_list),
         ibs.get_annot_quality_texts(aid_list),
         ibs.get_annot_sex_texts(aid_list),
         ibs.get_annot_age_months_est(aid_list),
@@ -1470,7 +1469,7 @@ def view_names(**kwargs):
         ibs.get_annot_names(aid_list_),
         ibs.get_annot_exemplar_flags(aid_list_),
         ibs.get_annot_species_texts(aid_list_),
-        ibs.get_annot_yaw_texts(aid_list_),
+        ibs.get_annot_viewpoints(aid_list_),
         ibs.get_annot_quality_texts(aid_list_),
         ibs.get_annot_sex_texts(aid_list_),
         ibs.get_annot_age_months_est(aid_list_),
@@ -1613,19 +1612,21 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
         imgdata = ibs.get_image_imgdata(gid)
         image_src = appf.embed_image_html(imgdata)
-        # Get annotations
         width, height = ibs.get_image_sizes(gid)
+
+        # Get annotations
         aid_list = ibs.get_image_aids(gid)
         annot_bbox_list = ibs.get_annot_bboxes(aid_list)
-        annot_thetas_list = ibs.get_annot_thetas(aid_list)
+        annot_theta_list = ibs.get_annot_thetas(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
-        viewpoint_list = ibs.get_annot_yaws(aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         quality_list = ibs.get_annot_qualities(aid_list)
         multiple_list = ibs.get_annot_multiple(aid_list)
-        interest_list = [1] * len(aid_list)
+        interest_list = ibs.get_annot_interest(aid_list)
         # Get annotation bounding boxes
+        mapping_dict = {}
         annotation_list = []
-        zipped = zip(aid_list, annot_bbox_list, annot_thetas_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list)
+        zipped = zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list)
         for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
             if quality in [-1, None]:
                 quality = -1
@@ -1633,23 +1634,62 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                 quality = 2
             elif quality <= 2:
                 quality = 1
-            if viewpoint in [None]:
-                viewpoint = -1
-            else:
-                viewpoint = appf.convert_yaw_to_old_viewpoint(viewpoint)
+
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
+
             temp = {}
-            temp['left']      = 100.0 * (annot_bbox[0] / width)
-            temp['top']       = 100.0 * (annot_bbox[1] / height)
-            temp['width']     = 100.0 * (annot_bbox[2] / width)
-            temp['height']    = 100.0 * (annot_bbox[3] / height)
-            temp['species']   = species
-            temp['viewpoint'] = viewpoint
-            temp['quality']   = quality
-            temp['multiple']  = 'true' if multiple == 1 else 'false'
-            temp['interest']  = 'true' if interest == 1 else 'false'
-            temp['id']        = aid
-            temp['theta']     = float(annot_theta)
+            temp['id']         = aid
+            temp['left']       = 100.0 * (annot_bbox[0] / width)
+            temp['top']        = 100.0 * (annot_bbox[1] / height)
+            temp['width']      = 100.0 * (annot_bbox[2] / width)
+            temp['height']     = 100.0 * (annot_bbox[3] / height)
+            temp['theta']      = float(annot_theta)
+            temp['viewpoint1'] = viewpoint1
+            temp['viewpoint2'] = viewpoint2
+            temp['viewpoint3'] = viewpoint3
+            temp['quality']    = quality
+            temp['multiple']   = 'true' if multiple == 1 else 'false'
+            temp['interest']   = 'true' if interest == 1 else 'false'
+            temp['species']    = species
+
+            mapping_dict[aid] = len(annotation_list)
             annotation_list.append(temp)
+
+        # Get parts
+        part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(aid_list))
+        part_aid_list = ibs.get_part_aids(part_rowid_list)
+        part_bbox_list = ibs.get_part_bboxes(part_rowid_list)
+        part_theta_list = ibs.get_part_thetas(part_rowid_list)
+        part_viewpoint_list = ibs.get_part_viewpoints(part_rowid_list)
+        part_quality_list = ibs.get_part_qualities(part_rowid_list)
+        part_type_list = ibs.get_part_types(part_rowid_list)
+        # Get annotation bounding boxes
+
+        part_list = []
+        zipped = zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list)
+        for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
+            if part_quality in [-1, None]:
+                part_quality = -1
+            elif part_quality > 2:
+                part_quality = 2
+            elif part_quality <= 2:
+                part_quality = 1
+
+            viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(part_viewpoint)
+
+            temp = {}
+            temp['id']         = part_rowid
+            temp['parent']     = mapping_dict[part_aid]
+            temp['left']       = 100.0 * (part_bbox[0] / width)
+            temp['top']        = 100.0 * (part_bbox[1] / height)
+            temp['width']      = 100.0 * (part_bbox[2] / width)
+            temp['height']     = 100.0 * (part_bbox[3] / height)
+            temp['theta']      = float(part_theta)
+            temp['viewpoint1'] = viewpoint1
+            temp['quality']    = quality
+            temp['type']       = part_type
+            part_list.append(temp)
+
         if len(species_list) > 0:
             species = max(set(species_list), key=species_list.count)  # Get most common species
         elif appf.default_species(ibs) is not None:
@@ -1661,6 +1701,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         species = None
         image_src = None
         annotation_list = []
+        part_list = []
 
     species_rowids = ibs._get_all_species_rowids()
     species_nice_list = ibs.get_species_nice(species_rowids)
@@ -1701,6 +1742,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          finished=finished,
                          species_list=species_list,
                          annotation_list=annotation_list,
+                         part_list=part_list,
                          display_instructions=display_instructions,
                          display_species_examples=display_species_examples,
                          settings=settings,
@@ -1788,7 +1830,8 @@ def turk_annotation(**kwargs):
         image_src = appf.embed_image_html(image)
         # image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
-        viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+        viewpoint_text = ibs.get_annot_viewpoints(aid)
+        viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
         quality_value = ibs.get_annot_qualities(aid)
         if quality_value in [-1, None]:
             quality_value = None
@@ -1862,7 +1905,8 @@ def turk_annotation_dynamic(**kwargs):
     image     = vt.imread(gpath)
     image_src = appf.embed_image_html(image)
     species   = ibs.get_annot_species_texts(aid)
-    viewpoint_value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+    viewpoint_text = ibs.get_annot_viewpoints(aid)
+    viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
     quality_value = ibs.get_annot_qualities(aid)
     if quality_value == -1:
         quality_value = None
@@ -1918,7 +1962,8 @@ def turk_viewpoint(**kwargs):
     tup = appf.get_turk_annot_args(appf.imageset_annot_viewpoint_processed)
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
-    value = appf.convert_yaw_to_old_viewpoint(ibs.get_annot_yaws(aid))
+    viewpoint_text = ibs.get_annot_viewpoints(aid)
+    value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
     review = 'review' in request.args.keys()
     finished = aid is None
     display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
@@ -2061,13 +2106,6 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
     else:
         aid_list = ibs.get_valid_aids(is_exemplar=True)
-
-    # aid_list = ibs.get_valid_aids()
-    # wanted_set = set(['right', 'frontright', 'backright'])
-    # yaw_list = ibs.get_annot_yaw_texts(aid_list)
-    # num_aids = len(aid_list)
-    # aid_list = [ aid for aid, yaw in zip(aid_list, yaw_list) if yaw in wanted_set ]
-    # print('AID LIST ORIGINAL: %d, CURRENT: %d' % (num_aids, len(aid_list)))
 
     nids = [-aid for aid in aid_list] if debug_ignore_name_gt else None
 
@@ -2525,12 +2563,12 @@ def turk_demographics(**kwargs):
         name_aid_list = ibs.get_name_aids(nid)
         quality_list = ibs.get_annot_qualities(name_aid_list)
         quality_text_list = ibs.get_annot_quality_texts(name_aid_list)
-        yaw_text_list = ibs.get_annot_yaw_texts(name_aid_list)
+        viewpoint_list = ibs.get_annot_viewpoints(name_aid_list)
         name_aid_combined_list = list(zip(
             name_aid_list,
             quality_list,
             quality_text_list,
-            yaw_text_list,
+            viewpoint_list,
         ))
         name_aid_combined_list.sort(key=lambda t: t[1], reverse=True)
     else:

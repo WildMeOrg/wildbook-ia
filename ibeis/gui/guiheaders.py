@@ -92,7 +92,7 @@ def make_table_declarations(ibs):
             'name',
             'exemplar',
             'species',  # <put back in
-            'yaw_text',
+            'viewpoint',
             'quality_text',
             'age_min',
             'age_max',
@@ -145,7 +145,6 @@ def make_table_declarations(ibs):
             # 'nExAids',
             'aid',
             # 'annot_gname',
-            # 'yaw_text',
             # 'quality_text',
             # 'age_min',
             # 'age_max',
@@ -207,7 +206,7 @@ def make_table_declarations(ibs):
             'sex_text': 0,
             'exemplar': 1,
             'thumb': 1,
-            'yaw_text': 1,
+            'viewpoint': 1,
             'quality_text': 1,
             'age_min': 1,
             'age_max': 1,
@@ -224,13 +223,13 @@ def make_table_declarations(ibs):
     # the columns which are editable
     TABLE_EDITSET = {
         IMAGE_TABLE      : set(['reviewed', 'imgnotes', 'gps']),
-        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text', 'tag_text']),
+        ANNOTATION_TABLE : set(['name', 'species', 'annotnotes', 'exemplar', 'viewpoint', 'quality_text', 'age_min', 'age_max', 'sex_text', 'tag_text']),
         NAME_TABLE       : set(['name', 'namenotes']),
         QRES_TABLE       : set(['name']),
         IMAGESET_TABLE   : set(['imagesettext', 'imageset_shipped_flag', 'imageset_processed_flag']),
         IMAGE_GRID       : set([]),
         THUMB_TABLE      : set([]),
-        NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'yaw', 'yaw_text', 'quality_text', 'age_min', 'age_max', 'sex_text']),
+        NAMES_TREE       : set(['exemplar', 'name', 'namenotes', 'viewpoint', 'quality_text', 'age_min', 'age_max', 'sex_text']),
     }
 
     if const.SIMPLIFY_INTERFACE:
@@ -269,8 +268,7 @@ def make_table_declarations(ibs):
         ('rank',                            (str,      'Rank')),  # needs to be a string for !Query
         ('unixtime',                        (float,    'unixtime')),
         ('species',                         (str,      'Species')),
-        ('yaw',                             (str,      'Yaws')),
-        ('yaw_text',                        (str,      'Viewpoint')),
+        ('viewpoint',                       (str,      'Viewpoint')),
         ('img_gname',                       (str,      'Image Name')),
         ('annot_gname',                     (str,      'Source Image')),
         ('gdconf',                          (str,      'Detection Confidence')),
@@ -438,8 +436,7 @@ def make_ibeis_headers_dict(ibs):
         'aid'                 : ut.identity,
         'name'                : ibs.get_annot_names,
         'species'             : ibs.get_annot_species_texts,
-        'yaw'                 : ibs.get_annot_yaws,
-        'yaw_text'            : ibs.get_annot_yaw_texts,
+        'viewpoint'           : ibs.get_annot_viewpoints,
         'quality_text'        : ibs.get_annot_quality_texts,
         'imagesettext_names'  : ibs.get_annot_image_set_texts,
         'age_min'             : ibs.get_annot_age_months_est_min,
@@ -463,8 +460,7 @@ def make_ibeis_headers_dict(ibs):
     setters[ANNOTATION_TABLE] = {
         'name'       : ibs.set_annot_names,
         'species'    : ibs.set_annot_species_and_notify,
-        'yaw'        : ibs.set_annot_yaws,
-        'yaw_text'   : ibs.set_annot_yaw_texts,
+        'viewpoint'  : ibs.set_annot_viewpoints,
         'age_min'    : ibs.set_annot_age_months_est_min,
         'age_max'    : ibs.set_annot_age_months_est_max,
         'sex_text'   : ibs.set_annot_sex_texts,
@@ -506,7 +502,7 @@ def make_ibeis_headers_dict(ibs):
         'age_min'      : ibs.get_annot_age_months_est_min,
         'age_max'      : ibs.get_annot_age_months_est_max,
         'imagesettext_names' : ibs.get_annot_image_set_texts,
-        'yaw_text'     : getters[ANNOTATION_TABLE]['yaw_text'],
+        'viewpoint'    : getters[ANNOTATION_TABLE]['viewpoint'],
         'quality_text' : getters[ANNOTATION_TABLE]['quality_text'],
         'datetime'     : getters[ANNOTATION_TABLE]['datetime'],
     }
@@ -517,7 +513,7 @@ def make_ibeis_headers_dict(ibs):
         'age_min'      : ibs.set_annot_age_months_est_min,
         'age_max'      : ibs.set_annot_age_months_est_max,
         'exemplar'     : setters[ANNOTATION_TABLE]['exemplar'],
-        'yaw_text'     : setters[ANNOTATION_TABLE]['yaw_text'],
+        'viewpoint'    : setters[ANNOTATION_TABLE]['viewpoint'],
         'quality_text' : setters[ANNOTATION_TABLE]['quality_text'],
     }
     widths[NAMES_TREE] = {

@@ -455,7 +455,6 @@ def commit_localization_results(ibs, gid_list, results_list, note=None,
             quiet_delete_thumbs=True,
             skip_cleaning=True
         )
-        # ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
         aids_list.append(aid_list)
     ibs._clean_species()
     if update_json_log:
@@ -482,7 +481,7 @@ def commit_detection_results(ibs, gid_list, results_list, note=None,
             quiet_delete_thumbs=True,
             skip_cleaning=True
         )
-        ibs.set_annot_yaw_texts(aid_list, viewpoint_list)
+        ibs.set_annot_viewpoints(aid_list, viewpoint_list)
         aids_list.append(aid_list)
     ibs._clean_species()
     if update_json_log:
@@ -519,7 +518,7 @@ def commit_detection_results_filtered(ibs, gid_list, filter_species_list=None,
                 skip_cleaning=True
             )
             aid = temp_list[0]
-            ibs.set_annot_yaw_texts([aid], [viewpoint])
+            ibs.set_annot_viewpoints([aid], [viewpoint])
             aid_list.append(aid)
         aids_list.append(aid_list)
     ibs._clean_species()

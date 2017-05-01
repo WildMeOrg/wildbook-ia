@@ -5,10 +5,12 @@ TODO
 - Hold Shift to move bbox while also moving any inside sub-entries
 - Middle mouse button drag to resize bbox with the highlighted anchor point
 - On Selector finish/cancel, hover the correct box if actually hovering
+- Selector assignment line for adding
+- Size limit (max-width, max-height) on image browser-side
+- Delete entry if released entirely outside the bounds of the image
+- Change the parent of a subentry
 
 */
-
-
 
 (function() {
     var BBoxSelector
@@ -73,18 +75,25 @@ TODO
         function BBoxSelector(frame, options) {
             var options
 
-            options                 !== undefined || (options = {})
-            options.prefix          !== undefined || (options.prefix = "")
-            options.ids             !== undefined || (options.ids = {})
-            options.ids.rectangle   !== undefined || (options.ids.rectangle = options.prefix + "bbox-selector-rectangle")
-            options.ids.diagonal    !== undefined || (options.ids.diagonal  = options.prefix + "bbox-selector-diagonal")
-            options.colors          !== undefined || (options.colors = {})
-            options.colors.subentry !== undefined || (options.colors.subentry = "#444444")
-            options.border          !== undefined || (options.border = {})
-            options.border.color    !== undefined || (options.border.color = "#7FFF7F")
-            options.border.width    !== undefined || (options.border.width = 2)
-            options.mode            !== undefined || (options.mode = "rectangle")
-            options.debug           !== undefined || (options.debug = false)
+            options                     !== undefined || (options = {})
+            options.prefix              !== undefined || (options.prefix = "")
+            options.ids                 !== undefined || (options.ids = {})
+            options.ids.rectangle       !== undefined || (options.ids.rectangle = options.prefix + "bbox-selector-rectangle")
+            options.ids.diagonal        !== undefined || (options.ids.diagonal  = options.prefix + "bbox-selector-diagonal")
+            options.colors              !== undefined || (options.colors = {})
+            options.colors.subentry     !== undefined || (options.colors.subentry = "#444444")
+            options.border              !== undefined || (options.border = {})
+            options.border.color        !== undefined || (options.border.color = "#7FFF7F")
+            options.border.width        !== undefined || (options.border.width = 2)
+            options.limits.bounds       !== undefined || (options.limits.bounds = {})
+            options.limits.bounds.x     !== undefined || (options.limits.bounds.x = {})
+            options.limits.bounds.x.min !== undefined || (options.limits.bounds.x.min = 0)
+            options.limits.bounds.x.max !== undefined || (options.limits.bounds.x.max = 0)
+            options.limits.bounds.y     !== undefined || (options.limits.bounds.y = {})
+            options.limits.bounds.y.min !== undefined || (options.limits.bounds.y.min = 0)
+            options.limits.bounds.y.max !== undefined || (options.limits.bounds.y.max = 0)
+            options.mode                !== undefined || (options.mode = "rectangle")
+            options.debug               !== undefined || (options.debug = false)
 
             // Global attributes
             this.options = options
@@ -169,19 +178,34 @@ TODO
         }
 
         BBoxSelector.prototype.check_boundaries = function(event) {
-            var offset, point
+            var offset, point, bounds
 
             offset = this.elements.frame.offset()
             point = {
-                    x: event.pageX - offset.left,
-                    y: event.pageY - offset.top,
+                x: event.pageX - offset.left,
+                y: event.pageY - offset.top,
+            }
+            if (this.options.mode == "rectangle") {
+                bounds = {
+                    x: {
+                        min: 0,
+                        max: 0,
+                    },
+                    y: {
+                        min: 0,
+                        max: 0,
+                    },
                 }
-                // Check lower boundaries
-            point.x = Math.max(point.x, 0)
-            point.y = Math.max(point.y, 0)
-                // Check upper boundaries
-            point.x = Math.min(point.x, this.elements.frame.width() - 1)
-            point.y = Math.min(point.y, this.elements.frame.height() - 1)
+            } else {
+                bounds = this.options.limits.bounds
+            }
+
+            // Check lower boundaries
+            point.x = Math.max(point.x, 0 - bounds.x.min)
+            point.y = Math.max(point.y, 0 - bounds.y.min)
+            // Check upper boundaries
+            point.x = Math.min(point.x, this.elements.frame.width() - 1 + bounds.x.max)
+            point.y = Math.min(point.y, this.elements.frame.height() - 1 + bounds.y.max)
             return point
         }
 
@@ -538,6 +562,13 @@ TODO
             options.limits.area              !== undefined || (options.limits.area = 100)
             options.limits.width             !== undefined || (options.limits.width = 10)
             options.limits.height            !== undefined || (options.limits.height = 10)
+            options.limits.bounds            !== undefined || (options.limits.bounds = {})
+            options.limits.bounds.x          !== undefined || (options.limits.bounds.x = {})
+            options.limits.bounds.x.min      !== undefined || (options.limits.bounds.x.min = 50)
+            options.limits.bounds.x.max      !== undefined || (options.limits.bounds.x.max = 50)
+            options.limits.bounds.y          !== undefined || (options.limits.bounds.y = {})
+            options.limits.bounds.y.min      !== undefined || (options.limits.bounds.y.min = 50)
+            options.limits.bounds.y.max      !== undefined || (options.limits.bounds.y.max = 50)
             options.onload                   !== undefined || (options.onload = null)
             options.onadd                    !== undefined || (options.onadd = null)
             options.onselector               !== undefined || (options.onselector = null)
@@ -1739,6 +1770,8 @@ TODO
 
             entry = this.entries[index]
             entry.metadata = metadata
+
+            this.refresh()
         }
 
         BBoxAnnotator.prototype.set_highlighted = function(highlighted) {
@@ -1757,6 +1790,8 @@ TODO
             entry.highlighted = highlighted
 
             this.label_entry(index, entry.label)
+
+            this.refresh()
         }
 
         BBoxAnnotator.prototype.anchor_entry = function(event) {
@@ -2068,8 +2103,10 @@ TODO
             this.refresh()
         }
 
-        BBoxAnnotator.prototype.background_entry = function(event, index) {
+        BBoxAnnotator.prototype.background_entry = function(event, index, subentry) {
             var index, indices, entry, element, holder
+
+            subentry !== undefined || (subentry = true)
 
             // Do not update if there is not an index
             if (index == null) {
@@ -2089,11 +2126,11 @@ TODO
 
                     parent = this.entries[index_entry].parent
                     if(parent != null && parent == index) {
-                        this.background_entry(entry, index_entry)
+                        this.background_entry(entry, index_entry, false)
                         index += 1
                     }
                 }
-            } else {
+            } else if (subentry) {
                 // Disallow background entry if in focus2 and a subentry
                 if(this.state.focus == null) {
                     return

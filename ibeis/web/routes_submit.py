@@ -10,6 +10,7 @@ from ibeis.web import appfuncs as appf
 from ibeis import constants as const
 from ibeis.constants import PI, TAU
 import utool as ut
+import numpy as np
 
 
 register_route = controller_inject.get_ibeis_flask_route(__name__)
@@ -42,43 +43,192 @@ def submit_detection(**kwargs):
         return redirect(redirection)
     else:
         current_aid_list = ibs.get_image_aids(gid)
+        current_part_rowid_list = ut.flatten(ibs.get_annot_part_rowids(current_aid_list))
         # Make new annotations
         width, height = ibs.get_image_sizes(gid)
-        # Get aids
-        annotation_list = json.loads(request.form['detection-annotations'])
+
+        # Separate out annotations vs parts
+        data_list = json.loads(request.form['ia-detection-data'])
+        annotation_list = []
+        part_list = []
+        mapping_dict = {}
+        for outer_index, data in enumerate(data_list):
+            parent_index = data['parent']
+            if parent_index is None:
+                inner_index = len(annotation_list)
+                annotation_list.append(data)
+                mapping_dict[outer_index] = inner_index
+            else:
+                assert parent_index in mapping_dict
+                part_list.append(data)
+
+        ##################################################################################
+        # Process annotations
+        survived_aid_list = [
+            None if annot['label'] is None else int(annot['label'])
+            for annot in annotation_list
+        ]
+
+        # Get primatives
         bbox_list = [
             (
-                int( width  * (annot['left']   / 100.0) ),
-                int( height * (annot['top']    / 100.0) ),
-                int( width  * (annot['width']  / 100.0) ),
-                int( height * (annot['height'] / 100.0) ),
+                int(np.round(width  * (annot['percent']['left']   / 100.0) )),
+                int(np.round(height * (annot['percent']['top']    / 100.0) )),
+                int(np.round(width  * (annot['percent']['width']  / 100.0) )),
+                int(np.round(height * (annot['percent']['height'] / 100.0) )),
             )
             for annot in annotation_list
         ]
         theta_list = [
-            float(annot['theta'])
+            float(annot['angles']['theta'])
             for annot in annotation_list
         ]
-        survived_aid_list = [
-            None if annot['id'] is None else int(annot['id'])
+
+        # Get metadata
+        viewpoint1_list = [
+            int(annot['metadata']['viewpoint1'])
+            for annot in annotation_list
+        ]
+        viewpoint2_list = [
+            int(annot['metadata']['viewpoint2'])
+            for annot in annotation_list
+        ]
+        viewpoint3_list = [
+            int(annot['metadata']['viewpoint3'])
+            for annot in annotation_list
+        ]
+        zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
+        viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+
+        quality_list = [
+            int(annot['metadata']['quality'])
+            for annot in annotation_list
+        ]
+        # Fix qualities
+        for index, quality in enumerate(quality_list):
+            if quality == 1:
+                quality_list[index] = 2
+            elif quality == 2:
+                quality_list[index] = 4
+            else:
+                raise ValueError('quality must be 1 or 2')
+
+        multiple_list =  [
+            annot['metadata']['multiple']
+            for annot in annotation_list
+        ]
+        interest_list =  [
+            annot['highlighted']
             for annot in annotation_list
         ]
         species_list = [
-            annot['label']
+            annot['metadata']['species']
             for annot in annotation_list
         ]
+
         # Delete annotations that didn't survive
         kill_aid_list = list(set(current_aid_list) - set(survived_aid_list))
         ibs.delete_annots(kill_aid_list)
-        for aid, bbox, theta, species in zip(survived_aid_list, bbox_list, theta_list, species_list):
+
+        aid_list = []
+        for aid, bbox in zip(survived_aid_list, bbox_list):
             if aid is None:
-                ibs.add_annots([gid], [bbox], theta_list=[theta], species_list=[species])
+                aid_ = ibs.add_annots([gid], [bbox])[0]
             else:
                 ibs.set_annot_bboxes([aid], [bbox])
-                ibs.set_annot_thetas([aid], [theta])
-                ibs.set_annot_species([aid], [species])
+                aid_ = aid
+            aid_list.append(aid_)
+
+        print('aid_list = %r' % (aid_list, ))
+        # Set annotation metadata
+        ibs.set_annot_thetas(aid_list, theta_list)
+        ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+        ibs.set_annot_qualities(aid_list, quality_list)
+        ibs.set_annot_multiple(aid_list, multiple_list)
+        ibs.set_annot_interest(aid_list, interest_list)
+        ibs.set_annot_species(aid_list, species_list)
+
+        # Set the mapping dict to use aids now
+        mapping_dict = { key: aid_list[index] for key, index in mapping_dict.items() }
+
+        ##################################################################################
+        # Process parts
+        survived_part_rowid_list = [
+            None if part['label'] is None else int(part['label'])
+            for part in part_list
+        ]
+
+        # Get primatives
+        aid_list = [
+            mapping_dict[part['parent']]
+            for part in part_list
+        ]
+        bbox_list = [
+            (
+                int(np.round(width  * (part['percent']['left']   / 100.0) )),
+                int(np.round(height * (part['percent']['top']    / 100.0) )),
+                int(np.round(width  * (part['percent']['width']  / 100.0) )),
+                int(np.round(height * (part['percent']['height'] / 100.0) )),
+            )
+            for part in part_list
+        ]
+        theta_list = [
+            float(part['angles']['theta'])
+            for part in part_list
+        ]
+
+        # Get metadata
+        viewpoint1_list = [
+            int(part['metadata']['viewpoint1'])
+            for part in part_list
+        ]
+        viewpoint2_list = [-1] * len(part_list)
+        viewpoint3_list = [-1] * len(part_list)
+        zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
+        viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
+
+        quality_list = [
+            int(part['metadata']['quality'])
+            for part in part_list
+        ]
+        # Fix qualities
+        for index, quality in enumerate(quality_list):
+            if quality == 1:
+                quality_list[index] = 2
+            elif quality == 2:
+                quality_list[index] = 4
+            else:
+                raise ValueError('quality must be 1 or 2')
+
+        type_list = [
+            part['metadata']['type']
+            for part in part_list
+        ]
+
+        # Delete annotations that didn't survive
+        kill_part_rowid_list = list(set(current_part_rowid_list) - set(survived_part_rowid_list))
+        ibs.delete_parts(kill_part_rowid_list)
+
+        part_rowid_list = []
+        for part_rowid, aid, bbox in zip(survived_part_rowid_list, aid_list, bbox_list):
+            if part_rowid is None:
+                part_rowid_ = ibs.add_parts([aid], [bbox])
+                part_rowid_ = part_rowid_[0]
+            else:
+                ibs._set_part_aid([part_rowid], [aid])
+                ibs.set_part_bboxes([part_rowid], [bbox])
+                part_rowid_ = part_rowid
+            part_rowid_list.append(part_rowid_)
+
+        # Set annotation metadata
+        ibs.set_part_thetas(part_rowid_list, theta_list)
+        ibs.set_part_viewpoints(part_rowid_list, viewpoint_list)
+        ibs.set_part_qualities(part_rowid_list, quality_list)
+        ibs.set_part_types(part_rowid_list, type_list)
+
+        # Set image reviewed flag
         ibs.set_image_reviewed([gid], [1])
-        print('[web] turk_id: %s, gid: %d, bbox_list: %r, species_list: %r' % (turk_id, gid, annotation_list, species_list))
+        print('[web] turk_id: %s, gid: %d, annots: %d, parts: %d' % (turk_id, gid, len(annotation_list), len(part_list), ))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -155,12 +305,12 @@ def submit_viewpoint(**kwargs):
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-        value = int(request.form['viewpoint-value'])
-        yaw = appf.convert_old_viewpoint_to_yaw(value)
+        viewpoint = int(request.form['viewpoint-value'])
+        viewpoint_text = appf.VIEWPOINT_MAPPING.get(viewpoint, None)
         species_text = request.form['viewpoint-species']
-        ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
+        ibs.set_annot_viewpoints([aid], [viewpoint_text], input_is_degrees=False)
         ibs.set_annot_species([aid], [species_text])
-        print('[web] turk_id: %s, aid: %d, yaw: %d' % (turk_id, aid, yaw))
+        print('[web] turk_id: %s, aid: %d, viewpoint_text: %s' % (turk_id, aid, viewpoint_text))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
@@ -242,9 +392,10 @@ def submit_annotation(**kwargs):
             viewpoint = int(request.form['ia-viewpoint-value'])
         except ValueError:
             viewpoint = int(float(request.form['ia-viewpoint-value']))
-        yaw = appf.convert_old_viewpoint_to_yaw(viewpoint)
+        viewpoint = int(request.form['viewpoint-value'])
+        viewpoint_text = appf.VIEWPOINT_MAPPING.get(viewpoint, None)
         species_text = request.form['ia-annotation-species']
-        ibs.set_annot_yaws([aid], [yaw], input_is_degrees=False)
+        ibs.set_annot_viewpoints([aid], [viewpoint_text], input_is_degrees=False)
         ibs.set_annot_species([aid], [species_text])
         try:
             quality = int(request.form['ia-quality-value'])
@@ -260,7 +411,7 @@ def submit_annotation(**kwargs):
         multiple = 1 if 'ia-multiple-value' in request.form else 0
         ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] turk_id: %s, aid: %d, yaw: %d, quality: %d, multiple: %r' % (turk_id, aid, yaw, quality, multiple))
+        print('[web] turk_id: %s, aid: %d, viewpoint: %s, quality: %d, multiple: %r' % (turk_id, aid, viewpoint_text, quality, multiple))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:

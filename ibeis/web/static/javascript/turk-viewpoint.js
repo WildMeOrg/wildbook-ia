@@ -1,10 +1,17 @@
 function update_label()
 {
-  value = parseFloat( $("#slider-viewpoint").val() );
-  radians_sub = (value / 360.0) * 2.0;
-  $("#label-degrees").html(value);
-  $("#label-radians1").html((radians_sub * Math.PI).toFixed(4));
-  $("#label-radians2").html((radians_sub).toFixed(4));
+  var viewpoint_strs = [];
+  viewpoint_strs[0] = 'Left';
+  viewpoint_strs[1] = 'Front-Left';
+  viewpoint_strs[2] = 'Front';
+  viewpoint_strs[3] = 'Front-Right';
+  viewpoint_strs[4] = 'Right';
+  viewpoint_strs[5] = 'Back-Right';
+  viewpoint_strs[6] = 'Back';
+  viewpoint_strs[7] = 'Back-Left';
+
+  value = parseFloat( $("#ia-annotation-viewpoint").val() );
+  $("#ia-viewpoint-label-text").html(viewpoint_strs[value]);
 }
 
 function add_species()
@@ -85,7 +92,7 @@ $(window).keydown(function(event) {
       // 56 == numeric key 8
       // 57 == numeric key 9
       value = key - 49; // offset by 49 so that the number one is the value of 0
-      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#slider-viewpoint").val(value);
       update_label();
     }
     else if(97 <= key && key <= 104)
@@ -101,7 +108,7 @@ $(window).keydown(function(event) {
       // 104 == number pad key 8
       // 105 == number pad key 9
       value = key - 97; // offset by 97 so that the number one is the value of 0
-      $("#slider-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#slider-viewpoint").val(value);
       update_label();
     }
   }

@@ -38,6 +38,8 @@ ANNOT_SEMANTIC_UUID = 'annot_semantic_uuid'
 ANNOT_UUID          = 'annot_uuid'
 ANNOT_YAW           = 'annot_yaw'
 ANNOT_VIEWPOINT     = 'annot_viewpoint'
+PART_ROWID          = 'part_rowid'
+PART_UUID           = 'part_uuid'
 NAME_ROWID          = 'name_rowid'
 SPECIES_ROWID       = 'species_rowid'
 IMAGE_ROWID         = 'image_rowid'
@@ -1475,6 +1477,50 @@ def update_1_6_3(db, ibs=None):
     ))
 
 
+def update_1_6_4(db, ibs=None):
+    db.modify_table(const.ANNOTATION_TABLE, (
+        (12, 'annot_viewpoint', 'TEXT', None),
+        (16, 'annot_toggle_interest', 'INTEGER DEFAULT NULL', None),
+    ))
+
+    db.add_table(const.PART_TABLE, (
+        (PART_ROWID,                     'INTEGER PRIMARY KEY'),
+        (PART_UUID,                      'UUID NOT NULL'),
+        (ANNOT_ROWID,                    'INTEGER NOT NULL'),
+        ('part_xtl',                     'INTEGER NOT NULL'),
+        ('part_ytl',                     'INTEGER NOT NULL'),
+        ('part_width',                   'INTEGER NOT NULL'),
+        ('part_height',                  'INTEGER NOT NULL'),
+        ('part_theta',                   'REAL DEFAULT 0.0'),
+        ('part_num_verts',               'INTEGER NOT NULL'),
+        ('part_verts',                   'TEXT'),
+        ('part_viewpoint',               'TEXT'),
+        ('part_detect_confidence',       'REAL DEFAULT -1.0'),
+        ('part_toggle_reviewed',         'INTEGER DEFAULT 0'),
+        ('part_quality',                 'INTEGER'),
+        ('part_type',                    'TEXT'),
+        ('part_note',                    'TEXT'),
+        ('part_tag_text',                'TEXT'),
+    ),
+        docstr='''
+        Mainly used to store the geometry of the annotation parts within its parent
+        annotation. The one-to-many relationship between annotations and parts is
+        encoded here
+        ''',
+        superkeys=[(PART_UUID,), ],
+        shortname='part',
+        extern_tables=[const.ANNOTATION_TABLE],
+        dependsmap={
+            ANNOT_ROWID         : (const.ANNOTATION_TABLE, (ANNOT_ROWID,),   (ANNOT_VISUAL_UUID,)),
+    },)
+
+
+def post_1_6_4(db, ibs=None):
+    aid_list = ibs.get_valid_aids()
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1523,6 +1569,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.1',    (None,                 update_1_6_1,       post_1_6_1          )),
     ('1.6.2',    (None,                 update_1_6_2,       None                )),
     ('1.6.3',    (None,                 update_1_6_3,       None                )),
+    ('1.6.4',    (None,                 update_1_6_4,       post_1_6_4          )),
 ])
 """
 SeeAlso:

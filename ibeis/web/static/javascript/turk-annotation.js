@@ -2,34 +2,22 @@ function update_label()
 {
   var viewpoint_strs = [];
   viewpoint_strs[0] = 'Left';
-  viewpoint_strs[45] = 'Front-Left';
-  viewpoint_strs[90] = 'Front';
-  viewpoint_strs[135] = 'Front-Right';
-  viewpoint_strs[180] = 'Right';
-  viewpoint_strs[225] = 'Back-Right';
-  viewpoint_strs[270] = 'Back';
-  viewpoint_strs[315] = 'Back-Left';
+  viewpoint_strs[1] = 'Front-Left';
+  viewpoint_strs[2] = 'Front';
+  viewpoint_strs[3] = 'Front-Right';
+  viewpoint_strs[4] = 'Right';
+  viewpoint_strs[5] = 'Back-Right';
+  viewpoint_strs[6] = 'Back';
+  viewpoint_strs[7] = 'Back-Left';
 
   value = parseFloat( $("#ia-annotation-viewpoint").val() );
-  radians_sub = (value / 360.0) * 2.0;
-  $("#ia-viewpoint-label-degrees").html(value);
-  $("#ia-viewpoint-label-radians1").html((radians_sub * Math.PI).toFixed(4));
-  $("#ia-viewpoint-label-radians2").html((radians_sub).toFixed(4));
-  value = Math.round(value / 45.0) * 45;
-  if(value == 360) value = 0;
   $("#ia-viewpoint-label-text").html(viewpoint_strs[value]);
 
   var quality_strs = [];
-  // quality_strs[5] = 'Excellent';
-  // quality_strs[4] = 'Good';
-  // quality_strs[3] = 'OK';
-  // quality_strs[2] = 'Poor';
-  // quality_strs[1] = 'Junk';
   quality_strs[2] = 'Good';
   quality_strs[1] = 'Poor';
 
   value = parseFloat( $("#ia-annotation-quality").val() );
-  $("#ia-quality-label-value").html(value);
   $("#ia-quality-label-text").html(quality_strs[value]);
 }
 
@@ -142,7 +130,7 @@ $(window).keydown(function(event) {
       // 56 == numeric key 8
       // 57 == numeric key 9
       value = key - 49; // offset by 49 so that the number one is the value of 0
-      $("#ia-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-annotation-viewpoint").val(value);
       update_label();
     }
     else if(97 <= key && key <= 104)
@@ -158,7 +146,7 @@ $(window).keydown(function(event) {
       // 104 == number pad key 8
       // 105 == number pad key 9
       value = key - 97; // offset by 97 so that the number one is the value of 0
-      $("#ia-annotation-viewpoint").val(value * 45); // multiply number by 45 degrees
+      $("#ia-annotation-viewpoint").val(value);
       update_label();
     }
   }

@@ -29,24 +29,67 @@ VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
     ('back'       , 0.750 * TAU,),
     ('backright'  , 0.875 * TAU,),
 ])
+VIEWTEXT_TO_VIEWPOINT_RADIANS = VIEWTEXT_TO_YAW_RADIANS
 
-#VIEWTEXT_TO_QT_VIEWTEXT = {
-#    'right'      : 'right',
-#    'frontright' : 'frontright',
-#    'front'      : 'front',
-#    'frontleft'  : 'frontleft',
-#    'left'       : 'left',
-#    'backleft'   : 'backleft',
-#    'back'       : 'back',
-#    'backright'  : 'backright',
-#}
+YAWALIAS = {
+    'up':             'U',
+    'down':           'D',
+    'front':          'F',
+    'left':           'L',
+    'back':           'B',
+    'right':          'R',
+    'upfront':        'UF',
+    'upback':         'UB',
+    'upleft':         'UL',
+    'upright':        'UR',
+    'downfront':      'DF',
+    'downback':       'DB',
+    'downleft':       'DL',
+    'downright':      'DR',
+    'frontleft':      'FL',
+    'frontright':     'FR',
+    'backleft':       'BL',
+    'backright':      'BR',
+    'upfrontleft':    'UFL',
+    'upfrontright':   'UFR',
+    'upbackleft':     'UBL',
+    'upbackright':    'UBR',
+    'downfrontleft':  'DFL',
+    'downfrontright': 'DFR',
+    'downbackleft':   'DBL',
+    'downbackright':  'DBR',
+}
+VIEWPOINTALIAS = YAWALIAS
 
-YAWALIAS = {'frontleft': 'FL', 'frontright': 'FR', 'backleft': 'BL', 'backright': 'BR',
-            'front': 'F', 'left': 'L', 'back': 'B', 'right': 'R', }
-
-YAWALIAS_NICE = {'frontleft': 'Front-Left', 'frontright': 'Front-Right',
-                 'backleft': 'Back-Left', 'backright': 'Back-Right',
-                 'front': 'Front', 'left': 'Left', 'back': 'Back', 'right': 'Right', }
+YAWALIAS_NICE = {
+    'up':             'Up',
+    'down':           'Down',
+    'front':          'Front',
+    'left':           'Left',
+    'back':           'Back',
+    'right':          'Right',
+    'upfront':        'Up-Front',
+    'upback':         'Up-Back',
+    'upleft':         'Up-Left',
+    'upright':        'Up-Right',
+    'downfront':      'Down-Front',
+    'downback':       'Down-Back',
+    'downleft':       'Down-Left',
+    'downright':      'Down-Right',
+    'frontleft':      'Front-Left',
+    'frontright':     'Front-Right',
+    'backleft':       'Back-Left',
+    'backright':      'Back-Right',
+    'upfrontleft':    'Up-Front-Left',
+    'upfrontright':   'Up-Front-Right',
+    'upbackleft':     'Up-Back-Left',
+    'upbackright':    'Up-Back-Right',
+    'downfrontleft':  'Down-Front-Left',
+    'downfrontright': 'Down-Front-Right',
+    'downbackleft':   'Down-Back-Left',
+    'downbackright':  'Down-Back-Right',
+}
+VIEWPOINTALIAS = YAWALIAS_NICE
 
 QUAL_EXCELLENT = 'excellent'
 QUAL_GOOD      = 'good'
@@ -200,6 +243,7 @@ AL_RELATION_TABLE    = 'annotation_lblannot_relationship'
 GA_RELATION_TABLE    = 'annotgroup_annotation_relationship'
 ANNOTGROUP_TABLE     = 'annotgroups'
 ANNOTATION_TABLE     = 'annotations'
+PART_TABLE           = 'parts'
 CHIP_TABLE           = 'chips'
 CONFIG_TABLE         = 'configs'
 CONTRIBUTOR_TABLE    = 'contributors'

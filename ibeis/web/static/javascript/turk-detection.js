@@ -1,5 +1,8 @@
 function hide_viewpoint_2_axis_panel(index) {
     $(".ia-viewpoint-axis-" + index).hide()
+    if(index == 3) {
+        $("#ia-viewpoint-axis-2-hotkey").css('opacity', 0.0)
+    }
 }
 
 function check_form() {
@@ -152,7 +155,7 @@ function show_part_metadata(entry) {
 
     $('#ia-detection-part-viewpoint-1').val(entry.metadata.viewpoint1);
     $('#ia-detection-part-quality').val(entry.metadata.quality);
-    $('#ia-detection-part-class option[value="' + entry.metadata.part + '"]').prop("selected", true);
+    $('#ia-detection-part-class option[value="' + entry.metadata.type + '"]').prop("selected", true);
 
     if(invalid) {
         $('.ia-detection-form-part-value').trigger('change');
@@ -175,8 +178,8 @@ function update_label() {
 
     var viewpoint_strs = [];
     viewpoint_strs[-1] = null;
-    viewpoint_strs[0] = 'Up';
-    viewpoint_strs[1] = 'Down';
+    viewpoint_strs[0] = 'Top';
+    viewpoint_strs[1] = 'Bottom';
     viewpoint_strs[2] = 'Front';
     viewpoint_strs[3] = 'Back';
     viewpoint_strs[4] = 'Left';

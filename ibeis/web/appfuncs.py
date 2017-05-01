@@ -4,7 +4,7 @@ from six.moves import cStringIO as StringIO
 # import cStringIO as StringIO
 import flask
 import random
-from ibeis.constants import TAU
+from ibeis import constants as const
 from flask import request, current_app, url_for
 from os.path import join, dirname, abspath  # NOQA
 from datetime import datetime
@@ -27,6 +27,19 @@ VALID_TURK_MODES = [
     ('turk_quality', 'Quality'),
     ('turk_demographics', 'Demographics'),
 ]
+
+
+VIEWPOINT_MAPPING = {
+    0: 'left',
+    1: 'frontleft',
+    2: 'front',
+    3: 'frontright',
+    4: 'right',
+    5: 'backright',
+    6: 'back',
+    7: 'backleft',
+}
+VIEWPOINT_MAPPING_INVERT = { value: key for key, value in VIEWPOINT_MAPPING.items()}
 
 
 class NavbarClass(object):
@@ -281,7 +294,7 @@ def imageset_annot_processed(ibs, aid_list):
 
 
 def imageset_annot_viewpoint_processed(ibs, aid_list):
-    annots_reviewed = [ reviewed is not None for reviewed in ibs.get_annot_yaws(aid_list) ]
+    annots_reviewed = [ reviewed is not None for reviewed in ibs.get_annot_viewpoints(aid_list) ]
     return annots_reviewed
 
 
@@ -298,62 +311,6 @@ def imageset_annot_demographics_processed(ibs, aid_list, nid_list):
         for nid, sex, age in zip(nid_list, sex_list, age_list)
     ]
     return annots_reviewed
-
-
-def convert_old_viewpoint_to_yaw(view_theta):
-    """ we initially had viewpoint coordinates inverted
-
-    Example:
-        >>> import math
-        >>> TAU = 2 * math.pi
-        >>> old_viewpoint_labels = [
-        >>>     ('left'       ,   0, 0.000 * TAU,),
-        >>>     ('frontleft'  ,  45, 0.125 * TAU,),
-        >>>     ('front'      ,  90, 0.250 * TAU,),
-        >>>     ('frontright' , 135, 0.375 * TAU,),
-        >>>     ('right'      , 180, 0.500 * TAU,),
-        >>>     ('backright'  , 225, 0.625 * TAU,),
-        >>>     ('back'       , 270, 0.750 * TAU,),
-        >>>     ('backleft'   , 315, 0.875 * TAU,),
-        >>> ]
-        >>> fmtstr = 'old %15r %.2f -> new %15r %.2f'
-        >>> for lbl, theta, radians in old_viewpoint_labels:
-        >>>     print(fmtstr % (lbl, theta, lbl, convert_old_viewpoint_to_yaw(theta)))
-    """
-    if view_theta is None:
-        return None
-    view_theta = ut.deg_to_rad(view_theta)
-    yaw = (-view_theta + (TAU / 2)) % TAU
-    return yaw
-
-
-def convert_yaw_to_old_viewpoint(yaw):
-    """ we initially had viewpoint coordinates inverted
-
-    Example:
-        >>> import math
-        >>> TAU = 2 * math.pi
-        >>> old_viewpoint_labels = [
-        >>>     ('left'       ,   0, 0.000 * TAU,),
-        >>>     ('frontleft'  ,  45, 0.125 * TAU,),
-        >>>     ('front'      ,  90, 0.250 * TAU,),
-        >>>     ('frontright' , 135, 0.375 * TAU,),
-        >>>     ('right'      , 180, 0.500 * TAU,),
-        >>>     ('backright'  , 225, 0.625 * TAU,),
-        >>>     ('back'       , 270, 0.750 * TAU,),
-        >>>     ('backleft'   , 315, 0.875 * TAU,),
-        >>> ]
-        >>> fmtstr = 'original_theta %15r %.2f -> yaw %15r %.2f -> reconstructed_theta %15r %.2f'
-        >>> for lbl, theta, radians in old_viewpoint_labels:
-        >>>     yaw = convert_old_viewpoint_to_yaw(theta)
-        >>>     reconstructed_theta = convert_yaw_to_old_viewpoint(yaw)
-        >>>     print(fmtstr % (lbl, theta, lbl, yaw, lbl, reconstructed_theta))
-    """
-    if yaw is None:
-        return None
-    view_theta = ((TAU / 2) - yaw) % TAU
-    view_theta = ut.rad_to_deg(view_theta)
-    return view_theta
 
 
 def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
@@ -381,6 +338,45 @@ def convert_nmea_to_json(nmea_str, filename, GMT_OFFSET=0):
             'lon':  lon,
         })
     return json.dumps({ "track": json_list })
+
+
+def convert_tuple_to_viewpoint(viewpoint_tuple):
+    viewpoint_list = list(sorted(map(int, list(viewpoint_tuple))))
+
+    if viewpoint_tuple is None or viewpoint_list.count(-1) >= 3:
+        return None
+    else:
+        viewpoint_text = '__'.join(map(str, viewpoint_list))
+        viewpoint_text = '_%s_' % (viewpoint_text, )
+        viewpoint_text = viewpoint_text.replace('_-1_', '')
+        viewpoint_text = viewpoint_text.replace('_0_', 'up')
+        viewpoint_text = viewpoint_text.replace('_1_', 'down')
+        viewpoint_text = viewpoint_text.replace('_2_', 'front')
+        viewpoint_text = viewpoint_text.replace('_3_', 'back')
+        viewpoint_text = viewpoint_text.replace('_4_', 'left')
+        viewpoint_text = viewpoint_text.replace('_5_', 'right')
+        assert viewpoint_text in const.YAWALIAS
+        return viewpoint_text
+
+
+def convert_viewpoint_to_tuple(viewpoint_text):
+    if viewpoint_text is None or viewpoint_text not in const.YAWALIAS:
+        return (-1, -1, -1)
+    else:
+        viewpoint_text = viewpoint_text.replace('up',    '_0_')
+        viewpoint_text = viewpoint_text.replace('down',  '_1_')
+        viewpoint_text = viewpoint_text.replace('front', '_2_')
+        viewpoint_text = viewpoint_text.replace('back',  '_3_')
+        viewpoint_text = viewpoint_text.replace('left',  '_4_')
+        viewpoint_text = viewpoint_text.replace('right', '_5_')
+        viewpoint_list = viewpoint_text.split('_')
+        viewpoint_list = [ _ for _ in viewpoint_list if len(_) > 0 ]
+        assert 1 <= len(viewpoint_list) and len(viewpoint_list) <= 3
+        viewpoint_list = map(int, viewpoint_list)
+        viewpoint_list = list(sorted(viewpoint_list))
+        while len(viewpoint_list) < 3:
+            viewpoint_list.append(-1)
+        return tuple(viewpoint_list)
 
 
 def _resize(image, t_width=None, t_height=None):

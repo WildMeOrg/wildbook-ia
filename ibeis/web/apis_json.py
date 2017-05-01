@@ -775,6 +775,12 @@ def get_annot_yaws_json(ibs, annot_uuid_list):
     return ibs.get_annot_yaws(aid_list)
 
 
+@register_api('/api/annot/viewpoint/json/', methods=['GET'])
+def get_annot_viewpoints_json(ibs, annot_uuid_list):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_viewpoints(aid_list)
+
+
 @register_api('/api/annot/num/vert/json/', methods=['GET'])
 def get_annot_num_verts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
@@ -898,6 +904,12 @@ def get_annot_quality_texts_json(ibs, annot_uuid_list):
 def get_annot_yaw_texts_json(ibs, annot_uuid_list):
     aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
     return ibs.get_annot_yaw_texts(aid_list)
+
+
+@register_api('/api/annot/viewpoint/text/json/', methods=['GET'])
+def get_annot_viewpoint_texts_json(ibs, annot_uuid_list):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.get_annot_viewpoint_texts(aid_list)
 
 
 @register_api('/api/annot/sex/json/', methods=['GET'])

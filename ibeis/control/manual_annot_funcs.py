@@ -39,6 +39,7 @@ ANNOT_THETA              = 'annot_theta'
 ANNOT_VERTS              = 'annot_verts'
 ANNOT_UUID               = 'annot_uuid'
 ANNOT_YAW                = 'annot_yaw'
+ANNOT_VIEWPOINT          = 'annot_viewpoint'
 ANNOT_VISUAL_UUID        = 'annot_visual_uuid'
 CONFIG_ROWID             = 'config_rowid'
 FEATWEIGHT_ROWID         = 'featweight_rowid'
@@ -49,6 +50,7 @@ ANNOT_EXEMPLAR_FLAG      = 'annot_exemplar_flag'
 ANNOT_QUALITY            = 'annot_quality'
 ANNOT_ROWIDS             = 'annot_rowids'
 GAR_ROWID                = 'gar_rowid'
+PART_ROWID               = 'part_rowid'
 
 SemanticInfoTup = namedtuple('SemanticInfoTup', ('image_uuid', 'verts',
                                                  'theta', 'yaw', 'name',
@@ -1514,8 +1516,7 @@ def get_annot_rotated_verts(ibs, aid_list):
 #@profile
 def get_annot_yaws(ibs, aid_list, assume_unique=False):
     r"""
-    A yaw is the yaw of the annotation in radians
-    Viewpoint yaw is inverted. Will be fixed soon.
+    A yaw is the yaw of the annotation in radians yaw is inverted. Will be fixed soon.
 
     The following views have these angles of yaw:
         left side  - 0.50 tau radians
@@ -1562,6 +1563,22 @@ def get_annot_yaws(ibs, aid_list, assume_unique=False):
 
 @register_ibs_method
 @accessor_decors.getter_1to1
+@register_api('/api/annot/viewpoint/', methods=['GET'])
+def get_annot_viewpoints(ibs, aid_list, assume_unique=False):
+    r"""
+    Returns:
+        viewpoint_text (list): the viewpoint for the annotation
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/viewpoint/
+    """
+    viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list, assume_unique=assume_unique)
+    return viewpoint_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
 def get_annot_yaws_asfloat(ibs, aid_list):
     r"""
     Ensures that Nones are returned as nans
@@ -1595,8 +1612,7 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     r"""
     Sets the  yaw of a list of chips by aid
 
-    A yaw is the yaw of the annotation in radians
-    Viewpoint yaw is inverted. Will be fixed soon.
+    A yaw is the yaw of the annotation in radians yaw is inverted. Will be fixed soon.
 
     Note:
         The following views have these angles of yaw:
@@ -1625,6 +1641,37 @@ def set_annot_yaws(ibs, aid_list, yaw_list, input_is_degrees=False):
     ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_YAW,), val_iter, id_iter)
     ibs.update_annot_visual_uuids(aid_list)
     ibs.depc_annot.notify_root_changed(aid_list, 'yaws')
+    # Also set the annotation's viewpoints
+    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+    ibs.set_annot_viewpoints(aid_list, viewpoint_list, _yaw_update=False)
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/viewpoint/', methods=['PUT'])
+def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
+                         _yaw_update=False):
+    r"""
+    Sets the viewpoint of the annotation
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/viewpoint/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    if only_allow_known:
+        current_viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+        zipped = zip(viewpoint_list, current_viewpoint_list)
+        viewpoint_list = [
+            viewpoint if viewpoint in const.YAWALIAS else current_viewpoint
+            for viewpoint, current_viewpoint in zipped
+        ]
+    val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)
+    ibs.db.set(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), val_iter, id_iter)
+    # Set yaws, if in the correct plane, else None
+    yaw_list = ut.dict_take(const.VIEWTEXT_TO_YAW_RADIANS, viewpoint_list, None)
+    if _yaw_update:
+        ibs.set_annot_yaws(aid_list, yaw_list)
 
 
 @register_ibs_method
@@ -1736,6 +1783,38 @@ def get_annot_parent_aid(ibs, aid_list):
     """
     annot_parent_rowid_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_PARENT_ROWID,), aid_list)
     return annot_parent_rowid_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
+@register_api('/api/annot/part/rowid/', methods=['GET'])
+def get_annot_part_rowids(ibs, aid_list):
+    r"""
+    Returns:
+        list_ (list): a list of part rowids for each image by aid
+
+    Args:
+        ibs (IBEISController):  ibeis controller object
+        aid_list (list):
+
+    Returns:
+        list: part_rowids_list
+
+    RESTful:
+        Method: GET
+        URL:    /api/annot/part/rowid/
+    """
+    # FIXME: This index should when the database is defined.
+    # Ensure that an index exists on the image column of the annotation table
+    ibs.db.connection.execute(
+        '''
+        CREATE INDEX IF NOT EXISTS aid_to_part_rowids ON parts (annot_rowid);
+        ''').fetchall()
+    # The index maxes the following query very efficient
+    aids_list = ibs.db.get(ibs.const.PART_TABLE, (PART_ROWID,),
+                           aid_list, id_colname=ANNOT_ROWID,
+                           unpack_scalars=False)
+    return aids_list
 
 
 @register_ibs_method
@@ -2243,7 +2322,7 @@ def get_annot_visual_uuid_info(ibs, aid_list):
 def get_annot_semantic_uuid_info(ibs, aid_list, _visual_infotup=None):
     r"""
     Semenatic uuids are made up of visual and semantic information. Semantic
-    information is name, species, viewpoint.  Visual info is image uuid, verts,
+    information is name, species, yaw.  Visual info is image uuid, verts,
     and theta
 
     Args:
@@ -3426,7 +3505,7 @@ def get_annot_multiple(ibs, aid_list):
 
 @register_ibs_method
 @accessor_decors.setter
-@register_api('/api/annot/mutiple/', methods=['PUT'])
+@register_api('/api/annot/multiple/', methods=['PUT'])
 def set_annot_multiple(ibs, aid_list, flag_list):
     r"""
     Sets the annot all instances found bit
@@ -3438,6 +3517,46 @@ def set_annot_multiple(ibs, aid_list, flag_list):
     id_iter = ((aid,) for aid in aid_list)
     val_list = ((flag,) for flag in flag_list)
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_multiple',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+@register_api('/api/annot/interest/', methods=['GET'])
+def get_annot_interest(ibs, aid_list):
+    r"""
+    RESTful:
+        Method: GET
+        URL:    /api/annot/interest/
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.control.manual_annot_funcs import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb(defaultdb='testdb1')
+        >>> aid_list = ibs.get_valid_aids()
+        >>> flag_list = get_annot_interest(ibs, aid_list)
+        >>> result = ('flag_list = %s' % (ut.repr2(flag_list),))
+        >>> print(result)
+    """
+    flag_list = ibs.db.get(const.ANNOTATION_TABLE, ('annot_toggle_interest',), aid_list)
+    flag_list = [None if flag is None else bool(flag) for flag in flag_list]
+    return flag_list
+
+
+@register_ibs_method
+@accessor_decors.setter
+@register_api('/api/annot/interest/', methods=['PUT'])
+def set_annot_interest(ibs, aid_list, flag_list):
+    r"""
+    Sets the annot all instances found bit
+
+    RESTful:
+        Method: PUT
+        URL:    /api/annot/interest/
+    """
+    id_iter = ((aid,) for aid in aid_list)
+    val_list = ((flag,) for flag in flag_list)
+    ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_interest',), val_list, id_iter)
 
 
 #==========

@@ -37,9 +37,9 @@
       <br/>
       <form method="post" action="{{ url_for('submit_viewpoint') }}?imgsetid={{ imgsetid }}&src_ag={{ src_ag }}&dst_ag={{ dst_ag }}&refer={{ REFER_DST_ENCODED }}">
         <input type="text" name="viewpoint-aid" value="{{ aid }}" style="display: none;" readonly>
-        Degrees: <span id="label-degrees"></span> | Radians: <span id="label-radians1"></span> (&pi; * <span id="label-radians2"></span>)
+        Viewpoint: <span id="ia-viewpoint-label-text"></span>
         <br/>
-        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value %}{{ value }}{% else %}0{% endif %}" min="0" max="359" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+        <input type="range" name="viewpoint-value" id="slider-viewpoint" value="{% if value %}{{ value }}{% else %}0{% endif %}" min="0" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
         <div class="row-custom-expand">
           <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
           <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>

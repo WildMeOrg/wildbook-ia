@@ -79,7 +79,7 @@ def simple_code(label):
 
 
 @register_ibs_method
-def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=False,
+def export_to_xml(ibs, offset='auto', enforce_viewpoint=False, target_size=900, purge=False,
                   use_maximum_linear_dimension=True, use_existing_train_test=True, **kwargs):
     """
     Creates training XML for training models
@@ -125,7 +125,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=
 
     print('Exporting %d images' % (len(gid_list),))
     for gid in gid_list:
-        yawed = True
+        viewpointed = True
         aid_list = ibs.get_image_aids(gid)
         image_uri = ibs.get_image_uris(gid)
         image_path = ibs.get_image_paths(gid)
@@ -184,11 +184,11 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=
                 # Get info
                 info = {}
                 species_name = ibs.get_annot_species_texts(aid)
-                yaw = ibs.get_annot_yaws(aid)
-                if yaw != -1 and yaw is not None:
-                    info['pose'] = '%0.06f' % (yaw, )
+                viewpoint = ibs.get_annot_viewpoint(aid)
+                if viewpoint != -1 and viewpoint is not None:
+                    info['pose'] = viewpoint
                 else:
-                    yawed = False
+                    viewpointed = False
                     print("UNVIEWPOINTED: %d " % gid)
                 annotation.add_object(
                     species_name, (xmax, xmin, ymax, ymin), **info)
@@ -208,7 +208,7 @@ def export_to_xml(ibs, offset='auto', enforce_yaw=False, target_size=900, purge=
                 raise AssertionError('All gids must be either in the TRAIN_SET or TEST_SET imagesets')
 
             # Write XML
-            if True or not enforce_yaw or yawed:
+            if True or not enforce_viewpoint or viewpointed:
                 print("Copying:\n%r\n%r\n%r\n\n" % (
                     image_path, dst_img, (width, height), ))
                 xml_data = open(dst_annot, 'w')
@@ -311,7 +311,7 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
         distro_dict[total] += 1
         for aid in aid_list:
             species = ibs.get_annot_species_texts(aid)
-            viewpoint = ibs.get_annot_yaw_texts(aid)
+            viewpoint = ibs.get_annot_viewpoints(aid)
             if species not in species_dict:
                 species_dict[species] = {}
             if viewpoint not in species_dict[species]:
@@ -327,7 +327,7 @@ def localizer_distributions(ibs, threshold=10, dataset=None):
         print('Species viewpoint distribution: %r' % (species, ))
         viewpoint_dict = species_dict[species]
         total = 0
-        for viewpoint in const.VIEWTEXT_TO_YAW_RADIANS:
+        for viewpoint in const.VIEWTEXT_TO_VIEWPOINT_RADIANS:
             count = viewpoint_dict.get(viewpoint, 0)
             print('{:>15}: {:>5}'.format(viewpoint, count))
             total += count
@@ -643,7 +643,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
                 'class'      : ibs.get_annot_species_texts(aid),
-                'viewpoint'  : ibs.get_annot_yaw_texts(aid),
+                'viewpoint'  : ibs.get_annot_viewpoints(aid),
                 'confidence' : 1.0,
             }
             gt_list.append(temp)
@@ -2186,24 +2186,24 @@ def labeler_tp_tn_fp_fn(ibs, category_list, samples=SAMPLES, **kwargs):
     test_gid_set = list(test_gid_set)
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
-    # Get annot species and yaws
+    # Get annot species and viewpoints
     species_list = ibs.get_annot_species_texts(aid_list)
-    yaw_list = ibs.get_annot_yaw_texts(aid_list)
-    # Filter aids with species of interest and undefined yaws
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
+    # Filter aids with species of interest and undefined viewpoints
     flag_list = [
-        species in category_list and yaw is None
-        for species, yaw in zip(species_list, yaw_list)
+        species in category_list and viewpoint is None
+        for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     flag_list = ut.not_list(flag_list)
     if False in flag_list:
         aid_list = ut.compress(aid_list, flag_list)
-        # Get new species and yaws
-        yaw_list = ibs.get_annot_yaw_texts(aid_list)
+        # Get new species and viewpoints
+        viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         species_list = ibs.get_annot_species_texts(aid_list)
     # Make ground-truth
     label_list = [
-        '%s:%s' % (species, yaw, ) if species in category_list else 'ignore'
-        for species, yaw in zip(species_list, yaw_list)
+        '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
+        for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     # Get predictions
     probability_dict_list = depc.get_property('labeler', aid_list, 'probs')
@@ -2292,17 +2292,17 @@ def labeler_confusion_matrix_algo_plot(ibs, category_list, label, color, **kwarg
     aids_list = ibs.get_image_aids(test_gid_set)
     aid_list = ut.flatten(aids_list)
     species_list = ibs.get_annot_species_texts(aid_list)
-    yaw_list = ibs.get_annot_yaw_texts(aid_list)
+    viewpoint_list = ibs.get_annot_viewpoints(aid_list)
     label_list = [
-        '%s:%s' % (species, yaw, ) if species in category_list else 'ignore'
-        for species, yaw in zip(species_list, yaw_list)
+        '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
+        for species, viewpoint in zip(species_list, viewpoint_list)
     ]
     conf_list = depc.get_property('labeler', aid_list, 'score')
     species_list = depc.get_property('labeler', aid_list, 'class')
-    yaw_list = depc.get_property('labeler', aid_list, 'viewpoint')
+    viewpoint_list = depc.get_property('labeler', aid_list, 'viewpoint')
     prediction_list = [
-        '%s:%s' % (species, yaw, ) if species in category_list else 'ignore'
-        for species, yaw in zip(species_list, yaw_list)
+        '%s:%s' % (species, viewpoint, ) if species in category_list else 'ignore'
+        for species, viewpoint in zip(species_list, viewpoint_list)
     ]
 
     category_list = map(simple_code, category_list)
@@ -2437,7 +2437,7 @@ def detector_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'width'      : bbox[2] / width,
                 'height'     : bbox[3] / height,
                 'class'      : ibs.get_annot_species_texts(aid),
-                'viewpoint'  : ibs.get_annot_yaw_texts(aid),
+                'viewpoint'  : ibs.get_annot_viewpoints(aid),
                 'confidence' : 1.0,
             }
             gt_list.append(temp)

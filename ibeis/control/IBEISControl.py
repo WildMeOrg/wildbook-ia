@@ -73,6 +73,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.control.manual_gsgrelate_funcs',
     'ibeis.control.manual_garelate_funcs',
     'ibeis.control.manual_annot_funcs',
+    'ibeis.control.manual_part_funcs',
     'ibeis.control.manual_name_funcs',
     'ibeis.control.manual_review_funcs',
     'ibeis.control.manual_species_funcs',
@@ -565,14 +566,14 @@ class IBEISController(BASE_CLASS):
         # IBEIS SQL State Database
         #ibs.db_version_expected = '1.1.1'
         if request_dbversion is None:
-            ibs.db_version_expected = '1.6.3'
+            ibs.db_version_expected = '1.6.4'
         else:
             ibs.db_version_expected = request_dbversion
         # TODO: add this functionality to SQLController
         if backup_idx is None:
             new_version, new_fname = dtool.sql_control.dev_test_new_schema_version(
                 ibs.get_dbname(), ibs.get_ibsdir(),
-                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.6.3')
+                ibs.sqldb_fname, ibs.db_version_expected, version_next='1.6.4')
             ibs.db_version_expected = new_version
             ibs.sqldb_fname = new_fname
         if sqldb_fpath is None:
@@ -690,6 +691,7 @@ class IBEISController(BASE_CLASS):
             'name': ibs.get_annot_names,
             'species': ibs.get_annot_species,
             'yaw': ibs.get_annot_yaws,
+            'viewpoint': ibs.get_annot_viewpoints,
             'bbox': ibs.get_annot_bboxes,
             'verts': ibs.get_annot_verts,
             'image_uuid': lambda aids: ibs.get_image_uuids(ibs.get_annot_image_rowids(aids)),
