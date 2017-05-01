@@ -963,7 +963,9 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                           match_weights=None,
                           returnAff=False,
                           full_homog_checks=True,
-                          refine_method='homog'):
+                          refine_method='homog',
+                          max_nInliers=5000,
+                          ):
     """
     Driver function
     Spatially validates feature matches
@@ -983,6 +985,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         dlen_sqrd2 (float): diagonal length squared of image/chip 2
         min_nInliers (int): default=4
         returnAff (bool): returns best affine hypothesis as well
+        max_nInliers (int): homog is not considered after this threshold
 
     Returns:
         tuple : (refined_inliers, refined_errors, H, aff_inliers, aff_errors, Aff) if success else None
@@ -1075,6 +1078,13 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
                   (len(aff_inliers),))
         svtup = None
         return svtup
+
+    if len(aff_inliers) >= max_nInliers:
+        # If there are a very large number of affine inliers, then the affine
+        # matrix is probably good enough.
+        svtup = (aff_inliers, aff_errors, Aff, aff_inliers, aff_errors, Aff)
+        return svtup
+
     # Refine inliers using a projective transformation (homography)
     try:
         refined_inliers, refined_errors, H = refine_inliers(
@@ -1085,7 +1095,7 @@ def spatially_verify_kpts(kpts1, kpts2, fm,
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'numeric error in homog estimation.', iswarning=True)
         return None
-    except ValueError:
+    except ValueError as ex:
         if ut.VERYVERBOSE and ut.SUPER_STRICT:
             ut.printex(ex, 'error cv2 in homog estimation.', iswarning=True)
         return None
