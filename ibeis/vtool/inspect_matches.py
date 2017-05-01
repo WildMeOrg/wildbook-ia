@@ -57,6 +57,7 @@ def match_inspect_graph():
 
 
 class MultiMatchInspector(INSPECT_BASE):
+    # DEPRICATE
 
     def initialize(self, matches):
         self.matches = matches
@@ -166,11 +167,11 @@ class MatchInspector(INSPECT_BASE):
             self.first_show()
 
     def initialize(self, match=None, on_context=None, autoupdate=True,
-                   info_text=None):
+                   info_text=None, cfgdict=None):
         from plottool import abstract_interaction
         from guitool.__PYQT__ import QtCore
         self.set_match(match, on_context, info_text)
-        self._setup_configs()
+        self._setup_configs(cfgdict=cfgdict)
         self._setup_layout(autoupdate=autoupdate)
         abstract_interaction.register_interaction(self)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -200,7 +201,7 @@ class MatchInspector(INSPECT_BASE):
         abstract_interaction.unregister_interaction(self)
         super(MatchInspector, self).closeEvent(event)
 
-    def _setup_configs(self):
+    def _setup_configs(self, cfgdict=None):
         from vtool import matching
         import dtool
         # import pyhesaff
@@ -215,14 +216,10 @@ class MatchInspector(INSPECT_BASE):
         # ])
 
         self.featconfig = TmpFeatConfig()
-        self.featconfig_widget = self._new_config_widget(
-            self.featconfig, changed=self.on_feat_cfg_changed)
 
         TmpVsOneConfig = dtool.from_param_info_list(
             matching.VSONE_DEFAULT_CONFIG)
         self.config = TmpVsOneConfig()
-        self.config_widget = self._new_config_widget(
-            self.config, changed=self.on_cfg_changed)
 
         TmpDisplayConfig = dtool.from_param_info_list([
             ut.ParamInfo('overlay', True),
@@ -241,6 +238,18 @@ class MatchInspector(INSPECT_BASE):
             ut.ParamInfo('line_alpha', 0.35, min_=0, max_=1, hideif=':not overlay'),
         ])
         self.disp_config = TmpDisplayConfig()
+
+        if cfgdict is not None:
+            print('[inspect_match] default cfgdict = %r' % (cfgdict,))
+            self.config.update(**cfgdict)
+            self.featconfig.update(**cfgdict)
+            self.disp_config.update(**cfgdict)
+
+        # Make config widgets after setting defaults
+        self.featconfig_widget = self._new_config_widget(
+            self.featconfig, changed=self.on_feat_cfg_changed)
+        self.config_widget = self._new_config_widget(
+            self.config, changed=self.on_cfg_changed)
         self.disp_config_widget = self._new_config_widget(
             self.disp_config, changed=self.on_cfg_changed)
 

@@ -489,7 +489,14 @@ class PairwiseMatch(ut.NiceRepr):
 
         if 'global(gps_delta)' in feat and 'global(time_delta)' in feat:
             hour_delta = feat['global(time_delta)'] / 360
-            feat['global(speed)'] = feat['global(gps_delta)'] / hour_delta
+            km_delta = feat['global(gps_delta)']
+            if hour_delta == 0:
+                if km_delta == 0:
+                    feat['global(speed)'] = 0
+                else:
+                    feat['global(speed)'] = np.nan
+            else:
+                feat['global(speed)'] = km_delta / hour_delta
         return feat
 
     def _make_local_summary_feature_vector(match, local_keys=None,
