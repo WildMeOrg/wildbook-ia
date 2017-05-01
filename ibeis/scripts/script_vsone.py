@@ -126,6 +126,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params['vsone_match']['ratio_thresh'] = maxbin
         hyper_params['vsone_match']['sv_on'] = True
 
+        if False:
+            # For giraffes
+            hyper_params['vsone_match']['checks'] = 80
+            hyper_params['vsone_match']['sver_xy_thresh'] = .02
+            hyper_params['vsone_match']['sver_ori_thresh'] = 3
+
         species = infr.ibs.get_primary_database_species()
         if species == 'zebra_plains' or True:
             hyper_params['vsone_match']['Knorm'] = 3
@@ -435,6 +441,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             cacher.save(data)
         simple_scores, X_all = data
         assert X_all.index.tolist() == aid_pairs, 'index disagrees'
+
+        # hack to fix feature validity
+        if np.any(np.isinf(X_all['global(speed)'])):
+            flags = np.isinf(X_all['global(speed)'])
+            numer = X_all.loc[flags, 'global(gps_delta)']
+            denom = X_all.loc[flags, 'global(time_delta)']
+            newvals = np.full(len(numer), np.nan)
+            newvals[(numer == 0) & (denom == 0)] = 0
+            X_all.loc[flags, 'global(speed)'] = newvals
+
         pblm.raw_X_dict = {'learn(all)': X_all}
         pblm.raw_simple_scores = simple_scores
         # simple_scores=,
@@ -448,6 +464,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         CommandLine:
             python -m ibeis.scripts.script_vsone evaluate_classifiers
             python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GIRM_Master1
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
@@ -1318,7 +1335,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm = OneVsOneProblem.from_empty('GIRM_Master1')
             >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
             >>> pblm.evaluate_classifiers()
             >>> win = pblm.qt_review_hardcases()
@@ -1398,13 +1416,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.prioritize('hardness', unsure_cases['hardness'].to_dict(), reset=True)
         infr.apply_nondynamic_update()
 
-        if False:
-            pccs = list(infr.non_pos_redundant_pccs())
-            pccs = ut.sortedby(pccs, ut.lmap(len, pccs))
-            pcc = pccs[-1]
-            aug_edges = infr.find_pos_augment_edges(pcc)
-            infr.add_new_candidate_edges(aug_edges)
-        win = infr.qt_review_loop()
+        cfgdict = pblm.hyper_params['vsone_match'].asdict()
+        cfgdict.update(pblm.hyper_params['vsone_kpts'].asdict())
+
+        win = infr.qt_review_loop(cfgdict=cfgdict)
         # gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
         return win
 

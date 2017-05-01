@@ -270,8 +270,10 @@ class SpatialVerifyConfig(ConfigBase):
         sv_cfg.ori_thresh = tau / 4.0
         sv_cfg.min_nInliers = 4
         sv_cfg.full_homog_checks = True
-        sv_cfg.nNameShortlistSVER = 50
-        sv_cfg.nAnnotPerNameSVER = 6
+        # sv_cfg.nNameShortlistSVER = 50
+        sv_cfg.nNameShortlistSVER = 40
+        # sv_cfg.nAnnotPerNameSVER = 6
+        sv_cfg.nAnnotPerNameSVER = 3
         #sv_cfg.prescore_method = 'csum'
         sv_cfg.prescore_method = 'nsum'
         sv_cfg.use_chip_extent = True  # BAD CONFIG?

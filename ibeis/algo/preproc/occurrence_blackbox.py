@@ -413,7 +413,7 @@ def _cluster_part(X_part, dist_func, columns, thresh_sec, km_per_sec):
         chunk_labels = []
         chunk_idxs = list(_chunk_time(X_part, thresh_sec))
         for idxs in chunk_idxs:
-            print('Doing occurrence chunk {}'.format(len(idxs)))
+            # print('Doing occurrence chunk {}'.format(len(idxs)))
             X_chunk = X_part.take(idxs, axis=0)
             labels = _cluster_chunk(X_chunk, dist_func, thresh_sec)
             chunk_labels.append((labels, idxs))

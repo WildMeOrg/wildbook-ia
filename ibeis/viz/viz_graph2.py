@@ -61,7 +61,8 @@ class AnnotPairDialog(gt.GuitoolWidget):
     request = QtCore.pyqtSignal(tuple)
 
     def initialize(self, edge=None, infr=None, ibs=None, info_text=None,
-                   get_index_data=None, total=None, standalone=True):
+                   get_index_data=None, total=None,
+                   cfgdict=None, standalone=True):
 
         from ibeis.gui import inspect_gui
         self.infr = infr
@@ -81,7 +82,7 @@ class AnnotPairDialog(gt.GuitoolWidget):
             with_confirm=False)
 
         self.tuner = inspect_gui.make_vsone_tuner(
-            ibs, autoupdate=False, info_text=info_text)
+            ibs, autoupdate=True, cfgdict=cfgdict, info_text=info_text)
 
         splitter = self.addNewSplitter(ori='horiz')
         splitter.addWidget(self.tuner)
@@ -154,6 +155,8 @@ class AnnotPairDialog(gt.GuitoolWidget):
                 'Next', pressed=lambda: self.step_by(1))
             self.next_but.setEnabled(False)
 
+        self.last_external = True
+
         if edge is not None:
             self.set_edge(edge, info_text)
 
@@ -205,18 +208,22 @@ class AnnotPairDialog(gt.GuitoolWidget):
             self.goto_next()
         else:
             need_next = (self.count + 1) == self.total
+            if self.last_external:
+                # always request next even if external
+                # alg sent you back to rereview.
+                need_next = True
             self.accepted.emit(feedback, need_next)
             if not need_next:
                 self.goto_next()
-
 
     def goto_next(self):
         if self.count is not None:
             # Move to the next item
             self.step_by(1)
 
-    def set_edge(self, edge, info_text=None):
+    def set_edge(self, edge, info_text=None, external=True):
         print('set edge = %r' % (edge,))
+        self.last_external = external
         self.history.add(edge)
         assert edge in self.history
         if not self.standalone:

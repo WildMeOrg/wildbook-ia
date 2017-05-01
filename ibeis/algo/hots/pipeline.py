@@ -1380,31 +1380,6 @@ def spatial_verification(qreq_, cm_list_FILT, verbose=VERB_PIPELINE):
         >>> #aff_tup = (aff_inliers, Aff)
         >>> #pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup, homog_tup=homog_tup, refine_method=refine_method)
         >>> ut.show_if_requested()
-
-    Ignore:
-        idx = cm.daid2_idx[gt_daids[0]]
-        idxSV = cmSV.daid2_idx[gt_daids[0]]
-        cm.fm_list[idx]
-        cmSV.fm_list[idxSV]
-        cmSV.H_list[idxSV]
-
-    Ignore:
-        #print("NEIGHBOR HASH")
-        #print(ut.hashstr(str(nns_list)))  # nondetermenism check
-        # Find non-determenism
-        python -m ibeis.dev -t custom:checks=100,sv_on=True   --db PZ_MTEST --rank-lt-list=1,5 --qaids=50,53 --nocache-hs --print-rowscore
-        It is not here
-        xn@c0v7bm7kr++jq - 9
-        xn@c0v7bm7kr++jq - 2
-        # somewhere in sver
-        #ut.hashstr27(str([cm.fsv_list for cm in cm_list]))
-        # cemglnqifyonhnnk
-        #ut.hashstr27(str([cm.fsv_list for cm in cm_list_SVER]))
-        # rcchbmgovmndlzuo
-        #kpts1 = kpts1.astype(np.float64)
-        #kpts2 = kpts2.astype(np.float64)
-        #print(sv_tup[0])
-        #print(sv_tup[3])
     """
     cm_list = cm_list_FILT
     if not qreq_.qparams.sv_on or qreq_.qparams.xy_thresh is None:
@@ -1445,6 +1420,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     cm_progiter = ut.ProgressIter(cm_shortlist, nTotal=len(cm_shortlist),
                                   prog_hook=prog_hook, lbl=SVER_LVL, **PROGKW)
+
     cm_list_SVER = [sver_single_chipmatch(qreq_, cm) for cm in cm_progiter]
     # rescore after verification?
     return cm_list_SVER
@@ -1561,7 +1537,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
     refine_method         = qreq_.qparams.refine_method
     sver_output_weighting = qreq_.qparams.sver_output_weighting
     # Precompute sver cmtup_old
-    kpts1 = qreq_.get_qreq_qannot_kpts(qaid)
+    kpts1 = qreq_.get_qreq_qannot_kpts(qaid).astype(np.float64)
     kpts2_list = qreq_.get_qreq_dannot_kpts(cm.daid_list)
 
     if use_chip_extent:
@@ -1589,6 +1565,23 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
             # skip results without any matches
             sv_tup = None
         else:
+
+            # sver_testdata = dict(
+            #     kpts1=kpts1,
+            #     kpts2=kpts2,
+            #     fm=fm,
+            #     xy_thresh=xy_thresh,
+            #     scale_thresh=scale_thresh,
+            #     ori_thresh=ori_thresh,
+            #     dlen_sqrd2=dlen_sqrd2,
+            #     min_nInliers=min_nInliers,
+            #     match_weights=match_weights,
+            #     full_homog_checks=full_homog_checks,
+            #     refine_method=refine_method
+            # )
+
+            # locals().update(ut.load_data('sver_testdata.pkl'))
+
             try:
                 # Compute homography from chip2 to chip1 returned homography
                 # maps image1 space into image2 space image1 is a query chip
@@ -1608,7 +1601,6 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
     # <SENTINAL>
 
     # New way
-    #if True:
     inliers_list = []
     for sv_tup in svtup_list:
         if sv_tup is None:

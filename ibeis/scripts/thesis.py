@@ -9,57 +9,48 @@ import matplotlib as mpl
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 
 TMP_RC = {
-    'legend.fontsize': 18,
-    'axes.titlesize': 18,
-    'axes.labelsize': 18,
-    'legend.facecolor': 'w',
+    'axes.titlesize': 14,
+    'axes.labelsize': 14,
     'font.family': 'DejaVu Sans',
     'xtick.labelsize': 14,
     'ytick.labelsize': 14,
+    # 'legend.fontsize': 18,
+    # 'legend.alpha': .8,
+    'legend.fontsize': 14,
+    'legend.facecolor': 'w',
 }
+
+W, H = 7.4375, 3.125
+W, H = W * 1.25, H * 1.25
 
 
 @ut.reloadable_class
 class Chap3(object):
     """
     """
-    def __init__(self):
+    def __init__(self, dbname=None):
         self.base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
-        self.dbname = None
+        self.dbname = dbname
         self.expt_results = {}
         self.ibs = None
+        if dbname is not None:
+            self.dpath = join(self.base_dpath, self.dbname)
+            ut.ensuredir(self.dpath)
 
-    @classmethod
-    def collect(Chap3, dbname=None, init=False):
+    def _precollect(self):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> defaultdb = 'PZ_Master1'
-            >>> defaultdb = 'GZ_Master1'
-            >>> self = Chap3.collect('GZ_Master1')
-            >>> self = Chap3.collect('PZ_MTEST')
-            >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
-            >>> self = Chap3.collect('PZ_Master1')
+            >>> self = Chap3('GZ_Master1')
+            >>> self = Chap3('GIRM_Master1')
+            >>> self = Chap3('PZ_MTEST')
+            >>> self = Chap3('PZ_PB_RF_TRAIN')
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
         """
         import ibeis
-
-        self = Chap3()
-        if dbname is None:
-            self.dbdir = ibeis.sysres.get_args_dbdir()
-            self.dbname = basename(self.dbdir)
-        else:
-            self.dbname = dbname
-
-        self.dpath = join(self.base_dpath, self.dbname)
-        ut.ensuredir(self.dpath)
-        # ut.vd(self.dpath)
-        if init:
-            self._precollect()
-        return self
-
-    def _precollect(self):
-        import ibeis
         from ibeis.init import main_helpers
+        self.dbdir = ibeis.sysres.lookup_dbdir(self.dbname)
         ibs = ibeis.opendb(dbdir=self.dbdir)
         if ibs.dbname.startswith('PZ_Master'):
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
@@ -108,23 +99,6 @@ class Chap3(object):
                 times = a.image_unixtimes_asfloat
                 deltas.append(max(times) - min(times))
             ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
-
-    def _inputs_old(self):
-        from ibeis.init.filter_annots import encounter_crossval
-        # Sample a dataset
-        ibs = self.ibs
-        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
-        #                                       view='primary')
-        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
-        aids = self.aids_pool
-        expanded_aids = encounter_crossval(self.ibs, aids, qenc_per_name=1,
-                                           annots_per_enc=1, denc_per_name=1,
-                                           rebalance=True, rng=0)
-        qaids, daids = expanded_aids[0]
-        # if True:
-        #     print_cfg = dict(per_multiple=False, use_hist=False)
-        #     ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
-        return ibs, qaids, daids
 
     def _vary_dpername_inputs(self):
         from ibeis.init.filter_annots import encounter_crossval
@@ -257,7 +231,6 @@ class Chap3(object):
         return self.ibs, qaids, daids_list, info_list
 
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
-        # ibs, qaids, daids = self._inputs_old()
         # Execute the ranking algorithm
         qaids = sorted(qaids)
         daids = sorted(daids)
@@ -290,11 +263,16 @@ class Chap3(object):
         cdfs_trunc = cdfs[:, 0:num_ranks]
         label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
                       for cdf, lbl in zip(cdfs_trunc, labels)]
+
+        ymin = .4
+        num_yticks = (10 - int(ymin * 10)) + 1
+
         pt.multi_plot(
             xdata, cdfs_trunc, label_list=label_list,
             xlabel='rank', ylabel='match probability',
-            use_legend=True, legend_loc='lower right', num_yticks=6, ymax=1,
-            ymin=.5, ypad=.005, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+            use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
+            ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
+            xmax=num_ranks + 1 - .5,
             pnum=pnum, fnum=fnum,
             rcParams=TMP_RC,
         )
@@ -303,7 +281,7 @@ class Chap3(object):
         fig = pt.figure(fnum=fnum)
         self.plot_cmcs(cdfs, labels, fnum=fnum)
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        fig.set_size_inches([7.4375,  3.125])
+        fig.set_size_inches([W, H])
         return fig
 
     def measure_baseline(self):
@@ -458,25 +436,27 @@ class Chap3(object):
 
         Example:
             from ibeis.scripts.thesis import *
-            self = Chap3.collect('PZ_Master1', init=False)
+            self = Chap3('PZ_Master1')
             self.measure_all()
 
         Example:
             from ibeis.scripts.thesis import *
-            self = Chap3.collect('GZ_Master1', init=False)
+            self = Chap3('GZ_Master1')
             self.measure_all()
 
         Example:
             from ibeis.scripts.thesis import *
-            self = Chap3.collect('GIRM_Master1', init=False)
+            self = Chap3('GIRM_Master1')
             self.measure_all()
+            self.draw_all()
 
         self = Chap3.collect('PZ_Master0')
         """
         if self.ibs is None:
             self._precollect()
         self.measure_baseline()
-        self.measure_foregroundness()
+        if self.dbname != 'GIRM_Master1':
+            self.measure_foregroundness()
         self.measure_smk()
         self.measure_nsum()
         self.measure_dbsize()
@@ -485,15 +465,16 @@ class Chap3(object):
 
     def draw_all(self):
         """
-        from ibeis.scripts.thesis import *
-        import ibeis
-        self = Chap3('GZ_Master1')
-        self = Chap3('PZ_Master1')
-        self.draw_all()
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_all --db GZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_all --db PZ_Master1
 
-        self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb='PZ_MTEST')
-        self.dbname = basename(self.dbdir)
-        self.dpath = join(self.base_dpath, self.dbname)
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> self = Chap3(dbname)
+            >>> self.draw_all()
         """
         import plottool as pt
 
@@ -511,13 +492,14 @@ class Chap3(object):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
 
         expt_name = 'foregroundness'
-        cdf = self.expt_results[expt_name][0][0]
-        baseline_cdf = self.expt_results['baseline'][0][0]
-        cdfs = [cdf, baseline_cdf]
-        labels = ['fg=F', 'fg=T (baseline)']
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
+        if expt_name in self.expt_results:
+            cdf = self.expt_results[expt_name][0][0]
+            baseline_cdf = self.expt_results['baseline'][0][0]
+            cdfs = [cdf, baseline_cdf]
+            labels = ['fg=F', 'fg=T (baseline)']
+            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
 
         expt_name = 'invar'
         ALIAS_KEYS = ut.invert_dict({
@@ -577,7 +559,7 @@ class Chap3(object):
             ax = pt.gca()
             ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
         pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.4, wspace=.2)
-        fig.set_size_inches([7.4375 * 2,  3.125 * 2])
+        fig.set_size_inches([W * 2, H * 2])
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
 
@@ -961,7 +943,7 @@ class Chap4(object):
             # title='LNBNN positive separation'
         )
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        fig.set_size_inches([7.4375,  3.125])
+        fig.set_size_inches([W, H])
         return fig
 
     def draw_class_score_hist(self):
@@ -993,7 +975,7 @@ class Chap4(object):
         # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
         ax.legend()
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        fig.set_size_inches([7.4375,  3.125])
+        fig.set_size_inches([W, H])
 
         fname = 'roc_{}.png'.format(task_key)
         self.savefig(fig, str(self.dpath.joinpath(fname)))

@@ -840,7 +840,8 @@ def get_aidpair_context_menu_options(ibs, aid1, aid2, cm, qreq_=None,
     return options
 
 
-def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True, info_text=None):
+def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True,
+                     info_text=None, cfgdict=None):
     """
     Makes a qt widget for inspecting one-vs-one matches
 
@@ -864,11 +865,16 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True, info_text=None
     from vtool import inspect_matches
     import vtool as vt
 
+    if cfgdict is not None:
+        assert qreq_ is None, 'specify only one cfg or qreq_'
+    else:
+        cfgdict = {}
+
     def set_edge(self, edge, info_text=None):
         aid1, aid2 = edge
         if qreq_ is None:
             qreq2_ = ibs.new_query_request(
-                [aid1], [aid2], cfgdict={}, verbose=False)
+                [aid1], [aid2], cfgdict=cfgdict, verbose=False)
         else:
             qreq2_ = ibs.new_query_request(
                 [aid1], [aid2], cfgdict=qreq_.qparams, verbose=False)
@@ -884,7 +890,8 @@ def make_vsone_tuner(ibs, edge=None, qreq_=None, autoupdate=True, info_text=None
                 ibs, aid1, aid2, None)
         self.set_match(match, on_context, info_text)
 
-    self = inspect_matches.MatchInspector(autoupdate=autoupdate)
+    self = inspect_matches.MatchInspector(autoupdate=autoupdate,
+                                          cfgdict=cfgdict)
     ut.inject_func_as_method(self, set_edge)
     if edge is not None:
         self.set_edge(edge, info_text)

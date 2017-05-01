@@ -316,7 +316,7 @@ class InfrReviewers(object):
             infr.emit_manual_review(edge, priority)
             return None
 
-    def qt_review_loop(infr):
+    def qt_review_loop(infr, cfgdict=None):
         r"""
         TODO: The loop parts should be a non-mixin class
 
@@ -332,10 +332,11 @@ class InfrReviewers(object):
             >>> ibs = ibeis.opendb('PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.ensure_mst()
+            >>> cfgdict = {'ratio_thresh': .8, 'sv_on': False}
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
             >>> infr.enable_redundancy = False
-            >>> win = infr.qt_review_loop()
+            >>> win = infr.qt_review_loop(cfgdict=cfgdict)
             >>> import guitool as gt
             >>> gt.qtapp_loop(qwin=win, freq=10)
         """
@@ -343,7 +344,7 @@ class InfrReviewers(object):
         gt.ensure_qapp()
         from ibeis.viz import viz_graph2
         infr.manual_wgt = viz_graph2.AnnotPairDialog(
-            infr=infr, standalone=False)
+            infr=infr, standalone=False, cfgdict=cfgdict)
         infr.manual_wgt.accepted.connect(infr.on_accept)
         infr.manual_wgt.skipped.connect(infr.continue_review)
         infr.manual_wgt.request.connect(infr.emit_manual_review)
@@ -359,7 +360,7 @@ class InfrReviewers(object):
         )
         info_text = 'priority=%r' % (priority,)
         info_text += '\n' + ut.repr4(edge_data)
-        infr.manual_wgt.set_edge(edge, info_text)
+        infr.manual_wgt.set_edge(edge, info_text, external=True)
         infr.manual_wgt.show()
 
     def continue_review(infr):
