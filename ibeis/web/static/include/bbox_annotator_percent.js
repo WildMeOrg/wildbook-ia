@@ -569,6 +569,8 @@ TODO
             options.limits.bounds.y          !== undefined || (options.limits.bounds.y = {})
             options.limits.bounds.y.min      !== undefined || (options.limits.bounds.y.min = 50)
             options.limits.bounds.y.max      !== undefined || (options.limits.bounds.y.max = 50)
+            options.confirm                  !== undefined || (options.confirm = {})
+            options.confirm.delete           !== undefined || (options.confirm.delete = true)
             options.onload                   !== undefined || (options.onload = null)
             options.onadd                    !== undefined || (options.onadd = null)
             options.onselector               !== undefined || (options.onselector = null)
@@ -694,6 +696,49 @@ TODO
             }
         }
 
+        BBoxAnnotator.prototype.delete_entry_interaction = function(index) {
+            entry = bba.entries[index]
+            if(event.shiftKey && entry.parent == null) {
+                if (this.options.confirm.delete) {
+                    response = confirm("Are you sure you want to delete all sub-entries?")
+                     if ( ! response) {
+                        return
+                     }
+                }
+
+                // Recursively delete any sub-entries that belong to the parent index
+                for (var index_entry = 0; index_entry < bba.entries.length; index_entry++) {
+                    var parent
+
+                    parent = bba.entries[index_entry].parent
+                    if (parent != null && parent == index) {
+                        index = bba.delete_entry(index_entry, index)
+                        index_entry = 0
+                    }
+                }
+            } else {
+                if (this.options.confirm.delete && entry.parent == null && entry.label != null) {
+                    response = confirm("Are you sure you want to delete this box?")
+                    if ( ! response) {
+                        return
+                    }
+                }
+
+                // Recursively delete any sub-entries that belong to the parent index
+                for (var index_entry = 0; index_entry < bba.entries.length; index_entry++) {
+                    var parent
+
+                    parent = bba.entries[index_entry].parent
+                    if (parent != null && parent == index) {
+                        index = bba.delete_entry(index_entry, index)
+                        index_entry = 0
+                    }
+                }
+
+                bba.delete_entry(index)
+            }
+        }
+
         BBoxAnnotator.prototype.register_global_key_bindings = function(selector, options) {
             var bba
 
@@ -722,41 +767,11 @@ TODO
                                 if(bba.state.hover == null) {
                                     bba.subentries_style_visible(null)
                                 }
-                            } else {
-                                entry = bba.entries[bba.state.hover]
-                                if(event.shiftKey && entry.parent == null) {
-                                    // Recursively delete any sub-entries that belong to the parent index
-                                    for (var index_entry = 0; index_entry < bba.entries.length; index_entry++) {
-                                        var parent
-
-                                        parent = bba.entries[index_entry].parent
-                                        if (parent != null && parent == bba.state.hover) {
-                                            bba.state.hover = bba.delete_entry(index_entry, bba.state.hover)
-                                            index_entry = 0
-                                        }
-                                    }
-                                } else {
-                                    bba.delete_entry(bba.state.hover)
-                                }
+                            } else if (bba.state.hover != null) {
+                                bba.delete_entry_interaction(bba.state.hover)
                             }
                         } else {
-                            if (bba.state.hover != null) {
-                                entry = bba.entries[bba.state.hover]
-                                if(event.shiftKey && entry.parent == null) {
-                                    // Recursively delete any sub-entries that belong to the parent index
-                                    for (var index_entry = 0; index_entry < bba.entries.length; index_entry++) {
-                                        var parent
-
-                                        parent = bba.entries[index_entry].parent
-                                        if (parent != null && parent == bba.state.hover) {
-                                            bba.state.hover = bba.delete_entry(index_entry, bba.state.hover)
-                                            index_entry = 0
-                                        }
-                                    }
-                                } else {
-                                    bba.delete_entry(bba.state.hover)
-                                }
-                            }
+                            bba.delete_entry_interaction(bba.state.hover)
                         }
                     }
 
@@ -1106,6 +1121,10 @@ TODO
             var indices, entry, element
 
             parent_index !== undefined || (parent_index = null)
+
+            if (index == null) {
+                return
+            }
 
             // Recursively delete any sub-entries that belong to the parent index
             for (var index_entry = 0; index_entry < this.entries.length; index_entry++) {
@@ -2936,7 +2955,7 @@ TODO
                 bba.state.mode = "close"
 
                 // Delete the entry from the annotator
-                bba.delete_entry(index)
+                bba.delete_entry_interaction(index)
             })
 
             // Register event for when the close button is selected for a specific bbox

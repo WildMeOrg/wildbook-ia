@@ -1630,11 +1630,11 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         zipped = zip(aid_list, annot_bbox_list, annot_theta_list, species_list, viewpoint_list, quality_list, multiple_list, interest_list)
         for aid, annot_bbox, annot_theta, species, viewpoint, quality, multiple, interest in zipped:
             if quality in [-1, None]:
-                quality = -1
-            elif quality > 2:
-                quality = 2
+                quality = 0
             elif quality <= 2:
                 quality = 1
+            elif quality > 2:
+                quality = 2
 
             viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(viewpoint)
 
@@ -1723,7 +1723,9 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     part_types_list = map(ibs.get_part_types, part_rowids_list)
 
     zipped = zip(part_species_text_list, part_types_list)
-    species_part_dict = {}
+    species_part_dict = {
+        const.UNKNOWN: set([])
+    }
     for part_species_text, part_type_list in zipped:
         if part_species_text not in species_part_dict:
             species_part_dict[part_species_text] = set([const.UNKNOWN])

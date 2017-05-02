@@ -129,22 +129,24 @@
         <div class="row">
           <div class="col-lg-6 col-md-6 col-sm-6">
             Quality: <span id="ia-detection-annotation-quality-label"></span>
-            <input id="ia-detection-annotation-quality" class="ia-detection-form-annotation-value" type="range" name="ia-quality-value" value="2" min="1" max="2" style="margin-bottom:5px;">
+            <input id="ia-detection-annotation-quality" class="ia-detection-form-annotation-value" type="range" name="ia-quality-value" value="0" min="0" max="2" style="margin-bottom:5px;">
             <div class="row-custom-expand">
-              <div class="col-custom-span col-custom-span-2">
+              <div class="col-custom-span col-custom-span-3">
+                <i>null</i> <span class="ia-detection-hotkey">(E)</span>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
                 <span class="glyphicon glyphicon-remove"></span> <span class="ia-detection-hotkey">(Q)</span>
               </div>
-              <div class="col-custom-span col-custom-span-2">
+              <div class="col-custom-span col-custom-span-3">
                 <span class="glyphicon glyphicon-ok"></span> <span class="ia-detection-hotkey">(W)</span>
-              </div>
-            </div>
+              </div>            </div>
           </div>
           <div class="col-lg-6 col-md-6 col-sm-6">
             <div style="text-align: right;">
-              <span class="ia-detection-hotkey">(E)</span> Multiple animals in image
-              <input id="ia-detection-annotation-multiple" class="ia-detection-form-annotation-value" name="ia-multiple-value" type="checkbox"><br/>
               <span class="ia-detection-hotkey">(I)</span> Object of Interest
               <input id="ia-detection-annotation-interest" class="ia-detection-form-annotation-value" name="ia-interest-value" type="checkbox">
+              <span class="ia-detection-hotkey">(O)</span> Multiple animals in image
+              <input id="ia-detection-annotation-multiple" class="ia-detection-form-annotation-value" name="ia-multiple-value" type="checkbox"><br/>
             </div>
           </div>
         </div>
@@ -207,13 +209,13 @@
 
         <div class="row" style="margin-top: 20px;">
           <div class="col-lg-4">
-            Part: <span class="ia-detection-hotkey">(C to cycle)</span>
+            Type: <span class="ia-detection-hotkey">(C to cycle)</span>
             <select id="ia-detection-part-class" class="form-control ia-detection-form-part-value"  name="ia-part-value" style="width: 200px;">
               {% for species_nice, species_text in species_list %}
                 <option value="{{ species_text }}">{{ species_nice }}</option>
               {% endfor %}
             </select>
-            <span class="pull-left" data-toggle="modal" data-target="#part-add" style="color: #aaa; cursor: pointer;"><i>Add Part</i></span>
+            <span class="pull-left" data-toggle="modal" data-target="#part-add" style="color: #aaa; cursor: pointer;"><i>Add Type</i></span>
           </div>
 
           <div class="col-lg-4"></div>

@@ -124,7 +124,7 @@ function show_annotation_metadata(entry) {
     entry.metadata.viewpoint1 !== undefined || (entry.metadata.viewpoint1 = -1)
     entry.metadata.viewpoint2 !== undefined || (entry.metadata.viewpoint2 = -1)
     entry.metadata.viewpoint3 !== undefined || (entry.metadata.viewpoint3 = -1)
-    entry.metadata.quality    !== undefined || (entry.metadata.quality = 2)
+    entry.metadata.quality    !== undefined || (entry.metadata.quality = 0)
     entry.metadata.species    !== undefined || (entry.metadata.species = '____')
     entry.metadata.multiple   !== undefined || (entry.metadata.multiple = false)
     entry.highlighted         !== undefined || (entry.highlighted = false)
@@ -150,7 +150,7 @@ function show_part_metadata(entry, parent_entry) {
     entry.metadata.quality        !== undefined || (invalid = true)
     entry.metadata.part           !== undefined || (invalid = true)
     entry.metadata.viewpoint1     !== undefined || (entry.metadata.viewpoint1 = -1)
-    entry.metadata.quality        !== undefined || (entry.metadata.quality = 2)
+    entry.metadata.quality        !== undefined || (entry.metadata.quality = 0)
     entry.metadata.type           !== undefined || (entry.metadata.type = '____')
     parent_entry.metadata.species !== undefined || (parent_entry.metadata.species = '____')
 
@@ -382,6 +382,13 @@ $(window).keydown(function(event) {
                 // W key pressed, good quality
                 $("#ia-detection-" + state + "-quality").val(2).trigger('change');
             } else if (key == 69) {
+                // E pressed
+                $("#ia-detection-" + state + "-quality").val(0).trigger('change');
+            } else if (key == 69) {
+                // O pressed
+                var element = $("#ia-detection-" + state + "-multiple")
+                element.prop('checked', !element.is(':checked')).trigger('change');
+            } else if (key == 79) {
                 // E pressed
                 if (state == "annotation") {
                     var element = $("#ia-detection-" + state + "-multiple")
