@@ -1671,6 +1671,11 @@ def show_time_distributions(ibs, unixtime_list):
     num_nan = np.isnan(unixtime_list).sum()
     num_total = len(unixtime_list)
     unixtime_list = unixtime_list[~np.isnan(unixtime_list)]
+
+    from ibeis.scripts.thesis import TMP_RC
+    import matplotlib as mpl
+    mpl.rcParams.update(TMP_RC)
+
     if False:
         from matplotlib import dates as mpldates
         #data_list = list(map(ut.unixtime_to_datetimeobj, unixtime_list))

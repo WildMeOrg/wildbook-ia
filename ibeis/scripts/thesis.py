@@ -8,34 +8,470 @@ import pathlib
 import matplotlib as mpl
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 
+DPI = 300
+
 TMP_RC = {
-    'axes.titlesize': 14,
-    'axes.labelsize': 14,
+    'axes.titlesize': 12,
+    'axes.labelsize': 12,
     'font.family': 'DejaVu Sans',
-    'xtick.labelsize': 14,
-    'ytick.labelsize': 14,
+    'xtick.labelsize': 12,
+    'ytick.labelsize': 12,
     # 'legend.fontsize': 18,
     # 'legend.alpha': .8,
-    'legend.fontsize': 14,
+    'legend.fontsize': 12,
     'legend.facecolor': 'w',
 }
 
-W, H = 7.4375, 3.125
-W, H = W * 1.25, H * 1.25
+TMP_RC = {
+    'axes.titlesize': 12,
+    'axes.labelsize': 12,
+    'font.family': 'sans-serif',
+    'font.serif': 'CMU Serif',
+    'font.sans-serif': 'CMU Sans Serif',
+    'font.monospace': 'CMU Typewriter Text',
+    'xtick.labelsize': 12,
+    'ytick.labelsize': 12,
+    # 'legend.alpha': .8,
+    'legend.fontsize': 12,
+    'legend.facecolor': 'w',
+}
+
+# W, H = 7.4375, 3.125
+W, H = 7.4375, 3.0
+# W, H = W * 1.25, H * 1.25
 
 
 @ut.reloadable_class
 class Chap3(object):
     """
+        humpbacks_fb
+        Seals
+        snails_drop1
+        LF_Bajo_bonito
     """
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
+
     def __init__(self, dbname=None):
-        self.base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
         self.dbname = dbname
+        if 'GZ' in dbname:
+            self.species_nice = "Grévy's zebras"
+        if 'PZ' in dbname:
+            self.species_nice = "plains zebras"
+        if 'GIRM' in dbname:
+            self.species_nice = "Masai Giraffes"
+        if 'humpback' in dbname:
+            self.species_nice = "Humpback Whales"
         self.expt_results = {}
         self.ibs = None
         if dbname is not None:
             self.dpath = join(self.base_dpath, self.dbname)
             ut.ensuredir(self.dpath)
+
+    @classmethod
+    def agg_db_stats(Chap3):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.agg_db_stats
+        """
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1']
+        enc_infos = []
+        view_infos = []
+        qual_infos = []
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            info = self.db_stats()
+            enc_infos.append(info['enc'])
+            qual_infos.append(info['qual'])
+            view_infos.append(info['view'])
+            # labels.append(self.species_nice.capitalize())
+
+        import pandas as pd
+        df = pd.DataFrame(enc_infos)
+        # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
+        df = df.rename(columns={'species_nice': 'Database'})
+        text = df.to_latex(index=False).replace('±', '\pm')
+        text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
+        text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
+        text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
+        text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
+        text = text.replace(r'n\_annots', r'\thead{\#annots}')
+        enc_text = text.replace('lrrllr', 'lrrrrr')
+        # ut.render_latex_text(text, preamb_extra=r'\usepackage{makecell}')
+
+        df = pd.DataFrame(qual_infos)
+        df = df.rename(columns={'species_nice': 'Database'})
+        df = df.reindex_axis(ut.partial_order(
+            df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
+        qual_text = df.to_latex(index=False)
+
+        df = pd.DataFrame(view_infos)
+        df = df.rename(columns={
+            'species_nice': 'Database',
+            'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
+            'backleft': 'BL', 'backright': 'BR', 'frontright': 'FR',
+            'frontleft': 'FL',
+        })
+        order = ut.partial_order(
+            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
+                         'B', 'None'])
+        df = df.reindex_axis(order, axis=1)
+        df = df.set_index('Database')
+        df[pd.isnull(df)] = 0
+        df = df.astype(np.int).reset_index()
+        view_text = df.to_latex(index=False)
+
+        ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
+        ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
+        ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
+
+    def db_stats(self):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.db_stats --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
+            python -m ibeis.scripts.thesis Chap3.db_stats --dbs=GIRM_Master1
+            python -m ibeis.scripts.thesis Chap3.db_stats --dbs=GZ_Master1
+            python -m ibeis.scripts.thesis Chap3.db_stats --dbs=PZ_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap3(dbname)
+            >>>     self.db_stats()
+        """
+        self._precollect()
+
+        # self.ibs.print_annot_stats(self.aids_pool)
+        annots = self.ibs.annots(self.aids_pool)
+
+        encounters = annots.group(annots.encounter_text)[1]
+        nids = ut.take_column(self.ibs._annot_groups(encounters).nids, 0)
+        nid_to_enc = ut.group_items(encounters, nids)
+
+        single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
+        multi_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) > 1}
+        multi_aids = ut.flatten(ut.flatten(multi_encs.values()))
+
+        enc_deltas = []
+        for encs_ in nid_to_enc.values():
+            a = encs_[0]
+            times = a.image_unixtimes_asfloat
+            delta = times.max() - times.min()
+            enc_deltas.append(delta)
+        max_enc_timedelta = max(enc_deltas)
+        print('max enc timedelta = %r' % (
+            ut.get_unix_timedelta_str(max_enc_timedelta)))
+
+        multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
+        multi_stats['enc_per_name']
+
+        enc_info = ut.odict()
+        enc_info['species_nice'] = self.species_nice
+        enc_info['n_singleton_names'] = len(single_encs)
+        enc_info['n_resighted_names'] = len(multi_encs)
+        enc_info['n_encounter_per_resighted_name'] = '{:.1f}±{:.1f}'.format(
+            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']))
+        n_annots_per_enc = ut.lmap(len, encounters)
+        enc_info['n_annots_per_encounter'] = '{:.1f}±{:.1f}'.format(
+            np.mean(n_annots_per_enc), np.std(n_annots_per_enc))
+        enc_info['n_annots'] = sum(n_annots_per_enc)
+
+        # qual_info = ut.odict()
+        qual_info = ut.dict_hist(annots.quality_texts)
+        qual_info['None'] = qual_info.pop('UNKNOWN', 0)
+        qual_info['None'] += qual_info.pop(None, 0)
+        qual_info['species_nice'] = self.species_nice
+
+        view_info = ut.dict_hist(annots.yaw_texts)
+        view_info['None'] = view_info.pop('UNKNOWN', 0)
+        view_info['None'] += view_info.pop(None, 0)
+        view_info['species_nice'] = self.species_nice
+
+        info = {
+            'enc': enc_info,
+            'qual': qual_info,
+            'view': view_info,
+        }
+        return info
+
+    def time_distri(self):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
+            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GIRM_Master1
+            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GZ_Master1
+            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=PZ_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap3(dbname)
+            >>>     self.time_distri()
+        """
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
+        self._precollect()
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        images = ibs.images(set(annots.gids))
+        unixtimes_ = images.unixtime_asfloat
+        num_nan = np.isnan(unixtimes_).sum()
+        num_total = len(unixtimes_)
+        unixtimes = unixtimes_[~np.isnan(unixtimes_)]
+
+        mintime = vt.safe_min(unixtimes)
+        maxtime = vt.safe_max(unixtimes)
+        unixtime_domain = np.linspace(mintime, maxtime, 1000)
+
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
+
+        from sklearn.neighbors.kde import KernelDensity
+        bw = ut.get_argval('--bw', default=None)
+        day = 60 * 60 * 24
+        if bw is not None:
+            pass
+        elif 'GIRM' in self.dbname:
+            bw = day / 4
+        elif 'GZ' in self.dbname:
+            bw = day * 30
+        elif 'PZ' in self.dbname:
+            bw = day * 30
+        else:
+            from sklearn.model_selection import RandomizedSearchCV
+            space = np.linspace(day, day * 14, 14).tolist()
+            grid_params = {'bandwidth': space}
+            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
+            print('Searching for best bandwidth')
+            grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
+                            cv=2, verbose=0)
+            grid.fit(unixtimes[:, None])
+            bw = grid.best_params_['bandwidth']
+            print('bw = %r' % (bw,))
+            print('bw(days) = %r' % (bw / day,))
+
+        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
+        kde.fit(unixtimes[:, None])
+        log_density = kde.score_samples(unixtime_domain[:, None])
+        density = np.exp(log_density)
+        ydata = density.copy()
+        # emphasize smaller values
+        ydata /= ydata.max()
+        ydata = np.sqrt(ydata)
+        xdata = unixtime_domain
+        xdata_ts = ut.lmap(ut.unixtime_to_datetimeobj, xdata)
+
+        pt.multi_plot(xdata_ts, [ydata], label_list=['time'],
+                      alpha=.7, fnum=1, pnum=(1, 1, 1), ymin=0, fill=True,
+                      marker='', xlabel='Date', ylabel='# images',
+                      num_xticks=5,
+                      use_legend=False)
+        infos = []
+        if num_nan > 0:
+            infos.append('#nan={}'.format(num_nan))
+            infos.append('#total={}'.format(num_total))
+        else:
+            infos.append('#total={}'.format(num_total))
+        text = '\n'.join(infos)
+        pt.relative_text(.02, .02, text, halign='left', valign='top')
+
+        ax = pt.gca()
+        fig = pt.gcf()
+        ax.set_yticks([])
+        if False:
+            icon = ibs.get_database_icon()
+            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
+                            as_artist=1, max_asize=(100, 200))
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9)
+        fig.set_size_inches([W, H * .4])
+        fpath = join(self.dpath, 'timedist.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+
+    def ensure_results(self, expt_name=None):
+        if expt_name is None:
+            # Load all
+            fpaths = ut.glob(self.dpath, '*.pkl')
+            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
+            for fpath, expt_name in zip(fpaths, expt_names):
+                self.expt_results[expt_name] = ut.load_data(fpath)
+        else:
+            fpath = join(self.dpath, expt_name + '.pkl')
+            expt_name = splitext(basename(fpath))[0]
+            self.expt_results[expt_name] = ut.load_data(fpath)
+            return self.expt_results[expt_name]
+
+    @classmethod
+    def draw_agg_baseline(Chap3):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_agg_baseline
+        """
+        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1']
+        cdfs = []
+        labels = []
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            results = self.ensure_results('baseline')
+            cdf, config = results[0]
+            dsize = config['dsize']
+            qsize = config['t_n_names']
+            baseline_cdf = self.ensure_results('baseline')[0][0]
+            cdfs.append(baseline_cdf)
+            labels.append('{},qsize={},dsize={}'.format(
+                self.species_nice, qsize, dsize))
+            # labels.append(self.species_nice.capitalize())
+
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H])
+        fpath = join(Chap3.base_dpath, 'agg-baseline.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+    def draw(self):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw --dbs=GZ_Master1,PZ_Master1,GIRM_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap3(dbname)
+            >>>     self.draw()
+        """
+        import plottool as pt
+        self.ensure_results()
+
+        mpl.rcParams.update(TMP_RC)
+
+        expt_name = 'baseline'
+        if expt_name in self.expt_results:
+            baseline_cdf = self.expt_results['baseline'][0][0]
+            fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
+            fig.set_size_inches([W, H * .6])
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        if not ('PZ' in self.dbname or 'GZ' in self.dbname):
+            return
+
+        expt_name = 'foregroundness'
+        if expt_name in self.expt_results:
+            cdf = self.expt_results[expt_name][0][0]
+            baseline_cdf = self.expt_results['baseline'][0][0]
+            cdfs = [cdf, baseline_cdf]
+            labels = ['fg=F', 'fg=T']
+            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+            fig.set_size_inches([W, H * .6])
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        expt_name = 'invar'
+        if expt_name in self.expt_results:
+            ALIAS_KEYS = ut.invert_dict({
+                'RI': 'rotation_invariance',
+                'AI': 'affine_invariance',
+                'QRH': 'query_rotation_heuristic', })
+            results = self.expt_results[expt_name]
+            results = [(c, i) for c, i in results
+                       if not i['pcfg'].get('rotation_invariance', False)]
+            cdfs, infos = list(zip(*results))
+            pcfgs = ut.take_column(infos, 'pcfg')
+
+            for p in pcfgs:
+                del p['rotation_invariance']
+
+            labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
+            labels = ut.lmap(label_alias, labels)
+            fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+            fig.set_size_inches([W, H * .6])
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        expt_name = 'smk'
+        if expt_name in self.expt_results:
+            results = self.expt_results[expt_name]
+            cdf = self.expt_results[expt_name][0][0]
+            baseline_cdf = self.expt_results['baseline'][0][0]
+            cdfs = [cdf, baseline_cdf]
+            labels = ['smk', 'baseline']
+            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+            fig.set_size_inches([W, H * .6])
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        expt_name = 'nsum'
+        if expt_name in self.expt_results:
+            results = self.expt_results[expt_name]
+            cdfs, infos = list(zip(*results))
+            pcfgs = ut.take_column(infos, 'pcfg')
+            labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        import pandas as pd
+        expt_name = 'kexpt'
+        if expt_name in self.expt_results:
+            results = self.expt_results[expt_name]
+            cdfs, infos = list(zip(*results))
+            pcfgs = ut.take_column(infos, 'pcfg')
+            df = pd.DataFrame.from_records(infos)
+            df['cdfs'] = cdfs
+            df['K'] = ut.take_column(pcfgs, 'K')
+            import plottool as pt
+            groups = list(df.groupby(('dsize', 't_denc_pername')))
+            fig = pt.figure(fnum=1)
+            pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
+            for val, df_group in groups:
+                # print('---')
+                # print(df_group)
+                relevant_df = df_group[['K', 'dsize', 't_dpername']]
+                relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
+                relevant_cfgs = relevant_df.to_dict('records')
+                nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
+                labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
+                cdfs_ = df_group['cdfs'].values
+                self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_())
+                ax = pt.gca()
+                ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
+            pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.5, wspace=.2)
+            fig.set_size_inches([W * 2, H * 1.5])
+            fpath = join(self.dpath, expt_name + '.png')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+    def measure_all(self):
+        """
+        Example:
+            from ibeis.scripts.thesis import *
+            self = Chap3('PZ_Master1')
+            self.measure_all()
+            self = Chap3('GZ_Master1')
+            self.measure_all()
+            self = Chap3('GIRM_Master1')
+            self.measure_all()
+        """
+        if self.ibs is None:
+            self._precollect()
+        self.measure_baseline()
+        if self.dbname != 'GIRM_Master1':
+            self.measure_foregroundness()
+        self.measure_smk()
+        self.measure_nsum()
+        self.measure_dbsize()
+        self.measure_kexpt()
+        self.measure_invariance()
 
     def _precollect(self):
         """
@@ -255,7 +691,7 @@ class Chap3(object):
         labels = ut.take(labels, sortx)
         return cdfs, labels
 
-    def plot_cmcs(self, cdfs, labels, fnum=1, pnum=(1, 1, 1)):
+    def plot_cmcs(self, cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
         cdfs, labels = self.prepare_cdfs(cdfs, labels)
         # Truncte to 20 ranks
         num_ranks = min(cdfs.shape[-1], 20)
@@ -264,7 +700,7 @@ class Chap3(object):
         label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
                       for cdf, lbl in zip(cdfs_trunc, labels)]
 
-        ymin = .4
+        # ymin = .4
         num_yticks = (10 - int(ymin * 10)) + 1
 
         pt.multi_plot(
@@ -277,9 +713,9 @@ class Chap3(object):
             rcParams=TMP_RC,
         )
 
-    def plot_cmcs2(self, cdfs, labels, fnum=1):
+    def plot_cmcs2(self, cdfs, labels, fnum=1, **kwargs):
         fig = pt.figure(fnum=fnum)
-        self.plot_cmcs(cdfs, labels, fnum=fnum)
+        self.plot_cmcs(cdfs, labels, fnum=fnum, **kwargs)
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([W, H])
         return fig
@@ -333,8 +769,8 @@ class Chap3(object):
 
         cfgdict_list = [
             {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic': False},
-            {'affine_invariance':  True, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
-            {'affine_invariance': False, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
+            # {'affine_invariance':  True, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
+            # {'affine_invariance': False, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
             {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic': False},
             {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
             {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
@@ -372,10 +808,6 @@ class Chap3(object):
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
-        # cdfs, labels = zip(*results)
-        # self.plot_cmcs(cdfs, labels)
-        # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
-
     def measure_nsum(self):
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
@@ -391,10 +823,6 @@ class Chap3(object):
         expt_name = 'nsum'
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
-
-        # cdfs, labels = zip(*results)
-        # self.plot_cmcs(cdfs, labels)
-        # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
 
     def measure_dbsize(self):
         ibs, qaids, daids_list, info_list = self._varied_inputs(
@@ -430,138 +858,6 @@ class Chap3(object):
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
         cdfs, infos = zip(*results)
-
-    def measure_all(self):
-        """
-
-        Example:
-            from ibeis.scripts.thesis import *
-            self = Chap3('PZ_Master1')
-            self.measure_all()
-
-        Example:
-            from ibeis.scripts.thesis import *
-            self = Chap3('GZ_Master1')
-            self.measure_all()
-
-        Example:
-            from ibeis.scripts.thesis import *
-            self = Chap3('GIRM_Master1')
-            self.measure_all()
-            self.draw_all()
-
-        self = Chap3.collect('PZ_Master0')
-        """
-        if self.ibs is None:
-            self._precollect()
-        self.measure_baseline()
-        if self.dbname != 'GIRM_Master1':
-            self.measure_foregroundness()
-        self.measure_smk()
-        self.measure_nsum()
-        self.measure_dbsize()
-        self.measure_kexpt()
-        self.measure_invariance()
-
-    def draw_all(self):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_all --db GZ_Master1
-            python -m ibeis.scripts.thesis Chap3.draw_all --db PZ_Master1
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-            >>> self = Chap3(dbname)
-            >>> self.draw_all()
-        """
-        import plottool as pt
-
-        fpaths = ut.glob(self.dpath, '*.pkl')
-        for fpath in fpaths:
-            expt_name = splitext(basename(fpath))[0]
-            self.expt_results[expt_name] = ut.load_data(fpath)
-
-        mpl.rcParams.update(TMP_RC)
-
-        expt_name = 'baseline'
-        baseline_cdf = self.expt_results['baseline'][0][0]
-        fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
-
-        expt_name = 'foregroundness'
-        if expt_name in self.expt_results:
-            cdf = self.expt_results[expt_name][0][0]
-            baseline_cdf = self.expt_results['baseline'][0][0]
-            cdfs = [cdf, baseline_cdf]
-            labels = ['fg=F', 'fg=T (baseline)']
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
-
-        expt_name = 'invar'
-        ALIAS_KEYS = ut.invert_dict({
-            'RI': 'rotation_invariance',
-            'AI': 'affine_invariance',
-            'QRH': 'query_rotation_heuristic', })
-        results = self.expt_results[expt_name]
-        cdfs, infos = list(zip(*results))
-        pcfgs = ut.take_column(infos, 'pcfg')
-        labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
-        labels = ut.lmap(label_alias, labels)
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
-
-        expt_name = 'smk'
-        results = self.expt_results[expt_name]
-        cdf = self.expt_results[expt_name][0][0]
-        baseline_cdf = self.expt_results['baseline'][0][0]
-        cdfs = [cdf, baseline_cdf]
-        labels = ['smk', 'baseline']
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
-
-        expt_name = 'nsum'
-        results = self.expt_results[expt_name]
-        cdfs, infos = list(zip(*results))
-        pcfgs = ut.take_column(infos, 'pcfg')
-        labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
-
-        import pandas as pd
-        expt_name = 'kexpt'
-        results = self.expt_results[expt_name]
-        cdfs, infos = list(zip(*results))
-        pcfgs = ut.take_column(infos, 'pcfg')
-        df = pd.DataFrame.from_records(infos)
-        df['cdfs'] = cdfs
-        df['K'] = ut.take_column(pcfgs, 'K')
-        import plottool as pt
-        groups = list(df.groupby(('dsize', 't_denc_pername')))
-        fig = pt.figure(fnum=1)
-        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
-        for val, df_group in groups:
-            # print('---')
-            # print(df_group)
-            relevant_df = df_group[['K', 'dsize', 't_dpername']]
-            relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
-            relevant_cfgs = relevant_df.to_dict('records')
-            nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
-            labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
-            cdfs_ = df_group['cdfs'].values
-            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_())
-            ax = pt.gca()
-            ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
-        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.4, wspace=.2)
-        fig.set_size_inches([W * 2, H * 2])
-        fpath = join(self.dpath, expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
 
 
 # @ut.reloadable_class
@@ -992,7 +1288,7 @@ class Chap4(object):
         self.savefig(fig, fig_fpath)
 
     def savefig(self, fig, fpath):
-        image = pt.render_figure_to_image(fig, dpi=256)
+        image = pt.render_figure_to_image(fig, dpi=DPI)
         # image = vt.clipwhite(image)
         vt.imwrite(fpath, image)
 
