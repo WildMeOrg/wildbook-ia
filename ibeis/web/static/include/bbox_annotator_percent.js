@@ -575,6 +575,7 @@ TODO
             options.onchange                 !== undefined || (options.onchange = null)
             options.onhover                  !== undefined || (options.onhover = null)
             options.onfocus                  !== undefined || (options.onfocus = null)
+            options.ondelete                 !== undefined || (options.ondelete = null)
             options.mode                     !== undefined || (options.mode = "rectangle")
             options.debug                    !== undefined || (options.debug = false)
 
@@ -722,11 +723,39 @@ TODO
                                     bba.subentries_style_visible(null)
                                 }
                             } else {
-                                bba.delete_entry(bba.state.hover)
+                                entry = bba.entries[bba.state.hover]
+                                if(event.shiftKey && entry.parent == null) {
+                                    // Recursively delete any sub-entries that belong to the parent index
+                                    for (var index_entry = 0; index_entry < bba.entries.length; index_entry++) {
+                                        var parent
+
+                                        parent = bba.entries[index_entry].parent
+                                        if (parent != null && parent == bba.state.hover) {
+                                            bba.state.hover = bba.delete_entry(index_entry, bba.state.hover)
+                                            index_entry = 0
+                                        }
+                                    }
+                                } else {
+                                    bba.delete_entry(bba.state.hover)
+                                }
                             }
                         } else {
                             if (bba.state.hover != null) {
-                                bba.delete_entry(bba.state.hover)
+                                entry = bba.entries[bba.state.hover]
+                                if(event.shiftKey && entry.parent == null) {
+                                    // Recursively delete any sub-entries that belong to the parent index
+                                    for (var index_entry = 0; index_entry < bba.entries.length; index_entry++) {
+                                        var parent
+
+                                        parent = bba.entries[index_entry].parent
+                                        if (parent != null && parent == bba.state.hover) {
+                                            bba.state.hover = bba.delete_entry(index_entry, bba.state.hover)
+                                            index_entry = 0
+                                        }
+                                    }
+                                } else {
+                                    bba.delete_entry(bba.state.hover)
+                                }
                             }
                         }
                     }
@@ -1073,8 +1102,10 @@ TODO
             }
         }
 
-        BBoxAnnotator.prototype.delete_entry = function(index) {
+        BBoxAnnotator.prototype.delete_entry = function(index, parent_index) {
             var indices, entry, element
+
+            parent_index !== undefined || (parent_index = null)
 
             // Recursively delete any sub-entries that belong to the parent index
             for (var index_entry = 0; index_entry < this.entries.length; index_entry++) {
@@ -1082,7 +1113,8 @@ TODO
 
                 parent = this.entries[index_entry].parent
                 if (parent != null && parent == index) {
-                    this.delete_entry(index_entry)
+                    index = this.delete_entry(index_entry, index)
+                    index_entry = 0
                 }
             }
 
@@ -1106,19 +1138,28 @@ TODO
             }
 
             // Now we need to fix the sub-entry parent indices
-            for (var index = 0; index < this.entries.length; index++) {
+            for (var index_entry = 0; index_entry < this.entries.length; index_entry++) {
                 var parent
 
-                parent = this.entries[index].parent
+                parent = this.entries[index_entry].parent
                 if (parent != null) {
-                    this.entries[index].parent = indices.indexOf(parent)
+                    this.entries[index_entry].parent = indices.indexOf(parent)
                 }
             }
 
             // Refresh the display
             this.refresh()
 
-            return entry[0]
+            // Trigger ondelete
+            if (bba.options.ondelete != null) {
+                return bba.options.ondelete(entry[0])
+            }
+
+            if (parent_index == null) {
+                return null
+            } else {
+                return indices.indexOf(parent_index)
+            }
         }
 
         BBoxAnnotator.prototype.rotate_element = function(element, angle) {

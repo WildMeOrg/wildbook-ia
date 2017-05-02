@@ -5,6 +5,7 @@ Dependencies: flask, tornado
 from __future__ import absolute_import, division, print_function
 import random
 import math
+import simplejson as json
 from flask import request, redirect, current_app, url_for
 from ibeis.control import controller_inject
 from ibeis import constants as const
@@ -1669,11 +1670,11 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         zipped = zip(part_rowid_list, part_aid_list, part_bbox_list, part_theta_list, part_viewpoint_list, part_quality_list, part_type_list)
         for part_rowid, part_aid, part_bbox, part_theta, part_viewpoint, part_quality, part_type in zipped:
             if part_quality in [-1, None]:
-                part_quality = -1
-            elif part_quality > 2:
-                part_quality = 2
+                part_quality = 0
             elif part_quality <= 2:
                 part_quality = 1
+            elif part_quality > 2:
+                part_quality = 2
 
             viewpoint1, viewpoint2, viewpoint3 = appf.convert_viewpoint_to_tuple(part_viewpoint)
 
@@ -1686,7 +1687,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
             temp['height']     = 100.0 * (part_bbox[3] / height)
             temp['theta']      = float(part_theta)
             temp['viewpoint1'] = viewpoint1
-            temp['quality']    = quality
+            temp['quality']    = part_quality
             temp['type']       = part_type
             part_list.append(temp)
 
@@ -1713,6 +1714,29 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     species_text_list = ibs.get_species_texts(species_rowids)
     species_list = zip(species_nice_list, species_text_list)
     species_list = [ ('Unspecified', const.UNKNOWN) ] + species_list
+
+    # Collect mapping of species to parts
+    aid_list = ibs.get_valid_aids()
+    part_species_rowid_list = ibs.get_annot_species_rowids(aid_list)
+    part_species_text_list = ibs.get_species_texts(part_species_rowid_list)
+    part_rowids_list = ibs.get_annot_part_rowids(aid_list)
+    part_types_list = map(ibs.get_part_types, part_rowids_list)
+
+    zipped = zip(part_species_text_list, part_types_list)
+    species_part_dict = {}
+    for part_species_text, part_type_list in zipped:
+        if part_species_text not in species_part_dict:
+            species_part_dict[part_species_text] = set([const.UNKNOWN])
+        for part_type in part_type_list:
+            species_part_dict[part_species_text].add(part_type)
+            species_part_dict[const.UNKNOWN].add(part_type)
+    # Add any images that did not get added because they aren't assigned any annotations
+    for species_text in species_text_list:
+        if species_text not in species_part_dict:
+            species_part_dict[species_text] = set([const.UNKNOWN])
+    for key in species_part_dict:
+        species_part_dict[key] = sorted(list(species_part_dict[key]))
+    species_part_dict_json = json.dumps(species_part_dict)
 
     settings_key_list = [
         ('ia-detection-setting-orientation', '1' if 'zebra' in species else '0'),
@@ -1741,6 +1765,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
                          progress=progress,
                          finished=finished,
                          species_list=species_list,
+                         species_part_dict_json=species_part_dict_json,
                          annotation_list=annotation_list,
                          part_list=part_list,
                          display_instructions=display_instructions,

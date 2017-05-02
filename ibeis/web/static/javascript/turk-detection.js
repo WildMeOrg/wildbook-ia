@@ -144,17 +144,46 @@ function show_annotation_metadata(entry) {
     update_label();
 }
 
-function show_part_metadata(entry) {
+function show_part_metadata(entry, parent_entry) {
     invalid = false
-    entry.metadata.viewpoint1 !== undefined || (invalid = true)
-    entry.metadata.quality    !== undefined || (invalid = true)
-    entry.metadata.part       !== undefined || (invalid = true)
-    entry.metadata.viewpoint1 !== undefined || (entry.metadata.viewpoint1 = -1)
-    entry.metadata.quality    !== undefined || (entry.metadata.quality = 2)
-    entry.metadata.part       !== undefined || (entry.metadata.part = '____')
+    entry.metadata.viewpoint1     !== undefined || (invalid = true)
+    entry.metadata.quality        !== undefined || (invalid = true)
+    entry.metadata.part           !== undefined || (invalid = true)
+    entry.metadata.viewpoint1     !== undefined || (entry.metadata.viewpoint1 = -1)
+    entry.metadata.quality        !== undefined || (entry.metadata.quality = 2)
+    entry.metadata.type           !== undefined || (entry.metadata.type = '____')
+    parent_entry.metadata.species !== undefined || (parent_entry.metadata.species = '____')
 
     $('#ia-detection-part-viewpoint-1').val(entry.metadata.viewpoint1);
     $('#ia-detection-part-quality').val(entry.metadata.quality);
+
+    // Update selected types
+    $('#ia-detection-part-class').html('')
+    $('#ia-detection-part-class')
+        .append($("<option></option>")
+            .attr("value", '____')
+            .text('Unspecified'));
+
+    // Collect primitives
+    if ( ! parent_entry.metadata.species in species_part_dict) {
+        parent_entry.metadata.species = '____'
+    }
+    if (species_part_dict[parent_entry.metadata.species].indexOf(entry.metadata.type) == -1) {
+        species_part_dict[parent_entry.metadata.species].push(entry.metadata.type)
+    }
+
+    species = species_part_dict[parent_entry.metadata.species]
+    for(var counter = 0; counter < species.length; counter++) {
+        value = species[counter]
+        if (value == '____') {
+            continue
+        }
+        $('#ia-detection-part-class')
+            .append($("<option></option>")
+                .attr("value", value)
+                .text(value));
+    }
+
     $('#ia-detection-part-class option[value="' + entry.metadata.type + '"]').prop("selected", true);
 
     if(invalid) {
@@ -305,7 +334,6 @@ $(window).keydown(function(event) {
     key = event.which;
 
     if( ! hotkeys_global_disabled) {
-
         console.log(key)
 
         if (key == 17) {
@@ -355,8 +383,13 @@ $(window).keydown(function(event) {
                 $("#ia-detection-" + state + "-quality").val(2).trigger('change');
             } else if (key == 69) {
                 // E pressed
-                var element = $("#ia-detection-" + state + "-multiple")
-                element.prop('checked', !element.is(':checked')).trigger('change');
+                if (state == "annotation") {
+                    var element = $("#ia-detection-" + state + "-multiple")
+                    element.prop('checked', !element.is(':checked')).trigger('change');
+                } else {
+                    $("#ia-detection-" + state + "-quality").val(0).trigger('change');
+                }
+
             } else if (key == 73) {
                 // I pressed
                 var element = $("#ia-detection-" + state + "-interest")

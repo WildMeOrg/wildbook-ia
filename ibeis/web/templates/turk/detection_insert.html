@@ -39,11 +39,7 @@
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
     <div id="ia-bbox-annotator-container"></div>
     <div style="text-align: center; color: #aaa;">
-      <span>left-click to add a new box, press <b>Esc</b> to cancel any action, press <b>Delete</b> to delete</a>, hover to highlight (in orange) a box</span>
-      <br/>
-      <span>press <b>R</b> to rotate a hovered box right by 90&#176; and <b>L</b> left by 90&#176;, press <b>B</b> to send a box to the background</span>
-      <br/>
-      <span>right-click or press <b>F</b> to focus (in red) where parts can be added and metadata can be changed below</span>
+      <span>Left-click to add a new box, press <b>Esc</b> to cancel any action, press <b>Delete</b> to delete</a>, hover to highlight (in orange) a box.  Press <b>R</b> to rotate a hovered box right by 90&#176; and <b>L</b> left by 90&#176;, press <b>B</b> to send a box to the background.  Right-click or press <b>F</b> to focus (in red) where parts can be added and metadata changed, press <b>Shift+Delete</b> to delete an annotation's parts</a></span>
     </div>
     <br/>
     <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
@@ -193,12 +189,15 @@
         <div class="row">
           <div class="col-lg-6 col-md-6 col-sm-6">
             Quality: <span id="ia-detection-part-quality-label"></span>
-            <input id="ia-detection-part-quality" class="ia-detection-form-part-value" type="range" name="ia-quality-value" value="2" min="1" max="2" style="margin-bottom:5px;">
+            <input id="ia-detection-part-quality" class="ia-detection-form-part-value" type="range" name="ia-quality-value" value="0" min="0" max="2" style="margin-bottom:5px;">
             <div class="row-custom-expand">
-              <div class="col-custom-span col-custom-span-2">
+              <div class="col-custom-span col-custom-span-3">
+                <i>inherit</i> <span class="ia-detection-hotkey">(E)</span>
+              </div>
+              <div class="col-custom-span col-custom-span-3">
                 <span class="glyphicon glyphicon-remove"></span> <span class="ia-detection-hotkey">(Q)</span>
               </div>
-              <div class="col-custom-span col-custom-span-2">
+              <div class="col-custom-span col-custom-span-3">
                 <span class="glyphicon glyphicon-ok"></span> <span class="ia-detection-hotkey">(W)</span>
               </div>
             </div>
@@ -235,7 +234,9 @@
   {% endif %}
 
   <script type="text/javascript" ia-dependency="javascript">
-    var bba, toggle, axis2, axis3, states, hotkeys_disabled, hotkeys_global_disabled
+    var bba, toggle, axis2, axis3, states, species_part_dict, hotkeys_disabled, hotkeys_global_disabled
+
+    species_part_dict = JSON.parse('{{ species_part_dict_json|safe }}')
 
     hotkeys_disabled = true
     hotkeys_global_disabled = false
@@ -290,7 +291,9 @@
             show_annotation_metadata(entry)
           } else {
             update_metadata_panel("part");
-            show_part_metadata(entry)
+            parent = entry.parent
+            parent_entry = bba.entries[parent]
+            show_part_metadata(entry, parent_entry)
           }
           hotkeys_disabled = false;
         },
@@ -367,10 +370,10 @@
           label:    '{{ part['id'] }}',
           parent:   {{ part['parent'] }},
           percent:  {
-            left:       {{   5 + part['left'] }},
-            top:        {{   5 + part['top'] }},
-            width:      {{ 0.5 * part['width'] }},
-            height:     {{ 0.5 * part['height'] }},
+            left:       {{ part['left'] }},
+            top:        {{ part['top'] }},
+            width:      {{ part['width'] }},
+            height:     {{ part['height'] }},
           },
           angles:   {
             theta:      {{ part['theta'] }},
@@ -463,7 +466,7 @@
         if(metadata == null) {
           return
         }
-        metadata.type       = "annotation"
+        metadata.version    = "annotation"
         metadata.viewpoint1 = $('#ia-detection-annotation-viewpoint-1').val();
         if (axis2) {
           metadata.viewpoint2 = $('#ia-detection-annotation-viewpoint-2').val();
@@ -487,7 +490,7 @@
         if(metadata == null) {
           return
         }
-        metadata.type       = "part"
+        metadata.version    = "part"
         metadata.viewpoint1 = $('#ia-detection-part-viewpoint-1').val();
         metadata.quality    = $('#ia-detection-part-quality').val();
         metadata.type       = $('#ia-detection-part-class').find("option:selected").val();
@@ -500,26 +503,22 @@
           $('input[name="species-add"]').val('')
           hotkeys_global_disabled = true;
           bba.options.hotkeys.enabled = false
-          console.log(hotkeys_global_disabled)
       });
 
       $('#species-add').on('hidden.bs.modal', function() {
           hotkeys_global_disabled = false;
           bba.options.hotkeys.enabled = true
-          console.log(hotkeys_global_disabled)
       });
 
       $('#part-add').on('shown.bs.modal', function() {
           $('input[name="part-add"]').val('')
           hotkeys_global_disabled = true;
           bba.options.hotkeys.enabled = false
-          console.log(hotkeys_global_disabled)
       });
 
       $('#part-add').on('hidden.bs.modal', function() {
           hotkeys_global_disabled = false;
           bba.options.hotkeys.enabled = true
-          console.log(hotkeys_global_disabled)
       });
 
       // Update metadata labels for form inputs

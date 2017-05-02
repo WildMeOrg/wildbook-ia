@@ -111,7 +111,7 @@ def submit_detection(**kwargs):
             elif quality == 2:
                 quality_list[index] = 4
             else:
-                raise ValueError('quality must be 1 or 2')
+                raise ValueError('quality must be 1 or 2 (for annotations)')
 
         multiple_list =  [
             annot['metadata']['multiple']
@@ -193,12 +193,14 @@ def submit_detection(**kwargs):
         ]
         # Fix qualities
         for index, quality in enumerate(quality_list):
-            if quality == 1:
+            if quality == 0:
+                quality_list[index] = None
+            elif quality == 1:
                 quality_list[index] = 2
             elif quality == 2:
                 quality_list[index] = 4
             else:
-                raise ValueError('quality must be 1 or 2')
+                raise ValueError('quality must be 0, 1 or 2 (for parts)')
 
         type_list = [
             part['metadata']['type']
