@@ -1653,8 +1653,45 @@ def absolute_lbl(x_, y_, txt, roffset=(-.02, -.02), alpha=.6, **kwargs):
 
 
 def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
+    r"""
+    Args:
+        x (?):
+        y (ndarray):  labels
+        txt (?):
+        ax (None): (default = None)
+        offset (None): (default = None)
+        **kwargs: horizontalalignment, verticalalignment, roffset, ha, va,
+                  fontsize, fontproperties, fontproperties, clip_on
+
+    CommandLine:
+        python -m plottool.draw_func2 ax_relative_text --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> x = .5
+        >>> y = .5
+        >>> txt = 'Hello World'
+        >>> pt.figure()
+        >>> ax = pt.gca()
+        >>> family = 'monospace'
+        >>> family = 'CMU Typewriter Text'
+        >>> fontproperties = mpl.font_manager.FontProperties(family=family,
+        >>>                                                  size=42)
+        >>> result = ax_relative_text(x, y, txt, ax, halign='center',
+        >>>                           fontproperties=fontproperties)
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     if ax is None:
         ax = gca()
+    if 'halign' in kwargs:
+        kwargs['horizontalalignment'] = kwargs.pop('halign')
+    if 'valign' in kwargs:
+        kwargs['verticalalignment'] = kwargs.pop('valign')
     xy, width, height = get_axis_xy_width_height(ax)
     x_, y_ = ((xy[0]) + x * width, (xy[1] + height) - y * height)
     if offset is not None:
@@ -1662,6 +1699,9 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
         x_ += xoff
         y_ += yoff
     ax_absolute_text(x_, y_, txt, ax=ax, **kwargs)
+
+
+relative_text = ax_relative_text
 
 
 def parse_fontkw(**kwargs):
@@ -1710,11 +1750,13 @@ def ax_absolute_text(x_, y_, txt, ax=None, roffset=None, **kwargs):
         if 'fontsize' in kwargs:
             fontsize = kwargs['fontsize']
             font_prop = mpl.font_manager.FontProperties(family='monospace',
-                                                        weight='light',
+                                                        # weight='light',
                                                         size=fontsize)
             kwargs['fontproperties'] = font_prop
         else:
-            kwargs['fontproperties'] = custom_constants.FONTS.relative
+            kwargs['fontproperties'] = mpl.font_manager.FontProperties(
+                family='monospace')
+            # custom_constants.FONTS.relative
 
     if 'clip_on' not in kwargs:
         kwargs['clip_on'] = True

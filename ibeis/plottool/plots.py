@@ -360,7 +360,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
     ax.xaxis.set_tick_params(**xtick_kw)
     ax.yaxis.set_tick_params(**ytick_kw)
 
-        #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+    #ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
 
     # Setup axes limits
     if 'xlim' in kwargs:
@@ -516,6 +516,9 @@ def demo_fonts():
     CommandLine:
         python -m plottool.plots demo_fonts --show
 
+    References:
+        http://stackoverflow.com/questions/8753835/list-of-fonts-avail-mpl
+
     Example:
         >>> # DISABLE_DOCTEST
         >>> from plottool.plots import *  # NOQA
@@ -525,12 +528,18 @@ def demo_fonts():
         >>> pt.present()
         >>> ut.show_if_requested()
     """
+    import matplotlib.font_manager
+    avail_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    names = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in avail_fonts]
+    print('avail_fonts = %s' % ut.repr4(sorted(set(names))))
+
     xdata = [1, 2, 3, 4, 5]
     ydata_list = [[1, 2, 3, 4, 5], [3, 3, 3, 3, 3], [5, 4, np.nan, 2, 1], [4, 3, np.nan, 1, 0]]
     kwargs = {'label_list': ['spamΣ', 'eggs', 'jamµ', 'pram'],  'linestyle': '-'}
     f = ['DejaVu Sans', 'Bitstream Vera Sans', 'Lucida Grande', 'Verdana', 'Geneva',
          'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
     f = ['DejaVu Sans', 'Verdana', 'Arial']
+    f = ['DejaVu Sans', 'CMU Serif', 'FreeMono']
     for count, family in enumerate(f):
         multi_plot(xdata, ydata_list, title=family + ' ΣΣΣµµµ',
                    xlabel='\nfdsΣΣΣµµµ', fontfamily=family, fnum=count,
