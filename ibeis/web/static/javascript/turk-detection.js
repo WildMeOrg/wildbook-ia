@@ -10,7 +10,7 @@ function check_form() {
         return true
     }
     if (bba.entries.length == 1) {
-        bba.entries[0].highlighted == true
+        bba.entries[0].highlighted = true
     }
     for (var index = 0; index < bba.entries.length; index++) {
         if (bba.entries[index].highlighted) {
