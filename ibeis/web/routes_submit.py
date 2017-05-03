@@ -86,22 +86,22 @@ def submit_detection(**kwargs):
 
         # Get metadata
         viewpoint1_list = [
-            int(annot['metadata']['viewpoint1'])
+            int(annot['metadata'].get('viewpoint1', -1))
             for annot in annotation_list
         ]
         viewpoint2_list = [
-            int(annot['metadata']['viewpoint2'])
+            int(annot['metadata'].get('viewpoint2', -1))
             for annot in annotation_list
         ]
         viewpoint3_list = [
-            int(annot['metadata']['viewpoint3'])
+            int(annot['metadata'].get('viewpoint3', -1))
             for annot in annotation_list
         ]
         zipped = zip(viewpoint1_list, viewpoint2_list, viewpoint3_list)
         viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
 
         quality_list = [
-            int(annot['metadata']['quality'])
+            int(annot['metadata'].get('quality', 0))
             for annot in annotation_list
         ]
         # Fix qualities
@@ -116,7 +116,7 @@ def submit_detection(**kwargs):
                 raise ValueError('quality must be 0, 1 or 2')
 
         multiple_list =  [
-            annot['metadata']['multiple']
+            annot['metadata'].get('multiple', False)
             for annot in annotation_list
         ]
         interest_list =  [
@@ -124,7 +124,7 @@ def submit_detection(**kwargs):
             for annot in annotation_list
         ]
         species_list = [
-            annot['metadata']['species']
+            annot['metadata'].get('species', const.UNKNOWN)
             for annot in annotation_list
         ]
 
@@ -181,7 +181,7 @@ def submit_detection(**kwargs):
 
         # Get metadata
         viewpoint1_list = [
-            int(part['metadata']['viewpoint1'])
+            int(part['metadata'].get('viewpoint1', -1))
             for part in part_list
         ]
         viewpoint2_list = [-1] * len(part_list)
@@ -190,7 +190,7 @@ def submit_detection(**kwargs):
         viewpoint_list = [ appf.convert_tuple_to_viewpoint(tup) for tup in zipped ]
 
         quality_list = [
-            int(part['metadata']['quality'])
+            int(part['metadata'].get('quality', 0))
             for part in part_list
         ]
         # Fix qualities
@@ -205,7 +205,7 @@ def submit_detection(**kwargs):
                 raise ValueError('quality must be 0, 1 or 2')
 
         type_list = [
-            part['metadata']['type']
+            part['metadata'].get('type', const.UNKNOWN)
             for part in part_list
         ]
 

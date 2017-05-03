@@ -34,7 +34,8 @@
           </div>
 
           <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
-            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px;"></span>
+            <span class="glyphicon glyphicon-exclamation-sign pull-right" data-toggle="modal" data-target="#turk-new-features" style="font-size: 18px; color: #f0ad4e;"></span>
+            <span class="glyphicon glyphicon-info-sign pull-right" data-toggle="modal" data-target="#turk-instructions" style="font-size: 18px; margin-right: 8px; "></span>
             <span class="glyphicon glyphicon-question-sign pull-right" data-toggle="modal" data-target="#turk-species-examples" style="font-size: 18px; margin-right: 8px; margin-left: 10px;"></span>
             <span class="pull-right" style="color: #aaa;"><i>Hold <b>Ctrl</b> for hotkeys</i></span>
           </div>
@@ -271,6 +272,25 @@
           [7] http://en.wikipedia.org/<br/>
           [8] http://talk2theanimals.net/<br/>
           </span>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" {% if display_instructions %} data-toggle="modal" data-target="#turk-species-examples"{% endif %}onclick="submit_cookie('ia-detection_instructions_seen', '1');">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Modal -->
+  <div class="modal fade" id="turk-new-features" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">New Features for Detection Turking</h4>
+        </div>
+        <div class="modal-body">
+        TODO
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-species-examples">Go to species example images</button>
