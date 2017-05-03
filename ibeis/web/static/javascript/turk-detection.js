@@ -9,6 +9,9 @@ function check_form() {
     if (bba.entries.length == 0) {
         return true
     }
+    if (bba.entries.length == 1) {
+        bba.entries[0].highlighted == true
+    }
     for (var index = 0; index < bba.entries.length; index++) {
         if (bba.entries[index].highlighted) {
             return true
