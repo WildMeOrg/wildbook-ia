@@ -423,7 +423,8 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
         imgsetid_list, ))
 
     url = wb_url + '/ia'
-    occur_url_fmt = (wb_url + '/occurrence.jsp?number={uuid}')
+    dbname = ibs.db.get_db_init_uuid()
+    occur_url_fmt = (wb_url + '/occurrence.jsp?number={uuid}&dbname={dbname}')
     #enc_url_fmt = (wb_url + '/encounters/encounter.jsp?number={uuid}')
 
     # Check and push 'done' imagesets
@@ -441,7 +442,7 @@ def wildbook_signal_imgsetid_list(ibs, imgsetid_list=None,
             if set_shipped_flag:
                 ibs.set_imageset_shipped_flags([imgsetid], [status])
                 if status and open_url_on_complete:
-                    view_occur_url = occur_url_fmt.format(uuid=imageset_uuid,)
+                    view_occur_url = occur_url_fmt.format(uuid=imageset_uuid, dbname=dbname)
                     _browser = ut.get_prefered_browser(PREFERED_BROWSER)
                     _browser.open_new_tab(view_occur_url)
         status_list.append(status)
