@@ -758,9 +758,6 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
     nid_to_sample_pool = {
         nid: ut.lmap(tuple, encs) for nid, encs in nid_to_encs.items()
         if len(encs) >= n_need}
-    # nid_to_sample_pool = {
-    #     nid: encs for nid, encs in nid_to_encs.items()
-    #     if len(encs) >= n_need}
 
     reshaped_splits = crossval_helper(
         nid_to_sample_pool, perquery, perdatab, n_splits=n_splits,

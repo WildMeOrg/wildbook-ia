@@ -397,6 +397,9 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         return len(self._rowids)
 
     def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            idxs = list(range(*idx.indices(len(self))))
+            return self.take(idxs)
         if not ut.isiterable(idx):
             obj0d_ = self.take([idx])
             obj0d = ObjectScalar0D(obj0d_)
