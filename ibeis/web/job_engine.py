@@ -55,7 +55,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 #    import os
 #    os.environ['UTOOL_NOCNN'] = 'True'
 import utool as ut
-import json
 import time
 import zmq
 import uuid  # NOQA
@@ -76,10 +75,7 @@ ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
-
-NUM_JOBS = 2
-NUM_ENGINES = 1
-
+NUM_ENGINES = 3
 VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 
 
