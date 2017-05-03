@@ -30,6 +30,8 @@ VALID_TURK_MODES = [
 
 
 VIEWPOINT_MAPPING = {
+    None: None,
+    -1: None,
     0: 'left',
     1: 'frontleft',
     2: 'front',
