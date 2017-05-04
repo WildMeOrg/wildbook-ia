@@ -88,6 +88,7 @@ def run_ibeis():
     # with the --tf flag
     import ibeis.tests.run_tests
     import ibeis.tests.reset_testdbs
+    import ibeis.scripts.thesis
     ignore_prefix = [
         #'ibeis.tests',
         'ibeis.control.__SQLITE3__',
