@@ -75,7 +75,7 @@ ctx = zmq.Context.instance()
 
 # FIXME: needs to use correct number of ports
 URL = 'tcp://127.0.0.1'
-NUM_ENGINES = 3
+NUM_ENGINES = 1
 VERBOSE_JOBS = ut.get_argflag('--bg') or ut.get_argflag('--fg') or ut.get_argflag('--verbose-jobs')
 
 
