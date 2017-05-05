@@ -1701,7 +1701,20 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
     ax_absolute_text(x_, y_, txt, ax=ax, **kwargs)
 
 
-relative_text = ax_relative_text
+def relative_text(pos, text, ax=None, **kwargs):
+    """
+    updated api for ax_relative_text
+    """
+    if pos == 'lowerleft':
+        pos = (.01, .99)
+        kwargs['halign'] = 'left'
+        kwargs['valign'] = 'bottom'
+    elif pos == 'upperleft':
+        pos = (.01, .01)
+        kwargs['halign'] = 'left'
+        kwargs['valign'] = 'top'
+    x, y = pos
+    ax_relative_text(x, y, text, ax=ax, **kwargs)
 
 
 def parse_fontkw(**kwargs):
