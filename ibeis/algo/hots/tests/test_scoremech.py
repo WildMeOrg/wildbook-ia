@@ -6,7 +6,7 @@ def test_scoremech():
     from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
     base = {'query_rotation_heuristic': False, 'sv_on': False}
     base = {'query_rotation_heuristic': True, 'sv_on': False, 'K': 1}
-    base = {'query_rotation_heuristic': False, 'sv_on': False, 'K': 1}
+    base = {'query_rotation_heuristic': True, 'sv_on': False, 'K': 1}
     cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
     cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
 
@@ -51,6 +51,8 @@ def test_scoremech():
     cm, qreq_ = cm1, qreq1_
     cm.evaluate_nsum_name_score(qreq_)
     cm.evaluate_maxcsum_name_score(qreq_)
+    fmech = cm.algo_name_scores['nsum']
+    amech = cm.algo_name_scores['maxcsum']
     if qreq_.qparams.K == 1 and qreq_.qparams.query_rotation_heuristic is False:
         import numpy as np
         assert np.all(

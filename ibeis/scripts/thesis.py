@@ -992,10 +992,9 @@ class Chap3Measures(object):
         """
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
-        # ibs, qaids, daids_list, info_list = self._varied_inputs(
-        #     denc_per_name=[1, 3], extra_dbsize_fracs=[1])
-        cfgdict1 = {'score_method': 'nsum', 'prescore_method': 'nsum', 'query_rotation_heuristic': True}
-        cfgdict2 = {'score_method': 'csum', 'prescore_method': 'csum', 'query_rotation_heuristic': True}
+        base = {'query_rotation_heuristic': True}
+        cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
+        cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
         results = []
         for count, (daids, info) in enumerate(zip(daids_list, info_list), start=1):
             cdf1 = _ranking_cdf(ibs, qaids, daids, cfgdict1)
@@ -1265,8 +1264,8 @@ class Chap3Draw(object):
         df = df[df['K'] != 10]
 
         fig = pt.figure(fnum=1)
-        pnum_ = pt.make_pnum_nextgen(nCols=1, nSubplots=len(groups))
         groups = list(df.groupby(('dsize')))
+        pnum_ = pt.make_pnum_nextgen(nCols=1, nSubplots=len(groups))
         for val, df_group in groups:
             # print('---')
             # print(df_group)
