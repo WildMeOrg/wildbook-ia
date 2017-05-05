@@ -45,9 +45,10 @@ def testdata_chipmatch():
 
 
 @profile
-def compute_nsum_score(cm, qreq_=None):
+def compute_fmech_score(cm, qreq_=None, hack_single_ori=False):
     r"""
-    nsum
+    nsum. This is the fmech scoring mechanism.
+
 
     Args:
         cm (ibeis.ChipMatch):
@@ -56,23 +57,18 @@ def compute_nsum_score(cm, qreq_=None):
         tuple: (unique_nids, nsum_score_list)
 
     CommandLine:
-        python -m ibeis.algo.hots.name_scoring --test-compute_nsum_score
-        python -m ibeis.algo.hots.name_scoring --test-compute_nsum_score:0
-        python -m ibeis.algo.hots.name_scoring --test-compute_nsum_score:2
-        utprof.py -m ibeis.algo.hots.name_scoring --test-compute_nsum_score:2
+        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score
+        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:0
+        python -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:2
+        utprof.py -m ibeis.algo.hots.name_scoring --test-compute_fmech_score:2
         utprof.py -m ibeis.algo.hots.pipeline --test-request_ibeis_query_L0:0 --db PZ_Master1 -a timectrl:qindex=0:256
 
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
-        >>> # build test data
         >>> cm = testdata_chipmatch()
-        >>> # execute function
-        >>> (unique_nids, nsum_score_list) = compute_nsum_score(cm)
-        >>> result = ut.list_str((unique_nids, nsum_score_list), label_list=['unique_nids', 'nsum_score_list'], with_dtype=False)
-        >>> print(result)
-        unique_nids = np.array([1, 2, 3])
-        nsum_score_list = np.array([ 4.,  7.,  5.])
+        >>> nsum_score_list = compute_fmech_score(cm)
+        >>> assert np.all(nsum_score_list == [ 4.,  7.,  5.])
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -82,23 +78,20 @@ def compute_nsum_score(cm, qreq_=None):
         >>> cm.evaluate_dnids(qreq_)
         >>> cm._cast_scores()
         >>> #cm.qnid = 1   # Hack for testdb1 names
-        >>> nsum_nid_list, nsum_score_list = compute_nsum_score(cm, qreq_)
-        >>> assert np.all(nsum_nid_list == cm.unique_nids), 'nids out of alignment'
-        >>> flags = (nsum_nid_list == cm.qnid)
+        >>> nsum_score_list = compute_fmech_score(cm, qreq_)
+        >>> #assert np.all(nsum_nid_list == cm.unique_nids), 'nids out of alignment'
+        >>> flags = (cm.unique_nids == cm.qnid)
         >>> max_true = nsum_score_list[flags].max()
         >>> max_false = nsum_score_list[~flags].max()
         >>> assert max_true > max_false, 'is this truely a hard case?'
         >>> assert max_true > 1.2, 'score=%r should be higher for aid=18' % (max_true,)
-        >>> nsum_nid_list2, nsum_score_list2, _ = compute_nsum_score2(cm, qreq_)
-        >>> assert np.allclose(nsum_score_list2, nsum_score_list), 'something is very wrong'
-        >>> #assert np.all(nsum_score_list2 == nsum_score_list), 'could be a percision issue'
 
     Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
 
@@ -108,149 +101,78 @@ def compute_nsum_score(cm, qreq_=None):
         >>> #ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(query_rotation_heuristic=True))
         >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_, ori=True)
-
-    Example4:
-        >>> # ENABLE_DOCTEST
-        >>> # FIXME: breaks when fg_on=True
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
-        >>> from ibeis.algo.hots import name_scoring
-        >>> from ibeis.algo.hots import scoring
-        >>> import ibeis
-        >>> # Test to make sure name score and chips score are equal when per_name=1
-        >>> qreq_, args = plh.testdata_pre(
-        >>>     'spatial_verification', defaultdb='PZ_MTEST',
-        >>>     a=['default:dpername=1,qsize=1,dsize=10'],
-        >>>     p=['default:K=1,fg_on=True,sqrd_dist_on=True'])
-        >>> cm = args.cm_list_FILT[0]
-        >>> ibs = qreq_.ibs
-        >>> # Ensure there is only one aid per database name
-        >>> assert isinstance(ibs, ibeis.IBEISController)
-        >>> stats = ut.get_stats(ibs.get_num_annots_per_name(qreq_.daids)[0], use_nan=True)
-        >>> print('per_name_stats = %s' % (ut.dict_str(stats, nl=False),))
-        >>> assert stats['mean'] == 1 and stats['std'] == 0, 'this test requires one annot per name in the database'
-        >>> cm.evaluate_dnids(qreq_)
-        >>> cm.assert_self(qreq_)
-        >>> cm._cast_scores()
-        >>> # cm.fs_list = cm.fs_list.astype(np.float)
-        >>> nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_)
-        >>> nsum_nid_list2, nsum_score_list2, _ = name_scoring.compute_nsum_score2(cm, qreq_)
-        >>> csum_score_list = scoring.compute_csum_score(cm)
-        >>> vt.asserteq(nsum_score_list, csum_score_list)
-        >>> vt.asserteq(nsum_score_list, csum_score_list, thresh=0, iswarning=True)
-        >>> vt.asserteq(nsum_score_list2, csum_score_list, thresh=0, iswarning=True)
-        >>> #assert np.allclose(nsum_score_list, csum_score_list), 'should be the same when K=1 and per_name=1'
-        >>> #assert all(nsum_score_list  == csum_score_list), 'should be the same when K=1 and per_name=1'
-        >>> #assert all(nsum_score_list2 == csum_score_list), 'should be the same when K=1 and per_name=1'
-        >>> # Evaluate parts of the sourcecode
-
-
-    Ignore:
-        assert all(nsum_score_list3 == csum_score_list), 'should be the same when K=1 and per_name=1'
-        fm_list = fm_list[0:1]
-        fs_list = fs_list[0:1]
-        featflag_list2 = featflag_list2[0:1]
-        dnid_list = dnid_list[0:1]
-        name_groupxs2 = name_groupxs2[0:1]
-        nsum_nid_list2 = nsum_nid_list2[0:1]
-
     """
     #assert qreq_ is not None
-    try:
-        hack_single_ori =  qreq_ is not None and (qreq_.qparams.query_rotation_heuristic or qreq_.qparams.rotation_invariance)
-    except AttributeError:
-        hack_single_ori =  True
+    if hack_single_ori is None:
+        try:
+            hack_single_ori =  qreq_ is not None and (
+                qreq_.qparams.query_rotation_heuristic or qreq_.qparams.rotation_invariance
+            )
+        except AttributeError:
+            hack_single_ori =  True
     # The core for each feature match
     #
     # The query feature index for each feature match
     fm_list = cm.fm_list
     fs_list = cm.get_fsv_prod_list()
-    dnid_list = cm.dnid_list
-    #--
     fx1_list = [fm.T[0] for fm in fm_list]
-    """
-    # Try a rebase?
-    fx1_list = list(map(vt.compute_unique_data_ids_, fx1_list))
-    """
-    # Group annotation matches by name
-    nsum_nid_list, name_groupxs = vt.group_indices(dnid_list)
-    name_grouped_fx1_list = vt.apply_grouping_(fx1_list, name_groupxs)
-    name_grouped_fs_list  = vt.apply_grouping_(fs_list,  name_groupxs)
-    # Stack up all matches to a particular name
-    name_grouped_fx1_flat = list(map(np.hstack, name_grouped_fx1_list))
-    name_grouped_fs_flat  = list(map(np.hstack, name_grouped_fs_list))
-    """
-    assert np.all(name_grouped_fs_list[0][0] == fs_list[0])
-    assert np.all(name_grouped_fs_flat[0] == fs_list[0])
-    """
     if hack_single_ori:
-        # keypoints with the same xy can only have one of them vote
-        kpts1 = qreq_.ibs.get_annot_kpts(cm.qaid, config2_=qreq_.extern_query_config2)
+        # Group keypoints with the same xy-coordinate.
+        # Combine these feature so each only recieves one vote
+        kpts1 = qreq_.ibs.get_annot_kpts(
+            cm.qaid, config2_=qreq_.extern_query_config2)
         xys1_ = vt.get_xys(kpts1).T
-        kpts_xyid_list = vt.compute_unique_arr_dataids(xys1_)
-        # Make nested group for every name by query feature index (accounting for duplicate orientation)
-        name_grouped_xyid_flat = [kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat]
-        feat_groupxs_list = [vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat]
+        fx1_to_comboid = vt.compute_unique_arr_dataids(xys1_)
+        fcombo_ids = [fx1_to_comboid.take(fx1) for fx1 in fx1_list]
     else:
-        # make unique indicies using feature indexes
-        feat_groupxs_list = [vt.group_indices(fx1_flat)[1] for fx1_flat in name_grouped_fx1_flat]
-    # Make nested group for every name by unique query feature index
-    feat_grouped_fs_list = [[fs_flat.take(xs, axis=0) for xs in feat_groupxs]
-                            for fs_flat, feat_groupxs in zip(name_grouped_fs_flat, feat_groupxs_list)]
-    """
-    np.array(feat_grouped_fs_list)[0].T[0] == fs_list
-    """
-    if False:
-        valid_fs_list = [
-            np.array([group.max() for group in grouped_fs])
-            #np.array([group[group.argmax()] for group in grouped_fs])
-            for grouped_fs in feat_grouped_fs_list
-        ]
-        nsum_score_list4 = np.array([valid_fs.sum() for valid_fs in valid_fs_list])  # NOQA
-    # Prevent a feature from voting twice:
-    # take only the max score that a query feature produced
-    #name_grouped_valid_fs_list1 =[np.array([fs_group.max() for fs_group in feat_grouped_fs])
-    #                            for feat_grouped_fs in feat_grouped_fs_list]
-    nsum_score_list = np.array([np.sum([fs_group.max() for fs_group in feat_grouped_fs])
-                                for feat_grouped_fs in feat_grouped_fs_list])
-    return nsum_nid_list, nsum_score_list
+        # use the feature index itself as a combo id
+        # so each feature only recieves one vote
+        fcombo_ids = fx1_list
 
-
-@profile
-def compute_nsum_score2(cm, qreq_=None):
-    r"""
-    Example3:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.name_scoring import *  # NOQA
-        >>> ibs, qreq_, cm_list = plh.testdata_post_sver('testdb1', qaid_list=[1], cfgdict=dict(fg_on=False, query_rotation_heuristic=True))
-        >>> cm = cm_list[0]
-        >>> cm.evaluate_dnids(qreq_)
-        >>> nsum_nid_list1, nsum_score_list1, featflag_list1 = compute_nsum_score2(cm, qreq_)
-        >>> nsum_nid_list2, nsum_score_list2 = compute_nsum_score(cm, qreq_)
-        >>> ut.quit_if_noshow()
-        >>> cm.show_ranked_matches(qreq_, ori=True)
-    """
-    featflag_list2 = get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_)
-    fs_list = cm.get_fsv_prod_list()
-    name_groupxs2 = cm.name_groupxs
-    nsum_nid_list2 = cm.unique_nids
-    #--
-    valid_fs_list2 = vt.zipcompress(fs_list, featflag_list2)
-    name_grouped_valid_fs_list2 = vt.apply_grouping_(valid_fs_list2,  name_groupxs2)
-    nsum_score_list2 = np.array([sum(list(map(np.sum, valid_fs_group)))
-                                 for valid_fs_group in name_grouped_valid_fs_list2])
     if False:
-        nsum_score_list3 = np.array([  # NOQA
-            np.sum([fs_group.sum() for fs_group in valid_fs_group])
-            for valid_fs_group in name_grouped_valid_fs_list2])
-    return nsum_nid_list2, nsum_score_list2, featflag_list2
+        import ubelt as ub
+        for ids in fcombo_ids:
+            ub.find_duplicates(ids)
+
+    # Group annotation matches by name
+    # nsum_nid_list, name_groupxs = vt.group_indices(cm.dnid_list)
+    # nsum_nid_list = cm.unique_nids
+    name_groupxs = cm.name_groupxs
+
+    nsum_score_list = []
+    # For all indicies matched to a particular name
+    for name_idxs in name_groupxs:
+        # Get feat indicies and scores corresponding to the name's annots
+        name_combo_ids = ut.take(fcombo_ids, name_idxs)
+        name_fss = ut.take(fs_list, name_idxs)
+        # Flatten over annots in the name
+        fs  = np.hstack(name_fss)
+        if len(fs) == 0:
+            nsum_score_list.append(0)
+            continue
+        combo_ids = np.hstack(name_combo_ids)
+        # Features (with the same id) can't vote for this name twice
+        group_idxs = vt.group_indices(combo_ids)[1]
+        flagged_idxs = [idxs[fs.take(idxs).argmax()] for idxs in group_idxs]
+        # Detail: sorting the idxs preseveres summation order
+        # this fixes the numerical issue where nsum and csum were off
+        flagged_idxs = np.sort(flagged_idxs)
+        name_score = fs.take(flagged_idxs).sum()
+
+        nsum_score_list.append(name_score)
+    nsum_score_list = np.array(nsum_score_list)
+
+    return nsum_score_list
 
 
 @profile
 def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
     """
+    DEPRICATE
+
     Computes flags to desribe which features can or can not vote
 
     CommandLine:
@@ -289,6 +211,8 @@ def get_chipmatch_namescore_nonvoting_feature_flags(cm, qreq_=None):
 @profile
 def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_groupxs, kpts1=None):
     r"""
+    DEPRICATE
+
     fm_list = [fm[:min(len(fm), 10)] for fm in fm_list]
     fs_list = [fs[:min(len(fs), 10)] for fs in fs_list]
     """
@@ -305,8 +229,8 @@ def get_namescore_nonvoting_feature_flags(fm_list, fs_list, dnid_list, name_grou
         xys1_ = vt.get_xys(kpts1).T
         kpts_xyid_list = vt.compute_unique_data_ids(xys1_)
         # Make nested group for every name by query feature index (accounting for duplicate orientation)
-        name_grouped_xyid_flat = list(kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat)
-        xyid_groupxs_list = list(vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_xyid_flat)
+        name_grouped_comboid_flat = list(kpts_xyid_list.take(fx1) for fx1 in name_grouped_fx1_flat)
+        xyid_groupxs_list = list(vt.group_indices(xyid_flat)[1] for xyid_flat in name_grouped_comboid_flat)
         name_group_fx1_groupxs_list = xyid_groupxs_list
     else:
         # Make nested group for every name by query feature index
@@ -364,8 +288,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> from ibeis.algo.hots.name_scoring import *  # NOQA
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
         >>> cm = cm_list[0]
-        >>> cm.evaluate_csum_score(qreq_)
-        >>> cm.evaluate_nsum_score(qreq_)
+        >>> cm.evaluate_csum_annot_score(qreq_)
+        >>> cm.evaluate_nsum_name_score(qreq_)
         >>> # Annot aligned lists
         >>> annot_score_list = cm.algo_annot_scores['csum']
         >>> annot_aid_list   = cm.daid_list
@@ -381,7 +305,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> cm.score_list = score_list
         >>> ut.assert_eq(ibs.get_annot_name_rowids(cm.daid_list[test_index]), cm.qnid)
         >>> assert ut.isunique(cm.dnid_list[score_list > 0]), 'bad name score'
-        >>> assert cm.get_top_nids()[0] == cm.unique_nids[cm.nsum_score_list.argmax()], 'bug in alignment'
+        >>> top_idx = cm.algo_name_scores['nsum'].argmax()
+        >>> assert cm.get_top_nids()[0] == cm.unique_nids[top_idx], 'bug in alignment'
         >>> ut.quit_if_noshow()
         >>> cm.show_ranked_matches(qreq_)
         >>> ut.show_if_requested()
@@ -396,11 +321,6 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         >>> name_groupxs     = []
         >>> # Execute Function
         >>> score_list = align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, name_groupxs, name_score_list)
-
-    Ignore:
-        dict(zip(cm.dnid_list, cm.score_list))
-        dict(zip(cm.unique_nids, cm.nsum_score_list))
-        np.all(nid_list == cm.unique_nids)
     """
     if len(name_groupxs) == 0:
         score_list = np.empty(0, dtype=name_score_list.dtype)
@@ -433,7 +353,8 @@ def align_name_scores_with_annots(annot_score_list, annot_aid_list, daid2_idx, n
         best_idx_list = ut.dict_take(daid2_idx, best_aid_list)
         # give the annotation domain a name score
         #score_list = np.zeros(len(annot_score_list), dtype=name_score_list.dtype)
-        score_list = np.full(len(annot_score_list), fill_value=-np.inf, dtype=name_score_list.dtype)
+        score_list = np.full(len(annot_score_list), fill_value=-np.inf,
+                             dtype=name_score_list.dtype)
         #score_list = np.full(len(annot_score_list), fill_value=np.nan, dtype=name_score_list.dtype)
         #score_list = np.nan(len(annot_score_list), dtype=name_score_list.dtype)
         # HACK: we need to set these to 'low' values and we also have to respect negatives

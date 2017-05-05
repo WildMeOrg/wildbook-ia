@@ -170,6 +170,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
     elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
+        assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline vsone is depricated'
         # Hack to ensure that correct depcache style request gets called
         if verbose > 2:
             print('[qreq] piperoot HACK')
@@ -601,7 +602,7 @@ class QueryRequest(ut.NiceRepr):
     def shallowcopy(qreq_, qaids=None):
         """
         Creates a copy of qreq with the same qparams object and a subset of the
-        qx and dx objects.  used to generate chunks of vsone and vsmany queries
+        qx and dx objects.  used to generate chunks of vsmany queries
 
         CommandLine:
             python -m ibeis.algo.hots.query_request QueryRequest.shallowcopy
@@ -750,7 +751,7 @@ class QueryRequest(ut.NiceRepr):
             >>> import ibeis
             >>> qaid_list = [1, 2, 3, 4]
             >>> daid_list = [1, 2, 3, 4]
-            >>> qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p='default:codename=vsone,sv_on=True')
+            >>> qreq_ = ibeis.testdata_qreq_(qaid_override=qaid_list, daid_override=daid_list, p='default:sv_on=True')
             >>> qaids = qreq_.get_internal_qaids()
             >>> ut.assert_lists_eq(qaid_list, qaids)
             >>> masked_qaid_list = [1, 2, 3,]

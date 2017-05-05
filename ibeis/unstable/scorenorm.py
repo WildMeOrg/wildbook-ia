@@ -792,7 +792,7 @@ def get_topannot_training_idxs(cm, num=2):
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST')
         >>> num = 2
-        >>> cm.score_csum(qreq_)
+        >>> cm.score_annot_csum(qreq_)
         >>> (tp_idxs, tn_idxs) = get_topannot_training_idxs(cm, num)
         >>> result = ('(tp_idxs, tn_idxs) = %s' % (ut.repr2((tp_idxs, tn_idxs), nl=1),))
         >>> print(result)

@@ -1165,7 +1165,7 @@ class VsOneRequest(dtool.base.VsOneSimilarityRequest):
         for qaid, qnid, daids, cms in _iter:
             # Hacked in version of creating an annot match object
             chip_match = ibeis.ChipMatch.combine_cms(cms)
-            chip_match.score_maxcsum(request)
+            chip_match.score_name_maxcsum(request)
             cm_list.append(chip_match)
 
         #import utool

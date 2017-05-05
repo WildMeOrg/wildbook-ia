@@ -318,7 +318,7 @@ class AggregateConfig(ConfigBase):
     """
     def __init__(agg_cfg, **kwargs):
         super(AggregateConfig, agg_cfg).__init__(name='agg_cfg')
-        # chipsum, namesum, placketluce
+        # chipsum, namesum,
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
         agg_cfg.score_normalization = None
@@ -326,11 +326,8 @@ class AggregateConfig(ConfigBase):
         #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
-            'borda': 'borda',
-            'placketluce': 'pl',
             'chipsum': 'csum',
             'namesum': 'nsum',
-            'coverage': 'coverage',
         }
         # For Placket-Luce
         agg_cfg.max_alts = 50
@@ -348,8 +345,6 @@ class AggregateConfig(ConfigBase):
         agg_cfgstr = []
         agg_cfgstr.append('_AGG(')
         agg_cfgstr.append(agg_cfg.score_method)
-        if agg_cfg.score_method  == 'pl':
-            agg_cfgstr.append(',%d' % (agg_cfg.max_alts,))
         if agg_cfg.score_normalization:
             agg_cfgstr.append(',norm')
         if agg_cfg.normsum:
@@ -456,7 +451,6 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfo('ratio_thresh', None, type_=float, hideif=None),
                 ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
                 ut.ParamInfoBool('const_on', False,  hideif=False),
-                ut.ParamInfoBool('borda_on', False,  hideif=False),
                 ut.ParamInfoBool('lograt_on', False, hideif=False),
                 #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
                 #ut.ParamInfoBool('logdist_on', False,  hideif=False),
@@ -488,6 +482,8 @@ class NNWeightConfig(ConfigBase):
 @six.add_metaclass(ConfigMetaclass)
 class RerankVsOneConfig(ConfigBase):
     """
+    DEPRICATE
+
     CommandLine:
         python -m ibeis.algo.Config --test-RerankVsOneConfig
 
@@ -509,24 +505,12 @@ class RerankVsOneConfig(ConfigBase):
 
     def get_param_info_list(rrvsone_cfg):
         # from ibeis.algo.hots import distinctiveness_normalizer
-        # from ibeis.algo.hots import vsone_pipeline
         # new way to try and specify config options.
         # not sure if i like it yet
         param_info_list = ut.flatten([
             [
                 ut.ParamInfo('rrvsone_on', False, ''),
             ],
-            # vsone_pipeline.OTHER_RRVSONE_PARAMS.aslist(),
-            # vsone_pipeline.SHORTLIST_DEFAULTS.aslist(),
-            # vsone_pipeline.COEFF_DEFAULTS.aslist(),
-            # vsone_pipeline.UNC_DEFAULTS.aslist(),
-            # vsone_pipeline.SCR_DEFAULTS.aslist(),
-            # vsone_pipeline.COVKPTS_DEFAULT.aslist(
-            #     hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'kpts'),
-            # vsone_pipeline.COVGRID_DEFAULT.aslist(
-            #     hideif=lambda cfg: not cfg['covscore_on'] or cfg['maskscore_mode'] != 'grid'),
-            # distinctiveness_normalizer.DCVS_DEFAULT.aslist(
-            #     hideif=lambda cfg: not cfg['dcvs_on']),
         ])
         return param_info_list
 
@@ -540,6 +524,7 @@ class RerankVsOneConfig(ConfigBase):
 
     def get_cfgstr_list(rrvsone_cfg, **kwargs):
         if rrvsone_cfg.rrvsone_on:
+            assert False, 'depricated'
             rrvsone_cfg_list = rrvsone_cfg.meta_get_cfgstr_list(**kwargs)
         else:
             rrvsone_cfg_list = [

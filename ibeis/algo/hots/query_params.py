@@ -4,13 +4,7 @@ import collections
 import utool as ut
 from ibeis.algo.hots import hstypes
 from ibeis.algo import Config
-(print, rrr, profile) = ut.inject2(__name__, '[qreq]')
-
-
-def testdata_queryparams():
-    cfgdict = {'pipeline_root': 'vsone', 'sv_on': False, 'fg_on': True}
-    qparams = QueryParams(cfgdict=cfgdict)
-    return qparams
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 # This object will behave like a dictionary with ** capability
@@ -124,7 +118,8 @@ class QueryParams(collections.Mapping):
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.query_params import *  # NOQA
             >>> from six.moves import cPickle as pickle
-            >>> qparams = testdata_queryparams()
+            >>> cfgdict = {'pipeline_root': 'vsmany', 'sv_on': False, 'fg_on': True}
+            >>> qparams = QueryParams(cfgdict=cfgdict)
             >>> qparams_dump = pickle.dumps(qparams)
             >>> qparams2 = pickle.loads(qparams_dump)
         """

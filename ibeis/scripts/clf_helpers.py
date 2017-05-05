@@ -903,7 +903,7 @@ class MultiTaskSamples(ut.NiceRepr):
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.scripts.clf_helpers import *  # NOQA
-        >>> samples = MultiTaskSamples()
+        >>> samples = MultiTaskSamples([0, 1, 2, 3])
         >>> tasks_to_indicators = ut.odict([
         >>>     ('task1', ut.odict([
         >>>         ('state1', [0, 0, 0, 1]),

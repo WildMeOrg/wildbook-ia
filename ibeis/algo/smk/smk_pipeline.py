@@ -449,14 +449,14 @@ class SMK(ut.NiceRepr):
                 cm.fsv_list.append(fsv)
         cm._update_daid_index()
         cm.arraycast_self()
-        cm.score_maxcsum(qreq_)
+        cm.score_name_maxcsum(qreq_)
 
         #if False:
         #    cm.assert_self(qreq_=qreq_, verbose=True)
 
         if sv_on:
             cm = pipeline.sver_single_chipmatch(qreq_, cm, verbose=verbose)
-            cm.score_maxcsum(qreq_)
+            cm.score_name_maxcsum(qreq_)
 
         return cm
 

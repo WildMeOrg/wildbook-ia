@@ -218,10 +218,16 @@ def testdata_pipecfg(p=None, t=None, ibs=None, verbose=None):
         print('[main_helpers] testdata_pipecfg')
     if t is not None and p is None:
         p = t
+        print('WARNING DO NOT USE t. Use p instead')
     if p is None:
         p = ['default']
+
     from ibeis.expt import experiment_helpers
-    test_cfg_name_list = ut.get_argval(('-t', '-p'), type_=list, default=p)
+    test_cfg_name_list, _spec = ut.get_argval(('-t', '-p'), type_=list, default=p,
+                                              return_was_specified=True)
+    if not _spec and isinstance(p, dict):
+        # allow explict default spec
+        return p
     pcfgdict_list = experiment_helpers.get_pipecfg_list(test_cfg_name_list, ibs=ibs)[0]
     assert len(pcfgdict_list) == 1, 'can only specify one pipeline config here'
     pcfgdict = pcfgdict_list[0]
@@ -295,6 +301,16 @@ def testdata_expanded_aids(defaultdb=None, a=None, ibs=None,
                                                  default=a,
                                                  return_specified=True)
 
+    if not _specified:
+        # Allow a to be specified an explicit default
+        if len(a) == 2:
+            qaids, daids = a
+            if ut.is_int(qaids[0]) and ut.is_int(daids[0]):
+                if return_annot_info:
+                    return ibs, qaids, daids, None
+                else:
+                    return ibs, qaids, daids
+
     acfg_list, expanded_aids_list = experiment_helpers.get_annotcfg_list(
         ibs, aidcfg_name_list, qaid_override=qaid_override,
         use_cache=use_cache,
@@ -361,6 +377,7 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
         p = t
     if p is None:
         p = ['default']
+
     ibs, qaids, daids, acfg = testdata_expanded_aids(a=a, return_annot_info=True,
                                                      default_qaids=default_qaids,
                                                      default_daids=default_daids,
@@ -371,11 +388,14 @@ def testdata_qreq_(p=None, a=None, t=None, default_qaids=None,
                                   custom_nid_lookup=custom_nid_lookup,
                                   verbose=verbose)
     # Maintain regen command info: TODO: generalize and integrate
-    qreq_._regen_info = {
-        '_acfgstr': acfg['qcfg']['_cfgstr'],
-        '_pcfgstr': pcfgdict['_cfgstr'],
-        'dbname': ibs.get_dbname()
-    }
+    if acfg is not None:
+        qreq_._regen_info = {
+            '_acfgstr': acfg['qcfg']['_cfgstr'],
+            '_pcfgstr': pcfgdict['_cfgstr'],
+            'dbname': ibs.get_dbname()
+        }
+    else:
+        qreq_._regen_info = None
     return qreq_
 
 

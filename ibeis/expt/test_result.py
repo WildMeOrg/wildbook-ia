@@ -104,8 +104,8 @@ def build_cmsinfo(cm_list, qreq_):
             for cm in cm_group
         ]
         aligned_name_scores = np.array([
-            ut.dict_take(nid2_name_score, unique_dnids.tolist(), -np.inf)
-            for nid2_name_score in nid2_name_score_group
+            ut.dict_take(nid_to_name_score, unique_dnids.tolist(), -np.inf)
+            for nid_to_name_score in nid2_name_score_group
         ]).T
         name_score_list = np.nanmax(aligned_name_scores, axis=1)
         qnid2_aggnamescores[qnid] = name_score_list
@@ -2375,7 +2375,7 @@ class TestResult(ut.NiceRepr):
             cm_list = qreq_.execute(qaids)
             cm_list = [cm.extend_results(qreq_) for cm in cm_list]
             for cm in cm_list:
-                cm.score_csum(qreq_)
+                cm.score_annot_csum(qreq_)
             #    #cm.sortself()
             cfgx2_cms.append(cm_list)
 

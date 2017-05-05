@@ -121,7 +121,7 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
         >>> print(ut.indent(setup, '>>> '))
         >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
         >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> dnid = ibs.get_annot_nids(cm.qaid)
         >>> # +--- COPIED SECTION
         >>> locals_ = locals()
@@ -463,9 +463,6 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/viz/interact/interact_matches.py':
         interact_matches.py : 372 |            tup = viz.viz_matches.show_matches2(ibs, self.qaid, self.daid,
         ----------------------
-        Found 1 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/vsone_pipeline.py':
-        vsone_pipeline.py : 1339 |    viz_matches.show_matches2(ibs, qaid, daid, fm=fm, fs=fs, fm_norm=fm_norm, ori=True,
-        ----------------------
         Found 2 line(s) in '/home/joncrall/code/ibeis/ibeis/algo/hots/chip_match.py':
         chip_match.py : 204 |        viz_matches.show_matches2(qreq_.ibs, cm.qaid, daid, qreq_=qreq_,
         chip_match.py : 219 |            ibeis.viz.viz_matches.show_matches2
@@ -482,7 +479,7 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
         >>> from ibeis.algo.hots.chip_match import *  # NOQA
         >>> import ibeis
         >>> cm, qreq_ = ibeis.testdata_cm(defaultdb='PZ_MTEST', default_qaids=[18])
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> daid = cm.get_top_aids()[0]
         >>> cm.show_single_annotmatch(qreq_, daid)
         >>> ut.show_if_requested()

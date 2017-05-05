@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+DEPRICATE
+
 module which uses multiple flann indexes as a way of working around adding
 points to a single flann structure which seems to cause crashes.
 """

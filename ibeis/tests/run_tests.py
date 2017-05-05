@@ -88,7 +88,7 @@ def static_doctest_modnames():
         'ibeis.algo.hots.neighbor_index', 'ibeis.algo.hots.pgm_viz',
         'ibeis.algo.hots.pgm_ext', 'ibeis.algo.hots.bayes',
         'ibeis.algo.hots.nn_weights',
-        'ibeis.algo.hots.pipeline', 'ibeis.algo.hots.vsone_pipeline',
+        'ibeis.algo.hots.pipeline',
         'ibeis.algo.hots.orig_graph_iden', 'ibeis.algo.hots.query_request',
         'ibeis.algo.hots.chip_match', 'ibeis.algo.hots.multi_index',
         'ibeis.algo.hots.testem', 'ibeis.algo.hots.query_params',

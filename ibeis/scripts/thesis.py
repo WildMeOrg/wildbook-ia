@@ -436,58 +436,6 @@ class Chap3Inputs(object):
                 deltas.append(max(times) - min(times))
             ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
 
-    @staticmethod
-    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
-        """ This cannot be used for cross validation """
-        # Group annotations by encounter
-        # from ibeis.other import ibsfuncs
-        # primary_view = ibsfuncs.get_primary_species_viewpoint(ibs.get_primary_database_species())
-
-        annots = ibs.annots(aids)
-        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
-        enc_nids = ut.take_column(encounters.nids, 0)
-        nid_to_encs = ut.group_items(encounters, enc_nids)
-        rng = ut.ensure_rng(0)
-        pyrng = random.Random(rng.randint(sys.maxsize))
-
-        n_need = qenc_per_name + denc_per_name_
-
-        confusor_encs = {}
-        sample_splits = {}
-
-        for nid, encs in nid_to_encs.items():
-            if len(encs) < n_need:
-                confusor_encs[nid] = encs
-            else:
-                # For each name choose a query / database encounter.
-                chosen_encs = pyrng.sample(encs, n_need)
-                ibs._annot_groups(chosen_encs).aids
-                # Choose high quality annotations from each encounter
-                best_subencs = []
-                for enc in chosen_encs:
-                    if len(enc) > annots_per_enc:
-                        sortx = ut.argsort(enc.qualities)[::-1]
-                        subenc = enc.take(sortx[0:annots_per_enc])
-                        best_subencs.append(subenc)
-                    else:
-                        assert len(enc) == annots_per_enc
-                        best_subencs.append(enc)
-                ibs._annot_groups(best_subencs).aids
-                qsubenc = [a.aids for a in best_subencs[0:qenc_per_name]]
-                dsubenc = [a.aids for a in best_subencs[qenc_per_name:]]
-                sample_splits[nid] = (qsubenc, dsubenc)
-
-        # make confusor encounters subject to the same constraints
-        confusor_pool = []
-        for encs in confusor_encs.values():
-            confusor_pool.extend(
-                ut.flatten([enc[0:annots_per_enc].aids for enc in encs])
-            )
-
-        qaids = ut.total_flatten(ut.take_column(sample_splits.values(), 0))
-        dname_encs = ut.take_column(sample_splits.values(), 1)
-        return qaids, dname_encs, confusor_pool
-
     def _same_occur_split(self):
         """
             >>> from ibeis.scripts.thesis import *
@@ -665,6 +613,67 @@ class Chap3Inputs(object):
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
         return qaids, dname_encs, confusor_pool
 
+    @staticmethod
+    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
+        """ This cannot be used for cross validation """
+        # Group annotations by encounter
+        # from ibeis.other import ibsfuncs
+        # primary_view = ibsfuncs.get_primary_species_viewpoint(ibs.get_primary_database_species())
+
+        annots = ibs.annots(aids)
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+        enc_nids = ut.take_column(encounters.nids, 0)
+        nid_to_encs = ut.group_items(encounters, enc_nids)
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        n_need = qenc_per_name + denc_per_name_
+
+        confusor_encs = {}
+        sample_splits = {}
+
+        def choose_best(enc, num):
+            if len(enc) > num:
+                sortx = ut.argsort(enc.qualities)[::-1]
+                subenc = enc.take(sortx[0:num])
+            else:
+                subenc = enc
+            return subenc
+
+        for nid, encs in nid_to_encs.items():
+            if len(encs) < n_need:
+                confusor_encs[nid] = encs
+            else:
+                # For each name choose a query / database encounter.
+                chosen_encs = pyrng.sample(encs, n_need)
+                ibs._annot_groups(chosen_encs).aids
+                # Choose high quality annotations from each encounter
+                best_subencs = [choose_best(enc, annots_per_enc) for
+                                enc in chosen_encs]
+                # ibs._annot_groups(best_subencs).aids
+                qsubenc = [a.aids for a in best_subencs[0:qenc_per_name]]
+                dsubenc = [a.aids for a in best_subencs[qenc_per_name:]]
+                sample_splits[nid] = (qsubenc, dsubenc)
+
+        # make confusor encounters subject to the same constraints
+        confusor_pool = []
+        confname_encs = []
+        for encs in confusor_encs.values():
+            # new
+            # chosen_encs = pyrng.sample(encs, min(len(encs), denc_per_name_))
+            # rand_subencs = [pyrng.sample(enc.aids, annots_per_enc)
+            #                 for enc in chosen_encs]
+            # confname_encs.append(rand_subencs)
+
+            # old
+            confusor_pool.extend(
+                ut.flatten([enc[0:annots_per_enc].aids for enc in encs])
+            )
+
+        qaids = ut.total_flatten(ut.take_column(sample_splits.values(), 0))
+        dname_encs = ut.take_column(sample_splits.values(), 1)
+        return qaids, dname_encs, confname_encs, confusor_pool
+
     def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None,
                        method='alt'):
         """
@@ -709,7 +718,7 @@ class Chap3Inputs(object):
         denc_per_name_ = max(denc_per_name)
 
         if method == 'alt':
-            qaids, dname_encs, confusor_pool = self._alt_splits(
+            qaids, dname_encs, confname_encs, confusor_pool = self._alt_splits(
                 ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
         elif method == 'same_occur':
             assert denc_per_name_ == 1
@@ -740,17 +749,43 @@ class Chap3Inputs(object):
                 ('t_dsize', len(daids_)),
             ]))
 
+        # confusor_names_matter = True
+        # if confusor_names_matter:
+        #     extra_pools = [
+        #         ut.total_flatten(ut.take_column(confname_encs, slice(0, num)))
+        #         for num in denc_per_name
+        #     ]
+        #     dbsize_list = ut.lmap(len, target_daids_list)
+        #     max_dsize = max(dbsize_list)
+        #     for num, daids_ in zip(denc_per_name, target_daids_list):
+        #         num_take = max_dsize - len(daids_)
+        #         print('num_take = %r' % (num_take,))
+
+        #         confname_encs_ = ut.total_flatten(ut.take_column(confname_encs, slice(0, num)))
+        #         confusor_pool_ = ut.total_flatten(confname_encs_)
+        #         if num_take > len(confusor_pool_):
+        #             # we need to siphon off valid queries to use them as
+        #             # confusors
+        #             raise AssertionError(
+        #                 'have={}, need={}, not enough confusors for num={}'.format(
+        #                     len(confusor_pool_), num_take, num
+        #                 ))
+
         # Append confusors to maintain a constant dbsize in each base sample
         dbsize_list = ut.lmap(len, target_daids_list)
         max_dsize = max(dbsize_list)
         n_need = max_dsize - min(dbsize_list)
         n_extra_avail = len(confusor_pool) - n_need
-        assert len(confusor_pool) > n_need, 'not enough confusors'
+        # assert len(confusor_pool) > n_need, 'not enough confusors'
         padded_daids_list = []
         padded_info_list_ = []
-        for daids_, info_ in zip(target_daids_list, target_info_list_):
+        for num, daids_, info_ in zip(denc_per_name, target_daids_list,
+                                      target_info_list_):
             num_take = max_dsize - len(daids_)
+
+            assert num_take < len(confusor_pool), 'not enough confusors'
             pad_aids = confusor_pool[:num_take]
+
             new_aids = daids_ + pad_aids
             info_ = info_.copy()
             info_['n_pad'] = len(pad_aids)
@@ -782,6 +817,9 @@ class Chap3Inputs(object):
             print('#qaids = %r' % (len(qaids),))
             print('num_need = %r' % (n_need,))
             print('max_dsize = %r' % (max_dsize,))
+            if False:
+                for daids in daids_list:
+                    ibs.print_annotconfig_stats(qaids, daids)
         return self.ibs, qaids, daids_list, info_list
 
 
@@ -799,7 +837,7 @@ class Chap3Measures(object):
         cfgdict = {}
         daids = daids_list[0]
         info = info_list[0]
-        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
+        cdf = _ranking_cdf(ibs, qaids, daids, cfgdict)
         results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict}))]
 
         expt_name = 'baseline'
@@ -820,7 +858,7 @@ class Chap3Measures(object):
                 {'featweight_enabled': [False, True]}
             )
             for cfgdict in grid:
-                hist = self._ranking_hist(ibs, qaids, daids, cfgdict)
+                hist = _ranking_hist(ibs, qaids, daids, cfgdict)
                 info = ut.update_dict(info.copy(), {'pcfg': cfgdict})
                 results.append((hist, info))
 
@@ -875,11 +913,11 @@ class Chap3Measures(object):
 
         results = []
         cfgdict1 = {'fg_on': False}
-        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict1)
+        cdf = _ranking_cdf(ibs, qaids, daids, cfgdict1)
         results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
 
         cfgdict2 = {'fg_on': True}
-        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict2)
+        cdf = _ranking_cdf(ibs, qaids, daids, cfgdict2)
         results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
 
         expt_name = 'foregroundness'
@@ -902,7 +940,7 @@ class Chap3Measures(object):
         ]
         results = []
         for cfgdict in cfgdict_list:
-            cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
+            cdf = _ranking_cdf(ibs, qaids, daids, cfgdict)
             results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'invar'
@@ -936,7 +974,7 @@ class Chap3Measures(object):
 
         # LNBNN pipeline
         cfgdict = {}
-        cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
+        cdf = _ranking_cdf(ibs, qaids, daids, cfgdict)
         results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'smk'
@@ -944,16 +982,47 @@ class Chap3Measures(object):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_nsum(self):
+        """
+        python -m ibeis Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
+        python -m ibeis Chap3.draw smk --dbs=GZ_Master1,PZ_Master1 --diskshow
+
+        self = Chap3('PZ_MTEST')
+        self = Chap3('GZ_Master1')
+        self._precollect()
+        """
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
+        # ibs, qaids, daids_list, info_list = self._varied_inputs(
+        #     denc_per_name=[1, 3], extra_dbsize_fracs=[1])
         cfgdict1 = {'score_method': 'nsum', 'prescore_method': 'nsum', 'query_rotation_heuristic': True}
         cfgdict2 = {'score_method': 'csum', 'prescore_method': 'csum', 'query_rotation_heuristic': True}
         results = []
         for count, (daids, info) in enumerate(zip(daids_list, info_list), start=1):
-            cdf1 = self._ranking_cdf(ibs, qaids, daids, cfgdict1)
+            cdf1 = _ranking_cdf(ibs, qaids, daids, cfgdict1)
             results.append((cdf1, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
-            cdf2 = self._ranking_cdf(ibs, qaids, daids, cfgdict2)
+            cdf2 = _ranking_cdf(ibs, qaids, daids, cfgdict2)
             results.append((cdf2, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
+
+        if False:
+            # Check dpername issue
+            info = {}
+            daids = daids_list[0]
+            a = ibs.annots(daids)
+            daids = a.compress(ut.flag_unique_items(a.nids)).aids
+
+            qreq1_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict1)
+            qreq2_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict2)
+
+            cm_list1 = [cm.extend_results(qreq1_) for cm in qreq1_.execute()]
+            cm_list2 = [cm.extend_results(qreq2_) for cm in qreq2_.execute()]
+
+            name_ranks1 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list1]
+            name_ranks2 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list2]
+
+            idxs = np.where(np.array(name_ranks1) != np.array(name_ranks2))[0]
+            if len(idxs) > 0:
+                cm1 = cm_list1[idxs[0]]  # NOQA
+                cm2 = cm_list2[idxs[0]]  # NOQA
 
         expt_name = 'nsum'
         self.expt_results[expt_name] = results
@@ -968,7 +1037,7 @@ class Chap3Measures(object):
         results = []
         for daids, info in zip(daids_list, info_list):
             info = info.copy()
-            cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
+            cdf = _ranking_cdf(ibs, qaids, daids, cfgdict)
             results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'dsize'
@@ -986,7 +1055,7 @@ class Chap3Measures(object):
         results = []
         for cfgdict in ut.all_dict_combinations(cfg_grid):
             for daids, info in zip(daids_list, info_list):
-                cdf = self._ranking_cdf(ibs, qaids, daids, cfgdict)
+                cdf = _ranking_cdf(ibs, qaids, daids, cfgdict)
                 results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
         expt_name = 'kexpt'
@@ -1257,24 +1326,6 @@ class Chap3Draw(object):
             #     self.draw_nsum()
             # if 'kexpt' in self.expt_results:
             #     self.draw_kexpt()
-
-    def _ranking_hist(self, ibs, qaids, daids, cfgdict):
-        # Execute the ranking algorithm
-        qaids = sorted(qaids)
-        daids = sorted(daids)
-        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
-        cm_list = qreq_.execute()
-        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
-        name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
-        # Measure rank probabilities
-        bins = np.arange(len(qreq_.dnids))
-        hist = np.histogram(name_ranks, bins=bins)[0]
-        return hist
-
-    def _ranking_cdf(self, ibs, qaids, daids, cfgdict):
-        hist = self._ranking_hist(ibs, qaids, daids, cfgdict)
-        cdf = (np.cumsum(hist) / sum(hist))
-        return cdf
 
     def prepare_cdfs(self, cdfs, labels):
         cdfs = vt.pad_vstack(cdfs, fill_value=1)
@@ -1853,6 +1904,26 @@ class Chap4(object):
         image = pt.render_figure_to_image(fig, dpi=DPI)
         # image = vt.clipwhite(image)
         vt.imwrite(fpath, image)
+
+
+def _ranking_hist(ibs, qaids, daids, cfgdict):
+    # Execute the ranking algorithm
+    qaids = sorted(qaids)
+    daids = sorted(daids)
+    qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+    cm_list = qreq_.execute()
+    cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+    name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
+    # Measure rank probabilities
+    bins = np.arange(len(qreq_.dnids))
+    hist = np.histogram(name_ranks, bins=bins)[0]
+    return hist
+
+
+def _ranking_cdf(ibs, qaids, daids, cfgdict):
+    hist = _ranking_hist(ibs, qaids, daids, cfgdict)
+    cdf = (np.cumsum(hist) / sum(hist))
+    return cdf
 
 
 def label_alias(k):

@@ -17,90 +17,6 @@ def make_dummy_infr(annots_per_name):
     return infr
 
 
-def simple_simulation():
-    # ---- Synthetic data params
-    queue_params = {
-        'pos_redun': 2,
-        'neg_redun': 2,
-    }
-    oracle_accuracy = 1.0
-    # .99
-
-    infr = demodata_infr(num_pccs=200, size=4, size_std=1, ignore_pair=True)
-    infr.queue_params.update(**queue_params)
-    infr.review_dummy_edges(method='clique')
-
-    # FIXME: make an implicit negative edge truth state
-
-    infr.ensure_full()
-    # infr.apply_edge_truth()
-    # Dummy scoring
-    rng = np.random.RandomState(0)
-    apply_dummy_scores(infr, rng)
-    infr.init_simulation(oracle_accuracy=oracle_accuracy, name='simple_sim')
-    infr_gt = infr.copy()
-
-    def dummy_ranker(u):
-        u_edges = list(infr_gt.graph.neighbors(u))
-        u_probs = []
-        for v in u_edges:
-            prob = infr_gt.graph.edge[u][v]['prob_match']
-            u_probs.append(prob)
-        k = 5
-        sortx = np.argsort(u_probs)[::-1][0:k]
-        ranked_edges = [(u, v) if u < v else (v, u)
-                        for v in ut.take(u_edges, sortx)]
-        assert len(ranked_edges) == k
-        return ranked_edges
-
-    def find_dummy_candidate_edges():
-        new_edges = []
-        for u in infr.graph.nodes():
-            new_edges.extend(dummy_ranker(u))
-        new_edges = set(new_edges)
-        return new_edges
-
-    infr.clear_feedback()
-    infr.clear_name_labels()
-    infr.clear_edges()
-
-    infr.prioritize('prob_match')
-    new_edges = find_dummy_candidate_edges()
-    infr.add_new_candidate_edges(new_edges)
-    infr.init_refresh()
-
-    # remains = []
-    # mus = []
-    # window = 500
-
-    for edge, priority in infr._generate_reviews(data=True):
-        if len(infr.queue) <= 10:
-            break
-        feedback = infr.request_oracle_review(edge)
-        infr.add_feedback(edge, **feedback)
-
-        # num_pccs = infr.pos_graph.number_of_components()
-        # num_edges_remain = (num_pccs * num_pccs - 1) / 2
-        # num_neg_redun = infr.neg_redun_nids.number_of_edges()
-        # num_edges_need = num_edges_remain - num_neg_redun
-
-        # mu = np.mean(infr.refresh.manual_decisions[-window:])
-        # remains.append(num_edges_need)
-        # mus.append(mu)
-
-    # remains = np.array(remains)
-    # mus = np.array(mus)
-
-    # upper_bound_left = remains[window:] * mus[window:]
-    # print(upper_bound_left.min())
-
-    # pt.plot(upper_bound_left, label=window)
-    # pt.set_xlabel('number of manual reviews')
-    # pt.set_ylabel('upper bound on expected number of remaining merges')
-    # pt.set_title('Poisson Convergence')
-    return infr
-
-
 @profile
 def demo2():
     """
@@ -196,15 +112,12 @@ def demo2():
         show_graph(infr, 'target-gt')
 
     def dummy_ranker(u):
-        u_edges = list(infr_gt.graph.neighbors(u))
-        u_probs = []
-        for v in u_edges:
-            prob = infr_gt.graph.edge[u][v]['prob_match']
-            u_probs.append(prob)
         k = 10
+        u_edges = [(u, v) for v in infr_gt.graph.neighbors(u)]
+        u_probs = infr.dummy_matcher.predict_edges(u_edges)
+        # infr.set_edge_attrs('prob_match', ut.dzip(u_edges, u_probs))
         sortx = np.argsort(u_probs)[::-1][0:k]
-        ranked_edges = [(u, v) if u < v else (v, u)
-                        for v in ut.take(u_edges, sortx)]
+        ranked_edges = [infr.e_(u, v) for (u, v) in ut.take(u_edges, sortx)]
         assert len(ranked_edges) == k
         return ranked_edges
 
@@ -1314,6 +1227,17 @@ def randn(mean=0, std=1, shape=[], a_max=None, a_min=None, rng=None):
 class DummyMatcher(object):
     """
     generates dummy scores between edges (not necesarilly in the graph)
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.demo import *  # NOQA
+        >>> from ibeis.algo.graph import demo
+        >>> import networkx as nx
+        >>> kwargs = dict(num_pccs=6, p_incon=.5, size_std=2)
+        >>> infr = demo.demodata_infr(**kwargs)
+        >>> infr.dummy_matcher.predict_edges([(1, 2)])
+        >>> infr.dummy_matcher.predict_edges([(1, 21)])
+        >>> assert len(infr.dummy_matcher.cache) == 2
     """
     def __init__(matcher, infr):
         matcher.infr = infr
@@ -1325,7 +1249,7 @@ class DummyMatcher(object):
             INCMP: {'mean': .2, 'std': .4},
         }
 
-    def predict(matcher, edges):
+    def predict_edges(matcher, edges):
         edges = list(edges)
         infr = matcher.infr
         is_miss = np.array([e not in matcher.cache for e in edges])

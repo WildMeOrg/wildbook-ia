@@ -208,11 +208,10 @@ class _ChipMatchVisualization(object):
         from ibeis.viz import viz_matches
         assert bool(dnid is None) != bool(rank is None), 'must choose one'
         if dnid is None:
-            dnid = cm.get_nid_at_rank(rank)
+            dnid = cm.get_rank_name(rank)
         qaid = cm.qaid
         if cm.nid2_nidx is None:
             raise AssertionError('cm.nid2_nidx has not been evaluated yet')
-            #cm.score_nsum(qreq_)
         # <GET NAME GROUPXS>
         try:
 
@@ -296,7 +295,7 @@ class _ChipMatchVisualization(object):
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> daid = cm.groundtruth_daids[0]
             >>> ut.quit_if_noshow()
             >>> cm.show_single_annotmatch(qreq_, daid)
@@ -308,7 +307,7 @@ class _ChipMatchVisualization(object):
             >>> # Make sure we can show results against an aid that wasn't matched
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> daid = ut.setdiff(qreq_.daids, cm.daid_list)[0]
             >>> ut.quit_if_noshow()
             >>> cm.show_single_annotmatch(qreq_, daid)
@@ -370,7 +369,7 @@ class _ChipMatchVisualization(object):
             >>> ut.delete_dict_keys(kwargs, ['qaid'])
             >>> kwargs['plottype'] = kwargs.get('plottype', 'namematch')
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> clip_top = ut.get_argval('--clip-top', default=3)
             >>> print('kwargs = %s' % (ut.repr2(kwargs, nl=True),))
             >>> cm.show_ranked_matches(qreq_, clip_top, **kwargs)
@@ -386,7 +385,7 @@ class _ChipMatchVisualization(object):
             >>> kwargs['plottype'] = kwargs.get('plottype', 'namematch')
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> clip_top = ut.get_argval('--clip-top', default=3)
             >>> print('kwargs = %s' % (ut.repr2(kwargs, nl=True),))
             >>> cm.show_ranked_matches(qreq_, clip_top, **kwargs)
@@ -451,7 +450,7 @@ class _ChipMatchVisualization(object):
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> aid2 = None
             >>> result = cm.ishow_single_annotmatch(qreq_, aid2, noupdate=True)
             >>> print(result)
@@ -493,7 +492,7 @@ class _ChipMatchVisualization(object):
             >>> qaid = 18
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> ut.quit_if_noshow()
             >>> cm.ishow_analysis(qreq_)
             >>> ut.show_if_requested()
@@ -700,7 +699,7 @@ class _ChipMatchVisualization(object):
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> ranks_top = 6
             >>> name_scoring = False
             >>> qres_wgt = cm.qt_inspect_gui(ibs, ranks_top, qreq_, name_scoring)
@@ -727,161 +726,129 @@ class _ChipMatchVisualization(object):
 
 class _ChipMatchScorers(object):
     """
-    Score Aggregation Functions
+    Evaluators evaluate the specific score and add it to a dictionary that can
+    maintain multiple different types of scores. These dicts are:
+        cm.algo_name_scores and cm.algo_annot_scores
+
+    Cannoizers make a specific type of score cannonical via
+    cm.score_list, cm.name_score_list, and cm.annot_score_list
     """
 
-    # --- ChipSum Score
+    # --- Evaluators
 
     @profile
-    def evaluate_csum_score(cm, qreq_):
-        csum_score_list = scoring.compute_csum_score(cm)
-        cm.algo_annot_scores['csum'] = csum_score_list
-        #cm.csum_score_list = csum_score_list
+    def evaluate_csum_annot_score(cm, qreq_=None):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.scoring import *  # NOQA
+            >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('testdb1', qaid_list=[1])
+            >>> cm = cm_list[0]
+            >>> cm.evaluate_dnids(qreq_)
+            >>> cm.qnid = 1   # Hack for testdb1 names
+            >>> gt_flags = cm.get_groundtruth_flags()
+            >>> cm.evaluate_csum_annot_score(qreq_)
+            >>> annot_score_list = cm.algo_annot_scores['csum']
+            >>> assert annot_score_list[gt_flags].max() > annot_score_list[~gt_flags].max()
+            >>> assert annot_score_list[gt_flags].max() > 10.0
+        """
+        fs_list = cm.get_fsv_prod_list()
+        csum_scores = np.array([np.sum(fs) for fs in fs_list])
+        cm.algo_annot_scores['csum'] = csum_scores
 
     @profile
-    def evaluate_nsum_score(cm, qreq_):
+    def evaluate_nsum_name_score(cm, qreq_):
         """ Calls name scoring logic """
         cm.evaluate_dnids(qreq_)
-        nsum_nid_list, nsum_score_list = name_scoring.compute_nsum_score(cm, qreq_=qreq_)
-        assert np.all(cm.unique_nids == nsum_nid_list), 'name score not in alignment'
-
+        fmech_scores = name_scoring.compute_fmech_score(cm, qreq_=qreq_)
         try:
             normsum = qreq_.qparams.normsum
+            if normsum:
+                assert False, 'depricated'
         except AttributeError:
-            normsum = False
+            pass
+        # cm.algo_name_scores['fmech'] = fmech_scores
+        cm.algo_name_scores['nsum'] = fmech_scores
 
-        if normsum:
-            # Normalize name scores
-            num_unmatched = len(cm.unique_nids) - len(nsum_score_list)
-            valid_scores = nsum_score_list.compress(np.isfinite(nsum_score_list))
-            unmatched_score = vt.safe_min(valid_scores, 0)
-            zsum = unmatched_score * num_unmatched + valid_scores.sum()
-            nsum_score_list_ = nsum_score_list / zsum
-            nsum_score_list = nsum_score_list_
+    def evaluate_maxcsum_name_score(cm, qreq_):
+        grouped_csum = vt.apply_grouping(cm.algo_annot_scores['csum'], cm.name_groupxs)
+        maxcsum_scores = np.array([scores.max() for scores in grouped_csum])
+        cm.algo_name_scores['maxcsum'] = maxcsum_scores
 
-        cm.algo_name_scores['nsum'] = nsum_score_list
-        #cm.nsum_score_list = nsum_score_list
+    def evaluate_sumamech_name_score(cm, qreq_):
+        grouped_csum = vt.apply_grouping(cm.algo_annot_scores['csum'], cm.name_groupxs)
+        sumamech_score_list = np.array([scores.sum() for scores in grouped_csum])
+        cm.algo_name_scores['sumamech'] = sumamech_score_list
+
+    # --- Cannonizers
 
     @profile
-    def score_csum(cm, qreq_):
+    def score_annot_csum(cm, qreq_):
         """
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_csum --show
-            python -m ibeis.algo.hots.chip_match --test-score_csum --show --qaid 18
+            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show
+            python -m ibeis.algo.hots.chip_match --test-score_annot_csum --show --qaid 18
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
             >>> cm = cm_list[0]
-            >>> cm.score_csum(qreq_)
+            >>> cm.score_annot_csum(qreq_)
             >>> ut.quit_if_noshow()
-            >>> cm.show_ranked_matches(qreq_, figtitle='score_csum')
+            >>> cm.show_ranked_matches(qreq_, figtitle='score_annot_csum')
             >>> ut.show_if_requested()
         """
-        cm.evaluate_csum_score(qreq_)
-        cm.set_cannonical_annot_score(cm.csum_score_list)
+        cm.evaluate_csum_annot_score(qreq_)
+        cm.set_cannonical_annot_score(cm.algo_annot_scores['csum'])
 
     @profile
-    def score_maxcsum(cm, qreq_):
-        cm.evaluate_dnids(qreq_)
-        cm.score_csum(qreq_)
-        cm.maxcsum_score_list = np.array([
-            scores.max()
-            for scores in vt.apply_grouping(cm.csum_score_list,
-                                            cm.name_groupxs)
-        ])
-        cm.set_cannonical_name_score(cm.csum_score_list, cm.maxcsum_score_list)
-
-    @profile
-    def score_nsum(cm, qreq_):
+    def score_name_maxcsum(cm, qreq_):
         """
+        This is amech from the thesis
+        """
+        cm.evaluate_dnids(qreq_)
+        cm.evaluate_csum_annot_score(qreq_)
+        cm.evaluate_maxcsum_name_score(qreq_)
+        cm.set_cannonical_name_score(
+            cm.algo_annot_scores['csum'], cm.algo_name_scores['maxcsum'])
+
+    @profile
+    def score_name_nsum(cm, qreq_):
+        """
+        This is fmech from the thesis
+
         CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_nsum --show --qaid 1
-            python -m ibeis.algo.hots.chip_match --test-score_nsum --show --qaid 18 -t default:normsum=True
+            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 1
+            python -m ibeis.algo.hots.chip_match --test-score_name_nsum --show --qaid 18 -t default:normsum=True
 
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> qreq_, args = plh.testdata_pre('end', defaultdb='PZ_MTEST', a=['default'], qaid_override=[18])
+            >>> qreq_, args = plh.testdata_pre('end', defaultdb='PZ_MTEST',
+            >>>                                a=['default'], qaid_override=[18])
             >>> cm = args.cm_list_SVER[0]
-            >>> #ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[18])
-            >>> #cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> gt_score = cm.score_list.compress(cm.get_groundtruth_flags()).max()
             >>> cm.print_csv()
-            >>> assert cm.get_top_nids()[0] == cm.unique_nids[cm.name_score_list.argmax()], 'bug in alignment'
+            >>> top_nid = cm.unique_nids[cm.name_score_list.argmax()]
+            >>> assert cm.get_top_nids()[0] == top_nid, 'bug in alignment'
             >>> ut.quit_if_noshow()
-            >>> cm.show_ranked_matches(qreq_, figtitle='score_nsum')
+            >>> cm.show_ranked_matches(qreq_, figtitle='score_name_nsum')
             >>> ut.show_if_requested()
             >>> assert cm.get_top_nids()[0] == cm.qnid, 'is this case truely hard?'
         """
-        cm.evaluate_csum_score(qreq_)
-        cm.evaluate_nsum_score(qreq_)
-        cm.set_cannonical_name_score(cm.csum_score_list, cm.nsum_score_list)
-
-    # --- ChipCoverage Score
-
-    @profile
-    def evaluate_acov_score(cm, qreq_):
-        daid_list, acov_score_list = scoring.compute_annot_coverage_score(
-            qreq_, cm, qreq_.qparams)
-        assert np.all(daid_list == np.array(cm.daid_list)), 'daids out of alignment'
-        cm.acov_score_list = acov_score_list
+        cm.evaluate_csum_annot_score(qreq_)
+        cm.evaluate_nsum_name_score(qreq_)
+        cm.set_cannonical_name_score(
+            cm.algo_annot_scores['csum'], cm.algo_name_scores['nsum'])
 
     @profile
-    def score_annot_coverage(cm, qreq_):
-        """
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_annot_coverage --show
-            python -m ibeis.algo.hots.chip_match --test-score_annot_coverage --show --qaid 18
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
-            >>> cm = cm_list[0]
-            >>> cm.fs_list = cm.get_fs_list(col='lnbnn')
-            >>> cm.score_annot_coverage(qreq_)
-            >>> ut.quit_if_noshow()
-            >>> cm.show_ranked_matches(qreq_, figtitle='score_annot_coverage')
-            >>> ut.show_if_requested()
-        """
-        cm.evaluate_acov_score(qreq_)
-        cm.set_cannonical_annot_score(cm.acov_score_list)
-
-    # --- NameCoverage Score
-
-    @profile
-    def evaluate_ncov_score(cm, qreq_):
-        cm.evaluate_dnids(qreq_)
-        ncov_nid_list, ncov_score_list = scoring.compute_name_coverage_score(
-            qreq_, cm, qreq_.qparams)
-        assert np.all(cm.unique_nids == ncov_nid_list)
-        cm.ncov_score_list = ncov_score_list
-
-    @profile
-    def score_name_coverage(cm, qreq_):
-        """
-        CommandLine:
-            python -m ibeis.algo.hots.chip_match --test-score_name_coverage --show
-            python -m ibeis.algo.hots.chip_match --test-score_name_coverage --show --qaid 18
-
-        Example:
-            >>> # ENABLE_DOCTEST
-            >>> from ibeis.algo.hots.chip_match import *  # NOQA
-            >>> ibs, qreq_, cm_list = plh.testdata_post_sver()
-            >>> cm = cm_list[0]
-            >>> cm.fs_list = cm.get_fs_list(col='lnbnn')
-            >>> cm.score_name_coverage(qreq_)
-            >>> ut.quit_if_noshow()
-            >>> cm.show_ranked_matches(qreq_, figtitle='score_name_coverage')
-            >>> ut.show_if_requested()
-        """
-        if cm.csum_score_list is None:
-            cm.evaluate_csum_score(qreq_)
-        cm.evaluate_ncov_score(qreq_)
-        cm.set_cannonical_name_score(cm.csum_score_list, cm.ncov_score_list)
+    def score_name_sumamech(cm, qreq_):
+        cm.evaluate_csum_annot_score(qreq_)
+        cm.evaluate_sumamech_name_score(qreq_)
+        cm.set_cannonical_name_score(
+            cm.algo_annot_scores['csum'], cm.algo_name_scores['sumamech'])
 
 
 class MatchBaseIO(object):
@@ -906,7 +873,7 @@ class MatchBaseIO(object):
             >>> qaid = 18
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[qaid])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> dpath = ut.get_app_resource_dir('ibeis')
             >>> fpath = join(dpath, 'tmp_chipmatch.cPkl')
             >>> ut.delete(fpath)
@@ -925,6 +892,23 @@ class MatchBaseIO(object):
         return state_dict
 
     def __setstate__(cm, state_dict):
+        if 'algo_annot_scores' not in state_dict and 'algo_name_scores' not in state_dict:
+            # Move to new dict algo score interface
+            # This can be removed once we are sure all caches made before this
+            # change have been recomputed or deleted.
+            algo_annot_scores = {key: None for key in cm._special_annot_scores}
+            algo_name_scores = {key: None for key in cm._special_name_scores}
+            algo_annot_scores['csum'] = state_dict['csum_score_list']
+            algo_name_scores['nsum'] = state_dict['nsum_score_list']
+            state_dict['algo_annot_scores'] = algo_annot_scores
+            state_dict['algo_name_scores'] = algo_name_scores
+            del state_dict['csum_score_list']
+            del state_dict['nsum_score_list']
+            del state_dict['acov_score_list']
+            del state_dict['ncov_score_list']
+            del state_dict['maxcsum_score_list']
+            del state_dict['special_annot_scores']
+            del state_dict['special_name_scores']
         cm.__dict__.update(state_dict)
 
     def copy(self):
@@ -971,7 +955,7 @@ class _BaseVisualization(object):
         qaid = cm.qaid
         if cm.nid2_nidx is None:
             raise AssertionError('cm.nid2_nidx has not been evaluated yet')
-            #cm.score_nsum(qreq_)
+            #cm.score_name_nsum(qreq_)
         # <GET NAME GROUPXS>
         try:
             nidx = cm.nid2_nidx[dnid]
@@ -995,8 +979,6 @@ class _BaseVisualization(object):
         groupxs = groupxs.compress(daids != cm.qaid)
         # </GET NAME GROUPXS>
         # sort annots in this name by the chip score
-        # HACK USE cm.annot_score_list
-        #group_sortx = cm.csum_score_list.take(groupxs).argsort()[::-1]
         group_sortx = cm.annot_score_list.take(groupxs).argsort()[::-1]
         sorted_groupxs = groupxs.take(group_sortx)
         # get the info for this name
@@ -1005,7 +987,6 @@ class _BaseVisualization(object):
         # Get the scores for names and chips
         name_score = cm.name_score_list[nidx]
         name_rank = ut.listfind(aslist(cm.name_score_list.argsort()[::-1]), nidx)
-        #name_annot_scores = cm.csum_score_list.take(sorted_groupxs)
         name_annot_scores = cm.annot_score_list.take(sorted_groupxs)
 
         kwargs = kwargs.copy()
@@ -1024,17 +1005,17 @@ class _BaseVisualization(object):
 
 class _AnnotMatchConvenienceGetter(object):
 
-    @property
-    def algo_annot_scores(cm):
-        attrs = [score_method + '_score_list' for score_method in cm.special_annot_scores]
-        algo_annot_scores = ut.ClassAttrDictProxy(cm, cm.special_annot_scores, attrs)
-        return algo_annot_scores
+    # @property
+    # def algo_annot_scores(cm):
+    #     attrs = [score_method + '_score_list' for score_method in cm._special_annot_scores]
+    #     algo_annot_scores = ut.ClassAttrDictProxy(cm, cm._special_annot_scores, attrs)
+    #     return algo_annot_scores
 
-    @property
-    def algo_name_scores(cm):
-        attrs = [score_method + '_score_list' for score_method in cm.special_name_scores]
-        algo_name_scores = ut.ClassAttrDictProxy(cm, cm.special_name_scores, attrs)
-        return algo_name_scores
+    # @property
+    # def algo_name_scores(cm):
+    #     attrs = [score_method + '_score_list' for score_method in cm._special_name_scores]
+    #     algo_name_scores = ut.ClassAttrDictProxy(cm, cm._special_name_scores, attrs)
+    #     return algo_name_scores
 
     #------------------
     # Score-Based Result Functions
@@ -1071,7 +1052,7 @@ class _AnnotMatchConvenienceGetter(object):
         """
         Summarize info about the groundtruth and the best groundfalse.
         """
-        ibs = qreq_.ibs
+        # ibs = qreq_.ibs
 
         cminfo_dict = dict(
             # annot props
@@ -1216,8 +1197,38 @@ class _AnnotMatchConvenienceGetter(object):
     # Getter Functions
     #------------------
 
-    def get_annot_scores(cm, daids, score_method=None):
+    def get_name_scores(cm, dnids):
         #idx_list = [cm.daid2_idx.get(daid, None) for daid in daids]
+        nidx_list = ut.dict_take(cm.nid2_nidx, dnids, None)
+        score_list = [None if idx is None else cm.name_score_list[idx]
+                      for idx in nidx_list]
+        return score_list
+
+    def get_name_ranks(cm, dnids):  # score_method=None):
+        score_ranks = cm.name_score_list.argsort()[::-1].argsort()
+        idx_list = ut.dict_take(cm.nid2_nidx, dnids, None)
+        rank_list = [None if idx is None else score_ranks[idx]
+                      for idx in idx_list]
+        return rank_list
+
+    # def get_nid_scores(cm, nid_list):
+    #     nidx_list = ut.dict_take(cm.nid2_nidx, nid_list)
+    #     name_scores = vt.list_take_(cm.name_score_list, nidx_list)
+    #     return name_scores
+
+    def get_rank_name(cm, rank):
+        sorted_nids, sorted_name_scores = cm.get_ranked_nids()
+        return sorted_nids[rank]
+
+    def get_ranked_nids(cm):
+        sortx = cm.name_score_list.argsort()[::-1]
+        sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
+        sorted_nids = cm.unique_nids.take(sortx, axis=0)
+        return sorted_nids, sorted_name_scores
+
+    def get_annot_scores(cm, daids, score_method=None):
+        # TODO: how to specify either annot_score_list or score_list?
+        # score_list = cm.annot_score_list
         score_list = cm.score_list
         idx_list = ut.dict_take(cm.daid2_idx, daids, None)
         score_list = [None if idx is None else score_list[idx]
@@ -1227,13 +1238,6 @@ class _AnnotMatchConvenienceGetter(object):
     def get_annot_ranks(cm, daids):  # score_method=None):
         score_ranks = cm.score_list.argsort()[::-1].argsort()
         idx_list = ut.dict_take(cm.daid2_idx, daids, None)
-        rank_list = [None if idx is None else score_ranks[idx]
-                      for idx in idx_list]
-        return rank_list
-
-    def get_name_ranks(cm, dnids):  # score_method=None):
-        score_ranks = cm.name_score_list.argsort()[::-1].argsort()
-        idx_list = ut.dict_take(cm.nid2_nidx, dnids, None)
         rank_list = [None if idx is None else score_ranks[idx]
                       for idx in idx_list]
         return rank_list
@@ -1257,21 +1261,6 @@ class _AnnotMatchConvenienceGetter(object):
     def groundtruth_daids(cm):
         return cm.get_groundtruth_daids()
 
-    def get_nid_scores(cm, nid_list):
-        nidx_list = ut.dict_take(cm.nid2_nidx, nid_list)
-        name_scores = vt.list_take_(cm.name_score_list, nidx_list)
-        return name_scores
-
-    def get_nid_at_rank(cm, rank):
-        sorted_nids, sorted_name_scores = cm.get_ranked_nids()
-        return sorted_nids[rank]
-
-    def get_ranked_nids(cm):
-        sortx = cm.name_score_list.argsort()[::-1]
-        sorted_name_scores = cm.name_score_list.take(sortx, axis=0)
-        sorted_nids = cm.unique_nids.take(sortx, axis=0)
-        return sorted_nids, sorted_name_scores
-
     def get_num_matches_list(cm):
         num_matches_list = list(map(len, cm.fm_list))
         return num_matches_list
@@ -1283,7 +1272,7 @@ class _AnnotMatchConvenienceGetter(object):
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> top_daids = cm.get_name_shortlist_aids(5, 2)
             >>> assert cm.qnid in ibs.get_annot_name_rowids(top_daids)
         """
@@ -1292,15 +1281,15 @@ class _AnnotMatchConvenienceGetter(object):
             cm.name_score_list, cm.nid2_nidx, nNameShortList, nAnnotPerName)
         return top_daids
 
-    def get_chip_shortlist_aids(cm, num_shortlist):
+    def get_annot_shortlist_aids(cm, num_shortlist):
         """
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST', qaid_list=[18])
             >>> cm = cm_list[0]
-            >>> cm.score_nsum(qreq_)
-            >>> top_daids = cm.get_chip_shortlist_aids(5 * 2)
+            >>> cm.score_name_nsum(qreq_)
+            >>> top_daids = cm.get_annot_shortlist_aids(5 * 2)
             >>> assert cm.qnid in ibs.get_annot_name_rowids(top_daids)
         """
         sortx = np.array(cm.annot_score_list).argsort()[::-1]
@@ -1351,6 +1340,19 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConven
         'name_score_list',
     ]
 
+    _special_annot_scores = [
+        'csum',
+        # 'acov',
+    ]
+
+    # Special name scores
+    _special_name_scores = [
+        'nsum',  # fmech
+        'maxcsum',  # amech
+        'sumamech',  # amech
+        # 'ncov',
+    ]
+
     def __init__(cm, *args, **kwargs):
         cm.qaid = None
         cm.qnid = None
@@ -1366,28 +1368,12 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConven
         # Name scores
         cm.unique_nids = None  # belongs to name_groupxs
         cm.name_score_list = None
-        # TODO: have subclass or dict for special scores
-        # Special annot scores
-        cm.special_annot_scores = [
-            'csum',
-            'acov',
-        ]
-        for score_method in cm.special_annot_scores:
-            setattr(cm, score_method + '_score_list', None)
-        #cm.csum_score_list = None
-        #cm.acov_score_list = None
-        # Special name scores
-        cm.special_name_scores = [
-            'nsum',
-            'maxcsum',
-            'ncov',
-        ]
-        # TODO: use a dictionary instaed of attrs
-        for score_method in cm.special_name_scores:
-            setattr(cm, score_method + '_score_list', None)
-        #cm.nsum_score_list = None
-        #cm.maxcsum_score_list = None
-        #cm.ncov_score_list = None
+        cm.algo_annot_scores = {key: None for key in cm._special_annot_scores}
+        cm.algo_name_scores = {key: None for key in cm._special_name_scores}
+        # for score_method in cm._special_name_scores:
+        #     setattr(cm, score_method + '_score_list', None)
+        # for score_method in cm._special_annot_scores:
+        #     setattr(cm, score_method + '_score_list', None)
         # Re-evaluatables (for convinience only)
         cm.daid2_idx = None  # maps onto cm.daid_list
         cm.nid2_nidx = None  # maps onto cm.unique_nids
@@ -1414,7 +1400,6 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConven
         cm.name_score_list = safeop(np.array, name_score_list, dtype=hstypes.FLOAT_TYPE)
         cm.annot_score_list = safeop(np.array, annot_score_list, dtype=hstypes.FLOAT_TYPE)
 
-        # TODO: have subclass or dict for special scores
         if autoinit:
             cm._update_daid_index()
             if cm.dnid_list is not None:
@@ -1770,11 +1755,8 @@ class _ChipMatchDebugger(object):
             'cm.H_list',
             'cm.score_list',
             'cm.annot_score_list',
-            'cm.csum_score_list',
-            'cm.acov_score_list',
             'cm.name_score_list',
-            'cm.nsum_score_list',
-            'cm.ncov_score_list',
+            # 'cm.sumamech_score_list',
             'cm.nid2_nidx',
             'cm.daid2_idx',
         ]
@@ -2322,7 +2304,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> cm_list = ut.take_column(rawres_list2, 1)
             >>> cls = ChipMatch
             >>> out = ChipMatch.combine_cms(cm_list)
-            >>> out.score_nsum(request)
+            >>> out.score_name_nsum(request)
             >>> ut.quit_if_noshow()
             >>> out.ishow_analysis(request)
             >>> ut.show_if_requested()
@@ -2669,7 +2651,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> json_str = cm1.to_json()
             >>> cm = ChipMatch.from_json(json_str)
             >>> ut.quit_if_noshow()
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> cm.show_single_namematch(qreq_, 1)
             >>> ut.show_if_requested()
         """
@@ -2749,7 +2731,7 @@ class ChipMatch(_ChipMatchVisualization,
             >>> cm = ChipMatch.from_json(json_str)
             >>> # Show if it works
             >>> ut.quit_if_noshow()
-            >>> cm.score_nsum(qreq_)
+            >>> cm.score_name_nsum(qreq_)
             >>> cm.show_single_namematch(qreq_, 1)
             >>> ut.show_if_requested()
             >>> # result = ('json_str = \n%s' % (str(json_str),))
@@ -2852,7 +2834,7 @@ def testdata_cm():
     ibs, qreq_, cm_list = plh.testdata_pre_sver('PZ_MTEST',
                                                 qaid_list=[18])
     cm = cm_list[0]
-    cm.score_nsum(qreq_)
+    cm.score_name_nsum(qreq_)
     return cm, qreq_
 
 

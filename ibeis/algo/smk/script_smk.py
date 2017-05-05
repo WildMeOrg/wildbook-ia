@@ -1042,13 +1042,13 @@ def verify_score():
     Y1 = make_temporary_annot(daid1, vocab, wx_to_weight, ibs, config)
     item = smk_pipeline.match_kernel_agg(X, Y1, wx_to_weight, alpha, thresh)
     score = item[0]
-    assert np.isclose(score, cm.aid2_annot_score[daid1])
+    assert np.isclose(score, cm.get_annot_scores([daid1])[0])
     assert np.isclose(smk_pipeline.match_kernel_agg(Y1, Y1, wx_to_weight, alpha, thresh)[0], 1.0)
 
     Y2 = make_temporary_annot(daid2, vocab, wx_to_weight, ibs, config)
     item = smk_pipeline.match_kernel_agg(X, Y2, wx_to_weight, alpha, thresh)
     score = item[0]
-    assert np.isclose(score, cm.aid2_annot_score[daid2])
+    assert np.isclose(score, cm.get_annot_scores([daid2])[0])
     assert np.isclose(smk_pipeline.match_kernel_agg(Y2, Y2, wx_to_weight, alpha, thresh)[0], 1.0)
     #Y2 = make_temporary_annot(daid2, vocab, wx_to_weight, ibs, config)
 

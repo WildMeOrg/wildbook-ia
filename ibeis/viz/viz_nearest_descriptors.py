@@ -103,7 +103,7 @@ def show_top_featmatches(qreq_, cm_list):
         >>> ut.show_if_requested()
     """
     # for cm in cm_list:
-    #     cm.score_csum(qreq_)
+    #     cm.score_annot_csum(qreq_)
     import numpy as np
     import vtool as vt
     from functools import partial

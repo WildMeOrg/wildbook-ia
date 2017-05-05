@@ -99,7 +99,7 @@ class AnnotInfrMatching(object):
         for qaid, qnid, daids, cms in _iter:
             # Hacked in version of creating an annot match object
             chip_match = ibeis.ChipMatch.combine_cms(cms)
-            # chip_match.score_maxcsum(request)
+            # chip_match.score_name_maxcsum(request)
             cm_list.append(chip_match)
 
         # cm_list = qreq_.execute(parent_rowids)
@@ -750,7 +750,7 @@ class CandidateSearch(object):
             # Insert all the new edges into the priority queue
             infr.queue.update((-default_priority).to_dict())
         elif hasattr(infr, 'dummy_matcher'):
-            prob_match = infr.dummy_matcher.predict(new_edges)
+            prob_match = np.array(infr.dummy_matcher.predict_edges(new_edges))
             infr.set_edge_attrs('prob_match', ut.dzip(new_edges, prob_match))
             infr.queue.update(ut.dzip(new_edges, -prob_match))
         elif infr.cm_list is not None:

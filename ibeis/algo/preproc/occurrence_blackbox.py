@@ -241,6 +241,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         # There is no data, so there is nothing to do
         dist_func = None
         X_data = None
+        columns = tuple()
     elif not have_gps and have_times:
         # We have gps but no timestamps
         X_data = atleast_nd(posixtimes, 2)

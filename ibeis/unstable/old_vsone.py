@@ -1,4 +1,29 @@
 
+def prepare_annot_pairs(ibs, qaids, daids, qconfig2_, dconfig2_):
+    # Prepare lazy attributes for annotations
+    qannot_cfg = ibs.depc.stacked_config(None, 'featweight', qconfig2_)
+    dannot_cfg = ibs.depc.stacked_config(None, 'featweight', dconfig2_)
+
+    unique_qaids = set(qaids)
+    unique_daids = set(daids)
+
+    # Determine a unique set of annots per config
+    configured_aids = ut.ddict(set)
+    configured_aids[qannot_cfg].update(unique_qaids)
+    configured_aids[dannot_cfg].update(unique_daids)
+
+    # Make efficient annot-object representation
+    configured_obj_annots = {}
+    for config, aids in configured_aids.items():
+        annots = ibs.annots(sorted(list(aids)), config=config)
+        configured_obj_annots[config] = annots.view()
+
+    # These annot views behave like annot objects
+    # but they use the same internal cache
+    annots1 = configured_obj_annots[qannot_cfg].view(qaids)
+    annots2 = configured_obj_annots[dannot_cfg].view(daids)
+    return annots1, annots2
+
 
 # def old_vsone_parts():
 #     if False:
@@ -227,3 +252,4 @@ def gridsearch_ratio_thresh(matches):
     print('skf_results.append = %r' % (np.mean(skf_results),))
     import utool
     utool.embed()
+

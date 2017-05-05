@@ -34,8 +34,6 @@ CommandLine:
     python main.py --db testdb1 --setdb
 
     # Then run whichever configuration you like
-    python main.py --query 1 --yes --noqcache -t default:codename=vsone
-    python main.py --query 1 --yes --noqcache -t default:codename=vsone_norm
     python main.py --query 1 --yes --noqcache -t default:codename=vsmany
     python main.py --query 1 --yes --noqcache -t default:codename=vsmany_nsum
 
@@ -159,7 +157,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
 
     Example1:
         >>> # ENABLE_DOCTEST
-        >>> # one-vs-many:
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> qreq_ = ibeis.init.main_helpers.testdata_qreq_(a=['default:qindex=0:2,dindex=0:10'])
@@ -171,23 +168,6 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         >>> ut.quit_if_noshow()
         >>> cm.ishow_analysis(qreq_, fnum=0, make_figtitle=True)
         >>> ut.show_if_requested()
-
-    Example2:
-        >>> # ENABLE_DOCTEST
-        >>> # one-vs-one:
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> import ibeis  # NOQA
-        >>> cfgdict1 = dict(codename='vsone', sv_on=False)
-        >>> p = 'default' + ut.get_cfg_lbl(cfgdict1)
-        >>> qreq_1 = ibeis.testdata_qreq_(defaultdb='testdb1', p=[p])
-        >>> ibs1 = qreq_1.ibs
-        >>> print(qreq_1.qparams.query_cfgstr)
-        >>> cm_list1 = request_ibeis_query_L0(ibs1, qreq_1)
-        >>> cm1 = cm_list1[0]
-        >>> ut.quit_if_noshow()
-        >>> cm1.ishow_analysis(qreq_1, fnum=1, make_figtitle=True)
-        >>> ut.show_if_requested()
-
     """
     # Load data for nearest neighbors
     if verbose:
@@ -204,6 +184,7 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
         # Selective match kernel
         qaid2_scores, qaid2_chipmatch_FILT_ = smk_match.execute_smk_L5(qreq_)
     elif qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+        assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline no longer supports vsone'
         if qreq_.prog_hook is not None:
             qreq_.prog_hook.initialize_subhooks(5)
 
@@ -249,27 +230,20 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     if cm_list_FILT[0].filtnorm_aids is not None:
         assert cm_list_SVER[0].filtnorm_aids is not None
 
-    # We might just put this check inside the function like it is for SVER.
-    # or just not do that and use some good pipeline framework
-    if qreq_.qparams.rrvsone_on:
-        # VSONE RERANKING
-        raise NotImplementedError('Depricated')
-        # cm_list = vsone_reranking(qreq_, cm_list_SVER, verbose=verbose)
-    else:
-        cm_list = cm_list_SVER
-        # Final Scoring
-        score_method = qreq_.qparams.score_method
-        # TODO: move scoring part to pipeline
-        scoring.score_chipmatch_list(qreq_, cm_list, score_method)
-        # Normalize scores if requested
-        if qreq_.qparams.score_normalization:
-            normalizer = qreq_.normalizer
-            for cm in cm_list:
-                # cm.prob_list = normalizer.normalize_score_list(cm.score_list)
-                cm.score_list = normalizer.normalize_score_list(cm.score_list)
-                # TODO: DO EITHER ANNOT_SCORE_LIST OR NAME_SCORE_LIST
-                cm.annot_score_list = normalizer.normalize_score_list(cm.annot_score_list)
-                cm.name_score_list = normalizer.normalize_score_list(cm.name_score_list)
+    cm_list = cm_list_SVER
+    # Final Scoring
+    score_method = qreq_.qparams.score_method
+    # TODO: move scoring part to pipeline
+    scoring.score_chipmatch_list(qreq_, cm_list, score_method)
+    # Normalize scores if requested
+    if qreq_.qparams.score_normalization:
+        normalizer = qreq_.normalizer
+        for cm in cm_list:
+            # cm.prob_list = normalizer.normalize_score_list(cm.score_list)
+            cm.score_list = normalizer.normalize_score_list(cm.score_list)
+            # TODO: DO EITHER ANNOT_SCORE_LIST OR NAME_SCORE_LIST
+            cm.annot_score_list = normalizer.normalize_score_list(cm.annot_score_list)
+            cm.name_score_list = normalizer.normalize_score_list(cm.name_score_list)
 
     # <HACK>
     # FOR VSMANY DISTINCTIVENSS
@@ -375,16 +349,12 @@ def build_impossible_daids_list(qreq_, verbose=VERB_PIPELINE):
         for impossible_daids in _impossible_daids_list]
 
     # TODO: we need to pad K for each bad annotation
-    if qreq_.qparams.vsone:
-        # dont pad vsone
-        Kpad_list = [0 for _ in range(len(impossible_daids_list))]
+    if use_k_padding:
+        Kpad_list = list(map(len, impossible_daids_list))
     else:
-        if use_k_padding:
-            Kpad_list = list(map(len, impossible_daids_list))
-        else:
-            # always at least pad K for self queries
-            Kpad_list =  [
-                1 if qaid in internal_daids else 0 for qaid in internal_qaids]
+        # always at least pad K for self queries
+        Kpad_list =  [
+            1 if qaid in internal_daids else 0 for qaid in internal_qaids]
     return impossible_daids_list, Kpad_list
 
 #============================
@@ -779,21 +749,6 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         >>> assert not np.all(nnvalid0_list[0][:, 1]), (
         ...    'second col should have some good matches')
         >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)
-
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *   # NOQA
-        >>> qreq_, args = plh.testdata_pre(
-        >>>     'baseline_neighbor_filter', defaultdb='testdb1',
-        >>>     default_qaids=[1, 2],
-        >>>     p=['default:codename=vsone'], verbose=True)
-        >>> nns_list, impossible_daids_list = args
-        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list)
-        >>> ut.assert_eq(len(nnvalid0_list), len(qreq_.daids))
-        >>> ut.assert_eq(qreq_.qparams.K, 1, 'k is not 1')
-        >>> ut.assert_eq(nnvalid0_list[0].shape[1], qreq_.qparams.K, 'does not match k')
-        >>> ut.assert_eq(nnvalid0_list[0].sum(), 0, 'no self matches')
-        >>> ut.assert_inbounds(nnvalid0_list[1].sum(), 200, 1500)
     """
     if verbose:
         print('[hs] Step 2) Baseline neighbor filter')
@@ -850,7 +805,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>>     filtvalids_list, filtnormks_list, verbose=verbose)
         >>> ut.quit_if_noshow()
         >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
 
@@ -882,40 +837,7 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
         >>>     filtvalids_list, filtnormks_list, verbose=verbose)
         >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
-        >>> cm.ishow_analysis(qreq_)
-        >>> ut.show_if_requested()
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> qreq_, args = plh.testdata_pre(
-        >>>     'weight_neighbors', defaultdb='testdb1',
-        >>>     a=['default:qindex=0:1,dindex=0:5,hackerrors=False'],
-        >>>     p=['default:codename=vsone,fg_on=False,ratio_thresh=.625'],
-        >>>     verbose=True)
-        >>> nns_list, nnvalid0_list = args
-        >>> weight_ret = weight_neighbors(qreq_, nns_list, nnvalid0_list)
-        >>> (filtkey_list, filtweights_list, filtvalids_list,
-        >>>  filtnormks_list) = weight_ret
-        >>> nFiltKeys = len(filtkey_list)
-        >>> nInternAids = len(qreq_.get_internal_qaids())
-        >>> filtweight_depth = ut.depth_profile(filtweights_list)
-        >>> filtvalid_depth = ut.depth_profile(filtvalids_list)
-        >>> ut.assert_eq(nInternAids, len(filtweights_list))
-        >>> ut.assert_eq(nInternAids, len(filtvalids_list))
-        >>> target = [nFiltKeys] * nInternAids
-        >>> ut.assert_eq(ut.get_list_column(filtweight_depth, 0), target)
-        >>> ut.assert_eq(filtkey_list, [hstypes.FiltKeys.RATIO])
-        >>> assert filtvalids_list[0][0] is not None
-        >>> ut.quit_if_noshow()
-        >>> import plottool as pt
-        >>> verbose = True
-        >>> cm_list = build_chipmatches(
-        >>>     qreq_, nns_list, nnvalid0_list, filtkey_list, filtweights_list,
-        >>>     filtvalids_list, filtnormks_list, verbose=verbose)
-        >>> cm = cm_list[0]
-        >>> cm.score_nsum(qreq_)
+        >>> cm.score_name_nsum(qreq_)
         >>> cm.ishow_analysis(qreq_)
         >>> ut.show_if_requested()
     """
@@ -935,11 +857,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
     _filtnormk_list  = []
 
     config2_ = qreq_.extern_data_config2
-
-    # soft_weights = ['lnbnn', 'normonly', 'bar_l2', 'const', 'borda', 'fg']
-    # for filtname in soft_weights:
-    #     pass
-    # hard_weights = ['ratio']
 
     if not config2_.sqrd_dist_on:
         # Take the square root of the squared distances
@@ -1025,14 +942,6 @@ def weight_neighbors(qreq_, nns_list, nnvalid0_list, verbose=VERB_PIPELINE):
         _filtvalid_list.append(None)  # None means all valid
         _filtnormk_list.append(None)
         filtkey_list.append(filtname)
-    if config2_.borda_on:
-        filtname = 'borda'
-        constvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
-            nns_list, nnvalid0_list, qreq_)
-        _filtweight_list.append(constvote_weight_list)
-        _filtvalid_list.append(None)  # None means all valid
-        _filtnormk_list.append(None)
-        filtkey_list.append(filtname)
     if config2_.fg_on:
         filtname = 'fg'
         fgvote_weight_list = nn_weights.NN_WEIGHT_FUNC_DICT[filtname](
@@ -1100,36 +1009,14 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> cm = cm_list[0]
         >>> fm = cm.fm_list[cm.daid2_idx[2]]
         >>> num_matches = len(fm)
-        >>> print('vsone num_matches = %r' % num_matches)
+        >>> print('vsmany num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 500, 2000, 'vsmany nmatches out of bounds')
         >>> ut.quit_if_noshow()
-        >>> cm.score_csum(qreq_)
+        >>> cm.score_annot_csum(qreq_)
         >>> cm_list[0].ishow_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
     Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> verbose = True
-        >>> qreq_, args = plh.testdata_pre(
-        >>>     'build_chipmatches',
-        >>>     p=['default:codename=vsone,sqrd_dist_on=True'])
-        >>> (nns_list, nnvalid0_list, filtkey_list, filtweights_list,
-        >>>  filtvalids_list, filtnormks_list) = args
-        >>> cm_list = build_chipmatches(qreq_, *args, verbose=verbose)
-        >>> # verify results
-        >>> [cm.assert_self(qreq_) for cm in cm_list]
-        >>> cm = cm_list[0]
-        >>> fm = cm.fm_list[cm.daid2_idx[2]]
-        >>> num_matches = len(fm)
-        >>> print('vsone num_matches = %r' % num_matches)
-        >>> ut.assert_inbounds(num_matches, 25, 100, 'vsone nmatches out of bounds')
-        >>> ut.quit_if_noshow()
-        >>> cm.show_single_annotmatch(qreq_, daid=2)
-        >>> cm.score_csum(qreq_)
-        >>> ut.show_if_requested()
-
-    Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> # Test to make sure filtering by feature weights works
@@ -1145,14 +1032,14 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>> cm = cm_list[0]
         >>> fm = cm.fm_list[cm.daid2_idx[2]]
         >>> num_matches = len(fm)
-        >>> print('vsone num_matches = %r' % num_matches)
+        >>> print('num_matches = %r' % num_matches)
         >>> ut.assert_inbounds(num_matches, 100, 400, 'vsmany nmatches out of bounds')
         >>> ut.quit_if_noshow()
-        >>> cm.score_csum(qreq_)
+        >>> cm.score_annot_csum(qreq_)
         >>> cm_list[0].ishow_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
 
-    Example3:
+    Example2:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> qreq_, args = plh.testdata_pre(
@@ -1169,7 +1056,7 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
         >>>     # should be positive for LNBNN
         >>>     assert np.all(cm.score_list[np.isfinite(cm.score_list)] >= 0)
     """
-    is_vsone =  qreq_.qparams.vsone
+    assert not qreq_.qparams.vsone, 'can no longer do vsone in pipeline'
     Knorm = qreq_.qparams.Knorm
     if verbose:
         pipeline_root = qreq_.qparams.pipeline_root
@@ -1190,29 +1077,16 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     ]
     # Iterate over INTERNAL query annotation ids
     internal_qaids = qreq_.get_internal_qaids()
-    external_qaids = qreq_.qaids
-    external_daids = qreq_.daids
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
                                        prog_hook=prog_hook, **PROGKW)
     #intern_qaid_iter = internal_qaids
 
-    if is_vsone:
-        # VSONE build one cmtup_old
-        assert len(external_qaids) == 1, 'vsone can only accept one external qaid'
-        assert np.all(external_daids == internal_qaids)
-        # build vsone dict output
-        qaid = external_qaids[0]
-        cm = chip_match.ChipMatch.from_vsone_match_tup(
-            vmt_list, daid_list=external_daids, qaid=qaid,
-            fsv_col_lbls=filtkey_list)
-        cm_list = [cm]
-    else:
-        # VSMANY build many cmtup_olds
-        cm_list = [
-            chip_match.ChipMatch.from_vsmany_match_tup(
-                vmt, qaid=qaid, fsv_col_lbls=filtkey_list)
-            for vmt, qaid in zip(vmt_list, intern_qaid_iter)]
+    # VSMANY build many cmtup_olds
+    cm_list = [
+        chip_match.ChipMatch.from_vsmany_match_tup(
+            vmt, qaid=qaid, fsv_col_lbls=filtkey_list)
+        for vmt, qaid in zip(vmt_list, intern_qaid_iter)]
     return cm_list
 
 
@@ -1233,29 +1107,6 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
 
         utprof.py -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
 
-    Example1:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *  # NOQA
-        >>> verbose = True
-        >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(p=['default:codename=vsone'])
-        >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
-        >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
-        >>> dannot = qreq_.ibs.annots([daid], config=qreq_.qparams)
-        >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
-        >>> # check results
-        >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
-        >>> ut.assert_inbounds(vmt.dfx, -1, qannot.num_feats)
-        >>> ut.assert_inbounds(vmt.qfx, -1, dannot.num_feats)
-        >>> ut.quit_if_noshow()
-        >>> daid_list = [daid]
-        >>> vmt_list = [vmt]
-        >>> cm = chip_match.ChipMatch.from_vsone_match_tup(vmt_list, daid_list=daid_list, qaid=qaid, fsv_col_lbls=['ratio'])
-        >>> cm.assert_self(verbose=False)
-        >>> ut.quit_if_noshow()
-        >>> cm.score_csum(qreq_)
-        >>> cm.show_single_annotmatch(qreq_)
-        >>> ut.show_if_requested()
-
     Example0:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
@@ -1273,7 +1124,7 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> cm = chip_match.ChipMatch.from_vsmany_match_tup(vmt, qaid=qaid)
         >>> cm.assert_self(verbose=False)
         >>> ut.quit_if_noshow()
-        >>> cm.score_csum(qreq_)
+        >>> cm.score_annot_csum(qreq_)
         >>> cm.show_single_annotmatch(qreq_)
         >>> ut.show_if_requested()
     """
@@ -1402,7 +1253,7 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
 
     # dbg info (can remove if there is a speed issue)
     score_method = qreq_.qparams.score_method
-    prescore_method    = qreq_.qparams.prescore_method
+    prescore_method  = qreq_.qparams.prescore_method
     nNameShortList  = qreq_.qparams.nNameShortlistSVER
     nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
@@ -1548,8 +1399,12 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
     config2_ = qreq_.extern_query_config2
     if qreq_.qparams.weight_inliers:
         # Weights for inlier scoring
-        qweights = scoring.get_annot_kpts_baseline_weights(
-            qreq_.ibs, [qaid], config2_=config2_, config=config2_)[0].astype(np.float64)
+        if config2_.get('fg_on'):
+            qweights = qreq_.ibs.get_annot_fgweights(
+                [qaid], ensure=True, config2_=config2_)[0].astype(np.float64)
+        else:
+            num = qreq_.ibs.get_annot_num_feats([qaid], config2_=config2_)[0]
+            qweights = np.ones(num, np.float64)
         match_weight_list = [qweights.take(fm.T[0]) for fm in cm.fm_list]
     else:
         match_weight_list = [np.ones(len(fm), dtype=np.float64) for fm in cm.fm_list]

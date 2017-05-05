@@ -4,7 +4,6 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import functools
-from ibeis.algo.hots import scoring
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import _pipeline_helpers as plh
 from six.moves import zip, range, map  # NOQA
@@ -45,7 +44,7 @@ def _register_nn_normalized_weight_func(func):
 
 def _register_nn_simple_weight_func(func):
     """
-    Used for things that dont require a normalizer like const, cos, and borda
+    Used for things that dont require a normalizer like const
     """
     filtkey = ut.get_funcname(func).replace('_match_weighter', '').lower()
     if ut.VERYVERBOSE:
@@ -72,7 +71,7 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
         >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
         >>> nns_list, nnvalid0_list = args
         >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> constvote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
+        >>> constvote_weight_list = const_match_weighter(nns_list, nnvalid0_list, qreq_)
         >>> result = ('constvote_weight_list = %s' % (str(constvote_weight_list),))
         >>> print(result)
     """
@@ -86,68 +85,6 @@ def const_match_weighter(nns_list, nnvalid0_list, qreq_):
         neighb_constvote = np.ones((len(neighb_idx), len(neighb_idx.T) - Knorm), dtype=np.float)
         constvote_weight_list.append(neighb_constvote)
     return constvote_weight_list
-
-
-@_register_nn_simple_weight_func
-def borda_match_weighter(nns_list, nnvalid0_list, qreq_):
-    r"""
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST')
-        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST')
-        >>> nns_list, nnvalid0_list = args
-        >>> bordavote_weight_list = borda_match_weighter(nns_list, nnvalid0_list, qreq_)
-        >>> result = ('bordavote_weight_list = %s' % (str(bordavote_weight_list),))
-        >>> print(result)
-    """
-    bordavote_weight_list = []
-    # FIXME: K
-    K = qreq_.qparams.K
-    _branks = np.arange(1, K + 1, dtype=np.float)[::-1]
-    bordavote_weight_list = [
-        np.tile(_branks, (len(neighb_idx), 1))
-        for (neighb_idx, neighb_dist) in nns_list
-    ]
-    return bordavote_weight_list
-
-
-@_register_nn_simple_weight_func
-def cos_match_weighter(nns_list, nnvalid0_list, qreq_):
-    r"""
-    Uses smk-like selectivity function. Need to gridsearch for a good alpha.
-
-    CommandLine:
-        python -m ibeis.algo.hots.nn_weights --test-cos_match_weighter
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-        >>> from ibeis.algo.hots import nn_weights
-        >>> #tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', cfgdict=dict(cos_on=True, K=5, Knorm=5))
-        >>> #ibs, qreq_, nns_list, nnvalid0_list = tup
-        >>> qreq_, args = plh.testdata_pre('weight_neighbors', defaultdb='PZ_MTEST', p=['default:cos_on=True,K=5,Knorm=5'])
-        >>> nns_list, nnvalid0_list = args
-        >>> assert qreq_.qparams.cos_on, 'bug setting custom params cos_weight'
-        >>> cos_weight_list = nn_weights.cos_match_weighter(nns_list, nnvalid0_list, qreq_)
-    """
-    Knorm = qreq_.qparams.Knorm
-    cos_weight_list = []
-    qconfig2_ = qreq_.get_internal_query_config2()
-    # Database feature index to chip index
-    for nns in nns_list:
-        qfx2_qvec = qreq_.ibs.get_annot_vecs(nns.qaid, config2_=qconfig2_)
-        qvecs = qfx2_qvec.take(nns.qfx_list, axis=0)
-        qvecs = qvecs[np.newaxis, :, :]
-        # database forground weights
-        # avoid using K due to its more dynamic nature by using -Knorm
-        dvecs = qreq_.indexer.get_nn_vecs(nns.neighb_idxs.T[:-Knorm])
-        # Component-wise dot product + selectivity function
-        alpha = 3.0
-        neighb_cosweight = scoring.sift_selectivity_score(qvecs, dvecs, alpha)
-        cos_weight_list.append(neighb_cosweight)
-    return cos_weight_list
 
 
 @_register_nn_simple_weight_func
@@ -184,32 +121,6 @@ def fg_match_weighter(nns_list, nnvalid0_list, qreq_):
         neighb_fgvote_weight = np.sqrt(qfgws[:, None] * neighb_dfgws)
         fgvotes_list.append(neighb_fgvote_weight)
     return fgvotes_list
-
-
-@_register_misc_weight_func
-def distinctiveness_match_weighter(qreq_):
-    r"""
-    TODO: finish intergration
-
-    # Example:
-    #     >>> # SLOW_DOCTEST
-    #     >>> from ibeis.algo.hots.nn_weights import *  # NOQA
-    #     >>> from ibeis.algo.hots import nn_weights
-    #     >>> tup = plh.testdata_pre_weight_neighbors('PZ_MTEST', codename='vsone_dist_extern_distinctiveness')
-    #     >>> ibs, qreq_, nns_list, nnvalid0_list = tup
-    """
-    raise NotImplementedError('Not finished')
-    dstcnvs_normer = qreq_.dstcnvs_normer
-    assert dstcnvs_normer is not None
-    qaid_list = qreq_.qaids
-    vecs_list = qreq_.ibs.get_annot_vecs(qaid_list, config2_=qreq_.get_internal_query_config2())
-    # TODO: need to filter on nn.fxs_list if features were threshed away
-    dstcvs_list = []
-    for vecs in vecs_list:
-        qfx2_vec = vecs
-        dstcvs = dstcnvs_normer.get_distinctiveness(qfx2_vec)
-        dstcvs_list.append(dstcvs)
-    return dstcvs_list
 
 
 def nn_normalized_weight(normweight_fn, nns_list, nnvalid0_list, qreq_):

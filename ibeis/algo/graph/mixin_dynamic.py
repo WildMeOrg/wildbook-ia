@@ -381,6 +381,23 @@ class Recovery(object):
             infr.update_pos_redun(nid, force=True)
             infr.update_extern_neg_redun(nid, force=True)
 
+    def _mincut_edge_weights(infr, edges_):
+        from ibeis.constants import CONFIDENCE
+        conf_gen = infr.gen_edge_values('confidence', edges_,
+                                        default='unspecified')
+        conf_gen = ['unspecified' if c is None else c for c in conf_gen]
+        confs = ut.take(CONFIDENCE.CODE_TO_INT, conf_gen)
+        confs = np.array([0 if c is None else c for c in confs])
+
+        prob_gen = infr.gen_edge_values('prob_match', edges_, default=0)
+        probs = np.array(list(prob_gen))
+
+        nrev_gen = infr.gen_edge_values('num_reviews', edges_, default=0)
+        nrev = np.array(list(nrev_gen))
+
+        weight = nrev + probs + confs
+        return weight
+
     def hypothesis_errors(infr, pos_subgraph, neg_edges):
         if not nx.is_connected(pos_subgraph):
             raise AssertionError('Not connected' + repr(pos_subgraph))
@@ -390,25 +407,8 @@ class Recovery(object):
 
         pos_edges = list(pos_subgraph.edges())
 
-        def mincut_edge_weights(edges_):
-            from ibeis.constants import CONFIDENCE
-            conf_gen = infr.gen_edge_values('confidence', edges_,
-                                            default='unspecified')
-            conf_gen = list(conf_gen)
-            confs = ut.take(CONFIDENCE.CODE_TO_INT, conf_gen)
-            confs = np.array([0 if c is None else c for c in confs])
-
-            prob_gen = infr.gen_edge_values('prob_match', edges_, default=0)
-            probs = np.array(list(prob_gen))
-
-            nrev_gen = infr.gen_edge_values('num_reviews', edges_, default=0)
-            nrev = np.array(list(nrev_gen))
-
-            weight = nrev + probs + confs
-            return weight
-
-        neg_weight = mincut_edge_weights(neg_edges)
-        pos_weight = mincut_edge_weights(pos_edges)
+        neg_weight = infr._mincut_edge_weights(neg_edges)
+        pos_weight = infr._mincut_edge_weights(pos_edges)
 
         capacity = 'weight'
         nx.set_edge_attributes(pos_subgraph, capacity,

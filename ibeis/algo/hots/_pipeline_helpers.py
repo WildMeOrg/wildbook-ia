@@ -78,15 +78,6 @@ def testrun_pipeline_upto(qreq_, stop_node='end', verbose=True):
 
     if stop_node == 'end':
         return locals()
-    #---
-    # if stop_node == 'vsone_reranking':
-    #     return locals()
-    # if qreq_.qparams.rrvsone_on:
-    #     # VSONE RERANKING
-    #     cm_list_VSONERR = vsone_reranking(qreq_, cm_list_SVER, verbose=verbose)
-    #     cm_list = cm_list_VSONERR
-    # else:
-    #     cm_list = cm_list_SVER
 
     assert False, 'unknown stop_node=%r' % (stop_node,)
 
@@ -104,6 +95,8 @@ def testdata_pre(stopnode, defaultdb='testdb1', p=['default'],
         defaultdb (str): (default = u'testdb1')
         p (list): (default = [u'default:'])
         a (list): (default = [u'default:qsize=1,dsize=4'])
+        **kwargs: passed to testdata_qreq_
+            qaid_override, daid_override
 
     Returns:
         tuple: (ibs, qreq_, args)
@@ -178,6 +171,7 @@ def testdata_pre_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None):
     """
         >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
     """
+    # TODO: testdata_pre('sver')
     #from ibeis.algo import Config
     cfgdict = dict()
     import ibeis
@@ -195,6 +189,7 @@ def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, cod
     """
         >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
     """
+    # TODO: testdata_pre('end')
     #from ibeis.algo import Config
     if cfgdict is None:
         cfgdict = dict(codename=codename)
@@ -208,50 +203,6 @@ def testdata_post_sver(defaultdb='PZ_MTEST', qaid_list=None, daid_list=None, cod
     return ibs, qreq_, cm_list
 
 
-def testdata_pre_vsonerr(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
-    """
-        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
-    """
-    cfgdict = dict(sver_output_weighting=True, codename='vsmany', rrvsone_on=True)
-    import ibeis
-    p = 'default' + ut.get_cfg_lbl(cfgdict)
-    qreq_ = ibeis.testdata_qreq_(defaultdb=defaultdb, default_qaids=qaid_list, default_daids=daid_list, p=p)
-    ibs = qreq_.ibs
-    qaid_list = qreq_.qaids.tolist()
-    qaid = qaid_list[0]
-    #daid_list = qreq_.daids.tolist()
-    if len(ibs.get_annot_groundtruth(qaid)) == 0:
-        print('WARNING: qaid=%r has no groundtruth' % (qaid,))
-    locals_ = testrun_pipeline_upto(qreq_, 'end')
-    cm_list = locals_['cm_list_SVER']
-    return ibs, qreq_, cm_list, qaid_list
-
-
-def testdata_scoring(defaultdb='PZ_MTEST', qaid_list=[1], daid_list='all'):
-    from ibeis.algo.hots import vsone_pipeline
-    ibs, qreq_, prior_cm = testdata_matching(defaultdb=defaultdb, qaid_list=qaid_list, daid_list=daid_list)
-    config = qreq_.qparams
-    cm = vsone_pipeline.refine_matches(qreq_, prior_cm, config)
-    cm.evaluate_dnids(qreq_)
-    return qreq_, cm
-
-
-def testdata_matching(*args, **kwargs):
-    """
-        >>> from ibeis.algo.hots._pipeline_helpers import *  # NOQA
-    """
-    from ibeis.algo.hots import vsone_pipeline
-    from ibeis.algo.hots import scoring
-    from ibeis.algo.hots import pipeline  # NOQA
-    ibs, qreq_, cm_list, qaid_list  = testdata_pre_vsonerr(*args, **kwargs)
-    vsone_pipeline.prepare_vsmany_chipmatch(qreq_, cm_list)
-    nNameShortlist = qreq_.qparams.nNameShortlistVsone
-    nAnnotPerName  = qreq_.qparams.nAnnotPerNameVsone
-    scoring.score_chipmatch_list(qreq_, cm_list, 'nsum')
-    vsone_pipeline.prepare_vsmany_chipmatch(qreq_, cm_list)
-    cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list, nNameShortlist, nAnnotPerName)
-    prior_cm      = cm_shortlist[0]
-    return ibs, qreq_, prior_cm
 #L_______
 
 

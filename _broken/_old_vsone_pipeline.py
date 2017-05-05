@@ -987,7 +987,7 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         >>> rerank_cm.print_csv()
         >>> print(rerank_cm.score_list)
         >>> ut.quit_if_noshow()
-        >>> prior_cm.score_nsum(qreq_)
+        >>> prior_cm.score_name_nsum(qreq_)
         >>> prior_cm.show_ranked_matches(qreq_, fnum=1, figtitle='prior')
         >>> rerank_cm.show_ranked_matches(qreq_, fnum=2, figtitle='rerank')
         >>> pt.show_if_requested()
@@ -1022,7 +1022,7 @@ def single_vsone_rerank(qreq_, prior_cm, config={}):
         #queryside_weights =
         #dfweights_list =
         # hack
-        unscored_cm.score_nsum(qreq_)
+        unscored_cm.score_name_nsum(qreq_)
 
     # Convert our one score to a score vector here
     rerank_cm = unscored_cm
