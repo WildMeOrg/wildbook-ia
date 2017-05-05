@@ -43,6 +43,13 @@ def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
         return np.empty(default_shape, dtype=default_dtype)
 
 
+def pad_vstack(arrs, fill_value=0):
+    """ Stacks values and pads arrays with different lengths with zeros """
+    total = max(map(len, arrs))
+    padded = [np.hstack([a, np.full(total - len(a), fill_value)]) for a in arrs]
+    return np.vstack(padded)
+
+
 def safe_cat(tup, axis=0, default_shape=(0,), default_dtype=np.float):
     """
     stacks a tuple even if it is empty
