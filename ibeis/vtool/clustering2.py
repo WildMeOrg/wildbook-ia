@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from six.moves import range, zip, map  # NOQA
 import utool as ut
 import numpy as np
-import scipy.sparse as spsparse
+import scipy.sparse as spsparse  # NOQA
 
 (print, rrr, profile) = ut.inject2(__name__)
 
@@ -168,20 +168,23 @@ def group_indices(idx2_groupid, assume_sorted=False):
 
     Example2:
         >>> # TIMING_TEST
-        >>> from vtool.clustering2 import *  # NOQA
+        >>> from vtool.clustering2 import np, ut  # NOQA
+        >>> import vtool as vt
         >>> rng = np.random.RandomState(0)
-        >>> idx2_groupid = rng.randint(100, 200, 1000)
-        >>> group_indices(idx2_groupid)
-        >>> [group_indices(rng.randint(100, 200, 1000)) for _ in range(1000)]
+        >>> assume_sorted = False
+        >>> idx2_groupid = rng.randint(0, 2000, 5000)
+        >>> #group_indices(idx2_groupid)
+        >>> #[group_indices(rng.randint(100, 200, 1000)) for _ in range(1000)]
 
     Time:
         >>> import vtool as vt
         >>> import utool as ut
         >>> setup = ut.extract_timeit_setup(vt.group_indices, 2, 'groupxs =')
+        >>> print(setup)
         >>> stmt_list = ut.codeblock(
                 '''
                 [sortx[lx:rx] for lx, rx in ut.itertwo(idxs)]
-                #[sortx[lx:rx] for lx, rx in zip(idxs[0:-1], idxs[1:])]
+                [sortx[lx:rx] for lx, rx in zip(idxs, idxs[1:])]
                 #[sortx[lx:rx] for lx, rx in ut.iter_window(idxs)]
                 #[sortx[slice(*_)] for _ in ut.itertwo(idxs)]
                 #[sortx[slice(lr, lx)] for lr, lx in ut.itertwo(idxs)]
