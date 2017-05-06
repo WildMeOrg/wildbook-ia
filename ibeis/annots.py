@@ -221,7 +221,7 @@ class Annots(BASE):
         return self._rowids
 
     def get_stats(self, **kwargs):
-        self._ibs.get_annot_stats(self.aids, **kwargs)
+        self._ibs.get_annot_stats_dict(self.aids, **kwargs)
 
     def print_stats(self, **kwargs):
         self._ibs.print_annot_stats(self.aids, **kwargs)

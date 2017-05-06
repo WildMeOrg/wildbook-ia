@@ -1,5 +1,6 @@
 from ibeis.scripts.script_vsone import OneVsOneProblem
 import numpy as np
+from os.path import basename, join, splitext
 import utool as ut
 import plottool as pt
 import vtool as vt
@@ -23,40 +24,54 @@ class Chap3(object):
     """
     """
     def __init__(self):
-        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
+        self.base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
+        self.expt_results = {}
+        self.ibs = None
 
     @classmethod
-    def collect(Chap3, defaultdb='PZ_MTEST'):
+    def collect(Chap3, defaultdb='PZ_MTEST', init=True):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_Master0'
             >>> self = Chap3.collect('PZ_MTEST')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
             >>> self = Chap3.collect('PZ_Master1')
             >>> #self = Chap3.collect('GZ_Master1')
         """
         import ibeis
+
         self = Chap3()
         self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb=defaultdb)
-        self._init()
+        self.dbname = basename(self.dbdir)
+        self.dpath = join(self.base_dpath, self.dbname)
+        # ut.ensuredir(self.dpath)
+        # ut.vd(self.dpath)
+        if init:
+            self._precollect()
         return self
 
-    def _init(self):
+    def _precollect(self):
         import ibeis
         from ibeis.init import main_helpers
         ibs = ibeis.opendb(dbdir=self.dbdir)
-        if ibs.dbname == 'PZ_Master0':
+        if ibs.dbname.startswith('PZ_Master'):
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
                                              # require_viewpoint=True,
-                                             view='left',
+                                             # view='left',
+                                             species='primary',
                                              # view_ext=2,  # FIXME
                                              min_pername=2, minqual='poor')
-        elif ibs.dbname == 'GZ_Master1':
+            # flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
+            flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
+            # sum(['left' == text for text in ibs.annots(aids).yaw_texts])
+            aids = ut.compress(aids, flags)
+        # elif ibs.dbname == 'GZ_Master1':
+        else:
             aids = ibs.filter_annots_general(require_timestamp=True,
                                              is_known=True,
+                                             species='primary',
                                              # require_viewpoint=True,
                                              # view='right',
                                              # view_ext2=2,
@@ -66,41 +81,30 @@ class Chap3(object):
             # aids = ut.compress(aids, flags)
         ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
+        print('post monkey patch')
+        ibs.print_annot_stats(aids, prefix='P')
         self.ibs = ibs
         self.aids_pool = aids
         if False:
             # check encounter stats
             annots = ibs.annots(aids)
-            annots_list = annots.group(annots.encounter_text)[1]
-            # singletons = [a for a in annots_list if len(a) == 1]
-            multitons = [a for a in annots_list if len(a) > 1]
+            encounters = annots.group(annots.encounter_text)[1]
+            nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
+            nid_to_enc = ut.group_items(encounters, nids)
+            nenc_list = ut.lmap(len, nid_to_enc.values())
+            hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
+            print('enc per name hist:')
+            print(ut.repr2(hist))
+
+            # singletons = [a for a in encounters if len(a) == 1]
+            multitons = [a for a in encounters if len(a) > 1]
             deltas = []
             for a in multitons:
                 times = a.image_unixtimes_asfloat
                 deltas.append(max(times) - min(times))
             ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
 
-    # def _baseline_inputs(self):
-    #     aids = self.ibs.filter_annots_general(self.aids_pool, minqual='ok',
-    #                                           view='primary')
-    #     annots = self.ibs.annots(aids)
-    #     encounters = annots.group(annots.encounter_text)[1]
-    #     # Choose annotation per encounter
-    #     rng = np.random.RandomState(0)
-    #     annots2 = self.ibs.annots([rng.choice(enc.aids) for enc in encounters])
-    #     names = annots2.group(annots2.nids)[1]
-    #     singletons = [a for a in names if len(a) == 1]
-    #     multitons = [a for a in names if len(a) > 1]
-    #     qaids = []
-    #     daids = []
-    #     for a in multitons:
-    #         qaid, daid = rng.choice(a, 2, replace=False)
-    #         qaids.append(qaid)
-    #         daids.append(daid)
-    #     daids.extend(ut.flatten(singletons))
-    #     ibs.print_annotconfig_stats(qaids, daids)
-
-    def _inputs(self):
+    def _inputs_old(self):
         from ibeis.init.filter_annots import encounter_crossval
         # Sample a dataset
         ibs = self.ibs
@@ -166,70 +170,89 @@ class Chap3(object):
                 ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
         return ibs, qaids, daids_list
 
-    def _vary_dbsize_inputs(self):
+    def _varied_inputs(self, denc_per_name=1, extra_dbsize_fracs=None):
         """
         Vary num per name and total number of annots
-        """
-        from ibeis.init.filter_annots import encounter_crossval
-        # Sample a dataset
-        ibs = self.ibs
-        # aids = self.ibs.filter_annots_general(self.aids_pool, minqual='poor')
-        aids = self.aids_pool
-        denc_per_name = 2
-        enc_splits, nid_to_confusors = encounter_crossval(
-            self.ibs, aids, qenc_per_name=1, annots_per_enc=1,
-            denc_per_name=denc_per_name, rebalance=True, rng=0, early=True)
-        qencs, dencs = enc_splits[0]
-        qaids = sorted(ut.flatten(ut.flatten(qencs)))
 
+        Ignore:
+            denc_per_name = 1
+            extra_dbsize_fracs = None
+
+            extra_dbsize_fracs = [0, .5, 1]
+
+        """
+        # Find a split of query/database encounters and confusors
+        from ibeis.init.filter_annots import encounter_crossval
+        enc_splits, nid_to_confusors = encounter_crossval(
+            self.ibs, self.aids_pool, qenc_per_name=1, annots_per_enc=1,
+            denc_per_name=max(denc_per_name), rebalance=True, rng=0, early=True)
+        qname_encs, dname_encs = enc_splits[0]
+        qaids = sorted(ut.flatten(ut.flatten(qname_encs)))
         confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
 
+        # Vary the number of database encounters in each sample
         target_daids_list = []
-        # Keep the number of annots in the database (more or less) constant
-        for num in range(1, denc_per_name + 1):
-            denc_ = ut.take_column(dencs, list(range(num)))
-            daids_ = ut.flatten(ut.flatten(denc_))
+        target_info_list_ = []
+        for num in denc_per_name:
+            dname_encs_ = ut.take_column(dname_encs, slice(0, num))
+            dnames_ = ut.lmap(ut.flatten, dname_encs_)
+            daids_ = ut.flatten(dnames_)
             target_daids_list.append(daids_)
+            name_lens = ut.lmap(len, dnames_)
+            dpername = (name_lens[0] if ut.allsame(name_lens) else
+                        np.mean(name_lens))
+            target_info_list_.append({
+                't_n_names': len(dname_encs_),
+                't_dpername': dpername,
+                't_denc_pername': num,
+                't_dsize': len(daids_)
+            })
 
+        # Append confusors to maintain a constant dbsize in each base sample
         dbsize_list = ut.lmap(len, target_daids_list)
-        min_dsize = min(dbsize_list)
         max_dsize = max(dbsize_list)
-        num_need = max_dsize - min_dsize
-        num_extra = len(confusor_pool) - num_need
-        if len(confusor_pool) < num_need:
-            print('Warning: not enough confusors to pad dbsize')
+        n_need = max_dsize - min(dbsize_list)
+        n_extra_avail = len(confusor_pool) - n_need
+        assert len(confusor_pool) > n_need, 'not enough confusors'
+        padded_daids_list = []
+        padded_info_list_ = []
+        for daids_, info_ in zip(target_daids_list, target_info_list_):
+            num_take = max_dsize - len(daids_)
+            pad_aids = confusor_pool[:num_take]
+            new_aids = daids_ + pad_aids
+            info_ = info_.copy()
+            info_['n_pad'] = len(pad_aids)
+            info_['pad_dsize'] = len(new_aids)
+            padded_info_list_.append(info_)
+            padded_daids_list.append(new_aids)
 
-        confusor_daids_list = []
-        for dsize in dbsize_list:
-            num_take = max_dsize - dsize
-            confusor_daids_list.append(confusor_pool[:num_take])
+        # Vary the dbsize by appending extra confusors
+        if extra_dbsize_fracs is None:
+            extra_dbsize_fracs = [1.]
+        extra_fracs = np.array(extra_dbsize_fracs)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        daids_list = []
+        info_list = []
+        for n in n_extra_list:
+            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
+                extra_aids = confusor_pool[len(confusor_pool) - n:]
+                daids = sorted(daids_ + extra_aids)
+                daids_list.append(daids)
+                info = info_.copy()
+                info['n_extra'] = len(extra_aids)
+                info['dsize'] = len(daids)
+                info_list.append(info)
 
-        extra_fracs = [0, .5, 1]
-        nextra_list = ut.unique([int(num_extra * frac) for frac in extra_fracs])
-        print('nextra_list = %r' % (nextra_list,))
-
-        daids_list_ = [a + b for a, b in zip(target_daids_list,
-                                             confusor_daids_list)]
-        print(list(map(len, daids_list_)))
-
-        daids_list = [sorted(daids + confusor_pool[len(confusor_pool) - n:])
-                      for n in nextra_list for daids in daids_list_]
-        print(list(map(len, daids_list)))
-
-        print('nextra_list = %r' % (nextra_list,))
+        import pandas as pd
+        print(pd.DataFrame.from_records(info_list))
         print('#qaids = %r' % (len(qaids),))
-        print('num_need = %r' % (num_need,))
+        print('num_need = %r' % (n_need,))
         print('max_dsize = %r' % (max_dsize,))
-        print('num_extra = %r' % (num_extra,))
-        if True:
-            print_cfg = dict(per_multiple=False, use_hist=False)
-            for daids in daids_list:
-                ibs.print_annotconfig_stats(qaids, daids, **print_cfg)
-        return ibs, qaids, daids_list
+        return self.ibs, qaids, daids_list, info_list
 
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
-        # ibs, qaids, daids = self._inputs()
+        # ibs, qaids, daids = self._inputs_old()
         # Execute the ranking algorithm
         qaids = sorted(qaids)
         daids = sorted(daids)
@@ -243,12 +266,19 @@ class Chap3(object):
         cdf = (np.cumsum(hist) / sum(hist))
         return cdf
 
-    def plot_cmcs(self, cdfs, labels):
+    def prepare_cdfs(self, cdfs, labels):
+        total = max(map(len, cdfs))
+        # Pad length
+        cdfs = [np.hstack([c, np.ones(total - len(c))]) for c in cdfs]
         cdfs = np.array(cdfs)
         # Sort so the best is on top
         sortx = np.lexsort(cdfs.T[::-1])[::-1]
         cdfs = cdfs[sortx]
         labels = ut.take(labels, sortx)
+        return cdfs, labels
+
+    def plot_cmcs(self, cdfs, labels, fnum=1, pnum=(1, 1, 1)):
+        cdfs, labels = self.prepare_cdfs(cdfs, labels)
         # Truncte to 20 ranks
         num_ranks = min(cdfs.shape[-1], 20)
         xdata = np.arange(1, num_ranks + 1)
@@ -260,45 +290,65 @@ class Chap3(object):
             xlabel='rank', ylabel='match probability',
             use_legend=True, legend_loc='lower right', num_yticks=6, ymax=1,
             ymin=.5, ypad=.005, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+            pnum=pnum, fnum=fnum,
+            rcParams=TMP_RC,
         )
 
-    def baseline(self):
-        cdfs, labels = zip(*[self.measure_baseline()])
-        self.plot_cmcs(cdfs, labels)
-
-    def foregroundness(self):
-        """
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
-            >>> self = Chap3.collect('PZ_MTEST')
-            >>> self = Chap3.collect('GZ_Master1')
-        """
-        cdfs, labels = zip(*[
-            self.measure_baseline(),
-            self.measure_foregroundness()
-        ])
-        self.plot_cmcs(cdfs, labels)
+    def plot_cmcs2(self, cdfs, labels, fnum=1):
+        fig = pt.figure(fnum=fnum)
+        self.plot_cmcs(cdfs, labels, fnum=fnum)
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        fig.set_size_inches([7.4375,  3.125])
+        return fig
 
     def measure_baseline(self):
-        ibs, qaids, daids = self._inputs()
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3.collect('PZ_MTEST')
+        """
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1], extra_dbsize_fracs=[1])
         cfgdict = {}
+        daids = daids_list[0]
+        info = info_list[0]
         cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-        return cdf, 'baseline'
+        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict}))]
+
+        expt_name = 'baseline'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_foregroundness(self):
-        ibs, qaids, daids = self._inputs()
-        cfgdict = {'fg_on': False}
-        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-        return cdf, 'without foregroundness'
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1], extra_dbsize_fracs=[1])
+        daids = daids_list[0]
+        info = info_list[0]
+
+        results = []
+        cfgdict1 = {'fg_on': False}
+        cdf = self._exec_ranking(ibs, qaids, daids, cfgdict1)
+        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1}))]
+
+        # cfgdict2 = {'fg_on': True}
+        # cdf = self._exec_ranking(ibs, qaids, daids, cfgdict2)
+        # results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2}))]
+
+        expt_name = 'foregroundness'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_invariance(self):
-        ALIAS_KEYS = ut.invert_dict({
-            'RI': 'rotation_invariance',
-            'AI': 'affine_invariance',
-            'QRH': 'query_rotation_heuristic',
-        })
-        invar = [
+        # ALIAS_KEYS = ut.invert_dict({
+        #     'RI': 'rotation_invariance',
+        #     'AI': 'affine_invariance',
+        #     'QRH': 'query_rotation_heuristic',
+        # })
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1], extra_dbsize_fracs=[1])
+        daids = daids_list[0]
+        info = info_list[0]
+
+        cfgdict_list = [
             {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic': False},
             {'affine_invariance':  True, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
             {'affine_invariance': False, 'rotation_invariance':  True, 'query_rotation_heuristic': False},
@@ -306,59 +356,23 @@ class Chap3(object):
             {'affine_invariance':  True, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
             {'affine_invariance': False, 'rotation_invariance': False, 'query_rotation_heuristic':  True},
         ]
-        ibs, qaids, daids = self._inputs()
-        pairs = []
-        for cfgdict in invar:
+        results = []
+        for cfgdict in cfgdict_list:
             cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-            label = ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, cfgdict))[1:]
-            label = label.replace('True', 'T').replace('False', 'F')
-            # TODO: put a baseline label on whichever of these corresponds to
-            # baseline
-            pairs.append((cdf, label))
-        # pairs.append(self.measure_baseline())
-        cdfs, labels = zip(*pairs)
-        # self.plot_cmcs(cdfs, labels)
+            results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
 
-    def measure_nsum(self):
-        ibs, qaids, daids_list = self._vary_dpername_inputs()
-        cfgdict1 = {
-            'score_method': 'nsum',
-            'score_method': 'nsum',
-            'query_rotation_heuristic': True,
-        }
-        cfgdict2 = {
-            'score_method': 'csum',
-            'score_method': 'csum',
-            'query_rotation_heuristic': True,
-        }
-        pairs = []
-        for count, daids in enumerate(daids_list, start=1):
-            cdf1 = self._exec_ranking(ibs, qaids, daids, cfgdict1)
-            pairs.append((cdf1, 'nsum,dpername=%d' % count))
-            cdf2 = self._exec_ranking(ibs, qaids, daids, cfgdict2)
-            pairs.append((cdf2, 'csum,dpername=%d' % count))
-        cdfs, labels = zip(*pairs)
-        # self.plot_cmcs(cdfs, labels)
-        # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
-
-    def measure_k_dbsize(self):
-        ibs, qaids, daids_list = self._vary_dbsize_inputs()
-        cfg_grid = {
-            'query_rotation_heuristic': True,
-            'K': [1, 2, 4, 6, 10],
-        }
-        pairs = []
-        for cfgdict in ut.all_dict_combinations(cfg_grid):
-            for daids in daids_list:
-                cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
-                label = 'K=%r, dsize=%r' % (cfgdict['K'], len(daids))
-                pairs.append((cdf, label))
-        cdfs, labels = zip(*pairs)
+        expt_name = 'invar'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_smk(self):
         from ibeis.algo.smk.smk_pipeline import SMKRequest
         # ibs = ibeis.opendb('PZ_MTEST')
-        ibs, qaids, daids = self._inputs()
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1], extra_dbsize_fracs=[1])
+        daids = daids_list[0]
+        info = info_list[0]
+
         config = {'nAssign': 1, 'num_words': 8000, 'sv_on': True}
         qreq_ = SMKRequest(ibs, qaids, daids, config)
         qreq_.ensure_data()
@@ -369,26 +383,182 @@ class Chap3(object):
         bins = np.arange(len(qreq_.dnids))
         hist = np.histogram(name_ranks, bins=bins)[0]
         cdf = (np.cumsum(hist) / sum(hist))
-        pairs = [(cdf, 'smk')]
-        pairs.append(self.measure_baseline())
+        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': config}))]
 
-        # cdfs, labels = zip(*pairs)
+        expt_name = 'smk'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
+
+        # cdfs, labels = zip(*results)
         # self.plot_cmcs(cdfs, labels)
         # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
+
+    def measure_nsum(self):
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
+        cfgdict1 = {'score_method': 'nsum', 'prescore_method': 'nsum', 'query_rotation_heuristic': True}
+        cfgdict2 = {'score_method': 'csum', 'prescore_method': 'csum', 'query_rotation_heuristic': True}
+        results = []
+        for count, (daids, info) in enumerate(zip(daids_list, info_list), start=1):
+            cdf1 = self._exec_ranking(ibs, qaids, daids, cfgdict1)
+            results.append((cdf1, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
+            cdf2 = self._exec_ranking(ibs, qaids, daids, cfgdict2)
+            results.append((cdf2, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
+
+        expt_name = 'nsum'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
+
+        # cdfs, labels = zip(*results)
+        # self.plot_cmcs(cdfs, labels)
+        # pt.gca().set_title('#qaids=%r #daids=%r' % (len(qaids), len(daids)))
+
+    def measure_dbsize(self):
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
+        cfgdict = {
+            'query_rotation_heuristic': True,
+        }
+        results = []
+        for daids, info in zip(daids_list, info_list):
+            info = info.copy()
+            cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+            results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
+
+        expt_name = 'dsize'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
+        cdfs, infos = zip(*results)
+
+    def measure_kexpt(self):
+        ibs, qaids, daids_list, info_list = self._varied_inputs(
+            denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
+        cfg_grid = {
+            'query_rotation_heuristic': True,
+            'K': [1, 2, 4, 6, 10],
+        }
+        results = []
+        for cfgdict in ut.all_dict_combinations(cfg_grid):
+            for daids, info in zip(daids_list, info_list):
+                cdf = self._exec_ranking(ibs, qaids, daids, cfgdict)
+                results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})))
+
+        expt_name = 'kexpt'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
+        cdfs, infos = zip(*results)
 
     def measure_all(self):
         """
         from ibeis.scripts.thesis import *
+        self = Chap3.collect('PZ_Master1', init=False)
+        self = Chap3.collect('GZ_Master1', init=False)
+        self.measure_all()
         self = Chap3.collect('PZ_Master0')
-        self = Chap3.collect('GZ_Master1')
-        self = Chap3.collect('PZ_Master1')
         """
+        if self.ibs is None:
+            self._precollect()
         self.measure_baseline()
         self.measure_foregroundness()
         self.measure_smk()
         self.measure_nsum()
-        self.measure_k_dbsize()
+        self.measure_dbsize()
+        self.measure_kexpt()
         self.measure_invariance()
+
+    def draw_all(self):
+        """
+        from ibeis.scripts.thesis import *
+        import ibeis
+        self = Chap3()
+        self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb='PZ_MTEST')
+        self.dbname = basename(self.dbdir)
+        self.dpath = join(self.base_dpath, self.dbname)
+        """
+
+        fpaths = ut.glob(self.dpath, '*.pkl')
+        for fpath in fpaths:
+            expt_name = splitext(basename(fpath))[0]
+            self.expt_results[expt_name] = ut.load_data(fpath)
+
+        mpl.rcParams.update(TMP_RC)
+
+        expt_name = 'baseline'
+        baseline_cdf = self.expt_results['baseline'][0][0]
+        fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
+
+        expt_name = 'foregroundness'
+        cdf = self.expt_results[expt_name][0][0]
+        baseline_cdf = self.expt_results['baseline'][0][0]
+        cdfs = [cdf, baseline_cdf]
+        labels = ['fg=F', 'fg=T (baseline)']
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
+
+        expt_name = 'invar'
+        ALIAS_KEYS = ut.invert_dict({
+            'RI': 'rotation_invariance',
+            'AI': 'affine_invariance',
+            'QRH': 'query_rotation_heuristic', })
+        results = self.expt_results[expt_name]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
+        labels = ut.lmap(label_alias, labels)
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
+
+        expt_name = 'smk'
+        results = self.expt_results[expt_name]
+        cdf = self.expt_results[expt_name][0][0]
+        baseline_cdf = self.expt_results['baseline'][0][0]
+        cdfs = [cdf, baseline_cdf]
+        labels = ['smk', 'baseline']
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
+
+        expt_name = 'nsum'
+        results = self.expt_results[expt_name]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
+
+        import pandas as pd
+        expt_name = 'kexpt'
+        results = self.expt_results[expt_name]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        df = pd.DataFrame.from_records(infos)
+        df['cdfs'] = cdfs
+        df['K'] = ut.take_column(pcfgs, 'K')
+        import plottool as pt
+        groups = list(df.groupby(('dsize', 't_denc_pername')))
+        fig = pt.figure(fnum=1)
+        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
+        for val, df_group in groups:
+            # print('---')
+            # print(df_group)
+            relevant_df = df_group[['K', 'dsize', 't_dpername']]
+            relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
+            relevant_cfgs = relevant_df.to_dict('records')
+            nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
+            labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
+            cdfs_ = df_group['cdfs'].values
+            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_())
+            ax = pt.gca()
+            ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.4, wspace=.2)
+        fig.set_size_inches([7.4375 * 2,  3.125 * 2])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=256))
 
 
 # @ut.reloadable_class
@@ -822,6 +992,12 @@ class Chap4(object):
         image = pt.render_figure_to_image(fig, dpi=256)
         # image = vt.clipwhite(image)
         vt.imwrite(fpath, image)
+
+
+def label_alias(k):
+    k = k.replace('True', 'T')
+    k = k.replace('False', 'F')
+    return k
 
 
 def feat_alias(k):

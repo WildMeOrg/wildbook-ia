@@ -76,6 +76,18 @@ def haversine(latlon1, latlon2):
     return kilometers
 
 
+def haversine_rad(lat1, lon1, lat2, lon2):
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = (np.sin(dlat / 2) ** 2) + np.cos(lat1) * np.cos(lat2) * (np.sin(dlon / 2) ** 2)
+    c = 2 * np.arcsin(np.sqrt(a))
+    # convert to kilometers
+    EARTH_RADIUS_KM = 6367
+    kilometers = EARTH_RADIUS_KM * c
+    return kilometers
+
+
 def timespace_distance_km(pt1, pt2, km_per_sec=KM_PER_SEC):
     """
     Computes distance between two points in space and time.
@@ -192,7 +204,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         >>> ])
         >>> km_per_sec = 0.002
         >>> thresh_units = 'seconds'
-        >>> X_data, dist_func = prepare_data(posixtimes, latlons, km_per_sec, thresh_units)
+        >>> X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec, thresh_units)
         >>> result = ('arr_ = %s' % (ut.repr2(X_data),))
         >>> [dist_func(a, b) for a, b in ut.combinations(X_data, 2)]
         >>> print(result)
@@ -236,6 +248,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
             dist_func = time_dist_sec
         elif thresh_units == 'km':
             dist_func = time_dist_km
+        columns = ('time',)
     elif have_gps and not have_times:
         # We have timesamps but no gps
         X_data = np.array(latlons)
@@ -244,6 +257,7 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
                                           km_per_sec=km_per_sec)
         elif thresh_units == 'km':
             dist_func = space_distance_km
+        columns = ('lat', 'lon')
     elif have_gps and have_times:
         # We have some combination of gps and timestamps
         posixtimes = atleast_nd(posixtimes, 2)
@@ -256,9 +270,10 @@ def prepare_data(posixtimes, latlons, km_per_sec=KM_PER_SEC, thresh_units='secon
         elif thresh_units == 'km':
             dist_func = functools.partial(timespace_distance_km,
                                           km_per_sec=km_per_sec)
+        columns = ('time', 'lat', 'lon')
     else:
         raise AssertionError('impossible state')
-    return X_data, dist_func
+    return X_data, dist_func, columns
 
 
 def cluster_timespace_km(posixtimes, latlons, thresh_km, km_per_sec=KM_PER_SEC):
@@ -348,11 +363,69 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         >>> print(result)
         X_labels = array([3, 2, 2, 2, 2, 2, 1, 1, 1], dtype=int32)
     """
-    X_data, dist_func = prepare_data(posixtimes, latlons, km_per_sec, 'seconds')
-    # Do clustering
+    X_data, dist_func, columns = prepare_data(posixtimes, latlons, km_per_sec,
+                                              'seconds')
     if X_data is None:
-        X_labels = None
-    elif len(X_data) == 0:
+        return None
+
+    # Cluster nan distributions differently
+    X_bools = ~np.isnan(X_data)
+    group_id = (X_bools * np.power(2, [2, 1, 0])).sum(axis=1)
+    import vtool as vt
+    unique_ids, groupxs = vt.group_indices(group_id)
+    grouped_labels = []
+    for xs in groupxs:
+        X_part = X_data.take(xs, axis=0)
+        labels = _cluster_part(X_part, dist_func, columns, thresh_sec,
+                               km_per_sec)
+        grouped_labels.append((labels, xs))
+    # Undo grouping and rectify overlaps
+    X_labels = _recombine_labels(grouped_labels)
+    # Do clustering
+    return X_labels
+
+
+def _recombine_labels(chunk_labels):
+    import utool as ut
+    labels = ut.take_column(chunk_labels, 0)
+    idxs = ut.take_column(chunk_labels, 1)
+    # nunique_list = [len(np.unique(a)) for a in labels]
+    chunksizes = ut.lmap(len, idxs)
+    cumsum = np.cumsum(chunksizes).tolist()
+    combined_idxs = np.hstack(idxs)
+    combined_labels = np.hstack(labels)
+    offset = 0
+    # Ensure each chunk has unique labels
+    for start, stop in zip([0] + cumsum, cumsum):
+        combined_labels[start:stop] += offset
+        offset += len(np.unique(combined_labels[start:stop]))
+    # Ungroup
+    X_labels = np.empty(combined_idxs.max() + 1, dtype=np.int)
+    # new_labels[:] = -1
+    X_labels[combined_idxs] = combined_labels
+    return X_labels
+
+
+def _cluster_part(X_part, dist_func, columns, thresh_sec, km_per_sec):
+    if len(X_part) > 500 and 'time' in columns and ~np.isnan(X_part[0, 0]):
+        # Try and break problem up into smaller chunks by finding feasible
+        # one-dimensional breakpoints (is this a cutting plane?)
+        chunk_labels = []
+        chunk_idxs = list(_chunk_time(X_part, thresh_sec))
+        for idxs in chunk_idxs:
+            print('Doing occurrence chunk {}'.format(len(idxs)))
+            X_chunk = X_part.take(idxs, axis=0)
+            labels = _cluster_chunk(X_chunk, dist_func, thresh_sec)
+            chunk_labels.append((labels, idxs))
+        X_labels = _recombine_labels(chunk_labels)
+    else:
+        # Compute the whole problem
+        X_labels = _cluster_chunk(X_part, dist_func, thresh_sec)
+    return X_labels
+
+
+def _cluster_chunk(X_data, dist_func, thresh_sec):
+    if len(X_data) == 0:
         X_labels = np.empty(0, dtype=np.int)
     elif len(X_data) == 1:
         X_labels = np.zeros(1, dtype=np.int)
@@ -366,6 +439,89 @@ def cluster_timespace_sec(posixtimes, latlons, thresh_sec=5, km_per_sec=KM_PER_S
         X_labels = scipy.cluster.hierarchy.fcluster(linkage_mat, thresh_sec,
                                                     criterion='distance')
     return X_labels
+
+
+def _chunk_time(X_part, thresh_sec):
+    X_time = X_part.T[0]
+    time_sortx = X_time.argsort()
+    timedata = X_time[time_sortx]
+    # Look for points that are beyond the thresh in one dimension
+    consec_delta = np.diff(timedata)
+    consec_delta[consec_delta > thresh_sec]
+    breakpoint = (consec_delta > thresh_sec) | np.isnan(consec_delta)
+    idxs = np.hstack([[0], np.where(breakpoint)[0] + 1, [len(X_part)]])
+    iter_window = list(zip(idxs, idxs[1:]))
+    for start, stop in iter_window:
+        idxs = time_sortx[start:stop]
+        # chunk = X_time[idxs]
+        # print((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
+        yield idxs
+
+
+# def _chunk_lat(X_chunk, thresh_sec, km_per_sec):
+#     # X_time = X_chunk.T[0]
+#     X_lats = X_chunk.T[-2]
+#     X_lons = X_chunk.T[-1]
+
+#     # approximates 1 dimensional distance
+#     ave_lon = np.mean(X_lons)
+#     lat_sortx = X_lats.argsort()
+#     latdata = X_lats[lat_sortx]
+
+#     latdata_rad = np.radians(latdata)
+#     avelon_rad  = np.radians(ave_lon)
+
+#     lat1 = latdata_rad[:-1]
+#     lon1 = avelon_rad
+
+#     lat2 = latdata_rad[1:]
+#     lon2 = avelon_rad
+
+#     consec_kmdelta = haversine_rad(lat1, lon1, lat2, lon2)
+#     consec_delta = consec_kmdelta / km_per_sec
+
+#     consec_delta[consec_delta > thresh_sec]
+#     breakpoint = (consec_delta > thresh_sec) | np.isnan(consec_delta)
+#     idxs = np.hstack([[0], np.where(breakpoint)[0] + 1, [len(X_chunk)]])
+#     iter_window = list(zip(idxs, idxs[1:]))
+#     for start, stop in iter_window:
+#         idxs = lat_sortx[start:stop]
+#         # chunk = X_time[idxs]
+#         # print((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
+#         yield idxs
+
+
+# def _chunk_lon(X_chunk, thresh_sec, km_per_sec):
+#     # X_time = X_chunk.T[0]
+#     X_lats = X_chunk.T[-2]
+#     X_lons = X_chunk.T[-1]
+
+#     # approximates 1 dimensional distance (assuming lons are not too different)
+#     ave_lat = np.mean(X_lats)
+#     lon_sortx = X_lons.argsort()
+#     londata = X_lons[lon_sortx]
+
+#     londata_rad = np.radians(londata)
+#     avelat_rad  = np.radians(ave_lat)
+
+#     lat1 = avelat_rad
+#     lon1 = londata_rad[:-1]
+
+#     lat2 = avelat_rad
+#     lon2 = londata_rad[1:]
+
+#     consec_kmdelta = haversine_rad(lat1, lon1, lat2, lon2)
+#     consec_delta = consec_kmdelta / km_per_sec
+
+#     consec_delta[consec_delta > thresh_sec]
+#     breakpoint = (consec_delta > thresh_sec) | np.isnan(consec_delta)
+#     idxs = np.hstack([[0], np.where(breakpoint)[0] + 1, [len(X_chunk)]])
+#     iter_window = list(zip(idxs, idxs[1:]))
+#     for start, stop in iter_window:
+#         idxs = lon_sortx[start:stop]
+#         # chunk = X_time[idxs]
+#         # print((np.diff(chunk[chunk.argsort()]) > thresh_sec).sum())
+#         yield idxs
 
 
 def main():

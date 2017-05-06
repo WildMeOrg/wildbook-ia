@@ -200,7 +200,7 @@ class Feedback(object):
             >>> print('edges = ' + ut.repr4(infr.graph.edge))
             >>> result = str(infr)
             >>> print(result)
-            <AnnotInference(nNodes=6, nEdges=3, nCCs=4, nN=0)>
+            <AnnotInference(nNodes=6, nEdges=3, nCCs=4)>
         """
         infr.print('apply_feedback_edges', 1)
         # Transforms dictionary feedback into numpy array
@@ -759,12 +759,11 @@ class AltConstructors(object):
         if infr.graph is None:
             return 'nAids=%r, G=None' % (len(infr.aids))
         else:
-            fmt = 'nNodes={}, nEdges={}, nCCs={}, nN={}'
+            fmt = 'nNodes={}, nEdges={}, nCCs={}'
             msg = fmt.format(
                 len(infr.aids),
                 infr.graph.number_of_edges(),
                 infr.pos_graph.number_of_components(),
-                infr.neg_graph.number_of_edges(),
                 # infr.incomp_graph.number_of_edges(),
                 # infr.unreviewed_graph.number_of_edges(),
             )
@@ -837,7 +836,7 @@ class AnnotInference(ut.NiceRepr,
         >>> # Note that there are initially no edges
         >>> infr.show_graph(use_image=use_image)
         >>> ut.show_if_requested()
-        infr = <AnnotInference(nNodes=6, nEdges=0, nCCs=6, nN=0)>
+        infr = <AnnotInference(nNodes=6, nEdges=0, nCCs=6)>
 
     Example:
         >>> # SCRIPT

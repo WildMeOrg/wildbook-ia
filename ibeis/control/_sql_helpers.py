@@ -7,16 +7,12 @@ import distutils
 import utool as ut
 (print, rrr, profile) = ut.inject2(__name__)
 
-# =======================
-# Helper Functions
-# =======================
 VERBOSE_SQL = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
-#AUTODUMP = ut.get_argflag('--auto-dump')
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
 
 def compare_string_versions(a, b):
-    """
+    r"""
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.control._sql_helpers import *  # NOQA
@@ -37,30 +33,24 @@ def compare_string_versions(a, b):
         return -1
     elif va == vb:
         return 0
-    #a = map(int, a.strip().split('.'))
-    #b = map(int, b.strip().split('.'))
-    #while len(a) < 3:
-    #    a.append(0)
-    #while len(b) < 3:
-    #    b.append(0)
-    #if a[0] < b[0]:
-    #    return -1
-    #elif a[0] > b[0]:
-    #    return 1
-    #else:
-    #    if a[1] < b[1]:
-    #        return -1
-    #    elif a[1] > b[1]:
-    #        return 1
-    #    else:
-    #        if a[2] < b[2]:
-    #            return -1
-    #        elif a[2] > b[2]:
-    #            return 1
-    #        elif a[2] == b[2]:
-    #            return 0
-    ## return 0 - identical
-    raise AssertionError('[!update_schema_version] Two version numbers are the same along the update path')
+    raise AssertionError('[!update_schema_version] Two version numbers are '
+                         'the same along the update path')
+
+
+def _devcheck_backups():
+    import dtool as dt
+    dbdir = ut.truepath('~/work/PZ_Master1/_ibsdb')
+    sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*staging_back*.sqlite3'))
+    fpaths = sorted(ut.glob(join(dbdir, '_ibeis_backups'), '*database_back*.sqlite3'))
+    for fpath in fpaths:
+        db = dt.SQLDatabaseController(fpath=fpath)
+        print('fpath = %r' % (fpath,))
+        num_edges = len(db.executeone('SELECT rowid from annotmatch'))
+        print('num_edges = %r' % (num_edges,))
+        num_names = len(db.executeone('SELECT DISTINCT name_rowid from annotations'))
+        print('num_names = %r' % (num_names,))
+        # df = db.get_table_as_pandas('annotations', columns=['annot_rowid',
+        #                                                     'name_rowid'])
 
 
 def fix_metadata_consistency(db):

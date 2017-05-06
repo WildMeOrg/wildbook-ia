@@ -238,7 +238,7 @@ class DummyEdges(object):
         return new_edges
 
     @profile
-    def find_mst_edges(infr):
+    def find_mst_edges(infr, name_attr='name_label'):
         """
         Returns edges to augment existing PCCs (by label) in order to ensure
         they are connected with positive edges.
@@ -252,14 +252,16 @@ class DummyEdges(object):
             >>> import ibeis
             >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> name_label = 'orig_name_label'
+            >>> name_label = 'name_label'
             >>> infr.find_mst_edges()
             >>> infr.ensure_mst()
         """
         from ibeis.algo.graph import nx_utils
-        import networkx as nx
+        # import networkx as nx
         # Find clusters by labels
         # name_attr = 'orig_name_label'
-        name_attr = 'name_label'
+        # name_attr = 'name_label'
         node_to_label = infr.get_node_attrs(name_attr)
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
@@ -268,7 +270,6 @@ class DummyEdges(object):
         if special_weighting:
             annots = infr.ibs.annots(infr.aids)
             node_to_time = ut.dzip(annots, annots.time)
-
 
         new_edges = []
         prog = ut.ProgIter(list(label_to_nodes.keys()),

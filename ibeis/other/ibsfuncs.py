@@ -4897,7 +4897,7 @@ def get_annot_stats_dict(ibs, aids, prefix='', forceall=False, old=True,
 @register_ibs_method
 def print_annot_stats(ibs, aids, prefix='', label='', **kwargs):
     aid_stats_dict = ibs.get_annot_stats_dict(aids, prefix=prefix, **kwargs)
-    print(label + ut.dict_str(aid_stats_dict, strvals=True))
+    print(label + ut.repr4(aid_stats_dict, strkeys=True, strvals=True))
 
 
 @register_ibs_method
@@ -4991,8 +4991,8 @@ def print_annotconfig_stats(ibs, qaids, daids, **kwargs):
         ibs.get_annotconfig_stats
     """
     annotconfig_stats = ibs.get_annotconfig_stats(qaids, daids, verbose=False, **kwargs)
-    stats_str2 = ut.dict_str(annotconfig_stats, strvals=True,
-                             newlines=True, explicit=False, nobraces=False)
+    stats_str2 = ut.repr4(annotconfig_stats, strvals=True, strkeys=True,
+                          nl=True, explicit=False, nobr=False)
     print(stats_str2)
 
 
@@ -5049,7 +5049,7 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         grouped_qaids = ibs.group_annots_by_name(qaids)[0]
         grouped_groundtruth_list = ibs.get_annot_groundtruth(
             ut.get_list_column(grouped_qaids, 0), daid_list=daids)
-        # groundtruth_daids = ut.unique_unordered(ut.flatten(grouped_groundtruth_list))
+        # groundtruth_daids = ut.unique(ut.flatten(grouped_groundtruth_list))
         query_hasgt_list = ibs.get_annot_has_groundtruth(qaids, daid_list=daids)
         # The aids that should not match any query
         # nonquery_daids = np.setdiff1d(np.setdiff1d(daids, qaids), groundtruth_daids)
@@ -5115,8 +5115,8 @@ def get_annotconfig_stats(ibs, qaids, daids, verbose=False, combined=False,
         # Intersections between qaids and daids
         common_aids = np.intersect1d(daids, qaids)
 
-        qnids = ut.unique_unordered(ibs.get_annot_name_rowids(qaids))
-        dnids = ut.unique_unordered(ibs.get_annot_name_rowids(daids))
+        qnids = ut.unique(ibs.get_annot_name_rowids(qaids))
+        dnids = ut.unique(ibs.get_annot_name_rowids(daids))
         common_nids = np.intersect1d(qnids, dnids)
 
         annotconfig_stats_strs_list1 = []

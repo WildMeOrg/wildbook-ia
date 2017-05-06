@@ -453,9 +453,10 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     data = cacher.tryload()
     if data is None:
         print('Computing occurrences for monkey patch for %d aids' % (len(aids)))
-        data = cluster_timespace_sec(
-            annots.image_unixtimes_asfloat, annots.gps,
-            thresh_sec=thresh_sec, km_per_sec=.002)
+        posixtimes = annots.image_unixtimes_asfloat
+        latlons = annots.gps
+        data = cluster_timespace_sec(posixtimes, latlons,
+                                     thresh_sec=thresh_sec, km_per_sec=.002)
         cacher.save(data)
     occurrence_labels = data
 

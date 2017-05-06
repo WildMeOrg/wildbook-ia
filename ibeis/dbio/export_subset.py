@@ -712,6 +712,12 @@ def remerge_subset():
         infr.write_ibeis_annotmatch_feedback()
         infr.write_ibeis_name_assignment()
 
+    Ignore:
+        import ibeis
+        ibs = ibeis.opendb('PZ_Master1')
+        infr = ibeis.AnnotInference(ibs, 'all')
+        infr.reset_feedback('annotmatch', apply=True)
+
     CommandLine:
         python -m ibeis.dbio.export_subset remerge_subset
     """
@@ -777,8 +783,11 @@ def remerge_subset():
     # Step 2) Update annotmatch - pairwise relationships
     infr1 = ibeis.AnnotInference(aids=aids1.aids, ibs=ibs1, verbose=3,
                                  autoinit=False)
-    infr2 = ibeis.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
-    infr2.reset_feedback('annotmatch')
+
+    # infr2 = ibeis.AnnotInference(aids=ibs2.annots().aids, ibs=ibs2, verbose=3)
+    aids2 = ibs2.get_valid_aids(is_known=True)
+    infr2 = ibeis.AnnotInference(aids=aids2, ibs=ibs2, verbose=3)
+    infr2.reset_feedback('annotmatch', apply=True)
 
     # map feedback from ibs1 onto ibs2 using ibs2 aids.
     fb1 = infr1.read_ibeis_annotmatch_feedback()
@@ -787,6 +796,17 @@ def remerge_subset():
 
     # Add transformed feedback into ibs2
     infr2.add_feedback_from(fb1_df_t)
+
+    # Now ensure that dummy connectivity exists to preserve origninal names
+    # from ibeis.algo.graph import nx_utils
+    # for (u, v) in infr2.find_mst_edges('name_label'):
+    #     infr2.draw_aids((u, v))
+    #     cc1 = infr2.pos_graph.connected_to(u)
+    #     cc2 = infr2.pos_graph.connected_to(v)
+    #     print(nx_utils.edges_cross(infr2.graph, cc1, cc2))
+    #     infr2.neg_redundancy(cc1, cc2)
+    #     infr2.pos_redundancy(cc2)
+
     infr2.relabel_using_reviews(rectify=True)
     infr2.apply_nondynamic_update()
 
@@ -796,6 +816,7 @@ def remerge_subset():
 
     if len(list(infr2.inconsistent_components())) > 0:
         raise NotImplementedError('need to fix inconsistencies first')
+        # Make it so it just loops until inconsistencies are resolved
         infr2.prioritize()
         infr2.qt_review_loop()
     else:
