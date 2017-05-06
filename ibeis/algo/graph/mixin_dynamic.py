@@ -908,14 +908,9 @@ class Redundancy(_RedundancyHelpers):
             assert isinstance(cc, set)
             if required_k <= 1:
                 return True
-            if required_k == 2:
-                pos_subgraph = infr.pos_graph.subgraph(cc)
-                # not quite, need bi-ege-connected, but this is stronger
-                return nx.is_biconnected(pos_subgraph)
             else:
                 pos_subgraph = infr.pos_graph.subgraph(cc)
-                pos_conn = nx.edge_connectivity(pos_subgraph)
-                return pos_conn >= required_k
+                nx_utils.is_edge_connected(pos_subgraph, k=required_k)
 
     def is_neg_redundant(infr, cc1, cc2):
         k_neg = infr.queue_params['neg_redun']
@@ -953,8 +948,22 @@ class Redundancy(_RedundancyHelpers):
         return False
 
     def filter_nonredun_edges(infr, edges):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=1, size=4)
+            >>> infr.clear_edges()
+            >>> infr.ensure_cliques()
+            >>> infr.clear_feedback()
+            >>> print(ut.repr4(infr.status()))
+            >>> nonredun_edges = list(infr.filter_nonredun_edges(
+            >>>     infr.unreviewed_graph.edges()))
+            >>> assert len(nonredun_edges) == 6
+        """
         for edge in edges:
-            if infr.is_redundant(edge):
+            if not infr.is_redundant(edge):
                 yield edge
 
 

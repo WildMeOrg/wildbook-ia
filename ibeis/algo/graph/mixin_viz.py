@@ -58,9 +58,8 @@ class GraphVisualization(object):
             return infr._cmap
 
     def initialize_visual_node_attrs(infr, graph=None):
-        print('[infr] initialize_visual_node_attrs!!!')
-        if infr.verbose >= 3:
-            print('[infr] initialize_visual_node_attrs')
+        infr.print('initialize_visual_node_attrs!!!')
+        infr.print('initialize_visual_node_attrs', 3)
         # import networkx as nx
         if graph is None:
             graph = infr.graph
@@ -194,19 +193,40 @@ class GraphVisualization(object):
         ut.nx_delete_node_attr(simple, infr.visual_node_attrs + ['pin'])
         return simple
 
+    @staticmethod
+    def make_viz_config(use_image, small_graph):
+        import dtool as dt
+        class GraphVizConfig(dt.Config):
+            _param_info_list = [
+                # Appearance
+                ut.ParamInfo('show_image', default=use_image),
+                ut.ParamInfo('in_image', default=use_image, hideif=lambda cfg: not cfg['show_image']),
+                ut.ParamInfo('pin_positions', default=use_image),
+
+                # Visibility
+                ut.ParamInfo('show_reviewed_edges', small_graph),
+                ut.ParamInfo('show_unreviewed_edges', small_graph),
+                ut.ParamInfo('show_inferred_same', small_graph),
+                ut.ParamInfo('show_inferred_diff', small_graph),
+                ut.ParamInfo('highlight_reviews', True),
+                ut.ParamInfo('show_recent_review', False),
+                ut.ParamInfo('show_labels', small_graph),
+                ut.ParamInfo('splines', 'spline' if small_graph else 'line',
+                             valid_values=['line', 'spline', 'ortho']),
+                ut.ParamInfo('groupby', 'name_label',
+                             valid_values=['name_label', None]),
+            ]
+        return GraphVizConfig
+
     @profile
     def update_visual_attrs(infr, graph=None,
                             show_reviewed_edges=True,
                             show_unreviewed_edges=False,
                             show_inferred_diff=True,
                             show_inferred_same=True,
-                            # show_unreviewed_cuts=True,
-                            show_reviewed_cuts=False,
                             show_recent_review=True,
                             highlight_reviews=True,
-                            #
                             show_labels=True,
-                            hide_cuts=None,
                             reposition=True,
                             splines='line',
                             use_image=False,
@@ -215,13 +235,12 @@ class GraphVisualization(object):
                             ):
         import plottool as pt
 
-        if infr.verbose >= 3:
-            print('[infr] update_visual_attrs')
+        infr.print('update_visual_attrs', 3)
         if graph is None:
             graph = infr.graph
-        if hide_cuts is not None:
-            # show_unreviewed_cuts = not hide_cuts
-            show_reviewed_cuts = not hide_cuts
+        # if hide_cuts is not None:
+        #     # show_unreviewed_cuts = not hide_cuts
+        #     show_reviewed_cuts = not hide_cuts
 
         if not getattr(infr, '_viz_init_nodes', False):
             infr._viz_init_nodes = True
@@ -248,14 +267,13 @@ class GraphVisualization(object):
         dark_background = graph.graph.get('dark_background', None)
 
         # Ensure we are starting from a clean slate
-        if reposition:
-            ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
+        # if reposition:
+        ut.nx_delete_edge_attr(graph, infr.visual_edge_attrs_appearance)
 
         # Set annotation node labels
         if not show_labels:
             nx.set_node_attributes(graph, 'label', ut.dzip(graph.nodes(), ['']))
         else:
-            # node_to_aid = nx.get_node_attributes(graph, 'aid')
             node_to_nid = nx.get_node_attributes(graph, 'name_label')
             node_to_view = nx.get_node_attributes(graph, 'viewpoint')
             if node_to_view:
@@ -279,32 +297,28 @@ class GraphVisualization(object):
         edges, edge_weights, edge_colors = infr.get_colored_edge_weights(
             graph, highlight_reviews)
 
-        reviewed_states = nx.get_edge_attributes(graph, 'decision')
+        # reviewed_states = nx.get_edge_attributes(graph, 'decision')
+        reviewed_states = dict(ut.util_graph.nx_gen_edge_attrs(
+            graph, 'decision', default=UNREV))
         edge_to_inferred_state = nx.get_edge_attributes(graph, 'inferred_state')
-        dummy_edges = [edge for edge, flag in
-                       nx.get_edge_attributes(graph, '_dummy_edge').items()
-                       if flag]
+        # dummy_edges = [edge for edge, flag in
+        #                nx.get_edge_attributes(graph, '_dummy_edge').items()
+        #                if flag]
         edge_to_timestamp = nx.get_edge_attributes(graph, 'review_timestamp')
         recheck_edges = [edge for edge, split in
                          nx.get_edge_attributes(graph, 'maybe_error').items()
                          if split]
-        cut_edges = [edge for edge, cut in
-                     nx.get_edge_attributes(graph, 'is_cut').items()
-                     if cut]
-        nomatch_edges = [edge for edge, state in reviewed_states.items()
-                         if state == NEGTV]
-        match_edges = [edge for edge, state in reviewed_states.items()
-                       if state == POSTV]
-        notcomp_edges = [edge for edge, state in reviewed_states.items()
-                         if state == INCMP]
+        decision_to_edge = ut.group_pairs(reviewed_states.items())
+        nomatch_edges = decision_to_edge[NEGTV]
+        match_edges = decision_to_edge[POSTV]
+        notcomp_edges = decision_to_edge[INCMP]
+        unreviewed_edges = decision_to_edge[UNREV]
+
         inferred_same = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'same']
         inferred_diff = [edge for edge, state in edge_to_inferred_state.items()
                          if state == 'diff']
         reviewed_edges = notcomp_edges + match_edges + nomatch_edges
-        unreviewed_edges = ut.setdiff(edges, reviewed_edges)
-        unreviewed_cut_edges = ut.setdiff(cut_edges, reviewed_edges)
-        reviewed_cut_edges = ut.setdiff(cut_edges, unreviewed_cut_edges)
         compared_edges = match_edges + nomatch_edges
         uncompared_edges = ut.setdiff(edges, compared_edges)
         nontrivial_inferred_same = ut.setdiff(inferred_same, match_edges +
@@ -340,9 +354,9 @@ class GraphVisualization(object):
             {'linewidth': 5, 'foreground': pt.ORANGE}]))
 
         # Cut edges are implicit and dashed
-        nx_set_edge_attrs(graph, 'implicit', ut.dzip(cut_edges, [True]))
-        nx_set_edge_attrs(graph, 'linestyle', ut.dzip(cut_edges, ['dashed']))
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(cut_edges, [alpha_med]))
+        # nx_set_edge_attrs(graph, 'implicit', ut.dzip(cut_edges, [True]))
+        # nx_set_edge_attrs(graph, 'linestyle', ut.dzip(cut_edges, ['dashed']))
+        # nx_set_edge_attrs(graph, 'alpha', ut.dzip(cut_edges, [alpha_med]))
 
         nx_set_edge_attrs(graph, 'implicit', ut.dzip(uncompared_edges, [True]))
 
@@ -374,7 +388,7 @@ class GraphVisualization(object):
             ))
 
         # Make dummy edges more transparent
-        nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
+        # nx_set_edge_attrs(graph, 'alpha', ut.dzip(dummy_edges, [alpha_low]))
 
         # SHADOW: based on review_timestamp
         # Increase visibility of nodes with the most recently changed timestamp
@@ -402,25 +416,22 @@ class GraphVisualization(object):
 
         # VISIBILITY: Set visibility of edges based on arguments
         if not show_reviewed_edges:
+            infr.print('Making reviewed edges invisible', 10)
             nx_set_edge_attrs(graph, 'style',
                                    ut.dzip(reviewed_edges, ['invis']))
 
         if not show_unreviewed_edges:
+            infr.print('Making un-reviewed edges invisible', 10)
             nx_set_edge_attrs(graph, 'style',
                                    ut.dzip(unreviewed_edges, ['invis']))
 
-        # if not show_unreviewed_cuts:
-        #     nx_set_edge_attrs(graph, 'style', ut.dzip(
-        #         unreviewed_cut_edges, ['invis']))
-        if not show_reviewed_cuts:
-            nx_set_edge_attrs(graph, 'style', ut.dzip(
-                reviewed_cut_edges, ['invis']))
-
         if not show_inferred_same:
+            infr.print('Making nontrivial_same edges invisible', 10)
             nx_set_edge_attrs(graph, 'style', ut.dzip(
                 nontrivial_inferred_same, ['invis']))
 
         if not show_inferred_diff:
+            infr.print('Making nontrivial_diff edges invisible', 10)
             nx_set_edge_attrs(graph, 'style', ut.dzip(
                 nontrivial_inferred_diff, ['invis']))
 
@@ -436,11 +447,13 @@ class GraphVisualization(object):
                             splines=splines,
                             sep=10 / 72, esep=1 / 72, nodesep=.1)
             layoutkw.update(kwargs)
+            # print(ut.repr3(graph.edge))
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
 
     @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,
-                   with_colorbar=False, pnum=(1, 1, 1), **kwargs):
+                   with_colorbar=False, pnum=(1, 1, 1),
+                   pickable=False, **kwargs):
         import plottool as pt
         if graph is None:
             graph = infr.graph
@@ -452,10 +465,9 @@ class GraphVisualization(object):
             # infr.update_visual_attrs(**update_kw)
             if update_attrs:
                 infr.update_visual_attrs(graph=graph, **kwargs)
-            plotinfo = pt.show_nx(graph, layout='custom', as_directed=False,
-                                  modify_ax=False, use_image=use_image, verbose=0,
-                                  pnum=pnum, **kwargs)
-            plotinfo  # NOQA
+            pt.show_nx(graph, layout='custom', as_directed=False,
+                       modify_ax=False, use_image=use_image, verbose=2,
+                       pnum=pnum, **kwargs)
             pt.zoom_factory()
             pt.pan_factory(pt.gca())
 
@@ -480,6 +492,10 @@ class GraphVisualization(object):
         if graph.graph.get('dark_background', None):
             pt.dark_background(force=True)
 
+        if pickable:
+            fig = pt.gcf()
+            fig.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
+
     def start_qt_interface(infr, loop=True):
         import guitool as gt
         from ibeis.viz.viz_graph2 import AnnotGraphWidget
@@ -496,4 +512,48 @@ class GraphVisualization(object):
             win.show()
         return win
 
+    def debug_edge_repr(infr):
+        print('DEBUG EDGE REPR')
+        for u, v, d in infr.graph.edges(data=True):
+            print('edge = %r, %r' % (u, v))
+            print(infr.repr_edge_data(d, visual=False))
+
+    def repr_edge_data(infr, all_edge_data, visual=True):
+        visual_edge_data = {k: v for k, v in all_edge_data.items()
+                            if k in infr.visual_edge_attrs}
+        edge_data = ut.delete_dict_keys(all_edge_data.copy(), infr.visual_edge_attrs)
+        lines = []
+        if visual:
+            lines += [('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1))]
+        lines += [('edge_data: ' + ut.repr2(edge_data, nl=1))]
+        return '\n'.join(lines)
+
     show = show_graph
+
+
+def on_pick(event, infr=None):
+    import plottool as pt
+    print('ON PICK: %r' % (event,))
+    artist = event.artist
+    plotdat = pt.get_plotdat_dict(artist)
+    if plotdat:
+        if 'node' in plotdat:
+            all_node_data = ut.sort_dict(plotdat['node_data'].copy())
+            visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
+            node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
+            node = plotdat['node']
+            node_data['degree'] = infr.graph.degree(node)
+            node_label = infr.pos_graph.node_label(node)
+            print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
+            print('node_data: ' + ut.repr2(node_data, nl=1))
+            ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
+            print('(pcc) node_label = %r' % (node_label,))
+            print('artist = %r' % (artist,))
+        elif 'edge' in plotdat:
+            all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
+            print(infr.repr_edge_data(all_edge_data))
+            ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
+            print('artist = %r' % (artist,))
+        else:
+            print('???: ' + ut.repr2(plotdat))
+    print(ut.get_timestamp())

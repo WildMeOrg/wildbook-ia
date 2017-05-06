@@ -5,9 +5,7 @@ import utool as ut
 import numpy as np
 import vtool as vt
 import six
-from ibeis.algo.graph.nx_utils import ensure_multi_index
 from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -59,6 +57,8 @@ class IBEISIO(object):
         for aid1, aid2, feedback_item in _iter:
             decision_key = feedback_item['decision']
             tags = feedback_item['tags']
+            if tags is None:
+                tags = []
             timestamp = feedback_item.get('timestamp', None)
             conf_key = feedback_item.get('confidence', None)
             user_id = feedback_item.get('user_id', None)
@@ -408,17 +408,6 @@ class IBEISIO(object):
         edge_delta_df = infr._make_state_delta(old_feedback, new_feedback)
         return edge_delta_df
 
-    def all_feedback_items(infr):
-        for edge, vals in six.iteritems(infr.external_feedback):
-            yield edge, vals
-        for edge, vals in six.iteritems(infr.internal_feedback):
-            yield edge, vals
-
-    def all_feedback(infr):
-        all_feedback = ut.ddict(list)
-        all_feedback.update(infr.all_feedback_items())
-        return all_feedback
-
     @staticmethod
     def _make_state_delta(old_feedback, new_feedback):
         r"""
@@ -536,7 +525,7 @@ class IBEISGroundtruth(object):
     """
     Methods for generating training labels for classifiers
     """
-    def guess_if_comparable(infr, aid_pairs):
+    def ibeis_guess_if_comparable(infr, aid_pairs):
         """
         Takes a guess as to which annots are not comparable based on scores and
         viewpoints. If either viewpoints is null assume they are comparable.
@@ -561,14 +550,14 @@ class IBEISGroundtruth(object):
         is_comp_guess = comp_by_viewpoint
         return is_comp_guess
 
-    def is_comparable(infr, aid_pairs, allow_guess=True):
+    def ibeis_is_comparable(infr, aid_pairs, allow_guess=True):
         """
         Guesses by default when real comparable information is not available.
         """
         ibs = infr.ibs
         if allow_guess:
             # Guess if comparability information is unavailable
-            is_comp_guess = infr.guess_if_comparable(aid_pairs)
+            is_comp_guess = infr.ibeis_guess_if_comparable(aid_pairs)
             is_comp = is_comp_guess.copy()
         else:
             is_comp = np.full(len(aid_pairs), np.nan)
@@ -583,70 +572,19 @@ class IBEISGroundtruth(object):
         is_comp[is_comp_have] = True
         return is_comp
 
-    def is_photobomb(infr, aid_pairs):
+    def ibeis_is_photobomb(infr, aid_pairs):
         ibs = infr.ibs
         am_rowids = ibs.get_annotmatch_rowid_from_edges(aid_pairs)
         am_tags = ibs.get_annotmatch_case_tags(am_rowids)
         is_pb = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
         return is_pb
 
-    def is_same(infr, aid_pairs):
+    def ibeis_is_same(infr, aid_pairs):
         aids1, aids2 = np.asarray(aid_pairs).T
         nids1 = infr.ibs.get_annot_nids(aids1)
         nids2 = infr.ibs.get_annot_nids(aids2)
         is_same = (nids1 == nids2)
         return is_same
-
-    def match_state_df(infr, index):
-        """ Returns groundtruth state based on ibeis controller """
-        import pandas as pd
-        index = ensure_multi_index(index, ('aid1', 'aid2'))
-        aid_pairs = np.asarray(index.tolist())
-        aid_pairs = vt.ensure_shape(aid_pairs, (None, 2))
-        is_same = infr.is_same(aid_pairs)
-        is_comp = infr.is_comparable(aid_pairs)
-        match_state_df = pd.DataFrame.from_items([
-            (NEGTV, ~is_same & is_comp),
-            (POSTV,  is_same & is_comp),
-            (INCMP, ~is_comp),
-        ])
-        match_state_df.index = index
-        return match_state_df
-
-    def match_state_gt(infr, edge):
-        import pandas as pd
-        aid_pairs = np.asarray([edge])
-        is_same = infr.is_same(aid_pairs)[0]
-        is_comp = infr.is_comparable(aid_pairs)[0]
-        match_state = pd.Series(dict([
-            (NEGTV, ~is_same & is_comp),
-            (POSTV,  is_same & is_comp),
-            (INCMP, ~is_comp),
-        ]))
-        return match_state
-
-    def edge_attr_df(infr, key, edges=None, default=ut.NoParam):
-        """ constructs DataFrame using current predictions """
-        import pandas as pd
-        edge_states = infr.gen_edge_attrs(key, edges=edges, default=default)
-        edge_states = list(edge_states)
-        if isinstance(edges, pd.MultiIndex):
-            index = edges
-        else:
-            if edges is None:
-                edges_ = ut.take_column(edge_states, 0)
-            else:
-                edges_ = ut.lmap(tuple, ut.aslist(edges))
-            index = pd.MultiIndex.from_tuples(edges_, names=('aid1', 'aid2'))
-        records = ut.itake_column(edge_states, 1)
-        edge_df = pd.Series.from_array(records)
-        edge_df.name = key
-        edge_df.index = index
-        return edge_df
-
-    def infr_pred_df(infr, edges=None):
-        """ technically not groundtruth but current infererence predictions """
-        return infr.edge_attr_df('inferred_state', edges, default=np.nan)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import utool as ut
 import networkx as nx
 import itertools as it
-from ibeis.algo.graph.nx_utils import edges_inside
+from ibeis.algo.graph.nx_utils import edges_inside, e_
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -16,6 +16,17 @@ class GraphHelperMixin(ut.NiceRepr):
 
     def has_nodes(self, nodes):
         return (self.has_node(node) for node in nodes)
+
+    def has_edges(self, edges):
+        return (self.has_edge(*edge) for edge in edges)
+
+    def edges(self, nbunch=None, data=False, default=None):
+        # Force edges to always be returned in upper triangular form
+        edges = super(GraphHelperMixin, self).edges(nbunch, data, default)
+        if data:
+            return (e_(u, v) + (d,) for u, v, d in edges)
+        else:
+            return (e_(u, v) for u, v in edges)
 
 
 class NiceGraph(nx.Graph, GraphHelperMixin):
@@ -271,6 +282,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
     def remove_edges_from(self, ebunch):
         ebunch = list(ebunch)
         super(DynConnGraph, self).remove_edges_from(ebunch)
+        # Can do this more efficiently for bulk edges
         for e in ebunch:
             self._cut(*e)
 
@@ -308,11 +320,16 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         self._remove_node(n)
         super(DynConnGraph, self).remove_node(n)
 
-    def subgraph(self, nbunch):
-        H = super(DynConnGraph, self).subgraph(nbunch)
-        # Recreate the connected compoment structure
-        for u, v in H.edges():
-            H._union(u, v)
+    def subgraph(self, nbunch, dynamic=True):
+        if dynamic is False:
+            H = nx.Graph()
+            H.add_nodes_from(nbunch)
+            H.add_edges_from(edges_inside(self, nbunch))
+        else:
+            H = super(DynConnGraph, self).subgraph(nbunch)
+            # Recreate the connected compoment structure
+            for u, v in H.edges():
+                H._union(u, v)
         return H
 
 

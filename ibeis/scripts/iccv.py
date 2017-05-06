@@ -12,44 +12,55 @@ def qt_review():
         python -m ibeis.scripts.iccv qt_review
     """
     import guitool as gt
-    app = gt.ensure_qapp()[0]  # NOQA
-
     import ibeis
+    app = gt.ensure_qapp()[0]  # NOQA
     defaultdb = ut.get_argval('--db', default='GZ_Master1')
     ibs = ibeis.opendb(defaultdb=defaultdb)
     infr = ibeis.AnnotInference(ibs=ibs, aids='all',
                                 autoinit=True, verbose=True)
+    infr.queue_params['pos_redun'] = 2
+    infr.queue_params['neg_redun'] = 2
 
-    annots = ibs.annots(infr.aids)
-
-    # Yikes not the same
-    ut.get_stats(ut.lmap(len, ut.group_items(annots.aids, annots.nids).values()))
-    ut.get_stats(ut.lmap(len, ut.group_items(annots.aids, annots.names).values()))
-
-    infr.set_node_attrs(
-        'name_label', ut.dzip(annots.aids, annots.names),
-    )
-    infr.review_dummy_edges(method=1)
-    infr.apply_nondynamic_update()
-    for edge, vals in infr.read_ibeis_staging_feedback().items():
-        feedback = infr._rectify_feedback_item(vals)
-        infr.add_feedback(edge, **feedback)
-
-
-    # infr.reset_feedback('staging', apply=True)
-    infr.review_dummy_edges(method=2)
     infr.reset_feedback('staging', apply=True)
-    infr.relabel_using_reviews()
+    # After we ensure that the annotmatch stuff is in staging, and all our
+    # reviews are there we load them. Then we rectify the old name label
+    # id-scheme by reviewing dummy edges. These edges should be saved to the
+    # staging database as dummy edges, but they wont overwrite any review that
+    # we've already made. This will likely cause inconsistency.
+    if False:
+        infr.review_dummy_edges(method=3)
+        infr.write_ibeis_staging_feedback()
 
     infr.prioritize()
+    infr.qt_review_loop()
+    gt.qtapp_loop(qwin=infr.manual_wgt, freq=10)
+    return
+    # annots = ibs.annots(infr.aids)
+    # for key, val in ut.group_items(annots.nids, annots.names).items():
+    #     if len(set(val)) > 1:
+    #         print((key, val))
+    # ut.get_stats(ut.lmap(len, ut.group_items(annots.aids, annots.nids).values()))
+    # ut.get_stats(ut.lmap(len, ut.group_items(annots.aids, annots.names).values()))
+
+    # infr.set_node_attrs(
+    #     'name_label', ut.dzip(annots.aids, annots.nids),
+    # )
+    # infr.review_dummy_edges(method=1)
+    # infr.apply_nondynamic_update()
+    # for edge, vals in infr.read_ibeis_staging_feedback().items():
+    #     feedback = infr._rectify_feedback_item(vals)
+    #     infr.add_feedback(edge, **feedback)
+
+    # infr.reset_feedback('staging', apply=True)
+    # infr.review_dummy_edges(method=2)
+    # infr.reset_feedback('staging', apply=True)
+    # infr.relabel_using_reviews()
 
     infr.recovery_review_loop()
     infr.write_ibeis_staging_feedback()
-
     win = infr.start_qt_interface(loop=False)
     win.show()
     gt.qtapp_loop(qwin=win, freq=10)
-
     if False:
         infr.relabel_using_reviews(rectify=True)
 
@@ -901,6 +912,7 @@ def end_to_end():
         )
         infr.init_simulation(**new_dials)
         print('new_dials = %s' % (ut.repr4(new_dials),))
+        infr.reset(state='empty')
         infr.main_loop(max_loops=dials['max_loops'])
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()

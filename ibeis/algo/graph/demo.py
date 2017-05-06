@@ -1,48 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""
-Review Interactions
-
-Key:
-    A --- B : A and B are potentially connected. No review.
-    A -X- B : A and B have been reviewed as non matching.
-    A -?- B : A and B have been reviewed as not comparable.
-    A -O- B : A and B have been reviewed as matching.
-
-The Total Review Clique Compoment
-
-    A -O- B -|
-    |\    |  |
-    O  O  O  |
-    |    \|  |
-    C -O- D  |
-    |________O
-
-A Minimal Review Compoment
-
-    A -O- B -|     A -O- B
-    |\    |  |     |     |
-    O  \  O  | ==  O     O
-    |    \|  |     |     |
-    C --- D  |     C     D
-    |________|
-
-Inconsistent Compoment
-
-    A -O- B
-    |    /
-    O  X
-    |/
-    C
-
-Consistent Compoment (with not-comparable)
-
-    A -O- B
-    |    /
-    O  ?
-    |/
-    C
-"""
 from __future__ import absolute_import, division, print_function, unicode_literals
+import itertools as it
 import numpy as np
 import utool as ut
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
@@ -55,7 +13,7 @@ def make_dummy_infr(annots_per_name):
             for _ in range(num)]
     aids = range(len(nids))
     infr = ibeis.AnnotInference(None, aids, nids=nids, autoinit=True,
-                                     verbose=1)
+                                verbose=1)
     return infr
 
 
@@ -68,57 +26,27 @@ def demo2():
     import plottool as pt
 
     # ---- Synthetic data params
-
-    # Create dummy data
-    # nids = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
-    # annots_per_name = [4, 3, 2, 1]
-    # annots_per_name = [9, 9, 9, 9, 9, 9, 9, 9, 9]
-    # annots_per_name = [8, 8, 8, 8, 8, 8, 8, 8]
-    # annots_per_name = [8, 8, 8, 8, 8]
-    annots_per_name = [8, 8, 8, 8]
-    # 8, 8]
-    # annots_per_name = [1, 2, 3, 4, 4, 2, 5]
-    # annots_per_name = (np.random.rand(9) * 10).astype(np.int32) + 1
-
     queue_params = {
-        'pos_redundancy': None,
-        'neg_redundancy': None,
-        # 'pos_redundancy': 1,
-        # 'neg_redundancy': 2,
+        'pos_redun': None,
+        'neg_redun': None,
     }
-    # oracle_accuracy = 1.0
     oracle_accuracy = .8
-    # oracle_accuracy = .9
-    # oracle_accuracy = 1.0
-
-    b = 10
 
     round2_params = {
-        # 'pos_redundancy': None,
-        # 'neg_redundancy': None,
-        # 'pos_redundancy': 6,
-        # 'neg_redundancy': 7,
-        'pos_redundancy': 2,
-        'neg_redundancy': 3,
+        'pos_redun': 2,
+        'neg_redun': 3,
     }
-    # round2_params = None
 
     # --- draw params
 
     VISUALIZE = False
     VISUALIZE = True
-    SHOW_NEG = False
-    SHOW_NEG = True
 
     SHOW_GT = True
     # QUIT_OR_EMEBED = 'embed'
     QUIT_OR_EMEBED = 'quit'
     TARGET_REVIEW = ut.get_argval('--target', type_=int, default=None)
     PRESHOW = True
-    # PRESHOW = False
-    # SHOW_GT = False
-    # QUIT_OR_EMEBED = 'quit'
-    # TARGET_REVIEW = 14
 
     fontsize = 12
     # fontname = 'Ubuntu'
@@ -131,19 +59,23 @@ def demo2():
 
     rng = np.random.RandomState(42)
 
-    infr = make_dummy_infr(annots_per_name)
+    infr = demodata_infr(num_pccs=4, size=3, size_std=1, p_incon=0)
+    apply_dummy_viewpoints(infr)
+    # infr.ensure_cliques()
+    infr.ensure_full()
+    print(ut.repr4(infr.status()))
+
     infr.set_node_attrs('shape', 'circle')
     infr.graph.graph['ignore_labels'] = True
-    infr.graph.graph['dark_background'] = True
+    infr.graph.graph['dark_background'] = False
     infr.set_node_attrs('width', 29)
     infr.set_node_attrs('height', 29)
     infr.set_node_attrs('fontsize', fontsize)
     infr.set_node_attrs('fontname', fontname)
     infr.set_node_attrs('fixed_size', True)
 
-    # Assign random viewpoints
-    apply_dummy_viewpoints(infr)
-    infr.ensure_cliques()
+    infr.init_simulation(oracle_accuracy=oracle_accuracy)
+    print(ut.repr4(infr.status()))
 
     dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
     ut.remove_files_in_dir(dpath)
@@ -151,29 +83,33 @@ def demo2():
     def show_graph(infr, title, final=False):
         if not VISUALIZE:
             return
-        if len(infr.graph) < 35:
-            pass
-
-        showkw = dict(fontsize=fontsize, fontname=fontname,
-                      show_reviewed_cuts=SHOW_NEG,
-                      show_inferred_same=False,
-                      show_inferred_diff=False,
-                      show_labels=False,
-                      show_recent_review=not final,
-                      splines=splines,
-                      reposition=False,
-                      with_colorbar=True)
+        showkw = dict(
+            fontsize=fontsize, fontname=fontname,
+            show_unreviewed_edges=True,
+            # show_inferred_same=False,
+            # show_inferred_diff=False,
+            show_inferred_same=True,
+            show_inferred_diff=True,
+            show_labels=True,
+            show_recent_review=True,
+            # show_recent_review=not final,
+            splines=splines,
+            reposition=False,
+            # with_colorbar=True
+        )
         # showkw = dict(fontsize=6, show_cuts=True, with_colorbar=True)
+        verbose = infr.verbose
+        infr.verbose = 0
+        infr_ = infr.copy()
         infr_ = infr
-        verbose = infr_.verbose
-        infr_.verbose = 0
-        infr = infr_.copy()
         infr_.verbose = verbose
-        infr.show_graph(**showkw)
+        infr_.show(pickable=True, **showkw)
+        infr.verbose = verbose
+        print('status ' + ut.repr4(infr_.status()))
+        # infr.show(**showkw)
         pt.set_title(title)
         pt.adjust_subplots(top=.95, left=0, right=1, bottom=.01)
         pt.gca().set_aspect('equal')
-        pt.gcf().canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
         dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
         pt.save_figure(dpath=dpath, dpi=128)
 
@@ -187,11 +123,14 @@ def demo2():
         show_graph(infr, 'target-gt')
 
     # Dummy scoring
-    apply_random_negative_edges(infr, rng)
     # infr.ensure_full()
     apply_dummy_scores(infr, rng)
-    infr.break_graph(b)
-    infr.remove_name_labels()
+    infr.apply_edge_truth()
+
+    print(ut.repr4(infr.status()))
+    infr.clear_feedback()
+    infr.clear_name_labels()
+    print(ut.repr4(infr.status()))
 
     if VISUALIZE:
         infr.update_visual_attrs(splines=splines)
@@ -199,60 +138,31 @@ def demo2():
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
         show_graph(infr, 'pre-reveiw')
 
-    def oracle_decision(infr, n1, n2):
-        """ The perfect reviewer """
-        truth = get_edge_truth(infr, n1, n2)
+    # _iter2 = enumerate(infr.generate_reviews(**queue_params))
+    # _iter2 = list(_iter2)
+    # assert len(_iter2) > 0
 
-        # Baseline accuracy
-        oracle_accuracy_ = oracle_accuracy
-
-        # Increase oracle accuracy for edges that it has seen before
-        num_reviews = infr.graph.edge[n1][n2].get('num_reviews', 1)
-        oracle_accuracy_ = 1 - ((1 - oracle_accuracy_) ** num_reviews)
-
-        # Decrease oracle accuracy for harder cases
-        # if truth == 1:
-        #     easiness = infr.graph.edge[n1][n2]['normscore']
-        # elif truth == 1:
-        #     easiness = infr.graph.edge[n1][n2]['normscore']
-        # else:
-        #     easiness = oracle_accuracy_
-        # oracle_accuracy_ = (oracle_accuracy_) * 1.0 + (1 - oracle_accuracy_) * easiness
-
-        if rng.rand() > oracle_accuracy_:
-            print('oops')
-            # truth = rng.choice(list({0, 1, 2} - {truth}))
-            observed = rng.choice(list({0, 1} - {truth}))
-        else:
-            observed = truth
-        from ibeis import constants as const
-        state = const.REVIEW.INT_TO_CODE[observed]
-        tags = []
-        return state, tags
-
-    _iter = infr.generate_reviews(randomness=.1, rng=rng, **queue_params)
-    _iter2 = enumerate(_iter)
-    prog = ut.ProgIter(_iter2, label='demo2', bs=False, adjust=False)
-    for count, (aid1, aid2) in prog:
+    # prog = ut.ProgIter(_iter2, label='demo2', bs=False, adjust=False,
+    #                    enabled=False)
+    count = 0
+    for edge in infr.generate_reviews(**queue_params):
         msg = 'review #%d' % (count)
         print('\n----------')
         print(msg)
         print('remaining_reviews = %r' % (infr.remaining_reviews()),)
-
         # Make the next review decision
-        state, tags = oracle_decision(infr, aid1, aid2)
-
+        feedback = infr.request_oracle_review(edge)
         if count == TARGET_REVIEW:
             infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
-
-        infr.add_feedback((aid1, aid2), decision=state, tags=tags)
-
+        infr.add_feedback(edge, **feedback)
         # Show the result
         if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
             show_graph(infr, msg)
-
+            # import sys
+            # sys.exit(1)
         if count == TARGET_REVIEW:
             break
+        count += 1
 
     show_graph(infr, 'post-review', final=True)
 
@@ -260,29 +170,23 @@ def demo2():
     if TARGET_REVIEW is None and round2_params is not None:
         # HACK TO GET NEW THINGS IN QUEUE
         infr.queue_params = round2_params
-        infr.apply_review_inference()
 
-        _iter = infr.generate_reviews(randomness=.1, rng=rng, **infr.queue_params)
-        _iter2 = enumerate(_iter)
-        prog = ut.ProgIter(_iter2, label='round2', bs=False, adjust=False)
+        _iter2 = enumerate(infr.generate_reviews(**queue_params))
+        prog = ut.ProgIter(_iter2, label='round2', bs=False, adjust=False,
+                           enabled=False)
         for count, (aid1, aid2) in prog:
             msg = 'reviewII #%d' % (count)
             print('\n----------')
             print(msg)
             print('remaining_reviews = %r' % (infr.remaining_reviews()),)
-
             # Make the next review decision
-            state, tags = oracle_decision(infr, aid1, aid2)
-
+            feedback = infr.request_oracle_review(edge)
             if count == TARGET_REVIEW:
                 infr.EMBEDME = QUIT_OR_EMEBED == 'embed'
-
-            infr.add_feedback((aid1, aid2), decision=state, tags=tags)
-
+            infr.add_feedback(edge, **feedback)
             # Show the result
             if PRESHOW or TARGET_REVIEW is None or count >= TARGET_REVIEW - 1:
                 show_graph(infr, msg)
-
             if count == TARGET_REVIEW:
                 break
 
@@ -296,9 +200,12 @@ def demo2():
         ut.show_if_requested()
 
 
-def randn_clip(rng, mu, sigma, a_max, a_min):
-    a = rng.randn() * sigma + mu
-    a = np.clip(a, a_max, a_min)
+def randn(mean=0, std=1, shape=[], a_max=None, a_min=None, rng=None):
+    a = (rng.randn(*shape) * std) + mean
+    if a_max is not None or a_min is not None:
+        a_max = np.inf if a_max is None else a_max
+        a_min = np.inf if a_min is None else a_min
+        a = np.clip(a, a_min, a_max)
     return a
 
 
@@ -366,44 +273,16 @@ def apply_dummy_scores(infr, rng=None):
     print('[demo] apply dummy scores')
     rng = ut.ensure_rng(rng)
     dummy_params = {
-        0: {'mu': .2, 'sigma': .5},
-        1: {'mu': .8, 'sigma': .4},
-        2: {'mu': .2, 'sigma': .8},
-
-        # 0: {'mu': .2, 'sigma': .2},
-        # 1: {'mu': .8, 'sigma': .2},
-        # 2: {'mu': .2, 'sigma': .4},
-
-        # 0: {'mu': .2, 'sigma': .02},
-        # 1: {'mu': .8, 'sigma': .02},
-        # 2: {'mu': .2, 'sigma': .04},
+        0: {'mean': .2, 'std': .5},
+        1: {'mean': .8, 'std': .4},
+        2: {'mean': .2, 'std': .8},
     }
     edges = list(infr.graph.edges())
     truths = [get_edge_truth(infr, n1, n2) for n1, n2 in ut.ProgIter(edges)]
-    normscores = [randn_clip(rng, a_max=0, a_min=1, **dummy_params[truth])
+    normscores = [randn(rng=rng, a_max=0, a_min=1, **dummy_params[truth])
                   for truth in ut.ProgIter(truths, label='clipping')]
     infr.set_edge_attrs('normscore', ut.dzip(edges, normscores))
-    ut.nx_delete_edge_attr(infr.graph, '_dummy_edge')
-
-
-def apply_random_negative_edges(infr, rng=None):
-    thresh = .1
-    rng = ut.ensure_rng(rng)
-    nid_to_aids = ut.group_pairs([
-        (n, d['name_label']) for n, d in infr.graph.nodes(data=True)])
-    nid_pairs = list(ut.combinations(nid_to_aids.keys(), 2))
-    random_edges = []
-    total = 0
-    for nid1, nid2 in nid_pairs:
-        aids1 = nid_to_aids[nid1]
-        aids2 = nid_to_aids[nid2]
-        aid_pairs = list(ut.product(aids1, aids2))
-        flags = rng.rand(len(aid_pairs)) < thresh
-        total += len(aid_pairs)
-        chosen = ut.compress(aid_pairs, flags)
-        random_edges.extend(chosen)
-    infr.graph.add_edges_from(random_edges)
-    infr.set_edge_attrs('_dummy_edge', ut.dzip(random_edges, [True]))
+    ut.nx_delete_edge_attr(infr.graph, 'dummy')
 
 
 def apply_dummy_viewpoints(infr):
@@ -433,147 +312,6 @@ def apply_dummy_viewpoints(infr):
     grouped_nodes = list(nid_to_aids.values())
     node_to_view = {node: mkv() for nodes in grouped_nodes for node in nodes}
     infr.set_node_attrs('viewpoint', node_to_view)
-
-
-@profile
-def demo_ibeis_graph_iden():
-    """
-    CommandLine:
-        python -m ibeis.algo.graph.demo demo_ibeis_graph_iden --show
-    """
-    import ibeis
-    ibs = ibeis.opendb('PZ_MTEST')
-    # Initially the entire population is unnamed
-    graph_freq = 1
-    n_reviews = 5
-    n_queries = 1
-    # n_reviews = 4
-    # n_queries = 1
-    # n_reviews = 3
-    aids = ibs.get_valid_aids()[1:9]
-    # nids = [-aid for aid in aids]
-    # infr = graph_iden.AnnotInference(ibs, aids, nids=nids, autoinit=True, verbose=1)
-    infr = ibeis.AnnotInference(ibs, aids, autoinit=True, verbose=1)
-    # Pin nodes in groundtruth positions
-    infr.ensure_cliques()
-    # infr.initialize_visual_node_attrs()
-    import plottool as pt
-    showkw = dict(fontsize=8, with_colorbar=True)
-    infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
-    pt.set_title('target-gt')
-    infr.set_node_attrs('pin', 'true')
-    infr.remove_name_labels()
-    infr.remove_dummy_edges()
-
-    total = 0
-    for query_num in range(n_queries):
-
-        # Build hypothesis links
-        infr.exec_matching()
-        infr.apply_match_edges(dict(ranks_top=3, ranks_bot=1))
-        infr.apply_feedback_edges()
-
-        # infr.relabel_using_reviews()
-        if query_num == 0:
-            infr.show_graph(**ut.update_existing(showkw.copy(), dict(with_colorbar=True)))
-            pt.set_title('pre-review-%r' % (query_num))
-
-        # Now either a manual or automatic reviewer must
-        # determine which matches are correct
-        oracle_mode = True
-        def oracle_decision(aid1, aid2):
-            # Assume perfect reviewer
-            nid1, nid2 = ibs.get_annot_nids([aid1, aid2])
-            truth = nid1 == nid2
-            state = ibs.const.REVIEW.INT_TO_CODE[truth]
-            tags = []
-            # TODO:
-            # if view1 != view1: infr.add_feedback((aid1, aid2), INCMP)
-            return state, tags
-
-        # for count in ut.ProgIter(range(1, n_reviews + 1), 'review'):
-        for count, (aid1, aid2) in enumerate(infr.generate_reviews()):
-            if oracle_mode:
-                state, tags = oracle_decision(aid1, aid2)
-                infr.add_feedback((aid1, aid2), decision=state, tags=tags)
-            else:
-                raise NotImplementedError('review based on thresholded graph cuts')
-
-            if (total) % graph_freq == 0:
-                infr.show_graph(**showkw)
-                pt.set_title('review #%d-%d' % (total, query_num))
-                # print(ut.repr3(ut.graph_info(infr.graph)))
-                if 0:
-                    _info = ut.graph_info(infr.graph, stats=True,
-                                          ignore=(infr.visual_edge_attrs +
-                                                  infr.visual_node_attrs))
-                    _info = ut.graph_info(infr.graph, stats=False,
-                                          ignore=(infr.visual_edge_attrs +
-                                                  infr.visual_node_attrs))
-                    print(ut.repr3(_info, precision=2))
-            if count >= n_reviews:
-                break
-            total += 1
-
-    if (total) % graph_freq != 0:
-        infr.show_graph(**showkw)
-        pt.set_title('review #%d-%d' % (total, query_num))
-        # print(ut.repr3(ut.graph_info(infr.graph)))
-        if 0:
-            _info = ut.graph_info(infr.graph, stats=True,
-                                  ignore=(infr.visual_edge_attrs +
-                                          infr.visual_node_attrs))
-            print(ut.repr3(_info, precision=2))
-
-    # print(ut.repr3(ut.graph_info(infr.graph)))
-    # infr.show_graph()
-    # pt.set_title('post-review')
-
-    if ut.get_computer_name() in ['hyrule']:
-        pt.all_figures_tile(monitor_num=0, percent_w=.5)
-    elif ut.get_computer_name() in ['ooo']:
-        pt.all_figures_tile(monitor_num=1, percent_w=.5)
-    else:
-        pt.all_figures_tile()
-    ut.show_if_requested()
-
-
-def repr_edge_data(infr, all_edge_data):
-    visual_edge_data = {k: v for k, v in all_edge_data.items()
-                        if k in infr.visual_edge_attrs}
-    edge_data = ut.delete_dict_keys(all_edge_data.copy(), infr.visual_edge_attrs)
-    lines = [
-        ('visual_edge_data: ' + ut.repr2(visual_edge_data, nl=1)),
-        ('edge_data: ' + ut.repr2(edge_data, nl=1)),
-    ]
-    return '\n'.join(lines)
-
-
-def on_pick(event, infr=None):
-    import plottool as pt
-    print('ON PICK: %r' % (event,))
-    artist = event.artist
-    plotdat = pt.get_plotdat_dict(artist)
-    if plotdat:
-        if 'node' in plotdat:
-            all_node_data = ut.sort_dict(plotdat['node_data'].copy())
-            visual_node_data = ut.dict_subset(all_node_data, infr.visual_node_attrs, None)
-            node_data = ut.delete_dict_keys(all_node_data, infr.visual_node_attrs)
-            print('visual_node_data: ' + ut.repr2(visual_node_data, nl=1))
-            print('node_data: ' + ut.repr2(node_data, nl=1))
-            node = plotdat['node']
-            ut.cprint('node: ' + ut.repr2(plotdat['node']), 'blue')
-            node_label = infr.pos_graph.node_label(node)
-            print('(pcc) node_label = %r' % (node_label,))
-            print('artist = %r' % (artist,))
-        elif 'edge' in plotdat:
-            all_edge_data = ut.sort_dict(plotdat['edge_data'].copy())
-            print(repr_edge_data(infr, all_edge_data))
-            ut.cprint('edge: ' + ut.repr2(plotdat['edge']), 'blue')
-            print('artist = %r' % (artist,))
-        else:
-            print('???: ' + ut.repr2(plotdat))
-    print(ut.get_timestamp())
 
 
 def make_demo_infr(ccs, edges, nodes=[], infer=True):
@@ -608,8 +346,6 @@ def make_demo_infr(ccs, edges, nodes=[], infer=True):
     infr = ibeis.AnnotInference.from_netx(G, infer=infer)
     infr.verbose = 3
 
-    # infr.relabel_using_reviews()
-    # infr.apply_review_inference()
     infr.relabel_using_reviews(rectify=False)
     # infr.apply_nondynamic_update()
 
@@ -642,12 +378,12 @@ def do_infr_test(ccs, edges, new_edges):
                   show_reviewed_cuts=True,
                   splines='spline',
                   show_inferred_diff=True, groupby='name_label',
-                  show_labels=True)
+                  show_labels=True, pickable=True)
         pt.set_title('pre-review')
         pt.gca().set_aspect('equal')
         infr.set_node_attrs('pin', 'true')
-        fig1 = pt.gcf()
-        fig1.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
+        # fig1 = pt.gcf()
+        # fig1.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
 
     infr1 = infr
     infr2 = infr.copy()
@@ -664,9 +400,9 @@ def do_infr_test(ccs, edges, new_edges):
                    show_inferred_diff=True, show_labels=True)
         pt.gca().set_aspect('equal')
         pt.set_title('post-review')
-        fig2 = pt.gcf()
-        if fig2 is not fig1:
-            fig2.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr2))
+        # fig2 = pt.gcf()
+        # if fig2 is not fig1:
+        #     fig2.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr2))
 
     class Checker(object):
         """
@@ -678,7 +414,7 @@ def do_infr_test(ccs, edges, new_edges):
             self.infr2 = infr2
 
         def __call__(self, infr, u, v, key, val, msg):
-            data = infr.get_edge_data(u, v)
+            data = infr.get_nonvisual_edge_data((u, v))
             if data is None:
                 assert infr.graph.has_edge(u, v), (
                     'uv=%r, %r does not exist'  % (u, v))
@@ -686,7 +422,7 @@ def do_infr_test(ccs, edges, new_edges):
             if got != val:
                 msg1 = 'key=%s %r!=%r, ' % (key, got, val)
                 errmsg = ''.join([msg1, msg, '\nedge=', ut.repr2((u, v)), '\n',
-                                 repr_edge_data(infr, data)])
+                                 infr.repr_edge_data(data)])
                 self._errors.append(errmsg)
 
         def custom_precheck(self, func):
@@ -1135,143 +871,6 @@ def case_flag_merge():
     check.after()
 
 
-def demodata_infr(**kwargs):
-    """
-    kwargs = {}
-
-    Example:
-        >>> from ibeis.algo.graph.demo import *  # NOQA
-        >>> from ibeis.algo.graph import demo
-        >>> import networkx as nx
-        >>> kwargs = dict(num_pccs=50, p_incon=.1, size_std=4)
-        >>> infr = demo.demodata_infr(**kwargs)
-        >>> pccs = list(infr.positive_components())
-        >>> assert len(pccs) == kwargs['num_pccs']
-        >>> nonfull_pccs = [cc for cc in pccs if len(cc) > 1 and nx.is_empty(nx.complement(infr.pos_graph.subgraph(cc)))]
-        >>> expected_n_incon = len(nonfull_pccs) * kwargs['p_incon']
-        >>> n_incon = len(list(infr.inconsistent_components()))
-        >>> # TODO can test that we our sample num incon agrees with pop mean
-        >>> sample_mean = n_incon / len(nonfull_pccs)
-        >>> pop_mean = kwargs['p_incon']
-    """
-
-    def rand_normal(mean=0, std=1, shape=[]):
-        return (rng.randn(*shape) * std) + mean
-    def kwalias(*args):
-        params = args[0:-1]
-        default = args[-1]
-        for key in params:
-            if key in kwargs:
-                return kwargs[key]
-        return default
-
-    import itertools as it
-    rng = np.random.RandomState(0)
-    counter = 0
-    new_ccs = []
-    num_pccs = kwalias('num_pccs', 16)
-    size_mean = kwalias('pcc_size_mean', 'pcc_size', 'size', 5)
-    size_std = kwalias('pcc_size_std', 'size_std', 0)
-
-    for i in ut.ProgIter(list(range(num_pccs)), label='make pos-demo'):
-        size = max(1, int(rand_normal(size_mean, size_std)))
-
-        p = .1
-        import networkx as nx
-        want_connectivity = rng.choice([1, 2, 3])
-        want_connectivity = min(size - 1, want_connectivity)
-        # print('want_connectivity = %r' % (want_connectivity,))
-        while True:
-            g = nx.fast_gnp_random_graph(size, p)
-            conn = nx.edge_connectivity(g)
-            if conn == want_connectivity:
-                break
-            elif conn < want_connectivity:
-                p = 2 * p - p ** 2
-            elif conn > want_connectivity:
-                p = p / 2
-        new_nodes = np.array(list(g.nodes()))
-        new_edges_ = np.array(list(g.edges()))
-        new_edges_ += counter
-        new_nodes += counter
-        counter = new_nodes.max() + 1
-        new_edges = [
-            (int(min(u, v)), int(max(u, v)), {'decision': POSTV})
-            for u, v in new_edges_
-        ]
-        new_g = nx.Graph(new_edges)
-        new_g.add_nodes_from(new_nodes)
-        assert nx.is_connected(new_g)
-
-        # The probability any edge is inconsistent is `p_incon`
-        # This is 1 - P(all edges consistent)
-        # which means p(edge is consistent) = (1 - p_incon) / N
-        complement_edges = list(nx.complement(new_g).edges())
-        if len(complement_edges) > 0:
-            p_pcc_incon = kwargs.get('p_incon', .1)
-            # compute probability that any particular edge is inconsistent
-            # to achieve probability the PCC is inconsistent
-            p_edge_inconn = 1 - (1 - p_pcc_incon) ** (1 / len(complement_edges))
-            p_edge_unrev = .1
-            p_edge_notcomp = .05
-            probs = np.array([p_edge_inconn, p_edge_unrev, p_edge_notcomp])
-            # if the total probability is greater than 1 the parameters
-            # are invalid, so we renormalize to "fix" it.
-            # if probs.sum() > 1:
-            #     warnings.warn('probabilities sum to more than 1')
-            #     probs = probs / probs.sum()
-            pcumsum = probs.cumsum()
-            # Determine which mutually exclusive state each complement edge is in
-            # print('pcumsum = %r' % (pcumsum,))
-            states = np.searchsorted(pcumsum, rng.rand(len(complement_edges)))
-            # print('states = %r' % (states,))
-            for (u, v), state in zip(complement_edges, states):
-                u, v = (u, v) if u < v else (v, u)
-                # Add in candidate edges
-                if state == 0:
-                    # Add in inconsistent edges
-                    # print('made inconsistent cc')
-                    new_edges.append((u, v, {'decision': NEGTV}))
-                elif state == 1:
-                    new_edges.append((u, v, {'decision': UNREV}))
-                elif state == 2:
-                    # Add in noncomparable edges
-                    new_edges.append((u, v, {'decision': INCMP}))
-        new_ccs.append((new_nodes, new_edges))
-
-    import networkx as nx
-    pos_g = nx.Graph(ut.flatten(ut.take_column(new_ccs, 1)))
-    pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
-    assert num_pccs == len(list(nx.connected_components(pos_g)))
-
-    neg_edges = []
-
-    for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
-                                label='make neg-demo'):
-        nodes1 = cc1[0]
-        nodes2 = cc2[0]
-        # print('checking pair')
-        for u, v in it.product(nodes1, nodes2):
-            u, v = (u, v) if u < v else (v, u)
-            p = .01
-            # Add in candidate edges
-            if rng.rand() < p:
-                neg_edges.append((u, v, {'decision': UNREV}))
-            # Add in noncomparable edges
-            if rng.rand() < p / 2:
-                neg_edges.append((u, v, {'decision': INCMP}))
-            # Add in negative edges
-            if rng.rand() < p / 4:
-                # print('made negative cc pair')
-                neg_edges.append((u, v, {'decision': NEGTV}))
-
-    edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
-    edges = [(int(u), int(v), d) for u, v, d in edges]
-    nodes = ut.flatten(ut.take_column(new_ccs, 0))
-    infr = make_demo_infr([], edges, nodes=nodes, infer=kwargs.get('infer', True))
-    return infr
-
-
 def case_all_types():
     """
     CommandLine:
@@ -1387,6 +986,158 @@ def case_all_types():
     # check(infr2, 2, 4, 'maybe_error', True, 'negative edge should flag second')
     # check(infr2, 1, 4, 'maybe_error', False, 'negative edge should flag second')
     check.after(errors)
+
+
+def demodata_infr(**kwargs):
+    """
+    kwargs = {}
+
+    CommandLine:
+        python -m ibeis.algo.graph.demo demodata_infr --show
+
+    Example:
+        >>> from ibeis.algo.graph.demo import *  # NOQA
+        >>> from ibeis.algo.graph import demo
+        >>> import networkx as nx
+        >>> kwargs = dict(num_pccs=6, p_incon=.5, size_std=2)
+        >>> infr = demo.demodata_infr(**kwargs)
+        >>> pccs = list(infr.positive_components())
+        >>> assert len(pccs) == kwargs['num_pccs']
+        >>> nonfull_pccs = [cc for cc in pccs if len(cc) > 1 and nx.is_empty(nx.complement(infr.pos_graph.subgraph(cc)))]
+        >>> expected_n_incon = len(nonfull_pccs) * kwargs['p_incon']
+        >>> n_incon = len(list(infr.inconsistent_components()))
+        >>> # TODO can test that we our sample num incon agrees with pop mean
+        >>> #sample_mean = n_incon / len(nonfull_pccs)
+        >>> #pop_mean = kwargs['p_incon']
+        >>> print(infr.status)
+        >>> infr.show(pickable=True, groupby='name_label')
+        >>> ut.show_if_requested()
+    """
+
+    def kwalias(*args):
+        params = args[0:-1]
+        default = args[-1]
+        for key in params:
+            if key in kwargs:
+                return kwargs[key]
+        return default
+
+    rng = np.random.RandomState(0)
+    counter = 0
+    new_ccs = []
+    num_pccs = kwalias('num_pccs', 16)
+    size_mean = kwalias('pcc_size_mean', 'pcc_size', 'size', 5)
+    size_std = kwalias('pcc_size_std', 'size_std', 0)
+    # p_pcc_incon = kwargs.get('p_incon', .1)
+    p_pcc_incon = kwargs.get('p_incon', 0)
+    p_pcc_incomp = kwargs.get('p_incomp', 0)
+
+    for i in ut.ProgIter(list(range(num_pccs)), label='make pos-demo'):
+        size = int(randn(size_mean, size_std, rng=rng, a_min=1))
+        p = .1
+        import networkx as nx
+        want_connectivity = rng.choice([1, 2, 3])
+        want_connectivity = min(size - 1, want_connectivity)
+        # print('want_connectivity = %r' % (want_connectivity,))
+        while True:
+            g = nx.fast_gnp_random_graph(size, p)
+            conn = nx.edge_connectivity(g)
+            if conn == want_connectivity:
+                break
+            elif conn < want_connectivity:
+                p = 2 * p - p ** 2
+            elif conn > want_connectivity:
+                p = p / 2
+        new_nodes = np.array(list(g.nodes()))
+        new_edges_ = np.array(list(g.edges()))
+        new_edges_ += counter
+        new_nodes += counter
+        counter = new_nodes.max() + 1
+        new_edges = [
+            (int(min(u, v)), int(max(u, v)), {'decision': POSTV})
+            for u, v in new_edges_
+        ]
+        new_g = nx.Graph(new_edges)
+        new_g.add_nodes_from(new_nodes)
+        assert nx.is_connected(new_g)
+
+        # The probability any edge is inconsistent is `p_incon`
+        # This is 1 - P(all edges consistent)
+        # which means p(edge is consistent) = (1 - p_incon) / N
+        complement_edges = list(nx.complement(new_g).edges())
+        if len(complement_edges) > 0:
+            # compute probability that any particular edge is inconsistent
+            # to achieve probability the PCC is inconsistent
+            p_edge_inconn = 1 - (1 - p_pcc_incon) ** (1 / len(complement_edges))
+            p_edge_unrev = .1
+            p_edge_notcomp = 1 - (1 - p_pcc_incomp) ** (1 / len(complement_edges))
+            probs = np.array([p_edge_inconn, p_edge_unrev, p_edge_notcomp])
+            # if the total probability is greater than 1 the parameters
+            # are invalid, so we renormalize to "fix" it.
+            # if probs.sum() > 1:
+            #     warnings.warn('probabilities sum to more than 1')
+            #     probs = probs / probs.sum()
+            pcumsum = probs.cumsum()
+            # Determine which mutually exclusive state each complement edge is in
+            # print('pcumsum = %r' % (pcumsum,))
+            states = np.searchsorted(pcumsum, rng.rand(len(complement_edges)))
+            # print('states = %r' % (states,))
+            for (u, v), state in zip(complement_edges, states):
+                u, v = (u, v) if u < v else (v, u)
+                # Add in candidate edges
+                if state == 0:
+                    # Add in inconsistent edges
+                    new_edges.append((u, v, {'decision': NEGTV}))
+                elif state == 1:
+                    new_edges.append((u, v, {'decision': UNREV}))
+                elif state == 2:
+                    new_edges.append((u, v, {'decision': INCMP}))
+        new_ccs.append((new_nodes, new_edges))
+
+    import networkx as nx
+    pos_g = nx.Graph(ut.flatten(ut.take_column(new_ccs, 1)))
+    pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
+    assert num_pccs == len(list(nx.connected_components(pos_g)))
+
+    neg_edges = []
+
+    p_pair_neg = kwalias('p_pair_neg', .4)
+    p_pair_incmp = kwalias('p_pair_incmp', .2)
+    p_pair_unrev = kwalias('p_pair_unrev', .2)
+    # p_pair_neg = 1
+    for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
+                                label='make neg-demo'):
+        nodes1 = cc1[0]
+        nodes2 = cc2[0]
+
+        if len(nodes1) == 0 or len(nodes2) == 0:
+            continue
+
+        possible_edges = list(it.product(nodes1, nodes2))
+        # probability that any edge between these PCCs is negative
+        p_edge_neg = 1 - (1 - p_pair_neg) ** (1 / len(possible_edges))
+        p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / len(possible_edges))
+        p_edge_unrev = 1 - (1 - p_pair_unrev) ** (1 / len(possible_edges))
+        pcumsum = np.cumsum([p_edge_neg, p_edge_incmp, p_edge_unrev])
+        states = np.searchsorted(pcumsum, rng.rand(len(possible_edges)))
+
+        # print('checking pair')
+        for (u, v), state in zip(possible_edges, states):
+            u, v = (u, v) if u < v else (v, u)
+            # Add in candidate edges
+            if state == 0:
+                neg_edges.append((u, v, {'decision': NEGTV}))
+            elif state == 1:
+                neg_edges.append((u, v, {'decision': INCMP}))
+            elif state == 2:
+                neg_edges.append((u, v, {'decision': UNREV}))
+
+    edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
+    edges = [(int(u), int(v), d) for u, v, d in edges]
+    nodes = ut.flatten(ut.take_column(new_ccs, 0))
+    infr = make_demo_infr([], edges, nodes=nodes,
+                          infer=kwargs.get('infer', True))
+    return infr
 
 
 # TODO: inconsistent out of subgraph modification

@@ -626,12 +626,6 @@ class CandidateSearch(object):
         }
         return new_edges
 
-    def apply_edge_truth(infr, edges):
-        edge_truth_df = infr.match_state_df(edges)
-        edge_truth = edge_truth_df.idxmax(axis=1).to_dict()
-        infr.set_edge_attrs('truth', edge_truth)
-        infr.edge_truth.update(edge_truth)
-
     @profile
     def add_new_candidate_edges(infr, new_edges):
         new_edges = list(new_edges)

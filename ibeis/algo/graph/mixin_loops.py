@@ -9,12 +9,12 @@ from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 print, rrr, profile = ut.inject2(__name__)
 
 
-class TerminationCriteria2(object):
+class TerminationCriteria(object):
     def __init__(term, phis):
         term.phis = phis
 
 
-class RefreshCriteria2(object):
+class RefreshCriteria(object):
     """
     Determine when to re-query for candidate edges
     """
@@ -138,7 +138,7 @@ class InfrLoops(object):
             infr.add_feedback(edge=edge, **feedback)
 
     def priority_review_loop(infr, max_loops):
-        infr.refresh = RefreshCriteria2()
+        infr.refresh = RefreshCriteria()
         for count in it.count(0):
             if count >= max_loops:
                 infr.print('early stop')
@@ -163,8 +163,6 @@ class InfrLoops(object):
     @profile
     def main_loop(infr, max_loops=np.inf):
         infr.print('Starting main loop', 1)
-        infr.reset(state='empty')
-        infr.remove_feedback(apply=True)
 
         infr.priority_review_loop(max_loops)
 
@@ -214,7 +212,7 @@ class InfrReviewers(object):
             return False, review
         # Determine if anything passes the match threshold
         primary_task = 'match_state'
-        data = infr.get_edge_data(*edge)
+        data = infr.get_nonvisual_edge_data(edge)
         decision_probs = pd.Series(data['task_probs'][primary_task])
         a, b = decision_probs.align(infr.task_thresh[primary_task])
         decision_flags = a > b
@@ -256,24 +254,84 @@ class InfrReviewers(object):
             implicit_flag = False
         return implicit_flag, review
 
+    def emit_or_review(infr, edge, priority):
+        if infr.enable_autoreview:
+            flag, feedback = infr.try_auto_review(edge)
+            if flag:
+                return feedback
+        if infr.test_mode:
+            feedback = infr.request_oracle_review(edge)
+            return feedback
+        else:
+            infr.emit_manual_review(edge, priority)
+            return None
+
+    def emit_manual_review(infr, edge, priority):
+        edge_data = infr.get_nonvisual_edge_data(edge)
+
+        info_text = 'priority=%r' % (priority,)
+        info_text += '\n' + ut.repr4(edge_data)
+        infr.manual_wgt.set_edge(edge, info_text)
+        infr.manual_wgt.show()
+
+    def qt_review_loop(infr):
+        from ibeis.viz import viz_graph2
+        infr.manual_wgt = viz_graph2.AnnotPairDialog(
+            infr=infr, standalone=False)
+        infr.manual_wgt.accepted.connect(infr.on_accept)
+        infr.continue_review()
+
+    def continue_review(infr):
+        try:
+            while True:
+                edge, priority = infr.pop()
+                feedback = infr.emit_or_review(edge, priority)
+                if feedback is None:
+                    # None feedback means we are waiting for a user response.
+                    break
+                infr.add_feedback(edge, **feedback)
+        except StopIteration:
+            print('review loop complete')
+
+    def on_accept(infr, feedback):
+        annot1_state = feedback.pop('annot1_state', None)
+        annot2_state = feedback.pop('annot2_state', None)
+        if annot1_state:
+            infr.add_node_feedback(**annot1_state)
+        if annot2_state:
+            infr.add_node_feedback(**annot2_state)
+        infr.add_feedback(**feedback)
+        infr.write_ibeis_staging_feedback()
+        infr.continue_review()
+
+    def manual_review(infr, edge):
+        # OLD
+        from ibeis.viz import viz_graph2
+        dlg = viz_graph2.AnnotPairDialog.as_dialog(
+            infr=infr, edge=edge, standalone=False)
+        # dlg.resize(700, 500)
+        dlg.exec_()
+        if dlg.widget.was_confirmed:
+            feedback = dlg.widget.feedback_dict()
+            feedback.pop('edge', None)
+        else:
+            raise ReviewCanceled('user canceled')
+        dlg.close()
+        # raise NotImplementedError('no user review')
+        pass
+
+    def request_oracle_review(infr, edge):
+        true_state = infr.match_state_gt(edge)
+        truth = true_state.idxmax()
+        feedback = infr.oracle.review(
+            edge, truth, infr.is_recovering())
+        return feedback
+
     def request_user_review(infr, edge):
         if infr.test_mode:
-            true_state = infr.match_state_gt(edge)
-            truth = true_state.idxmax()
-            feedback = infr.oracle.review(
-                edge, truth, infr.is_recovering())
+            feedback = infr.request_oracle_review(edge)
         else:
-            from ibeis.viz import viz_graph2
-            dlg = viz_graph2.AnnotPairDialog.as_dialog(
-                infr=infr, edge=edge, hack_write=False)
-            # dlg.resize(700, 500)
-            dlg.exec_()
-            if dlg.widget.was_confirmed:
-                feedback = dlg.widget.feedback_dict()
-                feedback.pop('edge', None)
-            else:
-                raise ReviewCanceled('user canceled')
-            # raise NotImplementedError('no user review')
+            feedback = infr.manual_review(edge)
         return feedback
 
 
@@ -291,14 +349,14 @@ class SimulationHelpers(object):
         infr.enable_inference = enable_inference
         infr.enable_autoreview = enable_autoreview
 
-        infr.queue_params['pos_redundancy'] = k_redun
-        infr.queue_params['neg_redundancy'] = k_redun
+        infr.queue_params['pos_redun'] = k_redun
+        infr.queue_params['neg_redun'] = k_redun
         infr.queue_params['complete_thresh'] = complete_thresh
 
         infr.queue = ut.PriorityQueue()
 
         infr.oracle = UserOracle(oracle_accuracy, infr.name)
-        infr.term = TerminationCriteria2(phis)
+        infr.term = TerminationCriteria(phis)
 
         infr.task_thresh = {
             'photobomb_state': pd.Series({
