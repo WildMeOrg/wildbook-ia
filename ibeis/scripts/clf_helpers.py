@@ -9,11 +9,11 @@ MAIN IDEA:
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
 import numpy as np
+import dtool as dt
 from six.moves import range
 import pandas as pd
 import sklearn
 import sklearn.metrics
-import sklearn.model_selection
 import sklearn.ensemble
 print, rrr, profile = ut.inject2(__name__)
 
@@ -263,12 +263,28 @@ class MultiTaskSamples(ut.NiceRepr):
     #     mask = ut.index_to_boolmask(idxs, len(samples))
     #     return samples.compress(mask)
 
+    @property
+    def group_ids(samples):
+        return None
+
     def stratified_kfold_indices(samples, **xval_kw):
         """ TODO: check xval label frequency """
-        skf = sklearn.model_selection.StratifiedKFold(**xval_kw)
-        skf_iter = skf.split(X=np.empty((len(samples), 0)),
-                             y=samples.encoded_1d())
-        skf_list = list(skf_iter)
+        from sklearn import model_selection
+        from ibeis.scripts import sklearn_utils
+
+        X = np.empty((len(samples), 0))
+        y = samples.encoded_1d()
+        groups = samples.group_ids
+
+        type_ = xval_kw.pop('type', 'StratifiedGroupKFold')
+        if type_ == 'StratifiedGroupKFold':
+            assert groups is not None
+            # FIXME: The StratifiedGroupKFold could be implemented better.
+            splitter = sklearn_utils.StratifiedGroupKFold(**xval_kw)
+            skf_list = list(splitter.split(X=X, y=y, groups=groups))
+        elif type_ == 'StratifiedKFold':
+            splitter = model_selection.StratifiedKFold(**xval_kw)
+            skf_list = list(splitter.split(X=X, y=y))
         return skf_list
 
 
@@ -413,70 +429,25 @@ class MultiClassLabels(ut.NiceRepr):
         print('len(%s) = %s' % (labels.task_name, len(labels)))
 
 
+class XValConfig(dt.Config):
+    _param_info_list = [
+        # ut.ParamInfo('type', 'StratifiedKFold'),
+        ut.ParamInfo('type', 'StratifiedGroupKFold'),
+        ut.ParamInfo('n_splits', 3),
+        ut.ParamInfo('shuffle', True,
+                     hideif=lambda cfg: cfg['type'] == 'StratifiedGroupKFold'),
+        ut.ParamInfo('random_state', 3953056901,
+                     hideif=lambda cfg: cfg['type'] == 'StratifiedGroupKFold'),
+    ]
+
+
 @ut.reloadable_class
 class ClfProblem(ut.NiceRepr):
 
     def __init__(pblm):
         pblm.deploy_task_clfs = None
         pblm.eval_task_clfs = None
-
-    # TODO
-    # def learn_single_clf
-    def get_xval_kw(pblm):
-        # xvalkw = dict(n_splits=10, shuffle=True,
-        xval_kw = {
-            # 'n_splits': 10,
-            'n_splits': 2,
-            'shuffle': True,
-            'random_state': 3953056901,
-        }
-        return xval_kw
-
-    def get_clf_params(pblm, clf_key):
-        est_type = clf_key.split('-')[0]
-        if est_type in {'RF', 'RandomForest'}:
-            est_kw1 = {
-                # 'max_depth': 4,
-                'bootstrap': True,
-                'class_weight': None,
-                'max_features': 'sqrt',
-                # 'max_features': None,
-                'missing_values': np.nan,
-                'min_samples_leaf': 5,
-                'min_samples_split': 2,
-                'n_estimators': 256,
-                'criterion': 'entropy',
-            }
-            est_kw2 = {
-                'random_state': 3915904814,
-                'verbose': 0,
-                'n_jobs': -1,
-            }
-        elif est_type in {'SVC', 'SVM'}:
-            est_kw1 = dict(kernel='linear')
-            est_kw2 = {}
-        return est_kw1, est_kw2
-
-    def get_clf_partial(pblm, clf_key):
-        tup = clf_key.split('-')
-        wrap_type = None if len(tup) == 1 else tup[1]
-        est_type = tup[0]
-        multiclass_wrapper = {
-            None: ut.identity,
-            'OVR': sklearn.multiclass.OneVsRestClassifier,
-            'OVO': sklearn.multiclass.OneVsOneClassifier,
-        }[wrap_type]
-        est_class = {
-            'RF': sklearn.ensemble.RandomForestClassifier,
-            'SVC': sklearn.svm.SVC,
-        }[est_type]
-
-        est_kw1, est_kw2 = pblm.get_clf_params(est_type)
-        est_params = ut.merge_dicts(est_kw1, est_kw2)
-
-        def clf_partial():
-            return multiclass_wrapper(est_class(**est_params))
-        return clf_partial
+        pblm.xval_kw = XValConfig()
 
     def set_pandas_options(pblm):
         # pd.options.display.max_rows = 10
@@ -500,7 +471,7 @@ class ClfProblem(ut.NiceRepr):
         pd.options.display.float_format = lambda x: '%.4f' % (x,)
 
     def learn_evaluation_classifiers(pblm, task_keys=None, clf_keys=None,
-                                     data_keys=None, cfg_prefix=''):
+                                     data_keys=None):
         """
         Evaluates by learning classifiers using cross validation.
         Do not use this to learn production classifiers.
@@ -526,40 +497,80 @@ class ClfProblem(ut.NiceRepr):
             for data_key in dataset_prog:
                 clf_prog = Prog(clf_keys, label='CLF')
                 for clf_key in clf_prog:
-                    pblm._ensure_evaluation_clf(task_key, data_key, clf_key,
-                                                cfg_prefix)
+                    pblm._ensure_evaluation_clf(task_key, data_key, clf_key)
 
-    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key, cfg_prefix):
+    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key):
         """
         Learns and caches an evaluation (cross-validated) classifier and tests
         and caches the results.
         """
         # TODO: add in params used to construct features into the cfgstr
-        est_kw1, est_kw2 = pblm.get_clf_params(clf_key)
-        xval_kw = pblm.get_xval_kw()
+        sample_hashid = pblm.samples.sample_hashid()
+        feat_cfgstr = ut.hashstr_arr27(
+            pblm.samples.X_dict[data_key].columns.values, 'featdims')
+        # cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
+        cfg_prefix = sample_hashid + feat_cfgstr
+
+        est_kw1, est_kw2 = pblm._estimator_params(clf_key)
         param_id = ut.get_dict_hashid(est_kw1)
-        xval_id = ut.get_dict_hashid(xval_kw)
+        xval_id = pblm.xval_kw.get_cfgstr()
         cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
                            data_key, clf_key])
 
         cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=5)
-        cacher_clf = ut.Cacher('eval_clf_v13_0', cfgstr=cfgstr, **cacher_kw)
-        cacher_res = ut.Cacher('eval_res_v13_0', cfgstr=cfgstr, **cacher_kw)
+        cacher_clf = ut.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
 
-        clf_list = cacher_clf.tryload()
-        if not clf_list:
-            clf_list = pblm._train_evaluation_clf(task_key, data_key, clf_key)
-            cacher_clf.save(clf_list)
-
-        res_list = cacher_res.tryload()
-        if not res_list:
-            res_list = pblm._test_evaulation_clf(task_key, data_key, clf_list)
-            cacher_res.save(res_list)
+        data = cacher_clf.tryload()
+        if not data:
+            data = pblm._train_evaluation_clf(task_key, data_key, clf_key)
+            cacher_clf.save(data)
+        clf_list, res_list = data
 
         labels = pblm.samples.subtasks[task_key]
         combo_res = ClfResult.combine_results(res_list, labels)
         pblm.eval_task_clfs[task_key][clf_key][data_key] = clf_list
         pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
+
+    def _train_evaluation_clf(pblm, task_key, data_key, clf_key):
+        """
+        Learns a cross-validated classifier on the dataset
+
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem()
+            >>> pblm.load_features()
+            >>> pblm.load_samples()
+            >>> data_key = 'learn(all)'
+            >>> task_key = 'photobomb_state'
+            >>> task_key = 'match_state'
+            >>> clf_key = 'RF-OVR'
+            >>> clf_key = 'RF'
+        """
+        X_df = pblm.samples.X_dict[data_key]
+        labels = pblm.samples.subtasks[task_key]
+        assert np.all(labels.encoded_df.index == X_df.index)
+
+        clf_partial = pblm._get_estimator(clf_key)
+        xval_kw = pblm.xval_kw.asdict()
+
+        clf_list = []
+        res_list = []
+        skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
+        skf_prog = ut.ProgIter(skf_list, label='skf-train-eval')
+        for train_idx, test_idx in skf_prog:
+            assert (X_df.iloc[train_idx].index.tolist() ==
+                    ut.take(pblm.samples.index, train_idx))
+            # train_uv = X_df.iloc[train_idx].index
+            # X_train = X_df.loc[train_uv]
+            # y_train = labels.encoded_df.loc[train_uv]
+            X_train = X_df.iloc[train_idx].values
+            y_train = labels.encoded_df.iloc[train_idx].values
+            clf = clf_partial()
+            clf.fit(X_train, y_train)
+            # Evaluate results
+            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key)
+            clf_list.append(clf)
+            res_list.append(res)
+        return clf_list, res_list
 
     def learn_deploy_classifiers(pblm, task_keys=None, clf_key=None,
                                  data_key=None):
@@ -584,11 +595,226 @@ class ClfProblem(ut.NiceRepr):
         pblm.deploy_task_clfs = deploy_task_clfs
         return deploy_task_clfs
 
+    def _estimator_params(pblm, clf_key):
+        est_type = clf_key.split('-')[0]
+        if est_type in {'RF', 'RandomForest'}:
+            est_kw1 = {
+                # 'max_depth': 4,
+                'bootstrap': True,
+                'class_weight': None,
+                'criterion': 'entropy',
+                'max_features': 'sqrt',
+                # 'max_features': None,
+                'min_samples_leaf': 5,
+                'min_samples_split': 2,
+                'missing_values': np.nan,
+                'n_estimators': 64,
+            }
+            est_kw2 = {
+                'random_state': 3915904814,
+                'verbose': 0,
+                'n_jobs': -1,
+            }
+        elif est_type in {'SVC', 'SVM'}:
+            est_kw1 = dict(kernel='linear')
+            est_kw2 = {}
+        return est_kw1, est_kw2
+
+    def _optimize_rf_hyperparams(pblm, data_key=None, task_key=None):
+        """
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            #>>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm.load_samples()
+            >>> pblm.load_features()
+            >>> pblm.build_feature_subsets()
+            >>> data_key=None
+            >>> task_key=None
+        """
+        from sklearn.model_selection import RandomizedSearchCV  # NOQA
+        from sklearn.model_selection import GridSearchCV  # NOQA
+        from sklearn.ensemble import RandomForestClassifier
+        from ibeis.scripts import sklearn_utils
+
+        if data_key is None:
+            data_key = pblm.default_data_key
+        if task_key is None:
+            task_key = pblm.primary_task_key
+
+        # Load data
+        X = pblm.samples.X_dict[data_key].values
+        y = pblm.samples.subtasks[task_key].y_enc
+        groups = pblm.samples.group_ids
+
+        # Define estimator and parameter search space
+        grid = {
+            'bootstrap': [True, False],
+            'class_weight': [None, 'balanced'],
+            'criterion': ['entropy', 'gini'],
+            # 'max_features': ['sqrt', 'log2'],
+            'max_features': ['sqrt'],
+            'min_samples_leaf': list(range(2, 11)),
+            'min_samples_split': list(range(2, 11)),
+            'n_estimators': [8, 64, 128, 256, 512, 1024],
+        }
+        est = RandomForestClassifier(missing_values=np.nan)
+        if False:
+            # debug
+            params = ut.util_dict.all_dict_combinations(grid)[0]
+            est.set_params(verbose=10, n_jobs=1, **params)
+            est.fit(X=X, y=y)
+
+        cv = sklearn_utils.StratifiedGroupKFold(n_splits=3)
+
+        if True:
+            n_iter = 25
+            SearchCV = ut.partial(RandomizedSearchCV, n_iter=n_iter)
+        else:
+            n_iter = ut.prod(map(len, grid.values()))
+            SearchCV = GridSearchCV
+
+        search = SearchCV(est, grid, cv=cv, verbose=10)
+
+        n_cpus = ut.num_cpus()
+        thresh = n_cpus * 1.5
+        n_jobs_est = 1
+        n_jobs_ser = min(n_cpus, n_iter)
+        if n_iter < thresh:
+            n_jobs_est = int(max(1, thresh / n_iter))
+        est.set_params(n_jobs=n_jobs_est)
+        search.set_params(n_jobs=n_jobs_ser)
+
+        search.fit(X=X, y=y, groups=groups)
+
+        res = search.cv_results_.copy()
+        alias = ut.odict([
+            ('rank_test_score',  'rank'),
+            ('mean_test_score',  'μ-test'),
+            ('std_test_score',   'σ-test'),
+            ('mean_train_score', 'μ-train'),
+            ('std_train_score',  'σ-train'),
+            ('mean_fit_time', 'fit_time'),
+            ('params',  'params')
+        ])
+        res = ut.dict_subset(res, alias.keys())
+        cvresult_df = pd.DataFrame(res).rename(columns=alias)
+        cvresult_df = cvresult_df.sort_values('rank').reset_index(drop=True)
+        params = pd.DataFrame.from_dict(cvresult_df['params'].values.tolist())
+        print('Varied params:')
+        print(ut.repr4(ut.map_vals(set, params.to_dict('list'))))
+        print('Ranked Params')
+        print(params)
+        print("Ranked scores on development set:")
+        print(cvresult_df)
+        print("Best parameters set found on hyperparam set:")
+        print('best_params_ = %s' % (ut.repr4(search.best_params_),))
+
+        print('Fastest params')
+        cvresult_df.loc[cvresult_df['fit_time'].idxmin()]['params']
+
+    def _dev_calib(pblm):
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.calibration import CalibratedClassifierCV
+        from sklearn.calibration import calibration_curve
+        from ibeis.scripts import sklearn_utils
+        from sklearn.metrics import log_loss, brier_score_loss
+
+        # Load data
+        data_key = pblm.default_data_key
+        task_key = pblm.primary_task_key
+        X = pblm.samples.X_dict[data_key].values
+        y = pblm.samples.subtasks[task_key].y_enc
+        groups = pblm.samples.group_ids
+
+        # Split into test/train/valid
+        cv = sklearn_utils.StratifiedGroupKFold(n_splits=2)
+        test_idx, train_idx = next(cv.split(X, y, groups))
+        # valid_idx = train_idx[0::2]
+        # train_idx = train_idx[1::2]
+        # train_valid_idx = np.hstack([train_idx, valid_idx])
+
+        # Train Uncalibrated RF
+        est_kw = pblm._estimator_params('RF')[0]
+        uncal_clf = RandomForestClassifier(**est_kw)
+        uncal_clf.fit(X[train_idx], y[train_idx])
+        uncal_probs = uncal_clf.predict_proba(X[test_idx]).T[1]
+        uncal_score = log_loss(y[test_idx] == 1, uncal_probs)
+        uncal_brier = brier_score_loss(y[test_idx] == 1, uncal_probs)
+
+        # Train Calibrated RF
+        method = 'isotonic' if len(test_idx) > 2000 else 'sigmoid'
+        precal_clf = RandomForestClassifier(**est_kw)
+        # cv = sklearn_utils.StratifiedGroupKFold(n_splits=3)
+        cal_clf = CalibratedClassifierCV(precal_clf, cv=2, method=method)
+        cal_clf.fit(X[train_idx], y[train_idx])
+        cal_probs = cal_clf.predict_proba(X[test_idx]).T[1]
+        cal_score = log_loss(y[test_idx] == 1, cal_probs)
+        cal_brier = brier_score_loss(y[test_idx] == 1, cal_probs)
+
+        print('cal_brier = %r' % (cal_brier,))
+        print('uncal_brier = %r' % (uncal_brier,))
+
+        print('uncal_score = %r' % (uncal_score,))
+        print('cal_score = %r' % (cal_score,))
+
+        import plottool as pt
+        ut.qtensure()
+        pt.figure()
+        ax = pt.gca()
+
+        y_test = y[test_idx] == 1
+        fraction_of_positives, mean_predicted_value = \
+                calibration_curve(y_test, uncal_probs, n_bins=10)
+
+        ax.plot([0, 1], [0, 1], "k:", label="Perfectly calibrated")
+
+        ax.plot(mean_predicted_value, fraction_of_positives, "s-",
+                 label="%s (%1.3f)" % ('uncal-RF', uncal_brier))
+
+        fraction_of_positives, mean_predicted_value = \
+                calibration_curve(y_test, cal_probs, n_bins=10)
+        ax.plot(mean_predicted_value, fraction_of_positives, "s-",
+                 label="%s (%1.3f)" % ('cal-RF', cal_brier))
+        pt.legend()
+
+    def _get_estimator(pblm, clf_key):
+        """
+        Returns sklearn classifier
+        """
+        tup = clf_key.split('-')
+        wrap_type = None if len(tup) == 1 else tup[1]
+        est_type = tup[0]
+        multiclass_wrapper = {
+            None: ut.identity,
+            'OVR': sklearn.multiclass.OneVsRestClassifier,
+            'OVO': sklearn.multiclass.OneVsOneClassifier,
+        }[wrap_type]
+        est_class = {
+            'RF': sklearn.ensemble.RandomForestClassifier,
+            'SVC': sklearn.svm.SVC,
+        }[est_type]
+
+        est_kw1, est_kw2 = pblm._estimator_params(est_type)
+        est_params = ut.merge_dicts(est_kw1, est_kw2)
+
+        # import sklearn.pipeline
+        # steps = []
+        # steps.append((est_type, est_class(**est_params)))
+        # if wrap_type is not None:
+        #     steps.append((wrap_type, multiclass_wrapper))
+        # pipe = sklearn.pipeline.Pipeline(steps)
+
+        def clf_partial():
+            return multiclass_wrapper(est_class(**est_params))
+
+        return clf_partial
+
     def _train_deploy_clf(pblm, task_key, data_key, clf_key):
         X_df = pblm.samples.X_dict[data_key]
         labels = pblm.samples.subtasks[task_key]
         assert np.all(labels.encoded_df.index == X_df.index)
-        clf_partial = pblm.get_clf_partial(clf_key)
+        clf_partial = pblm._get_estimator(clf_key)
         print('Training deployment {} classifier on {} for {}'.format(
             clf_key, data_key, task_key))
         clf = clf_partial()
@@ -597,59 +823,6 @@ class ClfProblem(ut.NiceRepr):
         y = labels.encoded_df.loc[index].values
         clf.fit(X, y)
         return clf
-
-    def _train_evaluation_clf(pblm, task_key, data_key, clf_key):
-        """
-        Learns a cross-validated classifier on the dataset
-
-            >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem()
-            >>> pblm.load_features()
-            >>> pblm.load_samples()
-            >>> data_key = 'learn(all)'
-            >>> task_key = 'photobomb_state'
-            >>> task_key = 'match_state'
-            >>> clf_key = 'RF-OVR'
-            >>> clf_key = 'RF'
-        """
-        X_df = pblm.samples.X_dict[data_key]
-        labels = pblm.samples.subtasks[task_key]
-        assert np.all(labels.encoded_df.index == X_df.index)
-
-        clf_partial = pblm.get_clf_partial(clf_key)
-
-        xval_kw = pblm.get_xval_kw()
-
-        clf_list = []
-        skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
-        skf_prog = ut.ProgIter(skf_list, label='skf-learn')
-        for train_idx, test_idx in skf_prog:
-            assert (X_df.iloc[train_idx].index.tolist() ==
-                    ut.take(pblm.samples.index, train_idx))
-            # train_uv = X_df.iloc[train_idx].index
-            # X_train = X_df.loc[train_uv]
-            # y_train = labels.encoded_df.loc[train_uv]
-            X_train = X_df.iloc[train_idx].values
-            y_train = labels.encoded_df.iloc[train_idx].values
-            clf = clf_partial()
-            clf.fit(X_train, y_train)
-            clf_list.append(clf)
-        return clf_list
-
-    def _test_evaulation_clf(pblm, task_key, data_key, clf_list):
-        """ Test a cross-validated classifier on the dataset """
-        X_df = pblm.samples.X_dict[data_key]
-        labels = pblm.samples.subtasks[task_key]
-        xval_kw = pblm.get_xval_kw()
-
-        res_list = []
-        skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
-        skf_prog = ut.ProgIter(zip(clf_list, skf_list), length=len(skf_list),
-                               label='skf-test')
-        for clf, (train_idx, test_idx) in skf_prog:
-            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key)
-            res_list.append(res)
-        return res_list
 
 
 @ut.reloadable_class

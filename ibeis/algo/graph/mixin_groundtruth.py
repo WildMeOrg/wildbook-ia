@@ -27,7 +27,7 @@ class Groundtruth(object):
 
     def is_same(infr, aid_pairs):
         if infr.ibs is not None:
-            return infr.is_same(aid_pairs)
+            return infr.ibeis_is_same(aid_pairs)
         nid1 = [infr.graph.node[n1]['orig_name_label']
                 for n1, n2 in aid_pairs]
         nid2 = [infr.graph.node[n2]['orig_name_label']

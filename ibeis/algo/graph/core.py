@@ -289,6 +289,21 @@ class Feedback(object):
         infr.neg_redun_nids.clear()
         infr.nid_to_errors.clear()
 
+    def _is_staging_above_annotmatch(infr):
+        """ conversion step: make sure the staging db is ahead of match """
+        ibs = infr.ibs
+        n_stage = ibs.staging.get_row_count(ibs.const.REVIEW_TABLE)
+        n_annotmatch = ibs.db.get_row_count(ibs.const.ANNOTMATCH_TABLE)
+        return n_stage >= n_annotmatch
+        # stage_fb = infr.read_ibeis_staging_feedback()
+        # match_fb = infr.read_ibeis_annotmatch_feedback()
+
+    def needs_conversion(infr):
+        # not sure what the criteria is exactly. probably depricate
+        num_names = len(set(infr.get_node_attrs('name_label').values()))
+        num_pccs = infr.pos_graph.number_of_components()
+        return num_pccs == 0 and num_names > 0
+
     def reset_feedback(infr, mode='annotmatch', apply=False):
         """ Resets feedback edges to state of the SQL annotmatch table """
         infr.print('reset_feedback mode=%r' % (mode,), 1)
@@ -766,6 +781,7 @@ class AnnotInference(ut.NiceRepr,
                      # General helpers
                      mixin_helpers.AssertInvariants,
                      mixin_helpers.DummyEdges,
+                     mixin_helpers.Convenience,
                      mixin_helpers.AttrAccess,
                      # Algorithm loops and simulation
                      mixin_loops.SimulationHelpers,

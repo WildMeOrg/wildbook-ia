@@ -8,7 +8,7 @@ import networkx as nx
 import vtool as vt
 from ibeis.algo.graph import nx_utils
 from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)
+from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
 from ibeis.algo.graph.state import UNREV
 print, rrr, profile = ut.inject2(__name__)
 
@@ -19,7 +19,7 @@ class AnnotInfrMatching(object):
     Methods for running matching algorithms
     """
 
-    def exec_matching(infr, prog_hook=None, cfgdict=None):
+    def exec_matching(infr, aids=None, prog_hook=None, cfgdict=None):
         """
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores ibeis labeling
@@ -27,7 +27,8 @@ class AnnotInfrMatching(object):
         infr.print('exec_matching', 1)
         #from ibeis.algo.graph import graph_iden
         ibs = infr.ibs
-        aids = infr.aids
+        if aids is None:
+            aids = infr.aids
         if cfgdict is None:
             cfgdict = {
                 # 'can_match_samename': False,
@@ -40,14 +41,15 @@ class AnnotInfrMatching(object):
                 'score_method': 'csum'
             }
         # hack for ulsing current nids
-        custom_nid_lookup = ut.dzip(aids, infr.get_annot_attrs('name_label',
-                                                               aids))
+        custom_nid_lookup = infr.get_node_attrs('name_label', aids)
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
                                       custom_nid_lookup=custom_nid_lookup,
                                       verbose=infr.verbose >= 2)
 
         cm_list = qreq_.execute(prog_hook=prog_hook)
+        infr._set_vsmany_info(qreq_, cm_list)
 
+    def _set_vsmany_info(infr, qreq_, cm_list):
         infr.vsmany_qreq_ = qreq_
         infr.vsmany_cm_list = cm_list
         infr.cm_list = cm_list
@@ -258,6 +260,10 @@ class AnnotInfrMatching(object):
         X[pd.isnull(X)] = np.nan
         # Re-order column names to ensure dimensions are consistent
         X = X.reindex_axis(sorted(X.columns), axis=1)
+
+        aid_pairs_ = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
+        assert aid_pairs_ == edges, 'edge ordering changed'
+
         return matches, X
 
     def exec_vsone_subset(infr, edges, config={}, prog_hook=None):
@@ -366,7 +372,8 @@ class AnnotInfrMatching(object):
                 edges.append((u, v))
         return edges
 
-    def _cm_training_pairs(infr, top_gt=2, mid_gt=2, bot_gt=2, top_gf=2,
+    def _cm_training_pairs(infr, qreq_=None, cm_list=None,
+                           top_gt=2, mid_gt=2, bot_gt=2, top_gf=2,
                            mid_gf=2, bot_gf=2, rand_gt=2, rand_gf=2, rng=None):
         """
         Constructs training data for a pairwise classifier
@@ -392,11 +399,12 @@ class AnnotInfrMatching(object):
             >>> print(len(aid_pairs))
             >>> assert np.sum(aid_pairs.T[0] == aid_pairs.T[1]) == 0
         """
-        cm_list = infr.cm_list
-        qreq_ = infr.qreq_
+        if qreq_ is None:
+            cm_list = infr.cm_list
+            qreq_ = infr.qreq_
         ibs = infr.ibs
         aid_pairs = []
-        dnids = qreq_.ibs.get_annot_nids(qreq_.daids)
+        dnids = qreq_.get_qreq_annot_nids(qreq_.daids)
         # dnids = qreq_.get_qreq_annot_nids(qreq_.daids)
         rng = ut.ensure_rng(rng)
         for cm in ut.ProgIter(cm_list, lbl='building pairs'):
@@ -435,12 +443,14 @@ class AnnotInfrMatching(object):
         ranked_aids = ut.take_column(max_scores, 1)
         return ranked_aids
 
-    def _get_cm_edge_data(infr, edges):
+    def _get_cm_edge_data(infr, edges, cm_list=None):
         symmetric = True
 
+        if cm_list is None:
+            cm_list = infr.cm_list
         # Find scores for the edges that exist in the graph
         edge_to_data = ut.ddict(dict)
-        aid_to_cm = {cm.qaid: cm for cm in infr.cm_list}
+        aid_to_cm = {cm.qaid: cm for cm in cm_list}
         for u, v in edges:
             if symmetric:
                 u, v = e_(u, v)
@@ -537,7 +547,13 @@ class InfrLearning(object):
                       pblm.qreq_.get_cfgstr() + feat_cfgstr)
         pblm.learn_evaluation_classifiers(cfg_prefix=cfg_prefix)
         infr.classifiers = pblm
-        pass
+
+    def photobomb_samples(infr):
+        edges = list(infr.edges())
+        tags_list = list(infr.gen_edge_values('tags', edges=edges, default=[]))
+        flags = ut.filterflags_general_tags(tags_list, has_any=['photobomb'])
+        pb_edges = ut.compress(edges, flags)
+        return pb_edges
 
 
 class CandidateSearch(object):

@@ -20,7 +20,7 @@ from ibeis.algo.hots import query_params
 from ibeis.algo.hots import chip_match
 from ibeis.algo.hots import _pipeline_helpers as plh  # NOQA
 #import warnings
-(print, rrr, profile) = ut.inject2(__name__, '[qreq]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 VERBOSE_QREQ, VERYVERBOSE_QREQ = ut.get_module_verbosity_flags('qreq')
 
@@ -37,6 +37,7 @@ def testdata_newqreq(defaultdb='testdb1'):
     return ibs, qaid_list, daid_list
 
 
+@profile
 def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
                             verbose=None, unique_species=None,
                             use_memcache=True,
@@ -128,8 +129,9 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     if verbose:
         print('[qreq] +--- New IBEIS QRequest --- ')
 
-    ibs.assert_valid_aids(qaid_list, msg='error in new qreq qaids')
-    ibs.assert_valid_aids(daid_list, msg='error in new qreq daids')
+    if ut.SUPER_STRICT:
+        ibs.assert_valid_aids(qaid_list, msg='error in new qreq qaids')
+        ibs.assert_valid_aids(daid_list, msg='error in new qreq daids')
 
     qresdir = ibs.get_qres_cachedir()
     cfgdict = {} if cfgdict is None else cfgdict.copy()

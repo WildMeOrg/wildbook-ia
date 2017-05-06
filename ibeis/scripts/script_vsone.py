@@ -11,10 +11,11 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
+import itertools as it
 import numpy as np
 import vtool as vt
 import dtool as dt
-import copy
+import copy  # NOQA
 from six.moves import zip
 import pandas as pd
 import sklearn
@@ -78,23 +79,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem(defaultdb='PZ_MTEST')
-        >>> pblm.load_features()
+        >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
         >>> pblm.load_samples()
+        >>> pblm.load_features()
     """
     appname = 'vsone_rf_train'
 
-    def __init__(pblm, ibs=None, defaultdb=None, aids=None, verbose=None):
-        if defaultdb is None:
-            defaultdb = 'PZ_PB_RF_TRAIN'
-            # defaultdb = 'GZ_Master1'
+    def __init__(pblm, infr=None, verbose=None):
+        super(OneVsOneProblem, pblm).__init__()
         if verbose is None:
             verbose = 2
-        pblm.default_clf_key = 'RF'
-        pblm.default_data_key = 'learn(sum,glob)'
-        pblm.primary_task_key = 'match_state'
         pblm.verbose = verbose
-        pblm.aids = aids
+        pblm.primary_task_key = 'match_state'
+        pblm.default_data_key = 'learn(sum,glob)'
+        pblm.default_clf_key = 'RF'
+
+        pblm.infr = infr
         pblm.qreq_ = None
 
         hyper_params = dt.Config.from_dict(ut.odict([
@@ -102,26 +102,44 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ('pair_sample', PairSampleConfig()),
             ('vsone_assign', VsOneAssignConfig()),
             ('pairwise_feats', PairFeatureConfig()),
+            ('sample_search', dict(K=4, Knorm=1, requery=True,
+                                   score_method='csum', prescore_method='csum')),
         ]),
             tablename='HyperParams'
         )
-        pblm.defaultdb = defaultdb
         pblm.hyper_params = hyper_params
-        pblm.ibs = ibs
 
-    def load_samples(pblm):
-        if pblm.qreq_ is None:
-            import ibeis
-            qreq_ = ibeis.testdata_qreq_(
-                ibs=pblm.ibs, defaultdb=pblm.defaultdb, qaid_override=pblm.aids,
-                daid_override=pblm.aids,
-                a=':mingt=3,species=primary',
-                t=('default:K=4,Knorm=1,requery=True,'
-                   'score_method=csum,prescore_method=csum'),
-                verbose=max(0, pblm.verbose - 1),
-            )
-            pblm.qreq_ = qreq_
-        if pblm.qreq_.qparams.featweight_enabled:
+    @classmethod
+    def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
+        pblm = OneVsOneProblem(ibs=ibs, qaid_override=aids, daid_override=aids,
+                               verbose=verbose)
+        return pblm
+
+    @classmethod
+    def from_empty(OneVsOneProblem, defaultdb=None):
+        if defaultdb is None:
+            defaultdb = 'PZ_PB_RF_TRAIN'
+            # defaultdb = 'GZ_Master1'
+            # defaultdb = 'PZ_MTEST'
+        import ibeis
+        ibs, aids = ibeis.testdata_aids(defaultdb)
+
+        # TODO: If the graph structure is defined, this should load the most
+        # recent state, so the infr object has all the right edges.  If the
+        # graph structure is not defined, it should apply the conversion
+        # method.
+        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        assert infr._is_staging_above_annotmatch()
+        infr.reset_feedback('staging', apply=True)
+        if infr.ibs.dbname == 'PZ_MTEST':
+            assert False, 'need to do conversion'
+        # if infr.needs_conversion():
+        #     infr.ensure_mst()
+        pblm = OneVsOneProblem(infr=infr)
+        return pblm
+
+    def _fix_hyperparams(pblm, qreq_):
+        if qreq_.qparams.featweight_enabled:
             pblm.hyper_params.vsone_assign['weight'] = 'fgweights'
             pblm.hyper_params.pairwise_feats['sorters'] = ut.unique(
                 pblm.hyper_params.pairwise_feats['sorters'] +
@@ -133,166 +151,207 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         else:
             pblm.hyper_params.vsone_assign['weight'] = None
 
-        pblm.ibs = qreq_.ibs
-        assert qreq_.qparams.can_match_samename is True
-        assert qreq_.qparams.prescore_method == 'csum'
-
-        infr, aid_pairs = build_training_pairs(pblm.qreq_, pblm.hyper_params)
-
-        # WIP: make this happen before load_features
+    @profile
+    def make_training_pairs(pblm):
+        infr = pblm.infr
+        ibs = pblm.infr.ibs
         if pblm.verbose > 0:
-            print('[pblm] load_samples')
-        pblm.samples = AnnotPairSamples(
-            ibs=pblm.ibs,
-            simple_scores=copy.deepcopy(pblm.raw_simple_scores),
-            X_dict=copy.deepcopy(pblm.raw_X_dict),
-        )
+            print('[pblm] gather match-state hard cases')
 
-    @classmethod
-    def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
-        pblm = OneVsOneProblem(ibs=ibs, qaid_override=aids, daid_override=aids,
-                               verbose=verbose)
-        return pblm
+        cfgdict = pblm.hyper_params['sample_search']
+        aids = ibs.filter_annots_general(
+            infr.aids, min_pername=3, species='primary')
+        qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                      verbose=False)
+        pblm._fix_hyperparams(qreq_)
 
-    def demo_classes(pblm):
-        r"""
-        CommandLine:
-            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=classes.png --clipwhite
-
-            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem(defaultdb='PZ_PB_RF_TRAIN')
-            >>> pblm.load_features()
-            >>> pblm.load_samples()
-            >>> pblm.build_feature_subsets()
-            >>> pblm.demo_classes()
-            >>> ut.show_if_requested()
-        """
-        task_key = 'match_state'
-        labels = pblm.samples.subtasks[task_key]
-        pb_labels = pblm.samples.subtasks['photobomb_state']
-        classname_offset = {
-            POSTV: 0,
-            NEGTV: 0,
-            INCMP: 0,
-        }
-        class_name = POSTV
-        class_name = NEGTV
-        class_name = INCMP
-
-        feats = pblm.samples.X_dict['learn(sum,glob)']
-
-        offset = 0
-        class_to_edge = {}
-        for class_name in labels.class_names:
-            print('Find example of %r' % (class_name,))
-            # Find an example of each class (that is not a photobomb)
-            pbflags = pb_labels.indicator_df['notpb']
-            flags = labels.indicator_df[class_name]
-            assert np.all(pbflags.index == flags.index)
-            flags = flags & pbflags
-            ratio = feats['sum(ratio)']
-            if class_name == INCMP:
-                flags &= feats['global(yaw_delta)'] > 3
-                # flags &= feats['sum(ratio)'] > 0
-            if class_name == NEGTV:
-                low = ratio[flags].max()
-                flags &= feats['sum(ratio)'] >= low
-            if class_name == POSTV:
-                low = ratio[flags].median() / 2
-                high = ratio[flags].median()
-                flags &= feats['sum(ratio)'] < high
-                flags &= feats['sum(ratio)'] > low
-            # flags &= pblm.samples.simple_scores[flags]['score_lnbnn_1vM'] > 0
-            idxs = np.where(flags)[0]
-            print('Found %d candidates' % (len(idxs)))
-            offset = classname_offset[class_name]
-            idx = idxs[offset]
-            series = labels.indicator_df.iloc[idx]
-            assert series[class_name]
-            edge = series.name
-            class_to_edge[class_name] = edge
-
-        import plottool as pt
-        import guitool as gt
-        gt.ensure_qapp()
-        pt.qtensure()
-
-        fnum = 1
-        pt.figure(fnum=fnum, pnum=(1, 3, 1))
-        pnum_ = pt.make_pnum_nextgen(1, 3)
-
-        # classname_alias = {
-        #     POSTV: 'positive',
-        #     NEGTV: 'negative',
-        #     INCMP: 'incomparable',
-        # }
-
-        ibs = pblm.qreq_.ibs
-        for class_name in class_to_edge.keys():
-            edge = class_to_edge[class_name]
-            aid1, aid2 = edge
-            # alias = classname_alias[class_name]
-            print('class_name = %r' % (class_name,))
-            annot1 = ibs.annots([aid1])[0]._make_lazy_dict()
-            annot2 = ibs.annots([aid2])[0]._make_lazy_dict()
-            vt.matching.ensure_metadata_normxy(annot1)
-            vt.matching.ensure_metadata_normxy(annot2)
-            match = vt.PairwiseMatch(annot1, annot2)
-            cfgdict = pblm.hyper_params.vsone_assign.asdict()
-            match.apply_all(cfgdict)
-            pt.figure(fnum=fnum, pnum=pnum_())
-            match.show(show_ell=False, show_ori=False)
-            # pt.set_title(alias)
-
-    def load_features(pblm, use_cache=True):
-        if pblm.verbose > 0:
-            print('[pblm] load_features')
-        qreq_ = pblm.qreq_
-        dbname = qreq_.ibs.get_dbname()
-        vsmany_hashid = qreq_.get_cfgstr(hash_pipe=True, with_input=True)
-        # print('vsmany_hashid = %r' % (vsmany_hashid,))
-        # import sys
-        hyper_params = pblm.hyper_params
-        # print('hyper_params = %s' % (hyper_params,))
-        # print('--------')
-        # print('hyper_params.get_cfgstr() = %r' % (hyper_params.get_cfgstr(),))
-        # print('--------')
-        features_hashid = ut.hashstr27(vsmany_hashid + hyper_params.get_cfgstr())
-        # print('features_hashid = %r' % (features_hashid,))
-        cfgstr = '_'.join(['devcache', str(dbname), features_hashid])
-        cacher = ut.Cacher('pairwise_data_v11', cfgstr=cfgstr,
+        use_cache = True
+        cfgstr = qreq_.get_cfgstr(with_input=True)
+        cacher = ut.Cacher('pairwise_sample_v1', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose + 10)
+        assert qreq_.qparams.can_match_samename is True
+        assert qreq_.qparams.prescore_method == 'csum'
+        assert pblm.hyper_params.subsample is None
+        data = cacher.tryload()
+        if data is None:
+            cm_list = qreq_.execute()
+            infr._set_vsmany_info(qreq_, cm_list)
+
+            # Sample hard moderate and easy positives / negative
+            # For each query, choose same, different, and random training pairs
+            rng = np.random.RandomState(42)
+            aid_pairs_ = infr._cm_training_pairs(
+                rng=rng, **pblm.hyper_params.pair_sample)
+            cacher.save(aid_pairs_)
+            data = aid_pairs_
+        aid_pairs_ = data
+
+        if pblm.verbose > 0:
+            print('[pblm] gather photobomb and incomparable cases')
+        pb_aid_pairs = infr.photobomb_samples()
+        incomp_aid_pairs = list(infr.incomp_graph.edges())
+
+        # Simplify life by using undirected pairs
+        aid_pairs = pb_aid_pairs + aid_pairs_ + incomp_aid_pairs
+        aid_pairs = sorted(set(it.starmap(infr.e_, aid_pairs)))
+        return aid_pairs
+
+    def load_samples(pblm):
+        r"""
+        CommandLine:
+            python -m ibeis.scripts.script_vsone load_samples --profile
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> #pblm = OneVsOneProblem.from_empty('PZ_MTEST')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm.load_samples()
+            >>> samples = pblm.samples
+            >>> samples.print_info()
+        """
+        # Get a set of training pairs
+        if pblm.verbose > 0:
+            print('[pblm] load_samples')
+        aid_pairs = pblm.make_training_pairs()
+        pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
+        # simple_scores=copy.deepcopy(pblm.raw_simple_scores),
+        # X_dict=copy.deepcopy(pblm.raw_X_dict),
+
+    @profile
+    def load_features(pblm, use_cache=True):
+        """
+        CommandLine:
+            python -m ibeis.scripts.script_vsone load_features --profile
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm.load_samples()
+            >>> pblm.load_features()
+        """
+        if pblm.verbose > 0:
+            print('[pblm] load_features')
+        infr = pblm.infr
+        dbname = infr.ibs.get_dbname()
+        aid_pairs = ut.lmap(tuple, pblm.samples.aid_pairs.tolist())
+        hyper_params = pblm.hyper_params
+        edge_hashid = pblm.samples.edge_hashid()
+        feat_cfgstr = hyper_params.get_cfgstr()
+        feat_hashid = ut.hashstr27(edge_hashid + feat_cfgstr)
+        # print('features_hashid = %r' % (features_hashid,))
+        cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
+        # use_cache = False
+        cacher = ut.Cacher('pairwise_data_v14', cfgstr=cfgstr,
+                           appname=pblm.appname, enabled=use_cache,
+                           verbose=pblm.verbose)
         data = cacher.tryload()
         if not data:
-            data = build_features(qreq_, hyper_params)
+            config = hyper_params.vsone_assign
+            pairfeat_cfg = hyper_params.pairwise_feats
+            need_lnbnn = False
+            if need_lnbnn:
+                raise NotImplementedError('not done yet')
+                if infr.qreq_ is None:
+                    pass
+                    # cfgdict = pblm.hyper_params['sample_search']
+                    # ibs = pblm.infr.ibs
+                    # infr = pblm.infr
+                    # aids = ibs.filter_annots_general(
+                    #     infr.aids, min_pername=3, species='primary')
+                    # qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                    #                               verbose=False)
+                    # infr.qreq_ = qreq_
+            matches, X_all = infr._make_pairwise_features(
+                aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg,
+                need_lnbnn=need_lnbnn)
+
+            # # Pass back just one match to play with
+            # for match in matches:
+            #     if len(match.fm) > 10:
+            #         break
+
+            # ---------------
+            # Construct simple scores to learning comparison
+            simple_scores = pd.DataFrame([
+                m._make_local_summary_feature_vector(summary_ops={'sum', 'len'})
+                for m in ut.ProgIter(matches, 'make simple scores')],
+                index=X_all.index,
+            )
+
+            if True:
+                # The main idea here is to load lnbnn scores for the pairwise
+                # matches so we can compare them to the outputs of the pairwise
+                # classifeir.
+                # TODO: separate this into different cache
+                # Add vsmany_lnbnn to simple scores
+                cfgdict = pblm.hyper_params['sample_search']
+                ibs = pblm.infr.ibs
+                infr = pblm.infr
+                aids = ibs.filter_annots_general(
+                    infr.aids, min_pername=3, species='primary')
+                qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                              verbose=False)
+                cm_list = qreq_.execute()
+                edge_to_data = infr._get_cm_edge_data(aid_pairs, cm_list=cm_list)
+                edge_data = ut.take(edge_to_data, aid_pairs)
+                lnbnn_score_list = [d.get('score', 0) for d in edge_data]
+                lnbnn_score_list = [0 if s is None else s
+                                    for s in lnbnn_score_list]
+
+                # infr.add_aids(ut.unique(ut.flatten(aid_pairs)))
+                # # Ensure that all annots exist in the graph
+                # infr.graph.add_edges_from(aid_pairs)
+                # # test original lnbnn score sep
+                # infr.apply_match_scores()
+                # edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
+                # lnbnn_score_list = [0 if d is None else d.get('score', 0)
+                #                     for d in edge_data]
+                # lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
+                simple_scores = simple_scores.assign(
+                    score_lnbnn_1vM=lnbnn_score_list)
+            simple_scores[pd.isnull(simple_scores)] = 0
+            data = simple_scores, X_all
             cacher.save(data)
-        aid_pairs, simple_scores, X_all, match = data
+        simple_scores, X_all = data
         assert X_all.index.tolist() == aid_pairs, 'index disagrees'
-        pblm.raw_aid_pairs = aid_pairs
         pblm.raw_X_dict = {'learn(all)': X_all}
         pblm.raw_simple_scores = simple_scores
+        # simple_scores=,
+        pblm.samples.set_feats(
+            copy.deepcopy(pblm.raw_simple_scores),
+            copy.deepcopy(pblm.raw_X_dict)
+        )
 
     def evaluate_classifiers(pblm):
         """
+        CommandLine:
+            python -m ibeis.scripts.script_vsone evaluate_classifiers
+
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem()
+            # >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm.evaluate_classifiers()
         """
+        pblm.setup_evaluation()
+
+        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
+        # For each task / classifier type
+        for task_key in pblm.eval_task_keys:
+            pblm.task_evaluation_report(task_key)
+
+    def setup_evaluation(pblm):
         pblm.set_pandas_options()
 
         ut.cprint('\n--- LOADING DATA ---', 'blue')
-        pblm.load_features()
         pblm.load_samples()
+        # pblm.samples.print_info()
+        pblm.load_features()
 
         # pblm.samples.print_info()
         ut.cprint('\n--- CURATING DATA ---', 'blue')
-        pblm.reduce_dataset_size()
+        # pblm.reduce_dataset_size()
         pblm.samples.print_info()
         print('---------------')
 
@@ -306,6 +365,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 print(ut.indent(featinfo.get_infostr()))
 
         task_keys = list(pblm.samples.subtasks.keys())
+        task_keys = [pblm.primary_task_key]
         # task_keys = ut.setdiff(task_keys, ['photobomb_state'])
 
         data_keys = list(pblm.samples.X_dict.keys())
@@ -319,83 +379,84 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 print('No data to train task_key = %r' % (task_key,))
                 task_keys.remove(task_key)
 
-        sample_hashid = pblm.samples.make_sample_hashid()
-        feat_cfgstr = ut.hashstr_arr27(
-            pblm.samples.X_dict['learn(all)'].columns.values, 'matchfeat')
-
         ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
         pblm.evaluate_simple_scores(task_keys)
 
         ut.cprint('\n--- LEARN CROSS-VALIDATED RANDOM FORESTS ---', 'blue')
-        cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
-        pblm.learn_evaluation_classifiers(task_keys, clf_keys, data_keys,
-                                          cfg_prefix)
+        pblm.learn_evaluation_classifiers(task_keys, clf_keys, data_keys)
 
-        selected_data_keys = ut.ddict(list)
-        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
+        pblm.eval_task_keys = task_keys
+        pblm.eval_clf_keys = clf_keys
+        pblm.eval_data_keys = data_keys
+
+    def task_evaluation_report(pblm, task_key):
+        """
+        clf_keys = [pblm.default_clf_key]
+        """
+        # selected_data_keys = ut.ddict(list)
         from utool.experimental.pandas_highlight import to_string_monkey
-        # For each task / classifier type
-        for task_key in task_keys:
-            ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
-            labels = pblm.samples.subtasks[task_key]
+        clf_keys = pblm.eval_clf_keys
+        data_keys = pblm.eval_data_keys
+        ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
+        labels = pblm.samples.subtasks[task_key]
+        if hasattr(pblm, 'simple_aucs'):
             pblm.report_simple_scores(task_key)
-            for clf_key in clf_keys:
-                # Combine results over datasets
-                print('clf_key = %s' % (ut.repr2(clf_key),))
-                data_combo_res = pblm.task_combo_res[task_key][clf_key]
-                df_auc_ovr = pd.DataFrame(dict([
-                    (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
+        for clf_key in clf_keys:
+            # Combine results over datasets
+            print('clf_key = %s' % (ut.repr2(clf_key),))
+            data_combo_res = pblm.task_combo_res[task_key][clf_key]
+            df_auc_ovr = pd.DataFrame(dict([
+                (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
+                for datakey in data_keys
+            ]),
+                index=labels.one_vs_rest_task_names()
+            )
+            ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
+            print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
+
+            if clf_key.endswith('-OVR') and labels.n_classes > 2:
+                # Report un-normalized ovr measures if they available
+                ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,),
+                          'yellow')
+                df_auc_ovr_hat = pd.DataFrame(dict([
+                    (datakey,
+                     list(data_combo_res[datakey].roc_scores_ovr_hat()))
                     for datakey in data_keys
                 ]),
                     index=labels.one_vs_rest_task_names()
                 )
-                ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
-                print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
+                print(to_string_monkey(df_auc_ovr_hat,
+                                       highlight_cols='all'))
 
-                if clf_key.endswith('-OVR') and labels.n_classes > 2:
-                    # Report un-normalized ovr measures if they available
-                    ut.cprint('[%s] ROC-AUC(OVR_hat) Scores' % (clf_key,),
-                              'yellow')
-                    df_auc_ovr_hat = pd.DataFrame(dict([
-                        (datakey,
-                         list(data_combo_res[datakey].roc_scores_ovr_hat()))
-                        for datakey in data_keys
-                    ]),
-                        index=labels.one_vs_rest_task_names()
-                    )
-                    print(to_string_monkey(df_auc_ovr_hat,
-                                           highlight_cols='all'))
+            roc_scores = dict(
+                [(datakey, [data_combo_res[datakey].roc_score()])
+                 for datakey in data_keys])
+            df_auc = pd.DataFrame(roc_scores)
+            ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,),
+                      'yellow')
+            print(to_string_monkey(df_auc, highlight_cols='all'))
 
-                roc_scores = dict(
-                    [(datakey, [data_combo_res[datakey].roc_score()])
-                     for datakey in data_keys])
-                df_auc = pd.DataFrame(roc_scores)
-                ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,),
-                          'yellow')
-                print(to_string_monkey(df_auc, highlight_cols='all'))
+            # best_data_key = 'learn(sum,glob,3)'
+            best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
 
-                # best_data_key = 'learn(sum,glob,3)'
-                best_data_key = df_auc.columns[df_auc.values.argmax(axis=1)[0]]
-                selected_data_keys[task_key].append(best_data_key)
-                combo_res = data_combo_res[best_data_key]
-                ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,),
-                          'darkgreen')
-                with ut.Indenter('[%s] ' % (best_data_key,)):
-                    combo_res.extended_clf_report()
-                res = combo_res
-                if 1:
-                    pos_threshes = res.report_thresholds()  # NOQA
-                if 0:
-                    importance_datakeys = set([
-                        # 'learn(all)'
-                    ] + [best_data_key])
+            # selected_data_keys[task_key].append(best_data_key)
 
-                    for data_key in importance_datakeys:
-                        pblm.report_classifier_importance(task_key, clf_key,
-                                                          data_key)
+            combo_res = data_combo_res[best_data_key]
+            ut.cprint('[%s] BEST DataKey = %r' % (clf_key, best_data_key,),
+                      'darkgreen')
+            with ut.Indenter('[%s] ' % (best_data_key,)):
+                combo_res.extended_clf_report()
+            res = combo_res
+            if 1:
+                pos_threshes = res.report_thresholds()  # NOQA
+            if 0:
+                importance_datakeys = set([
+                    # 'learn(all)'
+                ] + [best_data_key])
 
-        if 1:
-            pblm.end_to_end(task_keys)
+                for data_key in importance_datakeys:
+                    pblm.report_classifier_importance(task_key, clf_key,
+                                                      data_key)
 
         # ut.cprint('\n--- FEATURE INFO ---', 'blue')
         # for best_data_key in selected_data_keys:
@@ -427,236 +488,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # infr.remove_aids(ut.setdiff(infr.aids, keep))
             infr.start_qt_interface()
             return
-
-    @profile
-    def end_to_end(pblm, task_keys):
-        r"""
-        NOTE:
-            the classifiers are always applied to unseen pairs.  However, novel
-            pairs may contain previously seen annotations.
-
-        TODO:
-            use photobomb and match_state classifier together the way they
-            would be used in the end-to-end system.  IE. Don't automatch
-            anything that has a high photobomb probability
-        """
-        # hack to load specific datas (paramatarize me)
-        clf_key = 'RF'
-        data_key = 'learn(sum,glob)'
-        task_keys = ['match_state', 'photobomb_state']
-        # Create a new AnnotInference instance to go end-to-end
-        import ibeis
-        aids = pblm.qreq_.ibs.get_valid_aids()
-        infr = ibeis.AnnotInference(ibs=pblm.qreq_.ibs, aids=aids,
-                                    autoinit=True)
-        # Use one-vs-many to establish candidate edges to classify
-        infr.exec_matching()
-        infr.apply_match_edges()
-
-        want_edges = list(infr.graph.edges())
-        task_probs = pblm.predict_proba_evaluation(
-            infr, want_edges, task_keys, clf_key, data_key)
-
-        primary_task = 'match_state'
-        index = task_probs[primary_task].index
-        primary_truth = infr.match_state_df(index)
-
-        # with ut.Timer('t3'):
-        #     index = task_probs[primary_task].index
-        #     want_samples = AnnotPairSamples(
-        #         ibs=infr.ibs, index=task_probs[primary_task].index)
-
-        # Get the operating points
-        # (FIXME this is influenced by re-using the training set)
-
-        """
-        PROBLEM:
-            if we pick a fpr/thresh for match_state=match, then
-            what do we do for the other thresholds for that task?
-
-            For photobombs we can just fix that at max of MCC.
-
-            We could use fix the target FPR for each subtask. That
-            seems reasonable.
-
-        TODO:
-            * Get predictions using user review in addition to the number of
-            reviews. Then comparare the ROC curves
-
-                * y_pred_auto @ threshold
-                * y_pred_user @ threshold
-                * n_user_reveiws @ threshold (approximate this)
-
-            * Find the number of matches that can't be made because the
-            candidate edges just don't exist.
-        """
-
-        # target_fprs = [1E-4, 1E-2, .1, .3, .49]
-        primary_res = pblm.task_combo_res[primary_task][clf_key][data_key]
-        labels = primary_res.target_bin_df[POSTV].values
-        probs = primary_res.probs_df[POSTV].values
-        cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-
-        # thresh_list0 = np.linspace(0, 1.0, 20)
-        # thresh_list0 = np.linspace(.5, 1.0, 20)
-        thresh_list0 = np.linspace(.51, 1.0, 10)
-        # thresh_list0 = np.linspace(.65, 1.0, 5)
-        # thresh_list0 = np.linspace(.7, 1.0, 4)
-        # thresh_list0 = np.linspace(.8, 1.0, 10)
-        # gets the closest fpr (no interpolation)
-        fpr_list0 = cfms.get_metric_at_threshold('fpr', thresh_list0)
-        # interpolates back to appropriate threshold
-        thresh_list = [cfms.get_thresh_at_metric('fpr', fpr)
-                       for fpr in fpr_list0]
-        fpr_list = cfms.get_metric_at_threshold('fpr', thresh_list)
-        assert fpr_list0 == fpr_list, ('should map back correctly')
-
-        thresh_list, unique_idx = np.unique(thresh_list, return_index=True)
-        fpr_list = ut.take(fpr_list, unique_idx)
-
-        # primary_threshes = [
-        #     primary_res.get_pos_threshes('fpr', target_fpr)[POSTV]
-        #     for target_fpr in target_fprs
-        # ]
-
-        task_thresh = {}
-        task_key = 'photobomb_state'
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
-        thresh_df = res.get_pos_threshes('mcc', 'max')
-        task_thresh[task_key] = thresh_df
-
-        print('n_orig_nids = %r' % (len(ut.unique(infr.orig_name_labels))))
-        print('n_aids = %r' % (len(ut.unique(infr.aids))))
-
-        result_cacher = ut.Cacher('auto_results', cfgstr='2',
-                                  verbose=20, appname=pblm.appname, enabled=1)
-        auto_results_list = result_cacher.tryload()
-        if auto_results_list is None:
-            auto_results_list = []
-            for target_fpr in fpr_list:
-                print('===================================')
-                thresh_df = primary_res.get_pos_threshes('fpr', target_fpr)
-                task_thresh[primary_task] = thresh_df
-                print('target_fpr = %r' % (target_fpr,))
-                print('thresh_df = %r' % (thresh_df,))
-
-                # print('Using thresolds %s' % (ut.repr3(task_thresh, precision=4)))
-                primary_auto_flags = pblm.auto_decisions_at_threshold(
-                    primary_task, task_probs, task_thresh, task_keys, clf_key,
-                    data_key)
-                auto_results = pblm.test_auto_decisions(
-                    infr, primary_task, primary_auto_flags, task_keys, task_probs,
-                    primary_truth)
-                auto_results['auto_fpr'] = target_fpr
-                auto_results_list.append(auto_results)
-            result_cacher.save(auto_results_list)
-
-        import plottool as pt
-        pt.qtensure()
-
-        xdata = thresh_list
-        xlabel = 'thresh'
-        fnum = pt.ensure_fnum(1)
-        # fig = pt.figure(fnum=fnum, doclf=True)
-
-        import pandas as pd
-
-        ydata_df = pd.DataFrame.from_dict(auto_results_list)
-        ydata_df['real'] = ydata_df['n_names_real']
-        common = ['common', 'common@1', 'common@2', 'common@3', 'common@>3']
-        real   = ['real', 'real@1', 'real@2', 'real@3', 'real@>3']
-        common_percents = ydata_df[common] / ydata_df[real].values * 100
-
-        common_percents.rename(
-            columns={c: c + ' (%d)' % (ydata_df[c.replace('common', 'real')][0],)
-                     for c in common_percents.columns},
-            inplace=True,
-        )
-
-        ut.fix_embed_globals()
-        def mkplot(label_list, **kw):
-            ydata_list = [ut.take_column(auto_results_list, ylbl) for ylbl in
-                          label_list]
-            def subplot_partial(pnum, fnum=fnum):
-                return pt.multi_plot(
-                    xdata, ydata_list, label_list=label_list, xlabel=xlabel,
-                    use_legend=True, fnum=fnum, pnum=pnum, ymin=0, **kw)
-            return subplot_partial
-        import utool
-        utool.embed()
-
-        n_names_real = auto_results_list[0]['n_names_real']
-        # max_reviews = auto_results_list[0]['max_reviews']
-        max_reviews = 1000
-
-        inter = pt.ExpandableInteraction(fnum=fnum, nCols=2)
-        # inter += mkplot(['n_auto_inconsistent'])
-        inter.append_partial(
-            pt.multi_plot, xdata, ut.take(common_percents, common_percents.columns),
-            label_list=common_percents.columns)
-        inter.start()
-
-        # inter += mkplot(
-        #     ['n_names_common', 'common@1',
-        #      'n_names_real', 'real@1'],
-        #     color_list=pt.distinct_colors(2) + pt.distinct_colors(2),
-        #     linestyle_list=['--'] * 2 + ['-'] * 2,
-        # )
-        # inter += mkplot(
-        #     ['common@2', 'common@3', 'common@>3',
-        #      'real@2', 'real@3', 'real@>3'],
-        #     color_list=pt.distinct_colors(3) + pt.distinct_colors(3),
-        #     linestyle_list=['--'] * 3 + ['-'] * 3,
-        #     # ymax=n_names_real
-        # )
-        inter += mkplot(['true_merges', 'true_splits_flat', 'true_hybrid'])
-        inter += mkplot(['pred_merges_flat', 'pred_splits', 'pred_hybrid'])
-        # inter += mkplot(['n_incon_reviews', 'n_incon_fixes'])
-        # inter += mkplot(['n_user_mistakes', 'n_auto_mistakes'])
-        inter.start()
-
-        # make_subplot(['auto_fpr'], pnum_)
-
-        pt.set_figtitle('n_names_real=%r, max_reviews=%r' % (n_names_real,
-                                                               max_reviews))
-
-        # fig.canvas.manager.window.raise_()
-        print('max_reviews = %r' % (max_reviews,))
-        print('n_names_real = %r' % (n_names_real,))
-        print('n_aids = %r' % (len(ut.unique(infr.aids))))
-        ut.show_if_requested()
-        import utool
-        utool.embed()
-
-    @profile
-    def test_auto_decisions(pblm, infr, primary_task, primary_auto_flags,
-                            task_keys, task_probs, primary_truth):
-        """
-        python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
-        """
-
-        from ibeis.algo.hots import simulate
-
-        primary_probs = task_probs[primary_task]
-        is_auto = primary_auto_flags.any(axis=1)
-        auto_decisions = primary_auto_flags[is_auto].idxmax(axis=1)
-        auto_decisions = auto_decisions.sort_values()
-
-        sim = simulate.InfrSimulation(infr, primary_truth, primary_probs,
-                                            auto_decisions)
-
-        sim.initialize()
-
-        sim.check_baseline_results()
-
-        sim.review_inconsistencies()
-
-        # sim.rank_priority_edges()
-        sim.oracle_review()
-
-        # sim.results['user_work'] = (
-        # sim.results['n_pos_want'] + sim.results['n_incon_reviews'])
-        return sim.results
 
     def extra_report(pblm, task_probs, is_auto, want_samples):
         task_key = 'photobomb_state'
@@ -905,9 +736,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem()
-            >>> pblm.load_features()
+            >>> pblm = OneVsOneProblem.from_empty()
             >>> pblm.load_samples()
+            >>> pblm.load_features()
             >>> pblm.reduce_dataset_size()
         """
         from six import next
@@ -1155,10 +986,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     def evaluate_simple_scores(pblm, task_keys=None):
         """
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem()
+            >>> pblm = OneVsOneProblem.from_empty()
             >>> pblm.set_pandas_options()
-            >>> pblm.load_features()
             >>> pblm.load_samples()
+            >>> pblm.load_features()
             >>> pblm.evaluate_simple_scores()
         """
         score_dict = pblm.samples.simple_scores.copy()
@@ -1171,13 +1002,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     'sum(match_dist)',
                     'sum(weighted_norm_dist',
                 ]
-                if pblm.qreq_.qparams.featweight_enabled:
-                    ignore.extend([
-                        # 'sum(norm_dist)',
-                        # 'sum(ratio)',
-                        # 'sum(lnbnn)',
-                        # 'sum(lnbnn_norm_dist)'
-                    ])
+                # if pblm.qreq_.qparams.featweight_enabled:
+                #     ignore.extend([
+                #         # 'sum(norm_dist)',
+                #         # 'sum(ratio)',
+                #         # 'sum(lnbnn)',
+                #         # 'sum(lnbnn_norm_dist)'
+                #     ])
                 flags = [part in k for part in ignore]
                 if any(flags):
                     del score_dict[k]
@@ -1219,10 +1050,29 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print(to_string_monkey(df_simple_auc[keep_cols], highlight_cols='all'))
 
     def report_classifier_importance(pblm, task_key, clf_key, data_key):
+        r"""
+        CommandLine:
+            python -m ibeis.scripts.script_vsone report_classifier_importance --show
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> data_key = pblm.default_data_key
+            >>> clf_key = pblm.default_clf_key
+            >>> task_key = pblm.primary_task_key
+            >>> pblm.setup_evaluation()
+            >>> importances = pblm.report_classifier_importance(task_key, clf_key, data_key)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> text = importances
+            >>> pt.wordcloud(importances)
+            >>> ut.show_if_requested()
+        """
         # ut.qtensure()
         # import plottool as pt  # NOQA
 
         if clf_key != 'RF':
+            print('Cannot only report importance for RF not %r' % (clf_key,))
             return
 
         X = pblm.samples.X_dict[data_key]
@@ -1257,7 +1107,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo.print_margins('local_measure')
         featinfo.print_margins('local_sorter')
         featinfo.print_margins('local_rank')
-        # pt.wordcloud(importances)
+        return importances
 
     def report_classifier_importance2(pblm, clf, data_key=None):
         if data_key is None:
@@ -1272,6 +1122,100 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo.print_margins('summary_measure')
         featinfo.print_margins('global_measure')
 
+    def demo_classes(pblm):
+        r"""
+        CommandLine:
+            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=classes.png --clipwhite
+
+            python -m ibeis.scripts.script_vsone demo_classes --saveparts --save=figures/classes.png --clipwhite --dpath=~/latex/crall-iccv-2017
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
+            >>> pblm.load_features()
+            >>> pblm.load_samples()
+            >>> pblm.build_feature_subsets()
+            >>> pblm.demo_classes()
+            >>> ut.show_if_requested()
+        """
+        task_key = 'match_state'
+        labels = pblm.samples.subtasks[task_key]
+        pb_labels = pblm.samples.subtasks['photobomb_state']
+        classname_offset = {
+            POSTV: 0,
+            NEGTV: 0,
+            INCMP: 0,
+        }
+        class_name = POSTV
+        class_name = NEGTV
+        class_name = INCMP
+
+        feats = pblm.samples.X_dict['learn(sum,glob)']
+
+        offset = 0
+        class_to_edge = {}
+        for class_name in labels.class_names:
+            print('Find example of %r' % (class_name,))
+            # Find an example of each class (that is not a photobomb)
+            pbflags = pb_labels.indicator_df['notpb']
+            flags = labels.indicator_df[class_name]
+            assert np.all(pbflags.index == flags.index)
+            flags = flags & pbflags
+            ratio = feats['sum(ratio)']
+            if class_name == INCMP:
+                flags &= feats['global(yaw_delta)'] > 3
+                # flags &= feats['sum(ratio)'] > 0
+            if class_name == NEGTV:
+                low = ratio[flags].max()
+                flags &= feats['sum(ratio)'] >= low
+            if class_name == POSTV:
+                low = ratio[flags].median() / 2
+                high = ratio[flags].median()
+                flags &= feats['sum(ratio)'] < high
+                flags &= feats['sum(ratio)'] > low
+            # flags &= pblm.samples.simple_scores[flags]['score_lnbnn_1vM'] > 0
+            idxs = np.where(flags)[0]
+            print('Found %d candidates' % (len(idxs)))
+            offset = classname_offset[class_name]
+            idx = idxs[offset]
+            series = labels.indicator_df.iloc[idx]
+            assert series[class_name]
+            edge = series.name
+            class_to_edge[class_name] = edge
+
+        import plottool as pt
+        import guitool as gt
+        gt.ensure_qapp()
+        pt.qtensure()
+
+        fnum = 1
+        pt.figure(fnum=fnum, pnum=(1, 3, 1))
+        pnum_ = pt.make_pnum_nextgen(1, 3)
+
+        # classname_alias = {
+        #     POSTV: 'positive',
+        #     NEGTV: 'negative',
+        #     INCMP: 'incomparable',
+        # }
+
+        ibs = pblm.infr.ibs
+        for class_name in class_to_edge.keys():
+            edge = class_to_edge[class_name]
+            aid1, aid2 = edge
+            # alias = classname_alias[class_name]
+            print('class_name = %r' % (class_name,))
+            annot1 = ibs.annots([aid1])[0]._make_lazy_dict()
+            annot2 = ibs.annots([aid2])[0]._make_lazy_dict()
+            vt.matching.ensure_metadata_normxy(annot1)
+            vt.matching.ensure_metadata_normxy(annot2)
+            match = vt.PairwiseMatch(annot1, annot2)
+            cfgdict = pblm.hyper_params.vsone_assign.asdict()
+            match.apply_all(cfgdict)
+            pt.figure(fnum=fnum, pnum=pnum_())
+            match.show(show_ell=False, show_ori=False)
+            # pt.set_title(alias)
+
 
 @ut.reloadable_class
 class AnnotPairSamples(clf_helpers.MultiTaskSamples):
@@ -1284,58 +1228,66 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
 
     Example:
         >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem()
-        >>> pblm.load_features()
+        >>> pblm = OneVsOneProblem.from_empty()
+        >>> pblm.load_samples()
         >>> samples = AnnotPairSamples(pblm.ibs, pblm.raw_simple_scores, {})
         >>> print(samples)
         >>> samples.print_info()
-        >>> print(samples.make_sample_hashid())
+        >>> print(samples.sample_hashid())
         >>> encode_index = samples.subtasks['match_state'].encoded_df.index
         >>> indica_index = samples.subtasks['match_state'].indicator_df.index
         >>> assert np.all(samples.index == encode_index)
         >>> assert np.all(samples.index == indica_index)
     """
-    def __init__(samples, ibs, simple_scores=None, X_dict=None, index=None):
-
-        if simple_scores is not None:
-            assert index is None
-            index = simple_scores.index
-        else:
-            assert index is not None
-        if X_dict is not None:
-            for X in X_dict.values():
-                assert np.all(index == X.index)
-        super(AnnotPairSamples, samples).__init__(index)
-        samples.aid_pairs = np.array(index.tolist())
+    def __init__(samples, ibs, aid_pairs, infr=None):
+        super(AnnotPairSamples, samples).__init__(aid_pairs)
+        samples.aid_pairs = np.array(aid_pairs)
+        samples.infr = infr
         samples.ibs = ibs
-        samples.X_dict = X_dict
-        samples.simple_scores = simple_scores
         samples.annots1 = ibs.annots(samples.aid_pairs.T[0], asarray=True)
         samples.annots2 = ibs.annots(samples.aid_pairs.T[1], asarray=True)
-        samples.n_samples = len(index)
-
+        samples.n_samples = len(aid_pairs)
+        samples.X_dict = None
+        samples.simple_scores = None
         samples.apply_multi_task_multi_label()
         # samples.apply_multi_task_binary_label()
+
+    def edge_uuids(samples):
+        qvuuids = samples.annots1.visual_uuids
+        dvuuids = samples.annots2.visual_uuids
+        edge_uuids = [ut.combine_uuids(uuids)
+                       for uuids in zip(qvuuids, dvuuids)]
+        return edge_uuids
+
+    def edge_hashid(samples):
+        edge_hashid = ut.hashstr_arr27(samples.edge_uuids(), 'edges',
+                                       hashlen=32, pathsafe=True)
+        return edge_hashid
+
+    @ut.memoize
+    def sample_hashid(samples):
+        visual_hash = samples.edge_hashid()
+        label_hash = ut.hashstr_arr27(samples.encoded_1d(), 'labels',
+                                      pathsafe=True)
+        sample_hash = visual_hash + '_' + label_hash
+        return sample_hash
+
+    def set_feats(samples, simple_scores, X_dict):
+        edges = ut.lmap(tuple, samples.aid_pairs.tolist())
+        if simple_scores is not None:
+            assert (edges == simple_scores.index.tolist())
+
+        if X_dict is not None:
+            for X in X_dict.values():
+                assert np.all(edges == X.index.tolist())
+        samples.X_dict = X_dict
+        samples.simple_scores = simple_scores
 
     @property
     def primary_task(samples):
         primary_task_key = 'match_state'
         primary_task =  samples.subtasks[primary_task_key]
         return primary_task
-
-    @ut.memoize
-    def make_sample_hashid(samples):
-        qvuuids = samples.annots1.visual_uuids
-        dvuuids = samples.annots2.visual_uuids
-        vsone_uuids = [
-            ut.combine_uuids(uuids)
-            for uuids in ut.ProgIter(zip(qvuuids, dvuuids), length=len(qvuuids),
-                                     label='hashing ids')
-        ]
-        visual_hash = ut.hashstr_arr27(vsone_uuids, 'vuuids', pathsafe=True)
-        label_hash = ut.hashstr_arr27(samples.encoded_1d(), 'labels', pathsafe=True)
-        sample_hash = visual_hash + '_' + label_hash
-        return sample_hash
 
     def compress(samples, flags):
         """
@@ -1346,32 +1298,62 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         flags[-1] = True
         """
         assert len(flags) == len(samples), 'mask has incorrect size'
+        infr = samples.infr
         simple_scores = samples.simple_scores[flags]
         X_dict = ut.map_vals(lambda val: val[flags], samples.X_dict)
+        aid_pairs = samples.aid_pairs[flags]
         ibs = samples.ibs
-        new_labels = AnnotPairSamples(ibs, simple_scores, X_dict)
+        new_labels = AnnotPairSamples(ibs, aid_pairs, infr)
+        new_labels.set_feats(simple_scores, X_dict)
         return new_labels
 
     @ut.memoize
     def is_same(samples):
-        # Hack to use infr implementation
-        from ibeis.algo.graph.core import AnnotInference
-        infr = AnnotInference(ibs=samples.ibs)
-        return infr.is_same(samples.aid_pairs)
+        infr = samples.infr
+        edges = samples.aid_pairs
+        def _check(u, v):
+            nid1, nid2 = infr.pos_graph.node_labels(u, v)
+            if nid1 == nid2:
+                return True
+            elif infr.neg_redun_nids.has_edge(nid1, nid2):
+                return False
+            else:
+                return None
+        flags = [_check(*edge) for edge in edges]
+        return np.array(flags, dtype=np.bool)
+        # return samples.infr.is_same(samples.aid_pairs)
 
     @ut.memoize
     def is_photobomb(samples):
-        # Hack to use infr implementation
-        from ibeis.algo.graph.core import AnnotInference
-        infr = AnnotInference(ibs=samples.ibs)
-        return infr.is_photobomb(samples.aid_pairs)
+        infr = samples.infr
+        edges = samples.aid_pairs
+        flags = [
+            'photobomb' in d['tags'] if d is not None else None
+            for d in ut.lstarmap(infr.graph.get_edge_data, edges)
+        ]
+        return np.array(flags, dtype=np.bool)
+        # return samples.infr.is_photobomb(samples.aid_pairs)
 
     @ut.memoize
     def is_comparable(samples):
-        # Hack to use infr implementation
-        from ibeis.algo.graph.core import AnnotInference
-        infr = AnnotInference(ibs=samples.ibs)
-        return infr.is_comparable(samples.aid_pairs, allow_guess=True)
+        infr = samples.infr
+        edges = samples.aid_pairs
+        def _check(u, v):
+            if infr.incomp_graph.has_edge(u, v):
+                return False
+            elif infr.pos_graph.has_edge(u, v):
+                return True
+            elif infr.neg_graph.has_edge(u, v):
+                return True
+            return np.nan
+        flags = np.array([_check(*edge) for edge in edges])
+        # hack guess if comparable based on viewpoint
+        guess_flags = np.isnan(flags)
+        need_edges = edges[guess_flags]
+        need_flags = infr.ibeis_guess_if_comparable(need_edges)
+        flags[guess_flags] = need_flags
+        return np.array(flags, dtype=np.bool)
+        # return samples.infr.is_comparable(samples.aid_pairs, allow_guess=True)
 
     def apply_multi_task_multi_label(samples):
         # multioutput-multiclass / multi-task
@@ -1420,87 +1402,24 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         ])
         samples.apply_indicators(tasks_to_indicators)
 
+    @property
+    def group_ids(samples):
+        """
+        Prevents samples with the same group-id from appearing in the same
+        cross validation fold. For us this means any pair within the same
+        name or between the same names will have the same groupid.
+        """
+        infr = samples.infr
+        name_edges = np.array([
+            infr.e_(*infr.pos_graph.node_labels(u, v))
+            for u, v in samples.aid_pairs])
+        # Edges within the same name or between the same name, must be grouped
+        # together. This will prevent identity-specific effects.
+        group_ids = vt.get_undirected_edge_ids(name_edges)
+        return group_ids
+
 
 AnnotPairFeatInfo = vt.AnnotPairFeatInfo
-
-
-def build_training_pairs(qreq_, hyper_params):
-    # Get a set of training pairs
-    import vtool as vt
-    import ibeis
-    ibs = qreq_.ibs
-    cm_list = qreq_.execute()
-    infr = ibeis.AnnotInference.from_qreq_(qreq_, cm_list, autoinit=True)
-
-    # Per query choose a set of correct, incorrect, and random training pairs
-    aid_pairs_ = infr._cm_training_pairs(rng=np.random.RandomState(42),
-                                         **hyper_params.pair_sample)
-    pb_aid_pairs = photobomb_samples(ibs)
-    # TODO: try to add in more non-comparable samples
-    aid_pairs = pb_aid_pairs + aid_pairs_
-    # Simplify life by using undirected pairs
-    aid_pairs = vt.to_undirected_edges(np.array(aid_pairs), upper=True)
-    aid_pairs = ut.lmap(tuple, vt.unique_rows(aid_pairs).tolist())
-    # Keep only a random subset
-    assert hyper_params.subsample is None
-    return infr, aid_pairs
-
-
-def build_features(qreq_, hyper_params):
-    """
-    Cached output of one-vs-one matches
-
-    Example:
-        >>> from ibeis.scripts.script_vsone import *  # NOQA
-        >>> pblm = OneVsOneProblem()
-        >>> qreq_ = pblm.qreq_
-        >>> hyper_params = pblm.hyper_params
-    """
-    import pandas as pd
-
-    infr, aid_pairs = build_training_pairs(qreq_, hyper_params)
-
-    # ==================================
-    # Compute or load one-vs-one results
-    # ==================================
-
-    config = hyper_params.vsone_assign
-    pairfeat_cfg = hyper_params.pairwise_feats
-
-    matches, X_all = infr._make_pairwise_features(
-        aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg)
-
-    aid_pairs_ = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
-    assert aid_pairs_ == aid_pairs, 'edge ordering changed'
-
-    # Pass back just one match to play with
-    for match in matches:
-        if len(match.fm) > 10:
-            break
-
-    # ---------------
-    # Construct simple scores to learning comparison
-    simple_scores = pd.DataFrame([
-        m._make_local_summary_feature_vector(summary_ops={'sum', 'len'})
-        for m in ut.ProgIter(matches, 'make simple scores')],
-        index=X_all.index,
-    )
-
-    if True:
-        # Add vsmany_lnbnn to simple scores
-        infr.add_aids(ut.unique(ut.flatten(aid_pairs)))
-        # Ensure that all annots exist in the graph
-        infr.graph.add_edges_from(aid_pairs)
-        # test original lnbnn score sep
-        infr.apply_match_scores()
-        edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-        lnbnn_score_list = [0 if d is None else d.get('score', 0)
-                            for d in edge_data]
-        lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
-        simple_scores = simple_scores.assign(score_lnbnn_1vM=lnbnn_score_list)
-    simple_scores[pd.isnull(simple_scores)] = 0
-
-    return aid_pairs, simple_scores, X_all, match
 
 
 def demo_single_pairwise_feature_vector():
@@ -1536,54 +1455,6 @@ def demo_single_pairwise_feature_vector():
     # sorters = ['ratio', 'norm_dist', 'match_dist']
     match.make_feature_vector()
     return match
-
-
-def photobomb_samples(ibs):
-    """
-    import ibeis
-    ibs = ibeis.opendb('PZ_Master1')
-    """
-    # all_annots = ibs.annots()
-    am_rowids = ibs._get_all_annotmatch_rowids()
-    am_tags = ibs.get_annotmatch_case_tags(am_rowids)
-
-    # ut.dict_hist(ut.flatten(am_tags))
-    am_flags = ut.filterflags_general_tags(am_tags, has_any=['photobomb'])
-    am_rowids_ = ut.compress(am_rowids, am_flags)
-    aids1 = ibs.get_annotmatch_aid1(am_rowids_)
-    aids2 = ibs.get_annotmatch_aid2(am_rowids_)
-
-    if False:
-        a1 = ibs.annots(aids1, asarray=True)
-        a2 = ibs.annots(aids2, asarray=True)
-        flags = a1.nids == a2.nids
-        a1_ = a1.compress(flags)
-        a2_ = a2.compress(flags)
-        import guitool as gt
-        ut.qtensure()
-        gt.ensure_qapp()
-        # from vtool import inspect_matches
-        from ibeis.gui import inspect_gui
-        # import vtool as vt
-        # import vtool as vt
-        i = 1
-        aid1 = a1_.aids[i]
-        aid2 = a2_.aids[i]
-
-        win = inspect_gui.make_vsone_tuner(ibs, (aid1, aid2))
-        win.show()
-        # annot1 = a1_[i]._make_lazy_dict()
-        # annot2 = a2_[i]._make_lazy_dict()
-
-        # def on_context():
-        #     from ibeis.gui import inspect_gui
-        #     return inspect_gui.make_annotpair_context_options(
-        #         ibs, annot1['aid'], annot1['aid'], None)
-
-        # match = vt.PairwiseMatch(annot1, annot2)
-        # inspect_matches.MatchInspector(match=match,
-        #                                on_context=on_context).show()
-    return list(zip(aids1, aids2))
 
 
 if __name__ == '__main__':
