@@ -326,8 +326,11 @@ def draw_saved_roc(dbname):
     rsync lev:code/ibeis/roc* ~/latex/crall-iccv-2017/figures
     rsync lev:code/ibeis/cmc* ~/latex/crall-iccv-2017/figures
 
+    rsync lev:latex/crall-iccv-2017/figures/roc* ~/latex/crall-iccv-2017/figures
+
     CommandLine:
         python -m ibeis.scripts.iccv draw_saved_roc --db PZ_Master1 --show
+        python -m ibeis.scripts.iccv draw_saved_roc --db GZ_Master1 --show
         python -m ibeis.scripts.iccv draw_saved_roc --db PZ_MTEST --show
 
     Example:
@@ -391,9 +394,10 @@ def draw_saved_roc(dbname):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.2,
                        hspace=.2)
     fig.set_size_inches([7.4375,  3.125])
-    # fig.savefig(fig_fpath, **savekw)
-    # import vtool as vt
-    # vt.clipwhite_ondisk(fig_fpath)
+    import vtool as vt
+    fig.savefig(str(fig_fpath))
+    clip_fpath = vt.clipwhite_ondisk(str(fig_fpath))
+    print('clip_fpath = %r' % (clip_fpath,))
     ut.show_if_requested()
 
 

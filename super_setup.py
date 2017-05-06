@@ -278,13 +278,38 @@ def syscmd(cmdstr):
     print('RUN> ' + cmdstr)
     os.system(cmdstr)
 
+def in_virtual_env():
+    print('sys.real_prefix=%r' % (getattr(sys, 'real_prefix', None),))
+    print('sys.base_prefix=%r' % (getattr(sys, 'base_prefix', None),))
+    print('sys.prefix=%r' % (getattr(sys, 'prefix', None),))
+    in_venv = False
+    if hasattr(sys, 'real_prefix'):
+        # For virtualenv module
+        in_venv = True
+    elif hasattr(sys, 'base_prefix'):
+        # For venv module
+        in_venv = sys.base_prefix != sys.prefix
+    return in_venv
 
 def ensure_utool(CODE_DIR, pythoncmd):
     WIN32 = sys.platform.startswith('win32')
     #UTOOL_BRANCH = ' -b <branch> <remote_repo>'
     UTOOL_BRANCH = 'next'
     UTOOL_REPO = 'https://github.com/WildbookOrg/utool.git'
-    print('FATAL ERROR: UTOOL IS NEEDED FOR SUPER_SETUP. Attempting to get utool')
+    print('WARNING: utool is not found')
+    print('Attempting to get utool. Enter (y) to continue')
+
+    if '-y' in sys.argv:
+        ans = 'y'
+    else:
+        try:
+            ans = input('Enter y to continue. Anything else to exit...\n')
+        except:
+            ans = raw_input('Enter y to continue. Anything else to exit...\n')
+    if ans != 'y':
+        print('Please install utool to continue')
+        sys.exit(0)
+
     cwdpath = os.path.realpath(os.getcwd())
     usr_code_dir = os.path.expanduser(CODE_DIR)
     os.chdir(usr_code_dir)
@@ -296,21 +321,17 @@ def ensure_utool(CODE_DIR, pythoncmd):
     print('pulling utool')
     syscmd('git pull')
     print('installing utool for development')
-    cmdstr = '{pythoncmd} setup.py develop'.format(pythoncmd=pythoncmd)
+    cmdstr = '{pythoncmd} -m pip install -e .'.format(pythoncmd=pythoncmd)
     # TODO: use pip instead
     # cmdstr = '{pythoncmd} -m pip install .'.format(pythoncmd=pythoncmd)
-    in_virtual_env = hasattr(sys, 'real_prefix')
-    if not WIN32 and not in_virtual_env:
+    if not WIN32 and not in_virtual_env():
         cmdstr = 'sudo ' + cmdstr
     syscmd(cmdstr)
     os.chdir(cwdpath)
-    sys.path.append(usr_code_dir)
+    # sys.path.append(usr_code_dir)
     print('Please rerun super_setup.py')
     print(' '.join(sys.argv))
-    if '--check-utool-error-code-0' in sys.argv:
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    sys.exit(1)
 
 #-----------------
 #  UTOOL PYTHON
@@ -450,15 +471,19 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     minor = str(sys.version_info.minor)
     majorminor = [major, minor]
     pyoff = '2' if sys.version_info.major == 3 else '3'
+    pyon = majorminor[0]
     plat_spec = get_plat_specifier()
     # build_dname = 'build' + ''.join(majorminor)
     build_dname = 'cmake_builds/build' + plat_spec
 
     script_fmtdict = {
+        'pyexe'             : sys.executable,
         'pyversion'         : 'python' + '.'.join(majorminor),
-        'pypkg_var'         : 'PYTHON' + major + '_PACKAGES_PATH',
+        'pypkg_var'         : 'PYTHON' + pyon + '_PACKAGES_PATH',
         'build_dname'       : build_dname,
-        'cv_pyon_var'       : 'BUILD_opencv_python' + majorminor[0],
+        'pyoff'             : pyoff,
+        'pyon'              : pyon,
+        'cv_pyon_var'       : 'BUILD_opencv_python' + pyon,
         'cv_pyoff_var'      : 'BUILD_opencv_python' + pyoff,
         'plat_spec'         : plat_spec,
         'source_dpath'      : '../..',
@@ -470,9 +495,9 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     python_bash_setup = ut.codeblock(
         r'''
         # STARTBLOCK bash
-        export PYTHON_EXECUTABLE=$(which {pyversion})
 
         if [[ "$VIRTUAL_ENV" == ""  ]]; then
+            export PYTHON_EXECUTABLE=$(which {pyversion})
             # If there is no virtual environment install to system
             # TODO: add support for mac conventions
             if [[ '$OSTYPE' == 'darwin'* ]]; then
@@ -487,6 +512,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
                 export _SUDO="sudo"
             fi
         else
+            export PYTHON_EXECUTABLE=$(which python)
             # export LOCAL_PREFIX=$VIRTUAL_ENV/local
             export LOCAL_PREFIX=$VIRTUAL_ENV
             export {pypkg_var}=$LOCAL_PREFIX/lib/{pyversion}/site-packages
@@ -619,6 +645,7 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             -D CMAKE_BUILD_TYPE=RELEASE \
             -D {cv_pyoff_var}=Off \
             -D {cv_pyon_var}=On \
+            -D PYTHON_DEFAULT_EXECUTABLE="{pyexe}" \
             -D {pypkg_var}=${pypkg_var} \
             -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
             -D OPENCV_EXTRA_MODULES_PATH=$REPO_DIR/opencv_contrib/modules \
@@ -1052,8 +1079,9 @@ def is_running_as_root():
     return os.getenv('USER') == 'root'
 
 
-def get_sysinfo():
-    print('USER = %r' % os.getenv("USER"))
+def get_sysinfo(verbose=0):
+    if verbose:
+        print('USER = %r' % os.getenv("USER"))
 
     if is_running_as_root():
         print('Do not run super_setup.py as root')
@@ -1061,14 +1089,16 @@ def get_sysinfo():
 
     WIN32 = sys.platform.startswith('win32')
 
-    print('[super_setup] __IBEIS_SUPER_SETUP__')
+    if verbose:
+        print('[super_setup] __IBEIS_SUPER_SETUP__')
 
     if 'CODE_DIR' in os.environ:
         CODE_DIR = os.environ.get('CODE_DIR')
     else:
         CODE_DIR = dirname(dirname(realpath(__file__)))   # Home is where the .. is.  # '~/code'
 
-    print('[super_setup] code_dir: %r' % CODE_DIR)
+    if verbose:
+        print('[super_setup] code_dir: %r' % CODE_DIR)
     (DISTRO, DISTRO_VERSION, DISTRO_TAG) = platform.dist()
     python_version = platform.python_version()
 
@@ -1100,7 +1130,34 @@ def main():
     if show_usage:
         print(USAGE)
 
-    CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo()
+    CODE_DIR, pythoncmd, WIN32, PY2, PY3 = get_sysinfo(verbose=1)
+
+    try:
+        import cv2
+    except ImportError:
+        print('Need to install OpenCV')
+        print('python super_setup.py --opencv')
+
+    try:
+        import pyflann
+    except ImportError:
+        print('Need to install FLANN')
+        print('python super_setup.py --flann')
+
+    try:
+        import theano, lasagne
+    except ImportError:
+        print('Need to install Theano/Lasagne/Pylearn2')
+        print('python super_setup.py --dcnn')
+
+    try:
+        try:
+            import PyQt4
+        except ImportError:
+            import PyQt5
+    except ImportError:
+        print('Need to install PyQt')
+        print('python super_setup.py --pyqt')
 
     if '--bootstrap' in sys.argv or 'bootstrap' in sys.argv:
         bootstrap(WIN32)

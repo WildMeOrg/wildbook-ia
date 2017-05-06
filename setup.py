@@ -92,6 +92,8 @@ INSTALL_REQUIRES = [
     'lockfile >= 0.10.2',
     'apipkg',
     'networkx >= 1.9.1',
+    'simplejson',
+    'zmq',
     #'objgraph',
     #'pycallgraph',
     #'gevent',

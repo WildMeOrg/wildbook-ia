@@ -93,6 +93,8 @@ ValidMatchTup_ = namedtuple('vmt', (  # valid_match_tup
 
 
 class Neighbors(ut.NiceRepr):
+    __slots__ = ['qaid', 'qfx_list', 'neighb_idxs', 'neighb_dists']
+
     # TODO: replace with named tuple?
     def __init__(self, qaid, idxs, dists, qfxs):
         self.qaid = qaid
@@ -412,7 +414,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
         >>> from ibeis.algo.hots.pipeline import *  # NOQA
         >>> import ibeis
         >>> verbose = True
-        >>> cfgdict = dict(K=4, Knorm=1, use_k_padding=False)
+        >>> cfgdict = dict(K=4, Knorm=1, checks=800, use_k_padding=False)
         >>> # test 1
         >>> p = 'default' + ut.get_cfg_lbl(cfgdict)
         >>> qreq_ = ibeis.testdata_qreq_(
@@ -684,7 +686,7 @@ def nearest_neighbors(qreq_, Kpad_list, impossible_daids_list=None,
         >>> qreq2_ = ibeis.testdata_qreq_(
         >>>     defaultdb='testdb1', t=['default:K=2,condknn=False'],
         >>>     daid_override=[1, 2, 3, 4, 5, 6, 7, 8],
-        >>>     qaid_override=[2, 5, 0])
+        >>>     qaid_override=[2, 5, 1])
         >>> locals_ = plh.testrun_pipeline_upto(qreq2_, 'nearest_neighbors')
         >>> Kpad_list, impossible_daids_list = ut.dict_take(
         >>>    locals_, ['Kpad_list', 'impossible_daids_list'])
@@ -776,23 +778,6 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
         >>> assert not np.all(nnvalid0_list[0][:, 1]), (
         ...    'second col should have some good matches')
         >>> ut.assert_inbounds(nnvalid0_list[0].sum(), 1000, 10000)
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.hots.pipeline import *   # NOQA
-        >>> qreq_, args = plh.testdata_pre(
-        >>>     'baseline_neighbor_filter', defaultdb='testdb1',
-        >>>     qaid_override=[3,4],
-        >>>     daid_override=list(range(1, 11)),
-        >>>     p=['default:K=1,Knorm=0,QRH=False,condknn=True,can_match_samename=False'],
-        >>>     verbose=True)
-        >>> # Test that recovered matches still get marked as invalid when
-        >>> # condknn=True
-        >>> nns_list, impossible_daids_list = args
-        >>> nn = nns_list[0]
-        >>> nnvalid0_list = baseline_neighbor_filter(qreq_, nns_list,
-        >>>                                          impossible_daids_list)
-        >>> assert (~nnvalid0_list[0]).sum() > 0, 'should have recovered'
 
     Example1:
         >>> # ENABLE_DOCTEST
