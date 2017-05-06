@@ -448,11 +448,11 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     if cache is None:
         cache = True
         # cache = len(aids) > 200
-    cfgstr = str(ut.combine_uuids(annots.visual_uuids))
+    cfgstr = str(ut.combine_uuids(annots.visual_uuids)) + str(thresh_sec)
     cacher = ut.Cacher('occurrence_labels', cfgstr=cfgstr, enabled=cache)
     data = cacher.tryload()
     if data is None:
-        print('Computing occurrences')
+        print('Computing occurrences for monkey patch for %d aids' % (len(aids)))
         data = cluster_timespace_sec(
             annots.image_unixtimes_asfloat, annots.gps,
             thresh_sec=thresh_sec, km_per_sec=.002)
