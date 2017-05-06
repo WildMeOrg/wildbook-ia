@@ -624,7 +624,9 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
     #===================
     # OPENCV SETUP SCRIPTS
     #===================
-
+    """
+    ./super_setup.py --dump-scripts
+    """
     tpl_rman['cv2'].add_script('build', ut.codeblock(
         r"""
         # STARTBLOCK bash
@@ -637,6 +639,10 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
         cd $REPO_DIR
         # Checkout opencv extras
         git clone https://github.com/Itseez/opencv_contrib.git
+        # cd opencv_contrib
+        # git pull
+        # cd ..
+        # git pull
         mkdir -p $REPO_DIR/{build_dname}
         cd $REPO_DIR/{build_dname}
 
@@ -650,7 +656,22 @@ def define_custom_scripts(tpl_rman, ibeis_rman, PY2, PY3):
             -D CMAKE_INSTALL_PREFIX=$LOCAL_PREFIX \
             -D OPENCV_EXTRA_MODULES_PATH=$REPO_DIR/opencv_contrib/modules \
             -D WITH_CUDA=Off \
+            -D BUILD_opencv_dnn=Off \
+            -D BUILD_opencv_dnn_modern=Off \
+            -D WITH_VTK=Off \
+            -D WITH_CUDA=Off \
+            -D WITH_MATLAB=Off \
             $REPO_DIR
+            # -D WITH_OPENCL=Off \
+            # -D BUILD_opencv_face=Off \
+            # -D BUILD_opencv_objdetect=Off \
+            # -D BUILD_opencv_video=Off \
+            # -D BUILD_opencv_videoio=Off \
+            # -D BUILD_opencv_videostab=Off \
+            # -D BUILD_opencv_ximgproc=Off \
+            # -D BUILD_opencv_xobjdetect=Off \
+            # -D BUILD_opencv_xphoto=Off \
+            # -D BUILD_opencv_datasets=Off \
             # -D CXX_FLAGS="-std=c++11" \ %TODO
 
         export NCPUS=$(grep -c ^processor /proc/cpuinfo)

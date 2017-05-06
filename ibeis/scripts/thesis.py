@@ -46,7 +46,7 @@ def precollect(defaultdb):
         species = 'Grévy\'s Zebras'
     dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
-    self = ExptChapter4()
+    self = Chap4()
     self.eval_task_keys = pblm.eval_task_keys
     self.species = species
     self.dbcode = dbcode
@@ -109,9 +109,93 @@ def chapter4_collect(defaultdb):
     ut.save_data(str(self.dpath.joinpath(fname)), self)
     return self
 
+class Chap3(object):
+
+    def __init__(self):
+        pass
+
+    def testdata1(self):
+        import ibeis
+        from ibeis.init import main_helpers
+        from ibeis.expt import test_result, harness
+        from ibeis.init.filter_annots import encounter_crossval
+        import plottool as pt
+        pt.qtensure()
+        defaultdb = 'PZ_MTEST'
+        ibs = ibeis.opendb(defaultdb)
+        aids = ibs.filter_annots_general(require_timestamp=True, is_known=True)
+        main_helpers.monkeypatch_encounters(ibs, aids, days=50)
+        # Sample a dataset
+        expanded_aids = encounter_crossval(ibs, aids, qenc_per_name=1,
+                                           denc_per_name=1, rebalance=False)
+        qaids, daids = expanded_aids[0]
+        return ibs, qaids, daids
+
+    def exec_ranking(self, ibs, qaids, daids, cfgdict):
+        ibs, qaids, daids = self.testdata1()
+        # Execute the ranking algorithm
+        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+        name_ranks = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list]
+        # Measure rank probabilities
+        bins = np.arange(len(qreq_.dnids))
+        hist = np.histogram(name_ranks, bins=bins)[0]
+        cdf_percent = (np.cumsum(hist) / sum(hist)) * 100
+        return cdf_percent
+
+    def baseline(self):
+        """
+        >>> from ibeis.scripts.thesis import *
+        >>> self = Chap3()
+        """
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {}
+        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
+        # Truncate the cdf and prepare to plot
+        label = '%6.2f%%' % (cdf_percent[0],)
+        num_ranks = min(len(bins), 20)
+        xdata = np.arange(1, num_ranks + 1)
+        cdf_trunc = cdf_percent[0:num_ranks]
+        pt.multi_plot(
+            xdata, [cdf_trunc], label_list=[label],
+            xlabel='rank', ylabel='accuracy (% per name)',
+            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
+            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+        )
+
+    def foregroundness(self):
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {'fg_on': False}
+        cdf_percent = self.exec_ranking(ibs, qaids, daids, cfgdict)
+        # Truncate the cdf and prepare to plot
+        label = '%6.2f%%' % (cdf_percent[0],)
+        xdata = np.arange(1, num_ranks + 1)
+        cdf_trunc = cdf_percent[0:num_ranks]
+        pt.multi_plot(
+            xdata, [cdf_trunc], label_list=[label],
+            xlabel='rank', ylabel='accuracy (% per name)',
+            use_legend=True, legend_loc='lower right', num_yticks=8, ymax=100,
+            ymin=30, ypad=.5, xmin=.9, num_xticks=5, xmax=num_ranks + 1 - .5,
+        )
+
+    def invariance(self):
+        invar = [
+            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+            {'affine_invariance':  [True], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+            {'affine_invariance': [False], 'rotation_invariance':  [True], 'query_rotation_heuristic': [False]},
+            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic': [False]},
+            {'affine_invariance':  [True], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+            {'affine_invariance': [False], 'rotation_invariance': [False], 'query_rotation_heuristic':  [True]},
+        ]
+        ibs, qaids, daids = self.testdata1()
+        cfgdict = {'fg_on': False}
+        cdf_percent, bins = self.exec_ranking(ibs, qaids, daids, cfgdict)
+
+
 
 # @ut.reloadable_class
-class ExptChapter4(object):
+class Chap4(object):
     """
     Collect data from experiments to visualize
 
@@ -120,6 +204,25 @@ class ExptChapter4(object):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+
+    def __init__(self):
+        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
+        self.dpath = pathlib.Path(self.dpath)
+        self.species = None
+        self.dbcode = None
+        self.data_key = None
+        self.clf_key = None
+        # info
+        self.eval_task_keys = None
+        self.task_importance = {}
+        self.task_rocs = {}
+        self.hard_cases = {}
+        self.task_confusion = {}
+        self.task_metrics = {}
+        self.task_nice_lookup = None
+
+        self.score_hist_lnbnn = None
+        self.score_hist_pos = None
 
     def draw(self):
         task_key = 'photobomb_state'
@@ -141,25 +244,6 @@ class ExptChapter4(object):
             if not ut.get_argflag('--nodraw'):
                 self.draw_hard_cases(task_key)
 
-    def __init__(self):
-        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
-        self.dpath = pathlib.Path(self.dpath)
-        self.species = None
-        self.dbcode = None
-        self.data_key = None
-        self.clf_key = None
-        # info
-        self.eval_task_keys = None
-        self.task_importance = {}
-        self.task_rocs = {}
-        self.hard_cases = {}
-        self.task_confusion = {}
-        self.task_metrics = {}
-        self.task_nice_lookup = None
-
-        self.score_hist_lnbnn = None
-        self.score_hist_pos = None
-
     def build_metrics(self, pblm, task_key):
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         res.augment_if_needed()
@@ -179,12 +263,12 @@ class ExptChapter4(object):
     def write_metrics(self, task_key='match_state'):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis ExptChapter4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
-            python -m ibeis.scripts.thesis ExptChapter4.write_metrics --db GZ_Master1 --task-key=match_state
+            python -m ibeis.scripts.thesis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
+            python -m ibeis.scripts.thesis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> kwargs = ut.argparse_funckw(ExptChapter4.write_metrics)
+            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
             >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> self, pblm = precollect(defaultdb)

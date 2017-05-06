@@ -127,7 +127,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params['vsone_match']['sv_on'] = True
 
         species = infr.ibs.get_primary_database_species()
-        if species == 'zebra_plains':
+        if species == 'zebra_plains' or True:
             hyper_params['vsone_match']['Knorm'] = 3
             hyper_params['vsone_match']['symmetric'] = True
             hyper_params['vsone_kpts']['augment_orientation'] = True
@@ -1283,8 +1283,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # CONFIDENCE = ibs.const.CONFIDENCE
         # flags = unsure_cases['real_conf'] < CONFIDENCE.CODE_TO_INT['pretty_sure']
 
-        if False:
-            flags = unsure_cases['real_conf'] < 5
+        if True:
+            flags = unsure_cases['real_conf'] < 2
             unsure_cases = unsure_cases[flags]
 
         # only review big ccs

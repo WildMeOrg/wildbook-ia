@@ -681,11 +681,16 @@ class Priority(object):
                 if nid1 == nid2:
                     return infr.pop()
             if getattr(infr, 'fix_mode_predict', False):
-                u, v = edge
                 nid1, nid2 = infr.node_labels(*edge)
                 pred = infr.get_edge_data(edge).get('pred', None)
                 # only report cases where the prediction differs
                 if (priority * -1) < 10:
+                    if nid1 == nid2:
+                        u, v = edge
+                        # Don't re-review confident CCs
+                        thresh = infr.ibs.const.CONFIDENCE.CODE_TO_INT['pretty_sure']
+                        if infr.conditionally_connecteded(u, v, thresh):
+                            return infr.pop()
                     if pred == POSTV and nid1 == nid2:
                         # print('skip pos')
                         return infr.pop()
@@ -697,6 +702,25 @@ class Priority(object):
             assert edge[0] < edge[1]
             print('Poppin edge %r' % (edge,))
             return edge, (priority * -1)
+
+    def conditionally_connecteded(infr, u, v, thresh=2):
+        """
+        Checks if u and v are conneted by edges above a confidence threshold
+        """
+        def satisfied(G, child, edge):
+            data = G.get_edge_data(*edge)
+            if data.get('decision') != POSTV:
+                return False
+            conf = data.get('confidence', 'unspecified')
+            conf_int = infr.ibs.const.CONFIDENCE.CODE_TO_INT[conf]
+            conf_int = 0 if conf_int is None else conf_int
+            return conf_int >= thresh
+        for node in ut.bfs_conditional(infr.graph, u,
+                                       yield_if=satisfied,
+                                       continue_if=satisfied):
+            if node == v:
+                return True
+        return False
 
     def generate_reviews(infr, pos_redun=None, neg_redun=None,
                          data=False):
