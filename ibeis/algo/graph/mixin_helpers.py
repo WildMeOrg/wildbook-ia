@@ -327,8 +327,24 @@ class DummyEdges(object):
 class AssertInvariants(object):
     def assert_invariants(infr, msg=''):
         infr.assert_disjoint_invariant(msg)
+        infr.assert_union_invariant(msg)
         infr.assert_consistency_invariant(msg)
         infr.assert_recovery_invariant(msg)
+
+    def assert_union_invariant(infr, msg=''):
+        edge_sets = {
+            key: set(it.starmap(infr.e_, graph.edges()))
+            for key, graph in infr.review_graphs.items()
+        }
+        edge_union = set.union(*edge_sets.values())
+        all_edges = set(it.starmap(infr.e_, infr.graph.edges()))
+        if edge_union != all_edges:
+            print('ERROR STATUS DUMP:')
+            print(ut.repr4(infr.status()))
+            raise AssertionError(
+                'edge sets must have full union. Found union=%d vs all=%d' % (
+                    len(edge_union), len(all_edges)
+                ))
 
     def assert_disjoint_invariant(infr, msg=''):
         # infr.print('assert_disjoint_invariant', 200)
@@ -338,15 +354,6 @@ class AssertInvariants(object):
         }
         for es1, es2 in it.combinations(edge_sets.values(), 2):
             assert es1.isdisjoint(es2), 'edge sets must be disjoint'
-        all_edges = set(it.starmap(e_, infr.graph.edges()))
-        edge_union = set.union(*edge_sets.values())
-        if edge_union != all_edges:
-            print('ERROR STATUS DUMP:')
-            print(ut.repr4(infr.status()))
-            raise AssertionError(
-                'edge sets must have full union. Found union=%d vs all=%d' % (
-                    len(edge_union), len(all_edges)
-                ))
 
     def assert_consistency_invariant(infr, msg=''):
         if not DEBUG_INCON:

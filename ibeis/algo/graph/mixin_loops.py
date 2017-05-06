@@ -382,7 +382,7 @@ class InfrReviewers(object):
                 gt.user_info(infr.manual_wgt, 'Review Complete')
         print('review loop complete')
 
-    def on_accept(infr, feedback):
+    def on_accept(infr, feedback, need_next=True):
         annot1_state = feedback.pop('annot1_state', None)
         annot2_state = feedback.pop('annot2_state', None)
         if annot1_state:
@@ -391,7 +391,8 @@ class InfrReviewers(object):
             infr.add_node_feedback(**annot2_state)
         infr.add_feedback(**feedback)
         infr.write_ibeis_staging_feedback()
-        infr.continue_review()
+        if need_next:
+            infr.continue_review()
 
     def manual_review(infr, edge):
         # OLD

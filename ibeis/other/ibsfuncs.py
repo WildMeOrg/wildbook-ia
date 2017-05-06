@@ -2933,15 +2933,15 @@ def get_match_truth(ibs, aid1, aid2):
 
 
 @register_ibs_method
-def get_aidpair_truths(ibs, aid1_list, aid2_list):
+def get_aidpair_truths(ibs, aids1, aids2):
     r"""
     Uses NIDS to verify truth.
     TODO: rectify with annotmatch table
 
     Args:
         ibs (IBEISController):  ibeis controller object
-        aid1_list (list):
-        aid2_list (list):
+        aids1 (list):
+        aids2 (list):
 
     Returns:
         list[int]: truth_codes - see ibies.constants.REVIEW.INT_TO_CODE for code
@@ -2955,19 +2955,19 @@ def get_aidpair_truths(ibs, aid1_list, aid2_list):
         >>> from ibeis.other.ibsfuncs import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb('testdb1')
-        >>> aid1_list = ibs.get_valid_aids()
-        >>> aid2_list = ut.list_roll(ibs.get_valid_aids(), -1)
-        >>> truth_codes = get_aidpair_truths(ibs, aid1_list, aid2_list)
+        >>> aids1 = ibs.get_valid_aids()
+        >>> aids2 = ut.list_roll(ibs.get_valid_aids(), -1)
+        >>> truth_codes = get_aidpair_truths(ibs, aids1, aids2)
         >>> print('truth_codes = %s' % ut.repr2(truth_codes))
         >>> target = np.array([3, 1, 3, 3, 1, 0, 0, 3, 3, 3, 3, 0, 3])
         >>> assert np.all(truth_codes == target)
     """
-    nid1_list = np.array(ibs.get_annot_name_rowids(aid1_list))
-    nid2_list = np.array(ibs.get_annot_name_rowids(aid2_list))
-    isunknown1_list = np.array(ibs.is_nid_unknown(nid1_list))
-    isunknown2_list = np.array(ibs.is_nid_unknown(nid2_list))
-    any_unknown = np.logical_or(isunknown1_list, isunknown2_list)
-    truth_codes = np.array((nid1_list == nid2_list), dtype=np.int32)
+    nids1 = np.array(ibs.get_annot_name_rowids(aids1))
+    nids2 = np.array(ibs.get_annot_name_rowids(aids2))
+    isunknowns1 = np.array(ibs.is_nid_unknown(nids1))
+    isunknowns2 = np.array(ibs.is_nid_unknown(nids2))
+    any_unknown = np.logical_or(isunknowns1, isunknowns2)
+    truth_codes = np.array((nids1 == nids2), dtype=np.int32)
     truth_codes[any_unknown] = const.REVIEW.UNKNOWN
     return truth_codes
 

@@ -311,6 +311,8 @@ class Feedback(object):
         return n_stage >= n_annotmatch
         # stage_fb = infr.read_ibeis_staging_feedback()
         # match_fb = infr.read_ibeis_annotmatch_feedback()
+        # set(match_fb.keys()) - set(stage_fb.keys())
+        # set(stage_fb.keys()) == set(match_fb.keys())
 
     def needs_conversion(infr):
         # not sure what the criteria is exactly. probably depricate

@@ -25,26 +25,31 @@ class Chap3(object):
     """
     def __init__(self):
         self.base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures_new3')
+        self.dbname = None
         self.expt_results = {}
         self.ibs = None
 
     @classmethod
-    def collect(Chap3, defaultdb='PZ_MTEST', init=True):
+    def collect(Chap3, dbname=None, init=False):
         """
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
+            >>> self = Chap3.collect('GZ_Master1')
             >>> self = Chap3.collect('PZ_MTEST')
             >>> self = Chap3.collect('PZ_PB_RF_TRAIN')
             >>> self = Chap3.collect('PZ_Master1')
-            >>> #self = Chap3.collect('GZ_Master1')
         """
         import ibeis
 
         self = Chap3()
-        self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb=defaultdb)
-        self.dbname = basename(self.dbdir)
+        if dbname is None:
+            self.dbdir = ibeis.sysres.get_args_dbdir()
+            self.dbname = basename(self.dbdir)
+        else:
+            self.dbname = dbname
+
         self.dpath = join(self.base_dpath, self.dbname)
         ut.ensuredir(self.dpath)
         # ut.vd(self.dpath)
@@ -482,11 +487,15 @@ class Chap3(object):
         """
         from ibeis.scripts.thesis import *
         import ibeis
-        self = Chap3()
+        self = Chap3('GZ_Master1')
+        self = Chap3('PZ_Master1')
+        self.draw_all()
+
         self.dbdir = ibeis.sysres.get_args_dbdir(defaultdb='PZ_MTEST')
         self.dbname = basename(self.dbdir)
         self.dpath = join(self.base_dpath, self.dbname)
         """
+        import plottool as pt
 
         fpaths = ut.glob(self.dpath, '*.pkl')
         for fpath in fpaths:

@@ -1304,6 +1304,10 @@ class NonDynamicUpdate(object):
         infr.pos_redun_nids = set(infr.find_pos_redun_nids())
         infr.neg_redun_nids = infr._graph_cls(list(infr.find_neg_redun_nids()))
 
+        # no longer dirty
+        if graph is None:
+            infr.dirty = False
+
     @profile
     def categorize_edges(infr, graph=None):
         r"""
