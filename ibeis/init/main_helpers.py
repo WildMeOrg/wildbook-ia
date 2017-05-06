@@ -458,16 +458,18 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
         data = cluster_timespace_sec(posixtimes, latlons,
                                      thresh_sec=thresh_sec, km_per_sec=.002)
         cacher.save(data)
-    occurrence_labels = data
+    occurrence_ids = data
 
-    ndec = int(np.ceil(np.log10(max(occurrence_labels))))
+    ndec = int(np.ceil(np.log10(max(occurrence_ids))))
     suffmt = '-monkey-occur%0' + str(ndec) + 'd'
     encounter_labels = [n + suffmt % (o,)
-                        for o, n in zip(occurrence_labels, annots.names)]
+                        for o, n in zip(occurrence_ids, annots.names)]
+    occurrence_labels = [suffmt[1:] % (o,) for o in occurrence_ids]
     enc_lookup = ut.dzip(annots.aids, encounter_labels)
+    occur_lookup = ut.dzip(annots.aids, occurrence_labels)
 
-    annots_per_enc = ut.dict_hist(encounter_labels, ordered=True)
-    ut.get_stats(list(annots_per_enc.values()))
+    # annots_per_enc = ut.dict_hist(encounter_labels, ordered=True)
+    # ut.get_stats(list(annots_per_enc.values()))
 
     # encounters = ibs._annot_groups(annots.group(encounter_labels)[1])
     # enc_names = ut.take_column(encounters.nids, 0)
@@ -479,16 +481,22 @@ def monkeypatch_encounters(ibs, aids, cache=None, **kwargs):
     #     ut.map_dict_vals(len, name_to_encounters).values())
 
     # monkey patch to override encounter info
+    def _monkey_get_annot_occurrence_text(ibs, aids):
+        return ut.dict_take(occur_lookup, aids)
     def _monkey_get_annot_encounter_text(ibs, aids):
         return ut.dict_take(enc_lookup, aids)
     ut.inject_func_as_method(ibs, _monkey_get_annot_encounter_text,
                              'get_annot_encounter_text', force=True)
+    ut.inject_func_as_method(ibs, _monkey_get_annot_occurrence_text,
+                             'get_annot_occurrence_text', force=True)
 
 
 def unmonkeypatch_encounters(ibs):
     from ibeis.other import ibsfuncs
     ut.inject_func_as_method(ibs, ibsfuncs.get_annot_encounter_text,
                              'get_annot_encounter_text', force=True)
+    ut.inject_func_as_method(ibs, ibsfuncs.get_annot_occurrence_text,
+                             'get_annot_occurrence_text', force=True)
 
 
 if __name__ == '__main__':

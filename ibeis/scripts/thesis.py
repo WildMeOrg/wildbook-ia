@@ -1,7 +1,7 @@
 from ibeis.scripts.script_vsone import OneVsOneProblem
 import pandas as pd
 import numpy as np
-from os.path import basename, join, splitext
+from os.path import basename, join, splitext, exists
 import utool as ut
 import plottool as pt
 import vtool as vt
@@ -44,278 +44,44 @@ W, H = 7.4375, 3.0
 # W, H = W * 1.25, H * 1.25
 
 
+def measure_worker(dbname):
+    self = Chap3(dbname)
+    self.measure_all()
+
+
 @ut.reloadable_class
-class Chap3Agg(object):
+class Chap3Commands(object):
 
     @classmethod
-    def agg_db_stats(Chap3):
+    def run_all(Chap3):
         """
         CommandLine:
-            python -m ibeis.scripts.thesis Chap3.agg_db_stats
+            python -m ibeis.scripts.thesis Chap3.run_all
         """
         agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
-        enc_infos = []
-        view_infos = []
-        qual_infos = []
-        for dbname in agg_dbnames:
-            self = Chap3(dbname)
-            info = self.measure_dbstats()
-            enc_infos.append(info['enc'])
-            qual_infos.append(info['qual'])
-            view_infos.append(info['view'])
-            # labels.append(self.species_nice.capitalize())
+        agg_dbnames = agg_dbnames[::-1]
 
-        df = pd.DataFrame(enc_infos)
-        # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
-        df = df.rename(columns={'species_nice': 'Database'})
-        text = df.to_latex(index=False).replace('±', '\pm')
-        text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
-        text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
-        text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
-        text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
-        text = text.replace(r'n\_annots', r'\thead{\#annots}')
-        enc_text = text.replace('lrrllr', 'lrrrrr')
-        # ut.render_latex_text(text, preamb_extra=r'\usepackage{makecell}')
-
-        df = pd.DataFrame(qual_infos)
-        df = df.rename(columns={'species_nice': 'Database'})
-        df = df.reindex_axis(ut.partial_order(
-            df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
-        qual_text = df.to_latex(index=False)
-
-        df = pd.DataFrame(view_infos)
-        df = df.rename(columns={
-            'species_nice': 'Database',
-            'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
-            'backleft': 'BL', 'backright': 'BR', 'frontright': 'FR',
-            'frontleft': 'FL',
-        })
-        order = ut.partial_order(
-            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
-                         'B', 'None'])
-        df = df.reindex_axis(order, axis=1)
-        df = df.set_index('Database')
-        df[pd.isnull(df)] = 0
-        df = df.astype(np.int).reset_index()
-        view_text = df.to_latex(index=False)
-
-        ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
-        ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
-        ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
-
-    def measure_dbstats(self):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=GIRM_Master1
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=GZ_Master1
-            python -m ibeis.scripts.thesis Chap3.measure_dbstats --dbs=PZ_Master1
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
-            >>> for dbname in dbnames:
-            >>>     print('dbname = %r' % (dbname,))
-            >>>     self = Chap3(dbname)
-            >>>     self.measure_dbstats()
-        """
-        self._precollect()
-
-        # self.ibs.print_annot_stats(self.aids_pool)
-        annots = self.ibs.annots(self.aids_pool)
-
-        encounters = annots.group(annots.encounter_text)[1]
-        nids = ut.take_column(self.ibs._annot_groups(encounters).nids, 0)
-        nid_to_enc = ut.group_items(encounters, nids)
-
-        single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
-        multi_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) > 1}
-        multi_aids = ut.flatten(ut.flatten(multi_encs.values()))
-
-        enc_deltas = []
-        for encs_ in nid_to_enc.values():
-            a = encs_[0]
-            times = a.image_unixtimes_asfloat
-            delta = times.max() - times.min()
-            enc_deltas.append(delta)
-        max_enc_timedelta = max(enc_deltas)
-        print('max enc timedelta = %r' % (
-            ut.get_unix_timedelta_str(max_enc_timedelta)))
-
-        multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
-        multi_stats['enc_per_name']
-
-        enc_info = ut.odict()
-        enc_info['species_nice'] = self.species_nice
-        enc_info['n_singleton_names'] = len(single_encs)
-        enc_info['n_resighted_names'] = len(multi_encs)
-        enc_info['n_encounter_per_resighted_name'] = '{:.1f}±{:.1f}'.format(
-            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']))
-        n_annots_per_enc = ut.lmap(len, encounters)
-        enc_info['n_annots_per_encounter'] = '{:.1f}±{:.1f}'.format(
-            np.mean(n_annots_per_enc), np.std(n_annots_per_enc))
-        enc_info['n_annots'] = sum(n_annots_per_enc)
-
-        # qual_info = ut.odict()
-        qual_info = ut.dict_hist(annots.quality_texts)
-        qual_info['None'] = qual_info.pop('UNKNOWN', 0)
-        qual_info['None'] += qual_info.pop(None, 0)
-        qual_info['species_nice'] = self.species_nice
-
-        view_info = ut.dict_hist(annots.yaw_texts)
-        view_info['None'] = view_info.pop('UNKNOWN', 0)
-        view_info['None'] += view_info.pop(None, 0)
-        view_info['species_nice'] = self.species_nice
-
-        info = {
-            'enc': enc_info,
-            'qual': qual_info,
-            'view': view_info,
-        }
-        return info
-
-    def time_distri(self):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GIRM_Master1
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=GZ_Master1
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=PZ_Master1
-            python -m ibeis.scripts.thesis Chap3.time_distri --dbs=humpbacks_fb
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
-            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
-            >>> for dbname in dbnames:
-            >>>     print('dbname = %r' % (dbname,))
-            >>>     self = Chap3(dbname)
-            >>>     self.time_distri()
-        """
-        import matplotlib as mpl
-        mpl.rcParams.update(TMP_RC)
-        self._precollect()
-        ibs = self.ibs
-        annots = ibs.annots(self.aids_pool)
-        images = ibs.images(set(annots.gids))
-        unixtimes_ = images.unixtime_asfloat
-        num_nan = np.isnan(unixtimes_).sum()
-        num_total = len(unixtimes_)
-        unixtimes = unixtimes_[~np.isnan(unixtimes_)]
-
-        mintime = vt.safe_min(unixtimes)
-        maxtime = vt.safe_max(unixtimes)
-        unixtime_domain = np.linspace(mintime, maxtime, 1000)
-
-        import matplotlib as mpl
-        mpl.rcParams.update(TMP_RC)
-
-        from sklearn.neighbors.kde import KernelDensity
-        bw = ut.get_argval('--bw', default=None)
-        day = 60 * 60 * 24
-        if bw is not None:
-            pass
-        elif 'GIRM' in self.dbname:
-            bw = day / 4
-        elif 'GZ' in self.dbname:
-            bw = day * 30
-        elif 'PZ' in self.dbname:
-            bw = day * 30
-        elif 'humpbacks_fb' in self.dbname:
-            bw = day * 30
+        if True:
+            for dbname in agg_dbnames:
+                self = Chap3(dbname)
+                self.measure_all()
+                self.draw_time_distri()
         else:
-            from sklearn.model_selection import RandomizedSearchCV
-            space = np.linspace(day, day * 14, 14).tolist()
-            grid_params = {'bandwidth': space}
-            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
-            print('Searching for best bandwidth')
-            grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
-                            cv=2, verbose=0)
-            grid.fit(unixtimes[:, None])
-            bw = grid.best_params_['bandwidth']
-            print('bw = %r' % (bw,))
-            print('bw(days) = %r' % (bw / day,))
+            from concurrent import futures
+            executor = futures.ProcessPoolExecutor(len(agg_dbnames))
+            print('About to submit')
+            fs = [executor.submit(measure_worker, dbname) for dbname in agg_dbnames]
+            while True:
+                print('waiting')
+                print('fs = %r' % (fs,))
+            futures.wait(fs)
 
-        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
-        kde.fit(unixtimes[:, None])
-        log_density = kde.score_samples(unixtime_domain[:, None])
-        density = np.exp(log_density)
-        ydata = density.copy()
-        # emphasize smaller values
-        ydata /= ydata.max()
-        ydata = np.sqrt(ydata)
-        xdata = unixtime_domain
-        xdata_ts = ut.lmap(ut.unixtime_to_datetimeobj, xdata)
+            for dbname in agg_dbnames:
+                self = Chap3(dbname)
+                self.draw_time_distri()
 
-        pt.multi_plot(xdata_ts, [ydata], label_list=['time'],
-                      alpha=.7, fnum=1, pnum=(1, 1, 1), ymin=0, fill=True,
-                      marker='', xlabel='Date', ylabel='# images',
-                      num_xticks=5,
-                      use_legend=False)
-        infos = []
-        if num_nan > 0:
-            infos.append('#nan={}'.format(num_nan))
-            infos.append('#total={}'.format(num_total))
-        else:
-            infos.append('#total={}'.format(num_total))
-        text = '\n'.join(infos)
-        pt.relative_text(.02, .02, text, halign='left', valign='top')
-
-        ax = pt.gca()
-        fig = pt.gcf()
-        ax.set_yticks([])
-        if False:
-            icon = ibs.get_database_icon()
-            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
-                            as_artist=1, max_asize=(100, 200))
-        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9)
-        fig.set_size_inches([W, H * .4])
-        fpath = join(self.dpath, 'timedist.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
-
-    def ensure_results(self, expt_name=None):
-        if expt_name is None:
-            # Load all
-            fpaths = ut.glob(self.dpath, '*.pkl')
-            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
-            for fpath, expt_name in zip(fpaths, expt_names):
-                self.expt_results[expt_name] = ut.load_data(fpath)
-        else:
-            fpath = join(self.dpath, expt_name + '.pkl')
-            expt_name = splitext(basename(fpath))[0]
-            self.expt_results[expt_name] = ut.load_data(fpath)
-            return self.expt_results[expt_name]
-
-    @classmethod
-    def draw_agg_baseline(Chap3):
-        """
-        CommandLine:
-            python -m ibeis.scripts.thesis Chap3.draw_agg_baseline
-        """
-        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1']
-        cdfs = []
-        labels = []
-        for dbname in agg_dbnames:
-            self = Chap3(dbname)
-            results = self.ensure_results('baseline')
-            cdf, config = results[0]
-            dsize = config['dsize']
-            qsize = config['t_n_names']
-            baseline_cdf = self.ensure_results('baseline')[0][0]
-            cdfs.append(baseline_cdf)
-            labels.append('{},qsize={},dsize={}'.format(
-                self.species_nice, qsize, dsize))
-            # labels.append(self.species_nice.capitalize())
-
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H])
-        fpath = join(Chap3.base_dpath, 'agg-baseline.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        Chap3.agg_db_stats()
+        Chap3.draw_agg_baseline()
 
     def measure_all(self):
         """
@@ -341,6 +107,109 @@ class Chap3Agg(object):
 
 
 @ut.reloadable_class
+class Chap3Agg(object):
+
+    @classmethod
+    def agg_dbstats(Chap3):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.agg_db_stats
+        """
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+        infos = ut.ddict(list)
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            info = self.ensure_results('dbstats')
+            infos['enc'].append(info['enc'])
+            infos['qual'].append(info['qual'])
+            infos['view'].append(info['view'])
+            # labels.append(self.species_nice.capitalize())
+
+        df = pd.DataFrame(infos['enc'])
+        # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
+        df = df.rename(columns={'species_nice': 'Database'})
+        text = df.to_latex(index=False).replace('±', '\pm')
+        text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
+        text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
+        text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
+        text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
+        text = text.replace(r'n\_annots', r'\thead{\#annots}')
+        enc_text = text.replace('lrrllr', 'lrrrrr')
+        # ut.render_latex_text(text, preamb_extra=r'\usepackage{makecell}')
+
+        df = pd.DataFrame(infos['qual'])
+        df = df.rename(columns={'species_nice': 'Database'})
+        df = df.reindex_axis(ut.partial_order(
+            df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
+        qual_text = df.to_latex(index=False)
+
+        df = pd.DataFrame(infos['view'])
+        df = df.rename(columns={
+            'species_nice': 'Database',
+            'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
+            'backleft': 'BL', 'backright': 'BR', 'frontright': 'FR',
+            'frontleft': 'FL',
+        })
+        order = ut.partial_order(
+            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
+                         'B', 'None'])
+        df = df.reindex_axis(order, axis=1)
+        df = df.set_index('Database')
+        df[pd.isnull(df)] = 0
+        df = df.astype(np.int).reset_index()
+        view_text = df.to_latex(index=False)
+
+        ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
+        ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
+        ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
+
+    @classmethod
+    def draw_agg_baseline(Chap3):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_agg_baseline --diskshow
+        """
+        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+        cdfs = []
+        labels = []
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            results = self.ensure_results('baseline')
+            cdf, config = results[0]
+            dsize = config['dsize']
+            qsize = config['t_n_names']
+            baseline_cdf = results[0][0]
+            cdfs.append(baseline_cdf)
+            labels.append('{},qsize={},dsize={}'.format(
+                self.species_nice, qsize, dsize))
+            # labels.append(self.species_nice.capitalize())
+
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * 1.5])
+        fpath = join(Chap3.base_dpath, 'agg-baseline.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+
+    def ensure_results(self, expt_name=None):
+        if expt_name is None:
+            # Load all
+            fpaths = ut.glob(self.dpath, '*.pkl')
+            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
+            for fpath, expt_name in zip(fpaths, expt_names):
+                self.expt_results[expt_name] = ut.load_data(fpath)
+        else:
+            fpath = join(self.dpath, expt_name + '.pkl')
+            expt_name = splitext(basename(fpath))[0]
+            if not exists(fpath):
+                if self.ibs is None:
+                    self._precollect()
+                getattr(self, 'measure_' + expt_name)()
+            self.expt_results[expt_name] = ut.load_data(fpath)
+            return self.expt_results[expt_name]
+
+
+@ut.reloadable_class
 class Chap3Inputs(object):
     """
         humpbacks_fb
@@ -359,7 +228,7 @@ class Chap3Inputs(object):
         if 'GIRM' in dbname:
             self.species_nice = "Masai Giraffes"
         if 'humpback' in dbname:
-            self.species_nice = "Humpback Whales"
+            self.species_nice = "Humpbacks"
         self.expt_results = {}
         self.ibs = None
         if dbname is not None:
@@ -482,6 +351,46 @@ class Chap3Inputs(object):
         dname_encs = ut.take_column(sample_splits.values(), 1)
         return qaids, dname_encs, confusor_pool
 
+    def _same_occur_split(self):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+        """
+        ibs = self.ibs
+        aids = self.aids_pool
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        nid_to_splits = ut.ddict(list)
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        for encs in occur_encs:
+            for enc in encs:
+                sortx = ut.argsort(enc.qualities)[::-1]
+                annot = enc[sortx[0]]
+                if len(nid_to_splits[annot.nid]) < 2:
+                    nid_to_splits[annot.nid].append(annot.aid)
+
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        qaids = []
+        dname_encs = []
+        confusor_pool = []
+        for nid, aids_ in nid_to_splits.items():
+            if len(aids_) < 2:
+                confusor_pool.extend(aids_)
+            else:
+                pyrng.shuffle(aids_)
+                qaids.append(aids_[0])
+                dname_encs.append([[aids_[1]]])
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        return qaids, dname_encs, confusor_pool
+
     def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
         """ This can be used for cross validation """
         # Find a split of query/database encounters and confusors
@@ -496,7 +405,8 @@ class Chap3Inputs(object):
         confusor_pool = ut.shuffle(confusor_pool, rng=0)
         return qaids, dname_encs, confusor_pool
 
-    def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None):
+    def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None,
+                       method='alt'):
         """
         Vary num per name and total number of annots
 
@@ -505,7 +415,7 @@ class Chap3Inputs(object):
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
             >>> print('--------')
-            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [0])
+            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [1], method='same_occur')
             >>> print('qsize = %r' % (len(qaids),))
             >>> for info in info_list:
             >>>     print(ut.repr4(info))
@@ -532,8 +442,17 @@ class Chap3Inputs(object):
         qenc_per_name = 1
         annots_per_enc = 1
         denc_per_name_ = max(denc_per_name)
-        qaids, dname_encs, confusor_pool = self._alt_splits(
-            ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
+
+        if method == 'alt':
+            qaids, dname_encs, confusor_pool = self._alt_splits(
+                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
+        elif method == 'same_occur':
+            assert denc_per_name_ == 1
+            assert annots_per_enc == 1
+            assert qenc_per_name == 1
+            qaids, dname_encs, confusor_pool = self._same_occur_split()
+        else:
+            raise KeyError(method)
 
         # Vary the number of database encounters in each sample
         target_daids_list = []
@@ -620,18 +539,18 @@ class Chap3Measures(object):
 
     def measure_foregroundness(self):
         ibs, qaids, daids_list, info_list = self._varied_inputs(
-            denc_per_name=[1], extra_dbsize_fracs=[1])
+            denc_per_name=[1], extra_dbsize_fracs=[1], method='same_occur')
         daids = daids_list[0]
         info = info_list[0]
 
         results = []
         cfgdict1 = {'fg_on': False}
         cdf = self._exec_ranking(ibs, qaids, daids, cfgdict1)
-        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1}))]
+        results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict1})))
 
         cfgdict2 = {'fg_on': True}
         cdf = self._exec_ranking(ibs, qaids, daids, cfgdict2)
-        results = [(cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2}))]
+        results.append((cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
 
         expt_name = 'foregroundness'
         self.expt_results[expt_name] = results
@@ -733,11 +652,178 @@ class Chap3Measures(object):
         expt_name = 'kexpt'
         self.expt_results[expt_name] = results
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
-        cdfs, infos = zip(*results)
+
+    def measure_dbstats(self):
+        if self.ibs is None:
+            self._precollect()
+
+        # self.ibs.print_annot_stats(self.aids_pool)
+        annots = self.ibs.annots(self.aids_pool)
+
+        encounters = annots.group(annots.encounter_text)[1]
+        nids = ut.take_column(self.ibs._annot_groups(encounters).nids, 0)
+        nid_to_enc = ut.group_items(encounters, nids)
+
+        single_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) == 1}
+        multi_encs = {nid: e for nid, e in nid_to_enc.items() if len(e) > 1}
+        multi_aids = ut.flatten(ut.flatten(multi_encs.values()))
+
+        enc_deltas = []
+        for encs_ in nid_to_enc.values():
+            a = encs_[0]
+            times = a.image_unixtimes_asfloat
+            delta = times.max() - times.min()
+            enc_deltas.append(delta)
+        max_enc_timedelta = max(enc_deltas)
+        print('max enc timedelta = %r' % (
+            ut.get_unix_timedelta_str(max_enc_timedelta)))
+
+        multi_stats = self.ibs.get_annot_stats_dict(multi_aids)
+        multi_stats['enc_per_name']
+
+        enc_info = ut.odict()
+        enc_info['species_nice'] = self.species_nice
+        enc_info['n_singleton_names'] = len(single_encs)
+        enc_info['n_resighted_names'] = len(multi_encs)
+        enc_info['n_encounter_per_resighted_name'] = '{:.1f}±{:.1f}'.format(
+            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']))
+        n_annots_per_enc = ut.lmap(len, encounters)
+        enc_info['n_annots_per_encounter'] = '{:.1f}±{:.1f}'.format(
+            np.mean(n_annots_per_enc), np.std(n_annots_per_enc))
+        enc_info['n_annots'] = sum(n_annots_per_enc)
+
+        # qual_info = ut.odict()
+        qual_info = ut.dict_hist(annots.quality_texts)
+        qual_info['None'] = qual_info.pop('UNKNOWN', 0)
+        qual_info['None'] += qual_info.pop(None, 0)
+        qual_info['species_nice'] = self.species_nice
+
+        view_info = ut.dict_hist(annots.yaw_texts)
+        view_info['None'] = view_info.pop('UNKNOWN', 0)
+        view_info['None'] += view_info.pop(None, 0)
+        view_info['species_nice'] = self.species_nice
+
+        info = {
+            'enc': enc_info,
+            'qual': qual_info,
+            'view': view_info,
+        }
+
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('measure_', '')
+        expt_name = 'dbstats'
+        self.expt_results[expt_name] = info
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), info)
+        return info
 
 
 @ut.reloadable_class
 class Chap3Draw(object):
+
+    @classmethod
+    def measure_single(Chap3, expt_name, dbnames):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.measure_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.measure_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> expt_name = ut.get_argval('--expt', type_=str)
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[])
+            >>> Chap3.measure_single(expt_name, dbnames)
+        """
+        for dbname in dbnames:
+            self = Chap3(dbname)
+            if self.ibs is None:
+                self._precollect()
+            getattr(self, 'measure_' + expt_name)()
+
+    @classmethod
+    def draw_single(Chap3, expt_name, dbnames):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_single --expt=nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_single --expt=foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
+            python -m ibeis.scripts.thesis Chap3.draw_single --expt=kexpt --dbs=GZ_Master1 --diskshow
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> expt_name = ut.get_argval('--expt', type_=str)
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[])
+            >>> Chap3.draw_single(expt_name, dbnames)
+        """
+        print('dbnames = %r' % (dbnames,))
+        print('expt_name = %r' % (expt_name,))
+        for dbname in dbnames:
+            self = Chap3(dbname)
+            fpath = getattr(self, 'draw_' + expt_name)()
+            if ut.get_argflag('--diskshow'):
+                ut.startfile(fpath)
+
+    def draw_nsum(self):
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        expt_name = 'nsum'
+        results = self.ensure_results(expt_name)
+        cdfs, infos = list(zip(*results))
+        # pcfgs = ut.take_column(infos, 'pcfg')
+        alias = {
+            'nsum': 'fmech',
+            'csum': 'amech',
+        }
+        labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_foregroundness(self):
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        cdf = results[0][0]
+        baseline_cdf = results[1][0]
+        cdfs = [cdf, baseline_cdf]
+        labels = ['fg=F', 'fg=T']
+        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * .6])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
+    def draw_kexpt(self):
+        expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        results = self.ensure_results(expt_name)
+        # results = self.expt_results[expt_name]
+        cdfs, infos = list(zip(*results))
+        pcfgs = ut.take_column(infos, 'pcfg')
+        df = pd.DataFrame.from_records(infos)
+        df['cdfs'] = cdfs
+        df['K'] = ut.take_column(pcfgs, 'K')
+        import plottool as pt
+        # groups = list(df.groupby(('dsize', 't_denc_pername')))
+        df = df[df['K'] != 10]
+        groups = list(df.groupby(('dsize')))
+        fig = pt.figure(fnum=1)
+        pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
+        for val, df_group in groups:
+            # print('---')
+            # print(df_group)
+            relevant_df = df_group[['K', 'dsize', 't_dpername']]
+            relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
+            relevant_cfgs = relevant_df.to_dict('records')
+            nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
+            labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
+            cdfs_ = df_group['cdfs'].values
+            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
+            ax = pt.gca()
+            ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.5, wspace=.2)
+        fig.set_size_inches([W * 1.5, H])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        return fpath
+
     def draw(self):
         """
         CommandLine:
@@ -771,14 +857,7 @@ class Chap3Draw(object):
 
         expt_name = 'foregroundness'
         if expt_name in self.expt_results:
-            cdf = self.expt_results[expt_name][0][0]
-            baseline_cdf = self.expt_results['baseline'][0][0]
-            cdfs = [cdf, baseline_cdf]
-            labels = ['fg=F', 'fg=T']
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-            fig.set_size_inches([W, H * .6])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            self.draw_foregroundness()
 
         expt_name = 'invar'
         if expt_name in self.expt_results:
@@ -816,43 +895,11 @@ class Chap3Draw(object):
 
         expt_name = 'nsum'
         if expt_name in self.expt_results:
-            results = self.expt_results[expt_name]
-            cdfs, infos = list(zip(*results))
-            pcfgs = ut.take_column(infos, 'pcfg')
-            labels = [x['pcfg']['score_method'] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-            fig = self.plot_cmcs2(cdfs, labels, fnum=1)
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            self.draw_nsum()
 
-        import pandas as pd
         expt_name = 'kexpt'
         if expt_name in self.expt_results:
-            results = self.expt_results[expt_name]
-            cdfs, infos = list(zip(*results))
-            pcfgs = ut.take_column(infos, 'pcfg')
-            df = pd.DataFrame.from_records(infos)
-            df['cdfs'] = cdfs
-            df['K'] = ut.take_column(pcfgs, 'K')
-            import plottool as pt
-            groups = list(df.groupby(('dsize', 't_denc_pername')))
-            fig = pt.figure(fnum=1)
-            pnum_ = pt.make_pnum_nextgen(nCols=2, nSubplots=len(groups))
-            for val, df_group in groups:
-                # print('---')
-                # print(df_group)
-                relevant_df = df_group[['K', 'dsize', 't_dpername']]
-                relevant_df = relevant_df.rename(columns={'t_dpername': 'dpername'})
-                relevant_cfgs = relevant_df.to_dict('records')
-                nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
-                labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
-                cdfs_ = df_group['cdfs'].values
-                self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_())
-                ax = pt.gca()
-                ax.set_title(ut.get_cfg_lbl(nonvaried_kw)[1:])
-            pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9, hspace=.5, wspace=.2)
-            fig.set_size_inches([W * 2, H * 1.5])
-            fpath = join(self.dpath, expt_name + '.png')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+            self.draw_kexpt()
 
     def _exec_ranking(self, ibs, qaids, daids, cfgdict):
         # Execute the ranking algorithm
@@ -908,9 +955,112 @@ class Chap3Draw(object):
         fig.set_size_inches([W, H])
         return fig
 
+    def draw_time_distri(self):
+        """
+        CommandLine:
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GZ_Master1,PZ_Master1,GIRM_MasterV
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GIRM_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=GZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=PZ_Master1
+            python -m ibeis.scripts.thesis Chap3.draw_time_distri --dbs=humpbacks_fb
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap3(dbname)
+            >>>     self.draw_time_distri()
+        """
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
+        if self.ibs is None:
+            self._precollect()
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        images = ibs.images(set(annots.gids))
+        unixtimes_ = images.unixtime_asfloat
+        num_nan = np.isnan(unixtimes_).sum()
+        num_total = len(unixtimes_)
+        unixtimes = unixtimes_[~np.isnan(unixtimes_)]
+
+        mintime = vt.safe_min(unixtimes)
+        maxtime = vt.safe_max(unixtimes)
+        unixtime_domain = np.linspace(mintime, maxtime, 1000)
+
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
+
+        from sklearn.neighbors.kde import KernelDensity
+        bw = ut.get_argval('--bw', default=None)
+        day = 60 * 60 * 24
+        if bw is not None:
+            pass
+        elif 'GIRM' in self.dbname:
+            bw = day / 4
+        elif 'GZ' in self.dbname:
+            bw = day * 30
+        elif 'PZ' in self.dbname:
+            bw = day * 30
+        elif 'humpbacks_fb' in self.dbname:
+            bw = day * 30
+        else:
+            from sklearn.model_selection import RandomizedSearchCV
+            space = np.linspace(day, day * 14, 14).tolist()
+            grid_params = {'bandwidth': space}
+            searcher = ut.partial(RandomizedSearchCV, n_iter=5, n_jobs=8)
+            print('Searching for best bandwidth')
+            grid = searcher(KernelDensity(kernel='gaussian'), grid_params,
+                            cv=2, verbose=0)
+            grid.fit(unixtimes[:, None])
+            bw = grid.best_params_['bandwidth']
+            print('bw = %r' % (bw,))
+            print('bw(days) = %r' % (bw / day,))
+
+        kde = KernelDensity(kernel='gaussian', bandwidth=bw)
+        kde.fit(unixtimes[:, None])
+        log_density = kde.score_samples(unixtime_domain[:, None])
+        density = np.exp(log_density)
+        ydata = density.copy()
+        # emphasize smaller values
+        ydata /= ydata.max()
+        ydata = np.sqrt(ydata)
+        xdata = unixtime_domain
+        xdata_ts = ut.lmap(ut.unixtime_to_datetimeobj, xdata)
+
+        pt.multi_plot(xdata_ts, [ydata], label_list=['time'],
+                      alpha=.7, fnum=1, pnum=(1, 1, 1), ymin=0, fill=True,
+                      marker='', xlabel='Date', ylabel='# images',
+                      num_xticks=5,
+                      use_legend=False)
+        infos = []
+        if num_nan > 0:
+            infos.append('#nan={}'.format(num_nan))
+            infos.append('#total={}'.format(num_total))
+        else:
+            infos.append('#total={}'.format(num_total))
+        text = '\n'.join(infos)
+        pt.relative_text(.02, .02, text, halign='left', valign='top')
+
+        ax = pt.gca()
+        fig = pt.gcf()
+        ax.set_yticks([])
+        if False:
+            icon = ibs.get_database_icon()
+            pt.overlay_icon(icon, coords=(0, 1), bbox_alignment=(0, 1),
+                            as_artist=1, max_asize=(100, 200))
+        pt.adjust_subplots(top=.9, bottom=.1, left=.12, right=.9)
+        fig.set_size_inches([W, H * .4])
+        fpath = join(self.dpath, 'timedist.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+
 
 @ut.reloadable_class
-class Chap3(Chap3Inputs, Chap3Agg, Chap3Draw, Chap3Measures):
+class Chap3(Chap3Inputs, Chap3Agg, Chap3Draw, Chap3Measures, Chap3Commands):
     pass
 
 
