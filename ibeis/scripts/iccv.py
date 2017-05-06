@@ -187,6 +187,7 @@ def gt_review():
     priorities = list(zip(sureness, easiness))
     sortx = ut.argsort(priorities)
     pred_probs = pred_probs.iloc[sortx]
+    # group2 = group2.sort_values('hardness', ascending=False)
 
     pred_probs = pred_probs[pred_probs['failed']]
 

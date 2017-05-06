@@ -682,7 +682,6 @@ class DevGraphWidget(gt.GuitoolWidget):
 
     def show_selected(graph_widget):
         print('[graph_widget] show_selected')
-        from ibeis.viz import viz_chip
         # old = getattr(graph_widget, '_figscope', None)
         # if old is not None:
         #     old.close()
@@ -694,14 +693,16 @@ class DevGraphWidget(gt.GuitoolWidget):
             self.raise_()
             graph_widget._figscope = self
         else:
-            fnum = pt.ensure_fnum(10)
-            print('fnum = %r' % (fnum,))
-            fig = pt.figure(fnum=fnum)
-            viz_chip.show_many_chips(
-                graph_widget.infr.ibs,
-                graph_widget.selected_aids,
-                fnum=fnum
-            )
+            # fnum = pt.ensure_fnum(10)
+            # print('fnum = %r' % (fnum,))
+            fig = graph_widget.infr.draw_aids(
+                graph_widget.selected_aids, fnum=10)
+            # fig = pt.figure(fnum=fnum)
+            # viz_chip.show_many_chips(
+            #     graph_widget.infr.ibs,
+            #     graph_widget.selected_aids,
+            #     fnum=fnum
+            # )
             #fig.canvas.update()
             fig.show()
             fig.canvas.draw()

@@ -514,6 +514,14 @@ class GraphVisualization(object):
             fig = pt.gcf()
             fig.canvas.mpl_connect('pick_event', ut.partial(on_pick, infr=infr))
 
+    def draw_aids(infr, aids, fnum=None):
+        from ibeis.viz import viz_chip
+        import plottool as pt
+        fnum = pt.ensure_fnum(None)
+        fig = pt.figure(fnum=fnum)
+        viz_chip.show_many_chips(infr.ibs, aids, fnum=fnum)
+        return fig
+
     def start_qt_interface(infr, loop=True):
         import guitool as gt
         from ibeis.viz.viz_graph2 import AnnotGraphWidget

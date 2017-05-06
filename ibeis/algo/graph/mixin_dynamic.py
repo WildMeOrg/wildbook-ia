@@ -122,11 +122,11 @@ class DynamicUpdate(object):
             infr._add_review_edge(edge, POSTV)
             if all_consistent:
                 # infr.print('Internal consistent positive review')
-                infr.print('pos-within-clean',)
+                infr.print('pos-within-clean', 2)
                 infr.update_pos_redun(nid1, may_remove=False)
             else:
                 # infr.print('Internal inconsistent positive review')
-                infr.print('pos-within-dirty',)
+                infr.print('pos-within-dirty', 2)
                 infr._check_inconsistency(nid1)
         else:
             # infr.print('Merge case')
@@ -135,7 +135,7 @@ class DynamicUpdate(object):
 
             if any_inconsistent:
                 # infr.print('Inconsistent merge',)
-                infr.print('pos-between-dirty-merge',)
+                infr.print('pos-between-dirty-merge', 2)
                 if not incon1:
                     recover_edges = list(edges_inside(infr.pos_graph, cc1))
                 else:
@@ -148,7 +148,7 @@ class DynamicUpdate(object):
                 new_nid = infr.pos_graph.node_label(edge[0])
             elif any(edges_cross(infr.neg_graph, cc1, cc2)):
                 # infr.print('Merge creates inconsistency',)
-                infr.print('pos-between-clean-merge-dirty',)
+                infr.print('pos-between-clean-merge-dirty', 2)
                 infr._purge_redun_flags(nid1)
                 infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, POSTV)
@@ -156,7 +156,7 @@ class DynamicUpdate(object):
                 infr._new_inconsistency(new_nid, POSTV)
             else:
                 # infr.print('Consistent merge')
-                infr.print('pos-between-clean-merge-clean',)
+                infr.print('pos-between-clean-merge-clean', 2)
                 infr._purge_redun_flags(nid1)
                 infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, POSTV)
@@ -184,7 +184,7 @@ class DynamicUpdate(object):
             if was_split:
                 if all_consistent:
                     # infr.print('Consistent split from negative')
-                    infr.print('neg-within-split-clean',)
+                    infr.print('neg-within-split-clean', 2)
                     infr._purge_redun_flags(nid1)
                     infr.update_pos_redun(new_nid1, may_remove=False)
                     infr.update_pos_redun(new_nid2, may_remove=False)
@@ -192,7 +192,7 @@ class DynamicUpdate(object):
                     infr.update_extern_neg_redun(new_nid2, may_remove=False)
                 else:
                     # infr.print('Inconsistent split from negative')
-                    infr.print('neg-within-split-dirty',)
+                    infr.print('neg-within-split-dirty', 2)
                     if infr.recover_graph.has_edge(*edge):
                         infr.recover_graph.remove_edge(*edge)
                     infr._purge_error_edges(nid1)
@@ -204,21 +204,21 @@ class DynamicUpdate(object):
             else:
                 if all_consistent:
                     # infr.print('Negative added within clean PCC')
-                    infr.print('neg-within-clean',)
+                    infr.print('neg-within-clean', 2)
                     infr._purge_redun_flags(new_nid1)
                     infr._new_inconsistency(new_nid1, NEGTV)
                 else:
                     # infr.print('Negative added within inconsistent PCC')
-                    infr.print('neg-within-dirty',)
+                    infr.print('neg-within-dirty', 2)
                     infr._check_inconsistency(new_nid1)
         else:
             if all_consistent:
                 # infr.print('Negative added between consistent PCCs')
-                infr.print('neg-between-clean',)
+                infr.print('neg-between-clean', 2)
                 infr.update_neg_redun(new_nid1, new_nid2, may_remove=False)
             else:
                 # infr.print('Negative added external to inconsistent PCC')
-                infr.print('neg-between-dirty',)
+                infr.print('neg-between-dirty', 2)
                 # nothing to do if a negative edge is added between two PCCs
                 # where at least one is inconsistent
                 pass
@@ -262,7 +262,7 @@ class DynamicUpdate(object):
                     prev_neg_nids = infr._purge_redun_flags(old_nid)
                     if all_consistent:
                         # infr.print('Split CC from incomparable')
-                        infr.print('%s-within-pos-split-clean' % prefix)
+                        infr.print('%s-within-pos-split-clean' % prefix, 2)
                         # split case
                         for other_nid in prev_neg_nids:
                             infr.update_neg_redun(new_nid1, other_nid)
@@ -272,7 +272,7 @@ class DynamicUpdate(object):
                         infr.update_pos_redun(new_nid2, may_remove=False)
                     else:
                         # infr.print('Split inconsistent CC from incomparable')
-                        infr.print('%s-within-pos-split-dirty',)
+                        infr.print('%s-within-pos-split-dirty', 2)
                         if infr.recover_graph.has_edge(*edge):
                             infr.recover_graph.remove_edge(*edge)
                         infr._purge_error_edges(nid1)
@@ -282,25 +282,25 @@ class DynamicUpdate(object):
                     infr.on_split(nid1, new_nid1, new_nid2)
                 elif all_consistent:
                     # infr.print('Overwrote pos in CC with incomp')
-                    infr.print('%s-within-pos-clean' % prefix)
+                    infr.print('%s-within-pos-clean' % prefix, 2)
                     infr.update_pos_redun(new_nid1, may_add=False)
                 else:
                     # infr.print('Overwrote pos in inconsistent CC with incomp')
-                    infr.print('%s-within-pos-dirty' % prefix)
+                    infr.print('%s-within-pos-dirty' % prefix, 2)
                     # Overwriting a positive edge that is not a split
                     # in an inconsistent component, means no inference.
                     pass
             elif overwrote_negative:
                 # infr.print('Overwrite negative within CC')
-                infr.print('%s-within-neg-dirty' % prefix)
+                infr.print('%s-within-neg-dirty' % prefix, 2)
                 assert not all_consistent
                 infr._check_inconsistency(nid1)
             else:
                 if all_consistent:
-                    infr.print('%s-within-clean' % prefix)
+                    infr.print('%s-within-clean' % prefix, 2)
                     # infr.print('Incomp edge within consistent CC')
                 else:
-                    infr.print('%s-within-dirty' % prefix)
+                    infr.print('%s-within-dirty' % prefix, 2)
                     # infr.print('Incomp edge within inconsistent CC')
         else:
             if overwrote_negative:
@@ -308,13 +308,13 @@ class DynamicUpdate(object):
                     # changed and existing negative edge only influences
                     # consistent pairs of PCCs
                     # infr.print('Overwrote neg edge between CCs')
-                    infr.print('incon-between-neg-clean',)
+                    infr.print('incon-between-neg-clean', 2)
                     infr.update_neg_redun(nid1, nid2, may_add=False)
                 else:
-                    infr.print('incon-between-neg-dirty',)
+                    infr.print('incon-between-neg-dirty', 2)
                     # infr.print('Overwrote pos edge between incon CCs')
             else:
-                infr.print('incon-between',)
+                infr.print('incon-between', 2)
                 # infr.print('Incomp edge between CCs')
 
 

@@ -456,7 +456,6 @@ class AnnotGraphInteraction(AbstractInteraction):
 
         r_next = hl_next3
         #Debug row
-        _debug_button(self.infr.apply_mst, r_next)
         _debug_button(self.infr.apply_scores, r_next)
         _debug_button(self.infr.apply_feedback, r_next)
         _debug_button(self.infr.apply_weights, r_next)

@@ -203,12 +203,85 @@ def bridge_connected_compoments(G):
     return list(nx.connected_components(H))
 
 
+@profile
+def one_connected_augmentation(G, avail=None, weight='weight'):
+    """
+    Finds minimum weight set of edges to connect G.
+
+    Args:
+        G (nx.Graph): graph to make connected
+        avail (list): available edges, if None nx.complement(G) is assumed.
+            if each item is a (u, v), the problem is unweighted.
+            if each item is a (u, v, d), the problem is weighted.  with
+            d[weight] corresponding to the weight.
+
+    Example:
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> G = nx.Graph()
+        >>> G.add_nodes_from([
+        >>>     1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> G.add_edges_from([(3, 8), (1, 2), (2, 3)])
+        >>> impossible = {(6, 3), (3, 9)}
+        >>> rng = np.random.RandomState(0)
+        >>> avail = list(set(complement_edges(G)) - impossible)
+        >>> avail_uvd = [(u, v, {'weight': rng.rand()}) for u, v in avail]
+        >>> aug_edges1 = list(one_connected_augmentation(G))
+        >>> aug_edges2 = list(one_connected_augmentation(G, avail))
+        >>> aug_edges3 = list(one_connected_augmentation(G, avail_uvd))
+    """
+    ccs1 = list(nx.connected_components(G))
+    C = collapse(G, ccs1)
+    mapping = C.graph['mapping']
+
+    if avail is not None:
+        avail_uv = [tup[0:2] for tup in avail]
+        avail_w = [1 if len(tup) == 2 else tup[-1][weight] for tup in avail]
+        meta_avail_uv = [(mapping[u], mapping[v]) for u, v in avail_uv]
+
+        # only need exactly 1 edge at most between each CC, so choose lightest
+        avail_ew = zip(avail_uv, avail_w)
+        grouped_we = ut.group_items(avail_ew, meta_avail_uv)
+        candidates = []
+        for meta_edge, choices in grouped_we.items():
+            edge, w = min(choices, key=lambda t: t[1])
+            candidates.append((meta_edge, edge, w))
+        candidates = sorted(candidates, key=lambda t: t[2])
+
+        # kruskals algorithm on metagraph to find the best connecting edges
+        subtrees = nx.utils.UnionFind()
+        for (mu, mv), (u, v), w in candidates:
+            if subtrees[mu] != subtrees[mv]:
+                yield (u, v)
+            subtrees.union(mu, mv)
+    else:
+        # When we are not constrained, we can just make a meta graph tree.
+        meta_nodes = list(C.nodes())
+        # build a path in the metagraph
+        meta_aug = list(zip(meta_nodes, meta_nodes[1:]))
+        # map that path to the original graph
+        inverse = ut.group_pairs(C.graph['mapping'].items())
+        for mu, mv in meta_aug:
+            yield (inverse[mu][0], inverse[mv][0])
+
+
+def complement_edges(G):
+    return ((n, n2) for n, nbrs in G.adjacency()
+            for n2 in G if n2 not in nbrs if n != n2)
+
+
+@profile
 def edge_connected_augmentation(G, k, avail=None, hack=False):
     r"""
+    Finds set of edges to k-edge-connect G. In the case of k=1
+    this is a minimum weight set. For k>2 it becomes exact only if avail is
+    None
+
     Args:
         G (nx.Graph): graph to augment
         k (int): desired edge connectivity
         avail (set): set of edges that can be used for the augmentation
+           each item is either a 2 tuple of vertices or a 3 tuple
+           of vertices and a dictionary containing a weight key.
 
     CommandLine:
         python -m ibeis.algo.graph.nx_utils edge_connected_augmentation
@@ -231,39 +304,19 @@ def edge_connected_augmentation(G, k, avail=None, hack=False):
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = nx.Graph()
         >>> G.add_nodes_from([
-        >>>     1105, 1106, 2547, 2548, 1119, 1190, 3095, 2712, 2714, 1531, 2779])
-        >>> G.add_edges_from([(2547, 1531)])
-        >>> impossible = {(1190, 2547), (2547, 2779)}
-        >>> avail = list(set(nx.complement(G).edges()) - impossible)
+        >>>     1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> G.add_edges_from([(3, 8)])
+        >>> impossible = {(6, 3), (3, 9)}
+        >>> avail = list(set(nx.complement_edges(G)) - impossible)
         >>> aug_edges = edge_connected_augmentation(G, k=1)
         >>> aug_edges = edge_connected_augmentation(G, 1, avail)
     """
     if avail is not None and len(avail) == 0:
         return []
-    if is_edge_connected(G, k):
-        aug_edges = []
-    elif k == 1 and avail is None and not hack:
-        C = collapse(G, nx.connected_components(G))
-        roots = [min(cc, key=C.degree) for cc in nx.connected_components(C)]
-        forest_aug = list(zip(roots, roots[1:]))
-        C.add_edges_from(forest_aug)
-        # map these edges back to edges in the original graph
-        inverse = {v: k for k, v in C.graph['mapping'].items()}
-        # inverse = ut.invert_dict(C.graph['mapping'], unique_vals=False)
-        aug_edges = [(inverse[u], inverse[v]) for u, v in forest_aug]
-    elif k == 1 and avail is not None and not hack:
-        # Construct a tree with the avail and original edges
-        # The original edges costs 0, and each candidate costs 1
-        H = G.copy()
-        orig_edges = list(G.edges())
-        nx.set_edge_attributes(H, 'weight', ut.dzip(orig_edges, [0]))
-        H.add_edges_from(avail)
-        nx.set_edge_attributes(H, 'weight', ut.dzip(avail, [1]))
-        T = nx.minimum_spanning_tree(H)
-        if not nx.is_connected(T):
-            print('could not connect T')
-        T.remove_edges_from(orig_edges)
-        aug_edges = list(it.starmap(e_, T.edges()))
+    # if is_edge_connected(G, k):
+    #     aug_edges = []
+    elif k == 1 and not hack:
+        aug_edges = one_connected_augmentation(G, avail)
     elif k == 2 and avail is None and not hack:
         aug_edges = bridge_connected_augmentation(G)
     elif k == 2 and avail is not None:
@@ -277,7 +330,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False):
         H = G.copy()
         aug_edges = []
         if avail is None:
-            avail = list(nx.complement(G).edges())
+            avail = list(complement_edges(G))
         else:
             avail = list(avail)
         while len(avail):
@@ -529,6 +582,7 @@ def bridge_connected_augmentation(G):
     return bridge_edges
 
 
+@profile
 def collapse(G, grouped_nodes):
     """Collapses each group of nodes into a single node.
 

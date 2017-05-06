@@ -15,7 +15,7 @@ from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
 from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 import networkx as nx
 print, rrr, profile = ut.inject2(__name__)
 
@@ -78,8 +78,8 @@ class Feedback(object):
             infr._check_edge(edge)
             infr.graph.add_edge(aid1, aid2)
 
-        if True:
-            print('')
+        # if True:
+        #     print('')
 
         msg = 'add_feedback ({}, {}), '.format(aid1, aid2)
         loc = locals()
@@ -620,6 +620,7 @@ class MiscHelpers(object):
         infr.review_graphs[POSTV] = nx_dynamic_graph.DynConnGraph()
         infr.review_graphs[NEGTV] = infr._graph_cls()
         infr.review_graphs[INCMP] = infr._graph_cls()
+        # infr.review_graphs[UNKWN] = infr._graph_cls()
         infr.review_graphs[UNREV] = infr._graph_cls()
 
         if graph is not None:
@@ -650,7 +651,7 @@ class MiscHelpers(object):
         infr.logs = collections.deque(maxlen=10000)
         infr.log_index = 0
 
-    def log_message(infr, msg, level=logging.NOTSET, color=None):
+    def log_message(infr, msg, level=1, color=None):
         if color is None:
             color = 'blue'
         if True:
@@ -899,6 +900,7 @@ class AnnotInference(ut.NiceRepr,
             POSTV: None,
             NEGTV: None,
             INCMP: None,
+            # UNKWN: None,
             UNREV: None,
         }
 

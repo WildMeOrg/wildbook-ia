@@ -42,9 +42,11 @@ class AttrAccess(object):
         """ Networkx node getter helper """
         return dict(infr.gen_node_attrs(key, nodes=nodes, default=default))
 
-    def get_edge_attrs(infr, key, edges=None, default=ut.NoParam):
+    def get_edge_attrs(infr, key, edges=None, default=ut.NoParam,
+                       check_exist=False):
         """ Networkx edge getter helper """
-        return dict(infr.gen_edge_attrs(key, edges=edges, default=default))
+        return dict(infr.gen_edge_attrs(key, edges=edges, default=default,
+                                        check_exist=check_exist))
 
     def _get_edges_where(infr, key, op, val, edges=None, default=ut.NoParam):
         edge_to_attr = infr.gen_edge_attrs(key, edges=edges, default=default)
@@ -101,6 +103,12 @@ class AttrAccess(object):
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
         return data
 
+
+class Convenience(object):
+    @staticmethod
+    def e_(u, v):
+        return e_(u, v)
+
     @property
     def pos_graph(infr):
         return infr.review_graphs[POSTV]
@@ -121,34 +129,19 @@ class AttrAccess(object):
     def unknown_graph(infr):
         return infr.review_graphs[UNKWN]
 
-
-class Convenience(object):
-    @staticmethod
-    def e_(u, v):
-        return e_(u, v)
-
     def print_graph_info(infr):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
 class DummyEdges(object):
-    def remove_dummy_edges(infr):
-        infr.print('remove_dummy_edges', 2)
-        edge_to_isdummy = infr.get_edge_attrs('_dummy_edge')
-        dummy_edges = [edge for edge, flag in edge_to_isdummy.items() if flag]
-        infr.graph.remove_edges_from(dummy_edges)
-
     def apply_mst(infr):
         """
         MST edges connect nodes labeled with the same name.
         This is done in case an explicit feedback or score edge does not exist.
         """
         infr.print('apply_mst', 2)
-        # Remove old MST edges
-        infr.remove_dummy_edges()
         infr.ensure_mst()
-        # infr.assert_disjoint_invariant()
 
     def find_clique_edges(infr, label='name_label'):
         node_to_label = infr.get_node_attrs(label)
@@ -160,6 +153,24 @@ class DummyEdges(object):
                 if not infr.has_edge(edge):
                     new_edges.append(edge)
         return new_edges
+
+    def review_dummy_edges(infr, method=1):
+        """
+        Creates just enough dummy reviews to maintain a consistent labeling if
+        relabel_using_reviews is called. (if the existing edges are consistent).
+        """
+        infr.print('review_dummy_edges', 2)
+        if method == 'clique':
+            new_edges = infr.find_clique_edges()
+        elif method == 1:
+            new_edges = infr.find_mst_edges()
+        elif method == 3:
+            new_edges = infr.find_connecting_edges()
+        infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
+        # TODO apply set of new edges in bulk
+        for u, v in new_edges:
+            infr.add_feedback((u, v), decision=POSTV, confidence='guessing',
+                               user_id='dummy', verbose=False)
 
     def ensure_cliques(infr, label='name_label', decision=UNREV):
         """
@@ -179,6 +190,18 @@ class DummyEdges(object):
         #     infr.print('adding %d complement edges' % (len(new_edges)))
         infr.graph.add_edges_from(new_edges, decision=UNREV, _dummy_edge=True)
         infr.review_graphs[UNREV].add_edges_from(new_edges)
+
+    def ensure_mst(infr, decision=POSTV):
+        """
+        Ensures that all names are names are connected
+        """
+        infr.print('ensure_mst', 1)
+        new_edges = infr.find_mst_edges()
+        # Add new MST edges to original graph
+        infr.print('adding %d MST edges' % (len(new_edges)), 2)
+        for u, v in new_edges:
+            infr.add_feedback((u, v), decision=decision, confidence='guessing',
+                              user_id='mst', verbose=False)
 
     def find_connecting_edges(infr):
         """
@@ -212,13 +235,25 @@ class DummyEdges(object):
         prog.ensure_newline()
         return new_edges
 
-    def find_mst_edges2(infr):
+    @profile
+    def find_mst_edges(infr):
         """
         Returns edges to augment existing PCCs (by label) in order to ensure
-        they are connected
+        they are connected with positive edges.
 
-        nid = 5977
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_helpers find_mst_edges --profile
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> infr.find_mst_edges()
+            >>> infr.ensure_mst()
         """
+        from ibeis.algo.graph import nx_utils
         import networkx as nx
         # Find clusters by labels
         # name_attr = 'orig_name_label'
@@ -227,189 +262,63 @@ class DummyEdges(object):
         label_to_nodes = ut.group_items(node_to_label.keys(),
                                         node_to_label.values())
 
-        aug_graph = infr.simplify_graph()
+        special_weighting = False
+        if special_weighting:
+            annots = infr.ibs.annots(infr.aids)
+            node_to_time = ut.dzip(annots, annots.time)
+
 
         new_edges = []
         prog = ut.ProgIter(list(label_to_nodes.keys()),
                            label='finding mst edges',
                            enabled=infr.verbose > 0)
         for nid in prog:
-            nodes = label_to_nodes[nid]
+            nodes = set(label_to_nodes[nid])
+            if len(nodes) == 1:
+                continue
             # We want to make this CC connected
-            target_cc = aug_graph.subgraph(nodes)
-            if len(nodes) > 10 and len(list(target_cc.edges())):
-                break
-            positive_edges = [
-                e_(*e) for e, v in
-                nx.get_edge_attributes(target_cc, 'decision').items()
-                if v == POSTV
-            ]
-            tmp = nx.Graph()
-            tmp.add_nodes_from(nodes)
-            tmp.add_edges_from(positive_edges)
-            # Need to find a way to connect these components
-            sub_ccs = list(nx.connected_components(tmp))
+            pos_sub = infr.pos_graph.subgraph(nodes, dynamic=False)
+            impossible = set(it.starmap(e_, it.chain(
+                edges_inside(infr.neg_graph, nodes),
+                edges_inside(infr.incomp_graph, nodes),
+                # edges_inside(infr.unknown_graph, nodes),
+            )))
+            if impossible or special_weighting:
+                complement = it.starmap(e_, nx_utils.complement_edges(pos_sub))
+                avail_uv = [
+                    (u, v) for u, v in complement if (u, v) not in impossible
+                ]
+                # TODO: can do special weighting to improve the MST
+                if special_weighting:
+                    avail_uv = np.array(avail_uv)
+                    times = ut.take(node_to_time, nodes)
+                    maxtime = vt.safe_max(times, fill=1, nans=False)
+                    mintime = vt.safe_min(times, fill=0, nans=False)
+                    time_denom = maxtime - mintime
 
-            connecting_edges = []
-
-            if False:
-                for c1, c2 in it.combinations(sub_ccs, 2):
-                    for u, v in it.product(c1, c2):
-                        if not target_cc.has_edge(u, v):
-                            # Once we find one edge we've completed the connection
-                            connecting_edges.append((u, v))
-                            break
+                    # Try linking by time for lynx data
+                    comp_weight = 1 - infr.is_comparable(avail_uv)
+                    time_delta = np.array([
+                        abs(node_to_time[u] - node_to_time[v])
+                        for u, v in avail_uv
+                    ])
+                    time_weight = time_delta / time_denom
+                    weights = (10 * comp_weight) + time_weight
+                    avail = [(u, v, {'weight': w})
+                             for (u, v), w in zip(avail_uv, weights)]
+                else:
+                    avail = avail_uv
+                aug_edges = list(nx_utils.edge_connected_augmentation(
+                    pos_sub, k=1, avail=avail))
             else:
-                # TODO: prioritize based on comparability
-                for c1, c2 in it.combinations(sub_ccs, 2):
-                    found = False
-                    for u, v in it.product(c1, c2):
-                        if not target_cc.has_edge(u, v):
-                            if infr.is_comparable([(u, v)])[0]:
-                                # Once we find one edge we've completed the
-                                # connection
-                                connecting_edges.append((u, v))
-                                found = True
-                                break
-                    if not found:
-                        connecting_edges.append((u, v))
-                        # no comparable edges, so add them all
-                        # connecting_edges.extend(list(it.product(c1, c2)))
-
-            # Find the MST of the candidates to eliminiate complexity
-            # (mostly handles singletons, when existing CCs are big this wont
-            #  matter)
-            candidate_graph = nx.Graph(connecting_edges)
-            mst_edges = list(nx.minimum_spanning_tree(candidate_graph).edges())
-            new_edges.extend(mst_edges)
-
-            target_cc.add_edges_from(mst_edges)
-            assert nx.is_connected(target_cc)
+                aug_edges = list(nx_utils.edge_connected_augmentation(
+                    pos_sub, k=1))
+            new_edges.extend(aug_edges)
         prog.ensure_newline()
 
         for edge in new_edges:
             assert not infr.graph.has_edge(*edge)
-
         return new_edges
-
-        # aug_graph = infr.graph.copy()
-
-    def find_mst_edges(infr):
-        """
-        Find a set of edges that need to be inserted in order to complete the
-        given labeling. Respects the current edges that exist.
-        """
-        import networkx as nx
-        # Find clusters by labels
-        node_to_label = infr.get_node_attrs('name_label')
-        label_to_nodes = ut.group_items(node_to_label.keys(),
-                                        node_to_label.values())
-
-        aug_graph = infr.graph.copy().to_undirected()
-
-        # remove cut edges from augmented graph
-        edge_to_iscut = nx.get_edge_attributes(aug_graph, 'is_cut')
-        cut_edges = [
-            (u, v)
-            for (u, v, d) in aug_graph.edges(data=True)
-            if not (
-                d.get('is_cut') or
-                d.get('decision', UNREV) in [NEGTV]
-            )
-        ]
-        cut_edges = [edge for edge, flag in edge_to_iscut.items() if flag]
-        aug_graph.remove_edges_from(cut_edges)
-
-        # Enumerate cliques inside labels
-        unflat_edges = [list(ut.itertwo(nodes))
-                        for nodes in label_to_nodes.values()]
-        node_pairs = [tup for tup in ut.iflatten(unflat_edges)
-                      if tup[0] != tup[1]]
-
-        # Remove candidate MST edges that exist in the original graph
-        orig_edges = list(aug_graph.edges())
-        candidate_mst_edges = [edge for edge in node_pairs
-                               if not aug_graph.has_edge(*edge)]
-        # randomness prevents chains and visually looks better
-        rng = np.random.RandomState(42)
-
-        def _randint():
-            return 0
-            return rng.randint(0, 100)
-        aug_graph.add_edges_from(candidate_mst_edges)
-        # Weight edges in aug_graph such that existing edges are chosen
-        # to be part of the MST first before suplementary edges.
-        nx.set_edge_attributes(aug_graph, 'weight',
-                               {edge: 0.1 for edge in orig_edges})
-
-        try:
-            # Try linking by time for lynx data
-            aids = list(set(ut.iflatten(candidate_mst_edges)))
-            times = infr.ibs.annots(aids).time
-            node_to_time = ut.dzip(aids, times)
-            time_deltas = np.array([
-                abs(node_to_time[u] - node_to_time[v])
-                for u, v in candidate_mst_edges
-            ])
-            # print('time_deltas = %r' % (time_deltas,))
-            maxweight = vt.safe_max(time_deltas, nans=False, fill=0) + 1
-            time_deltas[np.isnan(time_deltas)] = maxweight
-            time_delta_weight = 10 * time_deltas / (time_deltas.max() + 1)
-            is_comp = infr.guess_if_comparable(candidate_mst_edges)
-            comp_weight = 10 * (1 - is_comp)
-            extra_weight = comp_weight + time_delta_weight
-
-            # print('time_deltas = %r' % (time_deltas,))
-            nx.set_edge_attributes(
-                aug_graph, 'weight', {
-                    edge: 10.0 + extra for edge, extra in
-                    zip(candidate_mst_edges, extra_weight)})
-        except Exception:
-            infr.print('FAILED WEIGHTING USING TIME')
-            nx.set_edge_attributes(aug_graph, 'weight',
-                                   {edge: 10.0 + _randint()
-                                    for edge in candidate_mst_edges})
-        new_edges = []
-        for cc_sub_graph in nx.connected_component_subgraphs(aug_graph):
-            mst_sub_graph = nx.minimum_spanning_tree(cc_sub_graph)
-            # Only add edges not in the original graph
-            for edge in mst_sub_graph.edges():
-                if not infr.has_edge(edge):
-                    new_edges.append(e_(*edge))
-        return new_edges
-
-    def ensure_mst(infr):
-        """
-        Use minimum spannning tree to ensure all names are connected
-        Needs to be applied after any operation that adds/removes edges if we
-        want to maintain that name labels must be connected in some way.
-        """
-        infr.print('ensure_mst', 1)
-        new_edges = infr.find_mst_edges()
-        # Add new MST edges to original graph
-        infr.print('adding %d MST edges' % (len(new_edges)), 2)
-        infr.graph.add_edges_from(new_edges)
-        infr.set_edge_attrs('_dummy_edge', ut.dzip(new_edges, [True]))
-
-    def review_dummy_edges(infr, method=1):
-        """
-        Creates just enough dummy reviews to maintain a consistent labeling if
-        relabel_using_reviews is called. (if the existing edges are consistent).
-        """
-        infr.print('review_dummy_edges', 2)
-        if method == 'clique':
-            new_edges = infr.find_clique_edges()
-        elif method == 2:
-            new_edges = infr.find_mst_edges2()
-        elif method == 1:
-            new_edges = infr.find_mst_edges()
-        elif method == 3:
-            new_edges = infr.find_connecting_edges()
-        infr.print('reviewing %s dummy edges' % (len(new_edges),), 1)
-        # TODO apply set of new edges in bulk
-        for u, v in new_edges:
-            infr.add_feedback((u, v), decision=POSTV, confidence='guessing',
-                               user_id='dummy', verbose=False)
 
 
 class AssertInvariants(object):

@@ -1315,4 +1315,4 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()  # for win32
     import utool as ut  # NOQA
-    ut.doctest_funcs()
+    .doctest_funcs()

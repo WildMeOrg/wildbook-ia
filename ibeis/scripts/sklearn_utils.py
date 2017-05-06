@@ -1,6 +1,8 @@
 from __future__ import print_function, division
 # import warnings
 import numpy as np
+import utool as ut
+import pandas as pd
 
 from sklearn.utils.validation import check_array
 # from sklearn.utils import check_random_state
@@ -186,3 +188,100 @@ def temp(samples):
     splitter = sklearn_utils.StratifiedGroupKFold(n_splits=n_splits)
     idxs = list(splitter.split(X=X, y=y, groups=groups))
     check_balance(idxs)
+
+
+def classification_report2(y_true, y_pred, target_names=None,
+                           sample_weight=None, verbose=True):
+    import sklearn.metrics
+    from sklearn.preprocessing import LabelEncoder
+
+    if target_names is None:
+        lb = LabelEncoder()
+        lb.fit(np.hstack([y_true, y_pred]))
+        y_true_ = lb.transform(y_true)
+        y_pred_ = lb.transform(y_pred)
+        target_names = lb.classes_
+    else:
+        y_true_ = y_true
+        y_pred_ = y_pred
+
+    cm = sklearn.metrics.confusion_matrix(
+        y_true_, y_pred_, sample_weight=sample_weight)
+    confusion = cm  # NOQA
+
+    k = len(cm)
+    N = cm.sum()
+
+    real_total = cm.sum(axis=1)
+    pred_total = cm.sum(axis=0)
+
+    n_tps = np.diag(cm)
+    tprs = n_tps / real_total
+    tpas = n_tps / pred_total
+
+    rprob = real_total / N
+    pprob = pred_total / N
+
+    # bookmaker is analogous to recall
+    rprob_mat = np.tile(rprob, [k, 1]).T - (1 - np.eye(k))
+    bmcm = cm.T / rprob_mat
+    bms = np.sum(bmcm.T, axis=0) / N
+
+    # markedness is analogous to precision
+    pprob_mat = np.tile(pprob, [k, 1]).T - (1 - np.eye(k))
+    mkcm = cm / pprob_mat
+    mks = np.sum(mkcm.T, axis=0) / N
+
+    perclass_data = ut.odict([
+        ('precision', tpas),
+        ('recall', tprs),
+        ('markedness', mks),
+        ('bookmaker', bms),
+        ('mcc', np.sign(bms) * np.sqrt(np.abs(bms * mks))),
+        ('support', real_total),
+    ])
+    tpa = np.nansum(tpas * rprob)
+    tpr = np.nansum(tprs * rprob)
+    mk = np.nansum(mks * rprob)
+    bm = np.nansum(bms * pprob)
+
+    combined_data = ut.odict([
+        ('precision', tpa),
+        ('recall', tpr),
+        ('markedness', mk),
+        ('bookmaker', bm),
+        ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+        ('support', real_total.sum())
+    ])
+
+    if target_names is None:
+        target_names = list(range(k))
+    index = pd.Series(target_names, name='class')
+
+    perclass_df = pd.DataFrame(perclass_data, index=index)
+    combined_df = pd.DataFrame(combined_data, index=['ave/sum'])
+    metric_df = pd.concat([perclass_df, combined_df])
+    metric_df.index.name = 'class'
+    metric_df.columns.name = 'metric'
+
+    pred_id = ['%s' % m for m in target_names]
+    real_id = ['%s' % m for m in target_names]
+    confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
+    confusion_df = confusion_df.append(pd.DataFrame(
+        [confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
+    confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), [np.nan]])
+    confusion_df.index.name = 'real'
+    confusion_df.columns.name = 'pred'
+
+    if verbose:
+        cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
+        print('Confusion Matrix (real × pred) :')
+        print(ut.hz_str('    ', cfsm_str))
+
+        # ut.cprint('\nExtended Report', 'turquoise')
+        print('\nEvaluation Metric Report:')
+        precision = 2
+        float_format = '%.' + str(precision) + 'f'
+        ext_report = metric_df.to_string(float_format=float_format)
+        print(ut.hz_str('    ', ext_report))
+    return metric_df, confusion_df
