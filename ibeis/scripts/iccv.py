@@ -199,9 +199,11 @@ def iccv_roc():
     pt.qtensure()
     from ibeis.scripts.script_vsone import OneVsOneProblem
     clf_key = 'RF'
-    data_key = 'learn(sum,glob)'
+    data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state']
     pblm = OneVsOneProblem.from_aids(ibs, aids=expt_aids, verbose=1)
+    pblm.default_clf_key = clf_key
+    pblm.default_data_key = data_key
     pblm.load_features()
     pblm.load_samples()
     pblm.build_feature_subsets()
@@ -336,6 +338,8 @@ def end_to_end():
         python -m ibeis.scripts.iccv end_to_end --show --db PZ_MTEST
         python -m ibeis.scripts.iccv end_to_end --show --db PZ_Master1
         python -m ibeis.scripts.iccv end_to_end --show --db GZ_Master1
+        python -m ibeis.scripts.iccv end_to_end --db PZ_Master1
+        python -m ibeis.scripts.iccv end_to_end --db GZ_Master1
 
     Example:
         >>> from ibeis.scripts.iccv import *  # NOQA
@@ -350,17 +354,23 @@ def end_to_end():
     # TRAINING
 
     clf_key = 'RF'
-    data_key = 'learn(sum,glob)'
+    # data_key = 'learn(sum,glob)'
+    data_key = 'learn(sum,glob,4)'
     task_keys = ['match_state', 'photobomb_state']
     pblm = OneVsOneProblem.from_aids(ibs=ibs, aids=train_aids, verbose=1)
+    pblm.default_clf_key = clf_key
+    pblm.default_data_key = data_key
     pblm.load_features()
     pblm.load_samples()
     pblm.build_feature_subsets()
 
+    pblm.print_featinfo(data_key)
+
     train_cfgstr = ibs.get_annot_hashid_visual_uuid(train_aids)
 
     # Figure out what the thresholds should be
-    thresh_cacher = ut.Cacher('clf_thresh', cfgstr=train_cfgstr + 'v3',
+    thresh_cacher = ut.Cacher('clf_thresh',
+                              cfgstr=train_cfgstr + data_key + 'v3',
                               enabled=False)
     fpr_thresholds = thresh_cacher.tryload()
     if fpr_thresholds is None:
@@ -379,13 +389,15 @@ def end_to_end():
             for fpr in [0, .001, .005, .01]
         }
         for fpr, thresh_df in fpr_thresholds.items():
-            pass
-            # fpr_thresholds
-        # import pprint
+            # disable notcomp thresholds due to training issues
+            thresh_df['notcomp'] = max(1.0, thresh_df['notcomp'])
+            # ensure thresholds are over .5
+            thresh_df['match'] = max(.51, thresh_df['match'])
+            thresh_df['nomatch'] = max(.51, thresh_df['nomatch'])
         print('fpr_thresholds = %s' % (ut.repr3(fpr_thresholds),))
         thresh_cacher.save(fpr_thresholds)
 
-    clf_cacher = ut.Cacher('deploy_clf_', cfgstr=train_cfgstr)
+    clf_cacher = ut.Cacher('deploy_clf_v2_', cfgstr=train_cfgstr + data_key)
     pblm.deploy_task_clfs = clf_cacher.tryload()
     if pblm.deploy_task_clfs is None:
         pblm.learn_deploy_classifiers(task_keys, data_key=data_key,
@@ -416,8 +428,10 @@ def end_to_end():
     # test_aids = ut.flatten(names[1::2][0:4])
     # test_aids = ut.flatten(names[1::2][::2])
     complete_thresh = .95
-    ranking_loops = 2
-    graph_loops = np.inf
+    # graph_loops = np.inf
+    ranking_loops = 1
+    graph_loops = 2
+    # np.inf
     expt_dials = [
         {
             'name': 'Ranking',
@@ -453,7 +467,7 @@ def end_to_end():
             'max_loops': graph_loops,
         },
     ]
-    oracle_accuracy = .98
+    oracle_accuracy = .99
     expt_dials += [
         {
             'name': 'Ranking+Error',
@@ -500,7 +514,7 @@ def end_to_end():
     expt_metrics = {}
     # idx_list = list(range(0, 3))
     # idx_list = list(range(0, 6))
-    idx_list = [5]
+    idx_list = [3, 4, 5]
 
     for idx in idx_list:
         dials = expt_dials[idx]
@@ -511,16 +525,22 @@ def end_to_end():
         run_expt(infr, dials=dials)
         metrics_df = pd.DataFrame.from_dict(infr.metrics_list)
         # infr.non_complete_pcc_pairs().__next__()
+        # Remove non-transferable attributes
+        infr.ibs = None
+        infr.qreq_ = None
+        infr.vsmany_qreq_ = None
         expt_metrics[idx] = (dials, metrics_df, infr)
 
     ut.cprint('SAVE ETE', 'green')
 
     expt_cfgstr = ibs.get_annot_hashid_visual_uuid(expt_aids)
     import pathlib
-    fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
+    # fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
     expt_dname = '_'.join(['ete_expt', ibs.dbname, ut.timestamp()])
     expt_dpath = fig_dpath.joinpath(expt_dname)
-    expt_dpath.mkdir(exist_ok=True)
+    ut.ensuredir(str(expt_dpath))
+    # expt_dpath.mkdir(exist_ok=True)
     from six.moves import cPickle as pickle
 
     for count, (dials, metrics_df, infr) in expt_metrics.items():
@@ -546,20 +566,20 @@ def end_to_end():
 
 def draw_ete(dbname):
     """
-    rsync -r hyrule:ete* ~/latex/crall-iccv-2017/figures
-    rsync -r lev:code/ibeis/ete* ~/latex/crall-iccv-2017/figures
-    rsync -r lev:ete* ~/latex/crall-iccv-2017/figures
-
-    Args:
-        dbname (?):
+    rsync -r hyrule:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
+    rsync -r    lev:latex/crall-iccv-2017/figures/ete_expt* ~/latex/crall-iccv-2017/figures
 
     CommandLine:
-        python -m ibeis.scripts.iccv draw_ete --show
+        python -m ibeis.scripts.iccv draw_ete --db PZ_Master1
+        python -m ibeis.scripts.iccv draw_ete --db GZ_Master1
+        python -m ibeis.scripts.iccv draw_ete --db PZ_MTEST --show
 
     Example:
         >>> # DISABLE_DOCTEST
         >>> from ibeis.scripts.iccv import *  # NOQA
+        >>> dbname = 'GZ_Master1'
         >>> dbname = 'PZ_MTEST'
+        >>> dbname = 'PZ_Master1'
         >>> dbname = ut.get_argval('--db', default=dbname)
         >>> draw_ete(dbname)
     """
@@ -569,7 +589,8 @@ def draw_ete(dbname):
     pt.qtensure()
 
     import pathlib
-    fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
+    # fig_dpath = pathlib.Path('~/latex/crall-iccv-2017/figures').expanduser()
+    fig_dpath = pathlib.Path(ut.truepath('~/latex/crall-iccv-2017/figures'))
     possible_expts = sorted(fig_dpath.glob('ete_expt_' + dbname + '*'))[::-1]
     for dpath in possible_expts:
         if not any(p.is_file() for p in dpath.rglob('*')):
@@ -577,15 +598,55 @@ def draw_ete(dbname):
     possible_expts = sorted(fig_dpath.glob('ete_expt_' + dbname + '*'))[::-1]
     assert len(possible_expts) > 0, 'no ete expts found'
     expt_dpath = possible_expts[0]
-    infos_ = [
-        ut.load_cPkl(str(fpath))
-        for fpath in expt_dpath.glob('*.cPkl')
-    ]
+
+    infos_ = []
+    for fpath in expt_dpath.glob('*.cPkl'):
+        x = ut.load_cPkl(str(fpath))
+        infr = x['infr']
+        print('DIALS')
+        print(ut.repr4(x['dials']))
+        if getattr(infr, 'vsmany_qreq_', None) is not None:
+            infr.vsmany_qreq_ = None
+            ut.save_cPkl(str(fpath), x)
+        infos_.append(x)
+        if False:
+            infr.show(groupby='orig_name_label')
+        if True:
+            from ibeis.algo.hots.graph_iden_utils import (
+                bridges_inside, bridges_cross)
+
+            groups_nid = ut.ddict(list)
+            groups_type = ut.ddict(list)
+            for edge, error in list(infr.error_edges()):
+                print('error = %s' % (ut.repr2(error),))
+                data = infr.graph.get_edge_data(*edge)
+                print('user_id = %r' % (data['user_id'],))
+                aid1, aid2 = edge
+                nid1 = infr.graph.node[aid1]['orig_name_label']
+                nid2 = infr.graph.node[aid2]['orig_name_label']
+                cc1 = infr.nid_to_gt_cc[nid1]
+                cc2 = infr.nid_to_gt_cc[nid2]
+                print('nid1, nid2 = %r, %r' % (nid1, nid2))
+                print('len1, len2 = %r, %r' % (len(cc1), len(cc2)))
+                list(ut.nx_edges_between(infr.graph, cc1, cc2))
+                groups_type[(error['real'], error['pred'])].append(edge)
+                groups_nid[(nid1, nid2)].append((edge, error))
+            print('error breakdown: %r' % ut.map_dict_vals(len, groups_type))
+
+            for (real, pred), edges in groups_type.items():
+                for edge in edges:
+                    nid1 = infr.graph.node[aid1]['orig_name_label']
+                    nid2 = infr.graph.node[aid2]['orig_name_label']
 
     infos = {info['dials']['name']: info
              for info in infos_ if 'Error' in info['dials']['name']}
 
     # xmax = 2000
+    alias = {
+        'Ranking+Classifier,fpr=0+Error': 'Ranking+Classifier',
+        'Graph,K=2,fpr=.001+Error': 'Graph',
+    }
+
 
     import matplotlib as mpl
     tmprc = {
@@ -611,7 +672,7 @@ def draw_ete(dbname):
         pt.plt.plot(
             metrics['n_manual'],
             metrics['n_merge_remain'], '-',
-            label=dials['name'],
+            label=alias.get(dials['name'], dials['name']),
             # color=colors[count],
         )
     # ax.set_xlim(0,xmax)
@@ -623,6 +684,7 @@ def draw_ete(dbname):
     ax = pt.gca()
     for ete_info in infos.values():
         infr = ete_info['infr']
+        species = ete_info['species']
 
         count = ete_info['expt_count']
         metrics = ete_info['metrics_df']
@@ -631,7 +693,7 @@ def draw_ete(dbname):
         pt.plt.plot(
             metrics['n_manual'],
             metrics['n_errors'], '-',
-            label=dials['name'],
+            label=alias.get(dials['name'], dials['name']),
             # color=colors[count],
         )
     # ax.set_xlim(0,xmax)
@@ -639,12 +701,12 @@ def draw_ete(dbname):
     ax.set_xlabel('# manual reviews')
     ax.set_ylabel('# of errors')
     ax.legend()
-    pt.set_figtitle('Identification performance', fontweight='normal',
-                    fontfamily='DejaVu Sans')
+    pt.set_figtitle('Identification performance for %s' % (species,),
+                    fontweight='normal', fontfamily='DejaVu Sans')
 
-    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9, wspace=.25,
+    pt.adjust_subplots(top=.85, bottom=.2, left=.07, right=.98, wspace=.12,
                        hspace=.2)
-    fig.set_size_inches([7.4375,  3.125])
+    fig.set_size_inches([1.5 * 7.4375,  3.125])
     # fig_fpath = splitext(info_fpath)[0] + '.png'
     plot_fpath = expt_dpath.joinpath('ete_%s.png' % (dbname))
     fig.savefig(str(plot_fpath))
@@ -689,18 +751,7 @@ def run_expt(infr, dials):
 
     infr.init_refresh_criteria()
 
-    for count in it.count(0):
-        if count >= dials['max_loops']:
-            # Just do a maximum of some number of runs for now
-            ut.cprint('Early stop', 'blue')
-            break
-        ut.cprint('Outer loop iter %d ' % (count,), 'blue')
-        infr.refresh_candidate_edges(**cand_kw)
-
-        if not len(infr.queue):
-            ut.cprint('Queue is empty. Terminate.', 'blue')
-            break
-
+    def inner_loop():
         ut.cprint('Start inner loop', 'blue')
         while True:
             if len(infr.queue) == 0:
@@ -724,6 +775,26 @@ def run_expt(infr, dials):
                     error, review = infr.oracle_review(edge, oracle_accuracy,
                                                        rng)
             infr.add_feedback(edge=edge, apply=True, rectify=False, **review)
+
+    for count in it.count(0):
+        if count >= dials['max_loops']:
+            # Just do a maximum of some number of runs for now
+            ut.cprint('Early stop', 'blue')
+            break
+        ut.cprint('Outer loop iter %d ' % (count,), 'blue')
+        infr.refresh_candidate_edges(**cand_kw)
+
+        if not len(infr.queue):
+            ut.cprint('Queue is empty. Terminate.', 'blue')
+            break
+
+        inner_loop()
+
+        if infr.method == 'graph':
+            # Fix anything that is not positive/negative redundant
+            infr.refresh_candidate_edges(ranking=False, **cand_kw)
+            inner_loop()
+
 
     if infr.method == 'graph':
         # Enforce that a user checks any PCC that was auto-reviewed

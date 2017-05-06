@@ -1038,6 +1038,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 cols = set.difference(cols, view_cols)
                 X_dict['learn(sum,glob,-view)'] = featinfo.X[sorted(cols)]
 
+            if 1:
+                cols = featinfo.select_columns([
+                    ('measure_type', '==', 'summary'),
+                ])
+                cols.update(featinfo.select_columns([
+                    ('measure_type', '==', 'global'),
+                ]))
+                cols = [c for c in cols if 'lnbnn' not in c]
+                X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
+
         if True:
             # Only allow very specific summary features
             summary_cols = featinfo.select_columns([
@@ -1117,14 +1127,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 X_dict['learn(sum,glob,3,+view)'] = featinfo.X[sorted(cols)]
 
             # if 0:
-            #     summary_cols_ = summary_cols.copy()
-            #     summary_cols_ = [c for c in summary_cols_ if 'lnbnn' not in c]
-            #     cols = set([])
-            #     cols.update(summary_cols_)
-            #     cols.update(global_cols)
-            #     X_dict['learn(sum,glob,4)'] = featinfo.X[sorted(cols)]
-
-            # if 0:
             #     cols = set([])
             #     cols.update(summary_cols)
             #     cols.update(global_cols)
@@ -1137,6 +1139,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             #     ]))
             #     X_dict['learn(loc,sum,glob,5)'] = featinfo.X[sorted(cols)]
         pblm.samples.X_dict = X_dict
+
+    def print_featinfo(pblm, data_key=None):
+        if data_key is None:
+            data_key = pblm.default_data_key
+        X = pblm.samples.X_dict[data_key]
+        featinfo = AnnotPairFeatInfo(X)
+        print(featinfo.get_infostr())
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """

@@ -118,10 +118,15 @@ def predict_proba_df(clf, X_df, class_names=None):
         columns = ut.take(class_names, clf.classes_)
     else:
         columns = None
-    probs_df = pd.DataFrame(
-        clf.predict_proba(X_df),
-        columns=columns, index=X_df.index
-    )
+    try:
+        probs = clf.predict_proba(X_df)
+    except ValueError:
+        # solves a problem when values are infinity for whatever reason
+        X = X_df.values.copy()
+        X[~np.isfinite(X)] = np.nan
+        probs = clf.predict_proba(X)
+
+    probs_df = pd.DataFrame(probs, columns=columns, index=X_df.index)
     # add in zero probability for classes without training data
     if class_names is not None:
         missing = ut.setdiff(class_names, columns)
