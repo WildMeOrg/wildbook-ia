@@ -983,15 +983,18 @@ class Chap3Measures(object):
 
     def measure_nsum(self):
         """
-        python -m ibeis Chap3.measure smk --dbs=GZ_Master1,PZ_Master1
-        python -m ibeis Chap3.draw smk --dbs=GZ_Master1,PZ_Master1 --diskshow
+        python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+        python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1 --diskshow
 
-        self = Chap3('PZ_MTEST')
+        from ibeis.scripts.thesis import *
         self = Chap3('GZ_Master1')
+        self = Chap3('PZ_Master1')
+        self = Chap3('PZ_MTEST')
         self._precollect()
         """
         ibs, qaids, daids_list, info_list = self._varied_inputs(
             denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
+
         base = {'query_rotation_heuristic': True}
         cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
         cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
@@ -1003,7 +1006,14 @@ class Chap3Measures(object):
             results.append((cdf2, ut.update_dict(info.copy(), {'pcfg': cfgdict2})))
 
         if False:
+            self._precollect()
+            ibs, qaids, daids_list, info_list = self._varied_inputs(
+                denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
             # Check dpername issue
+            base = {'query_rotation_heuristic': False, 'K': 1}
+            cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
+            cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
+
             info = {}
             daids = daids_list[0]
             a = ibs.annots(daids)
@@ -1012,13 +1022,22 @@ class Chap3Measures(object):
             qreq1_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict1)
             qreq2_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict2)
 
-            cm_list1 = [cm.extend_results(qreq1_) for cm in qreq1_.execute()]
-            cm_list2 = [cm.extend_results(qreq2_) for cm in qreq2_.execute()]
+            cm_list1 = qreq1_.execute()
+            cm_list2 = qreq2_.execute()
+
+            cm_list1 = [cm.extend_results(qreq1_) for cm in cm_list1]
+            cm_list2 = [cm.extend_results(qreq2_) for cm in cm_list2]
+
+            cm_list1 = [cm.compress_results() for cm in cm_list1]
+            cm_list2 = [cm.compress_results() for cm in cm_list2]
 
             name_ranks1 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list1]
             name_ranks2 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list2]
 
             idxs = np.where(np.array(name_ranks1) != np.array(name_ranks2))[0]
+            print(idxs)
+            print(ut.take(name_ranks1, idxs))
+            print(ut.take(name_ranks2, idxs))
             if len(idxs) > 0:
                 cm1 = cm_list1[idxs[0]]  # NOQA
                 cm2 = cm_list2[idxs[0]]  # NOQA

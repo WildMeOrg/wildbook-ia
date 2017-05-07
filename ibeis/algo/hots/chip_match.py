@@ -2207,6 +2207,11 @@ class ChipMatch(_ChipMatchVisualization,
     def _cast_scores(cm, dtype=np.float):
         cm.fsv_list = [fsv.astype(dtype) for fsv in cm.fsv_list]
 
+    def compress_results(cm, inplace=False):
+        flags = [len(fm) > 1 for fm in cm.fm_list]
+        out = cm.compress_annots(flags, inplace=inplace)
+        return out
+
     def extend_results(cm, qreq_, other_aids=None):
         """
         Return a new ChipMatch containing empty data for an extended set of
@@ -2346,6 +2351,8 @@ class ChipMatch(_ChipMatchVisualization,
 
     def take_annots(cm, idx_list, inplace=False, keepscores=True):
         """
+        Keeps results only for the selected annotation indices.
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
@@ -2398,12 +2405,25 @@ class ChipMatch(_ChipMatchVisualization,
                 out.algo_annot_scores[key] = safeop(vt.take2, cm.algo_annot_scores[key], idx_list)
 
             # Name Scores
-            # TODO; remove score of names that were removed?
-            out.nid2_nidx = cm.nid2_nidx
-            out.unique_nids = cm.unique_nids
-            out.name_score_list = cm.name_score_list
-            for key in out.algo_name_scores.keys():
-                out.algo_name_scores[key] = cm.algo_name_scores[key]
+            if True:
+                nidxs_subset = ut.take(cm.nid2_nidx, out.dnid_list)
+                out.unique_nids = safeop(vt.take2, cm.unique_nids, nidxs_subset)
+                out.name_score_list = safeop(vt.take2, cm.name_score_list, nidxs_subset)
+                for key in out.algo_name_scores.keys():
+                    subset = safeop(vt.take2, cm.algo_name_scores[key], nidxs_subset)
+                    out.algo_name_scores[key] = subset
+                out.nid2_nidx = None
+                out.name_groupxs = None
+            else:
+                # Name Scores
+                # TODO: remove score of names that were removed?
+                out.nid2_nidx = cm.nid2_nidx
+                out.unique_nids = cm.unique_nids
+                out.name_score_list = cm.name_score_list
+
+                for key in out.algo_name_scores.keys():
+                    out.algo_name_scores[key] = cm.algo_name_scores[key]
+
         out._update_daid_index()
         out._update_unique_nid_index()
         return out
