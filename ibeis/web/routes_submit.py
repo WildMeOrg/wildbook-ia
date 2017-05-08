@@ -392,6 +392,7 @@ def submit_annotation(**kwargs):
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
+        print(request.form)
         try:
             viewpoint = int(request.form['ia-annotation-viewpoint-value'])
         except ValueError:
