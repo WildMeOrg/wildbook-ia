@@ -1862,14 +1862,17 @@ def turk_annotation(**kwargs):
         # image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
         viewpoint_text = ibs.get_annot_viewpoints(aid)
+        print('*' * 400)
+        print('VIEWPOINT_TEXT', viewpoint_text, )
+        print('*' * 400)
         viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
         quality_value = ibs.get_annot_qualities(aid)
         if quality_value in [-1, None]:
-            quality_value = None
+            quality_value = -1
         elif quality_value > 2:
-            quality_value = 2
-        elif quality_value <= 2:
             quality_value = 1
+        elif quality_value <= 2:
+            quality_value = 0
         multiple_value = ibs.get_annot_multiple(aid) == 1
     else:
         try:
@@ -1881,9 +1884,9 @@ def turk_annotation(**kwargs):
         gpath     = None
         image_src = None
         species   = None
-        viewpoint_value = None
-        quality_value = None
-        multiple_value = None
+        viewpoint_value = -1
+        quality_value = -1
+        multiple_value = False
 
     imagesettext = ibs.get_imageset_text(imgsetid)
 

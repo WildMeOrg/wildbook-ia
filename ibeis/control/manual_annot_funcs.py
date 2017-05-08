@@ -1663,7 +1663,7 @@ def set_annot_viewpoints(ibs, aid_list, viewpoint_list, only_allow_known=True,
         current_viewpoint_list = ibs.get_annot_viewpoints(aid_list)
         zipped = zip(viewpoint_list, current_viewpoint_list)
         viewpoint_list = [
-            viewpoint if viewpoint in const.YAWALIAS else current_viewpoint
+            viewpoint if viewpoint in const.YAWALIAS or viewpoint is None else current_viewpoint
             for viewpoint, current_viewpoint in zipped
         ]
     val_iter = ((viewpoint, ) for viewpoint in viewpoint_list)

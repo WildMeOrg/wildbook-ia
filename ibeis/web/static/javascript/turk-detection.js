@@ -374,6 +374,7 @@ $(window).keydown(function(event) {
 
         if ( ! hotkeys_disabled) {
             state = states.active
+            console.log(state)
             if (state == null) {
                 return
             }

@@ -41,7 +41,10 @@ VIEWPOINT_MAPPING = {
     6: 'back',
     7: 'backleft',
 }
-VIEWPOINT_MAPPING_INVERT = { value: key for key, value in VIEWPOINT_MAPPING.items()}
+VIEWPOINT_MAPPING_INVERT = {
+    value: key for key, value in VIEWPOINT_MAPPING.items()
+    if key is not None
+}
 
 
 class NavbarClass(object):

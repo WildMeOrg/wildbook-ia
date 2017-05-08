@@ -312,7 +312,7 @@ def submit_viewpoint(**kwargs):
         viewpoint = int(request.form['viewpoint-value'])
         viewpoint_text = appf.VIEWPOINT_MAPPING.get(viewpoint, None)
         species_text = request.form['viewpoint-species']
-        ibs.set_annot_viewpoints([aid], [viewpoint_text], input_is_degrees=False)
+        ibs.set_annot_viewpoints([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
         print('[web] turk_id: %s, aid: %d, viewpoint_text: %s' % (turk_id, aid, viewpoint_text))
     # Return HTML
@@ -353,7 +353,7 @@ def submit_annotation(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    elif method.lower() == 'rotate left':
+    elif method.lower() == u'left 90\xb0':
         theta = ibs.get_annot_thetas(aid)
         theta = (theta + PI / 2) % TAU
         ibs.set_annot_thetas(aid, theta)
@@ -371,7 +371,7 @@ def submit_annotation(**kwargs):
             else:
                 redirection = '%s?aid=%d' % (redirection, aid, )
         return redirect(redirection)
-    elif method.lower() == 'rotate right':
+    elif method.lower() == u'right 90\xb0':
         theta = ibs.get_annot_thetas(aid)
         theta = (theta - PI / 2) % TAU
         ibs.set_annot_thetas(aid, theta)
@@ -392,30 +392,34 @@ def submit_annotation(**kwargs):
     else:
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
-        print(request.form)
         try:
             viewpoint = int(request.form['ia-annotation-viewpoint-value'])
         except ValueError:
             viewpoint = int(float(request.form['ia-annotation-viewpoint-value']))
         viewpoint_text = appf.VIEWPOINT_MAPPING.get(viewpoint, None)
         species_text = request.form['ia-annotation-species']
-        ibs.set_annot_viewpoints([aid], [viewpoint_text], input_is_degrees=False)
-        ibs.set_annot_species([aid], [species_text])
         try:
             quality = int(request.form['ia-quality-value'])
         except ValueError:
             quality = int(float(request.form['ia-quality-value']))
-        if quality == 1:
+        if quality in [-1, None]:
+            quality = None
+        elif quality == 0:
             quality = 2
-        elif quality == 2:
+        elif quality == 1:
             quality = 4
         else:
-            raise ValueError('quality must be 1 or 2')
+            raise ValueError('quality must be -1, 0 or 1')
+        print('*' * 400)
+        print('VIEWPOINT_TEXT', viewpoint_text, )
+        print('*' * 400)
+        ibs.set_annot_viewpoints([aid], [viewpoint_text])
+        ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_qualities([aid], [quality])
         multiple = 1 if 'ia-multiple-value' in request.form else 0
         ibs.set_annot_multiple([aid], [multiple])
         ibs.set_annot_reviewed([aid], [1])
-        print('[web] turk_id: %s, aid: %d, viewpoint: %s, quality: %d, multiple: %r' % (turk_id, aid, viewpoint_text, quality, multiple))
+        print('[web] turk_id: %s, aid: %d, viewpoint: %r, quality: %r, multiple: %r' % (turk_id, aid, viewpoint_text, quality, multiple))
     # Return HTML
     refer = request.args.get('refer', '')
     if len(refer) > 0:
