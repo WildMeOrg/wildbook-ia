@@ -1745,7 +1745,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
         orientation_flag = '1'
 
     settings_key_list = [
-        ('ia-detection-setting-orientation', orientation_flag,
+        ('ia-detection-setting-orientation', orientation_flag),
         ('ia-detection-setting-parts-assignments', '1'),
         ('ia-detection-setting-toggle-annotations', '1'),
         ('ia-detection-setting-toggle-parts', '0'),
