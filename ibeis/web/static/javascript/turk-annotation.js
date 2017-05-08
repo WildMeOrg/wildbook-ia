@@ -136,7 +136,7 @@ $(window).keydown(function(event) {
       // 56 == numeric key 8
       // 57 == numeric key 9
       if (key == 48) {
-        $("#ia-annotation-viewpoint").val(value);
+        $("#ia-annotation-viewpoint").val(-1);
       } else {
         value = key - 49; // offset by 49 so that the number one is the value of 0
         $("#ia-annotation-viewpoint").val(value);

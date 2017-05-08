@@ -410,9 +410,6 @@ def submit_annotation(**kwargs):
             quality = 4
         else:
             raise ValueError('quality must be -1, 0 or 1')
-        print('*' * 400)
-        print('VIEWPOINT_TEXT', viewpoint_text, )
-        print('*' * 400)
         ibs.set_annot_viewpoints([aid], [viewpoint_text])
         ibs.set_annot_species([aid], [species_text])
         ibs.set_annot_qualities([aid], [quality])

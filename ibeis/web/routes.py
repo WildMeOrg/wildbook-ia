@@ -1585,9 +1585,16 @@ def _make_review_image_info(ibs, gid):
 
 
 @register_route('/turk/detection/', methods=['GET'])
-def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwargs):
+def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, config=None, **kwargs):
 
     ibs = current_app.ibs
+
+    if config is None:
+        config = {
+            'autointerest': True,
+            'metadata': False,
+            'parts': False,
+        }
 
     imgsetid = None if imgsetid == '' or imgsetid == 'None' else imgsetid
     gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
@@ -1762,6 +1769,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, **kwa
     return appf.template('turk', 'detection',
                          imgsetid=imgsetid,
                          gid=gid,
+                         config=config,
                          refer_aid=refer_aid,
                          species=species,
                          image_path=gpath,
@@ -1862,10 +1870,7 @@ def turk_annotation(**kwargs):
         # image_src = routes_ajax.annotation_src(aid)
         species   = ibs.get_annot_species_texts(aid)
         viewpoint_text = ibs.get_annot_viewpoints(aid)
-        print('*' * 400)
-        print('VIEWPOINT_TEXT', viewpoint_text, )
-        print('*' * 400)
-        viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
+        viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
         quality_value = ibs.get_annot_qualities(aid)
         if quality_value in [-1, None]:
             quality_value = -1
@@ -1940,7 +1945,7 @@ def turk_annotation_dynamic(**kwargs):
     image_src = appf.embed_image_html(image)
     species   = ibs.get_annot_species_texts(aid)
     viewpoint_text = ibs.get_annot_viewpoints(aid)
-    viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
+    viewpoint_value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
     quality_value = ibs.get_annot_qualities(aid)
     if quality_value == -1:
         quality_value = None
@@ -1997,7 +2002,7 @@ def turk_viewpoint(**kwargs):
     (aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous) = tup
 
     viewpoint_text = ibs.get_annot_viewpoints(aid)
-    value = appf.VIEWPOINT_MAPPING_INVERT[viewpoint_text]
+    value = appf.VIEWPOINT_MAPPING_INVERT.get(viewpoint_text, None)
     review = 'review' in request.args.keys()
     finished = aid is None
     display_instructions = request.cookies.get('ia-viewpoint_instructions_seen', 1) == 0
@@ -2134,7 +2139,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         >>> _init_identification_query_object(ibs)
 
     """
-    from ibeis.algo.hots import graph_iden
+    from ibeis.algo.graph import graph_iden
 
     if ibs.dbname == 'EWT_Cheetahs':
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
@@ -2198,7 +2203,7 @@ def load_identification_query_object(autoinit=False,
         feedback = current_app.QUERY_OBJECT_FEEDBACK_BUFFER.pop()
         print('Popping %r out of QUERY_OBJECT_FEEDBACK_BUFFER' % (feedback, ))
         aid1, aid2, state, tags = feedback
-        query_object.add_feedback(aid1, aid2, state, tags, apply=True)
+        query_object.add_feedback((aid1, aid2), decision=state, tags=tags)
         query_object.GLOBAL_FEEDBACK_COUNTER += 1
 
     return query_object

@@ -9,8 +9,9 @@ function check_form() {
     if (bba.entries.length == 0) {
         return true
     }
-    if (bba.entries.length == 1) {
+    if (bba.entries.length == 1 && config_autointerest) {
         bba.entries[0].highlighted = true
+        bba.refresh()
     }
     for (var index = 0; index < bba.entries.length; index++) {
         if (bba.entries[index].highlighted) {
@@ -38,6 +39,7 @@ function update_metadata_panel(state) {
         "border": "1px solid #333333",
     }
 
+
     if (state == "annotation") {
         active_ids = ["#ia-metadata-badge-annotation"]
         inactive_ids = ["#ia-metadata-badge-part"]
@@ -53,6 +55,11 @@ function update_metadata_panel(state) {
         inactive_ids = ["#ia-metadata-badge-annotation", "#ia-metadata-badge-part"]
         visible_ids = []
         hidden_ids = ['#ia-metadata-panel-annotation', '#ia-metadata-panel-part']
+    }
+
+    if ( ! config_metadata) {
+        hidden_ids.concat(visible_ids)
+        visible_ids = []
     }
 
     for (var index = 0; index < active_ids.length; index++) {
@@ -338,6 +345,7 @@ $(window).keydown(function(event) {
 
     if( ! hotkeys_global_disabled) {
         console.log(key)
+        console.log(states.active)
 
         if (key == 17) {
             // Ctrl pressed

@@ -503,6 +503,7 @@ TODO
     this.BBoxAnnotator = (function() {
         function BBoxAnnotator(url, options) {
             var options
+
             options                              !== undefined || (options = {})
             options.prefix                       !== undefined || (options.prefix = "")
             options.ids                          !== undefined || (options.ids = {})
@@ -771,6 +772,7 @@ TODO
 
                     // Delete key pressed
                     if (bba.options.hotkeys.delete.indexOf(key) != -1) {
+                        console.log(bba.state.focus + " " + bba.state.focus2)
                         if (bba.state.mode == "selector") {
                             bba.selector_cancel(event)
                         } else if (bba.state.mode == "drag") {
@@ -779,6 +781,11 @@ TODO
                             return
                         } else if (bba.state.mode == "resize") {
                             return
+                        } else if (bba.state.focus2 != null) {
+                            bba.focus_entry(bba.state.focus2)
+                            if(bba.state.hover == null) {
+                                bba.subentries_style_visible(null)
+                            }
                         } else if (bba.state.focus != null) {
                             if(bba.state.hover == null || bba.state.hover == bba.state.focus) {
                                 bba.focus_entry(bba.state.focus)
@@ -1820,8 +1827,10 @@ TODO
                 holder = entry.label
                 font = 12
             } else if(entry.parent != null && entry.metadata.type != null && this.options.subentries.label) {
-                holder = entry.metadata.type
-                font = 9
+                if(entry.metadata.type != '____') {
+                    holder = entry.metadata.type
+                    font = 9
+                }
             }
 
             element.label.css({
@@ -1829,7 +1838,10 @@ TODO
             })
 
             // Update label in HTML
-            if (holder != null) {
+            if (holder != null || entry.highlighted) {
+                if(holder == null) {
+                    holder = ''
+                }
                 if(entry.highlighted) {
                     element.label.html(holder + "*")
                 } else {
@@ -1872,6 +1884,8 @@ TODO
 
             entry = this.entries[index]
             entry.metadata = metadata
+
+            this.label_entry(index, entry.label)
 
             this.refresh()
         }
@@ -2574,6 +2588,14 @@ TODO
         }
 
         BBoxAnnotator.prototype.selector_start = function(event) {
+            // Check configuration
+            if (this.state.focus == null && this.options.actions.entry.addition == false) {
+                return
+            }
+            if (this.state.focus != null && this.options.actions.subentry.addition == false) {
+                return
+            }
+
             // Remove any current hover styles
             this.hover_entry(null)
 

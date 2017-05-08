@@ -257,6 +257,10 @@
 
     species_part_dict = JSON.parse('{{ species_part_dict_json|safe }}')
 
+    config_autointerest = {% if config['autointerest'] %}true{% else %}false{% endif %}
+    config_metadata = {% if config['metadata'] %}true{% else %}false{% endif %}
+    config_parts = {% if config['parts'] %}true{% else %}false{% endif %}
+
     hotkeys_disabled = true
     hotkeys_global_disabled = false
     axis2 = true;
@@ -292,69 +296,76 @@
         colors: {
           // anchor: "#FFFFFF",
         },
+        actions: {
+          subentry: {
+            addition: config_parts,
+          },
+        },
         subentries: {
           visible: visible,
           assignments: assignments,
         },
-        onchange: function(entries) {
-          $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));
-        },
-        onhover: function(index, entry) {
-          if(index == null || entry == null) {
-            hotkeys_disabled = true;
-            update_metadata_panel();
-            return
-          }
-          if(entry.parent == null) {
-            update_metadata_panel("annotation");
-            show_annotation_metadata(entry)
-          } else {
-            update_metadata_panel("part");
-            parent = entry.parent
-            parent_entry = bba.entries[parent]
-            show_part_metadata(entry, parent_entry)
-          }
-          hotkeys_disabled = false;
-        },
-        onselector: function() {
-          if(bba.state.focus == null) {
-            update_metadata_panel("annotation");
-          } else {
-            update_metadata_panel("part");
-          }
-        },
-        onfocus: function(index, entry) {
-          // if(index == null || entry == null) {
-          //   return
-          // }
+        callbacks: {
+          onchange: function(entries) {
+            $('#ia-detection-data').text(JSON.stringify(entries, null, "  "));
+          },
+          onhover: function(index, entry) {
+            if(index == null || entry == null) {
+              hotkeys_disabled = true;
+              update_metadata_panel();
+              return
+            }
+            if(entry.parent == null) {
+              update_metadata_panel("annotation");
+              show_annotation_metadata(entry)
+            } else {
+              update_metadata_panel("part");
+              parent = entry.parent
+              parent_entry = bba.entries[parent]
+              show_part_metadata(entry, parent_entry)
+            }
+            hotkeys_disabled = false;
+          },
+          onselector: function() {
+            if(bba.state.focus == null) {
+              update_metadata_panel("annotation");
+            } else {
+              update_metadata_panel("part");
+            }
+          },
+          onfocus: function(index, entry) {
+            // if(index == null || entry == null) {
+            //   return
+            // }
 
-          if(entry == null) {
-            disable_metadata_annotations()
-            disable_metadata_parts()
-          } else {
-            if (entry.parent == null) {
-              enable_metadata_annotations()
+            if(entry == null) {
+              disable_metadata_annotations()
               disable_metadata_parts()
             } else {
-              enable_metadata_parts()
+              if (entry.parent == null) {
+                enable_metadata_annotations()
+                disable_metadata_parts()
+              } else {
+                enable_metadata_parts()
+              }
             }
-          }
 
-          checked_mode = $("#ia-detection-setting-toggle").prop("checked");
+            checked_mode = $("#ia-detection-setting-toggle").prop("checked");
 
-          if(bba.state.focus == null) {
-            $("#ia-detection-setting-toggle-label").html("Annotations")
-            wanted_mode = states.annotations
-          } else {
-            $("#ia-detection-setting-toggle-label").html("Parts")
-            wanted_mode = states.parts
-          }
+            if(bba.state.focus == null) {
+              $("#ia-detection-setting-toggle-label").html("Annotations")
+              wanted_mode = states.annotations
+            } else {
+              $("#ia-detection-setting-toggle-label").html("Parts")
+              wanted_mode = states.parts
+            }
 
-          if(wanted_mode) {
-            $('#ia-detection-setting-toggle').bootstrapToggle('on')
-          } else {
-            $('#ia-detection-setting-toggle').bootstrapToggle('off')
-          }
+            if(wanted_mode) {
+              $('#ia-detection-setting-toggle').bootstrapToggle('on')
+            } else {
+              $('#ia-detection-setting-toggle').bootstrapToggle('off')
+            }
+          },
         },
       });
 
