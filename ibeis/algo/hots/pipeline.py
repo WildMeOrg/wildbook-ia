@@ -228,34 +228,13 @@ def request_ibeis_query_L0(ibs, qreq_, verbose=VERB_PIPELINE):
     cm_list_SVER = spatial_verification(qreq_, cm_list_FILT,
                                         verbose=verbose)
     if cm_list_FILT[0].filtnorm_aids is not None:
-        assert cm_list_SVER[0].filtnorm_aids is not None
+        pass
+        # assert cm_list_SVER[0].filtnorm_aids is not None
 
     cm_list = cm_list_SVER
     # Final Scoring
     score_method = qreq_.qparams.score_method
-    # TODO: move scoring part to pipeline
     scoring.score_chipmatch_list(qreq_, cm_list, score_method)
-    # Normalize scores if requested
-    if qreq_.qparams.score_normalization:
-        normalizer = qreq_.normalizer
-        for cm in cm_list:
-            # cm.prob_list = normalizer.normalize_score_list(cm.score_list)
-            cm.score_list = normalizer.normalize_score_list(cm.score_list)
-            # TODO: DO EITHER ANNOT_SCORE_LIST OR NAME_SCORE_LIST
-            cm.annot_score_list = normalizer.normalize_score_list(cm.annot_score_list)
-            cm.name_score_list = normalizer.normalize_score_list(cm.name_score_list)
-
-    # <HACK>
-    # FOR VSMANY DISTINCTIVENSS
-    if qreq_.qparams.return_expanded_nns:
-        assert qreq_.qparams.vsmany, ' must be in a special vsmany mode'
-        # MAJOR HACK TO RETURN ALL QUERY NEAREST NEIGHBORS
-        # BREAKS PIPELINE CACHING ASSUMPTIONS
-        # SHOULD ONLY BE CALLED BY SPECIAL_QUERY
-        # CAUSES TOO MUCH DATA TO BE SAVED
-        for cm, nns in zip(cm_list, nns_list):
-            cm.qfx2_dist = nns[1]
-    # </HACK>
 
     if VERB_PIPELINE:
         print('[hs] L___ FINISHED HOTSPOTTER PIPELINE ___')
@@ -1257,12 +1236,6 @@ def _spatial_verification(qreq_, cm_list, verbose=VERB_PIPELINE):
     nNameShortList  = qreq_.qparams.nNameShortlistSVER
     nAnnotPerName   = qreq_.qparams.nAnnotPerNameSVER
 
-    # Just in case we are csum scoring, this needs to be computed
-    # FIXME: 'csum' is much faster than 'nsum'
-    # and probably should be used pre-verification
-    #for cm in cm_list:
-    #    cm.evaluate_dnids(qreq_)
-    #prescore_method = 'csum'
     scoring.score_chipmatch_list(qreq_, cm_list, prescore_method)
     cm_shortlist = scoring.make_chipmatch_shortlists(qreq_, cm_list,
                                                      nNameShortList,

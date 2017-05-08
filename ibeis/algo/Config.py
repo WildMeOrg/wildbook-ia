@@ -321,9 +321,6 @@ class AggregateConfig(ConfigBase):
         # chipsum, namesum,
         #agg_cfg.score_method = 'csum'
         agg_cfg.score_method = 'nsum'
-        agg_cfg.score_normalization = None
-        agg_cfg.normsum = False
-        #agg_cfg.score_normalization = True
         alt_methods = {
             'topk': 'topk',
             'chipsum': 'csum',
@@ -345,10 +342,6 @@ class AggregateConfig(ConfigBase):
         agg_cfgstr = []
         agg_cfgstr.append('_AGG(')
         agg_cfgstr.append(agg_cfg.score_method)
-        if agg_cfg.score_normalization:
-            agg_cfgstr.append(',norm')
-        if agg_cfg.normsum:
-            agg_cfgstr.append(',normsum')
         agg_cfgstr.append(')')
         return agg_cfgstr
 
@@ -568,10 +561,6 @@ class QueryConfig(ConfigBase):
         # query_cfg.with_metadata = False
         query_cfg.query_rotation_heuristic = False
         # query_cfg.query_rotation_heuristic = True
-        # for hacky distinctivness
-        query_cfg.return_expanded_nns = False
-        # for distinctivness model
-        # query_cfg.use_external_distinctiveness = False
         query_cfg.codename = 'None'
         query_cfg.species_code = '____'  # TODO: make use of this
         # Depends on feature config
@@ -669,25 +658,7 @@ class QueryConfig(ConfigBase):
         if codename.startswith('vsmany'):
             query_cfg.pipeline_root = 'vsmany'
         elif codename.startswith('vsone'):
-            query_cfg.pipeline_root = 'vsone'
-            nn_cfg.K = 1
-            nn_cfg.Knorm = 1
-            nnweight_cfg.lnbnn_on = False
-            #nnweight_cfg.ratio_thresh = 1.6
-            if codename.endswith('_dist') or '_dist_' in codename:
-                # no ratio use distance
-                nnweight_cfg.ratio_thresh = None
-                nnweight_cfg.dist_on = True
-            else:
-                nnweight_cfg.ratio_thresh = .625
-            if '_ratio' in codename:
-                nnweight_cfg.ratio_thresh = .625
-            # if '_extern_distinctiveness' in codename:
-            #     query_cfg.use_external_distinctiveness = True
-            if codename.startswith('vsone_unnorm'):
-                agg_cfg.score_normalization = None
-            elif codename.startswith('vsone_norm'):
-                agg_cfg.score_normalization = 'vsone_default'
+            assert False, 'no longer supporte'
         elif codename == 'None':
             pass
 
@@ -712,12 +683,6 @@ class QueryConfig(ConfigBase):
         #vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
         agg_cfg = query_cfg.agg_cfg
         #sv_cfg = query_cfg.sv_cfg
-
-        #assert sv_cfg.prescore_method == agg_cfg.score_method, 'cannot be
-        # different yet.'
-
-        if agg_cfg.score_normalization and query_cfg.pipeline_root == 'vsmany':
-            assert agg_cfg.score_method == 'nsum'
 
         hasvalid_root = any([
             query_cfg.pipeline_root.lower() == root.lower()

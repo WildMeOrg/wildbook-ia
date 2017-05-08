@@ -1010,34 +1010,40 @@ class Chap3Measures(object):
             ibs, qaids, daids_list, info_list = self._varied_inputs(
                 denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
             # Check dpername issue
-            base = {'query_rotation_heuristic': False, 'K': 1}
+            base = {'query_rotation_heuristic': False, 'K': 1, 'sv_on': True}
             cfgdict1 = ut.dict_union(base, {'score_method': 'nsum', 'prescore_method': 'nsum'})
             cfgdict2 = ut.dict_union(base, {'score_method': 'csum', 'prescore_method': 'csum'})
+
+            qaids = [2491]
 
             info = {}
             daids = daids_list[0]
             a = ibs.annots(daids)
             daids = a.compress(ut.flag_unique_items(a.nids)).aids
 
-            qreq1_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict1)
-            qreq2_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict2)
 
-            cm_list1 = qreq1_.execute()
-            cm_list2 = qreq2_.execute()
+            while True:
+                qreq1_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict1)
+                qreq2_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict2)
+                cm_list1 = qreq1_.execute(use_cache=False)
+                cm_list2 = qreq2_.execute(use_cache=False)
+                cm1 = cm_list1[0]
+                cm2 = cm_list2[0]
+                assert (cm1 == cm2)
 
-            cm_list1 = [cm.extend_results(qreq1_) for cm in cm_list1]
-            cm_list2 = [cm.extend_results(qreq2_) for cm in cm_list2]
+            # cm_list1 = [cm.extend_results(qreq1_) for cm in cm_list1]
+            # cm_list2 = [cm.extend_results(qreq2_) for cm in cm_list2]
 
-            cm_list1 = [cm.compress_results() for cm in cm_list1]
-            cm_list2 = [cm.compress_results() for cm in cm_list2]
+            # cm_list1 = [cm.compress_results() for cm in cm_list1]
+            # cm_list2 = [cm.compress_results() for cm in cm_list2]
 
             name_ranks1 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list1]
             name_ranks2 = [cm.get_name_ranks([cm.qnid])[0] for cm in cm_list2]
 
             idxs = np.where(np.array(name_ranks1) != np.array(name_ranks2))[0]
-            print(idxs)
-            print(ut.take(name_ranks1, idxs))
-            print(ut.take(name_ranks2, idxs))
+            print('idxs = %r' % (idxs,))
+            print('ranks1 = {}'.format(ut.take(name_ranks1, idxs)))
+            print('ranks2 = {}'.format(ut.take(name_ranks2, idxs)))
             if len(idxs) > 0:
                 cm1 = cm_list1[idxs[0]]  # NOQA
                 cm2 = cm_list2[idxs[0]]  # NOQA
