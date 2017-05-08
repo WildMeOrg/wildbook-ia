@@ -393,10 +393,9 @@ def submit_annotation(**kwargs):
         if src_ag is not None and dst_ag is not None:
             appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
         try:
-            viewpoint = int(request.form['ia-viewpoint-value'])
+            viewpoint = int(request.form['ia-annotation-viewpoint-value'])
         except ValueError:
-            viewpoint = int(float(request.form['ia-viewpoint-value']))
-        viewpoint = int(request.form['viewpoint-value'])
+            viewpoint = int(float(request.form['ia-annotation-viewpoint-value']))
         viewpoint_text = appf.VIEWPOINT_MAPPING.get(viewpoint, None)
         species_text = request.form['ia-annotation-species']
         ibs.set_annot_viewpoints([aid], [viewpoint_text], input_is_degrees=False)

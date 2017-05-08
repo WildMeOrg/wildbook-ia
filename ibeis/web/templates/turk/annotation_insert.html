@@ -12,9 +12,9 @@
     <br/>
 
     <input type="text" name="ia-annotation-aid" value="{{ aid }}" style="display: none;" readonly>
-    Viewpoint: <span id="ia-viewpoint-label-text"></span>
+    Viewpoint: <span id="ia-annotation-viewpoint-label-text"></span>
     <br/>
-    <input id="ia-annotation-viewpoint" type="range" name="ia-viewpoint-value" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}0{% endif %}" min="0" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
+    <input id="ia-annotation-viewpoint" type="range" name="ia-annotation-viewpoint-value" value="{% if viewpoint_value %}{{ viewpoint_value }}{% else %}0{% endif %}" min="0" max="7" style="margin-bottom:5px;" onchange="update_label();" oninput="update_label();"> <!-- onchange- IE, oninput-Everything Else -->
     <div class="row-custom-expand">
       <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-left"            ></span></div>
       <div class="col-custom-span col-custom-span-9"><span class="glyphicon glyphicon-arrow-down rotate-45"  ></span></div>
