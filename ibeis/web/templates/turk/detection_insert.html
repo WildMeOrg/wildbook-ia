@@ -39,7 +39,24 @@
   <form class="ia-form" method="{{ callback_method }}" action="{{ callback_url }}{% if REFER_DST_STR %}&refer={{ REFER_DST_ENCODED }}{% endif %}" onsubmit="return check_form();" id="ia-detection-form">
     <div id="ia-bbox-annotator-container"></div>
     <div style="text-align: center; color: #aaa;">
-      <span>Left-click to add a new box, press <b>Esc</b> to cancel any action, press <b>Delete</b> to delete</a>, hover to highlight (in orange) a box.  Press <b>R</b> to rotate a hovered box right by 90&#176; and <b>L</b> left by 90&#176;, press <b>B</b> to send a box to the background.  Right-click or press <b>F</b> to focus (in red) where parts can be added and metadata changed, press <b>Shift+Delete</b> to delete an annotation's parts</a></span>
+      <a tabindex="0" id="ia-detection-quickhelp" class="btn btn-default" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" title="Quick Help Instructions" data-content='<ul>
+      <li><b>Left-click</b>: add a new box <span style="color: #00e100; opacity: 0.75"><b>(green)</b></span></li>
+      <li><b>Hover</b>: highlight a box <span style="color: #F0AD4E; opacity: 0.75"><b>(orange)</b></span></li>
+      <li><b>Right-click</b> or <b>F</b>: focus a highlighted box <span style="color: #EB2A18; opacity: 0.75"><b>(red).</b></span></li>
+        When in focus: <ul>
+          <li>parts <span style="color: #444444; opacity: 0.75"><b>(dark outline)</b></span> can be added</li>
+          <li>metadata can be changed below</li>
+          <li>a part can be highlighted and focused</li>
+        </ul>
+      <li><b>Esc</b>: cancel any action and unfocus</li>
+      <li><b>Delete</b> or <b>k</b>: delete a highlighted box</li>
+      <li><b>Delete+Shift</b> delete all parts of a highlighted box</li>
+      <li><b>Crtl</b>: hold to show all available hotkeys</li>
+      <li><b>I</b>: mark a highlighted box with Interest <span style="color: #2E63FF; opacity: 0.75"><b>(blue)</b></span></li>
+      <li><b>R</b>: rotate a highlighted box right by 90&#176;</li>
+      <li><b>L</b>: rotate a highlighted box left by 90&#176;</li>
+      <li><b>B</b>: send a box to the background</li>
+    </ul>' style="margin-top: 10px;">Quick Help</a>
     </div>
     <br/>
     <input type="text" name="detection-gid" value="{{ gid }}" style="display: none;" readonly>
@@ -273,7 +290,7 @@
         prefix: "ia-",
         mode: mode,
         colors: {
-          anchor: "#FFFFFF",
+          // anchor: "#FFFFFF",
         },
         subentries: {
           visible: visible,
@@ -500,6 +517,10 @@
 
         update_label()
       });
+
+      $('#ia-detection-quickhelp').popover({
+        html: true,
+      })
 
       $('#species-add').on('shown.bs.modal', function() {
           $('input[name="species-add"]').val('')

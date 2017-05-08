@@ -6,7 +6,6 @@ TODO
 - Middle mouse button drag to resize bbox with the highlighted anchor point
 - On Selector finish/cancel, hover the correct box if actually hovering
 - Selector assignment line for adding
-- Size limit (max-width, max-height) on image browser-side
 - Delete entry if released entirely outside the bounds of the image
 - Change the parent of a subentry
 
@@ -504,82 +503,102 @@ TODO
     this.BBoxAnnotator = (function() {
         function BBoxAnnotator(url, options) {
             var options
-
-            options                          !== undefined || (options = {})
-            options.prefix                   !== undefined || (options.prefix = "")
-            options.ids                      !== undefined || (options.ids = {})
-            options.ids.container            !== undefined || (options.ids.container      = options.prefix + "bbox-annotator-container")
-            options.ids.resize               !== undefined || (options.ids.resize         = options.prefix + "bbox-annotator-bbox-resize")
-            options.props                    !== undefined || (options.props = {})
-            options.props.rotate             !== undefined || (options.props.rotate       = options.prefix + "bbox-annotator-bbox-rotate-handle")
-            options.props.resize             !== undefined || (options.props.resize       = options.prefix + "bbox-annotator-bbox-resize-handle")
-            options.classes                  !== undefined || (options.classes = {})
-            options.classes.bbox             !== undefined || (options.classes.bbox       = options.prefix + "bbox-annotator-bbox")
-            options.classes.assignment       !== undefined || (options.classes.assignment = options.prefix + "bbox-annotator-bbox-assignment")
-            options.classes.label            !== undefined || (options.classes.label      = options.prefix + "bbox-annotator-bbox-label")
-            options.classes.close            !== undefined || (options.classes.close      = options.prefix + "bbox-annotator-bbox-close")
-            options.classes.rotate           !== undefined || (options.classes.rotate     = options.prefix + "bbox-annotator-bbox-rotate")
-            options.classes.resize           !== undefined || (options.classes.resize     = options.prefix + "bbox-annotator-bbox-resize")
-            options.colors                   !== undefined || (options.colors = {})
-            options.colors.default           !== undefined || (options.colors.default     = "#7FFF7F")
-            options.colors.hover             !== undefined || (options.colors.hover       = "#F0AD4E")
-            options.colors.focus             !== undefined || (options.colors.focus       = "#EB2A18")
-            options.colors.anchor            !== undefined || (options.colors.anchor      = "#EB2A18")
-            options.colors.subentry          !== undefined || (options.colors.subentry    = "#444444")
-            options.colors.highlighted       !== undefined || (options.colors.highlighted = "#2E63FF")
-            options.colors.transparent       !== undefined || (options.colors.transparent = 0.25)
-            options.hotkeys                  !== undefined || (options.hotkeys = {})
-            options.hotkeys.enabled          !== undefined || (options.hotkeys.enabled = true)
-            options.hotkeys.delete           !== undefined || (options.hotkeys.delete           = [75, 8])
-            options.hotkeys.exit             !== undefined || (options.hotkeys.exit             = [27])
-            options.hotkeys.background       !== undefined || (options.hotkeys.background       = [66])
-            options.hotkeys.focus            !== undefined || (options.hotkeys.focus            = [70])
-            options.hotkeys.counterclockwise !== undefined || (options.hotkeys.counterclockwise = [76])
-            options.hotkeys.clockwise        !== undefined || (options.hotkeys.clockwise        = [82])
-            options.hotkeys.left             !== undefined || (options.hotkeys.left             = [37])
-            options.hotkeys.up               !== undefined || (options.hotkeys.up               = [38])
-            options.hotkeys.right            !== undefined || (options.hotkeys.right            = [39])
-            options.hotkeys.down             !== undefined || (options.hotkeys.down             = [40])
-            options.handles                  !== undefined || (options.handles = {})
-            options.handles.rotate           !== undefined || (options.handles.rotate = {})
-            options.handles.rotate.enabled   !== undefined || (options.handles.rotate.enabled = true)
-            options.handles.rotate.diameter  !== undefined || (options.handles.rotate.diameter = 10)
-            options.handles.resize           !== undefined || (options.handles.resize = {})
-            options.handles.resize.enabled   !== undefined || (options.handles.resize.enabled = true)
-            options.handles.resize.diameter  !== undefined || (options.handles.resize.diameter = 8)
-            options.handles.close            !== undefined || (options.handles.close = {})
-            options.handles.close.enabled    !== undefined || (options.handles.close.enabled = false)
-            options.border                   !== undefined || (options.border = {})
-            options.border.color             !== undefined || (options.border.color = options.colors.default)
-            options.border.width             !== undefined || (options.border.width = 2)
-            options.steps                    !== undefined || (options.steps = {})
-            options.steps.move               !== undefined || (options.steps.move = 10.0)
-            options.steps.rotate             !== undefined || (options.steps.rotate = Math.PI / 4.0)
-            options.subentries               !== undefined || (options.subentries = {})
-            options.subentries.visible       !== undefined || (options.subentries.visible = null)
-            options.subentries.assignments   !== undefined || (options.subentries.assignments = false)
-            options.limits                   !== undefined || (options.limits = {})
-            options.limits.area              !== undefined || (options.limits.area = 100)
-            options.limits.width             !== undefined || (options.limits.width = 10)
-            options.limits.height            !== undefined || (options.limits.height = 10)
-            options.limits.bounds            !== undefined || (options.limits.bounds = {})
-            options.limits.bounds.x          !== undefined || (options.limits.bounds.x = {})
-            options.limits.bounds.x.min      !== undefined || (options.limits.bounds.x.min = 50)
-            options.limits.bounds.x.max      !== undefined || (options.limits.bounds.x.max = 50)
-            options.limits.bounds.y          !== undefined || (options.limits.bounds.y = {})
-            options.limits.bounds.y.min      !== undefined || (options.limits.bounds.y.min = 50)
-            options.limits.bounds.y.max      !== undefined || (options.limits.bounds.y.max = 50)
-            options.confirm                  !== undefined || (options.confirm = {})
-            options.confirm.delete           !== undefined || (options.confirm.delete = true)
-            options.onload                   !== undefined || (options.onload = null)
-            options.onadd                    !== undefined || (options.onadd = null)
-            options.onselector               !== undefined || (options.onselector = null)
-            options.onchange                 !== undefined || (options.onchange = null)
-            options.onhover                  !== undefined || (options.onhover = null)
-            options.onfocus                  !== undefined || (options.onfocus = null)
-            options.ondelete                 !== undefined || (options.ondelete = null)
-            options.mode                     !== undefined || (options.mode = "rectangle")
-            options.debug                    !== undefined || (options.debug = false)
+            options                              !== undefined || (options = {})
+            options.prefix                       !== undefined || (options.prefix = "")
+            options.ids                          !== undefined || (options.ids = {})
+            options.ids.container                !== undefined || (options.ids.container      = options.prefix + "bbox-annotator-container")
+            options.ids.resize                   !== undefined || (options.ids.resize         = options.prefix + "bbox-annotator-bbox-resize")
+            options.props                        !== undefined || (options.props = {})
+            options.props.rotate                 !== undefined || (options.props.rotate       = options.prefix + "bbox-annotator-bbox-rotate-handle")
+            options.props.resize                 !== undefined || (options.props.resize       = options.prefix + "bbox-annotator-bbox-resize-handle")
+            options.classes                      !== undefined || (options.classes = {})
+            options.classes.bbox                 !== undefined || (options.classes.bbox       = options.prefix + "bbox-annotator-bbox")
+            options.classes.assignment           !== undefined || (options.classes.assignment = options.prefix + "bbox-annotator-bbox-assignment")
+            options.classes.label                !== undefined || (options.classes.label      = options.prefix + "bbox-annotator-bbox-label")
+            options.classes.close                !== undefined || (options.classes.close      = options.prefix + "bbox-annotator-bbox-close")
+            options.classes.rotate               !== undefined || (options.classes.rotate     = options.prefix + "bbox-annotator-bbox-rotate")
+            options.classes.resize               !== undefined || (options.classes.resize     = options.prefix + "bbox-annotator-bbox-resize")
+            options.colors                       !== undefined || (options.colors = {})
+            options.colors.default               !== undefined || (options.colors.default     = "#7FFF7F")
+            options.colors.hover                 !== undefined || (options.colors.hover       = "#F0AD4E")
+            options.colors.focus                 !== undefined || (options.colors.focus       = "#EB2A18")
+            options.colors.anchor                !== undefined || (options.colors.anchor      = "#EB2A18")
+            options.colors.subentry              !== undefined || (options.colors.subentry    = "#444444")
+            options.colors.highlighted           !== undefined || (options.colors.highlighted = "#2E63FF")
+            options.colors.transparent           !== undefined || (options.colors.transparent = 0.25)
+            options.actions                      !== undefined || (options.actions = {})
+            options.actions.entry                !== undefined || (options.actions.entry = {})
+            options.actions.entry.addition       !== undefined || (options.actions.entry.addition = true)
+            options.actions.entry.parts          !== undefined || (options.actions.entry.parts = true)
+            options.actions.entry.translation    !== undefined || (options.actions.entry.translation = true)
+            options.actions.entry.scaling        !== undefined || (options.actions.entry.scaling = true)
+            options.actions.entry.rotation       !== undefined || (options.actions.entry.rotation = true)
+            options.actions.entry.deletion       !== undefined || (options.actions.entry.deletion = true)
+            options.actions.subentry             !== undefined || (options.actions.subentry = {})
+            options.actions.subentry.addition    !== undefined || (options.actions.subentry.addition = true)
+            options.actions.subentry.parts       !== undefined || (options.actions.subentry.parts = true)
+            options.actions.subentry.translation !== undefined || (options.actions.subentry.translation = true)
+            options.actions.subentry.scaling     !== undefined || (options.actions.subentry.scaling = true)
+            options.actions.subentry.rotation    !== undefined || (options.actions.subentry.rotation = true)
+            options.actions.subentry.deletion    !== undefined || (options.actions.subentry.deletion = true)
+            options.hotkeys                      !== undefined || (options.hotkeys = {})
+            options.hotkeys.enabled              !== undefined || (options.hotkeys.enabled = true)
+            options.hotkeys.delete               !== undefined || (options.hotkeys.delete           = [75, 8])
+            options.hotkeys.exit                 !== undefined || (options.hotkeys.exit             = [27])
+            options.hotkeys.background           !== undefined || (options.hotkeys.background       = [66])
+            options.hotkeys.focus                !== undefined || (options.hotkeys.focus            = [70])
+            options.hotkeys.counterclockwise     !== undefined || (options.hotkeys.counterclockwise = [76])
+            options.hotkeys.clockwise            !== undefined || (options.hotkeys.clockwise        = [82])
+            options.hotkeys.left                 !== undefined || (options.hotkeys.left             = [37])
+            options.hotkeys.up                   !== undefined || (options.hotkeys.up               = [38])
+            options.hotkeys.right                !== undefined || (options.hotkeys.right            = [39])
+            options.hotkeys.down                 !== undefined || (options.hotkeys.down             = [40])
+            options.handles                      !== undefined || (options.handles = {})
+            options.handles.rotate               !== undefined || (options.handles.rotate = {})
+            options.handles.rotate.enabled       !== undefined || (options.handles.rotate.enabled = true)
+            options.handles.rotate.diameter      !== undefined || (options.handles.rotate.diameter = 10)
+            options.handles.resize               !== undefined || (options.handles.resize = {})
+            options.handles.resize.enabled       !== undefined || (options.handles.resize.enabled = true)
+            options.handles.resize.diameter      !== undefined || (options.handles.resize.diameter = 8)
+            options.handles.close                !== undefined || (options.handles.close = {})
+            options.handles.close.enabled        !== undefined || (options.handles.close.enabled = false)
+            options.border                       !== undefined || (options.border = {})
+            options.border.color                 !== undefined || (options.border.color = options.colors.default)
+            options.border.width                 !== undefined || (options.border.width = 2)
+            options.steps                        !== undefined || (options.steps = {})
+            options.steps.move                   !== undefined || (options.steps.move = 10.0)
+            options.steps.rotate                 !== undefined || (options.steps.rotate = Math.PI / 4.0)
+            options.subentries                   !== undefined || (options.subentries = {})
+            options.subentries.visible           !== undefined || (options.subentries.visible = null)
+            options.subentries.assignments       !== undefined || (options.subentries.assignments = false)
+            options.subentries.label             !== undefined || (options.subentries.label = true)
+            options.limits                       !== undefined || (options.limits = {})
+            options.limits.frame                 !== undefined || (options.limits.frame = {})
+            options.limits.frame.width           !== undefined || (options.limits.frame.width =1000)
+            options.limits.frame.height          !== undefined || (options.limits.frame.height = 500)
+            options.limits.entry                 !== undefined || (options.limits.entry = {})
+            options.limits.entry.area            !== undefined || (options.limits.entry.area = 100)
+            options.limits.entry.width           !== undefined || (options.limits.entry.width = 10)
+            options.limits.entry.height          !== undefined || (options.limits.entry.height = 10)
+            options.limits.bounds                !== undefined || (options.limits.bounds = {})
+            options.limits.bounds.x              !== undefined || (options.limits.bounds.x = {})
+            options.limits.bounds.x.min          !== undefined || (options.limits.bounds.x.min = 50)
+            options.limits.bounds.x.max          !== undefined || (options.limits.bounds.x.max = 50)
+            options.limits.bounds.y              !== undefined || (options.limits.bounds.y = {})
+            options.limits.bounds.y.min          !== undefined || (options.limits.bounds.y.min = 50)
+            options.limits.bounds.y.max          !== undefined || (options.limits.bounds.y.max = 50)
+            options.confirm                      !== undefined || (options.confirm = {})
+            options.confirm.delete               !== undefined || (options.confirm.delete = true)
+            options.callbacks                    !== undefined || (options.callbacks = {})
+            options.callbacks.onload             !== undefined || (options.callbacks.onload = null)
+            options.callbacks.onadd              !== undefined || (options.callbacks.onadd = null)
+            options.callbacks.onselector         !== undefined || (options.callbacks.onselector = null)
+            options.callbacks.onchange           !== undefined || (options.callbacks.onchange = null)
+            options.callbacks.onhover            !== undefined || (options.callbacks.onhover = null)
+            options.callbacks.onfocus            !== undefined || (options.callbacks.onfocus = null)
+            options.callbacks.ondelete           !== undefined || (options.callbacks.ondelete = null)
+            options.mode                         !== undefined || (options.mode = "rectangle")
+            options.debug                        !== undefined || (options.debug = false)
 
             // Global attributes
             this.options = options
@@ -616,7 +635,6 @@ TODO
             this.elements.container = $("#" + this.options.ids.container)
             this.elements.container.css({
                 "width": "100%",
-                "max-width": "1200px",
                 "margin-left": "auto",
                 "margin-right": "auto",
             })
@@ -685,8 +703,8 @@ TODO
                 bba.resize()
 
                 // Trigger onload
-                if (bba.options.onload != null) {
-                    return bba.options.onload()
+                if (bba.options.callbacks.onload != null) {
+                    return bba.options.callbacks.onload()
                 }
             }
 
@@ -1086,9 +1104,19 @@ TODO
             // Get the proportions of the image and
             w1 = this.elements.image.width
             h1 = this.elements.image.height
-            w2 = this.elements.frame.width()
+
+            w2 = this.elements.container.width()
+
+            limit1 = this.options.limits.frame.width
+            limit2 = (this.options.limits.frame.height / h1) * w1
+            w2 = Math.min(w2, this.options.limits.frame.width, limit2)
             h2 = (w2 / w1) * h1
 
+            console.log(w2 + " " + h2)
+            this.elements.frame.css({
+                "width": w2 + "px",
+                "height": h2 + "px",
+            })
             this.elements.container.css({
                 "height": h2 + "px",
             })
@@ -1112,8 +1140,8 @@ TODO
         }
 
         BBoxAnnotator.prototype.refresh = function() {
-            if (this.options.onchange != null) {
-                return this.options.onchange(this.entries)
+            if (this.options.callbacks.onchange != null) {
+                return this.options.callbacks.onchange(this.entries)
             }
         }
 
@@ -1170,8 +1198,8 @@ TODO
             this.refresh()
 
             // Trigger ondelete
-            if (bba.options.ondelete != null) {
-                return bba.options.ondelete(entry[0])
+            if (bba.options.callbacks.ondelete != null) {
+                return bba.options.callbacks.ondelete(entry[0])
             }
 
             if (parent_index == null) {
@@ -1269,7 +1297,7 @@ TODO
                 "border-top": (this.options.border.width * 1.5) + "px dotted " + this.options.colors.default,
                 "color": "#FFFFFF",
                 "font-family": "monospace",
-                "font-size": "small",
+                "font-size": "0px",
             })
             element.bbox.css(css_no_select)
             if(entry.parent != null) {
@@ -1494,8 +1522,8 @@ TODO
             this.assignment_entry(index)
 
             // notify on adding entry from selection
-            if (notify && this.options.onadd != null) {
-                this.options.onadd(entry)
+            if (notify && this.options.callbacks.onadd != null) {
+                this.options.callbacks.onadd(entry)
             }
 
             // Refresh the view now that the new bbox has been added
@@ -1575,7 +1603,7 @@ TODO
             }
 
             // Update the onhover
-            if (this.options.onhover != null) {
+            if (this.options.callbacks.onhover != null) {
                 if(this.state.focus == null) {
                     if (this.state.hover == null) {
                         entry = null
@@ -1583,14 +1611,14 @@ TODO
                     else {
                         entry = this.entries[this.state.hover]
                     }
-                    return this.options.onhover(this.state.hover, entry)
+                    return this.options.callbacks.onhover(this.state.hover, entry)
                 } else {
                     if(this.state.hover == null) {
                         entry = this.entries[this.state.focus]
-                        return this.options.onhover(this.state.focus, entry)
+                        return this.options.callbacks.onhover(this.state.focus, entry)
                     } else {
                         entry = this.entries[this.state.hover]
-                        return this.options.onhover(this.state.hover, entry)
+                        return this.options.callbacks.onhover(this.state.hover, entry)
                     }
                 }
             }
@@ -1654,13 +1682,13 @@ TODO
                         }
 
                         // Update the onfocus
-                        if (this.options.onfocus != null) {
+                        if (this.options.callbacks.onfocus != null) {
                             if (this.state.focus2 == null) {
                                 entry = null
                             } else {
                                 entry = this.entries[this.state.focus2]
                             }
-                            return this.options.onfocus(this.state.focus2, entry)
+                            return this.options.callbacks.onfocus(this.state.focus2, entry)
                         }
                     } else {
                         if(this.state.hover2 == this.state.focus2) {
@@ -1717,13 +1745,13 @@ TODO
             }
 
             // Update the onfocus
-            if (this.options.onfocus != null) {
+            if (this.options.callbacks.onfocus != null) {
                 if (this.state.focus == null) {
                     entry = null
                 } else {
                     entry = this.entries[this.state.focus]
                 }
-                return this.options.onfocus(this.state.focus, entry)
+                return this.options.callbacks.onfocus(this.state.focus, entry)
             }
         }
 
@@ -1778,7 +1806,7 @@ TODO
         }
 
         BBoxAnnotator.prototype.label_entry = function(index, label) {
-            var entry, element
+            var entry, element, holder, font
 
             entry = this.entries[index]
             element = this.elements.entries[index]
@@ -1787,11 +1815,25 @@ TODO
             entry.label = label
 
             // Update the element's text box with the new label
-            if (entry.label != null) {
+            holder = null
+            if(entry.parent == null && entry.label != null) {
+                holder = entry.label
+                font = 12
+            } else if(entry.parent != null && entry.metadata.type != null && this.options.subentries.label) {
+                holder = entry.metadata.type
+                font = 9
+            }
+
+            element.label.css({
+                "font-size": font + "px"
+            })
+
+            // Update label in HTML
+            if (holder != null) {
                 if(entry.highlighted) {
-                    element.label.html(entry.label + "*")
+                    element.label.html(holder + "*")
                 } else {
-                    element.label.html(entry.label)
+                    element.label.html(holder)
                 }
                 element.label.show()
             } else {
@@ -1855,7 +1897,7 @@ TODO
         }
 
         BBoxAnnotator.prototype.anchor_entry = function(event) {
-            var index, entry, element, furthest_dist, furthest_key
+            var index, entry, element, closest_dist, closest_key
             var handle, offset, diff_x, diff_y, dist
 
             index = this.state.hover
@@ -1869,18 +1911,18 @@ TODO
             element = this.elements.entries[index]
 
             // Get the furthest point
-            furthest_dist = 0
-            furthest_key = null
+            closest_dist = Infinity
+            closest_key = null
             for (var key in element.resize) {
                 handle = element.resize[key]
                 offset = handle.offset()
                 diff_x = event.pageX - offset.left
                 diff_y = event.pageY - offset.top
                 dist = Math.sqrt(diff_x ** 2 + diff_y ** 2)
-                    // Get the furthest
-                if (dist > furthest_dist) {
-                    furthest_dist = dist
-                    furthest_key = key
+                // Get the closest
+                if (dist < closest_dist) {
+                    closest_dist = dist
+                    closest_key = key
                 }
                 // Set all anchors to be the standard
                 handle.css({
@@ -1888,8 +1930,26 @@ TODO
                 })
             }
 
-            // Update the anchor's style
-            handle = element.resize[furthest_key]
+            // if (closest_key == "nw") {
+            //     closest_anchor = "se"
+            // } else if (closest_key == "n") {
+            //     closest_anchor = "s"
+            // } else if (closest_key == "ne") {
+            //     closest_anchor = "sw"
+            // } else if (closest_key == "e") {
+            //     closest_anchor = "w"
+            // } else if (closest_key == "se") {
+            //     closest_anchor = "nw"
+            // } else if (closest_key == "s") {
+            //     closest_anchor = "n"
+            // } else if (closest_key == "sw") {
+            //     closest_anchor = "ne"
+            // } else if (closest_key == "w") {
+            //     closest_anchor = "e"
+            // }
+            // handle = element.resize[closest_anchor]
+
+            handle = element.resize[closest_key]
             handle.css({
                 "background-color": this.options.colors.anchor,
             })
@@ -2534,8 +2594,8 @@ TODO
             this.state.mode = "selector"
 
             // notify on adding entry from selection
-            if (this.options.onselector != null) {
-                return this.options.onselector()
+            if (this.options.callbacks.onselector != null) {
+                return this.options.callbacks.onselector()
             }
         }
 
@@ -2580,9 +2640,9 @@ TODO
                 data = this.bbs.finish(event)
 
                 invalid = false
-                invalid = invalid || (data.pixels.width * data.pixels.height <= this.options.limits.area)
-                invalid = invalid || (data.pixels.width <= this.options.limits.width)
-                invalid = invalid || (data.pixels.height <= this.options.limits.height)
+                invalid = invalid || (data.pixels.width * data.pixels.height <= this.options.limits.entry.area)
+                invalid = invalid || (data.pixels.width <= this.options.limits.entry.width)
+                invalid = invalid || (data.pixels.height <= this.options.limits.entry.height)
 
                 // Add the returned entry data reported by the BBoxSelector as a new entry
                 if( ! invalid) {
