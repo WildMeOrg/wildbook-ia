@@ -18,8 +18,8 @@ function check_form() {
             return true
         }
     }
-    alert('There are no highlighted annotations.\nPlease select at least one annotation of interest')
-    return false
+    response = confirm('There are no annotations marked as an object of interest\nPlease select at least one annotation (e.g., with the hotkey I)\n\nWould you like to override this requirement and continue with no annotations of interest? (STRONGLY ADVISE AGAINST)')
+    return response
 }
 
 function update_metadata_panel(state) {
