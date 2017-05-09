@@ -43,11 +43,8 @@ from plottool import fig_presenter
 from six.moves import zip
 (print, rrr, profile) = ut.inject2(__name__, '[back]')
 
-VERBOSE = ut.VERBOSE
 
-WEB_URL = '127.0.0.1'
-WEB_PORT = 5000
-WEB_DOMAIN = '%s:%s' % (WEB_URL, WEB_PORT, )
+VERBOSE = ut.VERBOSE
 
 
 def backreport(func):
@@ -883,12 +880,23 @@ class MainWindowBackend(GUIBACK_BASE):
     def show(back):
         back.mainwin.show()
 
+    def get_background_web_domain(back, **kwargs):
+        web_url = '127.0.0.1'
+        web_port = back.ibs.get_web_port_via_scan()
+        if web_port is None:
+            raise ValueError('IA web server is not running on any expected port')
+        web_domain = '%s:%s' % (web_url, web_port, )
+        print('CURRENTLY GETTING THE BACKGROUND WEB DOMAIN FROM SCAN')
+        ut.embed()
+        return web_domain
+
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
         import webbrowser
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join( map(str, imgsetid_list) )
-        url = 'http://%s/view/images/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
+        web_domain = back.get_background_web_domain()
+        url = 'http://%s/view/images/?imgsetid=%s' % (web_domain, imgsetid_str, )
         webbrowser.open(url)
 
     def show_imgsetid_detection_turk_in_web(back, imgsetid_list, **kwargs):
@@ -896,7 +904,8 @@ class MainWindowBackend(GUIBACK_BASE):
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join( map(str, imgsetid_list) )
-        url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
+        web_domain = back.get_background_web_domain()
+        url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid_str, )
         webbrowser.open(url)
 
     def show_imgsetid_annotation_turk_in_web(back, imgsetid_list, **kwargs):
@@ -904,7 +913,8 @@ class MainWindowBackend(GUIBACK_BASE):
         back.start_web_server_parallel(browser=False)
         imgsetid_list = ut.ensure_iterable(imgsetid_list)
         imgsetid_str = ','.join( map(str, imgsetid_list) )
-        url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid_str, )
+        web_domain = back.get_background_web_domain()
+        url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid_str, )
         webbrowser.open(url)
 
     def show_image(back, gid, sel_aids=[], web=False, **kwargs):
@@ -922,17 +932,19 @@ class MainWindowBackend(GUIBACK_BASE):
         back.start_web_server_parallel(browser=False)
         gid_list = ut.ensure_iterable(gid_list)
         gid_text = ','.join(map(str, gid_list))
+        web_domain = back.get_background_web_domain()
         if len(gid_list) == 1:
-            url = 'http://%s/view/detection?gid=%s' % (WEB_DOMAIN, gid_text, )
+            url = 'http://%s/view/detection?gid=%s' % (web_domain, gid_text, )
         else:
-            url = 'http://%s/view/images?gid=%s' % (WEB_DOMAIN, gid_text, )
+            url = 'http://%s/view/images?gid=%s' % (web_domain, gid_text, )
         webbrowser.open(url)
 
     def show_annotation(back, aid, show_image=False, web=False, **kwargs):
         if web:
             import webbrowser
             back.start_web_server_parallel(browser=False)
-            url = 'http://%s/view/annotations?aid=%s' % (WEB_DOMAIN, aid, )
+            web_domain = back.get_background_web_domain()
+            url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid, )
             webbrowser.open(url)
         else:
             interact.ishow_chip(back.ibs, aid, **kwargs)
@@ -953,7 +965,8 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             aid_list = ''
 
-        url = 'http://%s/view/annotations?aid=%s' % (WEB_DOMAIN, aid_list, )
+        web_domain = back.get_background_web_domain()
+        url = 'http://%s/view/annotations?aid=%s' % (web_domain, aid_list, )
         webbrowser.open(url)
 
     def show_name(back, nid, sel_aids=[], **kwargs):
@@ -983,7 +996,8 @@ class MainWindowBackend(GUIBACK_BASE):
         else:
             aid_str = ''
 
-        url = 'http://%s/view/names?aid=%s' % (WEB_DOMAIN, aid_str, )
+        web_domain = back.get_background_web_domain()
+        url = 'http://%s/view/names?aid=%s' % (web_domain, aid_str, )
         webbrowser.open(url)
 
     def show_hough_image_(back, gid, **kwargs):
@@ -1914,10 +1928,11 @@ class MainWindowBackend(GUIBACK_BASE):
 
         if review_in_web:
             # back.user_info(msg='Detection has finished. Launching web review')
+            web_domain = back.get_background_web_domain()
             if review_in_web_mode == 'annotations':
-                url = 'http://%s/turk/annotation/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+                url = 'http://%s/turk/annotation/?imgsetid=%s' % (web_domain, imgsetid, )
             elif review_in_web_mode == 'detections':
-                url = 'http://%s/turk/detection/?imgsetid=%s' % (WEB_DOMAIN, imgsetid, )
+                url = 'http://%s/turk/detection/?imgsetid=%s' % (web_domain, imgsetid, )
             else:
                 raise ValueError('invalid value for review_in_web_mode')
             print('[guiback] Opening... %r' % (url, ))

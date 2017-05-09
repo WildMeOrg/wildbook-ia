@@ -57,6 +57,7 @@ class NavbarClass(object):
             ('view_names', 'Names'),
             # ('action', 'Action'),
             ('turk', 'Turk'),
+            ('view_experiments', 'Experiments'),
             # ('api_root',  'API'),
             # ('group_review',  'Group Review'),
         ]

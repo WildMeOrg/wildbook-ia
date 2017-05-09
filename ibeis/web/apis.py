@@ -247,7 +247,10 @@ def hello_world(*args, **kwargs):
         >>> import requests
         >>> import ibeis
         >>> web_ibs = ibeis.opendb_bg_web('testdb1', start_job_queue=False)
-        >>> domain = 'http://127.0.0.1:5000'
+        >>> web_port = ibs.get_web_port_via_scan()
+        >>> if web_port is None:
+        >>>     raise ValueError('IA web server is not running on any expected port')
+        >>> domain = 'http://127.0.0.1:%s' % (web_port, )
         >>> url = domain + '/api/test/helloworld/?test0=0'
         >>> payload = {
         >>>     'test1' : 'test1',

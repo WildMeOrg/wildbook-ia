@@ -2115,9 +2115,6 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         # unmount
         fusermount -u ~/lev
 
-        # Url to debug
-        http://128.213.17.12:5000/turk/identification/?aid1=6619&aid2=7094
-
         import ibeis
         ibs = ibeis.opendb(ut.truepath('~/lev/media/hdd/work/EWT_Cheetahs'))
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])

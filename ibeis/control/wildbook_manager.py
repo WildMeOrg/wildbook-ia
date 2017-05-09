@@ -586,7 +586,10 @@ def update_wildbook_ia_config(ibs, wildbook_tomcat_path, dryrun=False):
         content = re.sub('IBEIS_image_path = .*',
                          'IBEIS_image_path = ' + ibs.get_imgdir(), content)
 
-    ia_hostport = 'http://localhost:5000'
+    web_port = ibs.get_web_port_via_scan()
+    if web_port is None:
+        raise ValueError('IA web server is not running on any expected port')
+    ia_hostport = 'http://localhost:%s' % (web_port, )
     ia_rest_prefix = ut.named_field('prefix', 'IBEISIARestUrl.*')
     host_port = ut.named_field('host_port', 'http://.*?:[0-9]+')
     content = re.sub(ia_rest_prefix + host_port, ut.bref_field('prefix') + ia_hostport, content)

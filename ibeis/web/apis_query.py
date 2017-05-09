@@ -92,7 +92,10 @@ def query_chips_simple_dict(ibs, *args, **kwargs):
         >>> # Start up the web instance
         >>> web_instance = ibeis.opendb_in_background(db='testdb1', web=True, browser=False)
         >>> time.sleep(10)
-        >>> baseurl = 'http://127.0.1.1:5000'
+        >>> web_port = ibs.get_web_port_via_scan()
+        >>> if web_port is None:
+        >>>     raise ValueError('IA web server is not running on any expected port')
+        >>> baseurl = 'http://127.0.1.1:%s' % (web_port, )
         >>> data = dict(qaid_list=[1])
         >>> resp = requests.get(baseurl + '/api/query/chip/simple/dict/', data=data)
         >>> print(resp)

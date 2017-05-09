@@ -198,7 +198,6 @@ def start_identify_annots(ibs, qannot_uuid_list, dannot_uuid_list=None,
 
     Ignore:
         qaids = daids = ibs.get_valid_aids()
-        http://127.0.1.1:5000/api/engine/query/annot/rowid/'
         jobid = ibs.start_identify_annots(**payload)
     """
     # Check UUIDs

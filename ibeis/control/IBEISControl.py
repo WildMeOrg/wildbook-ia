@@ -147,6 +147,7 @@ register_api   = controller_inject.get_ibeis_flask_api(__name__)
 
 __ALL_CONTROLLERS__ = []  # Global variable containing all created controllers
 __IBEIS_CONTROLLER_CACHE__ = {}
+CORE_DB_UUID_INIT_API_RULE = '/api/core/db/uuid/init/'
 
 
 def request_IBEISController(
@@ -857,7 +858,7 @@ class IBEISController(BASE_CLASS):
         """ Alias for ibs.get_dbname(). """
         return ibs.get_dbname()
 
-    @register_api('/api/core/db/uuid/init/', methods=['GET'])
+    @register_api(CORE_DB_UUID_INIT_API_RULE, methods=['GET'])
     def get_db_init_uuid(ibs):
         """
         Returns:
@@ -1159,6 +1160,32 @@ class IBEISController(BASE_CLASS):
     def predict_ws_injury_interim_svm(ibs, aids):
         from ibeis.scripts import classify_shark
         return classify_shark.predict_ws_injury_interim_svm(ibs, aids)
+
+    def get_web_port_via_scan(ibs, url_base='127.0.0.1', port_base=5000,
+                              scan_limit=100, verbose=True):
+        import requests
+        api_rule = CORE_DB_UUID_INIT_API_RULE
+        target_uuid = ibs.get_db_init_uuid()
+        for candidate_port in range(port_base, port_base + scan_limit + 1):
+            candidate_url = 'http://%s:%s%s' % (url_base, candidate_port, api_rule)
+            try:
+                response = requests.get(candidate_url)
+            except (requests.ConnectionError):
+                if verbose:
+                    print('Failed to find IA server at %s' % (candidate_url, ))
+                continue
+            print('Found IA server at %s' % (candidate_url, ))
+            try:
+                response = ut.from_json(response.text)
+                candidate_uuid = response.get('response')
+                assert candidate_uuid == target_uuid
+                return candidate_port
+            except (AssertionError):
+                if verbose:
+                    print('Invalid response from IA server at %s' % (candidate_url, ))
+                continue
+
+        return None
 
 
 if __name__ == '__main__':

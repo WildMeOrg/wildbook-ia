@@ -125,7 +125,10 @@ def initialize_job_manager(ibs):
         >>> import ibeis
         >>> import requests
         >>> web_instance = ibeis.opendb_bg_web(db='testdb1')
-        >>> baseurl = 'http://127.0.1.1:5000'
+        >>> web_port = ibs.get_web_port_via_scan()
+        >>> if web_port is None:
+        >>>     raise ValueError('IA web server is not running on any expected port')
+        >>> baseurl = 'http://127.0.1.1:%s' % (web_port, )
         >>> _payload = {'image_attrs_list': [], 'annot_attrs_list': []}
         >>> payload = ut.map_dict_vals(ut.to_json, _payload)
         >>> resp1 = requests.post(baseurl + '/api/test/helloworld/?f=b', data=payload)
@@ -153,11 +156,14 @@ def initialize_job_manager(ibs):
         if result['status'] == 'ok':
             break
 
-    #import ibeis
-    ##dbdir = '/media/raid/work/testdb1'
-    #ibs = ibeis.opendb('testdb1', asproxy=True)
-    #from ibeis.web import app
-    #proc = ut.spawn_background_process(app.start_from_ibeis, ibs, port=5000)
+    # import ibeis
+    # #dbdir = '/media/raid/work/testdb1'
+    # ibs = ibeis.opendb('testdb1', asproxy=True)
+    # from ibeis.web import app
+    # web_port = ibs.get_web_port_via_scan()
+    # if web_port is None:
+    #     raise ValueError('IA web server is not running on any expected port')
+    # proc = ut.spawn_background_process(app.start_from_ibeis, ibs, port=web_port)
 
 
 @register_ibs_method
