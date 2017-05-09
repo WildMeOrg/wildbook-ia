@@ -1591,7 +1591,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, confi
 
     if config is None:
         config = {
-            'autointerest': True,
+            'autointerest': False,
             'metadata': True,
             'parts': True,
         }
