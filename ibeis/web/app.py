@@ -31,7 +31,7 @@ def tst_html_error():
 
 
 def start_tornado(ibs, port=None, browser=None, url_suffix=None,
-                  start_web_loop=True):
+                  start_web_loop=True, fallback=True):
     """
         Initialize the web server
     """
@@ -69,9 +69,14 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
             http_server.listen(app.server_port)
         except socket.error:
             fallback_port = ut.find_open_port(app.server_port)
-            raise RuntimeError(
-                (('The specified IBEIS web port %d is not available, '
-                  'but %d is') % (app.server_port, fallback_port)))
+            if fallback:
+                start_tornado(ibs, port=fallback_port, browser=browser,
+                              url_suffix=url_suffix, start_web_loop=start_web_loop,
+                              fallback=False)
+            else:
+                raise RuntimeError(
+                    (('The specified IBEIS web port %d is not available, '
+                      'but %d is') % (app.server_port, fallback_port)))
         if start_web_loop:
             tornado.ioloop.IOLoop.instance().start()
 
