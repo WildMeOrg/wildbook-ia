@@ -576,7 +576,7 @@ TODO
             options.limits                       !== undefined || (options.limits = {})
             options.limits.frame                 !== undefined || (options.limits.frame = {})
             options.limits.frame.width           !== undefined || (options.limits.frame.width =1000)
-            options.limits.frame.height          !== undefined || (options.limits.frame.height = 500)
+            options.limits.frame.height          !== undefined || (options.limits.frame.height = 700)
             options.limits.entry                 !== undefined || (options.limits.entry = {})
             options.limits.entry.area            !== undefined || (options.limits.entry.area = 100)
             options.limits.entry.width           !== undefined || (options.limits.entry.width = 10)

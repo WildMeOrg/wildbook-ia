@@ -18,7 +18,7 @@ function check_form() {
             return true
         }
     }
-    response = confirm('There are no annotations marked as an object of interest\nPlease select at least one annotation (e.g., with the hotkey I)\n\nWould you like to override this requirement and continue with no annotations of interest? (STRONGLY ADVISE AGAINST)')
+    response = confirm('Most images that have at least one annotation should have one labeled as being "of interest".  You have highlighted none.  This is fine only if there really are no clear, good quality annotations.\n\nClick Cancel to return to the image and select an annotation of interest, and click Ok to accept the current results and continue to the next image.')
     return response
 }
 
