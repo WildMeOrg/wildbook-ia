@@ -996,12 +996,7 @@ TODO
                         if (bba.state.hover != null) {
                             entry = bba.entries[bba.state.hover]
                             element = bba.elements.entries[bba.state.hover]
-
-                            if (entry.label != null) {
-                                element.label.show()
-                            } else {
-                                element.label.hide()
-                            }
+                            bba.label_entry(bba.state.hover, entry.label)
 
                             if(bba.state.focus == null || bba.state.focus != bba.state.hover) {
                                 if(bba.state.focus2 == null) {
@@ -1033,11 +1028,7 @@ TODO
                         if (bba.state.hover != null) {
                             entry = bba.entries[bba.state.hover]
                             element = bba.elements.entries[bba.state.hover]
-                            if (entry.label != null) {
-                                element.label.show()
-                            } else {
-                                element.label.hide()
-                            }
+                            bba.label_entry(bba.state.hover, entry.label)
                             if (bba.options.handles.close.enabled) {
                                 element.close.show()
                             }
@@ -1071,11 +1062,7 @@ TODO
                                 "border-top": (bba.options.border.width * 1.5) + "px dotted " + bba.options.colors.hover,
                             })
 
-                            if (entry.label != null) {
-                                element.label.show()
-                            } else {
-                                element.label.hide()
-                            }
+                            bba.label_entry(bba.state.hover, entry.label)
                             if (bba.options.handles.close.enabled) {
                                 element.close.show()
                             }
@@ -1369,6 +1356,7 @@ TODO
                 "opacity": "0.8",
                 "color": "#333333",
                 "padding": "1px 3px",
+                "font-size": "12px",
             })
             element.bbox.append(element.label)
 
@@ -1834,7 +1822,7 @@ TODO
             }
 
             element.label.css({
-                "font-size": font + "px"
+                "font-size": font + "px",
             })
 
             // Update label in HTML
