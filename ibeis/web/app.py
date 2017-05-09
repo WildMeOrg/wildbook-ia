@@ -70,6 +70,7 @@ def start_tornado(ibs, port=None, browser=None, url_suffix=None,
         except socket.error:
             fallback_port = ut.find_open_port(app.server_port)
             if fallback:
+                print('Port %s is unavailable, using fallback_port = %r' % (port, fallback_port, ))
                 start_tornado(ibs, port=fallback_port, browser=browser,
                               url_suffix=url_suffix, start_web_loop=start_web_loop,
                               fallback=False)
