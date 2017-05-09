@@ -886,8 +886,6 @@ class MainWindowBackend(GUIBACK_BASE):
         if web_port is None:
             raise ValueError('IA web server is not running on any expected port')
         web_domain = '%s:%s' % (web_url, web_port, )
-        print('CURRENTLY GETTING THE BACKGROUND WEB DOMAIN FROM SCAN')
-        ut.embed()
         return web_domain
 
     def show_imgsetid_list_in_web(back, imgsetid_list, **kwargs):
