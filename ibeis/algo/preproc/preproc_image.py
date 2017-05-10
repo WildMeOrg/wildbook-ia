@@ -160,7 +160,7 @@ def parse_imageinfo(gpath):
     )
 
     if temp_filepath is not None:
-        temp_file.close()
+        os.close(temp_file)
         os.unlink(temp_filepath)
     #print('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
