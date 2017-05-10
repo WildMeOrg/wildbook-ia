@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import os
 from os.path import splitext, basename
 import warnings  # NOQA
 import vtool.exif as vtexif
@@ -95,29 +96,29 @@ def parse_imageinfo(gpath):
 
     with warnings.catch_warnings(record=True) as w:
         try:
+            temp_filepath = None
             if isproto(gpath, valid_protos):
                 # Ensure that the Unicode string is properly encoded for web requests
                 gpath_ = urlsplit(gpath)
                 gpath_path = six.moves.urllib.parse.quote(gpath_.path.encode('utf8'))
                 gpath_ = gpath_._replace(path=gpath_path)
                 gpath = gpath_.geturl()
+
                 ext = get_standard_ext(gpath)
                 suffix = '%s' % (ext, )
+                temp_file = tempfile.mkstemp(suffix=suffix)
+                temp_filepath = temp_file.name
+                print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
 
-                with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
-                    temp_filepath = temp_file.name
-                    print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
-                    if isproto(gpath, s3_proto):
-                        s3_dict = ut.s3_str_decode_to_dict(gpath)
-                        ut.grab_s3_contents(temp_filepath, **s3_dict)
-                    if isproto(gpath, url_protos):
-                        six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
-                    # Open image with Exif support
-                    gpath = temp_filepath
-                    pil_img = Image.open(gpath, 'r')  # NOQA
-            else:
-                # Open image with Exif support
-                pil_img = Image.open(gpath, 'r')  # NOQA
+                if isproto(gpath, s3_proto):
+                    s3_dict = ut.s3_str_decode_to_dict(gpath)
+                    ut.grab_s3_contents(temp_filepath, **s3_dict)
+                if isproto(gpath, url_protos):
+                    six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
+                gpath = temp_filepath
+
+            # Open image with Exif support
+            pil_img = Image.open(gpath, 'r')  # NOQA
         except IOError as ex:
             # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
@@ -157,6 +158,9 @@ def parse_imageinfo(gpath):
         orient,
         notes
     )
+
+    if temp_filepath is not None:
+        os.unlink(temp_filepath)
     #print('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
 
