@@ -128,6 +128,7 @@ def compute_chipthumb(depc, aid_list, config=None):
     gid_list    = ibs.get_annot_gids(aid_list)
     bbox_list   = ibs.get_annot_bboxes(aid_list)
     theta_list  = ibs.get_annot_thetas(aid_list)
+    interest_list = ibs.get_annot_interest(aid_list)
 
     bbox_size_list = ut.take_column(bbox_list, [2, 3])
     # Checks
@@ -180,14 +181,14 @@ def compute_chipthumb(depc, aid_list, config=None):
         ]
 
     #arg_iter = zip(cfpath_list, gid_list, newsize_list_, M_list)
-    arg_iter = zip(gid_list, newsize_list_, M_list, new_verts_list)
+    arg_iter = zip(gid_list, newsize_list_, M_list, new_verts_list, interest_list)
     arg_list = list(arg_iter)
 
     warpkw = dict(flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT)
 
     last_gid = None
     for tup in ut.ProgIter(arg_list, lbl='computing annot chipthumb', bs=True):
-        gid, new_size, M, new_verts = tup
+        gid, new_size, M, new_verts, interest = tup
         if gid != last_gid:
             imgBGR = ibs.get_image_imgdata(gid)
             last_gid = gid
@@ -196,8 +197,11 @@ def compute_chipthumb(depc, aid_list, config=None):
 
         # -----------------
         if in_image or pad:
+
             orange_bgr = (0, 128, 255)
-            thumbBGR = vt.draw_verts(thumbBGR, new_verts, color=orange_bgr,
+            blue_bgr = (255, 128, 0)
+            color_bgr = blue_bgr if interest else orange_bgr
+            thumbBGR = vt.draw_verts(thumbBGR, new_verts, color=color_bgr,
                                      thickness=2)
 
         width, height = vt.get_size(thumbBGR)

@@ -108,13 +108,15 @@ def compute_thumbnails(depc, gid_list, config=None):
     if draw_annots:
         bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
         thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
+        interests_list = ibs.unflat_map(ibs.get_annot_interest, aids_list)
     else:
         bboxes_list = [ [] for aids in aids_list ]
         thetas_list = [ [] for aids in aids_list ]
+        interests_list = [ [] for aids in aids_list ]
 
     # Execute all tasks in parallel
     args_list = list(zip(thumbsize_list, gpath_list, orient_list, bboxes_list,
-                         thetas_list))
+                         thetas_list, interests_list))
     genkw = {
         'ordered': False,
         'chunksize': 256,
@@ -128,7 +130,7 @@ def compute_thumbnails(depc, gid_list, config=None):
 
 
 def draw_thumb_helper(tup):
-    thumbsize, gpath, orient, bbox_list, theta_list = tup
+    thumbsize, gpath, orient, bbox_list, theta_list, interest_list = tup
     # time consuming
     # img = vt.imread(gpath, orient=orient)
     img = vt.imread(gpath)
@@ -147,8 +149,10 @@ def draw_thumb_helper(tup):
     # Actual computation
     thumb = vt.resize(img, dsize)
     orange_bgr = (0, 128, 255)
-    for new_verts in new_verts_list:
-        thumb = vt.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
+    blue_bgr = (255, 128, 0)
+    color_bgr_list = [blue_bgr if interest else orange_bgr for interest in interest_list]
+    for new_verts, color_bgr in zip(new_verts_list, color_bgr_list):
+        thumb = vt.draw_verts(thumb, new_verts, color=color_bgr, thickness=2)
     width, height = dsize
     return thumb, width, height
 

@@ -877,13 +877,14 @@ def get_image_thumbtup(ibs, gid_list, **kwargs):
     aids_list = ibs.get_image_aids(gid_list)
     bboxes_list = ibs.unflat_map(ibs.get_annot_bboxes, aids_list)
     thetas_list = ibs.unflat_map(ibs.get_annot_thetas, aids_list)
+    interests_list = ibs.unflat_map(ibs.get_annot_interest, aids_list)
     thumb_gpaths = ibs.get_image_thumbpath(gid_list, **kwargs)
     image_paths = ibs.get_image_paths(gid_list)
     gsize_list = ibs.get_image_sizes(gid_list)
     thumbtup_list = [
-        (thumb_path, img_path, img_size, bboxes, thetas)
-        for thumb_path, img_path, img_size, bboxes, thetas in
-        zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list)
+        (thumb_path, img_path, img_size, bboxes, thetas, interests)
+        for thumb_path, img_path, img_size, bboxes, thetas, interests in
+        zip(thumb_gpaths, image_paths, gsize_list, bboxes_list, thetas_list, interests_list)
     ]
     # if DEBUG_THUMB:
     #     print('{TUPPLE} get thumbtup_list = %r' % (thumbtup_list,))
