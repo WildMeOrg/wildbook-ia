@@ -144,14 +144,15 @@ def testdata_sparse_matchinfo_nonagg(defaultdb='testdb1', p=['default']):
     qaid = qreq_.qaids[0]
     daid = qreq_.daids[1]
     nns                 = args.nns_list[internal_index]
-    neighb_idx, neighb_dist = args.nns_list[internal_index]
+    # neighb_idx, neighb_dist = args.nns_list[internal_index]
     neighb_valid0         = args.nnvalid0_list[internal_index]
     neighb_score_list     = args.filtweights_list[internal_index]
     neighb_valid_list     = args.filtvalids_list[internal_index]
     neighb_normk          = args.filtnormks_list[internal_index]
     Knorm = qreq_.qparams.Knorm
-    args = (nns, neighb_idx, neighb_valid0, neighb_score_list,
-            neighb_valid_list, neighb_normk, Knorm)
+    fsv_col_lbls = args.filtkey_list
+    args = (nns, neighb_valid0, neighb_score_list,
+            neighb_valid_list, neighb_normk, Knorm, fsv_col_lbls)
     return qreq_, qaid, daid, args
 
 

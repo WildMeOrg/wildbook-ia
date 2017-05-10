@@ -9,7 +9,6 @@ import utool as ut
 import vtool as vt
 from os.path import join
 from operator import xor
-from vtool import matching
 import six
 from ibeis.algo.hots import hstypes
 from ibeis.algo.hots import old_chip_match
@@ -1418,12 +1417,12 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConven
         return class_dict
 
     @classmethod
-    def from_dict(cls, class_dict, ibs=None):
+    def from_dict(ChipMatch, class_dict, ibs=None):
         r"""
         Convert dict of arguments back to ChipMatch object
         """
 
-        key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
+        key_list = ut.get_kwargs(ChipMatch.initialize)[0]  # HACKY
         key_list.remove('autoinit')
         if ut.VERBOSE:
             other_keys = list(set(class_dict.keys()) - set(key_list))
@@ -1438,7 +1437,7 @@ class AnnotMatch(MatchBaseIO, ut.NiceRepr, _BaseVisualization, _AnnotMatchConven
         dict_subset['score_list'] = convert_numpy(dict_subset['score_list'],
                                                   hstypes.FS_DTYPE)
 
-        cm = cls()
+        cm = ChipMatch()
         cm.initialize(**dict_subset)
         return cm
 
@@ -2298,7 +2297,7 @@ class ChipMatch(_ChipMatchVisualization,
         return out
 
     @classmethod
-    def combine_cms(cls, cm_list):
+    def combine_cms(ChipMatch, cm_list):
         """
         Example:
             >>> # ENABLE_DOCTEST
@@ -2307,7 +2306,6 @@ class ChipMatch(_ChipMatchVisualization,
             >>> request = depc.new_request('vsone', [1], [2, 3, 4], {'dim_size': 450})
             >>> rawres_list2 = request.execute(postprocess=False)
             >>> cm_list = ut.take_column(rawres_list2, 1)
-            >>> cls = ChipMatch
             >>> out = ChipMatch.combine_cms(cm_list)
             >>> out.score_name_nsum(request)
             >>> ut.quit_if_noshow()
@@ -2344,7 +2342,7 @@ class ChipMatch(_ChipMatchVisualization,
                 new_attrs[attr] = None
             else:
                 new_attrs[attr] = ut.flatten(values)
-        out = cls(**new_attrs)
+        out = ChipMatch(**new_attrs)
         out._update_daid_index()
         out._update_unique_nid_index()
         return out
@@ -2548,113 +2546,7 @@ class ChipMatch(_ChipMatchVisualization,
     # Alternative Cosntructors / Convertors
 
     @classmethod
-    @profile
-    def from_unscored(cls, prior_cm, fm_list, fs_list, H_list=None,
-                      fsv_col_lbls=None):
-        qaid = prior_cm.qaid
-        daid_list = prior_cm.daid_list
-        fsv_list = matching.ensure_fsv_list(fs_list)
-        if fsv_col_lbls is None:
-            fsv_col_lbls = ['unknown']
-            #fsv_col_lbls = [str(count) for count in range(num_cols)]
-            #fsv_col_lbls
-        #score_list = [fsv.prod(axis=1).sum() for fsv in fsv_list]
-        score_list = [-1 for fsv in fsv_list]
-        #fsv.prod(axis=1).sum() for fsv in fsv_list]
-        cm = cls(qaid, daid_list, fm_list, fsv_list, None, score_list, H_list,
-                 fsv_col_lbls)
-        cm.fs_list = fs_list
-        return cm
-
-    @classmethod
-    @profile
-    def from_vsmany_match_tup(cls, vmt, qaid=None, fsv_col_lbls=None):
-        r"""
-        Args:
-            vmt (ibeis.algo.hots.pipeline.ValidMatchTup_): valid_match_tup
-            qaid (int):  query annotation id
-            fsv_col_lbls (None):
-
-        Returns:
-            ibeis.ChipMatch: cm
-        """
-        # NOTE: CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
-        valid_fm = np.concatenate((vmt.qfx[:, None],
-                                   vmt.dfx[:, None]), axis=1)
-        assert valid_fm.flags.c_contiguous, 'non-contiguous'
-        # valid_fm = np.ascontiguousarray(valid_fm)
-        daid_list, daid_groupxs = vt.group_indices(vmt.daid)
-
-        fm_list  = vt.apply_grouping(valid_fm, daid_groupxs)
-        fsv_list = vt.apply_grouping(vmt.scorevec, daid_groupxs)
-        fk_list  = vt.apply_grouping(vmt.rank, daid_groupxs)
-
-        filtnorm_aids = [
-            None  # [None] * len(daid_groupxs)
-            if aids is None else vt.apply_grouping(aids, daid_groupxs)
-            for aids in vmt.norm_aids]
-
-        filtnorm_fxs = [
-            None  # [None] * len(daid_groupxs)
-            if fxs is None else vt.apply_grouping(fxs, daid_groupxs)
-            for fxs in vmt.norm_fxs]
-
-        # assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer'
-        # assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer'
-
-        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
-                 fsv_col_lbls=fsv_col_lbls, filtnorm_aids=filtnorm_aids,
-                 filtnorm_fxs=filtnorm_fxs)
-        return cm
-
-    @classmethod
-    @profile
-    def from_vsone_match_tup(cls, vmt_list, daid_list=None,
-                             qaid=None, fsv_col_lbls=None):
-        r"""
-        Args:
-            vmt_list (list of ValidMatchTup_): list of valid_match_tups
-            qaid (int):  query annotation id
-            fsv_col_lbls (None):
-
-        Returns:
-            ibeis.ChipMatch: cm
-        """
-        assert all(list(map(ut.allsame,
-                            ut.get_list_column(vmt_list, 0)))), (
-            'internal daids should not have different daids for vsone')
-        qfx_list = ut.get_list_column(vmt_list, 1)
-        dfx_list = ut.get_list_column(vmt_list, 2)
-        # fm_list  = [np.vstack((dfx, qfx)).T
-        #             for dfx, qfx in zip(dfx_list, qfx_list)]
-        fm_list = [np.concatenate((dfx[:, None], qfx[:, None]), axis=1)
-                   for dfx, qfx in zip(dfx_list, qfx_list)]
-        fsv_list = ut.get_list_column(vmt_list, 3)
-        fk_list  = ut.get_list_column(vmt_list, 4)
-
-        filtnorm_aids = ut.list_transpose(ut.get_list_column(vmt_list, 5))
-        filtnorm_fxs = ut.list_transpose(ut.get_list_column(vmt_list, 6))
-
-        filtnorm_aids = [
-            None if all([aids is None for aids in aids_list]) else aids_list
-            for aids_list in filtnorm_aids
-        ]
-
-        filtnorm_fxs = [
-            None if all([fxs is None for fxs in fxs_list]) else fxs_list
-            for fxs_list in filtnorm_fxs
-        ]
-
-        # assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer %r %r' % (len(filtnorm_aids), len(fsv_col_lbls))
-        # assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer %r %r' % (len(filtnorm_aids), len(fsv_col_lbls))
-
-        cm = cls(qaid, daid_list, fm_list, fsv_list, fk_list,
-                 fsv_col_lbls=fsv_col_lbls, filtnorm_aids=filtnorm_aids,
-                 filtnorm_fxs=filtnorm_fxs)
-        return cm
-
-    @classmethod
-    def from_json(cls, json_str):
+    def from_json(ChipMatch, json_str):
         r"""
         Convert json string back to ChipMatch object
 
@@ -2666,7 +2558,6 @@ class ChipMatch(_ChipMatchVisualization,
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
-            >>> cls = ChipMatch
             >>> cm1, qreq_ = ibeis.testdata_cm()
             >>> json_str = cm1.to_json()
             >>> cm = ChipMatch.from_json(json_str)
@@ -2676,15 +2567,15 @@ class ChipMatch(_ChipMatchVisualization,
             >>> ut.show_if_requested()
         """
         class_dict = ut.from_json(json_str)
-        return cls.from_dict(class_dict)
+        return ChipMatch.from_dict(class_dict)
 
     @classmethod
-    def from_dict(cls, class_dict, ibs=None):
+    def from_dict(ChipMatch, class_dict, ibs=None):
         r"""
         Convert dict of arguments back to ChipMatch object
         """
 
-        key_list = ut.get_kwargs(cls.initialize)[0]  # HACKY
+        key_list = ut.get_kwargs(ChipMatch.initialize)[0]  # HACKY
         key_list.remove('autoinit')
         if ut.VERBOSE:
             other_keys = list(set(class_dict.keys()) - set(key_list))
@@ -2706,7 +2597,7 @@ class ChipMatch(_ChipMatchVisualization,
         safe_check_lens_eq(dict_subset['score_list'], dict_subset['fsv_list'])
         safe_check_lens_eq(dict_subset['score_list'], dict_subset['fm_list'])
 
-        cm = cls(**dict_subset)
+        cm = ChipMatch(**dict_subset)
         return cm
 
     @profile
@@ -2787,12 +2678,12 @@ class ChipMatch(_ChipMatchVisualization,
     #    return cm
 
     @classmethod
-    def load_from_fpath(cls, fpath, verbose=None):
+    def load_from_fpath(ChipMatch, fpath, verbose=None):
         #state_dict = ut.load_data(fpath, verbose=verbose)
         state_dict = ut.load_cPkl(fpath, verbose=verbose)
         if 'filtnorm_aids' not in state_dict:
             raise NeedRecomputeError('old version of chipmatch')
-        cm = cls()
+        cm = ChipMatch()
         cm.__setstate__(state_dict)
         return cm
 

@@ -44,11 +44,6 @@ W, H = 7.4375, 3.0
 # W, H = W * 1.25, H * 1.25
 
 
-def measure_worker(dbname):
-    self = Chap3(dbname)
-    self.measure_all()
-
-
 class SplitSample(ut.NiceRepr):
     def __init__(sample, qaids, daids):
         sample.qaids = qaids
@@ -136,6 +131,126 @@ class ExpandingSample(ut.NiceRepr):
             print('num_need = %r' % (n_need,))
             print('max_dsize = %r' % (max_dsize,))
         return sample.qaids, daids_list, info_list
+
+
+class DBInputs(object):
+
+    def __init__(self, dbname=None):
+        self.dbname = dbname
+        if 'GZ' in dbname:
+            self.species_nice = "Grévy's zebras"
+        if 'PZ' in dbname:
+            self.species_nice = "plains zebras"
+        if 'GIRM' in dbname:
+            self.species_nice = "Masai Giraffes"
+        if 'humpback' in dbname:
+            self.species_nice = "Humpbacks"
+        self.expt_results = {}
+        self.ibs = None
+        if dbname is not None:
+            self.dpath = join(self.base_dpath, self.dbname)
+            ut.ensuredir(self.dpath)
+
+    def _precollect(self):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3('humpbacks_fb')
+            >>> self = Chap3('GZ_Master1')
+            >>> self = Chap3('GIRM_Master1')
+            >>> self = Chap3('PZ_MTEST')
+            >>> self = Chap3('PZ_PB_RF_TRAIN')
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+        """
+        import ibeis
+        from ibeis.init import main_helpers
+        self.dbdir = ibeis.sysres.lookup_dbdir(self.dbname)
+        ibs = ibeis.opendb(dbdir=self.dbdir)
+        if ibs.dbname.startswith('PZ_Master'):
+            aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
+                                             # require_viewpoint=True,
+                                             # view='left',
+                                             species='primary',
+                                             # view_ext=2,  # FIXME
+                                             min_pername=2, minqual='poor')
+            # flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
+            flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
+            # sum(['left' == text for text in ibs.annots(aids).yaw_texts])
+            aids = ut.compress(aids, flags)
+        # elif ibs.dbname == 'GZ_Master1':
+        else:
+            aids = ibs.filter_annots_general(require_timestamp=True,
+                                             is_known=True,
+                                             species='primary',
+                                             # require_viewpoint=True,
+                                             # view='right',
+                                             # view_ext2=2,
+                                             # view_ext1=2,
+                                             minqual='poor')
+            # flags = ['left' not in text for text in ibs.annots(aids).yaw_texts]
+            # aids = ut.compress(aids, flags)
+        ibs.print_annot_stats(aids, prefix='P')
+        main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
+        print('post monkey patch')
+        ibs.print_annot_stats(aids, prefix='P')
+        self.ibs = ibs
+        self.aids_pool = aids
+        if False:
+            # check encounter stats
+            annots = ibs.annots(aids)
+            encounters = annots.group(annots.encounter_text)[1]
+            nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
+            nid_to_enc = ut.group_items(encounters, nids)
+            nenc_list = ut.lmap(len, nid_to_enc.values())
+            hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
+            print('enc per name hist:')
+            print(ut.repr2(hist))
+
+            # singletons = [a for a in encounters if len(a) == 1]
+            multitons = [a for a in encounters if len(a) > 1]
+            deltas = []
+            for a in multitons:
+                times = a.image_unixtimes_asfloat
+                deltas.append(max(times) - min(times))
+            ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
+
+
+class Chap5Commands(object):
+
+    def end_to_end(self):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_MTEST')
+            >>> self._precollect()
+        """
+        ibs = self.ibs
+        annots = ibs.annots(self.aids_pool)
+        names = list(annots.group_items(annots.nids).values())
+        ut.shuffle(names, rng=321)
+        train_aids = ut.flatten(names[0::2])
+        test_aids = ut.flatten(names[1::2])
+
+        import ibeis
+        infr_train = ibeis.AnnotInference(ibs=ibs, aids=train_aids)
+        pblm = OneVsOneProblem(infr=infr_train)
+        pblm.load_samples()
+        pblm.load_features()
+        pblm.build_feature_subsets()
+
+        # pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
+        #                                   cfg_prefix)
+
+
+class Chap5Inputs(DBInputs):
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
+    pass
+
+
+@ut.reloadable_class
+class Chap5(Chap5Inputs, Chap5Commands):
+    pass
 
 
 @ut.reloadable_class
@@ -347,7 +462,7 @@ class Chap3Agg(object):
 
 
 @ut.reloadable_class
-class Chap3Inputs(object):
+class Chap3Inputs(DBInputs):
     """
         humpbacks_fb
         Seals
@@ -355,86 +470,6 @@ class Chap3Inputs(object):
         LF_Bajo_bonito
     """
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
-
-    def __init__(self, dbname=None):
-        self.dbname = dbname
-        if 'GZ' in dbname:
-            self.species_nice = "Grévy's zebras"
-        if 'PZ' in dbname:
-            self.species_nice = "plains zebras"
-        if 'GIRM' in dbname:
-            self.species_nice = "Masai Giraffes"
-        if 'humpback' in dbname:
-            self.species_nice = "Humpbacks"
-        self.expt_results = {}
-        self.ibs = None
-        if dbname is not None:
-            self.dpath = join(self.base_dpath, self.dbname)
-            ut.ensuredir(self.dpath)
-
-    def _precollect(self):
-        """
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3('humpbacks_fb')
-            >>> self = Chap3('GZ_Master1')
-            >>> self = Chap3('GIRM_Master1')
-            >>> self = Chap3('PZ_MTEST')
-            >>> self = Chap3('PZ_PB_RF_TRAIN')
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
-        """
-        import ibeis
-        from ibeis.init import main_helpers
-        self.dbdir = ibeis.sysres.lookup_dbdir(self.dbname)
-        ibs = ibeis.opendb(dbdir=self.dbdir)
-        if ibs.dbname.startswith('PZ_Master'):
-            aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
-                                             # require_viewpoint=True,
-                                             # view='left',
-                                             species='primary',
-                                             # view_ext=2,  # FIXME
-                                             min_pername=2, minqual='poor')
-            # flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
-            flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
-            # sum(['left' == text for text in ibs.annots(aids).yaw_texts])
-            aids = ut.compress(aids, flags)
-        # elif ibs.dbname == 'GZ_Master1':
-        else:
-            aids = ibs.filter_annots_general(require_timestamp=True,
-                                             is_known=True,
-                                             species='primary',
-                                             # require_viewpoint=True,
-                                             # view='right',
-                                             # view_ext2=2,
-                                             # view_ext1=2,
-                                             minqual='poor')
-            # flags = ['left' not in text for text in ibs.annots(aids).yaw_texts]
-            # aids = ut.compress(aids, flags)
-        ibs.print_annot_stats(aids, prefix='P')
-        main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
-        print('post monkey patch')
-        ibs.print_annot_stats(aids, prefix='P')
-        self.ibs = ibs
-        self.aids_pool = aids
-        if False:
-            # check encounter stats
-            annots = ibs.annots(aids)
-            encounters = annots.group(annots.encounter_text)[1]
-            nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
-            nid_to_enc = ut.group_items(encounters, nids)
-            nenc_list = ut.lmap(len, nid_to_enc.values())
-            hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
-            print('enc per name hist:')
-            print(ut.repr2(hist))
-
-            # singletons = [a for a in encounters if len(a) == 1]
-            multitons = [a for a in encounters if len(a) > 1]
-            deltas = []
-            for a in multitons:
-                times = a.image_unixtimes_asfloat
-                deltas.append(max(times) - min(times))
-            ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
 
     def _same_occur_split(self):
         """
@@ -1573,16 +1608,16 @@ class Chap4(object):
         #-----------
         task_key = 'match_state'
         if task_key in pblm.eval_task_keys:
-            self.build_importance_data(pblm, task_key)
-            self.build_roc_data_positive(pblm)
-            self.build_score_freq_positive(pblm)
-            self.build_hard_cases(pblm, task_key, num_top=4)
+            self.measure_importance(pblm, task_key)
+            self.measure_roc_data_pos(pblm)
+            self.measure_score_freq_pos(pblm)
+            self.measure_hard_cases(pblm, task_key, num_top=4)
             self.build_metrics(pblm, task_key)
 
         task_key = 'photobomb_state'
         if task_key in pblm.eval_task_keys:
-            # self.build_roc_data_photobomb(pblm)
-            self.build_importance_data(pblm, task_key)
+            # self.measure_roc_data_photobomb(pblm)
+            self.measure_importance(pblm, task_key)
             self.build_metrics(pblm, task_key)
 
         fname = 'collected_data.pkl'
@@ -1617,7 +1652,7 @@ class Chap4(object):
         task_key = 'match_state'
         if task_key in self.eval_task_keys:
 
-            # self.build_score_freq_positive(pblm)
+            # self.measure_score_freq_pos(pblm)
             self.draw_class_score_hist()
             self.draw_roc(task_key)
 
@@ -1722,10 +1757,10 @@ class Chap4(object):
         print('# of dimensions: %d' % (len(importances)))
         print()
 
-    def build_importance_data(self, pblm, task_key):
+    def measure_importance(self, pblm, task_key):
         self.task_importance[task_key] = pblm.feature_importance(task_key=task_key)
 
-    def build_score_freq_positive(self, pblm):
+    def measure_score_freq_pos(self, pblm):
         task_key = 'match_state'
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         y = res.target_bin_df[POSTV]
@@ -1750,7 +1785,7 @@ class Chap4(object):
         freqs = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
         self.score_hist_lnbnn = freqs
 
-    def build_roc_data_positive(self, pblm):
+    def measure_roc_data_pos(self, pblm):
         task_key = 'match_state'
         target_class = POSTV
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
@@ -1764,7 +1799,7 @@ class Chap4(object):
             ]
         }
 
-    def build_roc_data_photobomb(self, pblm):
+    def measure_roc_data_photobomb(self, pblm):
         task_key = 'photobomb_state'
         target_class = 'pb'
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
@@ -1776,7 +1811,7 @@ class Chap4(object):
             ]
         }
 
-    def build_hard_cases(self, pblm, task_key, num_top=2):
+    def measure_hard_cases(self, pblm, task_key, num_top=2):
         """ Find a failure case for each class """
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         case_df = res.hardness_analysis(pblm.samples, pblm.infr)

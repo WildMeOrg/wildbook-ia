@@ -86,8 +86,6 @@ PROGKW = dict(freq=1, time_thresh=30.0, adjust=True)
 # Internal tuples denoting return types
 WeightRet_ = namedtuple('weight_ret', ('filtkey_list', 'filtweights_list',
                                        'filtvalids_list', 'filtnormks_list'))
-ValidMatchTup_ = namedtuple('vmt', (  # valid_match_tup
-    'daid', 'qfx', 'dfx', 'scorevec', 'rank', 'norm_aids', 'norm_fxs'))
 
 
 class Neighbors(ut.NiceRepr):
@@ -740,7 +738,8 @@ def baseline_neighbor_filter(qreq_, nns_list, impossible_daids_list, verbose=VER
     filter_iter_ = zip(neighb_aids_iter, impossible_daids_list)
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
     filter_iter = ut.ProgressIter(filter_iter_, nTotal=len(nns_list),
-                                  lbl=FILT_LBL, prog_hook=prog_hook, **PROGKW)
+                                  enabled=False, lbl=FILT_LBL,
+                                  prog_hook=prog_hook, **PROGKW)
     # Check to be sure that none of the matched annotations are in the impossible set
     nnvalid0_list = [vt.get_uncovered_mask(neighb_aids, impossible_daids)
                      for neighb_aids, impossible_daids in filter_iter]
@@ -1040,39 +1039,27 @@ def build_chipmatches(qreq_, nns_list, nnvalid0_list, filtkey_list,
     if verbose:
         pipeline_root = qreq_.qparams.pipeline_root
         print('[hs] Step 4) Building chipmatches %s' % (pipeline_root,))
-    idx_list = [nns.neighb_idxs for nns in nns_list]
-    #nnvalid0_list
-    # if filtnormks_list is None:
-    #     filtnormks_list = [None] * len(filtweights_list)
-    # for isvalid0, score_list, isvalid1, normks in zip(nnvalid0_list, filtweights_list, filtvalids_list, filtnormks_list):
-    #     pass
 
-    vmt_list = [
-        get_sparse_matchinfo_nonagg(
-            qreq_, nns, neighb_idx, neighb_valid0, neighb_score_list,
-            neighb_valid_list, neighb_normk_list, Knorm)
-        for nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list in
-        zip(nns_list, idx_list, nnvalid0_list, filtweights_list, filtvalids_list, filtnormks_list)
-    ]
     # Iterate over INTERNAL query annotation ids
-    internal_qaids = qreq_.get_internal_qaids()
     prog_hook = None if qreq_.prog_hook is None else qreq_.prog_hook.next_subhook()
-    intern_qaid_iter = ut.ProgressIter(internal_qaids, lbl=BUILDCM_LBL,
-                                       prog_hook=prog_hook, **PROGKW)
-    #intern_qaid_iter = internal_qaids
+    nns_iter = ut.ProgressIter(nns_list, lbl=BUILDCM_LBL, enabled=False,
+                               prog_hook=prog_hook, **PROGKW)
 
-    # VSMANY build many cmtup_olds
     cm_list = [
-        chip_match.ChipMatch.from_vsmany_match_tup(
-            vmt, qaid=qaid, fsv_col_lbls=filtkey_list)
-        for vmt, qaid in zip(vmt_list, intern_qaid_iter)]
+        get_sparse_matchinfo_nonagg(
+            qreq_, nns, neighb_valid0, neighb_score_list,
+            neighb_valid_list, neighb_normk_list, Knorm,
+            fsv_col_lbls=filtkey_list)
+        for nns, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list in
+        zip(nns_iter, nnvalid0_list, filtweights_list, filtvalids_list, filtnormks_list)
+    ]
     return cm_list
 
 
 #@profile
-def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
+def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_valid0,
                                 neighb_score_list, neighb_valid_list,
-                                neighb_normk_list, Knorm):
+                                neighb_normk_list, Knorm, fsv_col_lbls):
     """
     builds sparse iterator that generates feature match pairs, scores, and ranks
 
@@ -1081,7 +1068,7 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
             list corresponds to a daid, dfx, scorevec, rank, norm_aid, norm_fx...
 
     CommandLine:
-        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:0 --show
+        python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg --show
         python -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg:1 --show
 
         utprof.py -m ibeis.algo.hots.pipeline --test-get_sparse_matchinfo_nonagg
@@ -1092,15 +1079,10 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
         >>> verbose = True
         >>> qreq_, qaid, daid, args = plh.testdata_sparse_matchinfo_nonagg(
         >>>     defaultdb='PZ_MTEST', p=['default:Knorm=3,normalizer_rule=name,const_on=True,ratio_thresh=.2,sqrd_dist_on=True'])
-        >>> nns, neighb_idx, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm = args
-        >>> vmt = get_sparse_matchinfo_nonagg(qreq_, *args)
+        >>> nns, neighb_valid0, neighb_score_list, neighb_valid_list, neighb_normk_list, Knorm, fsv_col_lbls = args
+        >>> cm = get_sparse_matchinfo_nonagg(qreq_, *args)
         >>> qannot = qreq_.ibs.annots([qaid], config=qreq_.qparams)
-        >>> dannot = qreq_.ibs.annots(vmt.daid, config=qreq_.qparams)
-        >>> # check results
-        >>> assert ut.allsame(list(map(len, vmt[:-2]))), 'need same num rows'
-        >>> ut.assert_inbounds(vmt.qfx, -1, qannot.num_feats)
-        >>> ut.assert_inbounds(vmt.dfx, -1, np.array(dannot.num_feats))
-        >>> cm = chip_match.ChipMatch.from_vsmany_match_tup(vmt, qaid=qaid)
+        >>> dannot = qreq_.ibs.annots(cm.daid_list, config=qreq_.qparams)
         >>> cm.assert_self(verbose=False)
         >>> ut.quit_if_noshow()
         >>> cm.score_annot_csum(qreq_)
@@ -1109,6 +1091,7 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
     """
     # Unpack neighbor ids, indices, filter scores, and flags
     indexer = qreq_.indexer
+    neighb_idx = nns.neighb_idxs
     neighb_nnidx = neighb_idx.T[:-Knorm].T
     qfx_list = nns.qfx_list
     K = neighb_nnidx.T.shape[0]
@@ -1159,10 +1142,39 @@ def get_sparse_matchinfo_nonagg(qreq_, nns, neighb_idx, neighb_valid0,
     valid_norm_aids = ut.ungroup([_valid_norm_aids], [norm_filtxs], num_filts - 1)
     valid_norm_fxs = ut.ungroup([_valid_norm_fxs], [norm_filtxs], num_filts - 1)
 
-    # The q/d's are all internal here, thus in vsone they swap
-    vmt = ValidMatchTup_(valid_daid, valid_qfx, valid_dfx, valid_scorevec,
-                         valid_rank, valid_norm_aids, valid_norm_fxs)
-    return vmt
+    # ValidMatchTup_ = namedtuple('vmt', (  # valid_match_tup
+    #     'daid', 'qfx', 'dfx', 'scorevec', 'rank', 'norm_aids', 'norm_fxs'))
+    # vmt = ValidMatchTup_(valid_daid, valid_qfx, valid_dfx, valid_scorevec,
+    #                      valid_rank, valid_norm_aids, valid_norm_fxs)
+    # NOTE: CONTIGUOUS ARRAYS MAKE A HUGE DIFFERENCE
+    valid_fm = np.concatenate((valid_qfx[:, None],
+                               valid_dfx[:, None]), axis=1)
+    assert valid_fm.flags.c_contiguous, 'non-contiguous'
+    # valid_fm = np.ascontiguousarray(valid_fm)
+    daid_list, daid_groupxs = vt.group_indices(valid_daid)
+
+    fm_list  = vt.apply_grouping(valid_fm, daid_groupxs)
+    fsv_list = vt.apply_grouping(valid_scorevec, daid_groupxs)
+    fk_list  = vt.apply_grouping(valid_rank, daid_groupxs)
+
+    filtnorm_aids = [
+        None  # [None] * len(daid_groupxs)
+        if aids is None else vt.apply_grouping(aids, daid_groupxs)
+        for aids in valid_norm_aids]
+
+    filtnorm_fxs = [
+        None  # [None] * len(daid_groupxs)
+        if fxs is None else vt.apply_grouping(fxs, daid_groupxs)
+        for fxs in valid_norm_fxs]
+
+    assert len(filtnorm_aids) == len(fsv_col_lbls), 'bad normer'
+    assert len(filtnorm_fxs) == len(fsv_col_lbls), 'bad normer'
+
+    cm = chip_match.ChipMatch(nns.qaid, daid_list, fm_list, fsv_list, fk_list,
+                              fsv_col_lbls=fsv_col_lbls,
+                              filtnorm_aids=filtnorm_aids,
+                              filtnorm_fxs=filtnorm_fxs)
+    return cm
 
 
 #============================
@@ -1508,6 +1520,6 @@ if __name__ == '__main__':
     import multiprocessing
     multiprocessing.freeze_support()
     ut.doctest_funcs()
-    if ut.get_argflag('--show'):
-        import plottool as pt
-        exec(pt.present())
+    # if ut.get_argflag('--show'):
+    #     import plottool as pt
+    #     exec(pt.present())
