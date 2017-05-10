@@ -102,6 +102,10 @@ def experiments_interest(**kwargs):
             pair_diff2 = pair_list2 - pair_list1
 
             message_list = []
+            if len(gt_list1) > 0 and len(gt_list2) == 0:
+                message_list.append('Jason has annotations, Chuck none')
+            if len(gt_list1) == 0 and len(gt_list2) > 0:
+                message_list.append('Chuck has annotations, Jason none')
             if len(pair_diff1) > 0 and len(pair_diff2) == 0:
                 message_list.append('Jason has additional annotations')
             if len(pair_diff1) == 0 and len(pair_diff2) > 0:
