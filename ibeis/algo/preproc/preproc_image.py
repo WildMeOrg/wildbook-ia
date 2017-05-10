@@ -73,10 +73,51 @@ def parse_imageinfo(gpath):
     #print('[ginfo] gpath=%r' % gpath)
     # Try to open the image
     from PIL import Image  # NOQA
+    from os.path import isabs
+    import six
+    import tempfile
+    if six.PY2:
+        import urlparse
+        urlsplit = urlparse.urlsplit
+    else:
+        import urllib
+        urlsplit = urllib.parse.urlsplit
+
+    url_protos = ['https://', 'http://']
+    s3_proto = ['s3://']
+    valid_protos = s3_proto + url_protos
+
+    def isproto(gpath, valid_protos):
+        return any(gpath.startswith(proto) for proto in valid_protos)
+
+    def islocal(gpath):
+        return not (isabs(gpath) and isproto(gpath, valid_protos))
+
     with warnings.catch_warnings(record=True) as w:
         try:
-            # Open image with Exif support
-            pil_img = Image.open(gpath, 'r')  # NOQA
+            ut.embed()
+            if isproto(gpath, valid_protos):
+                # Ensure that the Unicode string is properly encoded for web requests
+                gpath_ = urlsplit(gpath)
+                gpath_path = six.moves.urllib.parse.quote(gpath_.path.encode('utf8'))
+                gpath_ = gpath_._replace(path=gpath_path)
+                gpath = gpath_.geturl()
+                ext = get_standard_ext(gpath)
+                suffix = '.%s' % (ext, )
+
+                with tempfile.TemporaryFile(suffix=suffix) as temp_file:
+                    temp_filepath = temp_file.name
+                    print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
+                    if isproto(gpath, s3_proto):
+                        s3_dict = ut.s3_str_decode_to_dict(gpath)
+                        ut.grab_s3_contents(temp_filepath, **s3_dict)
+                    if isproto(gpath, url_protos):
+                        six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
+                    # Open image with Exif support
+                    pil_img = Image.open(temp_filepath, 'r')  # NOQA
+            else:
+                # Open image with Exif support
+                pil_img = Image.open(gpath, 'r')  # NOQA
         except IOError as ex:
             # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))

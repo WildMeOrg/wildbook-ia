@@ -293,7 +293,6 @@ def add_images(ibs, gpath_list, params_list=None, as_annots=False,
 
     #print('[ibs] gpath_list = %r' % (gpath_list,))
     # Processing an image might fail, yeilding a None instead of a tup
-    ut.embed()
     if sanitize:
         gpath_list = ibsfuncs.ensure_unix_gpaths(gpath_list)
     if params_list is None:
