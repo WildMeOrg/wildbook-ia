@@ -107,11 +107,11 @@ def parse_imageinfo(gpath):
                     ut.grab_s3_contents(temp_filepath, **s3_dict)
                 if isproto(gpath, url_protos):
                     # Ensure that the Unicode string is properly encoded for web requests
-                    gpath_ = urlsplit(gpath)
-                    gpath_path = six.moves.urllib.parse.quote(gpath_.path.encode('utf8'))
-                    gpath_ = gpath_._replace(path=gpath_path)
-                    gpath = gpath_.geturl()
-                    six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
+                    uri_ = urlsplit(gpath)
+                    uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                    uri_ = uri_._replace(path=uri_path)
+                    uri_ = uri_.geturl()
+                    six.moves.urllib.request.urlretrieve(uri_, filename=temp_filepath)
                 gpath_ = temp_filepath
             else:
                 temp_file, temp_filepath = None, None

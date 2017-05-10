@@ -416,7 +416,6 @@ def localize_images(ibs, gid_list_=None):
     gid_list = ut.unique_ordered(ut.filterfalse_items(gid_list_, isnone_list))
 
     #gpath_list = ibs.get_image_paths(gid_list)
-    ut.embed()
     uri_list = ibs.get_image_uris(gid_list)
 
     url_protos = ['https://', 'http://']
