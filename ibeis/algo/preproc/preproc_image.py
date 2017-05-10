@@ -100,7 +100,6 @@ def parse_imageinfo(gpath):
             if isproto(gpath, valid_protos):
                 suffix = '.%s' % (basename(gpath), )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
-                temp_filepath = temp_file.name
                 print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
 
                 if isproto(gpath, s3_proto):
