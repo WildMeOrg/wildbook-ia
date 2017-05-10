@@ -96,11 +96,11 @@ def parse_imageinfo(gpath):
 
     with warnings.catch_warnings(record=True) as w:
         try:
-            temp_filepath = None
             if isproto(gpath, valid_protos):
                 suffix = '.%s' % (basename(gpath), )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
-                print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
+                args = (gpath, temp_filepath, )
+                print('[preproc] Caching remote %s file to temporary file %r' % args)
 
                 if isproto(gpath, s3_proto):
                     s3_dict = ut.s3_str_decode_to_dict(gpath)
@@ -112,10 +112,15 @@ def parse_imageinfo(gpath):
                     gpath_ = gpath_._replace(path=gpath_path)
                     gpath = gpath_.geturl()
                     six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
-                gpath = temp_filepath
+                gpath_ = temp_filepath
+            else:
+                temp_file, temp_filepath = None, None
+                gpath_ = gpath
 
             # Open image with Exif support
-            pil_img = Image.open(gpath, 'r')  # NOQA
+            pil_img = Image.open(gpath_, 'r')  # NOQA
+            # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
+            image_uuid = ut.get_file_uuid(gpath_)  # Read file ]-hash-> guid = gid
         except IOError as ex:
             # ut.embed()
             print('[preproc] IOError: %s' % (str(ex),))
@@ -133,8 +138,6 @@ def parse_imageinfo(gpath):
     time, lat, lon, orient = parse_exif(pil_img)  # Read exif tags
     if orient in [6, 8]:
         width, height = height, width
-    # We cannot use pixel data as libjpeg is not determenistic (even for reads!)
-    image_uuid = ut.get_file_uuid(gpath)  # Read file ]-hash-> guid = gid
     #orig_gpath = gpath
     orig_gname = basename(gpath)
     ext = get_standard_ext(gpath)
@@ -157,6 +160,7 @@ def parse_imageinfo(gpath):
     )
 
     if temp_filepath is not None:
+        temp_file.close()
         os.unlink(temp_filepath)
     #print('[ginfo] %r %r' % (image_uuid, orig_gname))
     return param_tup
