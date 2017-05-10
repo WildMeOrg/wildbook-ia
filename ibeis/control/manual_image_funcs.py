@@ -440,16 +440,16 @@ def localize_images(ibs, gid_list_=None):
     # Copy any s3/http images first
     for uri, loc_gpath in zip(uri_list, loc_gpath_list):
         if isproto(uri, valid_protos):
-            # Ensure that the Unicode string is properly encoded for web requests
-            uri_ = urlsplit(uri)
-            uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
-            uri_ = uri_._replace(path=uri_path)
-            uri = uri_.geturl()
-        if isproto(uri, s3_proto):
-            s3_dict = ut.s3_str_decode_to_dict(uri)
-            ut.grab_s3_contents(loc_gpath, **s3_dict)
-        if isproto(uri, url_protos):
-            six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
+            if isproto(uri, s3_proto):
+                s3_dict = ut.s3_str_decode_to_dict(uri)
+                ut.grab_s3_contents(loc_gpath, **s3_dict)
+            if isproto(uri, url_protos):
+                # Ensure that the Unicode string is properly encoded for web requests
+                uri_ = urlsplit(uri)
+                uri_path = six.moves.urllib.parse.quote(uri_.path.encode('utf8'))
+                uri_ = uri_._replace(path=uri_path)
+                uri = uri_.geturl()
+                six.moves.urllib.request.urlretrieve(uri, filename=loc_gpath)
     # Copy images to local directory
     #needs_copy_flags = [normpath(abspath(gp)) != normpath(abspath(lgp))
     #                           for gp, lgp in zip(abs_uri_list, loc_gpath_list)]

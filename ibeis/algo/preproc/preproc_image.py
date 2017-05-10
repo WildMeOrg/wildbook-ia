@@ -98,19 +98,20 @@ def parse_imageinfo(gpath):
         try:
             temp_filepath = None
             if isproto(gpath, valid_protos):
-                # Ensure that the Unicode string is properly encoded for web requests
-                gpath_ = urlsplit(gpath)
-                gpath_path = six.moves.urllib.parse.quote(gpath_.path.encode('utf8'))
-                gpath_ = gpath_._replace(path=gpath_path)
-                gpath = gpath_.geturl()
                 suffix = '.%s' % (basename(gpath), )
                 temp_file, temp_filepath = tempfile.mkstemp(suffix=suffix)
+                temp_filepath = temp_file.name
                 print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
 
                 if isproto(gpath, s3_proto):
                     s3_dict = ut.s3_str_decode_to_dict(gpath)
                     ut.grab_s3_contents(temp_filepath, **s3_dict)
                 if isproto(gpath, url_protos):
+                    # Ensure that the Unicode string is properly encoded for web requests
+                    gpath_ = urlsplit(gpath)
+                    gpath_path = six.moves.urllib.parse.quote(gpath_.path.encode('utf8'))
+                    gpath_ = gpath_._replace(path=gpath_path)
+                    gpath = gpath_.geturl()
                     six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
                 gpath = temp_filepath
 
