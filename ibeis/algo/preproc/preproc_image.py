@@ -95,7 +95,6 @@ def parse_imageinfo(gpath):
 
     with warnings.catch_warnings(record=True) as w:
         try:
-            ut.embed()
             if isproto(gpath, valid_protos):
                 # Ensure that the Unicode string is properly encoded for web requests
                 gpath_ = urlsplit(gpath)
@@ -103,9 +102,9 @@ def parse_imageinfo(gpath):
                 gpath_ = gpath_._replace(path=gpath_path)
                 gpath = gpath_.geturl()
                 ext = get_standard_ext(gpath)
-                suffix = '.%s' % (ext, )
+                suffix = '%s' % (ext, )
 
-                with tempfile.TemporaryFile(suffix=suffix) as temp_file:
+                with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
                     temp_filepath = temp_file.name
                     print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
                     if isproto(gpath, s3_proto):
