@@ -103,9 +103,7 @@ def parse_imageinfo(gpath):
                 gpath_path = six.moves.urllib.parse.quote(gpath_.path.encode('utf8'))
                 gpath_ = gpath_._replace(path=gpath_path)
                 gpath = gpath_.geturl()
-
-                ext = get_standard_ext(gpath)
-                suffix = '%s' % (ext, )
+                suffix = '.%s' % (basename(gpath), )
                 temp_file = tempfile.mkstemp(suffix=suffix)
                 temp_filepath = temp_file.name
                 print('[preproc] Caching remote file to temporary file %r' % (temp_filepath, ))
