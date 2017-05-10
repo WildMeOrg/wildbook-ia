@@ -113,7 +113,8 @@ def parse_imageinfo(gpath):
                     if isproto(gpath, url_protos):
                         six.moves.urllib.request.urlretrieve(gpath, filename=temp_filepath)
                     # Open image with Exif support
-                    pil_img = Image.open(temp_filepath, 'r')  # NOQA
+                    gpath = temp_filepath
+                    pil_img = Image.open(gpath, 'r')  # NOQA
             else:
                 # Open image with Exif support
                 pil_img = Image.open(gpath, 'r')  # NOQA
