@@ -256,13 +256,14 @@ class APIThumbDelegate(DELEGATE_BASE):
 
     def spawn_thumb_creation_thread(dgt, thumb_path, img_path, img_size,
                                     qtindex, view, offset, bbox_list,
-                                    theta_list):
+                                    theta_list, interest_list):
         if VERBOSE_THUMB:
             print('[ThumbDelegate] Spawning thumbnail creation thread')
         thumbsize = dgt.get_thumb_size()
         thumb_creation_thread = ThumbnailCreationThread(
             thumb_path, img_path, img_size, thumbsize,
-            qtindex, view, offset, bbox_list, theta_list
+            qtindex, view, offset, bbox_list, theta_list,
+            interest_list
         )
         #register_thread(thumb_path, thumb_creation_thread)
         # Initialize threadcount
@@ -299,7 +300,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                 assert exists(thumb_path), 'must exist'
                 return thumb_path
             if thumbtup_mode:
-                (thumb_path, img_path, img_size, bbox_list, theta_list) = data
+                (thumb_path, img_path, img_size, bbox_list, theta_list, interest_list) = data
                 invalid = (thumb_path is None or img_path is None or bbox_list is
                            None or img_size is None)
                 if invalid:
@@ -327,7 +328,7 @@ class APIThumbDelegate(DELEGATE_BASE):
                     return None
                 dgt.spawn_thumb_creation_thread(
                     thumb_path, img_path, img_size, qtindex, view, offset,
-                    bbox_list, theta_list)
+                    bbox_list, theta_list, interest_list)
                 return None
             elif thumbdat_mode:
                 thumbdat = data
@@ -439,7 +440,7 @@ def get_thread_thumb_info(bbox_list, theta_list, thumbsize, img_size):
     return dsize, new_verts_list
 
 
-def make_thread_thumb(img_path, dsize, new_verts_list):
+def make_thread_thumb(img_path, dsize, new_verts_list, interest_list):
     r"""
     Makes thumbnail with overlay. Called in thead
 
@@ -461,6 +462,7 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
         >>> pt.show_if_requested()
     """
     orange_bgr = (0, 128, 255)
+    blue_bgr = (255, 128, 0)
     # imread causes a MEMORY LEAK most likely!
     img = vt.imread(img_path)  # Read Image (.0424s) <- Takes most time!
     #if False:
@@ -478,9 +480,10 @@ def make_thread_thumb(img_path, dsize, new_verts_list):
     thumb = vt.image.resize(img, dsize)  # Resize to thumb dims (.0015s)
     del img
     # Draw bboxes on thumb (not image)
-    for new_verts in new_verts_list:
+    color_bgr_list = [blue_bgr if interest else orange_bgr for interest in interest_list]
+    for new_verts, color_bgr in zip(new_verts_list, color_bgr_list):
         if new_verts is not None:
-            geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2, out=thumb)
+            geometry.draw_verts(thumb, new_verts, color=color_bgr, thickness=2, out=thumb)
         #thumb = geometry.draw_verts(thumb, new_verts, color=orange_bgr, thickness=2)
     return thumb
 
@@ -532,7 +535,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
     """
 
     def __init__(thread, thumb_path, img_path, img_size, thumbsize, qtindex,
-                 view, offset, bbox_list, theta_list):
+                 view, offset, bbox_list, theta_list, interest_list):
         RUNNABLE_BASE.__init__(thread)
         thread.thumb_path = thumb_path
         thread.img_path = img_path
@@ -543,6 +546,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         thread.view = view
         thread.bbox_list = bbox_list
         thread.theta_list = theta_list
+        thread.interest_list = interest_list
 
     def thumb_would_not_be_visible(thread):
         return view_would_not_be_visible(thread.view, thread.offset)
@@ -561,7 +565,7 @@ class ThumbnailCreationThread(RUNNABLE_BASE):
         # -----------------
         # This part takes time, hopefully the user actually wants to see this
         # thumbnail.
-        thumb = make_thread_thumb(thread.img_path, dsize, new_verts_list)
+        thumb = make_thread_thumb(thread.img_path, dsize, new_verts_list, thread.interest_list)
         if thread.thumb_would_not_be_visible():
             return
         vt.image.imwrite(thread.thumb_path, thumb)
@@ -658,7 +662,8 @@ def simple_thumbnail_widget():
         else:
             bbox_list = []
             theta_list = []
-        thumbtup = (thumb_path, img_path, img_size, bbox_list, theta_list)
+        interest_list = [False]
+        thumbtup = (thumb_path, img_path, img_size, bbox_list, theta_list, interest_list)
         #print('thumbtup = %r' % (thumbtup,))
         return thumbtup
         #return None
