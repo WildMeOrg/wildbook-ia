@@ -8,7 +8,7 @@ from ibeis.web import appfuncs as appf
 from os.path import abspath, expanduser
 import utool as ut
 import vtool as vt
-
+import numpy as np
 
 CLASS_INJECT_KEY, register_ibs_method = (
     controller_inject.make_ibs_register_decorator(__name__))
@@ -56,6 +56,7 @@ def experiments_image_src(tag=None, **kwargs):
 @register_route('/experiments/interest/', methods=['GET'])
 def experiments_interest(**kwargs):
     from uuid import UUID
+    from ibeis.other.detectfuncs import general_overlap, general_parse_gt
 
     ibs1 = experiment_init_db('1')
     ibs2 = experiment_init_db('2')
@@ -64,6 +65,9 @@ def experiments_interest(**kwargs):
 
     gid_list1 = ibs1.get_valid_gids()
     gid_list2 = ibs2.get_valid_gids()
+
+    gt_dict1 = general_parse_gt(ibs1, gid_list1)
+    gt_dict2 = general_parse_gt(ibs2, gid_list2)
 
     uuid_list1 = sorted(map(str, ibs1.get_image_uuids(gid_list1)))
     uuid_list2 = sorted(map(str, ibs2.get_image_uuids(gid_list2)))
@@ -76,15 +80,58 @@ def experiments_interest(**kwargs):
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
-        metadata = { 'test': 1 }
+        stats = None
         if uuid1 == uuid2:
-            pass
+            gt_list1 = gt_dict1[uuid1]
+            gt_list2 = gt_dict2[uuid2]
+            overlap = general_overlap(gt_list1, gt_list2)
+            if 0 in overlap.shape:
+                index_list1 = []
+                index_list2 = []
+            else:
+                index_list1 = np.argmax(overlap, axis=1)
+                index_list2 = np.argmax(overlap, axis=0)
+
+            pair_list1 = set(enumerate(index_list1))
+            pair_list2 = set(enumerate(index_list2))
+            pair_list2 = set([_[::-1] for _ in pair_list2])
+            pair_union = pair_list1 | pair_list2
+            pair_intersect = pair_list1 & pair_list2
+            pair_diff_sym = pair_list1 ^ pair_list2
+            pair_diff1 = pair_list1 - pair_list2
+            pair_diff2 = pair_list2 - pair_list1
+
+            message_list = []
+            if len(pair_diff1) > 0 and len(pair_diff2) == 0:
+                message_list.append('Jason has additional annotations')
+            if len(pair_diff1) == 0 and len(pair_diff2) > 0:
+                message_list.append('Chuck has additional annotations')
+            if len(pair_diff1) > 0 and len(pair_diff2) > 0:
+                message_list.append('Assignment mismatch')
+
+            disagree = 0
+            for index1_, index2_ in pair_intersect:
+                gt1 = gt_list1[index1_]
+                gt2 = gt_list2[index2_]
+                if gt1['interest'] != gt2['interest']:
+                    disagree += 1
+            if disagree > 0:
+                message_list.append('Interest mismatch')
+
+            stats = {
+                'num_annot1': len(gt_list1),
+                'num_annot2': len(gt_list2),
+                'num_interest1': len([_ for _ in gt_list1 if _['interest']]),
+                'num_interest2': len([_ for _ in gt_list2 if _['interest']]),
+                'conflict': len(message_list) > 0,
+                'message': '<br/>'.join(message_list),
+            }
         elif uuid1 < uuid2:
             gid2 = None
         else:
             gid1 = None
 
-        gid_pair_list.append( (gid1, gid2, metadata) )
+        gid_pair_list.append( (gid1, gid2, stats) )
         if gid1 is not None:
             index1 += 1
         if gid2 is not None:

@@ -644,6 +644,7 @@ def general_parse_gt(ibs, test_gid_list=None, **kwargs):
                 'height'     : bbox[3] / height,
                 'class'      : ibs.get_annot_species_texts(aid),
                 'viewpoint'  : ibs.get_annot_viewpoints(aid),
+                'interest'   : ibs.get_annot_interest(aid),
                 'confidence' : 1.0,
             }
             gt_list.append(temp)
