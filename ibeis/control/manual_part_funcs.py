@@ -53,6 +53,13 @@ def _get_all_part_rowids(ibs):
 
 
 @register_ibs_method
+@accessor_decors.ider
+@register_api('/api/part/', methods=['GET'])
+def get_valid_part_rowids(ibs):
+    ibs._get_all_part_rowids()
+
+
+@register_ibs_method
 def get_num_parts(ibs, **kwargs):
     r"""
     Number of valid parts
@@ -115,10 +122,6 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     Returns:
         list: part_rowid_list
 
-    CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-add_parts
-        python -m ibeis.control.manual_part_funcs --test-add_parts --verbose --print-caller
-
     Ignore:
        detect_confidence_list = None
        notes_list = None
@@ -130,33 +133,6 @@ def add_parts(ibs, aid_list, bbox_list=None, theta_list=None,
     RESTful:
         Method: POST
         URL:    /api/part/
-
-    Example:
-        >>> # Test with prevent_visual_duplicates on
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.IBEISControl import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> prevalid = ibs.get_valid_part_rowids()
-        >>> num_add = 1
-        >>> gid_list = ibs.get_valid_gids()[0:1] * num_add
-        >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
-        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> bbox_list2 = [(int(w * .2), int(h * .6), int(w * .5), int(h *  .3))
-        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> # Add a test part
-        >>> print('Testing add_parts')
-        >>> part_rowid_list1 = ibs.add_parts(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
-        >>> part_rowid_list2 = ibs.add_parts(gid_list, bbox_list=bbox_list, prevent_visual_duplicates=True)
-        >>> part_rowid_list3 = ibs.add_parts(gid_list, bbox_list=bbox_list2, prevent_visual_duplicates=True)
-        >>> assert part_rowid_list1 == part_rowid_list2, 'part_rowid_list1 == part_rowid_list2'
-        >>> assert part_rowid_list1 != part_rowid_list3, 'part_rowid_list1 != part_rowid_list3'
-        >>> part_rowid_list_new = part_rowid_list1 + part_rowid_list3
-        >>> result = part_rowid_list_new
-        >>> print('Cleaning up. Removing added parts')
-        >>> ibs.delete_parts(part_rowid_list_new)
-        >>> print(result)
-        [14, 15]
     """
     #ut.embed()
     from vtool import geometry
@@ -272,51 +248,6 @@ def delete_parts(ibs, part_rowid_list):
     Args:
         ibs (IBEISController):  ibeis controller object
         part_rowid_list (int):  list of part ids
-
-    CommandLine:
-        python -m ibeis.control.manual_part_funcs --test-delete_parts
-        python -m ibeis.control.manual_part_funcs --test-delete_parts --debug-api-cache
-        python -m ibeis.control.manual_part_funcs --test-delete_parts
-
-    SeeAlso:
-        back.delete_part
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_part_funcs import *  # NOQA
-        >>> from os.path import exists
-        >>> import ibeis
-        >>> ibs = ibeis.opendb(defaultdb='testdb1')
-        >>> ibs.delete_empty_nids()
-        >>> # Add some parts to delete
-        >>> num_add = 2
-        >>> gid_list = ibs.get_valid_gids()[0:num_add]
-        >>> nid = ibs.make_next_nids(1)[0]
-        >>> nid_list = [nid] * num_add
-        >>> bbox_list = [(int(w * .1), int(h * .6), int(w * .5), int(h *  .3))
-        ...              for (w, h) in ibs.get_image_sizes(gid_list)]
-        >>> new_part_rowid_list = ibs.add_parts(gid_list, bbox_list=bbox_list,
-        >>>                               nid_list=nid_list)
-        >>> ibs.get_part_nids(new_part_rowid_list)
-        >>> ut.assert_lists_eq(ibs.get_part_nids(new_part_rowid_list), nid_list)
-        >>> assert ibs.get_name_part_rowids(nid) == new_part_rowid_list, 'parts should all have same name'
-        >>> assert new_part_rowid_list == ibs.get_name_part_rowids(nid), 'inverse name mapping should work'
-        >>> #thumpaths = ibs.get_image_thumbpath(gid_list, ensure_paths=True, **{'thumbsize': 221})
-        >>> #assert any(ut.lmap(exists, thumpaths)), 'thumbs should be there'
-        >>> before_part_rowids = ibs.get_image_part_rowids(gid_list)
-        >>> print('BEFORE gids: ' + str(before_part_rowids))
-        >>> result = ibs.delete_parts(new_part_rowid_list)
-        >>> assert ibs.get_name_part_rowids(nid) == [], 'parts should be removed'
-        >>> after_part_rowids = ibs.get_image_part_rowids(gid_list)
-        >>> #thumpaths = ibs.get_image_thumbpath(gid_list, ensure_paths=False, **{'thumbsize': 221})
-        >>> #assert not any(ut.lmap(exists, thumpaths)), 'thumbs should be gone'
-        >>> assert after_part_rowids != before_part_rowids, 'the invalidators must have bugs'
-        >>> print('AFTER gids: ' + str(after_part_rowids))
-        >>> valid_part_rowids = ibs.get_valid_part_rowids()
-        >>> assert  [part_rowid not in valid_part_rowids for part_rowid in new_part_rowid_list], 'should no longer be valid part_rowids'
-        >>> print(result)
-        >>> ibs.delete_empty_nids()
-
     """
     if ut.VERBOSE:
         print('[ibs] deleting %d parts' % len(part_rowid_list))
@@ -456,7 +387,7 @@ def get_part_thetas(ibs, part_rowid_list):
         >>> part_rowid_list = ibs.get_valid_part_rowids()
         >>> result = get_part_thetas(ibs, part_rowid_list)
         >>> print(result)
-        [2.75742, 0.792917, 2.53605, 2.67795, 0.946773, 2.56729]
+        None
     """
     theta_list = ibs.db.get(const.PART_TABLE, ('part_theta',), part_rowid_list)
     return theta_list
