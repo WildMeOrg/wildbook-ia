@@ -59,7 +59,8 @@ class Feedback(object):
 
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
-                     confidence=None, timestamp=None, verbose=None):
+                     confidence=None, timestamp=None, verbose=None,
+                     priority=None):
         r"""
         Example:
             >>> # ENABLE_DOCTEST
@@ -137,7 +138,9 @@ class Feedback(object):
         infr.internal_feedback[edge].append(feedback_item)
         infr.set_edge_attr(edge, feedback_item)
         if infr.refresh:
-            infr.refresh.add(decision, user_id)
+            # only add to criteria if this wasn't requested as a fix edge
+            if priority is not None and priority <= 1.0:
+                infr.refresh.add(decision, user_id)
 
         if infr.enable_inference:
             assert infr.dirty is False, (
@@ -927,6 +930,14 @@ class AnnotInference(ut.NiceRepr,
         infr.enable_inference = True
         infr.test_mode = False
         infr.simulation_mode = False
+
+        infr._max_outer_loops = None
+        infr._refresh_params = {
+            'window': 50,
+            'patience': 50,
+            'thresh': .1,
+        }
+
         infr.edge_truth = {}
 
         # Criteria

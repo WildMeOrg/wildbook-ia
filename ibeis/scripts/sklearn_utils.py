@@ -168,7 +168,7 @@ def temp(samples):
             print('balance_error = %r' % (balance_error,))
 
     X = np.empty((len(samples), 0))
-    y = samples.encoded_1d()
+    y = samples.encoded_1d().values
     groups = samples.group_ids
 
     n_splits = 3

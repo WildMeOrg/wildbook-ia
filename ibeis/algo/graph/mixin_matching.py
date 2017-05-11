@@ -19,7 +19,8 @@ class AnnotInfrMatching(object):
     Methods for running matching algorithms
     """
 
-    def exec_matching(infr, aids=None, prog_hook=None, cfgdict=None):
+    def exec_matching(infr, aids=None, prog_hook=None, cfgdict=None,
+                      name_method='node'):
         """
         Loads chip matches into the inference structure
         Uses graph name labeling and ignores ibeis labeling
@@ -40,8 +41,18 @@ class AnnotInfrMatching(object):
                 'prescore_method': 'csum',
                 'score_method': 'csum'
             }
-        # hack for ulsing current nids
-        custom_nid_lookup = infr.get_node_attrs('name_label', aids)
+        # hack for using current nids
+        if name_method == 'node':
+            custom_nid_lookup = infr.get_node_attrs('name_label', aids)
+        elif name_method == 'edge':
+            custom_nid_lookup = {
+                aid: nid for nid, cc in infr.pos_graph._ccs.items() for aid in cc
+            }
+        elif name_method == 'ibeis':
+            custom_nid_lookup = None
+        else:
+            raise KeyError('Unknown name_method={}'.format(name_method))
+
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
                                       custom_nid_lookup=custom_nid_lookup,
                                       verbose=infr.verbose >= 2)
@@ -179,6 +190,23 @@ class AnnotInfrMatching(object):
         """
         Adds extra domain specific local and global properties that the match
         object doesnt directly provide.
+
+        config = {
+            'K': 1,
+            'Knorm': 3,
+            'affine_invariance': True,
+            'augment_orientation': True,
+            'checks': 20,
+            'ratio_thresh': 0.8,
+            'refine_method': 'homog',
+            'sv_on': True,
+            'sver_xy_thresh': 0.01,
+            'symmetric': True,
+            'weight': 'fgweights'
+        }
+        need_lnbnn = False
+        global_keys = ['gps', 'qual', 'time', 'yaw']
+        prog_hook = None
         """
         if global_keys is None:
             global_keys = ['yaw', 'qual', 'gps', 'time']
@@ -198,35 +226,60 @@ class AnnotInfrMatching(object):
         return matches
 
     def _pblm_pairwise_features(infr, edges, data_key=None):
+        """
+        Create pairwise features for annotations in a test inference object
+        based on the features used to learn here
+
+        TODO: need a more systematic way of specifying which feature dimensions
+        need to be computed
+
+        Notes:
+            Given a edge (u, v), we need to:
+            * Check which classifiers we have
+            * Check which feat-cols the classifier needs,
+               and construct a configuration that can acheive that.
+                * Construct the chip/feat config
+                * Construct the vsone config
+                * Additional LNBNN enriching config
+                * Pairwise feature construction config
+            * Then we can apply the feature to the classifier
+
+
+        edges = [(1, 2)]
+        """
         from ibeis.scripts.script_vsone import AnnotPairFeatInfo
         infr.print('Requesting %d cached pairwise features' % len(edges))
         pblm = infr.classifiers
         if data_key is not None:
             data_key = pblm.default_data_key
+        edges = list(edges)
         # Parse the data_key to build the appropriate feature
-        featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
+        columns = list(pblm.samples.X_dict[data_key].columns)
+        featinfo = AnnotPairFeatInfo(columns)
+        # Do one-vs-one scoring on candidate edges
         # Find the kwargs to make the desired feature subset
         pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
         need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-
-        config = pblm.hyper_params.vsone_assign
+        # print(featinfo.get_infostr())
+        print('Building need features')
+        config = {}
+        config.update(pblm.hyper_params.vsone_match)
+        config.update(pblm.hyper_params.vsone_kpts)
 
         def tmprepr(cfg):
             return ut.repr2(cfg, strvals=True, explicit=True,
                             nobr=True).replace(' ', '').replace('\'', '')
-
         ibs = infr.ibs
         edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
         edge_hashid = ut.hashstr_arr27(edge_uuids, 'edges', hashlen=32)
-
         feat_cfgstr = '_'.join([
             edge_hashid,
-            config.get_cfgstr(),
+            ut.get_cfg_lbl(config),
             'need_lnbnn={}'.format(need_lnbnn),
             'local(' + tmprepr(pairfeat_cfg) + ')',
             'global(' + tmprepr(global_keys) + ')'
         ])
-        feat_cacher = ut.Cacher('bulk_pairfeat_cache', feat_cfgstr,
+        feat_cacher = ut.Cacher('bulk_pairfeat_cache3', feat_cfgstr,
                                 appname=pblm.appname, verbose=20)
         data = feat_cacher.tryload()
         if data is None:
@@ -234,16 +287,63 @@ class AnnotInfrMatching(object):
                                                 global_keys, need_lnbnn)
             feat_cacher.save(data)
         matches, feats = data
-        assert np.all(featinfo.X.columns == feats.columns), (
+
+        assert set(featinfo.columns).issubset(feats.columns), (
             'inconsistent feature dimensions')
-        return matches, feats
+
+        # Take the filtered subset of columns
+        feats = feats[featinfo.columns]
+
+        assert np.all(featinfo.columns == feats.columns), (
+            'inconsistent feature dimensions')
+        return feats
 
     def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
                                 global_keys=None, need_lnbnn=True,
                                 multi_index=True):
         """
         Construct matches and their pairwise features
+
+        Example:
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_mtest_infr()
+            >>> config = {
+            >>>     'K': 1,
+            >>>     'Knorm': 3,
+            >>>     'affine_invariance': True,
+            >>>     'augment_orientation': True,
+            >>>     'checks': 20,
+            >>>     'ratio_thresh': 0.8,
+            >>>     'refine_method': 'homog',
+            >>>     'sv_on': True,
+            >>>     'sver_xy_thresh': 0.01,
+            >>>     'symmetric': True,
+            >>>     'weight': 'fgweights'
+            >>> }
+            >>> need_lnbnn = False
+            >>> global_keys = ['gps', 'qual', 'time', 'yaw']
+            >>> pairfeat_cfg = {
+            >>>     'bin_key': 'ratio',
+            >>>     'bins': [0.5, 0.6, 0.7, 0.8],
+            >>>     'indices': [],
+            >>>     'local_keys': [
+            >>>         'fgweights', 'match_dist', 'norm_dist', 'norm_x1',
+            >>>         'norm_x2', 'norm_y1', 'norm_y2', 'ratio', 'scale1',
+            >>>         'scale2', 'sver_err_ori', 'sver_err_scale',
+            >>>         'sver_err_xy', 'weighted_norm_dist', 'weighted_ratio'
+            >>>     ],
+            >>>     'sorters': [],
+            >>>     'summary_ops': ['len', 'mean', 'med', 'std', 'sum']
+            >>> }
+            >>> multi_index = True
+            >>> edges = [(1, 2)]
+            >>> matches, X = infr._make_pairwise_features(
+            >>>     edges, config, pairfeat_cfg, global_keys, need_lnbnn,
+            >>>     multi_index)
+            >>> match = matches[0]
+            >>> match._make_global_feature_vector(global_keys)
         """
+
         import pandas as pd
         # TODO: ensure feat/chip configs are resepected
         edges = ut.lmap(tuple, ut.aslist(edges))
@@ -253,6 +353,7 @@ class AnnotInfrMatching(object):
         # ---------------
         # Try different feature constructions
         infr.print('building pairwise features')
+        pairfeat_cfg['summary_ops'] = set(pairfeat_cfg['summary_ops'])
         X = pd.DataFrame([
             m.make_feature_vector(**pairfeat_cfg)
             for m in ut.ProgIter(matches, label='making pairwise feats')
@@ -564,13 +665,20 @@ class CandidateSearch(object):
     """ Search for candidate edges """
     @profile
     def find_lnbnn_candidate_edges(infr):
+        """
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_mtest_infr()
+            >>> cand_edges = infr.find_lnbnn_candidate_edges()
+            >>> assert len(cand_edges) > 200
+        """
         # Refresh the name labels
-        for nid, cc in infr.pos_graph._ccs.items():
-            infr.set_node_attrs('name_label', ut.dzip(cc, [nid]))
 
         # do LNBNN query for new edges
         # Use one-vs-many to establish candidate edges to classify
-        infr.exec_matching(cfgdict={
+        infr.exec_matching(name_method='edge', cfgdict={
             'resize_dim': 'width',
             'dim_size': 700,
             'requery': True,
@@ -582,7 +690,7 @@ class CandidateSearch(object):
         candidate_edges = infr._cm_breaking(review_cfg={'ranks_top': 5})
         already_reviewed = set(infr.get_edges_where_ne(
             'decision', 'unreviewed', edges=candidate_edges,
-            default='unreviewed'))
+            default='unreviewed', on_missing='filter'))
         candidate_edges = set(candidate_edges) - already_reviewed
 
         if infr.enable_inference:
@@ -778,23 +886,25 @@ class CandidateSearch(object):
         infr.print('refresh_candidate_edges', 1)
 
         infr.assert_consistency_invariant()
-        infr.refresh.reset()
         new_edges = infr.find_new_candidate_edges(ranking=ranking)
         infr.add_new_candidate_edges(new_edges)
         infr.assert_consistency_invariant()
 
     @profile
     def _make_task_probs(infr, edges):
+        """
+        Predict edge probs for each pairwise classifier task
+        """
         pblm = infr.classifiers
         data_key = pblm.default_data_key
         # TODO: find a good way to cache this
         cfgstr = infr.ibs.dbname + ut.hashstr27(repr(edges)) + data_key
-        cacher = ut.Cacher('foobarclf_taskprobs', cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=1,
+        cacher = ut.Cacher('foobarclf_taskprobs4', cfgstr=cfgstr,
+                           appname=pblm.appname, enabled=0,
                            verbose=pblm.verbose)
         X = cacher.tryload()
         if X is None:
-            X = pblm.make_deploy_features(infr, edges, data_key)
+            X = infr._pblm_pairwise_features(edges, data_key)
             cacher.save(X)
         task_keys = list(pblm.samples.subtasks.keys())
         task_probs = pblm.predict_proba_deploy(X, task_keys)

@@ -18,59 +18,154 @@ class RefreshCriteria(object):
     """
     Determine when to re-query for candidate edges
     """
-    def __init__(refresh):
-        refresh.window = 100
+    def __init__(refresh, window=100, patience=50, thresh=.1):
+        refresh.window = window
         refresh.manual_decisions = []
         refresh.num_pos = 0
-        refresh.frac_thresh = 3 / refresh.window
-        refresh.pos_thresh = 2
+        # refresh.frac_thresh = 3 / refresh.window
+        # refresh.pos_thresh = 2
+        refresh._prob_any_remain_thresh = thresh
+        refresh._patience = patience
+        # refresh._ewma = None
+        refresh._ewma = 1
 
-    def estimate_poison(refresh):
+    def check(refresh):
+        # if len(refresh.manual_decisions) > refresh.warmup:
+        # return (refresh.pos_frac < refresh.frac_thresh and
+        #         refresh.num_pos > refresh.pos_thresh)
+        return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
+
+    def prob_any_remain(refresh, n_remain_edges=None):
         """
-        Ignore:
+        CommandLine:
+            python -m ibeis.algo.graph.mixin_loops prob_any_remain --save poisson1.png \
+                    --dpi=300 --figsize=7.4375,3.0 --diskshow --size=2
 
-            This only works if reviewing in a random order
+            python -m ibeis.algo.graph.mixin_loops prob_any_remain --save poisson2.png \
+                    --dpi=300 --figsize=7.4375,3.0 --diskshow --size=1
 
-            num_annots = 1000
-            annots_per_name = 4
-            num_names = num_annots / annots_per_name
-
-            num_edges = int((num_names * (num_names - 1)) / 2)
-
-            window_size = 100
-            num_correct = 1
-
-            bounds = []
-
-            for k in range(num_edges):
-                mu = num_correct / window_size
-                window_size += 1
-                remain = num_edges - k - 1
-                bound = mu * remain
-                bounds.append(bound)
-            import plottool as pt
-            pt.plot(bounds)
-
-            infr = demo.simple_simulation()
-
-            window = 500
-            gen = ut.iter_window(infr.refresh.manual_decisions, window)
-            means_ = [np.mean(x) for x in gen]
-            # means_prefix = (np.cumsum(infr.refresh.manual_decisions[:window]) / np.arange(1, window + 1)).tolist()
-            means = means_
-            import plottool as pt
-            pt.qtensure()
-            pt.plot(means)
-
-            mu = .1
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_loops import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> size = ut.get_argval('--size', default=4)
+            >>> infr = demo.demodata_infr(num_pccs=50, size=size, size_std=0)
+            >>> edges = list(infr.dummy_matcher.find_dummy_candidate_edges(K=100))
+            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> sortx = scores.argsort()[::-1]
+            >>> edges = ut.take(edges, sortx)
+            >>> scores = scores[sortx]
+            >>> ys = infr.match_state_df(edges)[POSTV].values
+            >>> y_remainsum = ys[::-1].cumsum()[::-1]
+            >>> refresh = RefreshCriteria(window=50)
+            >>> refresh._patience = 100
+            >>> pprob_any = []
+            >>> rfrac_any = []
+            >>> n_real_list = []
+            >>> xdata = []
+            >>> for count, (edge, y) in enumerate(zip(edges, ys)):
+            >>>     decision = POSTV if y else NEGTV
+            >>>     refresh.add(decision, user_id='oracle')
+            >>>     n_remain_edges = len(edges) - count
+            >>>     n_real = y_remainsum[count]
+            >>>     n_real_list.append(n_real)
+            >>>     rfrac_any.append(y_remainsum[count] / y_remainsum[0])
+            >>>     pprob_any.append(refresh.prob_any_remain())
+            >>>     xdata.append(count + 1)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> pprob_any = pprob_any
+            >>> rprob_any = np.minimum(1, n_real_list)
+            >>> rfrac_any = rfrac_any
+            >>> xdata = xdata
+            >>> from ibeis.scripts.thesis import TMP_RC
+            >>> import matplotlib as mpl
+            >>> mpl.rcParams.update(TMP_RC)
+            >>> pt.multi_plot(
+            >>>     xdata, [pprob_any, rprob_any, rfrac_any], marker='',
+            >>>     label_list=['pred any remain', 'real any remain', 'frac remain'],
+            >>>     xlabel='review num',
+            >>>     ylabel='prob',
+            >>>     rcParams=TMP_RC,
+            >>>     title='poisson refresh ' + ut.get_cfg_lbl(infr.demokw)
+            >>> )
+            >>> ut.show_if_requested()
         """
-        import scipy.stats
-        mu = refresh.pos_frac
-        rv = scipy.stats.poisson(mu)
-        return rv
-        # Multipling mu * n_remain_steps gives a probabilistic upper bound on
-        # the number of errors remaning.
-        pass
+        import scipy as sp
+        mu = refresh._ewma
+        def poisson_prob_k_events(k, mu):
+            return np.exp(-mu) * (mu ** k) / sp.math.factorial(k)
+        # def  poisson_prob_at_least_k_events(k, mu):
+        #     return sp.special.gammainc(k + 1, mu) / sp.math.factorial(k)
+        prob_no_event = poisson_prob_k_events(0, mu)
+        n_remain_edges = refresh._patience
+        prob_no_event_in_range = prob_no_event ** n_remain_edges
+        prob_event_in_range = 1 - prob_no_event_in_range
+        return prob_event_in_range
+
+    def pred_num_positives(refresh, n_remain_edges):
+        """
+        Uses poisson process to estimate remaining positive reviews.
+
+        Multipling mu * n_remain_edges gives a probabilistic upper bound on the
+        number of errors remaning.  This only provides a real estimate if
+        reviewing in a random order
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_loops import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=50, size=4, size_std=2)
+            >>> edges = list(infr.dummy_matcher.find_dummy_candidate_edges(K=100))
+            >>> #edges = ut.shuffle(sorted(edges), rng=321)
+            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> sortx = scores.argsort()[::-1]
+            >>> edges = ut.take(edges, sortx)
+            >>> scores = scores[sortx]
+            >>> ys = infr.match_state_df(edges)[POSTV].values
+            >>> y_remainsum = ys[::-1].cumsum()[::-1]
+            >>> refresh = RefreshCriteria(window=250)
+            >>> n_pred_list = []
+            >>> n_real_list = []
+            >>> xdata = []
+            >>> for count, (edge, y) in enumerate(zip(edges, ys)):
+            >>>     decision = POSTV if y else NEGTV
+            >>>     refresh.add(decision, user_id='oracle')
+            >>>     n_remain_edges = len(edges) - count
+            >>>     n_pred = refresh.pred_num_positives(n_remain_edges)
+            >>>     n_real = y_remainsum[count]
+            >>>     if count == 2000:
+            >>>         break
+            >>>     n_real_list.append(n_real)
+            >>>     n_pred_list.append(n_pred)
+            >>>     xdata.append(count + 1)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> n_pred_list = n_pred_list[10:]
+            >>> n_real_list = n_real_list[10:]
+            >>> xdata = xdata10:]
+            >>> pt.multi_plot(xdata, [n_pred_list, n_real_list], marker='',
+            >>>               label_list=['pred', 'real'], xlabel='review num',
+            >>>               ylabel='pred remaining merges')
+            >>> stop_point = xdata[np.where(y_remainsum[10:] == 0)[0][0]]
+            >>> pt.gca().plot([stop_point, stop_point], [0, int(max(n_pred_list))], 'g-')
+            >>> #idx = np.where(((scores == scores[ys].min()) & y)[10:])[0]
+            >>> #idx = np.where((scores[10:] == 0) & ys[10:])[0]
+            >>> #practical_point = np.where(y_remainsum == 0)[0][0]
+            >>> #pt.gca().plot([stop_point, stop_point], [0, int(max(n_pred_list))], 'g-')
+        """
+        # variance and mean are the same
+        mu = refresh._ewma
+        # import scipy.stats
+        # mu = refresh.pos_frac
+        # rv = scipy.stats.poisson(mu)
+        # sigma = np.sqrt(mu)
+        # support = len(refresh.manual_decisions)
+        # prob_at_least_k_events(1, mu)
+        n_positives = mu * n_remain_edges
+        return n_positives
 
     def reset(refresh):
         refresh.manual_decisions = []
@@ -78,18 +173,72 @@ class RefreshCriteria(object):
 
     def add(refresh, decision, user_id):
         decision_code = 1 if decision == POSTV else 0
+        # dont add auto reviews to refresh criteria
         if user_id is not None and not user_id.startswith('auto'):
             refresh.manual_decisions.append(decision_code)
+            x = decision_code
+            # halflife = refresh.window
+            # alpha = 1 - np.exp(np.log(.5) / halflife)
+            span = refresh.window
+            alpha = 2 / (span + 1)
+            if refresh._ewma is None:
+                refresh._ewma = x
+            refresh._ewma = (alpha * x) + (1 - alpha) * refresh._ewma
         if decision_code:
             refresh.num_pos += 1
+
+    def ave(refresh, method='exp'):
+        """
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_loops import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)
+            >>> edges = list(infr.dummy_matcher.find_dummy_candidate_edges(K=100))
+            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> #sortx = ut.shuffle(np.arange(len(edges)), rng=321)
+            >>> sortx = scores.argsort()[::-1]
+            >>> edges = ut.take(edges, sortx)
+            >>> scores = scores[sortx]
+            >>> ys = infr.match_state_df(edges)[POSTV].values
+            >>> y_remainsum = ys[::-1].cumsum()[::-1]
+            >>> refresh = RefreshCriteria(window=250)
+            >>> ma1 = []
+            >>> ma2 = []
+            >>> reals = []
+            >>> xdata = []
+            >>> for count, (edge, y) in enumerate(zip(edges, ys)):
+            >>>     decision = POSTV if y else NEGTV
+            >>>     refresh.add(decision, user_id='oracle')
+            >>>     ma1.append(refresh._ewma)
+            >>>     ma2.append(refresh.pos_frac)
+            >>>     n_real = y_remainsum[count] / (len(edges) - count)
+            >>>     reals.append(n_real)
+            >>>     xdata.append(count + 1)
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.qtensure()
+            >>> pt.multi_plot(xdata, [ma1, ma2, reals], marker='',
+            >>>               label_list=['exp', 'win', 'real'], xlabel='review num',
+            >>>               ylabel='mu')
+        """
+        if method == 'exp':
+            # Compute exponentially weighted moving average
+            # halflife = refresh.window
+            # alpha = 1 - np.exp(np.log(.5) / halflife)
+            span = refresh.window
+            alpha = 2 / (span + 1)
+            # Compute the whole thing
+            iter_ = iter(refresh.manual_decisions)
+            current = next(iter_)
+            for x in iter_:
+                current = (alpha * x) + (1 - alpha) * current
+            return current
+        elif method == 'window':
+            return refresh.pos_frac
 
     @property
     def pos_frac(refresh):
         return np.mean(refresh.manual_decisions[-refresh.window:])
-
-    def check(refresh):
-        return (refresh.pos_frac < refresh.frac_thresh and
-                refresh.num_pos > refresh.pos_thresh)
 
 
 class UserOracle(object):
@@ -133,41 +282,6 @@ class InfrLoops(object):
     Algorithm control flow loops
     """
 
-    def init_refresh(infr):
-        infr.refresh = RefreshCriteria()
-
-    def inner_loop(infr):
-        """
-        Executes reviews until the queue is empty or needs refresh
-        """
-
-        infr.print('Start inner loop')
-        for count in it.count(0):
-            if len(infr.queue) == 0:
-                infr.print('No more edges, need refresh')
-                break
-            edge, priority = infr.pop()
-            if infr.is_recovering():
-                infr.print('IN RECOVERY MODE priority=%r' % (priority,),
-                           color='red')
-            else:
-                if infr.refresh.check():
-                    infr.print('Refresh criteria flags refresh')
-                    break
-
-            flag = False
-            if infr.enable_autoreview:
-                flag, feedback = infr.try_auto_review(edge)
-            if not flag:
-                # if infr.enable_inference:
-                #     flag, feedback = infr.try_implicit_review(edge)
-                if not flag:
-                    feedback = infr.request_user_review(edge)
-            infr.add_feedback(edge=edge, **feedback)
-
-            if infr.is_recovering():
-                infr.recovery_review_loop()
-
     def recovery_review_loop(infr):
         while infr.is_recovering():
             edge, priority = infr.pop()
@@ -187,49 +301,82 @@ class InfrLoops(object):
             )
             infr.add_feedback(edge=edge, **feedback)
 
-    def priority_review_loop(infr, max_loops):
-        infr.refresh = RefreshCriteria()
+    def inner_priority_loop(infr):
+        """
+        Executes reviews until the queue is empty or needs refresh
+        """
+
+        infr.refresh = RefreshCriteria(**infr._refresh_params)
+        infr.print('Start inner loop')
+        for count in it.count(0):
+            if len(infr.queue) == 0:
+                infr.print('No more edges, need refresh', color='yellow')
+                break
+            if not infr.is_recovering():
+                if infr.refresh.check():
+                    infr.print('Triggered poisson refresh criteria', color='yellow')
+                    break
+            infr.next_review()
+
+    def outer_candidate_loop(infr, max_loops=None):
+        """
+        The main outer loop
+        """
+        if max_loops is None:
+            max_loops = infr._max_outer_loops
+            if max_loops is None:
+                max_loops = np.inf
+
+        # Initialize a refresh criteria
         for count in it.count(0):
             if count >= max_loops:
-                infr.print('early stop')
+                infr.print('early stop', color='red')
                 break
             infr.print('Outer loop iter %d ' % (count,))
             infr.refresh_candidate_edges()
             if not len(infr.queue):
-                infr.print('Queue is empty. Terminate.')
+                infr.print('Queue is empty. Terminate.', color='red')
                 break
-            infr.inner_loop()
-            if infr.enable_inference:
-                infr.assert_consistency_invariant()
-                infr.print('HACK FIX REDUN', color='white')
-                # Fix anything that is not positive/negative redundant
-                real_queue = infr.queue
-                # use temporary queue
-                infr.queue = ut.PriorityQueue()
-                infr.refresh_candidate_edges(ranking=False)
-                infr.inner_loop()
-                infr.queue = real_queue
+            infr.inner_priority_loop()
+            if infr.refresh.num_pos == 0:
+                infr.print('Triggered poisson termination criteria', color='red')
+                infr.print('Terminate.', color='red')
+                break
+
+            # if infr.enable_inference:
+            #     infr.assert_consistency_invariant()
+            #     infr.print('HACK FIX REDUN', color='white')
+            #     # Fix anything that is not positive/negative redundant
+            #     real_queue = infr.queue
+            #     # use temporary queue
+            #     infr.queue = ut.PriorityQueue()
+            #     infr.refresh_candidate_edges(ranking=False)
+            #     infr.inner_priority_loop()
+            #     infr.queue = real_queue
+
+    def fix_pos_redun_loop(infr):
+        # Enforce that a user checks any PCC that was auto-reviewed
+        # but was unable to achieve k-positive-consistency
+        for pcc in list(infr.non_pos_redundant_pccs()):
+            subgraph = infr.graph.subgraph(pcc)
+            for u, v, data in subgraph.edges(data=True):
+                edge = infr.e_(u, v)
+                if data.get('user_id', '').startswith('auto'):
+                    try:
+                        feedback = infr.request_user_review(edge)
+                    except ReviewCanceled:
+                        raise
+                    infr.add_feedback(edge=edge, **feedback)
 
     @profile
-    def main_loop(infr, max_loops=np.inf):
+    def main_loop(infr, max_loops=None):
         infr.print('Starting main loop', 1)
 
-        infr.priority_review_loop(max_loops)
+        infr.outer_candidate_loop(max_loops)
 
         if infr.enable_inference:
-            # Enforce that a user checks any PCC that was auto-reviewed
-            # but was unable to achieve k-positive-consistency
-            for pcc in list(infr.non_pos_redundant_pccs()):
-                subgraph = infr.graph.subgraph(pcc)
-                for u, v, data in subgraph.edges(data=True):
-                    edge = infr.e_(u, v)
-                    if data.get('user_id', '').startswith('auto'):
-                        try:
-                            feedback = infr.request_user_review(edge)
-                        except ReviewCanceled:
-                            raise
-                        infr.add_feedback(edge=edge, **feedback)
             # Check for inconsistency recovery
+            infr.fix_pos_redun_loop()
             infr.recovery_review_loop()
 
         if infr.enable_inference:
@@ -284,25 +431,6 @@ class InfrReviewers(object):
             infr.print('Automatic review success')
 
         return auto_flag, review
-
-    def try_implicit_review(infr, edge):
-        review = {}
-        # Check if edge is implicitly negative
-        if not infr.is_recovering():
-            implicit_flag = (
-                infr.check_prob_completeness(edge[0]) and
-                infr.check_prob_completeness(edge[1])
-            )
-            if implicit_flag:
-                review = {
-                    'user_id': 'auto_implicit_complete',
-                    'confidence': 'pretty_sure',
-                    'decision': NEGTV,
-                    'tags': [],
-                }
-        else:
-            implicit_flag = False
-        return implicit_flag, review
 
     def emit_or_review(infr, edge, priority):
         if infr.enable_autoreview:
@@ -363,15 +491,24 @@ class InfrReviewers(object):
         infr.manual_wgt.set_edge(edge, info_text, external=True)
         infr.manual_wgt.show()
 
+    def next_review(infr):
+        """
+        does one review step
+        """
+        edge, priority = infr.pop()
+        feedback = infr.emit_or_review(edge, priority)
+        if feedback is None:
+            # None feedback means we are waiting for a user response.
+            return False
+        # Add feedback from the automated method
+        infr.add_feedback(edge, priority=priority, **feedback)
+        return True
+
     def continue_review(infr):
         try:
             while True:
-                edge, priority = infr.pop()
-                feedback = infr.emit_or_review(edge, priority)
-                if feedback is None:
-                    # None feedback means we are waiting for a user response.
+                if not infr.next_review():
                     break
-                infr.add_feedback(edge, **feedback)
         except StopIteration:
             infr.on_queue_empty()
 
@@ -430,7 +567,7 @@ class SimulationHelpers(object):
     def init_simulation(infr, oracle_accuracy=1.0, k_redun=2,
                         enable_autoreview=True, enable_inference=True,
                         classifiers=None, phis=None, complete_thresh=None,
-                        match_state_thresh=None, name=None):
+                        match_state_thresh=None, max_outer_loops=None, name=None):
 
         infr.name = name
 
@@ -446,8 +583,9 @@ class SimulationHelpers(object):
 
         infr.queue = ut.PriorityQueue()
 
-        infr.oracle = UserOracle(oracle_accuracy, infr.name)
-        infr.term = TerminationCriteria(phis)
+        infr.oracle = UserOracle(oracle_accuracy, rng=infr.name)
+        if phis is not None:
+            infr.term = TerminationCriteria(phis)
 
         infr.task_thresh = {
             'photobomb_state': pd.Series({
@@ -457,8 +595,9 @@ class SimulationHelpers(object):
             'match_state': pd.Series(match_state_thresh)
         }
 
+        infr._max_outer_loops = max_outer_loops
         infr.simulation_mode = True
-        infr.edge_truth = {}
+        # infr.edge_truth = {}
         infr.metrics_list = []
         infr.test_state = {
             'n_auto': 0,
@@ -489,7 +628,6 @@ class SimulationHelpers(object):
         n_fp = 0
 
         # TODO: dynamic measurement
-
         for edge, data in infr.edges(data=True):
             true_state = infr.edge_truth[edge]
             decision = data.get('decision', UNREV)
@@ -517,6 +655,8 @@ class SimulationHelpers(object):
             'n_errors': n_error_edges,
             'n_fn': n_fn,
             'n_fp': n_fp,
+            'pprob_any': infr.refresh.prob_any_remain(),
+            'mu': infr.refresh._ewma,
         }
         return metrics
 

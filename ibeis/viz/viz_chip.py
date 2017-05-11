@@ -118,7 +118,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         show_exemplar, show_num_gt, show_quality_text, show_yawtext, fnum,
         title, figtitle, pnum, interpolation, cmap, heatmap, data_colorbar,
         darken, update, xlabel, redraw_image, ax, alpha, docla, doclf,
-        projection, use_gridspec, pts, ell
+        projection, pts, ell
         color (3/4-tuple, ndarray, or str): colors for keypoints
 
     CommandLine:

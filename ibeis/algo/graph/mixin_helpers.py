@@ -24,41 +24,47 @@ class AttrAccess(object):
                 infr.graph, key, nodes=nodes, default=default)
 
     def gen_edge_attrs(infr, key, edges=None, default=ut.NoParam,
-                       check_exist=False):
+                       on_missing=None):
         """ maybe change to gen edge items """
         return ut.util_graph.nx_gen_edge_attrs(
                 infr.graph, key, edges=edges, default=default,
-                check_exist=check_exist)
+                on_missing=on_missing)
 
     def gen_node_values(infr, key, nodes, default=ut.NoParam):
         return ut.util_graph.nx_gen_node_values(
             infr.graph, key, nodes, default=default)
 
-    def gen_edge_values(infr, key, edges, default=ut.NoParam):
+    def gen_edge_values(infr, key, edges, default=ut.NoParam,
+                        on_missing='error', on_keyerr='default'):
         return ut.util_graph.nx_gen_edge_values(
-            infr.graph, key, edges, default=default)
+            infr.graph, key, edges, default=default, on_missing=on_missing,
+            on_keyerr=on_keyerr)
 
     def get_node_attrs(infr, key, nodes=None, default=ut.NoParam):
         """ Networkx node getter helper """
         return dict(infr.gen_node_attrs(key, nodes=nodes, default=default))
 
     def get_edge_attrs(infr, key, edges=None, default=ut.NoParam,
-                       check_exist=False):
+                       on_missing=None):
         """ Networkx edge getter helper """
         return dict(infr.gen_edge_attrs(key, edges=edges, default=default,
-                                        check_exist=check_exist))
+                                        on_missing=on_missing))
 
-    def _get_edges_where(infr, key, op, val, edges=None, default=ut.NoParam):
-        edge_to_attr = infr.gen_edge_attrs(key, edges=edges, default=default)
+    def _get_edges_where(infr, key, op, val, edges=None, default=ut.NoParam,
+                         on_missing=None):
+        edge_to_attr = infr.gen_edge_attrs(key, edges=edges, default=default,
+                                           on_missing=on_missing)
         return (e for e, v in edge_to_attr if op(v, val))
 
-    def get_edges_where_eq(infr, key, val, edges=None, default=ut.NoParam):
+    def get_edges_where_eq(infr, key, val, edges=None, default=ut.NoParam,
+                           on_missing=None):
         return infr._get_edges_where(key, operator.eq, val, edges=edges,
-                                     default=default)
+                                     default=default, on_missing=on_missing)
 
-    def get_edges_where_ne(infr, key, val, edges=None, default=ut.NoParam):
+    def get_edges_where_ne(infr, key, val, edges=None, default=ut.NoParam,
+                           on_missing=None):
         return infr._get_edges_where(key, operator.ne, val, edges=edges,
-                                     default=default)
+                                     default=default, on_missing=on_missing)
 
     def set_node_attrs(infr, key, node_to_prop):
         """ Networkx node setter helper """

@@ -218,13 +218,18 @@ class DBInputs(object):
 
 class Chap5Commands(object):
 
-    def end_to_end(self):
+    def measure_simulation(self):
         """
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_MTEST')
             >>> self._precollect()
         """
+        if 'self' not in vars():
+            from ibeis.scripts.thesis import Chap5, OneVsOneProblem
+            self = Chap5('PZ_MTEST')
+            self._precollect()
+
         ibs = self.ibs
         annots = ibs.annots(self.aids_pool)
         names = list(annots.group_items(annots.nids).values())
@@ -233,14 +238,115 @@ class Chap5Commands(object):
         test_aids = ut.flatten(names[1::2])
 
         import ibeis
-        infr_train = ibeis.AnnotInference(ibs=ibs, aids=train_aids)
+        infr_train = ibeis.AnnotInference(ibs=ibs, aids=train_aids, autoinit=True)
+        infr_train.reset_feedback('staging', apply=True)
+        if infr_train.ibs.dbname == 'PZ_MTEST':
+            infr_train.ensure_mst()
+
         pblm = OneVsOneProblem(infr=infr_train)
+        pblm.set_pandas_options()
         pblm.load_samples()
         pblm.load_features()
         pblm.build_feature_subsets()
 
-        # pblm.learn_evaluation_classifiers(['match_state'], ['RF'], [data_key],
-        #                                   cfg_prefix)
+        pblm.learn_evaluation_classifiers()
+        task_key = 'match_state'
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+
+        graph_thresh = res.get_pos_threshes('fpr', value=.001, warmup=200)
+        deploy_task_clfs = pblm.learn_deploy_classifiers()  # NOQA
+
+        # eval_clfs = pblm._train_evaluation_clf(task_key, data_key, clf_key)
+        # deploy_clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
+        # pblm._ensure_evaluation_clf(task_key, data_key, clf_key, use_cache=False)
+
+        const_dials = {
+            'oracle_accuracy' : 0.95,
+            # 'oracle_accuracy' : 1.0,
+            'k_redun'         : 2,
+            'max_outer_loops' : 4,
+        }
+
+        varied_dials = {
+            'enable_inference'   : True,
+            'classifiers'        : pblm,
+            'match_state_thresh' : graph_thresh,
+            'name'               : 'Graph'
+        }
+
+        dials = ut.dict_union(const_dials, varied_dials)
+        if dials['oracle_accuracy'] < 1:
+            dials['name'] += '+Err'
+        print('dials = %s' % (ut.repr4(dials),))
+
+        verbose = 1
+        infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                    verbose=verbose)
+        infr._refresh_params['window'] = 2 * int(np.sqrt(len(infr.aids)))
+        infr._refresh_params['thresh'] = .2
+
+        infr.init_simulation(**dials)
+        infr.test_mode = True
+
+        infr.reset(state='empty')
+        infr.main_loop()
+
+        self.expt_results = {}
+        expt_name = 'simulation'
+        refresh_thresh = infr.refresh._prob_any_remain_thresh
+        expt_data = {
+            'refresh_thresh': refresh_thresh,
+            'metrics': infr.metrics_list,
+        }
+        self.expt_results[expt_name] = expt_data
+
+    def draw_simulation(self):
+        mpl.rcParams.update(TMP_RC)
+
+        # expt_name = 'Graph+Err'
+        expt_name = 'simulation'
+        expt_data = self.expt_results[expt_name]
+
+        metrics_df = pd.DataFrame.from_dict(expt_data['metrics'])
+        xdata = metrics_df['n_manual']
+
+        pt.multi_plot(
+            metrics_df['n_manual'], [metrics_df['merge_remain']],
+            label_list=[expt_name], marker='',
+            xlabel='# manual reviews',
+            ylabel='# merges remaining',
+            ymin=0, rcParams=TMP_RC,
+            use_legend=True, fnum=1, pnum=(2, 2, 1),
+        )
+
+        pt.multi_plot(
+            metrics_df['n_manual'], [metrics_df['n_errors']],
+            label_list=[expt_name],
+            xlabel='# manual reviews',
+            ylabel='# of errors',
+            marker='', ymin=0, rcParams=TMP_RC,
+            fnum=1, pnum=(2, 2, 2),
+            use_legend=False,
+        )
+
+        pt.multi_plot(
+            metrics_df['n_manual'], [metrics_df['pprob_any']],
+            label_list=[expt_name],
+            xlabel='# manual reviews',
+            ylabel='refresh criteria',
+            marker='', ymin=0, ymax=1, rcParams=TMP_RC,
+            fnum=1, pnum=(2, 2, 3),
+            use_legend=False,
+        )
+        ax = pt.gca()
+        thresh = expt_data['refresh_thresh']
+        ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
+                label='refresh thresh')
+        ax.legend()
+        fig = pt.gca()
+        fig.save_fig
 
 
 class Chap5Inputs(DBInputs):

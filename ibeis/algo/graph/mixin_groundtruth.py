@@ -16,8 +16,11 @@ class Groundtruth(object):
         """
         if infr.ibs is not None:
             return infr.ibeis_is_comparable(aid_pairs, allow_guess)
-        is_comp = [infr.graph.edge[n1][n2].get('gt_comparable', True)
-                   for n1, n2 in aid_pairs]
+        is_comp = list(infr.gen_edge_values('gt_comparable', edges=aid_pairs,
+                                            default=True,
+                                            on_missing='default'))
+        # is_comp = [infr.graph.edge[n1][n2].get('gt_comparable', True)
+        #            for n1, n2 in aid_pairs]
         return np.array(is_comp)
 
     def is_photobomb(infr, aid_pairs):
@@ -58,6 +61,8 @@ class Groundtruth(object):
         return match_state_df
 
     def match_state_gt(infr, edge):
+        # if edge in infr.edge_truth:
+        #     return infr.edge_truth[edge]
         aid_pairs = np.asarray([edge])
         is_same = infr.is_same(aid_pairs)[0]
         is_comp = infr.is_comparable(aid_pairs)[0]

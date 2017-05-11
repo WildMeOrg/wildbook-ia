@@ -130,7 +130,8 @@ class ClfProblem(ut.NiceRepr):
                 for clf_key in clf_prog:
                     pblm._ensure_evaluation_clf(task_key, data_key, clf_key)
 
-    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key):
+    def _ensure_evaluation_clf(pblm, task_key, data_key, clf_key,
+                               use_cache=True):
         """
         Learns and caches an evaluation (cross-validated) classifier and tests
         and caches the results.
@@ -149,7 +150,8 @@ class ClfProblem(ut.NiceRepr):
         cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
                            data_key, clf_key])
 
-        cacher_kw = dict(appname='vsone_rf_train', enabled=1, verbose=1)
+        cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
+                         verbose=1)
         # import ubelt as ub
         cacher_clf = ut.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
 
@@ -296,7 +298,7 @@ class ClfProblem(ut.NiceRepr):
         clf = clf_partial()
         index = X_df.index
         X = X_df.loc[index].values
-        y = labels.encoded_df.loc[index].values
+        y = labels.encoded_df.loc[index].values.ravel()
         clf.fit(X, y)
         return clf
 
@@ -482,7 +484,7 @@ class ClfResult(ut.NiceRepr):
         pass
 
     def __nice__(res):
-        return '%s, %s' % (res.task_key, res.data_key)
+        return '{}, {}, {}'.format(res.task_key, res.data_key, len(res.index))
 
     @property
     def index(res):
@@ -598,7 +600,7 @@ class ClfResult(ut.NiceRepr):
             edges = list(meta.index.tolist())
             CONFIDENCE = ibs.const.CONFIDENCE
             conf_dict = infr.get_edge_attrs('confidence', edges,
-                                            check_exist=True,
+                                            on_missing='return',
                                             default=CONFIDENCE.INT_TO_CODE[None])
             conf_df = pd.DataFrame.from_dict(conf_dict, orient='index')
             conf_df = conf_df[0].map(CONFIDENCE.CODE_TO_INT)
@@ -707,17 +709,49 @@ class ClfResult(ut.NiceRepr):
         print(report)
 
     @profile
-    def get_pos_threshes(res, metric='fpr', value=1E-4, prefer_max=False):
+    def get_pos_threshes(res, metric='fpr', value=1E-4, maximize=False,
+                         warmup=200, priors=None):
+        """
+        Finds a threshold that achieves the desired `value` for the desired
+        metric, while maximizing or minimizing the threshold.
+
+        For positive classification you want to minimize the threshold.
+        Priors can be passed in to augment probabilities depending on support.
+        By default a class prior is 1 for threshold minimization and 0 for
+        maximization.
+        """
         import vtool as vt
         y_test_bin = res.target_bin_df.values
         clf_probs = res.probs_df.values
         pos_threshes = {}
+        if priors is None:
+            priors = {name: float(not maximize) for name in res.class_names}
         for k in range(y_test_bin.shape[1]):
             class_name = res.class_names[k]
             probs, labels = clf_probs.T[k], y_test_bin.T[k]
             cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
-            pos_threshes[class_name] = cfms.get_thresh_at_metric(
-                metric, value, prefer_max=prefer_max)
+            learned_thresh = cfms.get_thresh_at_metric(
+                metric, value, maximize=maximize)
+
+            prior_thresh = priors[class_name]
+            n_support = sum(labels)
+
+            if warmup is not None:
+                """
+                python -m plottool.draw_func2 plot_func --show --range=0,1 \
+                        --func="lambda x: np.maximum(0, (x - .6) / (1 - .6))"
+                """
+                # If n_support < warmup: then interpolate to learned thresh
+                nmax = warmup if isinstance(warmup, int) else warmup[class_name]
+                # alpha varies from 0 to 1
+                alpha = min(nmax, n_support) / nmax
+                # transform alpha through nonlinear function (similar to ReLU)
+                p = .6  # transition point
+                alpha = max(0, (alpha - p) / (1 - p))
+                thresh = prior_thresh * (1 - alpha) + learned_thresh * (alpha)
+            else:
+                thresh = learned_thresh
+            pos_threshes[class_name] = thresh
         return pos_threshes
 
     def report_thresholds(res):
@@ -755,7 +789,7 @@ class ClfResult(ut.NiceRepr):
                 thresh_dict[key] = ut.odict()
                 thresh_dict[key]['thresh'] = thresh
                 for metric in ['fpr', 'tpr', 'tpa', 'bm', 'mk', 'mcc']:
-                    thresh_dict[key][metric] = cfms.get_metric_at_threshold(metric, thresh)
+                    thresh_dict[key][metric] = cfms.get_metric_at_thresh(metric, thresh)
             thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
             thresh_df = thresh_df.loc[list(threshes.keys())]
             print('\n1vR Thresholds for ' + class_name)
@@ -928,9 +962,9 @@ class MultiTaskSamples(ut.NiceRepr):
                 indicator, task_name=task_name, index=samples.index)
             samples.subtasks[task_name] = labels
 
-    @ut.memoize
+    # @ut.memoize
     def encoded_2d(samples):
-        encoded_2d = pd.concat([v.encoded_df for k, v in samples.items()], axis=1).values
+        encoded_2d = pd.concat([v.encoded_df for k, v in samples.items()], axis=1)
         return encoded_2d
 
     def class_name_basis(samples):
@@ -951,7 +985,7 @@ class MultiTaskSamples(ut.NiceRepr):
         class_idx_basis_1d = np.arange(n_states, dtype=np.int)
         return class_idx_basis_1d
 
-    @ut.memoize
+    # @ut.memoize
     def encoded_1d(samples):
         """ Returns a unique label for each combination of samples """
         # from sklearn.preprocessing import MultiLabelBinarizer
@@ -991,7 +1025,7 @@ class MultiTaskSamples(ut.NiceRepr):
         # print('class_idx_basis_1d = %r' % (class_idx_basis_1d,))
         # print(samples.encoded_1d())
         multi_task_idx_hist = ut.dict_hist(
-            samples.encoded_1d(), labels=class_idx_basis_1d)
+            samples.encoded_1d().values, labels=class_idx_basis_1d)
         multi_task_hist = ut.map_keys(
             lambda k: class_name_basis[k], multi_task_idx_hist)
         return multi_task_hist
@@ -1014,7 +1048,7 @@ class MultiTaskSamples(ut.NiceRepr):
         from ibeis.scripts import sklearn_utils
 
         X = np.empty((len(samples), 0))
-        y = samples.encoded_1d()
+        y = samples.encoded_1d().values
         groups = samples.group_ids
 
         type_ = xval_kw.pop('type', 'StratifiedGroupKFold')

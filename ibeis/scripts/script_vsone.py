@@ -211,7 +211,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         df = infr.match_state_delta('annotmatch', 'staging')
         df = infr.match_state_delta('staging', 'all')
 
-
     @classmethod
     def from_empty(OneVsOneProblem, defaultdb=None):
         """
@@ -279,7 +278,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         use_cache = False
         use_cache = True
         cfgstr = qreq_.get_cfgstr(with_input=True)
-        cacher1 = ut.Cacher('pairsample_1_v5', cfgstr=cfgstr,
+        cacher1 = ut.Cacher('pairsample_1_v6', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
                             verbose=pblm.verbose + 10)
         assert qreq_.qparams.can_match_samename is True
@@ -301,7 +300,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
-        cacher2 = ut.Cacher('pairsample_2_v5', cfgstr=cfgstr,
+        cacher2 = ut.Cacher('pairsample_2_v6', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
                             verbose=pblm.verbose + 10)
         data = cacher2.tryload()
@@ -366,7 +365,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
         # use_cache = False
-        cacher = ut.Cacher('pairwise_data_v17', cfgstr=cfgstr,
+        cacher = ut.Cacher('pairwise_data_v20', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose)
         data = cacher.tryload()
@@ -719,30 +718,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
-    def make_deploy_features(pblm, infr, edges, data_key):
-        """
-        Create pairwise features for annotations in a test inference object
-        based on the features used to learn here
-        """
-        candidate_edges = list(edges)
-        # Parse the data_key to build the appropriate feature
-        featinfo = AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
-        # Do one-vs-one scoring on candidate edges
-        # Find the kwargs to make the desired feature subset
-        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-        # print(featinfo.get_infostr())
-        print('Building need features')
-        config = {}
-        config.update(pblm.hyper_params.vsone_match)
-        config.update(pblm.hyper_params.vsone_kpts)
-        matches, X = infr._make_pairwise_features(
-            candidate_edges, config=config, pairfeat_cfg=pairfeat_cfg,
-            need_lnbnn=need_lnbnn)
-        assert np.all(featinfo.X.columns == X.columns), (
-            'inconsistent feature dimensions')
-        return X
-
     def predict_proba_deploy(pblm, X, task_keys):
         # import pandas as pd
         task_probs = {}
@@ -799,7 +774,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pblm.hyper_params.vsone_match.get_cfgstr(),
             pblm.hyper_params.vsone_kpts.get_cfgstr(),
         ])
-        cacher2 = ut.Cacher('full_eval_probs', prob_cfgstr,
+        cacher2 = ut.Cacher('full_eval_probs2', prob_cfgstr,
                             appname=pblm.appname, verbose=20)
         data2 = cacher2.tryload()
         if not data2:
@@ -839,8 +814,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             assert set(have_edges) | set(need_edges) == set(want_edges)
 
             infr.classifiers = pblm
-            matches, X_need = infr._pblm_pairwise_features(need_edges,
-                                                           data_key)
+            X_need = infr._pblm_pairwise_features(need_edges, data_key)
             # Make an ensemble of the evaluation classifiers
             # (todo: use a classifier that hasn't seen any of this data)
             task_need_probs = {}
@@ -896,7 +870,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             cols = featinfo.select_columns([
                 ('measure_type', '==', 'summary'),
             ])
-            X_dict['learn(sum)']  = featinfo.X[sorted(cols)]
+            X_dict['learn(sum)']  = X[sorted(cols)]
 
         if True:
             # Use summary and global single thresholds with raw unaries
@@ -911,7 +885,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     'time_1', 'time_2'
                 ])
             ]))
-            X_dict['learn(sum,glob)'] = featinfo.X[sorted(cols)]
+            X_dict['learn(sum,glob)'] = X[sorted(cols)]
 
             if True:
                 # Remove view columns
@@ -921,7 +895,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                        'min_yaw', 'max_yaw']),
                 ])
                 cols = set.difference(cols, view_cols)
-                X_dict['learn(sum,glob,-view)'] = featinfo.X[sorted(cols)]
+                X_dict['learn(sum,glob,-view)'] = X[sorted(cols)]
 
         if True:
             # Use summary and global single thresholds with raw unaries
@@ -937,7 +911,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     'time_1', 'time_2'
                 ])
             ]))
-            X_dict['learn(sum,glob,single)'] = featinfo.X[sorted(cols)]
+            X_dict['learn(sum,glob,single)'] = X[sorted(cols)]
 
         if False:
             # Use summary and global single thresholds with raw unaries
@@ -950,7 +924,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     'min_qual', 'max_qual', 'min_yaw', 'max_yaw']),
             ]))
             # cols = [c for c in cols if 'lnbnn' not in c]
-            X_dict['learn(sum,rawglob)'] = featinfo.X[sorted(cols)]
+            X_dict['learn(sum,rawglob)'] = X[sorted(cols)]
 
         pblm.samples.X_dict = X_dict
 
@@ -1475,7 +1449,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     @ut.memoize
     def sample_hashid(samples):
         visual_hash = samples.edge_hashid()
-        label_hash = ut.hashstr_arr27(samples.encoded_1d(), 'labels',
+        label_hash = ut.hashstr_arr27(samples.encoded_1d().values, 'labels',
                                       pathsafe=True)
         sample_hash = visual_hash + '_' + label_hash
         return sample_hash

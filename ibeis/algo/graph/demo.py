@@ -17,6 +17,18 @@ def make_dummy_infr(annots_per_name):
     return infr
 
 
+def demodata_mtest_infr(state='empty'):
+    import ibeis
+    ibs = ibeis.opendb(db='PZ_MTEST')
+    annots = ibs.annots()
+    names = list(annots.group_items(annots.nids).values())
+    ut.shuffle(names, rng=321)
+    test_aids = ut.flatten(names[1::2])
+    infr = ibeis.AnnotInference(ibs, test_aids, autoinit=True)
+    infr.reset(state=state)
+    return infr
+
+
 @profile
 def demo2():
     """
@@ -59,7 +71,7 @@ def demo2():
 
     infr.init_simulation(oracle_accuracy=oracle_accuracy, name='demo2')
 
-    infr_gt = infr.copy()
+    # infr_gt = infr.copy()
 
     dpath = ut.ensuredir(ut.truepath('~/Desktop/demo'))
     ut.remove_files_in_dir(dpath)
@@ -111,23 +123,6 @@ def demo2():
         # Pin Nodes into the target groundtruth position
         show_graph(infr, 'target-gt')
 
-    def dummy_ranker(u):
-        k = 10
-        u_edges = [(u, v) for v in infr_gt.graph.neighbors(u)]
-        u_probs = infr.dummy_matcher.predict_edges(u_edges)
-        # infr.set_edge_attrs('prob_match', ut.dzip(u_edges, u_probs))
-        sortx = np.argsort(u_probs)[::-1][0:k]
-        ranked_edges = [infr.e_(u, v) for (u, v) in ut.take(u_edges, sortx)]
-        assert len(ranked_edges) == k
-        return ranked_edges
-
-    def find_dummy_candidate_edges():
-        new_edges = []
-        for u in infr.graph.nodes():
-            new_edges.extend(dummy_ranker(u))
-        new_edges = set(new_edges)
-        return new_edges
-
     print(ut.repr4(infr.status()))
     infr.clear_feedback()
     infr.clear_name_labels()
@@ -150,7 +145,7 @@ def demo2():
 
     infr.queue_params.update(**queue_params)
     infr.print('Searching for candidates')
-    new_edges = find_dummy_candidate_edges()
+    new_edges = infr.dummy_matcher.find_dummy_candidate_edges()
     infr.add_new_candidate_edges(new_edges)
 
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
@@ -508,6 +503,7 @@ def case_match_infr():
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.demo import *  # NOQA
+
         >>> case_match_infr()
     """
     # Initial positive reviews
@@ -1169,7 +1165,7 @@ def demodata_infr(**kwargs):
                 u, v = (u, v) if u < v else (v, u)
                 # Add in candidate edges
                 if state == 0:
-                    decision == NEGTV
+                    decision = NEGTV
                     truth = NEGTV
                 elif state == 1:
                     decision = INCMP
@@ -1213,7 +1209,7 @@ def demodata_infr(**kwargs):
     infr.edge_truth = infr.get_edge_attrs('truth')
     # Make synthetic matcher
     infr.dummy_matcher = DummyMatcher(infr)
-
+    infr.demokw = kwargs
     return infr
 
 
@@ -1243,11 +1239,51 @@ class DummyMatcher(object):
         matcher.infr = infr
         matcher.cache = {}
         matcher.rng = np.random.RandomState(0)
+        matcher.orig_nodes = set(infr.aids)
+        matcher.orig_labels = infr.get_node_attrs('orig_name_label')
+        matcher.orig_groups = ut.invert_dict(matcher.orig_labels, False)
+        matcher.orig_groups = ut.map_vals(set, matcher.orig_groups)
         matcher.dummy_params = {
             NEGTV: {'mean': .2, 'std': .25},
             POSTV: {'mean': .8, 'std': .2},
             INCMP: {'mean': .2, 'std': .4},
         }
+
+    def dummy_ranker(matcher, u, K=10):
+        infr = matcher.infr
+
+        nid = matcher.orig_labels[u]
+        others = matcher.orig_groups[nid]
+        others_gt = sorted(others - {u})
+        others_gf = sorted(matcher.orig_nodes - others)
+
+        # rng = np.random.RandomState(u + 4110499444 + len(others))
+        rng = matcher.rng
+
+        vs_list = []
+        k_gt = min(len(others_gt), max(1, K // 2))
+        k_gf = min(len(others_gf), max(1, K * 4))
+        if k_gt > 0:
+            gt = rng.choice(others_gt, k_gt, replace=False)
+            vs_list.append(gt)
+        if k_gf > 0:
+            gf = rng.choice(others_gf, k_gf, replace=False)
+            vs_list.append(gf)
+
+        u_edges = [(u, v) for v in it.chain.from_iterable(vs_list)]
+        u_probs = infr.dummy_matcher.predict_edges(u_edges)
+        # infr.set_edge_attrs('prob_match', ut.dzip(u_edges, u_probs))
+        sortx = np.argsort(u_probs)[::-1][0:K]
+        ranked_edges = [infr.e_(u, v) for (u, v) in ut.take(u_edges, sortx)]
+        # assert len(ranked_edges) == K
+        return ranked_edges
+
+    def find_dummy_candidate_edges(matcher, K=10):
+        new_edges = []
+        for u in matcher.infr.graph.nodes():
+            new_edges.extend(matcher.dummy_ranker(u, K=K))
+        new_edges = set(new_edges)
+        return new_edges
 
     def predict_edges(matcher, edges):
         edges = list(edges)
