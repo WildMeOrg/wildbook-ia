@@ -3546,7 +3546,7 @@ def get_annot_interest(ibs, aid_list):
 @register_ibs_method
 @accessor_decors.setter
 @register_api('/api/annot/interest/', methods=['PUT'])
-def set_annot_interest(ibs, aid_list, flag_list):
+def set_annot_interest(ibs, aid_list, flag_list, quiet_delete_thumbs=False):
     r"""
     Sets the annot all instances found bit
 
@@ -3557,6 +3557,9 @@ def set_annot_interest(ibs, aid_list, flag_list):
     id_iter = ((aid,) for aid in aid_list)
     val_list = ((flag,) for flag in flag_list)
     ibs.db.set(const.ANNOTATION_TABLE, ('annot_toggle_interest',), val_list, id_iter)
+    gid_list = list(set(ibs.get_annot_gids(aid_list)))
+    config2_ = {'thumbsize': 221}
+    ibs.delete_image_thumbs(gid_list, quiet=quiet_delete_thumbs, **config2_)
 
 
 #==========
