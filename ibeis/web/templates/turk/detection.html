@@ -367,17 +367,20 @@
                 </ul>
 
                 These above properties (and counter properties) demand that the annotation must not be viewed in isolation.  The decision of if an annotation is an AoI must therefore be made by weighing the entire context of the image and against any other annotations that may also be in the image.  Further, because these conditions are fairly strict, there are rarely more than a few (0-3) AoIs in a particular image.
+                <br/>
+                <br/>
+                Another important detail is that <b>all</b> individual animals (of the target species) should have an annotated bounding box.  The intent is to have the same number of bounding boxes as the number of animals that can realistically and reliably be counted in the image.  If one can reasonably count 30 animals in the image, there should exist 30 corresponding bounding boxes.  This completeness assumption is crucial to the validity of the Annotation of Interest decision for a given image; any image that does not satisfy this condition should first be turked to obtain a complete set of annotations.
 
                 <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
 
                 <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #b32b27; padding-left: 1%">
-                    <b style="color: #a32723">Beware:</b> it is crucially important to not accidentally conflate this metric with other detection and identification concepts.  For example,
+                    <b style="color: #a32723">Beware:</b> it is crucially important to not accidentally conflate this metric with other detection and identification concepts.  While the concepts below are related to and may be strong indicators of Annotation of Interest, they are not necessarily identical.  For example,
 
                     <ul style="padding-right:30px;">
                         <li>Annotation of Interest &ne; is identifiable</li>
-                        <li>Annotation of Interest &ne; is of the desired quality</li>
-                        <li>Annotation of Interest &ne; is of the desired species</li>
-                        <li>Annotation of Interest &ne; is of the desired viewpoint</li>
+                        <li>Annotation of Interest &ne; is of a desired quality</li>
+                        <li>Annotation of Interest &ne; is of a desired species</li>
+                        <li>Annotation of Interest &ne; is of a desired viewpoint</li>
                         <li>Annotation of Interest &ne; is free of photo-bombs</li>
                     </ul>
                 </div>
@@ -390,22 +393,22 @@
                 <img src="{{ url_for('static', filename='images/example-interest1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
                 <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 1</div>
 
-                First, there is the need to define the color scheme.  An annotation bounding box is always <span style="color: #F0AD4E"><b>orange</b></span> or <span style="color: #00e100"><b>green</b></span> unless it is an AoI, which is <i>always</i> marked with the color <span style="color: #2E63FF"><b>blue</b></span>.
+                First, there is the need to define the color scheme.  An annotation bounding box is marked with <span style="color: #F0AD4E"><b>orange</b></span> or <span style="color: #00e100"><b>green</b></span> unless it is an AoI, which is marked with the color <span style="color: #2E63FF"><b>blue</b></span>.
                 <br/>
                 <br/>
-                This first Example 1 (above) is straightforward.  There is only one animal in the image, it is clearly lit and has no occlusions.  A free-standing animal in a field, like in this example, can be considered an ideal AoI.  The annotation is therefore marked in blue to signify that it is an AoI.
+                This first example (above) is straightforward.  There is only one annotation in this image, it is clearly lit, and has no occlusions.  A free-standing animal in a field, like in this example, can be considered an ideal AoI.  The annotation is therefore marked in blue to signify that it is an AoI.
                 <br/>
                 <br/>
-                Something to note is that not all images are guaranteed to have a non-zero number of annotations and an image with a single annotation is not guaranteed for it to be an AoI.
+                Something to note is that not all images are guaranteed to have a non-zero number of annotations.  Furthermore, for an image with a single annotation, it is not guaranteed that the solo annotation should always be an AoI.
                 <br/>
                 <br/>
                 <img src="{{ url_for('static', filename='images/example-interest2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
                 <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 2</div>
 
-                This second example gives multiple instances of what is considered to be an ideal <i>background</i> annotation.
+                This second example gives multiple instances of what is considered to be an out-of-focus annotation.
                 <br/>
                 <br/>
-                The single AoI in this image (again, in blue) is smaller by area than in the first example, but it is still the main, foreground subject.  Further, it is in focus and clearly distinguishable, which makes it an AoI for this image.  The four additional orange annotations near the top of the image are not AoIs: they are small, out of focus, and (literally) in the background compared to the foreground AoI.
+                The single AoI in this image (again, in blue) is smaller by area than in the first example.  The blue annotation is in focus and clearly distinguishable, which makes it an AoI for this image.  The four additional orange annotations near the top of the image are not AoIs: they are small and out of focus.
                 <br/>
                 <br/>
                 <img src="{{ url_for('static', filename='images/example-interest3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
