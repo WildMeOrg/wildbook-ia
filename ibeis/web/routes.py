@@ -1615,6 +1615,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, confi
     finished = gid is None
     review = 'review' in request.args.keys()
     display_instructions = request.cookies.get('ia-detection_instructions_seen', 1) == 0
+    display_new_features = request.coockies.get('ia-detection_new_features_seen', 1) == 0
     display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
@@ -1783,6 +1784,7 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, confi
                          annotation_list=annotation_list,
                          part_list=part_list,
                          display_instructions=display_instructions,
+                         display_new_features=display_new_features,
                          display_species_examples=display_species_examples,
                          settings=settings,
                          callback_url=callback_url,

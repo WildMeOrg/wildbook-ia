@@ -6,6 +6,8 @@ function hide_viewpoint_2_axis_panel(index) {
 }
 
 function check_form() {
+    return true
+
     if (bba.entries.length == 0) {
         return true
     }
