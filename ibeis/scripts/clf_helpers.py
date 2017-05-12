@@ -18,6 +18,7 @@ from six.moves import range
 print, rrr, profile = ut.inject2(__name__)
 
 
+@profile
 def predict_proba_df(clf, X_df, class_names=None):
     """
     Calls sklearn classifier predict_proba but then puts results in a dataframe

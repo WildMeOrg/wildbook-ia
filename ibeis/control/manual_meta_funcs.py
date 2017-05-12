@@ -843,7 +843,7 @@ def add_metadata(ibs, metadata_key_list, metadata_value_list, db):
 
 
 @register_ibs_method
-#@profile
+@profile
 def _init_config(ibs):
     r"""
     Loads the database's algorithm configuration

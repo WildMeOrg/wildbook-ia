@@ -9,6 +9,8 @@ from ibeis.algo import Config
 
 # This object will behave like a dictionary with ** capability
 class QueryParams(collections.Mapping):
+
+    @profile
     def __init__(qparams, query_cfg=None, cfgdict=None):
         """
         DEPRICATE
@@ -81,6 +83,7 @@ class QueryParams(collections.Mapping):
         qparams.query_cfgstr      = query_cfg.get_cfgstr()
         qparams.rrvsone_cfgstr    = query_cfg.rrvsone_cfg.get_cfgstr()
 
+    @profile
     def get_postsver_filtkey_list(qparams):
         """ HACK: gets columns of fsv post spatial verification.  This will
         eventually be incorporated into cmtup_old instead and will not be

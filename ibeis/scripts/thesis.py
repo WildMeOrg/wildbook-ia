@@ -1,4 +1,4 @@
-from ibeis.scripts.script_vsone import OneVsOneProblem
+from ibeis.scripts import script_vsone
 import pandas as pd
 import numpy as np
 from os.path import basename, join, splitext, exists
@@ -10,6 +10,7 @@ import matplotlib as mpl
 import random
 import sys
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
+(print, rrr, profile) = ut.inject2(__name__)
 
 DPI = 300
 
@@ -151,6 +152,7 @@ class DBInputs(object):
             self.dpath = join(self.base_dpath, self.dbname)
             ut.ensuredir(self.dpath)
 
+    @profile
     def _precollect(self):
         """
         Example:
@@ -190,10 +192,11 @@ class DBInputs(object):
                                              minqual='poor')
             # flags = ['left' not in text for text in ibs.annots(aids).yaw_texts]
             # aids = ut.compress(aids, flags)
-        ibs.print_annot_stats(aids, prefix='P')
+        # ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         print('post monkey patch')
-        ibs.print_annot_stats(aids, prefix='P')
+        if False:
+            ibs.print_annot_stats(aids, prefix='P')
         self.ibs = ibs
         self.aids_pool = aids
         if False:
@@ -218,17 +221,25 @@ class DBInputs(object):
 
 class Chap5Commands(object):
 
+    @profile
     def measure_simulation(self):
         """
+        CommandLine:
+            python -m ibeis Chap5.measure_simulation --db PZ_MTEST
+            python -m ibeis Chap5.measure_simulation --db GZ_Master1
+
+        Example:
             >>> from ibeis.scripts.thesis import *
-            >>> self = Chap5('GZ_Master1')
-            >>> self = Chap5('PZ_MTEST')
-            >>> self._precollect()
+            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> self = Chap5(dbname)
+            >>> self.measure_simulation()
         """
-        if 'self' not in vars():
-            from ibeis.scripts.thesis import Chap5, OneVsOneProblem
-            self = Chap5('PZ_MTEST')
-            self._precollect()
+        # if 'self' not in vars():
+        #     # from ibeis.scripts.thesis import Chap5, script_vsone
+        #     self = Chap5('PZ_MTEST')
+        #     self._precollect()
+
+        self._precollect()
 
         ibs = self.ibs
         annots = ibs.annots(self.aids_pool)
@@ -243,7 +254,7 @@ class Chap5Commands(object):
         if infr_train.ibs.dbname == 'PZ_MTEST':
             infr_train.ensure_mst()
 
-        pblm = OneVsOneProblem(infr=infr_train)
+        pblm = script_vsone.OneVsOneProblem(infr=infr_train)
         pblm.set_pandas_options()
         pblm.load_samples()
         pblm.load_features()
@@ -254,9 +265,21 @@ class Chap5Commands(object):
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         res = pblm.task_combo_res[task_key][clf_key][data_key]
-
         graph_thresh = res.get_pos_threshes('fpr', value=.001, warmup=200)
-        deploy_task_clfs = pblm.learn_deploy_classifiers()  # NOQA
+        graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+        print('graph_thresh = %r' % (graph_thresh,))
+
+        clf_cfgstr = pblm.samples.sample_hashid()
+        clf_cfgstr += ut.hashstr_arr27(
+            pblm.samples.X_dict[data_key].columns.values.tolist(),
+            'featdims')
+        clf_cacher = ut.Cacher('deploy_clf_v3_',
+                               appname=pblm.appname,
+                               cfgstr=clf_cfgstr)
+        pblm.deploy_task_clfs = clf_cacher.tryload()
+        if pblm.deploy_task_clfs is None:
+            pblm.deploy_task_clfs = pblm.learn_deploy_classifiers()  # NOQA
+            clf_cacher.save(pblm.deploy_task_clfs)
 
         # eval_clfs = pblm._train_evaluation_clf(task_key, data_key, clf_key)
         # deploy_clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
@@ -264,6 +287,7 @@ class Chap5Commands(object):
 
         const_dials = {
             'oracle_accuracy' : 0.95,
+            # 'oracle_accuracy' : 0.7,
             # 'oracle_accuracy' : 1.0,
             'k_redun'         : 2,
             'max_outer_loops' : 4,
@@ -285,14 +309,31 @@ class Chap5Commands(object):
         infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)
         infr._refresh_params['window'] = 2 * int(np.sqrt(len(infr.aids)))
-        infr._refresh_params['thresh'] = .2
+        infr._refresh_params['thresh'] = .5
 
         infr.init_simulation(**dials)
-        infr.test_mode = True
+        infr.init_test_mode()
+        # infr.test_mode = True
 
         infr.reset(state='empty')
-        infr.main_loop()
+        if 1:
+            # from ibeis.algo.graph import mixin_loops
+            infr.refresh_candidate_edges()
+            # infr.refresh = mixin_loops.RefreshCriteria(**infr._refresh_params)
 
+            infr.inner_priority_loop()
+            # infr.fix_pos_redun_loop()
+            infr.recovery_review_loop()
+
+            new_edges = infr.find_pos_redun_candidate_edges()
+            infr.queue = ut.PriorityQueue()
+            infr.add_new_candidate_edges(new_edges)
+            infr.inner_priority_loop()
+
+            # infr.groundtruth_merge_loop()
+            # infr.recovery_review_loop()
+
+        # infr.main_loop()
         self.expt_results = {}
         expt_name = 'simulation'
         refresh_thresh = infr.refresh._prob_any_remain_thresh
@@ -301,6 +342,8 @@ class Chap5Commands(object):
             'metrics': infr.metrics_list,
         }
         self.expt_results[expt_name] = expt_data
+        self.draw_simulation()
+        ut.show_if_requested()
 
     def draw_simulation(self):
         mpl.rcParams.update(TMP_RC)
@@ -345,8 +388,8 @@ class Chap5Commands(object):
         ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
                 label='refresh thresh')
         ax.legend()
-        fig = pt.gca()
-        fig.save_fig
+        fig = pt.gca()  # NOQA
+        # fig.save_fig
 
 
 class Chap5Inputs(DBInputs):
@@ -1667,7 +1710,7 @@ class Chap4(object):
             >>> self = Chap4.collect(defaultdb)
             >>> self.draw()
         """
-        pblm = OneVsOneProblem.from_empty(defaultdb)
+        pblm = script_vsone.OneVsOneProblem.from_empty(defaultdb)
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         pblm.eval_task_keys = ['match_state', 'photobomb_state']

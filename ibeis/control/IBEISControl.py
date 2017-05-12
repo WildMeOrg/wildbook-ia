@@ -464,18 +464,15 @@ class IBEISController(BASE_CLASS):
         for observer_weakref in ibs.observer_weakref_list:
             observer_weakref().notify_controller_killed()
 
-    @accessor_decors.default_decorator
     def register_observer(ibs, observer):
         print('[register_observer] Observer registered: %r' % observer)
         observer_weakref = weakref.ref(observer)
         ibs.observer_weakref_list.append(observer_weakref)
 
-    @accessor_decors.default_decorator
     def remove_observer(ibs, observer):
         print('[remove_observer] Observer removed: %r' % observer)
         ibs.observer_weakref_list.remove(observer)
 
-    @accessor_decors.default_decorator
     def notify_observers(ibs):
         print('[notify_observers] Observers (if any) notified')
         for observer_weakref in ibs.observer_weakref_list:
@@ -501,7 +498,7 @@ class IBEISController(BASE_CLASS):
         lbltype_ids = ibs.add_lbltype(lbltype_names, lbltype_defaults)
         ibs.lbltype_ids = dict(zip(lbltype_names, lbltype_ids))
 
-    @accessor_decors.default_decorator
+    @profile
     def _init_sql(ibs, request_dbversion=None, request_stagingversion=None):
         """ Load or create sql database """
         from ibeis.other import duct_tape  # NOQA
@@ -740,7 +737,6 @@ class IBEISController(BASE_CLASS):
         ibs.db.close()
         ibs.db = None
 
-    @accessor_decors.default_decorator
     def clone_handle(ibs, **kwargs):
         ibs2 = IBEISController(dbdir=ibs.get_dbdir(), ensure=False)
         if len(kwargs) > 0:
@@ -749,13 +745,11 @@ class IBEISController(BASE_CLASS):
         #    ibs2._prep_qreq(ibs.qreq.qaids, ibs.qreq.daids)
         return ibs2
 
-    @accessor_decors.default_decorator
     def backup_database(ibs):
         from ibeis.control import _sql_helpers
         _sql_helpers.database_backup(ibs.get_ibsdir(), ibs.sqldb_fname,
                                      ibs.backupdir)
 
-    @accessor_decors.default_decorator
     def _send_wildbook_request(ibs, wbaddr, payload=None):
         import requests
         if wbaddr is None:
@@ -774,7 +768,6 @@ class IBEISController(BASE_CLASS):
             return None
         return response
 
-    @accessor_decors.default_decorator
     def _init_dirs(ibs, dbdir=None, dbname='testdb_1',
                    workdir='~/ibeis_workdir', ensure=True):
         """
@@ -1012,7 +1005,6 @@ class IBEISController(BASE_CLASS):
     # --- WEB CORE ----
     #------------------
 
-    @accessor_decors.default_decorator
     @register_api('/log/current/', methods=['GET'])
     def get_current_log_text(ibs):
         r"""
@@ -1035,7 +1027,6 @@ class IBEISController(BASE_CLASS):
         text = ut.get_current_log_text()
         return text
 
-    @accessor_decors.default_decorator
     @register_api('/api/core/db/info/', methods=['GET'])
     def get_dbinfo(ibs):
         from ibeis.other import dbinfo
@@ -1057,7 +1048,6 @@ class IBEISController(BASE_CLASS):
         ibs.db.dump_tables_to_csv(dump_dir=dump_dir)
         ibs.db.dump_to_fpath(dump_fpath=join(dump_dir, '_ibsdb.dump'))
 
-    @accessor_decors.default_decorator
     def get_database_icon(ibs, max_dsize=(None, 192), aid=None):
         r"""
         Args:

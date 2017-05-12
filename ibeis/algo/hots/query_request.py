@@ -9,6 +9,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import join
 import dtool
+import itertools as it
 import vtool as vt
 import utool as ut
 import numpy as np
@@ -229,6 +230,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
     return qreq_
 
 
+@profile
 def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
                                      verbose=None):
     """
@@ -236,8 +238,12 @@ def apply_species_with_detector_hack(ibs, cfgdict, qaids, daids,
     """
     if verbose is None:
         verbose = VERBOSE_QREQ
+    if True:
+        # Hack for test speed
+        if ibs.dbname in {'PZ_MTEST', 'GZ_Master1', 'PZ_Master1'}:
+            return True
     # Only apply the hack with repsect to the queried annotations
-    aid_list = np.hstack((qaids, daids)).tolist()
+    aid_list = set(it.chain(qaids, daids))
     unique_species = ibs.get_database_species(aid_list)
     # turn off featureweights when not absolutely sure they are ok to us,)
     candetect = (len(unique_species) == 1 and
@@ -313,6 +319,7 @@ class QueryRequest(ut.NiceRepr):
         qreq_.nid_to_groupuuid = None
 
     @classmethod
+    @profile
     def new_query_request(cls, qaid_list, daid_list, qparams, qresdir, ibs,
                           query_config2_, data_config2_,
                           _indexer_request_params, custom_nid_lookup=None):
@@ -343,16 +350,27 @@ class QueryRequest(ut.NiceRepr):
         # Load name information so it can change in the database and that's ok.
         # I'm not 100% liking how this works.
         qreq_.unique_aids = np.union1d(qreq_.qaids, qreq_.daids)
+        qreq_.unique_aids.sort()
+
+        # Internal caching objects and views
+        _annots = ibs.annots(qreq_.unique_aids)
+        # I think the views copy the original cache
+        qreq_._unique_annots = _annots.view(_annots.aids)
+        qreq_._unique_dannots = qreq_._unique_annots.view(sorted(qreq_.daids))
+
         qreq_.aid_to_idx = ut.make_index_lookup(qreq_.unique_aids)
         if custom_nid_lookup is None:
             qreq_.unique_nids = ibs.get_annot_nids(qreq_.unique_aids)
         else:
             qreq_.unique_nids = ut.dict_take(custom_nid_lookup,
                                              qreq_.unique_aids)
+        qreq_.unique_nids = np.array(qreq_.unique_nids)
+
         qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()
         qreq_.dnid_to_groupuuid = qreq_._make_namegroup_data_uuids()
         return qreq_
 
+    @profile
     def _make_namegroup_uuids(qreq_):
         """
         Replaces semantic uuids with dynamically created uuid groups
@@ -360,15 +378,17 @@ class QueryRequest(ut.NiceRepr):
             >>> import ibeis
             >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST')
         """
-        annots = qreq_.ibs.annots(qreq_.unique_aids)
+        # annots = qreq_.ibs.annots(qreq_.unique_aids)
+        annots = qreq_._unique_annots
         visual_uuids = annots.visual_uuids
-        unique_nids, groupxs = annots.group_indicies(qreq_.unique_nids)
+        unique_nids, groupxs = vt.group_indices(qreq_.unique_nids)
         grouped_visual_uuids = ut.apply_grouping(visual_uuids, groupxs)
         group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
                        for uuids in grouped_visual_uuids]
         nid_to_groupuuid = dict(zip(unique_nids, group_uuids))
         return nid_to_groupuuid
 
+    @profile
     def _make_namegroup_data_uuids(qreq_):
         """
         Replaces semantic uuids with dynamically created uuid groups
@@ -376,9 +396,10 @@ class QueryRequest(ut.NiceRepr):
         """
         # make sure items are sorted to ensure same assignment
         # gives same uuids
-        annots = qreq_.ibs.annots(sorted(qreq_.daids))
-        dnids = qreq_.get_qreq_annot_nids(annots.aids)
-        unique_dnids, groupxs = annots.group_indicies(dnids)
+        # annots = qreq_.ibs.annots(sorted(qreq_.daids))
+        annots = qreq_._unique_dannots
+        dnids = np.array(qreq_.get_qreq_annot_nids(annots._rowids))
+        unique_dnids, groupxs = vt.group_indices(dnids)
         groupxs = ut.lmap(sorted, groupxs)
         grouped_visual_uuids = ut.apply_grouping(annots.visual_uuids, groupxs)
         group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
@@ -386,17 +407,19 @@ class QueryRequest(ut.NiceRepr):
         dnid_to_groupuuid = dict(zip(unique_dnids, group_uuids))
         return dnid_to_groupuuid
 
+    @profile
     def get_qreq_pcc_uuids(qreq_, aids):
         nids = qreq_.get_qreq_annot_nids(aids)
         zero = ut.util_hash.get_zero_uuid()
         dannot_name_uuids = ut.dict_take(qreq_.dnid_to_groupuuid, nids, zero)
-        dannot_visual_uuids = qreq_.ibs.get_annot_visual_uuids(aids)
+        dannot_visual_uuids = qreq_._unique_annots.view(aids).visual_uuids
         dannot_semantic_uuids = [
             ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
             for vuuid, nuuid in zip(dannot_visual_uuids, dannot_name_uuids)
         ]
         return dannot_semantic_uuids
 
+    @profile
     def get_qreq_pcc_hashid(qreq_, aids, prefix=''):
         """
         hack for iccv
@@ -442,6 +465,7 @@ class QueryRequest(ut.NiceRepr):
                                             pathsafe=True)
         return semantic_hashid
 
+    @profile
     def get_qreq_annot_semantic_hashid(qreq_, aids, prefix=''):
         """
         Gets a semantic hashid of a subset of annotations based on the current
@@ -544,6 +568,7 @@ class QueryRequest(ut.NiceRepr):
         shortinfo_cfgstr = '_'.join(qreq_.get_shortinfo_parts())
         return shortinfo_cfgstr
 
+    @profile
     def get_bigcache_info(qreq_):
         bc_dpath = qreq_.ibs.get_big_cachedir()
         # TODO: SYSTEM : semantic should only be used if name scoring is on
@@ -944,6 +969,7 @@ class QueryRequest(ut.NiceRepr):
         pipe_hashstr = ut.hashstr27(qreq_.get_pipe_cfgstr())
         return pipe_hashstr
 
+    @profile
     def get_cfgstr(qreq_, with_input=False, with_data=True, with_pipe=True,
                    hash_pipe=False):
         r"""

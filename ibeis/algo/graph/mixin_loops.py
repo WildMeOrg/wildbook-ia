@@ -247,33 +247,49 @@ class UserOracle(object):
             rng = sum(map(ord, rng))
         rng = ut.ensure_rng(rng, impl='python')
 
-        oracle.accuracy = accuracy
+        oracle.normal_accuracy = accuracy
+        oracle.recover_accuracy = accuracy
+        # .5
+
         oracle.rng = rng
         oracle.states = {POSTV, NEGTV, INCMP}
 
-    def review(oracle, edge, truth, force=False):
+    def review(oracle, edge, truth, infr):
         feedback = {
             'user_id': 'oracle',
             'confidence': 'absolutely_sure',
             'decision': None,
             'tags': [],
         }
-        error = oracle.accuracy < oracle.rng.random()
-        if force:
-            error = False
+        is_recovering = infr.is_recovering()
+        if is_recovering:
+            accuracy = oracle.normal_accuracy
+        else:
+            accuracy = oracle.recover_accuracy
+
+        # The oracle can get anything where the hardness is less than its
+        # accuracy
+
+        hardness = oracle.rng.random()
+        error = accuracy < hardness
+
         if error:
             error_options = list(oracle.states - {truth} - {INCMP})
             observed = oracle.rng.choice(list(error_options))
         else:
             observed = truth
-        if oracle.accuracy < 1.0:
+        if accuracy < 1.0:
             feedback['confidence'] = 'pretty_sure'
-        if oracle.accuracy < .5:
+        if accuracy < .5:
             feedback['confidence'] = 'guessing'
         feedback['decision'] = observed
         if error:
-            ut.cprint('MADE MANUAL ERROR edge=%r, truth=%r, observed=%r' %
-                      (edge, truth, observed), 'red')
+
+            infr.print(
+                '[ORACLE] MADE ERROR edge=%r, truth=%r, observed=%r, '
+                'rec=%r, hardness=%r' % (
+                    edge, truth, observed, is_recovering, hardness),
+                2, color='red')
         return feedback
 
 
@@ -282,42 +298,92 @@ class InfrLoops(object):
     Algorithm control flow loops
     """
 
-    def recovery_review_loop(infr):
+    def groundtruth_split_loop(infr):
+        pass
+
+    @profile
+    def groundtruth_merge_loop(infr):
+        """
+        Finds edges to make sure the ground truth is merged
+        """
+        infr.print('==============================')
+        infr.print('--- GROUNDTRUTH MERGE LOOP ---')
+        assert infr.test_mode, 'only run this in test mode'
+
+        from ibeis.algo.graph import nx_utils
+        group = ut.group_items(infr.aids, infr.orig_name_labels)
+        fix_edges = []
+
+        # Tell the oracle to wake up and get with it!
+        # infr.oracle.normal_accuracy = 1.0
+        # infr.oracle.recover_accuracy = 1.0
+
+        for gt_nid, aids in group.items():
+            pos_sub = infr.pos_graph.subgraph(aids)
+            aug_edges = nx_utils.edge_connected_augmentation(
+                pos_sub, 1, return_anyway=True)
+            fix_edges.extend(aug_edges)
+
+        if infr.test_mode:
+            infr.ensure_edges_from(fix_edges)
+            infr.apply_edge_truth(fix_edges)
+
+        for edge in fix_edges:
+            try:
+                feedback = infr.request_user_review(edge)
+            except ReviewCanceled:
+                raise
+            infr.add_feedback(edge=edge, **feedback)
+            infr.recovery_review_loop(verbose=0)
+
+    @profile
+    def recovery_review_loop(infr, verbose=1):
+        if verbose:
+            infr.print('=============================')
+            infr.print('--- RECOVERY REVEIEW LOOP ---')
         while infr.is_recovering():
             edge, priority = infr.pop()
-            num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
+            # num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
             try:
                 feedback = infr.request_user_review(edge)
             except ReviewCanceled:
                 if not infr.is_redundant(edge):
                     infr.queue[edge] = priority
                 continue
-            infr.print(
-                'RECOVERY LOOP edge={}, decision={}, priority={}, '
-                'n_reviews={}, len(recover_ccs)={}'.format(
-                    edge, feedback['decision'], priority, num_reviews,
-                    len(infr.recovery_ccs)),
-                color='red'
-            )
+            # infr.print(
+            #     'RECOVERY LOOP edge={}, decision={}, priority={}, '
+            #     'n_reviews={}, len(recover_ccs)={}'.format(
+            #         edge, feedback['decision'], priority, num_reviews,
+            #         len(infr.recovery_ccs)),
+            #     color='red'
+            # )
             infr.add_feedback(edge=edge, **feedback)
 
+    @profile
     def inner_priority_loop(infr):
         """
         Executes reviews until the queue is empty or needs refresh
         """
+        infr.print('============================')
+        infr.print('--- INNTER PRIORITY LOOP ---')
 
         infr.refresh = RefreshCriteria(**infr._refresh_params)
         infr.print('Start inner loop')
         for count in it.count(0):
             if len(infr.queue) == 0:
-                infr.print('No more edges, need refresh', color='yellow')
+                infr.print('No more edges, need refresh', 1, color='yellow')
                 break
             if not infr.is_recovering():
                 if infr.refresh.check():
-                    infr.print('Triggered poisson refresh criteria', color='yellow')
+                    infr.print('Triggered poisson refresh criteria', 1, color='yellow')
                     break
+            else:
+                infr.print('Still recovering', 3, color='turquoise')
             infr.next_review()
+            # if count > 200:
+            #     return
 
+    @profile
     def outer_candidate_loop(infr, max_loops=None):
         """
         The main outer loop
@@ -330,17 +396,16 @@ class InfrLoops(object):
         # Initialize a refresh criteria
         for count in it.count(0):
             if count >= max_loops:
-                infr.print('early stop', color='red')
+                infr.print('early stop', 1, color='red')
                 break
             infr.print('Outer loop iter %d ' % (count,))
             infr.refresh_candidate_edges()
             if not len(infr.queue):
-                infr.print('Queue is empty. Terminate.', color='red')
+                infr.print('Queue is empty. Terminate.', 1, color='red')
                 break
             infr.inner_priority_loop()
             if infr.refresh.num_pos == 0:
-                infr.print('Triggered poisson termination criteria', color='red')
-                infr.print('Terminate.', color='red')
+                infr.print('Triggered poisson termination criteria', 1, color='red')
                 break
 
             # if infr.enable_inference:
@@ -353,8 +418,12 @@ class InfrLoops(object):
             #     infr.refresh_candidate_edges(ranking=False)
             #     infr.inner_priority_loop()
             #     infr.queue = real_queue
+        infr.print('Terminate.', 1, color='red')
 
+    @profile
     def fix_pos_redun_loop(infr):
+        infr.print('==========================')
+        infr.print('--- FIX POS REDUN LOOP ---')
         # Enforce that a user checks any PCC that was auto-reviewed
         # but was unable to achieve k-positive-consistency
         for pcc in list(infr.non_pos_redundant_pccs()):
@@ -405,33 +474,52 @@ class InfrReviewers(object):
         }
         if infr.is_recovering():
             # Do not autoreview if we are in an inconsistent state
-            infr.print('Must manually review inconsistent edge', 1)
+            infr.print('Must manually review inconsistent edge', 3)
             return False, review
         # Determine if anything passes the match threshold
         primary_task = 'match_state'
-        data = infr.get_nonvisual_edge_data(edge)
-        decision_probs = pd.Series(data['task_probs'][primary_task])
-        a, b = decision_probs.align(infr.task_thresh[primary_task])
-        decision_flags = a > b
+        # data = infr.get_nonvisual_edge_data(edge)
+        # decision_probs = infr.task_probs[primary_task].loc[edge]
+        # decision_probs = pd.Series(data['task_probs'][primary_task])
+
+        if False:
+            decision_probs = pd.Series(infr.task_probs[primary_task][edge])
+            a, b = decision_probs.align(infr.task_thresh[primary_task])
+            decision_flags = a > b
+            hasone = sum(decision_flags) == 1
+            # decision = decision_flags.argmax()
+        else:
+            decision_probs = infr.task_probs[primary_task][edge]
+            primary_thresh = infr.task_thresh[primary_task]
+            decision_flags = {k: decision_probs[k] > thresh
+                              for k, thresh in primary_thresh.items()}
+            hasone = sum(decision_flags.values()) == 1
+            # decision = ut.argmax(decision_probs)
         # decision_probs > infr.task_thresh[primary_task]
         auto_flag = False
-        if sum(decision_flags) == 1:
+        if hasone:
             # Check to see if it might be confounded by a photobomb
-            pb_probs = data['task_probs']['photobomb_state']
+            pb_probs = infr.task_probs['photobomb_state'][edge]
+            # pb_probs = infr.task_probs['photobomb_state'].loc[edge]
+            # pb_probs = data['task_probs']['photobomb_state']
             pb_thresh = infr.task_thresh['photobomb_state']['pb']
             confounded = pb_probs['pb'] > pb_thresh
             if not confounded:
-                review['decision'] = decision_flags.argmax()
-                truth = infr.match_state_gt(edge).idxmax()
+                # decision = decision_flags.argmax()
+                decision = ut.argmax(decision_probs)
+                review['decision'] = decision
+                truth = infr.edge_truth[edge]
+                # truth = infr.match_state_gt(edge).idxmax()
                 if review['decision'] != truth:
                     infr.print('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
-                               (edge, truth, review['decision']), color='purple')
+                               (edge, truth, review['decision']), 2, color='darkred')
                 auto_flag = True
         if auto_flag and infr.verbose > 1:
             infr.print('Automatic review success')
 
         return auto_flag, review
 
+    @profile
     def emit_or_review(infr, edge, priority):
         if infr.enable_autoreview:
             flag, feedback = infr.try_auto_review(edge)
@@ -491,6 +579,7 @@ class InfrReviewers(object):
         infr.manual_wgt.set_edge(edge, info_text, external=True)
         infr.manual_wgt.show()
 
+    @profile
     def next_review(infr):
         """
         does one review step
@@ -518,7 +607,7 @@ class InfrReviewers(object):
             if infr.manual_wgt.isVisible():
                 import guitool as gt
                 gt.user_info(infr.manual_wgt, 'Review Complete')
-        print('review loop complete')
+        print('review lop complete')
 
     def on_accept(infr, feedback, need_next=True):
         annot1_state = feedback.pop('annot1_state', None)
@@ -548,11 +637,12 @@ class InfrReviewers(object):
         # raise NotImplementedError('no user review')
         pass
 
+    @profile
     def request_oracle_review(infr, edge):
-        true_state = infr.match_state_gt(edge)
-        truth = true_state.idxmax()
-        feedback = infr.oracle.review(
-            edge, truth, infr.is_recovering())
+        truth = infr.edge_truth[edge]
+        # true_state = infr.match_state_gt(edge)
+        # truth = true_state.idxmax()
+        feedback = infr.oracle.review(edge, truth, infr)
         return feedback
 
     def request_user_review(infr, edge):
@@ -622,35 +712,63 @@ class SimulationHelpers(object):
     @profile
     def measure_metrics(infr):
         real_pos_edges = []
-        n_error_edges = 0
-        pred_n_pcc_mst_edges = 0
-        n_fn = 0
-        n_fp = 0
 
-        # TODO: dynamic measurement
-        for edge, data in infr.edges(data=True):
-            true_state = infr.edge_truth[edge]
-            decision = data.get('decision', UNREV)
-            if true_state == decision and true_state == POSTV:
-                real_pos_edges.append(edge)
-            elif decision != UNREV:
-                if true_state != decision:
-                    n_error_edges += 1
-                    if true_state == POSTV:
-                        n_fn += 1
-                    elif true_state == NEGTV:
-                        n_fp += 1
+        n_true_merges = infr.test_state['n_true_merges']
+        confusion = infr.test_state['confusion']
 
-        import networkx as nx
-        for cc in nx.connected_components(nx.Graph(real_pos_edges)):
-            pred_n_pcc_mst_edges += len(cc) - 1
+        n_tp = confusion[POSTV][POSTV]
+        confusion[POSTV]
+        columns = set(confusion.keys())
+        rev_cols = columns - {UNREV}
+        rev_non_postv = rev_cols - {POSTV, UNREV}
+        rev_non_negtv = rev_cols - {NEGTV, UNREV}
+        n_fn = sum(ut.take(confusion[POSTV], rev_non_postv))
+        n_fp = sum(ut.take(confusion[NEGTV], rev_non_negtv))
+
+        n_error_edges = sum(confusion[r][c] for r, c in
+                            ut.combinations(rev_cols, 2))
+
+        pred_n_pcc_mst_edges = n_true_merges
+
+        if 0:
+            n_error_edges2 = 0
+            n_fn2 = 0
+            n_fp2 = 0
+            for edge, data in infr.edges(data=True):
+                decision = data.get('decision', UNREV)
+                true_state = infr.edge_truth[edge]
+                if true_state == decision and true_state == POSTV:
+                    real_pos_edges.append(edge)
+                elif decision != UNREV:
+                    if true_state != decision:
+                        n_error_edges2 += 1
+                        if true_state == POSTV:
+                            n_fn2 += 1
+                        elif true_state == NEGTV:
+                            n_fp2 += 1
+            assert n_error_edges2 == n_error_edges
+            assert n_tp == len(real_pos_edges)
+            assert n_fn == n_fn2
+            assert n_fp == n_fp2
+            # pred_n_pcc_mst_edges2 = sum(
+            #     len(cc) - 1 for cc in infr.test_gt_pos_graph.connected_components()
+            # )
+        if False:
+            import networkx as nx
+            # set(infr.test_gt_pos_graph.edges()) == set(real_pos_edges)
+            pred_n_pcc_mst_edges = 0
+            for cc in nx.connected_components(nx.Graph(real_pos_edges)):
+                pred_n_pcc_mst_edges += len(cc) - 1
+            assert n_true_merges == pred_n_pcc_mst_edges
 
         pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
         metrics = {
             'n_manual': infr.test_state['n_manual'],
             'n_auto': infr.test_state['n_auto'],
             'pos_acc': pos_acc,
-            'n_merge_remain': infr.real_n_pcc_mst_edges - pred_n_pcc_mst_edges,
+            'n_merge_total': infr.real_n_pcc_mst_edges,
+            'n_merge_remain': infr.real_n_pcc_mst_edges - n_true_merges,
+            'n_true_merges': n_true_merges,
             'merge_remain': 1 - pos_acc,
             'n_errors': n_error_edges,
             'n_fn': n_fn,
@@ -658,6 +776,7 @@ class SimulationHelpers(object):
             'pprob_any': infr.refresh.prob_any_remain(),
             'mu': infr.refresh._ewma,
         }
+
         return metrics
 
 

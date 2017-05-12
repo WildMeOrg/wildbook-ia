@@ -333,7 +333,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
         self._config = config
         self._caching = caching
         # Private attributes
-        self.__rowid_to_idx = None
+        self._rowid_to_idx = None
         self._asarray = asarray
         #ut.make_index_lookup(self._rowids)
 
@@ -443,9 +443,9 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
 
     def lookup_idxs(self, rowids):
         """ Lookup subset indicies by rowids """
-        if self.__rowid_to_idx is None:
-            self.__rowid_to_idx = ut.make_index_lookup(self._rowids)
-        idx_list = ut.take(self.__rowid_to_idx, rowids)
+        if self._rowid_to_idx is None:
+            self._rowid_to_idx = ut.make_index_lookup(self._rowids)
+        idx_list = ut.take(self._rowid_to_idx, rowids)
         return idx_list
 
     def loc(self, rowids):

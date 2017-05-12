@@ -660,6 +660,8 @@ class IBEISGroundtruth(object):
     """
     Methods for generating training labels for classifiers
     """
+
+    @profile
     def ibeis_guess_if_comparable(infr, aid_pairs):
         """
         Takes a guess as to which annots are not comparable based on scores and
@@ -674,8 +676,15 @@ class IBEISGroundtruth(object):
         # yaws2 = labels.annots2.yaws_asfloat
         aid_pairs = np.asarray(aid_pairs)
         ibs = infr.ibs
-        yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
-        yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
+
+        unique_annots = ibs.annots(np.unique(aid_pairs)).view()
+        annots1 = unique_annots.view(aid_pairs.T[0])
+        annots2 = unique_annots.view(aid_pairs.T[1])
+        yaws1 = annots1.yaws_asfloat
+        yaws2 = annots2.yaws_asfloat
+
+        # yaws1 = ibs.get_annot_yaws_asfloat(aid_pairs.T[0])
+        # yaws2 = ibs.get_annot_yaws_asfloat(aid_pairs.T[1])
         dists = vt.ori_distance(yaws1, yaws2)
         tau = np.pi * 2
         # scores = np.full(len(aid_pairs), np.nan)

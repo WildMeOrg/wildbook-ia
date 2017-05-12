@@ -110,6 +110,7 @@ def demodata_tarjan_bridge():
 #     pass
 
 
+@profile
 def is_edge_connected(G, k):
     """
     Determines if G is k-edge-connected
@@ -156,6 +157,7 @@ def is_bridge_connected(G):
     return not any(find_bridges(G))
 
 
+@profile
 def find_bridges(G):
     """
     Returns all bridge edges. A bridge edge is any edge that, if removed, would
@@ -170,18 +172,55 @@ def find_bridges(G):
 
     Example:
         >>> G = demodata_bridge()
-        >>> bridges = find_bridges(G)
+        >>> bridges = list(find_bridges(G))
         >>> assert bridges == {(3, 5), (4, 8), (20, 21), (22, 23), (23, 24)}
         >>> import plottool as pt
         >>> pt.qtensure()
         >>> pt.show_nx(G)
     """
-    if G.is_directed():
-        chain_edges = set(it.chain(*nx.chain_decomposition(G)))
-        bridges = set(G.edges()) - chain_edges
-    else:
-        chain_edges = set(it.starmap(e_, it.chain(*nx.chain_decomposition(G))))
-        bridges = set(it.starmap(e_, G.edges())) - chain_edges
+    # It is just faster to do this
+    chains = nx.chain_decomposition(G)
+    chain_edges = set(it.starmap(e_, it.chain.from_iterable(chains)))
+    bridges = set(it.starmap(e_, G.edges())) - chain_edges
+    # Taken partially from nx.chain_decomposition
+    # We are concerned with the edges not part of any cycle
+    # def _dfs_cycle_forest(G, root):
+    #     H = nx.DiGraph()
+    #     nodes = []
+    #     for u, v, d in nx.dfs_labeled_edges(G, source=root):
+    #         if d == 'forward':
+    #             nodes.append(v)
+    #             if u == v:
+    #                 H.add_node(v, parent=None)
+    #             else:
+    #                 H.add_node(v, parent=u)
+    #                 H.add_edge(v, u, nontree=False)
+    #         elif d == 'nontree' and v not in H[u]:
+    #             H.add_edge(v, u, nontree=True)
+    #     return H, nodes
+
+    # def _remove_chains(H, u, v, visited):
+    #     while v not in visited:
+    #         H.remove_edge(u, v)
+    #         visited.add(v)
+    #         u, v = v, H.node[v]['parent']
+    #     H.remove_edge(u, v)
+
+    # H, nodes = _dfs_cycle_forest(G, None)
+
+    # # Retrace the DFS tree and remove the edges in each cycle
+    # visited = set()
+    # for u in nodes:
+    #     visited.add(u)
+    #     edges = [(u, v) for u, v, d in H.out_edges(u, data='nontree') if d]
+    #     for u, v in edges:
+    #         _remove_chains(H, u, v, visited)
+
+    # if G.is_directed():
+    #     bridges = H.edges()
+    # else:
+    #     bridges = it.starmap(e_, H.edges())
+    #     if True:
     return bridges
 
 
@@ -190,6 +229,8 @@ def bridge_connected_compoments(G):
     Also referred to as blocks
 
     Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = demodata_bridge()
         >>> bridge_ccs = bridge_connected_compoments(G)
         >>> assert bridge_ccs == [
@@ -216,6 +257,7 @@ def one_connected_augmentation(G, avail=None, weight='weight'):
             d[weight] corresponding to the weight.
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = nx.Graph()
         >>> G.add_nodes_from([
@@ -270,7 +312,7 @@ def complement_edges(G):
 
 
 @profile
-def edge_connected_augmentation(G, k, avail=None, hack=False):
+def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=False):
     r"""
     Finds set of edges to k-edge-connect G. In the case of k=1
     this is a minimum weight set. For k>2 it becomes exact only if avail is
@@ -313,6 +355,16 @@ def edge_connected_augmentation(G, k, avail=None, hack=False):
     """
     if avail is not None and len(avail) == 0:
         return []
+    if G.number_of_nodes() < k + 1:
+        if return_anyway:
+            if avail is None:
+                avail = list(complement_edges(G))
+            else:
+                avail = list(avail)
+            return avail
+        raise ValueError(
+            ('impossible to {} connect in graph with less than {} '
+             'verticies').format(k, k + 1))
     # if is_edge_connected(G, k):
     #     aug_edges = []
     elif k == 1 and not hack:
@@ -325,21 +377,30 @@ def edge_connected_augmentation(G, k, avail=None, hack=False):
         # Because I have not implemented a better algorithm yet:
         # randomly add edges until we satisfy the criteria
         import random
-        rng = random.Random(0)
         # very hacky and not minimal
-        H = G.copy()
-        aug_edges = []
+        done = is_edge_connected(G, k)
+        if done:
+            return []
         if avail is None:
             avail = list(complement_edges(G))
         else:
             avail = list(avail)
-        while len(avail):
-            edge = rng.choice(avail)
-            avail.remove(edge)
+        aug_edges = []
+        rng = random.Random(0)
+        avail = list({e_(u, v) for u, v in avail})
+        avail = ut.shuffle(avail, rng=rng)
+        H = G.copy()
+        # Randomly throw edges in until we are k-connected
+        for edge in avail:
             aug_edges.append(edge)
             H.add_edge(*edge)
-            if is_edge_connected(G, k):
+            done = is_edge_connected(H, k)
+            if done:
                 break
+        if not done:
+            if return_anyway:
+                return avail
+            raise ValueError('not able to k-connect with available nodes')
         # Greedy attempt to reduce the size
         for edge in list(aug_edges):
             if min(H.degree(edge), key=lambda t: t[1])[1] <= k:
@@ -351,6 +412,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False):
                 # If no longer feasible undo
                 H.add_edge(*edge)
                 aug_edges.append(edge)
+    aug_edges = list(it.starmap(e_, aug_edges))
     return aug_edges
 
 

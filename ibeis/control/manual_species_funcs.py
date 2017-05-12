@@ -428,7 +428,7 @@ def get_species_texts(ibs, species_rowid_list):
     species_text_list = [const.UNKNOWN
                          if rowid == const.UNKNOWN_SPECIES_ROWID else species_text
                          for species_text, rowid in zip(species_text_list, species_rowid_list)]
-    species_text_list = [ const.UNKNOWN if code is None else code for code in species_text_list ]
+    species_text_list = [const.UNKNOWN if code is None else code for code in species_text_list ]
     return species_text_list
 
 

@@ -51,6 +51,7 @@ if ut.VERBOSE:
 
 def default_decorator(input_):
     """
+    DEPRICATE
     This should be the first decorator applied to all Controller functions
     """
     func_ = input_

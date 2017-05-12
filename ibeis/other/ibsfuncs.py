@@ -2820,8 +2820,8 @@ def get_database_species(ibs, aid_list=None):
     """
     if aid_list is None:
         aid_list = ibs.get_valid_aids()
-    species_list = ibs.get_annot_species_texts(aid_list)
-    unique_species = sorted(list(set(species_list)))
+    species_rowids = set(ibs.get_annot_species_rowids(aid_list))
+    unique_species = sorted(set(ibs.get_species_texts(species_rowids)))
     return unique_species
 
 

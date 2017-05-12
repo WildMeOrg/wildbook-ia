@@ -9,7 +9,7 @@ import vtool as vt
 from ibeis.algo.graph import nx_utils
 from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.nx_utils import (edges_cross, ensure_multi_index)  # NOQA
-from ibeis.algo.graph.state import UNREV
+from ibeis.algo.graph.state import UNREV  # NOQA
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -19,6 +19,7 @@ class AnnotInfrMatching(object):
     Methods for running matching algorithms
     """
 
+    @profile
     def exec_matching(infr, aids=None, prog_hook=None, cfgdict=None,
                       name_method='node'):
         """
@@ -696,38 +697,39 @@ class CandidateSearch(object):
         if infr.enable_inference:
             candidate_edges = set(infr.filter_nonredun_edges(candidate_edges))
 
-        # if infr.method == 'graph':
-        #     # need to remove inferred candidates as well
-        #     # hacking this in bellow
-        #     pass
-
         infr.print('vsmany found %d/%d new edges' % (
             len(candidate_edges), len(candidate_edges) +
             len(already_reviewed)), 1)
         return candidate_edges
 
-    def find_pos_augment_edges(infr, pcc):
-        pos_k = infr.queue_params['pos_redun']
+    def find_pos_augment_edges(infr, pcc, k=None):
+        if k is None:
+            pos_k = infr.queue_params['pos_redun']
+        else:
+            pos_k = k
         pos_sub = infr.pos_graph.subgraph(pcc)
 
         # First try to augment only with unreviewed existing edges
-        avail = list(nx_utils.edges_inside(infr.unreviewed_graph, pcc))
-        check_edges = nx_utils.edge_connected_augmentation(
-            pos_sub, pos_k, avail=avail)
+        unrev_avail = list(nx_utils.edges_inside(infr.unreviewed_graph, pcc))
+        try:
+            check_edges = nx_utils.edge_connected_augmentation(
+                pos_sub, pos_k, avail=unrev_avail, return_anyway=False)
+        except ValueError:
+            check_edges = None
         if not check_edges:
             # Allow new edges to be introduced
             full_sub = infr.graph.subgraph(pcc)
-            avail += list(nx.complement(full_sub).edges())
+            full_avail = unrev_avail + list(nx.complement(full_sub).edges())
             n_max = (len(pos_sub) * (len(pos_sub) - 1)) // 2
             n_comp = n_max - pos_sub.number_of_edges()
-            if len(avail) == n_comp:
+            if len(full_avail) == n_comp:
                 # can use the faster algorithm
                 check_edges = nx_utils.edge_connected_augmentation(
-                    pos_sub, pos_k)
+                    pos_sub, pos_k, return_anyway=True)
             else:
                 # have to use the slow approximate algo
                 check_edges = nx_utils.edge_connected_augmentation(
-                    pos_sub, pos_k, avail=avail)
+                    pos_sub, pos_k, avail=full_avail, return_anyway=True)
         check_edges = set(it.starmap(e_, check_edges))
         return check_edges
 
@@ -795,14 +797,6 @@ class CandidateSearch(object):
         }
         return new_edges
 
-    def ensure_edges(infr, edges):
-        """
-        Adds any new edges as unreviewed edges
-        """
-        missing_edges = ut.compress(edges, [not infr.has_edge(e) for e in edges])
-        infr.graph.add_edges_from(missing_edges, decision=UNREV, num_reviews=0)
-        infr._add_review_edges_from(missing_edges, decision=UNREV)
-
     @profile
     def add_new_candidate_edges(infr, new_edges):
         new_edges = list(new_edges)
@@ -811,8 +805,9 @@ class CandidateSearch(object):
         if len(new_edges) == 0:
             return
 
-        infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
-        infr.unreviewed_graph.add_edges_from(new_edges)
+        infr.ensure_edges_from(new_edges, assume_new=True)
+        # infr.graph.add_edges_from(new_edges, decision=UNREV, num_reviews=0)
+        # infr.unreviewed_graph.add_edges_from(new_edges)
 
         if infr.test_mode:
             infr.apply_edge_truth(new_edges)
@@ -824,6 +819,20 @@ class CandidateSearch(object):
             #                                       edges=new_edges,
             #                                       default=None)
             task_probs = infr._make_task_probs(new_edges)
+
+            # FIXME: this is slow
+            for task, probs in task_probs.items():
+                if task not in infr.task_probs:
+                    # infr.task_probs[task] = probs
+                    infr.task_probs[task] = probs.to_dict(orient='index')
+                else:
+                    # import pandas as pd
+                    # old = infr.task_probs[task]
+                    # new = pd.merge(old, probs, 'outer', probs.columns.tolist(),
+                    #                left_index=True, right_index=True,
+                    #                copy=False)
+                    # infr.task_probs[task] = new
+                    infr.task_probs[task].update(probs.to_dict(orient='index'))
 
             primary_task = 'match_state'
             primary_probs = task_probs[primary_task]
@@ -846,13 +855,13 @@ class CandidateSearch(object):
                                                      _probs[flags])
 
             # Pack into edge attributes
-            edge_task_probs = {edge: {} for edge in new_edges}
-            for task, probs in task_probs.items():
-                for edge, val in probs.to_dict(orient='index').items():
-                    edge_task_probs[edge][task] = val
+            # edge_task_probs = {edge: {} for edge in new_edges}
+            # for task, probs in task_probs.items():
+            #     for edge, val in probs.to_dict(orient='index').items():
+            #         edge_task_probs[edge][task] = val
 
             infr.set_edge_attrs('prob_match', prob_match.to_dict())
-            infr.set_edge_attrs('task_probs', edge_task_probs)
+            # infr.set_edge_attrs('task_probs', edge_task_probs)
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
 
             # Insert all the new edges into the priority queue
@@ -894,13 +903,15 @@ class CandidateSearch(object):
     def _make_task_probs(infr, edges):
         """
         Predict edge probs for each pairwise classifier task
+        GZ_Master1xwusomqdrrgoszenlearn(sum,glob)
+        GZ_Master1xwusomqdrrgoszenlearn
         """
         pblm = infr.classifiers
         data_key = pblm.default_data_key
         # TODO: find a good way to cache this
         cfgstr = infr.ibs.dbname + ut.hashstr27(repr(edges)) + data_key
-        cacher = ut.Cacher('foobarclf_taskprobs4', cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=0,
+        cacher = ut.Cacher('foobarclf_taskprobs5', cfgstr=cfgstr,
+                           appname=pblm.appname, enabled=1,
                            verbose=pblm.verbose)
         X = cacher.tryload()
         if X is None:

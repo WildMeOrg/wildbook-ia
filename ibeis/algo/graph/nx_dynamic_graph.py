@@ -137,6 +137,7 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         https://courses.csail.mit.edu/6.851/spring14/lectures/L20.pdf
         https://courses.csail.mit.edu/6.851/spring14/lectures/L20.html
         http://cs.stackexchange.com/questions/33595/maintaining-connecte
+        https://en.wikipedia.org/wiki/Dynamic_connectivity#Fully_dynamic_connectivity
 
     CommandLine:
         python -m ibeis.algo.graph.nx_dynamic_graph DynConnGraph
@@ -198,6 +199,9 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
 
     def node_labels(self, *nodes):
         return [self._union_find[node] for node in nodes]
+
+    def are_nodes_connected(self, u, v):
+        return ut.allsame(self.node_labels(u, v))
 
     def connected_components(self):
         for cc in self._ccs.values():
@@ -320,9 +324,11 @@ class DynConnGraph(nx.Graph, GraphHelperMixin):
         self._remove_node(n)
         super(DynConnGraph, self).remove_node(n)
 
-    def subgraph(self, nbunch, dynamic=True):
+    @profile
+    def subgraph(self, nbunch, dynamic=False):
         if dynamic is False:
             H = nx.Graph()
+            nbunch = set(nbunch)
             H.add_nodes_from(nbunch)
             H.add_edges_from(edges_inside(self, nbunch))
         else:

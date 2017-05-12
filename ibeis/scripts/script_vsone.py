@@ -15,6 +15,8 @@ import itertools as it
 import numpy as np
 import vtool as vt
 import dtool as dt
+import six
+import hashlib
 import copy  # NOQA
 import pandas as pd
 import sklearn
@@ -280,7 +282,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgstr = qreq_.get_cfgstr(with_input=True)
         cacher1 = ut.Cacher('pairsample_1_v6', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
-                            verbose=pblm.verbose + 10)
+                            verbose=pblm.verbose)
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
         assert pblm.hyper_params.subsample is None
@@ -302,7 +304,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # whenever any value in a primary table changes
         cacher2 = ut.Cacher('pairsample_2_v6', cfgstr=cfgstr,
                             appname=pblm.appname, enabled=use_cache,
-                            verbose=pblm.verbose + 10)
+                            verbose=pblm.verbose)
         data = cacher2.tryload()
         if data is None:
             if pblm.verbose > 0:
@@ -318,6 +320,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         aid_pairs = sorted(set(it.starmap(infr.e_, aid_pairs)))
         return aid_pairs
 
+    @profile
     def load_samples(pblm):
         r"""
         CommandLine:
@@ -718,6 +721,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         #     sum, primary_auto_flags))
         return primary_auto_flags
 
+    @profile
     def predict_proba_deploy(pblm, X, task_keys):
         # import pandas as pd
         task_probs = {}
@@ -1420,35 +1424,62 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         >>> assert np.all(samples.index == encode_index)
         >>> assert np.all(samples.index == indica_index)
     """
+
+    @profile
     def __init__(samples, ibs, aid_pairs, infr=None):
         assert aid_pairs is not None
         super(AnnotPairSamples, samples).__init__(aid_pairs)
         samples.aid_pairs = np.array(aid_pairs)
         samples.infr = infr
         samples.ibs = ibs
-        samples.annots1 = ibs.annots(samples.aid_pairs.T[0], asarray=True)
-        samples.annots2 = ibs.annots(samples.aid_pairs.T[1], asarray=True)
+        _unique_annots = ibs.annots(np.unique(samples.aid_pairs)).view()
+        samples.annots1 = _unique_annots.view(samples.aid_pairs.T[0])
+        samples.annots2 = _unique_annots.view(samples.aid_pairs.T[1])
         samples.n_samples = len(aid_pairs)
         samples.X_dict = None
         samples.simple_scores = None
         samples.apply_multi_task_multi_label()
         # samples.apply_multi_task_binary_label()
 
-    def edge_uuids(samples):
+    # @profile
+    # def edge_hashids(samples):
+    #     qvuuids = samples.annots1.visual_uuids
+    #     dvuuids = samples.annots2.visual_uuids
+    #     # edge_uuids = [ut.combine_uuids(uuids)
+    #     #                for uuids in zip(qvuuids, dvuuids)]
+    #     edge_hashids = [make_edge_hashid(uuid1, uuid2) for uuid1, uuid2 in zip(qvuuids, dvuuids)]
+    #     # edge_uuids = [combine_2uuids(uuid1, uuid2)
+    #     #                for uuid1, uuid2 in zip(qvuuids, dvuuids)]
+    #     return edge_hashids
+
+    # @profile
+    # def edge_hashid(samples):
+    #     edge_hashids = samples.edge_hashids()
+    #     edge_hashid = ut.hashstr_arr27(edge_hashids, 'edges', hashlen=32,
+    #                                    pathsafe=True)
+    #     return edge_hashid
+
+    @profile
+    def edge_set_hashid(samples):
+        """
+        Faster than using ut.combine_uuids, because we condense and don't
+        bother casting back to UUIDS, and we just directly hash.
+        """
         qvuuids = samples.annots1.visual_uuids
         dvuuids = samples.annots2.visual_uuids
-        edge_uuids = [ut.combine_uuids(uuids)
-                       for uuids in zip(qvuuids, dvuuids)]
-        return edge_uuids
-
-    def edge_hashid(samples):
-        edge_hashid = ut.hashstr_arr27(samples.edge_uuids(), 'edges',
-                                       hashlen=32, pathsafe=True)
+        hasher = hashlib.sha1()
+        for uuid1, uuid2 in zip(qvuuids, dvuuids):
+            hasher.update(uuid1.bytes)
+            hasher.update(uuid2.bytes)
+            hasher.update(b'-')
+        edge_hashid = hasher.hexdigest()
         return edge_hashid
 
     @ut.memoize
+    @profile
     def sample_hashid(samples):
-        visual_hash = samples.edge_hashid()
+        visual_hash = samples.edge_set_hashid()
+        # visual_hash = samples.edge_hashid()
         label_hash = ut.hashstr_arr27(samples.encoded_1d().values, 'labels',
                                       pathsafe=True)
         sample_hash = visual_hash + '_' + label_hash
@@ -1465,6 +1496,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         samples.X_dict = X_dict
         samples.simple_scores = simple_scores
 
+    @profile
     def compress(samples, flags):
         assert len(flags) == len(samples), 'mask has incorrect size'
         infr = samples.infr
@@ -1477,22 +1509,39 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         return new_labels
 
     @ut.memoize
+    @profile
     def is_same(samples):
         infr = samples.infr
         edges = samples.aid_pairs
-        def _check(u, v):
-            nid1, nid2 = infr.pos_graph.node_labels(u, v)
-            if nid1 == nid2:
-                return True
-            elif infr.neg_redun_nids.has_edge(nid1, nid2):
-                return False
-            else:
-                return None
-        flags = [_check(*edge) for edge in edges]
+        nodes = np.unique(edges)
+        labels = infr.pos_graph.node_labels(*nodes)
+        lookup = dict(ut.dzip(nodes, labels))
+        # def _check2(u, v):
+        #     nid1, nid2 = lookup[u], lookup[v]
+        #     if nid1 == nid2:
+        #         return True
+        #     else:
+        #         return False
+        #     # elif infr.neg_redun_nids.has_edge(nid1, nid2):
+        #     #     return False
+        #     # else:
+        #     #     return None
+        # flags = [_check2(u, v) for (u, v) in edges]
+        flags = [lookup[u] == lookup[v] for (u, v) in edges]
+        # def _check(u, v):
+        #     nid1, nid2 = infr.pos_graph.node_labels(u, v)
+        #     if nid1 == nid2:
+        #         return True
+        #     elif infr.neg_redun_nids.has_edge(nid1, nid2):
+        #         return False
+        #     else:
+        #         return None
+        # flags = [_check(u, v) for (u, v) in edges]
         return np.array(flags, dtype=np.bool)
         # return samples.infr.is_same(samples.aid_pairs)
 
     @ut.memoize
+    @profile
     def is_photobomb(samples):
         infr = samples.infr
         edges = samples.aid_pairs
@@ -1505,6 +1554,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         # return samples.infr.is_photobomb(samples.aid_pairs)
 
     @ut.memoize
+    @profile
     def is_comparable(samples):
         infr = samples.infr
         edges = samples.aid_pairs
@@ -1525,6 +1575,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         return np.array(flags, dtype=np.bool)
         # return samples.infr.is_comparable(samples.aid_pairs, allow_guess=True)
 
+    @profile
     def apply_multi_task_multi_label(samples):
         # multioutput-multiclass / multi-task
         tasks_to_indicators = ut.odict([
@@ -1542,6 +1593,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         samples['match_state'].default_class_name = POSTV
         samples['photobomb_state'].default_class_name = 'pb'
 
+    @profile
     def apply_multi_task_binary_label(samples):
         assert False
         # multioutput-multiclass / multi-task
@@ -1559,6 +1611,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         ])
         samples.apply_indicators(tasks_to_indicators)
 
+    @profile
     def apply_single_task_multi_label(samples):
         assert False
         is_comp = samples.is_comparable()
@@ -1635,6 +1688,24 @@ def demo_single_pairwise_feature_vector():
     # sorters = ['ratio', 'norm_dist', 'match_dist']
     match.make_feature_vector()
     return match
+
+
+# @profile
+# def make_edge_hashid(uuid1, uuid2):
+#     """
+#     Slightly faster than using ut.combine_uuids, because we condense and don't
+#     bother casting back to UUIDS
+#     """
+#     sep_str = '-'
+#     sep_byte = six.b(sep_str)
+#     pref = six.b('{}2'.format(sep_str))
+#     combined_bytes = pref + sep_byte.join([uuid1.bytes, uuid2.bytes])
+#     bytes_sha1 = hashlib.sha1(combined_bytes)
+#     # Digest them into a hash
+#     hashbytes_20 = bytes_sha1.digest()
+#     hashbytes_16 = hashbytes_20[0:16]
+#     # uuid_ = uuid.UUID(bytes=hashbytes_16)
+#     return hashbytes_16
 
 
 if __name__ == '__main__':

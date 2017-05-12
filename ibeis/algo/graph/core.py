@@ -108,7 +108,7 @@ class Feedback(object):
             # 'add_feedback {}, {}, decision={}, tags={}, user_id={}, '
             # 'confidence={}'.format(
             #     aid1, aid2, decision, tags, user_id, confidence),
-            1, color='white')
+            2, color='white')
 
         if decision == UNREV:
             # raise NotImplementedError('not done yet')
@@ -136,11 +136,6 @@ class Feedback(object):
             'review_id': review_id,
         }
         infr.internal_feedback[edge].append(feedback_item)
-        infr.set_edge_attr(edge, feedback_item)
-        if infr.refresh:
-            # only add to criteria if this wasn't requested as a fix edge
-            if priority is not None and priority <= 1.0:
-                infr.refresh.add(decision, user_id)
 
         if infr.enable_inference:
             assert infr.dirty is False, (
@@ -153,6 +148,12 @@ class Feedback(object):
             infr.dirty = True
             infr._add_review_edge(edge, decision)
 
+        infr.set_edge_attr(edge, feedback_item)
+        if infr.refresh:
+            # only add to criteria if this wasn't requested as a fix edge
+            if priority is not None and priority <= 1.0:
+                infr.refresh.add(decision, user_id)
+
         if infr.test_mode:
             if user_id.startswith('auto'):
                 infr.test_state['n_auto'] += 1
@@ -161,6 +162,8 @@ class Feedback(object):
             else:
                 raise AssertionError('unknown user_id=%r' % (user_id,))
             infr.metrics_list.append(infr.measure_metrics())
+        # if infr.verbose:
+        #     print('+-------------------')
         infr.verbose = prev_verbose
 
     def _print_debug_ccs(infr):
@@ -658,7 +661,12 @@ class MiscHelpers(object):
         infr.test_state = {
             'n_auto': 0,
             'n_manual': 0,
+            'n_true_merges': 0,
+            'n_error_edges': 0,
+            'confusion': None,
         }
+        infr.test_gt_pos_graph = nx_dynamic_graph.DynConnGraph()
+        infr.test_gt_pos_graph.add_nodes_from(infr.aids)
         infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
         infr.real_n_pcc_mst_edges = sum(
             len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
@@ -670,6 +678,7 @@ class MiscHelpers(object):
         infr.logs = collections.deque(maxlen=10000)
         infr.log_index = 0
 
+    @profile
     def log_message(infr, msg, level=1, color=None):
         if color is None:
             color = 'blue'
@@ -904,7 +913,6 @@ class AnnotInference(ut.NiceRepr,
         if aids == 'all':
             aids = ibs.get_valid_aids()
         infr.aids = None
-        infr.method = 'graph'
         infr.aids_set = None
         infr.orig_name_labels = None
 
@@ -923,14 +931,6 @@ class AnnotInference(ut.NiceRepr,
             UNREV: None,
         }
 
-        # if enable_redundancy is True, then redundant edges will be ignored by
-        # the priority queue and extra edges needed to achieve minimum
-        # redundancy will be searched for if the queue is empty.
-        infr.enable_redundancy = True
-        infr.enable_inference = True
-        infr.test_mode = False
-        infr.simulation_mode = False
-
         infr._max_outer_loops = None
         infr._refresh_params = {
             'window': 50,
@@ -939,6 +939,7 @@ class AnnotInference(ut.NiceRepr,
         }
 
         infr.edge_truth = {}
+        infr.task_probs = ut.ddict(dict)
 
         # Criteria
         infr.refresh = None
@@ -968,7 +969,15 @@ class AnnotInference(ut.NiceRepr,
         # Once we sync, this is merged into external feedback.
         infr.internal_feedback = ut.ddict(list)
 
+        # if enable_redundancy is True, then redundant edges will be ignored by
+        # the priority queue and extra edges needed to achieve minimum
+        # redundancy will be searched for if the queue is empty.
+        infr.enable_redundancy = True
+        infr.enable_inference = True
+        infr.test_mode = False
+        infr.simulation_mode = False
         infr.enable_autoreview = False
+        infr.enable_attr_update = True
 
         infr.thresh = None
         infr.cm_list = None
@@ -982,7 +991,6 @@ class AnnotInference(ut.NiceRepr,
             'complete_thresh': 1.0,
         }
         infr.add_aids(aids, nids)
-        infr.enable_attr_update = True
 
         infr.manual_wgt = None
 
