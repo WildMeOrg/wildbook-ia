@@ -259,7 +259,7 @@ def imageset_train_test_split(ibs, train_split=0.8, **kwargs):
             split_index = np.around(split_index)
         split_index = int(split_index)
         args = (distro, total, split_index, )
-        print('\tdistro: %d - total: %d - split_index: %d' % args)
+        print('\tnum aids distro: %d - total: %d - split_index: %d' % args)
         train_list = gid_list_[split_index:]
         test_list = gid_list_[:split_index]
         args = (len(test_list), len(train_list), len(train_list) / total, )

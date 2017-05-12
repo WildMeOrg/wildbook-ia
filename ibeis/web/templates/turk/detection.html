@@ -333,10 +333,133 @@
             <div class="col-lg-1"></div>
             <div class="col-lg-10" style="margin-top: 20px;">
               <div style="width:100%; text-align: center; margin-bottom:10px;">
-                <h4 style="margin-bottom:2px;">Annotation of Interest</h4>
+                <a href="#"><h4 style="margin-bottom:2px;">Annotation of Interest (AoI)</h4></a>
               </div>
-              <img src="{{ url_for('static', filename='images/example-species-african-elephant.jpg') }}" style="width: 100%; margin-bottom: 5px;">
-              <p>The African Elephant is distinguished by being the largest terrestrial animal, generally has grey or dark-brown baggy skin, a long trunk that acts as a nose and grabbing appendage, and showcases two white Ivory tusks.  The African Elephant can be distinguished against the <a href="http://en.wikipedia.org/wiki/Asian_elephant" target="_blank">Asian Elephant</a> by having much larger ears to facilitate efficient heat transfer to the air. [1]</p>
+              <p>
+                We want to capture a simple concept that can sometimes manifest itself in very complicated ways.  Chiefly, it is appropriate to ask the following question:
+
+                <div class="row">
+                  <div class="col-lg-2"></div>
+                  <div class="col-lg-8" style="color: #337ab7; font-size: 20px; text-align: center;line-height: 24px; margin-bottom: 10px;">
+                    <i><span style="font-size: 30px;">&ldquo;</span>Why did the photographer take this particular picture?<span style="font-size: 30px;">&rdquo;</span></i>
+                  </div>
+                  <div class="col-lg-2"></div>
+                </div>
+
+                To answer this question, the goal is to understand an image's semantic composition by marking the individual annotation(s) that are the <i>interest</i>, <i>subject(s)</i> or <i>focus</i> of the picture.  In summary, the task is to mark all annotations that have (in general) the following properties:
+
+                <ul style="padding-right:30px;">
+                    <li>Is of a distinguishable individual (i.e. has a distinct edge boundary, not necessarily that it is identifiable)</li>
+                    <li>Is relatively large and has decent resolution</li>
+                    <li>Is commonly located near the center of the image</li>
+                    <li>Is in focus and not blurry</li>
+                </ul>
+
+                Conversely, the annotations that are <u><b>not</b></u> considered to be an AoI have (in general) the following opposite properties:
+
+                <ul style="padding-right:30px;">
+                    <li>Is apart of an overlapping, indistinguishable herd or group of animals</li>
+                    <li>Is relatively small and/or contains few pixels</li>
+                    <li>Is out of focus and is blurry (from being too far from or too close to the camera relative to the plane that is in focus)</li>
+                    <li>Is commonly located around the edges of the image</li>
+                    <li>Is significantly occluded by other animals or objects</li>
+                    <li>Is mostly off the edge of the frame of the image</li>
+                </ul>
+
+                These above properties (and counter properties) demand that the annotation must not be viewed in isolation.  The decision of if an annotation is an AoI must therefore be made by weighing the entire context of the image and against any other annotations that may also be in the image.  Further, because these conditions are fairly strict, there are rarely more than a few (0-3) AoIs in a particular image.
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                <div style="margin-left: 4%; padding-right: 5%; border-left: 5px solid #b32b27; padding-left: 1%">
+                    <b style="color: #a32723">Beware:</b> it is crucially important to not accidentally conflate this metric with other detection and identification concepts.  For example,
+
+                    <ul style="padding-right:30px;">
+                        <li>Annotation of Interest &ne; is identifiable</li>
+                        <li>Annotation of Interest &ne; is of the desired quality</li>
+                        <li>Annotation of Interest &ne; is of the desired species</li>
+                        <li>Annotation of Interest &ne; is of the desired viewpoint</li>
+                        <li>Annotation of Interest &ne; is free of photo-bombs</li>
+                    </ul>
+                </div>
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                How well do these rules work on real-world examples.  Let's take a look at some of them:
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest1.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 1</div>
+
+                First, there is the need to define the color scheme.  An annotation bounding box is always <span style="color: #F0AD4E"><b>orange</b></span> or <span style="color: #00e100"><b>green</b></span> unless it is an AoI, which is <i>always</i> marked with the color <span style="color: #2E63FF"><b>blue</b></span>.
+                <br/>
+                <br/>
+                This first Example 1 (above) is straightforward.  There is only one animal in the image, it is clearly lit and has no occlusions.  A free-standing animal in a field, like in this example, can be considered an ideal AoI.  The annotation is therefore marked in blue to signify that it is an AoI.
+                <br/>
+                <br/>
+                Something to note is that not all images are guaranteed to have a non-zero number of annotations and an image with a single annotation is not guaranteed for it to be an AoI.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest2.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 2</div>
+
+                This second example gives multiple instances of what is considered to be an ideal <i>background</i> annotation.
+                <br/>
+                <br/>
+                The single AoI in this image (again, in blue) is smaller by area than in the first example, but it is still the main, foreground subject.  Further, it is in focus and clearly distinguishable, which makes it an AoI for this image.  The four additional orange annotations near the top of the image are not AoIs: they are small, out of focus, and (literally) in the background compared to the foreground AoI.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest3.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 3</div>
+
+                This example has 4 total annotations, two of which (in blue) are AoIs and two which are just normal annotations (in orange).  The two smaller annotations in the background do not qualify as AoIs because they are slightly out of focus, too small, and the left-most orange box has significant occlusion by another animal.  The two blue AoIs are both in focus and have no significant occlusions (the small amount of occlusion of the left AoI by the right AoI is not significant nor is the clipping end of the snout by the edge of the frame).
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+
+                Looking at the AoIs from these first 3 examples, a pattern begins to emerge.  This pattern revolves around what can be called the <i>"focus plane"</i> and it helps to outline a simple procedure for deciding which annotations should be considered an AoI.
+
+                <ol style="padding-right:30px;">
+                    <li>Find the <i>single</i>, <b>best AoI</b> in the image, if it exists.  It is important that the best AoI is in focus and has the <i>easiest</i> argument for being an AoI. If there does not appropriately exist such an AoI, continue to the next image.</li>
+                    <li>Determine the "focus plane" or "subject plane" that this best AoI lives within.  The focus plane can be decided based on the regions of sharpness and blurriness within the image.  This theoretical plane is the depth within in the image that the best AoI occupies in 3D space.  For example, all other objects that are also within this plane should be all have the same focus and depth within the image as the best AoI.  Note that not all focus planes will be the same width; an image taken with a larger camera aperture opening will give a narrower depth of field.</li>
+                    <li>Any annotation within the focus plane should be considered as a <i>candidate</i> AoI and must be reviewed individually.  Any annotation that satisfy the AoI properties <i>and</i> is also within the focus plane of the best AoI should also be marked as an AoIs.</li>
+                    <li>Any annotation that is not within the focus plane should not be considered an AoIs</li>
+                </ol>
+
+                A caveat to the procedure above is when the focus plane is very wide (small aperture opening on the camera) and objects at different actual depths in the image both appear to be similarly in focus and roughly within the same focus plane.  In this scenario, treat these annotations as if they were in the same focus plane and occupied the same 3D depth within the image.
+
+                <div style="border-top: 1px solid #ddd; width: 100%; height: 0px; margin: 10px auto;"></div>
+                Let's apply the procedure above to the next example:
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest4.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 4</div>
+
+                In this fourth example, the concept of a "focus plane" is demonstrably clear.  Let's apply the procedure as detailed above in the previous example:
+
+                    <ol style="padding-right:30px;">
+                        <li>Deciding the single, best AoI in this example is subjective.  The most in-focus and free-standing annotations are in the center of the image (marked in blue).  For the purpose of discussion, however, we will arbitrarily pick the right-most blue annotation as the best AoI.  A strong argument could also be made for the left-most blue annotation to be the best AoI</li>
+                        <li>With the best AoI selected, the depth the focus plane for this image can be decided.  This example image can be semantically broken up into three distinct depth zones, relative to the camera: in-front of the focus plane, the focus plane itself, and behind the focus plane.  Note that not every image has these three distinct depth zones and some images may only have one.  For this example, the bottom 1/3 of the image is in-front of the focus plane, the focus plane occupies the middle 1/3, and the top 1/3 is behind the focus plane.</li>
+                        <li>With the three focus zones defined, there are three annotations (the two blue and the cutoff orange annotation off the left border) that are within the focus plane.  Next, each box is individually checked against the AoI properties.  The left blue annotation is a good AoI, but the left-most orange annotation is significantly cutoff and should not be considered as an AoI.</li>
+                        <li>The 4 annotations at the bottom of the image fall outside (in-front) of the focus plane and are therefore should not be considered as AoIs.  The 4 annotations at the top of the image also fall outside (behind) of the focus plane and should similarly not be considered as AoIs.</li>
+                    </ol>
+
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest5.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 5</div>
+
+                Next, this example shows a group of animals in a tight herd.  In this example, there is no clearly distinguishable individual apart from the herd and therefore there does not exist any AoIs.  Even though all of these annotations occupy roughly the same focus plane, the annotations are also a little too small to be considered AoIs.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest6.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 6</div>
+
+                This image is striking because of not only how many annotations are captured within it, but that none of the many annotations are considered AoIs.  This is primarily due to the fact that the focus plane is clearly centered around the bird stuffed animal. The right-most (blurry) orange annotation would normally be the best AoI, but is ignored for being behind the focus plane.
+                <br/>
+                <br/>
+                <img src="{{ url_for('static', filename='images/example-interest7.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+                <div style="width: 100%; font-size: 12px; text-align: center; margin-bottom: 5px;">Example 7</div>
+
+                Lastly, we want to reiterate that the decision over AoI should not be decided by or conflated with other metrics, like viewpoint.  The focus plane is fairly wide in this image and also contains all three annotations.  The pose of the two lower annotations do not discount them as AoIs.
+              </p>
             </div>
             <div class="col-lg-1"></div>
           </div>
