@@ -160,9 +160,9 @@
           </div>
           <div class="col-lg-6 col-md-6 col-sm-6">
             <div style="text-align: right;">
-              <span class="ia-detection-hotkey">(I)</span> Object of Interest
+              <span class="ia-detection-hotkey">(I)</span> Annotation of Interest
               <input id="ia-detection-annotation-interest" class="ia-detection-form-annotation-value" name="ia-interest-value" type="checkbox"><br/>
-              <span class="ia-detection-hotkey">(O)</span> Multiple animals in image
+              <span class="ia-detection-hotkey">(O)</span> Multiple Animals
               <input id="ia-detection-annotation-multiple" class="ia-detection-form-annotation-value" name="ia-multiple-value" type="checkbox">
             </div>
           </div>
@@ -569,6 +569,10 @@
 
       {% if display_species_examples %}
         $('#turk-class-examples').modal('show');
+      {% endif %}
+
+      {% if True %}
+        $('#turk-new-features').modal('show');
       {% endif %}
     });
   </script>

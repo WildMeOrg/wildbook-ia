@@ -47,6 +47,40 @@
       <div class="col-lg-1"></div>
     </div>
 
+  <div class="modal fade" id="species-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Species</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="species-add" class="form-control" placeholder="New species tag">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_species();">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="part-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title" id="myModalLabel">Add a Part Type</h4>
+        </div>
+        <div class="modal-body">
+            <input type="text" name="part-add" class="form-control" placeholder="New part tag">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_part();">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal -->
   <div class="modal fade" id="turk-species-examples" tabindex="-1" role="dialog" aria-labelledby="speciesModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -281,7 +315,8 @@
     </div>
   </div>
 
-    <!-- Modal -->
+
+  <!-- Modal -->
   <div class="modal fade" id="turk-new-features" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -290,45 +325,26 @@
           <h4 class="modal-title" id="myModalLabel">New Features for Detection Turking</h4>
         </div>
         <div class="modal-body">
-        TODO
+          Here are some of the exciting features in the newly designed detection interface:
+          <br/>
+          <br/>
+
+          <div class="row">
+            <div class="col-lg-1"></div>
+            <div class="col-lg-10" style="margin-top: 20px;">
+              <div style="width:100%; text-align: center; margin-bottom:10px;">
+                <h4 style="margin-bottom:2px;">Annotation of Interest</h4>
+              </div>
+              <img src="{{ url_for('static', filename='images/example-species-african-elephant.jpg') }}" style="width: 100%; margin-bottom: 5px;">
+              <p>The African Elephant is distinguished by being the largest terrestrial animal, generally has grey or dark-brown baggy skin, a long trunk that acts as a nose and grabbing appendage, and showcases two white Ivory tusks.  The African Elephant can be distinguished against the <a href="http://en.wikipedia.org/wiki/Asian_elephant" target="_blank">Asian Elephant</a> by having much larger ears to facilitate efficient heat transfer to the air. [1]</p>
+            </div>
+            <div class="col-lg-1"></div>
+          </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default pull-left" data-dismiss="modal" data-toggle="modal" data-target="#turk-instructions">Go to instructions</button>
           <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit_cookie('ia-detection_new_features_seen', '1');">Got it!</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="species-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Add a Species</h4>
-        </div>
-        <div class="modal-body">
-            <input type="text" name="species-add" class="form-control" placeholder="New species tag">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_species();">Add</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="part-add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-          <h4 class="modal-title" id="myModalLabel">Add a Part Type</h4>
-        </div>
-        <div class="modal-body">
-            <input type="text" name="part-add" class="form-control" placeholder="New part tag">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="add_part();">Add</button>
         </div>
       </div>
     </div>

@@ -184,7 +184,7 @@ def export_to_xml(ibs, offset='auto', enforce_viewpoint=False, target_size=900, 
                 # Get info
                 info = {}
                 species_name = ibs.get_annot_species_texts(aid)
-                viewpoint = ibs.get_annot_viewpoint(aid)
+                viewpoint = ibs.get_annot_viewpoints(aid)
                 if viewpoint != -1 and viewpoint is not None:
                     info['pose'] = viewpoint
                 else:
