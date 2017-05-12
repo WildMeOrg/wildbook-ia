@@ -643,6 +643,10 @@ def logit(x):
     return logit(x)
 
 
+# def relu_01(x, p):
+#     return np.minimum(0, (x - p) / (1 - p))
+
+
 def beaton_tukey_loss(u, a=1):
     """
     CommandLine:

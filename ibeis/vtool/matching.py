@@ -475,7 +475,7 @@ class PairwiseMatch(ut.NiceRepr):
                     delta = vt.ori_distance(v1, v2)
                 else:
                     delta = np.abs(v1 - v2)
-            feat['global(%s_delta)' % (k,)] = delta
+            feat['global(delta_%s)' % (k,)] = delta
 
         # Impose ordering on these keys to add symmetry
         keys_to_order = ['qual', 'yaw']
@@ -487,9 +487,9 @@ class PairwiseMatch(ut.NiceRepr):
                 feat['global(min_%s)' % key] = minv
                 feat['global(max_%s)' % key] = maxv
 
-        if 'global(gps_delta)' in feat and 'global(time_delta)' in feat:
-            hour_delta = feat['global(time_delta)'] / 360
-            km_delta = feat['global(gps_delta)']
+        if 'global(delta_gps)' in feat and 'global(delta_time)' in feat:
+            hour_delta = feat['global(delta_time)'] / 360
+            km_delta = feat['global(delta_gps)']
             if hour_delta == 0:
                 if km_delta == 0:
                     feat['global(speed)'] = 0
@@ -680,6 +680,7 @@ class AnnotPairFeatInfo(object):
         >>> import vtool as vt
         >>> import pandas as pd
         >>> match = demodata_match({})
+        >>> match.add_global_measures(['time', 'gps'])
         >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
         >>> # Feat info without bins
         >>> feat = match.make_feature_vector()
@@ -689,6 +690,8 @@ class AnnotPairFeatInfo(object):
         >>> pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
         >>> print('pairfeat_cfg = %r' % (pairfeat_cfg,))
         >>> print('global_keys = %r' % (global_keys,))
+        >>> assert 'delta' not in global_keys
+        >>> assert 'max' not in global_keys
         >>> ut.cprint(featinfo.get_infostr(), 'blue')
         >>> # Feat info with bins
         >>> feat = match.make_feature_vector(indices=0, bin_key='ratio')
@@ -700,11 +703,13 @@ class AnnotPairFeatInfo(object):
         >>> print('global_keys = %r' % (global_keys,))
         >>> ut.cprint(featinfo.get_infostr(), 'blue')
     """
-    def __init__(featinfo, X=None, importances=None):
-        featinfo.X = X
+    def __init__(featinfo, columns=None, importances=None):
         featinfo.importances = importances
-        if X is not None:
-            featinfo.columns = X.columns
+        if columns is not None:
+            if hasattr(columns, 'columns'):
+                featinfo.columns = columns.columns
+            else:
+                featinfo.columns = columns
         else:
             featinfo.columns = list(importances.keys())
         if importances is not None:
@@ -721,8 +726,13 @@ class AnnotPairFeatInfo(object):
         criteria = [('measure_type', '==', 'global')]
         global_measures = sorted(set(map(
             featinfo.global_measure, featinfo.select_columns(criteria))))
-        global_keys = sorted(set([key.split('_')[0]
-                                  for key in global_measures]))
+
+        global_keys = []
+        for key in global_measures:
+            parts = key.split('_')
+            offset = parts[0] in {'max', 'min', 'delta'}
+            global_keys.append(parts[offset])
+        global_keys = sorted(set(global_keys))
         if 'speed' in global_keys:
             global_keys.remove('speed')  # hack
 
@@ -1015,7 +1025,7 @@ class AnnotPairFeatInfo(object):
         standardized dimension names.
         """
         grouped_keys = ut.ddict(list)
-        for key in featinfo.X.columns:
+        for key in featinfo.columns:
             type_ = featinfo.measure_type(key)
             grouped_keys[type_].append(key)
 
@@ -1051,7 +1061,7 @@ class AnnotPairFeatInfo(object):
             return lines
 
         lines = []
-        lines.append('Feature Dimensions: %d' % (len(featinfo.X.columns)))
+        lines.append('Feature Dimensions: %d' % (len(featinfo.columns)))
         for item  in info_items.items():
             key, list_ = item
             list_ = {a for a in list_ if a is not None}

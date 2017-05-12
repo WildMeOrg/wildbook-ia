@@ -479,7 +479,7 @@ class ConfusionMetrics(object):
             thresh, max_value = vt.argsubmax(metric_values, self.thresholds)
         return thresh
 
-    def get_thresh_at_metric(self, metric, value, prefer_max=None):
+    def get_thresh_at_metric(self, metric, value, maximize=None):
         r"""
         Gets a threshold for a binary classifier using a target metric and value
 
@@ -518,11 +518,11 @@ class ConfusionMetrics(object):
             # hack
             if len(metric_values) <= 1:
                 return 1.0
-        # prefer_max = metric not in self.minimizing_metrics
-        if prefer_max is None:
-            prefer_max = metric not in {'fpr'}
+        # maximize = metric not in self.minimizing_metrics
+        if maximize is None:
+            maximize = metric not in {'fpr'}
         thresh = interpolate_replbounds(metric_values, self.thresholds, value,
-                                        prefer_max=prefer_max)
+                                        maximize=maximize)
         return thresh
 
     def get_metric_at_thresh(self, metric, thresh):
@@ -582,9 +582,6 @@ class ConfusionMetrics(object):
             value = value[0]
         return value
 
-    get_threshold_at_metric = get_thresh_at_metric
-    get_metric_at_threshold = get_metric_at_thresh
-
     # --------------
     # Visualizations
     # --------------
@@ -643,7 +640,7 @@ class ConfusionMetrics(object):
         pass
 
 
-def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
+def interpolate_replbounds(xdata, ydata, pt, maximize=True):
     """
     xdata = np.array([.1, .2, .3, .4, .5])
     ydata = np.array([.1, .2, .3, .4, .5])
@@ -677,9 +674,9 @@ def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
         >>> #xdata = self.fpr
         >>> #ydata = self.thresholds
         >>> #pt = 0.0
-        >>> thresh = interpolate_replbounds(xdata, ydata, pt, prefer_max=True)
+        >>> thresh = interpolate_replbounds(xdata, ydata, pt, maximize=True)
         >>> print('thresh = %r' % (thresh,))
-        >>> thresh = interpolate_replbounds(xdata, ydata, pt, prefer_max=False)
+        >>> thresh = interpolate_replbounds(xdata, ydata, pt, maximize=False)
         >>> print('thresh = %r' % (thresh,))
 
     Example:
@@ -733,7 +730,7 @@ def interpolate_replbounds(xdata, ydata, pt, prefer_max=True):
         import vtool as vt
         unique_vals, groupxs = vt.group_indices(xdata)
         grouped_ydata = vt.apply_grouping(ydata, groupxs)
-        if prefer_max:
+        if maximize:
             sub_idxs = [idxs[np.argmax(ys)] for idxs, ys in zip(groupxs, grouped_ydata)]
         else:
             sub_idxs = [idxs[np.argmin(ys)] for idxs, ys in zip(groupxs, grouped_ydata)]

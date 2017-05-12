@@ -109,7 +109,7 @@ class ScoreNormVisualizeClass(object):
         score_thresh, prob_thresh = encoder._hack_vizlearn(**kwargs)
 
         #target_tpr = None
-        target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+        target_tpr = confusions.get_metric_at_thresh('tpr', prob_thresh)
         #print('target_tpr = %r' % (target_tpr,))
         ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
                                                  show_operating_point=True)
@@ -538,8 +538,8 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
             confusions_prob = vt.ConfusionMetrics.from_scores_and_labels(
                 probs, y, verbose=verbose)
 
-            _score_thresh = confusions_score.get_threshold_at_metric(metric, value)
-            _prob_thresh = confusions_prob.get_threshold_at_metric(metric, value)
+            _score_thresh = confusions_score.get_thresh_at_metric(metric, value)
+            _prob_thresh = confusions_prob.get_thresh_at_metric(metric, value)
             _inv_score = encoder.inverse_normalize(_prob_thresh)
             _inv_prob = encoder.normalize_scores(-_score_thresh)
 
@@ -549,10 +549,10 @@ class ScoreNormalizer(ut.Cachable, ScoreNormVisualizeClass):
         confusions = vt.ConfusionMetrics.from_scores_and_labels(
             probs, y, verbose=verbose)
 
-        prob_thresh = confusions.get_threshold_at_metric(metric, value)
+        prob_thresh = confusions.get_thresh_at_metric(metric, value)
 
-        #target_value = confusions.get_metric_at_threshold(metric, prob_thresh)
-        #check_thresh = confusions.get_threshold_at_metric(metric, target_value)
+        #target_value = confusions.get_metric_at_thresh(metric, prob_thresh)
+        #check_thresh = confusions.get_thresh_at_metric(metric, target_value)
         score_thresh = encoder.inverse_normalize(prob_thresh)
         if verbose:
             print('[scorenorm] Learning threshold to achieve %s=%.5f' % (
@@ -1505,7 +1505,7 @@ def inspect_pdfs(tn_support, tp_support,
             pass
 
     #target_tpr = None
-    target_tpr = confusions.get_metric_at_threshold('tpr', prob_thresh)
+    target_tpr = confusions.get_metric_at_thresh('tpr', prob_thresh)
     #print('target_tpr = %r' % (target_tpr,))
     ROCInteraction = vt.interact_roc_factory(confusions, target_tpr,
                                              show_operating_point=True)
