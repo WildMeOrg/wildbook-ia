@@ -54,7 +54,6 @@ TICK_SIZE = ut.get_argval('--ticksize', default=None)
 #         mpl.rcParams[key] = val
 
 
-
 def customize_figure(fig, docla):
     #if 'user_stat_list' not in fig.__dict__.keys() or docla:
     #    fig.user_stat_list = []
@@ -117,14 +116,26 @@ def _convert_pnum_int_to_tup(int_pnum):
     return pnum
 
 
+def _pnum_to_subspec(pnum):
+    if isinstance(pnum, six.string_types):
+        pnum = list(pnum)
+    nrow, ncols, plotnum = pnum
+    # if kwargs.get('use_gridspec', True):
+    # Convert old pnums to gridspec
+    gs = gridspec.GridSpec(nrow, ncols)
+    if isinstance(plotnum, (tuple, slice, list)):
+        subspec = gs[plotnum]
+    else:
+        subspec = gs[plotnum - 1]
+    return (subspec,)
+    # else:
+    #     return (nrow, ncols, plotnum)
+
+
 def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
            doclf=False, projection=None, **kwargs):
     """
     http://matplotlib.org/users/gridspec.html
-
-    Args:
-        fnum (int):  fignum = figure number
-        pnum (int, str, or tuple(int, int, int)): plotnum = plot tuple
 
     Args:
         fnum (int): fignum = figure number
@@ -173,67 +184,30 @@ def figure(fnum=None, pnum=(1, 1, 1), docla=False, title=None, figtitle=None,
         return fig
     if ut.is_int(pnum):
         pnum = _convert_pnum_int_to_tup(pnum)
-
-    def pnum_to_subspec(pnum):
-        if isinstance(pnum, six.string_types):
-            pnum = list(pnum)
-        #if isinstance(pnum, (list, tuple)):
-        nrow, ncols, plotnum = pnum
-
-        if kwargs.get('use_gridspec', True):
-            # Convert old pnums to gridspec
-            gs = gridspec.GridSpec(nrow, ncols)
-            if isinstance(plotnum, (tuple, slice, list)):
-                subspec = gs[plotnum]
-            else:
-                subspec = gs[plotnum - 1]
-            return (subspec,)
-        else:
-            return (nrow, ncols, plotnum)
-
-    if doclf:  # a bit hacky. Need to rectify docla and doclf
+    if doclf:
         fig.clf()
-        # <HACK TO CLEAR AXES>
-        #for ax in axes_list:
-        #    ax.clear()
-        #for ax in fig.get_axes:
-        #    fig.delaxes(ax)
-        #axes_list = []
-        # </HACK TO CLEAR AXES>
-    # Get the subplot
     if docla or len(axes_list) == 0:
-        #printDBG('[df2] *** NEW FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
             assert pnum[0] > 0, 'nRows must be > 0: pnum=%r' % (pnum,)
             assert pnum[1] > 0, 'nCols must be > 0: pnum=%r' % (pnum,)
-            #ax = plt.subplot(*pnum)
-            subspec = pnum_to_subspec(pnum)
+            subspec = _pnum_to_subspec(pnum)
             ax = fig.add_subplot(*subspec, projection=projection)
-            #ax = fig.add_subplot(*pnum, projection=projection)
-            ax.cla()
+            if docla:
+                ax.cla()
         else:
             ax = gca()
     else:
-        #printDBG('[df2] *** OLD FIGURE %r.%r ***' % (fnum, pnum))
         if pnum is not None:
-            subspec = pnum_to_subspec(pnum)
+            subspec = _pnum_to_subspec(pnum)
             ax = plt.subplot(*subspec)
-            #ax = plt.subplot(nrow, ncols, plotnum)
-            #ax = plt.subplot(*pnum)  # fig.add_subplot fails here
-            #ax = fig.add_subplot(*pnum)
         else:
             ax = gca()
-        #ax  = axes_list[0]
-    # Set the title
+    # Set the title / figtitle
     if title is not None:
         ax = gca()
         set_title(title, ax=ax)
-        # Add title to figure
-        # HACK HACK HACK
-        if figtitle is None and pnum == (1, 1, 1):
-            figtitle = title
-        if figtitle is not None:
-            set_figtitle(figtitle, incanvas=False)
+    if figtitle is not None:
+        set_figtitle(figtitle, incanvas=False, fig=fig)
     return fig
 
 
@@ -520,14 +494,16 @@ def set_ylabel(lbl, ax=None, **kwargs):
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
-                 size=None, font=None, fontfamily=None, fontweight=None):
+                 size=None, font=None, fontfamily=None, fontweight=None,
+                 fig=None):
     if size is None:
         size = FIGTITLE_SIZE
     if font is not None:
         print('WARNING set_figtitle font kwarg is DEPRICATED')
     if figtitle is None:
         figtitle = ''
-    fig = gcf()
+    if fig is None:
+        fig = gcf()
     figtitle = ut.ensure_unicode(figtitle)
     subtitle = ut.ensure_unicode(subtitle)
     if incanvas:

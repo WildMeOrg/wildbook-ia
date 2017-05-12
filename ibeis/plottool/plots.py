@@ -91,13 +91,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
     num_lines = len(ydata_list)
 
     # Transform xdata into xdata_list
-    if isinstance(xdata, np.ndarray):
-        xdata_list = [np.array(xdata, copy=True)] * num_lines
-    elif isinstance(xdata, list):
+    if isinstance(xdata, list):
         if len(xdata) > 0 and isinstance(xdata[0], (list, np.ndarray)):
             xdata_list = [np.array(xd, copy=True) for xd in xdata]
         else:
             xdata_list = [np.array(xdata, copy=True)] * num_lines
+    else:
+        xdata_list = [np.array(xdata, copy=True)] * num_lines
 
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
     pnum = kwargs.get('pnum', None)
