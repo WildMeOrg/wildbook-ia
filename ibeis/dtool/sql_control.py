@@ -21,6 +21,7 @@ print, rrr, profile = ut.inject2(__name__)
 
 METADATA_TABLE       = 'metadata'
 
+READ_ONLY = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
 VERBOSE_SQL    = ut.get_argflag(('--print-sql', '--verbose-sql', '--verb-sql', '--verbsql'))
 NOT_QUIET = not (ut.QUIET or ut.get_argflag('--quiet-sql'))
 
@@ -311,7 +312,7 @@ class SQLDatabaseController(object):
     @profile
     def __init__(db, sqldb_dpath='.', sqldb_fname='database.sqlite3',
                  text_factory=six.text_type, inmemory=None, fpath=None,
-                 readonly=None):
+                 readonly=None, always_check_metadata=True):
         """ Creates db and opens connection
 
         Args:
@@ -348,8 +349,8 @@ class SQLDatabaseController(object):
         # TODO: generalize the places that use this so to add a new cannonical
         # metadata field it is only necessary to append to this list.
         if readonly is None:
+            readonly = READ_ONLY
             # HACK
-            readonly = ut.get_argflag(('--readonly-mode', '--read-only', '--readonly'))
 
         db._tablenames = None
         db.readonly = readonly
@@ -404,7 +405,9 @@ class SQLDatabaseController(object):
             db.optimize()
 
         if not db.readonly:
-            db._ensure_metadata_table()
+            if is_new or always_check_metadata:
+                # TODO: make this happen lazilly
+                db._ensure_metadata_table()
 
     def _create_connection(db):
         if db.fname == ':memory:':
@@ -448,6 +451,7 @@ class SQLDatabaseController(object):
         db.cur = None
         db.connection.close()
 
+    @profile
     def _ensure_metadata_table(db):
         """
         Creates the metadata table if it does not exist
@@ -1442,7 +1446,7 @@ class SQLDatabaseController(object):
                 else:
                     db.set_metadata_val(tablename + '_' + suffix, repr(val))
         if db._tablenames is not None:
-            db._tablenames += [tablename]
+            db._tablenames.add(tablename)
 
     def modify_table(db, tablename=None, colmap_list=None, tablename_new=None,
                      drop_columns=[], add_columns=[], rename_columns=[],
@@ -1921,7 +1925,7 @@ class SQLDatabaseController(object):
         """ Conveinience: """
         db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tablename_list = db.cur.fetchall()
-        return [str(tablename[0]) for tablename in tablename_list]
+        return {str(tablename[0]) for tablename in tablename_list}
 
     @property
     def tablenames(db):

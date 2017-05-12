@@ -169,7 +169,7 @@ class _CoreDependencyCache(object):
         for fname, db in depc.fname_to_db.items():
             db.close()
 
-    #@profile
+    @profile
     def initialize(depc, _debug=None):
         """
         Creates all registered tables
@@ -205,9 +205,10 @@ class _CoreDependencyCache(object):
                 if prefix_dpath:
                     ut.ensuredir(ut.unixjoin(depc.cache_dpath, prefix_dpath))
                 fpath = ut.unixjoin(depc.cache_dpath, fname_)
-            if ut.get_argflag('--clear-all-depcache'):
-                ut.delete(fpath)
-            db = sql_control.SQLDatabaseController(fpath=fpath)
+            # if ut.get_argflag('--clear-all-depcache'):
+            #     ut.delete(fpath)
+            db = sql_control.SQLDatabaseController(fpath=fpath,
+                                                   always_check_metadata=False)
             depcache_table.ensure_config_table(db)
             depc.fname_to_db[fname] = db
         if ut.VERBOSE:

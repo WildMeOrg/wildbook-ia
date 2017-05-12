@@ -117,6 +117,7 @@ def make_extern_io_funcs(table, cls):
     return _read_func, _write_func
 
 
+@profile
 def ensure_config_table(db):
     """ SQL definition of configuration table. """
     config_addtable_kw = ut.odict(
