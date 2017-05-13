@@ -94,6 +94,18 @@ def demodata_bridge():
 
 
 def demodata_tarjan_bridge():
+    """
+    CommandLine:
+        python -m ibeis.algo.graph.nx_utils demodata_tarjan_bridge --show
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> G = demodata_tarjan_bridge()
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> pt.show_nx(G)
+        >>> ut.show_if_requested()
+    """
     # define 2-connected compoments and bridges
     cc2 = [(1, 2, 4, 3, 1, 4), (5, 6, 7, 5), (8, 9, 10, 8),
              (17, 18, 16, 15, 17), (11, 12, 14, 13, 11, 14)]
@@ -171,6 +183,7 @@ def find_bridges(G):
         https://en.wikipedia.org/wiki/Bridge_(graph_theory)
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> G = demodata_bridge()
         >>> bridges = list(find_bridges(G))
         >>> assert bridges == {(3, 5), (4, 8), (20, 21), (22, 23), (23, 24)}
@@ -343,6 +356,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
         >>> ut.show_if_requested()
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = nx.Graph()
         >>> G.add_nodes_from([
@@ -372,7 +386,8 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
     elif k == 2 and avail is None and not hack:
         aug_edges = bridge_connected_augmentation(G)
     elif k == 2 and avail is not None:
-        aug_edges = weighted_bridge_connected_augmentation(G, avail)
+        aug_edges = weighted_bridge_connected_augmentation(G, avail,
+                                                           return_anyway)
     else:
         # Because I have not implemented a better algorithm yet:
         # randomly add edges until we satisfy the criteria
@@ -426,130 +441,247 @@ def weighted_one_edge_connected_augmentation(G, avail):
     return aug_edges
 
 
-def weighted_bridge_connected_augmentation(G, avail):
-    """
-    2-approximation. Runs in O(m + nlog(n)) time
+def greedy_local_bridge_augment(G, avail):
+    # If it is not possible, be greedy and increase local connectivity
+    # Can be made better by condensing the graph
+    local_edge_connectivity = nx.connectivity.local_edge_connectivity
+    local_greedy_edges = []
+    H = G.copy()
+    for u, v in avail:
+        if local_edge_connectivity(H, u, v, cutoff=2) < 2:
+            local_greedy_edges.append((u, v))
+            H.add_edge(u, v)
+    edges = local_greedy_edges
+    return edges
 
-    Approximation algorithms for graph augmentation
-    S Khuller, R Thurimella - Journal of Algorithms, 1993
+
+def weighted_bridge_connected_augmentation(G, avail, return_anyway=False):
+    """
+    Chooses a set of edges from avail to add to G that renders it
+    2-edge-connected if such a subset exists.
+
+    Because we are constrained by edges in avail this problem is NP-hard, and
+    this function is a 2-approximation if the input graph is connected, and a
+    3-approximation if it is not. Runs in O(m + nlog(n)) time
+
+    Args:
+        G (nx.Graph): input graph
+        avail (set): candidate edges to choose from
+
+    Returns:
+        aug_edges (set): subset of avail chosen to augment G
+
+    References:
+        Approximation algorithms for graph augmentation
+        S Khuller, R Thurimella - Journal of Algorithms, 1993
+        http://www.sciencedirect.com/science/article/pii/S0196677483710102
+        https://www.cs.umd.edu/class/spring2011/cmsc651/lec07.pdf
 
     Notes:
         G0 - currrent network.
-
         branching - of directed graph G rooted at r.
             Every vertex except r has indegree=1 and r has indegree=0
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *
-        >>> import networkx as nx
+        >>> # test1
         >>> G = demodata_tarjan_bridge()
         >>> avail = [(9, 7), (8, 5), (2, 10), (6, 13), (11, 18), (1, 17), (2, 3),
         >>>          (16, 17), (18, 14), (15, 14)]
-        >>> aug_edges = weighted_bridge_connected_augmentation(G, avail)
-        >>> print('aug_edges = %r' % (aug_edges,))
-        aug_edges = [(6, 13), (2, 10), (1, 17)]
+        >>> ut.assert_raises(ValueError, bridge_augment, G, [])
+        >>> bridge_augment(G, [(9, 7)], return_anyway=True)
+        >>> bridge_augment = weighted_bridge_connected_augmentation
+        >>> aug_edges = set(bridge_augment(G, avail))
+        >>> assert aug_edges == {(6, 13), (2, 10), (1, 17)}
+        >>> # test2
+        >>> G = nx.Graph([(1, 2), (1, 3), (1, 4), (4, 2), (2, 5)])
+        >>> avail = [(4, 5)]
+        >>> ut.assert_raises(ValueError, bridge_augment, G, avail)
+        >>> aug_edges = bridge_augment(G, avail, True)
+        >>> avail = [(3, 5), (4, 5)]
+        >>> aug_edges = bridge_augment(G, avail)
     """
-    G_orig = G
-    G = G_orig.copy()
+    # def _simple_paths(D, r, u):
+    #     if r == u:
+    #         paths = [[r]]
+    #     else:
+    #         paths = list(nx.all_simple_paths(D, r, u))
+    #     return paths
+
+    # def _least_common_ancestor(D, u, v, root=None):
+    #     # Find least common ancestor in a rooted tree
+    #     paths1 = _simple_paths(D, root, u)
+    #     paths2 = _simple_paths(D, root, v)
+    #     assert len(paths1) == 1
+    #     assert len(paths2) == 1
+    #     path1 = paths1[0]
+    #     path2 = paths2[0]
+    #     lca = None
+    #     for p1, p2 in zip(path1, path2):
+    #         if p1 != p2:
+    #             break
+    #         lca = p1
+    #     return lca
+
+    def _most_recent_descendant(D, u, v):
+        # Find a closest common descendant
+        assert nx.is_directed_acyclic_graph(D), 'Must be DAG'
+        v_branch = nx.descendants(D, v).union({v})
+        u_branch = nx.descendants(D, u).union({u})
+        common = v_branch & u_branch
+        node_depth = (
+            ((c, (nx.shortest_path_length(D, u, c) +
+                  nx.shortest_path_length(D, v, c)))
+             for c in common))
+        mrd = min(node_depth, key=lambda t: t[1])[0]
+        return mrd
+
+    def _lowest_common_anscestor(D, u, v):
+        # Find a common ancestor furthest away
+        assert nx.is_directed_acyclic_graph(D), 'Must be DAG'
+        v_branch = nx.anscestors(D, v).union({v})
+        u_branch = nx.anscestors(D, u).union({u})
+        common = v_branch & u_branch
+        node_depth = (
+            ((c, (nx.shortest_path_length(D, c, u) +
+                  nx.shortest_path_length(D, c, v)))
+             for c in common))
+        mrd = max(node_depth, key=lambda t: t[1])[0]
+        return mrd
+
+    # If input G is not connected the approximation factor increases to 3
+    aug_edges = []
     if not nx.is_connected(G):
-        # increases the approximation ratio to a factor of 3
-        aug_edges = weighted_one_edge_connected_augmentation(G, avail)
-        G.add_edges_from(aug_edges)
+        H = G.copy()
+        connectors = weighted_one_edge_connected_augmentation(H, avail)
+        H.add_edges_from(connectors)
+        aug_edges.extend(connectors)
     else:
-        aug_edges = []
-    assert nx.is_connected(G)
+        H = G
+    if not nx.is_connected(H):
+        if return_anyway:
+            return greedy_local_bridge_augment(G, avail)
+        raise ValueError('no augmentation possible')
+
     uv_avail = [tup[0:2] for tup in avail]
     uv_avail = [
         (u, v) for u, v in uv_avail if (
-            G.has_node(u) and G.has_node(v) and not G.has_edge(u, v))
+            H.has_node(u) and H.has_node(v) and not H.has_edge(u, v))
     ]
-    bridge_ccs = bridge_connected_compoments(G)
-    C = collapse(G, bridge_ccs)
-    # list(nx.connected_components(C))
+
+    # Collapse input into a metagraph. Meta nodes are bridge-ccs
+    bridge_ccs = bridge_connected_compoments(H)
+    C = collapse(H, bridge_ccs)
+
+    # Use the meta graph to filter out a small feasible subset of avail
+    # Choose the minimum weight edge from each group. TODO WEIGHTS
     mapping = C.graph['mapping']
     mapped_avail = [(mapping[u], mapping[v]) for u, v in uv_avail]
     grouped_avail = ut.group_items(uv_avail, mapped_avail)
-    # choose the minimum weight edge from each group
-    # TODO WEIGHTS
     feasible_uv = [
         group[0] for key, group in grouped_avail.items()
         if key[0] != key[1]]
     feasible_mapped_uv = {
         e_(mapping[u], mapping[v]): e_(u, v) for u, v in feasible_uv
     }
-    if len(feasible_mapped_uv) == 0:
-        return []
+    # feasible_mapped_uv = {
+    #     muv: uv for muv, uv in _feasible_mapped_uv
+    #     # if not C.has_edge(*muv)
+    # }
 
-    def simple_paths_(G, r, u):
-        assert G.is_directed()
-        paths = list(nx.all_simple_paths(G, r, u))
-        if r == u:
-            paths = [[r]]
-        return paths
+    if len(feasible_mapped_uv) > 0:
+        """
+        Mapping of terms from (Khuller and Thurimella):
+            C         : G^0 = (V, E^0)
+            mapped_uv : E - E^0  # they group both avail and given edges in E
+            T         : \Gamma
+            D         : G^D = (V, E_D)
 
-    def least_common_ancestor_(G, u, v, root=None):
-        assert G.is_directed()
-        # Find least common ancestor in a rooted tree
-        paths1 = simple_paths_(G, root, u)
-        paths2 = simple_paths_(G, root, v)
-        assert len(paths1) == 1
-        assert len(paths2) == 1
-        path1 = paths1[0]
-        path2 = paths2[0]
-        lca = None
-        for p1, p2 in zip(path1, path2):
-            if p1 != p2:
-                break
-            lca = p1
-        return lca
+            The paper uses ancestor because children point to parents,
+            in the networkx context this would be descendant.
+            So, lowest_common_ancestor = most_recent_descendant
 
-    # Construct a rooted graph with edge weights of 0
-    CD = nx.dfs_tree(C)
-    # CD_orig = CD.copy()
-    nx.set_edge_attributes(CD, 'weight', 0)
+        """
+        # Pick an arbitrary leaf from C as the root
+        root = next(n for n in C.nodes() if C.degree(n) == 1)
+        # Root C into a tree T by directing all edges towards the root
+        T = nx.reverse(nx.dfs_tree(C, root))
+        # Add to D the directed edges of T and set their weight to zero
+        # This indicates that it costs nothing to use edges that were given.
+        D = T.copy()
+        nx.set_edge_attributes(D, 'weight', 0)
+        # Add in feasible edges with respective weights
+        for u, v in feasible_mapped_uv.keys():
+            mrd = _most_recent_descendant(T, u, v)
+            # print('(u, v)=({}, {})  mrd={}'.format(u, v, mrd))
+            if mrd == u:
+                # If u is descendant of v, then add edge u->v
+                D.add_edge(mrd, v, weight=1, implicit=True)
+            elif mrd == v:
+                # If v is descendant of u, then add edge v->u
+                D.add_edge(mrd, u, weight=1, implicit=True)
+            else:
+                # If neither u nor v is a descendant of the other
+                # let t = mrd(u, v) and add edges t->u and t->v
+                D.add_edge(mrd, u, weight=1, implicit=True)
+                D.add_edge(mrd, v, weight=1, implicit=True)
 
-    sources = list(ut.util_graph.nx_source_nodes(CD))
-    assert len(sources) == 1
-    root = sources[0]
+        # root the graph by removing all predecessors to `root`.
+        D_ = D.copy()
+        D_.remove_edges_from([(u, root) for u in D.predecessors(root)])
 
-    # Add in feasible edges with respective weights
-    for u, v in feasible_mapped_uv.keys():
-        lca = least_common_ancestor_(CD, u, v, root)
-        if lca == u:
-            CD.add_edge(v, lca, weight=1, implicit=True)
-        elif lca == v:
-            CD.add_edge(u, lca, weight=1, implicit=True)
+        # Then compute a minimum rooted branching
+        try:
+            A = nx.minimum_spanning_arborescence(D_)
+        except nx.NetworkXException:
+            # If there is no arborescence then augmentation is not possible
+            if not return_anyway:
+                raise ValueError('There is no 2-edge-augmentation possible')
+            # If it is not possible, be greedy and increase local connectivity
+            local_edge_connectivity = nx.connectivity.local_edge_connectivity
+            local_greedy_edges = []
+            M = nx.MultiGraph(C.edges())
+            for u, v in feasible_mapped_uv.keys():
+                if local_edge_connectivity(M, u, v, cutoff=2) < 2:
+                    local_greedy_edges.append((u, v, {}))
+                    M.add_edge(u, v)
+            edges = local_greedy_edges
         else:
-            CD.add_edge(v, lca, weight=1, implicit=True)
-            CD.add_edge(u, lca, weight=1, implicit=True)
+            edges = list(A.edges(data=True))
+            # edges = list(nx.minimum_branching(nx.reverse(D)).edges())
 
-    # nx.is_strongly_connected(nx.reverse(CD))
-    # CD2 = CD.copy()
-    CD2 = CD
-    # root the graph to compute a minimum rooted branching
-    CD2.remove_edges_from([(root, u) for u in CD.successors(root)])
-    import utool
-    with utool.embed_on_exception_context:
-        edges = list(nx.minimum_spanning_arborescence(nx.reverse(CD2)).edges(data=True))
-    # edges = list(nx.minimum_branching(nx.reverse(CD2)).edges())
-    for u, v, d in edges:
-        edge = e_(u, v)
-        if edge in feasible_mapped_uv:
+        chosen_mapped = []
+        for u, v, d in edges:
+            edge = e_(u, v)
+            if edge in feasible_mapped_uv:
+                chosen_mapped.append(edge)
+
+        for edge in chosen_mapped:
             orig_edge = feasible_mapped_uv[edge]
             aug_edges.append(orig_edge)
+
+    if False:
+        import plottool as pt
+        # C2 = C.copy()
+        # C2.add_edges_from(chosen_mapped, implicit=True)
+        G2 = G.copy()
+        G2.add_edges_from(aug_edges, implicit=True)
+        C_labels = {k: '{}:\n{}'.format(k, v)
+                    for k, v in nx.get_node_attributes(C, 'members').items()}
+        nx.set_node_attributes(C, 'label', C_labels)
+        print('is_strongly_connected(D) = %r' % nx.is_strongly_connected(D))
+        pnum_ = pt.make_pnum_nextgen(nSubplots=6)
+        _ = pt.show_nx(C, arrow_width=2, fnum=1, pnum=pnum_(), title='C')
+        _ = pt.show_nx(T, arrow_width=2, fnum=1, pnum=pnum_(), title='T')
+        _ = pt.show_nx(D, arrow_width=2, fnum=1, pnum=pnum_(), title='D')
+        _ = pt.show_nx(D_, arrow_width=2, fnum=1, pnum=pnum_(), title='D_')
+        _ = pt.show_nx(A, arrow_width=2, fnum=1, pnum=pnum_(), title='A')
+        # _ = pt.show_nx(G, arrow_width=2, fnum=1, pnum=pnum_(), title='G')
+        _ = pt.show_nx(G2, arrow_width=2, fnum=1, pnum=pnum_(), title='G2')
+        _ = _  # NOQA
+
     return aug_edges
-
-    # if False:
-    #     nx.set_node_attributes(C, 'label', ut.map_vals(str, nx.get_node_attributes(C, 'members')))
-    #     pt.show_nx(C, arrow_width=2, fnum=1, pnum=(2, 2, 1))
-    #     pt.show_nx(nx.reverse(CD2), arrow_width=2, fnum=1, pnum=(2, 2, 2))
-    #     pt.show_nx(CD, arrow_width=2, fnum=1, pnum=(2, 2, 3))
-    #     pt.show_nx(nx.reverse(CD), arrow_width=2, fnum=1, pnum=(2, 2, 4))
-    #     # pt.show_nx(CD_orig, arrow_width=2, fnum=1, pnum=(1, 2, 2))
-
-    # C.add_edges_from(feasible_mapped_uv)
-    # list(nx.minimum_branching(CD2).edges())
-    # list(nx.minimum_branching(nx.reverse(CD2)).edges())
 
 
 def bridge_connected_augmentation(G):
@@ -591,6 +723,7 @@ def bridge_connected_augmentation(G):
             neighborhood contains exactly one vertex.
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *
         >>> import networkx as nx
         >>> G = demodata_tarjan_bridge()
@@ -606,6 +739,7 @@ def bridge_connected_augmentation(G):
         >>> pt.show_nx(G2, fnum=1, pnum=(1, 2, 2), layout='custom')
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *
         >>> import networkx as nx
         >>> G = nx.Graph()
@@ -724,6 +858,7 @@ def edge_connected_components(G, k):
         http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0136264
 
     Example:
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *
         >>> import networkx as nx
         >>> G = demodata_tarjan_bridge()
@@ -770,7 +905,7 @@ def aux_graph(G, source=None, avail=None, A=None):
         python -m ibeis.algo.graph.nx_utils aux_graph --show
 
     Example:
-        >>> # Example
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.nx_utils import *
         >>> a, b, c, d, e, f, g = ut.chr_range(7)
         >>> di_paths = [

@@ -25,6 +25,7 @@ class RefreshCriteria(object):
         # refresh.frac_thresh = 3 / refresh.window
         # refresh.pos_thresh = 2
         refresh._prob_any_remain_thresh = thresh
+        refresh._prob_none_remain_thresh = thresh
         refresh._patience = patience
         # refresh._ewma = None
         refresh._ewma = 1
@@ -33,7 +34,8 @@ class RefreshCriteria(object):
         # if len(refresh.manual_decisions) > refresh.warmup:
         # return (refresh.pos_frac < refresh.frac_thresh and
         #         refresh.num_pos > refresh.pos_thresh)
-        return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
+        # return refresh.prob_none_remain() < refresh._prob_none_remain_thresh
+        return refresh.prob_any_remain() > refresh._prob_any_remain_thresh
 
     def prob_any_remain(refresh, n_remain_edges=None):
         """
@@ -91,6 +93,31 @@ class RefreshCriteria(object):
             >>>     title='poisson refresh ' + ut.get_cfg_lbl(infr.demokw)
             >>> )
             >>> ut.show_if_requested()
+
+        Sympy:
+            import sympy as sym
+            mu, a, k = sym.symbols(['mu', 'a', 'k'])
+            k = 0
+            prob_no_event = sym.exp(-mu) * (mu ** k) / sym.factorial(k)
+            prob_no_event ** a
+
+        """
+        prob_no_event_in_range = refresh.prob_none_remain(n_remain_edges)
+        prob_event_in_range = 1 - prob_no_event_in_range
+        return prob_event_in_range
+
+    def prob_none_remain(refresh, n_remain_edges=None):
+        """
+        mu = .3
+        a = 3
+        poisson_prob_k_events(0, mu)
+        1 - poisson_prob_at_least_k_events(0, mu)
+
+        poisson_prob_k_events(0, mu) ** a
+        poisson_prob_k_events(0, mu * a)
+
+        (1 - poisson_prob_at_least_k_events(0, mu)) ** a
+        (1 - poisson_prob_at_least_k_events(0, mu * a))
         """
         import scipy as sp
         mu = refresh._ewma
@@ -98,11 +125,9 @@ class RefreshCriteria(object):
             return np.exp(-mu) * (mu ** k) / sp.math.factorial(k)
         # def  poisson_prob_at_least_k_events(k, mu):
         #     return sp.special.gammainc(k + 1, mu) / sp.math.factorial(k)
-        prob_no_event = poisson_prob_k_events(0, mu)
-        n_remain_edges = refresh._patience
-        prob_no_event_in_range = prob_no_event ** n_remain_edges
-        prob_event_in_range = 1 - prob_no_event_in_range
-        return prob_event_in_range
+        a = refresh._patience
+        prob_no_event_in_range = poisson_prob_k_events(0, mu * a)
+        return prob_no_event_in_range
 
     def pred_num_positives(refresh, n_remain_edges):
         """
@@ -247,8 +272,12 @@ class UserOracle(object):
             rng = sum(map(ord, rng))
         rng = ut.ensure_rng(rng, impl='python')
 
-        oracle.normal_accuracy = accuracy
-        oracle.recover_accuracy = accuracy
+        if isinstance(accuracy, tuple):
+            oracle.normal_accuracy = accuracy[0]
+            oracle.recover_accuracy = accuracy[1]
+        else:
+            oracle.normal_accuracy = accuracy
+            oracle.recover_accuracy = accuracy
         # .5
 
         oracle.rng = rng
@@ -263,9 +292,9 @@ class UserOracle(object):
         }
         is_recovering = infr.is_recovering()
         if is_recovering:
-            accuracy = oracle.normal_accuracy
-        else:
             accuracy = oracle.recover_accuracy
+        else:
+            accuracy = oracle.normal_accuracy
 
         # The oracle can get anything where the hardness is less than its
         # accuracy
@@ -299,6 +328,7 @@ class InfrLoops(object):
     """
 
     def groundtruth_split_loop(infr):
+        # TODO
         pass
 
     @profile
@@ -314,7 +344,7 @@ class InfrLoops(object):
         group = ut.group_items(infr.aids, infr.orig_name_labels)
         fix_edges = []
 
-        # Tell the oracle to wake up and get with it!
+        # Tell the oracle its time to get serious
         # infr.oracle.normal_accuracy = 1.0
         # infr.oracle.recover_accuracy = 1.0
 
@@ -335,6 +365,33 @@ class InfrLoops(object):
                 raise
             infr.add_feedback(edge=edge, **feedback)
             infr.recovery_review_loop(verbose=0)
+
+    def pos_redun_loop(infr):
+        infr.print('===========================')
+        infr.print('--- POSITIVE REDUN LOOP ---')
+        new_edges = infr.find_pos_redun_candidate_edges()
+        print('pos_redun_candidates = %r' % (len(new_edges),))
+        infr.queue = ut.PriorityQueue()
+        infr.add_new_candidate_edges(new_edges)
+        infr.inner_priority_loop()
+        pass
+
+    @profile
+    def rereview_nonconf_auto(infr):
+        infr.print('=========================')
+        infr.print('--- REREVIEW NONCONF AUTO')
+        # Enforce that a user checks any PCC that was auto-reviewed
+        # but was unable to achieve k-positive-consistency
+        for pcc in list(infr.non_pos_redundant_pccs(relax_size=False)):
+            subgraph = infr.graph.subgraph(pcc)
+            for u, v, data in subgraph.edges(data=True):
+                edge = infr.e_(u, v)
+                if data.get('user_id', '').startswith('auto'):
+                    try:
+                        feedback = infr.request_user_review(edge)
+                    except ReviewCanceled:
+                        raise
+                    infr.add_feedback(edge=edge, **feedback)
 
     @profile
     def recovery_review_loop(infr, verbose=1):
@@ -364,9 +421,6 @@ class InfrLoops(object):
         """
         Executes reviews until the queue is empty or needs refresh
         """
-        infr.print('============================')
-        infr.print('--- INNTER PRIORITY LOOP ---')
-
         infr.refresh = RefreshCriteria(**infr._refresh_params)
         infr.print('Start inner loop')
         for count in it.count(0):
@@ -374,6 +428,7 @@ class InfrLoops(object):
                 infr.print('No more edges, need refresh', 1, color='yellow')
                 break
             if not infr.is_recovering():
+                # Do not check for refresh if we are recovering
                 if infr.refresh.check():
                     infr.print('Triggered poisson refresh criteria', 1, color='yellow')
                     break
@@ -383,11 +438,18 @@ class InfrLoops(object):
             # if count > 200:
             #     return
 
+    def lnbnn_priority_loop(infr):
+        infr.print('============================')
+        infr.print('--- LNBNN PRIORITY LOOP ---')
+        infr.refresh_candidate_edges()
+        infr.inner_priority_loop()
+
     @profile
-    def outer_candidate_loop(infr, max_loops=None):
+    def main_loop(infr, max_loops=None):
         """
         The main outer loop
         """
+        infr.print('Starting main loop', 1)
         if max_loops is None:
             max_loops = infr._max_outer_loops
             if max_loops is None:
@@ -399,54 +461,23 @@ class InfrLoops(object):
                 infr.print('early stop', 1, color='red')
                 break
             infr.print('Outer loop iter %d ' % (count,))
-            infr.refresh_candidate_edges()
-            if not len(infr.queue):
-                infr.print('Queue is empty. Terminate.', 1, color='red')
-                break
-            infr.inner_priority_loop()
+            # Do priority loop over lnbnn candidates
+            infr.lnbnn_priority_loop()
             if infr.refresh.num_pos == 0:
                 infr.print('Triggered poisson termination criteria', 1, color='red')
                 break
 
-            # if infr.enable_inference:
-            #     infr.assert_consistency_invariant()
-            #     infr.print('HACK FIX REDUN', color='white')
-            #     # Fix anything that is not positive/negative redundant
-            #     real_queue = infr.queue
-            #     # use temporary queue
-            #     infr.queue = ut.PriorityQueue()
-            #     infr.refresh_candidate_edges(ranking=False)
-            #     infr.inner_priority_loop()
-            #     infr.queue = real_queue
+            if infr.enable_redundancy:
+                # Fix positive redundancy of anything within the loop
+                infr.pos_redun_loop()
+
+        if infr.enable_redundancy:
+            # Do a final fixup
+            infr.pos_redun_loop()
+            # Check work of auto criteria
+            infr.rereview_nonconf_auto()
+
         infr.print('Terminate.', 1, color='red')
-
-    @profile
-    def fix_pos_redun_loop(infr):
-        infr.print('==========================')
-        infr.print('--- FIX POS REDUN LOOP ---')
-        # Enforce that a user checks any PCC that was auto-reviewed
-        # but was unable to achieve k-positive-consistency
-        for pcc in list(infr.non_pos_redundant_pccs()):
-            subgraph = infr.graph.subgraph(pcc)
-            for u, v, data in subgraph.edges(data=True):
-                edge = infr.e_(u, v)
-                if data.get('user_id', '').startswith('auto'):
-                    try:
-                        feedback = infr.request_user_review(edge)
-                    except ReviewCanceled:
-                        raise
-                    infr.add_feedback(edge=edge, **feedback)
-
-    @profile
-    def main_loop(infr, max_loops=None):
-        infr.print('Starting main loop', 1)
-
-        infr.outer_candidate_loop(max_loops)
-
-        if infr.enable_inference:
-            # Check for inconsistency recovery
-            infr.fix_pos_redun_loop()
-            infr.recovery_review_loop()
 
         if infr.enable_inference:
             infr.assert_consistency_invariant()
@@ -719,16 +750,47 @@ class SimulationHelpers(object):
         n_tp = confusion[POSTV][POSTV]
         confusion[POSTV]
         columns = set(confusion.keys())
-        rev_cols = columns - {UNREV}
-        rev_non_postv = rev_cols - {POSTV, UNREV}
-        rev_non_negtv = rev_cols - {NEGTV, UNREV}
-        n_fn = sum(ut.take(confusion[POSTV], rev_non_postv))
-        n_fp = sum(ut.take(confusion[NEGTV], rev_non_negtv))
+        reviewd_cols = columns - {UNREV}
+        non_postv = reviewd_cols - {POSTV}
+        non_negtv = reviewd_cols - {NEGTV}
 
-        n_error_edges = sum(confusion[r][c] for r, c in
-                            ut.combinations(rev_cols, 2))
+        n_fn = sum(ut.take(confusion[POSTV], non_postv))
+        n_fp = sum(ut.take(confusion[NEGTV], non_negtv))
+
+        n_error_edges = sum(confusion[r][c] + confusion[c][r] for r, c in
+                            ut.combinations(reviewd_cols, 2))
+        # assert n_fn + n_fp == n_error_edges
 
         pred_n_pcc_mst_edges = n_true_merges
+
+        if 0:
+            import ubelt
+            for timer in ubelt.Timerit(10):
+                with timer:
+                    # Find undetectable errors
+                    num_undetectable_fn = 0
+                    from ibeis.algo.graph import nx_utils
+                    for nid1, nid2 in infr.neg_redun_nids.edges():
+                        cc1 = infr.pos_graph.component(nid1)
+                        cc2 = infr.pos_graph.component(nid2)
+                        neg_edges = nx_utils.edges_cross(infr.neg_graph, cc1, cc2)
+                        for u, v in neg_edges:
+                            real_nid1 = infr.node_truth[u]
+                            real_nid2 = infr.node_truth[v]
+                            if real_nid1 == real_nid2:
+                                num_undetectable_fn += 1
+                                break
+
+                    # Find undetectable errors
+                    num_undetectable_fp = 0
+                    from ibeis.algo.graph import nx_utils
+                    for nid in infr.pos_redun_nids:
+                        cc = infr.pos_graph.component(nid)
+                        if not ut.allsame(ut.take(infr.node_truth, cc)):
+                            num_undetectable_fp += 1
+
+            print('num_undetectable_fn = %r' % (num_undetectable_fn,))
+            print('num_undetectable_fp = %r' % (num_undetectable_fp,))
 
         if 0:
             n_error_edges2 = 0
@@ -763,18 +825,24 @@ class SimulationHelpers(object):
 
         pos_acc = pred_n_pcc_mst_edges / infr.real_n_pcc_mst_edges
         metrics = {
+            'n_decision': infr.test_state['n_decision'],
             'n_manual': infr.test_state['n_manual'],
             'n_auto': infr.test_state['n_auto'],
             'pos_acc': pos_acc,
             'n_merge_total': infr.real_n_pcc_mst_edges,
             'n_merge_remain': infr.real_n_pcc_mst_edges - n_true_merges,
             'n_true_merges': n_true_merges,
+            'recovering': infr.is_recovering(),
             'merge_remain': 1 - pos_acc,
             'n_errors': n_error_edges,
             'n_fn': n_fn,
             'n_fp': n_fp,
             'pprob_any': infr.refresh.prob_any_remain(),
             'mu': infr.refresh._ewma,
+            'action': infr.test_state['action'],
+            'user_id': infr.test_state['user_id'],
+            'pred_decision': infr.test_state['pred_decision'],
+            'true_decision': infr.test_state['true_decision'],
         }
 
         return metrics

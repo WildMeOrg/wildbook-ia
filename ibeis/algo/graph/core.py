@@ -137,6 +137,9 @@ class Feedback(object):
         }
         infr.internal_feedback[edge].append(feedback_item)
 
+        if infr.test_mode:
+            infr._dynamic_test_callback(edge, decision, user_id)
+
         if infr.enable_inference:
             assert infr.dirty is False, (
                 'need to recompute before dynamic inference continues')
@@ -155,12 +158,6 @@ class Feedback(object):
                 infr.refresh.add(decision, user_id)
 
         if infr.test_mode:
-            if user_id.startswith('auto'):
-                infr.test_state['n_auto'] += 1
-            elif user_id == 'oracle':
-                infr.test_state['n_manual'] += 1
-            else:
-                raise AssertionError('unknown user_id=%r' % (user_id,))
             infr.metrics_list.append(infr.measure_metrics())
         # if infr.verbose:
         #     print('+-------------------')
@@ -659,6 +656,7 @@ class MiscHelpers(object):
         infr.edge_truth = {}
         infr.metrics_list = []
         infr.test_state = {
+            'n_decision': 0,
             'n_auto': 0,
             'n_manual': 0,
             'n_true_merges': 0,
@@ -668,6 +666,7 @@ class MiscHelpers(object):
         infr.test_gt_pos_graph = nx_dynamic_graph.DynConnGraph()
         infr.test_gt_pos_graph.add_nodes_from(infr.aids)
         infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
+        infr.node_truth = ut.dzip(infr.aids, infr.orig_name_labels)
         infr.real_n_pcc_mst_edges = sum(
             len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
         ut.cprint('real_n_pcc_mst_edges = %r' % (
@@ -978,6 +977,7 @@ class AnnotInference(ut.NiceRepr,
         infr.simulation_mode = False
         infr.enable_autoreview = False
         infr.enable_attr_update = True
+        infr.enable_non_pos_auto_prioritize = False
 
         infr.thresh = None
         infr.cm_list = None

@@ -225,8 +225,9 @@ class Chap5Commands(object):
     def measure_simulation(self):
         """
         CommandLine:
-            python -m ibeis Chap5.measure_simulation --db PZ_MTEST
-            python -m ibeis Chap5.measure_simulation --db GZ_Master1
+            python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
+            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show
+            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -265,8 +266,20 @@ class Chap5Commands(object):
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         res = pblm.task_combo_res[task_key][clf_key][data_key]
-        graph_thresh = res.get_pos_threshes('fpr', value=.001, warmup=200)
-        graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+
+        if infr_train.ibs.dbname == 'PZ_MTEST':
+            # graph_thresh = res.get_pos_threshes('fpr', value=.5, warmup=200)
+            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+            # graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+            graph_thresh['match'] = .5
+        elif infr_train.ibs.dbname == 'GZ_Master1':
+            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+        elif infr_train.ibs.dbname == 'PZ_Master1':
+            graph_thresh = res.get_pos_threshes('fpr', value=.05, warmup=200)
+        else:
+            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+
+        # graph_thresh = res.get_pos_threshes('fpr', value=.1, warmup=200)
         print('graph_thresh = %r' % (graph_thresh,))
 
         clf_cfgstr = pblm.samples.sample_hashid()
@@ -286,7 +299,11 @@ class Chap5Commands(object):
         # pblm._ensure_evaluation_clf(task_key, data_key, clf_key, use_cache=False)
 
         const_dials = {
-            'oracle_accuracy' : 0.95,
+            # 'oracle_accuracy' : (0.95, 1.0),
+            # 'oracle_accuracy' : (0.98, 1.0),
+            # 'oracle_accuracy' : (0.99, 1.0),
+            'oracle_accuracy' : (1.0, 1.0),
+            # 'oracle_accuracy' : (0.95, .99),
             # 'oracle_accuracy' : 0.7,
             # 'oracle_accuracy' : 1.0,
             'k_redun'         : 2,
@@ -301,39 +318,44 @@ class Chap5Commands(object):
         }
 
         dials = ut.dict_union(const_dials, varied_dials)
-        if dials['oracle_accuracy'] < 1:
-            dials['name'] += '+Err'
+        # if dials['oracle_accuracy'] < 1:
+        #     dials['name'] += '+Err'
         print('dials = %s' % (ut.repr4(dials),))
 
         verbose = 1
         infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                     verbose=verbose)
-        infr._refresh_params['window'] = 2 * int(np.sqrt(len(infr.aids)))
+        infr.enable_non_pos_auto_prioritize = True
+        window = min(100, 2 * int(np.sqrt(len(infr.aids))))
+        print('window = %r' % (window,))
+        window = 20
+        infr._refresh_params['window'] = window
         infr._refresh_params['thresh'] = .5
+        infr._refresh_params['patience'] = 50
 
         infr.init_simulation(**dials)
         infr.init_test_mode()
         # infr.test_mode = True
 
         infr.reset(state='empty')
-        if 1:
+        if 0:
             # from ibeis.algo.graph import mixin_loops
-            infr.refresh_candidate_edges()
-            # infr.refresh = mixin_loops.RefreshCriteria(**infr._refresh_params)
-
-            infr.inner_priority_loop()
+            infr.lnbnn_priority_loop()
             # infr.fix_pos_redun_loop()
-            infr.recovery_review_loop()
+            # infr.recovery_review_loop()
 
-            new_edges = infr.find_pos_redun_candidate_edges()
-            infr.queue = ut.PriorityQueue()
-            infr.add_new_candidate_edges(new_edges)
-            infr.inner_priority_loop()
+            # infr.pos_redun_loop()
 
             # infr.groundtruth_merge_loop()
             # infr.recovery_review_loop()
+        else:
+            infr.main_loop()
+        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
+        pred_confusion.index.name = 'real'
+        pred_confusion.columns.name = 'pred'
+        print('Edge confusion')
+        print(pred_confusion)
 
-        # infr.main_loop()
         self.expt_results = {}
         expt_name = 'simulation'
         refresh_thresh = infr.refresh._prob_any_remain_thresh
@@ -342,6 +364,18 @@ class Chap5Commands(object):
             'metrics': infr.metrics_list,
         }
         self.expt_results[expt_name] = expt_data
+
+        metrics_df = pd.DataFrame.from_dict(expt_data['metrics'])
+        for user, group in metrics_df.groupby('user_id'):
+            print('actions of user = %r' % (user,))
+            user_actions = group['action']
+            print(ut.repr4(ut.dict_hist(user_actions), stritems=True))
+
+        if 0:
+            import utool
+            utool.embed()
+            ut.qtensure()
+
         self.draw_simulation()
         ut.show_if_requested()
 
@@ -353,32 +387,104 @@ class Chap5Commands(object):
         expt_data = self.expt_results[expt_name]
 
         metrics_df = pd.DataFrame.from_dict(expt_data['metrics'])
-        xdata = metrics_df['n_manual']
+
+        fnum = 1  # NOQA
+
+        show_auto = 0
+        if show_auto:
+            xdata = metrics_df['n_manual']
+            xlabel = '# manual reviews'
+        else:
+            xdata = metrics_df['n_decision']
+            xlabel = '# decisions'
+
+        def plot_intervals(flags, color=None, low=0, high=1):
+            ax = pt.gca()
+            idxs = np.where(flags)[0]
+            ranges = ut.group_consecutives(idxs)
+            bounds = [(min(a), max(a)) for a in ranges if len(a) > 0]
+            xdata_ = xdata.values
+
+            xs, ys = [xdata_[0]], [low]
+            for a, b in bounds:
+                x1, x2 = xdata_[a], xdata_[b]
+                # if x1 == x2:
+                x1 -= .5
+                x2 += .5
+                xs.extend([x1, x1, x2, x2])
+                ys.extend([low, high, high, low])
+            xs.append(xdata_[-1])
+            ys.append(low)
+            ax.fill_between(xs, ys, low, alpha=.6, color=color)
+
+        def overlay_actions(ymax=1):
+            is_correct = metrics_df['action'].map(
+                lambda x: x.startswith('correct')).values
+            recovering = metrics_df['recovering'].values
+            is_auto = metrics_df['user_id'].map(
+                lambda x: x.startswith('auto')).values
+            ppos = metrics_df['pred_decision'].map(
+                lambda x: x == POSTV).values
+            rpos = metrics_df['true_decision'].map(
+                lambda x: x == POSTV).values
+            # ymax = max(metrics_df['n_errors'])
+
+            show_pred = False
+
+            num = 3 + (show_auto + show_pred)
+            steps = np.linspace(0, 1, num + 1) * ymax
+            i = -1
+
+            if show_auto:
+                i += 1
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_auto(auto=gold,manual=blue)')
+                plot_intervals(is_auto, 'gold', low=steps[i], high=steps[i + 1])
+                plot_intervals(~is_auto, 'blue', low=steps[i], high=steps[i + 1])
+
+            if show_pred:
+                i += 1
+                pt.absolute_text((.2, steps[i:i + 2].mean()), 'pred_pos')
+                plot_intervals(ppos, 'aqua', low=steps[i], high=steps[i + 1])
+                # plot_intervals(~ppos, 'salmon', low=steps[i], high=steps[i + 1])
+
+            i += 1
+            pt.absolute_text((.2, steps[i:i + 2].mean()), 'real_pos')
+            plot_intervals(rpos, 'lime', low=steps[i], high=steps[i + 1])
+            # plot_intervals(~ppos, 'salmon', low=steps[i], high=steps[i + 1])
+
+            i += 1
+            pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_error')
+            # plot_intervals(is_correct, 'blue', low=steps[i], high=steps[i + 1])
+            plot_intervals(~is_correct, 'red', low=steps[i], high=steps[i + 1])
+
+            i += 1
+            pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_recovering')
+            plot_intervals(recovering, 'orange', low=steps[i], high=steps[i + 1])
 
         pt.multi_plot(
-            metrics_df['n_manual'], [metrics_df['merge_remain']],
-            label_list=[expt_name], marker='',
-            xlabel='# manual reviews',
-            ylabel='# merges remaining',
+            xdata, [metrics_df['merge_remain']],
+            label_list=[expt_name], marker='x', markersize=1,
+            xlabel='# manual reviews', ylabel=xlabel,
             ymin=0, rcParams=TMP_RC,
             use_legend=True, fnum=1, pnum=(2, 2, 1),
         )
+        # overlay_actions(1)
 
+        ykeys = ['n_errors']
         pt.multi_plot(
-            metrics_df['n_manual'], [metrics_df['n_errors']],
-            label_list=[expt_name],
-            xlabel='# manual reviews',
-            ylabel='# of errors',
-            marker='', ymin=0, rcParams=TMP_RC,
+            xdata, metrics_df[ykeys].values.T,
+            label_list=ykeys,
+            xlabel=xlabel, ylabel='# of errors',
+            marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
             fnum=1, pnum=(2, 2, 2),
-            use_legend=False,
+            use_legend=True,
         )
+        overlay_actions(max(metrics_df['n_errors']))
 
         pt.multi_plot(
-            metrics_df['n_manual'], [metrics_df['pprob_any']],
+            xdata, [metrics_df['pprob_any']],
             label_list=[expt_name],
-            xlabel='# manual reviews',
-            ylabel='refresh criteria',
+            xlabel=xlabel, ylabel='refresh criteria',
             marker='', ymin=0, ymax=1, rcParams=TMP_RC,
             fnum=1, pnum=(2, 2, 3),
             use_legend=False,
@@ -388,8 +494,23 @@ class Chap5Commands(object):
         ax.plot([min(xdata), max(xdata)], [thresh, thresh], '-g',
                 label='refresh thresh')
         ax.legend()
+        # overlay_actions(1)
         fig = pt.gca()  # NOQA
         # fig.save_fig
+
+        ykeys = ['n_fn', 'n_fp']
+        pt.multi_plot(
+            xdata, metrics_df[ykeys].values.T,
+            label_list=ykeys,
+            xlabel=xlabel, ylabel='# of errors',
+            marker='x', markersize=1, ymin=0, rcParams=TMP_RC,
+            fnum=1, pnum=(2, 2, 4),
+            use_legend=True,
+        )
+
+        # if 1:
+        #     pt.figure(fnum=fnum, pnum=(2, 2, 4))
+        #     overlay_actions(ymax=1)
 
 
 class Chap5Inputs(DBInputs):

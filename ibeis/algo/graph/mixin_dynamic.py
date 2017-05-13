@@ -13,6 +13,8 @@ from ibeis.algo.graph.nx_utils import (edges_inside, edges_cross,
                                        edges_outgoing)
 print, rrr, profile = ut.inject2(__name__)
 
+DECISION_LEVEL = 4
+
 
 class DynamicUpdate(object):
     """
@@ -56,8 +58,6 @@ class DynamicUpdate(object):
 
     @profile
     def add_review_edge(infr, edge, decision):
-        if infr.test_mode:
-            infr._dynamic_test_callback(edge, decision)
         if decision == POSTV:
             infr._positive_decision(edge)
         elif decision == NEGTV:
@@ -104,7 +104,7 @@ class DynamicUpdate(object):
                     G.remove_edge(*edge)
 
     @profile
-    def _dynamic_test_callback(infr, edge, decision):
+    def _dynamic_test_callback(infr, edge, decision, user_id):
         was_gt_pos = infr.test_gt_pos_graph.has_edge(*edge)
 
         old_decision = infr.get_edge_attr(edge, 'decision', default=UNREV)
@@ -118,8 +118,10 @@ class DynamicUpdate(object):
 
         is_correct = true_decision == decision
 
-        test_print = ut.partial(infr.print, verbose=2)
-        test_print = lambda *a, **kw: None  # NOQA
+        test_print = ut.partial(infr.print, level=2)
+        def test_print(x, **kw):
+            infr.print('[ACTION] ' + x, level=2, **kw)
+        # test_print = lambda *a, **kw: None  # NOQA
 
         if 0:
             num = infr.recover_graph.number_of_components()
@@ -167,49 +169,71 @@ class DynamicUpdate(object):
         else:
             confusion[true_decision][decision] += 1
 
+        action = None
+        action_color = None
+
         if is_correct:
             # CORRECT DECISION
             if was_reviewed:
                 if old_decision == decision:
-                    test_print('Made duplicate decision', color='darkyellow')
+                    action = 'correct duplicate'
+                    action_color = 'darkyellow'
                 else:
-                    test_print('Corrected previous mistake', color='darkgreen')
+                    action = 'correction'
+                    action_color = 'darkgreen'
                     if decision == POSTV:
                         if not was_within_gt:
-                            test_print('Redid a good merge', color='darkgreen')
+                            action = 'correction redid merge'
+                            action_color = 'darkgreen'
                             infr.test_state['n_true_merges'] += 1
-                            # assert False
             else:
                 if decision == POSTV:
                     if not was_within_gt:
-                        test_print('Made a good merge', color='darkgreen')
+                        action = 'correct merge'
+                        action_color = 'darkgreen'
                         infr.test_state['n_true_merges'] += 1
                     else:
-                        test_print('Made redundant positive decision',
-                                   color='darkblue')
+                        action = 'correct redundant positive'
+                        action_color = 'darkblue'
                 else:
                     if decision == NEGTV:
-                        test_print('Made correct negative decision',
-                                   color='teal')
+                        action = 'correct negative'
+                        action_color = 'teal'
                     else:
-                        test_print('Made correct uninfferable decision',
-                                   color='teal')
+                        action = 'correct uninferrable'
+                        action_color = 'teal'
         else:
+            action_color = 'darkred'
             # INCORRECT DECISION
             if was_reviewed:
                 if old_decision == decision:
-                    test_print('Made duplicate mistake!', color='darkred')
+                    action = 'incorrect duplicate'
                 elif was_correct:
-                    test_print('Undoing a good edge!!!', color='darkred')
+                    action = 'incorrect undid good edge'
             else:
                 if decision == POSTV:
                     if was_within_pred:
-                        test_print('Made bad redundant merge!',
-                                   color='darkred')
+                        action = 'incorrect redundant merge'
                     else:
-                        test_print('Made a new bad merge!', color='darkred')
+                        action = 'incorrect new merge'
                 else:
-                    test_print('Made a new mistake!', color='darkred')
+                    action = 'incorrect new mistake'
+
+        infr.test_state['action'] = action
+        infr.test_state['pred_decision'] = decision
+        infr.test_state['true_decision'] = true_decision
+        infr.test_state['user_id'] = user_id
+
+        infr.test_state['n_decision'] += 1
+        if user_id.startswith('auto'):
+            infr.test_state['n_auto'] += 1
+        elif user_id == 'oracle':
+            infr.test_state['n_manual'] += 1
+        else:
+            raise AssertionError('unknown user_id=%r' % (user_id,))
+
+        test_print(action, color=action_color)
+        assert action is not None, 'what happened?'
 
     def on_between(infr, edge, decision, nid1, nid2, merge_nid):
         """
@@ -256,25 +280,27 @@ class DynamicUpdate(object):
         all_consistent = not (incon1 or incon2)
         was_within = nid1 == nid2
 
+        print_ = ut.partial(infr.print, level=4)
+
         if was_within:
             infr._add_review_edge(edge, decision)
             if all_consistent:
-                # infr.print('Internal consistent positive review')
-                infr.print('pos-within-clean', 3)
+                # print_('Internal consistent positive review')
+                print_('pos-within-clean')
                 infr.update_pos_redun(nid1, may_remove=False)
             else:
-                # infr.print('Internal inconsistent positive review')
-                infr.print('pos-within-dirty', 3)
+                # print_('Internal inconsistent positive review')
+                print_('pos-within-dirty')
                 infr._check_inconsistency(nid1)
             infr.on_within(edge, decision, nid1, None)
         else:
-            # infr.print('Merge case')
+            # print_('Merge case')
             cc1 = infr.pos_graph.component(nid1)
             cc2 = infr.pos_graph.component(nid2)
 
             if not all_consistent:
-                # infr.print('Inconsistent merge',)
-                infr.print('pos-between-dirty-merge', 3)
+                # print_('Inconsistent merge',)
+                print_('pos-between-dirty-merge')
                 if not incon1:
                     recover_edges = list(edges_inside(infr.pos_graph, cc1))
                 else:
@@ -286,16 +312,16 @@ class DynamicUpdate(object):
                 infr.recover_graph.add_edge(*edge)
                 new_nid = infr.pos_graph.node_label(edge[0])
             elif any(edges_cross(infr.neg_graph, cc1, cc2)):
-                # infr.print('Merge creates inconsistency',)
-                infr.print('pos-between-clean-merge-dirty', 3)
+                # print_('Merge creates inconsistency',)
+                print_('pos-between-clean-merge-dirty')
                 infr._purge_redun_flags(nid1)
                 infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, decision)
                 new_nid = infr.pos_graph.node_label(edge[0])
                 infr._new_inconsistency(new_nid, decision)
             else:
-                # infr.print('Consistent merge')
-                infr.print('pos-between-clean-merge-clean', 3)
+                # print_('Consistent merge')
+                print_('pos-between-clean-merge-clean')
                 infr._purge_redun_flags(nid1)
                 infr._purge_redun_flags(nid2)
                 infr._add_review_edge(edge, decision)
@@ -320,11 +346,13 @@ class DynamicUpdate(object):
         was_within = nid1 == nid2
         was_split = was_within and new_nid1 != new_nid2
 
+        print_ = ut.partial(infr.print, level=4)
+
         if was_within:
             if was_split:
                 if all_consistent:
                     # infr.print('Consistent split from negative')
-                    infr.print('neg-within-split-clean', 3)
+                    print_('neg-within-split-clean')
                     prev_neg_nids = infr._purge_redun_flags(nid1)
                     infr.update_neg_redun_to(new_nid1, prev_neg_nids)
                     infr.update_neg_redun_to(new_nid2, prev_neg_nids)
@@ -335,7 +363,7 @@ class DynamicUpdate(object):
                     infr.update_pos_redun(new_nid2, may_remove=False)
                 else:
                     # infr.print('Inconsistent split from negative')
-                    infr.print('neg-within-split-dirty', 3)
+                    print_('neg-within-split-dirty')
                     if infr.recover_graph.has_edge(*edge):
                         infr.recover_graph.remove_edge(*edge)
                     infr._purge_error_edges(nid1)
@@ -347,22 +375,22 @@ class DynamicUpdate(object):
             else:
                 if all_consistent:
                     # infr.print('Negative added within clean PCC')
-                    infr.print('neg-within-clean', 3)
+                    print_('neg-within-clean')
                     infr._purge_redun_flags(new_nid1)
                     infr._new_inconsistency(new_nid1, decision)
                 else:
                     # infr.print('Negative added within inconsistent PCC')
-                    infr.print('neg-within-dirty', 3)
+                    print_('neg-within-dirty')
                     infr._check_inconsistency(new_nid1)
                 infr.on_within(edge, decision, new_nid1, None)
         else:
             if all_consistent:
                 # infr.print('Negative added between consistent PCCs')
-                infr.print('neg-between-clean', 3)
+                print_('neg-between-clean')
                 infr.update_neg_redun(new_nid1, new_nid2, may_remove=False)
             else:
                 # infr.print('Negative added external to inconsistent PCC')
-                infr.print('neg-between-dirty', 3)
+                print_('neg-between-dirty')
                 # nothing to do if a negative edge is added between two PCCs
                 # where at least one is inconsistent
                 pass
@@ -381,6 +409,8 @@ class DynamicUpdate(object):
         all_consistent = not (incon1 or incon2)
 
         was_within = nid1 == nid2
+
+        print_ = ut.partial(infr.print, level=4)
 
         overwrote_positive = infr.pos_graph.has_edge(*edge)
         overwrote_negative = infr.neg_graph.has_edge(*edge)
@@ -408,7 +438,7 @@ class DynamicUpdate(object):
                     prev_neg_nids = infr._purge_redun_flags(old_nid)
                     if all_consistent:
                         # infr.print('Split CC from incomparable')
-                        infr.print('%s-within-pos-split-clean' % prefix, 3)
+                        print_('%s-within-pos-split-clean' % prefix)
                         # split case
                         infr.update_neg_redun_to(new_nid1, prev_neg_nids)
                         infr.update_neg_redun_to(new_nid2, prev_neg_nids)
@@ -420,7 +450,7 @@ class DynamicUpdate(object):
                         infr.update_pos_redun(new_nid2, may_remove=False)
                     else:
                         # infr.print('Split inconsistent CC from incomparable')
-                        infr.print('%s-within-pos-split-dirty' % prefix, 3)
+                        print_('%s-within-pos-split-dirty' % prefix)
                         if infr.recover_graph.has_edge(*edge):
                             infr.recover_graph.remove_edge(*edge)
                         infr._purge_error_edges(nid1)
@@ -431,26 +461,26 @@ class DynamicUpdate(object):
                 else:
                     if all_consistent:
                         # infr.print('Overwrote pos in CC with incomp')
-                        infr.print('%s-within-pos-clean' % prefix, 3)
+                        print_('%s-within-pos-clean' % prefix)
                         infr.update_pos_redun(new_nid1, may_add=False)
                     else:
                         # infr.print('Overwrote pos in inconsistent CC with incomp')
-                        infr.print('%s-within-pos-dirty' % prefix, 3)
+                        print_('%s-within-pos-dirty' % prefix)
                         # Overwriting a positive edge that is not a split
                         # in an inconsistent component, means no inference.
                     infr.on_within(edge, decision, new_nid1, None)
             elif overwrote_negative:
                 # infr.print('Overwrite negative within CC')
-                infr.print('%s-within-neg-dirty' % prefix, 3)
+                print_('%s-within-neg-dirty' % prefix)
                 assert not all_consistent
                 infr._check_inconsistency(nid1)
                 infr.on_within(edge, decision, new_nid1)
             else:
                 if all_consistent:
-                    infr.print('%s-within-clean' % prefix, 3)
+                    print_('%s-within-clean' % prefix)
                     # infr.print('Incomp edge within consistent CC')
                 else:
-                    infr.print('%s-within-dirty' % prefix, 3)
+                    print_('%s-within-dirty' % prefix)
                     # infr.print('Incomp edge within inconsistent CC')
                 infr.on_within(edge, decision, new_nid1, None)
         else:
@@ -459,13 +489,13 @@ class DynamicUpdate(object):
                     # changed and existing negative edge only influences
                     # consistent pairs of PCCs
                     # infr.print('Overwrote neg edge between CCs')
-                    infr.print('incon-between-neg-clean', 3)
+                    print_('incon-between-neg-clean')
                     infr.update_neg_redun(nid1, nid2, may_add=False)
                 else:
-                    infr.print('incon-between-neg-dirty', 3)
+                    print_('incon-between-neg-dirty')
                     # infr.print('Overwrote pos edge between incon CCs')
             else:
-                infr.print('incon-between', 3)
+                print_('incon-between')
                 # infr.print('Incomp edge between CCs')
             infr.on_between(edge, decision, new_nid1, new_nid2, None)
 
@@ -532,7 +562,7 @@ class Recovery(object):
             # num = len(list(nx.connected_components(infr.recover_graph)))
             msg = ('An inconsistent PCC recovered, '
                    '{} inconsistent PCC(s) remain').format(num)
-            infr.print(msg, 1, color='green')
+            infr.print(msg, 2, color='green')
             infr.update_pos_redun(nid, force=True)
             infr.update_extern_neg_redun(nid, force=True)
 
@@ -559,7 +589,7 @@ class Recovery(object):
             raise AssertionError('Not connected' + repr(pos_subgraph))
         infr.print(
             'Find hypothesis errors in {} nodes with {} neg edges'.format(
-                len(pos_subgraph), len(neg_edges)), 2)
+                len(pos_subgraph), len(neg_edges)), 3)
 
         pos_edges = list(pos_subgraph.edges())
 
@@ -577,11 +607,6 @@ class Recovery(object):
             cut_weight, parts = nx.minimum_cut(pos_subgraph, s, t,
                                                capacity=capacity)
             cut_edgeset = edges_cross(pos_subgraph, *parts)
-            # cut_edgeset_weight = sum([
-            #     pos_subgraph.get_edge_data(u, v)[capacity]
-            #     for u, v in cut_edgeset])
-            # infr.print('cut_weight = %r' % (cut_weight,), 3)
-            # infr.print('join_weight = %r' % (join_weight,), 3)
             if join_weight < cut_weight:
                 join_edgeset = {(s, t)}
                 chosen = join_edgeset
@@ -593,7 +618,6 @@ class Recovery(object):
                 if edge not in maybe_error_edges:
                     maybe_error_edges.add(edge)
                     yield (edge, hypothesis)
-        # return maybe_error_edges
 
 
 class Consistency(object):
@@ -760,7 +784,7 @@ class Priority(object):
     def _remove_edge_priority(infr, edges):
         edges_ = [edge for edge in edges if edge in infr.queue]
         if len(edges_) > 0:
-            infr.print('removed priority from {} edges'.format(len(edges_)), 3)
+            infr.print('removed priority from {} edges'.format(len(edges_)), 4)
             infr.queue.delete_items(edges_)
 
     def _reinstate_edge_priority(infr, edges):
@@ -769,7 +793,7 @@ class Priority(object):
             prob_match = np.array(list(infr.gen_edge_values(
                 'prob_match', edges_, default=1e-9)))
             priority = -prob_match
-            infr.print('reprioritize {} edges'.format(len(edges_)), 3)
+            infr.print('reprioritize {} edges'.format(len(edges_)), 4)
             infr.queue.update(ut.dzip(edges_, priority))
 
     @profile
@@ -1051,7 +1075,7 @@ class Redundancy(_RedundancyHelpers):
         """
         if not infr.enable_redundancy:
             return
-        infr.print('neg_redun external update nid={}'.format(nid), 3)
+        infr.print('neg_redun external update nid={}'.format(nid), 4)
         k_neg = infr.queue_params['neg_redun']
         cc1 = infr.pos_graph.component(nid)
         force = True
@@ -1082,7 +1106,7 @@ class Redundancy(_RedundancyHelpers):
         """
         if not infr.enable_redundancy:
             return
-        infr.print('update_neg_redun', 3)
+        infr.print('update_neg_redun', 4)
         force = True
         cc1 = infr.pos_graph.component(nid1)
         if not force:
@@ -1102,32 +1126,6 @@ class Redundancy(_RedundancyHelpers):
         Edges are either removed or added to the queue appropriately.
         """
         infr.update_neg_redun_to(nid1, [nid2], may_add, may_remove, force)
-        # if not infr.enable_redundancy:
-        #     return
-        # infr.print('update_neg_redun', 3)
-        # need_add = False
-        # need_remove = False
-        # force = True
-        # if force:
-        #     cc1 = infr.pos_graph.component(nid1)
-        #     cc2 = infr.pos_graph.component(nid2)
-        #     need_add = infr.is_neg_redundant(cc1, cc2)
-        #     need_remove = not need_add
-        # else:
-        #     was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
-        #     if may_add and not was_neg_redun:
-        #         cc1 = infr.pos_graph.component(nid1)
-        #         cc2 = infr.pos_graph.component(nid2)
-        #         need_add = infr.is_neg_redundant(cc1, cc2)
-        #     elif may_remove and not was_neg_redun:
-        #         need_remove = not infr.is_neg_redundant(cc1, cc2)
-        # if need_add:
-        #     # Flag ourselves as negative redundant and remove priorities
-        #     infr._set_neg_redun_flag((nid1, nid2), True)
-        # elif need_remove:
-        #     infr._set_neg_redun_flag((nid1, nid2), False)
-        # else:
-        #     infr.print('update_neg_redun. nothing to do.', 3)
 
     @profile
     def update_pos_redun(infr, nid, may_add=True, may_remove=True,
@@ -1159,7 +1157,7 @@ class Redundancy(_RedundancyHelpers):
         elif need_remove:
             infr._set_pos_redun_flag(nid, False)
         else:
-            infr.print('update_pos_redun. nothing to do.', 3)
+            infr.print('update_pos_redun. nothing to do.', 5)
 
     @profile
     def is_pos_redundant(infr, cc, relax_size=None):
@@ -1353,9 +1351,9 @@ class Redundancy(_RedundancyHelpers):
         was_pos_redun = nid in infr.pos_redun_nids
         if flag:
             if not was_pos_redun:
-                infr.print('pos_redun flag nid=%r' % (nid,), 3)
+                infr.print('pos_redun flag nid=%r' % (nid,), 4)
             else:
-                infr.print('pos_redun flag nid=%r (already done)' % (nid,), 4)
+                infr.print('pos_redun flag nid=%r (already done)' % (nid,), 5)
             infr.pos_redun_nids.add(nid)
             cc = infr.pos_graph.component(nid)
             if infr.queue is not None:
@@ -1367,9 +1365,9 @@ class Redundancy(_RedundancyHelpers):
                 )
         else:
             if was_pos_redun:
-                infr.print('pos_redun unflag nid=%r' % (nid,), 3)
+                infr.print('pos_redun unflag nid=%r' % (nid,), 4)
             else:
-                infr.print('pos_redun unflag nid=%r (already done)' % (nid,), 4)
+                infr.print('pos_redun unflag nid=%r (already done)' % (nid,), 5)
             cc = infr.pos_graph.component(nid)
             infr.pos_redun_nids -= {nid}
             if infr.queue is not None:
@@ -1417,7 +1415,7 @@ class Redundancy(_RedundancyHelpers):
                 omsg = 'others={}'.format(others)
             amsg = '(already done)' if already else ''
             msg = '{} nid={}, {} {}'.format(what, nid1, omsg, amsg)
-            infr.print(msg, 3 + already)
+            infr.print(msg, 4 + already)
 
         _print_helper('neg_redun flag', needs_flag)
         _print_helper('neg_redun flag', already_flagged, already=True)
@@ -1475,10 +1473,10 @@ class Redundancy(_RedundancyHelpers):
         was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
         if flag:
             if not was_neg_redun:
-                infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2), 3)
+                infr.print('flag_neg_redun nids=%r,%r' % (nid1, nid2), 4)
             else:
                 infr.print('flag_neg_redun nids=%r,%r (already done)' % (
-                    nid1, nid2), 4)
+                    nid1, nid2), 5)
 
             infr.neg_redun_nids.add_edge(nid1, nid2)
             cc1 = infr.pos_graph.component(nid1)
@@ -1493,10 +1491,10 @@ class Redundancy(_RedundancyHelpers):
         else:
             was_neg_redun = infr.neg_redun_nids.has_edge(nid1, nid2)
             if was_neg_redun:
-                infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2), 3)
+                infr.print('unflag_neg_redun nids=%r,%r' % (nid1, nid2), 4)
             else:
                 infr.print('unflag_neg_redun nids=%r,%r (already done)' % (
-                    nid1, nid2), 4)
+                    nid1, nid2), 5)
             try:
                 infr.neg_redun_nids.remove_edge(nid1, nid2)
             except nx.exception.NetworkXError:

@@ -841,14 +841,14 @@ class CandidateSearch(object):
 
             default_priority = prob_match.copy()
             # Give negatives that pass automatic thresholds high priority
-            if True:
+            if infr.enable_non_pos_auto_prioritize:
                 _probs = task_probs[primary_task]['nomatch']
                 flags = _probs > primary_thresh['nomatch']
                 default_priority[flags] = np.maximum(default_priority[flags],
                                                      _probs[flags])
 
             # Give not-comps that pass automatic thresholds high priority
-            if True:
+            if infr.enable_non_pos_auto_prioritize:
                 _probs = task_probs[primary_task]['notcomp']
                 flags = _probs > primary_thresh['notcomp']
                 default_priority[flags] = np.maximum(default_priority[flags],
