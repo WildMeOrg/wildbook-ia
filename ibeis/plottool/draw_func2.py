@@ -1701,6 +1701,11 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
     ax_absolute_text(x_, y_, txt, ax=ax, **kwargs)
 
 
+def absolute_text(pos, text, ax=None, **kwargs):
+    x, y = pos
+    ax_absolute_text(x, y, text, ax=ax, **kwargs)
+
+
 def relative_text(pos, text, ax=None, **kwargs):
     """
     updated api for ax_relative_text
