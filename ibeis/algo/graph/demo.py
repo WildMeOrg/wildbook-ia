@@ -145,7 +145,7 @@ def demo2():
 
     infr.queue_params.update(**queue_params)
     infr.print('Searching for candidates')
-    new_edges = infr.dummy_matcher.find_dummy_candidate_edges()
+    new_edges = infr.dummy_matcher.find_candidate_edges()
     infr.add_new_candidate_edges(new_edges)
 
     if PRESHOW or TARGET_REVIEW is None or TARGET_REVIEW == 0:
@@ -1278,7 +1278,7 @@ class DummyMatcher(object):
         # assert len(ranked_edges) == K
         return ranked_edges
 
-    def find_dummy_candidate_edges(matcher, K=10):
+    def find_candidate_edges(matcher, K=10):
         new_edges = []
         for u in matcher.infr.graph.nodes():
             new_edges.extend(matcher.dummy_ranker(u, K=K))

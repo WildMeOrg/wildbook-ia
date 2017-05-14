@@ -34,8 +34,8 @@ class RefreshCriteria(object):
         # if len(refresh.manual_decisions) > refresh.warmup:
         # return (refresh.pos_frac < refresh.frac_thresh and
         #         refresh.num_pos > refresh.pos_thresh)
-        # return refresh.prob_none_remain() < refresh._prob_none_remain_thresh
-        return refresh.prob_any_remain() > refresh._prob_any_remain_thresh
+        # return refresh.prob_none_remain() > refresh._prob_none_remain_thresh
+        return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
 
     def prob_any_remain(refresh, n_remain_edges=None):
         """
@@ -46,21 +46,32 @@ class RefreshCriteria(object):
             python -m ibeis.algo.graph.mixin_loops prob_any_remain --save poisson2.png \
                     --dpi=300 --figsize=7.4375,3.0 --diskshow --size=1
 
+            python -m ibeis.algo.graph.mixin_loops prob_any_remain \
+                    --num_pccs=40 --size=2 --patience=20 --window=20 \
+                    --dpi=300 --figsize=7.4375,3.0 \
+                    --dpath=~/latex/crall-thesis-2017 \
+                    --save=figures5/poisson.png \
+                    --diskshow
+
+            --save poisson2.png \
+                    --dpi=300 --figsize=7.4375,3.0 --diskshow --size=2
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph.mixin_loops import *  # NOQA
             >>> from ibeis.algo.graph import demo
-            >>> size = ut.get_argval('--size', default=4)
-            >>> infr = demo.demodata_infr(num_pccs=50, size=size, size_std=0)
-            >>> edges = list(infr.dummy_matcher.find_dummy_candidate_edges(K=100))
+            >>> demokw = ut.argparse_dict({'num_pccs': 50, 'size': 4})
+            >>> refreshkw = ut.argparse_dict(
+            >>>     {'window': 50, 'patience': 4, 'thresh': .1})
+            >>> infr = demo.demodata_infr(size_std=0, **demokw)
+            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
             >>> sortx = scores.argsort()[::-1]
             >>> edges = ut.take(edges, sortx)
             >>> scores = scores[sortx]
             >>> ys = infr.match_state_df(edges)[POSTV].values
             >>> y_remainsum = ys[::-1].cumsum()[::-1]
-            >>> refresh = RefreshCriteria(window=50)
-            >>> refresh._patience = 100
+            >>> refresh = RefreshCriteria(**refreshkw)
             >>> pprob_any = []
             >>> rfrac_any = []
             >>> n_real_list = []
@@ -74,6 +85,8 @@ class RefreshCriteria(object):
             >>>     rfrac_any.append(y_remainsum[count] / y_remainsum[0])
             >>>     pprob_any.append(refresh.prob_any_remain())
             >>>     xdata.append(count + 1)
+            >>>     if refresh.check():
+            >>>         break
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.qtensure()
@@ -84,14 +97,22 @@ class RefreshCriteria(object):
             >>> from ibeis.scripts.thesis import TMP_RC
             >>> import matplotlib as mpl
             >>> mpl.rcParams.update(TMP_RC)
+            >>> ydatas = {
+            >>>     'Est. probability any remain': pprob_any,
+            >>>     #'real any remain': rprob_any,
+            >>>     'Fraction remaining': rfrac_any
+            >>> }
             >>> pt.multi_plot(
-            >>>     xdata, [pprob_any, rprob_any, rfrac_any], marker='',
-            >>>     label_list=['pred any remain', 'real any remain', 'frac remain'],
-            >>>     xlabel='review num',
-            >>>     ylabel='prob',
-            >>>     rcParams=TMP_RC,
-            >>>     title='poisson refresh ' + ut.get_cfg_lbl(infr.demokw)
+            >>>     xdata, ydatas,
+            >>>     xlabel='# manual reviews', #ylabel='prob',
+            >>>     rcParams=TMP_RC, marker='', ylim=(0, 1),
+            >>>     use_legend=False,# legend_loc='upper right'
             >>> )
+            >>> demokw = ut.map_keys({'num_pccs': '#PCC', 'size': 'PCC size'}, demokw)
+            >>> del refreshkw['thresh']
+            >>> pt.relative_text((.02, .58 + .0), ut.get_cfg_lbl(demokw, sep=' ')[1:], valign='bottom')
+            >>> pt.relative_text((.02, .68 + .0), ut.get_cfg_lbl(refreshkw, sep=' ')[1:], valign='bottom')
+            >>> pt.gca().legend()
             >>> ut.show_if_requested()
 
         Sympy:
@@ -142,7 +163,7 @@ class RefreshCriteria(object):
             >>> from ibeis.algo.graph.mixin_loops import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=50, size=4, size_std=2)
-            >>> edges = list(infr.dummy_matcher.find_dummy_candidate_edges(K=100))
+            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> #edges = ut.shuffle(sorted(edges), rng=321)
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
             >>> sortx = scores.argsort()[::-1]
@@ -204,6 +225,8 @@ class RefreshCriteria(object):
             x = decision_code
             # halflife = refresh.window
             # alpha = 1 - np.exp(np.log(.5) / halflife)
+            # span corresponds roughly to window size
+            # http://greenteapress.com/thinkstats2/html/thinkstats2013.html
             span = refresh.window
             alpha = 2 / (span + 1)
             if refresh._ewma is None:
@@ -218,7 +241,7 @@ class RefreshCriteria(object):
             >>> from ibeis.algo.graph.mixin_loops import *  # NOQA
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_infr(num_pccs=40, size=4, size_std=2, ignore_pair=True)
-            >>> edges = list(infr.dummy_matcher.find_dummy_candidate_edges(K=100))
+            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
             >>> #sortx = ut.shuffle(np.arange(len(edges)), rng=321)
             >>> sortx = scores.argsort()[::-1]
@@ -248,8 +271,6 @@ class RefreshCriteria(object):
         """
         if method == 'exp':
             # Compute exponentially weighted moving average
-            # halflife = refresh.window
-            # alpha = 1 - np.exp(np.log(.5) / halflife)
             span = refresh.window
             alpha = 2 / (span + 1)
             # Compute the whole thing
