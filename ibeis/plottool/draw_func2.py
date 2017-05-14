@@ -1622,7 +1622,7 @@ def upperleft_text(txt, alpha=.6, color=None):
                    verticalalignment='top',
                    backgroundcolor=(0, 0, 0, alpha),
                    color=ORANGE if color is None else color)
-    ax_relative_text(.02, .02, txt, **txtargs)
+    relative_text((.02, .02), txt, **txtargs)
 
 
 def upperright_text(txt, offset=None, alpha=.6):
@@ -1631,7 +1631,7 @@ def upperright_text(txt, offset=None, alpha=.6):
                    backgroundcolor=(0, 0, 0, alpha),
                    color=ORANGE,
                    offset=offset)
-    ax_relative_text(.98, .02, txt, **txtargs)
+    relative_text((.98, .02), txt, **txtargs)
 
 
 def lowerright_text(txt):
@@ -1639,7 +1639,7 @@ def lowerright_text(txt):
                    verticalalignment='bottom',
                    backgroundcolor=(0, 0, 0, .6),
                    color=ORANGE)
-    ax_relative_text(.98, .92, txt, **txtargs)
+    relative_text((.98, .92), txt, **txtargs)
 
 
 def absolute_lbl(x_, y_, txt, roffset=(-.02, -.02), alpha=.6, **kwargs):
@@ -1652,19 +1652,25 @@ def absolute_lbl(x_, y_, txt, roffset=(-.02, -.02), alpha=.6, **kwargs):
     ax_absolute_text(x_, y_, txt, roffset=roffset, **txtargs)
 
 
-def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
-    r"""
+def absolute_text(pos, text, ax=None, **kwargs):
+    x, y = pos
+    ax_absolute_text(x, y, text, ax=ax, **kwargs)
+
+
+def relative_text(pos, text, ax=None, offset=None, **kwargs):
+    """
+    Places text on axes in a relative position
+
     Args:
-        x (?):
-        y (ndarray):  labels
-        txt (?):
+        pos (tuple): relative xy position
+        text (str): text
         ax (None): (default = None)
         offset (None): (default = None)
         **kwargs: horizontalalignment, verticalalignment, roffset, ha, va,
                   fontsize, fontproperties, fontproperties, clip_on
 
     CommandLine:
-        python -m plottool.draw_func2 ax_relative_text --show
+        python -m plottool.draw_func2 relative_text --show
 
     Example:
         >>> # DISABLE_DOCTEST
@@ -1679,13 +1685,22 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
         >>> family = 'CMU Typewriter Text'
         >>> fontproperties = mpl.font_manager.FontProperties(family=family,
         >>>                                                  size=42)
-        >>> result = ax_relative_text(x, y, txt, ax, halign='center',
+        >>> result = relative_text((x, y), txt, ax, halign='center',
         >>>                           fontproperties=fontproperties)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
         >>> ut.show_if_requested()
     """
+    if pos == 'lowerleft':
+        pos = (.01, .99)
+        kwargs['halign'] = 'left'
+        kwargs['valign'] = 'bottom'
+    elif pos == 'upperleft':
+        pos = (.01, .01)
+        kwargs['halign'] = 'left'
+        kwargs['valign'] = 'top'
+    x, y = pos
     if ax is None:
         ax = gca()
     if 'halign' in kwargs:
@@ -1698,28 +1713,7 @@ def ax_relative_text(x, y, txt, ax=None, offset=None, **kwargs):
         xoff, yoff = offset
         x_ += xoff
         y_ += yoff
-    ax_absolute_text(x_, y_, txt, ax=ax, **kwargs)
-
-
-def absolute_text(pos, text, ax=None, **kwargs):
-    x, y = pos
-    ax_absolute_text(x, y, text, ax=ax, **kwargs)
-
-
-def relative_text(pos, text, ax=None, **kwargs):
-    """
-    updated api for ax_relative_text
-    """
-    if pos == 'lowerleft':
-        pos = (.01, .99)
-        kwargs['halign'] = 'left'
-        kwargs['valign'] = 'bottom'
-    elif pos == 'upperleft':
-        pos = (.01, .01)
-        kwargs['halign'] = 'left'
-        kwargs['valign'] = 'top'
-    x, y = pos
-    ax_relative_text(x, y, text, ax=ax, **kwargs)
+    absolute_text((x_, y_), text, ax=ax, **kwargs)
 
 
 def parse_fontkw(**kwargs):
@@ -4054,8 +4048,8 @@ def imshow_null(msg=None, ax=None, **kwargs):
     if msg is None:
         draw_boxedX(ax=ax)
     else:
-        ax_relative_text(.5, .5, msg, color='r', horizontalalignment='center',
-                         ax=ax, **kwargs_)
+        relative_text((.5, .5), msg, color='r', horizontalalignment='center',
+                      ax=ax, **kwargs_)
 
 
 def axes_bottom_button_bar(ax, text_list=[]):

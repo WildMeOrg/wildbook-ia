@@ -80,11 +80,16 @@ def multi_plot(xdata, ydata_list, **kwargs):
     """
     import plottool as pt
 
-    if isinstance(ydata_list, dict) and isinstance(xdata, six.string_types):
-        # special input with dicts
-        xkey = xdata
-        ykeys = ut.setdiff(ydata_list.keys(), [xkey])
-        xdata = ydata_list[xkey]
+    if isinstance(ydata_list, dict):
+        # Special case where ydata is a dictionary
+        if isinstance(xdata, six.string_types):
+            # Special-er case where xdata is specified in ydata
+            xkey = xdata
+            ykeys = ut.setdiff(ydata_list.keys(), [xkey])
+            xdata = ydata_list[xkey]
+        else:
+            ykeys = list(ydata_list.keys())
+        # Normalize input
         ydata_list = ut.take(ydata_list, ykeys)
         kwargs['label_list'] = kwargs.get('label_list', ykeys)
 
