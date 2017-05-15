@@ -847,6 +847,25 @@ def resized_clamped_thumb_dims(img_size, max_dsize):
 
 def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
                       borderType=cv2.BORDER_CONSTANT, **kwargs):
+    r"""
+    Returns:
+        str: out_fpath -  file path string
+
+    CommandLine:
+        python -m vtool.image pad_image_ondisk
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.image import *  # NOQA
+        >>> img_fpath = ut.get_argval('--fpath', type_=str)
+        >>> pad_ = '?'
+        >>> out_fpath = None
+        >>> value = 0
+        >>> borderType = 0
+        >>> out_fpath = pad_image_ondisk(img_fpath, pad_, out_fpath, value, borderType)
+        >>> result = ('out_fpath = %s' % (ut.repr2(out_fpath),))
+        >>> print(result)
+    """
     imgBGR = imread(img_fpath)
     imgBGR2 = cv2.copyMakeBorder(imgBGR, pad_, pad_, pad_, pad_,
                                  borderType=cv2.BORDER_CONSTANT, value=value)
@@ -854,9 +873,10 @@ def pad_image_ondisk(img_fpath, pad_, out_fpath=None, value=0,
     imgBGR2[-pad_:, :] = value
     imgBGR2[:, :pad_] = value
     imgBGR2[:, -pad_:] = value
-    out_fpath_ = ut.augpath(img_fpath, '_pad=%r' % (pad_)) if out_fpath is None else out_fpath
-    imwrite(out_fpath_, imgBGR2)
-    return out_fpath_
+    if out_fpath is None:
+        out_fpath = ut.augpath(img_fpath, '_pad=%r' % (pad_))
+    imwrite(out_fpath, imgBGR2)
+    return out_fpath
 
 
 def pad_image(imgBGR, pad_, value=0, borderType=cv2.BORDER_CONSTANT):
