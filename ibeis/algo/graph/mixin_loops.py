@@ -19,22 +19,26 @@ class RefreshCriteria(object):
     Determine when to re-query for candidate edges
     """
     def __init__(refresh, window=100, patience=50, thresh=.1):
-        refresh.window = window
         refresh.manual_decisions = []
         refresh.num_pos = 0
+        refresh.num_meaningful = 0
         # refresh.frac_thresh = 3 / refresh.window
         # refresh.pos_thresh = 2
-        refresh._prob_any_remain_thresh = thresh
-        refresh._prob_none_remain_thresh = thresh
+        refresh.window = window
         refresh._patience = patience
+        refresh._prob_any_remain_thresh = thresh
+        # refresh._prob_none_remain_thresh = thresh
         # refresh._ewma = None
         refresh._ewma = 1
+        refresh.enabled = True
 
     def check(refresh):
         # if len(refresh.manual_decisions) > refresh.warmup:
         # return (refresh.pos_frac < refresh.frac_thresh and
         #         refresh.num_pos > refresh.pos_thresh)
         # return refresh.prob_none_remain() > refresh._prob_none_remain_thresh
+        if not refresh.enabled:
+            return False
         return refresh.prob_any_remain() < refresh._prob_any_remain_thresh
 
     def prob_any_remain(refresh, n_remain_edges=None):
@@ -79,8 +83,7 @@ class RefreshCriteria(object):
             >>> n_real_list = []
             >>> xdata = []
             >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     decision = POSTV if y else NEGTV
-            >>>     refresh.add(decision, user_id='oracle')
+            >>>     refresh.add(y, user_id='oracle')
             >>>     n_remain_edges = len(edges) - count
             >>>     n_real = y_remainsum[count]
             >>>     n_real_list.append(n_real)
@@ -97,9 +100,6 @@ class RefreshCriteria(object):
             >>>     #('real any remain', rprob_any),
             >>>     ('Fraction remaining', rfrac_any),
             >>> ])
-            >>> print('edges = %r' % (ut.hashstr3(edges),))
-            >>> print('scores = %r' % (ut.hashstr3(scores),))
-            >>> print('rfrac_any = %r' % (ut.hashstr3(np.array(rfrac_any)),))
             >>> ut.quit_if_noshow()
             >>> import plottool as pt
             >>> pt.qtensure()
@@ -180,8 +180,7 @@ class RefreshCriteria(object):
             >>> n_real_list = []
             >>> xdata = []
             >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     decision = POSTV if y else NEGTV
-            >>>     refresh.add(decision, user_id='oracle')
+            >>>     refresh.add(y, user_id='oracle')
             >>>     n_remain_edges = len(edges) - count
             >>>     n_pred = refresh.pred_num_positives(n_remain_edges)
             >>>     n_real = y_remainsum[count]
@@ -217,27 +216,42 @@ class RefreshCriteria(object):
         n_positives = mu * n_remain_edges
         return n_positives
 
-    def reset(refresh):
+    def clear(refresh):
         refresh.manual_decisions = []
         refresh.num_pos = 0
+        refresh.num_meaningful = 0
 
-    def add(refresh, decision, user_id):
-        decision_code = 1 if decision == POSTV else 0
-        # dont add auto reviews to refresh criteria
+    def add(refresh, meaningful, user_id, decision=None):
+        if not refresh.enabled:
+            return
+
         if user_id is not None and not user_id.startswith('auto'):
-            refresh.manual_decisions.append(decision_code)
-            x = decision_code
-            # halflife = refresh.window
-            # alpha = 1 - np.exp(np.log(.5) / halflife)
+            refresh.manual_decisions.append(meaningful)
+            m = meaningful
             # span corresponds roughly to window size
             # http://greenteapress.com/thinkstats2/html/thinkstats2013.html
             span = refresh.window
             alpha = 2 / (span + 1)
-            if refresh._ewma is None:
-                refresh._ewma = x
-            refresh._ewma = (alpha * x) + (1 - alpha) * refresh._ewma
-        if decision_code:
+            refresh._ewma = (alpha * m) + (1 - alpha) * refresh._ewma
+        refresh.num_meaningful += meaningful
+        if decision == POSTV:
             refresh.num_pos += 1
+
+    # def add(refresh, decision, user_id):
+    #     decision_code = 1 if decision == POSTV else 0
+    #     # dont add auto reviews to refresh criteria
+    #     if user_id is not None and not user_id.startswith('auto'):
+    #         refresh.manual_decisions.append(decision_code)
+    #         x = decision_code
+    #         # span corresponds roughly to window size
+    #         # http://greenteapress.com/thinkstats2/html/thinkstats2013.html
+    #         span = refresh.window
+    #         alpha = 2 / (span + 1)
+    #         if refresh._ewma is None:
+    #             refresh._ewma = x
+    #         refresh._ewma = (alpha * x) + (1 - alpha) * refresh._ewma
+    #     if decision_code:
+    #         refresh.num_pos += 1
 
     def ave(refresh, method='exp'):
         """
@@ -259,8 +273,7 @@ class RefreshCriteria(object):
             >>> reals = []
             >>> xdata = []
             >>> for count, (edge, y) in enumerate(zip(edges, ys)):
-            >>>     decision = POSTV if y else NEGTV
-            >>>     refresh.add(decision, user_id='oracle')
+            >>>     refresh.add(y, user_id='oracle')
             >>>     ma1.append(refresh._ewma)
             >>>     ma2.append(refresh.pos_frac)
             >>>     n_real = y_remainsum[count] / (len(edges) - count)
@@ -396,7 +409,7 @@ class InfrLoops(object):
         infr.print('--- POSITIVE REDUN LOOP ---')
         new_edges = infr.find_pos_redun_candidate_edges()
         print('pos_redun_candidates = %r' % (len(new_edges),))
-        infr.queue = ut.PriorityQueue()
+        infr.queue.clear()
         infr.add_new_candidate_edges(new_edges)
         infr.inner_priority_loop()
         pass
@@ -417,6 +430,7 @@ class InfrLoops(object):
                     except ReviewCanceled:
                         raise
                     infr.add_feedback(edge=edge, **feedback)
+            infr.recovery_review_loop(verbose=0)
 
     @profile
     def recovery_review_loop(infr, verbose=1):
@@ -446,7 +460,6 @@ class InfrLoops(object):
         """
         Executes reviews until the queue is empty or needs refresh
         """
-        infr.refresh = RefreshCriteria(**infr._refresh_params)
         infr.print('Start inner loop')
         for count in it.count(0):
             if len(infr.queue) == 0:
@@ -467,6 +480,7 @@ class InfrLoops(object):
         infr.print('============================')
         infr.print('--- LNBNN PRIORITY LOOP ---')
         infr.refresh_candidate_edges()
+        infr.refresh = RefreshCriteria(**infr._refresh_params)
         infr.inner_priority_loop()
 
     @profile
@@ -488,19 +502,27 @@ class InfrLoops(object):
             infr.print('Outer loop iter %d ' % (count,))
             # Do priority loop over lnbnn candidates
             infr.lnbnn_priority_loop()
-            if infr.refresh.num_pos == 0:
+
+            terminate = (infr.refresh.num_meaningful == 0)
+            print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
+            if terminate:
                 infr.print('Triggered poisson termination criteria', 1, color='red')
-                break
 
             if infr.enable_redundancy:
                 # Fix positive redundancy of anything within the loop
+                infr.refresh.enabled = False
                 infr.pos_redun_loop()
+            print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
+
+            if terminate:
+                break
 
         if infr.enable_redundancy:
-            # Do a final fixup
-            infr.pos_redun_loop()
-            # Check work of auto criteria
-            infr.rereview_nonconf_auto()
+            # Do a final fixup, check work of auto criteria
+            infr.refresh.enabled = False
+            # infr.rereview_nonconf_auto()
+            print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
+            # infr.recovery_review_loop()
 
         infr.print('Terminate.', 1, color='red')
 

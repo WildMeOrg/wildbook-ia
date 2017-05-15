@@ -273,7 +273,7 @@ class Chap5Commands(object):
             # graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
             graph_thresh['match'] = .5
         elif infr_train.ibs.dbname == 'GZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+            graph_thresh = res.get_pos_threshes('fpr', value=.0014, warmup=200)
         elif infr_train.ibs.dbname == 'PZ_Master1':
             graph_thresh = res.get_pos_threshes('fpr', value=.05, warmup=200)
         else:
@@ -308,6 +308,7 @@ class Chap5Commands(object):
             # 'oracle_accuracy' : 1.0,
             'k_redun'         : 2,
             'max_outer_loops' : 2,
+            # 'max_outer_loops' : np.inf,
         }
 
         varied_dials = {
@@ -331,7 +332,7 @@ class Chap5Commands(object):
         window = 20
         infr._refresh_params['window'] = window
         infr._refresh_params['thresh'] = .5
-        infr._refresh_params['patience'] = 50
+        infr._refresh_params['patience'] = 20
 
         infr.init_simulation(**dials)
         infr.init_test_mode()
@@ -392,11 +393,11 @@ class Chap5Commands(object):
 
         show_auto = 0
         if show_auto:
-            xdata = metrics_df['n_manual']
-            xlabel = '# manual reviews'
-        else:
             xdata = metrics_df['n_decision']
             xlabel = '# decisions'
+        else:
+            xdata = metrics_df['n_manual']
+            xlabel = '# manual reviews'
 
         def plot_intervals(flags, color=None, low=0, high=1):
             ax = pt.gca()
@@ -437,7 +438,8 @@ class Chap5Commands(object):
 
             if show_auto:
                 i += 1
-                pt.absolute_text((.2, steps[i:i + 2].mean()), 'is_auto(auto=gold,manual=blue)')
+                pt.absolute_text((.2, steps[i:i + 2].mean()),
+                                 'is_auto(auto=gold,manual=blue)')
                 plot_intervals(is_auto, 'gold', low=steps[i], high=steps[i + 1])
                 plot_intervals(~is_auto, 'blue', low=steps[i], high=steps[i + 1])
 
@@ -464,7 +466,7 @@ class Chap5Commands(object):
         pt.multi_plot(
             xdata, [metrics_df['merge_remain']],
             label_list=[expt_name], marker='x', markersize=1,
-            xlabel='# manual reviews', ylabel=xlabel,
+            xlabel=xlabel, ylabel='# merge remaining',
             ymin=0, rcParams=TMP_RC,
             use_legend=True, fnum=1, pnum=(2, 2, 1),
         )
@@ -479,7 +481,7 @@ class Chap5Commands(object):
             fnum=1, pnum=(2, 2, 2),
             use_legend=True,
         )
-        overlay_actions(max(metrics_df['n_errors']))
+        # overlay_actions(max(metrics_df['n_errors']))
 
         pt.multi_plot(
             xdata, [metrics_df['pprob_any']],
@@ -1802,6 +1804,11 @@ class Chap3(Chap3Inputs, Chap3Agg, Chap3Draw, Chap3Measures, Chap3Commands):
     pass
 
 
+# NEED FOR OLD PICKLES
+class ExptChapter4(object):
+    pass
+
+
 # @ut.reloadable_class
 class Chap4(object):
     """
@@ -1812,6 +1819,81 @@ class Chap4(object):
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+
+    @classmethod
+    def draw_tagged_pair(Chap4):
+        import ibeis
+        # ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        ibs = ibeis.opendb(defaultdb='PZ_Master1')
+
+        query_tag = 'leftrightface'
+
+        rowids = ibs._get_all_annotmatch_rowids()
+        texts = ['' if t is None else t for t in ibs.get_annotmatch_tag_text(rowids)]
+        tags = [[] if t is None else t.split(';') for t in texts]
+        print(ut.repr4(ut.dict_hist(ut.flatten(tags))))
+
+        flags = [query_tag in t.lower() for t in texts]
+        filtered_rowids = ut.compress(rowids, flags)
+        edges = ibs.get_annotmatch_aids(filtered_rowids)
+
+        # The facematch leftright side example
+        # edge = (5161, 5245)
+
+        edge = edges[0]
+        # for edge in ut.InteractiveIter(edges):
+        infr = ibeis.AnnotInference(ibs=ibs, aids=edge, verbose=10)
+        infr.reset_feedback('annotmatch', apply=True)
+        match = infr._exec_pairwise_match([edge])[0]
+
+        if False:
+            # Fix the example tags
+            infr.add_feedback(
+                edge, 'match', tags=['facematch', 'leftrightface'],
+                user_id='qt-hack', confidence='pretty_sure')
+            infr.write_ibeis_staging_feedback()
+            infr.write_ibeis_annotmatch_feedback()
+            pass
+
+        # THE DEPCACHE IS BROKEN FOR ANNOTMATCH APPARENTLY! >:(
+        # Redo matches
+        feat_keys = ['vecs', 'kpts', '_feats', 'flann']
+        match.annot1._mutable = True
+        match.annot2._mutable = True
+        for key in feat_keys:
+            if key in match.annot1:
+                del match.annot1[key]
+            if key in match.annot2:
+                del match.annot2[key]
+        match.apply_all({})
+
+        fig = pt.figure(fnum=1, clf=True)
+        ax = pt.gca()
+
+        mpl.rcParams.update(TMP_RC)
+        match.show(ax, vert=False,
+                   heatmask=True,
+                   show_lines=False,
+                   show_ell=False,
+                   show_ori=False,
+                   show_eig=False,
+                   # ell_alpha=.3,
+                   modifysize=True)
+        # ax.set_xlabel(xlabel)
+
+        self = Chap4()
+
+        fname = 'custom_match_{}_{}_{}'.format(query_tag, *edge)
+        dpath = pathlib.Path(ut.truepath(self.base))
+        fpath = str(dpath.joinpath(fname + '.jpg'))
+        self.savefig(fig, fpath)
+
+        # match.show()
+        # import plottool as pt
+        # fig = pt.gcf()
+        # fig.canvas.draw()
+
+        pass
 
     @classmethod
     def collect(Chap4, defaultdb):
@@ -1850,10 +1932,9 @@ class Chap4(object):
             species = 'Grévy\'s Zebras'
         dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
-        self = Chap4()
+        self = Chap4(dbcode)
         self.eval_task_keys = pblm.eval_task_keys
         self.species = species
-        self.dbcode = dbcode
         self.data_key = data_key
         self.clf_key = clf_key
 
@@ -1865,12 +1946,12 @@ class Chap4(object):
             }
         }
 
-        if ibs.dbname == 'PZ_MTEST':
-            self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
-        else:
-            base = '~/latex/crall-thesis-2017/figures_pairclf'
-            self.dpath = ut.truepath(base + '/' + self.dbcode)
-        self.dpath = pathlib.Path(self.dpath)
+        # if ibs.dbname == 'PZ_MTEST':
+        #     self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
+        # else:
+        #     base = '~/latex/crall-thesis-2017/figures_pairclf'
+        #     self.dpath = ut.truepath(base + '/' + self.dbcode)
+        # self.dpath = pathlib.Path(self.dpath)
         ut.ensuredir(self.dpath)
 
         #-----------
@@ -1894,11 +1975,35 @@ class Chap4(object):
         ut.save_data(str(self.dpath.joinpath(fname)), self)
         return self
 
-    def __init__(self):
-        self.dpath = ut.truepath('~/latex/crall-thesis-2017/figures_pairclf')
+    @classmethod
+    def load(Chap4, dbcode):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> dbcode = 'PZ_PB_RF_TRAIN_2567'
+            >>> self = Chap4.load(dbcode)
+        """
+        fname = 'collected_data.pkl'
+        self_ = Chap4(dbcode)
+        fpath = str(self_.dpath.joinpath(fname))
+        # exists(fpath)
+        self = ut.load_data(fpath)
+        return self
+
+    def __init__(self, dbcode=None):
+        self.dbcode = dbcode
+        if dbcode is not None and dbcode.startswith('PZ_MTEST'):
+            self.base = '~/Desktop/'
+        else:
+            self.base = '~/latex/crall-thesis-2017/figures_pairclf'
+
+        if dbcode is not None:
+            self.dpath = ut.truepath(self.base + '/' + self.dbcode)
+        else:
+            self.dpath = ut.truepath(self.base)
         self.dpath = pathlib.Path(self.dpath)
+
         self.species = None
-        self.dbcode = None
         self.data_key = None
         self.clf_key = None
         # info
@@ -1976,8 +2081,10 @@ class Chap4(object):
         )
         sum_pred = df.index[-1]
         sum_real = df.columns[-1]
-        latex_str = latex_str.replace(sum_pred, '$\sum$ predicted')
-        latex_str = latex_str.replace(sum_real, '$\sum$ real')
+        latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
+        latex_str = latex_str.replace(sum_real, r'$\sum$ real')
+        # latex_str = latex_str.replace(sum_pred, r'$\textstyle\sum$ predicted')
+        # latex_str = latex_str.replace(sum_real, r'$\textstyle\sum$ real')
         colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
         newheader = '\\begin{tabular}{%s}' % (colfmt,)
         latex_str = '\n'.join([newheader] + latex_str.split('\n')[1:])
@@ -1985,6 +2092,8 @@ class Chap4(object):
         lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
         latex_str = '\n'.join(lines)
         latex_str = latex_str.replace('midrule', 'hline')
+        latex_str = latex_str.replace('toprule', 'hline')
+        latex_str = latex_str.replace('bottomrule', 'hline')
 
         fname = 'confusion_{}.tex'.format(task_key)
         print(latex_str)
@@ -2120,12 +2229,92 @@ class Chap4(object):
 
         self.hard_cases[task_key] = cases
 
+    def custom_single_hard_case(self):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> #defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_MTEST'
+            >>> self = Chap4.collect(defaultdb)
+            >>> self.dbname = 'PZ_PB_RF_TRAIN'
+        """
+        task_key = 'match_state'
+        edge = (383, 503)
+        for _case in self.hard_cases[task_key]:
+            if _case['edge'] == edge:
+                case = _case
+                break
+
+        import ibeis
+        ibs = ibeis.opendb(self.dbname)
+
+        from ibeis import core_annots
+        config = {
+            'augment_orientation': True,
+            'ratio_thresh': .8,
+        }
+        config['checks'] = 80
+        config['sver_xy_thresh'] = .02
+        config['sver_ori_thresh'] = 3
+        config['Knorm'] = 3
+        config['symmetric'] = True
+        config = ut.hashdict(config)
+
+        aid1, aid2 = case['edge']
+        real_name = case['real']
+        pred_name = case['pred']
+        match = case['match']
+        code_to_nice = self.task_nice_lookup[task_key]
+        real_nice, pred_nice = ut.take(code_to_nice,
+                                       [real_name, pred_name])
+        fname = 'fail_{}_{}_{}_{}'.format(real_nice, pred_nice, aid1, aid2)
+        # Draw case
+        probs = case['probs'].to_dict()
+        order = list(code_to_nice.values())
+        order = ut.setintersect(order, probs.keys())
+        probs = ut.map_dict_keys(code_to_nice, probs)
+        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
+                           key_order=order)
+        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
+                                                probstr)
+
+        match_list = ibs.depc.get('pairwise_match', ([aid1], [aid2]),
+                                       'match', config=config)
+        match = match_list[0]
+        configured_lazy_annots = core_annots.make_configured_annots(
+            ibs, [aid1], [aid2], config, config, preload=True)
+        match.annot1 = configured_lazy_annots[config][aid1]
+        match.annot2 = configured_lazy_annots[config][aid2]
+        match.config = config
+
+        fig = pt.figure(fnum=1, clf=True)
+        ax = pt.gca()
+
+        mpl.rcParams.update(TMP_RC)
+        match.show(ax, vert=False,
+                   heatmask=True,
+                   show_lines=False,
+                   show_ell=False,
+                   show_ori=False,
+                   show_eig=False,
+                   # ell_alpha=.3,
+                   modifysize=True)
+        ax.set_xlabel(xlabel)
+
+        subdir = 'cases_{}'.format(task_key)
+        dpath = self.dpath.joinpath(subdir)
+        fpath = str(dpath.joinpath(fname + '_custom.jpg'))
+        self.savefig(fig, fpath)
+
     def draw_hard_cases(self, task_key):
         """ draw hard cases with and without overlay """
         subdir = 'cases_{}'.format(task_key)
         dpath = self.dpath.joinpath(subdir)
         ut.ensuredir(dpath)
         code_to_nice = self.task_nice_lookup[task_key]
+
+        mpl.rcParams.update(TMP_RC)
 
         for case in ut.ProgIter(self.hard_cases[task_key], 'draw hard case'):
             aid1, aid2 = case['edge']
@@ -2159,6 +2348,8 @@ class Chap4(object):
             # fpath = str(dpath.joinpath(fname + '_overlay.jpg'))
             fpath = str(dpath.joinpath(fname + '.jpg'))
             self.savefig(fig, fpath)
+
+            # vt.pad_image_ondisk()
             # Draw without feature overlay
             # ax.cla()
             # match.show(ax, vert=False, overlay=False, modifysize=True)

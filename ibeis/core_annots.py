@@ -1377,7 +1377,9 @@ def compute_one_vs_one(depc, qaids, daids, config):
 
 
 def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=False):
-    # Hack just to get annots into a good format for vsone matching
+    """
+    Hack just to get annots into a good format for vsone matching
+    """
     # Prepare lazy attributes for annotations
     unique_qaids = set(qaids)
     unique_daids = set(daids)
@@ -1430,9 +1432,8 @@ def compute_pairwise_vsone(depc, qaids, daids, config):
     qannot_cfg = config
     dannot_cfg = config
 
-    configured_lazy_annots = make_configured_annots(ibs, qaids, daids,
-                                                    qannot_cfg, dannot_cfg,
-                                                    preload=True)
+    configured_lazy_annots = make_configured_annots(
+        ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=True)
 
     unique_lazy_annots = ut.flatten(
         [x.values() for x in configured_lazy_annots.values()])

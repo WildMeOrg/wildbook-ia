@@ -15,7 +15,7 @@ import itertools as it
 import numpy as np
 import vtool as vt
 import dtool as dt
-import six
+import six  # NOQA
 import hashlib
 import copy  # NOQA
 import pandas as pd

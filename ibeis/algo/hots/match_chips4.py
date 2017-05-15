@@ -77,14 +77,13 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
     else:
         # --- BIG CACHE ---
         # Do not use bigcache single queries
-        use_bigcache_ = (use_bigcache and use_cache and
-                         len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE)
-        if (use_bigcache_ or save_qcache) and len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE:
-            bc_dpath, bc_fname, bc_cfgstr = qreq_.get_bigcache_info()
+        is_big = len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE
+        use_bigcache_ = (use_bigcache and use_cache and is_big)
+        if (use_bigcache_ or save_qcache):
+            cacher = qreq_.get_big_cacher()
             if use_bigcache_:
-                # Try and load directly from a big cache
                 try:
-                    qaid2_cm = ut.load_cache(bc_dpath, bc_fname, bc_cfgstr)
+                    qaid2_cm = cacher.load()
                     cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
                 except (IOError, AttributeError):
                     pass
@@ -95,15 +94,16 @@ def submit_query_request(qreq_, use_cache=None, use_bigcache=None,
         qaid2_cm = execute_query_and_save_L1(qreq_, use_cache, save_qcache,
                                              verbose=verbose)
         # ------------
-        if save_qcache and len(qreq_.qaids) > MIN_BIGCACHE_BUNDLE:
-            ut.save_cache(bc_dpath, bc_fname, bc_cfgstr, qaid2_cm)
+        if save_qcache and is_big:
+            cacher.save(qaid2_cm)
 
         cm_list = [qaid2_cm[qaid] for qaid in qreq_.qaids]
     return cm_list
 
 
 @profile
-def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True, batch_size=None):
+def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
+                              batch_size=None):
     """
     Args:
         qreq_ (ibeis.QueryRequest):

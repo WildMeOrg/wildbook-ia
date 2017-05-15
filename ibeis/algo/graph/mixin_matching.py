@@ -58,6 +58,12 @@ class AnnotInfrMatching(object):
                                       custom_nid_lookup=custom_nid_lookup,
                                       verbose=infr.verbose >= 2)
 
+        cacher = qreq_.get_big_cacher()
+        if not cacher.exists():
+            pass
+            # import sys
+            # sys.exit(1)
+
         cm_list = qreq_.execute(prog_hook=prog_hook)
         infr._set_vsmany_info(qreq_, cm_list)
 

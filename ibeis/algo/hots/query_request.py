@@ -568,6 +568,11 @@ class QueryRequest(ut.NiceRepr):
         shortinfo_cfgstr = '_'.join(qreq_.get_shortinfo_parts())
         return shortinfo_cfgstr
 
+    def get_big_cacher(qreq_):
+        bc_dpath, bc_fname, bc_cfgstr = qreq_.get_bigcache_info()
+        cacher = ut.Cacher(bc_fname, bc_cfgstr, cache_dir=bc_dpath)
+        return cacher
+
     @profile
     def get_bigcache_info(qreq_):
         bc_dpath = qreq_.ibs.get_big_cachedir()

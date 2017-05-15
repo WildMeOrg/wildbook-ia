@@ -144,7 +144,7 @@ class Feedback(object):
             assert infr.dirty is False, (
                 'need to recompute before dynamic inference continues')
             # Update priority queue based on the new edge
-            infr.add_review_edge(edge, decision)
+            action = infr.add_review_edge(edge, decision)
             if False:
                 infr._print_debug_ccs()
         else:
@@ -155,7 +155,8 @@ class Feedback(object):
         if infr.refresh:
             # only add to criteria if this wasn't requested as a fix edge
             if priority is not None and priority <= 1.0:
-                infr.refresh.add(decision, user_id)
+                meaningful = bool({'merge', 'split'} & set(action))
+                infr.refresh.add(meaningful, user_id, decision)
 
         if infr.test_mode:
             infr.metrics_list.append(infr.measure_metrics())

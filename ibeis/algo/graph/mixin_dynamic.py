@@ -59,14 +59,15 @@ class DynamicUpdate(object):
     @profile
     def add_review_edge(infr, edge, decision):
         if decision == POSTV:
-            infr._positive_decision(edge)
+            action = infr._positive_decision(edge)
         elif decision == NEGTV:
-            infr._negative_decision(edge)
+            action = infr._negative_decision(edge)
         elif decision in UNINFERABLE:
             # incomparable and unreview have the same inference structure
-            infr._uninferable_decision(edge, decision)
+            action = infr._uninferable_decision(edge, decision)
         else:
             raise AssertionError('Unknown decision=%r' % (decision,))
+        return action
         # print('infr.recover_graph = %r' % (infr.recover_graph,))
 
     def ensure_edges_from(infr, edges, assume_new=False):
@@ -169,57 +170,57 @@ class DynamicUpdate(object):
         else:
             confusion[true_decision][decision] += 1
 
-        action = None
+        test_action = None
         action_color = None
 
         if is_correct:
             # CORRECT DECISION
             if was_reviewed:
                 if old_decision == decision:
-                    action = 'correct duplicate'
+                    test_action = 'correct duplicate'
                     action_color = 'darkyellow'
                 else:
-                    action = 'correction'
+                    test_action = 'correction'
                     action_color = 'darkgreen'
                     if decision == POSTV:
                         if not was_within_gt:
-                            action = 'correction redid merge'
+                            test_action = 'correction redid merge'
                             action_color = 'darkgreen'
                             infr.test_state['n_true_merges'] += 1
             else:
                 if decision == POSTV:
                     if not was_within_gt:
-                        action = 'correct merge'
+                        test_action = 'correct merge'
                         action_color = 'darkgreen'
                         infr.test_state['n_true_merges'] += 1
                     else:
-                        action = 'correct redundant positive'
+                        test_action = 'correct redundant positive'
                         action_color = 'darkblue'
                 else:
                     if decision == NEGTV:
-                        action = 'correct negative'
+                        test_action = 'correct negative'
                         action_color = 'teal'
                     else:
-                        action = 'correct uninferrable'
+                        test_action = 'correct uninferrable'
                         action_color = 'teal'
         else:
             action_color = 'darkred'
             # INCORRECT DECISION
             if was_reviewed:
                 if old_decision == decision:
-                    action = 'incorrect duplicate'
+                    test_action = 'incorrect duplicate'
                 elif was_correct:
-                    action = 'incorrect undid good edge'
+                    test_action = 'incorrect undid good edge'
             else:
                 if decision == POSTV:
                     if was_within_pred:
-                        action = 'incorrect redundant merge'
+                        test_action = 'incorrect redundant merge'
                     else:
-                        action = 'incorrect new merge'
+                        test_action = 'incorrect new merge'
                 else:
-                    action = 'incorrect new mistake'
+                    test_action = 'incorrect new mistake'
 
-        infr.test_state['action'] = action
+        infr.test_state['action'] = test_action
         infr.test_state['pred_decision'] = decision
         infr.test_state['true_decision'] = true_decision
         infr.test_state['user_id'] = user_id
@@ -232,8 +233,8 @@ class DynamicUpdate(object):
         else:
             raise AssertionError('unknown user_id=%r' % (user_id,))
 
-        test_print(action, color=action_color)
-        assert action is not None, 'what happened?'
+        test_print(test_action, color=action_color)
+        assert test_action is not None, 'what happened?'
 
     def on_between(infr, edge, decision, nid1, nid2, merge_nid):
         """
@@ -243,6 +244,11 @@ class DynamicUpdate(object):
             # A merge occurred
             cc = infr.pos_graph.component(merge_nid)
             infr.set_node_attrs('name_label', ut.dzip(cc, [merge_nid]))
+            # FIXME: this state is ugly
+            action = ['merge']
+        else:
+            action = []
+        return action
 
     def on_within(infr, edge, decision, nid, split_nids):
         """
@@ -255,6 +261,10 @@ class DynamicUpdate(object):
             cc2 = infr.pos_graph.component(new_nid2)
             infr.set_node_attrs('name_label', ut.dzip(cc1, [new_nid1]))
             infr.set_node_attrs('name_label', ut.dzip(cc2, [new_nid2]))
+            action = ['split']
+        else:
+            action = []
+        return action
 
     @profile
     def _positive_decision(infr, edge):
@@ -292,7 +302,7 @@ class DynamicUpdate(object):
                 # print_('Internal inconsistent positive review')
                 print_('pos-within-dirty')
                 infr._check_inconsistency(nid1)
-            infr.on_within(edge, decision, nid1, None)
+            action = infr.on_within(edge, decision, nid1, None)
         else:
             # print_('Merge case')
             cc1 = infr.pos_graph.component(nid1)
@@ -328,7 +338,8 @@ class DynamicUpdate(object):
                 new_nid = infr.pos_graph.node_label(edge[0])
                 infr.update_extern_neg_redun(new_nid, may_remove=False)
                 infr.update_pos_redun(new_nid, may_remove=False)
-            infr.on_between(edge, decision, nid1, nid2, new_nid)
+            action = infr.on_between(edge, decision, nid1, nid2, new_nid)
+        return action
 
     @profile
     def _negative_decision(infr, edge):
@@ -371,7 +382,7 @@ class DynamicUpdate(object):
                     infr._check_inconsistency(new_nid1)
                     infr._check_inconsistency(new_nid2)
                 # Signal that a split occurred
-                infr.on_within(edge, decision, nid1, (new_nid1, new_nid2))
+                action = infr.on_within(edge, decision, nid1, (new_nid1, new_nid2))
             else:
                 if all_consistent:
                     # infr.print('Negative added within clean PCC')
@@ -382,7 +393,7 @@ class DynamicUpdate(object):
                     # infr.print('Negative added within inconsistent PCC')
                     print_('neg-within-dirty')
                     infr._check_inconsistency(new_nid1)
-                infr.on_within(edge, decision, new_nid1, None)
+                action = infr.on_within(edge, decision, new_nid1, None)
         else:
             if all_consistent:
                 # infr.print('Negative added between consistent PCCs')
@@ -394,7 +405,8 @@ class DynamicUpdate(object):
                 # nothing to do if a negative edge is added between two PCCs
                 # where at least one is inconsistent
                 pass
-            infr.on_between(edge, decision, new_nid1, new_nid2, None)
+            action = infr.on_between(edge, decision, new_nid1, new_nid2, None)
+        return action
 
     @profile
     def _uninferable_decision(infr, edge, decision):
@@ -457,7 +469,7 @@ class DynamicUpdate(object):
                         infr._check_inconsistency(new_nid1)
                         infr._check_inconsistency(new_nid2)
                     # Signal that a split occurred
-                    infr.on_within(edge, decision, nid1, (new_nid1, new_nid2))
+                    action = infr.on_within(edge, decision, nid1, (new_nid1, new_nid2))
                 else:
                     if all_consistent:
                         # infr.print('Overwrote pos in CC with incomp')
@@ -468,13 +480,13 @@ class DynamicUpdate(object):
                         print_('%s-within-pos-dirty' % prefix)
                         # Overwriting a positive edge that is not a split
                         # in an inconsistent component, means no inference.
-                    infr.on_within(edge, decision, new_nid1, None)
+                    action = infr.on_within(edge, decision, new_nid1, None)
             elif overwrote_negative:
                 # infr.print('Overwrite negative within CC')
                 print_('%s-within-neg-dirty' % prefix)
                 assert not all_consistent
                 infr._check_inconsistency(nid1)
-                infr.on_within(edge, decision, new_nid1)
+                action = infr.on_within(edge, decision, new_nid1)
             else:
                 if all_consistent:
                     print_('%s-within-clean' % prefix)
@@ -482,7 +494,7 @@ class DynamicUpdate(object):
                 else:
                     print_('%s-within-dirty' % prefix)
                     # infr.print('Incomp edge within inconsistent CC')
-                infr.on_within(edge, decision, new_nid1, None)
+                action = infr.on_within(edge, decision, new_nid1, None)
         else:
             if overwrote_negative:
                 if all_consistent:
@@ -497,7 +509,8 @@ class DynamicUpdate(object):
             else:
                 print_('incon-between')
                 # infr.print('Incomp edge between CCs')
-            infr.on_between(edge, decision, new_nid1, new_nid2, None)
+            action = infr.on_between(edge, decision, new_nid1, new_nid2, None)
+        return action
 
 
 class Recovery(object):
@@ -508,6 +521,10 @@ class Recovery(object):
 
     @profile
     def _purge_error_edges(infr, nid):
+        """
+        Removes all error edges associated with a PCC so they can be recomputed
+        or resolved.
+        """
         old_error_edges = infr.nid_to_errors.pop(nid, [])
         # Remove priority from old error edges
         if infr.enable_attr_update:
@@ -515,6 +532,8 @@ class Recovery(object):
                                 ut.dzip(old_error_edges, [None]))
         if infr.queue is not None:
             infr._remove_edge_priority(old_error_edges)
+        was_clean = len(old_error_edges) > 0
+        return was_clean
 
     @profile
     def _set_error_edges(infr, nid, new_error_edges):
@@ -542,10 +561,13 @@ class Recovery(object):
 
     @profile
     def _check_inconsistency(infr, nid, cc=None):
+        """
+        Check if a PCC contains an error
+        """
         if cc is None:
             cc = infr.pos_graph.component(nid)
         # infr.print('Checking consistency of {}'.format(nid))
-        infr._purge_error_edges(nid)
+        was_clean = infr._purge_error_edges(nid)
         neg_edges = list(edges_inside(infr.neg_graph, cc))
         if neg_edges:
             pos_subgraph_ = infr.pos_graph.subgraph(cc, dynamic=False).copy()
@@ -556,6 +578,7 @@ class Recovery(object):
             hypothesis = dict(infr.hypothesis_errors(pos_subgraph_, neg_edges))
             assert len(hypothesis) > 0, 'must have at least one'
             infr._set_error_edges(nid, set(hypothesis.keys()))
+            is_clean = False
         else:
             infr.recover_graph.remove_nodes_from(cc)
             num = infr.recover_graph.number_of_components()
@@ -565,6 +588,8 @@ class Recovery(object):
             infr.print(msg, 2, color='green')
             infr.update_pos_redun(nid, force=True)
             infr.update_extern_neg_redun(nid, force=True)
+            is_clean = True
+        return (was_clean, is_clean)
 
     def _mincut_edge_weights(infr, edges_):
         from ibeis.constants import CONFIDENCE
