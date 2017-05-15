@@ -1224,6 +1224,9 @@ class DummyMatcher(object):
     """
     generates dummy scores between edges (not necesarilly in the graph)
 
+    CommandLine:
+        python -m ibeis.algo.graph.demo DummyMatcher:1
+
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.algo.graph.demo import *  # NOQA
@@ -1233,11 +1236,11 @@ class DummyMatcher(object):
         >>> infr = demo.demodata_infr(**kwargs)
         >>> infr.dummy_matcher.predict_edges([(1, 2)])
         >>> infr.dummy_matcher.predict_edges([(1, 21)])
-        >>> assert len(infr.dummy_matcher.cache) == 2
+        >>> assert len(infr.dummy_matcher.prob_cache) == 2
     """
     def __init__(matcher, infr):
         matcher.infr = infr
-        matcher.cache = {}
+        matcher.prob_cache = {}
         matcher.rng = np.random.RandomState(0)
         matcher.orig_nodes = set(infr.aids)
         matcher.orig_labels = infr.get_node_attrs('orig_name_label')
@@ -1270,45 +1273,69 @@ class DummyMatcher(object):
             gf = rng.choice(others_gf, k_gf, replace=False)
             vs_list.append(gf)
 
-        u_edges = [(u, v) for v in it.chain.from_iterable(vs_list)]
-        u_probs = infr.dummy_matcher.predict_edges(u_edges)
+        u_edges = [infr.e_(u, v) for v in it.chain.from_iterable(vs_list)]
+        u_probs = np.array(infr.dummy_matcher.predict_edges(u_edges))
         # infr.set_edge_attrs('prob_match', ut.dzip(u_edges, u_probs))
+
+        # Need to determenistically sort here
+        # sortx = np.argsort(u_probs)[::-1][0:K]
+
         sortx = np.argsort(u_probs)[::-1][0:K]
-        ranked_edges = [infr.e_(u, v) for (u, v) in ut.take(u_edges, sortx)]
+        ranked_edges = ut.take(u_edges, sortx)
         # assert len(ranked_edges) == K
         return ranked_edges
 
     def find_candidate_edges(matcher, K=10):
         new_edges = []
-        for u in matcher.infr.graph.nodes():
+        nodes = list(matcher.infr.graph.nodes())
+        for u in nodes:
             new_edges.extend(matcher.dummy_ranker(u, K=K))
+        # print('new_edges = %r' % (ut.hashstr3(new_edges),))
         new_edges = set(new_edges)
         return new_edges
 
-    def predict_edges(matcher, edges):
-        edges = list(edges)
+    def _get_truth(matcher, edge):
         infr = matcher.infr
-        is_miss = np.array([e not in matcher.cache for e in edges])
+        if edge in infr.edge_truth:
+            return infr.edge_truth[edge]
+        nid1 = infr.graph.node[edge[0]]['orig_name_label']
+        nid2 = infr.graph.node[edge[1]]['orig_name_label']
+        return POSTV if nid1 == nid2 else NEGTV
+
+    def predict_edges(matcher, edges):
+        """
+        CommandLine:
+            python -m ibeis.algo.graph.demo DummyMatcher.predict_edges
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.demo import *  # NOQA
+            >>> from ibeis.algo.graph import demo
+            >>> import networkx as nx
+            >>> kwargs = dict(num_pccs=40, size=2)
+            >>> infr = demo.demodata_infr(**kwargs)
+            >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
+            >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> hashid = ut.hashstr3(scores)
+            >>> assert hashid == 'jucahninqbrhvkhcjjimqkskwouegwtd'
+        """
+        edges = list(it.starmap(matcher.infr.e_, edges))
+        is_miss = np.array([e not in matcher.prob_cache for e in edges])
         # is_hit = ~is_miss
         if np.any(is_miss):
             miss_edges = ut.compress(edges, is_miss)
-            def guess_truth(edge):
-                nid1 = infr.graph.node[edge[0]]['orig_name_label']
-                nid2 = infr.graph.node[edge[1]]['orig_name_label']
-                return POSTV if nid1 == nid2 else NEGTV
-            miss_truths = [
-                infr.edge_truth[edge] if edge in infr.edge_truth else
-                guess_truth(edge)
-                for edge in miss_edges
-            ]
-            grouped_edges = ut.group_items(miss_edges, miss_truths)
-            for key, group in grouped_edges.items():
+            miss_truths = [matcher._get_truth(edge) for edge in miss_edges]
+            grouped_edges = ut.group_items(miss_edges, miss_truths,
+                                           sorted_=False)
+            # Need to make this determenistic too
+            for key in sorted(grouped_edges.keys()):
+                group = grouped_edges[key]
                 probs = randn(shape=[len(group)], rng=matcher.rng, a_max=1, a_min=0,
                               **matcher.dummy_params[key])
                 for edge, prob in zip(group, probs):
-                    matcher.cache[edge] = prob
+                    matcher.prob_cache[edge] = prob
 
-        return ut.take(matcher.cache, edges)
+        return ut.take(matcher.prob_cache, edges)
 
     # print('[demo] apply dummy scores')
     # rng = ut.ensure_rng(rng)

@@ -299,15 +299,15 @@ class Chap5Commands(object):
         # pblm._ensure_evaluation_clf(task_key, data_key, clf_key, use_cache=False)
 
         const_dials = {
-            # 'oracle_accuracy' : (0.95, 1.0),
+            'oracle_accuracy' : (0.98, 1.0),
             # 'oracle_accuracy' : (0.98, 1.0),
             # 'oracle_accuracy' : (0.99, 1.0),
-            'oracle_accuracy' : (1.0, 1.0),
+            # 'oracle_accuracy' : (1.0, 1.0),
             # 'oracle_accuracy' : (0.95, .99),
             # 'oracle_accuracy' : 0.7,
             # 'oracle_accuracy' : 1.0,
             'k_redun'         : 2,
-            'max_outer_loops' : 4,
+            'max_outer_loops' : 2,
         }
 
         varied_dials = {

@@ -66,6 +66,8 @@ class RefreshCriteria(object):
             >>> infr = demo.demodata_infr(size_std=0, **demokw)
             >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
+            >>> print('edges = %r' % (ut.hashstr3(edges),))
+            >>> print('scores = %r' % (ut.hashstr3(scores),))
             >>> sortx = scores.argsort()[::-1]
             >>> edges = ut.take(edges, sortx)
             >>> scores = scores[sortx]
@@ -87,21 +89,23 @@ class RefreshCriteria(object):
             >>>     xdata.append(count + 1)
             >>>     if refresh.check():
             >>>         break
-            >>> ut.quit_if_noshow()
-            >>> import plottool as pt
-            >>> pt.qtensure()
-            >>> pprob_any = pprob_any
             >>> rprob_any = np.minimum(1, n_real_list)
             >>> rfrac_any = rfrac_any
             >>> xdata = xdata
+            >>> ydatas = ut.odict([
+            >>>     ('Est. probability any remain', pprob_any),
+            >>>     #('real any remain', rprob_any),
+            >>>     ('Fraction remaining', rfrac_any),
+            >>> ])
+            >>> print('edges = %r' % (ut.hashstr3(edges),))
+            >>> print('scores = %r' % (ut.hashstr3(scores),))
+            >>> print('rfrac_any = %r' % (ut.hashstr3(np.array(rfrac_any)),))
+            >>> ut.quit_if_noshow()
+            >>> import plottool as pt
+            >>> pt.qtensure()
             >>> from ibeis.scripts.thesis import TMP_RC
             >>> import matplotlib as mpl
             >>> mpl.rcParams.update(TMP_RC)
-            >>> ydatas = {
-            >>>     'Est. probability any remain': pprob_any,
-            >>>     #'real any remain': rprob_any,
-            >>>     'Fraction remaining': rfrac_any
-            >>> }
             >>> pt.multi_plot(
             >>>     xdata, ydatas,
             >>>     xlabel='# manual reviews', #ylabel='prob',
