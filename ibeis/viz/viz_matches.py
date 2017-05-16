@@ -507,10 +507,9 @@ def show_matches2(ibs, aid1, aid2, fm=None, fs=None, fm_norm=None, sel_fm=[],
     # Draws the chips and keypoint matches
     try:
         ax, xywh1, xywh2 = pt.show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm,
-                                               fs=fs, fm_norm=fm_norm,
-                                               H1=H1, H2=H2, lbl1=lbl1,
-                                              lbl2=lbl2, sel_fm=sel_fm,
-                                              **kwargs)
+                                              fs=fs, fm_norm=fm_norm, H1=H1,
+                                              H2=H2, lbl1=lbl1, lbl2=lbl2,
+                                              sel_fm=sel_fm, **kwargs)
     except Exception as ex:
         ut.printex(ex, 'consider qr.remove_corrupted_queries',
                       '[viz_matches]')

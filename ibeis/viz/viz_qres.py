@@ -200,8 +200,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         >>>     sidebyside=not ut.get_argflag('--no-sidebyside'),
         >>>     annot_mode=ut.get_argval('--annot_mode', type_=int, default=1),
         >>>     viz_name_score=not ut.get_argflag('--no-viz_name_score'),
+        >>>     simplemode=ut.get_argflag('--simplemode'),
         >>>     max_nCols=ut.get_argval('--max_nCols', type_=int, default=None)
         >>> )
+        >>> ibs = qreq_.ibs
         >>> fig = show_qres(ibs, cm, show_query=False, qreq_=qreq_, **kwargs)
         >>> ut.show_if_requested()
     """
@@ -215,6 +217,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     show_query     = kwargs.get('show_query', False)
     in_image       = kwargs.get('in_image', False)
     sidebyside     = kwargs.get('sidebyside', True)
+    simplemode     = kwargs.get('simplemode', False)
     #name_scoring   = kwargs.get('name_scoring', False)
     viz_name_score = kwargs.get('viz_name_score', qreq_ is not None)
     max_nCols      = kwargs.get('max_nCols', None)
@@ -353,10 +356,12 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
                 if viz_name_score:
                     cm.show_single_namematch(qreq_, ibs.get_annot_nids(aid), **_kwshow)
                 else:
-                    #_kwshow['draw_border'] = False
-                    #_kwshow['draw_lbl'] = False
-                    #_kwshow['notitle'] = True
-                    #_kwshow['vert'] = False
+                    if simplemode:
+                        _kwshow['draw_border'] = False
+                        _kwshow['draw_lbl'] = False
+                        _kwshow['notitle'] = True
+                        _kwshow['vert'] = False
+                        _kwshow['modifysize'] = True
                     cm.show_single_annotmatch(qreq_, aid, **_kwshow)
                     #viz_matches.show_matches(ibs, cm, aid, qreq_=qreq_, **_kwshow)
             else:

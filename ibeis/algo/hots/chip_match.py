@@ -471,7 +471,7 @@ class _ChipMatchVisualization(object):
             inter.start()
             return inter
         except Exception as ex:
-            ut.printex(ex, 'failed in cm.show_matches', keys=['aid', 'qreq_'])
+            ut.printex(ex, 'failed in cm.ishow_single_annotmatch', keys=['aid', 'qreq_'])
             raise
         #if not kwargs.get('noupdate', False):
         #    import plottool as pt

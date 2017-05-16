@@ -148,11 +148,12 @@ class Feedback(object):
             if False:
                 infr._print_debug_ccs()
         else:
+            action = None
             infr.dirty = True
             infr._add_review_edge(edge, decision)
 
         infr.set_edge_attr(edge, feedback_item)
-        if infr.refresh:
+        if infr.refresh and infr.enable_inference:
             # only add to criteria if this wasn't requested as a fix edge
             if priority is not None and priority <= 1.0:
                 meaningful = bool({'merge', 'split'} & set(action))

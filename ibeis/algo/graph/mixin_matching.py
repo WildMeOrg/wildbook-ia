@@ -871,22 +871,26 @@ class CandidateSearch(object):
             infr.set_edge_attrs('default_priority', default_priority.to_dict())
 
             # Insert all the new edges into the priority queue
-            infr.queue.update((-default_priority).to_dict())
+            # infr.queue.update((-default_priority).to_dict())
+            infr.prioritize('default_priority', new_edges, default_priority)
         elif hasattr(infr, 'dummy_matcher'):
             prob_match = np.array(infr.dummy_matcher.predict_edges(new_edges))
             infr.set_edge_attrs('prob_match', ut.dzip(new_edges, prob_match))
-            infr.queue.update(ut.dzip(new_edges, -prob_match))
+            infr.prioritize('prob_match', new_edges, prob_match)
+            # infr.queue.update(ut.dzip(new_edges, -prob_match))
         elif infr.cm_list is not None:
             infr.print('Prioritizing edges with one-vs-vsmany scores', 1)
             # Not given any deploy classifier, this is the best we can do
             infr.task_probs = None
             scores = infr._make_lnbnn_scores(new_edges)
             infr.set_edge_attrs('normscore', ut.dzip(new_edges, scores))
-            infr.queue.update(ut.dzip(new_edges, -scores))
+            infr.prioritize('normscore', new_edges, scores)
+            # infr.queue.update(ut.dzip(new_edges, -scores))
         else:
             infr.print('No information to prioritize edges')
             scores = np.zeros(len(new_edges)) + 1e-6
-            infr.queue.update(ut.dzip(new_edges, -scores))
+            infr.prioritize('random', new_edges, scores)
+            # infr.queue.update(ut.dzip(new_edges, -scores))
 
         if hasattr(infr, 'on_new_candidate_edges'):
             # hack callback for demo

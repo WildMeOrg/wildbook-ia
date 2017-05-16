@@ -411,8 +411,8 @@ class InfrLoops(object):
         print('pos_redun_candidates = %r' % (len(new_edges),))
         infr.queue.clear()
         infr.add_new_candidate_edges(new_edges)
-        infr.inner_priority_loop()
-        pass
+        infr.refresh.enabled = False
+        infr.inner_priority_loop(use_refresh=False)
 
     @profile
     def rereview_nonconf_auto(infr):
@@ -456,35 +456,38 @@ class InfrLoops(object):
             infr.add_feedback(edge=edge, **feedback)
 
     @profile
-    def inner_priority_loop(infr):
+    def inner_priority_loop(infr, use_refresh=True):
         """
         Executes reviews until the queue is empty or needs refresh
         """
         infr.print('Start inner loop')
         for count in it.count(0):
             if len(infr.queue) == 0:
-                infr.print('No more edges, need refresh', 1, color='yellow')
+                infr.print('No more edges after %d iterations, need refresh' %
+                           (count,), 1, color='yellow')
                 break
-            if not infr.is_recovering():
-                # Do not check for refresh if we are recovering
-                if infr.refresh.check():
-                    infr.print('Triggered poisson refresh criteria', 1, color='yellow')
-                    break
+            if infr.is_recovering():
+                infr.print('Still recovering after %d iterations' % (count,),
+                           3, color='turquoise')
             else:
-                infr.print('Still recovering', 3, color='turquoise')
+                # Do not check for refresh if we are recovering
+                if use_refresh and infr.refresh.check():
+                    infr.print('Triggered refresh criteria after %d iterations' %
+                               (count,), 1, color='yellow')
+                    break
             infr.next_review()
             # if count > 200:
             #     return
 
-    def lnbnn_priority_loop(infr):
+    def lnbnn_priority_loop(infr, use_refresh=True):
         infr.print('============================')
         infr.print('--- LNBNN PRIORITY LOOP ---')
         infr.refresh_candidate_edges()
         infr.refresh = RefreshCriteria(**infr._refresh_params)
-        infr.inner_priority_loop()
+        infr.inner_priority_loop(use_refresh)
 
     @profile
-    def main_loop(infr, max_loops=None):
+    def main_loop(infr, max_loops=None, use_refresh=True):
         """
         The main outer loop
         """
@@ -501,28 +504,27 @@ class InfrLoops(object):
                 break
             infr.print('Outer loop iter %d ' % (count,))
             # Do priority loop over lnbnn candidates
-            infr.lnbnn_priority_loop()
+            infr.lnbnn_priority_loop(use_refresh)
 
             terminate = (infr.refresh.num_meaningful == 0)
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
             if terminate:
-                infr.print('Triggered poisson termination criteria', 1, color='red')
+                infr.print('Triggered termination criteria', 1, color='red')
 
             if infr.enable_redundancy:
                 # Fix positive redundancy of anything within the loop
-                infr.refresh.enabled = False
                 infr.pos_redun_loop()
             print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
 
             if terminate:
                 break
 
-        if infr.enable_redundancy:
-            # Do a final fixup, check work of auto criteria
-            infr.refresh.enabled = False
-            # infr.rereview_nonconf_auto()
-            print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
-            # infr.recovery_review_loop()
+        # if infr.enable_redundancy:
+        #     # Do a final fixup, check work of auto criteria
+        #     infr.refresh.enabled = False
+        #     # infr.rereview_nonconf_auto()
+        #     print('infr.refresh.num_meaningful = %r' % (infr.refresh.num_meaningful,))
+        #     # infr.recovery_review_loop()
 
         infr.print('Terminate.', 1, color='red')
 

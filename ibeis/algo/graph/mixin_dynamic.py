@@ -822,7 +822,7 @@ class Priority(object):
             infr.queue.update(ut.dzip(edges_, priority))
 
     @profile
-    def prioritize(infr, metric=None, edges=None, reset=False):
+    def prioritize(infr, metric=None, edges=None, scores=None, reset=False):
         """
         Adds edges to the priority queue
         """
@@ -837,9 +837,12 @@ class Priority(object):
             edges = list(infr.filter_nonredun_edges(infr.unreviewed_graph.edges()))
         else:
             edges = list(edges)
-        priorities = list(infr.gen_edge_values(metric, edges, default=low))
-        priorities = np.array(priorities)
-        priorities[np.isnan(priorities)] = low
+        if scores is None:
+            priorities = list(infr.gen_edge_values(metric, edges, default=low))
+            priorities = np.array(priorities)
+            priorities[np.isnan(priorities)] = low
+        else:
+            priorities = scores
         num_new = 0
         for edge, priority in zip(edges, priorities):
             if edge not in infr.queue:

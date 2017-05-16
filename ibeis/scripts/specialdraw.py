@@ -1328,6 +1328,9 @@ def draw_inconsistent_pcc():
     """
     from ibeis.algo.graph import demo
     import plottool as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
     kwargs = dict(num_pccs=1, n_incon=1, p_incon=1, size=4)
     infr = demo.demodata_infr(**kwargs)
     infr.set_node_attrs('pos', {
@@ -1374,6 +1377,9 @@ def draw_graph_id():
     """
     from ibeis.algo.graph import demo
     import plottool as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
     kwargs = dict(num_pccs=5, p_incon=0, size=4, size_std=1,
                   p_incomp=.2,
                   p_pair_neg=.5, p_pair_incmp=.4)
@@ -1406,6 +1412,9 @@ def redun_demo2():
 
     # import networkx as nx
     pt.ensureqt()
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
 
     fnum = 1
     showkw = dict(show_inconsistency=False, show_labels=True,
@@ -1461,6 +1470,10 @@ def redun_demo2():
     infr.add_feedback((4, 14), decision=NEGTV)
     infr.add_feedback((2, 14), decision=NEGTV)
     show_redun(infr)
+
+    fig = pt.gcf()
+    fig.set_size_inches(10, 5)
+
     ut.show_if_requested()
 
 
