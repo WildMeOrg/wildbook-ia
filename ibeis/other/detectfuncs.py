@@ -1577,7 +1577,8 @@ def localizer_precision_recall_algo_display(ibs, min_overlap=0.5, figsize=(24, 7
     # color_list += [(0.2, 0.2, 0.2)]
     # color_list += [(0.2, 0.2, 0.2)]
 
-    color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)]
+    # color_list_ = [(0.2, 0.2, 0.2), (0.2, 0.2, 0.2)]
+    color_list_ = []
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
