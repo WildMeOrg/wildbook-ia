@@ -17,8 +17,9 @@ register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 DB_DICT = {}
 DBDIR_DICT = {
-    '1': '~/Desktop/JASON',
-    '2': '~/Desktop/CHUCK',
+    '1': '~/Desktop/DEMO2-JASON',
+    '2': '~/Desktop/DEMO2-CHUCK',
+    '3': '~/Desktop/DEMO2-HENDRIK',
 }
 
 
@@ -54,12 +55,12 @@ def experiments_image_src(tag=None, **kwargs):
 
 
 @register_route('/experiments/interest/', methods=['GET'])
-def experiments_interest(**kwargs):
+def experiments_interest(dbtag1='1', dbtag2='3', **kwargs):
     from uuid import UUID
     from ibeis.other.detectfuncs import general_overlap, general_parse_gt
 
-    ibs1 = experiment_init_db('1')
-    ibs2 = experiment_init_db('2')
+    ibs1 = experiment_init_db(dbtag1)
+    ibs2 = experiment_init_db(dbtag2)
     dbdir1 = ibs1.dbdir
     dbdir2 = ibs2.dbdir
 

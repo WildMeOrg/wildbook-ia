@@ -53,7 +53,7 @@
         <tbody>
           {% for (gid1, gid2, stats) in gid_pair_list %}
           <tr {% if stats and stats['conflict'] %}class="danger"{% endif %}>
-            {% if gid1 %}<td><img class="ajax-image-load ajax-image-unloaded" src="" gid="1-{{ gid1 }}" /></td>{% endif %}
+            {% if gid1 %}<td><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ dbtag1 }}-{{ gid1 }}" /></td>{% endif %}
             <td style="width: 30%; position: relative;">
               <div class="message">
               {{ stats['message'] | safe }}
@@ -70,7 +70,7 @@
                 <div class="col-lg-2 blue">{{ stats['num_interest2'] }}</div>
               </div>
             </td>
-            {% if gid2 %}<td><img class="ajax-image-load ajax-image-unloaded" src="" gid="2-{{ gid2 }}" /></td>{% endif %}
+            {% if gid2 %}<td><img class="ajax-image-load ajax-image-unloaded" src="" gid="{{ dbtag2 }}-{{ gid2 }}" /></td>{% endif %}
           </tr>
           {% endfor %}
         </tbody>
