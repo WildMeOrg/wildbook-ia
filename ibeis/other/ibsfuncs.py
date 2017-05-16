@@ -5537,6 +5537,7 @@ def _clean_species(ibs):
         'rhino_white'         :   ('WRHINO', 'Rhino (White)'),
         'seal_saimma_ringed'  :    ('SEAL2', 'Seal (Siamaa Ringed)'),
         'seal_spotted'        :    ('SEAL1', 'Seal (Spotted)'),
+        'shark_sandtiger'     :      ('STS', 'Sand Tiger Shark'),
         'snail'               :    ('SNAIL', 'Snail'),
         'snow_leopard'        :    ('SLEOP', 'Snow Leopard'),
         'tiger'               :    ('TIGER', 'Tiger'),

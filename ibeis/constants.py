@@ -364,6 +364,7 @@ class TEST_SPECIES(object):
     ZEB_PLAIN       = 'zebra_plains'
     LYNX            = 'lynx'
     CHEETAH         = 'cheetah'
+    SHARK_SANDTIGER = 'shark_sandtiger'
     UNKNOWN         = UNKNOWN
 
 
