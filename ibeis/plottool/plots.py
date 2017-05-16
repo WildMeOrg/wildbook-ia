@@ -304,7 +304,7 @@ def multi_plot(xdata, ydata_list, **kwargs):
         'axes.titlesize': custom_figure.TITLE_SIZE,
         'axes.labelsize': custom_figure.LABEL_SIZE,
         # 'legend.facecolor': 'w',
-        'font.family': 'DejaVu Sans',
+        'font.family': 'sans-serif',
         'xtick.labelsize': custom_figure.TICK_SIZE,
         'ytick.labelsize': custom_figure.TICK_SIZE,
     })

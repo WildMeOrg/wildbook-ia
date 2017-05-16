@@ -2319,8 +2319,8 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
         prop = {}
         if size is not None:
             prop['size'] = size
-        prop['weight'] = 'normal'
-        prop['family'] = 'DejaVu Sans'
+        # prop['weight'] = 'normal'
+        prop['family'] = 'sans-serif'
     else:
         prop = fontproperties
     legendkw = dict(loc=loc, prop=prop)
