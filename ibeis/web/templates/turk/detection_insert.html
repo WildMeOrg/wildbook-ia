@@ -258,6 +258,7 @@
     species_part_dict = JSON.parse('{{ species_part_dict_json|safe }}')
 
     config_autointerest = {% if config['autointerest'] %}true{% else %}false{% endif %}
+    config_interest_bypass = {% if config['interest_bypass'] %}true{% else %}false{% endif %}
     config_metadata = {% if config['metadata'] %}true{% else %}false{% endif %}
     config_parts = {% if config['parts'] %}true{% else %}false{% endif %}
 
@@ -571,7 +572,7 @@
         $('#turk-class-examples').modal('show');
       {% endif %}
 
-      {% if False %}
+      {% if display_new_features %}
         $('#turk-new-features').modal('show');
       {% endif %}
     });

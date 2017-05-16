@@ -8,9 +8,10 @@ function hide_viewpoint_2_axis_panel(index) {
 function check_form() {
     return true
 
-    if (bba.entries.length == 0) {
+    if (config_interest_bypass && bba.entries.length == 0) {
         return true
     }
+
     if (bba.entries.length == 1 && config_autointerest) {
         bba.entries[0].highlighted = true
         bba.refresh()
