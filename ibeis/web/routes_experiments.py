@@ -93,6 +93,8 @@ def experiments_interest(dbtag1='jasonp', dbtag2='chuck', **kwargs):
         uuid1 = UUID(uuid_list1[index1]) if index1 < len(uuid_list1) else None
         uuid2 = UUID(uuid_list2[index2]) if index2 < len(uuid_list2) else None
 
+        ut.embed()
+
         if uuid1 is None and uuid2 is None:
             break
 
