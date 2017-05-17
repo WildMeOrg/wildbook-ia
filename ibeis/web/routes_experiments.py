@@ -77,6 +77,7 @@ def experiments_interest(dbtag1='1', dbtag2='3', **kwargs):
 
     gid_pair_list = []
     index1, index2 = 0, 0
+    disagree_total1, disagree_total2 = 0, 0
     while index1 < len(uuid_list1) or index2 < len(uuid_list2):
         uuid1 = UUID(uuid_list1[index1])
         uuid2 = UUID(uuid_list2[index2])
@@ -120,8 +121,16 @@ def experiments_interest(dbtag1='1', dbtag2='3', **kwargs):
             for index1_, index2_ in pair_intersect:
                 gt1 = gt_list1[index1_]
                 gt2 = gt_list2[index2_]
-                if gt1['interest'] != gt2['interest']:
+                interest1 = gt1['interest']
+                interest2 = gt2['interest']
+
+                if interest1 != interest2:
                     disagree += 1
+                    if interest1 < interest2:
+                        disagree_total1 += 1
+                    if interest2 < interest1:
+                        disagree_total2 += 1
+
             if disagree > 0:
                 message_list.append('Interest mismatch')
 
