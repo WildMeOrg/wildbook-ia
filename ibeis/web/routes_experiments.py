@@ -99,6 +99,7 @@ def experiments_interest(dbtag1='jasonp', dbtag2='chuck', **kwargs):
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
+        print('%s %s' % (index1, index2, ))
         stats = None
         if uuid1 is not None and uuid2 is not None and uuid1 == uuid2:
             gt_list1 = gt_dict1[uuid1]
