@@ -90,13 +90,17 @@ def experiments_interest(dbtag1='jasonp', dbtag2='chuck', **kwargs):
         'annot2': 0,
     }
     while index1 < len(uuid_list1) or index2 < len(uuid_list2):
-        uuid1 = UUID(uuid_list1[index1])
-        uuid2 = UUID(uuid_list2[index2])
+        uuid1 = UUID(uuid_list1[index1]) if index1 < len(uuid_list1) else None
+        uuid2 = UUID(uuid_list2[index2]) if index2 < len(uuid_list2) else None
+
+        if uuid1 is None and uuid2 is None:
+            break
+
         gid1 = ibs1.get_image_gids_from_uuid(uuid1)
         gid2 = ibs2.get_image_gids_from_uuid(uuid2)
 
         stats = None
-        if uuid1 == uuid2:
+        if uuid1 is not None and uuid2 is not None and uuid1 == uuid2:
             gt_list1 = gt_dict1[uuid1]
             gt_list2 = gt_dict2[uuid2]
 
