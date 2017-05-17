@@ -103,71 +103,73 @@ def experiments_interest(dbtag1='jasonp', dbtag2='chuck', **kwargs):
 
         print('%s %s' % (index1, index2, ))
         stats = None
-        if uuid1 is not None and uuid2 is not None and uuid1 == uuid2:
-            gt_list1 = gt_dict1[uuid1]
-            gt_list2 = gt_dict2[uuid2]
+        if uuid1 is not None and uuid2 is not None:
+            if uuid1 == uuid2:
+                gt_list1 = gt_dict1[uuid1]
+                gt_list2 = gt_dict2[uuid2]
 
-            stats_global['annot1'] += len(gt_list1)
-            stats_global['annot2'] += len(gt_list2)
+                stats_global['annot1'] += len(gt_list1)
+                stats_global['annot2'] += len(gt_list2)
 
-            overlap = general_overlap(gt_list1, gt_list2)
-            if 0 in overlap.shape:
-                index_list1 = []
-                index_list2 = []
+                overlap = general_overlap(gt_list1, gt_list2)
+                if 0 in overlap.shape:
+                    index_list1 = []
+                    index_list2 = []
+                else:
+                    index_list1 = np.argmax(overlap, axis=1)
+                    index_list2 = np.argmax(overlap, axis=0)
+
+                pair_list1 = set(enumerate(index_list1))
+                pair_list2 = set(enumerate(index_list2))
+                pair_list2 = set([_[::-1] for _ in pair_list2])
+                pair_union = pair_list1 | pair_list2
+                pair_intersect = pair_list1 & pair_list2
+                pair_diff_sym = pair_list1 ^ pair_list2
+                pair_diff1 = pair_list1 - pair_list2
+                pair_diff2 = pair_list2 - pair_list1
+
+                message_list = []
+                if len(gt_list1) > 0 and len(gt_list2) == 0:
+                    message_list.append('Jason has annotations, Chuck none')
+                if len(gt_list1) == 0 and len(gt_list2) > 0:
+                    message_list.append('Chuck has annotations, Jason none')
+                if len(pair_diff1) > 0 and len(pair_diff2) == 0:
+                    message_list.append('Jason has additional annotations')
+                if len(pair_diff1) == 0 and len(pair_diff2) > 0:
+                    message_list.append('Chuck has additional annotations')
+                if len(pair_diff1) > 0 and len(pair_diff2) > 0:
+                    message_list.append('Assignment mismatch')
+
+                disagree = 0
+                for index1_, index2_ in pair_intersect:
+                    gt1 = gt_list1[index1_]
+                    gt2 = gt_list2[index2_]
+                    interest1 = gt1['interest']
+                    interest2 = gt2['interest']
+
+                    if interest1 != interest2:
+                        disagree += 1
+                        if interest1 > interest2:
+                            stats_global['disagree_interest1'] += 1
+                        if interest2 > interest1:
+                            stats_global['disagree_interest2'] += 1
+
+                if disagree > 0:
+                    message_list.append('Interest mismatch')
+
+                stats = {
+                    'num_annot1': len(gt_list1),
+                    'num_annot2': len(gt_list2),
+                    'num_interest1': len([_ for _ in gt_list1 if _['interest']]),
+                    'num_interest2': len([_ for _ in gt_list2 if _['interest']]),
+                    'conflict': len(message_list) > 0,
+                    'message': '<br/>'.join(message_list),
+                }
             else:
-                index_list1 = np.argmax(overlap, axis=1)
-                index_list2 = np.argmax(overlap, axis=0)
-
-            pair_list1 = set(enumerate(index_list1))
-            pair_list2 = set(enumerate(index_list2))
-            pair_list2 = set([_[::-1] for _ in pair_list2])
-            pair_union = pair_list1 | pair_list2
-            pair_intersect = pair_list1 & pair_list2
-            pair_diff_sym = pair_list1 ^ pair_list2
-            pair_diff1 = pair_list1 - pair_list2
-            pair_diff2 = pair_list2 - pair_list1
-
-            message_list = []
-            if len(gt_list1) > 0 and len(gt_list2) == 0:
-                message_list.append('Jason has annotations, Chuck none')
-            if len(gt_list1) == 0 and len(gt_list2) > 0:
-                message_list.append('Chuck has annotations, Jason none')
-            if len(pair_diff1) > 0 and len(pair_diff2) == 0:
-                message_list.append('Jason has additional annotations')
-            if len(pair_diff1) == 0 and len(pair_diff2) > 0:
-                message_list.append('Chuck has additional annotations')
-            if len(pair_diff1) > 0 and len(pair_diff2) > 0:
-                message_list.append('Assignment mismatch')
-
-            disagree = 0
-            for index1_, index2_ in pair_intersect:
-                gt1 = gt_list1[index1_]
-                gt2 = gt_list2[index2_]
-                interest1 = gt1['interest']
-                interest2 = gt2['interest']
-
-                if interest1 != interest2:
-                    disagree += 1
-                    if interest1 > interest2:
-                        stats_global['disagree_interest1'] += 1
-                    if interest2 > interest1:
-                        stats_global['disagree_interest2'] += 1
-
-            if disagree > 0:
-                message_list.append('Interest mismatch')
-
-            stats = {
-                'num_annot1': len(gt_list1),
-                'num_annot2': len(gt_list2),
-                'num_interest1': len([_ for _ in gt_list1 if _['interest']]),
-                'num_interest2': len([_ for _ in gt_list2 if _['interest']]),
-                'conflict': len(message_list) > 0,
-                'message': '<br/>'.join(message_list),
-            }
-        elif uuid1 < uuid2:
-            gid2 = None
-        else:
-            gid1 = None
+                if uuid1 < uuid2:
+                    gid2 = None
+                else:
+                    gid1 = None
 
         gid_pair_list.append( (gid1, gid2, stats) )
         if gid1 is not None:
