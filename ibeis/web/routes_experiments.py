@@ -72,8 +72,8 @@ def experiments_interest(dbtag1='jasonp', dbtag2='chuck', **kwargs):
     dbdir1 = ibs1.dbdir
     dbdir2 = ibs2.dbdir
 
-    gid_list1 = ibs1.get_valid_gids()
-    gid_list2 = ibs2.get_valid_gids()
+    gid_list1 = ibs1.get_valid_gids(reviewed=1)
+    gid_list2 = ibs2.get_valid_gids(reviewed=1)
 
     gt_dict1 = general_parse_gt(ibs1, gid_list1)
     gt_dict2 = general_parse_gt(ibs2, gid_list2)
