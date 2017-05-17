@@ -4055,28 +4055,6 @@ def classifier_visualize_training_localizations(ibs, classifier_weight_filepath,
 
 
 @register_ibs_method
-def classifier_train(ibs, species_list, **kwargs):
-    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
-    from ibeis_cnn.process import numpy_processed_directory2
-    from ibeis_cnn.models.classifier import train_classifier
-    from ibeis_cnn.utils import save_model
-    data_path = join(ibs.get_cachedir(), 'extracted')
-    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list,
-                                                               dest_path=data_path,
-                                                               **kwargs)
-    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
-    output_path = join(ibs.get_cachedir(), 'training', 'classifier')
-    model_path = train_classifier(output_path, X_file, y_file)
-    # Add the species_list to the model
-    model_state = ut.load_cPkl(model_path)
-    assert 'species_list' not in model_state
-    model_state['species_list'] = species_list
-    save_model(model_state, model_path)
-    # Return model path
-    return model_path
-
-
-@register_ibs_method
 def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id, **kwargs):
     from ibeis_cnn.ingest_ibeis import get_cnn_classifier_cameratrap_binary_training_images
     from ibeis_cnn.process import numpy_processed_directory2
@@ -4092,6 +4070,56 @@ def classifier_cameratrap_train(ibs, positive_imageset_id, negative_imageset_id,
     model_path = train_classifier(output_path, X_file, y_file)
     # Return model path
     return model_path
+
+
+@register_ibs_method
+def classifier_binary_train(ibs, species_list, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_binary_training_images
+    from ibeis_cnn.process import numpy_processed_directory2
+    from ibeis_cnn.models.classifier import train_classifier
+    from ibeis_cnn.utils import save_model
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    extracted_path = get_cnn_classifier_binary_training_images(ibs, species_list,
+                                                               dest_path=data_path,
+                                                               **kwargs)
+    id_file, X_file, y_file = numpy_processed_directory2(extracted_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'classifier-binary')
+    model_path = train_classifier(output_path, X_file, y_file)
+    # Add the species_list to the model
+    model_state = ut.load_cPkl(model_path)
+    assert 'species_list' not in model_state
+    model_state['species_list'] = species_list
+    save_model(model_state, model_path)
+    # Return model path
+    return model_path
+
+
+@register_ibs_method
+def classifier_multiclass_train(ibs, species_list=None, **kwargs):
+    from ibeis_cnn.ingest_ibeis import get_cnn_classifier_multiclass_training_images
+    from ibeis_cnn.process import numpy_processed_directory3
+    from ibeis_cnn.models.classifier2 import train_classifier2
+    from ibeis_cnn.utils import save_model
+    data_path = join(ibs.get_cachedir(), 'extracted')
+    values = get_cnn_classifier_multiclass_training_images(ibs, species_list,
+                                                           dest_path=data_path,
+                                                           **kwargs)
+    extracted_path, category_list = values
+    id_file, X_file, y_file = numpy_processed_directory3(extracted_path)
+    output_path = join(ibs.get_cachedir(), 'training', 'classifier-multiclass')
+    model_path = train_classifier2(output_path, X_file, y_file)
+    # Add the species_list to the model
+    model_state = ut.load_cPkl(model_path)
+    assert 'category_list' not in model_state
+    model_state['category_list'] = category_list
+    save_model(model_state, model_path)
+    # Return model path
+    return model_path
+
+
+@register_ibs_method
+def classifier_train(ibs, **kwargs):
+    return ibs.classifier_multiclass_train(**kwargs)
 
 
 @register_ibs_method
@@ -4136,7 +4164,7 @@ def labeler_train(ibs, **kwargs):
 def detector_train(ibs):
     results = ibs.localizer_train()
     localizer_weight_path, localizer_config_path, localizer_class_path = results
-    classifier_model_path = ibs.classifier_train()
+    classifier_model_path = ibs.classifier_binary_train()
     labeler_model_path = ibs.labeler_train()
     output_path = join(ibs.get_cachedir(), 'training', 'detector')
     ut.ensuredir(output_path)

@@ -59,6 +59,8 @@ def experiments_interest(dbtag1='1', dbtag2='3', **kwargs):
     from uuid import UUID
     from ibeis.other.detectfuncs import general_overlap, general_parse_gt
 
+    dbtag1 = str(dbtag1)
+    dbtag2 = str(dbtag2)
     ibs1 = experiment_init_db(dbtag1)
     ibs2 = experiment_init_db(dbtag2)
     dbdir1 = ibs1.dbdir
