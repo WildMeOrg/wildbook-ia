@@ -10,13 +10,7 @@ import matplotlib.pyplot as plt
 import utool as ut  # NOQA
 import numpy as np
 from plottool import custom_figure
-
-#ut.noinject(__name__, '[plots]')
 print, rrr, profile = ut.inject2(__name__)
-
-#custom_figure.TITLE_SIZE = 8
-# Titlesize for old non-multiplot plots
-#custom_figure.TITLE_SIZE = 12
 
 
 def is_default_dark_bg():
@@ -300,13 +294,13 @@ def multi_plot(xdata, ydata_list, **kwargs):
     # Initial integration with mpl rcParams standards
     mplrc = mpl.rcParams.copy()
     mplrc.update({
-        'legend.fontsize': custom_figure.LEGEND_SIZE,
-        'axes.titlesize': custom_figure.TITLE_SIZE,
-        'axes.labelsize': custom_figure.LABEL_SIZE,
+        # 'legend.fontsize': custom_figure.LEGEND_SIZE,
+        # 'axes.titlesize': custom_figure.TITLE_SIZE,
+        # 'axes.labelsize': custom_figure.LABEL_SIZE,
         # 'legend.facecolor': 'w',
-        'font.family': 'sans-serif',
-        'xtick.labelsize': custom_figure.TICK_SIZE,
-        'ytick.labelsize': custom_figure.TICK_SIZE,
+        # 'font.family': 'sans-serif',
+        # 'xtick.labelsize': custom_figure.TICK_SIZE,
+        # 'ytick.labelsize': custom_figure.TICK_SIZE,
     })
     mplrc.update(kwargs.get('rcParams', {}))
 
@@ -1483,7 +1477,7 @@ def plot_sorted_scores(scores_list,
         use_darkbackground = is_default_dark_bg()
     if use_darkbackground:
         df2.dark_background()
-    titlesize = kwargs.get('titlesize', custom_figure.TITLE_SIZE)
+    titlesize = kwargs.get('titlesize', mpl.rcParams['axes.titlesize'])
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(
             family='DejaVu Sans',

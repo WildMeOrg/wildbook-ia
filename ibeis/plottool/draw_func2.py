@@ -2320,10 +2320,12 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
         if size is not None:
             prop['size'] = size
         # prop['weight'] = 'normal'
-        prop['family'] = 'sans-serif'
+        # prop['family'] = 'sans-serif'
     else:
         prop = fontproperties
-    legendkw = dict(loc=loc, prop=prop)
+    legendkw = dict(loc=loc)
+    if prop:
+        legendkw['prop'] = prop
     if handles is not None:
         legendkw['handles'] = handles
     legend = ax.legend(**legendkw)

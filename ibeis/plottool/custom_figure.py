@@ -9,34 +9,14 @@ import warnings
 import functools
 from plottool import custom_constants
 import matplotlib.gridspec as gridspec  # NOQA
-#(print, print_, printDBG, rrr, profile) = ut.inject(__name__, '[customfig]')
 ut.noinject(__name__, '[customfig]')
 
 
-#LABEL_SIZE = 8
-#TITLE_SIZE = 8
-#LABEL_SIZE = ut.get_argval('--labelsize', default=8)
-#TITLE_SIZE = ut.get_argval('--titlesize', default=8)
-
-
-# LABEL_SIZE = ut.get_argval('--labelsize', default=10)
-# TITLE_SIZE = ut.get_argval('--titlesize', default=12)
-# FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=10)
-# LEGEND_SIZE = ut.get_argval('--legendsize', default=8)
-# TICK_SIZE = ut.get_argval('--ticksize', default=8)
-
-# UNCOMMENT FOR PRESENTATIONS
-# LABEL_SIZE = ut.get_argval('--labelsize', default=13)
-# TITLE_SIZE = ut.get_argval('--titlesize', default=18)
-# FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=20)
-# LEGEND_SIZE = ut.get_argval('--legendsize', default=16)
-# TICK_SIZE = ut.get_argval('--ticksize', default=12)
-
-LABEL_SIZE = ut.get_argval('--labelsize', default=None)
-TITLE_SIZE = ut.get_argval('--titlesize', default=None)
-FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=None)
-LEGEND_SIZE = ut.get_argval('--legendsize', default=None)
-TICK_SIZE = ut.get_argval('--ticksize', default=None)
+# LABEL_SIZE = ut.get_argval('--labelsize', default=None)
+# TITLE_SIZE = ut.get_argval('--titlesize', default=None)
+# FIGTITLE_SIZE = ut.get_argval('--figtitlesize', default=None) # figure.titlesize
+# LEGEND_SIZE = ut.get_argval('--legendsize', default=None)
+# TICK_SIZE = ut.get_argval('--ticksize', default=None)
 
 # CUSTOM_RC = {
 #     'legend.fontsize': LEGEND_SIZE,
@@ -461,7 +441,7 @@ def customize_fontprop(font_prop, **fontkw):
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
-    titlesize = fontkw.get('titlesize', TITLE_SIZE)
+    titlesize = fontkw.get('titlesize', mpl.rcParams['axes.titlesize'])
     titlekw = {
         'fontproperties': mpl.font_manager.FontProperties(
             weight=fontkw.get('weight', 'light'), size=titlesize)
@@ -473,7 +453,7 @@ def set_title(title='', ax=None, **fontkw):
 def set_xlabel(lbl, ax=None, **kwargs):
     if ax is None:
         ax = gca()
-    labelsize = kwargs.get('labelsize', LABEL_SIZE)
+    labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
             weight=kwargs.get('weight', 'light'), size=labelsize)
@@ -485,7 +465,7 @@ def set_xlabel(lbl, ax=None, **kwargs):
 def set_ylabel(lbl, ax=None, **kwargs):
     if ax is None:
         ax = gca()
-    labelsize = kwargs.get('labelsize', LABEL_SIZE)
+    labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
     labelkw = {
         'fontproperties': mpl.font_manager.FontProperties(
             weight=kwargs.get('weight', 'light'), size=labelsize)
@@ -494,10 +474,34 @@ def set_ylabel(lbl, ax=None, **kwargs):
 
 
 def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
-                 size=None, font=None, fontfamily=None, fontweight=None,
-                 fig=None):
-    if size is None:
-        size = FIGTITLE_SIZE
+                 size=None, fontfamily=None, fontweight=None,
+                 fig=None, font=None):
+    r"""
+    Args:
+        figtitle (?):
+        subtitle (str): (default = '')
+        forcefignum (bool): (default = True)
+        incanvas (bool): (default = True)
+        fontfamily (None): (default = None)
+        fontweight (None): (default = None)
+        size (None): (default = None)
+        fig (None): (default = None)
+
+    CommandLine:
+        python -m plottool.custom_figure set_figtitle --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.custom_figure import *  # NOQA
+        >>> import plottool as pt
+        >>> fig = pt.figure(fnum=1, doclf=True)
+        >>> result = pt.set_figtitle(figtitle='figtitle', fig=fig)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
+    # if size is None:
+    #     size = FIGTITLE_SIZE
     if font is not None:
         print('WARNING set_figtitle font kwarg is DEPRICATED')
     if figtitle is None:
@@ -509,28 +513,20 @@ def set_figtitle(figtitle, subtitle='', forcefignum=True, incanvas=True,
     if incanvas:
         if subtitle != '':
             subtitle = '\n' + subtitle
-        #fig.suptitle(figtitle + subtitle, fontsize=14, fontweight='bold')
-        #fontprop = getattr(custom_constants.FONTS, font)
-        #fig.suptitle(figtitle + subtitle, fontproperties=fontprop)
-        #fontproperties = mpl.font_manager.FontProperties(weight='light',
-        #                                                 size=size)
-        prop = {}
-        if fontfamily is None:
-            fontfamily = 'DejaVu Sans'
-        if fontweight is None:
-            fontweight = 'light'
-        prop['family'] = fontfamily
-        prop['weight'] = fontweight
-        prop['size'] = size
-        # print('prop = %s' % (prop,))
-        fontproperties = mpl.font_manager.FontProperties(**prop)
-        # print('fontproperties = %r' % (fontproperties.__dict__,))
-        # fig.suptitle(figtitle + subtitle, fontproperties=fontproperties, fontsize=size)
+        prop = {
+            'family': fontfamily,
+            'weight': fontweight,
+            'size': size,
+        }
+        prop = {k: v for k, v in prop.items() if v is not None}
         sup = fig.suptitle(figtitle + subtitle)
-        sup.set_fontproperties(fontproperties)
-        # , fontproperties=fontproperties, family=fontfamily, fontsize=size)
-        #fig_relative_text(.5, .96, subtitle,
-        # fontproperties=custom_constants.FONTS.subtitle)
+
+        if prop:
+            fontproperties = sup.get_fontproperties().copy()
+            for key, val in prop.items():
+                getattr(fontproperties, 'set_' + key)(val)
+            sup.set_fontproperties(fontproperties)
+            # fontproperties = mpl.font_manager.FontProperties(**prop)
     else:
         fig.suptitle('')
     # Set title in the window
