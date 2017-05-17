@@ -48,9 +48,14 @@
             <th>{{ dbdir1 }} </th>
             <th style="width: 30%; position: relative;">
               <div class="row stats">
-                <div class="col-lg-2 blue">{{ disagree_total1 }}</div>
+                <div class="col-lg-2 blue">{{ stats_global['annot1'] }}</div>
+                <div class="col-lg-8">Total</div>
+                <div class="col-lg-2 blue">{{ stats_global['annot2'] }}</div>
+              </div>
+              <div class="row stats">
+                <div class="col-lg-2 blue">{{ stats_global['disagree_interest1'] }}</div>
                 <div class="col-lg-8">Difference</div>
-                <div class="col-lg-2 blue">{{ disagree_total2 }}</div>
+                <div class="col-lg-2 blue">{{ stats_global['disagree_interest2'] }}</div>
               </div>
             </th>
             <th style="text-align: right">{{ dbdir2 }}</th>
