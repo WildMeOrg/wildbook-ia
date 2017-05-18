@@ -2329,8 +2329,9 @@ def legend(loc='best', fontproperties=None, size=None, fc='w', alpha=1,
     if handles is not None:
         legendkw['handles'] = handles
     legend = ax.legend(**legendkw)
-    legend.get_frame().set_fc(fc)
-    legend.get_frame().set_alpha(alpha)
+    if legend:
+        legend.get_frame().set_fc(fc)
+        legend.get_frame().set_alpha(alpha)
 
 
 def plot_histpdf(data, label=None, draw_support=False, nbins=10):
