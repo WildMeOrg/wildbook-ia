@@ -93,7 +93,7 @@ class ConfusionMetrics(object):
         # -----
         'cs': {'class_odds', 'skew'},
         'cv': {'cost_ratio'},
-        'cn': {'cost_pos'},
+        'cp': {'cost_pos'},
         'cn': {'cost_neg'},
         # -----
         'tp': {'true_pos', 'hit'},
@@ -506,6 +506,18 @@ class ConfusionMetrics(object):
             >>> result = ('thresh = %s' % (str(thresh),))
             >>> print(result)
             thresh = 22.5
+
+        Ignore:
+            metric = 'fpr'
+            value = 1e-4
+            self = cfms
+            maximize = False
+
+        interpolate_replbounds(metric_values, self.thresholds, 0, maximize=maximize)
+        interpolate_replbounds(metric_values, self.thresholds, 1e-4, maximize=maximize)
+        interpolate_replbounds(metric_values, self.thresholds, 1e-3, maximize=maximize)
+        interpolate_replbounds(metric_values, self.thresholds, 1e-2, maximize=maximize)
+        interpolate_replbounds(metric_values, self.thresholds, 1e-2, maximize=maximize)
         """
         if value == 'max':
             return self.get_thresh_at_metric_max(metric)
