@@ -523,6 +523,11 @@ class QueryRequest(ut.NiceRepr):
         state['lnbnn_normer'] = False
         state['_internal_dannots'] = None
         state['_internal_qannots'] = None
+        state['_unique_annots'] = None
+        state['_unique_dannots'] = None
+        # qreq_._unique_annots = _annots.view(_annots.aids)
+        # qreq_._unique_dannots = qreq_._unique_annots.view(sorted(qreq_.daids))
+
         # Hack for the actual ibeis object
         # (The ibs object itself should now do this hack)
         #state['dbdir'] = qreq_.ibs.get_dbdir()

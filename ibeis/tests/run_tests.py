@@ -173,11 +173,49 @@ def run_tests():
             cov.exclude(line)
 
     doctest_modname_list2 = []
+
+    try:
+        import guitool  # NOQA
+    except ImportError:
+        HAVE_GUI = False
+    else:
+        HAVE_GUI = True
+
+    # Remove gui things if possible
+    import re
+    if not HAVE_GUI:
+        doctest_modname_list = [
+            modname for modname in doctest_modname_list_ if
+            not re.search('\\bgui\\b', modname) and
+            not re.search('\\bviz\\b', modname)
+        ]
+
     for modname in doctest_modname_list:
         try:
             exec('import ' + modname, globals(), locals())
         except ImportError as ex:
             ut.printex(ex, iswarning=True)
+            # import parse
+            # if not HAVE_GUI:
+            #     try:
+            #         parsed = parse.parse('No module named {}', str(ex))
+            #         if parsed is None:
+            #             parsed = parse.parse('cannot import name {}', str(ex))
+            #         if parsed is not None:
+            #             if parsed[0].endswith('_gui'):
+            #                 print('skipping gui module %r' % (parsed[0],))
+            #                 continue
+            #             if parsed[0].startswith('viz_'):
+            #                 print('skipping viz module %r' % (parsed[0],))
+            #                 continue
+            #             if parsed[0].startswith('interact_'):
+            #                 print('skipping interact module %r' % (parsed[0],))
+            #                 continue
+            #             # if parsed[0] in ['sip']:
+            #             #     print('skipping Qt module %r' % (parsed[0],))
+            #             #     continue
+            #     except:
+            #         pass
             if not ut.in_pyinstaller_package():
                 raise
         else:

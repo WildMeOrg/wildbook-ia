@@ -725,7 +725,7 @@ class ClfResult(ut.NiceRepr):
 
     @profile
     def get_pos_threshes(res, metric='fpr', value=1E-4, maximize=False,
-                         warmup=200, priors=None, min_thresh=0.0):
+                         warmup=200, priors=None, min_thresh=0.5):
         """
         Finds a threshold that achieves the desired `value` for the desired
         metric, while maximizing or minimizing the threshold.

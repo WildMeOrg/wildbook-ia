@@ -798,6 +798,8 @@ class CandidateSearch(object):
             if not ranking:
                 new_pos = set(infr.find_pos_redun_candidate_edges())
                 candidate_edges.update(new_pos)
+                print('[WARNING] This should no longer be hit')
+                print('[WARNING] Depricate ranking=False in find_new_candidate_edges')
         new_edges = {
             edge for edge in candidate_edges if not infr.graph.has_edge(*edge)
         }
@@ -847,14 +849,14 @@ class CandidateSearch(object):
 
             default_priority = prob_match.copy()
             # Give negatives that pass automatic thresholds high priority
-            if infr.enable_non_pos_auto_prioritize:
+            if infr.enable_auto_prioritize_nonpos:
                 _probs = task_probs[primary_task]['nomatch']
                 flags = _probs > primary_thresh['nomatch']
                 default_priority[flags] = np.maximum(default_priority[flags],
                                                      _probs[flags])
 
             # Give not-comps that pass automatic thresholds high priority
-            if infr.enable_non_pos_auto_prioritize:
+            if infr.enable_auto_prioritize_nonpos:
                 _probs = task_probs[primary_task]['notcomp']
                 flags = _probs > primary_thresh['notcomp']
                 default_priority[flags] = np.maximum(default_priority[flags],

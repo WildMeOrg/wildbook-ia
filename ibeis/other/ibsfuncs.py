@@ -5338,7 +5338,6 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
         >>> result = ('metadata = %s' % (ut.repr3(metadata),))
         >>> print(result)
     """
-    from ibeis.viz.interact import interact_chip
     # if False:
     #     metadata1 = ut.LazyDict({
     #         'aid': aid,
@@ -5362,7 +5361,11 @@ def get_annot_lazy_dict(ibs, aid, config2_=None):
     # metadata['rchip'] = metadata.getitem('chips', is_eager=False)
     # metadata['dlen_sqrd'] = metadata.getitem('chip_dlensqrd', is_eager=False)
     # metadata['rchip_fpath'] = metadata.getitem('chip_fpath', is_eager=False)
-    metadata['annot_context_options'] = lambda: interact_chip.build_annot_context_options(ibs, aid)
+    try:
+        from ibeis.viz.interact import interact_chip
+        metadata['annot_context_options'] = lambda: interact_chip.build_annot_context_options(ibs, aid)
+    except ImportError:
+        pass
     return metadata
 
 
@@ -5446,8 +5449,7 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
         >>> result = ('metadata = %s' % (ut.repr3(metadata),))
         >>> print(result)
     """
-    from ibeis.viz.interact import interact_chip
-    metadata = ut.LazyDict({
+    defaults = {
         'aid': aid,
         'name': lambda: ibs.get_annot_names(aid),
         'rchip_fpath': lambda: ibs.depc_annot.get('chips', aid, 'img', config, read_extern=False),
@@ -5456,9 +5458,16 @@ def get_annot_lazy_dict2(ibs, aid, config=None):
         'kpts': lambda:  ibs.depc_annot.get('feat', aid, 'kpts', config),
         'dlen_sqrd': lambda: ibs.depc_annot['chips'].subproperties['dlen_sqrd'](
             ibs.depc_annot, [aid], config)[0],
+    }
+    try:
+        from ibeis.viz.interact import interact_chip
+    except ImportError:
+        pass
+    else:
         #get_annot_chip_dlensqrd([aid], config=config)[0],
-        'annot_context_options': lambda: interact_chip.build_annot_context_options(ibs, aid),
-    })
+        defaults['annot_context_options'] = (
+            lambda: interact_chip.build_annot_context_options(ibs, aid))
+    metadata = ut.LazyDict(defaults)
     return metadata
 
 

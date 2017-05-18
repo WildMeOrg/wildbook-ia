@@ -731,7 +731,8 @@ def devmain():
     ut.show_if_requested()
     if ut.get_argflag(('--show', '--wshow')):
         pt.present()
-    main_execstr = ibeis.main_loop(main_locals, ipy=(NOGUI or CMD))
+    main_execstr = ibeis.main_loop(main_locals, rungui=not NOGUI,
+                                   ipy=(NOGUI or CMD))
     exec(main_execstr)
 
     #

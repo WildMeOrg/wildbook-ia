@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.scripts import script_vsone
 import pandas as pd
 import numpy as np
@@ -138,15 +140,20 @@ class Chap5Commands(object):
         CommandLine:
             python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
             python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show
             python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show
+
+            python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
+            python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> dbname = ut.get_argval('--db', default='PZ_Master1')
+            >>> aug = 'test'
+            >>> aug = ''
             >>> aug = ut.get_argval('--aug', default='')
             >>> self = Chap5(dbname)
-            >>> aug = ''
-            >>> aug = ut.g'test'
             >>> self.measure_simulation(aug)
             >>> ut.quit_if_noshow()
             >>> self.draw_simulation(aug)
@@ -197,38 +204,21 @@ class Chap5Commands(object):
             notpb_res = res.compress(flags)
             res = notpb_res
 
-        if infr_train.ibs.dbname == 'PZ_MTEST':
-            # graph_thresh = res.get_pos_threshes('fpr', value=.5, warmup=200)
-            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
-            # graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
-            graph_thresh['match'] = .5
-        elif infr_train.ibs.dbname == 'GZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.0014, warmup=200,
-                                                min_thresh=.5)
+        graph_thresh = res.get_pos_threshes('fpr', value=.002)
+        rankclf_thresh = res.get_pos_threshes('fpr', value=0)
+
+        if infr_train.ibs.dbname == 'GZ_Master1':
+            graph_thresh = res.get_pos_threshes('fpr', value=.0014)
+            rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
         elif infr_train.ibs.dbname == 'PZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.05, warmup=200,
-                                                min_thresh=.5)
-        else:
-            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200,
-                                                min_thresh=.5)
+            # graph_thresh = res.get_pos_threshes('fpr', value=.0014)
+            # rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
+            graph_thresh = res.get_pos_threshes('fpr', value=.03)
+            rankclf_thresh = res.get_pos_threshes('fpr', value=.01)
+            # graph_thresh = res.get_pos_threshes('fpr', value=.1)
+            # rankclf_thresh = res.get_pos_threshes('fpr', value=.03)
 
-        rankclf_thresh = res.get_pos_threshes('fpr', value=.001,
-                                              warmup=200, min_thresh=.5)
-
-        # graph_thresh = res.get_pos_threshes('fpr', value=.1, warmup=200)
-        # print('graph_thresh = %r' % (graph_thresh,))
-        # print('rankclf_thresh = %r' % (rankclf_thresh,))
-        # import utool
-        # utool.embed()
-        # sys.exit(1)
-
-        if False:
-            cfms = res.confusions('match')
-            cfms.plot_vs('thresholds', 'fpr')
-            # import utool
-            # utool.embed()
-            # pass
-
+        # Build deploy classifiers
         clf_cfgstr = pblm.samples.sample_hashid()
         clf_cfgstr += ut.hashstr_arr27(
             pblm.samples.X_dict[data_key].columns.values.tolist(),
@@ -245,6 +235,46 @@ class Chap5Commands(object):
         # deploy_clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
         # pblm._ensure_evaluation_clf(task_key, data_key, clf_key, use_cache=False)
 
+        def _test_weird_error_difference(infr1, infr2):
+            # First load infr1, and infr2 in ipython
+            new_edges1 = infr1.find_new_candidate_edges()
+            new_edges2 = infr2.find_new_candidate_edges()
+
+            assert new_edges2 == new_edges1
+
+            task_probs1 = infr1._make_task_probs(new_edges1)
+            task_probs2 = infr2._make_task_probs(new_edges2)
+            assert np.all(task_probs1['match_state'] ==
+                          task_probs1['match_state'])
+            assert np.all(task_probs2['photobomb_state'] ==
+                          task_probs2['photobomb_state'])
+
+            # hack to make both methods fail when manual review happens
+            infr1.oracle = None
+            infr2.oracle = None
+
+            infr1.lnbnn_priority_loop()
+            infr2.lnbnn_priority_loop()
+
+            infr1.metrics_list1[0] == infr2.metrics_list1[0]
+            relevant = ['user_id', 'n_true_merges']
+            x = ut.take_column(infr1.metrics_list, relevant)
+            y = ut.take_column(infr2.metrics_list, relevant)
+            x[0:10] == y[0:10]
+
+            infr1.metrics_list[-1]
+            infr2.metrics_list[-1]
+
+        print('graph_thresh = %r' % (graph_thresh,))
+        print('rankclf_thresh = %r' % (rankclf_thresh,))
+
+        if False:
+            cfms = res.confusions('match')
+            cfms.plot_vs('thresholds', 'fpr')
+            # import utool
+            # utool.embed()
+            # pass
+
         const_dials = {
             # 'oracle_accuracy' : (0.98, 1.0),
             'oracle_accuracy' : (0.98, .98),
@@ -253,63 +283,52 @@ class Chap5Commands(object):
             'max_outer_loops' : np.inf,
         }
 
-        varied_dials = {
-            'enable_inference'   : True,
-            'match_state_thresh' : graph_thresh,
-            'name'               : 'graph'
-        }
+        if True:
+            varied_dials = {
+                'enable_inference'   : True,
+                'match_state_thresh' : graph_thresh,
+                'name'               : 'graph'
+            }
+            dials = ut.dict_union(const_dials, varied_dials)
+            verbose = 1
+            infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                         verbose=verbose)
+            infr1.enable_auto_prioritize_nonpos = True
+            infr1._refresh_params['window'] = 20
+            infr1._refresh_params['thresh'] = np.exp(-2)
+            infr1._refresh_params['patience'] = 20
 
-        dials = ut.dict_union(const_dials, varied_dials)
-        # if dials['oracle_accuracy'] < 1:
-        #     dials['name'] += '+Err'
-        print('dials = %s' % (ut.repr4(dials),))
+            infr1.init_simulation(classifiers=pblm, **dials)
+            infr1.init_test_mode()
+            infr1.reset(state='empty')
+            if 0:
+                # from ibeis.algo.graph import mixin_loops
+                infr1.lnbnn_priority_loop()
+                # infr1.fix_pos_redun_loop()
+                # infr1.recovery_review_loop()
+                # infr1.pos_redun_loop()
+                # infr1.groundtruth_merge_loop()
+                # infr1.recovery_review_loop()
+            else:
+                infr1.main_loop()
 
-        verbose = 1
-        infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                    verbose=verbose)
-        infr.enable_non_pos_auto_prioritize = True
-        window = min(100, 2 * int(np.sqrt(len(infr.aids))))
-        print('window = %r' % (window,))
-        window = 20
-        infr._refresh_params['window'] = window
-        infr._refresh_params['thresh'] = np.exp(-2)
-        infr._refresh_params['patience'] = 20
+            pred_confusion = pd.DataFrame(infr1.test_state['confusion'])
+            pred_confusion.index.name = 'real'
+            pred_confusion.columns.name = 'pred'
+            print('Edge confusion')
+            print(pred_confusion)
 
-        infr.init_simulation(classifiers=pblm, **dials)
-        infr.init_test_mode()
-        # infr.test_mode = True
-
-        infr.reset(state='empty')
-        if 0:
-            # from ibeis.algo.graph import mixin_loops
-            infr.lnbnn_priority_loop()
-            # infr.fix_pos_redun_loop()
-            # infr.recovery_review_loop()
-
-            # infr.pos_redun_loop()
-
-            # infr.groundtruth_merge_loop()
-            # infr.recovery_review_loop()
-        else:
-            infr.main_loop()
-
-        pred_confusion = pd.DataFrame(infr.test_state['confusion'])
-        pred_confusion.index.name = 'real'
-        pred_confusion.columns.name = 'pred'
-        print('Edge confusion')
-        print(pred_confusion)
-
-        expt_results = {}
-        refresh_thresh = infr.refresh._prob_any_remain_thresh
-        graph_expt_data = {
-            'real_ccs': list(infr.nid_to_gt_cc.values()),
-            'pred_ccs': list(infr.pos_graph.connected_components()),
-            'graph': infr.graph.copy(),
-            'dials': dials,
-            'refresh_thresh': refresh_thresh,
-            'metrics': infr.metrics_list,
-        }
-        expt_results['graph'] = graph_expt_data
+            expt_results = {}
+            refresh_thresh = infr1.refresh._prob_any_remain_thresh
+            graph_expt_data = {
+                'real_ccs': list(infr1.nid_to_gt_cc.values()),
+                'pred_ccs': list(infr1.pos_graph.connected_components()),
+                'graph': infr1.graph.copy(),
+                'dials': dials,
+                'refresh_thresh': refresh_thresh,
+                'metrics': infr1.metrics_list,
+            }
+            expt_results['graph'] = graph_expt_data
 
         # metrics_df = pd.DataFrame.from_dict(graph_expt_data['metrics'])
         # for user, group in metrics_df.groupby('user_id'):
@@ -323,31 +342,7 @@ class Chap5Commands(object):
             ut.qtensure()
 
         if True:
-            varied_dials = {
-                'enable_inference'   : False,
-                'match_state_thresh' : None,
-                'name'               : 'ranking'
-            }
-            dials = ut.dict_union(const_dials, varied_dials)
-            verbose = 1
-            infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                        verbose=verbose)
-            infr.init_simulation(classifiers=None, **dials)
-            infr.init_test_mode()
-            infr.enable_redundancy = False
-            infr.enable_autoreview = False
-            infr.reset(state='empty')
-            infr.main_loop(max_loops=1, use_refresh=False)
-            ranking_expt_data = {
-                'real_ccs': list(infr.nid_to_gt_cc.values()),
-                'pred_ccs': list(infr.pos_graph.connected_components()),
-                'graph': infr.graph.copy(),
-                'dials': dials,
-                'refresh_thresh': refresh_thresh,
-                'metrics': infr.metrics_list,
-            }
-            expt_results['ranking'] = ranking_expt_data
-
+            # Rank+CLF
             varied_dials = {
                 'enable_inference'   : False,
                 'match_state_thresh' : rankclf_thresh,
@@ -355,23 +350,51 @@ class Chap5Commands(object):
             }
             dials = ut.dict_union(const_dials, varied_dials)
             verbose = 1
-            infr = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                        verbose=verbose)
-            infr.init_simulation(classifiers=pblm, **dials)
-            infr.init_test_mode()
-            infr.enable_redundancy = False
-            infr.enable_autoreview = True
-            infr.reset(state='empty')
-            infr.main_loop(max_loops=1, use_refresh=False)
+            infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
+                                         autoinit=True, verbose=verbose)
+            infr2.init_simulation(classifiers=pblm, **dials)
+            infr2.init_test_mode()
+            infr2.enable_redundancy = False
+            infr2.enable_autoreview = True
+            infr2.reset(state='empty')
+
+            infr2.main_loop(max_loops=1, use_refresh=False)
+
             verifier_expt_data = {
-                'real_ccs': list(infr.nid_to_gt_cc.values()),
-                'pred_ccs': list(infr.pos_graph.connected_components()),
-                'graph': infr.graph.copy(),
+                'real_ccs': list(infr2.nid_to_gt_cc.values()),
+                'pred_ccs': list(infr2.pos_graph.connected_components()),
+                'graph': infr2.graph.copy(),
                 'dials': dials,
                 'refresh_thresh': refresh_thresh,
-                'metrics': infr.metrics_list,
+                'metrics': infr2.metrics_list,
             }
             expt_results['rank+clf'] = verifier_expt_data
+
+            # Ranking test
+            varied_dials = {
+                'enable_inference'   : False,
+                'match_state_thresh' : None,
+                'name'               : 'ranking'
+            }
+            dials = ut.dict_union(const_dials, varied_dials)
+            verbose = 1
+            infr3 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
+                                         autoinit=True, verbose=verbose)
+            infr3.init_simulation(classifiers=None, **dials)
+            infr3.init_test_mode()
+            infr3.enable_redundancy = False
+            infr3.enable_autoreview = False
+            infr3.reset(state='empty')
+            infr3.main_loop(max_loops=1, use_refresh=False)
+            ranking_expt_data = {
+                'real_ccs': list(infr3.nid_to_gt_cc.values()),
+                'pred_ccs': list(infr3.pos_graph.connected_components()),
+                'graph': infr3.graph.copy(),
+                'dials': dials,
+                'refresh_thresh': refresh_thresh,
+                'metrics': infr3.metrics_list,
+            }
+            expt_results['ranking'] = ranking_expt_data
 
         expt_name = 'simulation' + aug
         full_fname = expt_name + ut.get_dict_hashid(const_dials)
@@ -632,7 +655,7 @@ class Chap5Commands(object):
 
             if 0:
                 ut.render_latex_text(new_text, preamb_extra=[
-                    r'\usepackage{makecell}',
+                    '\\usepackage{makecell}',
                 ])
 
         if 1:
@@ -693,7 +716,7 @@ class Chap5Commands(object):
             ut.write_to(join(self.dpath, fname), latex_str)
 
             ut.render_latex_text(latex_str, preamb_extra=[
-                r'\usepackage{makecell}',
+                '\\usepackage{makecell}',
             ])
         if 0:
             df = dfs[keys[0]]
@@ -731,7 +754,7 @@ class Chap5Commands(object):
             for x in re.finditer(pat, latex_str):
                 print(x)
             # ut.render_latex_text(latex_str, preamb_extra=[
-            #     r'\usepackage{makecell}',
+            #     '\\usepackage{makecell}',
             # ])
 
             fname = 'error_size' + aug + '.tex'
@@ -1339,7 +1362,7 @@ class Chap3Agg(object):
         text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
         text = text.replace(r'n\_annots', r'\thead{\#annots}')
         enc_text = text.replace('lrrllr', 'lrrrrr')
-        # ut.render_latex_text(text, preamb_extra=r'\usepackage{makecell}')
+        # ut.render_latex_text(text, preamb_extra='\\usepackage{makecell}')
 
         df = pd.DataFrame(infos['qual'])
         df = df.rename(columns={'species_nice': 'Database'})

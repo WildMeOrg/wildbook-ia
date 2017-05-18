@@ -100,6 +100,7 @@ def demodata_tarjan_bridge():
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = demodata_tarjan_bridge()
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -184,12 +185,15 @@ def find_bridges(G):
 
     Example:
         >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
         >>> G = demodata_bridge()
-        >>> bridges = list(find_bridges(G))
+        >>> bridges = set(find_bridges(G))
         >>> assert bridges == {(3, 5), (4, 8), (20, 21), (22, 23), (23, 24)}
         >>> import plottool as pt
+        >>> ut.quit_if_noshow()
         >>> pt.qtensure()
         >>> pt.show_nx(G)
+        >>> ut.show_if_requested()
     """
     # It is just faster to do this
     chains = nx.chain_decomposition(G)
@@ -351,6 +355,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
         >>> G.add_edges_from(aug_edges)
         >>> print(nx.edge_connectivity(G))
         >>> import plottool as pt
+        >>> ut.quit_if_noshow()
         >>> pt.qtensure()
         >>> pt.show_nx(G)
         >>> ut.show_if_requested()
@@ -363,7 +368,7 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
         >>>     1, 2, 3, 4, 5, 6, 7, 8, 9])
         >>> G.add_edges_from([(3, 8)])
         >>> impossible = {(6, 3), (3, 9)}
-        >>> avail = list(set(nx.complement_edges(G)) - impossible)
+        >>> avail = list(set(complement_edges(G)) - impossible)
         >>> aug_edges = edge_connected_augmentation(G, k=1)
         >>> aug_edges = edge_connected_augmentation(G, 1, avail)
     """
@@ -489,9 +494,9 @@ def weighted_bridge_connected_augmentation(G, avail, return_anyway=False):
         >>> G = demodata_tarjan_bridge()
         >>> avail = [(9, 7), (8, 5), (2, 10), (6, 13), (11, 18), (1, 17), (2, 3),
         >>>          (16, 17), (18, 14), (15, 14)]
+        >>> bridge_augment = weighted_bridge_connected_augmentation
         >>> ut.assert_raises(ValueError, bridge_augment, G, [])
         >>> bridge_augment(G, [(9, 7)], return_anyway=True)
-        >>> bridge_augment = weighted_bridge_connected_augmentation
         >>> aug_edges = set(bridge_augment(G, avail))
         >>> assert aug_edges == {(6, 13), (2, 10), (1, 17)}
         >>> # test2
@@ -729,6 +734,7 @@ def bridge_connected_augmentation(G):
         >>> G = demodata_tarjan_bridge()
         >>> bridge_edges = bridge_connected_augmentation(G)
         >>> import plottool as pt
+        >>> ut.quit_if_noshow()
         >>> pt.qtensure()
         >>> pt.nx_agraph_layout(G, inplace=True, prog='neato')
         >>> nx.set_node_attributes(G, 'pin', 'true')
@@ -746,6 +752,7 @@ def bridge_connected_augmentation(G):
         >>> G.add_nodes_from([1, 2, 3, 4])
         >>> bridge_edges = bridge_connected_augmentation(G)
         >>> import plottool as pt
+        >>> ut.quit_if_noshow()
         >>> pt.qtensure()
         >>> pt.nx_agraph_layout(G, inplace=True, prog='neato')
         >>> nx.set_node_attributes(G, 'pin', 'true')

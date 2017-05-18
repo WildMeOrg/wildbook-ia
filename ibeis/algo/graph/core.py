@@ -970,16 +970,17 @@ class AnnotInference(ut.NiceRepr,
         # Once we sync, this is merged into external feedback.
         infr.internal_feedback = ut.ddict(list)
 
+        infr.test_mode = False
+        infr.simulation_mode = False
+
         # if enable_redundancy is True, then redundant edges will be ignored by
         # the priority queue and extra edges needed to achieve minimum
         # redundancy will be searched for if the queue is empty.
         infr.enable_redundancy = True
         infr.enable_inference = True
-        infr.test_mode = False
-        infr.simulation_mode = False
         infr.enable_autoreview = False
         infr.enable_attr_update = True
-        infr.enable_non_pos_auto_prioritize = False
+        infr.enable_auto_prioritize_nonpos = True
 
         infr.thresh = None
         infr.cm_list = None

@@ -30,3 +30,5 @@ lockfile>=0.10.2
 opencv-python
 -e git+https://github.com/cameronbwhite/Flask-CAS.git@master#egg=flask_cas
 futures
+pathlib
+delorean

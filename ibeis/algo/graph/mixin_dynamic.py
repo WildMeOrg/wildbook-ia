@@ -509,7 +509,7 @@ class DynamicUpdate(object):
             else:
                 print_('incon-between')
                 # infr.print('Incomp edge between CCs')
-            action = infr.on_between(edge, decision, new_nid1, new_nid2, None)
+            action = infr.on_between(edge, decision, nid1, nid2, None)
         return action
 
 

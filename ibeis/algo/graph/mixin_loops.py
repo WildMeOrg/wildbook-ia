@@ -194,7 +194,7 @@ class RefreshCriteria(object):
             >>> pt.qtensure()
             >>> n_pred_list = n_pred_list[10:]
             >>> n_real_list = n_real_list[10:]
-            >>> xdata = xdata10:]
+            >>> xdata = xdata[10:]
             >>> pt.multi_plot(xdata, [n_pred_list, n_real_list], marker='',
             >>>               label_list=['pred', 'real'], xlabel='review num',
             >>>               ylabel='pred remaining merges')
@@ -439,20 +439,13 @@ class InfrLoops(object):
             infr.print('--- RECOVERY REVEIEW LOOP ---')
         while infr.is_recovering():
             edge, priority = infr.pop()
-            # num_reviews = infr.get_edge_attr(edge, 'num_reviews', default=0)
             try:
                 feedback = infr.request_user_review(edge)
             except ReviewCanceled:
+                # Place edge back on the queue
                 if not infr.is_redundant(edge):
                     infr.queue[edge] = priority
                 continue
-            # infr.print(
-            #     'RECOVERY LOOP edge={}, decision={}, priority={}, '
-            #     'n_reviews={}, len(recover_ccs)={}'.format(
-            #         edge, feedback['decision'], priority, num_reviews,
-            #         len(infr.recovery_ccs)),
-            #     color='red'
-            # )
             infr.add_feedback(edge=edge, **feedback)
 
     @profile

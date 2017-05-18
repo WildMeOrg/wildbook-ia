@@ -164,6 +164,10 @@ Some submodles require C++ libraries. Build them using the following Command.
 
 Register these packages with the python enviroment.
 
+    # Install external modules
+    python super_setup.py --develop
+
+    # Install the ibeis module
     pip install -e .
 
  --- /USAGE ---
