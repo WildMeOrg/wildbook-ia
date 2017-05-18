@@ -535,8 +535,22 @@ class ClfResult(ut.NiceRepr):
             res.confidence_ratio = res.probhats_df.sum(axis=1)
         else:
             res.probhats_df = None
-
         return res
+
+    def compress(res, flags):
+        res2 = ClfResult()
+        res2.task_key = res.task_key
+        res2.data_key = res.data_key
+        res2.class_names = res.class_names
+        res2.probs_df = res.probs_df[flags]
+        res2.target_bin_df = res.target_bin_df[flags]
+        res2.target_enc_df = res.target_enc_df[flags]
+        if res.probhats_df is None:
+            res2.probhats_df = None
+        else:
+            res2.probhats_df = res.probhats_df[flags]
+            # res2.confidence_ratio = res.confidence_ratio[flags]
+        return res2
 
     @classmethod
     def combine_results(ClfResult, res_list, labels=None):
@@ -711,7 +725,7 @@ class ClfResult(ut.NiceRepr):
 
     @profile
     def get_pos_threshes(res, metric='fpr', value=1E-4, maximize=False,
-                         warmup=200, priors=None):
+                         warmup=200, priors=None, min_thresh=0.0):
         """
         Finds a threshold that achieves the desired `value` for the desired
         metric, while maximizing or minimizing the threshold.
@@ -721,21 +735,16 @@ class ClfResult(ut.NiceRepr):
         By default a class prior is 1 for threshold minimization and 0 for
         maximization.
         """
-        import vtool as vt
-        y_test_bin = res.target_bin_df.values
-        clf_probs = res.probs_df.values
         pos_threshes = {}
         if priors is None:
             priors = {name: float(not maximize) for name in res.class_names}
-        for k in range(y_test_bin.shape[1]):
-            class_name = res.class_names[k]
-            probs, labels = clf_probs.T[k], y_test_bin.T[k]
-            cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+        for class_name in res.class_names:
+            cfms = res.confusions(class_name)
             learned_thresh = cfms.get_thresh_at_metric(
                 metric, value, maximize=maximize)
 
             prior_thresh = priors[class_name]
-            n_support = sum(labels)
+            n_support = cfms.n_pos
 
             if warmup is not None:
                 """
@@ -752,10 +761,10 @@ class ClfResult(ut.NiceRepr):
                 thresh = prior_thresh * (1 - alpha) + learned_thresh * (alpha)
             else:
                 thresh = learned_thresh
-            pos_threshes[class_name] = thresh
+            pos_threshes[class_name] = max(min_thresh, thresh)
         return pos_threshes
 
-    def report_thresholds(res):
+    def report_thresholds(res, warmup=200):
         import vtool as vt
         ut.cprint('Threshold Report', 'yellow')
         y_test_bin = res.target_bin_df.values
@@ -771,14 +780,16 @@ class ClfResult(ut.NiceRepr):
         for k in range(y_test_bin.shape[1]):
             thresh_dict = ut.odict()
             class_name = res.class_names[k]
-            probs, labels = clf_probs.T[k], y_test_bin.T[k]
-            cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
+            cfms = res.confusions(class_name)
+            # probs, labels = clf_probs.T[k], y_test_bin.T[k]
+            # cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
 
             threshes = ut.odict([
                 # (class_name + '@tpr=1', cfms.get_thresh_at_metric('tpr', 1)),
                 # (class_name + '@fpr=0', cfms.get_thresh_at_metric('fpr', 0)),
                 (class_name + '@fpr=.01', cfms.get_thresh_at_metric('fpr', .01)),
                 (class_name + '@fpr=.001', cfms.get_thresh_at_metric('fpr', 1E-4)),
+                (class_name + '@fpr=0', cfms.get_thresh_at_metric('fpr', 0)),
                 # (class_name + '@fpr=.0001', cfms.get_thresh_at_metric('fpr', .0001)),
                 # (class_name + '@max(mcc)', cfms.get_thresh_at_metric_max('mcc')),
                 # (class_name + '@max(acc)', cfms.get_thresh_at_metric_max('acc')),
@@ -793,14 +804,17 @@ class ClfResult(ut.NiceRepr):
                     thresh_dict[key][metric] = cfms.get_metric_at_thresh(metric, thresh)
             thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
             thresh_df = thresh_df.loc[list(threshes.keys())]
-            print('\n1vR Thresholds for ' + class_name)
-            print(thresh_df.to_string(float_format=lambda x: '%.4f' % (x,)))
+            print('Raw 1vR {} Thresholds'.format(class_name))
+            print(ut.indent(
+                thresh_df.to_string(float_format='{:.4f}'.format)
+            ))
             # chosen_type = class_name + '@fpr=0'
             # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
-        pos_threshes = res.get_pos_threshes()
+        pos_threshes = res.get_pos_threshes(warmup=warmup)
 
-        print('pos_threshes = %s' % (ut.repr2(pos_threshes, precision=4),))
+        print('Chosen thresholds = %s' % (ut.repr2(
+            pos_threshes, nl=1, precision=4),))
         # print('neg_threshes = %r' % (neg_threshes,))
         # Actually we need negative pos_threshes?
         # So if ALL probs are under pos_threshes then its ok
@@ -839,7 +853,7 @@ class ClfResult(ut.NiceRepr):
         class_xs, groupxs = vt.group_indices(auto_truth_enc)
 
         auto_pred_enc = auto_probs.argmax(axis=1)
-        print('Autoclassify Confusion Matrix:\n')
+        print('Autoclassify Confusion Matrix:')
         print(sklearn.metrics.confusion_matrix(auto_truth_enc, auto_pred_enc))
         try:
             print('Autoclassify MCC: ' + str(

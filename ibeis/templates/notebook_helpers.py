@@ -6,10 +6,11 @@ def custom_globals():
     ut.util_cache.VERBOSE_CACHE = False
     ut.NOT_QUIET = False
 
-    import plottool as pt
-    pt.custom_figure.TITLE_SIZE = 20
-    pt.custom_figure.LABEL_SIZE = 20
-    pt.custom_figure.FIGTITLE_SIZE = 20
+    import plottool as pt  # NOQA
+    import matplotlib as mpl
+    mpl.rcParams['axes.labelsize'] = 20
+    mpl.rcParams['axes.titlesize'] = 20
+    mpl.rcParams['figure.titlesize'] = 20
 
 
 def make_cells_wider():

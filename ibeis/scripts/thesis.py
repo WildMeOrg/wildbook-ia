@@ -45,95 +45,6 @@ W, H = 7.4375, 3.0
 # W, H = W * 1.25, H * 1.25
 
 
-class SplitSample(ut.NiceRepr):
-    def __init__(sample, qaids, daids):
-        sample.qaids = qaids
-        sample.daids = daids
-
-    def __nice__(sample):
-        return 'nQaids={}, nDaids={}'.format(
-            len(sample.qaids), len(sample.daids)
-        )
-
-
-class ExpandingSample(ut.NiceRepr):
-    def __init__(sample, qaids, dname_encs, confusor_pool):
-        sample.qaids = qaids
-        sample.dname_encs = dname_encs
-        sample.confusor_pool = confusor_pool
-
-    def __nice__(sample):
-        denc_pername = ut.lmap(len, sample.dname_encs)
-        n_denc_pername = np.mean(denc_pername)
-        return 'nQaids={}, nDEncPerName={}, nConfu={}'.format(
-            len(sample.qaids), n_denc_pername, len(sample.confusor_pool)
-        )
-
-    def expand(sample, denc_per_name=[1], extra_dbsize_fracs=[0]):
-        # Vary the number of database encounters in each sample
-        target_daids_list = []
-        target_info_list_ = []
-        for num in denc_per_name:
-            dname_encs_ = ut.take_column(sample.dname_encs, slice(0, num))
-            dnames_ = ut.lmap(ut.flatten, dname_encs_)
-            daids_ = ut.total_flatten(dname_encs_)
-            target_daids_list.append(daids_)
-            name_lens = ut.lmap(len, dnames_)
-            dpername = (name_lens[0] if ut.allsame(name_lens) else
-                        np.mean(name_lens))
-            target_info_list_.append(ut.odict([
-                ('qsize', len(sample.qaids)),
-                ('t_n_names', len(dname_encs_)),
-                ('t_dpername', dpername),
-                ('t_denc_pername', num),
-                ('t_dsize', len(daids_)),
-            ]))
-
-        # Append confusors to maintain a constant dbsize in each base sample
-        dbsize_list = ut.lmap(len, target_daids_list)
-        max_dsize = max(dbsize_list)
-        n_need = max_dsize - min(dbsize_list)
-        n_extra_avail = len(sample.confusor_pool) - n_need
-        assert len(sample.confusor_pool) > n_need, 'not enough confusors'
-        padded_daids_list = []
-        padded_info_list_ = []
-        for daids_, info_ in zip(target_daids_list, target_info_list_):
-            num_take = max_dsize - len(daids_)
-            pad_aids = sample.confusor_pool[:num_take]
-            new_aids = daids_ + pad_aids
-            info_ = info_.copy()
-            info_['n_pad'] = len(pad_aids)
-            info_['pad_dsize'] = len(new_aids)
-            padded_info_list_.append(info_)
-            padded_daids_list.append(new_aids)
-
-        # Vary the dbsize by appending extra confusors
-        if extra_dbsize_fracs is None:
-            extra_dbsize_fracs = [1.]
-        extra_fracs = np.array(extra_dbsize_fracs)
-        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
-        daids_list = []
-        info_list = []
-        for n in n_extra_list:
-            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
-                extra_aids = sample.confusor_pool[len(sample.confusor_pool) - n:]
-                daids = sorted(daids_ + extra_aids)
-                daids_list.append(daids)
-                info = info_.copy()
-                info['n_extra'] = len(extra_aids)
-                info['dsize'] = len(daids)
-                info_list.append(info)
-
-        import pandas as pd
-        verbose = 0
-        if verbose:
-            print(pd.DataFrame.from_records(info_list))
-            print('#qaids = %r' % (len(sample.qaids),))
-            print('num_need = %r' % (n_need,))
-            print('max_dsize = %r' % (max_dsize,))
-        return sample.qaids, daids_list, info_list
-
-
 class DBInputs(object):
 
     def __init__(self, dbname=None):
@@ -222,18 +133,25 @@ class DBInputs(object):
 class Chap5Commands(object):
 
     @profile
-    def measure_simulation(self):
+    def measure_simulation(self, aug=''):
         """
         CommandLine:
             python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
-            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show
+            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show --aug=test
             python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show
 
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> aug = ut.get_argval('--aug', default='')
             >>> self = Chap5(dbname)
-            >>> self.measure_simulation()
+            >>> aug = ''
+            >>> aug = ut.g'test'
+            >>> self.measure_simulation(aug)
+            >>> ut.quit_if_noshow()
+            >>> self.draw_simulation(aug)
+            >>> #self.draw_simulation2()
+            >>> ut.show_if_requested()
         """
         # if 'self' not in vars():
         #     # from ibeis.scripts.thesis import Chap5, script_vsone
@@ -267,20 +185,49 @@ class Chap5Commands(object):
         clf_key = pblm.default_clf_key
         res = pblm.task_combo_res[task_key][clf_key][data_key]
 
+        if False:
+            pblm.learn_evaluation_classifiers(task_keys=['photobomb_state'])
+            pb_res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
+            pb_res  # TODO?
+
+        if True:
+            # Remove results that are photobombs
+            pb_task = pblm.samples.subtasks['photobomb_state']
+            flags = pb_task.indicator_df.loc[res.index]['notpb'].values
+            notpb_res = res.compress(flags)
+            res = notpb_res
+
         if infr_train.ibs.dbname == 'PZ_MTEST':
             # graph_thresh = res.get_pos_threshes('fpr', value=.5, warmup=200)
             graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
             # graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
             graph_thresh['match'] = .5
         elif infr_train.ibs.dbname == 'GZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.0014, warmup=200)
+            graph_thresh = res.get_pos_threshes('fpr', value=.0014, warmup=200,
+                                                min_thresh=.5)
         elif infr_train.ibs.dbname == 'PZ_Master1':
-            graph_thresh = res.get_pos_threshes('fpr', value=.05, warmup=200)
+            graph_thresh = res.get_pos_threshes('fpr', value=.05, warmup=200,
+                                                min_thresh=.5)
         else:
-            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200)
+            graph_thresh = res.get_pos_threshes('fpr', value=.002, warmup=200,
+                                                min_thresh=.5)
+
+        rankclf_thresh = res.get_pos_threshes('fpr', value=.001,
+                                              warmup=200, min_thresh=.5)
 
         # graph_thresh = res.get_pos_threshes('fpr', value=.1, warmup=200)
-        print('graph_thresh = %r' % (graph_thresh,))
+        # print('graph_thresh = %r' % (graph_thresh,))
+        # print('rankclf_thresh = %r' % (rankclf_thresh,))
+        # import utool
+        # utool.embed()
+        # sys.exit(1)
+
+        if False:
+            cfms = res.confusions('match')
+            cfms.plot_vs('thresholds', 'fpr')
+            # import utool
+            # utool.embed()
+            # pass
 
         clf_cfgstr = pblm.samples.sample_hashid()
         clf_cfgstr += ut.hashstr_arr27(
@@ -325,7 +272,7 @@ class Chap5Commands(object):
         print('window = %r' % (window,))
         window = 20
         infr._refresh_params['window'] = window
-        infr._refresh_params['thresh'] = .5
+        infr._refresh_params['thresh'] = np.exp(-2)
         infr._refresh_params['patience'] = 20
 
         infr.init_simulation(classifiers=pblm, **dials)
@@ -378,7 +325,7 @@ class Chap5Commands(object):
         if True:
             varied_dials = {
                 'enable_inference'   : False,
-                'match_state_thresh' : graph_thresh,
+                'match_state_thresh' : None,
                 'name'               : 'ranking'
             }
             dials = ut.dict_union(const_dials, varied_dials)
@@ -403,7 +350,7 @@ class Chap5Commands(object):
 
             varied_dials = {
                 'enable_inference'   : False,
-                'match_state_thresh' : graph_thresh,
+                'match_state_thresh' : rankclf_thresh,
                 'name'               : 'rank+clf'
             }
             dials = ut.dict_union(const_dials, varied_dials)
@@ -426,7 +373,7 @@ class Chap5Commands(object):
             }
             expt_results['rank+clf'] = verifier_expt_data
 
-        expt_name = 'simulation'
+        expt_name = 'simulation' + aug
         full_fname = expt_name + ut.get_dict_hashid(const_dials)
 
         ut.save_data(join(self.dpath, full_fname + '.pkl'), expt_results)
@@ -436,7 +383,7 @@ class Chap5Commands(object):
         # self.draw_simulation()
         # ut.show_if_requested()
 
-    def draw_simulation(self):
+    def draw_simulation(self, aug=''):
         """
         CommandLine:
             python -m ibeis Chap5.draw_simulation --db PZ_MTEST --diskshow
@@ -450,7 +397,7 @@ class Chap5Commands(object):
             >>> self.draw_simulation()
         """
 
-        expt_name = 'simulation'
+        expt_name = 'simulation' + aug
         if not self.expt_results:
             expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
         else:
@@ -498,7 +445,7 @@ class Chap5Commands(object):
         fig.set_size_inches([W, H * .75])
         pt.adjust_subplots(wspace=.25, fig=fig)
 
-        fpath = join(self.dpath, expt_name + '.png')
+        fpath = join(self.dpath, expt_name + aug + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
             ut.startfile(fpath)
@@ -552,7 +499,7 @@ class Chap5Commands(object):
         if ut.get_argflag('--diskshow'):
             ut.startfile(fpath)
 
-    def print_measures(self):
+    def print_measures(self, aug=''):
         """
         CommandLine:
             python -m ibeis Chap5.print_measures --db PZ_MTEST --diskshow
@@ -562,18 +509,235 @@ class Chap5Commands(object):
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> aug = ut.get_argval('--aug', default='')
             >>> self = Chap5(dbname)
-            >>> self.print_measures()
+            >>> self.print_measures(aug)
         """
-        expt_name = 'simulation'
+        expt_name = 'simulation' + aug
         expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
         keys = ['ranking', 'rank+clf', 'graph']
+        infos = {}
         for key in keys:
             print('!!!!!!!!!!!!')
             print('key = %r' % (key,))
-            self.print_error_sizes(expt_results[key])
+            expt_data = expt_results[key]
+            info = self.print_error_sizes(expt_data, allow_hist=False)
+            infos[key] = info
 
-    def print_error_sizes(self, expt_data):
+        dfs = {}
+        for key in keys:
+            info = infos[key]
+
+            table = ut.odict()
+
+            caseinfo = info['unchanged']
+            casetable = table['common'] = ut.odict()
+            casetable['pred # PCC']    = '-'
+            casetable['pred PCC size'] = '-'
+            casetable['real # PCC']    = caseinfo['n_real_pccs']
+            casetable['real PCC size'] = caseinfo['size_real_pccs']
+            casetable['small size']    = '-'
+            casetable['large size']    = '-'
+            if True:
+
+                caseinfo = info['split']
+                casetable = table['split'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = caseinfo['ave_small']
+                casetable['large size']    = caseinfo['ave_large']
+
+                caseinfo = info['merge']
+                casetable = table['merge'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = caseinfo['ave_small']
+                casetable['large size']    = caseinfo['ave_large']
+            else:
+
+                caseinfo = info['psplit']
+                casetable = table['splits'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = caseinfo['ave_small']
+                casetable['large size']    = caseinfo['ave_large']
+
+                caseinfo = info['pmerge']
+                casetable = table['merge'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = caseinfo['ave_small']
+                casetable['large size']    = caseinfo['ave_large']
+
+                caseinfo = info['hybrid']
+                casetable = table['hybrids'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = '-'
+                casetable['large size']    = '-'
+
+                caseinfo = info['hsplit']
+                casetable = table['hybrid-split'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = caseinfo['ave_small']
+                casetable['large size']    = caseinfo['ave_large']
+
+                caseinfo = info['hmerge']
+                casetable = table['hybrid-merge'] = ut.odict()
+                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+                casetable['real # PCC']    = caseinfo['n_real_pccs']
+                casetable['real PCC size'] = caseinfo['size_real_pccs']
+                casetable['small size']    = caseinfo['ave_small']
+                casetable['large size']    = caseinfo['ave_large']
+
+            df = pd.DataFrame.from_dict(table, orient='index')
+            df = df.loc[list(table.keys())]
+            # df = df.rename(columns={c: '\\thead{%s}' % (c) for c in df.columns})
+
+            print(df)
+            dfs[key] = df
+
+            text = df.to_latex(index=True, escape=True)
+            import re
+            text = re.sub('±...', '', text)
+            # text = text.replace('±', '\pm')
+            # print(text)
+            top, rest = text.split('\\toprule')
+            header, bot = rest.split('\\midrule')
+
+            new_text = ''.join([
+                top, '\\toprule',
+                '\n{} &\multicolumn{2}{c}{pred} & \multicolumn{2}{c}{real}\\\\',
+                header.replace('pred', '').replace('real', ''),
+                '\\midrule',
+                bot
+            ])
+            new_text = new_text + '\\caption{%s}' % (key,)
+            print(new_text)
+            print('\n')
+
+            if 0:
+                ut.render_latex_text(new_text, preamb_extra=[
+                    r'\usepackage{makecell}',
+                ])
+
+        if 1:
+
+            df = dfs[keys[0]].T
+            for key in keys[1:]:
+                df = df.join(dfs[key].T, rsuffix=' ' + key)
+            df = df.T
+            text = df.to_latex(index=True, escape=True,
+                               column_format='l' + 'r' * 6)
+            # text = re.sub('±...', '', text)
+            text = text.replace('±', '\pm')
+            # print(text)
+            top, rest = text.split('\\toprule')
+            header, rest = rest.split('\\midrule')
+            body, bot = rest.split('\\bottomrule')
+
+            body2 = body
+            for key in keys:
+                body2 = body2.replace(key, '')
+            # Put all numbers in math mode
+            pat = ut.named_field('num', '[0-9.]+(\\\\pm)?[0-9.]*')
+            body2 = re.sub(pat, '$' + ut.bref_field('num') + '$', body2)
+
+            header2 = header
+            # for key in ['pred', 'real']:
+            #     header2 = header2.replace(key, '')
+            header2 = header2.replace('\\# PCC', '\\#')
+            header2 = header2.replace('PCC size', 'size')
+
+            import ubelt as ub
+
+            bodychunks = []
+            bodylines = body2.strip().split('\n')
+            for key, chunk in zip(keys, ub.chunks(bodylines, nchunks=3)):
+                part = '\n\multirow{%d}{*}{%s}\n' % (len(chunk), key,)
+                part += '\n'.join(['& ' + c for c in chunk])
+                bodychunks.append(part)
+            body3 = '\n\\midrule'.join(bodychunks) + '\n'
+            print(body3)
+
+            # mcol2 = ['\multicolumn{2}{c}{pred} & \multicolumn{2}{c}{real}']
+            latex_str = ''.join([
+                top.replace('{l', '{ll'),
+                # '\\hline',
+                '\\toprule',
+                # '\n{} & {} & ' + ' & '.join(mcol2) + ' \\\\',
+                ' {} & ' + header2,
+                # '\\hline',
+                '\\midrule',
+                body3,
+                # '\\hline',
+                '\\bottomrule',
+                bot,
+            ])
+            print(latex_str)
+            fname = 'error_size' + aug + '.tex'
+            ut.write_to(join(self.dpath, fname), latex_str)
+
+            ut.render_latex_text(latex_str, preamb_extra=[
+                r'\usepackage{makecell}',
+            ])
+        if 0:
+            df = dfs[keys[0]]
+            for key in keys[1:]:
+                df = df.join(dfs[key], rsuffix=' ' + key)
+            # print(df)
+
+            text = df.to_latex(index=True, escape=True,
+                               column_format='|l|' + '|'.join(['rrrr'] * 3) + '|')
+            text = re.sub('±...', '', text)
+            text = text.replace('±', '\pm')
+            # print(text)
+            top, rest = text.split('\\toprule')
+            header, bot = rest.split('\\midrule')
+
+            mcol1 = ['\multicolumn{4}{c|}{%s}' % (key,) for key in keys]
+            mcol2 = ['\multicolumn{2}{c}{pred} & \multicolumn{2}{c|}{real}'] * 3
+
+            header3 = header
+            for key in keys + ['pred', 'real']:
+                header3 = header3.replace(key, '')
+            # header3 = header3.replace('\\# PCC', 'num')
+            header3 = header3.replace('PCC size', 'size')
+
+            latex_str = ''.join([
+                top, '\\hline',
+                '\n{} & ' + ' & '.join(mcol1) + ' \\\\',
+                '\n{} & ' + ' & '.join(mcol2) + ' \\\\',
+                header3,
+                '\\hline',
+                bot.replace('bottomrule', 'hline')
+            ])
+            print(latex_str)
+
+            for x in re.finditer(pat, latex_str):
+                print(x)
+            # ut.render_latex_text(latex_str, preamb_extra=[
+            #     r'\usepackage{makecell}',
+            # ])
+
+            fname = 'error_size' + aug + '.tex'
+            ut.write_to(join(self.dpath, fname), latex_str)
+
+    def print_error_sizes(self, expt_data, allow_hist=False):
         real_ccs = expt_data['real_ccs']
         pred_ccs = expt_data['pred_ccs']
         graph = expt_data['graph']
@@ -584,12 +748,24 @@ class Chap5Commands(object):
         def ave_size(sets):
             lens = list(map(len, sets))
             hist = ut.dict_hist(lens)
-            if len(hist) <= 2:
+            if allow_hist and len(hist) <= 2:
                 return ut.repr4(hist, nl=0)
             else:
                 mu = np.mean(lens)
                 sigma = np.std(lens)
-                return '{:.2f}±{:.2f}'.format(mu, sigma)
+                return '{:.1f}±{:.1f}'.format(mu, sigma)
+
+        def unchanged_measures(unchanged):
+            pred = true = unchanged
+            ('n_real_pccs', len(true)),
+            ('size_real_pccs', ave_size(true)),
+            unchanged_info = ut.odict([
+                ('n_pred_pccs', len(pred)),
+                ('size_pred_pccs', ave_size(pred)),
+                ('n_real_pccs', len(true)),
+                ('size_real_pccs', ave_size(true)),
+            ])
+            return unchanged_info
 
         def get_bad_edges(ccs, bad_decision, ret_ccs=False):
             for cc1, cc2 in ut.combinations(ccs, 2):
@@ -621,25 +797,16 @@ class Chap5Commands(object):
                 b = list(get_bad_edges(split, POSTV))
                 baddies.append(b)
 
-            text = ut.codeblock(
-                '''
-                For split cases (false positives)
-                There are ${}$ PCCs with average size ${}$ that should be split
-                into ${}$ PCCs with average size ${}$.  On average, there are
-                ${}$ true PCCs per predicted PCC.
-
-                Within each split, the average size of the smallest PCC is
-                {ave_small} and the average size of the largest PCC is
-                {ave_large}
-                '''
-            ).format(
-                len(pred), ave_size(pred),
-                len(true), ave_size(true),
-                ave_size(splits),
-                ave_small=ave_size(smalls),
-                ave_large=ave_size(larges),
-            )
-            return text
+            split_info = ut.odict([
+                ('n_pred_pccs', len(pred)),
+                ('size_pred_pccs', ave_size(pred)),
+                ('n_real_pccs', len(true)),
+                ('size_real_pccs', ave_size(true)),
+                ('n_true_per_pred', ave_size(splits)),
+                ('ave_small', ave_size(smalls)),
+                ('ave_large', ave_size(larges)),
+            ])
+            return split_info
 
         def merge_measures(merges):
             # Filter out non-merge hybrids
@@ -669,53 +836,34 @@ class Chap5Commands(object):
                 if bad_neg_redun >= 2:
                     n_neg_redun += 1
 
-            text = ut.codeblock(
-                '''
-                For merges cases (false negatives), there are ${}$ PCCs with
-                average size ${}$ that should be merged into ${}$ PCCs with
-                average size ${}$.  On average, there are ${}$ predicted PCCs
-                per real PCC.
-
-                Within each merge, the average size of the smallest PCC is
-                {ave_small} and the average size of the largest PCC is
-                {ave_large}
-
-                The average number of predicted negative edges within real PCCs
-                is ${}$.
-
-                There are ${n_bad_pairs}$ pairs of predicted PCCs spanning
-                ${n_bad_pccs}$ total PCCs, that have incorrect negative edges.
-
-                There are ${n_neg_redun}$ predicted PCCs that are incorrectly
-                k-negative-redundant.
-                '''
-            ).format(
-                len(pred), ave_size(pred),
-                len(true), ave_size(true),
-                ave_size(merges),
-                ave_size(ut.lmap(ut.flatten, baddies)),
-                n_bad_pairs=n_bad_pairs,
-                n_bad_pccs=n_bad_pccs,
-                n_neg_redun=n_neg_redun,
-                ave_small=ave_size(smalls),
-                ave_large=ave_size(larges),
-            )
-            return text
+            merge_info = ut.odict([
+                ('n_pred_pccs', len(pred)),
+                ('size_pred_pccs', ave_size(pred)),
+                ('n_real_pccs', len(true)),
+                ('size_real_pccs', ave_size(true)),
+                ('n_true_per_pred', ave_size(merges)),
+                ('ave_incon_edges', ave_size(ut.lmap(ut.flatten, baddies))),
+                ('n_bad_pairs', n_bad_pairs),
+                ('n_bad_pccs', n_bad_pccs),
+                ('n_neg_redun', n_neg_redun),
+                ('ave_small', ave_size(smalls)),
+                ('ave_large', ave_size(larges)),
+            ])
+            return merge_info
 
         def hybrid_measures(hybrid):
-            text = ut.codeblock(
-                '''
-                For hybrid cases there are ${}$ PCCs with average size ${}$
-                that be transformed into ${}$ PCCs with average size ${}$.
-                To do this, we must first split and then merge.
-                '''
-            ).format(
-                len(hybrid['old']), ave_size(hybrid['old']),
-                len(hybrid['new']), ave_size(hybrid['new']),
-            )
-            return text
+            pred = hybrid['old']
+            true = hybrid['new']
+            hybrid_info = ut.odict([
+                ('n_pred_pccs', len(pred)),
+                ('size_pred_pccs', ave_size(pred)),
+                ('n_real_pccs', len(true)),
+                ('size_real_pccs', ave_size(true)),
+            ])
+            return hybrid_info
 
         delta = ut.grouping_delta(real_ccs, pred_ccs)
+        unchanged = delta['unchanged']
         splits = delta['splits']['new']
         merges = delta['merges']['old']
 
@@ -734,27 +882,101 @@ class Chap5Commands(object):
         hybrid_merges = list(ut.group_items(hybrid_merge_parts,
                                             part_nids).values())
 
+        if True:
+            hybrid_merges = merges + hybrid_merges
+            hybrid_splits = splits + hybrid_splits
+            info = {
+                'unchanged': unchanged_measures(unchanged),
+                'split': split_measures(hybrid_splits),
+                'merge': merge_measures(hybrid_merges),
+            }
+        else:
+
+            info = {
+                'unchanged': unchanged_measures(unchanged),
+                'psplit': split_measures(splits),
+                'pmerge': merge_measures(merges),
+                'hybrid': hybrid_measures(hybrid),
+                'hsplit': split_measures(hybrid_splits),
+                'hmerge': merge_measures(hybrid_merges),
+            }
+
+        return info
+
         formater = ut.partial(
             # ut.format_multiple_paragraph_sentences,
             ut.format_single_paragraph_sentences,
             max_width=110, sentence_break=False,
             sepcolon=False
         )
+        def print_measures(text, info):
+            print(formater(text.format(**info)))
+
+        split_text = ut.codeblock(
+            '''
+            Split cases are false positives.
+
+            There are {n_pred_pccs} PCCs with average size {size_pred_pccs}
+            that should be split into {n_real_pccs} PCCs with average size
+            {size_real_pccs}.
+
+            On average, there are {n_true_per_pred} true PCCs per predicted
+            PCC.
+
+            Within each split, the average size of the smallest PCC is
+            {ave_small} and the average size of the largest PCC is {ave_large}
+            '''
+        )
+
+        merge_text = ut.codeblock(
+            '''
+            Merges cases are false negatives.
+            There are {n_pred_pccs} PCCs with average size {size_pred_pccs}
+            that should be merged into {n_real_pccs} PCCs with average size
+            {size_real_pccs}.
+
+            On average, there are {n_true_per_pred} predicted PCCs per
+            real PCC.
+
+            Within each merge, the average size of the smallest PCC is
+            {ave_small} and the average size of the largest PCC is
+            {ave_large}
+
+            The average number of predicted negative edges within real PCCs
+            is {ave_incon_edges}.
+
+            There are {n_bad_pairs} pairs of predicted PCCs spanning
+            {n_bad_pccs} total PCCs, that have incorrect negative edges.
+
+            There are {n_neg_redun} predicted PCCs that are incorrectly
+            k-negative-redundant.
+            '''
+        )
+
+        hybrid_text = ut.codeblock(
+            '''
+            For hybrid cases there are{n_pred_pccs} PCCs with average size
+            {size_pred_pccs} that should be transformed into {n_real_pccs} PCCs
+            with average size {size_real_pccs}.
+            To do this, we must first split and then merge.
+            '''
+        )
 
         print('For pure split/merge cases:')
         print('------------')
-        print(formater(split_measures(splits)))
+        print_measures(split_text, info['pure_split'])
         print('------------')
-        print(formater(merge_measures(merges)))
+        print_measures(merge_text, info['pure_merge'])
         print('------------')
         print('=============')
         print('For hybrid cases, we first split them and then merge them.')
-        print(formater(hybrid_measures(hybrid)))
+        print_measures(hybrid_text, info['hybrid'])
         print('------------')
-        print(formater(split_measures(hybrid_splits)))
+        print_measures(split_text, info['hybrid_split'])
         print('------------')
-        print(formater(merge_measures(hybrid_merges)))
+        print_measures(merge_text, info['hybrid_merge'])
         print('------------')
+        return info
 
     def draw_simulation2(self):
         """
@@ -952,6 +1174,7 @@ class Chap5Commands(object):
             fnum=1, pnum=pnum_(),
             use_legend=True,
         )
+        pt.set_figtitle(self.dbname)
 
         # fpath = join(self.dpath, expt_name + '2' + '.png')
         # fig = pt.gcf()  # NOQA
@@ -1109,7 +1332,7 @@ class Chap3Agg(object):
         df = pd.DataFrame(infos['enc'])
         # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
         df = df.rename(columns={'species_nice': 'Database'})
-        text = df.to_latex(index=False).replace('±', '\pm')
+        text = df.to_latex(index=False, na_repr='nan').replace('±', '\pm')
         text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
         text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
         text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
@@ -1122,7 +1345,7 @@ class Chap3Agg(object):
         df = df.rename(columns={'species_nice': 'Database'})
         df = df.reindex_axis(ut.partial_order(
             df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
-        qual_text = df.to_latex(index=False)
+        qual_text = df.to_latex(index=False, na_repr='nan')
 
         df = pd.DataFrame(infos['view'])
         df = df.rename(columns={
@@ -1138,7 +1361,7 @@ class Chap3Agg(object):
         df = df.set_index('Database')
         df[pd.isnull(df)] = 0
         df = df.astype(np.int).reset_index()
-        view_text = df.to_latex(index=False)
+        view_text = df.to_latex(index=False, na_repr='nan')
 
         ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
         ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
@@ -2882,6 +3105,95 @@ class Chap4(object):
         image = pt.render_figure_to_image(fig, dpi=DPI)
         # image = vt.clipwhite(image)
         vt.imwrite(fpath, image)
+
+
+class SplitSample(ut.NiceRepr):
+    def __init__(sample, qaids, daids):
+        sample.qaids = qaids
+        sample.daids = daids
+
+    def __nice__(sample):
+        return 'nQaids={}, nDaids={}'.format(
+            len(sample.qaids), len(sample.daids)
+        )
+
+
+class ExpandingSample(ut.NiceRepr):
+    def __init__(sample, qaids, dname_encs, confusor_pool):
+        sample.qaids = qaids
+        sample.dname_encs = dname_encs
+        sample.confusor_pool = confusor_pool
+
+    def __nice__(sample):
+        denc_pername = ut.lmap(len, sample.dname_encs)
+        n_denc_pername = np.mean(denc_pername)
+        return 'nQaids={}, nDEncPerName={}, nConfu={}'.format(
+            len(sample.qaids), n_denc_pername, len(sample.confusor_pool)
+        )
+
+    def expand(sample, denc_per_name=[1], extra_dbsize_fracs=[0]):
+        # Vary the number of database encounters in each sample
+        target_daids_list = []
+        target_info_list_ = []
+        for num in denc_per_name:
+            dname_encs_ = ut.take_column(sample.dname_encs, slice(0, num))
+            dnames_ = ut.lmap(ut.flatten, dname_encs_)
+            daids_ = ut.total_flatten(dname_encs_)
+            target_daids_list.append(daids_)
+            name_lens = ut.lmap(len, dnames_)
+            dpername = (name_lens[0] if ut.allsame(name_lens) else
+                        np.mean(name_lens))
+            target_info_list_.append(ut.odict([
+                ('qsize', len(sample.qaids)),
+                ('t_n_names', len(dname_encs_)),
+                ('t_dpername', dpername),
+                ('t_denc_pername', num),
+                ('t_dsize', len(daids_)),
+            ]))
+
+        # Append confusors to maintain a constant dbsize in each base sample
+        dbsize_list = ut.lmap(len, target_daids_list)
+        max_dsize = max(dbsize_list)
+        n_need = max_dsize - min(dbsize_list)
+        n_extra_avail = len(sample.confusor_pool) - n_need
+        assert len(sample.confusor_pool) > n_need, 'not enough confusors'
+        padded_daids_list = []
+        padded_info_list_ = []
+        for daids_, info_ in zip(target_daids_list, target_info_list_):
+            num_take = max_dsize - len(daids_)
+            pad_aids = sample.confusor_pool[:num_take]
+            new_aids = daids_ + pad_aids
+            info_ = info_.copy()
+            info_['n_pad'] = len(pad_aids)
+            info_['pad_dsize'] = len(new_aids)
+            padded_info_list_.append(info_)
+            padded_daids_list.append(new_aids)
+
+        # Vary the dbsize by appending extra confusors
+        if extra_dbsize_fracs is None:
+            extra_dbsize_fracs = [1.]
+        extra_fracs = np.array(extra_dbsize_fracs)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        daids_list = []
+        info_list = []
+        for n in n_extra_list:
+            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
+                extra_aids = sample.confusor_pool[len(sample.confusor_pool) - n:]
+                daids = sorted(daids_ + extra_aids)
+                daids_list.append(daids)
+                info = info_.copy()
+                info['n_extra'] = len(extra_aids)
+                info['dsize'] = len(daids)
+                info_list.append(info)
+
+        import pandas as pd
+        verbose = 0
+        if verbose:
+            print(pd.DataFrame.from_records(info_list))
+            print('#qaids = %r' % (len(sample.qaids),))
+            print('num_need = %r' % (n_need,))
+            print('max_dsize = %r' % (max_dsize,))
+        return sample.qaids, daids_list, info_list
 
 
 def _ranking_hist(ibs, qaids, daids, cfgdict):

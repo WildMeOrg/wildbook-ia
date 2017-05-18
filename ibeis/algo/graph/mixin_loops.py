@@ -44,11 +44,8 @@ class RefreshCriteria(object):
     def prob_any_remain(refresh, n_remain_edges=None):
         """
         CommandLine:
-            python -m ibeis.algo.graph.mixin_loops prob_any_remain --save poisson1.png \
-                    --dpi=300 --figsize=7.4375,3.0 --diskshow --size=2
-
-            python -m ibeis.algo.graph.mixin_loops prob_any_remain --save poisson2.png \
-                    --dpi=300 --figsize=7.4375,3.0 --diskshow --size=1
+            python -m ibeis.algo.graph.mixin_loops prob_any_remain \
+                    --num_pccs=40 --size=2 --patience=20 --window=20 --show
 
             python -m ibeis.algo.graph.mixin_loops prob_any_remain \
                     --num_pccs=40 --size=2 --patience=20 --window=20 \
@@ -66,7 +63,7 @@ class RefreshCriteria(object):
             >>> from ibeis.algo.graph import demo
             >>> demokw = ut.argparse_dict({'num_pccs': 50, 'size': 4})
             >>> refreshkw = ut.argparse_dict(
-            >>>     {'window': 50, 'patience': 4, 'thresh': .1})
+            >>>     {'window': 50, 'patience': 4, 'thresh': np.exp(-2)})
             >>> infr = demo.demodata_infr(size_std=0, **demokw)
             >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
@@ -113,10 +110,13 @@ class RefreshCriteria(object):
             >>>     use_legend=False,# legend_loc='upper right'
             >>> )
             >>> demokw = ut.map_keys({'num_pccs': '#PCC', 'size': 'PCC size'}, demokw)
-            >>> del refreshkw['thresh']
+            >>> thresh = refreshkw.pop('thresh')
+            >>> refreshkw['span'] = refreshkw.pop('window')
             >>> pt.relative_text((.02, .58 + .0), ut.get_cfg_lbl(demokw, sep=' ')[1:], valign='bottom')
             >>> pt.relative_text((.02, .68 + .0), ut.get_cfg_lbl(refreshkw, sep=' ')[1:], valign='bottom')
-            >>> pt.gca().legend()
+            >>> legend = pt.gca().legend()
+            >>> legend.get_frame().set_alpha(1.0)
+            >>> pt.plt.plot([xdata[0], xdata[-1]], [thresh, thresh], 'g--', label='thresh')
             >>> ut.show_if_requested()
 
         Sympy:
