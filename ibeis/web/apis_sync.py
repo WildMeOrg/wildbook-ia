@@ -33,7 +33,6 @@ def _api_url(func_name):
 
 def _verify_response(response):
     response_dict = ut.from_json(response.text)
-    print(response_dict)
     status = response_dict.get('status', {})
     assert status.get('success', False)
     response = response_dict.get('response', None)
@@ -47,16 +46,18 @@ def _get(**kwargs):
 
 
 def assert_remote_online(ibs):
-    uuid = _get(func_name='get_db_init_uuid')
-    version = _get(func_name='get_database_version')
-    assert uuid == REMOTE_UUID
-    assert version == ibs.get_database_version()
+    try:
+        uuid = _get(func_name='get_db_init_uuid')
+        version = _get(func_name='get_database_version')
+        assert uuid == REMOTE_UUID
+        assert version == ibs.get_database_version()
+    except:
+        raise IOError('Remote IBEIS DETECT database offline at %s' % (REMOTE, ))
 
 
 @register_api('/api/sync/', methods=['GET'])
 def _detect_remote_sync_images(ibs, gid_list=None):
     assert_remote_online(ibs)
-    return 'online'
 
 
 if __name__ == '__main__':
