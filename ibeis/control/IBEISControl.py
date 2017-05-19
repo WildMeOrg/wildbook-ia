@@ -85,6 +85,7 @@ AUTOLOAD_PLUGIN_MODNAMES = [
     'ibeis.web.apis_detect',
     'ibeis.web.apis_engine',
     'ibeis.web.apis_query',
+    'ibeis.web.apis_sync',
     'ibeis.web.apis',
     'ibeis.core_annots',
     'ibeis.core_images',

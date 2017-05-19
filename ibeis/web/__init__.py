@@ -7,6 +7,7 @@ import utool
 from ibeis.web import apis_detect
 from ibeis.web import apis_engine
 from ibeis.web import apis_json
+from ibeis.web import apis_sync
 from ibeis.web import apis_query
 from ibeis.web import apis
 from ibeis.web import app

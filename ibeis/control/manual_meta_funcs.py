@@ -800,7 +800,7 @@ def get_database_version_alias(ibs, db):
 @register_ibs_method
 @accessor_decors.ider
 @register_api('/api/core/db/version/', methods=['GET'])
-def get_database_version(ibs, db):
+def get_database_version(ibs, db=None):
     r"""
     Gets the specified database version from the controller
 
@@ -808,6 +808,13 @@ def get_database_version(ibs, db):
         Method: GET
         URL:    /api/core/dbversion/
     """
+    if db in [None, 'db', 'core', 'main']:
+        db = ibs.db
+    elif db in ['staging']:
+        db = ibs.staging
+    else:
+        raise ValueError('Unrecognized database')
+
     return db.get_db_version()
 
 
