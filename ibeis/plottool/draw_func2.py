@@ -858,6 +858,7 @@ def show_if_requested(N=1):
             subpath_list = save_parts(fig=fig, fpath=fpath_strict,
                                       grouped_axes=atomic_axes, dpi=dpi)
             absfpath_ = subpath_list[-1]
+            fpath_list = [relpath(_, dpath) for _ in subpath_list]
 
             # def full_extent(axs, pad=0.0):
             #     """Get the full extent of an axes, including axes labels, tick labels, and
@@ -890,7 +891,6 @@ def show_if_requested(N=1):
             #     fig.savefig(subpath, bbox_inches=extent, **savekw)
             #     subpath_list.append(subpath)
             # absfpath_ = subpath
-            # fpath_list = [relpath(_, dpath) for _ in subpath_list]
 
             if CLIP_WHITE:
                 for subpath in subpath_list:
