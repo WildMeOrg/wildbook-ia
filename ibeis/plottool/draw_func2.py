@@ -822,26 +822,8 @@ def show_if_requested(N=1):
         CLIP_WHITE = ut.get_argflag('--clipwhite')
 
         if SAVE_PARTS:
-            def full_extent(axs, pad=0.0):
-                """Get the full extent of an axes, including axes labels, tick labels, and
-                titles."""
-                # For text objects, we need to draw the figure first, otherwise the extents
-                # are undefined.
-                items = []
-                for ax in axs:
-                    ax.figure.canvas.draw()  # FIXME; is this necessary?
-                    items += ax.get_xticklabels() + ax.get_yticklabels()
-                    items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
-                    items += [ax, ax.title]
-                    #items += ax.lines
-                    #items += ax.patches
-                bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
-                #mpl.transforms.Affine2D().scale(1.1)
-                #pad = .05
-                extent = bbox.expanded(1.0 + pad, 1.0 + pad)
-                return extent
-
-            subpath_list = []
+            # TODO: call save_parts instead, but we still need to do the
+            # special grouping.
 
             # Group axes that belong together
             atomic_axes = []
@@ -872,19 +854,43 @@ def show_if_requested(N=1):
                 atomic_axes = new_groups
                 #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
                 # save all rows of each column
-                pass
 
-            for count, axs in ut.ProgIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
-                subpath = ut.augpath(fpath_strict, chr(count + 65))
-                extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
-                savekw = {}
-                savekw['transparent'] = True
-                savekw['dpi'] = dpi
-                savekw['edgecolor'] = 'none'
-                fig.savefig(subpath, bbox_inches=extent, **savekw)
-                subpath_list.append(subpath)
-            absfpath_ = subpath
-            fpath_list = [relpath(_, dpath) for _ in subpath_list]
+            subpath_list = save_parts(fig=fig, fpath=fpath_strict,
+                                      grouped_axes=atomic_axes, dpi=dpi)
+            absfpath_ = subpath_list[-1]
+
+            # def full_extent(axs, pad=0.0):
+            #     """Get the full extent of an axes, including axes labels, tick labels, and
+            #     titles."""
+            #     # For text objects, we need to draw the figure first, otherwise the extents
+            #     # are undefined.
+            #     items = []
+            #     for ax in axs:
+            #         ax.figure.canvas.draw()  # FIXME; is this necessary?
+            #         items += ax.get_xticklabels() + ax.get_yticklabels()
+            #         items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
+            #         items += [ax, ax.title]
+            #         #items += ax.lines
+            #         #items += ax.patches
+            #     bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
+            #     #mpl.transforms.Affine2D().scale(1.1)
+            #     #pad = .05
+            #     extent = bbox.expanded(1.0 + pad, 1.0 + pad)
+            #     return extent
+
+            # subpath_list = []
+
+            # for count, axs in ut.ProgIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
+            #     subpath = ut.augpath(fpath_strict, chr(count + 65))
+            #     extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
+            #     savekw = {}
+            #     savekw['transparent'] = True
+            #     savekw['dpi'] = dpi
+            #     savekw['edgecolor'] = 'none'
+            #     fig.savefig(subpath, bbox_inches=extent, **savekw)
+            #     subpath_list.append(subpath)
+            # absfpath_ = subpath
+            # fpath_list = [relpath(_, dpath) for _ in subpath_list]
 
             if CLIP_WHITE:
                 for subpath in subpath_list:
