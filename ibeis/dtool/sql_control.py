@@ -789,6 +789,15 @@ class SQLDatabaseController(object):
         assert len(rowid_list) == len(params_list), 'failed sanity check'
         return rowid_list
 
+    def rows_exist(db, tblname, rowids):
+        """
+        Checks if rowids exist. Yields True if they do
+        """
+        operation = 'SELECT count(1) FROM {tblname} WHERE rowid=?'.format(
+            tblname=tblname)
+        for rowid in rowids:
+            yield bool(db.cur.execute(operation, (rowid,)).fetchone()[0])
+
     def get_where_eq(db, tblname, colnames, params_iter, where_colnames,
                      unpack_scalars=True, eager=True, op='AND', **kwargs):
         """ hacked in function for nicer templates
