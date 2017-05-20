@@ -864,7 +864,7 @@ def show_if_requested(N=1):
         height_str  = ut.get_argval('--height', type_=str, default=None)
         caplbl_str =  label_str
 
-        if ut.is_developer() and len(fpath_list) <= 4:
+        if False and ut.is_developer() and len(fpath_list) <= 4:
             if len(fpath_list) == 1:
                 latex_block = (
                     '\ImageCommand{' + ''.join(fpath_list) + '}{' +
@@ -3510,6 +3510,7 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
                     fm_norm=None, title=None,
                     vert=None, fnum=None, pnum=None, heatmap=False,
                     modifysize=False,
+                    new_return=False,
                     draw_fmatch=True, darken=DARKEN, H1=None, H2=None,
                     sel_fm=[], ax=None, heatmask=False, **kwargs):
     """
@@ -3623,7 +3624,10 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
             # Draw any selected matches in blue
             sm_kw = dict(rect=True, colors=BLUE)
             plot_fmatch(xywh1, xywh2, kpts1, kpts2, sel_fm, ax=ax, **sm_kw)
-    return ax, xywh1, xywh2
+    if new_return:
+        return xywh1, xywh2, sf_tup
+    else:
+        return ax, xywh1, xywh2
 
 
 # plot feature match

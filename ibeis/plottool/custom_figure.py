@@ -441,11 +441,14 @@ def customize_fontprop(font_prop, **fontkw):
 def set_title(title='', ax=None, **fontkw):
     if ax is None:
         ax = gca()
-    titlesize = fontkw.get('titlesize', mpl.rcParams['axes.titlesize'])
-    titlekw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight=fontkw.get('weight', 'light'), size=titlesize)
-    }
+    if fontkw:
+        titlesize = fontkw.get('titlesize', mpl.rcParams['axes.titlesize'])
+        titlekw = {
+            'fontproperties': mpl.font_manager.FontProperties(
+                weight=fontkw.get('weight', 'light'), size=titlesize)
+        }
+    else:
+        titlekw = {}
     #font_prop = customize_fontprop(custom_constants.FONTS.axtitle, **fontkw)
     ax.set_title(title, **titlekw)
 

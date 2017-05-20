@@ -64,6 +64,10 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
         >>> nRows = 1
         >>> nCols = 2
         >>> px = 0
+        >>> if True:
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     import matplotlib as mpl
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> hack = ut.get_argflag('--feat-all')
         >>> sift = sift if not ut.get_argflag('--no-sift') else None
         >>> draw_desc = sift is not None
