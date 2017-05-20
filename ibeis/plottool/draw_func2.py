@@ -508,15 +508,13 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
           without contour
             axes_extents = Bbox([[0.0290607810781, -0.00555555555556], [7.77743055556, 5.88]])
 
-
-
     Example:
         >>> # ENABLE_DOCTEST
         >>> from plottool.draw_func2 import *  # NOQA
         >>> import plottool as pt
-        >>> pt.qt4ensure()
         >>> import matplotlib.gridspec as gridspec
         >>> import matplotlib.pyplot as plt
+        >>> pt.qtensure()
         >>> fig = plt.figure()
         >>> gs = gridspec.GridSpec(17, 17)
         >>> specs = [
@@ -525,11 +523,9 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         >>> ]
         >>> rng = np.random.RandomState(0)
         >>> X = (rng.rand(100, 2) * [[8, 8]]) + [[6, -14]]
-        >>> plot_step = 1.0
         >>> x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
         >>> y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-        >>> xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
-        >>>                      np.arange(y_min, y_max, plot_step))
+        >>> xx, yy = np.meshgrid(np.arange(x_min, x_max), np.arange(y_min, y_max))
         >>> yynan = np.full(yy.shape, fill_value=np.nan)
         >>> xxnan = np.full(yy.shape, fill_value=np.nan)
         >>> cmap = plt.cm.RdYlBu
@@ -549,8 +545,8 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         >>> plt.colorbar(sm, cax)
         >>> cax.set_ylabel('ColorBar')
         >>> fig.suptitle('SupTitle')
-        >>> new_subplotpars = dict(left=.001, right=.9, top=.9, bottom=.05, hspace=.2, wspace=.1)
-        >>> plt.subplots_adjust(**new_subplotpars)
+        >>> subkw = dict(left=.001, right=.9, top=.9, bottom=.05, hspace=.2, wspace=.1)
+        >>> plt.subplots_adjust(**subkw)
         >>> ut.show_if_requested()
     """
     import plottool as pt
@@ -685,6 +681,88 @@ def get_save_directions():
     return fpath
 
 
+def save_parts(fig, fpath, grouped_axes=None, dpi=None):
+    """
+    FIXME: this works in mpl 2.0.0, but not 2.0.2
+
+    Args:
+        fig (?):
+        fpath (str):  file path string
+        dpi (None): (default = None)
+
+    Returns:
+        list: subpaths
+
+    CommandLine:
+        python -m plottool.draw_func2 save_parts
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> import matplotlib as mpl
+        >>> import matplotlib.pyplot as plt
+        >>> def testimg(fname):
+        >>>     return plt.imread(mpl.cbook.get_sample_data(fname))
+        >>> fnames = ['grace_hopper.png', 'ada.png']
+        >>> fig = plt.figure(1)
+        >>> for c, fname in enumerate(fnames, start=1):
+        >>>     ax = fig.add_subplot(2, 2, c)
+        >>>     ax.imshow(testimg(fname))
+        >>>     ax.set_title(fname)
+        >>> ax = fig.add_subplot(2, 1, 2)
+        >>> ax.plot(np.sin(np.linspace(0, np.pi * 2)))
+        >>> ax.set_xlabel('xlabel')
+        >>> ax.set_ylabel('ylabel')
+        >>> ax.set_title('title')
+        >>> fpath = 'test.png'
+        >>> subpaths = save_parts(fig, fpath)
+        >>> fig.savefig(fpath)
+        >>> ut.startfile(subpaths[0])
+        >>> ut.startfile(fpath)
+    """
+    def full_extent(axs, pad=0.0):
+        """
+        Get the full extent of an axes, including axes labels, tick labels, and
+        titles."""
+        # For text objects, we need to draw the figure first, otherwise the extents
+        # are undefined.
+        items = []
+        for ax in axs:
+            ax.figure.canvas.draw()  # FIXME: is this necessary? seems so.
+            items += ax.get_xticklabels() + ax.get_yticklabels()
+            items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
+            items += [ax, ax.title]
+            #items += ax.lines
+            #items += ax.patches
+        bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
+        #mpl.transforms.Affine2D().scale(1.1)
+        #pad = .05
+        extent = bbox.expanded(1.0 + pad, 1.0 + pad)
+        return extent
+
+    # Group axes that belong together
+    if grouped_axes is None:
+        grouped_axes = []
+        for ax in fig.axes:
+            grouped_axes.append([ax])
+
+    subpaths = []
+    _iter = enumerate(grouped_axes, start=0)
+    _iter = ut.ProgIter(list(_iter), label='save subfig')
+    for count, axs in _iter:
+        subpath = ut.augpath(fpath, chr(count + 65))
+        extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
+        savekw = {}
+        savekw['transparent'] = True
+        if dpi is not None:
+            savekw['dpi'] = dpi
+        savekw['edgecolor'] = 'none'
+        fig.savefig(subpath, bbox_inches=extent, **savekw)
+        subpaths.append(subpath)
+    return subpaths
+
+
 def show_if_requested(N=1):
     """
     Used at the end of tests. Handles command line arguments for saving figures
@@ -796,7 +874,7 @@ def show_if_requested(N=1):
                 # save all rows of each column
                 pass
 
-            for count, axs in ut.ProgressIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
+            for count, axs in ut.ProgIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
                 subpath = ut.augpath(fpath_strict, chr(count + 65))
                 extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
                 savekw = {}
@@ -2423,8 +2501,6 @@ def scores_to_color(score_list, cmap_='hot', logscale=False, reverse_cmap=False,
         ...        -2: LIGHT_BLUE,
         ...    }
     """
-    if DEBUG:
-        print('scores_to_color()')
     assert len(score_list.shape) == 1, 'score must be 1d'
     if len(score_list) == 0:
         return []
@@ -2539,8 +2615,6 @@ def unique_rows(arr):
 
 
 def scores_to_cmap(scores, colors=None, cmap_='hot'):
-    if DEBUG:
-        print('scores_to_cmap()')
     if colors is None:
         colors = scores_to_color(scores, cmap_=cmap_)
     scores = np.array(scores)
