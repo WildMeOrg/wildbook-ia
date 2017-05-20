@@ -1056,7 +1056,7 @@ def draw_kp_ori_steps():
     Shows steps in orientation estimation
 
     CommandLine:
-        python -m vtool.patch --test-draw_kp_ori_steps --show --diskshow
+        python -m vtool.patch --test-draw_kp_ori_steps --show --fname=zebra.png --fx=121
         python -m vtool.patch --test-draw_kp_ori_steps --show --interact
         python -m vtool.patch --test-draw_kp_ori_steps --save ~/latex/crall-candidacy-2015/figures/test_fint_kp_direction.jpg --dpath figures '--caption=visualization of the steps in the computation of the dominant gradient orientations.' --figsize=14,9 --dpi=160 --height=2.65  --left=.04 --right=.96 --top=.95 --bottom=.05 --wspace=.1 --hspace=.1
 
@@ -1078,6 +1078,11 @@ def draw_kp_ori_steps():
     import plottool as pt
     from six.moves import input
     import vtool as vt
+
+    if True:
+        from ibeis.scripts.thesis import TMP_RC
+        import matplotlib as mpl
+        mpl.rcParams.update(TMP_RC)
     #import vtool as vt
     np.random.seed(0)
     USE_COMMANLINE = True
@@ -1120,8 +1125,8 @@ def draw_kp_ori_steps():
         globals_ = globals()
         locals_ = locals()
         keys = 'patch, gradx, grady, gmag, gori, hist, centers, gori_weights'.split(', ')
-        internal_tup = ut.exec_func_src(find_patch_dominant_orientations, globals_, locals_, key_list=keys)
-        submax_ori_offsets = locals_['submax_ori_offsets']
+        internal_tup = ut.exec_func_src(find_patch_dominant_orientations, globals_, locals_, key_list=keys, update=True)
+        submax_ori_offsets = globals_['submax_ori_offsets']
         new_oris = (old_ori + (submax_ori_offsets - ktool.GRAVITY_THETA)) % TAU
         # sourcecode = ut.get_func_sourcecode(find_patch_dominant_orientations, stripdef=True, stripret=True)
         # six.exec_(sourcecode, globals_, locals_)
@@ -1222,8 +1227,9 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag,
     bin_colors = pt.get_orientation_color(centers)
     pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors)
     #vt.show_hist_submaxima(hist, centers=centers)
-    pt.set_xlabel('radians')
-    pt.set_ylabel('weight')
+    ax = pt.gca()
+    ax.set_xlabel('radians')
+    ax.set_ylabel('weight')
     #pt.update()
 
 
