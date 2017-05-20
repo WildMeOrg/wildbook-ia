@@ -549,6 +549,8 @@ def compute_probchip(depc, aid_list, config=None):
 
     # Use the labeled species for the fw_detector
     species_list = ibs.get_annot_species_texts(aid_list)
+    print('aid_list = %r' % (aid_list,))
+    print('species_list = %r' % (species_list,))
 
     fw_detector = config['fw_detector']
     dim_size = config['fw_dim_size']
@@ -563,7 +565,7 @@ def compute_probchip(depc, aid_list, config=None):
     probchip_dir = ibs.get_probchip_dir() + '2'
     cfghashid = config.get_hashid()
 
-    # TODO: just hash everything together
+    # FIXME: The depcache should make it so this doesn't matter anymore
     ut.ensuredir(probchip_dir)
     _fmt = 'probchip_avuuid_{avuuid}_' + cfghashid + '.png'
     annot_visual_uuid_list  = ibs.get_annot_visual_uuids(aid_list)
@@ -571,7 +573,8 @@ def compute_probchip(depc, aid_list, config=None):
                            for avuuid in annot_visual_uuid_list]
 
     chip_config = ChipConfig(pad=pad, dim_size=dim_size)
-    mchip_path_list = depc.get('chips', aid_list, 'img', config=chip_config, read_extern=False)
+    mchip_path_list = depc.get('chips', aid_list, 'img', config=chip_config,
+                               read_extern=False)
 
     aid_list = np.array(aid_list)
     species_list = np.array(species_list)
@@ -590,6 +593,7 @@ def compute_probchip(depc, aid_list, config=None):
     print(('[preproc_probchip.compute_and_write_probchip] '
           'Preparing to compute %d probchips of %d species')
           % (len(aid_list), len(unique_species)))
+    print('unique_species = %r' % (unique_species,))
     print(config)
 
     #grouped_probchip_fpath_list = []
@@ -631,7 +635,8 @@ def compute_probchip(depc, aid_list, config=None):
         yield (probchip,)
 
 
-def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths, smooth_thresh, smooth_ksize):
+def cnn_probchips(ibs, species, probchip_fpath_list, inputchip_fpaths,
+                  smooth_thresh, smooth_ksize):
     # dont use extrmargin here (for now)
     mask_gen = ibs.generate_species_background_mask(inputchip_fpaths, species)
     _iter = zip(probchip_fpath_list, mask_gen)
@@ -707,8 +712,8 @@ def postprocess_mask(mask, thresh=20, kernel_size=20):
         >>> ut.show_if_requested()
     """
     import cv2
-    thresh = 20
-    kernel_size = 20
+    # thresh = 20
+    # kernel_size = 20
     mask2 = mask.copy()
     # light threshold
     mask2[mask2 < thresh] = 0

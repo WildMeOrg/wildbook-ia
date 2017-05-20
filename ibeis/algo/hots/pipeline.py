@@ -1325,6 +1325,7 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         >>> scoring.score_chipmatch_list(qreq_, cm_list, qreq_.qparams.prescore_method)  # HACK
         >>> #locals_ = ut.exec_func_src(sver_single_chipmatch, key_list=['svtup_list'], sentinal='# <SENTINAL>')
         >>> #svtup_list1, = locals_
+        >>> verbose = True
         >>> source = ut.get_func_sourcecode(sver_single_chipmatch, stripdef=True, strip_docstr=True)
         >>> source = ut.replace_between_tags(source, '', '# <SENTINAL>', '# </SENTINAL>')
         >>> globals_ = globals().copy()
@@ -1356,6 +1357,9 @@ def sver_single_chipmatch(qreq_, cm, verbose=False):
         >>> rchip2, = ibs.get_annot_chips([aid2], config2_=qreq_.extern_data_config2)
         >>> kpts2, = ibs.get_annot_kpts([aid2], config2_=qreq_.extern_data_config2)
         >>> import plottool as pt
+        >>> import matplotlib as mpl
+        >>> from ibeis.scripts.thesis import TMP_RC
+        >>> mpl.rcParams.update(TMP_RC)
         >>> show_aff = not ut.get_argflag('--noaff')
         >>> refine_method = qreq_.qparams.refine_method if not ut.get_argflag('--norefinelbl') else ''
         >>> pt.draw_sv.show_sv(rchip1, rchip2, kpts1, kpts2, fm, aff_tup=aff_tup,

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import utool as ut
+import numpy as np
 (print, rrr, profile) = ut.inject2(__name__, '[specialdraw]')
 
 
@@ -53,6 +54,93 @@ def multidb_montage():
     vt.imwrite(fpath, dst)
     if ut.get_argflag('--show'):
         pt.imshow(dst)
+
+
+def featweight_fig():
+    r"""
+    CommandLine:
+        python -m ibeis.scripts.specialdraw featweight_fig --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> featweight_fig()
+        >>> ut.show_if_requested()
+    """
+    # ENABLE_DOCTEST
+    import ibeis
+    # import plottool as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+    from ibeis.core_annots import gen_featweight_worker
+    #test_featweight_worker()
+
+    # ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    # aid = ut.get_argval('--aid', type_=list, default=2810)
+    ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+    aid = ut.get_argval('--aid', type_=int, default=1)
+    depc = ibs.depc
+    aids = [aid]
+
+    assert all(ibs.db.rows_exist('annotations', aids))
+
+    config = {'dim_size': 450, 'resize_dim': 'area', 'smooth_thresh': 30,
+              'smooth_ksize': 30}
+    probchip = depc.get('probchip', aids, 'img', config=config, recompute=True)[0]
+    chipsize = depc.get('chips', aids, ('width', 'height'), config=config)[0]
+    kpts = depc.get('feat', aids, 'kpts', config=config)[0]
+    tup = (kpts, probchip, chipsize)
+    weights = gen_featweight_worker(tup)
+    assert np.all(weights <= 1.0), 'weights cannot be greater than 1'
+    chip = depc.get('chips', aids, 'img', config=config)[0]
+    ut.quit_if_noshow()
+    import plottool as pt
+    fnum = 1
+    pnum_ = pt.make_pnum_nextgen(1, 3)
+    pt.figure(fnum=fnum, doclf=True)
+    pt.imshow(chip, pnum=pnum_(0), fnum=fnum)
+    pt.imshow(probchip, pnum=pnum_(2), fnum=fnum)
+    pt.imshow(chip, pnum=pnum_(1), fnum=fnum)
+    color_list = pt.draw_kpts2(kpts, weights=weights, ell_alpha=.3)
+    color_list
+    # cb = pt.colorbar(weights, color_list)
+    # cb.set_label('featweights')
+
+
+def simple_vsone_matches():
+    """
+    CommandLine:
+        python -m ibeis.scripts.specialdraw simple_vsone_matches --show \
+            --db GZ_Master1 --aids=2811,2810
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.scripts.specialdraw import *  # NOQA
+        >>> simple_vsone_matches()
+        >>> ut.show_if_requested()
+    """
+    import ibeis
+    # import plottool as pt
+    import matplotlib as mpl
+    from ibeis.scripts.thesis import TMP_RC
+    mpl.rcParams.update(TMP_RC)
+
+    ibs = ibeis.opendb(defaultdb='GZ_Master1')
+    aids = ut.get_argval('--aids', type_=list, default=[2811, 2810])
+    assert len(aids) == 2
+    assert all(ibs.db.rows_exist('annotations', aids))
+    aid1, aid2 = aids
+
+    infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
+    edges = [(aid1, aid2)]
+    match = infr._exec_pairwise_match(edges)[0]
+
+    ut.quit_if_noshow()
+    import plottool as pt
+    pt.figure(fnum=1, doclf=True)
+    match.show(heatmask=True, vert=False, modifysize=True, show_ell=False,
+               show_lines=False, show_ori=False)
 
 
 def double_depcache_graph():
