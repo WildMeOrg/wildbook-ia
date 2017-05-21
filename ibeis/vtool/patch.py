@@ -1178,7 +1178,7 @@ def draw_kp_ori_steps():
             input('next')
         else:
             show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag, gori, hist, centers, gori_weights, fx=fx)
-            pt.present()
+            # pt.present()
             print('no interaction')
             break
 
@@ -1191,46 +1191,44 @@ def show_patch_orientation_estimation(imgBGR, kpts, patch, gradx, grady, gmag,
     # DRAW TEST INFO
     fnum = 1
     pt.figure(fnum=1, doclf=True, docla=True)
-    #gorimag = pt.color_orimag(gori, None, False)
     gorimag = pt.color_orimag(gori, gmag=gmag, gmag_is_01=False)
     nRows, nCols = pt.get_square_row_cols(8)
     nRows += 1
-    next_pnum = pt.make_pnum_nextgen(nRows, nCols)
+    pnum_ = pt.make_pnum_nextgen(nRows, nCols)
     # hack
     imgBGR_ = imgBGR if imgBGR.max() > 1 else imgBGR * 255
     patch_ = patch if patch.max() > 1 else patch * 255
-    pt.imshow(imgBGR_, update=True, fnum=fnum, pnum=next_pnum(), title='input image')
+    pt.imshow(imgBGR_, update=True, fnum=fnum, pnum=pnum_(), title='input image')
     colors = pt.distinct_colors(len(kpts))
-    #print(colors)
     if fx is None:
         pt.draw_kpts2(kpts, rect=True, ori=True, ell_color=colors)
     else:
         pt.draw_kpts2(kpts[fx:fx + 1], rect=True, ori=True, colors=[pt.ORANGE])
-    pt.imshow(patch_, fnum=fnum, pnum=next_pnum(), title='sampled patch')
+    pt.imshow(patch_, fnum=fnum, pnum=pnum_(), title='sampled patch')
     def normalize_grad_img(grad_):
         #return np.abs(grad_) * 255
         return vt.norm01(np.abs(grad_)) * 255
         #return vt.norm01(grad_) * 255
-    pt.imshow(normalize_grad_img(gradx ** 2), fnum=fnum, pnum=next_pnum(), title='gradx ** 2')
-    pt.imshow(normalize_grad_img(grady ** 2), fnum=fnum, pnum=next_pnum(), title='grady ** 2')
-    pt.imshow(normalize_grad_img(gmag), fnum=fnum, pnum=next_pnum(), title='mag')
-    pt.imshow(normalize_grad_img(gori_weights), fnum=fnum, pnum=next_pnum(), title='weighted mag')
-    #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=next_pnum(), title='ori')
-    pt.draw_vector_field(gradx, grady, pnum=next_pnum(), fnum=fnum, title='gori (vec)')
-    pt.imshow(gorimag, fnum=fnum, pnum=next_pnum(), title='ori-color')
+    pt.imshow(normalize_grad_img(gradx ** 2), fnum=fnum, pnum=pnum_(), title='gradx ** 2')
+    pt.imshow(normalize_grad_img(grady ** 2), fnum=fnum, pnum=pnum_(), title='grady ** 2')
+    pt.imshow(normalize_grad_img(gmag), fnum=fnum, pnum=pnum_(), title='mag')
+    pt.imshow(normalize_grad_img(gori_weights), fnum=fnum, pnum=pnum_(), title='weighted mag')
+    #pt.imshow(ut.norm_zero_one(gori) * 255, fnum=fnum, pnum=pnum_(), title='ori')
+    stride = ut.get_argval('--stride', default=1)
+    pt.draw_vector_field(gradx, grady, stride=stride, pnum=pnum_(), fnum=fnum,
+                         title='gori (vec)')
+    pt.imshow(gorimag, fnum=fnum, pnum=pnum_(), title='ori-color')
     if not ut.get_argflag('--noweighted-gori'):
         pt.color_orimag_colorbar(gori * gori_weights)
     else:
         pt.color_orimag_colorbar(gori)
     pt.figure(fnum=fnum, pnum=(nRows, 1, nRows))
-    #ut.embed()
     bin_colors = pt.get_orientation_color(centers)
-    pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors)
-    #vt.show_hist_submaxima(hist, centers=centers)
+    pt.draw_hist_subbin_maxima(hist, centers, bin_colors=bin_colors,
+                               maxima_thresh=.8)
     ax = pt.gca()
     ax.set_xlabel('radians')
     ax.set_ylabel('weight')
-    #pt.update()
 
 
 def test_ondisk_find_patch_fpath_dominant_orientations(patch_fpath, bins=36,
@@ -1300,6 +1298,18 @@ def find_patch_dominant_orientations(patch, bins=36, maxima_thresh=.8,
         pt.set_figtitle('python hist')
         pt.df2.plt.show()
     return submax_ori_offsets
+
+
+def testdata_patch():
+    import plottool as pt
+    kpts, vecs, imgBGR = pt.viz_keypoints.testdata_kpts()
+    fx = ut.get_argval('--fx', type_=int, default=0)
+    kp = kpts[fx]
+    patch, wkp = get_warped_patch(imgBGR, kp, gray=True,
+                                  #flags=cv2.INTER_LANCZOS4,
+                                  flags=cv2.INTER_CUBIC,
+                                  borderMode=cv2.BORDER_CONSTANT)
+    return patch
 
 
 def find_dominant_kp_orientations(imgBGR, kp, bins=36, maxima_thresh=.8,
