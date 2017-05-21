@@ -163,11 +163,12 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
             df2.draw_keypoint_gradient_orientations(chip, kp, sift=sift)
         else:
             if sift.dtype.type == np.uint8:
-                sigtitle =  'sift histogram' if (px % 3) == 0 else ''
-                ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+                # sigtitle =  'sift histogram' if (px % 3) == 0 else ''
+                # ax = df2.plot_sift_signature(sift, sigtitle, fnum=fnum, pnum=pnum)
+                ax = df2.plot_sift_signature(sift, fnum=fnum, pnum=pnum)
             else:
-                sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
-                ax = df2.plot_descriptor_signature(sift, sigtitle,  fnum=fnum, pnum=pnum)
+                # sigtitle =  'descriptor vector' if (px % 3) == 0 else ''
+                ax = df2.plot_descriptor_signature(sift, fnum=fnum, pnum=pnum)
             ax._hs_viztype = 'histogram'
         #dist_list = ['L1', 'L2', 'hist_isect', 'emd']
         #dist_list = ['L2', 'hist_isect']

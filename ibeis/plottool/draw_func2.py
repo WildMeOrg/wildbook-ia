@@ -11,6 +11,7 @@
 from __future__ import absolute_import, division, print_function
 from six.moves import range, zip, map
 import six
+import itertools as it
 import utool as ut  # NOQA
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -414,7 +415,10 @@ def update_figsize():
 
 
 def udpate_adjust_subplots():
-    """ updates adjust_subplots based on command line """
+    """
+    DEPRICATE
+
+    updates adjust_subplots based on command line """
     adjust_list = ut.get_argval('--adjust', type_=list, default=None)
     if adjust_list is not None:
         # --adjust=[.02,.02,.05]
@@ -555,27 +559,6 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
     # extract positions from the text objects
     fig.canvas.draw()
 
-    def full_extent(axs, pad=0.0):
-        """Get the full extent of an axes, including axes labels, tick labels, and
-        titles."""
-        # For text objects, we need to draw the figure first, otherwise the extents
-        # are undefined.
-        items = []
-        for ax in axs:
-            #ax.figure.canvas.draw()  # FIXME; is this necessary?
-            text_items = ax.get_xticklabels() + ax.get_yticklabels()
-            text_items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
-            text_items += [ax.title]
-            # only use text items with text in them!
-            items += [t for t in text_items if t.get_text()]
-            items += [ax]
-            #items += ax.lines
-            #items += ax.patches
-        item_bboxes = [item.get_window_extent() for item in items]
-        bbox = mpl.transforms.Bbox.union(item_bboxes)
-        extent = bbox.expanded(1.0 + pad, 1.0 + pad)
-        return extent
-
     # Group axes that belong together
     atomic_axes = []
     seen_ = set([])
@@ -606,27 +589,8 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
         #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
         # save all rows of each column
 
-    # if False:
-    #     axes = fig.axes
-    #     b = mpl.transforms.Bbox.union([ax.get_window_extent() for ax in axes]).transformed(fig.dpi_scale_trans.inverted())
-
-    #     def _winextents(items):
-    #         return [item.get_window_extent().transformed(fig.dpi_scale_trans.inverted()) for item in ut.ensure_iterable(items)]
-
-    #     for ax in axes:
-    #         break
-    #         _winextents(ax.get_xticklabels())
-    #         _winextents(ax.get_yticklabels())
-    #         _winextents(ax.get_xaxis().get_label())
-    #         _winextents(ax.get_yaxis().get_label())
-
-    #     extents = {}
-    #     extents['axes'] = b
-    #     extents['xticks'] = _bboxes(ut.flatten([ax.get_xticklabels() for ax in axes])).transformed(fig.dpi_scale_trans.inverted())
-    #     extents['yticks'] = mpl.transforms.Bbox.union([ax.get_xticklabels().get_window_extent() for ax in axes]).transformed(fig.dpi_scale_trans.inverted())
-
     dpi_scale_trans_inv = fig.dpi_scale_trans.inverted()
-    axes_bboxes_ = [full_extent(axs, pad) for axs in atomic_axes]
+    axes_bboxes_ = [axes_extent(axs, pad) for axs in atomic_axes]
     axes_extents_ = [extent.transformed(dpi_scale_trans_inv) for extent in axes_bboxes_]
     # axes_extents_ = axes_bboxes_
     if combine:
@@ -648,6 +612,103 @@ def extract_axes_extents(fig, combine=False, pad=0.0):
     #     axes_extents.x0 = 0
     #     # axes_extents.y1 = 0
     return axes_extents
+
+
+def axes_extent(axs, pad=0.0):
+    """
+    Get the full extent of a group of axes, including axes labels, tick labels,
+    and titles.
+    """
+    def axes_parts(ax):
+        yield ax
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            yield label
+        xlabel = ax.get_xaxis().get_label()
+        ylabel = ax.get_yaxis().get_label()
+        for label in (xlabel, ylabel, ax.title):
+            if label.get_text():
+                yield label
+    #yield from ax.lines
+    #yield from ax.patches
+    items = it.chain.from_iterable(axes_parts(ax) for ax in axs)
+    extents = [item.get_window_extent() for item in items]
+    #mpl.transforms.Affine2D().scale(1.1)
+    extent = mpl.transforms.Bbox.union(extents)
+    extent = extent.expanded(1.0 + pad, 1.0 + pad)
+    return extent
+
+
+def save_parts(fig, fpath, grouped_axes=None, dpi=None):
+    """
+    FIXME: this works in mpl 2.0.0, but not 2.0.2
+
+    Args:
+        fig (?):
+        fpath (str):  file path string
+        dpi (None): (default = None)
+
+    Returns:
+        list: subpaths
+
+    CommandLine:
+        python -m plottool.draw_func2 save_parts
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> import plottool as pt
+        >>> import matplotlib as mpl
+        >>> import matplotlib.pyplot as plt
+        >>> def testimg(fname):
+        >>>     return plt.imread(mpl.cbook.get_sample_data(fname))
+        >>> fnames = ['grace_hopper.png', 'ada.png'] * 4
+        >>> fig = plt.figure(1)
+        >>> for c, fname in enumerate(fnames, start=1):
+        >>>     ax = fig.add_subplot(3, 4, c)
+        >>>     ax.imshow(testimg(fname))
+        >>>     ax.set_title(fname[0:3] + str(c))
+        >>>     ax.set_xticks([])
+        >>>     ax.set_yticks([])
+        >>> ax = fig.add_subplot(3, 1, 3)
+        >>> ax.plot(np.sin(np.linspace(0, np.pi * 2)))
+        >>> ax.set_xlabel('xlabel')
+        >>> ax.set_ylabel('ylabel')
+        >>> ax.set_title('title')
+        >>> fpath = 'test_save_parts.png'
+        >>> adjust_subplots(fig=fig, wspace=.3, hspace=.3, top=.9)
+        >>> subpaths = save_parts(fig, fpath, dpi=300)
+        >>> fig.savefig(fpath)
+        >>> ut.startfile(subpaths[0])
+        >>> ut.startfile(fpath)
+    """
+    if dpi:
+        # Need to set figure dpi before we draw
+        fig.dpi = dpi
+    # We need to draw the figure before calling get_window_extent
+    # (or we can figure out how to set the renderer object)
+    # if getattr(fig.canvas, 'renderer', None) is None:
+    fig.canvas.draw()
+
+    # Group axes that belong together
+    if grouped_axes is None:
+        grouped_axes = []
+        for ax in fig.axes:
+            grouped_axes.append([ax])
+
+    subpaths = []
+    _iter = enumerate(grouped_axes, start=0)
+    _iter = ut.ProgIter(list(_iter), label='save subfig')
+    for count, axs in _iter:
+        subpath = ut.augpath(fpath, chr(count + 65))
+        extent = axes_extent(axs).transformed(fig.dpi_scale_trans.inverted())
+        savekw = {}
+        savekw['transparent'] = True
+        if dpi is not None:
+            savekw['dpi'] = dpi
+        savekw['edgecolor'] = 'none'
+        fig.savefig(subpath, bbox_inches=extent, **savekw)
+        subpaths.append(subpath)
+    return subpaths
 
 
 def get_save_directions():
@@ -681,88 +742,6 @@ def get_save_directions():
     return fpath
 
 
-def save_parts(fig, fpath, grouped_axes=None, dpi=None):
-    """
-    FIXME: this works in mpl 2.0.0, but not 2.0.2
-
-    Args:
-        fig (?):
-        fpath (str):  file path string
-        dpi (None): (default = None)
-
-    Returns:
-        list: subpaths
-
-    CommandLine:
-        python -m plottool.draw_func2 save_parts
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from plottool.draw_func2 import *  # NOQA
-        >>> import plottool as pt
-        >>> import matplotlib as mpl
-        >>> import matplotlib.pyplot as plt
-        >>> def testimg(fname):
-        >>>     return plt.imread(mpl.cbook.get_sample_data(fname))
-        >>> fnames = ['grace_hopper.png', 'ada.png']
-        >>> fig = plt.figure(1)
-        >>> for c, fname in enumerate(fnames, start=1):
-        >>>     ax = fig.add_subplot(2, 2, c)
-        >>>     ax.imshow(testimg(fname))
-        >>>     ax.set_title(fname)
-        >>> ax = fig.add_subplot(2, 1, 2)
-        >>> ax.plot(np.sin(np.linspace(0, np.pi * 2)))
-        >>> ax.set_xlabel('xlabel')
-        >>> ax.set_ylabel('ylabel')
-        >>> ax.set_title('title')
-        >>> fpath = 'test.png'
-        >>> subpaths = save_parts(fig, fpath)
-        >>> fig.savefig(fpath)
-        >>> ut.startfile(subpaths[0])
-        >>> ut.startfile(fpath)
-    """
-    def full_extent(axs, pad=0.0):
-        """
-        Get the full extent of an axes, including axes labels, tick labels, and
-        titles."""
-        # For text objects, we need to draw the figure first, otherwise the extents
-        # are undefined.
-        items = []
-        for ax in axs:
-            ax.figure.canvas.draw()  # FIXME: is this necessary? seems so.
-            items += ax.get_xticklabels() + ax.get_yticklabels()
-            items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
-            items += [ax, ax.title]
-            #items += ax.lines
-            #items += ax.patches
-        bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
-        #mpl.transforms.Affine2D().scale(1.1)
-        #pad = .05
-        extent = bbox.expanded(1.0 + pad, 1.0 + pad)
-        return extent
-
-    # Group axes that belong together
-    if grouped_axes is None:
-        grouped_axes = []
-        for ax in fig.axes:
-            grouped_axes.append([ax])
-
-    subpaths = []
-    _iter = enumerate(grouped_axes, start=0)
-    _iter = ut.ProgIter(list(_iter), label='save subfig')
-    for count, axs in _iter:
-        subpath = ut.augpath(fpath, chr(count + 65))
-        extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
-        savekw = {}
-        savekw['transparent'] = True
-        if dpi is not None:
-            savekw['dpi'] = dpi
-        savekw['edgecolor'] = 'none'
-        fig.savefig(subpath, bbox_inches=extent, **savekw)
-        subpaths.append(subpath)
-    return subpaths
-
-
 def show_if_requested(N=1):
     """
     Used at the end of tests. Handles command line arguments for saving figures
@@ -777,7 +756,8 @@ def show_if_requested(N=1):
 
     # Process figures adjustments from command line before a show or a save
 
-    udpate_adjust_subplots()
+    # udpate_adjust_subplots()
+    adjust_subplots(use_argv=True)
 
     update_figsize()
 
@@ -794,8 +774,6 @@ def show_if_requested(N=1):
         import plottool as pt
         import vtool as vt
 
-        #print(sys.argv)
-        #ut.print_dict(arg_dict)
         # HACK
         arg_dict = {
             key: (val[0] if len(val) == 1 else '[' + ']['.join(val) + ']')
@@ -806,16 +784,11 @@ def show_if_requested(N=1):
         fpath_ = ut.remove_chars(fpath_, ' \'"')
         dpath, gotdpath = ut.get_argval('--dpath', type_=str, default='.', return_specified=True)
         print('dpath = %r' % (dpath,))
-        #if False and not gotdpath and ut.is_developer():
-        #    # HACK use utool profile here
-        #    print('USING DEV CAND DIR')
-        #    dpath = ut.truepath('~/latex/crall-cand')
 
         fpath = join(dpath, fpath_)
 
         fig = pt.gcf()
-
-        dpi = ut.get_argval('--dpi', type_=int, default=custom_constants.DPI)
+        fig.dpi = dpi
 
         fpath_strict = ut.truepath(fpath)
         SAVE_PARTS = ut.get_argflag('--saveparts')
@@ -860,58 +833,20 @@ def show_if_requested(N=1):
             absfpath_ = subpath_list[-1]
             fpath_list = [relpath(_, dpath) for _ in subpath_list]
 
-            # def full_extent(axs, pad=0.0):
-            #     """Get the full extent of an axes, including axes labels, tick labels, and
-            #     titles."""
-            #     # For text objects, we need to draw the figure first, otherwise the extents
-            #     # are undefined.
-            #     items = []
-            #     for ax in axs:
-            #         ax.figure.canvas.draw()  # FIXME; is this necessary?
-            #         items += ax.get_xticklabels() + ax.get_yticklabels()
-            #         items += [ax.get_xaxis().get_label(), ax.get_yaxis().get_label()]
-            #         items += [ax, ax.title]
-            #         #items += ax.lines
-            #         #items += ax.patches
-            #     bbox = mpl.transforms.Bbox.union([item.get_window_extent() for item in items])
-            #     #mpl.transforms.Affine2D().scale(1.1)
-            #     #pad = .05
-            #     extent = bbox.expanded(1.0 + pad, 1.0 + pad)
-            #     return extent
-
-            # subpath_list = []
-
-            # for count, axs in ut.ProgIter(enumerate(atomic_axes, start=0), lbl='save subfig'):
-            #     subpath = ut.augpath(fpath_strict, chr(count + 65))
-            #     extent = full_extent(axs).transformed(fig.dpi_scale_trans.inverted())
-            #     savekw = {}
-            #     savekw['transparent'] = True
-            #     savekw['dpi'] = dpi
-            #     savekw['edgecolor'] = 'none'
-            #     fig.savefig(subpath, bbox_inches=extent, **savekw)
-            #     subpath_list.append(subpath)
-            # absfpath_ = subpath
-
             if CLIP_WHITE:
                 for subpath in subpath_list:
                     # remove white borders
                     pass
                     vt.clipwhite_ondisk(subpath, subpath)
         else:
-            # plt.tight_layout()
-            #bbox_inches=extent,
-            if False:
-                absfpath_ = pt.save_figure(fig=fig, fpath_strict=ut.truepath(fpath),
-                                           figsize=False, dpi=dpi)
-            else:
-                noalpha = ut.get_argflag('--noalpha')
-                savekw = {}
-                savekw['transparent'] = fpath.endswith('.png') and not noalpha
-                savekw['dpi'] = dpi
-                savekw['edgecolor'] = 'none'
-                savekw['bbox_inches'] = extract_axes_extents(fig, combine=True)  # replaces need for clipwhite
-                absfpath_ = ut.truepath(fpath)
-                fig.savefig(absfpath_, **savekw)
+            savekw = {}
+            # savekw['transparent'] = fpath.endswith('.png') and not noalpha
+            savekw['transparent'] = ut.get_argflag('--alpha')
+            savekw['dpi'] = dpi
+            savekw['edgecolor'] = 'none'
+            savekw['bbox_inches'] = extract_axes_extents(fig, combine=True)  # replaces need for clipwhite
+            absfpath_ = ut.truepath(fpath)
+            fig.savefig(absfpath_, **savekw)
 
             if CLIP_WHITE:
                 # remove white borders
@@ -1247,8 +1182,7 @@ def make_pnum_nextgen(nRows=None, nCols=None, base=0, nSubplots=None, start=0):
         >>> from plottool.draw_func2 import *  # NOQA
         >>> base, start = 0, 0
         >>> pnum_next = make_pnum_nextgen(nRows, nCols, base, nSubplots, start)
-        >>> import itertools
-        >>> pnum_list = list( (pnum_next() for _ in itertools.count()) )
+        >>> pnum_list = list( (pnum_next() for _ in it.count()) )
         >>> print((nRows, nCols, nSubplots))
         >>> result = ('pnum_list = %s' % (ut.repr2(pnum_list),))
         >>> print(result)
@@ -2831,7 +2765,8 @@ def print_valid_cmaps():
     print(ut.list_str(sorted(maps)))
 
 
-def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs):
+def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None,
+             float_format='%.2f', **kwargs):
     """
     adds a color bar next to the axes based on specific scalars
 
@@ -2944,7 +2879,7 @@ def colorbar(scalars, colors, custom=False, lbl=None, ticklabels=None, **kwargs)
             ticks += (ticks[1] - ticks[0]) / 2
 
         if isinstance(unique_scalars, np.ndarray) and ut.is_float(unique_scalars):
-            ticklabels = ['%.2f' % scalar for scalar in unique_scalars]
+            ticklabels = [float_format % scalar for scalar in unique_scalars]
         else:
             ticklabels = unique_scalars
         cb.set_ticks(ticks)  # tick locations
@@ -3538,7 +3473,26 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
     return fig, ax
 
 
-def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
+def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True,
+                      stride=1):
+    r"""
+    CommandLine:
+        python -m plottool.draw_func2 draw_vector_field --show
+        python -m plottool.draw_func2 draw_vector_field --show --fname=zebra.png --fx=121 --stride=3
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import plottool as pt
+        >>> import utool as ut
+        >>> import vtool as vt
+        >>> patch = vt.testdata_patch()
+        >>> gx, gy = vt.patch_gradient(patch, gaussian_weighted=False)
+        >>> stride = ut.get_argval('--stride', default=1)
+        >>> pt.draw_vector_field(gx, gy, stride=stride)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
+    """
     # https://stackoverflow.com/questions/1843194/plotting-vector-fields-in-python-matplotlib
     # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.quiver
     quiv_kw = {
@@ -3548,8 +3502,10 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
         #'scale': 80,
         #'width':
         'headaxislength': 4.5,
+        # 'headlength': 5,
         'headlength': 5,
-        'headwidth': 3,
+        # 'headwidth': 3,
+        'headwidth': 10,
         'minshaft': 1,
         'minlength': 1,
         #'color': 'r',
@@ -3557,14 +3513,11 @@ def draw_vector_field(gx, gy, fnum=None, pnum=None, title=None, invert=True):
         'linewidths': (.5,),
         'pivot': 'tail',  # 'middle',
     }
-    stride = 1
     #TAU = 2 * np.pi
     x_grid = np.arange(0, len(gx), 1)
     y_grid = np.arange(0, len(gy), 1)
     # Vector locations and directions
     X, Y = np.meshgrid(x_grid, y_grid)
-    #X += .5
-    #Y += .5
     U, V = gx, -gy
     # Apply stride
     X_ = X[::stride, ::stride]
@@ -4009,7 +3962,9 @@ def color_orimag_colorbar(gori):
     TAU = np.pi * 2
     ori_list = np.linspace(0, TAU, 8)
     color_list = get_orientation_color(ori_list)
-    colorbar(ori_list, color_list, lbl='orientation (radians)', custom=True)
+    # colorbar(ori_list, color_list, lbl='orientation (radians)', custom=True)
+    colorbar(ori_list, color_list, lbl='radians', float_format='%.1f',
+             custom=True)
 
 
 def make_ori_legend_img():

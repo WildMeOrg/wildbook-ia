@@ -1188,6 +1188,7 @@ def draw_network2(graph, layout_info, ax, as_directed=None, hacknoedge=False,
 
             MOVETO = mpl.path.Path.MOVETO
             LINETO = mpl.path.Path.LINETO
+            # STOP = mpl.path.Path.STOP
 
             if splines in ['line', 'polyline', 'ortho']:
                 CODE = LINETO
