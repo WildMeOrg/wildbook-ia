@@ -1343,11 +1343,6 @@ def delete_ibeis_database(dbdir):
         ut.delete(_ibsdb)
 
 
-def print_flann_cachedir(ibs):
-    flann_cachedir = ibs.get_flann_cachedir()
-    print(ut.list_str(ut.ls(flann_cachedir)))
-
-
 @register_ibs_method
 def vd(ibs):
     ibs.view_dbdir()
@@ -1356,27 +1351,6 @@ def vd(ibs):
 @register_ibs_method
 def view_dbdir(ibs):
     ut.view_directory(ibs.get_dbdir())
-
-
-@register_ibs_method
-def get_empty_gids(ibs, imgsetid=None):
-    """ returns gid list without any chips """
-    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
-    nRois_list = ibs.get_image_num_annotations(gid_list)
-    empty_gids = [gid for gid, nRois in zip(gid_list, nRois_list) if nRois == 0]
-    return empty_gids
-
-
-@register_ibs_method
-def get_annot_vecs_cache(ibs, aids):
-    """
-    When you have a list with duplicates and you dont want to copy data
-    creates a reference to each data object indexed by a dict
-    """
-    unique_aids = list(set(aids))
-    unique_desc = ibs.get_annot_vecs(unique_aids)
-    desc_cache = dict(list(zip(unique_aids, unique_desc)))
-    return desc_cache
 
 
 @register_ibs_method

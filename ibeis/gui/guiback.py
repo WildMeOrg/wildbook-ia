@@ -1810,8 +1810,14 @@ class MainWindowBackend(GUIBACK_BASE):
         print('\n\n')
         imgsetid = back._eidfromkw(kwargs)
         ibs = back.ibs
-        gid_list = ibsfuncs.get_empty_gids(ibs, imgsetid=imgsetid)
+
+        # Get images without any annotations
+        set_gids = ibs.get_valid_gids(imgsetid=imgsetid)
+        is_empty = [n == 0 for n in ibs.get_image_num_annotations(set_gids)]
+        gid_list = ut.compress(set_gids, is_empty)
+
         print('[back] run_detection_step(imgsetid=%r)' % (imgsetid))
+        print('[back] detected %d/%d empty gids' % (len(gid_list), len(set_gids)))
 
         imgset_text = back.ibs.get_imageset_text(imgsetid)
 

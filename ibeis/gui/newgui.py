@@ -1574,8 +1574,8 @@ class IBEISGuiWidget(IBEIS_WIDGET_BASE):
             >>> # GUI_DOCTEST
             >>> from ibeis.gui.newgui import *  # NOQA
             >>> ibs, back, ibswgt, testdata_main_loop = testdata_guifront('hstest')
-            >>> url_list = [ut.grab_test_imgpath('carl.jpg')]
-            >>> url_list += [ut.truepath('~/Downloads/Clutter/wd_peter2.zip')]
+            >>> url_list = [ut.grab_test_imgpath('carl.jpg'), ut.grab_test_imgpath('lena.png')]
+            >>> #url_list += [ut.truepath('~/Downloads/Clutter/wd_peter2.zip')]
             >>> url = url_list[0]
             >>> ut.quit_if_noshow()
             >>> ibswgt.imagesDropped(url_list)

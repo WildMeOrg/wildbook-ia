@@ -130,6 +130,7 @@ class Ingestable2(object):
 
         def extract_from_zipfiles(zipfile_list):
             ut.ensuredir(unzipped_file_base_dir)
+            gpath_list = []
             for zipfile in zipfile_list:
                 img_dir = unzipped_file_base_dir
                 unziped_file_relpath = dirname(relpath(relpath(realpath(zipfile),
@@ -137,7 +138,8 @@ class Ingestable2(object):
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+                gpaths = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+                gpath_list.extend(gpaths)
             return gpath_list
 
         def list_images(img_dir):
@@ -284,6 +286,7 @@ def ingest_rawdata(ibs, ingestable, localize=False):
     def extract_zipfile_images(ibs, ingestable):
         import utool as ut  # NOQA
         zipfile_list = ut.glob(ingestable.img_dir, '*.zip', recursive=True)
+        gpath_list = []
         if len(zipfile_list) > 0:
             print('Found zipfile_list = %r' % (zipfile_list,))
             ut.ensuredir(unzipped_file_base_dir)
@@ -292,9 +295,8 @@ def ingest_rawdata(ibs, ingestable, localize=False):
                 unzipped_file_dir = join(unzipped_file_base_dir, unziped_file_relpath)
                 ut.ensuredir(unzipped_file_dir)
                 ut.unzip_file(zipfile, output_dir=unzipped_file_dir, overwrite=False)
-            gpath_list = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
-        else:
-            gpath_list = []
+                gpaths = ut.list_images(unzipped_file_dir, fullpath=True, recursive=True)
+                gpath_list.extend(gpaths)
         return gpath_list
 
     def list_images(img_dir):
