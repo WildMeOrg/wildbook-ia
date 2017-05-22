@@ -1395,6 +1395,11 @@ class Chap3Agg(object):
         """
         CommandLine:
             python -m ibeis Chap3.draw_agg_baseline --diskshow
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> Chap3.draw_agg_baseline()
         """
         agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
         cdfs = []

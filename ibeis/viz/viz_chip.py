@@ -62,7 +62,8 @@ def testdata_showchip():
     kwargs['ell'] = True or ut.get_argflag('--drawell')
     kwargs['ell_alpha'] = ut.get_argval('--ellalpha', default=.4)
     kwargs['ell_linewidth'] = ut.get_argval('--ell_linewidth', default=2)
-    ut.print_dict(kwargs)
+    kwargs['draw_lbls'] = ut.get_argval('--draw_lbls', default=True)
+    print('kwargs = ' + ut.repr4(kwargs, nl=True))
     default_config = dict(ibeis.algo.Config.FeatureWeightConfig().parse_items())
     cfgdict = ut.argparse_dict(default_config)
     print('[viz_chip.testdata] cfgdict = %r' % (cfgdict,))
@@ -138,6 +139,10 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
         >>> in_image = False
         >>> ibs, aid_list, kwargs, config2_ = testdata_showchip()
         >>> aid = aid_list[0]
+        >>> if True:
+        >>>     import matplotlib as mpl
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> if ut.get_argflag('--ecc'):
         >>>     kpts = ibs.get_annot_kpts(aid, config2_=config2_)
         >>>     weights = ibs.get_annot_fgweights([aid], ensure=True, config2_=config2_)[0]
@@ -190,7 +195,7 @@ def show_chip(ibs, aid, in_image=False, annote=True, title_suffix='',
                             kpts_subset=kwargs.get('kpts_subset', None),
                             kpts=kwargs.pop('kpts', None))
         pt.viz_keypoints._annotate_kpts(kpts_, **kwargs)
-        if not ut.get_argflag('--noaidlabel'):
+        if kwargs.get('draw_lbls', True):
             pt.upperleft_text(chip_text, color=kwargs.get('text_color', None))
     use_title = not kwargs.get('notitle', False)
     if use_title:

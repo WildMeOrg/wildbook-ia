@@ -1374,6 +1374,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
         truth2_prop, prop2_mat = testres.get_truth2_prop()
 
         if 0 or ut.VERBOSE:
+            print('=== QUERY INFO ===')
             print('qaid = %r' % (qaid,))
             print('qx = %r' % (qx,))
             print('cfgxs = %r' % (cfgxs,))
