@@ -1288,10 +1288,18 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     if ut.NOT_QUIET:
         ut.colorprint('[expt] Drawing individual results', 'yellow')
 
+    if True:
+        import matplotlib as mpl
+        from ibeis.scripts.thesis import TMP_RC
+        mpl.rcParams.update(TMP_RC)
+
     #### ARGUMENT PARSING AND RECTIFICATION ###
     cmdaug = ut.get_argval('--cmdaug', type_=str, help_='candhack')
+
+    show = ut.get_argflag('--show')
     if interact is None:
-        interact = ut.get_argflag('--show')
+        interact = ut.get_argflag('--interact')
+
     if figdir is None:
         figdir = ibs.get_fig_dir()
     show_kwargs = {'N': 3, 'ori': True, 'ell_alpha': .9}
@@ -1300,10 +1308,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     show_kwargs['viz_name_score'] = kwargs.get('viz_name_score', True)
     show_kwargs['show_timedelta'] = True
     show_kwargs['show_gf'] = True
+    show_kwargs['colorbar_'] = False
     show_kwargs['with_figtitle'] = show_in_notebook
     show_kwargs['fastmode'] = True
     if annot_modes is None:
-        annot_modes = [0]
+        annot_modes = ut.get_argval('--annotmodes', default=[0])
     filt_cfg = f
     if case_pos_list is None:
         case_pos_list = testres.case_sample2(filt_cfg, verbose=verbose)  # NOQA
@@ -1318,6 +1327,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
     # Common directory
     indiv_results_figdir = ut.ensuredir((case_figdir, 'indiv_results'))
     top_rank_analysis_dir = ut.ensuredir((case_figdir, 'top_rank_analysis'))
+    dump = False
     DO_COPY_QUEUE = True
     if DO_COPY_QUEUE:
         cpq = draw_helpers.IndividualResultsCopyTaskQueue()
@@ -1375,6 +1385,7 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
 
         if 0 or ut.VERBOSE:
             print('=== QUERY INFO ===')
+            print('=== QUERY INFO ===')
             print('qaid = %r' % (qaid,))
             print('qx = %r' % (qx,))
             print('cfgxs = %r' % (cfgxs,))
@@ -1412,7 +1423,13 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
             qres_fname = query_lbl + '.png'
 
             analysis_fpath = join(individ_results_dpath, qres_fname)
-            if interact or show_in_notebook or not ut.checkpath(analysis_fpath):
+
+            if show or interact or show_in_notebook:
+                needs_draw = True
+            else:
+                needs_draw = not (dump and ut.checkpath(analysis_fpath))
+
+            if needs_draw:
                 bar_label = 'Case: Query %r / %r, Config %r / %r --- qaid=%d, cfgx=%r' % (
                     count + 1, len(qx_list), count2 + 1, len(cfgxs), qaid, cfgx)
                 print('bar_label = %r' % (bar_label,))
@@ -1446,7 +1463,11 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     # Hack for candidacy
                     analysis_fpath = join(figdir, 'figuresC/case_%s.png' % (cmdaug,))
                     print('analysis_fpath = %r' % (analysis_fpath,))
-                if not show_in_notebook:
+                if show_in_notebook:
+                    pt.plt.show()
+
+                # elif not show:
+                if False:
                     fig = pt.gcf()
                     print('analysis_fpath = %r' % (analysis_fpath,))
                     fig.savefig(analysis_fpath)
@@ -1454,8 +1475,6 @@ def draw_match_cases(ibs, testres, metadata=None, f=None,
                     if DO_COPY_QUEUE:
                         if cmdaug is None:
                             cpq.append_copy_task(analysis_fpath, top_rank_analysis_dir)
-                else:
-                    pt.plt.show()
             analysis_fpath_list.append(analysis_fpath)
             fpaths_list[-1].append(analysis_fpath)
             if metadata is not None:

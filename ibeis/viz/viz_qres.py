@@ -208,7 +208,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         >>> ut.show_if_requested()
     """
     #ut.print_dict(kwargs)
-    annot_mode     = kwargs.get('annot_mode', 1) % 3  # this is toggled
+    annot_mode     = kwargs.get('annot_mode', 1) % 4  # this is toggled
     figtitle       = kwargs.get('figtitle', '')
     aug            = kwargs.get('aug', '')
     top_aids       = kwargs.get('top_aids', DEFAULT_NTOP)
@@ -218,6 +218,7 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     in_image       = kwargs.get('in_image', False)
     sidebyside     = kwargs.get('sidebyside', True)
     simplemode     = kwargs.get('simplemode', False)
+    colorbar_      = kwargs.get('colorbar_', False)
     #name_scoring   = kwargs.get('name_scoring', False)
     viz_name_score = kwargs.get('viz_name_score', qreq_ is not None)
     max_nCols      = kwargs.get('max_nCols', None)
@@ -333,10 +334,12 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
         _kwshow.update(kwargs)
         _kwshow['fnum'] = fnum
         _kwshow['in_image'] = in_image
+        _kwshow['colorbar_'] = colorbar_
         if sidebyside:
             # Draw each match side by side the query
-            _kwshow['draw_ell'] = annot_mode == 1
-            _kwshow['draw_lines'] = annot_mode >= 1
+            _kwshow['draw_ell'] = annot_mode in {1}
+            _kwshow['draw_lines'] = annot_mode in {1, 2}
+            _kwshow['heatmask'] = annot_mode in {3}
         else:
             #print('annot_mode = %r' % (annot_mode,))
             _kwshow['draw_ell'] = annot_mode == 1

@@ -18,7 +18,7 @@ from guitool.__PYQT__ import QtCore
 from guitool.__PYQT__.QtCore import Qt
 from guitool import mpl_widget
 from guitool import PrefWidget2
-from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 
 GRAPH_REVIEW_CFG_DEFAULTS = {
     'ranks_top': 3,

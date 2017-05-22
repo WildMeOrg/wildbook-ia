@@ -185,6 +185,10 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         >>> from ibeis.viz.viz_nearest_descriptors import *  # NOQA
         >>> import ibeis
         >>> # build test data
+        >>> if True:
+        >>>     import matplotlib as mpl
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> qreq_ = ibeis.testdata_qreq_()
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> qaid = qreq_.qaids[0]
@@ -246,7 +250,8 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
                     #info = 'Match:\n$k=%r$, $\\frac{||\\mathbf{d}_i - \\mathbf{d}_j||}{Z}=%.3f$' % (k, qfx2_dist[0, k])
                     info = '\\vspace{1cm}'
                     info += 'Match: $\\mathbf{d}_{j_%r}$\n$\\textrm{dist}=%.3f$' % (k, qfx2_dist[0, k])
-                    info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                    # info += '\n$s_{\\tt{LNBNN}}=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
+                    info += '\n$s=%.3f$' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
                 else:
                     info = 'Match:%s\nk=%r, dist=%.3f' % (id_str, k, qfx2_dist[0, k])
                     info += '\nLNBNN=%.3f' % (qfx2_dist[0, K + Knorm - 1] - qfx2_dist[0, k])
@@ -290,6 +295,9 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
         )
         if ut.get_argflag('--texknormplot'):
             featrow_kw['ell_color'] = pt.ORANGE
+            featrow_kw['ell_linewidth'] = 1
+            featrow_kw['arm1_lw'] = .5
+            featrow_kw['stroke'] = 0
             pass
         for listx, tup in enumerate(extracted_list):
             (rchip, kp, sift, fx, aid, info, type_) = tup
@@ -309,7 +317,7 @@ def show_nearest_descriptors(ibs, qaid, qfx, fnum=None, stride=5,
             if prevsift is None or consecutive_distance_compare:
                 prevsift = sift
 
-        df2.adjust_subplots(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
+        # df2.adjust_subplots(hspace=.85, wspace=0, top=.95, bottom=.087, left=.05, right=.95)
 
     except Exception as ex:
         print('[viz] Error in show nearest descriptors')

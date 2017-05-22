@@ -145,6 +145,32 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     rchip1, kpts1 = get_query_annot_pair_info(ibs, qaid, qreq_, draw_fmatches)
     rchip2_list, kpts2_list = get_data_annot_pair_info(ibs, name_daid_list,
                                                        qreq_, draw_fmatches)
+
+    heatmask = kwargs.pop('heatmask', False)
+    if heatmask:
+        from vtool.coverage_kpts import make_kpts_heatmask
+        import numpy as np
+        import vtool as vt
+
+        wh1 = vt.get_size(rchip1)
+        fx1 = np.unique(np.hstack([fm.T[0] for fm in name_fm_list]))
+        heatmask1 = make_kpts_heatmask(kpts1[fx1], wh1)
+        rchip1 = vt.overlay_alpha_images(heatmask1, rchip1)
+        # Hack cast back to uint8
+        rchip1 = (rchip1 * 255).astype(np.uint8)
+
+        rchip2_list_ = rchip2_list
+        rchip2_list = []
+
+        for rchip2, kpts2, fm in zip(rchip2_list_, kpts2_list, name_fm_list):
+            fx2 = fm.T[1]
+            wh2 = vt.get_size(rchip2)
+            heatmask2 = make_kpts_heatmask(kpts2[fx2], wh2)
+            rchip2 = vt.overlay_alpha_images(heatmask2, rchip2)
+            # Hack cast back to uint8
+            rchip2 = (rchip2 * 255).astype(np.uint8)
+            rchip2_list.append(rchip2)
+    #
     fm_list = name_fm_list
     fs_list = name_fs_list
     featflag_list = name_featflag_list

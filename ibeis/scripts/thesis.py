@@ -30,7 +30,7 @@ TMP_RC = {
 
 TMP_RC = {
     'axes.titlesize': 12,
-    'axes.labelsize': 12,
+    'axes.labelsize': ut.get_argval('--labelsize', default=12),
     'font.family': 'sans-serif',
     'font.serif': 'CMU Serif',
     'font.sans-serif': 'CMU Sans Serif',

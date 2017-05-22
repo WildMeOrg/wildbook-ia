@@ -85,6 +85,10 @@ def show_multiple_chips(ibs, aid_list, in_image=True, fnum=0, sel_aids=[],
         >>> from ibeis.viz.viz_name import *  # NOQA
         >>> import ibeis
         >>> ibs, aid_list, in_image = testdata_multichips()
+        >>> if True:
+        >>>     import matplotlib as mpl
+        >>>     from ibeis.scripts.thesis import TMP_RC
+        >>>     mpl.rcParams.update(TMP_RC)
         >>> fnum = 0
         >>> sel_aids = []
         >>> subtitle = ''
