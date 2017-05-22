@@ -8,7 +8,7 @@ from six.moves import zip, map
 from plottool import plot_helpers as ph
 from ibeis.other import ibsfuncs
 from ibeis.control.accessor_decors import getter, getter_vector_output
-(print, rrr, profile) = ut.inject2(__name__, '[viz_helpers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 NO_LBL_OVERRIDE = ut.get_argval('--no-lbl-override', type_=bool, default=None)
@@ -127,7 +127,7 @@ def get_truth_color(truth, base255=False, lighten_amount=None):
     import ibeis.constants as const
     truth_colors = {
         const.REVIEW.NEGATIVE: df2.FALSE_RED,
-        const.REVIEW.POSITIVE: df2.TRUE_GREEN,
+        const.REVIEW.POSITIVE: df2.TRUE_BLUE,
         const.REVIEW.INCOMPARABLE: df2.YELLOW,
         const.REVIEW.UNKNOWN: df2.UNKNOWN_PURP,
         const.REVIEW.UNREVIEWED: df2.UNKNOWN_PURP,

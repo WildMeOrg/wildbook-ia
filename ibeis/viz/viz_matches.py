@@ -191,7 +191,9 @@ def show_name_matches(ibs, qaid, name_daid_list, name_fm_list, name_fs_list,
     if len(tag_list) > 0:
         xlabel += '\n' + ', '.join(tag_list)
 
-    pt.set_xlabel(xlabel)
+    noshow_truth = ut.get_argflag('--noshow_truth')
+    if not noshow_truth:
+        pt.set_xlabel(xlabel)
     return ax
 
 
@@ -253,7 +255,8 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
     name_annot_scores = kwargs.get('name_annot_scores', None)
     if len(aid_list) == 2:
         # HACK; generalize to multple annots
-        title = vh.get_query_text(ibs, None, aid_list[1], truth, qaid=aid_list[0], **kwargs)
+        title = vh.get_query_text(ibs, None, aid_list[1], truth,
+                                  qaid=aid_list[0], **kwargs)
         if not notitle:
             pt.set_title(title, ax)
 
@@ -283,7 +286,6 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
         lbl_list = [' : '.join(lbls) for lbls in lbls_list]
     else:
         lbl_list = [None] * len(aid_list)
-    #pt.set_title(title, ax)
     # Plot annotations over images
     if in_image:
         in_image_bbox_list = vh.get_bboxes(ibs, aid_list, offset_list)
@@ -299,36 +301,19 @@ def annotate_matches3(ibs, aid_list, bbox_list, offset_list, name_fm_list,
             pass
     else:
         xy, w, h = pt.get_axis_xy_width_height(ax)
-        #theta2 = 0
-
-        #if xywh2 is None:
-        #    #xywh2 = (xy[0], xy[1], w, h)
-        #    # weird when sidebyside is off y seems to be inverted
-        #    xywh2 = (0,  0, w, h)
-
-        #if not show_query and xywh1 is None:
-        #    data_config2 = None if qreq_ is None else
-        #    qreq_.extern_data_config2
-        #    kpts2 = ibs.get_annot_kpts([aid2], config2_=data_config2)[0]
-        #    #pt.draw_kpts2(kpts2.take(fm.T[1], axis=0))
-        #    # Draw any selected matches
-        #    #sm_kw = dict(rect=True, colors=pt.BLUE)
-        #    pt.plot_fmatch(None, xywh2, None, kpts2, fm, fs=fs, **kwargs)
-        #if draw_border:
-        #    pt.draw_border(ax, truth_color, 4, offset=offset2)
         if draw_border:
             pt.draw_border(ax, color=truth_color, lw=4)
         if draw_lbl:
             # Custom user lbl for chips 1 and 2
-            #if show_query:
-            #    (x1, y1, w1, h1) = xywh1
-            #    pt.absolute_lbl(x1 + w1, y1, lbl1)
             for bbox, lbl in zip(bbox_list, lbl_list):
                 (x, y, w, h) = bbox
                 pt.absolute_lbl(x + w, y, lbl)
     # No matches draw a red box
     if True:
-        no_matches = name_fm_list is None or all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
+        no_matches = (
+            name_fm_list is None or
+            all([True if fm is None else len(fm) == 0 for fm in name_fm_list])
+        )
         if no_matches:
             xy, w, h = pt.get_axis_xy_width_height(ax)
             #axes_bbox = (xy[0], xy[1], w, h)
@@ -577,6 +562,7 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
 
     colorbar_ = kwargs.pop('colorbar_', True)
     stack_larger = kwargs.pop('stack_larger', False)
+    stack_side = kwargs.pop('stack_side', False)
     # mode for features disabled by name scoring
     NONVOTE_MODE = kwargs.get('nonvote_mode', 'filter')
 
@@ -618,11 +604,14 @@ def show_multichip_match(rchip1, rchip2_list, kpts1, kpts2_list, fm_list,
     #use_larger = True
     #vert = kwargs.get('fastmode', False)
 
-    match_img, offset_list, sf_list = vt.stack_image_list_special(rchip1_,
-                                                                  rchip2_list_,
-                                                                  num=num,
-                                                                  vert=vert,
-                                                                  **stackkw)
+    if stack_side:
+        # hack to stack all database images vertically
+        num = 0
+
+    # TODO: heatmask
+
+    match_img, offset_list, sf_list = vt.stack_image_list_special(
+        rchip1_, rchip2_list_, num=num, vert=vert, **stackkw)
     wh_list = np.array(ut.flatten([[wh1], wh2_list])) * sf_list
 
     offset1 = offset_list[0]

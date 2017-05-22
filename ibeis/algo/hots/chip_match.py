@@ -362,6 +362,10 @@ class _ChipMatchVisualization(object):
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> from ibeis.viz import viz_matches
             >>> import ibeis
+            >>> if True:
+            >>>     import matplotlib as mpl
+            >>>     from ibeis.scripts.thesis import TMP_RC
+            >>>     mpl.rcParams.update(TMP_RC)
             >>> cm_list, qreq_ = ibeis.testdata_cmlist('PZ_MTEST', [1])
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
             >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
