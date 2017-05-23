@@ -65,7 +65,14 @@ if ut.get_computer_name() == 'hyrule':
 @register_ibs_method
 def get_wildbook_base_url(ibs, wb_target=None):
     wb_target = ibs.const.WILDBOOK_TARGET if wb_target is None else wb_target
-    hostname = '127.0.0.1'
+    computer_name = ut.get_computer_namename()
+
+    princeton = computer_name not in ['maasai', 'quagga']
+    if princeton:
+        hostname = 'quagga.princeton.edu'
+    else:
+        hostname = '127.0.0.1'
+
     wb_port = 8080
     wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target
     return wildbook_base_url
