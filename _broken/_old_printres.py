@@ -656,7 +656,7 @@ def rankscore_str(thresh, nLess, total, withlbl=True):
     #        aid_list2 = qx2_gt_aid
     #        ibs.assert_valid_aids(aid_list1)
     #        ibs.assert_valid_aids(aid_list2)
-    #        timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
+    #        timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2)
     #        #timedelta_str_list = [ut.get_posix_timedelta_str2(delta)
     #        #                      for delta in timedelta_list]
 

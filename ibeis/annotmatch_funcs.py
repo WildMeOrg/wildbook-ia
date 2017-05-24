@@ -229,7 +229,7 @@ def add_annotmatch_undirected(ibs, aids1, aids2):
 
 
 @register_ibs_method
-def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
+def get_annot_pair_timedelta(ibs, aid_list1, aid_list2):
     r"""
     Args:
         ibs (IBEISController):  ibeis controller object
@@ -240,7 +240,7 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         list: timedelta_list
 
     CommandLine:
-        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timdelta
+        python -m ibeis.annotmatch_funcs --test-get_annot_pair_timedelta
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -248,15 +248,16 @@ def get_annot_pair_timdelta(ibs, aid_list1, aid_list2):
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> aid_list = ibs.get_valid_aids(hasgt=True)
-        >>> unixtimes = ibs.get_annot_image_unixtimes(aid_list)
-        >>> aid_list = ut.compress(aid_list, np.array(unixtimes) != -1)
+        >>> unixtimes = ibs.get_annot_image_unixtimes_asfloat(aid_list)
+        >>> aid_list = ut.compress(aid_list, ~np.isnan(unixtimes))
         >>> gt_aids_list = ibs.get_annot_groundtruth(aid_list, daid_list=aid_list)
-        >>> aid_list1 = [aid for aid, gt_aids in zip(aid_list, gt_aids_list) if len(gt_aids) > 0][0:5]
-        >>> aid_list2 = [gt_aids[0] for gt_aids in gt_aids_list if len(gt_aids) > 0][0:5]
-        >>> timedelta_list = ibs.get_annot_pair_timdelta(aid_list1, aid_list2)
-        >>> result = ut.repr2(timedelta_list, precision=2)
+        >>> flags = np.array(list(map(len, gt_aids_list))) > 0
+        >>> aid_list1 = ut.compress(aid_list, flags)[0:5]
+        >>> aid_list2 = ut.take_column(gt_aids_list, 0)[0:5]
+        >>> timedelta_list = ibs.get_annot_pair_timedelta(aid_list1, aid_list2)
+        >>> result = ut.repr2(timedelta_list, precision=1)
         >>> print(result)
-        np.array([  7.57e+07,   7.57e+07,   2.41e+06,   1.98e+08,   9.69e+07])
+        np.array([  7.6e+07,   7.6e+07,   2.4e+06,   2.0e+08,   9.7e+07])
     """
     unixtime_list1 = ibs.get_annot_image_unixtimes_asfloat(aid_list1)
     unixtime_list2 = ibs.get_annot_image_unixtimes_asfloat(aid_list2)

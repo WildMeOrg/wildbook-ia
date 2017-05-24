@@ -125,6 +125,7 @@ def make_config_metaclass():
         return cfgstr
 
     @_register
+    @profile
     def initialize_params(cfg):
         """ Initializes config class attributes based on params info list """
         for pi in cfg.get_param_info_list():
@@ -431,11 +432,13 @@ class NNWeightConfig(ConfigBase):
         _NNWeight(ratio_thresh=0.625,fg,last,nosqrd_dist)
         _NNWeight(ratio_thresh=0.625,lnbnn,fg,last,lnbnn_normer=foobarstr,lnbnn_norm_thresh=0.5,nosqrd_dist)
     """
+    @profile
     def __init__(nnweight_cfg, **kwargs):
         super(NNWeightConfig, nnweight_cfg).__init__(name='nnweight_cfg')
         nnweight_cfg.initialize_params()
         nnweight_cfg.update(**kwargs)
 
+    @profile
     def get_param_info_list(nnweight_cfg):
         # new way to try and specify config options.
         # not sure if i like it yet
@@ -445,9 +448,6 @@ class NNWeightConfig(ConfigBase):
                 ut.ParamInfoBool('lnbnn_on', True,  hideif=False),
                 ut.ParamInfoBool('const_on', False,  hideif=False),
                 ut.ParamInfoBool('lograt_on', False, hideif=False),
-                #ut.ParamInfoBool('loglnbnn_on', False,  hideif=False),
-                #ut.ParamInfoBool('logdist_on', False,  hideif=False),
-                #ut.ParamInfoBool('dist_on', False,  hideif=False),
                 ut.ParamInfoBool('normonly_on', False,  hideif=False),
                 ut.ParamInfoBool('bar_l2_on', False,  hideif=False),
                 ut.ParamInfoBool('cos_on', False,  hideif=False),
@@ -463,10 +463,7 @@ class NNWeightConfig(ConfigBase):
                                  hideif=False),
                 ut.ParamInfoBool('can_match_samename', True, 'samename',
                                  hideif=True),
-                # Hacked in
-                #ut.ParamInfoBool('root_sift_on', False,  hideif=False),
                 ut.ParamInfoBool('sqrd_dist_on', False,  hideif=True),
-                #ut.ParamInfoBool('sqrd_dist_on', True,  hideif=True),
             ],
         ])
         return param_info_list
@@ -542,6 +539,7 @@ class QueryConfig(ConfigBase):
         >>> print(cfgstr)
 
     """
+    @profile
     def __init__(query_cfg, **kwargs):
         super(QueryConfig, query_cfg).__init__(name='query_cfg')
         query_cfg.nn_cfg         = NNConfig(**kwargs)
@@ -647,9 +645,9 @@ class QueryConfig(ConfigBase):
         if codename is None:
             codename = query_cfg.codename
 
-        nnweight_cfg = query_cfg.nnweight_cfg
-        nn_cfg   = query_cfg.nn_cfg
-        agg_cfg = query_cfg.agg_cfg
+        # nnweight_cfg = query_cfg.nnweight_cfg
+        # nn_cfg   = query_cfg.nn_cfg
+        # agg_cfg = query_cfg.agg_cfg
 
         if codename.startswith('csum') or codename.endswith('_csum'):
             raise NotImplementedError('codename nsum')
@@ -681,7 +679,7 @@ class QueryConfig(ConfigBase):
         #feat_cfg = query_cfg._featweight_cfg._feat_cfg
         #smk_cfg = query_cfg.smk_cfg
         #vocabassign_cfg = query_cfg.smk_cfg.vocabassign_cfg
-        agg_cfg = query_cfg.agg_cfg
+        # agg_cfg = query_cfg.agg_cfg
         #sv_cfg = query_cfg.sv_cfg
 
         hasvalid_root = any([
@@ -693,11 +691,6 @@ class QueryConfig(ConfigBase):
         except AssertionError as ex:
             ut.printex(ex)
             raise
-            #if ut.SUPER_STRICT:
-            #    raise
-            #else:
-            #    query_cfg.pipeline_root = query_cfg._valid_pipeline_roots[0]
-            #    pass
 
         # HACK
         if nnweight_cfg.fg_on is not True:
@@ -705,9 +698,6 @@ class QueryConfig(ConfigBase):
         if featweight_cfg.featweight_enabled is not True:
             nnweight_cfg.fg_on = False
 
-        #vocabassign_cfg.make_feasible()
-        #smk_cfg.make_feasible()
-        #nnweight_cfg.make_feasible()
         nn_cfg.make_feasible()
 
     def deepcopy(query_cfg, **kwargs):
@@ -737,48 +727,18 @@ class FeatureWeightConfig(ConfigBase):
 
     """
 
+    @profile
     def __init__(featweight_cfg, **kwargs):
         super(FeatureWeightConfig, featweight_cfg).__init__(
             name='featweight_cfg')
         # Featweights depend on features
         featweight_cfg._feat_cfg = FeatureConfig(**kwargs)
         featweight_cfg.initialize_params()
-        # Feature weights depend on the detector, but we only need to mirror
-        # some parameters because featweight_cfg should not use the detect_cfg
-        # object
-        #featweight_cfg.featweight_enabled = False
-        #featweight_cfg.featweight_enabled = True
-        #featweight_cfg.featweight_species  = 'uselabel'
-        #featweight_cfg.fw_detector = 'rf'
-        #featweight_cfg.fw_detector = 'cnn'
         featweight_cfg.update(**kwargs)
-
-    def make_feasible(featweight_cfg):
-        #featweight_cfg.featweight_enabled = False
-        pass
 
     def get_param_info_list(self):
         from ibeis import core_annots
         return core_annots.ProbchipConfig._param_info_list + core_annots.FeatWeightConfig._param_info_list
-
-    #def get_cfgstr_list(featweight_cfg, **kwargs):
-    #    featweight_cfg.make_feasible()
-    #    featweight_cfgstrs = []
-    #    if kwargs.get('use_featweight', True):
-    #        if featweight_cfg.featweight_enabled is not True:
-    #            if featweight_cfg.featweight_enabled == 'ERR':
-    #                featweight_cfgstrs.extend(['_FEATWEIGHT(ERR)'])
-    #            else:
-    #                featweight_cfgstrs.extend(['_FEATWEIGHT(OFF)'])
-    #        else:
-    #            featweight_cfgstrs.extend([
-    #                '_FEATWEIGHT(ON',
-    #                ',' + featweight_cfg.featweight_species,
-    #                ',' + featweight_cfg.fw_detector,
-    #                ')'])
-    #    _cfgstrlist = featweight_cfg._feat_cfg.get_cfgstr_list(**kwargs)
-    #    featweight_cfgstrs.extend(_cfgstrlist)
-    #    return featweight_cfgstrs
 
 
 @six.add_metaclass(ConfigMetaclass)
@@ -1098,6 +1058,7 @@ def load_named_config(cfgname, dpath, use_config_cache=False,
     return cfg
 
 
+@profile
 def _default_config(cfg, cfgname=None, new=True):
     """ hack 12-30-2014 """
     if ut.VERBOSE:
@@ -1120,6 +1081,7 @@ def _default_config(cfg, cfgname=None, new=True):
     return cfg
 
 
+@profile
 def _default_named_config(cfg, cfgname):
     """ hack 12-30-2014
 

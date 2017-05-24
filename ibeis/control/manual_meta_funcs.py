@@ -856,7 +856,8 @@ def _init_config(ibs):
     try:
         general_config = ut.load_cPkl(config_fpath, verbose=ut.VERBOSE)
     except IOError as ex:
-        ut.printex(ex, 'failed to genral load config', iswarning=True)
+        if ut.VERBOSE:
+            ut.printex(ex, 'failed to genral load config', iswarning=True)
         general_config = {}
     current_species = general_config.get('current_species', None)
     if ut.VERBOSE and ut.NOT_QUIET:
@@ -909,7 +910,7 @@ def _init_burned_in_species(ibs):
 
 
 @register_ibs_method
-#@profile
+@profile
 def _load_named_config(ibs, cfgname=None):
     r"""
     """

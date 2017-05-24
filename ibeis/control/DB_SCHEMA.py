@@ -428,7 +428,8 @@ def post_1_2_1(db, ibs=None):
             # It is visual info augmented with name and species
             def get_annot_viewpoints(ibs, aid_list):
                 viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
-                viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                viewpoint_list = [viewpoint if viewpoint is None or viewpoint >= 0.0
+                                  else None for viewpoint in viewpoint_list]
                 return viewpoint_list
             view_list       = get_annot_viewpoints(ibs, aid_list)
             name_list       = get_annot_names_v121(aid_list)
@@ -490,7 +491,8 @@ def pre_1_3_1(db, ibs=None):
                 image_uuid_list, verts_list, theta_list = visual_infotup
                 def get_annot_viewpoints(ibs, aid_list):
                     viewpoint_list = ibs.db.get(const.ANNOTATION_TABLE, (ANNOT_VIEWPOINT,), aid_list)
-                    viewpoint_list = [viewpoint if viewpoint >= 0.0 else None for viewpoint in viewpoint_list]
+                    viewpoint_list = [viewpoint if viewpoint is None or viewpoint >= 0.0
+                                      else None for viewpoint in viewpoint_list]
                     return viewpoint_list
                 # It is visual info augmented with name and species
                 viewpoint_list  = get_annot_viewpoints(ibs, aid_list)
@@ -859,6 +861,9 @@ def update_1_3_5(db, ibs=None):
         # Adds a few different degrees of quality
         aid_list = ibs.get_valid_aids()
         qual_list = ibs.get_annot_qualities(aid_list)
+        flags = [q is not None for q in qual_list]
+        qual_list = ut.compress(qual_list, flags)
+        aid_list = ut.compress(aid_list, flags)
         assert len(qual_list) == 0 or max(qual_list) < 3, 'there were no qualities higher than 3 at this point'
         old_to_new = {
             2: 3,
@@ -1516,9 +1521,10 @@ def update_1_6_4(db, ibs=None):
 
 
 def post_1_6_4(db, ibs=None):
-    aid_list = ibs.get_valid_aids()
-    viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
-    ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+    if ibs is not None:
+        aid_list = ibs.get_valid_aids()
+        viewpoint_list = ibs.get_annot_yaw_texts(aid_list)
+        ibs.set_annot_viewpoints(aid_list, viewpoint_list)
 
 
 # ========================

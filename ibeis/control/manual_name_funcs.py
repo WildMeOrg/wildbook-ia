@@ -187,8 +187,14 @@ def delete_names(ibs, name_rowid_list, safe=True, strict=False, verbose=ut.VERBO
         aids_list = ibs.get_name_aids(name_rowid_list)
         aid_list = ut.flatten(aids_list)
         if strict:
-            assert len(aid_list) == 0, 'should not be any annots belonging to a deleted name'
-        ibs.delete_annot_nids(aid_list)
+            assert len(aid_list) == 0, (
+                'should not be any annots belonging to a deleted name')
+        else:
+            if verbose:
+                print('[ibs] deleting %d annots that belonged to those names' %
+                      len(aid_list))
+            if len(aid_list) > 0:
+                ibs.delete_annot_nids(aid_list)
     ibs.db.delete_rowids(const.NAME_TABLE, name_rowid_list)
     #return len(name_rowid_list)
     #ibs.delete_lblannots(nid_list)

@@ -410,7 +410,7 @@ class IBEISController(BASE_CLASS):
             ibs, controller_inject.CONTROLLER_CLASSNAME,
             allow_override=ibs.allow_override)
         assert hasattr(ibs, 'get_database_species'), 'issue with ibsfuncs'
-        assert hasattr(ibs, 'get_annot_pair_timdelta'), (
+        assert hasattr(ibs, 'get_annot_pair_timedelta'), (
             'issue with annotmatch_funcs')
         ibs.register_controller()
 
@@ -583,7 +583,9 @@ class IBEISController(BASE_CLASS):
             readonly = True
         ibs.db = dtool.SQLDatabaseController(
             fpath=sqldb_fpath, text_factory=six.text_type,
-            inmemory=False, readonly=readonly)
+            inmemory=False, readonly=readonly,
+            always_check_metadata=False,
+        )
         ibs.readonly = ibs.db.readonly
 
         if backup_idx is None:
@@ -667,7 +669,9 @@ class IBEISController(BASE_CLASS):
             readonly = True
         ibs.staging = dtool.SQLDatabaseController(
             fpath=sqlstaging_fpath, text_factory=six.text_type,
-            inmemory=False, readonly=readonly)
+            inmemory=False, readonly=readonly,
+            always_check_metadata=False,
+        )
         ibs.readonly = ibs.staging.readonly
 
         if backup_idx is None:

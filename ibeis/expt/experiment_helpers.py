@@ -386,12 +386,17 @@ def get_annotcfg_list(ibs, acfg_name_list, filter_dups=True,
         >>> # ENABLE_DOCTEST
         >>> from ibeis.expt.experiment_helpers import *  # NOQA
         >>> import ibeis
+        >>> from ibeis.init import main_helpers
         >>> from ibeis.expt import annotation_configs
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
+        >>> aids = ibs.get_valid_aids()
+        >>> main_helpers.monkeypatch_encounters(ibs, aids, days=50)
         >>> a = ['default:crossval_enc=True,require_timestamp=True']
         >>> acfg_name_list = testdata_acfg_names(a)
         >>> acfg_list, expanded_aids_list = get_annotcfg_list(ibs, acfg_name_list)
         >>> annotation_configs.print_acfg_list(acfg_list, expanded_aids_list)
+        >>> # Restore state
+        >>> main_helpers.unmonkeypatch_encounters(ibs)
     """
     if ut.VERBOSE:
         print('[harn.help] building acfg_list using %r' % (acfg_name_list,))

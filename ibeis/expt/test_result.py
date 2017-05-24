@@ -1874,7 +1874,7 @@ class TestResult(ut.NiceRepr):
         for truth in ['gt', 'gf']:
             aid_mat = truth2_prop[truth]['aid']
             timedelta_mat = np.vstack([
-                ibs.get_annot_pair_timdelta(test_qaids, aids)
+                ibs.get_annot_pair_timedelta(test_qaids, aids)
                 for aids in aid_mat.T
             ]).T
             annotmatch_rowid_mat = np.vstack([
@@ -2015,7 +2015,7 @@ class TestResult(ut.NiceRepr):
 
         #valid_gtranks = gt_rank[isvalid]
         #valid_qaids = qaids[isvalid]
-        # Hack remove timdelta error
+        # Hack remove timedelta error
         #valid_qaids = valid_qaids[flags]
         #valid_gt_rawscore = valid_gt_rawscore[flags]
         #valid_gtranks = valid_gtranks[flags]

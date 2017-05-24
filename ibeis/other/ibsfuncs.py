@@ -2274,7 +2274,6 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> ibs1 = ibeis.opendb('testdb1')
         >>> ibs2 = ibeis.opendb('PZ_MTEST')
         >>> ibs3 = ibeis.opendb('NAUT_test')
-        >>> #ibs5 = ibeis.opendb('GIR_Tanya')
         >>> ibs1._clean_species()
         >>> ibs2._clean_species()
         >>> ibs3._clean_species()
@@ -2291,10 +2290,11 @@ def make_next_name(ibs, num=None, str_format=2, species_text=None, location_text
         >>> ibs2.delete_names(temp_nids)
         >>> next_name_list3 = make_next_name(ibs2, 5, str_format)
         >>> # FIXME: nautiluses are not working right
-        >>> result = ut.list_str((name_list, next_name_list1, next_name_list2, next_name_list3))
+        >>> names = (name_list, next_name_list1, next_name_list2, next_name_list3)
+        >>> result = ut.repr4(names)
         >>> print(result)
         (
-            ['IBEIS_UNKNOWN_0008', 'IBEIS_PZ_0042', 'IBEIS_UNKNOWN_0004', 'IBEIS_GZ_0008'],
+            ['IBEIS_PZ_0008', 'IBEIS_PZ_0042', 'IBEIS_UNKNOWN_0004', 'IBEIS_GZ_0008'],
             ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],
             ['IBEIS_PZ_0044', 'IBEIS_PZ_0046', 'IBEIS_PZ_0047', 'IBEIS_PZ_0049', 'IBEIS_PZ_0050'],
             ['IBEIS_PZ_0042', 'IBEIS_PZ_0043', 'IBEIS_PZ_0044', 'IBEIS_PZ_0045', 'IBEIS_PZ_0046'],

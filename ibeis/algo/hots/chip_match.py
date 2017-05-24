@@ -203,7 +203,7 @@ class _ChipMatchVisualization(object):
             >>> from ibeis.viz import viz_matches
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
             >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
-            >>> del kwargs['qaid']
+            >>> kwargs.pop('qaid', None)
             >>> _nid = ut.get_argval('--dnid', default=cm.qnid)
             >>> rank = ut.get_argval('--rank', default=None)
             >>> dnid = None if rank is not None else _nid
@@ -391,7 +391,7 @@ class _ChipMatchVisualization(object):
             >>> from ibeis.viz import viz_matches
             >>> defaultkw = dict(ut.recursive_parse_kwargs(viz_matches.show_name_matches))
             >>> kwargs = ut.argparse_dict(defaultkw, only_specified=True)
-            >>> del kwargs['qaid']
+            >>> kwargs.pop('qaid', None)
             >>> kwargs['plottype'] = kwargs.get('plottype', 'namematch')
             >>> ibs, qreq_, cm_list = plh.testdata_post_sver('PZ_MTEST', qaid_list=[1])
             >>> cm = cm_list[0]
@@ -2362,19 +2362,24 @@ class ChipMatch(_ChipMatchVisualization,
         """
         Keeps results only for the selected annotation indices.
 
+        CommandLine:
+            python -m ibeis.algo.hots.chip_match take_annots
+
         Example:
             >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.hots.chip_match import *  # NOQA
             >>> import ibeis
             >>> cm, qreq_ = ibeis.testdata_cm('PZ_MTEST',
             >>>                               a='default:dindex=0:10,qindex=0:1',
-            >>>                               t='best:sv=false')
+            >>>                               t='best:sv=False')
             >>> idx_list = list(range(cm.num_daids))
             >>> inplace = False
             >>> keepscores = True
             >>> other = out = cm.take_annots(idx_list, inplace, keepscores)
             >>> result = ('out = %s' % (ut.repr2(out),))
-            >>> assert cm.inspect_difference(out), 'should be no difference'
+            >>> # Because the subset was all aids in order, the output
+            >>> # ChipMatch should be exactly the same.
+            >>> assert cm.inspect_difference(out), 'Should be exactly equal!'
             >>> print(result)
 
         Example:
@@ -2415,7 +2420,7 @@ class ChipMatch(_ChipMatchVisualization,
 
             # Name Scores
             if True:
-                nidxs_subset = ut.take(cm.nid2_nidx, out.dnid_list)
+                nidxs_subset = ut.take(cm.nid2_nidx, np.unique(out.dnid_list))
                 out.unique_nids = safeop(vt.take2, cm.unique_nids, nidxs_subset)
                 out.name_score_list = safeop(vt.take2, cm.name_score_list, nidxs_subset)
                 for key in out.algo_name_scores.keys():

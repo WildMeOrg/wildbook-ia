@@ -192,8 +192,8 @@ def make_test_result_custom_api(ibs, testres):
     qaids = testres.qaids
     gt_aids = cfgres_info['qx2_gt_aid']
     gf_aids = cfgres_info['qx2_gf_aid']
-    qx2_gt_timedelta = ibs.get_annot_pair_timdelta(qaids, gt_aids)
-    qx2_gf_timedelta = ibs.get_annot_pair_timdelta(qaids, gf_aids)
+    qx2_gt_timedelta = ibs.get_annot_pair_timedelta(qaids, gt_aids)
+    qx2_gf_timedelta = ibs.get_annot_pair_timedelta(qaids, gf_aids)
     col_name_list = [
         'qaids',
         'qx2_gt_aid',

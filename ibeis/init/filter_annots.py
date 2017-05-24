@@ -411,12 +411,15 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
     Example:
         >>> # ENABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
+        >>> from ibeis.init import main_helpers
         >>> from ibeis.expt import annotation_configs
         >>> from ibeis.expt.experiment_helpers import parse_acfg_combo_list
         >>> import ibeis
         >>> ibs = ibeis.opendb('PZ_MTEST')
         >>> #acfg_name_list = ['timectrl:dpername=[1,2]']
         >>> acfg_name_list = ['default:crossval_enc=True,require_timestamp=True']
+        >>> aids = ibs.get_valid_aids()
+        >>> main_helpers.monkeypatch_encounters(ibs, aids, days=50)
         >>> acfg_combo_list = parse_acfg_combo_list(acfg_name_list)
         >>> acfg_combo = acfg_combo_list[0]
         >>> initial_aids = None
@@ -425,7 +428,9 @@ def expand_acfgs_consistently(ibs, acfg_combo, initial_aids=None,
         >>> expanded_aids_combo_list = expand_acfgs_consistently(
         >>>     ibs, acfg_combo, initial_aids=initial_aids, use_cache=use_cache,
         >>>     verbose=verbose)
-        >>> assert len(expanded_aids_combo_list) == 3
+        >>> # Restore state
+        >>> main_helpers.unmonkeypatch_encounters(ibs)
+        >>> ut.assert_eq(len(expanded_aids_combo_list), 5)
     """
     from ibeis.expt import annotation_configs
     import copy
@@ -650,10 +655,10 @@ def crossval_helper(nid_to_sample_pool, perquery, perdatab, n_need,
     # print(ut.repr2(list(nid_to_splits.values()), strvals=True, nl=2))
 
     # Some names may have more splits than others
-    nid_to_nsplits = ut.map_vals(len, nid_to_splits)
+    # nid_to_nsplits = ut.map_vals(len, nid_to_splits)
     # Find the name with the most splits
-    max_nid = ut.argmax(nid_to_nsplits)
-    max_size = nid_to_nsplits[max_nid]
+    # max_nid = ut.argmax(nid_to_nsplits)
+    # max_size = nid_to_nsplits[max_nid]
 
     new_splits = [[] for _ in range(n_splits)]
     if rebalance:
@@ -680,7 +685,7 @@ def encounter_crossval(ibs, aids, qenc_per_name=1, denc_per_name=1,
                        enc_labels=None, confusors=True, rng=None,
                        annots_per_enc=None, rebalance=True, n_splits=None,
                        early=False):
-    """
+    r"""
     Constructs a list of [ (qaids, daids) ] where there are `qenc_per_name` and
     `denc_per_name` for each individual in the datasets respectively.
     `enc_labels` specifies custom encounter labels.
@@ -798,7 +803,7 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
         python -m ibeis.init.filter_annots annot_crossval
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from ibeis.init.filter_annots import *  # NOQA
         >>> import ibeis
         >>> ibs = ibeis.opendb(defaultdb='PZ_MTEST')
@@ -850,7 +855,6 @@ def annot_crossval(ibs, aid_list, n_qaids_per_name=1, n_daids_per_name=1,
     # if debug:
     #     debug_expanded_aids(expanded_aids_list)
     return expanded_aids_list
-
 
     # # Group annotations by encounter
     # unique_encounters, groupxs = annots.group_indicies(enc_labels)
