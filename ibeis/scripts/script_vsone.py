@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 TODO:
-
-* Get end-to-end system test working with simulated reviewer
-
 * Autoselect features:
     * Learn RF
     * prune bottom N features
@@ -232,8 +229,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # graph structure is not defined, it should apply the conversion
         # method.
         infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
-        if infr.ibs.dbname not in {'GIRM_Master1', 'NNP_MasterGIRM_core'}:
-            assert infr._is_staging_above_annotmatch()
+        # if infr.ibs.dbname not in {'GIRM_Master1', 'NNP_MasterGIRM_core'}:
+        #     assert infr._is_staging_above_annotmatch()
         infr.reset_feedback('staging', apply=True)
         if infr.ibs.dbname == 'PZ_MTEST':
             # assert False, 'need to do conversion'
@@ -544,9 +541,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             df_auc_ovr = pd.DataFrame(dict([
                 (datakey, list(data_combo_res[datakey].roc_scores_ovr()))
                 for datakey in data_keys
-            ]),
-                index=labels.one_vs_rest_task_names()
-            )
+            ]), index=labels.one_vs_rest_task_names())
             ut.cprint('[%s] ROC-AUC(OVR) Scores' % (clf_key,), 'yellow')
             print(to_string_monkey(df_auc_ovr, highlight_cols='all'))
 
@@ -558,18 +553,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     (datakey,
                      list(data_combo_res[datakey].roc_scores_ovr_hat()))
                     for datakey in data_keys
-                ]),
-                    index=labels.one_vs_rest_task_names()
-                )
-                print(to_string_monkey(df_auc_ovr_hat,
-                                       highlight_cols='all'))
+                ]), index=labels.one_vs_rest_task_names())
+                print(to_string_monkey(df_auc_ovr_hat, highlight_cols='all'))
 
             roc_scores = dict(
                 [(datakey, [data_combo_res[datakey].roc_score()])
                  for datakey in data_keys])
             df_auc = pd.DataFrame(roc_scores)
-            ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,),
-                      'yellow')
+            ut.cprint('[%s] ROC-AUC(MacroAve) Scores' % (clf_key,), 'yellow')
             print(to_string_monkey(df_auc, highlight_cols='all'))
 
             # best_data_key = 'learn(sum,glob,3)'
@@ -1089,6 +1080,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         featinfo.print_margins('summary_op')
         featinfo.print_margins('summary_measure')
         featinfo.print_margins('global_measure')
+
+    def prune_features(pblm):
+        """
+        References:
+            http://blog.datadive.net/selecting-good-features-part-iii-random-forests/
+            http://alexperrier.github.io/jekyll/update/2015/08/27/feature-importance-random-forests-gini-accuracy.html
+            https://arxiv.org/abs/1407.7502
+            https://github.com/glouppe/phd-thesis
+        """
+        from sklearn.feature_selection import SelectFromModel
 
     def demo_classes(pblm):
         r"""

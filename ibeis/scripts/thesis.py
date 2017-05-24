@@ -1417,7 +1417,7 @@ class Chap3Agg(object):
             # labels.append(self.species_nice.capitalize())
 
         mpl.rcParams.update(TMP_RC)
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * 1.5])
         fpath = join(Chap3.base_dpath, 'agg-baseline.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
@@ -1452,14 +1452,13 @@ class Chap3Inputs(DBInputs):
     """
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
 
-    def _same_occur_split(self):
+    @staticmethod
+    def _same_occur_split(ibs, aids):
         """
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
         """
-        ibs = self.ibs
-        aids = self.aids_pool
         annots = ibs.annots(aids)
         # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
         encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
@@ -1575,14 +1574,13 @@ class Chap3Inputs(DBInputs):
         #     query_samples.append(self)
         # return query_samples
 
-    def _same_enc_split(self):
+    @staticmethod
+    def _same_enc_split(ibs, aids):
         """
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
         """
-        ibs = self.ibs
-        aids = self.aids_pool
         annots = ibs.annots(aids)
         # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
         encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
@@ -1692,6 +1690,13 @@ class Chap3Inputs(DBInputs):
 
     def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None,
                        method='alt'):
+        ibs, aids = self.ibs, self.aids_pool
+        self._varied_inputs2(ibs, aids, denc_per_name, extra_dbsize_fracs,
+                             method)
+
+    @staticmethod
+    def _varied_inputs2(ibs, aids, denc_per_name=[1], extra_dbsize_fracs=None,
+                        method='alt'):
         """
         Vary num per name and total number of annots
 
@@ -1728,21 +1733,20 @@ class Chap3Inputs(DBInputs):
 
             extra_dbsize_fracs = [0, .5, 1]
         """
-        ibs, aids = self.ibs, self.aids_pool
         qenc_per_name = 1
         annots_per_enc = 1
         denc_per_name_ = max(denc_per_name)
 
         if method == 'alt':
-            qaids, dname_encs, confname_encs, confusor_pool = self._alt_splits(
+            qaids, dname_encs, confname_encs, confusor_pool = Chap3._alt_splits(
                 ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
         elif method == 'same_occur':
             assert denc_per_name_ == 1
             assert annots_per_enc == 1
             assert qenc_per_name == 1
-            qaids, dname_encs, confusor_pool = self._same_occur_split()
+            qaids, dname_encs, confusor_pool = Chap3._same_occur_split(ibs, aids)
         elif method == 'same_enc':
-            qaids, dname_encs, confusor_pool = self._same_enc_split()
+            qaids, dname_encs, confusor_pool = Chap3._same_enc_split(ibs, aids)
         else:
             raise KeyError(method)
 
@@ -1836,7 +1840,7 @@ class Chap3Inputs(DBInputs):
             if False:
                 for daids in daids_list:
                     ibs.print_annotconfig_stats(qaids, daids)
-        return self.ibs, qaids, daids_list, info_list
+        return ibs, qaids, daids_list, info_list
 
 
 @ut.reloadable_class
@@ -1910,7 +1914,7 @@ class Chap3Measures(object):
             qsize = str(group['qsize'].sum())
             dsize = '{:.1f}±{:.1f}'.format(group['dsize'].mean(), group['dsize'].std())
 
-        fig = self.plot_cmcs2(cdfs, labels, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, ymin=.5)
         fig.set_size_inches([W, H * .6])
         nonvaried_text = 'qsize={:s}, dsize={:s}'.format(qsize, dsize)
         pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
@@ -2173,7 +2177,7 @@ class Chap3Draw(object):
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
         baseline_cdf = cdfs[0]
-        fig = self.plot_cmcs2([baseline_cdf], ['baseline'], fnum=1)
+        fig = plot_cmcs([baseline_cdf], ['baseline'], fnum=1)
         fig.set_size_inches([W, H * .6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
@@ -2194,7 +2198,7 @@ class Chap3Draw(object):
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
         labels = ['smk', 'baseline']
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * .6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
@@ -2215,7 +2219,7 @@ class Chap3Draw(object):
         results = self.ensure_results(expt_name)
         cdfs, infos = list(zip(*results))
         labels = ['fg=F', 'fg=T']
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * .6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
@@ -2248,7 +2252,7 @@ class Chap3Draw(object):
 
         labels = [ut.get_cfg_lbl(ut.map_keys(ALIAS_KEYS, pcfg))[1:] for pcfg in pcfgs]
         labels = ut.lmap(label_alias, labels)
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
         fig.set_size_inches([W, H * .6])
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
@@ -2275,7 +2279,7 @@ class Chap3Draw(object):
             'csum': 'amech',
         }
         labels = [alias[x['pcfg']['score_method']] + ',dpername={}'.format(x['t_dpername']) for x in infos]
-        fig = self.plot_cmcs2(cdfs, labels, fnum=1, ymin=.5)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
         qsizes = ut.take_column(infos, 'qsize')
         dsizes = ut.take_column(infos, 'dsize')
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
@@ -2316,7 +2320,7 @@ class Chap3Draw(object):
             nonvaried_kw, varied_kws = ut.partition_varied_cfg_list(relevant_cfgs)
             labels_ = [ut.get_cfg_lbl(kw)[1:] for kw in varied_kws]
             cdfs_ = df_group['cdfs'].values
-            self.plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
+            plot_cmcs(cdfs_, labels_, fnum=1, pnum=pnum_(), ymin=.5)
             ax = pt.gca()
             nonvaried_text = ut.get_cfg_lbl(nonvaried_kw)[1:]
             # ax.set_title(nonvaried_text)
@@ -2365,43 +2369,6 @@ class Chap3Draw(object):
             #     self.draw_nsum()
             # if 'kexpt' in self.expt_results:
             #     self.draw_kexpt()
-
-    def prepare_cdfs(self, cdfs, labels):
-        cdfs = vt.pad_vstack(cdfs, fill_value=1)
-        # Sort so the best is on top
-        sortx = np.lexsort(cdfs.T[::-1])[::-1]
-        cdfs = cdfs[sortx]
-        labels = ut.take(labels, sortx)
-        return cdfs, labels
-
-    def plot_cmcs(self, cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
-        cdfs, labels = self.prepare_cdfs(cdfs, labels)
-        # Truncte to 20 ranks
-        num_ranks = min(cdfs.shape[-1], 20)
-        xdata = np.arange(1, num_ranks + 1)
-        cdfs_trunc = cdfs[:, 0:num_ranks]
-        label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
-                      for cdf, lbl in zip(cdfs_trunc, labels)]
-
-        # ymin = .4
-        num_yticks = (10 - int(ymin * 10)) + 1
-
-        pt.multi_plot(
-            xdata, cdfs_trunc, label_list=label_list,
-            xlabel='rank', ylabel='match probability',
-            use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
-            ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
-            xmax=num_ranks + 1 - .5,
-            pnum=pnum, fnum=fnum,
-            rcParams=TMP_RC,
-        )
-
-    def plot_cmcs2(self, cdfs, labels, fnum=1, **kwargs):
-        fig = pt.figure(fnum=fnum)
-        self.plot_cmcs(cdfs, labels, fnum=fnum, **kwargs)
-        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
-        fig.set_size_inches([W, H])
-        return fig
 
     def draw_time_distri(self):
         """
@@ -2605,23 +2572,7 @@ class Chap4(object):
         pass
 
     @classmethod
-    def collect(Chap4, defaultdb):
-        r"""
-        CommandLine:
-            python -m ibeis Chap4.collect --db PZ_PB_RF_TRAIN
-            python -m ibeis Chap4.collect --db PZ_MTEST
-            python -m ibeis Chap4.collect
-
-            python -m ibeis Chap4.collect --db GZ_Master1
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> defaultdb = 'PZ_PB_RF_TRAIN'
-            >>> #defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_MTEST'
-            >>> self = Chap4.collect(defaultdb)
-            >>> self.draw()
-        """
+    def _precollect(Chap4, defaultdb):
         pblm = script_vsone.OneVsOneProblem.from_empty(defaultdb)
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
@@ -2662,6 +2613,30 @@ class Chap4(object):
         #     self.dpath = ut.truepath(base + '/' + self.dbcode)
         # self.dpath = pathlib.Path(self.dpath)
         ut.ensuredir(self.dpath)
+        self.pblm = pblm
+        return self
+
+    @classmethod
+    def collect(Chap4, defaultdb):
+        r"""
+        CommandLine:
+            python -m ibeis Chap4.collect --db PZ_PB_RF_TRAIN
+            python -m ibeis Chap4.collect --db PZ_MTEST
+            python -m ibeis Chap4.collect
+
+            python -m ibeis Chap4.collect --db GZ_Master1
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_MTEST'
+            >>> self = Chap4.collect(defaultdb)
+            >>> self.draw()
+        """
+        self = Chap4._precollect(defaultdb)
+        pblm = self.pblm
+        self.pblm = None  # hack
 
         #-----------
         # COLLECTION
@@ -2844,6 +2819,138 @@ class Chap4(object):
         print('TOP 5 importances for ' + task_key)
         print('# of dimensions: %d' % (len(importances)))
         print()
+
+    def measure_thresh(self, pblm):
+        task_key = 'match_state'
+        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+        infr = pblm.infr
+
+        truth_colors = infr._get_truth_colors()
+
+        cfms = res.confusions(POSTV)
+        fig = pt.figure(fnum=1, doclf=True)  # NOQA
+        ax = pt.gca()
+        ax.plot(cfms.thresholds, cfms.n_fp, label='positive', color=truth_colors[POSTV])
+
+        cfms = res.confusions(NEGTV)
+        ax.plot(cfms.thresholds, cfms.n_fp, label='negative', color=truth_colors[NEGTV])
+
+        # cfms = res.confusions(INCMP)
+        # if len(cfms.thresholds) == 1:
+        #     cfms.thresholds = [0, 1]
+        #     cfms.n_fp = np.array(cfms.n_fp.tolist() * 2)
+        # ax.plot(cfms.thresholds, cfms.n_fp, label='incomparable',
+        #         color=pt.color_funcs.darken_rgb(truth_colors[INCMP], .15))
+        ax.set_xlabel('thresholds')
+        ax.set_ylabel('n_fp')
+
+        ax.set_ylim(0, 20)
+        ax.legend()
+
+        cfms.plot_vs('fpr', 'thresholds')
+
+        pass
+
+    def measure_rerank(self, pblm):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_Master1'
+            >>> self = Chap4._precollect(defaultdb)
+            >>> pblm = self.pblm
+            >>> self.measure_rerank(pblm)
+        """
+        infr = pblm.infr
+        ibs = pblm.infr.ibs
+        aids = pblm.infr.aids
+
+        ibs, qaids, daids_list, info_list = Chap3._varied_inputs2(ibs, aids)
+
+        if pblm.hyper_params['vsone_kpts']['augment_orientation']:
+            # HACK
+            cfgdict = {
+                'query_rotation_heuristic': True,
+            }
+        else:
+            cfgdict = {}
+        daids = daids_list[0]
+        info = info_list[0]
+
+        # Execute the ranking algorithm
+        qaids = sorted(qaids)
+        daids = sorted(daids)
+        qreq_ = ibs.new_query_request(qaids, daids, cfgdict=cfgdict)
+        cm_list = qreq_.execute()
+        cm_list = [cm.extend_results(qreq_) for cm in cm_list]
+
+        # Measure LNBNN rank probabilities
+        top = 20
+        rerank_pairs = []
+        for cm in cm_list:
+            pairs = [infr.e_(cm.qaid, daid) for daid in cm.get_top_aids(top)]
+            rerank_pairs.extend(pairs)
+        rerank_pairs = list(set(rerank_pairs))
+
+        probs = pblm.predict_proba_evaluation(infr, rerank_pairs)['match_state']
+        pos_probs = probs[POSTV]
+
+        clf_name_ranks = []
+        lnbnn_name_ranks = []
+        infr = pblm.infr
+        for cm in cm_list:
+            daids = cm.get_top_aids(top)
+            edges = [infr.e_(cm.qaid, daid) for daid in daids]
+            dnids = cm.dnid_list[ut.take(cm.daid2_idx, daids)]
+            scores = pos_probs.loc[edges].values
+
+            sortx = np.argsort(scores)[::-1]
+            clf_ranks = np.where(cm.qnid == dnids[sortx])[0]
+            if len(clf_ranks) == 0:
+                clf_rank = len(cm.unique_nids) - 1
+            else:
+                clf_rank = clf_ranks[0]
+            lnbnn_rank = cm.get_name_ranks([cm.qnid])[0]
+            clf_name_ranks.append(clf_rank)
+            lnbnn_name_ranks.append(lnbnn_rank)
+
+        bins = np.arange(len(qreq_.dnids))
+        hist = np.histogram(lnbnn_name_ranks, bins=bins)[0]
+        lnbnn_cdf = (np.cumsum(hist) / sum(hist))
+
+        bins = np.arange(len(qreq_.dnids))
+        hist = np.histogram(clf_name_ranks, bins=bins)[0]
+        clf_cdf = (np.cumsum(hist) / sum(hist))
+
+        results = [
+            (lnbnn_cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})),
+            (clf_cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})),
+        ]
+        expt_name = 'rerank'
+        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+
+    def draw_rerank(self, results):
+        mpl.rcParams.update(TMP_RC)
+        expt_name = 'rerank'
+        # TODO ensure_results for Chapter4
+        # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        # results = self.ensure_results(expt_name)
+
+        cdfs, infos = list(zip(*results))
+        lnbnn_cdf = cdfs[0]
+        clf_cdf = cdfs[1]
+        fig = pt.figure(fnum=1)
+        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1)
+        fig.set_size_inches([W, H * .6])
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+        fpath = join(str(self.dpath), expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+        return fpath
 
     def measure_importance(self, pblm, task_key):
         self.task_importance[task_key] = pblm.feature_importance(task_key=task_key)
@@ -3287,6 +3394,46 @@ def test_mcc():
 
     pt.plot(xdata, xs, label='change classes evenly')
     pt.gca().legend()
+
+
+def prepare_cdfs(cdfs, labels):
+    cdfs = vt.pad_vstack(cdfs, fill_value=1)
+    # Sort so the best is on top
+    sortx = np.lexsort(cdfs.T[::-1])[::-1]
+    cdfs = cdfs[sortx]
+    labels = ut.take(labels, sortx)
+    return cdfs, labels
+
+
+def plot_cmcs(cdfs, labels, fnum=1, pnum=(1, 1, 1), ymin=.4):
+    cdfs, labels = prepare_cdfs(cdfs, labels)
+    # Truncte to 20 ranks
+    num_ranks = min(cdfs.shape[-1], 20)
+    xdata = np.arange(1, num_ranks + 1)
+    cdfs_trunc = cdfs[:, 0:num_ranks]
+    label_list = ['%6.2f%% - %s' % (cdf[0] * 100, lbl)
+                  for cdf, lbl in zip(cdfs_trunc, labels)]
+
+    # ymin = .4
+    num_yticks = (10 - int(ymin * 10)) + 1
+
+    pt.multi_plot(
+        xdata, cdfs_trunc, label_list=label_list,
+        xlabel='rank', ylabel='match probability',
+        use_legend=True, legend_loc='lower right', num_yticks=num_yticks,
+        ymax=1, ymin=ymin, ypad=.005, xmin=.9, num_xticks=5,
+        xmax=num_ranks + 1 - .5,
+        pnum=pnum, fnum=fnum,
+        rcParams=TMP_RC,
+    )
+
+
+def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
+    fig = pt.figure(fnum=fnum)
+    plot_cmcs(cdfs, labels, fnum=fnum, **kwargs)
+    pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+    fig.set_size_inches([W, H])
+    return fig
 
 
 if __name__ == '__main__':
