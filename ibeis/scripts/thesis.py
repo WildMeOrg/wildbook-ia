@@ -1452,396 +1452,6 @@ class Chap3Inputs(DBInputs):
     """
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
 
-    @staticmethod
-    def _same_occur_split(ibs, aids):
-        """
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
-        """
-        annots = ibs.annots(aids)
-        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
-        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
-
-        nid_to_splits = ut.ddict(list)
-        # Find the biggest occurrences and pick an annotation from that
-        # occurrence to be sampled
-        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
-        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
-        for encs in occur_encs:
-            for enc in encs:
-                sortx = ut.argsort(enc.qualities)[::-1]
-                annot = enc[sortx[0]]
-                if len(nid_to_splits[annot.nid]) < 2:
-                    nid_to_splits[annot.nid].append(annot.aid)
-
-        rng = ut.ensure_rng(0)
-        pyrng = random.Random(rng.randint(sys.maxsize))
-
-        qaids = []
-        dname_encs = []
-        confusor_pool = []
-        for nid, aids_ in nid_to_splits.items():
-            if len(aids_) < 2:
-                confusor_pool.extend(aids_)
-            else:
-                pyrng.shuffle(aids_)
-                qaids.append(aids_[0])
-                dname_encs.append([[aids_[1]]])
-        confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        return qaids, dname_encs, confusor_pool
-
-    def _intra_enc(self):
-        # Make a query / database set for each occurrence
-        ibs = self.ibs
-        aids = self.aids_pool
-        annots = ibs.annots(aids)
-        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
-        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
-
-        # rng = ut.ensure_rng(0)
-        # pyrng = random.Random(rng.randint(sys.maxsize))
-
-        # Find the biggest occurrences and pick an annotation from that
-        # occurrence to be sampled
-        occurrences = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
-        occurrences = ut.map_vals(ibs._annot_groups, occurrences)
-
-        occur_nids = {o: set(ut.flatten(encs.nids))
-                      for o, encs in occurrences.items()}
-
-        # Need to find multiple disjoint exact covers of the nids
-        # Greedy solution because this is NP-hard
-        from ibeis.algo.graph import nx_dynamic_graph
-        G = nx_dynamic_graph.DynConnGraph()
-        G.add_nodes_from(occur_nids.keys())
-        occur_ids = ut.sortedby(
-            occur_nids.keys(), ut.lmap(len, occur_nids.values()))[::-1]
-        current_combos = {frozenset(G.connected_to(o1)): occur_nids[o1]
-                          for o1 in occur_ids}
-        for o1, o2 in ut.combinations(occur_ids, 2):
-            if G.node_label(o1) == G.node_label(o2):
-                continue
-            cc1 = frozenset(G.connected_to(o1))
-            cc2 = frozenset(G.connected_to(o2))
-            nids1 = current_combos[cc1]
-            nids2 = current_combos[cc2]
-            if nids1.isdisjoint(nids2):
-                G.add_edge(o1, o2)
-                del current_combos[cc1]
-                del current_combos[cc2]
-                current_combos[frozenset(cc1.union(cc2))] = nids1.union(nids2)
-
-        # Pick the top few occurrence groups with the most names
-        grouped_occurs = list(map(frozenset, G.connected_components()))
-        group_size = ut.lmap(len, list(grouped_occurs))
-        top_groups = ut.sortedby(grouped_occurs, group_size)[::-1][0:4]
-
-        samples = []
-
-        for os in top_groups:
-            encs = ut.flatten(occurrences[o].aids for o in os)
-            encs = ut.lmap(ibs.annots, encs)
-            qaids = []
-            daids = []
-            for enc in encs:
-                if len(enc) == 1:
-                    daids.extend(enc.aids)
-                else:
-                    daids.extend(enc.aids)
-                    qaids.extend(enc.aids)
-            sample = SplitSample(qaids, daids)
-            samples.append(sample)
-        return samples
-
-        #         nid = enc.nids[0]
-        #         if len(nid_to_splits[nid]) == 0:
-        #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
-        #             nid_to_splits[nid].extend(chosen)
-
-        #     qaids = []
-        #     dname_encs = []
-        #     confusor_pool = []
-        #     for nid, aids_ in nid_to_splits.items():
-        #         if len(aids_) < 2:
-        #             confusor_pool.extend(aids_)
-        #         else:
-        #             pyrng.shuffle(aids_)
-        #             qaids.append(aids_[0])
-        #             dname_encs.append([[aids_[1]]])
-        #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
-        #     query_samples.append(self)
-        # return query_samples
-
-    @staticmethod
-    def _same_enc_split(ibs, aids):
-        """
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
-        """
-        annots = ibs.annots(aids)
-        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
-        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
-
-        rng = ut.ensure_rng(0)
-        pyrng = random.Random(rng.randint(sys.maxsize))
-
-        nid_to_splits = ut.ddict(list)
-        # Find the biggest occurrences and pick an annotation from that
-        # occurrence to be sampled
-        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
-        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
-        for encs in occur_encs:
-            for enc in encs:
-                nid = enc.nids[0]
-                if len(nid_to_splits[nid]) == 0:
-                    chosen = pyrng.sample(enc.aids, min(len(enc), 2))
-                    nid_to_splits[nid].extend(chosen)
-
-        qaids = []
-        dname_encs = []
-        confusor_pool = []
-        for nid, aids_ in nid_to_splits.items():
-            if len(aids_) < 2:
-                confusor_pool.extend(aids_)
-            else:
-                pyrng.shuffle(aids_)
-                qaids.append(aids_[0])
-                dname_encs.append([[aids_[1]]])
-        confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        return qaids, dname_encs, confusor_pool
-
-    def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
-        """ This can be used for cross validation """
-        # Find a split of query/database encounters and confusors
-        from ibeis.init.filter_annots import encounter_crossval
-        enc_splits, nid_to_confusors = encounter_crossval(
-            ibs, aids, qenc_per_name=1, annots_per_enc=1,
-            denc_per_name=denc_per_name_, rebalance=True, rng=0, early=True)
-
-        qname_encs, dname_encs = enc_splits[0]
-        qaids = sorted(ut.flatten(ut.flatten(qname_encs)))
-        confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
-        confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        return qaids, dname_encs, confusor_pool
-
-    @staticmethod
-    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
-        """ This cannot be used for cross validation """
-        # Group annotations by encounter
-        # from ibeis.other import ibsfuncs
-        # primary_view = ibsfuncs.get_primary_species_viewpoint(ibs.get_primary_database_species())
-
-        annots = ibs.annots(aids)
-        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
-        enc_nids = ut.take_column(encounters.nids, 0)
-        nid_to_encs = ut.group_items(encounters, enc_nids)
-        rng = ut.ensure_rng(0)
-        pyrng = random.Random(rng.randint(sys.maxsize))
-
-        n_need = qenc_per_name + denc_per_name_
-
-        confusor_encs = {}
-        sample_splits = {}
-
-        def choose_best(enc, num):
-            if len(enc) > num:
-                sortx = ut.argsort(enc.qualities)[::-1]
-                subenc = enc.take(sortx[0:num])
-            else:
-                subenc = enc
-            return subenc
-
-        for nid, encs in nid_to_encs.items():
-            if len(encs) < n_need:
-                confusor_encs[nid] = encs
-            else:
-                # For each name choose a query / database encounter.
-                chosen_encs = pyrng.sample(encs, n_need)
-                ibs._annot_groups(chosen_encs).aids
-                # Choose high quality annotations from each encounter
-                best_subencs = [choose_best(enc, annots_per_enc) for
-                                enc in chosen_encs]
-                # ibs._annot_groups(best_subencs).aids
-                qsubenc = [a.aids for a in best_subencs[0:qenc_per_name]]
-                dsubenc = [a.aids for a in best_subencs[qenc_per_name:]]
-                sample_splits[nid] = (qsubenc, dsubenc)
-
-        # make confusor encounters subject to the same constraints
-        confusor_pool = []
-        confname_encs = []
-        for encs in confusor_encs.values():
-            # new
-            # chosen_encs = pyrng.sample(encs, min(len(encs), denc_per_name_))
-            # rand_subencs = [pyrng.sample(enc.aids, annots_per_enc)
-            #                 for enc in chosen_encs]
-            # confname_encs.append(rand_subencs)
-
-            # old
-            confusor_pool.extend(
-                ut.flatten([enc[0:annots_per_enc].aids for enc in encs])
-            )
-
-        qaids = ut.total_flatten(ut.take_column(sample_splits.values(), 0))
-        dname_encs = ut.take_column(sample_splits.values(), 1)
-        return qaids, dname_encs, confname_encs, confusor_pool
-
-    def _varied_inputs(self, denc_per_name=[1], extra_dbsize_fracs=None,
-                       method='alt'):
-        ibs, aids = self.ibs, self.aids_pool
-        self._varied_inputs2(ibs, aids, denc_per_name, extra_dbsize_fracs,
-                             method)
-
-    @staticmethod
-    def _varied_inputs2(ibs, aids, denc_per_name=[1], extra_dbsize_fracs=None,
-                        method='alt'):
-        """
-        Vary num per name and total number of annots
-
-        Example:
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
-            >>> print('--------')
-            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [1], method='same_occur')
-            >>> print('qsize = %r' % (len(qaids),))
-            >>> for info in info_list:
-            >>>     print(ut.repr4(info))
-            >>> print('--------')
-            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1], [1], method='same_enc')
-            >>> print('qsize = %r' % (len(qaids),))
-            >>> for info in info_list:
-            >>>     print(ut.repr4(info))
-            >>> print('--------')
-            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([1, 2], [0])
-            >>> print('qsize = %r' % (len(qaids),))
-            >>> for info in info_list:
-            >>>     print(ut.repr4(info))
-            >>> print('--------')
-            >>> ibs, qaids, daids_list, info_list = self._varied_inputs([3], [0, 1])
-            >>> print('qsize = %r' % (len(qaids),))
-            >>> for info in info_list:
-            >>>     print(ut.repr4(info))
-
-        Ignore:
-            ibs, aids = self.ibs, self.aids_pool
-            denc_per_name = 1
-            denc_per_name = [1]
-            extra_dbsize_fracs = None
-
-            extra_dbsize_fracs = [0, .5, 1]
-        """
-        qenc_per_name = 1
-        annots_per_enc = 1
-        denc_per_name_ = max(denc_per_name)
-
-        if method == 'alt':
-            qaids, dname_encs, confname_encs, confusor_pool = Chap3._alt_splits(
-                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
-        elif method == 'same_occur':
-            assert denc_per_name_ == 1
-            assert annots_per_enc == 1
-            assert qenc_per_name == 1
-            qaids, dname_encs, confusor_pool = Chap3._same_occur_split(ibs, aids)
-        elif method == 'same_enc':
-            qaids, dname_encs, confusor_pool = Chap3._same_enc_split(ibs, aids)
-        else:
-            raise KeyError(method)
-
-        # Vary the number of database encounters in each sample
-        target_daids_list = []
-        target_info_list_ = []
-        for num in denc_per_name:
-            dname_encs_ = ut.take_column(dname_encs, slice(0, num))
-            dnames_ = ut.lmap(ut.flatten, dname_encs_)
-            daids_ = ut.flatten(dnames_)
-            target_daids_list.append(daids_)
-            name_lens = ut.lmap(len, dnames_)
-            dpername = (name_lens[0] if ut.allsame(name_lens) else
-                        np.mean(name_lens))
-            target_info_list_.append(ut.odict([
-                ('qsize', len(qaids)),
-                ('t_n_names', len(dname_encs_)),
-                ('t_dpername', dpername),
-                ('t_denc_pername', num),
-                ('t_dsize', len(daids_)),
-            ]))
-
-        # confusor_names_matter = True
-        # if confusor_names_matter:
-        #     extra_pools = [
-        #         ut.total_flatten(ut.take_column(confname_encs, slice(0, num)))
-        #         for num in denc_per_name
-        #     ]
-        #     dbsize_list = ut.lmap(len, target_daids_list)
-        #     max_dsize = max(dbsize_list)
-        #     for num, daids_ in zip(denc_per_name, target_daids_list):
-        #         num_take = max_dsize - len(daids_)
-        #         print('num_take = %r' % (num_take,))
-
-        #         confname_encs_ = ut.total_flatten(ut.take_column(confname_encs, slice(0, num)))
-        #         confusor_pool_ = ut.total_flatten(confname_encs_)
-        #         if num_take > len(confusor_pool_):
-        #             # we need to siphon off valid queries to use them as
-        #             # confusors
-        #             raise AssertionError(
-        #                 'have={}, need={}, not enough confusors for num={}'.format(
-        #                     len(confusor_pool_), num_take, num
-        #                 ))
-
-        # Append confusors to maintain a constant dbsize in each base sample
-        dbsize_list = ut.lmap(len, target_daids_list)
-        max_dsize = max(dbsize_list)
-        n_need = max_dsize - min(dbsize_list)
-        n_extra_avail = len(confusor_pool) - n_need
-        # assert len(confusor_pool) > n_need, 'not enough confusors'
-        padded_daids_list = []
-        padded_info_list_ = []
-        for num, daids_, info_ in zip(denc_per_name, target_daids_list,
-                                      target_info_list_):
-            num_take = max_dsize - len(daids_)
-
-            assert num_take < len(confusor_pool), 'not enough confusors'
-            pad_aids = confusor_pool[:num_take]
-
-            new_aids = daids_ + pad_aids
-            info_ = info_.copy()
-            info_['n_pad'] = len(pad_aids)
-            info_['pad_dsize'] = len(new_aids)
-            padded_info_list_.append(info_)
-            padded_daids_list.append(new_aids)
-
-        # Vary the dbsize by appending extra confusors
-        if extra_dbsize_fracs is None:
-            extra_dbsize_fracs = [1.]
-        extra_fracs = np.array(extra_dbsize_fracs)
-        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
-        daids_list = []
-        info_list = []
-        for n in n_extra_list:
-            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
-                extra_aids = confusor_pool[len(confusor_pool) - n:]
-                daids = sorted(daids_ + extra_aids)
-                daids_list.append(daids)
-                info = info_.copy()
-                info['n_extra'] = len(extra_aids)
-                info['dsize'] = len(daids)
-                info_list.append(info)
-
-        import pandas as pd
-        verbose = 0
-        if verbose:
-            print(pd.DataFrame.from_records(info_list))
-            print('#qaids = %r' % (len(qaids),))
-            print('num_need = %r' % (n_need,))
-            print('max_dsize = %r' % (max_dsize,))
-            if False:
-                for daids in daids_list:
-                    ibs.print_annotconfig_stats(qaids, daids)
-        return ibs, qaids, daids_list, info_list
-
 
 @ut.reloadable_class
 class Chap3Measures(object):
@@ -1852,7 +1462,9 @@ class Chap3Measures(object):
             >>> self = Chap3('GZ_Master1')
             >>> self._precollect()
         """
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1], extra_dbsize_fracs=[1])
         cfgdict = {}
         daids = daids_list[0]
@@ -1866,7 +1478,7 @@ class Chap3Measures(object):
 
     def measure_foregroundness_intra(self):
         ibs = self.ibs
-        samples = self._intra_enc()
+        samples = Sampler._intra_enc(ibs, self.aids_pool)
         # qaids, daids_list, info_list = sample.expand()
 
         results = []
@@ -1923,7 +1535,9 @@ class Chap3Measures(object):
         return fpath
 
     def measure_foregroundness(self):
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1], extra_dbsize_fracs=[1],
             method='same_occur'
             # method='same_enc'
@@ -1945,7 +1559,9 @@ class Chap3Measures(object):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_invar(self):
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1], extra_dbsize_fracs=[1])
         daids = daids_list[0]
         info = info_list[0]
@@ -1974,7 +1590,9 @@ class Chap3Measures(object):
         """
         from ibeis.algo.smk.smk_pipeline import SMKRequest
         # ibs = ibeis.opendb('PZ_MTEST')
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1], extra_dbsize_fracs=[1])
         daids = daids_list[0]
         info = info_list[0]
@@ -2012,7 +1630,9 @@ class Chap3Measures(object):
         self = Chap3('PZ_MTEST')
         self._precollect()
         """
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
 
         base = {'query_rotation_heuristic': True}
@@ -2027,7 +1647,9 @@ class Chap3Measures(object):
 
         if False:
             self._precollect()
-            ibs, qaids, daids_list, info_list = self._varied_inputs(
+            ibs = self.ibs
+            qaids, daids_list, info_list = Sampler._varied_inputs(
+                self.ibs, self.aids_pool,
                 denc_per_name=[1, 2, 3], extra_dbsize_fracs=[1])
             # Check dpername issue
             base = {'query_rotation_heuristic': False, 'K': 1, 'sv_on': True}
@@ -2072,7 +1694,9 @@ class Chap3Measures(object):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), results)
 
     def measure_dbsize(self):
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
         cfgdict = {
             'query_rotation_heuristic': True,
@@ -2089,7 +1713,9 @@ class Chap3Measures(object):
         cdfs, infos = zip(*results)
 
     def measure_kexpt(self):
-        ibs, qaids, daids_list, info_list = self._varied_inputs(
+        ibs = self.ibs
+        qaids, daids_list, info_list = Sampler._varied_inputs(
+            self.ibs, self.aids_pool,
             denc_per_name=[1, 2], extra_dbsize_fracs=[0, 1.0])
         cfg_grid = {
             'query_rotation_heuristic': True,
@@ -2864,7 +2490,7 @@ class Chap4(object):
         ibs = pblm.infr.ibs
         aids = pblm.infr.aids
 
-        ibs, qaids, daids_list, info_list = Chap3._varied_inputs2(ibs, aids)
+        qaids, daids_list, info_list = Sampler._varied_inputs(ibs, aids)
 
         if pblm.hyper_params['vsone_kpts']['augment_orientation']:
             # HACK
@@ -3240,6 +2866,397 @@ class Chap4(object):
         image = pt.render_figure_to_image(fig, dpi=DPI)
         # image = vt.clipwhite(image)
         vt.imwrite(fpath, image)
+
+
+class Sampler(object):
+
+    @staticmethod
+    def _same_occur_split(ibs, aids):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+        """
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        nid_to_splits = ut.ddict(list)
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        for encs in occur_encs:
+            for enc in encs:
+                sortx = ut.argsort(enc.qualities)[::-1]
+                annot = enc[sortx[0]]
+                if len(nid_to_splits[annot.nid]) < 2:
+                    nid_to_splits[annot.nid].append(annot.aid)
+
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        qaids = []
+        dname_encs = []
+        confusor_pool = []
+        for nid, aids_ in nid_to_splits.items():
+            if len(aids_) < 2:
+                confusor_pool.extend(aids_)
+            else:
+                pyrng.shuffle(aids_)
+                qaids.append(aids_[0])
+                dname_encs.append([[aids_[1]]])
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        return qaids, dname_encs, confusor_pool
+
+    @staticmethod
+    def _intra_enc(ibs, aids):
+        # Make a query / database set for each occurrence
+        # ibs = self.ibs
+        # aids = self.aids_pool
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        # rng = ut.ensure_rng(0)
+        # pyrng = random.Random(rng.randint(sys.maxsize))
+
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occurrences = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occurrences = ut.map_vals(ibs._annot_groups, occurrences)
+
+        occur_nids = {o: set(ut.flatten(encs.nids))
+                      for o, encs in occurrences.items()}
+
+        # Need to find multiple disjoint exact covers of the nids
+        # Greedy solution because this is NP-hard
+        from ibeis.algo.graph import nx_dynamic_graph
+        G = nx_dynamic_graph.DynConnGraph()
+        G.add_nodes_from(occur_nids.keys())
+        occur_ids = ut.sortedby(
+            occur_nids.keys(), ut.lmap(len, occur_nids.values()))[::-1]
+        current_combos = {frozenset(G.connected_to(o1)): occur_nids[o1]
+                          for o1 in occur_ids}
+        for o1, o2 in ut.combinations(occur_ids, 2):
+            if G.node_label(o1) == G.node_label(o2):
+                continue
+            cc1 = frozenset(G.connected_to(o1))
+            cc2 = frozenset(G.connected_to(o2))
+            nids1 = current_combos[cc1]
+            nids2 = current_combos[cc2]
+            if nids1.isdisjoint(nids2):
+                G.add_edge(o1, o2)
+                del current_combos[cc1]
+                del current_combos[cc2]
+                current_combos[frozenset(cc1.union(cc2))] = nids1.union(nids2)
+
+        # Pick the top few occurrence groups with the most names
+        grouped_occurs = list(map(frozenset, G.connected_components()))
+        group_size = ut.lmap(len, list(grouped_occurs))
+        top_groups = ut.sortedby(grouped_occurs, group_size)[::-1][0:4]
+
+        samples = []
+
+        for os in top_groups:
+            encs = ut.flatten(occurrences[o].aids for o in os)
+            encs = ut.lmap(ibs.annots, encs)
+            qaids = []
+            daids = []
+            for enc in encs:
+                if len(enc) == 1:
+                    daids.extend(enc.aids)
+                else:
+                    daids.extend(enc.aids)
+                    qaids.extend(enc.aids)
+            sample = SplitSample(qaids, daids)
+            samples.append(sample)
+        return samples
+
+        #         nid = enc.nids[0]
+        #         if len(nid_to_splits[nid]) == 0:
+        #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
+        #             nid_to_splits[nid].extend(chosen)
+
+        #     qaids = []
+        #     dname_encs = []
+        #     confusor_pool = []
+        #     for nid, aids_ in nid_to_splits.items():
+        #         if len(aids_) < 2:
+        #             confusor_pool.extend(aids_)
+        #         else:
+        #             pyrng.shuffle(aids_)
+        #             qaids.append(aids_[0])
+        #             dname_encs.append([[aids_[1]]])
+        #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
+        #     query_samples.append(self)
+        # return query_samples
+
+    @staticmethod
+    def _same_enc_split(ibs, aids):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+        """
+        annots = ibs.annots(aids)
+        # occurrences = ibs._annot_groups(annots.group(annots.occurrence_text)[1])
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        nid_to_splits = ut.ddict(list)
+        # Find the biggest occurrences and pick an annotation from that
+        # occurrence to be sampled
+        occur_to_encs = ut.group_items(encounters, ut.take_column(encounters.occurrence_text, 0))
+        occur_encs = ut.sortedby(list(occur_to_encs.values()), list(map(len, occur_to_encs.values())))[::-1]
+        for encs in occur_encs:
+            for enc in encs:
+                nid = enc.nids[0]
+                if len(nid_to_splits[nid]) == 0:
+                    chosen = pyrng.sample(enc.aids, min(len(enc), 2))
+                    nid_to_splits[nid].extend(chosen)
+
+        qaids = []
+        dname_encs = []
+        confusor_pool = []
+        for nid, aids_ in nid_to_splits.items():
+            if len(aids_) < 2:
+                confusor_pool.extend(aids_)
+            else:
+                pyrng.shuffle(aids_)
+                qaids.append(aids_[0])
+                dname_encs.append([[aids_[1]]])
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        return qaids, dname_encs, confusor_pool
+
+    def _rand_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
+        """ This can be used for cross validation """
+        # Find a split of query/database encounters and confusors
+        from ibeis.init.filter_annots import encounter_crossval
+        enc_splits, nid_to_confusors = encounter_crossval(
+            ibs, aids, qenc_per_name=1, annots_per_enc=1,
+            denc_per_name=denc_per_name_, rebalance=True, rng=0, early=True)
+
+        qname_encs, dname_encs = enc_splits[0]
+        qaids = sorted(ut.flatten(ut.flatten(qname_encs)))
+        confusor_pool = ut.flatten(ut.flatten(nid_to_confusors.values()))
+        confusor_pool = ut.shuffle(confusor_pool, rng=0)
+        return qaids, dname_encs, confusor_pool
+
+    @staticmethod
+    def _alt_splits(ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc):
+        """ This cannot be used for cross validation """
+        # Group annotations by encounter
+        # from ibeis.other import ibsfuncs
+        # primary_view = ibsfuncs.get_primary_species_viewpoint(ibs.get_primary_database_species())
+
+        annots = ibs.annots(aids)
+        encounters = ibs._annot_groups(annots.group(annots.encounter_text)[1])
+        enc_nids = ut.take_column(encounters.nids, 0)
+        nid_to_encs = ut.group_items(encounters, enc_nids)
+        rng = ut.ensure_rng(0)
+        pyrng = random.Random(rng.randint(sys.maxsize))
+
+        n_need = qenc_per_name + denc_per_name_
+
+        confusor_encs = {}
+        sample_splits = {}
+
+        def choose_best(enc, num):
+            if len(enc) > num:
+                sortx = ut.argsort(enc.qualities)[::-1]
+                subenc = enc.take(sortx[0:num])
+            else:
+                subenc = enc
+            return subenc
+
+        for nid, encs in nid_to_encs.items():
+            if len(encs) < n_need:
+                confusor_encs[nid] = encs
+            else:
+                # For each name choose a query / database encounter.
+                chosen_encs = pyrng.sample(encs, n_need)
+                ibs._annot_groups(chosen_encs).aids
+                # Choose high quality annotations from each encounter
+                best_subencs = [choose_best(enc, annots_per_enc) for
+                                enc in chosen_encs]
+                # ibs._annot_groups(best_subencs).aids
+                qsubenc = [a.aids for a in best_subencs[0:qenc_per_name]]
+                dsubenc = [a.aids for a in best_subencs[qenc_per_name:]]
+                sample_splits[nid] = (qsubenc, dsubenc)
+
+        # make confusor encounters subject to the same constraints
+        confusor_pool = []
+        confname_encs = []
+        for encs in confusor_encs.values():
+            # new
+            # chosen_encs = pyrng.sample(encs, min(len(encs), denc_per_name_))
+            # rand_subencs = [pyrng.sample(enc.aids, annots_per_enc)
+            #                 for enc in chosen_encs]
+            # confname_encs.append(rand_subencs)
+
+            # old
+            confusor_pool.extend(
+                ut.flatten([enc[0:annots_per_enc].aids for enc in encs])
+            )
+
+        qaids = ut.total_flatten(ut.take_column(sample_splits.values(), 0))
+        dname_encs = ut.take_column(sample_splits.values(), 1)
+        return qaids, dname_encs, confname_encs, confusor_pool
+
+    @staticmethod
+    def _varied_inputs(ibs, aids, denc_per_name=[1], extra_dbsize_fracs=None,
+                        method='alt'):
+        """
+        Vary num per name and total number of annots
+
+        Example:
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> self = Chap3('PZ_Master1')
+            >>> self._precollect()
+            >>> ibs = self.ibs
+            >>> aids = self.aids_pool
+            >>> print('--------')
+            >>> qaids, daids_list, info_list = self._varied_inputs(ibs, aids, [1], [1], method='same_occur')
+            >>> print('qsize = %r' % (len(qaids),))
+            >>> for info in info_list:
+            >>>     print(ut.repr4(info))
+            >>> print('--------')
+            >>> qaids, daids_list, info_list = self._varied_inputs(ibs, aids, [1], [1], method='same_enc')
+            >>> print('qsize = %r' % (len(qaids),))
+            >>> for info in info_list:
+            >>>     print(ut.repr4(info))
+            >>> print('--------')
+            >>> qaids, daids_list, info_list = self._varied_inputs(ibs, aids, [1, 2], [0])
+            >>> print('qsize = %r' % (len(qaids),))
+            >>> for info in info_list:
+            >>>     print(ut.repr4(info))
+            >>> print('--------')
+            >>> qaids, daids_list, info_list = self._varied_inputs(ibs, aids, [3], [0, 1])
+            >>> print('qsize = %r' % (len(qaids),))
+            >>> for info in info_list:
+            >>>     print(ut.repr4(info))
+
+        Ignore:
+            ibs, aids = self.ibs, self.aids_pool
+            denc_per_name = 1
+            denc_per_name = [1]
+            extra_dbsize_fracs = None
+
+            extra_dbsize_fracs = [0, .5, 1]
+        """
+        qenc_per_name = 1
+        annots_per_enc = 1
+        denc_per_name_ = max(denc_per_name)
+
+        if method == 'alt':
+            qaids, dname_encs, confname_encs, confusor_pool = Sampler._alt_splits(
+                ibs, aids, qenc_per_name, denc_per_name_, annots_per_enc)
+        elif method == 'same_occur':
+            assert denc_per_name_ == 1
+            assert annots_per_enc == 1
+            assert qenc_per_name == 1
+            qaids, dname_encs, confusor_pool = Sampler._same_occur_split(ibs, aids)
+        elif method == 'same_enc':
+            qaids, dname_encs, confusor_pool = Sampler._same_enc_split(ibs, aids)
+        else:
+            raise KeyError(method)
+
+        # Vary the number of database encounters in each sample
+        target_daids_list = []
+        target_info_list_ = []
+        for num in denc_per_name:
+            dname_encs_ = ut.take_column(dname_encs, slice(0, num))
+            dnames_ = ut.lmap(ut.flatten, dname_encs_)
+            daids_ = ut.flatten(dnames_)
+            target_daids_list.append(daids_)
+            name_lens = ut.lmap(len, dnames_)
+            dpername = (name_lens[0] if ut.allsame(name_lens) else
+                        np.mean(name_lens))
+            target_info_list_.append(ut.odict([
+                ('qsize', len(qaids)),
+                ('t_n_names', len(dname_encs_)),
+                ('t_dpername', dpername),
+                ('t_denc_pername', num),
+                ('t_dsize', len(daids_)),
+            ]))
+
+        # confusor_names_matter = True
+        # if confusor_names_matter:
+        #     extra_pools = [
+        #         ut.total_flatten(ut.take_column(confname_encs, slice(0, num)))
+        #         for num in denc_per_name
+        #     ]
+        #     dbsize_list = ut.lmap(len, target_daids_list)
+        #     max_dsize = max(dbsize_list)
+        #     for num, daids_ in zip(denc_per_name, target_daids_list):
+        #         num_take = max_dsize - len(daids_)
+        #         print('num_take = %r' % (num_take,))
+
+        #         confname_encs_ = ut.total_flatten(ut.take_column(confname_encs, slice(0, num)))
+        #         confusor_pool_ = ut.total_flatten(confname_encs_)
+        #         if num_take > len(confusor_pool_):
+        #             # we need to siphon off valid queries to use them as
+        #             # confusors
+        #             raise AssertionError(
+        #                 'have={}, need={}, not enough confusors for num={}'.format(
+        #                     len(confusor_pool_), num_take, num
+        #                 ))
+
+        # Append confusors to maintain a constant dbsize in each base sample
+        dbsize_list = ut.lmap(len, target_daids_list)
+        max_dsize = max(dbsize_list)
+        n_need = max_dsize - min(dbsize_list)
+        n_extra_avail = len(confusor_pool) - n_need
+        # assert len(confusor_pool) > n_need, 'not enough confusors'
+        padded_daids_list = []
+        padded_info_list_ = []
+        for num, daids_, info_ in zip(denc_per_name, target_daids_list,
+                                      target_info_list_):
+            num_take = max_dsize - len(daids_)
+
+            assert num_take < len(confusor_pool), 'not enough confusors'
+            pad_aids = confusor_pool[:num_take]
+
+            new_aids = daids_ + pad_aids
+            info_ = info_.copy()
+            info_['n_pad'] = len(pad_aids)
+            info_['pad_dsize'] = len(new_aids)
+            padded_info_list_.append(info_)
+            padded_daids_list.append(new_aids)
+
+        # Vary the dbsize by appending extra confusors
+        if extra_dbsize_fracs is None:
+            extra_dbsize_fracs = [1.]
+        extra_fracs = np.array(extra_dbsize_fracs)
+        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
+        daids_list = []
+        info_list = []
+        for n in n_extra_list:
+            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
+                extra_aids = confusor_pool[len(confusor_pool) - n:]
+                daids = sorted(daids_ + extra_aids)
+                daids_list.append(daids)
+                info = info_.copy()
+                info['n_extra'] = len(extra_aids)
+                info['dsize'] = len(daids)
+                info_list.append(info)
+
+        import pandas as pd
+        verbose = 0
+        if verbose:
+            print(pd.DataFrame.from_records(info_list))
+            print('#qaids = %r' % (len(qaids),))
+            print('num_need = %r' % (n_need,))
+            print('max_dsize = %r' % (max_dsize,))
+            if False:
+                for daids in daids_list:
+                    ibs.print_annotconfig_stats(qaids, daids)
+        return qaids, daids_list, info_list
+    pass
 
 
 class SplitSample(ut.NiceRepr):
