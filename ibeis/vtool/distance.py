@@ -196,14 +196,60 @@ def ori_distance(ori1, ori2, out=None):
 def cyclic_distance(arr1, arr2, modulo, out=None):
     r"""
     returns an unsigned distance
+
+    Args:
+        arr1 (ndarray):
+        arr2 (ndarray):
+        modulo (float or int):
+        out (ndarray): (default = None)
+
+    Returns:
+        ndarray: arr_dist
+
+    CommandLine:
+        python -m vtool.distance cyclic_distance
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from vtool.distance import *  # NOQA
+        >>> out = None
+        >>> modulo = 8
+        >>> arr1 = np.arange(0, modulo + 0)
+        >>> arr2 = arr1[:, None]
+        >>> arr_dist = cyclic_distance(arr1, arr2, modulo, out)
+        >>> print('arr_dist =\n%r' % (arr_dist,))
+
+    Ignore:
+        d1 = cyclic_distance(arr1, arr2, modulo)
+        # d2 = modulo - np.abs(np.abs(arr1 - arr2) - modulo)
+        # d1 == d2
+
+        >>> a1 = np.linspace(1, 1000, 2000)
+        %timeit cyclic_distance(a1, a2, modulo, out=out)
+        %timeit cyclic_distance(a1, a2, modulo, out=None)
+        %timeit np.minimum(np.abs(arr1 - arr2), modulo - np.abs(arr1 - arr2))
+
+
+        >>> a1 = np.arange(1, 1000)
+        >>> a2 = a1[:, None]
+
+        # This is faster as long as out has the right datatype
+        import ubelt
+        for timer in ubelt.Timerit(100):
+            out = -np.ones((len(a1), len(a2)), dtype=a1.dtype)
+            with timer:
+                cyclic_distance(a1, a2, modulo, out=out)
+
+        # This is only faster if out has a different dtype
+        for timer in ubelt.Timerit(100):
+            with timer:
+                cyclic_distance(a1, a2, modulo)
     """
-    arr_diff  = np.subtract(arr1, arr2)
-    abs_diff  = np.abs(arr_diff)
-    mod_diff1 = np.mod(abs_diff, modulo)
+    arr_diff = np.subtract(arr1, arr2, out=out)
+    abs_diff = np.abs(arr_diff, out=out)
+    mod_diff1 = np.mod(abs_diff, modulo, out=out)
     mod_diff2 = np.subtract(modulo, mod_diff1)
-    arr_dist  = np.minimum(mod_diff1, mod_diff2)
-    if out is not None:
-        out[:] = arr_dist
+    arr_dist  = np.minimum(mod_diff1, mod_diff2, out=out)
     return arr_dist
 
 
