@@ -271,6 +271,45 @@ def add_annots_json(ibs, image_uuid_list, annot_uuid_list, annot_bbox_list,
     return annot_uuid_list
 
 
+@register_api('/api/part/json/', methods=['POST'])
+def add_parts_json(ibs, annot_uuid_list, part_uuid_list, part_bbox_list,
+                   part_theta_list=None, **kwargs):
+    """
+    REST:
+        Method: POST
+        URL: /api/part/json/
+
+    Ignore:
+        sudo pip install boto
+
+    Args:
+        annot_uuid_list (list of str) : list of annot UUIDs to be used in IBEIS IA
+        part_uuid_list (list of str) : list of annotations UUIDs to be used in IBEIS IA
+        part_bbox_list (list of 4-tuple) : list of bounding box coordinates encoded as
+            a 4-tuple of the values (xtl, ytl, width, height) where xtl is the
+            'top left corner, x value' and ytl is the 'top left corner, y value'.
+        part_theta_list (list of float) : list of radian rotation around center.
+            Defaults to 0.0 (no rotation).
+        **kwargs : key-value pairs passed to the ibs.add_annots() function.
+    """
+
+    annot_uuid_list = [
+        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
+        for uuid_ in annot_uuid_list
+    ]
+    part_uuid_list = [
+        uuid.UUID(uuid_) if isinstance(uuid_, six.string_types) else uuid_
+        for uuid_ in part_uuid_list
+    ]
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    part_rowid_list = ibs.add_parts(aid_list, part_uuid_list=part_uuid_list,
+                                    bbox_list=part_bbox_list, theta_list=part_theta_list,
+                                    **kwargs)
+    # return aid_list
+    part_uuid_list = ibs.get_part_uuids(part_rowid_list)
+    return part_uuid_list
+
+
 @register_api('/api/name/json/', methods=['POST'])
 def add_names_json(ibs, name_text_list, name_uuid_list=None, name_note_list=None):
     nid_list = ibs.add_names_json(name_text_list,
@@ -978,6 +1017,54 @@ def get_annot_age_months_est_max_texts_json(ibs, annot_uuid_list, **kwargs):
     return ibs.get_annot_age_months_est_max_texts(aid_list, **kwargs)
 
 
+@register_api('/api/annot/bbox/json/', methods=['PUT'])
+def set_annot_bboxes_json(ibs, annot_uuid_list, bbox_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_bboxes(aid_list, bbox_list)
+
+
+@register_api('/api/annot/theta/json/', methods=['PUT'])
+def set_annot_thetas_json(ibs, annot_uuid_list, theta_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_thetas(aid_list, theta_list)
+
+
+@register_api('/api/annot/viewpoint/json/', methods=['PUT'])
+def set_annot_viewpoints_json(ibs, annot_uuid_list, viewpoint_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_viewpoints(aid_list, viewpoint_list)
+
+
+@register_api('/api/annot/quality/text/json/', methods=['PUT'])
+def set_annot_quality_texts_json(ibs, annot_uuid_list, quality_text_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_quality_texts(aid_list, quality_text_list)
+
+
+@register_api('/api/annot/species/json/', methods=['PUT'], __api_plural_check__=False)
+def set_annot_species_json(ibs, annot_uuid_list, species_text_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_species(aid_list, species_text_list)
+
+
+@register_api('/api/annot/multiple/json/', methods=['PUT'])
+def set_annot_multiple_json(ibs, annot_uuid_list, flag_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_multiple(aid_list, flag_list)
+
+
+@register_api('/api/annot/interest/json/', methods=['PUT'])
+def set_annot_interest_json(ibs, annot_uuid_list, flag_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_interest(aid_list, flag_list)
+
+
+@register_api('/api/annot/tags/json/', methods=['PUT'], __api_plural_check__=False)
+def set_annot_tag_text_json(ibs, annot_uuid_list, annot_tags_list, **kwargs):
+    aid_list = ibs.get_annot_aids_from_uuid(annot_uuid_list)
+    return ibs.set_annot_tag_text(aid_list, annot_tags_list)
+
+
 @register_api('/api/name/json/', methods=['GET'])
 def get_valid_name_uuids_json(ibs, **kwargs):
     nid_list = ibs.get_valid_nids(**kwargs)
@@ -1158,9 +1245,51 @@ def get_species_notes_json(ibs, species_uuid_list):
     return ibs.get_species_notes(species_rowid_list)
 
 
+@register_api('/api/part/bbox/json/', methods=['PUT'])
+def set_part_bboxes_json(ibs, part_uuid_list, bbox_list, **kwargs):
+    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+    return ibs.set_part_bboxes(aid_list, bbox_list)
+
+
+@register_api('/api/part/theta/json/', methods=['PUT'])
+def set_part_thetas_json(ibs, part_uuid_list, theta_list, **kwargs):
+    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+    return ibs.set_part_thetas(aid_list, theta_list)
+
+
+@register_api('/api/part/viewpoint/json/', methods=['PUT'])
+def set_part_viewpoints_json(ibs, part_uuid_list, viewpoint_list, **kwargs):
+    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+    return ibs.set_part_viewpoints(aid_list, viewpoint_list)
+
+
+@register_api('/api/part/quality/text/json/', methods=['PUT'])
+def set_part_quality_texts_json(ibs, part_uuid_list, quality_text_list, **kwargs):
+    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+    return ibs.set_part_quality_texts(aid_list, quality_text_list)
+
+
+@register_api('/api/part/type/json/', methods=['PUT'], __api_plural_check__=False)
+def set_part_types_json(ibs, part_uuid_list, type_text_list, **kwargs):
+    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+    return ibs.set_part_types(aid_list, type_text_list)
+
+
+@register_api('/api/part/tags/json/', methods=['PUT'], __api_plural_check__=False)
+def set_part_tag_text_json(ibs, part_uuid_list, part_tags_list, **kwargs):
+    aid_list = ibs.get_part_rowids_from_uuid(part_uuid_list)
+    return ibs.set_part_tag_text(aid_list, part_tags_list)
+
+
 @register_api('/api/contributor/rowid/uuid/json/', methods=['GET'])
 def get_contributor_rowids_from_uuid_json(ibs, contributor_uuid_list):
     return ibs.get_contributor_rowid_from_uuid(contributor_uuid_list)
+
+
+@register_api('/api/part/json/', methods=['GET'])
+def get_valid_part_uuids_json(ibs, **kwargs):
+    part_rowid_list = ibs.get_valid_part_rowids(**kwargs)
+    return ibs.get_part_uuids(part_rowid_list)
 
 
 @register_api('/chaos/imageset/', methods=['GET', 'POST'], __api_plural_check__=False)

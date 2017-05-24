@@ -49,6 +49,8 @@ def _get_all_part_rowids(ibs):
         list_ (list):  all unfiltered part_rowids (part rowids)
     """
     all_part_rowids = ibs.db.get_all_rowids(const.PART_TABLE)
+    if all_part_rowids is None:
+        all_part_rowids = []
     return all_part_rowids
 
 
@@ -56,7 +58,7 @@ def _get_all_part_rowids(ibs):
 @accessor_decors.ider
 @register_api('/api/part/', methods=['GET'])
 def get_valid_part_rowids(ibs):
-    ibs._get_all_part_rowids()
+    return ibs._get_all_part_rowids()
 
 
 @register_ibs_method
@@ -362,6 +364,13 @@ def get_part_aids(ibs, part_rowid_list, assume_unique=False):
 @register_ibs_method
 def get_part_annot_rowids(ibs, part_rowid_list):
     return ibs.get_part_aids(part_rowid_list)
+
+
+@register_ibs_method
+def get_part_annot_uuids(ibs, part_rowid_list):
+    aid_list = ibs.get_part_aids(part_rowid_list)
+    annot_uuid_list = ibs.get_annot_uuids(aid_list)
+    return annot_uuid_list
 
 
 @register_ibs_method

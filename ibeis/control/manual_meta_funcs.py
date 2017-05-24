@@ -786,7 +786,7 @@ def get_metadata_rowid_from_metadata_key(ibs, metadata_key_list, db):
 
 
 @register_api('/api/core/version/', methods=['GET'])
-def get_database_version_alias(ibs, db):
+def get_database_version_alias(ibs, db=None):
     r"""
     Alias: `func:get_database_version`
 
