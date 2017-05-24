@@ -75,6 +75,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
 
     wb_port = 8080
     wildbook_base_url = 'http://' + str(hostname) + ':' + str(wb_port) + '/' + wb_target
+    print('USING WB BASEURL: %r' % (wildbook_base_url, ))
     return wildbook_base_url
 
 
