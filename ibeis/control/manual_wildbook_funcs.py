@@ -70,6 +70,7 @@ def get_wildbook_base_url(ibs, wb_target=None):
     princeton = computer_name in ['maasai', 'quagga']
     if princeton:
         hostname = 'quagga.princeton.edu'
+        wb_target = 'wildbook'
     else:
         hostname = '127.0.0.1'
 
