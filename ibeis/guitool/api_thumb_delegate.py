@@ -300,11 +300,11 @@ class APIThumbDelegate(DELEGATE_BASE):
                 assert exists(thumb_path), 'must exist'
                 return thumb_path
             if thumbtup_mode:
-                if len(data) == 5:
-                    (thumb_path, img_path, img_size, bbox_list, theta_list) = data
-                    interest_list = []
-                else:
-                    (thumb_path, img_path, img_size, bbox_list, theta_list, interest_list) = data
+                # if len(data) == 5:
+                #     (thumb_path, img_path, img_size, bbox_list, theta_list) = data
+                #     interest_list = []
+                # else:
+                (thumb_path, img_path, img_size, bbox_list, theta_list, interest_list) = data
                 invalid = (thumb_path is None or img_path is None or bbox_list is
                            None or img_size is None)
                 if invalid:
