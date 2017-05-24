@@ -814,6 +814,7 @@ class SQLDatabaseController(object):
         return db.get_where(tblname, colnames, params_iter, where_clause,
                             unpack_scalars=unpack_scalars, eager=eager, **kwargs)
 
+    @profile
     def get_where(db, tblname, colnames, params_iter, where_clause,
                   unpack_scalars=True, eager=True,
                   **kwargs):
@@ -1083,6 +1084,7 @@ class SQLDatabaseController(object):
         operation = operation_fmt.format(**fmtdict)
         return db.executeone(operation, params, eager=eager, **kwargs)
 
+    @profile
     def _executemany_operation_fmt(db, operation_fmt, fmtdict, params_iter,
                                    unpack_scalars=True, eager=True,
                                    dryrun=False, **kwargs):
@@ -1114,7 +1116,7 @@ class SQLDatabaseController(object):
         return result_list
 
     #@ut.memprof
-    #@profile
+    @profile
     def executemany(db, operation, params_iter, verbose=VERBOSE_SQL,
                     unpack_scalars=True, nInput=None, eager=True,
                     keepwrap=False, showprog=False):
@@ -1274,6 +1276,7 @@ class SQLDatabaseController(object):
         db.executeone(operation, params, verbose=False)
 
     #def get_metadata_val(db, key, eval_=False, default=ut.NoParam):
+    @profile
     def get_metadata_val(db, key, eval_=False, default=None):
         """
         val is the repr string unless eval_ is true
@@ -1297,7 +1300,7 @@ class SQLDatabaseController(object):
             if eval_ and val is not None:
                 # eventually we will not have to worry about
                 # mid level representations by default, for now flag it
-                val = eval(val, globals(), locals())
+                val = eval(val, {}, {})
         except Exception as ex:
             ut.printex(ex, keys=['key', 'val'])
             raise
@@ -1794,6 +1797,7 @@ class SQLDatabaseController(object):
             coldef_list.append((col_name, col_type))
         return coldef_list
 
+    @profile
     def get_table_autogen_dict(db, tablename):
         r"""
         Args:
@@ -1930,11 +1934,13 @@ class SQLDatabaseController(object):
                     file_.write('\t%s%s%s%s%s\n' % col)
         ut.view_directory(app_resource_dir)
 
-    def get_table_names(db):
+    def get_table_names(db, lazy=False):
         """ Conveinience: """
-        db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        tablename_list = db.cur.fetchall()
-        return {str(tablename[0]) for tablename in tablename_list}
+        if not lazy or db._tablenames is None:
+            db.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tablename_list = db.cur.fetchall()
+            db._tablenames = {str(tablename[0]) for tablename in tablename_list}
+        return db._tablenames
 
     @property
     def tablenames(db):
@@ -1942,10 +1948,10 @@ class SQLDatabaseController(object):
 
     def has_table(db, tablename, colnames=None, lazy=True):
         """ checks if a table exists """
-        if not lazy or db._tablenames is None:
-            db._tablenames = db.get_table_names()
-        return tablename in db._tablenames
+        # if not lazy or db._tablenames is None:
+        return tablename in db.get_table_names(lazy=lazy)
 
+    @profile
     def get_table_superkey_colnames(db, tablename):
         """
         get_table_superkey_colnames
@@ -1975,7 +1981,7 @@ class SQLDatabaseController(object):
             >>> print(result)
             [('dummy_annot_rowid', 'config_rowid')]
         """
-        assert tablename in db.get_table_names(), (
+        assert tablename in db.get_table_names(lazy=True), (
             'tablename=%r is not a part of this database' % (tablename,))
         superkey_colnames_list_repr = db.get_metadata_val(tablename +
                                                           '_superkeys',
@@ -1996,7 +2002,9 @@ class SQLDatabaseController(object):
                 superkeys = [tuple(map(str, superkey_colnames_list_repr.split(';')))]
             else:
                 # new evalable format
-                superkeys = eval(superkey_colnames_list_repr)
+                locals_ = {}
+                globals_ = {}
+                superkeys = eval(superkey_colnames_list_repr, globals_, locals_)
         #superkeys = [
         #    None if superkey_colname is None else str(superkey_colname)
         #    for superkey_colname in superkey_colnames

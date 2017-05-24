@@ -23,6 +23,7 @@ FIXME:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
+from dtool.sql_control import SQLDatabaseController
 from six.moves import zip, range
 from os.path import join, exists
 from dtool import __SQLITE__ as lite  # NOQA
@@ -546,6 +547,7 @@ class _TableDebugHelper(object):
 class _TableInternalSetup(ut.NiceRepr):
     """ helper that sets up column information """
 
+    @profile
     def _infer_datacol(table):
         """
         Constructs the columns needed to represent relationship to data
@@ -656,6 +658,7 @@ class _TableInternalSetup(ut.NiceRepr):
             data_col_attrs.append(colattr)
         return data_col_attrs
 
+    @profile
     def _infer_parentcol(table):
         """
         construct columns to represent relationship to parent
@@ -771,6 +774,7 @@ class _TableInternalSetup(ut.NiceRepr):
             for colattr in parent_col_attrs]
         return parent_col_attrs
 
+    @profile
     def _infer_allcol(table):
         r"""
         Combine information from parentcol and datacol
@@ -788,10 +792,13 @@ class _TableInternalSetup(ut.NiceRepr):
         internal_col_attrs.append(colattr)
 
         # Append parent columns
+        ismulti = False
         for parent_colattr in table.parent_col_attrs:
             colattr = ut.odict()
             colattr['intern_colname'] = parent_colattr['intern_colname']
             colattr['parent_table'] = parent_colattr['parent_table']
+            if parent_colattr['ismulti']:
+                ismulti = True
             colattr['ismulti'] = parent_colattr['ismulti']
             colattr['isnwise'] = parent_colattr['isnwise']
             if colattr['isnwise']:
@@ -814,7 +821,9 @@ class _TableInternalSetup(ut.NiceRepr):
         internal_col_attrs.append(colattr)
 
         # Append quick access column
-        if table.ismulti:
+        # return any(table.get_parent_col_attr('ismulti'))
+        # if table.ismulti:
+        if ismulti:
             # Append model uuid column
             colattr = ut.odict()
             colattr['intern_colname'] = table.model_uuid_colname
@@ -1668,6 +1677,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         >>> print(depc['nnindexer'])
     """
 
+    @profile
     def __init__(table, depc=None, parent_tablenames=None, tablename=None,
                  data_colnames=None, data_coltypes=None, preproc_func=None,
                  docstr='no docstr', fname=None, asobject=False,
@@ -1681,7 +1691,6 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             table.db = None
         except Exception:
             # HACK: jedi type hinting. Need to have non-obvious condition
-            from dtool.sql_control import SQLDatabaseController
             table.db = SQLDatabaseController()
         table.fpath_to_db = {}
         assert re.search('[0-9]', tablename) is None, (
@@ -1722,7 +1731,9 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         table.data_col_attrs = table._infer_datacol()
         table.internal_col_attrs = table._infer_allcol()
         # Check for errors
-        table._assert_self()
+
+        if ut.SUPER_STRICT:
+            table._assert_self()
 
         table._hack_chunk_cache = None
 

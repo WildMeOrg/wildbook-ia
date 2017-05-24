@@ -86,6 +86,7 @@ class _CoreDependencyCache(object):
     Inherited by a calss with some "nice extras
     """
 
+    @profile
     def _register_prop(depc, tablename, parents=None, colnames=None,
                        coltypes=None, preproc_func=None, fname=None,
                        configclass=None, requestclass=None,
