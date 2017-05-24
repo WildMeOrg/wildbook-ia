@@ -132,7 +132,8 @@ def draw_keypoints(ax, kpts_, scale_factor=1.0, offset=(0.0, 0.0), rotation=0.0,
         if sifts is not None:
             # SIFT descriptors
             pass_props(kwargs, siftkw, 'bin_color', 'arm1_color', 'arm2_color',
-                       'arm1_lw', 'arm2_lw', 'arm_alpha', 'arm_alpha', 'multicolored_arms')
+                       'arm1_lw', 'arm2_lw', 'stroke', 'arm_alpha',
+                       'arm_alpha', 'multicolored_arms')
             mpl_sift.draw_sifts(ax, sifts, invVR_aff2Ds, **siftkw)
         if rect:
             # Bounding Rectangles

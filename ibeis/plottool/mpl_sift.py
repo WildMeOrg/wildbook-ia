@@ -198,10 +198,13 @@ def get_sift_collection(sift, aff=None, bin_color=BLACK, arm1_color=RED,
 
     # Add stroke instead of another arm
     from matplotlib import patheffects
-    path_effects = [
-        patheffects.withStroke(linewidth=arm1_lw + stroke, foreground='k'),
-        patheffects.Normal(),
-    ]
+    path_effects = []
+    print('stroke = %r' % (stroke,))
+    if stroke > 0:
+        path_effects.append(
+            patheffects.withStroke(linewidth=arm1_lw + stroke, foreground='k')
+        )
+    path_effects.append(patheffects.Normal())
 
     if MULTI_COLORED_ARMS:
         # Hack in same colorscheme for arms as the sift bars

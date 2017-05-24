@@ -456,11 +456,15 @@ def set_title(title='', ax=None, **fontkw):
 def set_xlabel(lbl, ax=None, **kwargs):
     if ax is None:
         ax = gca()
-    labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight=kwargs.get('weight', 'light'), size=labelsize)
-    }
+    # labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
+    fontkw = {}
+    labelkw = {}
+    if 'labelsize' in kwargs:
+        fontkw['labelsize'] = kwargs.get('labelsize')
+    if 'weight' in kwargs:
+        fontkw['weight'] = kwargs.get('weight')
+    if fontkw:
+        labelkw['fontproperties'] = mpl.font_manager.FontProperties(**fontkw)
     # Have to strip for tex output to work with mpl. uggg
     ax.set_xlabel(lbl.strip('\n'), **labelkw)
 
@@ -468,11 +472,19 @@ def set_xlabel(lbl, ax=None, **kwargs):
 def set_ylabel(lbl, ax=None, **kwargs):
     if ax is None:
         ax = gca()
-    labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
-    labelkw = {
-        'fontproperties': mpl.font_manager.FontProperties(
-            weight=kwargs.get('weight', 'light'), size=labelsize)
-    }
+    # labelsize = kwargs.get('labelsize', mpl.rcParams['axes.labelsize'])
+    # labelkw = {
+    #     'fontproperties': mpl.font_manager.FontProperties(
+    #         weight=kwargs.get('weight', 'light'), size=labelsize)
+    # }
+    fontkw = {}
+    labelkw = {}
+    if 'labelsize' in kwargs:
+        fontkw['labelsize'] = kwargs.get('labelsize')
+    if 'weight' in kwargs:
+        fontkw['weight'] = kwargs.get('weight')
+    if fontkw:
+        labelkw['fontproperties'] = mpl.font_manager.FontProperties(**fontkw)
     ax.set_ylabel(lbl, **labelkw)
 
 

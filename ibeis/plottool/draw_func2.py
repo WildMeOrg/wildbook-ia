@@ -822,8 +822,8 @@ def show_if_requested(N=1):
                         groupid = ax.colNum
                     groupid_list.append(groupid)
 
-                groupxs = ut.group_indices(groupid_list)[1]
-                new_groups = ut.lmap(ut.flatten, ut.apply_grouping(atomic_axes, groupxs))
+                groups = ut.group_items(atomic_axes, groupid_list)
+                new_groups = ut.emap(ut.flatten, groups.values())
                 atomic_axes = new_groups
                 #[[(ax.rowNum, ax.colNum) for ax in axs] for axs in atomic_axes]
                 # save all rows of each column
@@ -3295,6 +3295,8 @@ def draw_keypoint_patch(rchip, kp, sift=None, warped=False, patch_dict={}, **kwa
         'ell': True,
         'eig': False,
         'rect': kwargs.get('rect', True),
+        'stroke': kwargs.get('stroke', 1),
+        'arm1_lw': kwargs.get('arm1_lw', 2),
         'multicolored_arms': kwargs.get('multicolored_arms', False),
     }
     patch_dict_.update(patch_dict)

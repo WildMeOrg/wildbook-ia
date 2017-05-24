@@ -112,7 +112,7 @@ def draw_feat_row(chip, fx, kp, sift, fnum, nRows, nCols=None, px=None, prevsift
     if draw_chip:
         pnum = pnum_()
         df2.imshow(chip, fnum=fnum, pnum=pnum)
-        kpts_kw = dict(ell_linewidth=5, ell_alpha=1.0)
+        kpts_kw = dict(ell_linewidth=1, ell_alpha=1.0)
         kpts_kw.update(kwargs)
         df2.draw_kpts2([kp], **kpts_kw)
 
