@@ -2308,8 +2308,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     best_conf = conf_list[index]
 
     plt.title('Precision-Recall Curve (ALL mAP = %0.02f)' % (best_area, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    plt.legend(loc=2, ncol=2, mode="expand", borderaxespad=0.0)
 
     # axes_ = plt.subplot(222)
     # axes_.set_autoscalex_on(False)
@@ -2341,7 +2340,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     # axes_.set_ylabel('Ground-Truth')
     # plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
 
-    fig_filename = 'classifier-precision-recall-roc.png'
+    fig_filename = 'classifier2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
     plt.savefig(fig_path, bbox_inches='tight')
 
