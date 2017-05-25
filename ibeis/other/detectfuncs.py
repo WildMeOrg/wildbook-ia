@@ -2279,7 +2279,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
         config_dict = {
             'label': category_nice,
             'category': category,
-        },
+        }
         config_list.append(config_dict)
 
     color_list_ = [(0.2, 0.2, 0.2)]
