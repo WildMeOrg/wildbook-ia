@@ -434,7 +434,7 @@ def general_area_best_conf(conf_list, x_list, y_list, label='Unknown', color='b'
                            invert=False, x_limit=0.90, plot_point=True, **kwargs):
     import matplotlib.pyplot as plt
     best_conf_list, best_x_list, best_y_list = general_identify_operating_point(conf_list, x_list, y_list, invert=invert, x_limit=0.0)
-    best_conf = best_conf_list[0]
+    best_conf = best_conf_list[0] if len(best_conf_list) > 0 else np.nan
     # best_conf_list_ = ','.join([ '%0.02f' % (conf, ) for conf in best_conf_list ])
     # label = '%s [OP = %s]' % (label, best_conf_list_, )
     label = '%s [OP = %0.02f]' % (label, best_conf, )
