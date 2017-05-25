@@ -622,6 +622,7 @@ class InfrReviewers(object):
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.ensure_mst()
             >>> cfgdict = {'ratio_thresh': .8, 'sv_on': False}
+            >>> # Add dummy priorities to each edge
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
             >>> infr.enable_redundancy = False
@@ -666,6 +667,18 @@ class InfrReviewers(object):
         infr.add_feedback(edge, priority=priority, **feedback)
         return True
 
+    def on_accept(infr, feedback, need_next=True):
+        annot1_state = feedback.pop('annot1_state', None)
+        annot2_state = feedback.pop('annot2_state', None)
+        if annot1_state:
+            infr.add_node_feedback(**annot1_state)
+        if annot2_state:
+            infr.add_node_feedback(**annot2_state)
+        infr.add_feedback(**feedback)
+        infr.write_ibeis_staging_feedback()
+        if need_next:
+            infr.continue_review()
+
     def continue_review(infr):
         try:
             while True:
@@ -681,18 +694,6 @@ class InfrReviewers(object):
                 import guitool as gt
                 gt.user_info(infr.manual_wgt, 'Review Complete')
         print('review lop complete')
-
-    def on_accept(infr, feedback, need_next=True):
-        annot1_state = feedback.pop('annot1_state', None)
-        annot2_state = feedback.pop('annot2_state', None)
-        if annot1_state:
-            infr.add_node_feedback(**annot1_state)
-        if annot2_state:
-            infr.add_node_feedback(**annot2_state)
-        infr.add_feedback(**feedback)
-        infr.write_ibeis_staging_feedback()
-        if need_next:
-            infr.continue_review()
 
     def manual_review(infr, edge):
         # OLD

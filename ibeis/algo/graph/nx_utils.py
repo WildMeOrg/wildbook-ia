@@ -142,7 +142,9 @@ def is_edge_connected(G, k):
            * reduces 3-edge-connectivity to 3-vertex-connectivity
 
     """
-    if k == 0:
+    if k < 0:
+        raise ValueError('k must be an integer greater than 0, not=%r' % (k,))
+    elif k == 0:
         return True
     elif k == 1:
         return nx.is_connected(G)
@@ -167,7 +169,8 @@ def is_bridge_connected(G):
         >>> assert not is_bridge_connected(G1)
         >>> assert is_bridge_connected(G2)
     """
-    return not any(find_bridges(G))
+    # Check that G has edges and none of them are bridges
+    return not any(find_bridges(G)) and any(G.edges())
 
 
 @profile
@@ -328,12 +331,113 @@ def complement_edges(G):
             for n2 in G if n2 not in nbrs if n != n2)
 
 
+def greedy_edge_augmentation(G, k, avail=None, return_anyway=False):
+    """
+    Randomly add edges that are not locally k-edge-connected until we satisfy
+    connectivity in general. Then try and remove edges to reduce the size.
+
+    Ignore:
+        >>> ut.qtensure()
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> G = nx.Graph()
+        >>> G.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        >>> aug_edges1 = greedy_edge_augmentation(G, k=1)
+        >>> aug_edges2 = greedy_edge_augmentation(G, k=2)
+        >>> aug_edges3 = greedy_edge_augmentation(G, k=3)
+        >>> aug_edges4 = greedy_edge_augmentation(G, k=4)
+        >>> ut.quit_if_noshow()
+        >>> len(aug_edges_opt)
+        >>> len(aug_edges_greedy)
+        >>> import plottool as pt
+        >>> def aug_graph(G, edges):
+        >>>     H = G.copy()
+        >>>     H.add_edges_from(edges)
+        >>>     return H
+        >>> pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
+        >>> fnum = 1
+        >>> pt.show_nx(aug_graph(G, aug_edges1), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges2), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges3), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges4), fnum=fnum, pnum=pnum_())
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> G = nx.Graph()
+        >>> G.add_nodes_from([1, 2, 3])
+        >>> aug_edges1 = greedy_edge_augmentation(G, k=1, return_anyway=True)
+        >>> aug_edges2 = greedy_edge_augmentation(G, k=2, return_anyway=True)
+        >>> aug_edges3 = greedy_edge_augmentation(G, k=3, return_anyway=True)
+        >>> aug_edges4 = greedy_edge_augmentation(G, k=4, return_anyway=True)
+        >>> ut.quit_if_noshow()
+        >>> len(aug_edges_opt)
+        >>> len(aug_edges_greedy)
+        >>> import plottool as pt
+        >>> def aug_graph(G, edges):
+        >>>     H = G.copy()
+        >>>     H.add_edges_from(edges)
+        >>>     return H
+        >>> pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
+        >>> fnum = 1
+        >>> pt.show_nx(aug_graph(G, aug_edges1), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges2), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges3), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges4), fnum=fnum, pnum=pnum_())
+    """
+    # Because I have not implemented a better algorithm yet:
+    # randomly add edges until we satisfy the criteria
+    import random
+    # very hacky and not minimal
+    done = is_edge_connected(G, k)
+    if done:
+        return []
+    if avail is None:
+        avail = list(complement_edges(G))
+    else:
+        avail = list(avail)
+    aug_edges = []
+    rng = random.Random(0)
+    avail = list({e_(u, v) for u, v in avail})
+    avail = ut.shuffle(avail, rng=rng)
+    H = G.copy()
+    # Randomly throw edges in until we are k-connected
+    for edge in avail:
+        local_k = nx.connectivity.local_edge_connectivity(H, *edge)
+        if local_k < k:
+            aug_edges.append(edge)
+            H.add_edge(*edge)
+        done = is_edge_connected(H, k)
+        if done:
+            break
+    if not done:
+        if not return_anyway:
+            raise ValueError('not able to k-connect with available nodes')
+        else:
+            return avail
+    aug_edges = ut.shuffle(aug_edges, rng=rng)
+    # Greedy attempt to reduce the size
+    for edge in list(aug_edges):
+        if min(H.degree(edge), key=lambda t: t[1])[1] <= k:
+            continue
+        H.remove_edge(*edge)
+        aug_edges.remove(edge)
+        conn = nx.edge_connectivity(H)
+        if conn < k:
+            # If no longer feasible undo
+            H.add_edge(*edge)
+            aug_edges.append(edge)
+    return aug_edges
+
+
 @profile
 def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=False):
     r"""
     Finds set of edges to k-edge-connect G. In the case of k=1
-    this is a minimum weight set. For k>2 it becomes exact only if avail is
-    None
+    this is a minimum weight set. For k=2 it becomes exact only if avail is
+    None. If k > 2, a greedy algorithm is used.
 
     Args:
         G (nx.Graph): graph to augment
@@ -394,44 +498,8 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
         aug_edges = weighted_bridge_connected_augmentation(G, avail,
                                                            return_anyway)
     else:
-        # Because I have not implemented a better algorithm yet:
-        # randomly add edges until we satisfy the criteria
-        import random
-        # very hacky and not minimal
-        done = is_edge_connected(G, k)
-        if done:
-            return []
-        if avail is None:
-            avail = list(complement_edges(G))
-        else:
-            avail = list(avail)
-        aug_edges = []
-        rng = random.Random(0)
-        avail = list({e_(u, v) for u, v in avail})
-        avail = ut.shuffle(avail, rng=rng)
-        H = G.copy()
-        # Randomly throw edges in until we are k-connected
-        for edge in avail:
-            aug_edges.append(edge)
-            H.add_edge(*edge)
-            done = is_edge_connected(H, k)
-            if done:
-                break
-        if not done:
-            if return_anyway:
-                return avail
-            raise ValueError('not able to k-connect with available nodes')
-        # Greedy attempt to reduce the size
-        for edge in list(aug_edges):
-            if min(H.degree(edge), key=lambda t: t[1])[1] <= k:
-                continue
-            H.remove_edge(*edge)
-            aug_edges.remove(edge)
-            conn = nx.edge_connectivity(H)
-            if conn < k:
-                # If no longer feasible undo
-                H.add_edge(*edge)
-                aug_edges.append(edge)
+        # Fallback on greedy algorithm when we have no better option
+        aug_edges = greedy_edge_augmentation(G, k, avail, return_anyway)
     aug_edges = list(it.starmap(e_, aug_edges))
     return aug_edges
 
@@ -998,6 +1066,48 @@ def is_complete(G, self_loops=False):
     if self_loops:
         n_need += n_nodes
     return n_edges == n_need
+
+
+def random_k_edge_connected_graph(size, k, p=.1, rng=None):
+    """
+    Super hacky way of getting a random k-connected graph
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import plottool as pt
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> size, k, p = 25, 3, .1
+        >>> rng = ut.ensure_rng(0)
+        >>> gs = []
+        >>> for x in range(4):
+        >>>     G = random_k_edge_connected_graph(size, k, p, rng)
+        >>>     gs.append(G)
+        >>> ut.quit_if_noshow()
+        >>> pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=len(gs))
+        >>> fnum = 1
+        >>> for g in gs:
+        >>>     pt.show_nx(g, fnum=fnum, pnum=pnum_())
+    """
+    import sys
+    for count in it.count(0):
+        seed = None if rng is None else rng.randint(sys.maxsize)
+        # Randomly generate a graph
+        g = nx.fast_gnp_random_graph(size, p, seed=seed)
+        conn = nx.edge_connectivity(g)
+        # If it has exactly the desired connectivity we are one
+        if conn == k:
+            break
+        # If it has more, then we regenerate the graph with fewer edges
+        elif conn > k:
+            p = p / 2
+        # If it has less then we add a small set of edges to get there
+        elif conn < k:
+            # p = 2 * p - p ** 2
+            # if count == 2:
+            aug_edges = edge_connected_augmentation(g, k)
+            g.add_edges_from(aug_edges)
+            break
+    return g
 
 
 if __name__ == '__main__':

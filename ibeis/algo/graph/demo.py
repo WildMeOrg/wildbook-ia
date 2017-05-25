@@ -999,18 +999,22 @@ def case_all_types():
     check.after(errors)
 
 
+@profile
 def demodata_infr(**kwargs):
     """
     kwargs = {}
 
     CommandLine:
         python -m ibeis.algo.graph.demo demodata_infr --show
+        python -m ibeis.algo.graph.demo demodata_infr --num_pccs=25
+        python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=200
 
     Example:
         >>> from ibeis.algo.graph.demo import *  # NOQA
         >>> from ibeis.algo.graph import demo
         >>> import networkx as nx
         >>> kwargs = dict(num_pccs=6, p_incon=.5, size_std=2)
+        >>> kwargs = ut.argparse_dict(kwargs)
         >>> infr = demo.demodata_infr(**kwargs)
         >>> pccs = list(infr.positive_components())
         >>> assert len(pccs) == kwargs['num_pccs']
@@ -1020,10 +1024,13 @@ def demodata_infr(**kwargs):
         >>> # TODO can test that we our sample num incon agrees with pop mean
         >>> #sample_mean = n_incon / len(nonfull_pccs)
         >>> #pop_mean = kwargs['p_incon']
-        >>> print(infr.status)
+        >>> print('status = ' + ut.repr4(infr.status()))
+        >>> ut.quit_if_noshow()
         >>> infr.show(pickable=True, groupby='name_label')
         >>> ut.show_if_requested()
     """
+    import networkx as nx
+    from ibeis.algo.graph import nx_utils
 
     def kwalias(*args):
         params = args[0:-1]
@@ -1033,9 +1040,6 @@ def demodata_infr(**kwargs):
                 return kwargs[key]
         return default
 
-    rng = np.random.RandomState(0)
-    counter = 1
-    new_ccs = []
     num_pccs = kwalias('num_pccs', 16)
     size_mean = kwalias('pcc_size_mean', 'pcc_size', 'size', 5)
     size_std = kwalias('pcc_size_std', 'size_std', 0)
@@ -1046,26 +1050,22 @@ def demodata_infr(**kwargs):
     # number of maximum inconsistent edges per pcc
     max_n_incon = kwargs.get('n_incon', 3)
 
+    rng = np.random.RandomState(0)
+    counter = 1
+    new_ccs = []
+
     pcc_iter = list(range(num_pccs))
     pcc_iter = ut.ProgIter(pcc_iter, enabled=num_pccs > 20,
                            label='make pos-demo')
     for i in pcc_iter:
         size = int(randn(size_mean, size_std, rng=rng, a_min=1))
         p = .1
-        import networkx as nx
         want_connectivity = rng.choice([1, 2, 3])
         want_connectivity = min(size - 1, want_connectivity)
-        # print('want_connectivity = %r' % (want_connectivity,))
-        while True:
-            import sys
-            g = nx.fast_gnp_random_graph(size, p, seed=rng.randint(sys.maxsize))
-            conn = nx.edge_connectivity(g)
-            if conn == want_connectivity:
-                break
-            elif conn < want_connectivity:
-                p = 2 * p - p ** 2
-            elif conn > want_connectivity:
-                p = p / 2
+
+        # Create basic graph of positive edges with desired connectivity
+        g = nx_utils.random_k_edge_connected_graph(
+            size, k=want_connectivity, p=p, rng=rng)
         new_nodes = np.array(list(g.nodes()))
         new_edges_ = np.array(list(g.edges()))
         new_edges_ += counter
@@ -1082,7 +1082,8 @@ def demodata_infr(**kwargs):
         # The probability any edge is inconsistent is `p_incon`
         # This is 1 - P(all edges consistent)
         # which means p(edge is consistent) = (1 - p_incon) / N
-        complement_edges = list(nx.complement(new_g).edges())
+        complement_edges = ut.estarmap(nx_utils.e_,
+                                       nx_utils.complement_edges(new_g))
         if len(complement_edges) > 0:
             # compute probability that any particular edge is inconsistent
             # to achieve probability the PCC is inconsistent
@@ -1106,10 +1107,8 @@ def demodata_infr(**kwargs):
                 chosen = rng.choice(incon_idxs, max_n_incon, replace=False)
                 states[np.setdiff1d(incon_idxs, chosen)] = len(probs)
 
-            # print('states = %r' % (states,))
-            for (u, v), state in zip(complement_edges, states):
-                u, v = (u, v) if u < v else (v, u)
-                # Add in candidate edges
+            grouped_edges = ut.group_items(complement_edges, states)
+            for state, edges in grouped_edges.items():
                 truth = POSTV
                 if state == 0:
                     # Add in inconsistent edges
@@ -1123,21 +1122,20 @@ def demodata_infr(**kwargs):
                 elif state == 2:
                     decision = INCMP
                     truth = INCMP
-                    # new_edges.append((u, v, {'decision': INCMP}))
                 else:
                     continue
-                new_edges.append((u, v, {'decision': decision, 'truth':
-                                         truth}))
+                # Add in candidate edges
+                attrs = {'decision': decision, 'truth': truth}
+                for (u, v) in edges:
+                    new_edges.append((u, v, attrs))
         new_ccs.append((new_nodes, new_edges))
 
-    import networkx as nx
     pos_g = nx.Graph(ut.flatten(ut.take_column(new_ccs, 1)))
     pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
     assert num_pccs == len(list(nx.connected_components(pos_g)))
 
     neg_edges = []
 
-    print('makingxx pairs')
     if not kwalias('ignore_pair', False):
         print('making pairs')
         p_pair_neg = kwalias('p_pair_neg', .4)
@@ -1145,15 +1143,14 @@ def demodata_infr(**kwargs):
         p_pair_unrev = kwalias('p_pair_unrev', .2)
         print('p_pair_neg = %r' % (p_pair_neg,))
         # p_pair_neg = 1
-        for cc1, cc2 in ut.ProgIter(list(it.combinations(new_ccs, 2)),
-                                    label='make neg-demo'):
-            nodes1 = cc1[0]
-            nodes2 = cc2[0]
-
-            if len(nodes1) == 0 or len(nodes2) == 0:
-                continue
-
-            possible_edges = list(it.product(nodes1, nodes2))
+        cc_combos = ((itempair[0][0], itempair[1][0])
+                     for itempair in it.combinations(new_ccs, 2))
+        valid_cc_combos = [
+            (cc1, cc2)
+            for cc1, cc2 in cc_combos if len(cc1) and len(cc2)
+        ]
+        for cc1, cc2 in ut.ProgIter(valid_cc_combos, label='make neg-demo'):
+            possible_edges = ut.estarmap(nx_utils.e_, it.product(cc1, cc2))
             # probability that any edge between these PCCs is negative
             p_edge_neg = 1 - (1 - p_pair_neg) ** (1 / len(possible_edges))
             p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / len(possible_edges))
@@ -1162,8 +1159,8 @@ def demodata_infr(**kwargs):
             states = np.searchsorted(pcumsum, rng.rand(len(possible_edges)))
 
             # print('checking pair')
-            for (u, v), state in zip(possible_edges, states):
-                u, v = (u, v) if u < v else (v, u)
+            grouped_edges = ut.group_items(complement_edges, states)
+            for state, edges in grouped_edges.items():
                 # Add in candidate edges
                 if state == 0:
                     decision = NEGTV
@@ -1179,7 +1176,12 @@ def demodata_infr(**kwargs):
                     # neg_edges.append((u, v, {'decision': UNREV}))
                 else:
                     continue
-                neg_edges.append((u, v, {'decision': decision, 'truth': truth}))
+                # Add in candidate edges
+                attrs = {'decision': decision, 'truth': truth}
+                for (u, v) in edges:
+                    new_edges.append((u, v, attrs))
+    else:
+        print('ignoring pairs')
 
     edges = ut.flatten(ut.take_column(new_ccs, 1)) + neg_edges
     edges = [(int(u), int(v), d) for u, v, d in edges]

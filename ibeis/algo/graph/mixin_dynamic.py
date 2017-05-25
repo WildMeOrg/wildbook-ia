@@ -800,6 +800,12 @@ class Completeness(object):
 class Priority(object):
     """
     Handles prioritization of edges for review.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+        >>> from ibeis.algo.graph import demo
+        >>> infr = demo.demodata_infr(num_pccs=20)
     """
 
     def remaining_reviews(infr):
@@ -855,6 +861,20 @@ class Priority(object):
                     num_new += 1
                 infr.queue[edge] = infr.queue.pop(edge, low) - 10
         infr.print('added %d edges to the queue' % (num_new,), 1)
+
+    def peek_many(infr, n):
+        infr.queue.peek_many(n)
+
+    def push(infr, edge, priority=None):
+        """
+        Push an edge back onto the queue
+        """
+        if priority is None:
+            priority = 'prob_match'
+        if isinstance(priority, six.string_types):
+            prob_match = infr.get_edge_attr(edge, priority, default=1e-9)
+            priority = prob_match
+        infr.queue[edge] = -priority
 
     @profile
     def pop(infr):
