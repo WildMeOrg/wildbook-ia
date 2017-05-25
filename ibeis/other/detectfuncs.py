@@ -2234,7 +2234,8 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
         assert len(label_list) == len(prediction_list)
         correct = 0
         for label, prediction in zip(label_list, prediction_list):
-            correct += 1
+            if label == prediction:
+                correct += 1
         return correct / len(label_list)
 
     print('Processing Confusion Matrix')
