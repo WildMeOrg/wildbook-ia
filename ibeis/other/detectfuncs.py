@@ -2274,7 +2274,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     ]
     for category in category_set:
         value = const.SPECIES_MAPPING.get(category, None)
-        if value is None:
+        if value is not None:
             category_tag, category_nice = value
         else:
             category_nice = category
