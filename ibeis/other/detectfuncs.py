@@ -2258,7 +2258,6 @@ def classifier2_confusion_matrix_algo_plot(ibs, category_set, samples=SAMPLES, *
     conf_list = [ _ / float(samples) for _ in range(0, int(samples) + 1) ]
 
     print('Processing best prediction_list...')
-    ut.embed()
     best_conf = None
     best_accuracy = 0.0
     for conf in conf_list:
