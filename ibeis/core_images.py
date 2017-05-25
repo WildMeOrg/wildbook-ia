@@ -252,7 +252,7 @@ class Classifier2Config(dtool.Config):
 @register_preproc(
     tablename='classifier_two', parents=['images'],
     colnames=['scores', 'classes'],
-    coltypes=[np.ndarray, np.ndarray],
+    coltypes=[dict, list],
     configclass=Classifier2Config,
     fname='detectcache',
     chunksize=1024,
