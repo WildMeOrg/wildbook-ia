@@ -42,16 +42,20 @@ class IBEISIO(object):
         # Look at what changed
         tag_flags = edge_delta_df['old_tags'] != edge_delta_df['new_tags']
         state_flags = edge_delta_df['old_decision'] != edge_delta_df['new_decision']
-        is_added = edge_delta_df['am_rowid'].isnull()
+        is_added_to_am = edge_delta_df['am_rowid'].isnull()
+        is_new = edge_delta_df['is_new']
         info = ut.odict([
-            ('num_edges_added' , is_added.sum()),
-            ('num_edges_modified' , (~is_added).sum()),
+            # Technically num_edges_added only cares if the edge exists in the
+            # annotmatch table.
+            ('num_edges_added_to_am' , is_added_to_am.sum()),
+            ('num_edges_added' , is_new.sum()),
+            ('num_edges_modified' , (~is_new).sum()),
             ('num_changed_decision_and_tags' , (
-                (tag_flags & state_flags & ~is_added).sum())),
+                (tag_flags & state_flags & ~is_new).sum())),
             ('num_changed_tags'              , (
-                (tag_flags & ~state_flags & ~is_added).sum())),
+                (tag_flags & ~state_flags & ~is_new).sum())),
             ('num_changed_decision'          , (
-                (~tag_flags & state_flags & ~is_added).sum())),
+                (~tag_flags & state_flags & ~is_new).sum())),
             # 'num_non_pos_redundant': num_non_pos_redundant,
         ])
         return info
@@ -122,21 +126,37 @@ class IBEISIO(object):
         nids = infr.ibs.get_annot_nids(infr.aids)
         infr.set_node_attrs('name_label', ut.dzip(infr.aids, nids))
 
-    def update_staging_to_annotmatch():
-        print('Finding entries in annotmatch missing in staging')
+    def _update_staging_to_annotmatch(infr):
+        """
+        BE VERY CAREFUL WITH THIS FUNCTION
+
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('PZ_Master1')
+        >>> infr = ibeis.AnnotInference(ibs, aids=ibs.get_valid_aids())
+
+        infr.reset_feedback('annotmatch', apply=True)
+        infr.status()
+        """
+        print('Finding entries in annotmatch that are missing in staging')
+        reverse_df = infr.match_state_delta('annotmatch', 'staging')
+        if len(reverse_df) > 0:
+            raise AssertionError(
+                'Cannot update staging because '
+                'some staging items have not been commited.'
+            )
         df = infr.match_state_delta('staging', 'annotmatch')
+        print('There are {}/{} annotmatch items that do not exist in staging'.format(
+            sum(df['is_new']), len(df)))
+        print(ut.repr4(infr.ibeis_edge_delta_info(df)))
+
         # Find places that exist in annotmatch but not in staging
         flags = pd.isnull(df['old_decision'])
         missing_df = df[flags]
-        alias = {
-            'new_decision': 'decision',
-            'new_tags': 'tags',
-            'new_confidence': 'confidence',
-            'new_user_id': 'user_id',
-        }
+        alias = {'new_' + k: k for k in infr.feedback_data_keys}
         tmp = missing_df[list(alias.keys())].rename(columns=alias)
         missing_feedback = {k: [v] for k, v in tmp.to_dict('index').items()}
         feedback = missing_feedback
+
         infr._write_ibeis_staging_feedback(feedback)
 
         # am_fb = infr.read_ibeis_annotmatch_feedback()
@@ -542,11 +562,11 @@ class IBEISIO(object):
         edge_delta_df = infr._make_state_delta(old_feedback, new_feedback)
         return edge_delta_df
 
-    @staticmethod
-    def _make_state_delta(old_feedback, new_feedback):
+    @classmethod
+    def _make_state_delta(AnnotInference, old_feedback, new_feedback):
         r"""
         CommandLine:
-            python -m ibeis.algo.graph.core _make_state_delta
+            python -m ibeis.algo.graph.mixin_ibeis IBEISIO._make_state_delta
 
         Example:
             >>> # ENABLE_DOCTEST
@@ -561,7 +581,7 @@ class IBEISIO(object):
             >>> print(result)
             edge_delta_df =
             Empty DataFrame
-            Columns: [am_rowid, old_decision, new_decision, old_tags, new_tags]
+            Columns: [am_rowid, old_decision, new_decision, old_tags, new_tags, is_new]
             Index: []
 
         Example:
@@ -587,14 +607,13 @@ class IBEISIO(object):
             >>>                                                  new_feedback)
             >>> result = ('edge_delta_df =\n%s' % (edge_delta_df,))
             >>> print(result)
-            edge_delta_df =
-                       am_rowid old_decision new_decision old_tags new_tags
+                       am_rowid old_decision new_decision old_tags new_tags is_new
             aid1 aid2
-            101  104     1004.0      nomatch        match       []       []
-            103  104     1002.0        match      nomatch       []       []
-            100  103        NaN          NaN      nomatch      NaN       []
-            102  103        NaN          NaN      nomatch      NaN       []
-            107  109        NaN          NaN      notcomp      NaN       []
+            101  104     1004.0      nomatch        match       []       []  False
+            103  104     1002.0        match      nomatch       []       []  False
+            100  103        NaN          NaN      nomatch      NaN       []   True
+            102  103        NaN          NaN      nomatch      NaN       []   True
+            107  109        NaN          NaN      notcomp      NaN       []   True
         """
         import pandas as pd
         from six.moves import reduce
@@ -612,17 +631,13 @@ class IBEISIO(object):
         isect_old = old_feedback.loc[isect_edges]
 
         # If any important column is different we mark the row as changed
-        data_columns = ['decision', 'tags', 'confidence']
-        data_columns += ['timestamp', 'user_id']
+        data_columns = AnnotInference.feedback_data_keys
         important_columns = ['decision', 'tags']
         other_columns = ut.setdiff(data_columns, important_columns)
         if len(isect_edges) > 0:
             changed_gen = (isect_new[c] != isect_old[c]
                            for c in important_columns)
             is_changed = reduce(op.or_, changed_gen)
-            # decision_changed = isect_new['decision'] != isect_old['decision']
-            # tags_changed = isect_new['tags'] != isect_old['tags']
-            # is_changed = tags_changed | decision_changed
             new_df_ = isect_new[is_changed]
             old_df = isect_old[is_changed]
         else:
@@ -652,6 +667,9 @@ class IBEISIO(object):
         edge_delta_df = merged_df.reindex(columns=(
             ut.setdiff(merged_df.columns.values, col_order) + col_order))
         edge_delta_df.set_index(['aid1', 'aid2'], inplace=True, drop=True)
+        edge_delta_df = edge_delta_df.assign(is_new=False)
+        if len(add_edges):
+            edge_delta_df.loc[add_edges, 'is_new'] = True
         return edge_delta_df
 
 

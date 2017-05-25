@@ -1626,6 +1626,12 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         name_delta_stats_df = infr.ibeis_name_group_delta_info()
 
         info = infr.ibeis_delta_info(edge_delta_df, name_delta_df)
+        import utool
+        with utool.embed_on_exception_context:
+            assert info['num_edges_added'] ==  info['num_edges_added_to_am'], (
+                'should never happen when staging is moving into annotmatch'
+            )
+
         msg = ut.codeblock(
             '''
             Are you sure this is correct?
@@ -1633,7 +1639,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
             strictly merged {num_old_merge} into {num_new_merge} names.
             hybrid split/merged {num_old_hybrid} into {num_new_hybrid} names.
             #annot_names_changed={num_annots_with_names_changed}
-            #edges_added={num_edges_added}
+            #edges_added={num_edges_added_to_am}
             #edges_modified={num_edges_modified}
             #inconsistent:consistent={num_inconsistent}:{num_consistent}
             #redundant:nonredundant={num_pos_redun}:{num_non_pos_redun}

@@ -779,7 +779,7 @@ def _needs_redownload(fpath, seconds_thresh):
 
 def parse_whaleshark_org():
     """
-    Read list of all iamges from wildbook
+    Read list of all images from wildbook
 
     Combines old and new
 

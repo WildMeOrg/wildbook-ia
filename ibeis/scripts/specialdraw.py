@@ -1507,7 +1507,9 @@ def redun_demo2():
     fnum = 1
     showkw = dict(show_inconsistency=False, show_labels=True,
                   simple_labels=True,
-                  show_recent_review=False, wavy=False, groupby='name_label',
+                  show_recent_review=False, wavy=False,
+                  groupby='name_label',
+                  splines='spline',
                   pickable=True, fnum=fnum)
 
     graphkw = dict(hpad=50, vpad=50, group_grid=True)
@@ -1526,22 +1528,19 @@ def redun_demo2():
             cc1, cc2 = ccs
             ax.set_xlabel(str(infr.neg_redundancy(cc1, cc2)) + '-negative-redundant')
 
-    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4)])
-    # infr.add_feedback((1, 4), decision=POSTV)
+    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 5, 4), (6,)])
+    infr.add_feedback((5, 6), decision=POSTV)
     # infr.add_feedback((3, 4), decision='unreviewed')
     show_redun(infr)
 
-    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5)])
-    infr.add_feedback((1, 4), decision=POSTV)
-    infr.add_feedback((3, 4), decision='unreviewed')
-    infr.add_feedback((3, 5), decision=POSTV)
+    infr = infr.copy()
+    for u, v in infr.find_pos_augment_edges(set(infr.graph.nodes()), k=2):
+        infr.add_feedback((u, v), decision=POSTV)
     show_redun(infr)
 
-    infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4, 5)])
-    infr.add_feedback((1, 4), decision=POSTV)
-    infr.add_feedback((3, 5), decision=POSTV)
-    infr.add_feedback((1, 5), decision=POSTV)
-    infr.add_feedback((2, 5), decision=POSTV)
+    infr = infr.copy()
+    for u, v in infr.find_pos_augment_edges(set(infr.graph.nodes()), k=3):
+        infr.add_feedback((u, v), decision=POSTV)
     show_redun(infr)
 
     infr = demo.make_demo_infr(ccs=[(1, 2, 3, 4), (11, 12, 13, 14, 15)])

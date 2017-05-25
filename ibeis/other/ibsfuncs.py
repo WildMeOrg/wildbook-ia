@@ -5768,8 +5768,8 @@ def compute_occurrences_smart(ibs, gid_list, smart_xml_fpath):
         if len(gid_list_) == 0:
             print('[ibs]         SKIPPING EMPTY IMAGESET')
             continue
-        # Add the GPS data to the iamges
-        gps_list  = [ gps ] * len(gid_list_)
+        # Add the GPS data to the images
+        gps_list  = [gps] * len(gid_list_)
         ibs.set_image_gps(gid_list_, gps_list)
         # Create a new imageset
         imagesettext = '%s Waypoint %03d' % (xml_name.replace('.xml', ''), index + 1, )

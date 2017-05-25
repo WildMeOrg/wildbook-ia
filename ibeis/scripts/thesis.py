@@ -63,11 +63,13 @@ class DBInputs(object):
         self.ibs = None
         if dbname is not None:
             self.dpath = join(self.base_dpath, self.dbname)
-            ut.ensuredir(self.dpath)
+            # ut.ensuredir(self.dpath)
 
     @profile
     def _precollect(self):
         """
+        Sets up an ibs object with an aids_pool
+
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap3('humpbacks_fb')
@@ -77,6 +79,11 @@ class DBInputs(object):
             >>> self = Chap3('PZ_PB_RF_TRAIN')
             >>> self = Chap3('PZ_Master1')
             >>> self._precollect()
+
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('PZ_Master1')
+            >>> self._precollect()
+
         """
         import ibeis
         from ibeis.init import main_helpers
@@ -132,6 +139,31 @@ class DBInputs(object):
             ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
 
 
+@ut.reloadable_class
+class IOContract(object):
+    """
+    Subclasses must obey the measure_<expt_name>, draw_<expt_name> contract
+    """
+
+    def ensure_results(self, expt_name=None):
+        ut.ensuredir(str(self.dpath))
+        if expt_name is None:
+            # Load all
+            fpaths = ut.glob(str(self.dpath), '*.pkl')
+            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
+            for fpath, expt_name in zip(fpaths, expt_names):
+                self.expt_results[expt_name] = ut.load_data(fpath)
+        else:
+            fpath = join(str(self.dpath), expt_name + '.pkl')
+            expt_name = splitext(basename(fpath))[0]
+            if not exists(fpath):
+                if self.ibs is None:
+                    self._precollect()
+                getattr(self, 'measure_' + expt_name)()
+            self.expt_results[expt_name] = ut.load_data(fpath)
+            return self.expt_results[expt_name]
+
+
 class Chap5Commands(object):
 
     @profile
@@ -174,13 +206,7 @@ class Chap5Commands(object):
         train_aids = ut.flatten(names[0::2])
         test_aids = ut.flatten(names[1::2])
 
-        import ibeis
-        infr_train = ibeis.AnnotInference(ibs=ibs, aids=train_aids, autoinit=True)
-        infr_train.reset_feedback('staging', apply=True)
-        if infr_train.ibs.dbname == 'PZ_MTEST':
-            infr_train.ensure_mst()
-
-        pblm = script_vsone.OneVsOneProblem(infr=infr_train)
+        pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids)
         pblm.set_pandas_options()
         pblm.load_samples()
         pblm.load_features()
@@ -207,10 +233,10 @@ class Chap5Commands(object):
         graph_thresh = res.get_pos_threshes('fpr', value=.002)
         rankclf_thresh = res.get_pos_threshes('fpr', value=0)
 
-        if infr_train.ibs.dbname == 'GZ_Master1':
+        if ibs.dbname == 'GZ_Master1':
             graph_thresh = res.get_pos_threshes('fpr', value=.0014)
             rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
-        elif infr_train.ibs.dbname == 'PZ_Master1':
+        elif ibs.dbname == 'PZ_Master1':
             # graph_thresh = res.get_pos_threshes('fpr', value=.0014)
             # rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
             graph_thresh = res.get_pos_threshes('fpr', value=.03)
@@ -1212,14 +1238,9 @@ class Chap5Commands(object):
         #     overlay_actions(ymax=1)
 
 
-class Chap5Inputs(DBInputs):
-    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
-    pass
-
-
 @ut.reloadable_class
-class Chap5(Chap5Inputs, Chap5Commands):
-    pass
+class Chap5(DBInputs, Chap5Commands):
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
 
 
 @ut.reloadable_class
@@ -1423,34 +1444,6 @@ class Chap3Agg(object):
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
             ut.startfile(fpath)
-
-    def ensure_results(self, expt_name=None):
-        if expt_name is None:
-            # Load all
-            fpaths = ut.glob(self.dpath, '*.pkl')
-            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
-            for fpath, expt_name in zip(fpaths, expt_names):
-                self.expt_results[expt_name] = ut.load_data(fpath)
-        else:
-            fpath = join(self.dpath, expt_name + '.pkl')
-            expt_name = splitext(basename(fpath))[0]
-            if not exists(fpath):
-                if self.ibs is None:
-                    self._precollect()
-                getattr(self, 'measure_' + expt_name)()
-            self.expt_results[expt_name] = ut.load_data(fpath)
-            return self.expt_results[expt_name]
-
-
-@ut.reloadable_class
-class Chap3Inputs(DBInputs):
-    """
-        humpbacks_fb
-        Seals
-        snails_drop1
-        LF_Bajo_bonito
-    """
-    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
 
 
 @ut.reloadable_class
@@ -2102,104 +2095,76 @@ class Chap3Draw(object):
 
 
 @ut.reloadable_class
-class Chap3(Chap3Inputs, Chap3Agg, Chap3Draw, Chap3Measures, Chap3Commands):
-    pass
+class Chap3(DBInputs, IOContract, Chap3Agg, Chap3Draw, Chap3Measures,
+            Chap3Commands):
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
 
 
-# NEED FOR OLD PICKLES
-class ExptChapter4(object):
-    pass
-
-
-# @ut.reloadable_class
-class Chap4(object):
+@ut.reloadable_class
+class Chap4(DBInputs, IOContract):
     """
     Collect data from experiments to visualize
+
+    TODO: redo save/loading of measurments
 
     Ignore:
         >>> from ibeis.scripts.thesis import *
         >>> fpath = ut.glob(ut.truepath('~/Desktop/mtest_plots'), '*.pkl')[0]
         >>> self = ut.load_data(fpath)
     """
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures4')
 
-    @classmethod
-    def draw_tagged_pair(Chap4):
+    def _setup_pblm(self):
+        r"""
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('PZ_Master1')
+            >>> self._precollect()
+
+            self.ibs.print_annot_stats(aids, prefix='P')
+        """
         import ibeis
-        # ibs = ibeis.opendb(defaultdb='GZ_Master1')
-        ibs = ibeis.opendb(defaultdb='PZ_Master1')
+        self._precollect()
+        ibs = self.ibs
 
-        query_tag = 'leftrightface'
+        def find_minority_class_ccs(infr):
+            # Finds ccs involved in photobombs and incomparble cases
+            pb_edges = [
+                edge for edge, tags in infr.gen_edge_attrs('tags')
+                if 'photobomb'in tags
+            ]
+            incomp_edges = list(infr.incomp_graph.edges())
+            minority_edges = pb_edges + incomp_edges
+            minority_nids = set(infr.node_labels(*set(
+                ut.flatten(minority_edges))))
+            minority_ccs = [infr.pos_graph._ccs[nid] for nid in
+                              minority_nids]
+            return minority_ccs
 
-        rowids = ibs._get_all_annotmatch_rowids()
-        texts = ['' if t is None else t for t in ibs.get_annotmatch_tag_text(rowids)]
-        tags = [[] if t is None else t.split(';') for t in texts]
-        print(ut.repr4(ut.dict_hist(ut.flatten(tags))))
+        if ibs.dbname == 'PZ_Master1':
+            # FIND ALL PHOTOBOMB / INCOMPARABLE CASES
+            # infr = ibeis.AnnotInference(ibs, aids='all')
+            # infr.reset_feedback('staging', apply=True)
 
-        flags = [query_tag in t.lower() for t in texts]
-        filtered_rowids = ut.compress(rowids, flags)
-        edges = ibs.get_annotmatch_aids(filtered_rowids)
+            infr = ibeis.AnnotInference(ibs, aids=self.aids_pool)
+            infr.reset_feedback('staging', apply=True)
+            minority_ccs = find_minority_class_ccs(infr)
 
-        # The facematch leftright side example
-        # edge = (5161, 5245)
+            # Need to reduce sample size for this data
+            annots = ibs.annots(self.aids_pool)
+            names = list(annots.group_items(annots.nids).values())
+            ut.shuffle(names, rng=321)
+            # Use same aids as the Chapter5 training set
+            aids = ut.flatten(names[0::2])
+            # test_aids = ut.flatten(names[1::2])
 
-        edge = edges[0]
-        # for edge in ut.InteractiveIter(edges):
-        infr = ibeis.AnnotInference(ibs=ibs, aids=edge, verbose=10)
-        infr.reset_feedback('annotmatch', apply=True)
-        match = infr._exec_pairwise_match([edge])[0]
+            # Add in the minority cases
+            minority_aids = set(ut.flatten(minority_ccs))
+            aids = sorted(set(minority_aids) + set(aids))
+        else:
+            aids = self.aids_pool
 
-        if False:
-            # Fix the example tags
-            infr.add_feedback(
-                edge, 'match', tags=['facematch', 'leftrightface'],
-                user_id='qt-hack', confidence='pretty_sure')
-            infr.write_ibeis_staging_feedback()
-            infr.write_ibeis_annotmatch_feedback()
-            pass
-
-        # THE DEPCACHE IS BROKEN FOR ANNOTMATCH APPARENTLY! >:(
-        # Redo matches
-        feat_keys = ['vecs', 'kpts', '_feats', 'flann']
-        match.annot1._mutable = True
-        match.annot2._mutable = True
-        for key in feat_keys:
-            if key in match.annot1:
-                del match.annot1[key]
-            if key in match.annot2:
-                del match.annot2[key]
-        match.apply_all({})
-
-        fig = pt.figure(fnum=1, clf=True)
-        ax = pt.gca()
-
-        mpl.rcParams.update(TMP_RC)
-        match.show(ax, vert=False,
-                   heatmask=True,
-                   show_lines=False,
-                   show_ell=False,
-                   show_ori=False,
-                   show_eig=False,
-                   # ell_alpha=.3,
-                   modifysize=True)
-        # ax.set_xlabel(xlabel)
-
-        self = Chap4()
-
-        fname = 'custom_match_{}_{}_{}'.format(query_tag, *edge)
-        dpath = pathlib.Path(ut.truepath(self.base))
-        fpath = str(dpath.joinpath(fname + '.jpg'))
-        self.savefig(fig, fpath)
-
-        # match.show()
-        # import plottool as pt
-        # fig = pt.gcf()
-        # fig.canvas.draw()
-
-        pass
-
-    @classmethod
-    def _precollect(Chap4, defaultdb):
-        pblm = script_vsone.OneVsOneProblem.from_empty(defaultdb)
+        pblm = script_vsone.OneVsOneProblem.from_aids(ibs, aids)
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         pblm.eval_task_keys = ['match_state', 'photobomb_state']
@@ -2218,11 +2183,18 @@ class Chap4(object):
             species = 'Grévy\'s Zebras'
         dbcode = '{}_{}'.format(ibs.dbname, len(pblm.samples))
 
-        self = Chap4(dbcode)
+        self.dbcode = dbcode
         self.eval_task_keys = pblm.eval_task_keys
         self.species = species
         self.data_key = data_key
         self.clf_key = clf_key
+
+        # RESET DPATH BASED ON SAMPLE?
+        # MAYBE SYMLINK TO NEW DPATH?
+        dpath = ut.truepath(self.base_dpath + '/' + self.dbcode)
+        link = ut.truepath(self.base_dpath + '/' + self.dbname)
+        self.link = ut.symlink(dpath, link)
+        self.dpath = pathlib.Path(dpath)
 
         self.task_nice_lookup = {
             'match_state': ibs.const.REVIEW.CODE_TO_NICE,
@@ -2232,18 +2204,10 @@ class Chap4(object):
             }
         }
 
-        # if ibs.dbname == 'PZ_MTEST':
-        #     self.dpath = ut.truepath('~/Desktop/' + self.dbcode)
-        # else:
-        #     base = '~/latex/crall-thesis-2017/figures_pairclf'
-        #     self.dpath = ut.truepath(base + '/' + self.dbcode)
-        # self.dpath = pathlib.Path(self.dpath)
         ut.ensuredir(self.dpath)
         self.pblm = pblm
-        return self
 
-    @classmethod
-    def collect(Chap4, defaultdb):
+    def collect(self):
         r"""
         CommandLine:
             python -m ibeis Chap4.collect --db PZ_PB_RF_TRAIN
@@ -2257,10 +2221,11 @@ class Chap4(object):
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_MTEST'
-            >>> self = Chap4.collect(defaultdb)
+            >>> self = Chap4(defaultdb)
+            >>> self.collect()
             >>> self.draw()
         """
-        self = Chap4._precollect(defaultdb)
+        self._setup_pblm()
         pblm = self.pblm
         self.pblm = None  # hack
 
@@ -2280,53 +2245,9 @@ class Chap4(object):
             # self.measure_roc_data_photobomb(pblm)
             self.measure_importance(pblm, task_key)
             self.build_metrics(pblm, task_key)
-
-        fname = 'collected_data.pkl'
-        ut.save_data(str(self.dpath.joinpath(fname)), self)
+        # fname = 'collected_data.pkl'
+        # ut.save_data(str(self.dpath.joinpath(fname)), self)
         return self
-
-    @classmethod
-    def load(Chap4, dbcode):
-        """
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> dbcode = 'PZ_PB_RF_TRAIN_2567'
-            >>> self = Chap4.load(dbcode)
-        """
-        fname = 'collected_data.pkl'
-        self_ = Chap4(dbcode)
-        fpath = str(self_.dpath.joinpath(fname))
-        # exists(fpath)
-        self = ut.load_data(fpath)
-        return self
-
-    def __init__(self, dbcode=None):
-        self.dbcode = dbcode
-        if dbcode is not None and dbcode.startswith('PZ_MTEST'):
-            self.base = '~/Desktop/'
-        else:
-            self.base = '~/latex/crall-thesis-2017/figures_pairclf'
-
-        if dbcode is not None:
-            self.dpath = ut.truepath(self.base + '/' + self.dbcode)
-        else:
-            self.dpath = ut.truepath(self.base)
-        self.dpath = pathlib.Path(self.dpath)
-
-        self.species = None
-        self.data_key = None
-        self.clf_key = None
-        # info
-        self.eval_task_keys = None
-        self.task_importance = {}
-        self.task_rocs = {}
-        self.hard_cases = {}
-        self.task_confusion = {}
-        self.task_metrics = {}
-        self.task_nice_lookup = None
-
-        self.score_hist_lnbnn = None
-        self.score_hist_pos = None
 
     def draw(self):
         task_key = 'photobomb_state'
@@ -2477,17 +2398,23 @@ class Chap4(object):
 
         pass
 
-    def measure_rerank(self, pblm):
+    def measure_rerank(self):
         """
             >>> from ibeis.scripts.thesis import *
             >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_Master1'
-            >>> self = Chap4._precollect(defaultdb)
-            >>> pblm = self.pblm
-            >>> self.measure_rerank(pblm)
+            >>> self = Chap4(defaultdb)
+            >>> self._setup_pblm()
+            >>> self.measure_rerank()
         """
+        if getattr(self, 'pblm', None) is None:
+            self._setup_pblm()
+
+        pblm = self.pblm
         infr = pblm.infr
         ibs = pblm.infr.ibs
+
+        # NOTE: this is not the aids_pool for PZ_Master1
         aids = pblm.infr.aids
 
         qaids, daids_list, info_list = Sampler._varied_inputs(ibs, aids)
@@ -2552,14 +2479,17 @@ class Chap4(object):
             (clf_cdf, ut.update_dict(info.copy(), {'pcfg': cfgdict})),
         ]
         expt_name = 'rerank'
+        self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
     def draw_rerank(self, results):
         mpl.rcParams.update(TMP_RC)
-        expt_name = 'rerank'
+
+        # ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
         # TODO ensure_results for Chapter4
         # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
-        # results = self.ensure_results(expt_name)
+        expt_name = 'rerank'
+        results = self.ensure_results(expt_name)
 
         cdfs, infos = list(zip(*results))
         lnbnn_cdf = cdfs[0]
@@ -2572,6 +2502,7 @@ class Chap4(object):
         assert ut.allsame(qsizes) and ut.allsame(dsizes)
         nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
         pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+
         fpath = join(str(self.dpath), expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
@@ -2580,6 +2511,7 @@ class Chap4(object):
 
     def measure_importance(self, pblm, task_key):
         self.task_importance[task_key] = pblm.feature_importance(task_key=task_key)
+        # ut.save_data(join(self.dpath, full_fname + '.pkl'), expt_results)
 
     def measure_score_freq_pos(self, pblm):
         task_key = 'match_state'
@@ -2747,7 +2679,7 @@ class Chap4(object):
         subdir = 'cases_{}'.format(task_key)
         dpath = self.dpath.joinpath(subdir)
         fpath = str(dpath.joinpath(fname + '_custom.jpg'))
-        self.savefig(fig, fpath)
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_hard_cases(self, task_key):
         """ draw hard cases with and without overlay """
@@ -2789,7 +2721,7 @@ class Chap4(object):
             ax.set_xlabel(xlabel)
             # fpath = str(dpath.joinpath(fname + '_overlay.jpg'))
             fpath = str(dpath.joinpath(fname + '.jpg'))
-            self.savefig(fig, fpath)
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
             # vt.pad_image_ondisk()
             # Draw without feature overlay
@@ -2797,7 +2729,7 @@ class Chap4(object):
             # match.show(ax, vert=False, overlay=False, modifysize=True)
             # ax.set_xlabel(xlabel)
             # fpath = str(dpath.joinpath(fname + '.jpg'))
-            # self.savefig(fig, fpath)
+            # vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def _draw_score_hist(self, freqs, xlabel, fnum):
         """ helper """
@@ -2826,10 +2758,12 @@ class Chap4(object):
         fig2 = self._draw_score_hist(freqs, 'LNBNN score', 2)
 
         fname = 'score_hist_pos_{}.png'.format(self.data_key)
-        self.savefig(fig1, str(self.dpath.joinpath(fname)))
+        vt.imwrite(str(self.dpath.joinpath(fname)),
+                   pt.render_figure_to_image(fig1, dpi=DPI))
 
         fname = 'score_hist_lnbnn.png'
-        self.savefig(fig2, str(self.dpath.joinpath(fname)))
+        vt.imwrite(str(self.dpath.joinpath(fname)),
+                   pt.render_figure_to_image(fig2, dpi=DPI))
 
     def draw_roc(self, task_key):
         mpl.rcParams.update(TMP_RC)
@@ -2849,7 +2783,8 @@ class Chap4(object):
         fig.set_size_inches([W, H])
 
         fname = 'roc_{}.png'.format(task_key)
-        self.savefig(fig, str(self.dpath.joinpath(fname)))
+        fig_fpath = str(self.dpath.joinpath(fname))
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_wordcloud(self, task_key):
         import plottool as pt
@@ -2860,12 +2795,82 @@ class Chap4(object):
 
         fname = 'wc_{}.png'.format(task_key)
         fig_fpath = str(self.dpath.joinpath(fname))
-        self.savefig(fig, fig_fpath)
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-    def savefig(self, fig, fpath):
-        image = pt.render_figure_to_image(fig, dpi=DPI)
-        # image = vt.clipwhite(image)
-        vt.imwrite(fpath, image)
+    @classmethod
+    def draw_tagged_pair(Chap4):
+        import ibeis
+        # ibs = ibeis.opendb(defaultdb='GZ_Master1')
+        ibs = ibeis.opendb(defaultdb='PZ_Master1')
+
+        query_tag = 'leftrightface'
+
+        rowids = ibs._get_all_annotmatch_rowids()
+        texts = ['' if t is None else t for t in ibs.get_annotmatch_tag_text(rowids)]
+        tags = [[] if t is None else t.split(';') for t in texts]
+        print(ut.repr4(ut.dict_hist(ut.flatten(tags))))
+
+        flags = [query_tag in t.lower() for t in texts]
+        filtered_rowids = ut.compress(rowids, flags)
+        edges = ibs.get_annotmatch_aids(filtered_rowids)
+
+        # The facematch leftright side example
+        # edge = (5161, 5245)
+
+        edge = edges[0]
+        # for edge in ut.InteractiveIter(edges):
+        infr = ibeis.AnnotInference(ibs=ibs, aids=edge, verbose=10)
+        infr.reset_feedback('annotmatch', apply=True)
+        match = infr._exec_pairwise_match([edge])[0]
+
+        if False:
+            # Fix the example tags
+            infr.add_feedback(
+                edge, 'match', tags=['facematch', 'leftrightface'],
+                user_id='qt-hack', confidence='pretty_sure')
+            infr.write_ibeis_staging_feedback()
+            infr.write_ibeis_annotmatch_feedback()
+            pass
+
+        # THE DEPCACHE IS BROKEN FOR ANNOTMATCH APPARENTLY! >:(
+        # Redo matches
+        feat_keys = ['vecs', 'kpts', '_feats', 'flann']
+        match.annot1._mutable = True
+        match.annot2._mutable = True
+        for key in feat_keys:
+            if key in match.annot1:
+                del match.annot1[key]
+            if key in match.annot2:
+                del match.annot2[key]
+        match.apply_all({})
+
+        fig = pt.figure(fnum=1, clf=True)
+        ax = pt.gca()
+
+        mpl.rcParams.update(TMP_RC)
+        match.show(ax, vert=False,
+                   heatmask=True,
+                   show_lines=False,
+                   show_ell=False,
+                   show_ori=False,
+                   show_eig=False,
+                   # ell_alpha=.3,
+                   modifysize=True)
+        # ax.set_xlabel(xlabel)
+
+        self = Chap4()
+
+        fname = 'custom_match_{}_{}_{}'.format(query_tag, *edge)
+        dpath = pathlib.Path(ut.truepath(self.base_dpath))
+        fpath = str(dpath.joinpath(fname + '.jpg'))
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        # match.show()
+        # import plottool as pt
+        # fig = pt.gcf()
+        # fig.canvas.draw()
+
+        pass
 
 
 class Sampler(object):
@@ -3451,6 +3456,11 @@ def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
     fig.set_size_inches([W, H])
     return fig
+
+
+# NEED FOR OLD PICKLES
+class ExptChapter4(object):
+    pass
 
 
 if __name__ == '__main__':
