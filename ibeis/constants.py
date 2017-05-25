@@ -411,7 +411,7 @@ SPECIES_MAPPING = {
     'zebra_grevys'        :       ('GZ', 'Zebra (Grevy\'s)'),
     'zebra_hybrid'        :       ('HZ', 'Zebra (Hybrid)'),
     'zebra_plains'        :       ('PZ', 'Zebra (Plains)'),
-    const.UNKNOWN         :  ('UNKNOWN', 'Unknown'),
+    UNKNOWN               :  ('UNKNOWN', 'Unknown'),
 }
 
 
