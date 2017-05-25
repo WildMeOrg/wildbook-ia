@@ -2286,7 +2286,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
-    axes_ = plt.subplot(221)
+    axes_ = plt.subplot(141)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
@@ -2310,7 +2310,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     plt.title('Precision-Recall Curve (ALL mAP = %0.02f)' % (best_area, ), y=1.10)
     plt.legend(loc=2, ncol=2, mode="expand", borderaxespad=0.0)
 
-    # axes_ = plt.subplot(222)
+    # axes_ = plt.subplot(142)
     # axes_.set_autoscalex_on(False)
     # axes_.set_autoscaley_on(False)
     # axes_.set_xlabel('False-Positive Rate')
@@ -2322,7 +2322,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
     #            borderaxespad=0.0)
 
-    # axes_ = plt.subplot(223)
+    # axes_ = plt.subplot(143)
     # axes_.set_aspect(1)
     # gca_ = plt.gca()
     # gca_.grid(False)
@@ -2331,7 +2331,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     # axes_.set_ylabel('Ground-Truth')
     # plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
 
-    # axes_ = plt.subplot(224)
+    # axes_ = plt.subplot(144)
     # axes_.set_aspect(1)
     # gca_ = plt.gca()
     # gca_.grid(False)
