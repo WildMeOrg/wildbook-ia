@@ -241,8 +241,8 @@ def compute_classifications(depc, gid_list, config=None):
 
 class Classifier2Config(dtool.Config):
     _param_info_list = [
-        ut.ParamInfo('classifier2_algo', 'cnn', valid_values=['cnn']),
-        ut.ParamInfo('classifier2_weight_filepath', None),
+        ut.ParamInfo('classifier_two_algo', 'cnn', valid_values=['cnn']),
+        ut.ParamInfo('classifier_two_weight_filepath', None),
     ]
     _sub_config_list = [
         ThumbnailConfig
@@ -250,7 +250,7 @@ class Classifier2Config(dtool.Config):
 
 
 @register_preproc(
-    tablename='classifier2', parents=['images'],
+    tablename='classifier_two', parents=['images'],
     colnames=['scores', 'classes'],
     coltypes=[np.ndarray, np.ndarray],
     configclass=Classifier2Config,
@@ -280,8 +280,8 @@ def compute_classifications2(depc, gid_list, config=None):
         >>> ibs = ibeis.opendb(defaultdb=defaultdb)
         >>> depc = ibs.depc_image
         >>> gid_list = ibs.get_valid_gids()[0:8]
-        >>> # depc.delete_property('classifier', gid_list)
-        >>> results = depc.get_property('classifier', gid_list, None)
+        >>> # depc.delete_property('classifier_two', gid_list)
+        >>> results = depc.get_property('classifier_two', gid_list, None)
         >>> print(results)
     """
     print('[ibs] Process Image Classifications2')
