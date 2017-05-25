@@ -2318,7 +2318,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
-    axes_ = plt.subplot(231)
+    axes_ = plt.subplot(233)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
@@ -2329,9 +2329,10 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     for color, config in zip(color_list, config_list):
         classifier2_precision_recall_algo_plot(ibs, color=color, **config)
     plt.title('Precision-Recall Curves', y=1.10)
-    plt.legend(loc=4, ncol=2, mode="expand", borderaxespad=0.0)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
-    axes_ = plt.subplot(232)
+    axes_ = plt.subplot(234)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('False-Positive Rate')
@@ -2342,10 +2343,12 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     for color, config in zip(color_list, config_list):
         classifier2_roc_algo_plot(ibs, color=color, **config)
     plt.title('ROC Curves', y=1.10)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
 
-    axes_ = plt.subplot(234)
+    axes_ = plt.subplot(235)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
