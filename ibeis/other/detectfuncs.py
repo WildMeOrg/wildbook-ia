@@ -2183,18 +2183,18 @@ def classifier2_precision_recall_algo(ibs, category, **kwargs):
         set(ibs.get_annot_species_texts(aid_list))
         for aid_list in aids_list
     ]
-    ut.embed()
 
     label_list = [
-        'negative' if len(species_set & category_set) == 0 else 'positive'
+        'positive' if category in species_set else 'negative'
         for species_set in species_set_list
     ]
-    prediction_list = depc.get_property('classifier_two', test_gid_set, 'class', config=kwargs)
-    confidence_list = depc.get_property('classifier_two', test_gid_set, 'score', config=kwargs)
+
+    confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
     confidence_list = [
-        confidence if prediction == 'positive' else 1.0 - confidence
-        for prediction, confidence  in zip(prediction_list, confidence_list)
+        confidence_dict[category]
+        for confidence_dict in confidence_dict_list
     ]
+
     return general_precision_recall_algo(ibs, label_list, confidence_list, **kwargs)
 
 
@@ -2264,13 +2264,11 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     confidence_dict = confidence_dict_list[0]
     category_set = sorted(confidence_dict.keys())
 
-    ut.embed()
-
     config_list = [
-        {
-            'label': 'ALL',
-            'category': None,
-        },
+        # {
+        #     'label': 'ALL',
+        #     'category': None,
+        # },
     ]
     for category in category_set:
         value = const.SPECIES_MAPPING.get(category, None)
