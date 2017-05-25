@@ -2213,38 +2213,39 @@ def classifier2_roc_algo_plot(ibs, **kwargs):
     return general_area_best_conf(conf_list, fpr_list, tpr_list, **kwargs)
 
 
-# def classifier2_confusion_matrix_algo_plot(ibs, label, color, conf, category_set, **kwargs):
-#     print('Processing Confusion Matrix for: %r (Conf = %0.02f)' % (label, conf, ))
-#     depc = ibs.depc_image
-#     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
-#     test_gid_set = list(test_gid_set)
-#     aids_list = ibs.get_image_aids(test_gid_set)
-#     species_set_list = [
-#         set(ibs.get_annot_species_texts(aid_list))
-#         for aid_list in aids_list
-#     ]
-#     label_list = [
-#         'negative' if len(species_set & category_set) == 0 else 'positive'
-#         for species_set in species_set_list
-#     ]
-#     prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
-#     confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
-#     confidence_list = [
-#         confidence if prediction == 'positive' else 1.0 - confidence
-#         for prediction, confidence  in zip(prediction_list, confidence_list)
-#     ]
-#     prediction_list = [
-#         'positive' if confidence >= conf else 'negative'
-#         for confidence in confidence_list
-#     ]
+def classifier2_confusion_matrix_algo_plot(ibs, **kwargs):
+    print('Processing Confusion Matrix')
+    depc = ibs.depc_image
+    test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
+    test_gid_set = list(test_gid_set)
+    aids_list = ibs.get_image_aids(test_gid_set)
+    ut.embed()
+    species_set_list = [
+        set(ibs.get_annot_species_texts(aid_list))
+        for aid_list in aids_list
+    ]
+    label_list = [
+        'negative' if len(species_set & category_set) == 0 else 'positive'
+        for species_set in species_set_list
+    ]
+    prediction_list = depc.get_property('classifier', test_gid_set, 'class', config=kwargs)
+    confidence_list = depc.get_property('classifier', test_gid_set, 'score', config=kwargs)
+    confidence_list = [
+        confidence if prediction == 'positive' else 1.0 - confidence
+        for prediction, confidence  in zip(prediction_list, confidence_list)
+    ]
+    prediction_list = [
+        'positive' if confidence >= conf else 'negative'
+        for confidence in confidence_list
+    ]
 
-#     category_list = ['positive', 'negative']
-#     category_mapping = {
-#         'positive': 0,
-#         'negative': 1,
-#     }
-#     return general_confusion_matrix_algo(label_list, prediction_list, category_list,
-#                                          category_mapping, **kwargs)
+    category_list = ['positive', 'negative']
+    category_mapping = {
+        'positive': 0,
+        'negative': 1,
+    }
+    return general_confusion_matrix_algo(label_list, prediction_list, category_list,
+                                         category_mapping, **kwargs)
 
 
 @register_ibs_method
@@ -2264,12 +2265,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     confidence_dict = confidence_dict_list[0]
     category_set = sorted(confidence_dict.keys())
 
-    config_list = [
-        # {
-        #     'label': 'ALL',
-        #     'category': None,
-        # },
-    ]
+    config_list = []
     for category in category_set:
         value = const.SPECIES_MAPPING.get(category, None)
         if value is not None:
@@ -2286,7 +2282,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
-    axes_ = plt.subplot(141)
+    axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
@@ -2294,51 +2290,35 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
 
-    ret_list = [
+    for color, config in zip(color_list, config_list):
         classifier2_precision_recall_algo_plot(ibs, color=color, **config)
-        for color, config in zip(color_list, config_list)
-    ]
+    plt.title('Precision-Recall Curves', y=1.10)
+    axes_ = plt.subplot(223)
+    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+               borderaxespad=0.0)
 
-    ut.embed()
-    area_list = [ ret[0] for ret in ret_list ]
-    conf_list = [ ret[1] for ret in ret_list ]
-    # index = np.argmax(area_list)
-    index = 0
-    best_area = area_list[index]
-    best_conf = conf_list[index]
+    axes_ = plt.subplot(222)
+    axes_.set_autoscalex_on(False)
+    axes_.set_autoscaley_on(False)
+    axes_.set_xlabel('False-Positive Rate')
+    axes_.set_ylabel('True-Positive Rate')
+    axes_.set_xlim([0.0, 1.01])
+    axes_.set_ylim([0.0, 1.01])
 
-    plt.title('Precision-Recall Curve (ALL mAP = %0.02f)' % (best_area, ), y=1.10)
-    plt.legend(loc=2, ncol=2, mode="expand", borderaxespad=0.0)
-
-    # axes_ = plt.subplot(142)
-    # axes_.set_autoscalex_on(False)
-    # axes_.set_autoscaley_on(False)
-    # axes_.set_xlabel('False-Positive Rate')
-    # axes_.set_ylabel('True-Positive Rate')
-    # axes_.set_xlim([0.0, 1.01])
-    # axes_.set_ylim([0.0, 1.01])
-    # area, best_conf2, _ = classifier2_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-    # plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    for color, config in zip(color_list, config_list):
+        classifier2_roc_algo_plot(ibs, color=color, **config)
+    plt.title('ROC Curves', y=1.10)
     # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
     #            borderaxespad=0.0)
 
-    # axes_ = plt.subplot(143)
-    # axes_.set_aspect(1)
-    # gca_ = plt.gca()
-    # gca_.grid(False)
-    # correct_rate, _ = classifier2_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf1, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
-    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    # axes_.set_ylabel('Ground-Truth')
-    # plt.title('P-R Confusion Matrix (OP = %0.02f)' % (best_conf1, ), y=1.12)
-
-    # axes_ = plt.subplot(144)
-    # axes_.set_aspect(1)
-    # gca_ = plt.gca()
-    # gca_.grid(False)
-    # correct_rate, _ = classifier2_confusion_matrix_algo_plot(ibs, label, 'r', conf=best_conf2, fig_=fig_, axes_=axes_, category_set=category_set, **kwargs)
-    # axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
-    # axes_.set_ylabel('Ground-Truth')
-    # plt.title('ROC Confusion Matrix (OP = %0.02f)' % (best_conf2, ), y=1.12)
+    axes_ = plt.subplot(224)
+    axes_.set_aspect(1)
+    gca_ = plt.gca()
+    gca_.grid(False)
+    best_conf, correct_rate, _ = classifier2_confusion_matrix_algo_plot(ibs, fig_=fig_, axes_=axes_)
+    axes_.set_xlabel('Predicted (Correct = %0.02f%%)' % (correct_rate * 100.0, ))
+    axes_.set_ylabel('Ground-Truth')
+    plt.title('Confusion Matrix (OP = %0.02f)' % (best_conf, ), y=1.12)
 
     fig_filename = 'classifier2-precision-recall-roc.png'
     fig_path = abspath(expanduser(join('~', 'Desktop', fig_filename)))
