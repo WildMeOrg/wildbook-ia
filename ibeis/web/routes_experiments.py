@@ -26,6 +26,7 @@ DBDIR_DICT = {
     'jasonh':  'DEMO2-JASONH',
     'dan':     'DEMO2-DAN',
     'kaia':    'DEMO2-KAIA',
+    'tanya':   'DEMO2-TANYA',
 }
 
 

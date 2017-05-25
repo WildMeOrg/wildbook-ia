@@ -2259,11 +2259,10 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     test_gid_set = test_gid_set[:1]
     depc = ibs.depc_image
     confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
+    confidence_dict = confidence_dict_list[0]
+    category_set = sorted(confidence_dict.keys())
 
-    print(confidence_dict_list)
     ut.embed()
-
-    category_set = set(species_list)
 
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
