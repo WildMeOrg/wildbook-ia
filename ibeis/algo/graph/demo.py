@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: separate out the tests and make this file just generate the demo data
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
 import numpy as np
@@ -1007,7 +1010,7 @@ def demodata_infr(**kwargs):
     CommandLine:
         python -m ibeis.algo.graph.demo demodata_infr --show
         python -m ibeis.algo.graph.demo demodata_infr --num_pccs=25
-        python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=200
+        python -m ibeis.algo.graph.demo demodata_infr --profile --num_pccs=100
 
     Example:
         >>> from ibeis.algo.graph.demo import *  # NOQA
@@ -1024,12 +1027,13 @@ def demodata_infr(**kwargs):
         >>> # TODO can test that we our sample num incon agrees with pop mean
         >>> #sample_mean = n_incon / len(nonfull_pccs)
         >>> #pop_mean = kwargs['p_incon']
-        >>> print('status = ' + ut.repr4(infr.status()))
+        >>> print('status = ' + ut.repr4(infr.status(extended=True)))
         >>> ut.quit_if_noshow()
         >>> infr.show(pickable=True, groupby='name_label')
         >>> ut.show_if_requested()
     """
     import networkx as nx
+    import vtool as vt
     from ibeis.algo.graph import nx_utils
 
     def kwalias(*args):
@@ -1134,14 +1138,23 @@ def demodata_infr(**kwargs):
     pos_g.add_nodes_from(ut.flatten(ut.take_column(new_ccs, 0)))
     assert num_pccs == len(list(nx.connected_components(pos_g)))
 
+    # Add edges between the PCCS
     neg_edges = []
 
     if not kwalias('ignore_pair', False):
         print('making pairs')
+
+        pair_attrs_lookup = {
+            0: {'decision': NEGTV, 'truth': NEGTV},
+            1: {'decision': INCMP, 'truth': INCMP},
+            2: {'decision': UNREV, 'truth': NEGTV},  # could be incomp or neg
+        }
+
+        # These are the probabilities that one edge has this state
         p_pair_neg = kwalias('p_pair_neg', .4)
         p_pair_incmp = kwalias('p_pair_incmp', .2)
-        p_pair_unrev = kwalias('p_pair_unrev', .2)
-        print('p_pair_neg = %r' % (p_pair_neg,))
+        p_pair_unrev = kwalias('p_pair_unrev', 0)
+
         # p_pair_neg = 1
         cc_combos = ((itempair[0][0], itempair[1][0])
                      for itempair in it.combinations(new_ccs, 2))
@@ -1152,34 +1165,30 @@ def demodata_infr(**kwargs):
         for cc1, cc2 in ut.ProgIter(valid_cc_combos, label='make neg-demo'):
             possible_edges = ut.estarmap(nx_utils.e_, it.product(cc1, cc2))
             # probability that any edge between these PCCs is negative
-            p_edge_neg = 1 - (1 - p_pair_neg) ** (1 / len(possible_edges))
-            p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / len(possible_edges))
-            p_edge_unrev = 1 - (1 - p_pair_unrev) ** (1 / len(possible_edges))
-            pcumsum = np.cumsum([p_edge_neg, p_edge_incmp, p_edge_unrev])
-            states = np.searchsorted(pcumsum, rng.rand(len(possible_edges)))
+            n_edges = len(possible_edges)
+            p_edge_neg   = 1 - (1 - p_pair_neg)   ** (1 / n_edges)
+            p_edge_incmp = 1 - (1 - p_pair_incmp) ** (1 / n_edges)
+            p_edge_unrev = 1 - (1 - p_pair_unrev) ** (1 / n_edges)
 
-            # print('checking pair')
-            grouped_edges = ut.group_items(complement_edges, states)
-            for state, edges in grouped_edges.items():
+            # Create event space with sizes proportional to probabilities
+            pcumsum = np.cumsum([p_edge_neg, p_edge_incmp, p_edge_unrev])
+            # Roll dice for each of the edge to see which state it lands on
+            possible_pstate = rng.rand(len(possible_edges))
+            states = np.searchsorted(pcumsum, possible_pstate)
+
+            flags = states < len(pcumsum)
+            stateful_states = states.compress(flags)
+            stateful_edges = ut.compress(possible_edges, flags)
+
+            unique_states, groupxs_list = vt.group_indices(stateful_states)
+            for state, groupxs in zip(unique_states, groupxs_list):
+                print('state = %r' % (state,))
                 # Add in candidate edges
-                if state == 0:
-                    decision = NEGTV
-                    truth = NEGTV
-                elif state == 1:
-                    decision = INCMP
-                    # TODO: could be incomp or neg
-                    truth = INCMP
-                elif state == 2:
-                    decision = UNREV
-                    # TODO: could be incomp or neg
-                    truth = NEGTV
-                    # neg_edges.append((u, v, {'decision': UNREV}))
-                else:
-                    continue
-                # Add in candidate edges
-                attrs = {'decision': decision, 'truth': truth}
+                edges = ut.take(stateful_edges, groupxs)
+                attrs = pair_attrs_lookup[state]
                 for (u, v) in edges:
-                    new_edges.append((u, v, attrs))
+                    neg_edges.append((u, v, attrs))
+        print('Made {} neg_edges between PCCS'.format(len(neg_edges)))
     else:
         print('ignoring pairs')
 

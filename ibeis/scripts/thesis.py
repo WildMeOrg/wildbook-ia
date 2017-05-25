@@ -83,7 +83,6 @@ class DBInputs(object):
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap4('PZ_Master1')
             >>> self._precollect()
-
         """
         import ibeis
         from ibeis.init import main_helpers
@@ -2160,7 +2159,7 @@ class Chap4(DBInputs, IOContract):
 
             # Add in the minority cases
             minority_aids = set(ut.flatten(minority_ccs))
-            aids = sorted(set(minority_aids) + set(aids))
+            aids = sorted(set(minority_aids).union(set(aids)))
         else:
             aids = self.aids_pool
 

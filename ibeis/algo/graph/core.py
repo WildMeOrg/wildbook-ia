@@ -763,8 +763,8 @@ class AltConstructors(object):
         infr.qreq_ = qreq_
         return infr
 
-    def status(infr):
-        return ut.odict([
+    def status(infr, extended=False):
+        status_dict = ut.odict([
             ('nNodes', len(infr.aids)),
             ('nEdges', infr.graph.number_of_edges()),
             ('nCCs', infr.pos_graph.number_of_components()),
@@ -777,6 +777,31 @@ class AltConstructors(object):
             ('nInconCCs', len(infr.nid_to_errors)),
             #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
         ])
+        if extended:
+            def count_within_between(edges):
+                n_within = 0
+                n_between = 0
+                for u, v in edges:
+                    nid1, nid2 = infr.pos_graph.node_labels(u, v)
+                    if nid1 == nid2:
+                        n_within += 1
+                    else:
+                        n_between += 1
+                return n_within, n_between
+
+            a, b = count_within_between(infr.neg_graph.edges())
+            status_dict['nNegEdgesWithin'] = a
+            status_dict['nNegEdgesBetween'] = b
+
+            a, b = count_within_between(infr.incomp_graph.edges())
+            status_dict['nIncompEdgesWithin'] = a
+            status_dict['nIncompEdgesBetween'] = b
+
+            a, b = count_within_between(infr.unreviewed_graph.edges())
+            status_dict['nUnrevEdgesWithin'] = a
+            status_dict['nUrevEdgesBetween'] = b
+
+        return status_dict
 
     def __nice__(infr):
         if infr.graph is None:
