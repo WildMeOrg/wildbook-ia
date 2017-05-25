@@ -141,8 +141,21 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
     @classmethod
     def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
-        pblm = OneVsOneProblem(ibs=ibs, qaid_override=aids, daid_override=aids,
-                               verbose=verbose)
+        # TODO: If the graph structure is defined, this should load the most
+        # recent state, so the infr object has all the right edges.  If the
+        # graph structure is not defined, it should apply the conversion
+        # method.
+        import ibeis
+        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
+        # if infr.ibs.dbname not in {'GIRM_Master1', 'NNP_MasterGIRM_core'}:
+        #     assert infr._is_staging_above_annotmatch()
+        infr.reset_feedback('staging', apply=True)
+        if infr.ibs.dbname == 'PZ_MTEST':
+            # assert False, 'need to do conversion'
+            infr.ensure_mst()
+        # if infr.needs_conversion():
+        #     infr.ensure_mst()
+        pblm = OneVsOneProblem(infr=infr)
         return pblm
 
     @classmethod
@@ -158,21 +171,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # defaultdb = 'PZ_MTEST'
         import ibeis
         ibs, aids = ibeis.testdata_aids(defaultdb)
-
-        # TODO: If the graph structure is defined, this should load the most
-        # recent state, so the infr object has all the right edges.  If the
-        # graph structure is not defined, it should apply the conversion
-        # method.
-        infr = ibeis.AnnotInference(ibs=ibs, aids=aids, autoinit=True)
-        # if infr.ibs.dbname not in {'GIRM_Master1', 'NNP_MasterGIRM_core'}:
-        #     assert infr._is_staging_above_annotmatch()
-        infr.reset_feedback('staging', apply=True)
-        if infr.ibs.dbname == 'PZ_MTEST':
-            # assert False, 'need to do conversion'
-            infr.ensure_mst()
-        # if infr.needs_conversion():
-        #     infr.ensure_mst()
-        pblm = OneVsOneProblem(infr=infr)
+        pblm = OneVsOneProblem.from_aids(ibs, aids)
         return pblm
 
     def _fix_hyperparams(pblm, qreq_):

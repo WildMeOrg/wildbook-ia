@@ -140,8 +140,6 @@ def photobombing_subset():
     # all_annots = ibs.annots()
 
 
-
-
 def bigcache_vsone(qreq_, hyper_params):
     """
     Cached output of one-vs-one matches

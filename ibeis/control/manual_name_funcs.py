@@ -642,28 +642,19 @@ def get_name_gids(ibs, nid_list):
 @register_api('/api/name/image/uuid/', methods=['GET'])
 def get_name_image_uuids(ibs, nid_list):
     r"""
+    DEPRICATE
+
     Returns:
         list_ (list): the image ids associated with name ids
 
     RESTful:
         Method: GET
         URL:    /api/name/image/uuid/
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.control.manual_name_funcs import *  # NOQA
-        >>> import ibeis
-        >>> ibs = ibeis.opendb('testdb1')
-        >>> nid_list = ibs._get_all_known_name_rowids()
-        >>> gids_list = ibs.get_name_gids(nid_list)
-        >>> result = gids_list
-        >>> print(result)
-        [[2, 3], [5, 6], [7], [8], [10], [12], [13]]
     """
     # TODO: Optimize
     gids_list = ibs.get_name_gids(nid_list)
     image_uuids_list = [
-        ibs.get_iamge_uuids(gid_list)
+        ibs.get_image_uuids(gid_list)
         for gid_list in gids_list
     ]
     return image_uuids_list

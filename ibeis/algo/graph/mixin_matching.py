@@ -644,7 +644,7 @@ class InfrLearning(object):
     def learn_evaluataion_clasifiers(infr):
         infr.print('learn_evaluataion_clasifiers')
         from ibeis.scripts.script_vsone import OneVsOneProblem
-        pblm = OneVsOneProblem.from_aids(infr.ibs, aids=infr.aids, verbose=True)
+        pblm = OneVsOneProblem(infr, verbose=True)
         pblm.primary_task_key = 'match_state'
         pblm.default_clf_key = 'RF'
         pblm.default_data_key = 'learn(sum,glob,4)'

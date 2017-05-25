@@ -178,12 +178,15 @@ class Feedback(object):
             for cc in sorted_ccs]) + ']'
         print(msg)
 
-    @property
-    def feedback_keys(infr):
+    @ut.classproperty
+    def feedback_keys(Infr):
         """ edge attribute keys used for feedback """
-        return ['decision', 'num_reviews', 'tags', 'user_id', 'timestamp',
-                'confidence', 'review_id']
-        # 'reviewed_weight'
+        return Infr.feedback_data_keys + ['num_reviews', 'review_id']
+
+    @ut.classproperty
+    def feedback_data_keys(Infr):
+        """ edge attribute keys used for feedback """
+        return ['decision', 'tags', 'user_id', 'timestamp', 'confidence']
 
     @profile
     def apply_feedback_edges(infr):
@@ -309,7 +312,12 @@ class Feedback(object):
         infr.nid_to_errors.clear()
 
     def _is_staging_above_annotmatch(infr):
-        """ conversion step: make sure the staging db is ahead of match """
+        """
+        conversion step: make sure the staging db is ahead of match
+
+        SeeAlso:
+            _update_staging_to_annotmatch
+        """
         ibs = infr.ibs
         n_stage = ibs.staging.get_row_count(ibs.const.REVIEW_TABLE)
         n_annotmatch = ibs.db.get_row_count(ibs.const.ANNOTMATCH_TABLE)
