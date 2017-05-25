@@ -2258,7 +2258,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     test_gid_set = list(test_gid_set)
     test_gid_set = test_gid_set[:1]
     depc = ibs.depc_image
-    confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'score', config=kwargs)
+    confidence_dict_list = depc.get_property('classifier_two', test_gid_set, 'scores', config=kwargs)
 
     print(confidence_dict_list)
     ut.embed()
