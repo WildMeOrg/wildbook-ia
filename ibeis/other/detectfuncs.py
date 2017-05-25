@@ -2299,6 +2299,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
         for color, config in zip(color_list, config_list)
     ]
 
+    ut.embed()
     area_list = [ ret[0] for ret in ret_list ]
     conf_list = [ ret[1] for ret in ret_list ]
     # index = np.argmax(area_list)
