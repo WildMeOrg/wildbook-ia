@@ -239,6 +239,71 @@ def compute_classifications(depc, gid_list, config=None):
         yield result
 
 
+class Classifier2Config(dtool.Config):
+    _param_info_list = [
+        ut.ParamInfo('classifier2_algo', 'cnn', valid_values=['cnn']),
+        ut.ParamInfo('classifier2_weight_filepath', None),
+    ]
+    _sub_config_list = [
+        ThumbnailConfig
+    ]
+
+
+@register_preproc(
+    tablename='classifier2', parents=['images'],
+    colnames=['scores', 'classes'],
+    coltypes=[np.ndarray, np.ndarray],
+    configclass=Classifier2Config,
+    fname='detectcache',
+    chunksize=1024,
+)
+def compute_classifications2(depc, gid_list, config=None):
+    r"""
+    Extracts the multi-class classifications for a given input image
+
+    Args:
+        depc (ibeis.depends_cache.DependencyCache):
+        gid_list (list):  list of image rowids
+        config (dict): (default = None)
+
+    Yields:
+        (np.ndarray, np.ndarray): tup
+
+    CommandLine:
+        ibeis compute_classifications2
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.core_images import *  # NOQA
+        >>> import ibeis
+        >>> defaultdb = 'PZ_MTEST'
+        >>> ibs = ibeis.opendb(defaultdb=defaultdb)
+        >>> depc = ibs.depc_image
+        >>> gid_list = ibs.get_valid_gids()[0:8]
+        >>> # depc.delete_property('classifier', gid_list)
+        >>> results = depc.get_property('classifier', gid_list, None)
+        >>> print(results)
+    """
+    print('[ibs] Process Image Classifications2')
+    print('config = %r' % (config,))
+    # Get controller
+    ibs = depc.controller
+    depc = ibs.depc_image
+    if config['classifier_algo'] in ['cnn']:
+        config_ = {
+            'draw_annots' : False,
+            'thumbsize'   : (192, 192),
+        }
+        thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
+        result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
+    else:
+        raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
+
+    # yield detections
+    for result in result_list:
+        yield result
+
+
 class FeatureConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('algo', 'vgg16', valid_values=['vgg', 'vgg16', 'vgg19', 'resnet', 'inception']),
@@ -921,7 +986,7 @@ def compute_localizations_chips(depc, loc_id_list, config=None):
         yield ret_tuple
 
 
-class Classifier2Config(dtool.Config):
+class ClassifierLocalizationsConfig(dtool.Config):
     _param_info_list = [
         ut.ParamInfo('classifier_algo', 'cnn', valid_values=['cnn', 'svm']),
         ut.ParamInfo('classifier_weight_filepath', None),
@@ -936,7 +1001,7 @@ class Classifier2Config(dtool.Config):
     tablename='localizations_classifier', parents=['localizations'],
     colnames=['score', 'class'],
     coltypes=[np.ndarray, np.ndarray],
-    configclass=Classifier2Config,
+    configclass=ClassifierLocalizationsConfig,
     fname='detectcache',
     chunksize=8,
 )
