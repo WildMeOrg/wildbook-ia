@@ -289,7 +289,7 @@ def compute_classifications2(depc, gid_list, config=None):
     # Get controller
     ibs = depc.controller
     depc = ibs.depc_image
-    if config['classifier_algo'] in ['cnn']:
+    if config['classifier_two_algo'] in ['cnn']:
         config_ = {
             'draw_annots' : False,
             'thumbsize'   : (192, 192),
@@ -297,7 +297,7 @@ def compute_classifications2(depc, gid_list, config=None):
         thumbnail_list = depc.get_property('thumbnails', gid_list, 'img', config=config_)
         result_list = ibs.generate_thumbnail_class2_list(thumbnail_list, **config)
     else:
-        raise ValueError('specified classifier algo is not supported in config = %r' % (config, ))
+        raise ValueError('specified classifier_two algo is not supported in config = %r' % (config, ))
 
     # yield detections
     for result in result_list:
