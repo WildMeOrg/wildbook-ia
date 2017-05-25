@@ -279,6 +279,21 @@ def delete_species(ibs, species_rowid_list):
 
 
 @register_ibs_method
+@accessor_decors.deleter
+def delete_empty_species(ibs):
+    r"""
+    deletes empty species from the database
+    """
+    species_text_set = set(ibs.get_all_species_texts())
+    aid_list = ibs.get_valid_aids()
+    used_species_text_set = set(ibs.get_annot_species_texts(aid_list))
+    unused_species_text_set = species_text_set - used_species_text_set
+    unused_species_text_list = list(unused_species_text_set)
+    unused_species_rowid_list = ibs.get_species_rowids_from_text(unused_species_text_list)
+    ibs.delete_species(unused_species_rowid_list)
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
 @register_api('/api/species/rowid/text/', methods=['GET'], __api_plural_check__=False)
 def get_species_rowids_from_text(ibs, species_text_list, ensure=True):
