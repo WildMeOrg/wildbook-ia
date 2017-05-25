@@ -2174,7 +2174,7 @@ def classifier_binary_precision_recall_algo_display(ibs, figsize=(16, 16), **kwa
     plt.savefig(fig_path, bbox_inches='tight')
 
 
-def classifier2_precision_recall_algo(ibs, category_set, **kwargs):
+def classifier2_precision_recall_algo(ibs, category, **kwargs):
     depc = ibs.depc_image
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
     test_gid_set = list(test_gid_set)
@@ -2183,6 +2183,8 @@ def classifier2_precision_recall_algo(ibs, category_set, **kwargs):
         set(ibs.get_annot_species_texts(aid_list))
         for aid_list in aids_list
     ]
+    ut.embed()
+
     label_list = [
         'negative' if len(species_set & category_set) == 0 else 'positive'
         for species_set in species_set_list
@@ -2248,10 +2250,10 @@ def classifier2_roc_algo_plot(ibs, **kwargs):
 @register_ibs_method
 def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     import matplotlib.pyplot as plt
+    import plottool as pt
 
     fig_ = plt.figure(figsize=figsize)
 
-    label = 'V3'
     kwargs['classifier_weight_filepath'] = 'v3'
 
     test_gid_set = set(general_get_imageset_gids(ibs, 'TEST_SET'))
@@ -2264,6 +2266,28 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
 
     ut.embed()
 
+    config_list = [
+        {
+            'label': 'ALL',
+            'category': None,
+        },
+    ]
+    for category in category_set:
+        value = const.SPECIES_MAPPING.get(category, None)
+        if value is None:
+            category_tag, category_nice = value
+        else:
+            category_nice = category
+        config_dict = {
+            'label': category_nice,
+            'category': category,
+        },
+        config_list.append(config_dict)
+
+    color_list_ = [(0.2, 0.2, 0.2)]
+    color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
+    color_list = color_list_ + color_list
+
     axes_ = plt.subplot(221)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
@@ -2271,22 +2295,34 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     axes_.set_ylabel('Precision')
     axes_.set_xlim([0.0, 1.01])
     axes_.set_ylim([0.0, 1.01])
-    area, best_conf1, _ = classifier2_precision_recall_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-    plt.title('Precision-Recall Curve (mAP = %0.02f)' % (area, ), y=1.10)
+
+    ret_list = [
+        classifier2_precision_recall_algo_plot(ibs, color=color, **config)
+        for color, config in zip(color_list, config_list)
+    ]
+
+    area_list = [ ret[0] for ret in ret_list ]
+    conf_list = [ ret[1] for ret in ret_list ]
+    # index = np.argmax(area_list)
+    index = 0
+    best_area = area_list[index]
+    best_conf = conf_list[index]
+
+    plt.title('Precision-Recall Curve (ALL mAP = %0.02f)' % (best_area, ), y=1.10)
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(222)
-    axes_.set_autoscalex_on(False)
-    axes_.set_autoscaley_on(False)
-    axes_.set_xlabel('False-Positive Rate')
-    axes_.set_ylabel('True-Positive Rate')
-    axes_.set_xlim([0.0, 1.01])
-    axes_.set_ylim([0.0, 1.01])
-    area, best_conf2, _ = classifier2_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
-    plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
-    plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
-               borderaxespad=0.0)
+    # axes_ = plt.subplot(222)
+    # axes_.set_autoscalex_on(False)
+    # axes_.set_autoscaley_on(False)
+    # axes_.set_xlabel('False-Positive Rate')
+    # axes_.set_ylabel('True-Positive Rate')
+    # axes_.set_xlim([0.0, 1.01])
+    # axes_.set_ylim([0.0, 1.01])
+    # area, best_conf2, _ = classifier2_roc_algo_plot(ibs, label=label, color='r', category_set=category_set, **kwargs)
+    # plt.title('ROC Curve (mAP = %0.02f)' % (area, ), y=1.10)
+    # plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
+    #            borderaxespad=0.0)
 
     # axes_ = plt.subplot(223)
     # axes_.set_aspect(1)

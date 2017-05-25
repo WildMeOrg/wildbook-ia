@@ -2139,7 +2139,7 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
         >>> _init_identification_query_object(ibs)
 
     """
-    from ibeis.algo.graph import graph_iden
+    import ibeis
 
     if ibs.dbname == 'EWT_Cheetahs':
         aid_list = ibs.filter_annots_general(view=['right', 'frontright', 'backright'])
@@ -2149,18 +2149,21 @@ def _init_identification_query_object(ibs, debug_ignore_name_gt=False,
     nids = [-aid for aid in aid_list] if debug_ignore_name_gt else None
 
     # Initailize a graph with no edges.
-    query_object = graph_iden.AnnotInference(ibs, aid_list, nids=nids,
-                                             autoinit=True)
+    query_object = ibeis.AnnotInference(ibs, aid_list, nids=nids, autoinit=True)
+
     # Load feedback from the staging database (does not change graph state)
-    query_object.reset_feedback('staging')
-    # Rectify inconsistent feedback and create decision edges
-    query_object.apply_feedback_edges()
+    query_object.reset_feedback('staging', apply=True)
+
+    query_object.refresh_candidate_edges()
+
     # Exec matching (adds candidate edges using hotspotter and score them)
     query_object.exec_matching()
     query_object.apply_match_edges()
     query_object.apply_match_scores()
+
     # Use connected components to relabel names on nodes
     query_object.relabel_using_reviews()
+
     # Create a priority on edge review ands determines inconsistencies
     query_object.apply_review_inference()
 
