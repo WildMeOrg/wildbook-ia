@@ -2318,7 +2318,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     color_list = pt.distinct_colors(len(config_list) - len(color_list_), randomize=False)
     color_list = color_list_ + color_list
 
-    axes_ = plt.subplot(233)
+    axes_ = plt.subplot(323)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('Recall')
@@ -2332,7 +2332,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
     plt.legend(bbox_to_anchor=(0.0, 1.02, 1.0, .102), loc=3, ncol=2, mode="expand",
                borderaxespad=0.0)
 
-    axes_ = plt.subplot(234)
+    axes_ = plt.subplot(324)
     axes_.set_autoscalex_on(False)
     axes_.set_autoscaley_on(False)
     axes_.set_xlabel('False-Positive Rate')
@@ -2348,7 +2348,7 @@ def classifier2_precision_recall_algo_display(ibs, figsize=(16, 16), **kwargs):
 
     # from ibeis.ibeis.scripts.sklearn_utils import classification_report2
 
-    axes_ = plt.subplot(235)
+    axes_ = plt.subplot(325)
     axes_.set_aspect(1)
     gca_ = plt.gca()
     gca_.grid(False)
