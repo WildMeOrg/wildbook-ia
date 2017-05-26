@@ -1551,7 +1551,7 @@ class SQLDatabaseController(object):
                 else:
                     if insert:
                         print('[sql] WARNING: multiple index inserted add '
-                              'columns, may cause allignment issues')
+                              'columns, may cause alignment issues')
                     colname_list.insert(src, dst)
                     coltype_list.insert(src, type_)
                     insert = True
