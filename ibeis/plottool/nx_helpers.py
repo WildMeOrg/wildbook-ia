@@ -28,8 +28,9 @@ import six
 import dtool
 import numpy as np
 import utool as ut
+# from plottool import colorfuncs
 from six.moves import reduce
-(print, rrr, profile) = ut.inject2(__name__, '[nxhelpers]')
+(print, rrr, profile) = ut.inject2(__name__)
 
 
 LARGE_GRAPH = 100
