@@ -57,11 +57,11 @@ class DBInputs(object):
             self.species_nice = "Masai giraffes"
         if 'humpback' in dbname:
             self.species_nice = "Humpbacks"
-        self.expt_results = {}
         self.ibs = None
         if dbname is not None:
             self.dpath = join(self.base_dpath, self.dbname)
             # ut.ensuredir(self.dpath)
+        self.expt_results = {}
 
     @profile
     def _precollect(self):
@@ -314,6 +314,7 @@ class Chap5Commands(object):
             }
             dials = ut.dict_union(const_dials, varied_dials)
             verbose = 1
+            import ibeis
             infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                          verbose=verbose)
             infr1.enable_auto_prioritize_nonpos = True
@@ -1240,6 +1241,10 @@ class Chap5(DBInputs, Chap5Commands):
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
 
 
+
+import ibeis.constants as const
+
+
 @ut.reloadable_class
 class Chap4(DBInputs, IOContract):
     """
@@ -1253,6 +1258,14 @@ class Chap4(DBInputs, IOContract):
         >>> self = ut.load_data(fpath)
     """
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures4')
+
+    task_nice_lookup = {
+        'match_state': const.REVIEW.CODE_TO_NICE,
+        'photobomb_state': {
+            'pb': 'Phototomb',
+            'notpb': 'Not Phototomb',
+        }
+    }
 
     def _setup_pblm(self):
         r"""
@@ -1338,14 +1351,13 @@ class Chap4(DBInputs, IOContract):
         self.link = ut.symlink(dpath, link)
         self.dpath = pathlib.Path(dpath)
 
-        self.task_nice_lookup = {
-            'match_state': ibs.const.REVIEW.CODE_TO_NICE,
-            'photobomb_state': {
-                'pb': 'Phototomb',
-                'notpb': 'Not Phototomb',
-            }
-        }
-
+        # self.task_nice_lookup = {
+        #     'match_state': ibs.const.REVIEW.CODE_TO_NICE,
+        #     'photobomb_state': {
+        #         'pb': 'Phototomb',
+        #         'notpb': 'Not Phototomb',
+        #     }
+        # }
         ut.ensuredir(self.dpath)
 
     def measure_all(self):
@@ -1370,29 +1382,49 @@ class Chap4(DBInputs, IOContract):
         pblm = self.pblm
         self.pblm = None  # hack
 
+        self.measure_task_combo_res()
+
         #-----------
         # COLLECTION
         #-----------
-        self.measure_match_importance()
-        self.measure_pb_importance()
-
         self.measure_roc_data_pos()
         self.measure_score_freq_pos()
 
         task_key = 'match_state'
         if task_key in pblm.eval_task_keys:
-            self.measure_importance(task_key)
+            self.measure_importance('match_state')
             self.measure_hard_cases(task_key, num_top=4)
             self.build_metrics(task_key)
 
         task_key = 'photobomb_state'
         if task_key in pblm.eval_task_keys:
             # self.measure_roc_data_photobomb(pblm)
-            self.measure_importance(task_key)
+            self.measure_importance('photobomb_state')
             self.build_metrics(pblm, task_key)
+
+        self.measure_rerank()
         # fname = 'collected_data.pkl'
         # ut.save_data(str(self.dpath.joinpath(fname)), self)
         return self
+
+    def measure_task_combo_res(self):
+        if getattr(self, 'pblm', None) is None:
+            self._setup_pblm()
+        results = {
+            'task_combo_res': self.pblm.task_combo_res,
+            'data_key': self.data_key,
+            'clf_key': self.clf_key,
+        }
+        expt_name = 'task_combo_res'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+
+    def measure_importance(self, task_key):
+        pblm = self.pblm
+        results = pblm.feature_importance(task_key=task_key)
+        expt_name = 'importance_' + task_key
+        self.expt_results[expt_name] = results
+        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
     def draw(self):
         task_key = 'photobomb_state'
@@ -1414,21 +1446,25 @@ class Chap4(DBInputs, IOContract):
             if not ut.get_argflag('--nodraw'):
                 self.draw_hard_cases(task_key)
 
-    def build_metrics(self, pblm, task_key):
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        res.augment_if_needed()
-        pred_enc = res.clf_probs.argmax(axis=1)
-        y_pred = pred_enc
-        y_true = res.y_test_enc
-        sample_weight = res.sample_weight
-        target_names = res.class_names
+    # def measure_metrics(self):
+    #     pass
 
-        from ibeis.scripts import sklearn_utils
-        metric_df, confusion_df = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names, sample_weight, verbose=False)
-        self.task_confusion[task_key] = confusion_df
-        self.task_metrics[task_key] = metric_df
-        return ut.partial(self.write_metrics, task_key)
+    # def _build_metrics(self, task_key):
+    #     pblm = self.pblm
+    #     res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+    #     res.augment_if_needed()
+    #     pred_enc = res.clf_probs.argmax(axis=1)
+    #     y_pred = pred_enc
+    #     y_true = res.y_test_enc
+    #     sample_weight = res.sample_weight
+    #     target_names = res.class_names
+
+    #     from ibeis.scripts import sklearn_utils
+    #     metric_df, confusion_df = sklearn_utils.classification_report2(
+    #         y_true, y_pred, target_names, sample_weight, verbose=False)
+    #     self.task_confusion[task_key] = confusion_df
+    #     self.task_metrics[task_key] = metric_df
+    #     return ut.partial(self.write_metrics, task_key)
 
     def write_metrics(self, task_key='match_state'):
         """
@@ -1441,12 +1477,35 @@ class Chap4(DBInputs, IOContract):
             >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
             >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> task_key = 'match_state'
             >>> self, pblm = precollect(defaultdb)
             >>> task_key = kwargs['task_key']
             >>> self.build_metrics(pblm, task_key)
             >>> self.write_metrics(task_key)
         """
-        df = self.task_confusion[task_key]
+        if 0:
+            expt_name = 'task_comb_res'
+            results = ut.load_data(join(str(self.dpath), expt_name + '.pkl'))
+        else:
+            results = self.ensure_results('task_combo_res')
+        task_combo_res = results['task_combo_res']
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        res = task_combo_res[task_key][clf_key][data_key]
+        res.augment_if_needed()
+        pred_enc = res.clf_probs.argmax(axis=1)
+        y_pred = pred_enc
+        y_true = res.y_test_enc
+        sample_weight = res.sample_weight
+        target_names = res.class_names
+
+        from ibeis.scripts import sklearn_utils
+        metric_df, confusion_df = sklearn_utils.classification_report2(
+            y_true, y_pred, target_names, sample_weight, verbose=False)
+
+        # df = self.task_confusion[task_key]
+        df = confusion_df
         df = df.rename_axis(self.task_nice_lookup[task_key], 0)
         df = df.rename_axis(self.task_nice_lookup[task_key], 1)
         df.index.name = None
@@ -1470,13 +1529,10 @@ class Chap4(DBInputs, IOContract):
         latex_str = latex_str.replace('midrule', 'hline')
         latex_str = latex_str.replace('toprule', 'hline')
         latex_str = latex_str.replace('bottomrule', 'hline')
+        confusion_latex_str = latex_str
 
-        fname = 'confusion_{}.tex'.format(task_key)
-        print(latex_str)
-        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
-        # sum_real = '\\sum real'
-
-        df = self.task_metrics[task_key]
+        df = metric_df
+        # df = self.task_metrics[task_key]
         df = df.rename_axis(self.task_nice_lookup[task_key], 0)
         df = df.drop(['markedness', 'bookmaker'], axis=1)
         df.index.name = None
@@ -1488,9 +1544,17 @@ class Chap4(DBInputs, IOContract):
         lines = latex_str.split('\n')
         lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
         latex_str = '\n'.join(lines)
-        print(latex_str)
+        metrics_latex_str = latex_str
+
+        print(confusion_latex_str)
+
+        print(metrics_latex_str)
+
+        fname = 'confusion_{}.tex'.format(task_key)
+        ut.write_to(str(self.dpath.joinpath(fname)), metrics_latex_str)
+
         fname = 'eval_metrics_{}.tex'.format(task_key)
-        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
+        ut.write_to(str(self.dpath.joinpath(fname)), confusion_latex_str)
 
     def write_importance(self, task_key):
         # Print info for latex table
@@ -1511,37 +1575,6 @@ class Chap4(DBInputs, IOContract):
         print('TOP 5 importances for ' + task_key)
         print('# of dimensions: %d' % (len(importances)))
         print()
-
-    def measure_thresh(self, pblm):
-        task_key = 'match_state'
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        infr = pblm.infr
-
-        truth_colors = infr._get_truth_colors()
-
-        cfms = res.confusions(POSTV)
-        fig = pt.figure(fnum=1, doclf=True)  # NOQA
-        ax = pt.gca()
-        ax.plot(cfms.thresholds, cfms.n_fp, label='positive', color=truth_colors[POSTV])
-
-        cfms = res.confusions(NEGTV)
-        ax.plot(cfms.thresholds, cfms.n_fp, label='negative', color=truth_colors[NEGTV])
-
-        # cfms = res.confusions(INCMP)
-        # if len(cfms.thresholds) == 1:
-        #     cfms.thresholds = [0, 1]
-        #     cfms.n_fp = np.array(cfms.n_fp.tolist() * 2)
-        # ax.plot(cfms.thresholds, cfms.n_fp, label='incomparable',
-        #         color=pt.color_funcs.darken_rgb(truth_colors[INCMP], .15))
-        ax.set_xlabel('thresholds')
-        ax.set_ylabel('n_fp')
-
-        ax.set_ylim(0, 20)
-        ax.legend()
-
-        cfms.plot_vs('fpr', 'thresholds')
-
-        pass
 
     def measure_rerank(self):
         """
@@ -1627,50 +1660,17 @@ class Chap4(DBInputs, IOContract):
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
-    def draw_rerank(self, results):
-        mpl.rcParams.update(TMP_RC)
-
-        # ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-        # TODO ensure_results for Chapter4
-        # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
-        expt_name = 'rerank'
-        results = self.ensure_results(expt_name)
-
-        cdfs, infos = list(zip(*results))
-        lnbnn_cdf = cdfs[0]
-        clf_cdf = cdfs[1]
-        fig = pt.figure(fnum=1)
-        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1)
-        fig.set_size_inches([W, H * .6])
-        qsizes = ut.take_column(infos, 'qsize')
-        dsizes = ut.take_column(infos, 'dsize')
-        assert ut.allsame(qsizes) and ut.allsame(dsizes)
-        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
-        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
-
-        fpath = join(str(self.dpath), expt_name + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
-        return fpath
-
-    def measure_match_importance(self):
-        pblm = self.pblm
-        results = pblm.feature_importance(task_key='match_state')
-        expt_name = 'match_importance'
-        self.expt_results[expt_name] = results
-        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-
-    def measure_pb_importance(self):
-        expt_name = 'pb_importance'
-        pblm = self.pblm
-        results = pblm.feature_importance(task_key='photobomb_state')
-        self.expt_results[expt_name] = results
-        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-
     def measure_score_freq_pos(self, pblm):
         task_key = 'match_state'
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+
+        results = self.ensure_results('task_combo_res')
+        task_combo_res = results['task_combo_res']
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        res = task_combo_res[task_key][clf_key][data_key]
+
+        # res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         y = res.target_bin_df[POSTV]
         scores = res.probs_df[POSTV]
         bins = np.linspace(0, 1, 100)
@@ -1727,6 +1727,37 @@ class Chap4(DBInputs, IOContract):
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
+    def measure_thresh(self, pblm):
+        task_key = 'match_state'
+        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+        infr = pblm.infr
+
+        truth_colors = infr._get_truth_colors()
+
+        cfms = res.confusions(POSTV)
+        fig = pt.figure(fnum=1, doclf=True)  # NOQA
+        ax = pt.gca()
+        ax.plot(cfms.thresholds, cfms.n_fp, label='positive', color=truth_colors[POSTV])
+
+        cfms = res.confusions(NEGTV)
+        ax.plot(cfms.thresholds, cfms.n_fp, label='negative', color=truth_colors[NEGTV])
+
+        # cfms = res.confusions(INCMP)
+        # if len(cfms.thresholds) == 1:
+        #     cfms.thresholds = [0, 1]
+        #     cfms.n_fp = np.array(cfms.n_fp.tolist() * 2)
+        # ax.plot(cfms.thresholds, cfms.n_fp, label='incomparable',
+        #         color=pt.color_funcs.darken_rgb(truth_colors[INCMP], .15))
+        ax.set_xlabel('thresholds')
+        ax.set_ylabel('n_fp')
+
+        ax.set_ylim(0, 20)
+        ax.legend()
+
+        cfms.plot_vs('fpr', 'thresholds')
+
+        pass
+
     def measure_hard_cases(self, pblm, task_key, num_top=2):
         """ Find a failure case for each class """
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
@@ -1765,84 +1796,6 @@ class Chap4(DBInputs, IOContract):
             case['match'] = match
 
         self.hard_cases[task_key] = cases
-
-    def custom_single_hard_case(self):
-        """
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> defaultdb = 'PZ_PB_RF_TRAIN'
-            >>> #defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_MTEST'
-            >>> self = Chap4.collect(defaultdb)
-            >>> self.dbname = 'PZ_PB_RF_TRAIN'
-        """
-        task_key = 'match_state'
-        edge = (383, 503)
-        for _case in self.hard_cases[task_key]:
-            if _case['edge'] == edge:
-                case = _case
-                break
-
-        import ibeis
-        ibs = ibeis.opendb(self.dbname)
-
-        from ibeis import core_annots
-        config = {
-            'augment_orientation': True,
-            'ratio_thresh': .8,
-        }
-        config['checks'] = 80
-        config['sver_xy_thresh'] = .02
-        config['sver_ori_thresh'] = 3
-        config['Knorm'] = 3
-        config['symmetric'] = True
-        config = ut.hashdict(config)
-
-        aid1, aid2 = case['edge']
-        real_name = case['real']
-        pred_name = case['pred']
-        match = case['match']
-        code_to_nice = self.task_nice_lookup[task_key]
-        real_nice, pred_nice = ut.take(code_to_nice,
-                                       [real_name, pred_name])
-        fname = 'fail_{}_{}_{}_{}'.format(real_nice, pred_nice, aid1, aid2)
-        # Draw case
-        probs = case['probs'].to_dict()
-        order = list(code_to_nice.values())
-        order = ut.setintersect(order, probs.keys())
-        probs = ut.map_dict_keys(code_to_nice, probs)
-        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
-                           key_order=order)
-        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
-                                                probstr)
-
-        match_list = ibs.depc.get('pairwise_match', ([aid1], [aid2]),
-                                       'match', config=config)
-        match = match_list[0]
-        configured_lazy_annots = core_annots.make_configured_annots(
-            ibs, [aid1], [aid2], config, config, preload=True)
-        match.annot1 = configured_lazy_annots[config][aid1]
-        match.annot2 = configured_lazy_annots[config][aid2]
-        match.config = config
-
-        fig = pt.figure(fnum=1, clf=True)
-        ax = pt.gca()
-
-        mpl.rcParams.update(TMP_RC)
-        match.show(ax, vert=False,
-                   heatmask=True,
-                   show_lines=False,
-                   show_ell=False,
-                   show_ori=False,
-                   show_eig=False,
-                   # ell_alpha=.3,
-                   modifysize=True)
-        ax.set_xlabel(xlabel)
-
-        subdir = 'cases_{}'.format(task_key)
-        dpath = self.dpath.joinpath(subdir)
-        fpath = str(dpath.joinpath(fname + '_custom.jpg'))
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_hard_cases(self, task_key):
         """ draw hard cases with and without overlay """
@@ -1911,6 +1864,33 @@ class Chap4(DBInputs, IOContract):
         pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
         fig.set_size_inches([W, H])
         return fig
+
+    def draw_rerank(self, results):
+        mpl.rcParams.update(TMP_RC)
+
+        # ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+        # TODO ensure_results for Chapter4
+        # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
+        expt_name = 'rerank'
+        results = self.ensure_results(expt_name)
+
+        cdfs, infos = list(zip(*results))
+        lnbnn_cdf = cdfs[0]
+        clf_cdf = cdfs[1]
+        fig = pt.figure(fnum=1)
+        plot_cmcs([lnbnn_cdf, clf_cdf], ['ranking', 'rank+clf'], fnum=1)
+        fig.set_size_inches([W, H * .6])
+        qsizes = ut.take_column(infos, 'qsize')
+        dsizes = ut.take_column(infos, 'dsize')
+        assert ut.allsame(qsizes) and ut.allsame(dsizes)
+        nonvaried_text = 'qsize={}, dsize={}'.format(qsizes[0], dsizes[0])
+        pt.relative_text('lowerleft', nonvaried_text, ax=pt.gca())
+
+        fpath = join(str(self.dpath), expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+        return fpath
 
     def draw_class_score_hist(self):
         """ Plots distribution of positive and negative scores """
@@ -2034,6 +2014,84 @@ class Chap4(DBInputs, IOContract):
         # fig.canvas.draw()
 
         pass
+
+    def custom_single_hard_case(self):
+        """
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> #defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_MTEST'
+            >>> self = Chap4.collect(defaultdb)
+            >>> self.dbname = 'PZ_PB_RF_TRAIN'
+        """
+        task_key = 'match_state'
+        edge = (383, 503)
+        for _case in self.hard_cases[task_key]:
+            if _case['edge'] == edge:
+                case = _case
+                break
+
+        import ibeis
+        ibs = ibeis.opendb(self.dbname)
+
+        from ibeis import core_annots
+        config = {
+            'augment_orientation': True,
+            'ratio_thresh': .8,
+        }
+        config['checks'] = 80
+        config['sver_xy_thresh'] = .02
+        config['sver_ori_thresh'] = 3
+        config['Knorm'] = 3
+        config['symmetric'] = True
+        config = ut.hashdict(config)
+
+        aid1, aid2 = case['edge']
+        real_name = case['real']
+        pred_name = case['pred']
+        match = case['match']
+        code_to_nice = self.task_nice_lookup[task_key]
+        real_nice, pred_nice = ut.take(code_to_nice,
+                                       [real_name, pred_name])
+        fname = 'fail_{}_{}_{}_{}'.format(real_nice, pred_nice, aid1, aid2)
+        # Draw case
+        probs = case['probs'].to_dict()
+        order = list(code_to_nice.values())
+        order = ut.setintersect(order, probs.keys())
+        probs = ut.map_dict_keys(code_to_nice, probs)
+        probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
+                           key_order=order)
+        xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
+                                                probstr)
+
+        match_list = ibs.depc.get('pairwise_match', ([aid1], [aid2]),
+                                       'match', config=config)
+        match = match_list[0]
+        configured_lazy_annots = core_annots.make_configured_annots(
+            ibs, [aid1], [aid2], config, config, preload=True)
+        match.annot1 = configured_lazy_annots[config][aid1]
+        match.annot2 = configured_lazy_annots[config][aid2]
+        match.config = config
+
+        fig = pt.figure(fnum=1, clf=True)
+        ax = pt.gca()
+
+        mpl.rcParams.update(TMP_RC)
+        match.show(ax, vert=False,
+                   heatmask=True,
+                   show_lines=False,
+                   show_ell=False,
+                   show_ori=False,
+                   show_eig=False,
+                   # ell_alpha=.3,
+                   modifysize=True)
+        ax.set_xlabel(xlabel)
+
+        subdir = 'cases_{}'.format(task_key)
+        dpath = self.dpath.joinpath(subdir)
+        fpath = str(dpath.joinpath(fname + '_custom.jpg'))
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
 
 @ut.reloadable_class
