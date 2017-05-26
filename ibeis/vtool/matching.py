@@ -357,8 +357,10 @@ class PairwiseMatch(ut.NiceRepr):
             assigntup = assign_unconstrained_matches(
                 fx2_to_fx1, fx2_to_dist, K, Knorm, fx2_to_flags)
         else:
-            fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
-                annot2['flann'], annot1['vecs'], num_neighbors, checks)
+            # fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
+            #     annot2['flann'], annot1['vecs'], num_neighbors, checks)
+            fx2_to_fx1, fx2_to_dist = normalized_nearest_neighbors(
+                annot1['flann'], annot2['vecs'], num_neighbors, checks)
             fx2_to_flags = np.ones((len(fx2_to_fx1), K), dtype=np.bool)
             # Assign correspondences
             assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
@@ -1119,6 +1121,7 @@ def ensure_metadata_vsone(annot1, annot2, cfgdict={}):
     ensure_metadata_feats(annot2, cfgdict=cfgdict)
 
     symmetric, = PairwiseMatch._take_params(cfgdict, ['symmetric'])
+
     ensure_metadata_flann(annot1, cfgdict=cfgdict)
 
     if symmetric:
