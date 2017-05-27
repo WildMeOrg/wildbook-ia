@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.scripts import script_vsone
+import ibeis.constants as const
 import pandas as pd
 import numpy as np
 from os.path import basename, join, splitext, exists
@@ -1241,10 +1242,6 @@ class Chap5(DBInputs, Chap5Commands):
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
 
 
-
-import ibeis.constants as const
-
-
 @ut.reloadable_class
 class Chap4(DBInputs, IOContract):
     """
@@ -1279,20 +1276,6 @@ class Chap4(DBInputs, IOContract):
         import ibeis
         self._precollect()
         ibs = self.ibs
-
-        def find_minority_class_ccs(infr):
-            # Finds ccs involved in photobombs and incomparble cases
-            pb_edges = [
-                edge for edge, tags in infr.gen_edge_attrs('tags')
-                if 'photobomb'in tags
-            ]
-            incomp_edges = list(infr.incomp_graph.edges())
-            minority_edges = pb_edges + incomp_edges
-            minority_nids = set(infr.node_labels(*set(
-                ut.flatten(minority_edges))))
-            minority_ccs = [infr.pos_graph._ccs[nid] for nid in
-                              minority_nids]
-            return minority_ccs
 
         if ibs.dbname == 'PZ_Master1':
             # FIND ALL PHOTOBOMB / INCOMPARABLE CASES
@@ -1350,14 +1333,6 @@ class Chap4(DBInputs, IOContract):
         link = expanduser(self.base_dpath + '/' + self.dbname)
         self.link = ut.symlink(dpath, link)
         self.dpath = pathlib.Path(dpath)
-
-        # self.task_nice_lookup = {
-        #     'match_state': ibs.const.REVIEW.CODE_TO_NICE,
-        #     'photobomb_state': {
-        #         'pb': 'Phototomb',
-        #         'notpb': 'Not Phototomb',
-        #     }
-        # }
         ut.ensuredir(self.dpath)
 
     def measure_all(self):
@@ -1376,205 +1351,37 @@ class Chap4(DBInputs, IOContract):
             >>> defaultdb = 'PZ_MTEST'
             >>> self = Chap4(defaultdb)
             >>> self.measure_all()
-            >>> self.draw()
+            >>> #self.draw()
         """
         self._setup_pblm()
         pblm = self.pblm
-        self.pblm = None  # hack
 
-        self.measure_task_combo_res()
+        importance = {
+            task_key: pblm.feature_importance(task_key=task_key)
+            for task_key in pblm.eval_task_keys
+        }
 
-        #-----------
-        # COLLECTION
-        #-----------
-        self.measure_roc_data_pos()
-        self.measure_score_freq_pos()
+        task = pblm.samples['match_state']
+        scores = pblm.samples.simple_scores['score_lnbnn_1vM']
+        y = task.indicator_df[task.default_class_name]
+        lnbnn_xy = pd.concat([scores, y], axis=1)
 
-        task_key = 'match_state'
-        if task_key in pblm.eval_task_keys:
-            self.measure_importance('match_state')
-            self.measure_hard_cases(task_key, num_top=4)
-            self.build_metrics(task_key)
-
-        task_key = 'photobomb_state'
-        if task_key in pblm.eval_task_keys:
-            # self.measure_roc_data_photobomb(pblm)
-            self.measure_importance('photobomb_state')
-            self.build_metrics(pblm, task_key)
-
-        self.measure_rerank()
-        # fname = 'collected_data.pkl'
-        # ut.save_data(str(self.dpath.joinpath(fname)), self)
-        return self
-
-    def measure_task_combo_res(self):
-        if getattr(self, 'pblm', None) is None:
-            self._setup_pblm()
         results = {
+            'lnbnn_xy': lnbnn_xy,
             'task_combo_res': self.pblm.task_combo_res,
+            'importance': importance,
             'data_key': self.data_key,
             'clf_key': self.clf_key,
         }
-        expt_name = 'task_combo_res'
+        expt_name = 'all'
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-
-    def measure_importance(self, task_key):
-        pblm = self.pblm
-        results = pblm.feature_importance(task_key=task_key)
-        expt_name = 'importance_' + task_key
-        self.expt_results[expt_name] = results
-        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-
-    def draw(self):
-        task_key = 'photobomb_state'
-        if task_key in self.eval_task_keys:
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
 
         task_key = 'match_state'
-        if task_key in self.eval_task_keys:
+        if task_key in pblm.eval_task_keys:
+            self.measure_match_state_hard_cases()
 
-            # self.measure_score_freq_pos(pblm)
-            self.draw_class_score_hist()
-            self.draw_roc(task_key)
-
-            self.draw_wordcloud(task_key)
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
-
-            if not ut.get_argflag('--nodraw'):
-                self.draw_hard_cases(task_key)
-
-    # def measure_metrics(self):
-    #     pass
-
-    # def _build_metrics(self, task_key):
-    #     pblm = self.pblm
-    #     res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-    #     res.augment_if_needed()
-    #     pred_enc = res.clf_probs.argmax(axis=1)
-    #     y_pred = pred_enc
-    #     y_true = res.y_test_enc
-    #     sample_weight = res.sample_weight
-    #     target_names = res.class_names
-
-    #     from ibeis.scripts import sklearn_utils
-    #     metric_df, confusion_df = sklearn_utils.classification_report2(
-    #         y_true, y_pred, target_names, sample_weight, verbose=False)
-    #     self.task_confusion[task_key] = confusion_df
-    #     self.task_metrics[task_key] = metric_df
-    #     return ut.partial(self.write_metrics, task_key)
-
-    def write_metrics(self, task_key='match_state'):
-        """
-        CommandLine:
-            python -m ibeis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
-            python -m ibeis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
-            >>> defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_PB_RF_TRAIN'
-            >>> task_key = 'match_state'
-            >>> self, pblm = precollect(defaultdb)
-            >>> task_key = kwargs['task_key']
-            >>> self.build_metrics(pblm, task_key)
-            >>> self.write_metrics(task_key)
-        """
-        if 0:
-            expt_name = 'task_comb_res'
-            results = ut.load_data(join(str(self.dpath), expt_name + '.pkl'))
-        else:
-            results = self.ensure_results('task_combo_res')
-        task_combo_res = results['task_combo_res']
-        data_key = results['data_key']
-        clf_key = results['clf_key']
-
-        res = task_combo_res[task_key][clf_key][data_key]
-        res.augment_if_needed()
-        pred_enc = res.clf_probs.argmax(axis=1)
-        y_pred = pred_enc
-        y_true = res.y_test_enc
-        sample_weight = res.sample_weight
-        target_names = res.class_names
-
-        from ibeis.scripts import sklearn_utils
-        metric_df, confusion_df = sklearn_utils.classification_report2(
-            y_true, y_pred, target_names, sample_weight, verbose=False)
-
-        # df = self.task_confusion[task_key]
-        df = confusion_df
-        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
-        df = df.rename_axis(self.task_nice_lookup[task_key], 1)
-        df.index.name = None
-        df.columns.name = None
-
-        latex_str = df.to_latex(
-            float_format=lambda x: '' if np.isnan(x) else str(int(x)),
-        )
-        sum_pred = df.index[-1]
-        sum_real = df.columns[-1]
-        latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
-        latex_str = latex_str.replace(sum_real, r'$\sum$ real')
-        # latex_str = latex_str.replace(sum_pred, r'$\textstyle\sum$ predicted')
-        # latex_str = latex_str.replace(sum_real, r'$\textstyle\sum$ real')
-        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
-        newheader = '\\begin{tabular}{%s}' % (colfmt,)
-        latex_str = '\n'.join([newheader] + latex_str.split('\n')[1:])
-        lines = latex_str.split('\n')
-        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
-        latex_str = '\n'.join(lines)
-        latex_str = latex_str.replace('midrule', 'hline')
-        latex_str = latex_str.replace('toprule', 'hline')
-        latex_str = latex_str.replace('bottomrule', 'hline')
-        confusion_latex_str = latex_str
-
-        df = metric_df
-        # df = self.task_metrics[task_key]
-        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
-        df = df.drop(['markedness', 'bookmaker'], axis=1)
-        df.index.name = None
-        df.columns.name = None
-        df['support'] = df['support'].astype(np.int)
-        latex_str = df.to_latex(
-            float_format=lambda x: '%.2f' % (x)
-        )
-        lines = latex_str.split('\n')
-        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
-        latex_str = '\n'.join(lines)
-        metrics_latex_str = latex_str
-
-        print(confusion_latex_str)
-
-        print(metrics_latex_str)
-
-        fname = 'confusion_{}.tex'.format(task_key)
-        ut.write_to(str(self.dpath.joinpath(fname)), metrics_latex_str)
-
-        fname = 'eval_metrics_{}.tex'.format(task_key)
-        ut.write_to(str(self.dpath.joinpath(fname)), confusion_latex_str)
-
-    def write_importance(self, task_key):
-        # Print info for latex table
-        importances = self.task_importance[task_key]
-        vals = importances.values()
-        items = importances.items()
-        top_dims = ut.sortedby(items, vals)[::-1]
-        lines = []
-        for k, v in top_dims[:5]:
-            k = feat_alias(k)
-            k = k.replace('_', '\\_')
-            lines.append('{} & {:.4f} \\\\'.format(k, v))
-        latex_str = '\n'.join(ut.align_lines(lines, '&'))
-
-        fname = 'feat_importance_{}.tex'.format(task_key)
-        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
-
-        print('TOP 5 importances for ' + task_key)
-        print('# of dimensions: %d' % (len(importances)))
-        print()
+        self.measure_rerank()
 
     def measure_rerank(self):
         """
@@ -1660,106 +1467,13 @@ class Chap4(DBInputs, IOContract):
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
-    def measure_score_freq_pos(self, pblm):
-        task_key = 'match_state'
+    def _measure_hard_cases(self, pblm, task_key, num_top):
+        """
+        Find a failure case for each class
 
-        results = self.ensure_results('task_combo_res')
-        task_combo_res = results['task_combo_res']
-        data_key = results['data_key']
-        clf_key = results['clf_key']
-
-        res = task_combo_res[task_key][clf_key][data_key]
-
-        # res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        y = res.target_bin_df[POSTV]
-        scores = res.probs_df[POSTV]
-        bins = np.linspace(0, 1, 100)
-        pos_freq = np.histogram(scores[y], bins)[0]
-        neg_freq = np.histogram(scores[~y], bins)[0]
-        pos_freq = pos_freq / pos_freq.sum()
-        neg_freq = neg_freq / neg_freq.sum()
-        freqs = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
-        self.score_hist_pos = freqs
-
-        scores = pblm.samples.simple_scores['score_lnbnn_1vM']
-        y = pblm.samples[task_key].indicator_df[POSTV].loc[scores.index]
-        # Get 95% of the data at least
-        maxbin = scores[scores.argsort()][-max(1, int(len(scores) * .05))]
-        bins = np.linspace(0, max(maxbin, 10), 100)
-        pos_freq = np.histogram(scores[y], bins)[0]
-        neg_freq = np.histogram(scores[~y], bins)[0]
-        pos_freq = pos_freq / pos_freq.sum()
-        neg_freq = neg_freq / neg_freq.sum()
-        freqs = {'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
-        self.score_hist_lnbnn = freqs
-
-    def measure_roc_data_pos(self):
-        expt_name = 'roc_data_pos'
-        pblm = self.pblm
-        task_key = 'match_state'
-        target_class = POSTV
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        c2 = pblm.simple_confusion('score_lnbnn_1vM', task_key=task_key)
-        c3 = res.confusions(target_class)
-        results = {
-            'target_class': target_class,
-            'curves': [
-                {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-                {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
-            ]
-        }
-        self.expt_results[expt_name] = results
-        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-
-    def measure_roc_data_photobomb(self, pblm):
-        expt_name = 'roc_data_photobomb'
-        pblm = self.pblm
-        task_key = 'photobomb_state'
-        target_class = 'pb'
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        c1 = res.confusions(target_class)
-        results = {
-            'target_class': target_class,
-            'curves': [
-                {'label': 'learned', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
-            ]
-        }
-        self.expt_results[expt_name] = results
-        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-
-    def measure_thresh(self, pblm):
-        task_key = 'match_state'
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        infr = pblm.infr
-
-        truth_colors = infr._get_truth_colors()
-
-        cfms = res.confusions(POSTV)
-        fig = pt.figure(fnum=1, doclf=True)  # NOQA
-        ax = pt.gca()
-        ax.plot(cfms.thresholds, cfms.n_fp, label='positive', color=truth_colors[POSTV])
-
-        cfms = res.confusions(NEGTV)
-        ax.plot(cfms.thresholds, cfms.n_fp, label='negative', color=truth_colors[NEGTV])
-
-        # cfms = res.confusions(INCMP)
-        # if len(cfms.thresholds) == 1:
-        #     cfms.thresholds = [0, 1]
-        #     cfms.n_fp = np.array(cfms.n_fp.tolist() * 2)
-        # ax.plot(cfms.thresholds, cfms.n_fp, label='incomparable',
-        #         color=pt.color_funcs.darken_rgb(truth_colors[INCMP], .15))
-        ax.set_xlabel('thresholds')
-        ax.set_ylabel('n_fp')
-
-        ax.set_ylim(0, 20)
-        ax.legend()
-
-        cfms.plot_vs('fpr', 'thresholds')
-
-        pass
-
-    def measure_hard_cases(self, pblm, task_key, num_top=2):
-        """ Find a failure case for each class """
+        Example:
+            >>> num_top = 4
+        """
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         case_df = res.hardness_analysis(pblm.samples, pblm.infr)
         # group = case_df.sort_values(['real_conf', 'easiness'])
@@ -1790,15 +1504,222 @@ class Chap4(DBInputs, IOContract):
         config.update(pblm.hyper_params['vsone_kpts'])
         edges = [case['edge'] for case in cases]
         matches = infr._exec_pairwise_match(edges, config)
+
+        def _prep_annot(annot):
+            # Load data needed for plot into annot dictionary
+            annot['aid']
+            annot['rchip']
+            annot['kpts']
+            # Cast the lazy dict to a real one
+            return {k: annot[k] for k in annot.evaluated_keys()}
+
         for case, match in zip(cases, matches):
-            # TODO: decouple the match from the database
             # store its chip fpath and other required info
+            match.annot1 = _prep_annot(match.annot1)
+            match.annot2 = _prep_annot(match.annot2)
             case['match'] = match
 
-        self.hard_cases[task_key] = cases
+        return cases
+
+    def measure_match_state_hard_cases(self):
+        """
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('PZ_MTEST')
+            >>> self._setup_pblm()
+            >>> self.measure_match_state_hard_cases()
+        """
+        task_key = 'match_state'
+        cases = self._measure_hard_cases(self.pblm, task_key, num_top=4)
+        fpath = join(str(self.dpath), 'match_state_hard_cases.pkl')
+        ut.save_data(fpath, cases)
+
+    def draw(self):
+        task_key = 'photobomb_state'
+        if task_key in self.eval_task_keys:
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
+
+        task_key = 'match_state'
+        if task_key in self.eval_task_keys:
+            self.draw_class_score_hist()
+            self.draw_roc(task_key)
+
+            self.draw_wordcloud(task_key)
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
+
+            if not ut.get_argflag('--nodraw'):
+                self.draw_hard_cases(task_key)
+
+    # def measure_metrics(self):
+    #     pass
+
+    # def _build_metrics(self, task_key):
+    #     pblm = self.pblm
+    #     res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+    #     res.augment_if_needed()
+    #     pred_enc = res.clf_probs.argmax(axis=1)
+    #     y_pred = pred_enc
+    #     y_true = res.y_test_enc
+    #     sample_weight = res.sample_weight
+    #     target_names = res.class_names
+
+    #     from ibeis.scripts import sklearn_utils
+    #     metric_df, confusion_df = sklearn_utils.classification_report2(
+    #         y_true, y_pred, target_names, sample_weight, verbose=False)
+    #     self.task_confusion[task_key] = confusion_df
+    #     self.task_metrics[task_key] = metric_df
+    #     return ut.partial(self.write_metrics, task_key)
+
+    def write_metrics(self, task_key='match_state'):
+        """
+        CommandLine:
+            python -m ibeis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
+            python -m ibeis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
+            >>> defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> defaultdb = 'PZ_MTEST'
+            >>> #task_key = kwargs['task_key']
+            >>> task_key = 'match_state'
+            >>> self = Chap4(defaultdb)
+            >>> self.write_metrics(task_key)
+        """
+        results = self.ensure_results('all')
+        task_combo_res = results['task_combo_res']
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        res = task_combo_res[task_key][clf_key][data_key]
+        res.augment_if_needed()
+        pred_enc = res.clf_probs.argmax(axis=1)
+        y_pred = pred_enc
+        y_true = res.y_test_enc
+        sample_weight = res.sample_weight
+        target_names = res.class_names
+
+        from ibeis.scripts import sklearn_utils
+        metric_df, confusion_df = sklearn_utils.classification_report2(
+            y_true, y_pred, target_names, sample_weight, verbose=False)
+
+        # df = self.task_confusion[task_key]
+        df = confusion_df
+        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
+        df = df.rename_axis(self.task_nice_lookup[task_key], 1)
+        df.index.name = None
+        df.columns.name = None
+
+        latex_str = df.to_latex(
+            float_format=lambda x: '' if np.isnan(x) else str(int(x)),
+        )
+        sum_pred = df.index[-1]
+        sum_real = df.columns[-1]
+        latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
+        latex_str = latex_str.replace(sum_real, r'$\sum$ real')
+        # latex_str = latex_str.replace(sum_pred, r'$\textstyle\sum$ predicted')
+        # latex_str = latex_str.replace(sum_real, r'$\textstyle\sum$ real')
+        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
+        newheader = '\\begin{tabular}{%s}' % (colfmt,)
+        latex_str = '\n'.join([newheader] + latex_str.split('\n')[1:])
+        lines = latex_str.split('\n')
+        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
+        latex_str = '\n'.join(lines)
+        latex_str = latex_str.replace('midrule', 'hline')
+        latex_str = latex_str.replace('toprule', 'hline')
+        latex_str = latex_str.replace('bottomrule', 'hline')
+        confusion_latex_str = latex_str
+
+        df = metric_df
+        # df = self.task_metrics[task_key]
+        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
+        df = df.drop(['markedness', 'bookmaker'], axis=1)
+        df.index.name = None
+        df.columns.name = None
+        df['support'] = df['support'].astype(np.int)
+        latex_str = df.to_latex(
+            float_format=lambda x: '%.2f' % (x)
+        )
+        lines = latex_str.split('\n')
+        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
+        latex_str = '\n'.join(lines)
+        metrics_latex_str = latex_str
+
+        print(confusion_latex_str)
+
+        print(metrics_latex_str)
+
+        fname = 'confusion_{}.tex'.format(task_key)
+        ut.write_to(str(self.dpath.joinpath(fname)), metrics_latex_str)
+
+        fname = 'eval_metrics_{}.tex'.format(task_key)
+        ut.write_to(str(self.dpath.joinpath(fname)), confusion_latex_str)
+
+    def write_importance(self, task_key):
+        # Print info for latex table
+        results = self.ensure_results('all')
+        importances = results['importance'][task_key]
+        vals = importances.values()
+        items = importances.items()
+        top_dims = ut.sortedby(items, vals)[::-1]
+        lines = []
+        for k, v in top_dims[:5]:
+            k = feat_alias(k)
+            k = k.replace('_', '\\_')
+            lines.append('{} & {:.4f} \\\\'.format(k, v))
+        latex_str = '\n'.join(ut.align_lines(lines, '&'))
+
+        fname = 'feat_importance_{}.tex'.format(task_key)
+
+        print('TOP 5 importances for ' + task_key)
+        print('# of dimensions: %d' % (len(importances)))
+        print(latex_str)
+        print()
+
+        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
+
+    def measure_thresh(self, pblm):
+        task_key = 'match_state'
+        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+        infr = pblm.infr
+
+        truth_colors = infr._get_truth_colors()
+
+        cfms = res.confusions(POSTV)
+        fig = pt.figure(fnum=1, doclf=True)  # NOQA
+        ax = pt.gca()
+        ax.plot(cfms.thresholds, cfms.n_fp, label='positive', color=truth_colors[POSTV])
+
+        cfms = res.confusions(NEGTV)
+        ax.plot(cfms.thresholds, cfms.n_fp, label='negative', color=truth_colors[NEGTV])
+
+        # cfms = res.confusions(INCMP)
+        # if len(cfms.thresholds) == 1:
+        #     cfms.thresholds = [0, 1]
+        #     cfms.n_fp = np.array(cfms.n_fp.tolist() * 2)
+        # ax.plot(cfms.thresholds, cfms.n_fp, label='incomparable',
+        #         color=pt.color_funcs.darken_rgb(truth_colors[INCMP], .15))
+        ax.set_xlabel('thresholds')
+        ax.set_ylabel('n_fp')
+
+        ax.set_ylim(0, 20)
+        ax.legend()
+
+        cfms.plot_vs('fpr', 'thresholds')
 
     def draw_hard_cases(self, task_key):
-        """ draw hard cases with and without overlay """
+        """
+        draw hard cases with and without overlay
+
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('PZ_MTEST')
+            >>> task_key = 'match_state'
+            >>> self.draw_hard_cases(task_key)
+        """
+        cases = self.ensure_results('match_state_hard_cases')
+
         subdir = 'cases_{}'.format(task_key)
         dpath = self.dpath.joinpath(subdir)
         ut.ensuredir(dpath)
@@ -1806,7 +1727,7 @@ class Chap4(DBInputs, IOContract):
 
         mpl.rcParams.update(TMP_RC)
 
-        for case in ut.ProgIter(self.hard_cases[task_key], 'draw hard case'):
+        for case in ut.ProgIter(cases, 'draw hard case'):
             aid1, aid2 = case['edge']
             real_name = case['real']
             pred_name = case['pred']
@@ -1868,9 +1789,6 @@ class Chap4(DBInputs, IOContract):
     def draw_rerank(self, results):
         mpl.rcParams.update(TMP_RC)
 
-        # ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
-        # TODO ensure_results for Chapter4
-        # expt_name = ut.get_stack_frame().f_code.co_name.replace('draw_', '')
         expt_name = 'rerank'
         results = self.ensure_results(expt_name)
 
@@ -1894,11 +1812,41 @@ class Chap4(DBInputs, IOContract):
 
     def draw_class_score_hist(self):
         """ Plots distribution of positive and negative scores """
-        freqs = self.score_hist_pos
-        fig1 = self._draw_score_hist(freqs, 'positive probability', 1)
+        task_key = 'match_state'
 
-        freqs = self.score_hist_lnbnn
-        fig2 = self._draw_score_hist(freqs, 'LNBNN score', 2)
+        results = self.ensure_results('all')
+        task_combo_res = results['task_combo_res']
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        res = task_combo_res[task_key][clf_key][data_key]
+
+        y = res.target_bin_df[POSTV]
+        scores = res.probs_df[POSTV]
+        bins = np.linspace(0, 1, 100)
+        pos_freq = np.histogram(scores[y], bins)[0]
+        neg_freq = np.histogram(scores[~y], bins)[0]
+        pos_freq = pos_freq / pos_freq.sum()
+        neg_freq = neg_freq / neg_freq.sum()
+
+        score_hist_pos = {
+            'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
+
+        lnbnn_xy = results['lnbnn_xy']
+        scores, y = lnbnn_xy[['score_lnbnn_1vM', POSTV]].values.T
+
+        # Get 95% of the data at least
+        maxbin = scores[scores.argsort()][-max(1, int(len(scores) * .05))]
+        bins = np.linspace(0, max(maxbin, 10), 100)
+        pos_freq = np.histogram(scores[y], bins)[0]
+        neg_freq = np.histogram(scores[~y], bins)[0]
+        pos_freq = pos_freq / pos_freq.sum()
+        neg_freq = neg_freq / neg_freq.sum()
+        score_hist_lnbnn = {
+            'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
+
+        fig1 = self._draw_score_hist(score_hist_pos, 'positive probability', 1)
+        fig2 = self._draw_score_hist(score_hist_lnbnn, 'LNBNN score', 2)
 
         fname = 'score_hist_pos_{}.png'.format(self.data_key)
         vt.imwrite(str(self.dpath.joinpath(fname)),
@@ -1911,11 +1859,42 @@ class Chap4(DBInputs, IOContract):
     def draw_roc(self, task_key):
         mpl.rcParams.update(TMP_RC)
 
-        roc_data = self.task_rocs[task_key]
+        # def measure_roc_data_photobomb(self, pblm):
+        #     expt_name = 'roc_data_photobomb'
+        #     pblm = self.pblm
+        #     task_key = 'photobomb_state'
+        #     target_class = 'pb'
+        #     res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+        #     c1 = res.confusions(target_class)
+        #     results = {
+        #         'target_class': target_class,
+        #         'curves': [
+        #             {'label': 'learned', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
+        #         ]
+        #     }
+
+        results = self.ensure_results('all')
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        task_combo_res = results['task_combo_res']
+        lnbnn_xy = results['lnbnn_xy']
+        scores, y = lnbnn_xy[['score_lnbnn_1vM', POSTV]].values.T
+
+        task_key = 'match_state'
+        target_class = POSTV
+
+        res = task_combo_res[task_key][clf_key][data_key]
+        c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+        c3 = res.confusions(target_class)
+        roc_curves = [
+            {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
+            {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
+        ]
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
-        for data in roc_data['curves']:
+        for data in roc_curves:
             ax.plot(data['fpr'], data['tpr'],
                     label='%s AUC=%.2f' % (data['label'], data['auc']))
         ax.set_xlabel('false positive rate')
@@ -1931,7 +1910,8 @@ class Chap4(DBInputs, IOContract):
 
     def draw_wordcloud(self, task_key):
         import plottool as pt
-        importances = ut.map_keys(feat_alias, self.task_importance[task_key])
+        results = self.ensure_results('all')
+        importances = ut.map_keys(feat_alias, results['importance'][task_key])
 
         fig = pt.figure(fnum=1)
         pt.wordcloud(importances, ax=fig.axes[0])
@@ -2007,13 +1987,6 @@ class Chap4(DBInputs, IOContract):
         dpath = pathlib.Path(ut.truepath(self.base_dpath))
         fpath = str(dpath.joinpath(fname + '.jpg'))
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-
-        # match.show()
-        # import plottool as pt
-        # fig = pt.gcf()
-        # fig.canvas.draw()
-
-        pass
 
     def custom_single_hard_case(self):
         """
@@ -3458,6 +3431,21 @@ def feat_alias(k):
     k = k.replace('norm_y', 'y')
     k = k.replace('yaw', 'view')
     return k
+
+
+def find_minority_class_ccs(infr):
+    # Finds ccs involved in photobombs and incomparble cases
+    pb_edges = [
+        edge for edge, tags in infr.gen_edge_attrs('tags')
+        if 'photobomb'in tags
+    ]
+    incomp_edges = list(infr.incomp_graph.edges())
+    minority_edges = pb_edges + incomp_edges
+    minority_nids = set(infr.node_labels(*set(
+        ut.flatten(minority_edges))))
+    minority_ccs = [infr.pos_graph._ccs[nid] for nid in
+                      minority_nids]
+    return minority_ccs
 
 
 def test_mcc():
