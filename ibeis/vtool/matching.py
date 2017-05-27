@@ -138,12 +138,17 @@ class PairwiseMatch(ut.NiceRepr):
         This means that if you need properties of annots, you must reapply
         them after you load a PairwiseMatch object.
         """
-        _annot1 = {}
-        if 'aid' in match.annot1:
-            _annot1['aid'] = match.annot1['aid']
-        _annot2 = {}
-        if 'aid' in match.annot2:
-            _annot2['aid'] = match.annot2['aid']
+        def _prepare_annot(annot):
+            if isinstance(annot, ut.LazyDict):
+                _annot = {}
+                if 'aid' in annot:
+                    _annot['aid'] = annot['aid']
+                return _annot
+            return annot
+
+        _annot1 = _prepare_annot(match.annot1)
+        _annot2 = _prepare_annot(match.annot2)
+
         state = {
             'annot1': _annot1,
             'annot2': _annot2,
