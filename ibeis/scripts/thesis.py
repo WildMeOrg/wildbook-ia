@@ -1331,9 +1331,9 @@ class Chap4(DBInputs, IOContract):
         from os.path import expanduser
         dpath = expanduser(self.base_dpath + '/' + self.dbcode)
         link = expanduser(self.base_dpath + '/' + self.dbname)
+        ut.ensuredir(dpath)
+        self.real_dpath = dpath
         self.link = ut.symlink(dpath, link)
-        self.dpath = pathlib.Path(dpath)
-        ut.ensuredir(self.dpath)
 
     def measure_all(self):
         r"""
@@ -1382,6 +1382,38 @@ class Chap4(DBInputs, IOContract):
             self.measure_match_state_hard_cases()
 
         self.measure_rerank()
+
+    def draw_all(self):
+        r"""
+        CommandLine:
+            python -m ibeis Chap4.draw_all --db PZ_MTEST
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('PZ_MTEST')
+            >>> self.draw_all()
+        """
+        results = self.ensure_results('all')
+        eval_task_keys = set(results['task_combo_res'].keys())
+
+        task_key = 'photobomb_state'
+        if task_key in eval_task_keys:
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
+
+        task_key = 'match_state'
+        if task_key in eval_task_keys:
+            self.draw_class_score_hist()
+            self.draw_roc(task_key)
+
+            self.draw_wordcloud(task_key)
+            self.write_importance(task_key)
+            self.write_metrics(task_key)
+
+            self.draw_rerank()
+
+            if not ut.get_argflag('--nodraw'):
+                self.draw_hard_cases(task_key)
 
     def measure_rerank(self):
         """
@@ -1533,24 +1565,6 @@ class Chap4(DBInputs, IOContract):
         fpath = join(str(self.dpath), 'match_state_hard_cases.pkl')
         ut.save_data(fpath, cases)
 
-    def draw(self):
-        task_key = 'photobomb_state'
-        if task_key in self.eval_task_keys:
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
-
-        task_key = 'match_state'
-        if task_key in self.eval_task_keys:
-            self.draw_class_score_hist()
-            self.draw_roc(task_key)
-
-            self.draw_wordcloud(task_key)
-            self.write_importance(task_key)
-            self.write_metrics(task_key)
-
-            if not ut.get_argflag('--nodraw'):
-                self.draw_hard_cases(task_key)
-
     # def measure_metrics(self):
     #     pass
 
@@ -1652,10 +1666,10 @@ class Chap4(DBInputs, IOContract):
         print(metrics_latex_str)
 
         fname = 'confusion_{}.tex'.format(task_key)
-        ut.write_to(str(self.dpath.joinpath(fname)), metrics_latex_str)
+        ut.write_to(join(str(self.dpath), fname), metrics_latex_str)
 
         fname = 'eval_metrics_{}.tex'.format(task_key)
-        ut.write_to(str(self.dpath.joinpath(fname)), confusion_latex_str)
+        ut.write_to(join(str(self.dpath), fname), confusion_latex_str)
 
     def write_importance(self, task_key):
         # Print info for latex table
@@ -1678,7 +1692,7 @@ class Chap4(DBInputs, IOContract):
         print(latex_str)
         print()
 
-        ut.write_to(str(self.dpath.joinpath(fname)), latex_str)
+        ut.write_to(join(str(self.dpath), fname), latex_str)
 
     def measure_thresh(self, pblm):
         task_key = 'match_state'
@@ -1721,7 +1735,7 @@ class Chap4(DBInputs, IOContract):
         cases = self.ensure_results('match_state_hard_cases')
 
         subdir = 'cases_{}'.format(task_key)
-        dpath = self.dpath.joinpath(subdir)
+        dpath = join(str(self.dpath), subdir)
         ut.ensuredir(dpath)
         code_to_nice = self.task_nice_lookup[task_key]
 
@@ -1756,8 +1770,8 @@ class Chap4(DBInputs, IOContract):
                        # ell_alpha=.3,
                        modifysize=True)
             ax.set_xlabel(xlabel)
-            # fpath = str(dpath.joinpath(fname + '_overlay.jpg'))
-            fpath = str(dpath.joinpath(fname + '.jpg'))
+            # fpath = join(str(dpath), fname + '_overlay.jpg')
+            fpath = join(str(dpath), fname + '.jpg')
             vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if False:
             ut.startfile(fpath)
@@ -1767,7 +1781,7 @@ class Chap4(DBInputs, IOContract):
             # ax.cla()
             # match.show(ax, vert=False, overlay=False, modifysize=True)
             # ax.set_xlabel(xlabel)
-            # fpath = str(dpath.joinpath(fname + '.jpg'))
+            # fpath = join(str(dpath), fname + '.jpg')
             # vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def _draw_score_hist(self, freqs, xlabel, fnum):
@@ -1788,7 +1802,7 @@ class Chap4(DBInputs, IOContract):
         fig.set_size_inches([W, H])
         return fig
 
-    def draw_rerank(self, results):
+    def draw_rerank(self):
         mpl.rcParams.update(TMP_RC)
 
         expt_name = 'rerank'
@@ -1835,7 +1849,8 @@ class Chap4(DBInputs, IOContract):
             'bins': bins, 'pos_freq': pos_freq, 'neg_freq': neg_freq}
 
         lnbnn_xy = results['lnbnn_xy']
-        scores, y = lnbnn_xy[['score_lnbnn_1vM', POSTV]].values.T
+        scores = lnbnn_xy['score_lnbnn_1vM'].values
+        y = lnbnn_xy[POSTV].values
 
         # Get 95% of the data at least
         maxbin = scores[scores.argsort()][-max(1, int(len(scores) * .05))]
@@ -1850,12 +1865,12 @@ class Chap4(DBInputs, IOContract):
         fig1 = self._draw_score_hist(score_hist_pos, 'positive probability', 1)
         fig2 = self._draw_score_hist(score_hist_lnbnn, 'LNBNN score', 2)
 
-        fname = 'score_hist_pos_{}.png'.format(self.data_key)
-        vt.imwrite(str(self.dpath.joinpath(fname)),
+        fname = 'score_hist_pos_{}.png'.format(data_key)
+        vt.imwrite(join(str(self.dpath), fname),
                    pt.render_figure_to_image(fig1, dpi=DPI))
 
         fname = 'score_hist_lnbnn.png'
-        vt.imwrite(str(self.dpath.joinpath(fname)),
+        vt.imwrite(join(str(self.dpath), fname),
                    pt.render_figure_to_image(fig2, dpi=DPI))
 
     def draw_roc(self, task_key):
@@ -1881,7 +1896,8 @@ class Chap4(DBInputs, IOContract):
 
         task_combo_res = results['task_combo_res']
         lnbnn_xy = results['lnbnn_xy']
-        scores, y = lnbnn_xy[['score_lnbnn_1vM', POSTV]].values.T
+        scores = lnbnn_xy['score_lnbnn_1vM'].values
+        y = lnbnn_xy[POSTV].values
 
         task_key = 'match_state'
         target_class = POSTV
@@ -1907,7 +1923,7 @@ class Chap4(DBInputs, IOContract):
         fig.set_size_inches([W, H])
 
         fname = 'roc_{}.png'.format(task_key)
-        fig_fpath = str(self.dpath.joinpath(fname))
+        fig_fpath = join(str(self.dpath), fname)
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def draw_wordcloud(self, task_key):
@@ -1919,7 +1935,7 @@ class Chap4(DBInputs, IOContract):
         pt.wordcloud(importances, ax=fig.axes[0])
 
         fname = 'wc_{}.png'.format(task_key)
-        fig_fpath = str(self.dpath.joinpath(fname))
+        fig_fpath = join(str(self.dpath), fname)
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     @classmethod
@@ -1987,7 +2003,7 @@ class Chap4(DBInputs, IOContract):
 
         fname = 'custom_match_{}_{}_{}'.format(query_tag, *edge)
         dpath = pathlib.Path(ut.truepath(self.base_dpath))
-        fpath = str(dpath.joinpath(fname + '.jpg'))
+        fpath = join(str(dpath), fname + '.jpg')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def custom_single_hard_case(self):
@@ -2064,8 +2080,8 @@ class Chap4(DBInputs, IOContract):
         ax.set_xlabel(xlabel)
 
         subdir = 'cases_{}'.format(task_key)
-        dpath = self.dpath.joinpath(subdir)
-        fpath = str(dpath.joinpath(fname + '_custom.jpg'))
+        dpath = join(str(self.dpath), subdir)
+        fpath = join(str(dpath), fname + '_custom.jpg')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
 
