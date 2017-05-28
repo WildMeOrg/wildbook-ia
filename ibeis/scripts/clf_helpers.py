@@ -48,17 +48,118 @@ def predict_proba_df(clf, X_df, class_names=None):
     return probs_df
 
 
+class PrefitEstimatorEnsemble(object):
+    """
+
+    hacks around limitations of sklearn.ensemble.VotingClassifier
+
+    """
+    def __init__(self, clf_list, voting='soft', weights=None):
+        self.clf_list = clf_list
+        self.voting = voting
+        self.weights = None
+
+        classes_list = [clf.classes_ for clf in clf_list]
+        if ut.allsame(classes_list):
+            self.classes_ = classes_list[0]
+            self.class_idx_mappers = None
+        else:
+            # Need to make a mapper from individual clf classes to ensemble
+            self.class_idx_mappers = []
+            classes_ = sorted(set.union(*map(set, classes_list)))
+            for clf in clf_list:
+                # For each index of the clf classes, find that index in the
+                # ensemble classes. Eg. class y=4 might be at cx=1 and ex=0
+                mapper = np.empty(len(clf.classes_), dtype=np.int)
+                for cx, y in enumerate(clf.classes_):
+                    ex = classes_.index(y)
+                    mapper[cx] = ex
+                self.class_idx_mappers.append(mapper)
+            self.classes_ = np.array(classes_)
+
+        for clf in clf_list:
+            clf.classes_
+            pass
+
+    def _collect_probas(self, X):
+        """Collect results from clf.predict calls. """
+        if self.class_idx_mappers is None:
+            probas = np.asarray([clf.predict_proba(X) for clf in self.clf_list])
+        else:
+            n_estimators = len(self.clf_list)
+            n_samples = X.shape[0]
+            n_classes = len(self.classes_)
+            probas = np.zeros((n_estimators, n_samples, n_classes))
+            for ex, (clf, mapper) in enumerate(zip(self.clf_list,
+                                                   self.class_idx_mappers)):
+                proba = clf.predict_proba(X)
+                # Use mapper to map indicies of clf classes to ensemble classes
+                probas[ex][:, mapper] = proba
+        return probas
+
+    def predict_proba(self, X):
+        """Predict class probabilities for X in 'soft' voting """
+        if self.voting == 'hard':
+            raise AttributeError("predict_proba is not available when"
+                                 " voting=%r" % self.voting)
+        avg = np.average(self._collect_probas(X), axis=0, weights=self.weights)
+        return avg
+
+    def predict(self, X):
+        """ Predict class labels for X.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+            Training vectors, where n_samples is the number of samples and
+            n_features is the number of features.
+
+        Returns
+        ----------
+        maj : array-like, shape = [n_samples]
+            Predicted class labels.
+        """
+        if self.voting == 'soft':
+            maj = np.argmax(self.predict_proba(X), axis=1)
+        else:  # 'hard' voting
+            predictions = self._predict(X)
+            maj = np.apply_along_axis(lambda x:
+                                      np.argmax(np.bincount(x,
+                                                weights=self.weights)),
+                                      axis=1,
+                                      arr=predictions.astype('int'))
+        return maj
+
+    def _predict(self, X):
+        """Collect results from clf.predict calls. """
+        return np.asarray([clf.predict(X) for clf in self.clf_list]).T
+
+
 def voting_ensemble(clf_list, voting='hard'):
     """
     hack to construct a VotingClassifier from pretrained classifiers
     TODO: contribute similar functionality to sklearn
     """
-    estimators = [('clf%d' % count, clf) for count, clf in enumerate(clf_list)]
-    eclf = sklearn.ensemble.VotingClassifier(estimators=estimators,
-                                             voting=voting)
-    assert ut.allsame(ut.list_getattr(clf_list, 'classes_'))
-    eclf.classes_ = clf_list[0].classes_
-    eclf.estimators_ = clf_list
+    eclf = PrefitEstimatorEnsemble(clf_list, voting=voting)
+    # classes_ = ut.list_getattr(clf_list, 'classes_')
+    # if not ut.allsame(classes_):
+    #     for clf in clf_list:
+    #         print(clf.predict_proba(X_train))
+    #         pass
+    #     # Note: There is a corner case where one fold doesn't get any labels of
+    #     # a certain class. Because y_train is an encoded integer, the
+    #     # clf.classes_ attribute will cause predictions to agree with other
+    #     # classifiers trained on the same labels. Therefore, the voting
+    #     # classifer will still work. But
+    #     raise ValueError(
+    #         'Classifiers predict different things. classes_={}'.format(
+    #             classes_)
+    #     )
+    # estimators = [('clf%d' % count, clf) for count, clf in enumerate(clf_list)]
+    # eclf = sklearn.ensemble.VotingClassifier(estimators=estimators,
+    #                                          voting=voting)
+    # eclf.classes_ = clf_list[0].classes_
+    # eclf.estimators_ = clf_list
     return eclf
 
 
@@ -177,9 +278,10 @@ class ClfProblem(ut.NiceRepr):
             >>> pblm.load_samples()
             >>> data_key = 'learn(all)'
             >>> task_key = 'photobomb_state'
-            >>> task_key = 'match_state'
             >>> clf_key = 'RF-OVR'
-            >>> clf_key = 'RF'
+            >>> task_key = 'match_state'
+            >>> data_key = pblm.default_data_key
+            >>> clf_key = pblm.default_clf_key
         """
         X_df = pblm.samples.X_dict[data_key]
         labels = pblm.samples.subtasks[task_key]
@@ -198,10 +300,18 @@ class ClfProblem(ut.NiceRepr):
             # train_uv = X_df.iloc[train_idx].index
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
+
             X_train = X_df.iloc[train_idx].values
             y_train = labels.encoded_df.iloc[train_idx].values.ravel()
+
             clf = clf_partial()
             clf.fit(X_train, y_train)
+
+            # Note: There is a corner case where one fold doesn't get any
+            # labels of a certain class. Because y_train is an encoded integer,
+            # the clf.classes_ attribute will cause predictions to agree with
+            # other classifiers trained on the same labels.
+
             # Evaluate results
             res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key)
             clf_list.append(clf)
