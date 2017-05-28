@@ -87,7 +87,9 @@ class DBInputs(object):
         from ibeis.init import main_helpers
         self.dbdir = ibeis.sysres.lookup_dbdir(self.dbname)
         ibs = ibeis.opendb(dbdir=self.dbdir)
-        if ibs.dbname.startswith('PZ_Master'):
+        if ibs.dbname.startswith('PZ_PB_RF_TRAIN'):
+            aids = ibs.get_valid_aids()
+        elif ibs.dbname.startswith('PZ_Master'):
             aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
                                              # require_viewpoint=True,
                                              # view='left',
@@ -1268,6 +1270,7 @@ class Chap4(DBInputs, IOContract):
         r"""
         Example:
             >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('PZ_PB_RF_TRAIN')
             >>> self = Chap4('PZ_Master1')
             >>> self._setup_pblm()
 
@@ -1279,8 +1282,14 @@ class Chap4(DBInputs, IOContract):
 
         if ibs.dbname == 'PZ_Master1':
             # FIND ALL PHOTOBOMB / INCOMPARABLE CASES
-            # infr = ibeis.AnnotInference(ibs, aids='all')
-            # infr.reset_feedback('staging', apply=True)
+            if False:
+                infr = ibeis.AnnotInference(ibs, aids='all')
+                infr.reset_feedback('staging', apply=True)
+                print(ut.repr4(infr.status()))
+
+                pblm = script_vsone.OneVsOneProblem.from_aids(ibs, self.aids_pool)
+                pblm.load_samples()
+                pblm.samples.print_info()
 
             infr = ibeis.AnnotInference(ibs, aids=self.aids_pool)
             infr.reset_feedback('staging', apply=True)
@@ -1307,6 +1316,10 @@ class Chap4(DBInputs, IOContract):
         pblm.eval_data_keys = [data_key]
         pblm.eval_clf_keys = [clf_key]
         pblm.setup_evaluation()
+
+        if False:
+            pblm.infr
+            pblm.load_samples()
 
         # pblm.evaluate_classifiers()
         ibs = pblm.infr.ibs
@@ -1346,12 +1359,12 @@ class Chap4(DBInputs, IOContract):
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> defaultdb = 'PZ_PB_RF_TRAIN'
-            >>> defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_MTEST'
-            >>> self = Chap4(defaultdb)
-            >>> self.measure_all()
-            >>> #self.draw()
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap4(dbname)
+            >>>     self.measure_all()
         """
         self._setup_pblm()
         pblm = self.pblm
@@ -1390,8 +1403,12 @@ class Chap4(DBInputs, IOContract):
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> self = Chap4('PZ_MTEST')
-            >>> self.draw_all()
+            >>> dbname = ut.get_argval('--db', default='PZ_MTEST')
+            >>> dbnames = ut.get_argval('--dbs', type_=list, default=[dbname])
+            >>> for dbname in dbnames:
+            >>>     print('dbname = %r' % (dbname,))
+            >>>     self = Chap4(dbname)
+            >>>     self.draw_all()
         """
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
@@ -1666,10 +1683,10 @@ class Chap4(DBInputs, IOContract):
         print(metrics_latex_str)
 
         fname = 'confusion_{}.tex'.format(task_key)
-        ut.write_to(join(str(self.dpath), fname), metrics_latex_str)
+        ut.write_to(join(str(self.dpath), fname), confusion_latex_str)
 
         fname = 'eval_metrics_{}.tex'.format(task_key)
-        ut.write_to(join(str(self.dpath), fname), confusion_latex_str)
+        ut.write_to(join(str(self.dpath), fname), metrics_latex_str)
 
     def write_importance(self, task_key):
         # Print info for latex table

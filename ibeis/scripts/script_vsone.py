@@ -751,7 +751,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 print('Predicting %s probabilities' % (task_key,))
                 clf_list = pblm.eval_task_clfs[task_key][clf_key][data_key]
                 labels = pblm.samples.subtasks[task_key]
-                eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
+                import utool
+                with utool.embed_on_exception_context:
+                    eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
                 eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
                                                           labels.class_names)
                 task_need_probs[task_key] = eclf_probs
