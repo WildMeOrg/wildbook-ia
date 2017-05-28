@@ -1759,6 +1759,8 @@ class Chap4(DBInputs, IOContract):
             # fpath = str(dpath.joinpath(fname + '_overlay.jpg'))
             fpath = str(dpath.joinpath(fname + '.jpg'))
             vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if False:
+            ut.startfile(fpath)
 
             # vt.pad_image_ondisk()
             # Draw without feature overlay

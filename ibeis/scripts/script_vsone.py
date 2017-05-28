@@ -1227,22 +1227,22 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # pt.plt.plot(thresholds, rocs, 'b-', label='L2')
         # pt.plt.plot(submax_thresh, submax_roc, 'bo', label='L2 opt=%r' % (submax_thresh,))
 
-    def simple_confusion(pblm, score_key=None, task_key=None,
-                         target_class=None):
-        if score_key is None:
-            score_key = 'score_lnbnn_1vM'
-        if task_key is None:
-            task_key = pblm.primary_task_key
-        task = pblm.samples[task_key]
-        if target_class is None:
-            target_class = task.default_class_name
+    # def simple_confusion(pblm, score_key=None, task_key=None,
+    #                      target_class=None):
+    #     if score_key is None:
+    #         score_key = 'score_lnbnn_1vM'
+    #     if task_key is None:
+    #         task_key = pblm.primary_task_key
+    #     task = pblm.samples[task_key]
+    #     if target_class is None:
+    #         target_class = task.default_class_name
 
-        target_class_idx = task.lookup_class_idx(target_class)
-        scores = pblm.samples.simple_scores[score_key]
-        y = task.y_bin.T[target_class_idx]
-        conf = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-        conf.label = score_key
-        return conf
+    #     target_class_idx = task.lookup_class_idx(target_class)
+    #     scores = pblm.samples.simple_scores[score_key]
+    #     y = task.y_bin.T[target_class_idx]
+    #     conf = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+    #     conf.label = score_key
+    #     return conf
 
     def qt_review_hardcases(pblm):
         """
