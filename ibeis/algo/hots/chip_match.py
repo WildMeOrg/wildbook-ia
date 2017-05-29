@@ -2789,10 +2789,10 @@ def get_chipmatch_fname(qaid, qreq_, qauuid=None, cfgstr=None,
         qaid=18_cm_cvgrsbnffsgifyom_quuid=a126d459-b730-573e-7a21-92894b016565.cPkl
     """
     if qauuid is None:
-        print('[chipmatch] Warning qasuuid should be given')
-        qauuid = qreq_.get_qreq_pcc_uuids([qaid])[0]
+        print('[chipmatch] Warning: qasuuid should be given')
+        qauuid = next(qreq_.get_qreq_pcc_uuids([qaid]))
     if cfgstr is None:
-        print('[chipmatch] Warning cfgstr should be passed given')
+        print('[chipmatch] Warning: cfgstr should be passed given')
         cfgstr = qreq_.get_cfgstr(with_input=True)
     #print('cfgstr = %r' % (cfgstr,))
     fname_fmt = 'qaid={qaid}_cm_{cfgstr}_quuid={qauuid}{ext}'

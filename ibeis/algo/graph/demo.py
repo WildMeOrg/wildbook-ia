@@ -1182,7 +1182,7 @@ def demodata_infr(**kwargs):
 
             unique_states, groupxs_list = vt.group_indices(stateful_states)
             for state, groupxs in zip(unique_states, groupxs_list):
-                print('state = %r' % (state,))
+                # print('state = %r' % (state,))
                 # Add in candidate edges
                 edges = ut.take(stateful_edges, groupxs)
                 attrs = pair_attrs_lookup[state]

@@ -199,9 +199,6 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     if use_cache:
         if ut.VERBOSE:
             print('[mc4] cache-query is on')
-        if ut.DEBUG2:
-            # sanity check
-            qreq_.assert_self(qreq_.ibs)
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
@@ -250,9 +247,6 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
             print('[mc4] cache-query is off')
         qaid2_cm_hit = {}
     qaid2_cm = execute_query2(qreq_, verbose, save_qcache, batch_size)
-    if ut.DEBUG2:
-        # sanity check
-        qreq_.assert_self(qreq_.ibs)
     # Merge cache hits with computed misses
     if len(qaid2_cm_hit) > 0:
         qaid2_cm.update(qaid2_cm_hit)

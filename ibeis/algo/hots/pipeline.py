@@ -405,7 +405,7 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     internal_qaids = qreq_.get_internal_qaids()
     if requery:
         assert qreq_.qparams.vsmany
-        data_hashid = qreq_.get_qreq_pcc_hashid(internal_daids, prefix='D')
+        data_hashid = qreq_.get_data_hashid()
     else:
         data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
             internal_daids, prefix='D')
