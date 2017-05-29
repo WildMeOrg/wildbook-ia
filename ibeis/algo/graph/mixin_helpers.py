@@ -157,6 +157,7 @@ class Convenience(object):
         print('in_am = %r' % (in_am,))
 
         # DOes this exist in staging?
+        ibs.get_review_rowids_from_edges([(aid1, aid2)])
 
         # Next check indirect relationships
         graph = infr.graph

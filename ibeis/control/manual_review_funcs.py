@@ -210,8 +210,8 @@ def delete_review(ibs, review_rowid_list):
 def get_review_rowids_from_edges(ibs, edges, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
-    params_iter = (e_(u, v) for u, v in edges)
-    params_iter = edges
+    # params_iter = edges
+    params_iter = [e_(u, v) for u, v in edges]
     where_colnames = [REVIEW_AID1, REVIEW_AID2]
     review_rowids_list = ibs.staging.get_where_eq(
         const.REVIEW_TABLE, colnames, params_iter, where_colnames,
