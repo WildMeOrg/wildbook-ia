@@ -846,9 +846,7 @@ class SQLDatabaseController(object):
 
     def exists_where_eq(db, tblname, params_iter, where_colnames,
                         op='AND', unpack_scalars=True, eager=True, **kwargs):
-        """ hacked in function for nicer templates
-
-        """
+        """ hacked in function for nicer templates """
         andwhere_clauses = [colname + '=?' for colname in where_colnames]
         where_clause = (' %s ' % (op,)).join(andwhere_clauses)
         fmtdict = { 'tblname'     : tblname,
