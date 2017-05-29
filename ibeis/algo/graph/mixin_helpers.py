@@ -8,7 +8,7 @@ import utool as ut
 import vtool as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
 from ibeis.algo.graph.nx_utils import e_
-from ibeis.algo.graph import nx_utils
+from ibeis.algo.graph import nx_utils as nxu
 import six
 print, rrr, profile = ut.inject2(__name__)
 
@@ -148,20 +148,30 @@ class Convenience(object):
     def pair_connection_info(infr, aid1, aid2):
         cc1 = infr.pos_graph.connected_to(aid1)
         cc2 = infr.pos_graph.connected_to(aid2)
+        ibs = infr.ibs
 
-        edges = list(nx_utils.edges_between(infr.graph, cc1.union(cc2)))
-        edge_datas = {edge: infr.get_nonvisual_edge_data(edge).copy()
-                      for edge in edges}
+        # First check directly relationships
 
-        nxu = nx_utils
+        # Does this exist in annotmatch?
+        in_am = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
+        print('in_am = %r' % (in_am,))
+
+        # DOes this exist in staging?
+
+        # Next check indirect relationships
         graph = infr.graph
-        edge_df1 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1))
-        edge_df2 = infr.get_edge_dataframe(nxu.edges_between(graph, cc2))
+        if cc1 != cc2:
+            edge_df1 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1))
+            edge_df2 = infr.get_edge_dataframe(nxu.edges_between(graph, cc2))
+            print('Inside1')
+            print(edge_df1)
+
+            print('Inside2')
+            print(edge_df2)
+
         edge_df3 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1, cc2))
-
-
-        list()
-        list(nx_utils.edges_between(infr.graph, cc2))
+        print('Between')
+        print(edge_df3)
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -256,13 +266,13 @@ class DummyEdges(object):
         for nid in prog:
             nodes = set(label_to_nodes[nid])
             G = infr.pos_graph.subgraph(nodes, dynamic=False)
-            impossible = nx_utils.edges_inside(infr.neg_graph, nodes)
-            impossible |= nx_utils.edges_inside(infr.incomp_graph, nodes)
+            impossible = nxu.edges_inside(infr.neg_graph, nodes)
+            impossible |= nxu.edges_inside(infr.incomp_graph, nodes)
 
             candidates = set(nx.complement(G).edges())
             candidates.difference_update(impossible)
 
-            aug_edges = nx_utils.edge_connected_augmentation(
+            aug_edges = nxu.edge_connected_augmentation(
                 G, k=k, candidates=candidates, hack=False)
             new_edges += aug_edges
         prog.ensure_newline()
@@ -288,7 +298,7 @@ class DummyEdges(object):
             >>> infr.find_mst_edges()
             >>> infr.ensure_mst()
         """
-        from ibeis.algo.graph import nx_utils
+        from ibeis.algo.graph import nx_utils as nxu
         # import networkx as nx
         # Find clusters by labels
         # name_attr = 'orig_name_label'
@@ -313,12 +323,12 @@ class DummyEdges(object):
             # We want to make this CC connected
             pos_sub = infr.pos_graph.subgraph(nodes, dynamic=False)
             impossible = set(it.starmap(e_, it.chain(
-                nx_utils.edges_inside(infr.neg_graph, nodes),
-                nx_utils.edges_inside(infr.incomp_graph, nodes),
-                # nx_utils.edges_inside(infr.unknown_graph, nodes),
+                nxu.edges_inside(infr.neg_graph, nodes),
+                nxu.edges_inside(infr.incomp_graph, nodes),
+                # nxu.edges_inside(infr.unknown_graph, nodes),
             )))
             if impossible or special_weighting:
-                complement = it.starmap(e_, nx_utils.complement_edges(pos_sub))
+                complement = it.starmap(e_, nxu.complement_edges(pos_sub))
                 avail_uv = [
                     (u, v) for u, v in complement if (u, v) not in impossible
                 ]
@@ -342,10 +352,10 @@ class DummyEdges(object):
                              for (u, v), w in zip(avail_uv, weights)]
                 else:
                     avail = avail_uv
-                aug_edges = list(nx_utils.edge_connected_augmentation(
+                aug_edges = list(nxu.edge_connected_augmentation(
                     pos_sub, k=1, avail=avail))
             else:
-                aug_edges = list(nx_utils.edge_connected_augmentation(
+                aug_edges = list(nxu.edge_connected_augmentation(
                     pos_sub, k=1))
             new_edges.extend(aug_edges)
         prog.ensure_newline()

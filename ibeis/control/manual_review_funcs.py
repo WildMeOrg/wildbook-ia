@@ -207,7 +207,36 @@ def delete_review(ibs, review_rowid_list):
 
 
 @register_ibs_method
+def get_review_rowids_from_edges(ibs, edges, eager=True, nInput=None):
+    colnames = (REVIEW_ROWID,)
+    # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
+    params_iter = (e_(u, v) for u, v in edges)
+    params_iter = edges
+    where_colnames = [REVIEW_AID1, REVIEW_AID2]
+    review_rowids_list = ibs.staging.get_where_eq(
+        const.REVIEW_TABLE, colnames, params_iter, where_colnames,
+        eager=eager, nInput=nInput, unpack_scalars=False)
+    return review_rowids_list
+
+
+@register_ibs_method
 @accessor_decors.getter_1to1
+def get_review_exists_from_edges(ibs, edges, eager=True, nInput=None):
+    # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
+    # params_iter = (e_(u, v) for u, v in edges)
+    params_iter = edges
+    where_colnames = [REVIEW_AID1, REVIEW_AID2]
+    exists_list = ibs.staging.exists_where_eq(
+        const.REVIEW_TABLE, params_iter, where_colnames,
+        eager=False, nInput=nInput, unpack_scalars=True)
+    exists_list = map(bool, exists_list)
+    if eager:
+        exists_list = list(exists_list)
+    return exists_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1toM
 @register_api('/api/review/rowids/tuple/', methods=['GET'], __api_plural_check__=False)
 def get_review_rowids_from_aid_tuple(ibs, aid_1_list, aid_2_list, eager=True, nInput=None):
     r"""
@@ -220,14 +249,15 @@ def get_review_rowids_from_aid_tuple(ibs, aid_1_list, aid_2_list, eager=True, nI
         Method: GET
         URL:    /api/review/rowid/tuple/
     """
-    colnames = (REVIEW_ROWID,)
     # Order aid_1_list and aid_2_list pairs so that aid_1_list is always lower
-    params_iter = (e_(u, v) for u, v in zip(aid_1_list, aid_2_list))
-    where_colnames = [REVIEW_AID1, REVIEW_AID2]
-    review_rowids_list = ibs.staging.get_where_eq(
-        const.REVIEW_TABLE, colnames, params_iter, where_colnames,
-        eager=eager, nInput=nInput, unpack_scalars=False)
-    return review_rowids_list
+    edges = (e_(u, v) for u, v in zip(aid_1_list, aid_2_list))
+    return get_review_rowids_from_edges(ibs, edges, eager=eager, nInput=nInput)
+    # colnames = (REVIEW_ROWID,)
+    # where_colnames = [REVIEW_AID1, REVIEW_AID2]
+    # review_rowids_list = ibs.staging.get_where_eq(
+    #     const.REVIEW_TABLE, colnames, params_iter, where_colnames,
+    #     eager=eager, nInput=nInput, unpack_scalars=False)
+    # return review_rowids_list
 
 
 @register_ibs_method
@@ -362,7 +392,6 @@ def get_review_decision_str(ibs, review_rowid_list):
 
 
 @register_ibs_method
-@accessor_decors.getter_1to1
 @register_api('/api/review/decisions/only/', methods=['GET'], __api_plural_check__=False)
 def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -383,7 +412,6 @@ def get_review_decisions_from_only(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@accessor_decors.getter_1to1
 @register_api('/api/review/rowids/only/', methods=['GET'], __api_plural_check__=False)
 def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
     r"""
@@ -404,7 +432,6 @@ def get_review_rowids_from_only(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@accessor_decors.getter_1to1
 def get_review_rowids_from_single(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid, aid) for aid in aid_list]
@@ -416,7 +443,6 @@ def get_review_rowids_from_single(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@accessor_decors.getter_1to1
 def get_review_rowids_from_aid1(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
@@ -428,7 +454,6 @@ def get_review_rowids_from_aid1(ibs, aid_list, eager=True, nInput=None):
 
 
 @register_ibs_method
-@accessor_decors.getter_1to1
 def get_review_rowids_from_aid2(ibs, aid_list, eager=True, nInput=None):
     colnames = (REVIEW_ROWID,)
     params_iter = [(aid,) for aid in aid_list]
