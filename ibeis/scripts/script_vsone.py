@@ -187,12 +187,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         else:
             pblm.hyper_params.vsone_match['weight'] = None
 
-    @profile
-    def make_training_pairs(pblm):
+    def make_lnbnn_training_pairs(pblm):
         infr = pblm.infr
         ibs = pblm.infr.ibs
         if pblm.verbose > 0:
-            print('[pblm] gather match-state hard cases')
+            print('[pblm] gather lnbnn match-state cases')
 
         cfgdict = pblm.hyper_params['sample_search'].copy()
         # Use the same keypoints for vsone and vsmany for comparability
@@ -217,34 +216,71 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
         assert pblm.hyper_params.subsample is None
-        data = cacher1.tryload()
-        if data is None:
-            cm_list = qreq_.execute()
-            infr._set_vsmany_info(qreq_, cm_list)
 
-            # Sample hard moderate and easy positives / negative
-            # For each query, choose same, different, and random training pairs
-            rng = np.random.RandomState(42)
-            aid_pairs_ = infr._cm_training_pairs(
-                rng=rng, **pblm.hyper_params.pair_sample)
-            cacher1.save(aid_pairs_)
-            data = aid_pairs_
-        aid_pairs_ = data
+        if not cacher1.exists():
+            data = []
+            from os.path import basename
+            for fpath in cacher1.existing_versions():
+                finfo = ut.get_file_info(fpath)
+                finfo['fpath'] = basename(fpath)
+                data.append(finfo)
+            df = pd.DataFrame(data).drop(['owner', 'created', 'last_accessed'], axis=1)
+            df = df.sort_values('last_modified')
+            print(df)
+
+        # make sure changes is names doesn't change the pair sample so I can
+        # iterate a bit faster. Ensure this is turned off later.
+        import datetime
+        deadline = datetime.date(year=2017, month=8, day=1)
+        nowdate = datetime.datetime.now().date()
+        HACK_STATIC_DATASET = nowdate < deadline
+        if HACK_STATIC_DATASET:
+            cacherH = ut.Cacher('pairsample_1_vSTATIC',
+                                cfgstr='HACK', appname=pblm.appname,
+                                enabled=use_cache, verbose=pblm.verbose)
+            data = cacherH.tryload()
+        else:
+            data = cacher1.tryload()
+            if data is None:
+                cm_list = qreq_.execute()
+                infr._set_vsmany_info(qreq_, cm_list)
+
+                # Sample hard moderate and easy positives / negative
+                # For each query, choose same, different, and random training pairs
+                rng = np.random.RandomState(42)
+                aid_pairs_ = infr._cm_training_pairs(
+                    rng=rng, **pblm.hyper_params.pair_sample)
+                cacher1.save(aid_pairs_)
+                data = aid_pairs_
+            aid_pairs_ = data
+        return aid_pairs_
+
+    @profile
+    def make_training_pairs(pblm):
+        """
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
+        """
+        infr = pblm.infr
+        if pblm.verbose > 0:
+            print('[pblm] gather match-state hard cases')
+
+        aid_pairs_ = pblm.make_lnbnn_training_pairs()
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
-        cacher2 = ut.Cacher('pairsample_2_v6', cfgstr=cfgstr,
-                            appname=pblm.appname, enabled=use_cache,
-                            verbose=pblm.verbose)
-        data = cacher2.tryload()
-        if data is None:
-            if pblm.verbose > 0:
-                print('[pblm] gather photobomb and incomparable cases')
-            pb_aid_pairs = infr.photobomb_samples()
-            incomp_aid_pairs = list(infr.incomp_graph.edges())
-            data = pb_aid_pairs, incomp_aid_pairs
-            cacher2.save(data)
-        pb_aid_pairs, incomp_aid_pairs = data
+        # cacher2 = ut.Cacher('pairsample_2_v6', cfgstr=cfgstr,
+        #                     appname=pblm.appname, enabled=use_cache,
+        #                     verbose=pblm.verbose)
+        # data = cacher2.tryload()
+        # if data is None:
+        #     if pblm.verbose > 0:
+        #         print('[pblm] gather photobomb and incomparable cases')
+        pb_aid_pairs = infr.photobomb_samples()
+        incomp_aid_pairs = list(infr.incomp_graph.edges())
+        # data = pb_aid_pairs, incomp_aid_pairs
+        # cacher2.save(data)
+        # pb_aid_pairs, incomp_aid_pairs = data
 
         # Simplify life by using undirected pairs
         aid_pairs = pb_aid_pairs + aid_pairs_ + incomp_aid_pairs
@@ -260,7 +296,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> #pblm = OneVsOneProblem.from_empty('PZ_MTEST')
-            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
             >>> pblm.load_samples()
             >>> samples = pblm.samples
             >>> samples.print_info()
@@ -696,7 +733,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # TODO: move probability predictions into the depcache
         prob_cfgstr = '_'.join([
             infr.ibs.dbname,
-            ut.hashstr3(np.array(want_edges)),
+            ut.hash_data(np.array(want_edges)),
             data_key,
             clf_key,
             repr(task_keys),

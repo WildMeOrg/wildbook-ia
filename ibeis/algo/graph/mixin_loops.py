@@ -67,8 +67,8 @@ class RefreshCriteria(object):
             >>> infr = demo.demodata_infr(size_std=0, **demokw)
             >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
-            >>> print('edges = %r' % (ut.hashstr3(edges),))
-            >>> print('scores = %r' % (ut.hashstr3(scores),))
+            >>> print('edges = %r' % (ut.hash_data(edges),))
+            >>> print('scores = %r' % (ut.hash_data(scores),))
             >>> sortx = scores.argsort()[::-1]
             >>> edges = ut.take(edges, sortx)
             >>> scores = scores[sortx]
@@ -642,7 +642,7 @@ class InfrReviewers(object):
         return infr.manual_wgt
 
     def emit_manual_review(infr, edge, priority=None):
-        edge_data = infr.get_nonvisual_edge_data(edge).copy()
+        edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default').copy()
         edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
         edge_data['n_ccs'] = (
             len(infr.pos_graph.connected_to(edge[0])),

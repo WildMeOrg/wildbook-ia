@@ -919,18 +919,20 @@ class Chap5Commands(object):
 
         # hybrids can be done by first splitting and then merging
         hybrid = delta['hybrid']
+        hybrid_splits = delta['hybrid']['splits']
+        hybrid_merges = delta['hybrid']['merges']
 
-        lookup = {a: n for n, aids in enumerate(hybrid['new']) for a in aids}
-        hybrid_splits = []
-        for aids in hybrid['old']:
-            nids = ut.take(lookup, aids)
-            split_part = list(ut.group_items(aids, nids).values())
-            hybrid_splits.append(split_part)
+        # lookup = {a: n for n, aids in enumerate(hybrid['new']) for a in aids}
+        # hybrid_splits = []
+        # for aids in hybrid['old']:
+        #     nids = ut.take(lookup, aids)
+        #     split_part = list(ut.group_items(aids, nids).values())
+        #     hybrid_splits.append(split_part)
 
-        hybrid_merge_parts = ut.flatten(hybrid_splits)
-        part_nids = [lookup[aids[0]] for aids in hybrid_merge_parts]
-        hybrid_merges = list(ut.group_items(hybrid_merge_parts,
-                                            part_nids).values())
+        # hybrid_merge_parts = ut.flatten(hybrid_splits)
+        # part_nids = [lookup[aids[0]] for aids in hybrid_merge_parts]
+        # hybrid_merges = list(ut.group_items(hybrid_merge_parts,
+        #                                     part_nids).values())
 
         if True:
             hybrid_merges = merges + hybrid_merges

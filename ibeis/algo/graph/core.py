@@ -773,7 +773,7 @@ class AltConstructors(object):
             ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
             ('nPosRedunCCs', len(infr.pos_redun_nids)),
             ('nNegRedunPairs', infr.neg_redun_nids.number_of_edges()),
-            ('nInconCCs', len(infr.nid_to_errors)),
+            ('nInconsistentCCs', len(infr.nid_to_errors)),
             #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
         ])
         if extended:
@@ -938,6 +938,7 @@ class AnnotInference(ut.NiceRepr,
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
         # infr.verbose = verbose
+        infr.classifiers = None
         infr.review_counter = it.count(0)
         infr.verbose = verbose
         infr.init_logging()

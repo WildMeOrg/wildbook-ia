@@ -887,17 +887,17 @@ class Priority(object):
         try:
             edge, priority = infr.queue.pop()
         except IndexError:
-            if infr.enable_redundancy:
-                infr.print("ADDING POSITIVE REDUN CANDIDATES")
-                new_edges = infr.find_pos_redun_candidate_edges()
-                if new_edges:
-                    # Add edges to complete redundancy
-                    infr.add_new_candidate_edges(new_edges)
-                    return infr.pop()
-                else:
-                    raise StopIteration('no more to review!')
-            else:
-                raise StopIteration('no more to review!')
+            # if infr.enable_redundancy:
+            #     infr.print("ADDING POSITIVE REDUN CANDIDATES")
+            #     new_edges = infr.find_pos_redun_candidate_edges()
+            #     if new_edges:
+            #         # Add edges to complete redundancy
+            #         infr.add_new_candidate_edges(new_edges)
+            #         return infr.pop()
+            #     else:
+            #         raise StopIteration('no more to review!')
+            # else:
+            raise StopIteration('no more to review!')
         else:
             if infr.enable_redundancy:
                 u, v = edge

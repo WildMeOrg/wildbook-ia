@@ -1302,7 +1302,7 @@ class DummyMatcher(object):
         nodes = list(matcher.infr.graph.nodes())
         for u in nodes:
             new_edges.extend(matcher.dummy_ranker(u, K=K))
-        # print('new_edges = %r' % (ut.hashstr3(new_edges),))
+        # print('new_edges = %r' % (ut.hash_data(new_edges),))
         new_edges = set(new_edges)
         return new_edges
 
@@ -1329,7 +1329,7 @@ class DummyMatcher(object):
             >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
             >>> #print('scores = %r' % (scores,))
-            >>> #hashid = ut.hashstr3(scores)
+            >>> #hashid = ut.hash_data(scores)
             >>> #print('hashid = %r' % (hashid,))
             >>> #assert hashid == 'cdlkytilfeqgmtsihvhqwffmhczqmpil'
         """

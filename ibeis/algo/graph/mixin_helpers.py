@@ -103,10 +103,17 @@ class AttrAccess(object):
     def get_edge_data(infr, edge):
         return infr.graph.get_edge_data(*edge)
 
-    def get_nonvisual_edge_data(infr, edge):
+    def get_nonvisual_edge_data(infr, edge, on_missing='filter'):
         data = infr.get_edge_data(edge)
         if data is not None:
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
+        else:
+            if on_missing == 'filter':
+                data = None
+            elif on_missing == 'default':
+                data = {}
+            elif on_missing == 'error':
+                raise KeyError('graph does not have edge %r ' % (edge,))
         return data
 
     def get_edge_dataframe(infr, edges):
@@ -146,6 +153,27 @@ class Convenience(object):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
     def pair_connection_info(infr, aid1, aid2):
+        """
+        Helps debugging when ibs.nids has info that annotmatch/staging do not
+
+        Examples:
+            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> infr.reset_feedback('staging', apply=True)
+            >>> infr.relabel_using_reviews(rectify=False)
+            >>> aid1, aid2 = 1349, 3087
+            >>> aid1, aid2 = 1535, 2549
+            >>> infr.pair_connection_info(aid1, aid2)
+
+
+            >>> aid1, aid2 = 4055, 4286
+            >>> aid1, aid2 = 6555, 6882
+            >>> aid1, aid2 = 712, 803
+            >>> aid1, aid2 = 3883, 4220
+            >>> infr.pair_connection_info(aid1, aid2)
+        """
 
         nid1, nid2 = infr.pos_graph.node_labels(aid1, aid2)
         cc1 = infr.pos_graph.connected_to(aid1)
@@ -197,6 +225,8 @@ class Convenience(object):
 
         if (nid1 == nid2) != (nid1_ == nid2_):
             ut.cprint('DISAGREEMENT IN GRAPH AND DB', 'red')
+        else:
+            ut.cprint('GRAPH AND DB AGREE', 'green')
 
         print('IBS  NAMES: nid1, nid2 = %r, %r' % (nid1_, nid2_))
         if nid1_ == nid2_:
@@ -236,6 +266,10 @@ class Convenience(object):
 
             out_df2 = get_aug_df(nxu.edges_outgoing(graph, cc2))
             print_df(out_df2, 'Outgoing2')
+        else:
+            subgraph = infr.pos_graph.subgraph(cc1)
+            print('Shortest path between endpoints')
+            print(nx.shortest_path(subgraph, aid1, aid2))
 
         edge_df3 = get_aug_df(nxu.edges_between(graph, cc1, cc2))
         print_df(edge_df3, 'Between')
