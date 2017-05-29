@@ -469,6 +469,7 @@ class QueryRequest(ut.NiceRepr):
 
         Example:
             >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
             >>> p = ['default:K=2,nameknn=True']
             >>> defaultdb = 'testdb1'
@@ -815,7 +816,6 @@ class QueryRequest(ut.NiceRepr):
         if masked_qaid_list is None or len(masked_qaid_list) == 0:
             qreq_.internal_qaids_mask = None
         else:
-            #with ut.EmbedOnException():
             # input denotes invalid elements mark all elements not in that
             # list as True
             flags = vt.get_uncovered_mask(qreq_.internal_qaids,
@@ -892,9 +892,6 @@ class QueryRequest(ut.NiceRepr):
     def get_qreq_annot_nids(qreq_, aids):
         # Hack uses own internal state to grab name rowids
         # instead of using ibeis.
-        #import utool
-
-        #with utool.embed_on_exception_context:
         idxs = ut.take(qreq_.aid_to_idx, aids)
         nids = ut.take(qreq_.unique_nids, idxs)
         return nids
@@ -914,19 +911,16 @@ class QueryRequest(ut.NiceRepr):
     @property
     def dnids(qreq_):
         """ TODO: save dnids in qreq_ state """
-        #return qreq_.dannots.nids
         return qreq_.get_qreq_annot_nids(qreq_.daids)
 
     @property
     def qnids(qreq_):
         """ TODO: save qnids in qreq_ state """
-        #return qreq_.qannots.nids
         return qreq_.get_qreq_annot_nids(qreq_.qaids)
 
     @property
     def extern_data_config2(qreq_):
         return qreq_.data_config2_
-        #return qreq_.extern_data_config2
 
     @property
     def extern_query_config2(qreq_):
@@ -981,14 +975,10 @@ class QueryRequest(ut.NiceRepr):
         """
         FIXME: name
         params only """
-        #query_cfgstr = qreq_.qparams.query_cfgstr
         pipe_cfgstr = qreq_.qparams.query_cfgstr
         return pipe_cfgstr
 
     def get_pipe_hashid(qreq_):
-        # this changes invalidates match_chip4 bibcaches generated before
-        # august 24 2015
-        #pipe_hashstr = ut.hashstr(qreq_.get_pipe_cfgstr())
         pipe_hashstr = ut.hashstr27(qreq_.get_pipe_cfgstr())
         return pipe_hashstr
 
@@ -1083,12 +1073,9 @@ class QueryRequest(ut.NiceRepr):
         """
         print('[qreq] lazy loading')
         qreq_.hasloaded = True
-        #qreq_.ibs = ibs  # HACK
         qreq_.lazy_preload(verbose=verbose)
         if qreq_.qparams.pipeline_root in ['vsmany']:
             qreq_.load_indexer(verbose=verbose)
-        #if qreq_.qparams.pipeline_root in ['smk']:
-        #    # TODO load vocabulary indexer
 
     # load query data structures
     @profile
@@ -1183,21 +1170,6 @@ class QueryRequest(ut.NiceRepr):
             config2_=qreq_.extern_data_config2)
         if prog_hook is not None:
             prog_hook(3, 3, 'computed features')
-        #if ut.DEBUG2:
-        #    qkpts = qreq_.ibs.get_annot_kpts(
-        #        external_qaids, ensure=False,
-        #        config2_=qreq_.extern_query_config2)
-        #    dkpts = qreq_.ibs.get_annot_kpts(  # NOQA
-        #        external_daids, ensure=False,
-        #        config2_=qreq_.extern_data_config2)
-        #    #if verbose:
-        #    try:
-        #        assert len(qkpts) > 0, 'no query keypoint'
-        #        assert qkpts[0].size > 0, (
-        #            'Query keypoints are corrupted! qkpts=%r' % (qkpts,))
-        #    except Exception:
-        #        print('qkpts = %r' % (qkpts,))
-        #        raise
 
     @profile
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):

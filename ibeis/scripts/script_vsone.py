@@ -210,56 +210,61 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         use_cache = False
         use_cache = True
         cfgstr = qreq_.get_cfgstr(with_input=True)
-        cacher1 = ut.Cacher('pairsample_1_v6', cfgstr=cfgstr,
-                            appname=pblm.appname, enabled=use_cache,
-                            verbose=pblm.verbose)
+        cacher1 = ut.Cacher('pairsample_1_v6' + ibs.get_dbname(),
+                            cfgstr=cfgstr, appname=pblm.appname,
+                            enabled=use_cache, verbose=pblm.verbose)
         assert qreq_.qparams.can_match_samename is True
         assert qreq_.qparams.prescore_method == 'csum'
         assert pblm.hyper_params.subsample is None
-
-        if not cacher1.exists():
-            data = []
-            from os.path import basename
-            for fpath in cacher1.existing_versions():
-                finfo = ut.get_file_info(fpath)
-                finfo['fpath'] = basename(fpath)
-                data.append(finfo)
-            df = pd.DataFrame(data).drop(['owner', 'created', 'last_accessed'], axis=1)
-            df = df.sort_values('last_modified')
-            print(df)
 
         # make sure changes is names doesn't change the pair sample so I can
         # iterate a bit faster. Ensure this is turned off later.
         import datetime
         deadline = datetime.date(year=2017, month=8, day=1)
         nowdate = datetime.datetime.now().date()
-        HACK_STATIC_DATASET = nowdate < deadline
-        if HACK_STATIC_DATASET:
-            cacherH = ut.Cacher('pairsample_1_vSTATIC',
-                                cfgstr='HACK', appname=pblm.appname,
-                                enabled=use_cache, verbose=pblm.verbose)
-            data = cacherH.tryload()
-        else:
-            data = cacher1.tryload()
-            if data is None:
-                cm_list = qreq_.execute()
-                infr._set_vsmany_info(qreq_, cm_list)
+        HACK_LOAD_STATIC_DATASET = nowdate < deadline
 
-                # Sample hard moderate and easy positives / negative
-                # For each query, choose same, different, and random training pairs
-                rng = np.random.RandomState(42)
-                aid_pairs_ = infr._cm_training_pairs(
-                    rng=rng, **pblm.hyper_params.pair_sample)
-                cacher1.save(aid_pairs_)
-                data = aid_pairs_
-            aid_pairs_ = data
+        data = cacher1.tryload()
+
+        if HACK_LOAD_STATIC_DATASET:
+            # Just take anything, I dont care if it changed
+            if data is None:
+                infos = []
+                from os.path import basename
+                for fpath in cacher1.existing_versions():
+                    finfo = ut.get_file_info(fpath)
+                    finfo['fname'] = basename(fpath)
+                    finfo['fpath'] = fpath
+                    infos.append(finfo)
+                df = pd.DataFrame(infos)
+                if len(df):
+                    df = df.drop(['owner', 'created', 'last_accessed'], axis=1)
+                    df = df.sort_values('last_modified').reindex()
+                    fpath = df['fpath'][0]
+                    print(df)
+                    print('HACKING STATIC DATASET')
+                    data = ut.load_data(fpath)
+
+        if data is None:
+            cm_list = qreq_.execute()
+            infr._set_vsmany_info(qreq_, cm_list)  # hack
+
+            # Sample hard moderate and easy positives / negative
+            # For each query, choose same, different, and random training pairs
+            rng = np.random.RandomState(42)
+            aid_pairs_ = infr._cm_training_pairs(
+                rng=rng, **pblm.hyper_params.pair_sample)
+            cacher1.save(aid_pairs_)
+            data = aid_pairs_
+        aid_pairs_ = data
         return aid_pairs_
 
     @profile
     def make_training_pairs(pblm):
         """
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty('PZ_Master1')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST')
+            >>> pblm.make_training_pairs()
         """
         infr = pblm.infr
         if pblm.verbose > 0:
