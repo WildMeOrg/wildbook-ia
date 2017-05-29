@@ -7,7 +7,7 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from ibeis.algo.graph.nx_utils import e_, edges_inside
+from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph import nx_utils
 import six
 print, rrr, profile = ut.inject2(__name__)
@@ -109,6 +109,13 @@ class AttrAccess(object):
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
         return data
 
+    def get_edge_dataframe(infr, edges):
+        import pandas as pd
+        edge_datas = {edge: infr.get_nonvisual_edge_data(edge).copy()
+                      for edge in edges}
+        edge_df = pd.DataFrame.from_dict(edge_datas, orient='index')
+        return edge_df
+
 
 class Convenience(object):
     @staticmethod
@@ -137,6 +144,24 @@ class Convenience(object):
 
     def print_graph_info(infr):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
+
+    def pair_connection_info(infr, aid1, aid2):
+        cc1 = infr.pos_graph.connected_to(aid1)
+        cc2 = infr.pos_graph.connected_to(aid2)
+
+        edges = list(nx_utils.edges_between(infr.graph, cc1.union(cc2)))
+        edge_datas = {edge: infr.get_nonvisual_edge_data(edge).copy()
+                      for edge in edges}
+
+        nxu = nx_utils
+        graph = infr.graph
+        edge_df1 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1))
+        edge_df2 = infr.get_edge_dataframe(nxu.edges_between(graph, cc2))
+        edge_df3 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1, cc2))
+
+
+        list()
+        list(nx_utils.edges_between(infr.graph, cc2))
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -231,8 +256,8 @@ class DummyEdges(object):
         for nid in prog:
             nodes = set(label_to_nodes[nid])
             G = infr.pos_graph.subgraph(nodes, dynamic=False)
-            impossible = edges_inside(infr.neg_graph, nodes)
-            impossible |= edges_inside(infr.incomp_graph, nodes)
+            impossible = nx_utils.edges_inside(infr.neg_graph, nodes)
+            impossible |= nx_utils.edges_inside(infr.incomp_graph, nodes)
 
             candidates = set(nx.complement(G).edges())
             candidates.difference_update(impossible)
@@ -288,9 +313,9 @@ class DummyEdges(object):
             # We want to make this CC connected
             pos_sub = infr.pos_graph.subgraph(nodes, dynamic=False)
             impossible = set(it.starmap(e_, it.chain(
-                edges_inside(infr.neg_graph, nodes),
-                edges_inside(infr.incomp_graph, nodes),
-                # edges_inside(infr.unknown_graph, nodes),
+                nx_utils.edges_inside(infr.neg_graph, nodes),
+                nx_utils.edges_inside(infr.incomp_graph, nodes),
+                # nx_utils.edges_inside(infr.unknown_graph, nodes),
             )))
             if impossible or special_weighting:
                 complement = it.starmap(e_, nx_utils.complement_edges(pos_sub))
@@ -339,11 +364,11 @@ class AssertInvariants(object):
 
     def assert_union_invariant(infr, msg=''):
         edge_sets = {
-            key: set(it.starmap(infr.e_, graph.edges()))
+            key: set(it.starmap(e_, graph.edges()))
             for key, graph in infr.review_graphs.items()
         }
         edge_union = set.union(*edge_sets.values())
-        all_edges = set(it.starmap(infr.e_, infr.graph.edges()))
+        all_edges = set(it.starmap(e_, infr.graph.edges()))
         if edge_union != all_edges:
             print('ERROR STATUS DUMP:')
             print(ut.repr4(infr.status()))

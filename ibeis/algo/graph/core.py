@@ -14,7 +14,7 @@ from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
-from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph import nx_utils
 import pandas as pd
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 import networkx as nx
@@ -55,7 +55,6 @@ class Feedback(object):
         ibs.set_annot_yaw_texts([aid], [attrs['yaw_texts']])
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
-        pass
 
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
@@ -78,7 +77,7 @@ class Feedback(object):
         prev_verbose = infr.verbose
         if verbose is not None:
             infr.verbose = verbose
-        edge = aid1, aid2 = e_(*edge)
+        edge = aid1, aid2 = nx_utils.e_(*edge)
 
         if not infr.has_edge(edge):
             if True:

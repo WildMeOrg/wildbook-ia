@@ -709,6 +709,7 @@ class Consistency(object):
 
 class Completeness(object):
     def prob_complete(infr, cc):
+        raise NotImplementedError('Is not done')
         if infr.term is None:
             assert False
             return 0
@@ -754,6 +755,7 @@ class Completeness(object):
             >>> node = 20
             >>> infr.is_node_complete(node)
         """
+        raise NotImplementedError('Is not done')
         thresh = infr.queue_params['complete_thresh']
         cc = infr.pos_graph.connected_to(node)
         if thresh < 1.0:
@@ -1038,7 +1040,8 @@ class _RedundancyHelpers(object):
             # Find k random negative edges
             check_edges = existing_edges - set(reviewed_edges)
             if len(check_edges) < k:
-                for edge in it.starmap(e_, it.product(c1_nodes, c2_nodes)):
+                edges = it.starmap(nx_utils.e_, it.product(c1_nodes, c2_nodes))
+                for edge in edges:
                     if edge not in reviewed_edges:
                         check_edges.add(edge)
                         if len(check_edges) == k:
