@@ -146,33 +146,99 @@ class Convenience(object):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
 
     def pair_connection_info(infr, aid1, aid2):
+
+        nid1, nid2 = infr.pos_graph.node_labels(aid1, aid2)
         cc1 = infr.pos_graph.connected_to(aid1)
         cc2 = infr.pos_graph.connected_to(aid2)
         ibs = infr.ibs
 
         # First check directly relationships
 
+        def get_aug_df(edges):
+            df = infr.get_edge_dataframe(edges)
+            if len(df):
+                df.index.names = ('aid1', 'aid2')
+                nids = np.array([
+                    infr.pos_graph.node_labels(u, v)
+                    for u, v in list(df.index)])
+                df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
+                part = ['nid1', 'nid2', 'decision', 'tags', 'user_id']
+                neworder = ut.partial_order(df.columns, part)
+                df = df.reindex_axis(neworder, axis=1)
+                df = df.drop(['review_id', 'timestamp'], axis=1)
+            return df
+
+        def print_df(df, lbl):
+            df_str = df.to_string()
+            df_str = ut.highlight_regex(df_str, ut.regex_word(str(aid1)), color='blue')
+            df_str = ut.highlight_regex(df_str, ut.regex_word(str(aid2)), color='red')
+            if nid1 not in {aid1, aid2}:
+                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid1)), color='darkblue')
+            if nid2 not in {aid1, aid2}:
+                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid2)), color='darkred')
+
+            print('\n\n=====')
+            print(lbl)
+            print('=====')
+            print(df_str)
+
+        print('================')
+        print('Pair Connection Info')
+        print('================')
+
+        nid1_, nid2_ = ibs.get_annot_nids([aid1, aid2])
+        print('AIDS        aid1, aid2 = %r, %r' % (aid1, aid2))
+        print('INFR NAMES: nid1, nid2 = %r, %r' % (nid1, nid2))
+        if nid1 == nid2:
+            print('INFR cc = %r' % (sorted(cc1),))
+        else:
+            print('INFR cc1 = %r' % (sorted(cc1),))
+            print('INFR cc2 = %r' % (sorted(cc2),))
+
+        if (nid1 == nid2) != (nid1_ == nid2_):
+            ut.cprint('DISAGREEMENT IN GRAPH AND DB', 'red')
+
+        print('IBS  NAMES: nid1, nid2 = %r, %r' % (nid1_, nid2_))
+        if nid1_ == nid2_:
+            print('IBS CC: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+        else:
+            print('IBS CC1: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+            print('IBS CC2: %r' % (sorted(ibs.get_name_aids(nid2_)),))
+
         # Does this exist in annotmatch?
         in_am = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
         print('in_am = %r' % (in_am,))
 
-        # DOes this exist in staging?
-        ibs.get_review_rowids_from_edges([(aid1, aid2)])
+        # Does this exist in staging?
+        staging_rowids = ibs.get_review_rowids_from_edges([(aid1, aid2)])[0]
+        print('staging_rowids = %r' % (staging_rowids,))
+
+        if False:
+            # Make absolutely sure
+            stagedf = ibs.staging.get_table_as_pandas('reviews')
+            aid_cols = ['annot_1_rowid', 'annot_2_rowid']
+            has_aid1 = (stagedf[aid_cols] == aid1).any(axis=1)
+            from_aid1 = stagedf[has_aid1]
+            conn_aid2 = (from_aid1[aid_cols] == aid2).any(axis=1)
+            print('# connections = %r' % (conn_aid2.sum(),))
 
         # Next check indirect relationships
         graph = infr.graph
         if cc1 != cc2:
-            edge_df1 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1))
-            edge_df2 = infr.get_edge_dataframe(nxu.edges_between(graph, cc2))
-            print('Inside1')
-            print(edge_df1)
+            edge_df1 = get_aug_df(nxu.edges_between(graph, cc1))
+            edge_df2 = get_aug_df(nxu.edges_between(graph, cc2))
+            print_df(edge_df1, 'Inside1')
 
-            print('Inside2')
-            print(edge_df2)
+            print_df(edge_df2, 'Inside1')
 
-        edge_df3 = infr.get_edge_dataframe(nxu.edges_between(graph, cc1, cc2))
-        print('Between')
-        print(edge_df3)
+            out_df1 = get_aug_df(nxu.edges_outgoing(graph, cc1))
+            print_df(out_df1, 'Outgoing1')
+
+            out_df2 = get_aug_df(nxu.edges_outgoing(graph, cc2))
+            print_df(out_df2, 'Outgoing2')
+
+        edge_df3 = get_aug_df(nxu.edges_between(graph, cc1, cc2))
+        print_df(edge_df3, 'Between')
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

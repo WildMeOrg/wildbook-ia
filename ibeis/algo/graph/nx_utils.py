@@ -38,18 +38,29 @@ def edges_inside(graph, nodes):
     return result
 
 
-def edges_outgoing(graph, nodes1):
+def edges_outgoing(graph, nodes):
     """
-    Finds edges between two sets of disjoint nodes.
-    Running time is O(len(nodes1) * len(nodes2))
+    Finds edges leaving a set of nodes.
+    Average running time is O(len(nodes) * ave_degree(nodes))
+    Worst case running time is O(G.number_of_edges()).
 
     Args:
-        graph (nx.Graph): an undirected graph
-        nodes1 (set): set of nodes disjoint from `nodes2`
-        nodes2 (set): set of nodes disjoint from `nodes1`.
+        graph (nx.Graph): a graph
+        nodes (set): set of nodes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> import utool as ut
+        >>> G = demodata_bridge()
+        >>> bridges = find_bridges(G)
+        >>> nodes = {1, 2, 3, 4}
+        >>> outgoing = edges_outgoing(G, nodes)
+        >>> assert outgoing == {(3, 5), (4, 8)}
     """
-    nodes1 = set(nodes1)
-    return {e_(u, v) for u in nodes1 for v in graph.adj[u] if v not in nodes1}
+    if not isinstance(nodes, set):
+        nodes = set(nodes)
+    return {e_(u, v) for u in nodes for v in graph.adj[u] if v not in nodes}
 
 
 def edges_cross(graph, nodes1, nodes2):
@@ -66,6 +77,67 @@ def edges_cross(graph, nodes1, nodes2):
             for v in nodes2.intersection(graph.adj[u])}
 
 
+def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
+                  assume_dense=True):
+    r"""
+    Get edges between two components or within a single component
+
+    Args:
+        graph (nx.Graph): the graph
+        nodes1 (set): list of nodes
+        nodes2 (set): if None it is equivlanet to nodes2=nodes1 (default=None)
+        assume_disjoint (bool): skips expensive check to ensure edges arnt
+            returned twice (default=False)
+
+    CommandLine:
+        python -m ibeis.algo.graph.nx_utils --test-edges_between
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> import utool as ut
+        >>> edges = [
+        >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),  # cc 1234
+        >>>     (1, 5), (7, 2), (5, 1),  # cc 567 / 5678
+        >>>     (7, 5), (5, 6), (8, 7),
+        >>> ]
+        >>> digraph = nx.DiGraph(edges)
+        >>> graph = nx.Graph(edges)
+        >>> nodes1 = [1, 2, 3, 4]
+        >>> nodes2 = [5, 6, 7]
+        >>> n2 = sorted(edges_between(graph, nodes1, nodes2))
+        >>> n4 = sorted(edges_between(graph, nodes1))
+        >>> n5 = sorted(edges_between(graph, nodes1, nodes1))
+        >>> n1 = sorted(edges_between(digraph, nodes1, nodes2))
+        >>> n3 = sorted(edges_between(digraph, nodes1))
+        >>> print('n2 == %r' % (n2,))
+        >>> print('n4 == %r' % (n4,))
+        >>> print('n5 == %r' % (n5,))
+        >>> print('n1 == %r' % (n1,))
+        >>> print('n3 == %r' % (n3,))
+        >>> assert n2 == ([(1, 5), (2, 7)]), '2'
+        >>> assert n4 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '4'
+        >>> assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
+        >>> assert n1 == ([(1, 5), (5, 1), (7, 2)]), '1'
+        >>> assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
+        >>> n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=False))
+        >>> print('n6 = %r' % (n6,))
+        >>> n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=True))
+        >>> print('n6 = %r' % (n6,))
+        >>> assert n6 == ([(1, 2), (1, 5), (2, 3), (4, 1), (5, 1), (5, 6), (7, 2)]), '6'
+    """
+    if assume_dense:
+        edges = _edges_between_dense(graph, nodes1, nodes2, assume_disjoint)
+    else:
+        edges = _edges_between_sparse(graph, nodes1, nodes2, assume_disjoint)
+    if graph.is_directed():
+        for u, v in edges:
+            yield u, v
+    else:
+        for u, v in edges:
+            yield e_(u, v)
+
+
 def _edges_between_dense(graph, nodes1, nodes2=None, assume_disjoint=False):
     """
     The dense method is where we enumerate all possible edges and just take the
@@ -80,11 +152,13 @@ def _edges_between_dense(graph, nodes1, nodes2=None, assume_disjoint=False):
     else:
         # make sure a single edge is not returned twice
         # in the case where len(isect(nodes1, nodes2)) > 0
-        nodes1_ = set(nodes1)
-        nodes2_ = set(nodes2)
-        nodes_isect = nodes1_.intersection(nodes2_)
-        nodes_only1 = nodes1_ - nodes_isect
-        nodes_only2 = nodes2_ - nodes_isect
+        if not isinstance(nodes1, set):
+            nodes1 = set(nodes1)
+        if not isinstance(nodes2, set):
+            nodes2 = set(nodes2)
+        nodes_isect = nodes1.intersection(nodes2)
+        nodes_only1 = nodes1 - nodes_isect
+        nodes_only2 = nodes2 - nodes_isect
         edge_sets = [it.product(nodes_only1, nodes_only2),
                      it.product(nodes_only1, nodes_isect),
                      it.product(nodes_only2, nodes_isect),
@@ -158,8 +232,12 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
             )
     elif assume_disjoint:
         # Case where we find edges between disjoint sets
-        only1 = set(nodes1)
-        only2 = set(nodes2)
+        if not isinstance(nodes1, set):
+            nodes1 = set(nodes1)
+        if not isinstance(nodes2, set):
+            nodes2 = set(nodes2)
+        only1 = nodes1
+        only2 = nodes2
         if graph.is_directed():
             only1_adj = {u: set(graph.adj[u]) for u in only1}
             only2_adj = {u: set(graph.adj[u]) for u in only2}
@@ -174,14 +252,15 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
             )
     else:
         # Full general case
-        nodes1_ = set(nodes1)
+        if not isinstance(nodes1, set):
+            nodes1 = set(nodes1)
         if nodes2 is None:
-            nodes2_ = nodes1_
-        else:
-            nodes2_ = set(nodes2)
-        both = nodes1_.intersection(nodes2_)
-        only1 = nodes1_ - both
-        only2 = nodes2_ - both
+            nodes2 = nodes1
+        elif not isinstance(nodes2, set):
+            nodes2 = set(nodes2)
+        both = nodes1.intersection(nodes2)
+        only1 = nodes1 - both
+        only2 = nodes2 - both
 
         # Precompute all calls to set(graph.adj[u]) to avoid duplicate calls
         only1_adj = {u: set(graph.adj[u]) for u in only1}
@@ -208,67 +287,6 @@ def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
 
     for u, v in it.chain.from_iterable(edge_sets):
         yield u, v
-
-
-def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
-                  assume_dense=True):
-    r"""
-    Get edges between two components or within a single component
-
-    Args:
-        graph (nx.Graph): the graph
-        nodes1 (set): list of nodes
-        nodes2 (set): (default=None) if None it is equivlanet to nodes2=nodes1
-        assume_disjoint (bool): skips expensive check to ensure edges arnt
-            returned twice (default=False)
-
-    CommandLine:
-        python -m ibeis.algo.graph.nx_utils --test-edges_between
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
-        >>> import utool as ut
-        >>> edges = [
-        >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),  # cc 1234
-        >>>     (1, 5), (7, 2), (5, 1),  # cc 567 / 5678
-        >>>     (7, 5), (5, 6), (8, 7),
-        >>> ]
-        >>> digraph = nx.DiGraph(edges)
-        >>> graph = nx.Graph(edges)
-        >>> nodes1 = [1, 2, 3, 4]
-        >>> nodes2 = [5, 6, 7]
-        >>> n2 = sorted(edges_between(graph, nodes1, nodes2))
-        >>> n4 = sorted(edges_between(graph, nodes1))
-        >>> n5 = sorted(edges_between(graph, nodes1, nodes1))
-        >>> n1 = sorted(edges_between(digraph, nodes1, nodes2))
-        >>> n3 = sorted(edges_between(digraph, nodes1))
-        >>> print('n2 == %r' % (n2,))
-        >>> print('n4 == %r' % (n4,))
-        >>> print('n5 == %r' % (n5,))
-        >>> print('n1 == %r' % (n1,))
-        >>> print('n3 == %r' % (n3,))
-        >>> assert n2 == ([(1, 5), (2, 7)]), '2'
-        >>> assert n4 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '4'
-        >>> assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
-        >>> assert n1 == ([(1, 5), (5, 1), (7, 2)]), '1'
-        >>> assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
-        >>> n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=False))
-        >>> print('n6 = %r' % (n6,))
-        >>> n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=True))
-        >>> print('n6 = %r' % (n6,))
-        >>> assert n6 == ([(1, 2), (1, 5), (2, 3), (4, 1), (5, 1), (5, 6), (7, 2)]), '6'
-    """
-    if assume_dense:
-        edges = _edges_between_dense(graph, nodes1, nodes2, assume_disjoint)
-    else:
-        edges = _edges_between_sparse(graph, nodes1, nodes2, assume_disjoint)
-    if graph.is_directed():
-        for u, v in edges:
-            yield u, v
-    else:
-        for u, v in edges:
-            yield e_(u, v)
 
 
 def group_name_edges(g, node_to_label):
