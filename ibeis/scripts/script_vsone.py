@@ -347,7 +347,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                            appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose)
         data = cacher.tryload()
-        if not data:
+        if data is None:
             config = {}
             config.update(hyper_params.vsone_match)
             config.update(hyper_params.vsone_kpts)
@@ -1076,6 +1076,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_Master1')
+
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='GZ_Master1')
             >>> pblm.setup_evaluation()
         """
@@ -1123,13 +1125,21 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             for f in worst_features:
                 feat_dims.remove(f)
 
-        mccs = [r['mcc'] for r in reports]
+        # mccs = [r['mcc'] for r in reports]
 
-        # mccs2 = [[r['mcc'] for r in rs] for rs in sub_reports]
+        mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
+        u = mccs2.mean(axis=0)
+        s = mccs2.std(axis=0)
 
         import plottool as pt
         pt.qtensure()
-        pt.plot(n_dims, mccs)
+        pt.plot(n_dims, u, label='mean')
+        ax = pt.gca()
+        ax.fill_between(n_dims, u - s, u + s)
+        pt.plot(n_dims, mccs2.T[0], label='mcc1')
+        pt.plot(n_dims, mccs2.T[1], label='mcc2')
+        pt.plot(n_dims, mccs2.T[2], label='mcc3')
+        ax.legend()
 
     def demo_classes(pblm):
         r"""

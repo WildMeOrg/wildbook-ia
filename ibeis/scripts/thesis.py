@@ -195,6 +195,8 @@ class Chap5Commands(object):
 
         Ignore:
             >>> from ibeis.scripts.thesis import *
+            >>> aug = ''
+            >>> self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_MTEST')
         """
         # if 'self' not in vars():
@@ -585,79 +587,32 @@ class Chap5Commands(object):
 
             table = ut.odict()
 
-            caseinfo = info['unchanged']
-            casetable = table['common'] = ut.odict()
-            casetable['pred # PCC']    = '-'
-            casetable['pred PCC size'] = '-'
+            # caseinfo = info['unchanged']
+            # casetable = table['common'] = ut.odict()
+            # casetable['pred # PCC']    = '-'
+            # casetable['pred PCC size'] = '-'
+            # casetable['real # PCC']    = caseinfo['n_real_pccs']
+            # casetable['real PCC size'] = caseinfo['size_real_pccs']
+            # casetable['small size']    = '-'
+            # casetable['large size']    = '-'
+
+            caseinfo = info['split']
+            casetable = table['split'] = ut.odict()
+            casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+            casetable['pred PCC size'] = caseinfo['size_pred_pccs']
             casetable['real # PCC']    = caseinfo['n_real_pccs']
             casetable['real PCC size'] = caseinfo['size_real_pccs']
-            casetable['small size']    = '-'
-            casetable['large size']    = '-'
-            if True:
+            # casetable['small size']    = caseinfo['ave_small']
+            # casetable['large size']    = caseinfo['ave_large']
 
-                caseinfo = info['split']
-                casetable = table['split'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = caseinfo['ave_small']
-                casetable['large size']    = caseinfo['ave_large']
-
-                caseinfo = info['merge']
-                casetable = table['merge'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = caseinfo['ave_small']
-                casetable['large size']    = caseinfo['ave_large']
-            else:
-
-                caseinfo = info['psplit']
-                casetable = table['splits'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = caseinfo['ave_small']
-                casetable['large size']    = caseinfo['ave_large']
-
-                caseinfo = info['pmerge']
-                casetable = table['merge'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = caseinfo['ave_small']
-                casetable['large size']    = caseinfo['ave_large']
-
-                caseinfo = info['hybrid']
-                casetable = table['hybrids'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = '-'
-                casetable['large size']    = '-'
-
-                caseinfo = info['hsplit']
-                casetable = table['hybrid-split'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = caseinfo['ave_small']
-                casetable['large size']    = caseinfo['ave_large']
-
-                caseinfo = info['hmerge']
-                casetable = table['hybrid-merge'] = ut.odict()
-                casetable['pred # PCC']    = caseinfo['n_pred_pccs']
-                casetable['pred PCC size'] = caseinfo['size_pred_pccs']
-                casetable['real # PCC']    = caseinfo['n_real_pccs']
-                casetable['real PCC size'] = caseinfo['size_real_pccs']
-                casetable['small size']    = caseinfo['ave_small']
-                casetable['large size']    = caseinfo['ave_large']
+            caseinfo = info['merge']
+            casetable = table['merge'] = ut.odict()
+            casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+            casetable['pred PCC size'] = caseinfo['size_pred_pccs']
+            casetable['real # PCC']    = caseinfo['n_real_pccs']
+            casetable['real PCC size'] = caseinfo['size_real_pccs']
+            # casetable['small size']    = caseinfo['ave_small']
+            # casetable['large size']    = caseinfo['ave_large']
 
             df = pd.DataFrame.from_dict(table, orient='index')
             df = df.loc[list(table.keys())]
@@ -690,8 +645,88 @@ class Chap5Commands(object):
                     '\\usepackage{makecell}',
                 ])
 
-        if 1:
+        key = 'graph'
+        table = ut.odict()
 
+        real_ccs = expt_results[key]['real_ccs']
+        pred_ccs = expt_results[key]['pred_ccs']
+
+        delta = ut.grouping_delta(pred_ccs, real_ccs)
+        # unchanged = delta['unchanged']
+        splits = delta['splits']['new'] + delta['hybrid']['splits']
+        merges = delta['merges']['old'] + delta['hybrid']['merges']
+        splits = [s for s in splits if len(s) > 1]
+        merges = [m for m in merges if len(m) > 1]
+
+        splits = ut.sortedby(splits, [len(ut.flatten(x)) for x in splits])
+        merges = ut.sortedby(merges, [len(ut.flatten(x)) for x in merges])
+
+        splits = [ut.sortedby(ss, ut.emap(len, ss)) for ss in splits]
+        merges = [ut.sortedby(ss, ut.emap(len, ss)) for ss in merges]
+
+        graph = expt_results[key]['graph']
+        def error_edge_df(edges, parts):
+            edge_dict = {e: graph.get_edge_data(*e) for e in edges}
+            df = pd.DataFrame.from_dict(edge_dict, orient='index')
+
+            if len(df):
+                ignore = ['timestamp', 'num_reviews', 'confidence',
+                          'default_priority', 'review_id']
+                ignore = df.columns.intersection(ignore)
+                df = df.drop(ignore, axis=1)
+                df.index.names = ('aid1', 'aid2')
+
+                order = ['truth', 'decision', 'tags', 'prob_match']
+                order = df.columns.intersection(order)
+                neworder = ut.partial_order(df.columns, order)
+                df = df.reindex_axis(neworder, axis=1)
+
+                df_str = df.to_string()
+                cols = ['blue', 'red', 'green', 'teal']
+                for part, col in zip(parts, cols):
+                    pat = ut.regex_or(ut.regex_word(str(a)) for a in part)
+                    df_str = ut.highlight_regex(df_str, pat, color=col)
+                print(df_str)
+            else:
+                print(df)
+
+        print('splits = ' + ut.repr4(splits))
+        print('merges = ' + ut.repr4(merges))
+
+        for parts in merges:
+            print('\n\n')
+            print('Merge Row: ' + ut.repr2(parts))
+            sub = graph.subgraph(ut.flatten(parts))
+            edges = list(sub.edges())
+            error_edge_df(edges, parts)
+
+        for parts in splits:
+            print('\n\n')
+            print('Split Row: ' + ut.repr2(parts))
+            sub = graph.subgraph(ut.flatten(parts))
+            edges = list(sub.edges())
+            error_edge_df(edges, parts)
+
+
+        caseinfo = info['split']
+        casetable = table['split'] = ut.odict()
+        casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+        casetable['real # PCC']    = caseinfo['n_real_pccs']
+        casetable['small size']    = caseinfo['ave_small']
+        casetable['large size']    = caseinfo['ave_large']
+
+        caseinfo = info['merge']
+        casetable = table['merge'] = ut.odict()
+        casetable['pred # PCC']    = caseinfo['n_pred_pccs']
+        casetable['real # PCC']    = caseinfo['n_real_pccs']
+        casetable['small size']    = caseinfo['ave_small']
+        casetable['large size']    = caseinfo['ave_large']
+
+        df = pd.DataFrame.from_dict(table, orient='index')
+        df = df.loc[list(table.keys())]
+        print(df)
+
+        if 1:
             df = dfs[keys[0]].T
             for key in keys[1:]:
                 df = df.join(dfs[key].T, rsuffix=' ' + key)
@@ -750,6 +785,7 @@ class Chap5Commands(object):
             ut.render_latex_text(latex_str, preamb_extra=[
                 '\\usepackage{makecell}',
             ])
+
         if 0:
             df = dfs[keys[0]]
             for key in keys[1:]:
@@ -793,12 +829,26 @@ class Chap5Commands(object):
             ut.write_to(join(self.dpath, fname), latex_str)
 
     def print_error_sizes(self, expt_data, allow_hist=False):
+        from ibeis.algo.graph import nx_utils
+
         real_ccs = expt_data['real_ccs']
         pred_ccs = expt_data['pred_ccs']
         graph = expt_data['graph']
-        from ibeis.algo.graph import nx_utils
         delta_df = ut.grouping_delta_stats(pred_ccs, real_ccs)
         print(delta_df)
+
+        delta = ut.grouping_delta(real_ccs, pred_ccs)
+        unchanged = delta['unchanged']
+        splits = delta['splits']['new']
+        merges = delta['merges']['old']
+
+        # hybrids can be done by first splitting and then merging
+        hybrid = delta['hybrid']
+        hybrid_splits = delta['hybrid']['splits']
+        hybrid_merges = delta['hybrid']['merges']
+
+        all_merges = merges + hybrid_merges
+        all_splits = splits + hybrid_splits
 
         def ave_size(sets):
             lens = list(map(len, sets))
@@ -917,16 +967,6 @@ class Chap5Commands(object):
             ])
             return hybrid_info
 
-        delta = ut.grouping_delta(real_ccs, pred_ccs)
-        unchanged = delta['unchanged']
-        splits = delta['splits']['new']
-        merges = delta['merges']['old']
-
-        # hybrids can be done by first splitting and then merging
-        hybrid = delta['hybrid']
-        hybrid_splits = delta['hybrid']['splits']
-        hybrid_merges = delta['hybrid']['merges']
-
         # lookup = {a: n for n, aids in enumerate(hybrid['new']) for a in aids}
         # hybrid_splits = []
         # for aids in hybrid['old']:
@@ -940,25 +980,21 @@ class Chap5Commands(object):
         #                                     part_nids).values())
 
         if True:
-            hybrid_merges = merges + hybrid_merges
-            hybrid_splits = splits + hybrid_splits
             info = {
                 'unchanged': unchanged_measures(unchanged),
-                'split': split_measures(hybrid_splits),
-                'merge': merge_measures(hybrid_merges),
+                'split': split_measures(all_splits),
+                'merge': merge_measures(all_merges),
             }
-        else:
+            return info
 
-            info = {
-                'unchanged': unchanged_measures(unchanged),
-                'psplit': split_measures(splits),
-                'pmerge': merge_measures(merges),
-                'hybrid': hybrid_measures(hybrid),
-                'hsplit': split_measures(hybrid_splits),
-                'hmerge': merge_measures(hybrid_merges),
-            }
-
-        return info
+        info = {
+            'unchanged': unchanged_measures(unchanged),
+            'psplit': split_measures(splits),
+            'pmerge': merge_measures(merges),
+            'hybrid': hybrid_measures(hybrid),
+            'hsplit': split_measures(hybrid_splits),
+            'hmerge': merge_measures(hybrid_merges),
+        }
 
         formater = ut.partial(
             # ut.format_multiple_paragraph_sentences,
@@ -1012,7 +1048,7 @@ class Chap5Commands(object):
 
         hybrid_text = ut.codeblock(
             '''
-            For hybrid cases there are{n_pred_pccs} PCCs with average size
+            For hybrid cases there are {n_pred_pccs} PCCs with average size
             {size_pred_pccs} that should be transformed into {n_real_pccs} PCCs
             with average size {size_real_pccs}.
             To do this, we must first split and then merge.
@@ -1021,17 +1057,17 @@ class Chap5Commands(object):
 
         print('For pure split/merge cases:')
         print('------------')
-        print_measures(split_text, info['pure_split'])
+        print_measures(split_text, info['psplit'])
         print('------------')
-        print_measures(merge_text, info['pure_merge'])
+        print_measures(merge_text, info['pmerge'])
         print('------------')
         print('=============')
         print('For hybrid cases, we first split them and then merge them.')
         print_measures(hybrid_text, info['hybrid'])
         print('------------')
-        print_measures(split_text, info['hybrid_split'])
+        print_measures(split_text, info['hsplit'])
         print('------------')
-        print_measures(merge_text, info['hybrid_merge'])
+        print_measures(merge_text, info['hmerge'])
         print('------------')
         return info
 
