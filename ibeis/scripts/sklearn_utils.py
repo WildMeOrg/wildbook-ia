@@ -190,8 +190,63 @@ def temp(samples):
     check_balance(idxs)
 
 
+def testdata_ytrue(p_classes, p_wrong, size, rng):
+    classes_ = list(range(len(p_classes)))
+    # Generate samples at specified fractions
+    y_true = rng.choice(classes_, size=size, p=p_classes)
+    return y_true
+
+
+def testdata_ypred(y_true, p_wrong, rng):
+    # Make mistakes at specified rate
+    classes_ = list(range(len(p_wrong)))
+    y_pred = np.array(
+        [y if rng.rand() > p_wrong[y] else rng.choice(classes_)
+         for y in y_true])
+    return y_pred
+
+
 def classification_report2(y_true, y_pred, target_names=None,
                            sample_weight=None, verbose=True):
+    """
+    References:
+        https://csem.flinders.edu.au/research/techreps/SIE07001.pdf
+        https://www.mathworks.com/matlabcentral/fileexchange/5648-bm-cm-?requestedDomain=www.mathworks.com
+        Jurman, Riccadonna, Furlanello, (2012). A Comparison of MCC and CEN
+            Error Measures in MultiClass Prediction
+
+    Example:
+        >>> from ibeis.scripts.sklearn_utils import *  # NOQA
+        >>> y_true = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
+        >>> y_pred = [1, 2, 1, 3, 1, 2, 2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 1, 3]
+        >>> target_names = None
+        >>> sample_weight = None
+        >>> verbose = True
+        >>> report = classification_report2(y_true, y_pred, verbose=verbose)
+
+    Ignore:
+        >>> size = 100
+        >>> rng = np.random.RandomState(0)
+        >>> p_classes = np.array([.90, .05, .05][0:2])
+        >>> p_classes = p_classes / p_classes.sum()
+        >>> p_wrong   = np.array([.03, .01, .02][0:2])
+        >>> y_true = testdata_ytrue(p_classes, p_wrong, size, rng)
+        >>> rs = []
+        >>> for x in range(17):
+        >>>     p_wrong += .05
+        >>>     y_pred = testdata_ypred(y_true, p_wrong, rng)
+        >>>     report = classification_report2(y_true, y_pred, verbose='hack')
+        >>>     rs.append(report)
+        >>> import plottool as pt
+        >>> pt.qtensure()
+        >>> df = pd.DataFrame(rs).drop(['raw'], axis=1)
+        >>> delta = df.subtract(df['target'], axis=0)
+        >>> sqrd_error = np.sqrt((delta ** 2).sum(axis=0))
+        >>> print('Error')
+        >>> print(sqrd_error.sort_values())
+        >>> ys = df.to_dict(orient='list')
+        >>> pt.multi_plot(ydata_list=ys)
+    """
     import sklearn.metrics
     from sklearn.preprocessing import LabelEncoder
 
@@ -222,35 +277,104 @@ def classification_report2(y_true, y_pred, target_names=None,
     rprob = real_total / N
     pprob = pred_total / N
 
-    # bookmaker is analogous to recall
+    # bookmaker is analogous to recall, but unbiased by class frequency
     rprob_mat = np.tile(rprob, [k, 1]).T - (1 - np.eye(k))
     bmcm = cm.T / rprob_mat
     bms = np.sum(bmcm.T, axis=0) / N
 
-    # markedness is analogous to precision
+    # markedness is analogous to precision, but unbiased by class frequency
     pprob_mat = np.tile(pprob, [k, 1]).T - (1 - np.eye(k))
     mkcm = cm / pprob_mat
     mks = np.sum(mkcm.T, axis=0) / N
+
+    mccs = np.sign(bms) * np.sqrt(np.abs(bms * mks))
 
     perclass_data = ut.odict([
         ('precision', tpas),
         ('recall', tprs),
         ('markedness', mks),
         ('bookmaker', bms),
-        ('mcc', np.sign(bms) * np.sqrt(np.abs(bms * mks))),
+        ('mcc', mccs),
         ('support', real_total),
     ])
+
     tpa = np.nansum(tpas * rprob)
     tpr = np.nansum(tprs * rprob)
     mk = np.nansum(mks * rprob)
     bm = np.nansum(bms * pprob)
+
+    # Not sure how to compute this. Should it agree with the sklearn impl?
+    if verbose == 'hack':
+        verbose = False
+        mcc_known = sklearn.metrics.matthews_corrcoef(
+            y_true, y_pred, sample_weight=sample_weight)
+        mcc_raw = np.sign(bm) * np.sqrt(np.abs(bm * mk))
+
+        import scipy as sp
+        def gmean(x, w=None):
+            if w is None:
+                return sp.stats.gmean(x)
+            return np.exp(np.nansum(w * np.log(x)) / np.nansum(w))
+
+        def hmean(x, w=None):
+            if w is None:
+                return sp.stats.hmean(x)
+            return 1 / (np.nansum(w * (1 / x)) / np.nansum(w))
+
+        def amean(x, w=None):
+            if w is None:
+                return np.mean(x)
+            return np.nansum(w * x) / np.nansum(w)
+
+        report = {
+            'target': mcc_known,
+            'raw': mcc_raw,
+        }
+
+        # print('%r <<<' % (mcc_known,))
+        means = {
+            'a': amean,
+            # 'h': hmean,
+            'g': gmean,
+        }
+        weights = {
+            'p': pprob,
+            'r': rprob,
+            '': None,
+        }
+        for mean_key, mean in means.items():
+            for w_key, w in weights.items():
+                # Hack of very wrong items
+                if mean_key == 'g':
+                    if w_key in ['r', 'p', '']:
+                        continue
+                if mean_key == 'g':
+                    if w_key in ['r']:
+                        continue
+                m = mean(mccs, w)
+                r_key = '{} {}'.format(mean_key, w_key)
+                report[r_key] = m
+                # print(r_key)
+                # print(np.abs(m - mcc_known))
+
+        # print(ut.repr4(report, precision=8))
+        return report
+        # print('mcc_known = %r' % (mcc_known,))
+        # print('mcc_combo1 = %r' % (mcc_combo1,))
+        # print('mcc_combo2 = %r' % (mcc_combo2,))
+        # print('mcc_combo3 = %r' % (mcc_combo3,))
+
+    # The simple mean seems to do the best
+    mcc_combo = np.nanmean(mccs)
 
     combined_data = ut.odict([
         ('precision', tpa),
         ('recall', tpr),
         ('markedness', mk),
         ('bookmaker', bm),
-        ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+        # ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+        ('mcc', mcc_combo),
+        # np.sign(bm) * np.sqrt(np.abs(bm * mk))),
         ('support', real_total.sum())
     ])
 

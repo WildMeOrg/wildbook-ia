@@ -1067,11 +1067,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             https://arxiv.org/abs/1407.7502
             https://github.com/glouppe/phd-thesis
 
-
        Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST')
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
             >>> pblm.setup_evaluation()
         """
         # from sklearn.feature_selection import SelectFromModel
@@ -1080,33 +1080,51 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         task_key = pblm.primary_task_key
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
-        feat_dims = pblm.samples.X_dict[data_key].columns.tolist()
 
         labels = pblm.samples.subtasks[task_key]
         # X = pblm.samples.X_dict[data_key]
 
+        feat_dims = pblm.samples.X_dict[data_key].columns.tolist()
         n_dims = []
-        mccs = []
+        reports = []
+        sub_reports = []
+        feats = []
 
-        while len(feat_dims) > 10:
+        n_worst = 3
+        min_feats = 10
+
+        iter_ = range(min_feats, len(feat_dims), n_worst)
+        prog = ut.ProgIter(iter_, label='prune')
+        for _ in prog:
+            prog.ensure_newline()
             clf_list, res_list = pblm._train_evaluation_clf(task_key, data_key,
                                                             clf_key, feat_dims)
             combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
+            rs = [res.extended_clf_report(verbose=0) for res in res_list]
             report = combo_res.extended_clf_report(verbose=0)
 
-            mcc = report['mcc']
-            print('mcc = %r' % (mcc,))
             n_dims.append(len(feat_dims))
-            mccs.append(mcc)
+            feats.append(feat_dims[:])
+            reports.append(report)
+            sub_reports.append(rs)
 
-            feature_importances = np.mean([
-                clf_.feature_importances_ for clf_ in clf_list
-            ], axis=0)
+            clf_importances = np.array(
+                [clf_.feature_importances_ for clf_ in clf_list])
+            feature_importances = np.mean(clf_importances, axis=0)
             importances = ut.dzip(feat_dims, feature_importances)
 
-            worst_features = ut.argsort(importances)[0:5]
+            # remove the worst features
+            worst_features = ut.argsort(importances)[0:n_worst]
             for f in worst_features:
                 feat_dims.remove(f)
+
+        mccs = [r['mcc'] for r in reports]
+
+        # mccs2 = [[r['mcc'] for r in rs] for rs in sub_reports]
+
+        import plottool as pt
+        pt.qtensure()
+        pt.plot(n_dims, mccs)
 
     def demo_classes(pblm):
         r"""
