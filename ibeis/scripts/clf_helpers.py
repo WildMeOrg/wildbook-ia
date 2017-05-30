@@ -268,7 +268,8 @@ class ClfProblem(ut.NiceRepr):
         pblm.eval_task_clfs[task_key][clf_key][data_key] = clf_list
         pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
 
-    def _train_evaluation_clf(pblm, task_key, data_key, clf_key):
+    def _train_evaluation_clf(pblm, task_key, data_key, clf_key,
+                              feat_dims=None):
         """
         Learns a cross-validated classifier on the dataset
 
@@ -295,13 +296,17 @@ class ClfProblem(ut.NiceRepr):
         skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
         skf_prog = ut.ProgIter(skf_list, label='skf-train-eval')
         for train_idx, test_idx in skf_prog:
-            assert (X_df.iloc[train_idx].index.tolist() ==
+            X_df_train = X_df.iloc[train_idx]
+            assert (X_df_train.index.tolist() ==
                     ut.take(pblm.samples.index, train_idx))
             # train_uv = X_df.iloc[train_idx].index
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
 
-            X_train = X_df.iloc[train_idx].values
+            if feat_dims is not None:
+                X_df_train = X_df_train[feat_dims]
+
+            X_train = X_df_train.values
             y_train = labels.encoded_df.iloc[train_idx].values.ravel()
 
             clf = clf_partial()
@@ -313,7 +318,8 @@ class ClfProblem(ut.NiceRepr):
             # other classifiers trained on the same labels.
 
             # Evaluate results
-            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key)
+            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key,
+                                        feat_dims=feat_dims)
             clf_list.append(clf)
             res_list.append(res)
         return clf_list, res_list
@@ -602,11 +608,14 @@ class ClfResult(ut.NiceRepr):
         return res.probs_df.index
 
     @classmethod
-    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key):
+    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key,
+                    feat_dims=None):
         """
         Make a result for a single cross validiation subset
         """
         X_df_test = X_df.iloc[test_idx]
+        if feat_dims is not None:
+            X_df_test = X_df_test[feat_dims]
         index = X_df_test.index
         # clf_probs = clf.predict_proba(X_df_test)
 
@@ -625,6 +634,7 @@ class ClfResult(ut.NiceRepr):
         res.task_key = labels.task_name
         res.data_key = data_key
         res.class_names = ut.lmap(str, labels.class_names)
+        res.feat_dims = feat_dims
 
         res.probs_df = predict_proba_df(clf, X_df_test, res.class_names)
         res.target_bin_df = labels.indicator_df.iloc[test_idx]
@@ -791,34 +801,6 @@ class ClfResult(ut.NiceRepr):
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names=target_names,
             sample_weight=sample_weight, verbose=verbose)
-
-        precision = 2
-
-        # FIXME: What is the difference between sklearn multiclass-MCC
-        # and BM * MK MCC?
-        try:
-            mcc = sklearn.metrics.matthews_corrcoef(
-                res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
-            # These scales are chosen somewhat arbitrarily in the context of a
-            # computer vision application with relatively reasonable quality data
-            # https://stats.stackexchange.com/questions/118219/how-to-interpret
-            mcc_significance_scales = ut.odict([
-                (1.0, 'perfect'),
-                (0.9, 'very strong'),
-                (0.7, 'strong'),
-                (0.5, 'significant'),
-                (0.3, 'moderate'),
-                (0.2, 'weak'),
-                (0.0, 'negligible'),
-            ])
-            for k, v in mcc_significance_scales.items():
-                if np.abs(mcc) >= k:
-                    print('classifier correlation is %s' % (v,))
-                    break
-            print(('MCC\' = %.' + str(precision) + 'f') % (mcc,))
-        except ValueError:
-            pass
-
         return report
 
     def print_report(res):

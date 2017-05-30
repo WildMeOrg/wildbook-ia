@@ -1066,8 +1066,47 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             http://alexperrier.github.io/jekyll/update/2015/08/27/feature-importance-random-forests-gini-accuracy.html
             https://arxiv.org/abs/1407.7502
             https://github.com/glouppe/phd-thesis
+
+
+       Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST')
+            >>> pblm.setup_evaluation()
         """
-        from sklearn.feature_selection import SelectFromModel
+        # from sklearn.feature_selection import SelectFromModel
+        from ibeis.scripts import clf_helpers
+
+        task_key = pblm.primary_task_key
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+        feat_dims = pblm.samples.X_dict[data_key].columns.tolist()
+
+        labels = pblm.samples.subtasks[task_key]
+        # X = pblm.samples.X_dict[data_key]
+
+        n_dims = []
+        mccs = []
+
+        while len(feat_dims) > 10:
+            clf_list, res_list = pblm._train_evaluation_clf(task_key, data_key,
+                                                            clf_key, feat_dims)
+            combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
+            report = combo_res.extended_clf_report(verbose=0)
+
+            mcc = report['mcc']
+            print('mcc = %r' % (mcc,))
+            n_dims.append(len(feat_dims))
+            mccs.append(mcc)
+
+            feature_importances = np.mean([
+                clf_.feature_importances_ for clf_ in clf_list
+            ], axis=0)
+            importances = ut.dzip(feat_dims, feature_importances)
+
+            worst_features = ut.argsort(importances)[0:5]
+            for f in worst_features:
+                feat_dims.remove(f)
 
     def demo_classes(pblm):
         r"""

@@ -1635,8 +1635,10 @@ class Chap4(DBInputs, IOContract):
         target_names = res.class_names
 
         from ibeis.scripts import sklearn_utils
-        metric_df, confusion_df = sklearn_utils.classification_report2(
+        report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names, sample_weight, verbose=False)
+        metric_df = report['metrics']
+        confusion_df = report['confusion']
 
         # df = self.task_confusion[task_key]
         df = confusion_df

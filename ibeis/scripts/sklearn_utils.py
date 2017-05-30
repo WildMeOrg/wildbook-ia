@@ -280,8 +280,42 @@ def classification_report2(y_true, y_pred, target_names=None,
 
         # ut.cprint('\nExtended Report', 'turquoise')
         print('\nEvaluation Metric Report:')
-        precision = 2
-        float_format = '%.' + str(precision) + 'f'
+        float_precision = 2
+        float_format = '%.' + str(float_precision) + 'f'
         ext_report = metric_df.to_string(float_format=float_format)
         print(ut.hz_str('    ', ext_report))
-    return metric_df, confusion_df
+
+    report = {
+        'metrics': metric_df,
+        'confusion': confusion_df,
+    }
+
+    # FIXME: What is the difference between sklearn multiclass-MCC
+    # and BM * MK MCC?
+    try:
+        mcc = sklearn.metrics.matthews_corrcoef(
+            y_true, y_pred, sample_weight=sample_weight)
+        # These scales are chosen somewhat arbitrarily in the context of a
+        # computer vision application with relatively reasonable quality data
+        # https://stats.stackexchange.com/questions/118219/how-to-interpret
+        mcc_significance_scales = ut.odict([
+            (1.0, 'perfect'),
+            (0.9, 'very strong'),
+            (0.7, 'strong'),
+            (0.5, 'significant'),
+            (0.3, 'moderate'),
+            (0.2, 'weak'),
+            (0.0, 'negligible'),
+        ])
+        for k, v in mcc_significance_scales.items():
+            if np.abs(mcc) >= k:
+                if verbose:
+                    print('classifier correlation is %s' % (v,))
+                break
+        if verbose:
+            float_precision = 2
+            print(('MCC\' = %.' + str(float_precision) + 'f') % (mcc,))
+        report['mcc'] = mcc
+    except ValueError:
+        pass
+    return report
