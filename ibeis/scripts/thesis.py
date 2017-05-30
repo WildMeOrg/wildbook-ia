@@ -181,7 +181,8 @@ class Chap5Commands(object):
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='PZ_Master1')
+            >>> #dbname = ut.get_argval('--db', default='PZ_Master1')
+            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> aug = 'test'
             >>> aug = ''
             >>> aug = ut.get_argval('--aug', default='')
@@ -191,6 +192,10 @@ class Chap5Commands(object):
             >>> self.draw_simulation(aug)
             >>> #self.draw_simulation2()
             >>> ut.show_if_requested()
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('PZ_MTEST')
         """
         # if 'self' not in vars():
         #     # from ibeis.scripts.thesis import Chap5, script_vsone
@@ -209,7 +214,7 @@ class Chap5Commands(object):
         pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids)
         pblm.set_pandas_options()
         pblm.load_samples()
-        pblm.load_features()
+        pblm.load_features(with_simple=False)
         pblm.build_feature_subsets()
 
         pblm.learn_evaluation_classifiers()

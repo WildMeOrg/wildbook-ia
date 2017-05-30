@@ -316,22 +316,24 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # X_dict=copy.deepcopy(pblm.raw_X_dict),
 
     @profile
-    def load_features(pblm, use_cache=True):
+    def load_features(pblm, use_cache=True, with_simple=True):
         """
         CommandLine:
             python -m ibeis.scripts.script_vsone load_features --profile
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> #pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> pblm = OneVsOneProblem.from_empty('GZ_Master1')
             >>> pblm.load_samples()
-            >>> pblm.load_features()
+            >>> pblm.load_features(with_simple=False)
         """
         if pblm.verbose > 0:
             print('[pblm] load_features')
         infr = pblm.infr
-        dbname = infr.ibs.get_dbname()
-        aid_pairs = ut.lmap(tuple, pblm.samples.aid_pairs.tolist())
+        ibs = pblm.infr.ibs
+        dbname = ibs.get_dbname()
+        aid_pairs = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
         hyper_params = pblm.hyper_params
         # TODO: features should also rely on global attributes
         # fornow using edge+label hashids is good enough
@@ -340,8 +342,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         feat_hashid = ut.hashstr27(sample_hashid + feat_cfgstr)
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
-        # use_cache = False
-        cacher = ut.Cacher('pairwise_data_v20', cfgstr=cfgstr,
+
+        cacher = ut.Cacher('pairwise_data_v21', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose)
         data = cacher.tryload()
@@ -355,66 +357,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 raise NotImplementedError('not done yet')
                 if infr.qreq_ is None:
                     pass
-                    # cfgdict = pblm.hyper_params['sample_search']
-                    # ibs = pblm.infr.ibs
-                    # infr = pblm.infr
-                    # aids = ibs.filter_annots_general(
-                    #     infr.aids, min_pername=3, species='primary')
-                    # qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                    #                               verbose=False)
-                    # infr.qreq_ = qreq_
             matches, X_all = infr._make_pairwise_features(
                 aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg,
                 need_lnbnn=need_lnbnn)
-
-            # # Pass back just one match to play with
-            # for match in matches:
-            #     if len(match.fm) > 10:
-            #         break
-
-            # ---------------
-            # Construct simple scores to learning comparison
-            simple_scores = pd.DataFrame([
-                m._make_local_summary_feature_vector(summary_ops={'sum', 'len'})
-                for m in ut.ProgIter(matches, 'make simple scores')],
-                index=X_all.index,
-            )
-
-            if True:
-                # The main idea here is to load lnbnn scores for the pairwise
-                # matches so we can compare them to the outputs of the pairwise
-                # classifeir.
-                # TODO: separate this into different cache
-                # Add vsmany_lnbnn to simple scores
-                cfgdict = pblm.hyper_params['sample_search']
-                ibs = pblm.infr.ibs
-                infr = pblm.infr
-                aids = ibs.filter_annots_general(
-                    infr.aids, min_pername=3, species='primary')
-                qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                                              verbose=False)
-                cm_list = qreq_.execute()
-                edge_to_data = infr._get_cm_edge_data(aid_pairs, cm_list=cm_list)
-                edge_data = ut.take(edge_to_data, aid_pairs)
-                lnbnn_score_list = [d.get('score', 0) for d in edge_data]
-                lnbnn_score_list = [0 if s is None else s
-                                    for s in lnbnn_score_list]
-
-                # infr.add_aids(ut.unique(ut.flatten(aid_pairs)))
-                # # Ensure that all annots exist in the graph
-                # infr.graph.add_edges_from(aid_pairs)
-                # # test original lnbnn score sep
-                # infr.apply_match_scores()
-                # edge_data = [infr.graph.get_edge_data(u, v) for u, v in aid_pairs]
-                # lnbnn_score_list = [0 if d is None else d.get('score', 0)
-                #                     for d in edge_data]
-                # lnbnn_score_list = np.nan_to_num(lnbnn_score_list)
-                simple_scores = simple_scores.assign(
-                    score_lnbnn_1vM=lnbnn_score_list)
-            simple_scores[pd.isnull(simple_scores)] = 0
-            data = simple_scores, X_all
+            data = X_all
             cacher.save(data)
-        simple_scores, X_all = data
+        X_all = data
         assert X_all.index.tolist() == aid_pairs, 'index disagrees'
 
         # hack to fix feature validity
@@ -427,12 +375,67 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             X_all.loc[flags, 'global(speed)'] = newvals
 
         pblm.raw_X_dict = {'learn(all)': X_all}
+
+        pblm.samples.set_feats(copy.deepcopy(pblm.raw_X_dict))
+
+        if with_simple:
+            pblm.load_simple_scores()
+
+    def load_simple_scores(pblm):
+        infr = pblm.infr
+        ibs = infr.ibs
+
+        aid_pairs = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
+
+        hyper_params = pblm.hyper_params
+        sample_hashid = pblm.samples.sample_hashid()
+        feat_cfgstr = hyper_params.get_cfgstr()
+        feat_hashid = ut.hashstr27(sample_hashid + feat_cfgstr)
+        # print('features_hashid = %r' % (features_hashid,))
+        cfgstr = '_'.join(['devcache', str(ibs.dbname), feat_hashid])
+
+        cacher = ut.Cacher('simple_pairwise_data_v21', cfgstr=cfgstr,
+                           appname=pblm.appname, enabled=True,
+                           verbose=pblm.verbose)
+        data = cacher.tryload()
+        if data is None:
+            # ---------------
+            X_all = pblm.raw_X_dict['learn(all)']
+            featinfo = AnnotPairFeatInfo(X_all)
+            simple_cols = featinfo.find('summary_op', '==', 'sum')
+            simple_cols += featinfo.find('summary_op', '==', 'len', hack=False)
+
+            # Select simple scores out of the full feat vectors
+            simple_scores = X_all[simple_cols]
+
+            if True:
+                # The main idea here is to load lnbnn scores for the pairwise
+                # matches so we can compare them to the outputs of the pairwise
+                # classifier.
+                # TODO: separate this into different cache
+                # Add vsmany_lnbnn to simple scoren
+                cfgdict = pblm.hyper_params['sample_search']
+                aids = ibs.filter_annots_general(
+                    infr.aids, min_pername=3, species='primary')
+                qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
+                                              verbose=False)
+                cm_list = qreq_.execute()
+                edge_to_data = infr._get_cm_edge_data(aid_pairs, cm_list=cm_list)
+                edge_data = ut.take(edge_to_data, aid_pairs)
+                lnbnn_score_list = [d.get('score', 0) for d in edge_data]
+                lnbnn_score_list = [0 if s is None else s
+                                    for s in lnbnn_score_list]
+
+                simple_scores = simple_scores.assign(
+                    score_lnbnn_1vM=lnbnn_score_list)
+
+            simple_scores[pd.isnull(simple_scores)] = 0
+            data = simple_scores
+            cacher.save(data)
+        simple_scores = data
+
         pblm.raw_simple_scores = simple_scores
-        # simple_scores=,
-        pblm.samples.set_feats(
-            copy.deepcopy(pblm.raw_simple_scores),
-            copy.deepcopy(pblm.raw_X_dict)
-        )
+        pblm.samples.set_simple_scores(copy.deepcopy(pblm.raw_simple_scores))
 
     def evaluate_classifiers(pblm):
         """
@@ -586,7 +589,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             infr.apply_feedback_edges()
             infr.relabel_using_reviews()
             # x = [c for c in infr.consistent_components()]
-            # cc = x[ut.argmax(ut.lmap(len, x))]
+            # cc = x[ut.argmax(ut.emap(len, x))]
             # keep = list(cc.nodes())
             # infr.remove_aids(ut.setdiff(infr.aids, keep))
             infr.start_qt_interface()
@@ -764,8 +767,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 'edges must be in lower triangular form')
             assert len(vt.unique_row_indexes(train_uv)) == len(train_uv), (
                 'edges must be unique')
-            assert (sorted(ut.lmap(tuple, train_uv.tolist())) ==
-                    sorted(ut.lmap(tuple, pblm.samples.aid_pairs.tolist())))
+            assert (sorted(ut.emap(tuple, train_uv.tolist())) ==
+                    sorted(ut.emap(tuple, pblm.samples.aid_pairs.tolist())))
             want_uv = np.array(want_edges)
 
             # Determine which edges need/have probabilities
@@ -778,9 +781,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             need_uv, have_uv = vt.unstructure_rows(need_uv_, have_uv_)
 
             # Convert to tuples for pandas lookup. bleh...
-            have_edges = ut.lmap(tuple, have_uv.tolist())
-            need_edges = ut.lmap(tuple, need_uv.tolist())
-            want_edges = ut.lmap(tuple, want_uv.tolist())
+            have_edges = ut.emap(tuple, have_uv.tolist())
+            need_edges = ut.emap(tuple, need_uv.tolist())
+            want_edges = ut.emap(tuple, want_uv.tolist())
             assert set(have_edges) & set(need_edges) == set([])
             assert set(have_edges) | set(need_edges) == set(want_edges)
 
@@ -1072,6 +1075,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_Master1')
+            >>> pblm = OneVsOneProblem.from_empty(defaultdb='GZ_Master1')
             >>> pblm.setup_evaluation()
         """
         # from sklearn.feature_selection import SelectFromModel
@@ -1231,7 +1236,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # Find best ratio threshold
         pblm.load_samples()
         infr = pblm.infr
-        edges = ut.lmap(tuple, pblm.samples.aid_pairs.tolist())
+        edges = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
         task = pblm.samples['match_state']
         pos_idx = task.class_names.tolist().index(POSTV)
 
@@ -1521,16 +1526,18 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         sample_hash = visual_hash + '_' + label_hash
         return sample_hash
 
-    def set_feats(samples, simple_scores, X_dict):
-        edges = ut.lmap(tuple, samples.aid_pairs.tolist())
+    def set_simple_scores(samples, simple_scores):
         if simple_scores is not None:
+            edges = ut.emap(tuple, samples.aid_pairs.tolist())
             assert (edges == simple_scores.index.tolist())
+        samples.simple_scores = simple_scores
 
+    def set_feats(samples, X_dict):
         if X_dict is not None:
+            edges = ut.emap(tuple, samples.aid_pairs.tolist())
             for X in X_dict.values():
                 assert np.all(edges == X.index.tolist())
         samples.X_dict = X_dict
-        samples.simple_scores = simple_scores
 
     @profile
     def compress(samples, flags):
@@ -1541,7 +1548,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         aid_pairs = samples.aid_pairs[flags]
         ibs = samples.ibs
         new_labels = AnnotPairSamples(ibs, aid_pairs, infr)
-        new_labels.set_feats(simple_scores, X_dict)
+        new_labels.set_feats(X_dict)
+        new_labels.set_simple_scores(simple_scores)
         return new_labels
 
     @ut.memoize
