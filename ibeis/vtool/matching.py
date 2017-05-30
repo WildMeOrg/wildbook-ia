@@ -796,10 +796,14 @@ class AnnotPairFeatInfo(object):
 
     def select_columns(featinfo, criteria, op='and'):
         """
-        featinfo.select_columns([
-            ('measure_type', '==', 'local'),
-            ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
-        ])
+        Args:
+            criteria (list): list of tokens denoting selection constraints
+
+        Examples:
+            >>> featinfo.select_columns([
+            >>>     ('measure_type', '==', 'local'),
+            >>>     ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
+            >>> ], op='and')
         """
         if op == 'and':
             cols = set(featinfo.columns)
@@ -814,7 +818,17 @@ class AnnotPairFeatInfo(object):
             update(found)
         return cols
 
-    def find(featinfo, group_id, op, value):
+    def find(featinfo, group_id, op, value, hack=True):
+        """
+        groupid options:
+            summary_op
+            measure_type
+
+        Ignore:
+            group_id = 'summary_op'
+            op = '=='
+            value = 'len'
+        """
         import six
         if isinstance(op, six.text_type):
             opdict = ut.get_comparison_operators()
@@ -824,8 +838,11 @@ class AnnotPairFeatInfo(object):
         for col in featinfo.columns:
             value1 = grouper(col)
             if value1 is None:
-                # Only filter out/in comparable things
-                found.append(col)
+                # TODO: turn hack off and ensure that doesn't break anything
+                if hack:
+                    # Only filter out/in comparable things
+                    # why? Is this just a hack? I forgot why I wrote this.
+                    found.append(col)
             else:
                 try:
                     if value1 is not None:
