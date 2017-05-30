@@ -21,7 +21,7 @@ def is_default_dark_bg():
     return not lightbg
 
 
-def multi_plot(xdata, ydata_list, **kwargs):
+def multi_plot(xdata=None, ydata_list=[], **kwargs):
     r"""
     plots multiple lines, bars, etc...
 
@@ -86,6 +86,8 @@ def multi_plot(xdata, ydata_list, **kwargs):
         # Normalize input
         ydata_list = ut.take(ydata_list, ykeys)
         kwargs['label_list'] = kwargs.get('label_list', ykeys)
+    if xdata is None:
+        xdata = list(range(len(ydata_list[0])))
 
     num_lines = len(ydata_list)
 
