@@ -1584,6 +1584,27 @@ def _make_review_image_info(ibs, gid):
     annotation_list.append(temp)
 
 
+@register_route('/turk/cameratrap/', methods=['GET'])
+def turk_cameratrap(**kwargs):
+    ibs = current_app.ibs
+    tup = appf.get_turk_image_args(appf.imageset_image_cameratrap_processed)
+    (gid_list, reviewed_list, imgsetid, progress, gid, previous) = tup
+
+    finished = gid is None
+    if not finished:
+        image     = ibs.get_image_imgdata(gid)
+        image_src = appf.embed_image_html(image)
+        positive  = ibs.get_image_cameratrap(gid) not in [False, None]
+    else:
+        image_src = None
+        positive = False
+
+    imagesettext = ibs.get_imageset_text(imgsetid)
+
+    embedded = dict(globals(), **locals())
+    return appf.template('turk', 'cameratrap', **embedded)
+
+
 @register_route('/turk/detection/', methods=['GET'])
 def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, config=None, **kwargs):
 

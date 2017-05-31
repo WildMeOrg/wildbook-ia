@@ -16,6 +16,26 @@ import numpy as np
 register_route = controller_inject.get_ibeis_flask_route(__name__)
 
 
+@register_route('/submit/cameratrap/', methods=['POST'])
+def submit_cameratrap(**kwargs):
+    ibs = current_app.ibs
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    gid = int(request.form['cameratrap-gid'])
+    turk_id = request.cookies.get('ia-turk_id', -1)
+    flag = request.form.get('cameratrap-toggle', 'off') == 'on'
+    ibs.set_image_cameratrap([gid], [flag])
+    print('[web] turk_id: %s, gid: %d, flag: %r' % (turk_id, gid, flag, ))
+
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_cameratrap', imgsetid=imgsetid, previous=gid))
+
+
 @register_route('/submit/detection/', methods=['POST'])
 def submit_detection(**kwargs):
     ibs = current_app.ibs

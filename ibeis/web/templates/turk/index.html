@@ -2,6 +2,12 @@
 {% block content %}
   <div class="row marketing">
     <div class="col-lg-4">
+      <h4>Cameratrap</h4>
+      <p>Online turking for cameratrap review</p>
+      <p><a class="btn btn-lg btn-primary" href="{{ url_for('turk_cameratrap') }}?imgsetid={{ imgsetid }}" role="button">Turk Cameratraps</a></p>
+    </div>
+
+    <div class="col-lg-4">
       <h4>Detections</h4>
       <p>Online turking for detection review</p>
       <p><a class="btn btn-lg btn-primary" href="{{ url_for('turk_detection') }}?imgsetid={{ imgsetid }}" role="button">Turk Detections</a></p>

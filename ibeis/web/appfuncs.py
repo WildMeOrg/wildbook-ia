@@ -188,6 +188,42 @@ def send_csv_file(string, filename):
     return response
 
 
+def get_turk_image_args(is_reviewed_func):
+    """
+    Helper to return gids in an imageset or a group review
+    """
+    ibs = current_app.ibs
+    def _ensureid(_id):
+        return None if _id == 'None' or _id == '' else int(_id)
+
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = _ensureid(imgsetid)
+
+    print('NOT GROUP_REVIEW')
+    gid_list = ibs.get_valid_gids(imgsetid=imgsetid)
+    reviewed_list = is_reviewed_func(ibs, gid_list)
+
+    try:
+        num_reviewed = reviewed_list.count(True)
+        progress = '%0.2f' % (100.0 * num_reviewed / len(gid_list), )
+    except ZeroDivisionError:
+        progress = '0.00'
+    gid = request.args.get('gid', '')
+    if len(gid) > 0:
+        gid = int(gid)
+    else:
+        gid_list_ = ut.filterfalse_items(gid_list, reviewed_list)
+        if len(gid_list_) == 0:
+            gid = None
+        else:
+            gid = random.choice(gid_list_)
+
+    previous = request.args.get('previous', None)
+
+    print('gid = %r' % (gid,))
+    return gid_list, reviewed_list, imgsetid, progress, gid, previous
+
+
 def get_turk_annot_args(is_reviewed_func, speed_hack=False):
     """
     Helper to return aids in an imageset or a group review
@@ -291,6 +327,11 @@ def default_species(ibs):
 
 def imageset_image_processed(ibs, gid_list):
     images_reviewed = [ reviewed == 1 for reviewed in ibs.get_image_reviewed(gid_list) ]
+    return images_reviewed
+
+
+def imageset_image_cameratrap_processed(ibs, gid_list):
+    images_reviewed = [ flag is not None for flag in ibs.get_image_cameratrap(gid_list) ]
     return images_reviewed
 
 

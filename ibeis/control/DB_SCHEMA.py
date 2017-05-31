@@ -1527,6 +1527,11 @@ def post_1_6_4(db, ibs=None):
         ibs.set_annot_viewpoints(aid_list, viewpoint_list)
 
 
+def update_1_6_5(db, ibs=None):
+    db.modify_table(const.IMAGE_TABLE, (
+        (15, 'image_toggle_cameratrap', 'INTEGER DEFAULT NULL', None),
+    ))
+
 # ========================
 # Valid Versions & Mapping
 # ========================
@@ -1576,6 +1581,7 @@ VALID_VERSIONS = ut.odict([
     ('1.6.2',    (None,                 update_1_6_2,       None                )),
     ('1.6.3',    (None,                 update_1_6_3,       None                )),
     ('1.6.4',    (None,                 update_1_6_4,       post_1_6_4          )),
+    ('1.6.5',    (None,                 update_1_6_5,       None                )),
 ])
 """
 SeeAlso:

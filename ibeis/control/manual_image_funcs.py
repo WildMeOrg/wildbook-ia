@@ -570,6 +570,21 @@ def set_image_enabled(ibs, gid_list, enabled_list):
 
 @register_ibs_method
 @accessor_decors.setter
+# @register_api('/api/image/enabled/', methods=['PUT'])
+def set_image_cameratrap(ibs, gid_list, cameratrap_list):
+    r"""
+    Sets the image all instances found bit
+    """
+    id_iter = ((gid,) for gid in gid_list)
+    valid_set = set([False, True, None])
+    valid_list = [cameratrap in valid_set for cameratrap in cameratrap_list]
+    assert False not in valid_list
+    val_list = ((cameratrap,) for cameratrap in cameratrap_list)
+    ibs.db.set(const.IMAGE_TABLE, ('image_toggle_cameratrap',), val_list, id_iter)
+
+
+@register_ibs_method
+@accessor_decors.setter
 @register_api('/api/image/note/', methods=['PUT'])
 def set_image_notes(ibs, gid_list, notes_list):
     r"""
@@ -1478,6 +1493,13 @@ def get_image_enabled(ibs, gid_list):
     """
     enabled_list = ibs.db.get(const.IMAGE_TABLE, ('image_toggle_enabled',), gid_list)
     return enabled_list
+
+
+@register_ibs_method
+@accessor_decors.getter_1to1
+def get_image_cameratrap(ibs, gid_list):
+    cameratrap_list = ibs.db.get(const.IMAGE_TABLE, ('image_toggle_cameratrap',), gid_list)
+    return cameratrap_list
 
 
 @register_ibs_method
