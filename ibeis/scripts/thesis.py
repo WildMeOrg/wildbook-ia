@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.scripts import script_vsone
 import ibeis.constants as const
+from ibeis.algo.graph import nx_utils as nxu
 import ubelt as ub
 import pandas as pd
 import numpy as np
@@ -182,7 +183,6 @@ class Chap5Commands(object):
         Example:
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('PZ_MTEST')
-
             >>> self = Chap5('GZ_Master1')
         """
         self._precollect()
@@ -331,9 +331,9 @@ class Chap5Commands(object):
             >>> self = Chap5('PZ_MTEST')
         """
         import ibeis
-        ibs = self.ibs
-
         sim_params = self._setup_simulation()
+
+        ibs = self.ibs
 
         pblm = sim_params['pblm']
         test_aids = sim_params['test_aids']
@@ -343,7 +343,7 @@ class Chap5Commands(object):
         const_dials = {
             # 'oracle_accuracy' : (0.98, 1.0),
             # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.7, .98),
+            'oracle_accuracy' : (0.98, .98),
             'k_redun'         : 2,
             # 'max_outer_loops' : 1,
             'max_outer_loops' : np.inf,
@@ -461,20 +461,26 @@ class Chap5Commands(object):
         expt_name = 'simulation' + aug
         full_fname = expt_name + ut.get_dict_hashid(const_dials)
 
+        ut.ensuredir(self.dpath)
         ut.save_data(join(self.dpath, full_fname + '.pkl'), expt_results)
         ut.save_data(join(self.dpath, expt_name + '.pkl'), expt_results)
         self.expt_results = expt_results
 
         # self.draw_simulation()
         # ut.show_if_requested()
-
     def draw_error_graph_analysis(self):
+        """
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
+        """
+        import ibeis
+        from ibeis.algo.graph import nx_utils as nxu
+
         expt_name = 'simulation'
         expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
 
         key = 'graph'
-        table = ut.odict()
-
         real_ccs = expt_results[key]['real_ccs']
         pred_ccs = expt_results[key]['pred_ccs']
 
@@ -492,28 +498,43 @@ class Chap5Commands(object):
         merges = [ut.sortedby(ss, ut.emap(len, ss)) for ss in merges]
 
         graph = expt_results[key]['graph']
+        if True:
+            print('\nsplits = ' + ut.repr4(splits))
 
-        def print_edge_df(df, parts):
-            if len(df):
-                order = ['truth', 'decision', 'tags', 'prob_match']
-                order = df.columns.intersection(order)
-                neworder = ut.partial_order(df.columns, order)
-                df = df.reindex_axis(neworder, axis=1)
+            print('\nmerges = ' + ut.repr4(merges))
 
-                df_str = df.to_string()
-                cols = ['blue', 'red', 'green', 'teal']
-                df_str = ut.highlight_multi_regex(
-                    df_str,
-                    {
+            ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
+                      'review_id']
+
+            def print_edge_df(df, parts):
+                if len(df):
+                    order = ['truth', 'decision', 'tags', 'prob_match']
+                    order = df.columns.intersection(order)
+                    neworder = ut.partial_order(df.columns, order)
+                    df = df.reindex_axis(neworder, axis=1)
+
+                    df_str = df.to_string()
+                    cols = ['blue', 'red', 'green', 'teal']
+                    df_str = ut.highlight_multi_regex(df_str, {
                         ut.regex_or(ut.regex_word(str(a)) for a in part): col
-                        for part, col in zip(parts, cols)
-                    }
-                )
-                print(df_str)
-            else:
-                print(df)
-        import ibeis
-        from ibeis.algo.graph import nx_utils as nxu
+                        for part, col in zip(parts, cols)})
+                    print(df_str)
+                else:
+                    print(df)
+
+            for parts in merges:
+                print('\n\n')
+                print('Merge Row: ' + ut.repr2(parts))
+                sub = graph.subgraph(ut.flatten(parts))
+                df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
+                print_edge_df(df, parts)
+
+            for parts in splits:
+                print('\n\n')
+                print('Split Row: ' + ut.repr2(parts))
+                sub = graph.subgraph(ut.flatten(parts))
+                df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
+                print_edge_df(df, parts)
 
         error_aids = set(ut.total_flatten(merges) + ut.total_flatten(splits))
         err_graph = graph.subgraph(error_aids)
@@ -537,12 +558,13 @@ class Chap5Commands(object):
                     if d.get('decision') in {NEGTV}:
                         edges2.append(e)
                 if len(edges2) == 0:
-                    missing = list(nxu.edge_connected_augmentation(
-                        err_graph.subgraph(cc1.union(cc2)), k=1))
+                    missing = [(next(iter(cc1)), next(iter(cc2)))]
+                    # missing = list(nxu.edge_connected_augmentation(
+                    #     err_graph.subgraph(cc1.union(cc2)), k=1))
                     missing_edges.extend(missing)
 
+        err_graph.add_edges_from(missing_edges)
         infr = ibeis.AnnotInference.from_netx(err_graph)
-        infr.graph.add_edges_from(missing_edges)
 
         infr.set_node_attrs('real_nid', {
             aid: nid for nid, cc in enumerate(real_ccs)
@@ -557,7 +579,7 @@ class Chap5Commands(object):
 
         edge_overrides = {
             'alpha': {
-                (u, v): .001
+                (u, v): .05
                 for (u, v, d) in infr.graph.edges(data=True)
                 if d.get('decision') == NEGTV and
                 (d.get('truth') == d.get('decision'))
@@ -567,37 +589,19 @@ class Chap5Commands(object):
             'linestyle': {e: 'dashed' for e in missing_edges},
             'linewidth': {e: 2.0 for e in missing_edges},
             'stroke': {
-                (u, v): {'linewidth': 2, 'foreground': infr._error_color}
+                (u, v): {'linewidth': 3, 'foreground': infr._error_color}
                 for (u, v, d) in infr.graph.edges(data=True)
-                if (d.get('truth') != d.get('decision'))
+                if (d.get('truth') != d.get('decision') or d.get('truth') is None)
             },
         }
+
+        ut.qtensure()
 
         infr.show(groupby='pred_nid', splines='spline', fnum=1,
                   simple_labels=True,
                   colorby='real_nid',
                   show_recent_review=False,
                   edge_overrides=edge_overrides)
-
-        print('splits = ' + ut.repr4(splits))
-        print('merges = ' + ut.repr4(merges))
-
-        ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
-                  'review_id']
-
-        for parts in merges:
-            print('\n\n')
-            print('Merge Row: ' + ut.repr2(parts))
-            sub = graph.subgraph(ut.flatten(parts))
-            df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
-            print_edge_df(df, parts)
-
-        for parts in splits:
-            print('\n\n')
-            print('Split Row: ' + ut.repr2(parts))
-            sub = graph.subgraph(ut.flatten(parts))
-            df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
-            print_edge_df(df, parts)
 
     def print_measures(self, aug=''):
         """
@@ -809,7 +813,6 @@ class Chap5Commands(object):
             ut.write_to(join(self.dpath, fname), latex_str)
 
     def print_error_sizes(self, expt_data, allow_hist=False):
-        from ibeis.algo.graph import nx_utils
 
         real_ccs = expt_data['real_ccs']
         pred_ccs = expt_data['pred_ccs']
@@ -857,7 +860,7 @@ class Chap5Commands(object):
                 cc1 = frozenset(cc1)
                 cc2 = frozenset(cc2)
                 bad_edges = []
-                cross = nx_utils.edges_cross(graph, cc1, cc2)
+                cross = nxu.edges_cross(graph, cc1, cc2)
                 for edge in cross:
                     d = graph.get_edge_data(*edge)
                     if d['decision'] == bad_decision:
@@ -1527,6 +1530,7 @@ class Chap4(DBInputs, IOContract):
         }
         expt_name = 'all'
         self.expt_results[expt_name] = results
+
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
         task_key = 'match_state'
@@ -1534,6 +1538,7 @@ class Chap4(DBInputs, IOContract):
             self.measure_match_state_hard_cases()
 
         self.measure_rerank()
+        self.measure_prune()
 
     def draw_all(self):
         r"""
@@ -1567,15 +1572,169 @@ class Chap4(DBInputs, IOContract):
             self.write_metrics(task_key)
 
             self.draw_rerank()
+            self.draw_prune()
 
             if not ut.get_argflag('--nodraw'):
                 self.draw_hard_cases(task_key)
 
+    def measure_prune(self):
+        """
+        >>> from ibeis.scripts.thesis import *
+        >>> self = Chap4('GZ_Master1')
+        >>> self = Chap4('PZ_Master1')
+        >>> self = Chap4('PZ_MTEST')
+        """
+        # from sklearn.feature_selection import SelectFromModel
+        from ibeis.scripts import clf_helpers
+        if getattr(self, 'pblm', None) is None:
+            self._setup_pblm()
+
+        pblm = self.pblm
+        task_key = pblm.primary_task_key
+        data_key = pblm.default_data_key
+        clf_key = pblm.default_clf_key
+
+        featinfo = vt.AnnotPairFeatInfo(pblm.samples.X_dict[data_key])
+        print(featinfo.get_infostr())
+
+        labels = pblm.samples.subtasks[task_key]
+        # X = pblm.samples.X_dict[data_key]
+
+        feat_dims = pblm.samples.X_dict[data_key].columns.tolist()
+        n_orig = len(feat_dims)
+        n_dims = []
+        reports = []
+        sub_reports = []
+        mdis_list = []
+
+        prune_rate = 1
+        min_feats = 1
+
+        n_steps_needed = int(np.ceil((n_orig - min_feats) / prune_rate))
+        prog = ub.ProgIter(range(n_steps_needed), label='prune')
+        for _ in prog:
+            prog.ensure_newline()
+            clf_list, res_list = pblm._train_evaluation_clf(task_key, data_key,
+                                                            clf_key, feat_dims)
+            combo_res = clf_helpers.ClfResult.combine_results(res_list, labels)
+            rs = [res.extended_clf_report(verbose=0) for res in res_list]
+            report = combo_res.extended_clf_report(verbose=0)
+
+            # Measure mean decrease in impurity
+            clf_mdi = np.array(
+                [clf_.feature_importances_ for clf_ in clf_list])
+            mean_mdi = ut.dzip(feat_dims, np.mean(clf_mdi, axis=0))
+
+            # Record state
+            n_dims.append(len(feat_dims))
+            reports.append(report)
+            sub_reports.append(rs)
+            mdis_list.append(mean_mdi)
+
+            # remove the worst features
+            sorted_featdims = ub.argsort(mean_mdi)
+            n_have = len(sorted_featdims)
+            n_remove = (n_have - max(n_have - prune_rate, min_feats))
+            worst_features = sorted_featdims[0:n_remove]
+            for f in worst_features:
+                feat_dims.remove(f)
+
+        results = {
+            'n_dims': n_dims,
+            'reports': reports,
+            'sub_reports': sub_reports,
+            'mdis_list': mdis_list,
+        }
+        expt_name = 'prune'
+        self.expt_results[expt_name] = results
+        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+
+    def draw_prune(self):
+        """
+        >>> from ibeis.scripts.thesis import *
+        >>> self = Chap4('GZ_Master1')
+        >>> self = Chap4('PZ_MTEST')
+        """
+        expt_name = 'prune'
+        results = self.ensure_results(expt_name)
+
+        n_dims = results['n_dims']
+        mdis_list = results['mdis_list']
+        sub_reports = results['sub_reports']
+
+        # mccs = [r['mcc'] for r in reports]
+        # mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
+        # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs] for rs in sub_reports])
+        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs] for rs in sub_reports])
+
+        import plottool as pt
+        pt.qtensure()
+
+        mpl.rcParams.update(TMP_RC)
+        fig = pt.figure(fnum=1, doclf=True)
+        pt.multi_plot(n_dims, {'mean': ave_mccs.mean(axis=1)},
+                      rcParams=TMP_RC,
+                      marker='',
+                      force_xticks=[min(n_dims)],
+                      # num_xticks=5,
+                      ylabel='MCC',
+                      xlabel='# feature dimensions',
+                      xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
+        ax = pt.gca()
+        # ax.invert_xaxis()
+        fig.set_size_inches([W / 2, H])
+        fpath = join(self.dpath, expt_name + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        u = ave_mccs.mean(axis=1)
+        middle = ut.take_around_percentile(u, .5, len(n_dims) // 3)
+        thresh = middle.mean() - (middle.std() * 6)
+        idx = np.where(u < thresh)[0][0]
+
+        fig = pt.figure(fnum=1)
+        top_importances = n_to_mid[n_dims[idx]]
+        pt.wordcloud(top_importances, ax=fig.axes[0])
+        topinfo = vt.AnnotPairFeatInfo(list(top_importances.keys()))
+
+        fname = 'wc_{}.png'.format(task_key)
+        fig_fpath = join(str(self.dpath), fname)
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        n_to_mid = ut.dzip(n_dims, mdis_list)
+        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
+        print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
+
+        # smoothu = pd.ewma(u, span=10)
+        # grad_smoothu = np.abs(np.gradient(smoothu))
+        # pt.plot(n_dims, u)
+        # pt.plot(n_dims, [thresh] * len(n_dims))
+
+        # middle = ut.take_around_percentile(grad_smoothu, .5, len(n_dims) // 4)
+        # thresh = middle.mean() + (middle.std() * 6)
+        # grad_smoothu > thresh
+        # pt.plot(n_dims, grad_smoothu)
+        # pt.plot(n_dims, [thresh] * len(n_dims))
+        # s = ave_mccs.std(axis=1)
+
+        # import scipy
+        # from scipy.fftpack import fftshift
+
+        # pt.figure(fnum=1, pnum=(1, 2, 1))
+        # pt.plot(u)
+
+        # pt.figure(fnum=1, pnum=(1, 2, 2))
+        # yShift = fftshift(u) #
+        # Fourier = scipy.fft(yShift) # Fourier transform of y implementing the FFT
+        # invFourier = fftshift(Fourier) # inverse shift of the Fourier Transform
+        # plt.plot(invFourier) # plot of the Fourier transform
+
+        # Find the point at which accuracy starts to fall
+
     def measure_rerank(self):
         """
             >>> from ibeis.scripts.thesis import *
-            >>> defaultdb = 'GZ_Master1'
             >>> defaultdb = 'PZ_Master1'
+            >>> defaultdb = 'GZ_Master1'
             >>> self = Chap4(defaultdb)
             >>> self._setup_pblm()
             >>> self.measure_rerank()
