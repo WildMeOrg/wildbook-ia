@@ -213,6 +213,8 @@ class ClfProblem(ut.NiceRepr):
 
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
+        if pblm.verbose:
+            ut.cprint('[pblm] learn_evaluation_classifiers', color='blue')
         pblm.eval_task_clfs = ut.AutoVivification()
         pblm.task_combo_res = ut.AutoVivification()
 
@@ -254,8 +256,8 @@ class ClfProblem(ut.NiceRepr):
 
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
                          verbose=1)
-        # import ubelt as ub
-        cacher_clf = ut.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
+        import ubelt as ub
+        cacher_clf = ub.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
 
         data = cacher_clf.tryload()
         if not data:
@@ -330,7 +332,7 @@ class ClfProblem(ut.NiceRepr):
         Learns on data without any train/validation split
         """
         if pblm.verbose > 0:
-            print('[pblm] learn_deploy_classifiers')
+            ut.cprint('[pblm] learn_deploy_classifiers', color='blue')
         if clf_key is None:
             clf_key = pblm.default_clf_key
         if data_key is None:

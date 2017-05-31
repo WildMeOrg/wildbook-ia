@@ -8,6 +8,7 @@ TODO:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 import utool as ut
+import ubelt as ub
 import itertools as it
 import numpy as np
 import vtool as vt
@@ -210,7 +211,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         use_cache = False
         use_cache = True
         cfgstr = qreq_.get_cfgstr(with_input=True)
-        cacher1 = ut.Cacher('pairsample_1_v6' + ibs.get_dbname(),
+        cacher1 = ub.Cacher('pairsample_1_v6' + ibs.get_dbname(),
                             cfgstr=cfgstr, appname=pblm.appname,
                             enabled=use_cache, verbose=pblm.verbose)
         assert qreq_.qparams.can_match_samename is True
@@ -274,7 +275,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
-        # cacher2 = ut.Cacher('pairsample_2_v6', cfgstr=cfgstr,
+        # cacher2 = ub.Cacher('pairsample_2_v6', cfgstr=cfgstr,
         #                     appname=pblm.appname, enabled=use_cache,
         #                     verbose=pblm.verbose)
         # data = cacher2.tryload()
@@ -309,7 +310,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         # Get a set of training pairs
         if pblm.verbose > 0:
-            print('[pblm] load_samples')
+            ut.cprint('[pblm] load_samples', color='blue')
         aid_pairs = pblm.make_training_pairs()
         pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
         # simple_scores=copy.deepcopy(pblm.raw_simple_scores),
@@ -329,7 +330,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> pblm.load_features(with_simple=False)
         """
         if pblm.verbose > 0:
-            print('[pblm] load_features')
+            ut.cprint('[pblm] load_features', color='blue')
         infr = pblm.infr
         ibs = pblm.infr.ibs
         dbname = ibs.get_dbname()
@@ -343,7 +344,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
 
-        cacher = ut.Cacher('pairwise_data_v21', cfgstr=cfgstr,
+        cacher = ub.Cacher('pairwise_data_v21', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=use_cache,
                            verbose=pblm.verbose)
         data = cacher.tryload()
@@ -394,7 +395,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(ibs.dbname), feat_hashid])
 
-        cacher = ut.Cacher('simple_pairwise_data_v21', cfgstr=cfgstr,
+        cacher = ub.Cacher('simple_pairwise_data_v21', cfgstr=cfgstr,
                            appname=pblm.appname, enabled=True,
                            verbose=pblm.verbose)
         data = cacher.tryload()
@@ -748,7 +749,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pblm.hyper_params.vsone_match.get_cfgstr(),
             pblm.hyper_params.vsone_kpts.get_cfgstr(),
         ])
-        cacher2 = ut.Cacher('full_eval_probs2', prob_cfgstr,
+        cacher2 = ub.Cacher('full_eval_probs2', prob_cfgstr,
                             appname=pblm.appname, verbose=20)
         data2 = cacher2.tryload()
         if not data2:
@@ -836,7 +837,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> pblm.samples.print_featinfo()
         """
         if pblm.verbose:
-            print('[pblm] build_feature_subsets')
+            ut.cprint('[pblm] build_feature_subsets', color='blue')
         X_dict = pblm.samples.X_dict
         X = X_dict['learn(all)']
         featinfo = AnnotPairFeatInfo(X)
@@ -1523,7 +1524,10 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
             hasher.update(uuid1.bytes)
             hasher.update(uuid2.bytes)
             hasher.update(b'-')
-        edge_hashid = hasher.hexdigest()
+        edge_hash = hasher.digest()
+        edge_hashstr = ut.util_hash.convert_bytes_to_bigbase(edge_hash)
+        edge_hashstr = edge_hashstr[0:16]
+        edge_hashid = 'e{}-{}'.format(len(samples), edge_hashstr)
         return edge_hashid
 
     @ut.memoize
@@ -1531,8 +1535,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     def sample_hashid(samples):
         visual_hash = samples.edge_set_hashid()
         # visual_hash = samples.edge_hashid()
-        label_hash = ut.hashstr_arr27(samples.encoded_1d().values, 'labels',
-                                      pathsafe=True)
+        ut.hashid_arr(samples.encoded_1d().values, 'labels')
+        label_hash = ut.hash_data(samples.encoded_1d().values)[0:16]
         sample_hash = visual_hash + '_' + label_hash
         return sample_hash
 

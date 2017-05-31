@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.scripts import script_vsone
 import ibeis.constants as const
+import ubelt as ub
 import pandas as pd
 import numpy as np
 from os.path import basename, join, splitext, exists
@@ -166,8 +167,7 @@ class IOContract(object):
 
 class Chap5Commands(object):
 
-    @profile
-    def measure_simulation(self, aug=''):
+    def _setup_simulation(self):
         """
         CommandLine:
             python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
@@ -181,29 +181,10 @@ class Chap5Commands(object):
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> #dbname = ut.get_argval('--db', default='PZ_Master1')
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> aug = 'test'
-            >>> aug = ''
-            >>> aug = ut.get_argval('--aug', default='')
-            >>> self = Chap5(dbname)
-            >>> self.measure_simulation(aug)
-            >>> ut.quit_if_noshow()
-            >>> self.draw_simulation(aug)
-            >>> #self.draw_simulation2()
-            >>> ut.show_if_requested()
-
-        Ignore:
-            >>> from ibeis.scripts.thesis import *
-            >>> aug = ''
-            >>> self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_MTEST')
-        """
-        # if 'self' not in vars():
-        #     # from ibeis.scripts.thesis import Chap5, script_vsone
-        #     self = Chap5('PZ_MTEST')
-        #     self._precollect()
 
+            >>> self = Chap5('GZ_Master1')
+        """
         self._precollect()
 
         ibs = self.ibs
@@ -220,6 +201,7 @@ class Chap5Commands(object):
         pblm.build_feature_subsets()
 
         pblm.learn_evaluation_classifiers()
+
         task_key = 'match_state'
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
@@ -237,6 +219,7 @@ class Chap5Commands(object):
             notpb_res = res.compress(flags)
             res = notpb_res
 
+        # TODO: need more principled way of selecting thresholds
         graph_thresh = res.get_pos_threshes('fpr', value=.002)
         rankclf_thresh = res.get_pos_threshes('fpr', value=0)
 
@@ -252,17 +235,21 @@ class Chap5Commands(object):
             # rankclf_thresh = res.get_pos_threshes('fpr', value=.03)
 
         # Build deploy classifiers
-        clf_cfgstr = pblm.samples.sample_hashid()
-        clf_cfgstr += ut.hashstr_arr27(
-            pblm.samples.X_dict[data_key].columns.values.tolist(),
-            'featdims')
-        clf_cacher = ut.Cacher('deploy_clf_v3_',
+        samples = pblm.samples
+        clf_cfgstr = '_'.join([
+            samples.sample_hashid(),
+            ut.hashid_arr(samples.X_dict[data_key].columns.values.tolist(), 'featdims')
+        ])
+        clf_cacher = ub.Cacher('deploy_clf_v3_',
                                appname=pblm.appname,
                                cfgstr=clf_cfgstr)
         pblm.deploy_task_clfs = clf_cacher.tryload()
         if pblm.deploy_task_clfs is None:
             pblm.deploy_task_clfs = pblm.learn_deploy_classifiers()  # NOQA
             clf_cacher.save(pblm.deploy_task_clfs)
+
+        print('graph_thresh = %r' % (graph_thresh,))
+        print('rankclf_thresh = %r' % (rankclf_thresh,))
 
         # eval_clfs = pblm._train_evaluation_clf(task_key, data_key, clf_key)
         # deploy_clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
@@ -298,71 +285,110 @@ class Chap5Commands(object):
             infr1.metrics_list[-1]
             infr2.metrics_list[-1]
 
-        print('graph_thresh = %r' % (graph_thresh,))
-        print('rankclf_thresh = %r' % (rankclf_thresh,))
-
         if False:
             cfms = res.confusions('match')
             cfms.plot_vs('thresholds', 'fpr')
-            # import utool
-            # utool.embed()
-            # pass
+
+        sim_params = {
+            'test_aids': test_aids,
+            'pblm': pblm,
+            'graph_thresh': graph_thresh,
+            'rankclf_thresh': rankclf_thresh,
+        }
+        return sim_params
+
+    @profile
+    def measure_simulation(self, aug=''):
+        """
+        CommandLine:
+            python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
+            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show
+            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show
+
+            python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
+            python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> #dbname = ut.get_argval('--db', default='PZ_Master1')
+            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> aug = 'test'
+            >>> aug = ''
+            >>> aug = ut.get_argval('--aug', default='')
+            >>> self = Chap5(dbname)
+            >>> self.measure_simulation(aug)
+            >>> ut.quit_if_noshow()
+            >>> self.draw_simulation(aug)
+            >>> #self.draw_simulation2()
+            >>> ut.show_if_requested()
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> aug = ''
+            >>> self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_MTEST')
+        """
+        import ibeis
+        ibs = self.ibs
+
+        sim_params = self._setup_simulation()
+
+        pblm = sim_params['pblm']
+        test_aids = sim_params['test_aids']
+        rankclf_thresh = sim_params['rankclf_thresh']
+        graph_thresh = sim_params['graph_thresh']
 
         const_dials = {
             # 'oracle_accuracy' : (0.98, 1.0),
-            'oracle_accuracy' : (0.98, .98),
+            # 'oracle_accuracy' : (0.98, .98),
+            'oracle_accuracy' : (0.7, .98),
             'k_redun'         : 2,
             # 'max_outer_loops' : 1,
             'max_outer_loops' : np.inf,
         }
 
-        if True:
-            varied_dials = {
-                'enable_inference'   : True,
-                'match_state_thresh' : graph_thresh,
-                'name'               : 'graph'
-            }
-            dials = ut.dict_union(const_dials, varied_dials)
-            verbose = 1
-            import ibeis
-            infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
-                                         verbose=verbose)
-            infr1.enable_auto_prioritize_nonpos = True
-            infr1._refresh_params['window'] = 20
-            infr1._refresh_params['thresh'] = np.exp(-2)
-            infr1._refresh_params['patience'] = 20
+        # ----------
+        # Graph test
+        # ----------
 
-            infr1.init_simulation(classifiers=pblm, **dials)
-            infr1.init_test_mode()
-            infr1.reset(state='empty')
-            if 0:
-                # from ibeis.algo.graph import mixin_loops
-                infr1.lnbnn_priority_loop()
-                # infr1.fix_pos_redun_loop()
-                # infr1.recovery_review_loop()
-                # infr1.pos_redun_loop()
-                # infr1.groundtruth_merge_loop()
-                # infr1.recovery_review_loop()
-            else:
-                infr1.main_loop()
+        varied_dials = {
+            'enable_inference'   : True,
+            'match_state_thresh' : graph_thresh,
+            'name'               : 'graph'
+        }
+        dials = ut.dict_union(const_dials, varied_dials)
+        verbose = 1
+        infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
+                                     verbose=verbose)
+        infr1.enable_auto_prioritize_nonpos = True
+        infr1._refresh_params['window'] = 20
+        infr1._refresh_params['thresh'] = np.exp(-2)
+        infr1._refresh_params['patience'] = 20
 
-            pred_confusion = pd.DataFrame(infr1.test_state['confusion'])
-            pred_confusion.index.name = 'real'
-            pred_confusion.columns.name = 'pred'
-            print('Edge confusion')
-            print(pred_confusion)
+        infr1.init_simulation(classifiers=pblm, **dials)
+        infr1.init_test_mode()
+        infr1.reset(state='empty')
+        infr1.main_loop()
 
-            expt_results = {}
-            refresh_thresh = infr1.refresh._prob_any_remain_thresh
-            graph_expt_data = {
-                'real_ccs': list(infr1.nid_to_gt_cc.values()),
-                'pred_ccs': list(infr1.pos_graph.connected_components()),
-                'graph': infr1.graph.copy(),
-                'dials': dials,
-                'refresh_thresh': refresh_thresh,
-                'metrics': infr1.metrics_list,
-            }
-            expt_results['graph'] = graph_expt_data
+        expt_results = {}
+        refresh_thresh = infr1.refresh._prob_any_remain_thresh
+        graph_expt_data = {
+            'real_ccs': list(infr1.nid_to_gt_cc.values()),
+            'pred_ccs': list(infr1.pos_graph.connected_components()),
+            'graph': infr1.graph.copy(),
+            'dials': dials,
+            'refresh_thresh': refresh_thresh,
+            'metrics': infr1.metrics_list,
+        }
+        expt_results['graph'] = graph_expt_data
+
+        pred_confusion = pd.DataFrame(infr1.test_state['confusion'])
+        pred_confusion.index.name = 'real'
+        pred_confusion.columns.name = 'pred'
+        print('Edge confusion')
+        print(pred_confusion)
 
         # metrics_df = pd.DataFrame.from_dict(graph_expt_data['metrics'])
         # for user, group in metrics_df.groupby('user_id'):
@@ -370,65 +396,67 @@ class Chap5Commands(object):
         #     user_actions = group['action']
         #     print(ut.repr4(ut.dict_hist(user_actions), stritems=True))
 
-        if 0:
-            import utool
-            utool.embed()
-            ut.qtensure()
+        # ----------
+        # Graph test
+        # ----------
 
-        if True:
-            # Rank+CLF
-            varied_dials = {
-                'enable_inference'   : False,
-                'match_state_thresh' : rankclf_thresh,
-                'name'               : 'rank+clf'
-            }
-            dials = ut.dict_union(const_dials, varied_dials)
-            verbose = 1
-            infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
-                                         autoinit=True, verbose=verbose)
-            infr2.init_simulation(classifiers=pblm, **dials)
-            infr2.init_test_mode()
-            infr2.enable_redundancy = False
-            infr2.enable_autoreview = True
-            infr2.reset(state='empty')
+        # Rank+CLF
+        varied_dials = {
+            'enable_inference'   : False,
+            'match_state_thresh' : rankclf_thresh,
+            'name'               : 'rank+clf'
+        }
+        dials = ut.dict_union(const_dials, varied_dials)
+        verbose = 1
+        infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
+                                     autoinit=True, verbose=verbose)
+        infr2.init_simulation(classifiers=pblm, **dials)
+        infr2.init_test_mode()
+        infr2.enable_redundancy = False
+        infr2.enable_autoreview = True
+        infr2.reset(state='empty')
 
-            infr2.main_loop(max_loops=1, use_refresh=False)
+        infr2.main_loop(max_loops=1, use_refresh=False)
 
-            verifier_expt_data = {
-                'real_ccs': list(infr2.nid_to_gt_cc.values()),
-                'pred_ccs': list(infr2.pos_graph.connected_components()),
-                'graph': infr2.graph.copy(),
-                'dials': dials,
-                'refresh_thresh': refresh_thresh,
-                'metrics': infr2.metrics_list,
-            }
-            expt_results['rank+clf'] = verifier_expt_data
+        verifier_expt_data = {
+            'real_ccs': list(infr2.nid_to_gt_cc.values()),
+            'pred_ccs': list(infr2.pos_graph.connected_components()),
+            'graph': infr2.graph.copy(),
+            'dials': dials,
+            'refresh_thresh': refresh_thresh,
+            'metrics': infr2.metrics_list,
+        }
+        expt_results['rank+clf'] = verifier_expt_data
 
-            # Ranking test
-            varied_dials = {
-                'enable_inference'   : False,
-                'match_state_thresh' : None,
-                'name'               : 'ranking'
-            }
-            dials = ut.dict_union(const_dials, varied_dials)
-            verbose = 1
-            infr3 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
-                                         autoinit=True, verbose=verbose)
-            infr3.init_simulation(classifiers=None, **dials)
-            infr3.init_test_mode()
-            infr3.enable_redundancy = False
-            infr3.enable_autoreview = False
-            infr3.reset(state='empty')
-            infr3.main_loop(max_loops=1, use_refresh=False)
-            ranking_expt_data = {
-                'real_ccs': list(infr3.nid_to_gt_cc.values()),
-                'pred_ccs': list(infr3.pos_graph.connected_components()),
-                'graph': infr3.graph.copy(),
-                'dials': dials,
-                'refresh_thresh': refresh_thresh,
-                'metrics': infr3.metrics_list,
-            }
-            expt_results['ranking'] = ranking_expt_data
+        # ----------
+        # Graph test
+        # ----------
+
+        # Ranking test
+        varied_dials = {
+            'enable_inference'   : False,
+            'match_state_thresh' : None,
+            'name'               : 'ranking'
+        }
+        dials = ut.dict_union(const_dials, varied_dials)
+        verbose = 1
+        infr3 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
+                                     autoinit=True, verbose=verbose)
+        infr3.init_simulation(classifiers=None, **dials)
+        infr3.init_test_mode()
+        infr3.enable_redundancy = False
+        infr3.enable_autoreview = False
+        infr3.reset(state='empty')
+        infr3.main_loop(max_loops=1, use_refresh=False)
+        ranking_expt_data = {
+            'real_ccs': list(infr3.nid_to_gt_cc.values()),
+            'pred_ccs': list(infr3.pos_graph.connected_components()),
+            'graph': infr3.graph.copy(),
+            'dials': dials,
+            'refresh_thresh': refresh_thresh,
+            'metrics': infr3.metrics_list,
+        }
+        expt_results['ranking'] = ranking_expt_data
 
         expt_name = 'simulation' + aug
         full_fname = expt_name + ut.get_dict_hashid(const_dials)
@@ -440,121 +468,136 @@ class Chap5Commands(object):
         # self.draw_simulation()
         # ut.show_if_requested()
 
-    def draw_simulation(self, aug=''):
-        """
-        CommandLine:
-            python -m ibeis Chap5.draw_simulation --db PZ_MTEST --diskshow
-            python -m ibeis Chap5.draw_simulation --db GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw_simulation --db PZ_Master1 --diskshow
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> self = Chap5(dbname)
-            >>> self.draw_simulation()
-        """
-
-        expt_name = 'simulation' + aug
-        if not self.expt_results:
-            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
-        else:
-            expt_results = self.expt_results
-
-        keys = ['ranking', 'rank+clf', 'graph']
-        colors = ut.dzip(keys, ['red', 'orange', 'b'])
-        def _metrics(col):
-            return {k: ut.take_column(v['metrics'], col)
-                    for k, v in expt_results.items()}
-
-        fnum = 1
-
-        xdatas = _metrics('n_manual')
-        xmax = max(map(max, xdatas.values()))
-        xpad = (1.01 * xmax) - xmax
-
-        pnum_ = pt.make_pnum_nextgen(nSubplots=2)
-
-        mpl.rcParams.update(TMP_RC)
-
-        pt.figure(fnum=fnum, pnum=pnum_())
-        ax = pt.gca()
-        ydatas = _metrics('merge_remain')
-        for key in keys:
-            ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
-        ax.set_ylim(0, 1)
-        ax.set_xlim(-xpad, xmax + xpad)
-        ax.set_xlabel('# manual reviews')
-        ax.set_ylabel('# merges remain')
-        ax.legend()
-
-        pt.figure(fnum=fnum, pnum=pnum_())
-        ax = pt.gca()
-        ydatas = _metrics('n_errors')
-        for key in keys:
-            ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
-        ax.set_ylim(0, max(map(max, ydatas.values())) * 1.01)
-        ax.set_xlim(-xpad, xmax + xpad)
-        ax.set_xlabel('# manual reviews')
-        ax.set_ylabel('# errors')
-        ax.legend()
-
-        fig = pt.gcf()  # NOQA
-        fig.set_size_inches([W, H * .75])
-        pt.adjust_subplots(wspace=.25, fig=fig)
-
-        fpath = join(self.dpath, expt_name + aug + '.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
-
-    def draw_refresh(self):
-        """
-        CommandLine:
-            python -m ibeis Chap5.draw_refresh --db PZ_MTEST --show
-            python -m ibeis Chap5.draw_refresh --db GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw_refresh --db PZ_Master1 --diskshow
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> self = Chap5(dbname)
-            >>> self.draw_refresh()
-        """
-
+    def draw_error_graph_analysis(self):
         expt_name = 'simulation'
-        if not self.expt_results:
-            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
-        else:
-            expt_results = self.expt_results
+        expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
 
-        keys = ['ranking', 'rank+clf', 'graph']
-        colors = ut.dzip(keys, ['red', 'orange', 'b'])
-        def _metrics(col):
-            return {k: ut.take_column(v['metrics'], col)
-                    for k, v in expt_results.items()}
-
-        fnum = 1
-
-        xdatas = _metrics('n_manual')
-        pnum_ = pt.make_pnum_nextgen(nSubplots=1)
-
-        mpl.rcParams.update(TMP_RC)
-
-        pt.figure(fnum=fnum, pnum=pnum_())
-        ax = pt.gca()
-        ydatas = _metrics('pprob_any')
         key = 'graph'
-        ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
-        ax.set_xlabel('# manual reviews')
-        ax.set_ylabel('P(T=1)')
-        # ax.legend()
+        table = ut.odict()
 
-        fpath = join(self.dpath, 'refresh.png')
-        fig = pt.gcf()  # NOQA
-        fig.set_size_inches([W, H * .5])
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
+        real_ccs = expt_results[key]['real_ccs']
+        pred_ccs = expt_results[key]['pred_ccs']
+
+        delta = ut.grouping_delta(pred_ccs, real_ccs)
+        # unchanged = delta['unchanged']
+        splits = delta['splits']['new'] + delta['hybrid']['splits']
+        merges = delta['merges']['old'] + delta['hybrid']['merges']
+        splits = [s for s in splits if len(s) > 1]
+        merges = [m for m in merges if len(m) > 1]
+
+        splits = ut.sortedby(splits, [len(ut.flatten(x)) for x in splits])
+        merges = ut.sortedby(merges, [len(ut.flatten(x)) for x in merges])
+
+        splits = [ut.sortedby(ss, ut.emap(len, ss)) for ss in splits]
+        merges = [ut.sortedby(ss, ut.emap(len, ss)) for ss in merges]
+
+        graph = expt_results[key]['graph']
+
+        def print_edge_df(df, parts):
+            if len(df):
+                order = ['truth', 'decision', 'tags', 'prob_match']
+                order = df.columns.intersection(order)
+                neworder = ut.partial_order(df.columns, order)
+                df = df.reindex_axis(neworder, axis=1)
+
+                df_str = df.to_string()
+                cols = ['blue', 'red', 'green', 'teal']
+                df_str = ut.highlight_multi_regex(
+                    df_str,
+                    {
+                        ut.regex_or(ut.regex_word(str(a)) for a in part): col
+                        for part, col in zip(parts, cols)
+                    }
+                )
+                print(df_str)
+            else:
+                print(df)
+        import ibeis
+        from ibeis.algo.graph import nx_utils as nxu
+
+        error_aids = set(ut.total_flatten(merges) + ut.total_flatten(splits))
+        err_graph = graph.subgraph(error_aids)
+
+        if False:
+            for merge in merges:
+                for cc1, cc2 in ut.combinations(merge, 2):
+                    x = list(nxu.edges_between(err_graph, cc1, cc2))
+                    err_graph.remove_edges_from(x)
+                    break
+                break
+
+        # Find edges that were completely missed
+        missing_edges = []
+        for merge in merges:
+            for cc1, cc2 in ut.combinations(merge, 2):
+                edges = list(nxu.edges_between(err_graph, cc1, cc2))
+                edges2 = []
+                for e in edges:
+                    d = err_graph.get_edge_data(*e)
+                    if d.get('decision') in {NEGTV}:
+                        edges2.append(e)
+                if len(edges2) == 0:
+                    missing = list(nxu.edge_connected_augmentation(
+                        err_graph.subgraph(cc1.union(cc2)), k=1))
+                    missing_edges.extend(missing)
+
+        infr = ibeis.AnnotInference.from_netx(err_graph)
+        infr.graph.add_edges_from(missing_edges)
+
+        infr.set_node_attrs('real_nid', {
+            aid: nid for nid, cc in enumerate(real_ccs)
+            for aid in cc if aid in error_aids})
+
+        infr.set_node_attrs('pred_nid', {
+            aid: nid for nid, cc in enumerate(pred_ccs)
+            for aid in cc if aid in error_aids})
+
+        infr.relabel_using_reviews()
+        # infr.show(groupby='real_nid', splines='spline', fnum=1)
+
+        edge_overrides = {
+            'alpha': {
+                (u, v): .001
+                for (u, v, d) in infr.graph.edges(data=True)
+                if d.get('decision') == NEGTV and
+                (d.get('truth') == d.get('decision'))
+            },
+            'style': {e: '' for e in missing_edges},
+            'sketch': {e: None for e in missing_edges},
+            'linestyle': {e: 'dashed' for e in missing_edges},
+            'linewidth': {e: 2.0 for e in missing_edges},
+            'stroke': {
+                (u, v): {'linewidth': 2, 'foreground': infr._error_color}
+                for (u, v, d) in infr.graph.edges(data=True)
+                if (d.get('truth') != d.get('decision'))
+            },
+        }
+
+        infr.show(groupby='pred_nid', splines='spline', fnum=1,
+                  simple_labels=True,
+                  colorby='real_nid',
+                  show_recent_review=False,
+                  edge_overrides=edge_overrides)
+
+        print('splits = ' + ut.repr4(splits))
+        print('merges = ' + ut.repr4(merges))
+
+        ignore = ['timestamp', 'num_reviews', 'confidence', 'default_priority',
+                  'review_id']
+
+        for parts in merges:
+            print('\n\n')
+            print('Merge Row: ' + ut.repr2(parts))
+            sub = graph.subgraph(ut.flatten(parts))
+            df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
+            print_edge_df(df, parts)
+
+        for parts in splits:
+            print('\n\n')
+            print('Split Row: ' + ut.repr2(parts))
+            sub = graph.subgraph(ut.flatten(parts))
+            df = nxu.edge_df(graph, sub.edges(), ignore=ignore)
+            print_edge_df(df, parts)
 
     def print_measures(self, aug=''):
         """
@@ -644,69 +687,6 @@ class Chap5Commands(object):
                 ut.render_latex_text(new_text, preamb_extra=[
                     '\\usepackage{makecell}',
                 ])
-
-        key = 'graph'
-        table = ut.odict()
-
-        real_ccs = expt_results[key]['real_ccs']
-        pred_ccs = expt_results[key]['pred_ccs']
-
-        delta = ut.grouping_delta(pred_ccs, real_ccs)
-        # unchanged = delta['unchanged']
-        splits = delta['splits']['new'] + delta['hybrid']['splits']
-        merges = delta['merges']['old'] + delta['hybrid']['merges']
-        splits = [s for s in splits if len(s) > 1]
-        merges = [m for m in merges if len(m) > 1]
-
-        splits = ut.sortedby(splits, [len(ut.flatten(x)) for x in splits])
-        merges = ut.sortedby(merges, [len(ut.flatten(x)) for x in merges])
-
-        splits = [ut.sortedby(ss, ut.emap(len, ss)) for ss in splits]
-        merges = [ut.sortedby(ss, ut.emap(len, ss)) for ss in merges]
-
-        graph = expt_results[key]['graph']
-        def error_edge_df(edges, parts):
-            edge_dict = {e: graph.get_edge_data(*e) for e in edges}
-            df = pd.DataFrame.from_dict(edge_dict, orient='index')
-
-            if len(df):
-                ignore = ['timestamp', 'num_reviews', 'confidence',
-                          'default_priority', 'review_id']
-                ignore = df.columns.intersection(ignore)
-                df = df.drop(ignore, axis=1)
-                df.index.names = ('aid1', 'aid2')
-
-                order = ['truth', 'decision', 'tags', 'prob_match']
-                order = df.columns.intersection(order)
-                neworder = ut.partial_order(df.columns, order)
-                df = df.reindex_axis(neworder, axis=1)
-
-                df_str = df.to_string()
-                cols = ['blue', 'red', 'green', 'teal']
-                for part, col in zip(parts, cols):
-                    pat = ut.regex_or(ut.regex_word(str(a)) for a in part)
-                    df_str = ut.highlight_regex(df_str, pat, color=col)
-                print(df_str)
-            else:
-                print(df)
-
-        print('splits = ' + ut.repr4(splits))
-        print('merges = ' + ut.repr4(merges))
-
-        for parts in merges:
-            print('\n\n')
-            print('Merge Row: ' + ut.repr2(parts))
-            sub = graph.subgraph(ut.flatten(parts))
-            edges = list(sub.edges())
-            error_edge_df(edges, parts)
-
-        for parts in splits:
-            print('\n\n')
-            print('Split Row: ' + ut.repr2(parts))
-            sub = graph.subgraph(ut.flatten(parts))
-            edges = list(sub.edges())
-            error_edge_df(edges, parts)
-
 
         caseinfo = info['split']
         casetable = table['split'] = ut.odict()
@@ -1070,6 +1050,122 @@ class Chap5Commands(object):
         print_measures(merge_text, info['hmerge'])
         print('------------')
         return info
+
+    def draw_simulation(self, aug=''):
+        """
+        CommandLine:
+            python -m ibeis Chap5.draw_simulation --db PZ_MTEST --diskshow
+            python -m ibeis Chap5.draw_simulation --db GZ_Master1 --diskshow
+            python -m ibeis Chap5.draw_simulation --db PZ_Master1 --diskshow
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> self = Chap5(dbname)
+            >>> self.draw_simulation()
+        """
+
+        expt_name = 'simulation' + aug
+        if not self.expt_results:
+            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
+        else:
+            expt_results = self.expt_results
+
+        keys = ['ranking', 'rank+clf', 'graph']
+        colors = ut.dzip(keys, ['red', 'orange', 'b'])
+        def _metrics(col):
+            return {k: ut.take_column(v['metrics'], col)
+                    for k, v in expt_results.items()}
+
+        fnum = 1
+
+        xdatas = _metrics('n_manual')
+        xmax = max(map(max, xdatas.values()))
+        xpad = (1.01 * xmax) - xmax
+
+        pnum_ = pt.make_pnum_nextgen(nSubplots=2)
+
+        mpl.rcParams.update(TMP_RC)
+
+        pt.figure(fnum=fnum, pnum=pnum_())
+        ax = pt.gca()
+        ydatas = _metrics('merge_remain')
+        for key in keys:
+            ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
+        ax.set_ylim(0, 1)
+        ax.set_xlim(-xpad, xmax + xpad)
+        ax.set_xlabel('# manual reviews')
+        ax.set_ylabel('# merges remain')
+        ax.legend()
+
+        pt.figure(fnum=fnum, pnum=pnum_())
+        ax = pt.gca()
+        ydatas = _metrics('n_errors')
+        for key in keys:
+            ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
+        ax.set_ylim(0, max(map(max, ydatas.values())) * 1.01)
+        ax.set_xlim(-xpad, xmax + xpad)
+        ax.set_xlabel('# manual reviews')
+        ax.set_ylabel('# errors')
+        ax.legend()
+
+        fig = pt.gcf()  # NOQA
+        fig.set_size_inches([W, H * .75])
+        pt.adjust_subplots(wspace=.25, fig=fig)
+
+        fpath = join(self.dpath, expt_name + aug + '.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
+
+    def draw_refresh(self):
+        """
+        CommandLine:
+            python -m ibeis Chap5.draw_refresh --db PZ_MTEST --show
+            python -m ibeis Chap5.draw_refresh --db GZ_Master1 --diskshow
+            python -m ibeis Chap5.draw_refresh --db PZ_Master1 --diskshow
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
+            >>> self = Chap5(dbname)
+            >>> self.draw_refresh()
+        """
+
+        expt_name = 'simulation'
+        if not self.expt_results:
+            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
+        else:
+            expt_results = self.expt_results
+
+        keys = ['ranking', 'rank+clf', 'graph']
+        colors = ut.dzip(keys, ['red', 'orange', 'b'])
+        def _metrics(col):
+            return {k: ut.take_column(v['metrics'], col)
+                    for k, v in expt_results.items()}
+
+        fnum = 1
+
+        xdatas = _metrics('n_manual')
+        pnum_ = pt.make_pnum_nextgen(nSubplots=1)
+
+        mpl.rcParams.update(TMP_RC)
+
+        pt.figure(fnum=fnum, pnum=pnum_())
+        ax = pt.gca()
+        ydatas = _metrics('pprob_any')
+        key = 'graph'
+        ax.plot(xdatas[key], ydatas[key], label=key, color=colors[key])
+        ax.set_xlabel('# manual reviews')
+        ax.set_ylabel('P(T=1)')
+        # ax.legend()
+
+        fpath = join(self.dpath, 'refresh.png')
+        fig = pt.gcf()  # NOQA
+        fig.set_size_inches([W, H * .5])
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
 
     def draw_simulation2(self):
         """

@@ -455,10 +455,6 @@ class InfrLoops(object):
         """
         infr.print('Start inner loop')
         for count in it.count(0):
-            if len(infr.queue) == 0:
-                infr.print('No more edges after %d iterations, need refresh' %
-                           (count,), 1, color='yellow')
-                break
             if infr.is_recovering():
                 infr.print('Still recovering after %d iterations' % (count,),
                            3, color='turquoise')
@@ -468,9 +464,13 @@ class InfrLoops(object):
                     infr.print('Triggered refresh criteria after %d iterations' %
                                (count,), 1, color='yellow')
                     break
-            infr.next_review()
-            # if count > 200:
-            #     return
+            try:
+                infr.next_review()
+            except StopIteration:
+                assert len(infr.queue) == 0
+                infr.print('No more edges after %d iterations, need refresh' %
+                           (count,), 1, color='yellow')
+                break
 
     def lnbnn_priority_loop(infr, use_refresh=True):
         infr.print('============================')

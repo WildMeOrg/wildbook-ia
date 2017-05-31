@@ -1333,6 +1333,19 @@ def random_k_edge_connected_graph(size, k, p=.1, rng=None):
     return g
 
 
+def edge_df(graph, edges, ignore=None):
+    import pandas as pd
+    edge_dict = {e: graph.get_edge_data(*e) for e in edges}
+    df = pd.DataFrame.from_dict(edge_dict, orient='index')
+
+    if len(df):
+        if ignore:
+            ignore = df.columns.intersection(ignore)
+            df = df.drop(ignore, axis=1)
+        df.index.names = ('u', 'v')
+    return df
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
