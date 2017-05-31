@@ -536,9 +536,19 @@ def check_for_unregistered_images(ibs):
     gpath_registered = set(images.paths)
     overlaps = ut.set_overlaps(gpath_disk, gpath_registered, 'ondisk', 'reg')
     print('overlaps' + ut.repr3(overlaps))
-    # gpath_unregistered = gpath_disk - gpath_registered
-    # ut.remove_file_list(gpath_unregistered)
-    return overlaps
+    gpath_unregistered = gpath_disk - gpath_registered
+    return overlaps, gpath_unregistered
+
+
+@register_ibs_method
+def trash_unregistered_images(ibs, verbose=True):
+    ut.embed()
+    _, gpath_unregistered = ibs.check_for_unregistered_images()
+    dst_fpath = ibs.trashdir
+    gname_list = [ut.split(gpath)[1] for gpath in gpath_unregistered]
+    dst_fpath_list = [join(dst_fpath, gname) for gname in gname_list]
+    ut.copy_files_to(gpath_unregistered, dst_fpath_list=dst_fpath_list)
+    ut.remove_file_list(gpath_unregistered)
 
 
 @register_ibs_method
