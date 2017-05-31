@@ -321,8 +321,9 @@ class PairwiseMatch(ut.NiceRepr):
         Example:
             >>> from vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True}
-            >>> match = demodata_match(cfgdict, apply=False)
-            >>> match.assign()
+            >>> match = demodata_match({}, apply=False)
+            >>> m1 = match.copy().assign({'symmetric': False})
+            >>> m2 = match.copy().assign({'symmetric': True})
 
         Grid:
             from vtool.matching import *  # NOQA
@@ -358,9 +359,18 @@ class PairwiseMatch(ut.NiceRepr):
                 annot1['flann'], annot2['vecs'], num_neighbors, checks)
 
             fx2_to_flags = flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)
-            # Assign correspondences
-            assigntup = assign_unconstrained_matches(
-                fx2_to_fx1, fx2_to_dist, K, Knorm, fx2_to_flags)
+
+            # if cfgdict.get('newsym'):
+            assigntup2 = assign_symmetric_matches(
+                fx2_to_fx1, fx2_to_dist, fx1_to_fx2, fx1_to_dist, K, Knorm)
+
+            (fm, match_dist, fx1_norm, norm_dist1, fx2_norm,
+             norm_dist2) = assigntup2
+            norm_dist = np.minimum(norm_dist1, norm_dist2)
+            # else:
+            #     # Assign correspondences
+            #     assigntup = assign_unconstrained_matches(
+            #         fx2_to_fx1, fx2_to_dist, K, Knorm, fx2_to_flags)
         else:
             # fx1_to_fx2, fx1_to_dist = normalized_nearest_neighbors(
             #     annot2['flann'], annot1['vecs'], num_neighbors, checks)
@@ -370,7 +380,9 @@ class PairwiseMatch(ut.NiceRepr):
             # Assign correspondences
             assigntup = assign_unconstrained_matches(fx2_to_fx1, fx2_to_dist, K,
                                                      Knorm, fx2_to_flags)
-        fm, match_dist, fx1_norm, norm_dist = assigntup
+            fm, match_dist, fx1_norm, norm_dist = assigntup
+            fx2_norm = None
+
         ratio = np.divide(match_dist, norm_dist)
         ratio_score = (1.0 - ratio)
 
@@ -399,7 +411,11 @@ class PairwiseMatch(ut.NiceRepr):
             match.fs = weighted_ratio
 
         match.fm = fm
-        match.fm_norm = np.vstack([fx1_norm, fm.T[1]]).T
+        match.fm_norm1 = np.vstack([fx1_norm, fm.T[1]]).T
+        if fx2_norm is None:
+            match.fm_norm2 = None
+        else:
+            match.fm_norm2 = np.vstack([fm.T[1], fx2_norm]).T
         return match
 
     def ratio_test_flags(match, cfgdict={}):
@@ -409,6 +425,14 @@ class PairwiseMatch(ut.NiceRepr):
         return flags
 
     def sver_flags(match, cfgdict={}, return_extra=False):
+        """
+        Example:
+            >>> from vtool.matching import *  # NOQA
+            >>> cfgdict = {'symmetric': True, 'newsym': True}
+            >>> match = demodata_match(cfgdict, apply=False)
+            >>> m1 = match.copy().assign({'symmetric': False})
+            >>> m2 = match.copy().assign({'symmetric': True})
+        """
         from vtool import spatial_verification as sver
         import vtool as vt
         params = match._take_params(
