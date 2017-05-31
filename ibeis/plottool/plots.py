@@ -396,6 +396,7 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
     # Setup axes ticks
     num_xticks = kwargs.get('num_xticks', None)
     num_yticks = kwargs.get('num_yticks', None)
+
     if num_xticks is not None:
         # TODO check if xdata is integral
         if ut.is_int(xdata):
@@ -411,6 +412,11 @@ def multi_plot(xdata=None, ydata_list=[], **kwargs):
         else:
             yticks = np.linspace((ymin), (ymax), num_yticks)
         ax.set_yticks(yticks)
+
+    force_xticks = kwargs.get('force_xticks', None)
+    if force_xticks is not None:
+        xticks = np.array(sorted(ax.get_xticks().tolist() + force_xticks))
+        ax.set_xticks(xticks)
 
     yticklabels = kwargs.get('yticklabels', None)
     if yticklabels is not None:

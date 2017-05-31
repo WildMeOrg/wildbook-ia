@@ -451,17 +451,17 @@ def render_figure_to_image(fig, **savekw):
     import plottool as pt
     # Pop save kwargs from kwargs
     #save_keys = ['dpi', 'figsize', 'saveax', 'verbose']
-    image = {}
     # Write matplotlib axes to an image
     axes_extents = pt.extract_axes_extents(fig)
     # assert len(axes_extents) == 1, 'more than one axes'
-    if len(axes_extents) == 1:
-        extent = axes_extents[0]
-    else:
-        extent = mpl.transforms.Bbox.union(axes_extents)
+    # if len(axes_extents) == 1:
+    #     extent = axes_extents[0]
+    # else:
+    extent = mpl.transforms.Bbox.union(axes_extents)
     with io.BytesIO() as stream:
         # This call takes 23% - 15% of the time depending on settings
         fig.savefig(stream, bbox_inches=extent, **savekw)
+        fig.savefig('foo.png', bbox_inches=extent, **savekw)
         stream.seek(0)
         data = np.fromstring(stream.getvalue(), dtype=np.uint8)
     image = cv2.imdecode(data, 1)
@@ -621,13 +621,32 @@ def axes_extent(axs, pad=0.0):
     """
     def axes_parts(ax):
         yield ax
-        for label in ax.get_xticklabels() + ax.get_yticklabels():
-            yield label
+        for label in ax.get_xticklabels():
+            if label.get_text():
+                yield label
+        for label in ax.get_yticklabels():
+            if label.get_text():
+                yield label
         xlabel = ax.get_xaxis().get_label()
         ylabel = ax.get_yaxis().get_label()
         for label in (xlabel, ylabel, ax.title):
             if label.get_text():
                 yield label
+
+    # def axes_parts2(ax):
+    #     yield ('ax', ax)
+    #     for c, label in enumerate(ax.get_xticklabels()):
+    #         if label.get_text():
+    #             yield ('xtick{}'.format(c), label)
+    #     for label in ax.get_yticklabels():
+    #         if label.get_text():
+    #             yield ('ytick{}'.format(c), label)
+    #     xlabel = ax.get_xaxis().get_label()
+    #     ylabel = ax.get_yaxis().get_label()
+    #     for key, label in (('xlabel', xlabel), ('ylabel', ylabel),
+    #                   ('title', ax.title)):
+    #         if label.get_text():
+    #             yield (key, label)
     #yield from ax.lines
     #yield from ax.patches
     items = it.chain.from_iterable(axes_parts(ax) for ax in axs)
