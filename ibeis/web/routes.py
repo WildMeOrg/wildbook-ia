@@ -1642,8 +1642,8 @@ def turk_detection(gid=None, refer_aid=None, imgsetid=None, previous=None, confi
     display_species_examples = False  # request.cookies.get('ia-detection_example_species_seen', 0) == 0
     if not finished:
         gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-        imgdata = ibs.get_image_imgdata(gid)
-        # imgdata = ibs.get_image_thumbnail(gid)
+        # imgdata = ibs.get_image_imgdata(gid)
+        imgdata = ibs.get_image_thumbnail(gid)
         image_src = appf.embed_image_html(imgdata)
         width, height = ibs.get_image_sizes(gid)
 
@@ -1824,8 +1824,8 @@ def turk_detection_dynamic(**kwargs):
     gid = request.args.get('gid', None)
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
-    image = ibs.get_image_imgdata(gid)
-    # image = ibs.get_image_thumbnail(gid)
+    # image = ibs.get_image_imgdata(gid)
+    image = ibs.get_image_thumbnail(gid)
     image_src = appf.embed_image_html(image)
     # Get annotations
     width, height = ibs.get_image_sizes(gid)
