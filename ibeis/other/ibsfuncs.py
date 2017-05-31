@@ -542,9 +542,9 @@ def check_for_unregistered_images(ibs):
 
 @register_ibs_method
 def trash_unregistered_images(ibs, verbose=True):
-    ut.embed()
-    _, gpath_unregistered = ibs.check_for_unregistered_images()
     dst_fpath = ibs.trashdir
+    ut.ensuredir(dst_fpath)
+    _, gpath_unregistered = ibs.check_for_unregistered_images()
     gname_list = [ut.split(gpath)[1] for gpath in gpath_unregistered]
     dst_fpath_list = [join(dst_fpath, gname) for gname in gname_list]
     ut.copy_files_to(gpath_unregistered, dst_fpath_list=dst_fpath_list)
