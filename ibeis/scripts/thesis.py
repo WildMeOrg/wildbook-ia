@@ -1617,6 +1617,9 @@ class Chap4(DBInputs, IOContract):
         r"""
         CommandLine:
             python -m ibeis Chap4.draw_all --db PZ_MTEST
+            python -m ibeis Chap4.draw_all --db PZ_PB_RF_TRAIN
+            python -m ibeis Chap4.draw_all --db GZ_Master1
+            python -m ibeis Chap4.draw_all --db PZ_Master1
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -1630,7 +1633,7 @@ class Chap4(DBInputs, IOContract):
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
 
-        self.write_sample_info(task_key)
+        self.write_sample_info()
 
         task_key = 'photobomb_state'
         if task_key in eval_task_keys:
@@ -1647,10 +1650,11 @@ class Chap4(DBInputs, IOContract):
             self.write_metrics(task_key)
 
             self.draw_rerank()
-            self.draw_prune()
 
             if not ut.get_argflag('--nodraw'):
                 self.draw_hard_cases(task_key)
+
+            self.draw_prune()
 
     def measure_prune(self):
         """

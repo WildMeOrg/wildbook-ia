@@ -214,6 +214,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cfgdict = pblm.hyper_params['sample_search'].copy()
         # Use the same keypoints for vsone and vsmany for comparability
         cfgdict.update(pblm.hyper_params['vsone_kpts'])
+        if cfgdict['augment_orientation']:
+            # Do query-side only if augment ori is on for 1vs1
+            cfgdict['augment_orientation'] = False
+            cfgdict['query_rotation_heuristic'] = True
 
         aids = ibs.filter_annots_general(
             infr.aids, min_pername=3, species='primary')
@@ -240,12 +244,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         deadline = datetime.date(year=2017, month=8, day=1)
         nowdate = datetime.datetime.now().date()
         HACK_LOAD_STATIC_DATASET = nowdate < deadline
+        HACK_LOAD_STATIC_DATASET = False
 
         data = cacher1.tryload()
 
         if HACK_LOAD_STATIC_DATASET:
             # Just take anything, I dont care if it changed
             if data is None:
+                print('HACKING STATIC DATASET')
                 infos = []
                 from os.path import basename
                 for fpath in cacher1.existing_versions():
@@ -263,6 +269,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     data = ut.load_data(fpath)
 
         if data is None:
+            print('Using LNBNN to compute pairs')
             cm_list = qreq_.execute()
             infr._set_vsmany_info(qreq_, cm_list)  # hack
 
@@ -273,6 +280,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 rng=rng, **pblm.hyper_params.pair_sample)
             cacher1.save(aid_pairs_)
             data = aid_pairs_
+            print('Finished using LNBNN to compute pairs')
+        else:
+            print('Loaded previous LNBNN pairs')
         aid_pairs_ = data
         return aid_pairs_
 
@@ -341,8 +351,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if pblm.verbose > 0:
             print('[pblm] gathering training pairs')
 
-        # aid_pairs_ = pblm.make_lnbnn_training_pairs()
-        aid_pairs_ = pblm.make_randomized_training_pairs()
+        aid_pairs_ = pblm.make_lnbnn_training_pairs()
+        # aid_pairs_ = pblm.make_randomized_training_pairs()
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
@@ -922,7 +932,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             feat_dims = sorted(cols)
             info = (pblm.feat_construct_config, feat_dims)
             pblm.feat_construct_info[data_key] = info
-            X_dict[data_key] = X[cols]
+            X_dict[data_key] = X[feat_dims]
 
         if False:
             # Use only summary stats
