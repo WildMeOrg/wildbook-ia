@@ -29,7 +29,6 @@ VSONE_FEAT_CONFIG = [
     for key, val in pyhesaff.get_hesaff_default_params().items()
 ]
 
-
 VSONE_ASSIGN_CONFIG = [
     ut.ParamInfo('checks', 20),
     ut.ParamInfo('symmetric', False),
@@ -119,6 +118,10 @@ class PairwiseMatch(ut.NiceRepr):
         match.local_measures = ut.odict([])
         match.global_measures = ut.odict([])
         match._inplace_default = False
+
+    @staticmethod
+    def _available_params():
+        return VSONE_PI_DICT
 
     @staticmethod
     def _take_params(config, keys):
@@ -421,7 +424,7 @@ class PairwiseMatch(ut.NiceRepr):
     def ratio_test_flags(match, cfgdict={}):
         ratio_thresh, = match._take_params(cfgdict, ['ratio_thresh'])
         ratio = match.local_measures['ratio']
-        flags = np.less(ratio, ratio_thresh)
+        flags = ratio < ratio_thresh
         return flags
 
     def sver_flags(match, cfgdict={}, return_extra=False):
@@ -430,44 +433,123 @@ class PairwiseMatch(ut.NiceRepr):
             >>> from vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'newsym': True}
             >>> match = demodata_match(cfgdict, apply=False)
-            >>> m1 = match.copy().assign({'symmetric': False})
-            >>> m2 = match.copy().assign({'symmetric': True})
+            >>> cfgbase = {'symmetric': True, 'ratio_thresh': .8}
+            >>> cfgdict = ut.dict_union(cfgbase, dict(multithresh=[.5, .6, .7, .8]))
+            >>> match = match.assign(cfgbase)
+            >>> match.apply_ratio_test(cfgdict, inplace=True)
+            >>> flags1 = match.sver_flags(cfgdict)
+            >>> flags2 = match.sver_flags(cfgbase)
         """
         from vtool import spatial_verification as sver
         import vtool as vt
-        params = match._take_params(
-            cfgdict, ['sver_xy_thresh', 'sver_ori_thresh', 'sver_scale_thresh',
-                      'refine_method'])
-        sver_xy_thresh, sver_ori_thresh, sver_scale_thresh, refine_method = params
+
+        def _run_sver(kpts1, kpts2, fm, match_weights, **sver_kw):
+            svtup = sver.spatially_verify_kpts(
+                kpts1, kpts2, fm, match_weights=match_weights, **sver_kw)
+            if svtup is None:
+                errors = [np.empty(0), np.empty(0), np.empty(0)]
+                inliers = []
+                H_12 =  np.eye(3)
+            else:
+                (inliers, errors, H_12) = svtup[0:3]
+            svtup = (inliers, errors, H_12)
+            return svtup
+
+        (sver_xy_thresh, sver_ori_thresh,
+         sver_scale_thresh, refine_method) = match._take_params(
+             cfgdict, [
+                 'sver_xy_thresh', 'sver_ori_thresh', 'sver_scale_thresh',
+                 'refine_method'
+             ])
+
+        multithresh = cfgdict.get('multithresh', None)
 
         kpts1 = match.annot1['kpts']
         kpts2 = match.annot2['kpts']
         dlen_sqrd2 = match.annot2['dlen_sqrd']
-        fm = match.fm
 
-        # match_weights = np.ones(len(fm))
-        match_weights = match.fs
-        svtup = sver.spatially_verify_kpts(
-            kpts1, kpts2, fm,
-            xy_thresh=sver_xy_thresh,
-            ori_thresh=sver_ori_thresh,
+        sver_kw = dict(
+            xy_thresh=sver_xy_thresh, ori_thresh=sver_ori_thresh,
             scale_thresh=sver_scale_thresh,
+            refine_method=refine_method,
             dlen_sqrd2=dlen_sqrd2,
-            match_weights=match_weights,
-            refine_method=refine_method)
-        if svtup is None:
-            errors = [np.empty(0), np.empty(0), np.empty(0)]
-            inliers = []
-            H_12 =  np.eye(3)
-        else:
-            (inliers, errors, H_12) = svtup[0:3]
+        )
 
-        flags = vt.index_to_boolmask(inliers, len(fm))
+        if multithresh is not None:
 
-        if return_extra:
-            return flags, errors, H_12
+            sver_tups = []
+
+            n_fm = len(match.fm)
+
+            xy_err = np.full(n_fm, fill_value=np.inf)
+            scale_err = np.full(n_fm, fill_value=np.inf)
+            ori_err = np.full(n_fm, fill_value=np.inf)
+            agg_errors = (xy_err, scale_err, ori_err)
+
+            agg_inlier_flags = np.zeros(n_fm, dtype=np.bool)
+
+            agg_H_12 = None
+            prev_best = 50
+
+            for thresh in multithresh:
+                ratio = match.local_measures['ratio']
+
+                # These are of len(match.fm)=1000
+                # 100 of these are True
+                ratio_flags = ratio < thresh
+                ratio_idxs = np.where(ratio_flags)[0]
+
+                if len(ratio_idxs) == 0:
+                    continue
+
+                # Filter matches at this level of the ratio test
+                fm = match.fm[ratio_flags]
+                match_weights = match.fs[ratio_flags]
+
+                svtup = _run_sver(kpts1, kpts2, fm, match_weights, **sver_kw)
+                (inliers, errors, H_12) = svtup
+                n_inliers = len(inliers)
+
+                if agg_H_12 is None or (n_inliers < 100 and
+                                        n_inliers > prev_best):
+                    # pick a homography from a lower ratio threshold if
+                    # possible. TODO: check for H_12 = np.eye
+                    agg_H_12 = H_12
+                    prev_best = n_inliers
+
+                # these are of len(fm)=100
+                # flags = vt.index_to_boolmask(inliers, len(fm))
+                # print(errors[0][inliers].mean())
+
+                # Find places that passed the ratio and were inliers
+                agg_inlier_flags[ratio_idxs[inliers]] = True
+
+                for agg_err, err in zip(agg_errors, errors):
+                    if len(err):
+                        current_err = agg_err[ratio_idxs]
+                        agg_err[ratio_idxs] = np.minimum(current_err, err)
+
+                sver_tups.append(svtup)
+
+            if return_extra:
+                return agg_inlier_flags, agg_errors, agg_H_12
+            else:
+                return agg_inlier_flags
+
         else:
-            return flags
+            # match_weights = np.ones(len(fm))
+            fm = match.fm
+            match_weights = match.fs
+
+            svtup = _run_sver(kpts1, kpts2, fm, match_weights, **sver_kw)
+            (inliers, errors, H_12) = svtup
+
+            flags = vt.index_to_boolmask(inliers, len(fm))
+
+            if return_extra:
+                return flags, errors, H_12
+            else:
+                return flags
 
     def apply_all(match, cfgdict):
         match.H_21 = None
@@ -486,6 +568,16 @@ class PairwiseMatch(ut.NiceRepr):
         return match_
 
     def apply_sver(match, cfgdict={}, inplace=None):
+        """
+        Example:
+            >>> from vtool.matching import *  # NOQA
+            >>> cfgdict = {'symmetric': True, 'ratio_thresh': .8,
+            >>>            'multithresh': [.5, .6, .7, .8]}
+            >>> match = demodata_match(cfgdict, apply=False)
+            >>> match = match.assign(cfgbase)
+            >>> match.apply_ratio_test(cfgdict, inplace=True)
+            >>> flags1 = match.apply_sver(cfgdict)
+        """
         flags, errors, H_12 = match.sver_flags(cfgdict,
                                                return_extra=True)
         match_ = match.compress(flags, inplace=inplace)
@@ -1228,7 +1320,10 @@ def ensure_metadata_feats(annot, suffix='', cfgdict={}):
     if kpts_key not in annot or vecs_key not in annot:
         def eval_feats():
             rchip = annot[rchip_key]
-            _feats = vt.extract_features(rchip, **cfgdict)
+            feat_cfgkeys = [pi.varname for pi in VSONE_FEAT_CONFIG]
+            feat_cfgdict = {key: cfgdict[key] for key in feat_cfgkeys if
+                            key in cfgdict}
+            _feats = vt.extract_features(rchip, **feat_cfgdict)
             return _feats
 
         def eval_kpts():
