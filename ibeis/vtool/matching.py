@@ -44,6 +44,8 @@ VSONE_RATIO_CONFIG = [
 
 VSONE_SVER_CONFIG = [
     ut.ParamInfo('sv_on', True),
+    ut.ParamInfo('thresh_bins', [], type_=eval,
+                 hideif=lambda cfg: not cfg['sv_on']),
     ut.ParamInfo('refine_method', 'homog', valid_values=['homog', 'affine'],
                  hideif=lambda cfg: not cfg['sv_on']),
     ut.ParamInfo('sver_xy_thresh', .01, min_=0.0, max_=None,
@@ -134,6 +136,23 @@ class PairwiseMatch(ut.NiceRepr):
         for key in keys:
             yield config[key] if key in config else VSONE_PI_DICT[key].default
 
+    def __nice__(match):
+        parts = []
+        if 'aid' in match.annot1:
+            aid1 = match.annot1['aid']
+            aid2 = match.annot2['aid']
+            vsstr = '%s-vs-%s' % (aid1, aid2)
+            parts.append(vsstr)
+        parts.append('None' if match.fm is None else
+                     six.text_type(len(match.fm)))
+        return ' '.join(parts)
+
+    def __len__(match):
+        if match.fm is not None:
+            return len(match.fm)
+        else:
+            return 0
+
     def __getstate__(match):
         """
         The state of Pariwise Match ignores most of the annotation objects.
@@ -219,15 +238,18 @@ class PairwiseMatch(ut.NiceRepr):
     def ishow(match):
         """
         CommandLine:
-            python -m vtool.matching ishow
+            python -m vtool.matching ishow --show
 
         Example:
             >>> # SCRIPT
             >>> from vtool.matching import *  # NOQA
             >>> import vtool as vt
+            >>> import guitool as gt
+            >>> gt.ensure_qapp()
             >>> match = demodata_match(use_cache=False)
             >>> self = match.ishow()
             >>> ut.quit_if_noshow()
+            >>> gt.qtapp_loop(qwin=self, freq=10)
         """
         from vtool.inspect_matches import MatchInspector
         self = MatchInspector(match=match)
@@ -254,23 +276,6 @@ class PairwiseMatch(ut.NiceRepr):
             kpts2_m = match.annot2['kpts'].take(match.fm.T[1], axis=0)
             match.local_measures['scale1'] = vt.get_scales(kpts1_m)
             match.local_measures['scale2'] = vt.get_scales(kpts2_m)
-
-    def __nice__(match):
-        parts = []
-        if 'aid' in match.annot1:
-            aid1 = match.annot1['aid']
-            aid2 = match.annot2['aid']
-            vsstr = '%s-vs-%s' % (aid1, aid2)
-            parts.append(vsstr)
-        parts.append('None' if match.fm is None else
-                     six.text_type(len(match.fm)))
-        return ' '.join(parts)
-
-    def __len__(match):
-        if match.fm is not None:
-            return len(match.fm)
-        else:
-            return 0
 
     def matched_vecs2(match):
         return match.annot2['vecs'].take(match.fm.T[1], axis=0)
@@ -434,7 +439,7 @@ class PairwiseMatch(ut.NiceRepr):
             >>> cfgdict = {'symmetric': True, 'newsym': True}
             >>> match = demodata_match(cfgdict, apply=False)
             >>> cfgbase = {'symmetric': True, 'ratio_thresh': .8}
-            >>> cfgdict = ut.dict_union(cfgbase, dict(multithresh=[.5, .6, .7, .8]))
+            >>> cfgdict = ut.dict_union(cfgbase, dict(thresh_bins=[.5, .6, .7, .8]))
             >>> match = match.assign(cfgbase)
             >>> match.apply_ratio_test(cfgdict, inplace=True)
             >>> flags1 = match.sver_flags(cfgdict)
@@ -456,13 +461,11 @@ class PairwiseMatch(ut.NiceRepr):
             return svtup
 
         (sver_xy_thresh, sver_ori_thresh,
-         sver_scale_thresh, refine_method) = match._take_params(
+         sver_scale_thresh, refine_method, thresh_bins) = match._take_params(
              cfgdict, [
                  'sver_xy_thresh', 'sver_ori_thresh', 'sver_scale_thresh',
-                 'refine_method'
+                 'refine_method', 'thresh_bins'
              ])
-
-        multithresh = cfgdict.get('multithresh', None)
 
         kpts1 = match.annot1['kpts']
         kpts2 = match.annot2['kpts']
@@ -475,8 +478,7 @@ class PairwiseMatch(ut.NiceRepr):
             dlen_sqrd2=dlen_sqrd2,
         )
 
-        if multithresh is not None:
-
+        if thresh_bins:
             sver_tups = []
 
             n_fm = len(match.fm)
@@ -491,7 +493,7 @@ class PairwiseMatch(ut.NiceRepr):
             agg_H_12 = None
             prev_best = 50
 
-            for thresh in multithresh:
+            for thresh in thresh_bins:
                 ratio = match.local_measures['ratio']
 
                 # These are of len(match.fm)=1000
@@ -572,7 +574,7 @@ class PairwiseMatch(ut.NiceRepr):
         Example:
             >>> from vtool.matching import *  # NOQA
             >>> cfgdict = {'symmetric': True, 'ratio_thresh': .8,
-            >>>            'multithresh': [.5, .6, .7, .8]}
+            >>>            'thresh_bins': [.5, .6, .7, .8]}
             >>> match = demodata_match(cfgdict, apply=False)
             >>> match = match.assign(cfgbase)
             >>> match.apply_ratio_test(cfgdict, inplace=True)
@@ -678,6 +680,7 @@ class PairwiseMatch(ut.NiceRepr):
 
         ops = {
             # 'len'    : len,
+            'invsum' : lambda x: np.sum(1 / x),
             'sum'    : np.sum,
             'mean'   : np.mean,
             'std'    : np.std,
