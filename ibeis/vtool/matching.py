@@ -66,7 +66,7 @@ VSONE_PI_DICT = {
 }
 
 
-def demodata_match(cfgdict={}, apply=True, use_cache=True):
+def demodata_match(cfgdict={}, apply=True, use_cache=True, recompute=False):
     import vtool as vt
     from vtool.inspect_matches import lazy_test_annot
     # hashid based on the state of the code
@@ -79,7 +79,7 @@ def demodata_match(cfgdict={}, apply=True, use_cache=True):
     match = cacher.tryload()
     annot1 = lazy_test_annot('easy1.png')
     annot2 = lazy_test_annot('easy2.png')
-    if match is None:
+    if match is None or recompute:
         match = vt.PairwiseMatch(annot1, annot2)
 
         if apply:
@@ -392,6 +392,7 @@ class PairwiseMatch(ut.NiceRepr):
             fx2_norm = None
 
         ratio = np.divide(match_dist, norm_dist)
+        # convert so bigger is better
         ratio_score = (1.0 - ratio)
 
         # remove local measure that can no longer apply
@@ -402,6 +403,7 @@ class PairwiseMatch(ut.NiceRepr):
         match.local_measures['match_dist'] = match_dist
         match.local_measures['norm_dist'] = norm_dist
         match.local_measures['ratio'] = ratio
+        match.local_measures['ratio_score'] = ratio_score
 
         if weight_key is None:
             match.fs = ratio_score
@@ -658,39 +660,55 @@ class PairwiseMatch(ut.NiceRepr):
             >>> # ENABLE_DOCTEST
             >>> from vtool.matching import *  # NOQA
             >>> import vtool as vt
-            >>> match = demodata_match(cfgdict)
+            >>> cfgdict = {}
+            >>> match = demodata_match(cfgdict, recompute=0)
             >>> match.apply_all(cfgdict)
             >>> summary_ops = {'len', 'sum'}
             >>> bin_key = 'ratio'
-            >>> bins = 4
-            >>> bins = [.625, .725, .9]
-            >>> local_keys = ['ratio', 'norm_dist']
+            >>> bins = 2
+            >>> #bins = [.625, .725, .9]
+            >>> bins = [.625, .9]
+            >>> local_keys = ['ratio', 'norm_dist', 'ratio_score']
+            >>> bin_key = None
+            >>> local_keys = None
+            >>> summary_ops = 'all'
             >>> feat = match._make_local_summary_feature_vector(
             >>>     local_keys=local_keys,
             >>>     bin_key=bin_key, summary_ops=summary_ops, bins=bins)
             >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
             >>> print(result)
         """
-        if summary_ops is None:
-            summary_ops = {'sum', 'mean', 'std', 'len'}
-        if local_keys is None:
-            local_measures = match.local_measures
-        else:
-            local_measures = ut.dict_subset(match.local_measures, local_keys)
+        def invsum(x):
+            return np.sum(1 / x)
+
+        def csum(x):
+            return (1 - x).sum()
 
         ops = {
             # 'len'    : len,
-            'invsum' : lambda x: np.sum(1 / x),
+            'invsum' : invsum,
+            # 'csum'   : csum,
             'sum'    : np.sum,
             'mean'   : np.mean,
             'std'    : np.std,
             'med' : np.median,
         }
 
+        if summary_ops is None:
+            summary_ops = {'sum', 'mean', 'std', 'len'}
+        if summary_ops == 'all':
+            summary_ops = set(ops.keys()).union({'len'})
+
+        if local_keys is None:
+            local_measures = match.local_measures
+        else:
+            local_measures = ut.dict_subset(match.local_measures, local_keys)
+
         feat = ut.odict([])
         if bin_key is not None:
             if bins is None:
-                bins = [.625, .725, .9]
+                raise ValueError('must choose bins')
+                # bins = [.625, .725, .9]
             # binned ratio feature vectors
             if isinstance(bins, int):
                 bins = np.linspace(0, 1.0, bins + 1)
@@ -719,20 +737,32 @@ class PairwiseMatch(ut.NiceRepr):
                         feat[dimkey] = op(vs[fxs])
 
         else:
-            if 'len' in summary_ops:
-                feat['len(matches)'] = len(match.fm)
-            if 'sum' in summary_ops:
-                for k, vs in six.iteritems(local_measures):
-                    feat['sum(%s)' % (k,)] = vs.sum()
-            if 'mean' in summary_ops:
-                for k, vs in six.iteritems(local_measures):
-                    feat['mean(%s)' % (k,)] = np.mean(vs)
-            if 'std' in summary_ops:
-                for k, vs in six.iteritems(local_measures):
-                    feat['std(%s)' % (k,)] = np.std(vs)
-            if 'med' in summary_ops:
-                for k, vs in six.iteritems(local_measures):
-                    feat['med(%s)' % (k,)] = np.median(vs)
+            if True:
+                dimkey_fmt = '{opname}({measure})'
+                if 'len' in summary_ops:
+                    dimkey = dimkey_fmt.format(opname='len', measure='matches')
+                    feat[dimkey] = len(match.fm)
+                for opname in sorted(summary_ops - {'len'}):
+                    op = ops[opname]
+                    for k, vs in local_measures.items():
+                        dimkey = dimkey_fmt.format(opname=opname, measure=k)
+                        feat[dimkey] = op(vs)
+            else:
+                # OLD
+                if 'len' in summary_ops:
+                    feat['len(matches)'] = len(match.fm)
+                if 'sum' in summary_ops:
+                    for k, vs in local_measures.items():
+                        feat['sum(%s)' % (k,)] = vs.sum()
+                if 'mean' in summary_ops:
+                    for k, vs in local_measures.items():
+                        feat['mean(%s)' % (k,)] = np.mean(vs)
+                if 'std' in summary_ops:
+                    for k, vs in local_measures.items():
+                        feat['std(%s)' % (k,)] = np.std(vs)
+                if 'med' in summary_ops:
+                    for k, vs in local_measures.items():
+                        feat['med(%s)' % (k,)] = np.median(vs)
         return feat
 
     def _make_local_top_feature_vector(match, local_keys=None, sorters='ratio',
@@ -762,7 +792,7 @@ class PairwiseMatch(ut.NiceRepr):
         feat = ut.odict([
             (loc_fmt.format(sorter=sorter, rank=rank, measure=k), v)
             for sorter, topxs in zip(sorters, chosen_xs)
-            for k, vs in six.iteritems(local_measures)
+            for k, vs in local_measures.items()
             for rank, v in zip(indices, vs[topxs])
         ])
         return feat
