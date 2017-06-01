@@ -92,28 +92,64 @@ class DBInputs(object):
         if ibs.dbname.startswith('PZ_PB_RF_TRAIN'):
             aids = ibs.get_valid_aids()
         elif ibs.dbname.startswith('PZ_Master'):
-            aids = ibs.filter_annots_general(require_timestamp=True, is_known=True,
-                                             # require_viewpoint=True,
-                                             # view='left',
-                                             species='primary',
-                                             # view_ext=2,  # FIXME
-                                             min_pername=2, minqual='poor')
+            if False:
+                # OLD WAY OF RUNNING THAT WAS USED TO GENERATE CHAPTER 3
+                # EXPERIMENTS.
+                aids = ibs.filter_annots_general(
+                    # FIXME view_ext does not work
+                    require_timestamp=True, is_known=True, species='primary',
+                    min_pername=2, minqual='poor')
+                # We need to do our best to select a small sample here
+                flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
+                aids = ut.compress(aids, flags)
+                # This produces 6474 annotations
+                # print(len(aids))
+            else:
+                # NEW WAY OF RUNNING FOR CHAPTERS 4 and 5.  WE REALLY SHOULD DO
+                # ALL CHAPTERS WITH THE SAME.  IF POSSIBLE.
+
+                # PZ_Master is too big to run in full.  Select a smaller sample.
+                # Be sure to include photobomb and incomparable cases.
+                aids = ibs.filter_annots_general(
+                    require_timestamp=True, species='primary', is_known=True,
+                    minqual='poor',
+                )
+                infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
+                infr.reset_feedback('staging', apply=True)
+                minority_ccs = find_minority_class_ccs(infr)
+                minority_aids = set(ut.flatten(minority_ccs))
+
+                # We need to do our best to select a small sample here
+                flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
+                left_aids = ut.compress(aids, flags)
+
+                majority_aids = set(ibs.filter_annots_general(
+                    left_aids, require_timestamp=True, species='primary',
+                    minqual='poor', require_quality=True, min_pername=2,
+                    max_pername=15
+                ))
+                # This produces 5720 annotations
+                aids = sorted(majority_aids.union(minority_aids))
+                # print(len(majority_aids))
+                # print(len(minority_aids))
+                # print(len(minority_aids.intersection(majority_aids)))
+                # ibs.print_annot_stats(list(minority_aids), prefix='P')
+                # ibs.print_annot_stats(list(majority_aids), prefix='P')
+                # ibs.print_annot_stats(list(aids), prefix='P')
+
+                # infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
+                # infr.reset_feedback('staging', apply=True)
+                # print('# photobombs: %r' % infr.edge_tag_hist().get(
+                #     'photobomb', 0))
+                # print(ut.repr4(infr.status()))
             # flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
-            flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
             # sum(['left' == text for text in ibs.annots(aids).yaw_texts])
-            aids = ut.compress(aids, flags)
         # elif ibs.dbname == 'GZ_Master1':
         else:
             aids = ibs.filter_annots_general(require_timestamp=True,
                                              is_known=True,
                                              species='primary',
-                                             # require_viewpoint=True,
-                                             # view='right',
-                                             # view_ext2=2,
-                                             # view_ext1=2,
                                              minqual='poor')
-            # flags = ['left' not in text for text in ibs.annots(aids).yaw_texts]
-            # aids = ut.compress(aids, flags)
         # ibs.print_annot_stats(aids, prefix='P')
         main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
         print('post monkey patch')
@@ -1366,7 +1402,6 @@ class Chap5Commands(object):
             fnum=1, pnum=pnum_(),
             use_legend=True,
         )
-        pt.set_figtitle(self.dbname)
 
         # fpath = join(self.dpath, expt_name + '2' + '.png')
         # fig = pt.gcf()  # NOQA
@@ -1379,6 +1414,7 @@ class Chap5Commands(object):
         # if 1:
         #     pt.figure(fnum=fnum, pnum=(2, 2, 4))
         #     overlay_actions(ymax=1)
+        pt.set_figtitle(self.dbname)
 
 
 @ut.reloadable_class
@@ -1410,11 +1446,21 @@ class Chap4(DBInputs, IOContract):
 
     def _setup_pblm(self):
         r"""
+        CommandLine:
+            python -m ibeis Chap4._setup_pblm --db PZ_Master1
+
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> self = Chap4('PZ_PB_RF_TRAIN')
-            >>> self = Chap4('PZ_Master1')
+            >>> dbname = ut.get_argval('--db', default='PZ_Master1')
+            >>> self = Chap4(dbname)
             >>> self._setup_pblm()
+
+        Ignore:
+            from ibeis.scripts.thesis import *
+            self = Chap4('PZ_Master1')
+
+            from ibeis.scripts.thesis import *
+            self = Chap4('PZ_PB_RF_TRAIN')
 
             self.ibs.print_annot_stats(aids, prefix='P')
         """
@@ -1433,21 +1479,22 @@ class Chap4(DBInputs, IOContract):
                 pblm.load_samples()
                 pblm.samples.print_info()
 
-            infr = ibeis.AnnotInference(ibs, aids=self.aids_pool)
-            infr.reset_feedback('staging', apply=True)
-            minority_ccs = find_minority_class_ccs(infr)
+            aids = self.aids_pool
+            # infr = ibeis.AnnotInference(ibs, aids=self.aids_pool)
+            # infr.reset_feedback('staging', apply=True)
+            # minority_ccs = find_minority_class_ccs(infr)
 
-            # Need to reduce sample size for this data
-            annots = ibs.annots(self.aids_pool)
-            names = list(annots.group_items(annots.nids).values())
-            ut.shuffle(names, rng=321)
-            # Use same aids as the Chapter5 training set
-            aids = ut.flatten(names[0::2])
-            # test_aids = ut.flatten(names[1::2])
+            # # Need to reduce sample size for this data
+            # annots = ibs.annots(self.aids_pool)
+            # names = list(annots.group_items(annots.nids).values())
+            # ut.shuffle(names, rng=321)
+            # # Use same aids as the Chapter5 training set
+            # aids = ut.flatten(names[0::2])
+            # # test_aids = ut.flatten(names[1::2])
 
-            # Add in the minority cases
-            minority_aids = set(ut.flatten(minority_ccs))
-            aids = sorted(set(minority_aids).union(set(aids)))
+            # # Add in the minority cases
+            # minority_aids = set(ut.flatten(minority_ccs))
+            # aids = sorted(set(minority_aids).union(set(aids)))
         else:
             aids = self.aids_pool
 
@@ -1664,8 +1711,10 @@ class Chap4(DBInputs, IOContract):
 
         # mccs = [r['mcc'] for r in reports]
         # mccs2 = np.array([[r['mcc'] for r in rs] for rs in sub_reports])
-        # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs] for rs in sub_reports])
-        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs] for rs in sub_reports])
+        # pos_mccs = np.array([[r['metrics']['mcc'][POSTV] for r in rs]
+        # for rs in sub_reports])
+        ave_mccs = np.array([[r['metrics']['mcc']['ave/sum'] for r in rs]
+                             for rs in sub_reports])
 
         import plottool as pt
         pt.qtensure()
@@ -1681,54 +1730,29 @@ class Chap4(DBInputs, IOContract):
                       xlabel='# feature dimensions',
                       xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
         ax = pt.gca()
-        # ax.invert_xaxis()
+        ax.invert_xaxis()
         fig.set_size_inches([W / 2, H])
         fpath = join(self.dpath, expt_name + '.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
+        # Find the point at which accuracy starts to fall
         u = ave_mccs.mean(axis=1)
         middle = ut.take_around_percentile(u, .5, len(n_dims) // 3)
         thresh = middle.mean() - (middle.std() * 6)
         idx = np.where(u < thresh)[0][0]
 
-        fig = pt.figure(fnum=1)
+        # topinfo = vt.AnnotPairFeatInfo(list(top_importances.keys()))
+
+        fig = pt.figure(fnum=2)
+        n_to_mid = ut.dzip(n_dims, mdis_list)
         top_importances = n_to_mid[n_dims[idx]]
         pt.wordcloud(top_importances, ax=fig.axes[0])
-        topinfo = vt.AnnotPairFeatInfo(list(top_importances.keys()))
-
-        fname = 'wc_{}.png'.format(task_key)
+        fname = 'wc2.png'
         fig_fpath = join(str(self.dpath), fname)
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-        n_to_mid = ut.dzip(n_dims, mdis_list)
         print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
         print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
-
-        # smoothu = pd.ewma(u, span=10)
-        # grad_smoothu = np.abs(np.gradient(smoothu))
-        # pt.plot(n_dims, u)
-        # pt.plot(n_dims, [thresh] * len(n_dims))
-
-        # middle = ut.take_around_percentile(grad_smoothu, .5, len(n_dims) // 4)
-        # thresh = middle.mean() + (middle.std() * 6)
-        # grad_smoothu > thresh
-        # pt.plot(n_dims, grad_smoothu)
-        # pt.plot(n_dims, [thresh] * len(n_dims))
-        # s = ave_mccs.std(axis=1)
-
-        # import scipy
-        # from scipy.fftpack import fftshift
-
-        # pt.figure(fnum=1, pnum=(1, 2, 1))
-        # pt.plot(u)
-
-        # pt.figure(fnum=1, pnum=(1, 2, 2))
-        # yShift = fftshift(u) #
-        # Fourier = scipy.fft(yShift) # Fourier transform of y implementing the FFT
-        # invFourier = fftshift(Fourier) # inverse shift of the Fourier Transform
-        # plt.plot(invFourier) # plot of the Fourier transform
-
-        # Find the point at which accuracy starts to fall
 
     def measure_rerank(self):
         """
@@ -3776,10 +3800,8 @@ def find_minority_class_ccs(infr):
     ]
     incomp_edges = list(infr.incomp_graph.edges())
     minority_edges = pb_edges + incomp_edges
-    minority_nids = set(infr.node_labels(*set(
-        ut.flatten(minority_edges))))
-    minority_ccs = [infr.pos_graph._ccs[nid] for nid in
-                      minority_nids]
+    minority_nids = set(infr.node_labels(*set(ut.flatten(minority_edges))))
+    minority_ccs = [infr.pos_graph._ccs[nid] for nid in minority_nids]
     return minority_ccs
 
 

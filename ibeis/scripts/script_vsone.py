@@ -44,8 +44,9 @@ class PairSampleConfig(dt.Config):
 class PairFeatureConfig(dt.Config):
     """ for building pairwise feature dimensions """
     _param_info_list = [
-        ut.ParamInfo('indices', slice(0, 26, 5)),
-        ut.ParamInfo('summary_ops', {'sum', 'std', 'mean', 'len', 'med'}),
+        ut.ParamInfo('indices', slice(0, 5)),
+        ut.ParamInfo('summary_ops', {
+            'invsum', 'sum', 'std', 'mean', 'len', 'med'}),
         ut.ParamInfo('local_keys', None),
         ut.ParamInfo('sorters', [
             'ratio', 'norm_dist', 'match_dist'
@@ -53,7 +54,8 @@ class PairFeatureConfig(dt.Config):
         ]),
         # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
         ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
-        ut.ParamInfo('bins', [.5, .6, .7, .8])
+        # ut.ParamInfo('bins', [.5, .6, .7, .8])
+        ut.ParamInfo('bins', [.625, .8])
         # ut.ParamInfo('need_lnbnn', False),
 
         # ut.ParamInfo('med', True),
@@ -117,13 +119,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ('vsone_kpts', VsOneFeatConfig()),
             ('vsone_match', VsOneMatchConfig()),
             ('pairwise_feats', PairFeatureConfig()),
-            ('sample_search', dict(K=4, Knorm=1, requery=True,
-                                   score_method='csum', prescore_method='csum')),
+            ('sample_search', dict(
+                K=4, Knorm=1, requery=True, score_method='csum',
+                prescore_method='csum')),
         ]),
             tablename='HyperParams'
         )
-        maxbin = max(hyper_params['pairwise_feats']['bins'])
-        hyper_params['vsone_match']['ratio_thresh'] = maxbin
+
+        bins = hyper_params['pairwise_feats']['bins']
+        hyper_params['vsone_match']['ratio_thresh'] = max(bins)
+        hyper_params['vsone_match']['thresh_bins'] = bins
         hyper_params['vsone_match']['sv_on'] = True
 
         if False:
@@ -260,6 +265,60 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         aid_pairs_ = data
         return aid_pairs_
 
+    def make_randomized_training_pairs(pblm):
+        """
+        Randomized sample that does not require LNBNN
+        """
+        # from ibeis.algo.graph import nx_utils as nxu
+        infr = pblm.infr
+        infr.status()
+
+        pair_sample = pblm.hyper_params.pair_sample
+
+        n_pos = sum(ut.take(
+            pair_sample, ['top_gt', 'mid_gt', 'bot_gt', 'rand_gt']))
+        n_neg = sum(ut.take(
+            pair_sample, ['top_gf', 'mid_gf', 'bot_gf', 'rand_gf']))
+
+        # LNBNN makes 48729 given a set of 6474, so about 8 examples per annot
+
+        multipler = (n_pos + n_neg) // 2
+        n_target = len(infr.aids) * multipler
+
+        def edgeset(iterable):
+            return set(it.starmap(infr.e_, iterable))
+
+        pos_edges = edgeset(infr.pos_graph.edges())
+        neg_edges = edgeset(infr.neg_graph.edges())
+        aid_pairs = pos_edges.union(neg_edges)
+
+        n_need = n_target - len(aid_pairs)
+
+        per_cc = max(2, int(n_need / infr.pos_graph.number_of_components() /
+                            2))
+
+        rng = ut.ensure_rng(2039141610)
+
+        # User previous explicit reviews
+        pccs = list(map(frozenset, infr.positive_components()))
+        for cc in pccs:
+            pos_pairs = edgeset(ut.random_combinations(cc, 2, per_cc, rng=rng))
+            aid_pairs.update(pos_pairs)
+
+        n_need = n_target - len(aid_pairs)
+
+        rng = ut.ensure_rng(282695095)
+        per_pair = 1
+        for cc1, cc2 in ut.random_combinations(pccs, 2, rng=rng):
+            neg_pairs = edgeset(ut.random_product((cc1, cc2), num=per_pair,
+                                                  rng=rng))
+            aid_pairs.update(neg_pairs)
+            if len(aid_pairs) >= n_target:
+                break
+
+        n_need = n_target - len(aid_pairs)
+        return aid_pairs
+
     @profile
     def make_training_pairs(pblm):
         """
@@ -269,9 +328,10 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         infr = pblm.infr
         if pblm.verbose > 0:
-            print('[pblm] gather match-state hard cases')
+            print('[pblm] gathering training pairs')
 
-        aid_pairs_ = pblm.make_lnbnn_training_pairs()
+        # aid_pairs_ = pblm.make_lnbnn_training_pairs()
+        aid_pairs_ = pblm.make_randomized_training_pairs()
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
@@ -289,7 +349,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # pb_aid_pairs, incomp_aid_pairs = data
 
         # Simplify life by using undirected pairs
-        aid_pairs = pb_aid_pairs + aid_pairs_ + incomp_aid_pairs
+        aid_pairs = pb_aid_pairs + list(aid_pairs_) + incomp_aid_pairs
+        # Ensure this is sorted
         aid_pairs = sorted(set(it.starmap(infr.e_, aid_pairs)))
         return aid_pairs
 
@@ -313,8 +374,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ut.cprint('[pblm] load_samples', color='blue')
         aid_pairs = pblm.make_training_pairs()
         pblm.samples = AnnotPairSamples(pblm.infr.ibs, aid_pairs, pblm.infr)
-        # simple_scores=copy.deepcopy(pblm.raw_simple_scores),
-        # X_dict=copy.deepcopy(pblm.raw_X_dict),
+        if pblm.verbose > 0:
+            ut.cprint('[pblm] apply_multi_task_multi_label', color='blue')
+        pblm.samples.apply_multi_task_multi_label()
 
     @profile
     def load_features(pblm, use_cache=True, with_simple=True):
@@ -331,22 +393,28 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         if pblm.verbose > 0:
             ut.cprint('[pblm] load_features', color='blue')
+
         infr = pblm.infr
         ibs = pblm.infr.ibs
-        dbname = ibs.get_dbname()
-        aid_pairs = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
+
         hyper_params = pblm.hyper_params
         # TODO: features should also rely on global attributes
         # fornow using edge+label hashids is good enough
         sample_hashid = pblm.samples.sample_hashid()
-        feat_cfgstr = hyper_params.get_cfgstr()
-        feat_hashid = ut.hashstr27(sample_hashid + feat_cfgstr)
-        # print('features_hashid = %r' % (features_hashid,))
-        cfgstr = '_'.join(['devcache', str(dbname), feat_hashid])
+        cfgstr_parts = [
+            ibs.dbname,
+            sample_hashid,
+            hyper_params['vsone_kpts'].get_cfgstr(),
+            hyper_params['vsone_match'].get_cfgstr(),
+            hyper_params['pairwise_feats'].get_cfgstr(),
+        ]
+        cfgstr = '_'.join(cfgstr_parts)
 
-        cacher = ub.Cacher('pairwise_data_v21', cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=use_cache,
-                           verbose=pblm.verbose)
+        aid_pairs = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
+
+        cacher = ub.Cacher('pairwise_data_' + ibs.dbname,
+                           cfgstr=cfgstr, appname=pblm.appname,
+                           enabled=use_cache, verbose=pblm.verbose)
         data = cacher.tryload()
         if data is None:
             config = {}
@@ -395,7 +463,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # print('features_hashid = %r' % (features_hashid,))
         cfgstr = '_'.join(['devcache', str(ibs.dbname), feat_hashid])
 
-        cacher = ub.Cacher('simple_pairwise_data_v21', cfgstr=cfgstr,
+        cacher = ub.Cacher('simple_scores_' + ibs.dbname,
+                           cfgstr=cfgstr,
                            appname=pblm.appname, enabled=True,
                            verbose=pblm.verbose)
         data = cacher.tryload()
@@ -458,13 +527,13 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         for task_key in pblm.eval_task_keys:
             pblm.task_evaluation_report(task_key)
 
-    def setup_evaluation(pblm):
+    def setup_evaluation(pblm, with_simple=True):
         pblm.set_pandas_options()
 
         ut.cprint('\n--- LOADING DATA ---', 'blue')
         pblm.load_samples()
         # pblm.samples.print_info()
-        pblm.load_features()
+        pblm.load_features(with_simple=with_simple)
 
         # pblm.samples.print_info()
         ut.cprint('\n--- CURATING DATA ---', 'blue')
@@ -1478,7 +1547,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     """
 
     @profile
-    def __init__(samples, ibs, aid_pairs, infr=None):
+    def __init__(samples, ibs, aid_pairs, infr=None, apply=False):
         assert aid_pairs is not None
         super(AnnotPairSamples, samples).__init__(aid_pairs)
         samples.aid_pairs = np.array(aid_pairs)
@@ -1490,7 +1559,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         samples.n_samples = len(aid_pairs)
         samples.X_dict = None
         samples.simple_scores = None
-        samples.apply_multi_task_multi_label()
+        if apply:
+            samples.apply_multi_task_multi_label()
         # samples.apply_multi_task_binary_label()
 
     # @profile
@@ -1561,7 +1631,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         X_dict = ut.map_vals(lambda val: val[flags], samples.X_dict)
         aid_pairs = samples.aid_pairs[flags]
         ibs = samples.ibs
-        new_labels = AnnotPairSamples(ibs, aid_pairs, infr)
+        new_labels = AnnotPairSamples(ibs, aid_pairs, infr, apply=True)
         new_labels.set_feats(X_dict)
         new_labels.set_simple_scores(simple_scores)
         return new_labels

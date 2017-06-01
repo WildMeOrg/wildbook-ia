@@ -34,7 +34,7 @@ class AttrAccess(object):
         return ut.util_graph.nx_gen_node_values(
             infr.graph, key, nodes, default=default)
 
-    def gen_edge_values(infr, key, edges, default=ut.NoParam,
+    def gen_edge_values(infr, key, edges=None, default=ut.NoParam,
                         on_missing='error', on_keyerr='default'):
         return ut.util_graph.nx_gen_edge_values(
             infr.graph, key, edges, default=default, on_missing=on_missing,
@@ -273,6 +273,17 @@ class Convenience(object):
 
         edge_df3 = get_aug_df(nxu.edges_between(graph, cc1, cc2))
         print_df(edge_df3, 'Between')
+
+    def node_tag_hist(infr):
+        tags_list = infr.ibs.get_annot_case_tags(infr.aids)
+        tag_hist = ut.util_tags.tag_hist(tags_list)
+        return tag_hist
+
+    def edge_tag_hist(infr):
+        tags_list = list(infr.gen_edge_values('tags', None))
+        tag_hist = ut.util_tags.tag_hist(tags_list)
+        # ut.util_tags.tag_coocurrence(tags_list)
+        return tag_hist
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)

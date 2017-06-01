@@ -1015,7 +1015,6 @@ class AnnotInference(ut.NiceRepr,
         infr.enable_attr_update = True
         infr.enable_auto_prioritize_nonpos = True
 
-        infr.thresh = None
         infr.cm_list = None
         infr.vsone_matches = {}
         infr.qreq_ = None
@@ -1033,6 +1032,46 @@ class AnnotInference(ut.NiceRepr,
         if autoinit:
             infr.initialize_graph()
 
+    def subgraph(infr, aids):
+        """
+        Makes a inference subgraph containing only aids.
+        Note, this is not robust, be careful.
+        """
+        orig_name_labels = list(infr.gen_node_values('orig_name_label', aids))
+        infr2 = AnnotInference(infr.ibs, aids, orig_name_labels,
+                               autoinit=False, verbose=infr.verbose)
+        infr2.graph = infr.graph.copy()
+
+        # TODO:
+        # infr2.external_feedback = copy.deepcopy(infr.external_feedback)
+        # infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
+
+        infr2.nid_counter = infr.nid_counter
+        infr2.dirty = True
+        infr2.cm_list = None
+        infr2.qreq_ = None
+
+        # infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
+        # infr2.recover_graph = copy.deepcopy(infr.recover_graph)
+        # infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)
+
+        # infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
+        # infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
+
+        infr2.review_graphs = {}
+        for k, g in infr.review_graphs.items():
+            if g is None:
+                infr2.review_graphs[k] = None
+            elif k == POSTV:
+                infr2.review_graphs[k] = g.subgraph(aids, dynamic=True)
+            else:
+                infr2.review_graphs[k] = g.subgraph(aids)
+        return infr2
+
+        # TODO:
+        # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)
+        # infr2.recovery_ccs = []  # = copy.deepcopy(infr.recovery_ccs)
+
     def copy(infr):
         import copy
         # deep copy everything but ibs
@@ -1046,7 +1085,6 @@ class AnnotInference(ut.NiceRepr,
         infr2.cm_list = copy.deepcopy(infr.cm_list)
         infr2.qreq_ = copy.deepcopy(infr.qreq_)
         infr2.nid_counter = infr.nid_counter
-        infr2.thresh = infr.thresh
 
         infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
 
@@ -1058,6 +1096,7 @@ class AnnotInference(ut.NiceRepr,
 
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
         infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
+        infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
         return infr2
 
 
