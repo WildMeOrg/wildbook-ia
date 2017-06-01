@@ -44,7 +44,7 @@ VSONE_RATIO_CONFIG = [
 
 VSONE_SVER_CONFIG = [
     ut.ParamInfo('sv_on', True),
-    ut.ParamInfo('thresh_bins', [], type_=eval,
+    ut.ParamInfo('thresh_bins', tuple(), type_=eval,
                  hideif=lambda cfg: not cfg['sv_on']),
     ut.ParamInfo('refine_method', 'homog', valid_values=['homog', 'affine'],
                  hideif=lambda cfg: not cfg['sv_on']),
