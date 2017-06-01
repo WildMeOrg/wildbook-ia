@@ -662,10 +662,12 @@ class ConfigNodeWrapper(ut.NiceRepr):
         self.param_info = param_info
         self._populate_children()
 
-    def make_tree_strlist(self, indent='', verbose=False):
+    def make_tree_strlist(self, indent='', verbose=None):
         """
         Creates tree structured printable represntation
         """
+        if verbose is None:
+            verbose = ut.VERBOSE
         if self.parent is None:
             typestr = 'Root'
         elif self.children is None:
