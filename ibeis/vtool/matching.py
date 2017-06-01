@@ -678,26 +678,11 @@ class PairwiseMatch(ut.NiceRepr):
             >>> result = ('feat = %s' % (ut.repr2(feat, nl=2),))
             >>> print(result)
         """
-        def invsum(x):
-            return np.sum(1 / x)
-
-        def csum(x):
-            return (1 - x).sum()
-
-        ops = {
-            # 'len'    : len,
-            'invsum' : invsum,
-            # 'csum'   : csum,
-            'sum'    : np.sum,
-            'mean'   : np.mean,
-            'std'    : np.std,
-            'med' : np.median,
-        }
 
         if summary_ops is None:
             summary_ops = {'sum', 'mean', 'std', 'len'}
         if summary_ops == 'all':
-            summary_ops = set(ops.keys()).union({'len'})
+            summary_ops = set(SUM_OPS.keys()).union({'len'})
 
         if local_keys is None:
             local_measures = match.local_measures
@@ -727,7 +712,7 @@ class PairwiseMatch(ut.NiceRepr):
                     )
                     feat[dimkey] = len(fxs)
                 for opname in sorted(summary_ops - {'len'}):
-                    op = ops[opname]
+                    op = SUM_OPS[opname]
                     for k, vs in local_measures.items():
                         dimkey = dimkey_fmt.format(
                             opname=opname, measure=k,
@@ -743,7 +728,7 @@ class PairwiseMatch(ut.NiceRepr):
                     dimkey = dimkey_fmt.format(opname='len', measure='matches')
                     feat[dimkey] = len(match.fm)
                 for opname in sorted(summary_ops - {'len'}):
-                    op = ops[opname]
+                    op = SUM_OPS[opname]
                     for k, vs in local_measures.items():
                         dimkey = dimkey_fmt.format(opname=opname, measure=k)
                         feat[dimkey] = op(vs)
@@ -836,6 +821,26 @@ class PairwiseMatch(ut.NiceRepr):
         return feat
 
 
+def invsum(x):
+    return np.sum(1 / x)
+
+
+def csum(x):
+    return (1 - x).sum()
+
+
+# Different summary options available for pairwise feature vecs
+SUM_OPS = {
+    # 'len'    : len,
+    'invsum' : invsum,
+    # 'csum'   : csum,
+    'sum'    : np.sum,
+    'mean'   : np.mean,
+    'std'    : np.std,
+    'med' : np.median,
+}
+
+
 @ut.reloadable_class
 class AnnotPairFeatInfo(object):
     """
@@ -891,7 +896,7 @@ class AnnotPairFeatInfo(object):
             featinfo.columns = list(importances.keys())
         if importances is not None:
             assert isinstance(importances, dict), 'must be a dict'
-        featinfo._summary_keys = ['sum', 'mean', 'med', 'std', 'len']
+        featinfo._summary_keys = sorted(SUM_OPS.keys()) + ['len']
 
     def make_pairfeat_cfg(featinfo):
         criteria = [('measure_type', '==', 'local')]
@@ -967,7 +972,7 @@ class AnnotPairFeatInfo(object):
             update(found)
         return cols
 
-    def find(featinfo, group_id, op, value, hack=True):
+    def find(featinfo, group_id, op, value, hack=False):
         """
         groupid options:
             summary_op
@@ -997,6 +1002,8 @@ class AnnotPairFeatInfo(object):
                     if value1 is not None:
                         if isinstance(value, int):
                             value1 = int(value1)
+                        elif isinstance(value, float):
+                            value1 = float(value1)
                         elif isinstance(value, list):
                             if len(value) > 0 and isinstance(value[0], int):
                                 value1 = int(value1)
