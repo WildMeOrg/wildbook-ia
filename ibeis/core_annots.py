@@ -929,7 +929,8 @@ def compute_feats(depc, cid_list, config=None):
         >>> # TIMING
         >>> from ibeis.core_annots import *  # NOQA
         >>> ibs, depc, aid_list = testdata_core('PZ_MTEST', 100)
-        >>> config = {'dim_size': 450}
+        >>> #config = {'dim_size': 450}
+        >>> config = {}
         >>> cid_list = depc.get_rowids('chips', aid_list, config=config)
         >>> config = FeatConfig()
         >>> featgen = compute_feats(depc, cid_list, config)
@@ -977,9 +978,12 @@ def compute_feats(depc, cid_list, config=None):
         # TODO: Check if there is any benefit to just passing in the iterator.
         arg_list = list(arg_iter)
         # TODO: futures_generate
-        featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput,
-                              freq=10, ordered=True,
-                              force_serial=ibs.force_serial)
+        # featgen = ut.generate(gen_feat_worker, arg_list, nTasks=nInput,
+        #                       freq=10, ordered=True,
+        #                       force_serial=ibs.force_serial)
+        featgen = ut.futures_generate(gen_feat_worker, arg_list, nTasks=nInput,
+                                      freq=10, ordered=True,
+                                      force_serial=ibs.force_serial)
     elif feat_type == 'hesaff+siam128':
         from ibeis_cnn import _plugin
         assert maskmethod is None, 'not implemented'

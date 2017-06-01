@@ -254,55 +254,64 @@ class AnnotInfrMatching(object):
 
         edges = [(1, 2)]
         """
-        from ibeis.scripts.script_vsone import AnnotPairFeatInfo
         infr.print('Requesting %d cached pairwise features' % len(edges))
         pblm = infr.classifiers
-        if data_key is not None:
-            data_key = pblm.default_data_key
         edges = list(edges)
         # Parse the data_key to build the appropriate feature
-        columns = list(pblm.samples.X_dict[data_key].columns)
-        featinfo = AnnotPairFeatInfo(columns)
         # Do one-vs-one scoring on candidate edges
         # Find the kwargs to make the desired feature subset
-        pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-        need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-        # print(featinfo.get_infostr())
+        # if False:
+        #     if data_key is not None:
+        #         data_key = pblm.default_data_key
+        #     columns = list(pblm.samples.X_dict[data_key].columns)
+        #     featinfo = vt.AnnotPairFeatInfo(columns)
+        #     pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
+        #     need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
+        #     print(featinfo.get_infostr())
         print('Building need features')
-        config = {}
-        config.update(pblm.hyper_params.vsone_match)
-        config.update(pblm.hyper_params.vsone_kpts)
-
         def tmprepr(cfg):
             return ut.repr2(cfg, strvals=True, explicit=True,
                             nobr=True).replace(' ', '').replace('\'', '')
         ibs = infr.ibs
         edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
         edge_hashid = ut.hashstr_arr27(edge_uuids, 'edges', hashlen=32)
+
+        pairfeat_cfg = pblm.hyper_params['pairwise_feats']
+        global_keys = ['yaw', 'qual', 'gps', 'time']
+
+        hyper_params = pblm.hyper_params
         feat_cfgstr = '_'.join([
             edge_hashid,
-            ut.get_cfg_lbl(config),
-            'need_lnbnn={}'.format(need_lnbnn),
-            'local(' + tmprepr(pairfeat_cfg) + ')',
+            hyper_params['vsone_kpts'].get_cfgstr(),
+            hyper_params['vsone_match'].get_cfgstr(),
+            hyper_params['pairwise_feats'].get_cfgstr(),
+            # 'local(' + tmprepr(pairfeat_cfg) + ')',
             'global(' + tmprepr(global_keys) + ')'
         ])
-        feat_cacher = ut.Cacher('bulk_pairfeat_cache3', feat_cfgstr,
-                                appname=pblm.appname, verbose=20)
+        import ubelt as ub
+        feat_cacher = ub.Cacher('bulk_pairfeat_cache3' + infr.ibs.dbname,
+                                feat_cfgstr, appname=pblm.appname, verbose=20)
         data = feat_cacher.tryload()
         if data is None:
+            config = {}
+            config.update(pblm.hyper_params.vsone_kpts)
+            config.update(pblm.hyper_params.vsone_match)
+            pairfeat_cfg = pairfeat_cfg.asdict()
+            need_lnbnn = pairfeat_cfg.pop('need_lnbnn', False)
+
             data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
                                                 global_keys, need_lnbnn)
             feat_cacher.save(data)
         matches, feats = data
 
-        assert set(featinfo.columns).issubset(feats.columns), (
-            'inconsistent feature dimensions')
+        # assert set(featinfo.columns).issubset(feats.columns), (
+        #     'inconsistent feature dimensions')
 
-        # Take the filtered subset of columns
-        feats = feats[featinfo.columns]
+        # # Take the filtered subset of columns
+        # feats = feats[featinfo.columns]
 
-        assert np.all(featinfo.columns == feats.columns), (
-            'inconsistent feature dimensions')
+        # assert np.all(featinfo.columns == feats.columns), (
+        #     'inconsistent feature dimensions')
         return feats
 
     def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
@@ -370,8 +379,18 @@ class AnnotInfrMatching(object):
             uv_index = ensure_multi_index(edges, ('aid1', 'aid2'))
             X.index = uv_index
         X[pd.isnull(X)] = np.nan
+        X[np.isinf(X)] = np.nan
         # Re-order column names to ensure dimensions are consistent
         X = X.reindex_axis(sorted(X.columns), axis=1)
+
+        # hack to fix feature validity
+        if np.any(np.isinf(X['global(speed)'])):
+            flags = np.isinf(X['global(speed)'])
+            numer = X.loc[flags, 'global(gps_delta)']
+            denom = X.loc[flags, 'global(time_delta)']
+            newvals = np.full(len(numer), np.nan)
+            newvals[(numer == 0) & (denom == 0)] = 0
+            X.loc[flags, 'global(speed)'] = newvals
 
         aid_pairs_ = [(m.annot1['aid'], m.annot2['aid']) for m in matches]
         assert aid_pairs_ == edges, 'edge ordering changed'
@@ -922,8 +941,9 @@ class CandidateSearch(object):
         data_key = pblm.default_data_key
         # TODO: find a good way to cache this
         cfgstr = infr.ibs.dbname + ut.hashstr27(repr(edges)) + data_key
-        cacher = ut.Cacher('foobarclf_taskprobs5', cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=1,
+        import ubelt as ub
+        cacher = ub.Cacher('foobarclf_taskprobs_' + infr.ibs.dbname,
+                           cfgstr=cfgstr, appname=pblm.appname, enabled=1,
                            verbose=pblm.verbose)
         X = cacher.tryload()
         if X is None:

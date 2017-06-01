@@ -1448,6 +1448,8 @@ class Chap4(DBInputs, IOContract):
         r"""
         CommandLine:
             python -m ibeis Chap4._setup_pblm --db PZ_Master1
+            python -m ibeis Chap4._setup_pblm --db PZ_MTEST
+            python -m ibeis Chap4._setup_pblm --db PZ_PB_RF_TRAIN
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -1502,9 +1504,14 @@ class Chap4(DBInputs, IOContract):
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         pblm.eval_task_keys = ['match_state', 'photobomb_state']
-        pblm.eval_data_keys = [data_key]
+        # pblm.eval_data_keys = [data_key]
+        pblm.eval_data_keys = None
         pblm.eval_clf_keys = [clf_key]
-        pblm.setup_evaluation()
+
+        # pblm.setup_evaluation()
+
+        pblm.evaluate_classifiers()
+        pblm.eval_data_keys = [data_key]
 
         if False:
             pblm.infr

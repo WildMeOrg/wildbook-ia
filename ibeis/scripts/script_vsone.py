@@ -55,8 +55,8 @@ class PairFeatureConfig(dt.Config):
         # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
         ut.ParamInfo('bin_key', 'ratio', valid_values=[None, 'ratio']),
         # ut.ParamInfo('bins', [.5, .6, .7, .8])
-        ut.ParamInfo('bins', [.625, .8])
-        # ut.ParamInfo('need_lnbnn', False),
+        ut.ParamInfo('bins', (.625, .8), type_=eval),
+        ut.ParamInfo('need_lnbnn', False),
 
         # ut.ParamInfo('med', True),
     ]
@@ -395,53 +395,47 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ut.cprint('[pblm] load_features', color='blue')
 
         infr = pblm.infr
-        ibs = pblm.infr.ibs
+        # ibs = pblm.infr.ibs
 
-        hyper_params = pblm.hyper_params
+        infr.classifiers = pblm
+
+        edges = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
+        X_all = infr._pblm_pairwise_features(edges)
+
+        # hyper_params = pblm.hyper_params
         # TODO: features should also rely on global attributes
         # fornow using edge+label hashids is good enough
-        sample_hashid = pblm.samples.sample_hashid()
-        cfgstr_parts = [
-            ibs.dbname,
-            sample_hashid,
-            hyper_params['vsone_kpts'].get_cfgstr(),
-            hyper_params['vsone_match'].get_cfgstr(),
-            hyper_params['pairwise_feats'].get_cfgstr(),
-        ]
-        cfgstr = '_'.join(cfgstr_parts)
+        # sample_hashid = pblm.samples.sample_hashid()
+        # cfgstr_parts = [
+        #     ibs.dbname,
+        #     sample_hashid,
+        #     hyper_params['vsone_kpts'].get_cfgstr(),
+        #     hyper_params['vsone_match'].get_cfgstr(),
+        #     hyper_params['pairwise_feats'].get_cfgstr(),
+        # ]
+        # cfgstr = '_'.join(cfgstr_parts)
 
-        aid_pairs = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
-
-        cacher = ub.Cacher('pairwise_data_' + ibs.dbname,
-                           cfgstr=cfgstr, appname=pblm.appname,
-                           enabled=use_cache, verbose=pblm.verbose)
-        data = cacher.tryload()
-        if data is None:
-            config = {}
-            config.update(hyper_params.vsone_match)
-            config.update(hyper_params.vsone_kpts)
-            pairfeat_cfg = hyper_params.pairwise_feats
-            need_lnbnn = False
-            if need_lnbnn:
-                raise NotImplementedError('not done yet')
-                if infr.qreq_ is None:
-                    pass
-            matches, X_all = infr._make_pairwise_features(
-                aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg,
-                need_lnbnn=need_lnbnn)
-            data = X_all
-            cacher.save(data)
-        X_all = data
-        assert X_all.index.tolist() == aid_pairs, 'index disagrees'
-
-        # hack to fix feature validity
-        if np.any(np.isinf(X_all['global(speed)'])):
-            flags = np.isinf(X_all['global(speed)'])
-            numer = X_all.loc[flags, 'global(gps_delta)']
-            denom = X_all.loc[flags, 'global(time_delta)']
-            newvals = np.full(len(numer), np.nan)
-            newvals[(numer == 0) & (denom == 0)] = 0
-            X_all.loc[flags, 'global(speed)'] = newvals
+        # cacher = ub.Cacher('pairwise_data_' + ibs.dbname,
+        #                    cfgstr=cfgstr, appname=pblm.appname,
+        #                    enabled=use_cache, verbose=pblm.verbose)
+        # data = cacher.tryload()
+        # if data is None:
+        #     config = {}
+        #     config.update(hyper_params.vsone_match)
+        #     config.update(hyper_params.vsone_kpts)
+        #     pairfeat_cfg = hyper_params.pairwise_feats
+        #     need_lnbnn = False
+        #     if need_lnbnn:
+        #         raise NotImplementedError('not done yet')
+        #         if infr.qreq_ is None:
+        #             pass
+        #     matches, X_all = infr._make_pairwise_features(
+        #         aid_pairs, config=config, pairfeat_cfg=pairfeat_cfg,
+        #         need_lnbnn=need_lnbnn)
+        #     data = X_all
+        #     cacher.save(data)
+        # X_all = data
+        # assert X_all.index.tolist() == aid_pairs, 'index disagrees'
 
         pblm.raw_X_dict = {'learn(all)': X_all}
 
@@ -579,6 +573,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         from utool.experimental.pandas_highlight import to_string_monkey
         clf_keys = pblm.eval_clf_keys
         data_keys = pblm.eval_data_keys
+        print('data_keys = %r' % (data_keys,))
         ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
         labels = pblm.samples.subtasks[task_key]
         if hasattr(pblm, 'simple_aucs'):
@@ -818,8 +813,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pblm.hyper_params.vsone_match.get_cfgstr(),
             pblm.hyper_params.vsone_kpts.get_cfgstr(),
         ])
-        cacher2 = ub.Cacher('full_eval_probs2', prob_cfgstr,
-                            appname=pblm.appname, verbose=20)
+        cacher2 = ub.Cacher('full_eval_probs2' + pblm.infr.ibs.dbname,
+                            prob_cfgstr, appname=pblm.appname, verbose=20)
         data2 = cacher2.tryload()
         if not data2:
             # Choose a classifier for each task
@@ -934,43 +929,51 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             X_dict['learn(sum,glob)'] = X[sorted(cols)]
 
             if True:
+                # Use summary and global single thresholds with raw unaries
+                multibin_cols = featinfo.select_columns([
+                    ('summary_binval', '>', 0.625)
+                ])
+                onebin_cols = set.difference(cols, set(multibin_cols))
+                X_dict['learn(sum,glob,onebin)'] = X[sorted(onebin_cols)]
+
+            if True:
                 # Remove view columns
                 view_cols = featinfo.select_columns([
                     ('measure_type', '==', 'global'),
                     ('measure', 'in', ['yaw_1', 'yaw_2', 'yaw_delta',
                                        'min_yaw', 'max_yaw']),
                 ])
-                cols = set.difference(cols, view_cols)
-                X_dict['learn(sum,glob,-view)'] = X[sorted(cols)]
+                noview_cols = set.difference(cols, view_cols)
+                X_dict['learn(sum,glob,-view)'] = X[sorted(noview_cols)]
 
-        if True:
-            # Use summary and global single thresholds with raw unaries
-            cols = featinfo.select_columns([
-                ('measure_type', '==', 'summary'),
-                ('summary_binval', '==', '0.625'),
-            ])
-            cols.update(featinfo.select_columns([
-                ('measure_type', '==', 'global'),
-                ('measure', 'not in', [
-                    'qual_1', 'qual_2', 'yaw_1', 'yaw_2',
-                    'gps_1[0]', 'gps_2[0]', 'gps_1[1]', 'gps_2[1]',
-                    'time_1', 'time_2'
-                ])
-            ]))
-            X_dict['learn(sum,glob,single)'] = X[sorted(cols)]
+        # if True:
+        #     # Use summary and global single thresholds with raw unaries
+        #     cols = featinfo.select_columns([
+        #         ('measure_type', '==', 'summary'),
+        #         ('summary_binval', '==', '0.625'),
+        #     ])
+        #     cols.update(featinfo.select_columns([
+        #         ('measure_type', '==', 'global'),
+        #         ('measure', 'not in', [
+        #             'qual_1', 'qual_2', 'yaw_1', 'yaw_2',
+        #             'gps_1[0]', 'gps_2[0]', 'gps_1[1]', 'gps_2[1]',
+        #             'time_1', 'time_2'
+        #         ])
+        #     ]))
+        #     X_dict['learn(sum,glob,single)'] = X[sorted(cols)]
 
-        if False:
-            # Use summary and global single thresholds with raw unaries
-            cols = featinfo.select_columns([
-                ('measure_type', '==', 'summary'),
-            ])
-            cols.update(featinfo.select_columns([
-                ('measure_type', '==', 'global'),
-                ('measure', 'not in', [
-                    'min_qual', 'max_qual', 'min_yaw', 'max_yaw']),
-            ]))
-            # cols = [c for c in cols if 'lnbnn' not in c]
-            X_dict['learn(sum,rawglob)'] = X[sorted(cols)]
+        # if False:
+        #     # Use summary and global single thresholds with raw unaries
+        #     cols = featinfo.select_columns([
+        #         ('measure_type', '==', 'summary'),
+        #     ])
+        #     cols.update(featinfo.select_columns([
+        #         ('measure_type', '==', 'global'),
+        #         ('measure', 'not in', [
+        #             'min_qual', 'max_qual', 'min_yaw', 'max_yaw']),
+        #     ]))
+        #     # cols = [c for c in cols if 'lnbnn' not in c]
+        #     X_dict['learn(sum,rawglob)'] = X[sorted(cols)]
 
         pblm.samples.X_dict = X_dict
 

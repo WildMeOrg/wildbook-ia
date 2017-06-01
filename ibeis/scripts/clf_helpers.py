@@ -242,22 +242,24 @@ class ClfProblem(ut.NiceRepr):
         """
         # TODO: add in params used to construct features into the cfgstr
         sample_hashid = pblm.samples.sample_hashid()
-        feat_cfgstr = ut.hashstr_arr27(
-            pblm.samples.X_dict[data_key].columns.values.tolist(),
-            'featdims')
+
+        feat_dims = pblm.samples.X_dict[data_key].columns.values.tolist()
         # cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
-        cfg_prefix = sample_hashid + feat_cfgstr
 
         est_kw1, est_kw2 = pblm._estimator_params(clf_key)
         param_id = ut.get_dict_hashid(est_kw1)
         xval_id = pblm.xval_kw.get_cfgstr()
-        cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
-                           data_key, clf_key])
+        cfgstr = '_'.join([
+            sample_hashid, param_id, xval_id, task_key, data_key, clf_key,
+            'feats(%r)_%s' % (len(feat_dims), ','.join(feat_dims))
+        ])
 
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
                          verbose=1)
         import ubelt as ub
-        cacher_clf = ub.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
+        ibs = pblm.infr.ibs
+        cacher_clf = ub.Cacher('eval_clfres_' + ibs.dbname, cfgstr=cfgstr,
+                               **cacher_kw)
 
         data = cacher_clf.tryload()
         if not data:
