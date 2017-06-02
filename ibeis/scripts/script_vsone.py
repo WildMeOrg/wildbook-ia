@@ -44,12 +44,14 @@ class PairSampleConfig(dt.Config):
 class PairFeatureConfig(dt.Config):
     """ for building pairwise feature dimensions """
     _param_info_list = [
-        ut.ParamInfo('indices', slice(0, 5)),
+        # ut.ParamInfo('indices', slice(0, 5)),
+        ut.ParamInfo('indices', []),
         ut.ParamInfo('summary_ops', {
-            'invsum', 'sum', 'std', 'mean', 'len', 'med'}),
+            # 'invsum',
+            'sum', 'std', 'mean', 'len', 'med'}),
         ut.ParamInfo('local_keys', None),
         ut.ParamInfo('sorters', [
-            'ratio', 'norm_dist', 'match_dist'
+            # 'ratio', 'norm_dist', 'match_dist'
             # 'lnbnn', 'lnbnn_norm_dist',
         ]),
         # ut.ParamInfo('bin_key', None, valid_values=[None, 'ratio']),
@@ -205,12 +207,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm = OneVsOneProblem.from_aids(ibs, aids)
         return pblm
 
-    def make_lnbnn_training_pairs(pblm):
+    def _make_lnbnn_qreq(pblm):
+        # This is the qreq used to do LNBNN sampling and to compute simple
+        # LNBNN scores.
         infr = pblm.infr
         ibs = pblm.infr.ibs
-        if pblm.verbose > 0:
-            print('[pblm] gather lnbnn match-state cases')
-
         cfgdict = pblm.hyper_params['sample_search'].copy()
         # Use the same keypoints for vsone and vsmany for comparability
         cfgdict.update(pblm.hyper_params['vsone_kpts'])
@@ -218,15 +219,26 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Do query-side only if augment ori is on for 1vs1
             cfgdict['augment_orientation'] = False
             cfgdict['query_rotation_heuristic'] = True
-
         aids = ibs.filter_annots_general(
             infr.aids, min_pername=3, species='primary')
-
         infr.relabel_using_reviews(rectify=False)
         custom_nid_lookup = infr.get_node_attrs('name_label', aids)
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
                                       verbose=False,
                                       custom_nid_lookup=custom_nid_lookup)
+
+        assert qreq_.qparams.can_match_samename is True
+        assert qreq_.qparams.prescore_method == 'csum'
+        assert pblm.hyper_params.subsample is None
+        return qreq_
+
+    def make_lnbnn_training_pairs(pblm):
+        infr = pblm.infr
+        ibs = pblm.infr.ibs
+        if pblm.verbose > 0:
+            print('[pblm] gather lnbnn match-state cases')
+
+        qreq_ = pblm._make_lnbnn_qreq()
 
         use_cache = False
         use_cache = True
@@ -234,9 +246,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         cacher1 = ub.Cacher('pairsample_1_v6' + ibs.get_dbname(),
                             cfgstr=cfgstr, appname=pblm.appname,
                             enabled=use_cache, verbose=pblm.verbose)
-        assert qreq_.qparams.can_match_samename is True
-        assert qreq_.qparams.prescore_method == 'csum'
-        assert pblm.hyper_params.subsample is None
 
         # make sure changes is names doesn't change the pair sample so I can
         # iterate a bit faster. Ensure this is turned off later.
@@ -315,8 +324,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         n_need = n_target - len(aid_pairs)
 
-        per_cc = max(2, int(n_need / infr.pos_graph.number_of_components() /
-                            2))
+        per_cc = int(n_need / infr.pos_graph.number_of_components() / 2)
+        per_cc = max(2, per_cc)
 
         rng = ut.ensure_rng(2039141610)
 
@@ -948,13 +957,18 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ])
             cols.update(featinfo.select_columns([
                 ('measure_type', '==', 'global'),
-                ('measure', 'not in', [
-                    'qual_1', 'qual_2', 'yaw_1', 'yaw_2',
-                    'gps_1[0]', 'gps_2[0]', 'gps_1[1]', 'gps_2[1]',
-                    'time_1', 'time_2'
-                ])
+                ('measure', 'not in', {
+                    'qual_1', 'qual_2', 'yaw_1', 'yaw_2', 'gps_1[0]',
+                    'gps_2[0]', 'gps_1[1]', 'gps_2[1]', 'time_1', 'time_2'
+                })
             ]))
             register_data_key('learn(sum,glob)', cols)
+
+            rat_cols = featinfo.select_columns([
+                ('summary_measure', '==', 'ratio')
+            ])
+            norat_cols = set.difference(cols, set(rat_cols))
+            register_data_key('learn(sum,glob,-ratio)', norat_cols)
 
             if True:
                 # Use summary and global single thresholds with raw unaries
@@ -1032,17 +1046,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.simple_aucs = simple_aucs
 
     def report_simple_scores(pblm, task_key=None):
+        from utool.experimental.pandas_highlight import to_string_monkey
         if task_key is None:
             task_key = pblm.primary_task_key
         force_keep = ['score_lnbnn_1vM']
         simple_aucs = pblm.simple_aucs
-        from utool.experimental.pandas_highlight import to_string_monkey
-        n_keep = 6
-        df_simple_auc = pd.DataFrame.from_dict(simple_aucs[task_key], orient='index')
+        n_keep = 5
+        df_simple_auc = pd.DataFrame.from_dict(simple_aucs[task_key],
+                                               orient='index')
         # Take only a subset of the columns that scored well in something
         rankings = df_simple_auc.values.argsort(axis=1).argsort(axis=1)
         rankings = rankings.shape[1] - rankings - 1
-        ordered_ranks = np.array(vt.ziptake(rankings.T, rankings.argsort(axis=0).T)).T
+        ordered_ranks = np.array(vt.ziptake(rankings.T,
+                                            rankings.argsort(axis=0).T)).T
         sortx = np.lexsort(ordered_ranks[::-1])
         keep_cols = df_simple_auc.columns[sortx][0:n_keep]
         extra = np.setdiff1d(force_keep, np.intersect1d(keep_cols, force_keep))

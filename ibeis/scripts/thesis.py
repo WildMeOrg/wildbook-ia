@@ -13,6 +13,7 @@ import vtool as vt
 import pathlib
 import matplotlib as mpl
 import random
+import six
 import sys
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
@@ -65,6 +66,73 @@ class DBInputs(object):
             self.dpath = join(self.base_dpath, self.dbname)
             # ut.ensuredir(self.dpath)
         self.expt_results = {}
+
+    # @classmethod
+    # def measure(Chap3, expt_name, dbnames):
+    #     """
+    #     CommandLine:
+    #         python -m ibeis Chap3.measure all --dbs=GZ_Master1
+    #         python -m ibeis Chap3.measure all --dbs=PZ_Master1
+
+    #         python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+    #         python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+
+    #     Example:
+    #         >>> # Script
+    #         >>> from ibeis.scripts.thesis import *  # NOQA
+    #         >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
+    #         >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
+    #         >>> Chap3.measure(expt_name, dbnames)
+    #     """
+    #     for dbname in dbnames:
+    #         self = Chap3(dbname)
+    #         if self.ibs is None:
+    #             self._precollect()
+    #         if expt_name == 'all':
+    #             self.measure_all()
+    #         else:
+    #             getattr(self, 'measure_' + expt_name)()
+
+    @classmethod
+    def draw(ChapX, expt_name, dbnames, *args):
+        """
+        CommandLine:
+            python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
+            python -m ibeis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
+
+            python -m ibeis Chap4.draw importance GZ_Master1
+            --diskshow
+
+        # Example:
+        #     >>> # Script
+        #     >>> from ibeis.scripts.thesis import *  # NOQA
+        #     >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
+        #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
+        #     >>> Chap3.draw(expt_name, dbnames)
+        """
+        print('expt_name = %r' % (expt_name,))
+        print('dbnames = %r' % (dbnames,))
+        print('args = %r' % (args,))
+        dbnames = ut.smart_cast(dbnames, list)
+        for dbname in dbnames:
+            self = ChapX(dbname)
+            if expt_name == 'all':
+                self.draw_all()
+            else:
+                draw_func = getattr(self, 'draw_' + expt_name, None)
+                if draw_func is None:
+                    draw_func = getattr(self, 'write_' + expt_name, None)
+                if draw_func is None:
+                    raise ValueError('Cannot find a way to draw ' + expt_name)
+                fpath = draw_func(*args)
+                if ut.get_argflag('--diskshow'):
+                    if isinstance(fpath, six.text_type):
+                        ut.startfile(fpath)
+                    else:
+                        fpath_list = fpath
+                        for fpath in fpath_list:
+                            ut.startfile(fpath)
 
     @profile
     def _precollect(self):
@@ -1456,7 +1524,7 @@ class Chap4(DBInputs, IOContract):
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='PZ_Master1')
+            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap4(dbname)
             >>> self._setup_pblm()
 
@@ -1511,6 +1579,7 @@ class Chap4(DBInputs, IOContract):
         pblm.eval_clf_keys = [clf_key]
 
         if ut.get_argflag('--eval'):
+            pblm.eval_task_keys = ['match_state']
             pblm.eval_data_keys = None
             pblm.evaluate_classifiers()
             pblm.eval_data_keys = [data_key]
@@ -1968,8 +2037,9 @@ class Chap4(DBInputs, IOContract):
             >>> defaultdb = 'PZ_PB_RF_TRAIN'
             >>> defaultdb = 'PZ_MTEST'
             >>> #task_key = kwargs['task_key']
-            >>> task_key = 'match_state'
-            >>> self = Chap4(defaultdb)
+            >>> task_key = ut.get_argval('--task-key', default='match_state')
+            >>> dbname = ut.get_argval('--db', default=defaultdb)
+            >>> self = Chap4(dbname)
             >>> self.write_metrics(task_key)
         """
         results = self.ensure_results('all')
@@ -2016,7 +2086,7 @@ class Chap4(DBInputs, IOContract):
         latex_str = latex_str.replace('midrule', 'hline')
         latex_str = latex_str.replace('toprule', 'hline')
         latex_str = latex_str.replace('bottomrule', 'hline')
-        confusion_latex_str = latex_str
+        confusion_tex = latex_str
 
         df = metric_df
         # df = self.task_metrics[task_key]
@@ -2031,17 +2101,22 @@ class Chap4(DBInputs, IOContract):
         lines = latex_str.split('\n')
         lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
         latex_str = '\n'.join(lines)
-        metrics_latex_str = latex_str
+        metrics_tex = latex_str
 
-        print(confusion_latex_str)
+        print(confusion_tex)
+        print(metrics_tex)
 
-        print(metrics_latex_str)
+        dpath = str(self.dpath)
+        confusion_fname = 'confusion_{}'.format(task_key)
+        metrics_fname = 'eval_metrics_{}'.format(task_key)
 
-        fname = 'confusion_{}.tex'.format(task_key)
-        ut.write_to(join(str(self.dpath), fname), confusion_latex_str)
+        ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
+        ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
 
-        fname = 'eval_metrics_{}.tex'.format(task_key)
-        ut.write_to(join(str(self.dpath), fname), metrics_latex_str)
+        fpath1 = ut.render_latex(confusion_tex, dpath=dpath,
+                                 fname=confusion_fname)
+        fpath2 = ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
+        return fpath1, fpath2
 
     def write_sample_info(self):
         results = self.ensure_results('sample_info')
@@ -2060,7 +2135,7 @@ class Chap4(DBInputs, IOContract):
         flags = (task.encoded_df == task.class_names.tolist().index(INCMP))
         incomp_edges = task.encoded_df[flags.values].index.tolist()
         nid_edges = [infr.pos_graph.node_labels(*e) for e in incomp_edges]
-        nid_edges = np.array(nid_edges)
+        nid_edges = vt.ensure_shape(np.array(nid_edges), (None, 2))
 
         n_true = nid_edges.T[0] == nid_edges.T[1]
         info['incomp_info'] = {
@@ -2075,6 +2150,10 @@ class Chap4(DBInputs, IOContract):
         ut.write_to(join(str(self.dpath), fname), info_str)
 
     def write_importance(self, task_key):
+        """
+        python -m ibeis Chap4.draw importance GZ_Master1 match_state
+        python -m ibeis Chap4.draw importance GZ_Master1 photobomb_state --diskshow
+        """
         # Print info for latex table
         results = self.ensure_results('all')
         importances = results['importance'][task_key]
@@ -2088,14 +2167,16 @@ class Chap4(DBInputs, IOContract):
             lines.append('{} & {:.4f} \\\\'.format(k, v))
         latex_str = '\n'.join(ut.align_lines(lines, '&'))
 
-        fname = 'feat_importance_{}.tex'.format(task_key)
+        fname = 'feat_importance_{}'.format(task_key)
 
         print('TOP 5 importances for ' + task_key)
         print('# of dimensions: %d' % (len(importances)))
         print(latex_str)
         print()
 
-        ut.write_to(join(str(self.dpath), fname), latex_str)
+        fpath = ut.render_latex(latex_str, dpath=self.dpath, fname=fname)
+        ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
+        return fpath
 
     def measure_thresh(self, pblm):
         task_key = 'match_state'
@@ -2581,14 +2662,25 @@ class Chap3Commands(object):
         """
         print('dbnames = %r' % (dbnames,))
         print('expt_name = %r' % (expt_name,))
-        for dbname in dbnames:
-            self = Chap3(dbname)
-            if expt_name == 'all':
-                self.draw_all()
-            else:
-                fpath = getattr(self, 'draw_' + expt_name)()
-                if ut.get_argflag('--diskshow'):
-                    ut.startfile(fpath)
+        super(Chap3.__class__, Chap3).draw(expt_name, dbnames)
+        # for dbname in dbnames:
+        #     self = Chap3(dbname)
+        #     if expt_name == 'all':
+        #         self.draw_all()
+        #     else:
+        #         draw_func = getattr(self, 'draw_' + expt_name, None)
+        #         if draw_func is None:
+        #             draw_func = getattr(self, 'write_' + expt_name, None)
+        #         if draw_func is None:
+        #             raise ValueError('Cannot find a way to draw ' + expt_name)
+        #         fpath = draw_func()
+        #         if ut.get_argflag('--diskshow'):
+        #             if isinstance(fpath, six.text_type):
+        #                 ut.startfile(fpath)
+        #             else:
+        #                 fpath_list = fpath
+        #                 for fpath in fpath_list:
+        #                     ut.startfile(fpath)
 
 
 @ut.reloadable_class

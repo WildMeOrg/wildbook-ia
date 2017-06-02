@@ -251,7 +251,7 @@ class ClfProblem(ut.NiceRepr):
         xval_id = pblm.xval_kw.get_cfgstr()
         cfgstr = '_'.join([
             sample_hashid, param_id, xval_id, task_key, data_key, clf_key,
-            'feats(%r)_%s' % (len(feat_dims), ','.join(feat_dims))
+            ut.hashid_arr(feat_dims, 'feats')
         ])
 
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
@@ -259,7 +259,7 @@ class ClfProblem(ut.NiceRepr):
         import ubelt as ub
         ibs = pblm.infr.ibs
         cacher_clf = ub.Cacher('eval_clfres_' + ibs.dbname, cfgstr=cfgstr,
-                               **cacher_kw)
+                               meta=[feat_dims], **cacher_kw)
 
         data = cacher_clf.tryload()
         if not data:
