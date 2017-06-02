@@ -269,9 +269,6 @@ class AnnotInfrMatching(object):
         #     need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
         #     print(featinfo.get_infostr())
         print('Building need features')
-        def tmprepr(cfg):
-            return ut.repr2(cfg, strvals=True, explicit=True,
-                            nobr=True).replace(' ', '').replace('\'', '')
         ibs = infr.ibs
         edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
         edge_hashid = ut.hashstr_arr27(edge_uuids, 'edges', hashlen=32)
@@ -279,25 +276,40 @@ class AnnotInfrMatching(object):
         pairfeat_cfg = pblm.hyper_params['pairwise_feats']
         global_keys = ['yaw', 'qual', 'gps', 'time']
 
-        hyper_params = pblm.hyper_params
+        make_cfg_lbl = ut.partial(ut.repr2, nobr=True, stritems=True,
+                                  itemsep='', explicit=True, strvals=True)
+
+        if data_key is None:
+            feat_construct_config = pblm.feat_construct_config
+            feat_dims = None
+        else:
+            info = pblm.feat_construct_info[data_key]
+            feat_construct_config = info[0]
+            feat_dims = info[1]
+
         feat_cfgstr = '_'.join([
             edge_hashid,
-            hyper_params['vsone_kpts'].get_cfgstr(),
-            hyper_params['vsone_match'].get_cfgstr(),
-            hyper_params['pairwise_feats'].get_cfgstr(),
+            make_cfg_lbl(feat_construct_config['match_config']),
+            make_cfg_lbl(feat_construct_config['pairfeat_cfg']),
+            'global(' + make_cfg_lbl(feat_construct_config['global_keys']) + ')',
+            # hyper_params['vsone_kpts'].get_cfgstr(),
+            # hyper_params['vsone_match'].get_cfgstr(),
+            # hyper_params['pairwise_feats'].get_cfgstr(),
             # 'local(' + tmprepr(pairfeat_cfg) + ')',
-            'global(' + tmprepr(global_keys) + ')'
+            # 'global(' + tmprepr(global_keys) + ')'
         ])
+        use_cache = not feat_construct_config['need_lnbnn']
+
         import ubelt as ub
-        feat_cacher = ub.Cacher('bulk_pairfeat_cache3' + infr.ibs.dbname,
-                                feat_cfgstr, appname=pblm.appname, verbose=20)
+        feat_cacher = ub.Cacher('bulk_pairfeats_' + infr.ibs.dbname,
+                                feat_cfgstr, enabled=use_cache,
+                                appname=pblm.appname, verbose=20)
         data = feat_cacher.tryload()
         if data is None:
-            config = {}
-            config.update(pblm.hyper_params.vsone_kpts)
-            config.update(pblm.hyper_params.vsone_match)
-            pairfeat_cfg = pairfeat_cfg.asdict()
-            need_lnbnn = pairfeat_cfg.pop('need_lnbnn', False)
+            config = feat_construct_config['match_config']
+            pairfeat_cfg = feat_construct_config['pairfeat_cfg']
+            global_keys = feat_construct_config['global_keys']
+            need_lnbnn = feat_construct_config['need_lnbnn']
 
             data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
                                                 global_keys, need_lnbnn)
@@ -308,7 +320,8 @@ class AnnotInfrMatching(object):
         #     'inconsistent feature dimensions')
 
         # # Take the filtered subset of columns
-        # feats = feats[featinfo.columns]
+        if feat_dims is not None:
+            feats = feats[feat_dims]
 
         # assert np.all(featinfo.columns == feats.columns), (
         #     'inconsistent feature dimensions')

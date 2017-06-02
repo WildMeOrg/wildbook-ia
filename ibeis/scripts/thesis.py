@@ -1447,9 +1447,13 @@ class Chap4(DBInputs, IOContract):
     def _setup_pblm(self):
         r"""
         CommandLine:
+            python -m ibeis Chap4._setup_pblm --db GZ_Master1
+
             python -m ibeis Chap4._setup_pblm --db PZ_Master1
             python -m ibeis Chap4._setup_pblm --db PZ_MTEST
             python -m ibeis Chap4._setup_pblm --db PZ_PB_RF_TRAIN
+
+            python -m ibeis Chap4.measure_all --db PZ_PB_RF_TRAIN
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -1504,14 +1508,15 @@ class Chap4(DBInputs, IOContract):
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
         pblm.eval_task_keys = ['match_state', 'photobomb_state']
-        # pblm.eval_data_keys = [data_key]
-        pblm.eval_data_keys = None
+        pblm.eval_data_keys = [data_key]
         pblm.eval_clf_keys = [clf_key]
 
-        # pblm.setup_evaluation()
-
-        pblm.evaluate_classifiers()
-        pblm.eval_data_keys = [data_key]
+        if ut.get_argflag('--eval'):
+            pblm.eval_data_keys = None
+            pblm.evaluate_classifiers()
+            pblm.eval_data_keys = [data_key]
+        else:
+            pblm.setup_evaluation()
 
         if False:
             pblm.infr
@@ -1565,6 +1570,18 @@ class Chap4(DBInputs, IOContract):
         self._setup_pblm()
         pblm = self.pblm
 
+        expt_name = 'sample_info'
+        results = {
+            'graph': pblm.infr.graph,
+            'aid_pool': self.aids_pool,
+            'pblm_aids': pblm.infr.aids,
+            'encoded_labels2d': pblm.samples.encoded_2d(),
+            'subtasks': pblm.samples.subtasks,
+            'multihist': pblm.samples.make_histogram(),
+        }
+        self.expt_results[expt_name] = results
+        ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
+
         importance = {
             task_key: pblm.feature_importance(task_key=task_key)
             for task_key in pblm.eval_task_keys
@@ -1584,7 +1601,6 @@ class Chap4(DBInputs, IOContract):
         }
         expt_name = 'all'
         self.expt_results[expt_name] = results
-
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
         task_key = 'match_state'
@@ -1593,6 +1609,9 @@ class Chap4(DBInputs, IOContract):
 
         self.measure_rerank()
         self.measure_prune()
+
+        if ut.get_argflag('--draw'):
+            self.draw_all()
 
     def draw_all(self):
         r"""
@@ -1610,6 +1629,8 @@ class Chap4(DBInputs, IOContract):
         """
         results = self.ensure_results('all')
         eval_task_keys = set(results['task_combo_res'].keys())
+
+        self.write_sample_info(task_key)
 
         task_key = 'photobomb_state'
         if task_key in eval_task_keys:
@@ -2018,6 +2039,37 @@ class Chap4(DBInputs, IOContract):
 
         fname = 'eval_metrics_{}.tex'.format(task_key)
         ut.write_to(join(str(self.dpath), fname), metrics_latex_str)
+
+    def write_sample_info(self):
+        results = self.ensure_results('sample_info')
+        # results['aid_pool']
+        # results['encoded_labels2d']
+        # results['multihist']
+        import ibeis
+        infr = ibeis.AnnotInference.from_netx(results['graph'])
+        info = ut.odict()
+        info['n_names'] = infr.pos_graph.number_of_components(),
+        info['n_aids'] = len(results['pblm_aids']),
+        info['known_n_incomparable'] = infr.incomp_graph.number_of_edges()
+        subtasks = results['subtasks']
+
+        task = subtasks['match_state']
+        flags = (task.encoded_df == task.class_names.tolist().index(INCMP))
+        incomp_edges = task.encoded_df[flags.values].index.tolist()
+        nid_edges = [infr.pos_graph.node_labels(*e) for e in incomp_edges]
+        nid_edges = np.array(nid_edges)
+
+        n_true = nid_edges.T[0] == nid_edges.T[1]
+        info['incomp_info'] = {
+            'inside_pcc': n_true.sum(),
+            'betweeen_pcc': (~n_true).sum(),
+        }
+
+        for task_key, task in subtasks.items():
+            info[task_key + '_hist'] = task.make_histogram()
+        info_str = ut.repr4(info)
+        fname = 'sample_info.txt'
+        ut.write_to(join(str(self.dpath), fname), info_str)
 
     def write_importance(self, task_key):
         # Print info for latex table

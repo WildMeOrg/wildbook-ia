@@ -131,17 +131,42 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         hyper_params['vsone_match']['thresh_bins'] = bins
         hyper_params['vsone_match']['sv_on'] = True
 
-        if False:
-            # For giraffes
-            hyper_params['vsone_match']['checks'] = 80
-            hyper_params['vsone_match']['sver_xy_thresh'] = .02
-            hyper_params['vsone_match']['sver_ori_thresh'] = 3
+        # if False:
+        #     # For giraffes
+        #     hyper_params['vsone_match']['checks'] = 80
+        #     hyper_params['vsone_match']['sver_xy_thresh'] = .02
+        #     hyper_params['vsone_match']['sver_ori_thresh'] = 3
 
         species = infr.ibs.get_primary_database_species()
         if species == 'zebra_plains' or True:
             hyper_params['vsone_match']['Knorm'] = 3
             hyper_params['vsone_match']['symmetric'] = True
             hyper_params['vsone_kpts']['augment_orientation'] = True
+
+        if infr.ibs.has_species_detector(species):
+            hyper_params.vsone_match['weight'] = 'fgweights'
+            hyper_params.pairwise_feats['sorters'] = ut.unique(
+                hyper_params.pairwise_feats['sorters'] +
+                [
+                    'weighted_ratio',
+                    # 'weighted_lnbnn'
+                ]
+            )
+        else:
+            hyper_params.vsone_match['weight'] = None
+
+        global_keys = ['yaw', 'qual', 'gps', 'time']
+        match_config = {}
+        match_config.update(hyper_params['vsone_kpts'])
+        match_config.update(hyper_params['vsone_match'])
+        pairfeat_cfg = hyper_params['pairwise_feats'].asdict()
+        need_lnbnn = pairfeat_cfg.pop('need_lnbnn', False)
+        pblm.feat_construct_config = {
+            'global_keys': global_keys,
+            'match_config': match_config,
+            'pairfeat_cfg': pairfeat_cfg,
+            'need_lnbnn': need_lnbnn,
+        }
 
         pblm.hyper_params = hyper_params
 
@@ -180,19 +205,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm = OneVsOneProblem.from_aids(ibs, aids)
         return pblm
 
-    def _fix_hyperparams(pblm, qreq_):
-        if qreq_.qparams.featweight_enabled:
-            pblm.hyper_params.vsone_match['weight'] = 'fgweights'
-            pblm.hyper_params.pairwise_feats['sorters'] = ut.unique(
-                pblm.hyper_params.pairwise_feats['sorters'] +
-                [
-                    'weighted_ratio',
-                    # 'weighted_lnbnn'
-                ]
-            )
-        else:
-            pblm.hyper_params.vsone_match['weight'] = None
-
     def make_lnbnn_training_pairs(pblm):
         infr = pblm.infr
         ibs = pblm.infr.ibs
@@ -211,7 +223,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
                                       verbose=False,
                                       custom_nid_lookup=custom_nid_lookup)
-        pblm._fix_hyperparams(qreq_)
 
         use_cache = False
         use_cache = True
@@ -906,12 +917,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         X = X_dict['learn(all)']
         featinfo = AnnotPairFeatInfo(X)
 
+        pblm.feat_construct_info = {}
+        def register_data_key(data_key, cols):
+            feat_dims = sorted(cols)
+            info = (pblm.feat_construct_config, feat_dims)
+            pblm.feat_construct_info[data_key] = info
+            X_dict[data_key] = X[cols]
+
         if False:
             # Use only summary stats
             cols = featinfo.select_columns([
                 ('measure_type', '==', 'summary'),
             ])
-            X_dict['learn(sum)']  = X[sorted(cols)]
+            register_data_key('learn(sum)', cols)
 
         if True:
             # Use summary and global single thresholds with raw unaries
@@ -926,7 +944,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     'time_1', 'time_2'
                 ])
             ]))
-            X_dict['learn(sum,glob)'] = X[sorted(cols)]
+            register_data_key('learn(sum,glob)', cols)
 
             if True:
                 # Use summary and global single thresholds with raw unaries
@@ -934,7 +952,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                     ('summary_binval', '>', 0.625)
                 ])
                 onebin_cols = set.difference(cols, set(multibin_cols))
-                X_dict['learn(sum,glob,onebin)'] = X[sorted(onebin_cols)]
+                register_data_key('learn(sum,glob,onebin)', onebin_cols)
 
             if True:
                 # Remove view columns
@@ -944,36 +962,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                                        'min_yaw', 'max_yaw']),
                 ])
                 noview_cols = set.difference(cols, view_cols)
-                X_dict['learn(sum,glob,-view)'] = X[sorted(noview_cols)]
-
-        # if True:
-        #     # Use summary and global single thresholds with raw unaries
-        #     cols = featinfo.select_columns([
-        #         ('measure_type', '==', 'summary'),
-        #         ('summary_binval', '==', '0.625'),
-        #     ])
-        #     cols.update(featinfo.select_columns([
-        #         ('measure_type', '==', 'global'),
-        #         ('measure', 'not in', [
-        #             'qual_1', 'qual_2', 'yaw_1', 'yaw_2',
-        #             'gps_1[0]', 'gps_2[0]', 'gps_1[1]', 'gps_2[1]',
-        #             'time_1', 'time_2'
-        #         ])
-        #     ]))
-        #     X_dict['learn(sum,glob,single)'] = X[sorted(cols)]
-
-        # if False:
-        #     # Use summary and global single thresholds with raw unaries
-        #     cols = featinfo.select_columns([
-        #         ('measure_type', '==', 'summary'),
-        #     ])
-        #     cols.update(featinfo.select_columns([
-        #         ('measure_type', '==', 'global'),
-        #         ('measure', 'not in', [
-        #             'min_qual', 'max_qual', 'min_yaw', 'max_yaw']),
-        #     ]))
-        #     # cols = [c for c in cols if 'lnbnn' not in c]
-        #     X_dict['learn(sum,rawglob)'] = X[sorted(cols)]
+                register_data_key('learn(sum,glob,-view)', noview_cols)
 
         pblm.samples.X_dict = X_dict
 
