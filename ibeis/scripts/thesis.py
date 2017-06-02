@@ -1722,7 +1722,8 @@ class Chap4(DBInputs, IOContract):
             if not ut.get_argflag('--nodraw'):
                 self.draw_hard_cases(task_key)
 
-            self.draw_prune()
+            if not ut.get_argflag('--noprune'):
+                self.draw_prune()
 
     def measure_prune(self):
         """
