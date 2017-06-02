@@ -985,7 +985,14 @@ def crop_out_imgfill(img, fillval=None, thresh=0, channel=None):
         fillval = np.array([255] * get_num_channels(img))
     # for colored images
     #with ut.embed_on_exception_context:
-    isfill = get_pixel_dist(img, fillval, channel=channel) <= thresh
+    pixel = fillval
+    dist = get_pixel_dist(img, pixel, channel=channel)
+    isfill = dist <= thresh
+    # isfill should just be 2D
+    # Fix shape that comes back as (1, W, H)
+    if len(isfill.shape) == 3 and isfill.shape[0] == 1:
+        if np.all(np.greater(isfill.shape[1:2], [4, 4])):
+            isfill = isfill[0]
     rowslice, colslice = vt.get_crop_slices(isfill)
     cropped_img = img[rowslice, colslice]
     return cropped_img

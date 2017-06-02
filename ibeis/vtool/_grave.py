@@ -90,4 +90,76 @@ class ScoreNormalizerUnsupervised(object):
         #pt.gcf().autofmt_xdate()
 
 
+def bow_test():
+    x  = np.array([1, 0, 0, 0, 0, 0], dtype=np.float)
+    c1 = np.array([1, 0, 1, 0, 0, 1], dtype=np.float)
+    c2 = np.array([1, 1, 1, 1, 1, 1], dtype=np.float)
+    x /= x.sum()
+    c1 /= c1.sum()
+    c2 /= c2.sum()
 
+    # fred_query = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # tom_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # # columns that are distinctive per name
+    # #                      f1  f2  s1  s2  s3  t1  z1  z2  z3  z4, z5, z6
+    # fred1      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # fred2      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue2       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # sue3       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+    # tom1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
+
+    names         = ['fred', 'sue', 'tom']
+    num_exemplars = [     3,     2,     1]
+
+    ax2_nx = np.array(ut.flatten([[nx] * num for nx, num in enumerate(num_exemplars)]))
+
+    total = sum(num_exemplars)
+
+    num_words = total * 2
+    # bow vector for database
+    darr = np.zeros((total, num_words))
+
+    for ax in range(len(darr)):
+        # nx = ax2_nx[ax]
+        # num = num_exemplars[nx]
+        darr[ax, ax] = 1
+        darr[ax, ax + total] = 1
+
+    # nx2_axs = dict(zip(*))
+    import vtool as vt
+    groupxs = vt.group_indices(ax2_nx)[1]
+    class_bows = np.vstack([arr.sum(axis=0) for arr in vt.apply_grouping(darr, groupxs)])
+    # generate a query for each class
+    true_class_bows = class_bows[:]
+    # noise words
+    true_class_bows[:, -total:] = 1
+    true_class_bows = true_class_bows / true_class_bows.sum(axis=1)[:, None]
+
+    class_bows = class_bows / class_bows.sum(axis=1)[:, None]
+
+    confusion = np.zeros((len(names), len(names)))
+
+    for trial in range(1000):
+        # bow vector for query
+        qarr = np.zeros((len(names), num_words))
+
+        for cx in range(len(class_bows)):
+            sample = np.random.choice(np.arange(num_words), size=30, p=true_class_bows[cx])
+            hist = np.histogram(sample, bins=np.arange(num_words + 1))[0]
+            qarr[cx] = (hist / hist.max()) >= .5
+        # normalize histograms
+        qarr = qarr / qarr.sum(axis=1)[:, None]
+
+        # Scoring for each class
+        similarity = qarr.dot(class_bows.T)
+        distance = 1 - similarity
+        confusion += distance
+
+    x /= x.sum()
+    c1 /= c1.sum()
+    c2 /= c2.sum()
+
+    print(x.dot(c1))
+    print(x.dot(c2))

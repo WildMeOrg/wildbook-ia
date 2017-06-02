@@ -35,6 +35,7 @@ IMPORT_TUPLES = [
     ('clustering2', None),
     ('distance', None),
     ('other', None),
+    ('numpy_utils', None),
     ('confusion', None),
     ('score_normalization', None),
     ('blend', None),
@@ -61,6 +62,7 @@ from vtool import geometry
 from vtool import nearest_neighbors
 from vtool import clustering2
 from vtool import other
+from vtool import numpy_utils
 from vtool import confusion
 from vtool import score_normalization
 from vtool import symbolic
@@ -132,6 +134,7 @@ if DOELSE:
     from vtool import clustering2
     from vtool import distance
     from vtool import other
+    from vtool import numpy_utils
     from vtool import confusion
     from vtool import score_normalization
     from vtool import blend
@@ -139,23 +142,23 @@ if DOELSE:
     from vtool.image import (CV2_BORDER_TYPES, CV2_INTERPOLATION_TYPES, 
                              CV2_WARP_KWARGS, EXIF_TAG_DATETIME, EXIF_TAG_GPS, 
                              IMREAD_COLOR, LINE_AA, TAU, 
-                             affine_warp_around_center, clipwhite_ondisk, 
-                             combine_offset_lists, convert_colorspace, 
-                             convert_image_list_colorspace, crop_out_imgfill, 
-                             cvt_BGR2L, cvt_BGR2RGB, draw_text, embed_channels, 
-                             embed_in_square_image, ensure_3channel, 
-                             filterflags_valid_images, find_pixel_value_index, 
-                             get_gpathlist_sizes, get_num_channels, 
-                             get_pixel_dist, get_round_scaled_dsize, 
-                             get_scale_factor, get_size, imread, 
-                             imread_remote_s3, imread_remote_url, imwrite, 
-                             imwrite_fallback, infer_vert, 
-                             make_channels_comparable, make_white_transparent, 
-                             montage, open_image_size, pad_image, 
-                             pad_image_ondisk, padded_resize, perlin_noise, 
-                             rectify_to_float01, rectify_to_square, 
-                             rectify_to_uint8, resize, resize_image_by_scale, 
-                             resize_imagelist_generator, 
+                             affine_warp_around_center, clipwhite, 
+                             clipwhite_ondisk, combine_offset_lists, 
+                             convert_colorspace, convert_image_list_colorspace, 
+                             crop_out_imgfill, cvt_BGR2L, cvt_BGR2RGB, 
+                             draw_text, embed_channels, embed_in_square_image, 
+                             ensure_3channel, filterflags_valid_images, 
+                             find_pixel_value_index, get_gpathlist_sizes, 
+                             get_num_channels, get_pixel_dist, 
+                             get_round_scaled_dsize, get_scale_factor, 
+                             get_size, imread, imread_remote_s3, 
+                             imread_remote_url, imwrite, imwrite_fallback, 
+                             infer_vert, make_channels_comparable, 
+                             make_white_transparent, montage, open_image_size, 
+                             pad_image, pad_image_ondisk, padded_resize, 
+                             perlin_noise, rectify_to_float01, 
+                             rectify_to_square, rectify_to_uint8, resize, 
+                             resize_image_by_scale, resize_imagelist_generator, 
                              resize_imagelist_to_sqrtarea, resize_mask, 
                              resize_thumb, resize_to_maxdims, 
                              resize_to_maxdims_ondisk, resize_worker, 
@@ -253,7 +256,7 @@ if DOELSE:
                              show_patch_orientation_estimation, 
                              test_ondisk_find_patch_fpath_dominant_orientations, 
                              test_show_gaussian_patches, 
-                             test_show_gaussian_patches2,) 
+                             test_show_gaussian_patches2, testdata_patch,) 
     from vtool.chip import (apply_filter_funcs, compute_chip, 
                             extract_chip_from_gpath, 
                             extract_chip_from_gpath_into_square, 
@@ -294,23 +297,21 @@ if DOELSE:
                             non_decreasing, non_increasing, 
                             strictly_decreasing, strictly_increasing, 
                             test_language_modulus,) 
-    from vtool.matching import (AnnotPairFeatInfo, AssignTup, MatchTup2, 
-                                MatchTup3, MatchingError, PSEUDO_MAX_DIST, 
-                                PSEUDO_MAX_DIST_SQRD, PSEUDO_MAX_VEC_COMPONENT, 
-                                PairwiseMatch, VSONE_ASSIGN_CONFIG, 
-                                VSONE_DEFAULT_CONFIG, VSONE_PI_DICT, 
-                                VSONE_RATIO_CONFIG, VSONE_SVER_CONFIG, 
-                                assign_spatially_constrained_matches, 
-                                assign_unconstrained_matches, empty_neighbors, 
-                                ensure_fsv_list, ensure_metadata_dlen_sqrd, 
+    from vtool.matching import (AnnotPairFeatInfo, AssignTup, MatchingError, 
+                                PSEUDO_MAX_DIST, PSEUDO_MAX_DIST_SQRD, 
+                                PSEUDO_MAX_VEC_COMPONENT, PairwiseMatch, 
+                                SUM_OPS, VSONE_ASSIGN_CONFIG, 
+                                VSONE_DEFAULT_CONFIG, VSONE_FEAT_CONFIG, 
+                                VSONE_PI_DICT, VSONE_RATIO_CONFIG, 
+                                VSONE_SVER_CONFIG, assign_symmetric_matches, 
+                                assign_unconstrained_matches, csum, 
+                                demodata_match, empty_neighbors, 
+                                ensure_metadata_dlen_sqrd, 
                                 ensure_metadata_feats, ensure_metadata_flann, 
                                 ensure_metadata_normxy, ensure_metadata_vsone, 
-                                flag_symmetric_matches, 
-                                gridsearch_match_operation, marge_matches, 
+                                flag_sym_slow, flag_symmetric_matches, invsum, 
                                 namedtuple, normalized_nearest_neighbors, 
-                                ratio_test, spatially_constrained_ratio_match, 
-                                testdata_annot_metadata, 
-                                unconstrained_ratio_match,) 
+                                testdata_annot_metadata,) 
     from vtool.geometry import (bbox_center, bbox_from_center_wh, 
                                 bbox_from_extent, bbox_from_verts, 
                                 bbox_from_xywh, bboxes_from_vert_list, 
@@ -358,9 +359,8 @@ if DOELSE:
                                 testdata_sift2, understanding_pseudomax_props, 
                                 wrapped_distance,) 
     from vtool.other import (and_lists, argsort_groups, argsort_records, 
-                             assert_zipcompress, asserteq, atleast_nd, 
-                             axiswise_operation2, bow_test, 
-                             calc_error_bars_from_sample, 
+                             assert_zipcompress, asserteq, axiswise_operation2, 
+                             bow_test, calc_error_bars_from_sample, 
                              calc_sample_from_error_bars, check_sift_validity, 
                              clipnorm, colwise_operation, 
                              compare_implementations, compare_matrix_columns, 
@@ -369,23 +369,23 @@ if DOELSE:
                              compute_unique_arr_dataids, 
                              compute_unique_data_ids, compute_unique_data_ids_, 
                              compute_unique_integer_data_ids, ensure_rng, 
-                             ensure_shape, find_best_undirected_edge_indexes, 
+                             find_best_undirected_edge_indexes, 
                              find_elbow_point, find_first_true_indices, 
                              find_k_true_indicies, find_next_true_indices, 
-                             flag_intersection, fromiter_nd, 
-                             get_consec_endpoint, get_covered_mask, 
-                             get_crop_slices, get_uncovered_mask, 
-                             get_undirected_edge_ids, grab_webcam_image, 
-                             greedy_setcover, inbounds, index_partition, 
-                             index_to_boolmask, intersect1d_reduce, 
-                             intersect2d_flags, intersect2d_indices, 
-                             intersect2d_numpy, intersect2d_structured_numpy, 
-                             iter_reduce_ufunc, list_compress_, list_take_, 
-                             make_video, make_video2, median_abs_dev, 
-                             mult_lists, multiaxis_reduce, multigroup_lookup, 
+                             flag_intersection, get_consec_endpoint, 
+                             get_covered_mask, get_crop_slices, 
+                             get_uncovered_mask, get_undirected_edge_ids, 
+                             grab_webcam_image, greedy_setcover, inbounds, 
+                             index_partition, index_to_boolmask, 
+                             intersect1d_reduce, intersect2d_flags, 
+                             intersect2d_indices, intersect2d_numpy, 
+                             intersect2d_structured_numpy, iter_reduce_ufunc, 
+                             list_compress_, list_take_, make_video, 
+                             make_video2, median_abs_dev, mult_lists, 
+                             multiaxis_reduce, multigroup_lookup, 
                              multigroup_lookup_naive, next, 
                              nonunique_row_flags, nonunique_row_indexes, 
-                             norm01, or_lists, rebuild_partition, 
+                             norm01, or_lists, pad_vstack, rebuild_partition, 
                              rowwise_operation, safe_cat, safe_div, 
                              safe_extreme, safe_max, safe_min, safe_vstack, 
                              structure_rows, take2, take_col_per_row, 
@@ -395,6 +395,7 @@ if DOELSE:
                              weighted_geometic_mean_unnormalized, zipcat, 
                              zipcompress, zipcompress_safe, ziptake, 
                              zstar_value,) 
+    from vtool.numpy_utils import (atleast_nd, ensure_shape, fromiter_nd,) 
     from vtool.confusion import (ConfusionMetrics, draw_precision_recall_curve, 
                                  draw_roc_curve, interact_roc_factory, 
                                  interpolate_precision_recall, 
@@ -417,7 +418,8 @@ if DOELSE:
                              blend_images_average_stack, 
                              blend_images_mult_average, blend_images_multiply, 
                              gamma_adjust, gridsearch_addWeighted, 
-                             gridsearch_image_function, testdata_blend,) 
+                             gridsearch_image_function, overlay_alpha_images, 
+                             testdata_blend,) 
     from vtool.symbolic import (check_expr_eq, custom_sympy_attrs, evalprint, 
                                 symbolic_randcheck, sympy_latex_repr, 
                                 sympy_mat, sympy_numpy_repr,) 
@@ -490,6 +492,7 @@ if DOELSE:
         get_rrr(clustering2)(verbose > 1)
         get_rrr(distance)(verbose > 1)
         get_rrr(other)(verbose > 1)
+        get_rrr(numpy_utils)(verbose > 1)
         get_rrr(confusion)(verbose > 1)
         get_rrr(score_normalization)(verbose > 1)
         get_rrr(blend)(verbose > 1)

@@ -2,37 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import utool as ut
-import six
 import functools  # NOQA
 from six import next
-from six.moves import zip, range  # NOQA
+from six.moves import zip, range
 (print, rrr, profile) = ut.inject2(__name__)
-
-
-def multiaxis_reduce(ufunc, arr, startaxis=0):
-    """
-    used to get max/min over all axes after <startaxis>
-
-    CommandLine:
-        python -m vtool.other --test-multiaxis_reduce
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> rng = np.random.RandomState(0)
-        >>> arr = (rng.rand(4, 3, 2, 1) * 255).astype(np.uint8)
-        >>> ufunc = np.amax
-        >>> startaxis = 1
-        >>> out_ = multiaxis_reduce(ufunc, arr, startaxis)
-        >>> result = out_
-        >>> print(result)
-        [182 245 236 249]
-    """
-    num_iters = len(arr.shape) - startaxis
-    out_ = ufunc(arr, axis=startaxis)
-    for _ in range(num_iters - 1):
-        out_ = ufunc(out_, axis=1)
-    return out_
 
 
 def safe_vstack(tup, default_shape=(0,), default_dtype=np.float):
@@ -222,71 +195,6 @@ def check_sift_validity(sift_uint8, lbl=None, verbose=ut.NOT_QUIET):
     return isok
 
 
-def get_consec_endpoint(consec_index_list, endpoint):
-    """
-    consec_index_list = consec_cols_list
-    endpoint = 0
-    """
-    for consec_index in consec_index_list:
-        if np.any(np.array(consec_index) == endpoint):
-            return consec_index
-
-
-def index_to_boolmask(index_list, maxval=None, isflat=True):
-    r"""
-    transforms a list of indicies into a boolean mask
-
-    Args:
-        index_list (ndarray):
-        maxval (None): (default = None)
-
-    Kwargs:
-        maxval
-
-    Returns:
-        ndarray: mask
-
-    CommandLine:
-        python -m vtool.other --exec-index_to_boolmask
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
-        >>> index_list = np.array([(0, 0), (1, 1), (2, 1)])
-        >>> maxval = (3, 3)
-        >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=False)
-        >>> result = ('mask =\n%s' % (str(mask.astype(np.uint8)),))
-        >>> print(result)
-        [[1 0 0]
-         [0 1 0]
-         [0 1 0]]
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> import vtool as vt
-        >>> index_list = np.array([0, 1, 4])
-        >>> maxval = 5
-        >>> mask = vt.index_to_boolmask(index_list, maxval, isflat=True)
-        >>> result = ('mask = %s' % (str(mask.astype(np.uint8)),))
-        >>> print(result)
-        mask = [1 1 0 0 1]
-
-    """
-    #assert index_list.min() >= 0
-    if maxval is None:
-        maxval = index_list.max()
-    mask = np.zeros(maxval, dtype=np.bool)
-    if not isflat:
-        # assumes non-flat
-        mask.__setitem__(tuple(index_list.T), True)
-        #mask.__getitem__(tuple(index_list.T))
-    else:
-        mask[index_list] = True
-    return mask
-
-
 def get_crop_slices(isfill):
     fill_colxs = [np.where(row)[0] for row in isfill]
     fill_rowxs = [np.where(col)[0] for col in isfill.T]
@@ -296,6 +204,15 @@ def get_crop_slices(isfill):
     filled_rows = intersect1d_reduce(fill_rowxs)
     consec_rows_list = ut.group_consecutives(filled_rows)
     consec_cols_list = ut.group_consecutives(filled_columns)
+
+    def get_consec_endpoint(consec_index_list, endpoint):
+        """
+        consec_index_list = consec_cols_list
+        endpoint = 0
+        """
+        for consec_index in consec_index_list:
+            if np.any(np.array(consec_index) == endpoint):
+                return consec_index
 
     def get_min_consec_endpoint(consec_rows_list, endpoint):
         consec_index = get_consec_endpoint(consec_rows_list, endpoint)
@@ -484,47 +401,10 @@ def compute_ndarray_unique_rowids_unsafe(arr):
     #assert arr.data == arr_void_view.data
 
 
-def unique_row_indexes(arr):
-    """ np.unique on rows
-
-    Args:
-        arr (ndarray): 2d array
-
-    Returns:
-        ndarray: unique_rowx
-
-    References:
-        http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
-
-    CommandLine:
-        python -m vtool.other --test-unique_row_indexes
-
-    Example:
-        >>> # DISABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> arr = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [0, 0], [.534, .432], [.534, .432], [1, 0], [0, 1]])
-        >>> unique_rowx = unique_row_indexes(arr)
-        >>> result = ('unique_rowx = %s' % (ut.numpy_str(unique_rowx),))
-        >>> print(result)
-        unique_rowx = np.array([0, 1, 2, 3, 5], dtype=np.int64)
-
-    Ignore:
-        %timeit unique_row_indexes(arr)
-        %timeit compute_unique_data_ids(arr)
-        %timeit compute_unique_integer_data_ids(arr)
-
-    """
-    void_dtype = np.dtype((np.void, arr.dtype.itemsize * arr.shape[1]))
-    arr_void_view = np.ascontiguousarray(arr).view(void_dtype)
-    _, unique_rowx = np.unique(arr_void_view, return_index=True)
-    # cast back to original dtype
-    unique_rowx.sort()
-    return unique_rowx
-
-
 def nonunique_row_flags(arr):
+    import vtool as vt
     unique_rowx = unique_row_indexes(arr)
-    unique_flags = index_to_boolmask(unique_rowx, len(arr))
+    unique_flags = vt.index_to_boolmask(unique_rowx, len(arr))
     nonunique_flags = np.logical_not(unique_flags)
     return nonunique_flags
 
@@ -833,141 +713,17 @@ def zipcat(arr1_list, arr2_list, axis=None):
         >>> print('arr3_list0 = %s' % (ut.repr3(arr3_list0),))
         >>> print('arr3_list2 = %s' % (ut.repr3(arr3_list2),))
     """
+    import vtool as vt
     assert len(arr1_list) == len(arr2_list), 'lists must correspond'
     if axis is None:
         arr1_iter = arr1_list
         arr2_iter = arr2_list
     else:
-        arr1_iter = [atleast_nd(arr1, axis + 1) for arr1 in arr1_list]
-        arr2_iter = [atleast_nd(arr2, axis + 1) for arr2 in arr2_list]
+        arr1_iter = [vt.atleast_nd(arr1, axis + 1) for arr1 in arr1_list]
+        arr2_iter = [vt.atleast_nd(arr2, axis + 1) for arr2 in arr2_list]
     arrs_iter = list(zip(arr1_iter, arr2_iter))
     arr3_list = [np.concatenate(arrs, axis=axis) for arrs in arrs_iter]
     return arr3_list
-
-
-def atleast_nd(arr, n, tofront=False):
-    r"""
-    View inputs as arrays with at least n dimensions.
-    TODO: Commit to numpy
-
-    Args:
-        arr (array_like): One array-like object.  Non-array inputs are
-                converted to arrays.  Arrays that already have n or more dimensions
-                are preserved.
-        n (int):
-        tofront (bool): if True new dimensions are added to the front of the array
-
-    CommandLine:
-        python -m vtool.other --exec-atleast_nd --show
-
-    Returns:
-        ndarray :
-            An array with ``a.ndim >= n``.  Copies are avoided where possible,
-            and views with three or more dimensions are returned.  For example,
-            a 1-D array of shape ``(N,)`` becomes a view of shape
-            ``(1, N, 1)``, and a 2-D array of shape ``(M, N)`` becomes a view of shape
-            ``(M, N, 1)``.
-
-    See Also:
-        atleast_1d, atleast_2d, atleast_3d
-
-    Example0:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> n = 2
-        >>> arr = np.array([1, 1, 1])
-        >>> arr_ = atleast_nd(arr, n)
-        >>> result = ut.repr2(arr_.tolist())
-        >>> print(result)
-        [[1], [1], [1]]
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> n = 4
-        >>> arr1 = [1, 1, 1]
-        >>> arr2 = np.array(0)
-        >>> arr3 = np.array([[[[[1]]]]])
-        >>> arr1_ = atleast_nd(arr1, n)
-        >>> arr2_ = atleast_nd(arr2, n)
-        >>> arr3_ = atleast_nd(arr3, n)
-        >>> result1 = ut.repr2(arr1_.tolist())
-        >>> result2 = ut.repr2(arr2_.tolist())
-        >>> result3 = ut.repr2(arr3_.tolist())
-        >>> result = '\n'.join([result1, result2, result3])
-        >>> print(result)
-        [[[[1]]], [[[1]]], [[[1]]]]
-        [[[[0]]]]
-        [[[[[1]]]]]
-
-    Ignore:
-        # Hmm, mine is actually faster
-        %timeit atleast_nd(arr, 3)
-        %timeit np.atleast_3d(arr)
-    """
-    arr_ = np.asanyarray(arr)
-    ndims = len(arr_.shape)
-    if n is not None and ndims <  n:
-        # append the required number of dimensions to the end
-        if tofront:
-            expander = (None,) * (n - ndims) + (Ellipsis,)
-        else:
-            expander = (Ellipsis,) + (None,) * (n - ndims)
-        arr_ = arr_[expander]
-    return arr_
-
-
-def iter_reduce_ufunc(ufunc, arr_iter, out=None):
-    """
-    constant memory iteration and reduction
-
-    applys ufunc from left to right over the input arrays
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> arr_list = [
-        ...     np.array([0, 1, 2, 3, 8, 9]),
-        ...     np.array([4, 1, 2, 3, 4, 5]),
-        ...     np.array([0, 5, 2, 3, 4, 5]),
-        ...     np.array([1, 1, 6, 3, 4, 5]),
-        ...     np.array([0, 1, 2, 7, 4, 5])
-        ... ]
-        >>> memory = np.array([9, 9, 9, 9, 9, 9])
-        >>> gen_memory = memory.copy()
-        >>> def arr_gen(arr_list, gen_memory):
-        ...     for arr in arr_list:
-        ...         gen_memory[:] = arr
-        ...         yield gen_memory
-        >>> print('memory = %r' % (memory,))
-        >>> print('gen_memory = %r' % (gen_memory,))
-        >>> ufunc = np.maximum
-        >>> res1 = iter_reduce_ufunc(ufunc, iter(arr_list), out=None)
-        >>> res2 = iter_reduce_ufunc(ufunc, iter(arr_list), out=memory)
-        >>> res3 = iter_reduce_ufunc(ufunc, arr_gen(arr_list, gen_memory), out=memory)
-        >>> print('res1       = %r' % (res1,))
-        >>> print('res2       = %r' % (res2,))
-        >>> print('res3       = %r' % (res3,))
-        >>> print('memory     = %r' % (memory,))
-        >>> print('gen_memory = %r' % (gen_memory,))
-        >>> assert np.all(res1 == res2)
-        >>> assert np.all(res2 == res3)
-    """
-    # Get first item in iterator
-    try:
-        initial = next(arr_iter)
-    except StopIteration:
-        return None
-    # Populate the outvariable if specified otherwise make a copy of the first
-    # item to be the output memory
-    if out is not None:
-        out[:] = initial
-    else:
-        out = initial.copy()
-    # Iterate and reduce
-    for arr in arr_iter:
-        ufunc(out, arr, out=out)
-    return out
 
 
 def clipnorm(arr, min_, max_, out=None):
@@ -989,7 +745,7 @@ def clipnorm(arr, min_, max_, out=None):
 
 def intersect1d_reduce(arr_list, assume_unique=False):
     arr_iter = iter(arr_list)
-    out = six.next(arr_iter)
+    out = next(arr_iter)
     for arr in arr_iter:
         out = np.intersect1d(out, arr, assume_unique=assume_unique)
     return out
@@ -1146,12 +902,13 @@ def flag_intersection(arr1, arr2):
                 ''').split('\n')
         >>> out = ut.timeit_compare(stmt_list, setup=setup, iterations=3)
     """
+    import vtool as vt
     if arr1.size == 0 or arr2.size == 0:
         flags = np.full(arr1.shape[0], False, dtype=np.bool)
         #return np.empty((0,), dtype=np.bool)
     else:
         # flags = np.logical_or.reduce([arr1 == row for row in arr2]).T[0]
-        flags = iter_reduce_ufunc(np.logical_or, (arr1 == row_ for row_ in arr2)).ravel()
+        flags = vt.iter_reduce_ufunc(np.logical_or, (arr1 == row_ for row_ in arr2)).ravel()
     return flags
 
 
@@ -1374,11 +1131,12 @@ def get_uncovered_mask(covered_array, covering_array):
 
 
     """
+    import vtool as vt
     if len(covering_array) == 0:
         return np.ones(np.shape(covered_array), dtype=np.bool)
     else:
         flags_iter = (np.not_equal(covered_array, item) for item in covering_array)
-        mask_array = iter_reduce_ufunc(np.logical_and, flags_iter)
+        mask_array = vt.iter_reduce_ufunc(np.logical_and, flags_iter)
         return mask_array
     #if len(covering_array) == 0:
     #    return np.ones(np.shape(covered_array), dtype=np.bool)
@@ -1393,7 +1151,7 @@ def get_uncovered_mask(covered_array, covering_array):
 #        return np.ones(np.shape(covered_array), dtype=np.bool)
 #    else:
 #        flags_iter = (np.not_equal(covered_array, item) for item in covering_array)
-#        mask_array = iter_reduce_ufunc(np.logical_and, flags_iter)
+#        mask_array = vt.iter_reduce_ufunc(np.logical_and, flags_iter)
 #        return mask_array
 
 
@@ -1582,7 +1340,7 @@ def norm01(array, dim=None):
 
 def weighted_geometic_mean_unnormalized(data, weights):
     terms = [x ** w for x, w in zip(data, weights)]
-    termprod = iter_reduce_ufunc(np.multiply, iter(terms))
+    termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     return termprod
 
 
@@ -1635,7 +1393,7 @@ def weighted_geometic_mean(data, weights):
         res2 = np.sqrt(img1 * img2)
     """
     terms = [x ** w for x, w in zip(data, weights)]
-    termprod = iter_reduce_ufunc(np.multiply, iter(terms))
+    termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     exponent = 1 / np.sum(weights)
     gmean_ = termprod ** exponent
     return gmean_
@@ -2191,81 +1949,6 @@ def compare_implementations(func1, func2, args, show_output=False, lbl1='', lbl2
     #return out_inliers_c
 
 
-def bow_test():
-    x  = np.array([1, 0, 0, 0, 0, 0], dtype=np.float)
-    c1 = np.array([1, 0, 1, 0, 0, 1], dtype=np.float)
-    c2 = np.array([1, 1, 1, 1, 1, 1], dtype=np.float)
-    x /= x.sum()
-    c1 /= c1.sum()
-    c2 /= c2.sum()
-
-    # fred_query = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # tom_query  = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # # columns that are distinctive per name
-    # #                      f1  f2  s1  s2  s3  t1  z1  z2  z3  z4, z5, z6
-    # fred1      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # fred2      = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue2       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # sue3       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-    # tom1       = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], dtype=np.float)
-
-    names         = ['fred', 'sue', 'tom']
-    num_exemplars = [     3,     2,     1]
-
-    ax2_nx = np.array(ut.flatten([[nx] * num for nx, num in enumerate(num_exemplars)]))
-
-    total = sum(num_exemplars)
-
-    num_words = total * 2
-    # bow vector for database
-    darr = np.zeros((total, num_words))
-
-    for ax in range(len(darr)):
-        nx = ax2_nx[ax]
-        num = num_exemplars[nx]
-        darr[ax, ax] = 1
-        darr[ax, ax + total] = 1
-
-    # nx2_axs = dict(zip(*))
-    import vtool as vt
-    groupxs = vt.group_indices(ax2_nx)[1]
-    class_bows = np.vstack([arr.sum(axis=0) for arr in vt.apply_grouping(darr, groupxs)])
-    # generate a query for each class
-    true_class_bows = class_bows[:]
-    # noise words
-    true_class_bows[:, -total:] = 1
-    true_class_bows = true_class_bows / true_class_bows.sum(axis=1)[:, None]
-
-    class_bows = class_bows / class_bows.sum(axis=1)[:, None]
-
-    confusion = np.zeros((len(names), len(names)))
-
-    for trial in range(1000):
-        # bow vector for query
-        qarr = np.zeros((len(names), num_words))
-
-        for cx in range(len(class_bows)):
-            sample = np.random.choice(np.arange(num_words), size=30, p=true_class_bows[cx])
-            hist = np.histogram(sample, bins=np.arange(num_words + 1))[0]
-            qarr[cx] = (hist / hist.max()) >= .5
-        # normalize histograms
-        qarr = qarr / qarr.sum(axis=1)[:, None]
-
-        # Scoring for each class
-        similarity = qarr.dot(class_bows.T)
-        distance = 1 - similarity
-        confusion += distance
-
-    x /= x.sum()
-    c1 /= c1.sum()
-    c2 /= c2.sum()
-
-    print(x.dot(c1))
-    print(x.dot(c2))
-
-
 def greedy_setcover(universe, subsets, weights=None):
     """
     Copied implmentation of greedy set cover from stack overflow. Needs work.
@@ -2505,114 +2188,6 @@ def inbounds(num, low, high, eq=False):
     and_ = np.logical_and if isinstance(num, np.ndarray) else op.and_
     is_inbounds = and_(greater(num, low), less(num, high))
     return is_inbounds
-
-
-def fromiter_nd(iter_, shape, dtype):
-    """
-    Like np.fromiter but handles iterators that generated
-    n-dimensional arrays. Slightly faster than np.array.
-
-    Note:
-        np.vstack(list_) is still faster than
-        vt.fromiter_nd(ut.iflatten(list_))
-
-    Args:
-        iter_ (iter): an iterable that generates homogenous ndarrays
-        shape (tuple): the expected output shape
-        dtype (dtype): the numpy datatype of the generated ndarrays
-
-    Note:
-        The iterable must yeild a numpy array. It cannot yeild a Python list.
-
-    CommandLine:
-        python -m vtool.other fromiter_nd --show
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> dtype = np.float
-        >>> total = 11
-        >>> rng = np.random.RandomState(0)
-        >>> iter_ = (rng.rand(5, 7, 3) for _ in range(total))
-        >>> shape = (total, 5, 7, 3)
-        >>> result = fromiter_nd(iter_, shape, dtype)
-        >>> assert result.shape == shape
-
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> dtype = np.int
-        >>> qfxs = np.array([1, 2, 3])
-        >>> dfxs = np.array([4, 5, 6])
-        >>> iter_ = (np.array(x) for x in ut.product(qfxs, dfxs))
-        >>> total = len(qfxs) * len(dfxs)
-        >>> shape = (total, 2)
-        >>> result = fromiter_nd(iter_, shape, dtype)
-        >>> assert result.shape == shape
-
-    Timeit:
-        >>> dtype = np.uint8
-        >>> feat_dim = 128
-        >>> mu = 1000
-        >>> sigma = 500
-        >>> n_data = 1000
-        >>> rng = np.random.RandomState(42)
-        >>> n_feat_list = np.clip(rng.randn(n_data) * sigma + mu, 0, np.inf).astype(np.int)
-        >>> # Make a large list of vectors of various sizes
-        >>> print('Making random vectors')
-        >>> vecs_list = [(rng.rand(num, feat_dim) * 255).astype(dtype) for num in n_feat_list]
-        >>> mega_bytes = sum([x.nbytes for x in vecs_list]) / 2 ** 20
-        >>> print('mega_bytes = %r' % (mega_bytes,))
-        >>> import itertools as it
-        >>> import vtool as vt
-        >>> n_total = n_feat_list.sum()
-        >>> target1 = np.vstack(vecs_list)
-        >>> iter_ = it.chain.from_iterable(vecs_list)
-        >>> shape = (n_total, feat_dim)
-        >>> target2 = vt.fromiter_nd(it.chain.from_iterable(vecs_list), shape, dtype=dtype)
-        >>> assert np.all(target1 == target2)
-
-        %timeit np.vstack(vecs_list)
-        20.4ms
-        %timeit vt.fromiter_nd(it.chain.from_iterable(vecs_list), shape, dtype)
-        102ms
-
-        iter_ = it.chain.from_iterable(vecs_list)
-        %time vt.fromiter_nd(iter_, shape, dtype)
-        %time np.vstack(vecs_list)
-    """
-    num_rows = shape[0]
-    chunksize = np.prod(shape[1:])
-    itemsize = np.dtype(dtype).itemsize
-    # Create dtype that makes an entire ndarray appear as a single item
-    chunk_dtype = np.dtype((np.void, itemsize * chunksize))
-    arr = np.fromiter(iter_, count=num_rows, dtype=chunk_dtype)
-    # Convert back to original dtype and shape
-    arr = arr.view(dtype)
-    arr.shape = shape
-    return arr
-
-
-def ensure_shape(arr, dimshape):
-    """
-    Example:
-        >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
-        >>> ensure_shape(np.array([[1, 2]]), (None, 2))
-        >>> ensure_shape(np.array([]), (None, 2))
-    """
-    if isinstance(dimshape, tuple):
-        n = len(dimshape)
-    else:
-        n = dimshape
-        dimshape = None
-    arr_ = atleast_nd(arr, n)
-    if dimshape is not None:
-        newshape = tuple([
-            d1 if d2 is None else d2
-            for d1, d2 in zip(arr_.shape, dimshape)])
-        arr_.shape = newshape
-    return arr_
 
 
 def make_video2(images, outdir):
