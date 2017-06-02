@@ -208,11 +208,16 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm = OneVsOneProblem.from_aids(ibs, aids)
         return pblm
 
-    def _make_lnbnn_qreq(pblm):
+    def _make_lnbnn_qreq(pblm, aids=None):
         # This is the qreq used to do LNBNN sampling and to compute simple
         # LNBNN scores.
         infr = pblm.infr
         ibs = pblm.infr.ibs
+
+        if aids is None:
+            aids = ibs.filter_annots_general(
+                infr.aids, min_pername=3, species='primary')
+
         cfgdict = pblm.hyper_params['sample_search'].copy()
         # Use the same keypoints for vsone and vsmany for comparability
         cfgdict.update(pblm.hyper_params['vsone_kpts'])
@@ -220,8 +225,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Do query-side only if augment ori is on for 1vs1
             cfgdict['augment_orientation'] = False
             cfgdict['query_rotation_heuristic'] = True
-        aids = ibs.filter_annots_general(
-            infr.aids, min_pername=3, species='primary')
+
         infr.relabel_using_reviews(rectify=False)
         custom_nid_lookup = infr.get_node_attrs('name_label', aids)
         qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
@@ -239,7 +243,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if pblm.verbose > 0:
             print('[pblm] gather lnbnn match-state cases')
 
-        qreq_ = pblm._make_lnbnn_qreq()
+        aids = ibs.filter_annots_general(
+            infr.aids, min_pername=3, species='primary')
+        qreq_ = pblm._make_lnbnn_qreq(aids)
 
         use_cache = False
         use_cache = True
@@ -476,6 +482,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             pblm.load_simple_scores()
 
     def load_simple_scores(pblm):
+        if pblm.verbose > 0:
+            ut.cprint('[pblm] load_simple_scores', color='blue')
+
         infr = pblm.infr
         ibs = infr.ibs
 
@@ -490,7 +499,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         cacher = ub.Cacher('simple_scores_' + ibs.dbname,
                            cfgstr=cfgstr,
-                           appname=pblm.appname, enabled=True,
+                           appname=pblm.appname, enabled=0,
                            verbose=pblm.verbose)
         data = cacher.tryload()
         if data is None:
@@ -509,11 +518,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 # classifier.
                 # TODO: separate this into different cache
                 # Add vsmany_lnbnn to simple scoren
-                cfgdict = pblm.hyper_params['sample_search']
-                aids = ibs.filter_annots_general(
-                    infr.aids, min_pername=3, species='primary')
-                qreq_ = ibs.new_query_request(aids, aids, cfgdict=cfgdict,
-                                              verbose=False)
+
+                # aids = ibs.filter_annots_general(
+                #     infr.aids, min_pername=3, species='primary')
+
+                # Only query the aids in the sampled set
+                aids = sorted(set(ut.flatten(aid_pairs)))
+                qreq_ = pblm._make_lnbnn_qreq(aids)
+
                 cm_list = qreq_.execute()
                 edge_to_data = infr._get_cm_edge_data(aid_pairs, cm_list=cm_list)
                 edge_data = ut.take(edge_to_data, aid_pairs)
