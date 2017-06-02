@@ -282,7 +282,7 @@ def iter_reduce_ufunc(ufunc, arr_iter, out=None):
 
     Example:
         >>> # ENABLE_DOCTEST
-        >>> from vtool.other import *  # NOQA
+        >>> from vtool.numpy_utils import *  # NOQA
         >>> arr_list = [
         ...     np.array([0, 1, 2, 3, 8, 9]),
         ...     np.array([4, 1, 2, 3, 4, 5]),

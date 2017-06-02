@@ -1392,6 +1392,7 @@ def weighted_geometic_mean(data, weights):
         res1 = ((img1 ** .5 * img2 ** .5)) ** 1
         res2 = np.sqrt(img1 * img2)
     """
+    import vtool as vt
     terms = [x ** w for x, w in zip(data, weights)]
     termprod = vt.iter_reduce_ufunc(np.multiply, iter(terms))
     exponent = 1 / np.sum(weights)

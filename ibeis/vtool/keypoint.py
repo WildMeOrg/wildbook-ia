@@ -853,7 +853,7 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> scale_factor = (1.5, 0.5)
         >>> kpts_ = offset_kpts(kpts, offset, scale_factor)
         >>> # verify results (hack + 0. to fix negative 0)
-        >>> result = ut.list_str((kpts, kpts_ + 0.), label_list=['orig', 'new'], precision=2)
+        >>> result = ut.list_str((kpts, kpts_ + 0.), precision=2, nobr=True)
         >>> print(result)
         >>> ut.quit_if_noshow()
         >>> import plottool as pt
@@ -866,16 +866,16 @@ def offset_kpts(kpts, offset=(0.0, 0.0), scale_factor=1.0):
         >>> pt.set_axis_extent(extent)
         >>> pt.dark_background()
         >>> ut.show_if_requested()
-        orig = np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
-                         [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
-                         [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
-                         [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
-                         [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float64)
-        new = np.array([[ 30.  ,  12.5 ,   7.82,  -2.56,  12.07,   0.  ],
-                        [ 43.5 ,  12.5 ,   3.53,  -2.56,  12.07,   0.  ],
-                        [ 45.  ,  15.  ,  18.32,   6.01,   5.26,   0.  ],
-                        [ 46.5 ,  14.5 ,  20.03,   8.82,   7.05,   0.  ],
-                        [ 48.  ,  15.5 ,  24.08,   1.7 ,   5.87,   0.  ]], dtype=np.float64)
+        np.array([[ 20.  ,  25.  ,   5.22,  -5.11,  24.15,   0.  ],
+                  [ 29.  ,  25.  ,   2.36,  -5.11,  24.15,   0.  ],
+                  [ 30.  ,  30.  ,  12.22,  12.02,  10.53,   0.  ],
+                  [ 31.  ,  29.  ,  13.36,  17.63,  14.1 ,   0.  ],
+                  [ 32.  ,  31.  ,  16.05,   3.41,  11.74,   0.  ]], dtype=np.float64),
+        np.array([[ 30.  ,  12.5 ,   7.82,  -2.56,  12.07,   0.  ],
+                  [ 43.5 ,  12.5 ,   3.53,  -2.56,  12.07,   0.  ],
+                  [ 45.  ,  15.  ,  18.32,   6.01,   5.26,   0.  ],
+                  [ 46.5 ,  14.5 ,  20.03,   8.82,   7.05,   0.  ],
+                  [ 48.  ,  15.5 ,  24.08,   1.7 ,   5.87,   0.  ]], dtype=np.float64),
     """
     if (np.all(offset == (0.0, 0.0)) and
         (np.all(scale_factor == 1.0) or

@@ -823,7 +823,7 @@ def partition_scores(X, y, attrs=None):
         >>> resdict = ut.odict(zip(
         >>>     ['tp_scores', 'tn_scores', 'part_attrs'], tup))
         >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
-        >>>                      explicit=True, nl=2)
+        >>>                      explicit=1, nl=2)
         >>> print(result)
         tp_scores=np.array([5, 6, 6, 7]),
         tn_scores=np.array([1, 2, 2]),
@@ -886,7 +886,7 @@ def flatten_scores(tp_scores, tn_scores, part_attrs=None):
         >>> y = y.astype(np.int)
         >>> resdict = ut.odict(zip(['X', 'y', 'attrs'], [X, y, attrs]))
         >>> result = ut.dict_str(resdict, nobraces=True, with_dtype=False,
-        >>>                      explicit=True, nl=1)
+        >>>                      explicit=1, nl=1)
         >>> print(result)
         X=np.array([5, 6, 6, 7, 1, 2, 2]),
         y=np.array([1, 1, 1, 1, 0, 0, 0]),

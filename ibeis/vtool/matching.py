@@ -876,7 +876,7 @@ class AnnotPairFeatInfo(object):
         >>> assert 'max' not in global_keys
         >>> ut.cprint(featinfo.get_infostr(), 'blue')
         >>> # Feat info with bins
-        >>> feat = match.make_feature_vector(indices=0, bin_key='ratio')
+        >>> feat = match.make_feature_vector(indices=0, bins=[.7, .8], bin_key='ratio')
         >>> X = pd.DataFrame(feat, index=index)
         >>> print(X.keys())
         >>> featinfo = AnnotPairFeatInfo(X)
@@ -1744,7 +1744,7 @@ def flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K=2):
         array([[ True, False],
                [ True,  True],
                [False, False],
-               [ False, True]], dtype=bool)
+               [False,  True]], dtype=bool)
 
     Ignore:
         %timeit flag_symmetric_matches(fx2_to_fx1, fx1_to_fx2, K)

@@ -562,7 +562,7 @@ class ConfusionMetrics(object):
             >>> metric = 'tpr'
             >>> thresh = .8
             >>> thresh = [0, .1, .9, 1.0]
-            >>> value = self.get_metric_at_threshold(metric, thresh)
+            >>> value = self.get_metric_at_thresh(metric, thresh)
             >>> result = ('(None, None) = %s' % (str((None, None)),))
             >>> print(result)
         """
