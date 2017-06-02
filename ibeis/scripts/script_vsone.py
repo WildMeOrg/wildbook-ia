@@ -157,7 +157,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         else:
             hyper_params.vsone_match['weight'] = None
 
-        global_keys = ['yaw', 'qual', 'gps', 'time']
+        # global_keys = ['yaw', 'qual', 'gps', 'time']
+        global_keys = ['view', 'qual', 'gps', 'time']
         match_config = {}
         match_config.update(hyper_params['vsone_kpts'])
         match_config.update(hyper_params['vsone_match'])
@@ -920,6 +921,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             python -m ibeis.scripts.script_vsone build_feature_subsets --db GZ_Master1
             python -m ibeis.scripts.script_vsone build_feature_subsets --db PZ_PB_RF_TRAIN
 
+            python -m ibeis Chap4._setup_pblm --db GZ_Master1 --eval
+            python -m ibeis Chap4._setup_pblm --db PZ_Master1 --eval
+
         Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.script_vsone import *  # NOQA
@@ -954,21 +958,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # Use summary and global single thresholds with raw unaries
             cols = featinfo.select_columns([
                 ('measure_type', '==', 'summary'),
+                ('summary_measure', '!=', 'ratio')
             ])
             cols.update(featinfo.select_columns([
                 ('measure_type', '==', 'global'),
                 ('measure', 'not in', {
-                    'qual_1', 'qual_2', 'yaw_1', 'yaw_2', 'gps_1[0]',
-                    'gps_2[0]', 'gps_1[1]', 'gps_2[1]', 'time_1', 'time_2'
+                    'qual_1', 'qual_2', 'yaw_1', 'yaw_2',
+                    'view_1', 'view_2', 'gps_1[0]', 'gps_2[0]', 'gps_1[1]',
+                    'gps_2[1]', 'time_1', 'time_2'
                 })
             ]))
             register_data_key('learn(sum,glob)', cols)
-
-            rat_cols = featinfo.select_columns([
-                ('summary_measure', '==', 'ratio')
-            ])
-            norat_cols = set.difference(cols, set(rat_cols))
-            register_data_key('learn(sum,glob,-ratio)', norat_cols)
 
             if True:
                 # Use summary and global single thresholds with raw unaries
@@ -982,8 +982,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 # Remove view columns
                 view_cols = featinfo.select_columns([
                     ('measure_type', '==', 'global'),
-                    ('measure', 'in', ['yaw_1', 'yaw_2', 'yaw_delta',
-                                       'min_yaw', 'max_yaw']),
+                    ('measure', 'in', [
+                        'yaw_1', 'yaw_2', 'yaw_delta', 'min_yaw', 'max_yaw'
+                        'view_1', 'view_2', 'view_delta', 'min_view',
+                        'max_view'
+                    ]),
                 ])
                 noview_cols = set.difference(cols, view_cols)
                 register_data_key('learn(sum,glob,-view)', noview_cols)
@@ -1271,7 +1274,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             flags = flags & pbflags
             ratio = feats['sum(ratio)']
             if class_name == INCMP:
-                flags &= feats['global(yaw_delta)'] > 3
+                # flags &= feats['global(yaw_delta)'] > 3
+                flags &= feats['global(view_delta)'] > 2
                 # flags &= feats['sum(ratio)'] > 0
             if class_name == NEGTV:
                 low = ratio[flags].max()
@@ -1828,7 +1832,8 @@ def demo_single_pairwise_feature_vector():
     match.apply_ratio_test({'ratio_thresh': .638}, inplace=True)
     match.apply_sver(inplace=True)
 
-    match.add_global_measures(['yaw', 'qual', 'gps', 'time'])
+    # match.add_global_measures(['yaw', 'qual', 'gps', 'time'])
+    match.add_global_measures(['view', 'qual', 'gps', 'time'])
     match.add_local_measures()
 
     # sorters = ['ratio', 'norm_dist', 'match_dist']

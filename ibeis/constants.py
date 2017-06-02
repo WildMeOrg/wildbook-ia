@@ -18,6 +18,59 @@ ut.noinject('[const]')
 PI  = math.pi
 TAU = 2.0 * PI
 
+
+class VIEW(object):
+    """ simplified viewpoint """
+    UNKNOWN = None
+    R  = 1
+    FR = 2
+    F  = 3
+    FL = 4
+    L  = 5
+    BL = 6
+    B  = 7
+    BR = 8
+
+    INT_TO_CODE = ut.odict([
+        (UNKNOWN, 'unknown'),
+        (R,  'right'),
+        (FR, 'frontright'),
+        (F,  'front'),
+        (FL, 'frontleft'),
+        (L,  'left'),
+        (BL, 'backleft'),
+        (B,  'back'),
+        (BR, 'backright'),
+    ])
+
+    INT_TO_NICE = ut.odict([
+        (UNKNOWN, 'Unknown'),
+        (R,  'Right'),
+        (FR, 'Front-Right'),
+        (F,  'Front'),
+        (FL, 'Front-Left'),
+        (L,  'Left'),
+        (BL, 'Back-Left'),
+        (B,  'Back'),
+        (BR, 'Back-Right'),
+    ])
+
+    CODE_TO_NICE = ut.map_keys(INT_TO_CODE, INT_TO_NICE)
+    CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
+    NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
+    NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
+
+VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
+    ('right'      , 0.000 * TAU,),
+    ('frontright' , 0.125 * TAU,),
+    ('front'      , 0.250 * TAU,),
+    ('frontleft'  , 0.375 * TAU,),
+    ('left'       , 0.500 * TAU,),
+    ('backleft'   , 0.625 * TAU,),
+    ('back'       , 0.750 * TAU,),
+    ('backright'  , 0.875 * TAU,),
+])
+
 # Mapping of semantic viewpoints to yaw angles
 VIEWTEXT_TO_YAW_RADIANS = OrderedDict([
     ('right'      , 0.000 * TAU,),

@@ -44,6 +44,7 @@ ANNOT_BASE_ATTRS = [
     'semantic_uuids', 'hashid_semantic_uuid', 'verts', 'thetas',
     'bboxes', 'bbox_area',
     'species_uuids', 'species', 'species_rowids', 'species_texts', 'yaw_texts',
+    'viewpoint_int',
     'yaws', 'qualities', 'quality_texts', 'exemplar_flags',
     'yaws_asfloat',
     # Images

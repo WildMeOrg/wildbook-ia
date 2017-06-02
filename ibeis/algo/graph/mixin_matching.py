@@ -121,12 +121,28 @@ class AnnotInfrMatching(object):
             cm_list.append(chip_match)
 
         # cm_list = qreq_.execute(parent_rowids)
-        infr.vsone_qreq_ = infr.ibs.depc.new_request('vsone', qaids, daids, cfgdict=config)
+        infr.vsone_qreq_ = infr.ibs.depc.new_request('vsone', qaids, daids,
+                                                     cfgdict=config)
         infr.vsone_cm_list_ = cm_list
         infr.qreq_  = infr.vsone_qreq_
         infr.cm_list = cm_list
 
     def _exec_pairwise_match(infr, edges, config={}, prog_hook=None):
+        """
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.core import *  # NOQA
+            >>> infr = testdata_infr('testdb1')
+            >>> config = {}
+            >>> infr.ensure_full()
+            >>> edges = [(1, 2), (2, 3)]
+            >>> config = {}
+            >>> prog_hook = None
+            >>> match_list = infr._exec_pairwise_match(edges, config)
+            >>> match1, match2 = match_list
+            >>> assert match1.annot2 is match2.annot1
+            >>> assert match1.annot1 is not match2.annot2
+        """
         edges = ut.lmap(tuple, ut.aslist(edges))
         infr.print('exec_vsone_subset')
         qaids = ut.take_column(edges, 0)
@@ -138,8 +154,11 @@ class AnnotInfrMatching(object):
         # Hack: Postprocess matches to re-add annotation info in lazy-dict format
         from ibeis import core_annots
         config = ut.hashdict(config)
+        ibs = infr.ibs
+        qannot_cfg = dannot_cfg = config
+        preload = True
         configured_lazy_annots = core_annots.make_configured_annots(
-            infr.ibs, qaids, daids, config, config, preload=True)
+            ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=preload)
         for qaid, daid, match in zip(qaids, daids, match_list):
             match.annot1 = configured_lazy_annots[config][qaid]
             match.annot2 = configured_lazy_annots[config][daid]
@@ -216,7 +235,8 @@ class AnnotInfrMatching(object):
         prog_hook = None
         """
         if global_keys is None:
-            global_keys = ['yaw', 'qual', 'gps', 'time']
+            # global_keys = ['yaw', 'qual', 'gps', 'time']
+            global_keys = ['view', 'qual', 'gps', 'time']
         matches = infr._exec_pairwise_match(edges, config=config,
                                             prog_hook=prog_hook)
         infr.print('enriching matches')
@@ -274,7 +294,8 @@ class AnnotInfrMatching(object):
         edge_hashid = ut.hashstr_arr27(edge_uuids, 'edges', hashlen=32)
 
         pairfeat_cfg = pblm.hyper_params['pairwise_feats']
-        global_keys = ['yaw', 'qual', 'gps', 'time']
+        # global_keys = ['yaw', 'qual', 'gps', 'time']
+        global_keys = ['view', 'qual', 'gps', 'time']
 
         make_cfg_lbl = ut.partial(ut.repr2, nobr=True, stritems=True,
                                   itemsep='', explicit=True, strvals=True)
@@ -334,6 +355,7 @@ class AnnotInfrMatching(object):
         Construct matches and their pairwise features
 
         Example:
+            >>> # ENABLE_DOCTEST
             >>> from ibeis.algo.graph import demo
             >>> infr = demo.demodata_mtest_infr()
             >>> config = {
@@ -350,25 +372,28 @@ class AnnotInfrMatching(object):
             >>>     'weight': 'fgweights'
             >>> }
             >>> need_lnbnn = False
-            >>> global_keys = ['gps', 'qual', 'time', 'yaw']
+            >>> #global_keys = ['gps', 'qual', 'time', 'yaw']
+            >>> global_keys = ['gps', 'qual', 'time', 'view']
+            >>> local_keys =  [
+            >>>     'fgweights', 'match_dist', 'norm_dist', 'norm_x1', 'norm_x2',
+            >>>     'norm_y1', 'norm_y2', 'ratio_score', 'scale1', 'scale2',
+            >>>     'sver_err_ori', 'sver_err_scale', 'sver_err_xy',
+            >>>     'weighted_norm_dist', 'weighted_ratio']
             >>> pairfeat_cfg = {
             >>>     'bin_key': 'ratio',
-            >>>     'bins': [0.5, 0.6, 0.7, 0.8],
+            >>>     'bins': [0.6, 0.7, 0.8],
             >>>     'indices': [],
-            >>>     'local_keys': [
-            >>>         'fgweights', 'match_dist', 'norm_dist', 'norm_x1',
-            >>>         'norm_x2', 'norm_y1', 'norm_y2', 'ratio', 'scale1',
-            >>>         'scale2', 'sver_err_ori', 'sver_err_scale',
-            >>>         'sver_err_xy', 'weighted_norm_dist', 'weighted_ratio'
-            >>>     ],
+            >>>     'local_keys': local_keys,
             >>>     'sorters': [],
-            >>>     'summary_ops': ['len', 'mean', 'med', 'std', 'sum']
+            >>>     'summary_ops': ['len', 'mean', 'sum']
             >>> }
             >>> multi_index = True
-            >>> edges = [(1, 2)]
+            >>> edges = [(1, 2), (2, 3)]
             >>> matches, X = infr._make_pairwise_features(
             >>>     edges, config, pairfeat_cfg, global_keys, need_lnbnn,
             >>>     multi_index)
+            >>> featinfo = vt.AnnotPairFeatInfo(X.columns)
+            >>> print(featinfo.get_infostr())
             >>> match = matches[0]
             >>> match._make_global_feature_vector(global_keys)
         """

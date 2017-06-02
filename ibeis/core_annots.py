@@ -1416,9 +1416,30 @@ def compute_one_vs_one(depc, qaids, daids, config):
         yield (score, match)
 
 
-def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=False):
+def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
+                           preload=False, return_view_cache=False):
     """
     Hack just to get annots into a good format for vsone matching
+
+    Example:
+        >>> from ibeis.core_annots import *  # NOQA
+        >>> import ibeis
+        >>> ibs = ibeis.opendb('testdb1')
+        >>> qannot_cfg = dannot_cfg = ut.hashdict({})
+        >>> qaids = [1, 2]
+        >>> daids = [3, 4]
+        >>> preload = True
+        >>> configured_lazy_annots, configured_annot_views = make_configured_annots(
+        >>>     ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=False,
+        >>>     return_view_cache=True,
+        >>> )
+        >>> aid_dict = configured_lazy_annots[qannot_cfg]
+        >>> annot_views = configured_annot_views[qannot_cfg]
+        >>> annot = aid_dict[1]
+        >>> assert len(annot_views._cache) == 0
+        >>> view = annot['view']
+        >>> kpts = annot['kpts']
+        >>> assert len(annot_views._cache) == 2
     """
     # Prepare lazy attributes for annotations
     unique_qaids = set(qaids)
@@ -1432,17 +1453,19 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=Fa
     # Make efficient annot-view representation
     configured_annot_views = {}
     for config, aids in configured_aids.items():
-        annots = ibs.annots(sorted(list(aids)), config=config)
+        # Create a view of the annotations to efficiently preload data.
+        annots = ibs.annots(sorted(aids), config=config)
+        # Views are always caching
         configured_annot_views[config] = annots.view()
 
     if preload:
-        # TODO: Ensure entire pipeline can use new dependencies
         unique_annot_views = list(configured_annot_views.values())
         for annots in unique_annot_views:
             annots.chip_size
             annots.vecs
             annots.kpts
             annots.yaw
+            annots.viewpoint_int
             annots.qual
             annots.gps
             annots.time
@@ -1451,10 +1474,21 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg, preload=Fa
     for config, annots in configured_annot_views.items():
         annot_dict = configured_lazy_annots[config]
         for aid in ut.ProgIter(annots, label='make lazy dict'):
-            annot = annots.view(aid)._make_lazy_dict()
+            # make a subview that points to the original view
+            annot_view = annots.view(aid)
+            annot = annot_view._make_lazy_dict()
+            # hack for vsone to use the "view" feature
+            annot['view'] = ut.partial(getattr, annot_view, 'viewpoint_int')
             annot_dict[aid] = annot
 
-    return configured_lazy_annots
+    if return_view_cache:
+        # Return the underlying annot cache.  we will loose an explicit
+        # reference to it if its not returned.  This is ok, because all created
+        # annot dict objects do have a reference to it, its just hard to get
+        # to. This is only for debuging.
+        return configured_lazy_annots, configured_annot_views
+    else:
+        return configured_lazy_annots
 
 
 @derived_attribute(

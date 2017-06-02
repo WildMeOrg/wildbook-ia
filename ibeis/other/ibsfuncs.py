@@ -2740,7 +2740,8 @@ def get_yaw_viewtexts(yaw_list):
     index_list = textdists.argmin(axis=1)
     text_list_ = ut.take(stdlbl_list, index_list)
     if has_nones:
-        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)], maxval=len(is_not_none) - 1)
+        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)],
+                               maxval=len(is_not_none) - 1)
     else:
         text_list = text_list_
 
