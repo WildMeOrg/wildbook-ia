@@ -1583,13 +1583,13 @@ class _TableComputeHelper(object):
         chunksize = nInput if table.chunksize is None else table.chunksize
 
         if verbose:
-            print('[deptbl.compute] nInput = %r' % (nInput,))
-            print('[deptbl.compute] table.chunksize = %r' % (table.chunksize,))
+            print('[deptbl.compute] nInput={}, chunksize={}, tbl={}'.format(
+                nInput, table.chunksize, table.tablename))
 
         # Report computation progress
         dirty_iter = list(zip(dirty_parent_ids, dirty_preproc_args))
         prog_iter = ut.ProgChunks(dirty_iter, chunksize, nInput,
-                                  lbl='[depc.compute] add %s chunk' % (table.tablename))
+                                  lbl='[depctbl.compute] add %s chunk' % (table.tablename))
         # These are the colnames that we expect to be computed
         colnames = table.computable_colnames()
         #def unfinished_features():
@@ -1841,8 +1841,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 if verbose or _debug:
                     print('Add %d / %d new rows to %r' % (
                         num_dirty, num_total, table.tablename,))
-                    print('[deptbl.add]  * config_rowid = %r' % (config_rowid,))
-                    print('[deptbl.add]  * config = %s' % (config,))
+                    print('[deptbl.add]  * config_rowid = {}, config={}'.format(
+                        config_rowid, str(config)))
 
                 dirty_parent_ids  = ut.compress(parent_ids_, isdirty_list)
                 dirty_preproc_args = ut.compress(preproc_args, isdirty_list)
