@@ -413,12 +413,12 @@ class PairwiseMatch(ut.NiceRepr):
             weight1 = annot1[weight_key].take(fm.T[0], axis=0)
             weight2 = annot2[weight_key].take(fm.T[1], axis=0)
             weight = np.sqrt(weight1 * weight2)
-            weighted_ratio = ratio_score * weight
+            weighted_ratio_score = ratio_score * weight
 
             match.local_measures[weight_key] = weight
-            match.local_measures['weighted_ratio'] = weighted_ratio
+            match.local_measures['weighted_ratio_score'] = weighted_ratio_score
             match.local_measures['weighted_norm_dist'] = norm_dist * weight
-            match.fs = weighted_ratio
+            match.fs = weighted_ratio_score
 
         match.fm = fm
         match.fm_norm1 = np.vstack([fx1_norm, fm.T[1]]).T
