@@ -1518,8 +1518,8 @@ class _TableComputeHelper(object):
         config_ = config
         """
         nInput = len(dirty_parent_ids)
-        if verbose:
-            print('[deptbl.compute] nInput = %r' % (nInput,))
+        # if verbose:
+        #     print('[deptbl.compute] nInput = %r' % (nInput,))
 
         # Pack arguments into column-wise order to send to the func
         argsT = zip(*dirty_preproc_args)
@@ -1589,7 +1589,7 @@ class _TableComputeHelper(object):
         # Report computation progress
         dirty_iter = list(zip(dirty_parent_ids, dirty_preproc_args))
         prog_iter = ut.ProgChunks(dirty_iter, chunksize, nInput,
-                                  lbl='[depctbl.compute] add %s chunk' % (table.tablename))
+                                  lbl='[deptbl.compute] add %s chunk' % (table.tablename))
         # These are the colnames that we expect to be computed
         colnames = table.computable_colnames()
         #def unfinished_features():
