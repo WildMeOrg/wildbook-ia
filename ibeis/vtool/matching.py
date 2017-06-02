@@ -952,6 +952,10 @@ class AnnotPairFeatInfo(object):
         """
         Args:
             criteria (list): list of tokens denoting selection constraints
+               can be one of:
+               measure_type global_measure, local_sorter, local_rank,
+               local_measure, summary_measure, summary_op, summary_bin,
+               summary_binval, summary_binkey,
 
         Examples:
             >>> featinfo.select_columns([
@@ -975,8 +979,9 @@ class AnnotPairFeatInfo(object):
     def find(featinfo, group_id, op, value, hack=False):
         """
         groupid options:
-            summary_op
-            measure_type
+           measure_type global_measure, local_sorter, local_rank,
+           local_measure, summary_measure, summary_op, summary_bin,
+           summary_binval, summary_binkey,
 
         Ignore:
             group_id = 'summary_op'
