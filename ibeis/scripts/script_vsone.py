@@ -150,7 +150,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params.pairwise_feats['sorters'] = ut.unique(
                 hyper_params.pairwise_feats['sorters'] +
                 [
-                    'weighted_ratio',
+                    # 'weighted_ratio',
                     # 'weighted_lnbnn'
                 ]
             )
@@ -969,6 +969,20 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 })
             ]))
             register_data_key('learn(sum,glob)', cols)
+
+            if True:
+                # Use summary and global single thresholds with raw unaries
+                sumcols1 = featinfo.select_columns([
+                    ('summary_op', 'in', {'med'})
+                ])
+                m1_cols = set.difference(cols, set(sumcols1))
+                register_data_key('learn(sum-1,glob)', m1_cols)
+
+                sumcols2 = featinfo.select_columns([
+                    ('summary_op', 'in', {'std'})
+                ])
+                m2_cols = set.difference(cols, set(sumcols2))
+                register_data_key('learn(sum-2,glob)', m2_cols)
 
             if True:
                 # Use summary and global single thresholds with raw unaries
