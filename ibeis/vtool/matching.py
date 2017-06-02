@@ -610,30 +610,30 @@ class PairwiseMatch(ut.NiceRepr):
                 v2 = np.nan
             if ut.isiterable(v1):
                 for i in range(len(v1)):
-                    feat['global(%s_1[%d])' % (k, i)] = v1[i]
-                    feat['global(%s_2[%d])' % (k, i)] = v2[i]
+                    feat['global({}_1[{}])'.format(k, i)] = v1[i]
+                    feat['global({}_2[{}])'.format(k, i)] = v2[i]
                 if k == 'gps':
                     delta = vt.haversine(v1, v2)
                 else:
                     delta = np.abs(v1 - v2)
             else:
-                feat['global(%s_1)' % (k,)] = v1
-                feat['global(%s_2)' % (k,)] = v2
+                feat['global({}_1)'.format(k)] = v1
+                feat['global({}_2)'.format(k)] = v2
                 if k == 'yaw':
                     delta = vt.ori_distance(v1, v2)
                 else:
                     delta = np.abs(v1 - v2)
-            feat['global(delta_%s)' % (k,)] = delta
+            feat['global(delta_{})'.format(k)] = delta
 
         # Impose ordering on these keys to add symmetry
         keys_to_order = ['qual', 'yaw']
         for key in keys_to_order:
-            k1 = 'global(%s_1)' % key
-            k2 = 'global(%s_2)' % key
+            k1 = 'global({}_1)'.format(key)
+            k2 = 'global({}_2)'.format(key)
             if k1 in feat and k2 in feat:
                 minv, maxv = np.sort([feat[k1], feat[k2]])
-                feat['global(min_%s)' % key] = minv
-                feat['global(max_%s)' % key] = maxv
+                feat['global(min_{})'.format(key)] = minv
+                feat['global(max_{})'.format(key)] = maxv
 
         if 'global(delta_gps)' in feat and 'global(delta_time)' in feat:
             hour_delta = feat['global(delta_time)'] / 360
@@ -1165,11 +1165,13 @@ class AnnotPairFeatInfo(object):
             >>>     print(key)
             >>>     print(feat_grammar.parseString(key))
         """
+        # https://stackoverflow.com/questions/18706631/pyparsing-get-token-location-in-results-name
         # Here is a start of a grammer if we need to get serious
-        # with feature dimension name encoding
         import pyparsing as pp
+        # locator = pp.Empty().setParseAction(lambda s, l, t: l)
+        # with feature dimension name encoding
+        # _summary_keys = ['sum', 'mean', 'med', 'std', 'len']
         _summary_keys = featinfo._summary_keys
-        _summary_keys = ['sum', 'mean', 'med', 'std', 'len']
         S = pp.Suppress
         class Nestings(object):
             """ allows for a bit of syntactic sugar """
@@ -1179,6 +1181,7 @@ class AnnotPairFeatInfo(object):
                 return pp.Suppress('[') + x + pp.Suppress(']')
         brak = paren = Nestings()
         unary_id = pp.Regex('[12]')
+        unary_id = (unary_id)('unary_id')
         # takes care of non-greedy matching of underscores
         # http://stackoverflow.com/questions/1905278/keyword-matching-in-
         unary_measure = pp.Combine(
@@ -1186,32 +1189,42 @@ class AnnotPairFeatInfo(object):
             pp.ZeroOrMore('_' + ~unary_id + pp.Word(pp.alphanums)))
         unary_sub = brak[pp.Word(pp.nums)]
         global_unary = (unary_measure + S('_') + unary_id + pp.ZeroOrMore(unary_sub))
+        global_unary = (global_unary)('global_unary')
+
         global_relation = pp.Word(pp.alphas + '_')
+        global_relation = (global_relation)('global_relation')
+
         global_measure = global_unary | global_relation
-        global_feature = 'global' + paren(global_measure)
+        global_feature = ('global' + paren(global_measure))('global_feature')
         # Local
         local_measure = pp.Word(pp.alphas + '_')
         local_sorter = pp.Word(pp.alphas + '_')
         local_rank = pp.Word(pp.nums)
+        local_rank = (local_rank)('local_rank')
+        local_sorter = (local_sorter)('local_sorter')
+        local_measure = (local_measure)('local_measure')
         local_feature = (
             'loc' + brak[local_sorter + S(',') + local_rank] +
             paren(local_measure)
-        )
+        )('local_feature')
         # Summary
-        summary_measure = pp.Word(pp.alphas + '_')
-        summary_binkey = pp.Word(pp.alphas + '_')
-        summary_binval = pp.Word(pp.nums + '.')
-        summary_bin = brak[summary_binkey + '<' + summary_binval]
-        summary_op = pp.Or(_summary_keys)
+        summary_measure = pp.Word(pp.alphas + '_')('summary_measure')
+        summary_binkey = pp.Word(pp.alphas + '_')('summary_binkey')
+        summary_binval = pp.Word(pp.nums + '.')('summary_binval')
+
+        summary_bin = brak[summary_binkey + '<' + summary_binval]('summary_bin')
+        summary_op = pp.Or(_summary_keys)('summary_op')
+
         summary_feature = (
-            summary_op + pp.ZeroOrMore(summary_bin) + paren(summary_measure)
-        )
+            summary_op + paren(summary_measure + pp.Optional(summary_bin))
+        )('summary_feature')
         feat_grammar = local_feature | global_feature | summary_feature
         if False:
-            global_feature.parseString('global(qual_1)')
-            feat_grammar.parseString('global(min_qual)')
-            feat_grammar.parseString('loc[ratio,1](norm_dist)')
-            feat_grammar.parseString('mean[ratio<1](dist)')
+            z = global_feature.parseString('global(qual_1)')
+            z = feat_grammar.parseString('global(min_qual)')
+            z = feat_grammar.parseString('loc[ratio,1](norm_dist)')
+            z = feat_grammar.parseString('mean(dist[ratio<1])')
+            z
         return feat_grammar
 
     def measure_type(featinfo, key):
