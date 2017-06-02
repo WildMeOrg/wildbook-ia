@@ -184,8 +184,7 @@ class IOContract(object):
     """
 
     def ensure_results(self, expt_name=None):
-        ut.ensuredir(str(self.dpath))
-        if expt_name is None:
+        if expt_name is None and exists(self.dpath):
             # Load all
             fpaths = ut.glob(str(self.dpath), '*.pkl')
             expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
