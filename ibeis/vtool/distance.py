@@ -175,6 +175,7 @@ def ori_distance(ori1, ori2, out=None):
         ori_dist = np.abs(np.arctan2(np.sin(ori1 - ori2), np.cos(ori1 - ori2)))
         %timeit np.abs(np.arctan2(np.sin(ori1 - ori2), np.cos(ori1 - ori2)))
     """
+    return cyclic_distance(ori1, ori2, modulo=TAU, out=out)
     # TODO: Cython
     #if out is None:
     #    out = np.empty(ori1.shape, dtype=np.float64)
@@ -183,14 +184,14 @@ def ori_distance(ori1, ori2, out=None):
     #mod_diff1 = np.mod(abs_diff, TAU, out=out)
     #mod_diff2 = np.subtract(TAU, mod_diff1)
     #ori_dist  = np.minimum(mod_diff1, mod_diff2, out=out)
-    ori_diff  = np.subtract(ori1, ori2)
-    abs_diff  = np.abs(ori_diff)
-    mod_diff1 = np.mod(abs_diff, TAU)
-    mod_diff2 = np.subtract(TAU, mod_diff1)
-    ori_dist  = np.minimum(mod_diff1, mod_diff2)
-    if out is not None:
-        out[:] = ori_dist
-    return ori_dist
+    # ori_diff  = np.subtract(ori1, ori2)
+    # abs_diff  = np.abs(ori_diff)
+    # mod_diff1 = np.mod(abs_diff, TAU)
+    # mod_diff2 = np.subtract(TAU, mod_diff1)
+    # ori_dist  = np.minimum(mod_diff1, mod_diff2)
+    # if out is not None:
+    #     out[:] = ori_dist
+    # return ori_dist
 
 
 def cyclic_distance(arr1, arr2, modulo, out=None):
@@ -210,14 +211,27 @@ def cyclic_distance(arr1, arr2, modulo, out=None):
         python -m vtool.distance cyclic_distance
 
     Example:
-        >>> # DISABLE_DOCTEST
+        >>> # ENABLE_DOCTEST
         >>> from vtool.distance import *  # NOQA
         >>> out = None
         >>> modulo = 8
-        >>> arr1 = np.arange(0, modulo + 0)
+        >>> offset = 0  # doesnt matter what offset is
+        >>> arr1 = np.hstack([np.arange(offset, modulo + offset), np.nan])
         >>> arr2 = arr1[:, None]
         >>> arr_dist = cyclic_distance(arr1, arr2, modulo, out)
-        >>> print('arr_dist =\n%r' % (arr_dist,))
+        >>> result = ('arr_dist =\n%s' % (ut.repr2(arr_dist),))
+        >>> print(result)
+        arr_dist =
+        np.array([[  0.,   1.,   2.,   3.,   4.,   3.,   2.,   1.,  nan],
+                  [  1.,   0.,   1.,   2.,   3.,   4.,   3.,   2.,  nan],
+                  [  2.,   1.,   0.,   1.,   2.,   3.,   4.,   3.,  nan],
+                  [  3.,   2.,   1.,   0.,   1.,   2.,   3.,   4.,  nan],
+                  [  4.,   3.,   2.,   1.,   0.,   1.,   2.,   3.,  nan],
+                  [  3.,   4.,   3.,   2.,   1.,   0.,   1.,   2.,  nan],
+                  [  2.,   3.,   4.,   3.,   2.,   1.,   0.,   1.,  nan],
+                  [  1.,   2.,   3.,   4.,   3.,   2.,   1.,   0.,  nan],
+                  [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan]])
+
 
     Ignore:
         d1 = cyclic_distance(arr1, arr2, modulo)
@@ -250,6 +264,13 @@ def cyclic_distance(arr1, arr2, modulo, out=None):
     mod_diff1 = np.mod(abs_diff, modulo, out=out)
     mod_diff2 = np.subtract(modulo, mod_diff1)
     arr_dist  = np.minimum(mod_diff1, mod_diff2, out=out)
+    return arr_dist
+
+
+def signed_cyclic_distance(arr1, arr2, modulo, out=None):
+    arr_diff = np.subtract(arr1, arr2, out=out)
+    half_mod = modulo / 2
+    arr_dist = (arr_diff + half_mod) % modulo - half_mod
     return arr_dist
 
 

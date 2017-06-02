@@ -621,6 +621,8 @@ class PairwiseMatch(ut.NiceRepr):
                 feat['global({}_2)'.format(k)] = v2
                 if k == 'yaw':
                     delta = vt.ori_distance(v1, v2)
+                elif k == 'view':
+                    delta = vt.cyclic_distance(v1, v2, modulo=8)
                 else:
                     delta = np.abs(v1 - v2)
             feat['global(delta_{})'.format(k)] = delta
@@ -1154,7 +1156,7 @@ class AnnotPairFeatInfo(object):
             >>> import vtool as vt
             >>> import pandas as pd
             >>> match = demodata_match({})
-            >>> match.add_global_measures(['yaw', 'qual', 'gps', 'time'])
+            >>> match.add_global_measures(['view', 'qual', 'gps', 'time'])
             >>> index = pd.MultiIndex.from_tuples([(1, 2)], names=('aid1', 'aid2'))
             >>> # Feat info without bins
             >>> feat = match.make_feature_vector()
