@@ -1187,13 +1187,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             https://arxiv.org/abs/1407.7502
             https://github.com/glouppe/phd-thesis
 
-       Example:
+        Example:
             >>> # DISABLE_DOCTEST
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_MTEST')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_PB_RF_TRAIN')
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='PZ_Master1')
 
+        Ignore:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem.from_empty(defaultdb='GZ_Master1')
             >>> pblm.setup_evaluation()
