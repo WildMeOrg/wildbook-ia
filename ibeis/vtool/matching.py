@@ -622,8 +622,8 @@ class PairwiseMatch(ut.NiceRepr):
                 feat['global({}_1)'.format(k)] = v1
                 feat['global({}_2)'.format(k)] = v2
                 if k == 'yaw':
-                    delta = vt.ori_distance(v1, v2)
-                    delta = vt.cyclic_distance(v1, v2, modulo=np.pi * 2)
+                    # delta = vt.ori_distance(v1, v2)
+                    delta = vt.cyclic_distance(v1, v2, modulo=vt.TAU)
                 elif k == 'view':
                     delta = vt.cyclic_distance(v1, v2, modulo=8)
                 else:
