@@ -33,6 +33,30 @@ class StratifiedGroupKFold(_BaseKFold):
         super(StratifiedGroupKFold, self).__init__(n_splits, shuffle, random_state)
 
     def _make_test_folds(self, X, y=None, groups=None):
+        """
+        Args:
+            self (?):
+            X (ndarray):  data
+            y (ndarray):  labels(default = None)
+            groups (None): (default = None)
+
+        Returns:
+            ?: test_folds
+
+        CommandLine:
+            python -m ibeis.scripts.sklearn_utils _make_test_folds
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.sklearn_utils import *  # NOQA
+            >>> import utool as ut
+            >>> rng = ut.ensure_rng(0)
+            >>> groups = [1, 1, 3, 4, 2, 2, 7, 8, 8]
+            >>> y      = [1, 1, 1, 1, 2, 2, 2, 3, 3]
+            >>> X = np.empty((len(y), 0))
+            >>> self = StratifiedGroupKFold(random_state=rng)
+            >>> skf_list = list(self.split(X=X, y=y, groups=groups))
+        """
         # if self.shuffle:
         #     rng = check_random_state(self.random_state)
         # else:

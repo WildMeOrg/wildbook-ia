@@ -542,3 +542,11 @@ class CONFIDENCE(object):
     CODE_TO_INT = ut.invert_dict(INT_TO_CODE)
     NICE_TO_CODE = ut.invert_dict(CODE_TO_NICE)
     NICE_TO_INT  = ut.invert_dict(INT_TO_NICE)
+
+
+# def make_codes(const_class):
+#     class CODES(object):
+#         pass
+
+#     for code_, int_ in const_class.CODE_TO_INT.items():
+#         pass

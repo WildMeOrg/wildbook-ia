@@ -56,6 +56,37 @@ class Feedback(object):
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
 
+    def current_feedback(infr, edge):
+        """
+        Current state (or best guess) for the current feedback of an edge
+        """
+        feedback_item = []
+        if edge in infr.internal_feedback:
+            feedback_item += infr.internal_feedback[edge]
+        if edge in infr.external_feedback:
+            feedback_item += infr.external_feedback[edge]
+        if len(feedback_item) == 0:
+            nid1, nid2 = infr.pos_graph.node_labels(*edge)
+            CONFIDENCE = infr.ibs.const.CONFIDENCE
+            feedback = {
+                'confidence': CONFIDENCE.INT_TO_CODE[CONFIDENCE.GUESSING],
+                'decision': POSTV if nid1 == nid2 else NEGTV,
+                'tags': []
+            }
+        else:
+            feedback = infr._rectify_feedback_item(feedback_item)
+        return feedback
+
+    def modify_feedback(infr, edge, **kw):
+        """
+        Current state (or best guess) for the current feedback of an edge
+        """
+        old = infr.current_feedback(edge)
+        new = ut.dict_subset(old, ['decision', 'tags', 'confidence'],
+                             default=None)
+        new.update(kw)
+        infr.add_feedback(edge, **new)
+
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
                      confidence=None, timestamp=None, verbose=None,

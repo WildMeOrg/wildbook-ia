@@ -271,7 +271,6 @@ class AnnotInfrMatching(object):
                 * Pairwise feature construction config
             * Then we can apply the feature to the classifier
 
-
         edges = [(1, 2)]
         """
         infr.print('Requesting %d cached pairwise features' % len(edges))
@@ -322,7 +321,7 @@ class AnnotInfrMatching(object):
         use_cache = not feat_construct_config['need_lnbnn']
 
         import ubelt as ub
-        feat_cacher = ub.Cacher('bulk_pairfeats_' + infr.ibs.dbname,
+        feat_cacher = ub.Cacher('bulk_pairfeats_v2_' + infr.ibs.dbname,
                                 feat_cfgstr, enabled=use_cache,
                                 appname=pblm.appname, verbose=20)
         data = feat_cacher.tryload()

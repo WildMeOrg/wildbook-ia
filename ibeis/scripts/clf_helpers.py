@@ -239,6 +239,9 @@ class ClfProblem(ut.NiceRepr):
         """
         Learns and caches an evaluation (cross-validated) classifier and tests
         and caches the results.
+
+        data_key = 'learn(sum,glob)'
+        clf_key = 'RF'
         """
         # TODO: add in params used to construct features into the cfgstr
         sample_hashid = pblm.samples.sample_hashid()
@@ -277,6 +280,7 @@ class ClfProblem(ut.NiceRepr):
         """
         Learns a cross-validated classifier on the dataset
 
+        Ignore:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem()
             >>> pblm.load_features()
@@ -1154,7 +1158,11 @@ class MultiTaskSamples(ut.NiceRepr):
         return None
 
     def stratified_kfold_indices(samples, **xval_kw):
-        """ TODO: check xval label frequency """
+        """
+        TODO: check xval label frequency
+
+
+        """
         from sklearn import model_selection
         from ibeis.scripts import sklearn_utils
 

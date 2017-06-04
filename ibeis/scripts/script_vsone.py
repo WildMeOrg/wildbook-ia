@@ -982,19 +982,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ]))
             register_data_key('learn(sum,glob)', cols)
 
-            if True:
-                # Use summary and global single thresholds with raw unaries
-                sumcols1 = featinfo.select_columns([
-                    ('summary_op', 'in', {'med'})
-                ])
-                m1_cols = set.difference(cols, set(sumcols1))
-                register_data_key('learn(sum-1,glob)', m1_cols)
+            # if True:
+            #     # Use summary and global single thresholds with raw unaries
+            #     sumcols1 = featinfo.select_columns([
+            #         ('summary_op', 'in', {'med'})
+            #     ])
+            #     m1_cols = set.difference(cols, set(sumcols1))
+            #     register_data_key('learn(sum-1,glob)', m1_cols)
 
-                sumcols2 = featinfo.select_columns([
-                    ('summary_op', 'in', {'std'})
-                ])
-                m2_cols = set.difference(cols, set(sumcols2))
-                register_data_key('learn(sum-2,glob)', m2_cols)
+            #     sumcols2 = featinfo.select_columns([
+            #         ('summary_op', 'in', {'std'})
+            #     ])
+            #     m2_cols = set.difference(cols, set(sumcols2))
+            #     register_data_key('learn(sum-2,glob)', m2_cols)
 
             if True:
                 # Use summary and global single thresholds with raw unaries
@@ -1009,9 +1009,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 view_cols = featinfo.select_columns([
                     ('measure_type', '==', 'global'),
                     ('measure', 'in', [
-                        'yaw_1', 'yaw_2', 'yaw_delta', 'min_yaw', 'max_yaw'
-                        'view_1', 'view_2', 'view_delta', 'min_view',
-                        'max_view'
+                        'yaw_1', 'yaw_2', 'delta_yaw', 'min_yaw', 'max_yaw'
+                        'view_1', 'view_2', 'delta_view', 'min_view', 'max_view'
                     ]),
                 ])
                 noview_cols = set.difference(cols, view_cols)
@@ -1301,8 +1300,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             flags = flags & pbflags
             ratio = feats['sum(ratio)']
             if class_name == INCMP:
-                # flags &= feats['global(yaw_delta)'] > 3
-                flags &= feats['global(view_delta)'] > 2
+                # flags &= feats['global(delta_yaw)'] > 3
+                flags &= feats['global(delta_view)'] > 2
                 # flags &= feats['sum(ratio)'] > 0
             if class_name == NEGTV:
                 low = ratio[flags].max()

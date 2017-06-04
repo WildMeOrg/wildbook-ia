@@ -67,31 +67,36 @@ class DBInputs(object):
             # ut.ensuredir(self.dpath)
         self.expt_results = {}
 
-    # @classmethod
-    # def measure(Chap3, expt_name, dbnames):
-    #     """
-    #     CommandLine:
-    #         python -m ibeis Chap3.measure all --dbs=GZ_Master1
-    #         python -m ibeis Chap3.measure all --dbs=PZ_Master1
+    @classmethod
+    def measure(ChapX, expt_name, dbnames, *args):
+        """
+        CommandLine:
+            python -m ibeis Chap3.measure all --dbs=GZ_Master1
+            python -m ibeis Chap3.measure all --dbs=PZ_Master1
 
-    #         python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-    #         python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
+            python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
 
-    #     Example:
-    #         >>> # Script
-    #         >>> from ibeis.scripts.thesis import *  # NOQA
-    #         >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
-    #         >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
-    #         >>> Chap3.measure(expt_name, dbnames)
-    #     """
-    #     for dbname in dbnames:
-    #         self = Chap3(dbname)
-    #         if self.ibs is None:
-    #             self._precollect()
-    #         if expt_name == 'all':
-    #             self.measure_all()
-    #         else:
-    #             getattr(self, 'measure_' + expt_name)()
+        # Example:
+        #     >>> # Script
+        #     >>> from ibeis.scripts.thesis import *  # NOQA
+        #     >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
+        #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
+        #     >>> ChapX.measure(expt_name, dbnames)
+        """
+        print('expt_name = %r' % (expt_name,))
+        print('dbnames = %r' % (dbnames,))
+        print('args = %r' % (args,))
+        dbnames = ut.smart_cast(dbnames, list)
+        for dbname in dbnames:
+            self = ChapX(dbname)
+            if self.ibs is None:
+                self._setup()
+                # self._precollect()
+            if expt_name == 'all':
+                self.measure_all(*args)
+            else:
+                getattr(self, 'measure_' + expt_name)(*args)
 
     @classmethod
     def draw(ChapX, expt_name, dbnames, *args):
@@ -271,7 +276,7 @@ class IOContract(object):
 
 class Chap5Commands(object):
 
-    def _setup_simulation(self):
+    def _setup(self):
         """
         CommandLine:
             python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
@@ -1506,19 +1511,19 @@ class Chap4(DBInputs, IOContract):
     task_nice_lookup = {
         'match_state': const.REVIEW.CODE_TO_NICE,
         'photobomb_state': {
-            'pb': 'Phototomb',
-            'notpb': 'Not Phototomb',
+            'pb': 'Photobomb',
+            'notpb': 'Not Photobomb',
         }
     }
 
-    def _setup_pblm(self):
+    def _setup(self):
         r"""
         CommandLine:
-            python -m ibeis Chap4._setup_pblm --db GZ_Master1
+            python -m ibeis Chap4._setup --db GZ_Master1
 
-            python -m ibeis Chap4._setup_pblm --db PZ_Master1
-            python -m ibeis Chap4._setup_pblm --db PZ_MTEST
-            python -m ibeis Chap4._setup_pblm --db PZ_PB_RF_TRAIN
+            python -m ibeis Chap4._setup --db PZ_Master1 --eval
+            python -m ibeis Chap4._setup --db PZ_MTEST
+            python -m ibeis Chap4._setup --db PZ_PB_RF_TRAIN
 
             python -m ibeis Chap4.measure_all --db PZ_PB_RF_TRAIN
 
@@ -1526,7 +1531,7 @@ class Chap4(DBInputs, IOContract):
             >>> from ibeis.scripts.thesis import *
             >>> dbname = ut.get_argval('--db', default='GZ_Master1')
             >>> self = Chap4(dbname)
-            >>> self._setup_pblm()
+            >>> self._setup()
 
         Ignore:
             from ibeis.scripts.thesis import *
@@ -1579,7 +1584,8 @@ class Chap4(DBInputs, IOContract):
         pblm.eval_clf_keys = [clf_key]
 
         if ut.get_argflag('--eval'):
-            pblm.eval_task_keys = ['match_state']
+            pblm.eval_task_keys = ['photobomb_state', 'match_state']
+            # pblm.eval_task_keys = ['match_state']
             pblm.eval_data_keys = None
             pblm.evaluate_classifiers()
             pblm.eval_data_keys = [data_key]
@@ -1635,7 +1641,7 @@ class Chap4(DBInputs, IOContract):
             >>>     self = Chap4(dbname)
             >>>     self.measure_all()
         """
-        self._setup_pblm()
+        self._setup()
         pblm = self.pblm
 
         expt_name = 'sample_info'
@@ -1673,7 +1679,11 @@ class Chap4(DBInputs, IOContract):
 
         task_key = 'match_state'
         if task_key in pblm.eval_task_keys:
-            self.measure_match_state_hard_cases()
+            self.measure_hard_cases(task_key)
+
+        task_key = 'photobomb_state'
+        if task_key in pblm.eval_task_keys:
+            self.measure_hard_cases(task_key)
 
         self.measure_rerank()
         self.measure_prune()
@@ -1735,7 +1745,7 @@ class Chap4(DBInputs, IOContract):
         # from sklearn.feature_selection import SelectFromModel
         from ibeis.scripts import clf_helpers
         if getattr(self, 'pblm', None) is None:
-            self._setup_pblm()
+            self._setup()
 
         pblm = self.pblm
         task_key = pblm.primary_task_key
@@ -1799,6 +1809,9 @@ class Chap4(DBInputs, IOContract):
 
     def draw_prune(self):
         """
+        CommandLine:
+            python -m ibeis Chap4.draw prune GZ_Master1
+            python -m ibeis Chap4.draw prune PZ_Master1
         >>> from ibeis.scripts.thesis import *
         >>> self = Chap4('GZ_Master1')
         >>> self = Chap4('PZ_MTEST')
@@ -1829,7 +1842,7 @@ class Chap4(DBInputs, IOContract):
                       # num_xticks=5,
                       ylabel='MCC',
                       xlabel='# feature dimensions',
-                      xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
+                      ymax=1, xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
         ax = pt.gca()
         ax.invert_xaxis()
         fig.set_size_inches([W / 2, H])
@@ -1838,8 +1851,9 @@ class Chap4(DBInputs, IOContract):
 
         # Find the point at which accuracy starts to fall
         u = ave_mccs.mean(axis=1)
-        middle = ut.take_around_percentile(u, .5, len(n_dims) // 3)
+        middle = ut.take_around_percentile(u, .5, len(n_dims) // 2.2)
         thresh = middle.mean() - (middle.std() * 6)
+        print('thresh = %r' % (thresh,))
         idx = np.where(u < thresh)[0][0]
 
         # topinfo = vt.AnnotPairFeatInfo(list(top_importances.keys()))
@@ -1861,11 +1875,11 @@ class Chap4(DBInputs, IOContract):
             >>> defaultdb = 'PZ_Master1'
             >>> defaultdb = 'GZ_Master1'
             >>> self = Chap4(defaultdb)
-            >>> self._setup_pblm()
+            >>> self._setup()
             >>> self.measure_rerank()
         """
         if getattr(self, 'pblm', None) is None:
-            self._setup_pblm()
+            self._setup()
 
         pblm = self.pblm
         infr = pblm.infr
@@ -1939,13 +1953,40 @@ class Chap4(DBInputs, IOContract):
         self.expt_results[expt_name] = results
         ut.save_data(join(str(self.dpath), expt_name + '.pkl'), results)
 
-    def _measure_hard_cases(self, pblm, task_key, num_top):
+    def measure_hard_cases(self, task_key):
         """
         Find a failure case for each class
 
-        Example:
-            >>> num_top = 4
+        CommandLine:
+            python -m ibeis Chap4.measure hard_cases GZ_Master1 match_state
+            python -m ibeis Chap4.measure hard_cases GZ_Master1 photobomb_state
+            python -m ibeis Chap4.draw hard_cases GZ_Master1 match_state
+            python -m ibeis Chap4.draw hard_cases GZ_Master1 photobomb_state
+
+            python -m ibeis Chap4.measure hard_cases PZ_Master1 match_state
+            python -m ibeis Chap4.measure hard_cases PZ_Master1 photobomb_state
+            python -m ibeis Chap4.draw hard_cases PZ_Master1 match_state
+            python -m ibeis Chap4.draw hard_cases PZ_Master1 photobomb_state
+
+            python -m ibeis Chap4.measure hard_cases PZ_MTEST match_state
+            python -m ibeis Chap4.draw hard_cases PZ_MTEST photobomb_state
+
+        Ignore:
+            >>> task_key = 'match_state'
+            >>> task_key = 'photobomb_state'
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('GZ_Master1')
+            >>> self._setup()
         """
+        if getattr(self, 'pblm', None) is None:
+            print('Need to setup before measuring hard cases')
+            self._setup()
+        print('Measuring hard cases')
+
+        pblm = self.pblm
+
+        front = mid = back = 8
+
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         case_df = res.hardness_analysis(pblm.samples, pblm.infr)
         # group = case_df.sort_values(['real_conf', 'easiness'])
@@ -1956,24 +1997,44 @@ class Chap4(DBInputs, IOContract):
         if len(failure_cases) == 0:
             print('No reviewed failures exist. Do pblm.qt_review_hardcases')
 
+        print('There are {} failure cases'.format(len(failure_cases)))
+        print('With average hardness {}'.format(ut.repr2(ut.stats_dict(failure_cases['hardness']), strkeys=True, precision=2)))
+
         cases = []
         for (pred, real), group in failure_cases.groupby(('pred', 'real')):
+
+            group = group.sort_values(['easiness'])
+            flags = ut.flag_percentile_parts(group['easiness'], front, mid, back)
+            subgroup = group[flags]
+
+            print('Selected {} r({})-p({}) cases'.format(
+                len(subgroup), res.class_names[real], res.class_names[pred]
+            ))
+            # ut.take_percentile_parts(group['easiness'], front, mid, back)
+
             # Prefer examples we have manually reviewed before
-            group = group.sort_values(['real_conf', 'easiness'])
-            for idx in range(min(num_top, len(group))):
-                case = group.iloc[idx]
+            # group = group.sort_values(['real_conf', 'easiness'])
+            # subgroup = group[0:num_top]
+
+            for idx, case in subgroup.iterrows():
                 edge = tuple(ut.take(case, ['aid1', 'aid2']))
                 cases.append({
                     'edge': edge,
-                    'real': res.class_names[real],
-                    'pred': res.class_names[pred],
-                    'probs': res.probs_df.loc[edge]
+                    'real': res.class_names[case['real']],
+                    'pred': res.class_names[case['pred']],
+                    'failed': case['failed'],
+                    'easiness': case['easiness'],
+                    'real_conf': case['real_conf'],
+                    'probs': res.probs_df.loc[edge].to_dict(),
+                    'edge_data': pblm.infr.get_edge_data(edge),
                 })
+
+        print('Selected %d cases in total' % (len(cases)))
 
         # Augment cases with their one-vs-one matches
         infr = pblm.infr
-        config = pblm.hyper_params['vsone_match'].asdict()
-        config.update(pblm.hyper_params['vsone_kpts'])
+        data_key = self.data_key
+        config = pblm.feat_construct_info[data_key][0]['match_config']
         edges = [case['edge'] for case in cases]
         matches = infr._exec_pairwise_match(edges, config)
 
@@ -1991,39 +2052,129 @@ class Chap4(DBInputs, IOContract):
             match.annot2 = _prep_annot(match.annot2)
             case['match'] = match
 
+        fpath = join(str(self.dpath), task_key + '_hard_cases.pkl')
+        ut.save_data(fpath, cases)
+        print('Hard case space on disk: {}'.format(ut.get_file_nBytes_str(fpath)))
+
+        # if False:
+        #     ybin_df = res.target_bin_df
+        #     flags = ybin_df['pb'].values
+        #     pb_edges = ybin_df[flags].index.tolist()
+
+        #     matches = infr._exec_pairwise_match(pb_edges, config)
+        #     prefix = 'training_'
+
+        #     subdir = 'temp_cases_{}'.format(task_key)
+        #     dpath = join(str(self.dpath), subdir)
+        #     ut.ensuredir(dpath)
+
+        #     tbl = pblm.infr.ibs.db.get_table_as_pandas('annotmatch')
+        #     tagged_tbl = tbl[~pd.isnull(tbl['annotmatch_tag_text']).values]
+        #     ttext = tagged_tbl['annotmatch_tag_text']
+        #     flags = ['photobomb' in t.split(';') for t in ttext]
+        #     pb_table = tagged_tbl[flags]
+        #     am_pb_edges = set(
+        #         ut.estarmap(infr.e_, zip(pb_table.annot_rowid1.tolist(),
+        #                                  pb_table.annot_rowid2.tolist())))
+
+        #     # missing = am_pb_edges - set(pb_edges)
+        #     # matches = infr._exec_pairwise_match(missing, config)
+        #     # prefix = 'missing_'
+
+        #     # infr.relabel_using_reviews()
+        #     # infr.apply_nondynamic_update()
+
+        #     # infr.verbose = 100
+        #     # for edge in missing:
+        #     #     print(edge[0] in infr.aids)
+        #     #     print(edge[1] in infr.aids)
+
+        #     # fix = [
+        #     #     (1184, 1185),
+        #     #     (1376, 1378),
+        #     #     (1377, 1378),
+        #     # ]
+
+        #     #     fb = infr.current_feedback(edge).copy()
+        #     #     fb = ut.dict_subset(fb, ['decision', 'tags', 'confidence'],
+        #     #                         default=None)
+        #     #     fb['user_id'] = 'jon_fixam'
+        #     #     fb['confidence'] = 'pretty_sure'
+        #     #     fb['tags'] += ['photobomb']
+        #     #     infr.add_feedback(edge, **fb)
+
+        #     for c, match in enumerate(ut.ProgIter(matches)):
+        #         edge = match.annot1['aid'], match.annot2['aid']
+
+        #         fig = pt.figure(fnum=1, clf=True)
+        #         ax = pt.gca()
+        #         # Draw with feature overlay
+        #         match.show(ax, vert=False, heatmask=True, show_lines=True,
+        #                    show_ell=False, show_ori=False, show_eig=False,
+        #                    line_lw=1, line_alpha=.1,
+        #                    modifysize=True)
+        #         fname = prefix + '_'.join(ut.emap(str, edge))
+        #         ax.set_xlabel(fname)
+        #         fpath = join(str(dpath), fname + '.jpg')
+        #         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        #     # visualize real photobomb cases
         return cases
 
-    def measure_match_state_hard_cases(self):
+    def draw_hard_cases(self, task_key):
         """
+        draw hard cases with and without overlay
+
+        python -m ibeis Chap4.draw hard_cases GZ_Master1 match_state
+        python -m ibeis Chap4.draw hard_cases PZ_Master1 match_state
+        python -m ibeis Chap4.draw hard_cases PZ_Master1 photobomb_state
+        python -m ibeis Chap4.draw hard_cases GZ_Master1 photobomb_state
+
+
+
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap4('PZ_MTEST')
-            >>> self._setup_pblm()
-            >>> self.measure_match_state_hard_cases()
+            >>> task_key = 'match_state'
+            >>> self.draw_hard_cases(task_key)
         """
-        task_key = 'match_state'
-        cases = self._measure_hard_cases(self.pblm, task_key, num_top=4)
-        fpath = join(str(self.dpath), 'match_state_hard_cases.pkl')
-        ut.save_data(fpath, cases)
+        cases = self.ensure_results(task_key + '_hard_cases')
+        print('Loaded {} {} hard cases'.format(len(cases), task_key))
 
-    # def measure_metrics(self):
-    #     pass
+        subdir = 'cases_{}'.format(task_key)
+        dpath = join(str(self.dpath), subdir)
+        # ut.delete(dpath)
+        ut.ensuredir(dpath)
+        code_to_nice = self.task_nice_lookup[task_key]
 
-    # def _build_metrics(self, task_key):
-    #     pblm = self.pblm
-    #     res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-    #     res.augment_if_needed()
-    #     pred_enc = res.clf_probs.argmax(axis=1)
-    #     y_pred = pred_enc
-    #     y_true = res.y_test_enc
-    #     sample_weight = res.sample_weight
-    #     target_names = res.class_names
+        mpl.rcParams.update(TMP_RC)
 
-    #     from ibeis.scripts import sklearn_utils
-    #     metric_df, confusion_df = sklearn_utils.classification_report2(
-    #         y_true, y_pred, target_names, sample_weight, verbose=False)
-    #     self.task_confusion[task_key] = confusion_df
-    #     self.task_metrics[task_key] = metric_df
-    #     return ut.partial(self.write_metrics, task_key)
+        for case in ut.ProgIter(cases, 'draw {} hard case'.format(task_key)):
+            aid1, aid2 = case['edge']
+            match = case['match']
+            real_name, pred_name = case['real'], case['pred']
+            real_nice, pred_nice = ut.take(code_to_nice, [real_name, pred_name])
+            fname = 'fail_{}_{}_{}_{}'.format(real_name, pred_name, aid1, aid2)
+            # Build x-label
+            _probs = case['probs']
+            probs = ut.odict((v, _probs[k])
+                             for k, v in code_to_nice.items()
+                             if k in _probs)
+            probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
+            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
+                                                    probstr)
+            fig = pt.figure(fnum=1, clf=True)
+            ax = pt.gca()
+            # Draw with feature overlay
+            match.show(ax, vert=False, heatmask=True,
+                       show_lines=False,
+                       # show_lines=True, line_lw=1, line_alpha=.1,
+                       # ell_alpha=.3,
+                       show_ell=False, show_ori=False, show_eig=False,
+                       modifysize=True)
+            ax.set_xlabel(xlabel)
+            ax.get_xaxis().get_label().set_fontsize(24)
+
+            fpath = join(str(dpath), fname + '.jpg')
+            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def write_metrics(self, task_key='match_state'):
         """
@@ -2207,67 +2358,6 @@ class Chap4(DBInputs, IOContract):
         ax.legend()
 
         cfms.plot_vs('fpr', 'thresholds')
-
-    def draw_hard_cases(self, task_key):
-        """
-        draw hard cases with and without overlay
-
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap4('PZ_MTEST')
-            >>> task_key = 'match_state'
-            >>> self.draw_hard_cases(task_key)
-        """
-        cases = self.ensure_results('match_state_hard_cases')
-
-        subdir = 'cases_{}'.format(task_key)
-        dpath = join(str(self.dpath), subdir)
-        ut.ensuredir(dpath)
-        code_to_nice = self.task_nice_lookup[task_key]
-
-        mpl.rcParams.update(TMP_RC)
-
-        for case in ut.ProgIter(cases, 'draw hard case'):
-            aid1, aid2 = case['edge']
-            real_name = case['real']
-            pred_name = case['pred']
-            match = case['match']
-            real_nice, pred_nice = ut.take(code_to_nice,
-                                           [real_name, pred_name])
-            fname = 'fail_{}_{}_{}_{}'.format(real_nice, pred_nice, aid1, aid2)
-            # Draw case
-            probs = case['probs'].to_dict()
-            order = list(code_to_nice.values())
-            order = ut.setintersect(order, probs.keys())
-            probs = ut.map_dict_keys(code_to_nice, probs)
-            probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True,
-                               key_order=order)
-            xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
-                                                    probstr)
-            fig = pt.figure(fnum=1, clf=True)
-            ax = pt.gca()
-            # Draw with feature overlay
-            match.show(ax, vert=False,
-                       heatmask=True,
-                       show_lines=False,
-                       show_ell=False,
-                       show_ori=False,
-                       show_eig=False,
-                       # ell_alpha=.3,
-                       modifysize=True)
-            ax.set_xlabel(xlabel)
-            # fpath = join(str(dpath), fname + '_overlay.jpg')
-            fpath = join(str(dpath), fname + '.jpg')
-            vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if False:
-            ut.startfile(fpath)
-
-            # vt.pad_image_ondisk()
-            # Draw without feature overlay
-            # ax.cla()
-            # match.show(ax, vert=False, overlay=False, modifysize=True)
-            # ax.set_xlabel(xlabel)
-            # fpath = join(str(dpath), fname + '.jpg')
-            # vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
     def _draw_score_hist(self, freqs, xlabel, fnum):
         """ helper """
@@ -2597,6 +2687,9 @@ class Chap3Commands(object):
 
         Chap3.agg_dbstats()
         Chap3.draw_agg_baseline()
+
+    def _setup(self):
+        self._precollect()
 
     def measure_all(self):
         """
