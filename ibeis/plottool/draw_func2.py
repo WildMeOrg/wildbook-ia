@@ -3424,8 +3424,9 @@ def imshow(img, fnum=None, title=None, figtitle=None, pnum=None,
                 else:
                     imgBGR = np.array(imgBGR, dtype=np.uint8)
             if imgBGR.dtype == np.float32:
-                print('imgBGR.dtype = %r' % (imgBGR.dtype,))
-                print(imgBGR.max())
+                # print('[imshow] imgBGR.dtype = %r' % (imgBGR.dtype,))
+                # print('[imshow] imgBGR.max() = %r' % (imgBGR.max(),))
+                pass
                 #imgBGR *= 255
                 #if imgBGR.max() <= 1.0001:
                 #    plt_imshow_kwargs['vmax'] = 1
