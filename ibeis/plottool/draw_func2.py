@@ -3578,12 +3578,61 @@ def show_chipmatch2(rchip1, rchip2, kpts1=None, kpts2=None, fm=None, fs=None,
         kpts2 (ndarray): keypoints for annotation 2 [x, y, a=1, c=0, d=1, theta=0]
         fm (list):  list of feature matches as tuples (qfx, dfx)
         fs (list):  list of feature scores
-        title (str):
-        vert (None):
-        fnum (int):  figure number
-        pnum (tuple):  plot number
-        heatmap (bool):
-        draw_fmatch (bool):
+        fm_norm (None): (default = None)
+        title (str):  (default = None)
+        vert (None): (default = None)
+        fnum (int):  figure number(default = None)
+        pnum (tuple):  plot number(default = None)
+        heatmap (bool): (default = False)
+        modifysize (bool): (default = False)
+        new_return (bool): (default = False)
+        draw_fmatch (bool): (default = True)
+        darken (None): (default = None)
+        H1 (None): (default = None)
+        H2 (None): (default = None)
+        sel_fm (list): (default = [])
+        ax (None): (default = None)
+        heatmask (bool): (default = False)
+        **kwargs: all_kpts, lbl1, lbl2, rect, colorbar_, draw_border, cmap,
+                  scale_factor1, scale_factor2, draw_pts, draw_ell,
+                  draw_lines, ell_alpha, colors
+
+    Returns:
+        tuple: (xywh1, xywh2, sf_tup)
+
+    CommandLine:
+        python -m plottool.draw_func2 show_chipmatch2 --show
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from plottool.draw_func2 import *  # NOQA
+        >>> rchip1 = '?'
+        >>> rchip2 = '?'
+        >>> kpts1 = None
+        >>> kpts2 = None
+        >>> fm = None
+        >>> fs = None
+        >>> fm_norm = None
+        >>> title = None
+        >>> vert = None
+        >>> fnum = None
+        >>> pnum = None
+        >>> heatmap = False
+        >>> modifysize = False
+        >>> new_return = False
+        >>> draw_fmatch = True
+        >>> darken = None
+        >>> H1 = None
+        >>> H2 = None
+        >>> sel_fm = []
+        >>> ax = None
+        >>> heatmask = False
+        >>> (xywh1, xywh2, sf_tup) = show_chipmatch2(rchip1, rchip2, kpts1, kpts2, fm, fs, fm_norm, title, vert, fnum, pnum, heatmap, modifysize, new_return, draw_fmatch, darken, H1, H2, sel_fm, ax, heatmask)
+        >>> result = ('(xywh1, xywh2, sf_tup) = %s' % (ut.repr2((xywh1, xywh2, sf_tup)),))
+        >>> print(result)
+        >>> ut.quit_if_noshow()
+        >>> import plottool as pt
+        >>> ut.show_if_requested()
 
      Returns:
          ax, xywh1, xywh2
@@ -3809,6 +3858,8 @@ def plot_fmatch(xywh1, xywh2, kpts1, kpts2, fm, fs=None, fm_norm=None,
 
         def _drawlines(**_kwargs):
             _kwargs.update(kwargs)
+            if 'line_lw' in _kwargs:
+                _kwargs['lw'] = _kwargs.pop('line_lw')
             draw_lines2(kpts1, kpts2, fm, fs,
                         kpts2_offset=offset2,
                         scale_factor1=scale_factor1,
