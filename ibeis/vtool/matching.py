@@ -623,16 +623,15 @@ class PairwiseMatch(ut.NiceRepr):
                 feat['global({}_2)'.format(k)] = v2
                 if k == 'yaw':
                     delta = vt.ori_distance(v1, v2)
+                    delta = vt.cyclic_distance(v1, v2, modulo=np.pi * 2)
                 elif k == 'view':
                     delta = vt.cyclic_distance(v1, v2, modulo=8)
-                elif k == 'yaw':
-                    delta = vt.cyclic_distance(v1, v2, modulo=np.pi * 2)
                 else:
                     delta = np.abs(v1 - v2)
             feat['global(delta_{})'.format(k)] = delta
 
         # Impose ordering on these keys to add symmetry
-        keys_to_order = ['qual', 'yaw']
+        keys_to_order = ['qual', 'yaw', 'view']
         for key in keys_to_order:
             k1 = 'global({}_1)'.format(key)
             k2 = 'global({}_2)'.format(key)
