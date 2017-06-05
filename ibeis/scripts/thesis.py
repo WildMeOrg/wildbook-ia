@@ -107,6 +107,8 @@ class DBInputs(object):
             python -m ibeis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
 
             python -m ibeis Chap4.draw importance GZ_Master1
+
+            python -m ibeis Chap4.draw hard_cases GZ_Master1,PZ_Master1 match_state,photobomb_state
             --diskshow
 
         # Example:
@@ -120,24 +122,35 @@ class DBInputs(object):
         print('dbnames = %r' % (dbnames,))
         print('args = %r' % (args,))
         dbnames = ut.smart_cast(dbnames, list)
-        for dbname in dbnames:
-            self = ChapX(dbname)
-            if expt_name == 'all':
-                self.draw_all()
-            else:
-                draw_func = getattr(self, 'draw_' + expt_name, None)
-                if draw_func is None:
-                    draw_func = getattr(self, 'write_' + expt_name, None)
-                if draw_func is None:
-                    raise ValueError('Cannot find a way to draw ' + expt_name)
-                fpath = draw_func(*args)
-                if ut.get_argflag('--diskshow'):
-                    if isinstance(fpath, six.text_type):
-                        ut.startfile(fpath)
-                    else:
-                        fpath_list = fpath
-                        for fpath in fpath_list:
+
+        if len(dbnames) > 1:
+            from concurrent import futures
+            multi_args = [ut.smart_cast(a, list) for a in args]
+            with futures.ProcessPoolExecutor(max_workers=6) as executor:
+                list(futures.as_completed([
+                    executor.submit(ChapX.draw, expt_name, *fsargs)
+                    for fsargs in ut.product(dbnames, *multi_args)
+                ]))
+            print('\n\n Completed multiple tasks')
+        else:
+            for dbname in dbnames:
+                self = ChapX(dbname)
+                if expt_name == 'all':
+                    self.draw_all()
+                else:
+                    draw_func = getattr(self, 'draw_' + expt_name, None)
+                    if draw_func is None:
+                        draw_func = getattr(self, 'write_' + expt_name, None)
+                    if draw_func is None:
+                        raise ValueError('Cannot find a way to draw ' + expt_name)
+                    fpath = draw_func(*args)
+                    if ut.get_argflag('--diskshow'):
+                        if isinstance(fpath, six.text_type):
                             ut.startfile(fpath)
+                        else:
+                            fpath_list = fpath
+                            for fpath in fpath_list:
+                                ut.startfile(fpath)
 
     @profile
     def _precollect(self):
@@ -702,8 +715,6 @@ class Chap5Commands(object):
                 if (d.get('truth') != d.get('decision') or d.get('truth') is None)
             },
         }
-
-        ut.qtensure()
 
         infr.show(groupby='pred_nid', splines='spline', fnum=1,
                   simple_labels=True,
@@ -1733,6 +1744,9 @@ class Chap4(DBInputs, IOContract):
 
             self.draw_rerank()
 
+            if not ut.get_argflag('--noprune'):
+                self.draw_prune()
+
         if not ut.get_argflag('--nodraw'):
             task_key = 'match_state'
             if task_key in eval_task_keys:
@@ -1741,9 +1755,6 @@ class Chap4(DBInputs, IOContract):
             task_key = 'photobomb_state'
             if task_key in eval_task_keys:
                 self.draw_hard_cases(task_key)
-
-            if not ut.get_argflag('--noprune'):
-                self.draw_prune()
 
     def measure_prune(self):
         """
@@ -1820,12 +1831,21 @@ class Chap4(DBInputs, IOContract):
     def draw_prune(self):
         """
         CommandLine:
-            python -m ibeis Chap4.draw prune GZ_Master1
+            python -m ibeis Chap4.draw importance GZ_Master1
+
+            python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
+            python -m ibeis Chap4.draw importance PZ_Master1 match_state
+
+            python -m ibeis Chap4.draw prune GZ_Master1,PZ_Master1
             python -m ibeis Chap4.draw prune PZ_Master1
+
         >>> from ibeis.scripts.thesis import *
+        >>> self = Chap4('PZ_Master1')
         >>> self = Chap4('GZ_Master1')
         >>> self = Chap4('PZ_MTEST')
         """
+
+        task_key = 'match_state'
         expt_name = 'prune'
         results = self.ensure_results(expt_name)
 
@@ -1841,7 +1861,6 @@ class Chap4(DBInputs, IOContract):
                              for rs in sub_reports])
 
         import plottool as pt
-        pt.qtensure()
 
         mpl.rcParams.update(TMP_RC)
         fig = pt.figure(fnum=1, doclf=True)
@@ -1852,6 +1871,7 @@ class Chap4(DBInputs, IOContract):
                       # num_xticks=5,
                       ylabel='MCC',
                       xlabel='# feature dimensions',
+                      ymin=.5,
                       ymax=1, xmin=1, xmax=n_dims[0], fnum=1, use_legend=False)
         ax = pt.gca()
         ax.invert_xaxis()
@@ -1861,20 +1881,56 @@ class Chap4(DBInputs, IOContract):
 
         # Find the point at which accuracy starts to fall
         u = ave_mccs.mean(axis=1)
-        middle = ut.take_around_percentile(u, .5, len(n_dims) // 2.2)
-        thresh = middle.mean() - (middle.std() * 6)
-        print('thresh = %r' % (thresh,))
-        idx = np.where(u < thresh)[0][0]
-
-        # topinfo = vt.AnnotPairFeatInfo(list(top_importances.keys()))
+        # middle = ut.take_around_percentile(u, .5, len(n_dims) // 2.2)
+        # thresh = middle.mean() - (middle.std() * 6)
+        # print('thresh = %r' % (thresh,))
+        # idx = np.where(u < thresh)[0][0]
+        idx = u.argmax()
 
         fig = pt.figure(fnum=2)
         n_to_mid = ut.dzip(n_dims, mdis_list)
-        top_importances = n_to_mid[n_dims[idx]]
-        pt.wordcloud(top_importances, ax=fig.axes[0])
-        fname = 'wc2.png'
+        pruned_importance = n_to_mid[n_dims[idx]]
+        pt.wordcloud(pruned_importance, ax=fig.axes[0])
+        fname = 'wc_{}_pruned.png'.format(task_key)
         fig_fpath = join(str(self.dpath), fname)
         vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+
+        vals = pruned_importance.values()
+        items = pruned_importance.items()
+        top_dims = ut.sortedby(items, vals)[::-1]
+        lines = []
+        num_top = 10
+        for k, v in top_dims[:num_top]:
+            k = feat_alias(k)
+            k = k.replace('_', '\\_')
+            lines.append('{} & {:.4f} \\\\'.format(k, v))
+        latex_str = '\n'.join(ut.align_lines(lines, '&'))
+
+        increase = u[idx] - u[0]
+
+        print(latex_str)
+        print()
+        extra_ = ut.codeblock(
+            r'''
+            \begin{{table}}[h]
+                \centering
+                \caption{{Pruned top {}/{} dimensions for {} increases MCC by {:.4f}}}
+                \begin{{tabular}}{{lr}}
+                    \toprule
+                    dimension & importance \\
+                    \midrule
+                    {}
+                    \bottomrule
+                \end{{tabular}}
+            \end{{table}}
+            '''
+        ).format(num_top, len(pruned_importance), task_key.replace('_', '-'),
+                 increase, latex_str)
+        # topinfo = vt.AnnotPairFeatInfo(list(pruned_importance.keys()))
+
+        fname = 'pruned_feat_importance_{}'.format(task_key)
+        fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
+        ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
 
         print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[idx]], 'vals', reverse=True)))
         print(ut.repr4(ut.sort_dict(n_to_mid[n_dims[-1]], 'vals', reverse=True)))
@@ -1997,8 +2053,13 @@ class Chap4(DBInputs, IOContract):
 
         front = mid = back = 8
 
+        if task_key == 'phototomb_state':
+            method = 'max-mcc'
+        else:
+            method = 'argmax'
+
         res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        case_df = res.hardness_analysis(pblm.samples, pblm.infr)
+        case_df = res.hardness_analysis(pblm.samples, pblm.infr, method=method)
         # group = case_df.sort_values(['real_conf', 'easiness'])
         case_df = case_df.sort_values(['easiness'])
 
@@ -2008,7 +2069,9 @@ class Chap4(DBInputs, IOContract):
             print('No reviewed failures exist. Do pblm.qt_review_hardcases')
 
         print('There are {} failure cases'.format(len(failure_cases)))
-        print('With average hardness {}'.format(ut.repr2(ut.stats_dict(failure_cases['hardness']), strkeys=True, precision=2)))
+        print('With average hardness {}'.format(
+            ut.repr2(ut.stats_dict(failure_cases['hardness']), strkeys=True,
+                     precision=2)))
 
         cases = []
         for (pred, real), group in failure_cases.groupby(('pred', 'real')):
@@ -2157,7 +2220,28 @@ class Chap4(DBInputs, IOContract):
 
         mpl.rcParams.update(TMP_RC)
 
-        for case in ut.ProgIter(cases, 'draw {} hard case'.format(task_key)):
+        pz_gt_errors = {
+            # The true state of these pairs are:
+            NEGTV: [
+                (239, 3745),
+                (484, 519),
+                (802, 803),
+            ],
+            INCMP: [
+                (4652, 5245),
+                (4405, 5245),
+                (4109, 5245),
+                (16192, 16292),
+            ],
+            POSTV: [
+                (6919, 7192),
+            ]
+
+        }
+
+        prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key),
+                           bs=False)
+        for case in prog:
             aid1, aid2 = case['edge']
             match = case['match']
             real_name, pred_name = case['real'], case['pred']
@@ -2181,6 +2265,7 @@ class Chap4(DBInputs, IOContract):
                        show_ell=False, show_ori=False, show_eig=False,
                        modifysize=True)
             ax.set_xlabel(xlabel)
+            # ax.get_xaxis().get_label().set_fontsize(24)
             ax.get_xaxis().get_label().set_fontsize(24)
 
             fpath = join(str(dpath), fname + '.jpg')
@@ -2202,20 +2287,11 @@ class Chap4(DBInputs, IOContract):
 
         res = task_combo_res[task_key][clf_key][data_key]
 
-        threshes = {}
-        for class_name in res.class_names:
-            c1 = res.confusions(class_name)
-            idx = c1.mcc.argmax()
-            t = c1.thresholds[idx]
-            threshes[class_name] = t
-
         from ibeis.scripts import sklearn_utils
-        res.augment_if_needed()
-        probs = res.clf_probs
-        target_names = res.class_names
-        y_true = res.y_test_enc
-        y_pred = sklearn_utils.thresh_predict(probs, threshes, target_names,
-                                              force=True)
+        threshes = res.get_thresholds('mcc', 'max')
+        y_pred = sklearn_utils.predict_from_probs(res.probs_df, threshes,
+                                                  force=True)
+        y_true = res.target_enc_df
 
         # pred_enc = res.clf_probs.argmax(axis=1)
         # y_pred = pred_enc
@@ -2453,8 +2529,23 @@ class Chap4(DBInputs, IOContract):
         print('# of dimensions: %d' % (len(importances)))
         print(latex_str)
         print()
+        extra_ = ut.codeblock(
+            r'''
+            \begin{{table}}[h]
+                \centering
+                \caption{{Top {}/{} dimensions for {}}}
+                \begin{{tabular}}{{lr}}
+                    \toprule
+                    dimension & importance \\
+                    \midrule
+                    {}
+                    \bottomrule
+                \end{{tabular}}
+            \end{{table}}
+            '''
+        ).format(num_top, len(importances), task_key.replace('_', '-'), latex_str)
 
-        fpath = ut.render_latex(latex_str, dpath=self.dpath, fname=fname)
+        fpath = ut.render_latex(extra_, dpath=self.dpath, fname=fname)
         ut.write_to(join(str(self.dpath), fname + '.tex'), latex_str)
         return fpath
 
@@ -2637,6 +2728,7 @@ class Chap4(DBInputs, IOContract):
     def draw_roc(self, task_key):
         """
         python -m ibeis Chap4.draw roc GZ_Master1 photobomb_state
+        python -m ibeis Chap4.draw roc GZ_Master1 match_state
         """
         mpl.rcParams.update(TMP_RC)
 
@@ -2659,6 +2751,14 @@ class Chap4(DBInputs, IOContract):
                 {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
                 {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
             ]
+
+            at_metric = 'tpr'
+            for at_value in [.25, .5, .75]:
+                info = ut.odict()
+                for want_metric in ['fpr', 'n_false_pos', 'n_true_pos']:
+                    key = '{}_@_{}={:.2f}'.format(want_metric, at_metric, at_value)
+                    info[key] = c3.get_metric_at_metric(want_metric, at_metric, at_value)
+                print(ut.repr4(info, align=True, precision=8))
         else:
             target_class = 'pb'
             res = task_combo_res[task_key][clf_key][data_key]

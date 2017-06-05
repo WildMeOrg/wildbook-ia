@@ -720,19 +720,38 @@ class ClfResult(ut.NiceRepr):
 
         return res
 
-    def hardness_analysis(res, samples, infr=None):
+    def hardness_analysis(res, samples, infr=None, method='argmax'):
         """
         samples = pblm.samples
+
+        # TODO MWE with sklearn data
+
+        ClfResult.make_single(ClfResult, clf, X_df, test_idx, labels, data_key,
+        feat_dims=None):
+
+        res.get_thresholds('mcc', 'maximize')
+
+        predict_method = 'argmax'
+
         """
         meta = {}
         easiness = ut.ziptake(res.probs_df.values, res.target_enc_df.values)
+
+        # pred = sklearn_utils.predict_from_probs(res.probs_df, predict_method)
+        from ibeis.scripts import sklearn_utils
+        if method == 'max-mcc':
+            method = res.get_thresholds('mcc', 'maximize')
+        pred = sklearn_utils.predict_from_probs(res.probs_df, method,
+                                                force=True)
+
         meta['easiness'] = np.array(easiness).ravel()
         meta['hardness'] = 1 - meta['easiness']
         meta['aid1'] = res.probs_df.index.get_level_values(0)
         meta['aid2'] = res.probs_df.index.get_level_values(1)
         # meta['aid1'] = samples.aid_pairs.T[0].take(res.probs_df.index.values)
         # meta['aid2'] = samples.aid_pairs.T[1].take(res.probs_df.index.values)
-        meta['pred'] = res.probs_df.values.argmax(axis=1)
+        # meta['pred'] = res.probs_df.values.argmax(axis=1)
+        meta['pred'] = pred.values
         meta['real'] = res.target_enc_df.values.ravel()
         meta['failed'] = meta['pred'] != meta['real']
         meta = pd.DataFrame(meta)
@@ -822,6 +841,19 @@ class ClfResult(ut.NiceRepr):
         )
         print('Precision/Recall Report:')
         print(report)
+
+    def get_thresholds(res, metric='mcc', value='maximize'):
+        """
+        get_metric = 'thresholds'
+        at_metric = metric = 'mcc'
+        at_value = value = 'maximize'
+        """
+        threshes = {}
+        for class_name in res.class_names:
+            cfms = res.confusions(class_name)
+            thresh = cfms.get_metric_at_metric('thresholds', metric, value)
+            threshes[class_name] = thresh
+        return threshes
 
     @profile
     def get_pos_threshes(res, metric='fpr', value=1E-4, maximize=False,

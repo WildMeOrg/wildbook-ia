@@ -476,8 +476,45 @@ def classification_report2(y_true, y_pred, target_names=None,
     return report
 
 
-def thresh_predict(probs, threshes, target_names=None, force=False):
+def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
+    if method == 'argmax':
+        if isinstance(probs, pd.DataFrame):
+            pred_enc = pd.Series(probs.values.argmax(axis=1), index=probs.index)
+        else:
+            pred_enc = probs.argmax(axis=1)
+    else:
+        threshes = method
+        pred_enc = predict_with_thresh(probs, threshes, target_names, **kwargs)
+    return pred_enc
+
+
+def predict_with_thresh(probs, threshes, target_names=None, force=False):
+    """
+
+    >>> from ibeis.scripts.sklearn_utils import *
+    >>> probs = np.array([
+    >>>     [0.4, 0.5, 0.1],
+    >>>     [1.0, 0.0, 0.0],
+    >>>     [0.3, 0.3, 0.4],
+    >>>     [0.1, 0.3, 0.6],
+    >>>     [0.1, 0.6, 0.3],
+    >>>     [0.6, 0.1, 0.3],])
+    >>> threshes = [.5, .5, .5]
+    >>> pred_enc = predict_with_thresh(probs, threshes)
+    >>> predict_with_thresh(probs, [.5, .5, .5])
+    >>> predict_with_thresh(probs, [.5, .5, .5], force=True)
+
+    """
+    df_index = None
+    if isinstance(probs, pd.DataFrame):
+        df_index = probs.index
+        if target_names is None and isinstance(threshes, dict):
+            target_names = probs.columns.tolist()
+        probs = probs.values
+
     if isinstance(threshes, dict):
+        if target_names is None:
+            raise ValueError('need target names to use a dict of threshes')
         threshes = ut.take(threshes, target_names)
 
     bin_flags = (probs >= threshes)
@@ -498,4 +535,7 @@ def thresh_predict(probs, threshes, target_names=None, force=False):
     if np.any(multi_predict):
         pred_enc[multi_predict] = probs[multi_predict].argmax(axis=1)
 
+    if df_index is not None:
+        pred_enc = pd.Series(pred_enc, index=df_index)
+        # pred = pred_enc.apply(lambda x: target_names[x])
     return pred_enc
