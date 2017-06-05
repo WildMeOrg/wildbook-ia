@@ -1733,7 +1733,13 @@ class Chap4(DBInputs, IOContract):
 
             self.draw_rerank()
 
-            if not ut.get_argflag('--nodraw'):
+        if not ut.get_argflag('--nodraw'):
+            task_key = 'match_state'
+            if task_key in eval_task_keys:
+                self.draw_hard_cases(task_key)
+
+            task_key = 'photobomb_state'
+            if task_key in eval_task_keys:
                 self.draw_hard_cases(task_key)
 
             if not ut.get_argflag('--noprune'):
