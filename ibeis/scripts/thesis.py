@@ -2053,12 +2053,17 @@ class Chap4(DBInputs, IOContract):
 
         front = mid = back = 8
 
-        if task_key == 'phototomb_state':
+        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
+
+        print('task_key = %r' % (task_key,))
+        if task_key == 'photobomb_state':
             method = 'max-mcc'
+            method = res.get_thresholds('mcc', 'maximize')
+            print('Using thresholds: ' + ut.repr4(method))
         else:
             method = 'argmax'
+            print('Using argmax')
 
-        res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
         case_df = res.hardness_analysis(pblm.samples, pblm.infr, method=method)
         # group = case_df.sort_values(['real_conf', 'easiness'])
         case_df = case_df.sort_values(['easiness'])
