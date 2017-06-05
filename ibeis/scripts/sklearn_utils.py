@@ -301,6 +301,13 @@ def classification_report2(y_true, y_pred, target_names=None,
     rprob = real_total / N
     pprob = pred_total / N
 
+    if len(cm) == 2:
+        [[A, B],
+         [C, D]] = cm
+        (A * D - B * C) / np.sqrt((A + C) * (B + D) * (A + B) * (C + D))
+
+        # c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+
     # bookmaker is analogous to recall, but unbiased by class frequency
     rprob_mat = np.tile(rprob, [k, 1]).T - (1 - np.eye(k))
     bmcm = cm.T / rprob_mat
@@ -467,3 +474,28 @@ def classification_report2(y_true, y_pred, target_names=None,
     except ValueError:
         pass
     return report
+
+
+def thresh_predict(probs, threshes, target_names=None, force=False):
+    if isinstance(threshes, dict):
+        threshes = ut.take(threshes, target_names)
+
+    bin_flags = (probs >= threshes)
+    num_states = bin_flags.sum(axis=1)
+
+    no_predict    = (num_states == 0)
+    multi_predict = (num_states > 1)
+
+    pred_enc = bin_flags.argmax(axis=1)
+
+    if np.any(no_predict):
+        if force:
+            pred_enc[no_predict] = probs[no_predict].argmax(axis=1)
+        else:
+            pred_enc = pred_enc.astype(np.float)
+            pred_enc[no_predict] = np.nan
+
+    if np.any(multi_predict):
+        pred_enc[multi_predict] = probs[multi_predict].argmax(axis=1)
+
+    return pred_enc

@@ -1717,11 +1717,15 @@ class Chap4(DBInputs, IOContract):
         if task_key in eval_task_keys:
             self.write_importance(task_key)
             self.write_metrics(task_key)
+            self.write_metrics2(task_key)
+            self.draw_roc(task_key)
+            self.draw_mcc_thresh(task_key)
 
         task_key = 'match_state'
         if task_key in eval_task_keys:
             self.draw_class_score_hist()
             self.draw_roc(task_key)
+            self.draw_mcc_thresh(task_key)
 
             self.draw_wordcloud(task_key)
             self.write_importance(task_key)
@@ -2176,23 +2180,14 @@ class Chap4(DBInputs, IOContract):
             fpath = join(str(dpath), fname + '.jpg')
             vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
 
-    def write_metrics(self, task_key='match_state'):
+    def write_metrics2(self, task_key='match_state'):
         """
         CommandLine:
-            python -m ibeis Chap4.write_metrics --db PZ_PB_RF_TRAIN --task-key=match_state
-            python -m ibeis Chap4.write_metrics --db GZ_Master1 --task-key=match_state
+            python -m ibeis Chap4.draw metrics PZ_PB_RF_TRAIN match_state
+            python -m ibeis Chap4.draw metrics2 PZ_Master1 photobomb_state
+            python -m ibeis Chap4.draw metrics2 GZ_Master1 photobomb_state
 
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
-            >>> defaultdb = 'GZ_Master1'
-            >>> defaultdb = 'PZ_PB_RF_TRAIN'
-            >>> defaultdb = 'PZ_MTEST'
-            >>> #task_key = kwargs['task_key']
-            >>> task_key = ut.get_argval('--task-key', default='match_state')
-            >>> dbname = ut.get_argval('--db', default=defaultdb)
-            >>> self = Chap4(dbname)
-            >>> self.write_metrics(task_key)
+            python -m ibeis Chap4.draw metrics2 GZ_Master1 photobomb_state
         """
         results = self.ensure_results('all')
         task_combo_res = results['task_combo_res']
@@ -2200,18 +2195,34 @@ class Chap4(DBInputs, IOContract):
         clf_key = results['clf_key']
 
         res = task_combo_res[task_key][clf_key][data_key]
+
+        threshes = {}
+        for class_name in res.class_names:
+            c1 = res.confusions(class_name)
+            idx = c1.mcc.argmax()
+            t = c1.thresholds[idx]
+            threshes[class_name] = t
+
+        from ibeis.scripts import sklearn_utils
         res.augment_if_needed()
-        pred_enc = res.clf_probs.argmax(axis=1)
-        y_pred = pred_enc
+        probs = res.clf_probs
+        target_names = res.class_names
         y_true = res.y_test_enc
+        y_pred = sklearn_utils.thresh_predict(probs, threshes, target_names,
+                                              force=True)
+
+        # pred_enc = res.clf_probs.argmax(axis=1)
+        # y_pred = pred_enc
         sample_weight = res.sample_weight
         target_names = res.class_names
 
-        from ibeis.scripts import sklearn_utils
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names, sample_weight, verbose=False)
         metric_df = report['metrics']
         confusion_df = report['confusion']
+
+        print(metric_df)
+        print(confusion_df)
 
         # df = self.task_confusion[task_key]
         df = confusion_df
@@ -2219,6 +2230,8 @@ class Chap4(DBInputs, IOContract):
         df = df.rename_axis(self.task_nice_lookup[task_key], 1)
         df.index.name = None
         df.columns.name = None
+        # import utool
+        # utool.embed()
 
         latex_str = df.to_latex(
             float_format=lambda x: '' if np.isnan(x) else str(int(x)),
@@ -2253,6 +2266,111 @@ class Chap4(DBInputs, IOContract):
         lines = latex_str.split('\n')
         lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
         latex_str = '\n'.join(lines)
+        import re
+        latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
+        metrics_tex = latex_str
+
+        print(confusion_tex)
+        print(metrics_tex)
+
+        dpath = str(self.dpath)
+        confusion_fname = 'confusion2_{}'.format(task_key)
+        metrics_fname = 'eval_metrics2_{}'.format(task_key)
+
+        ut.write_to(join(dpath, confusion_fname + '.tex'), confusion_tex)
+        ut.write_to(join(dpath, metrics_fname + '.tex'), metrics_tex)
+
+        fpath1 = ut.render_latex(confusion_tex, dpath=dpath,
+                                 fname=confusion_fname)
+        fpath2 = ut.render_latex(metrics_tex, dpath=dpath, fname=metrics_fname)
+        return fpath1, fpath2
+
+    def write_metrics(self, task_key='match_state'):
+        """
+        CommandLine:
+            python -m ibeis Chap4.draw metrics PZ_PB_RF_TRAIN match_state
+            python -m ibeis Chap4.draw metrics GZ_Master1 photobomb_state
+
+            python -m ibeis Chap4.draw metrics GZ_Master1 photobomb_state
+
+        Example:
+            >>> from ibeis.scripts.thesis import *
+            >>> kwargs = ut.argparse_funckw(Chap4.write_metrics)
+            >>> defaultdb = 'GZ_Master1'
+            >>> defaultdb = 'PZ_PB_RF_TRAIN'
+            >>> defaultdb = 'PZ_MTEST'
+            >>> #task_key = kwargs['task_key']
+            >>> task_key = ut.get_argval('--task-key', default='match_state')
+            >>> dbname = ut.get_argval('--db', default=defaultdb)
+            >>> self = Chap4(dbname)
+            >>> self.write_metrics(task_key)
+        """
+        results = self.ensure_results('all')
+        task_combo_res = results['task_combo_res']
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        res = task_combo_res[task_key][clf_key][data_key]
+        res.augment_if_needed()
+        pred_enc = res.clf_probs.argmax(axis=1)
+        y_pred = pred_enc
+        y_true = res.y_test_enc
+        sample_weight = res.sample_weight
+        target_names = res.class_names
+
+        from ibeis.scripts import sklearn_utils
+        report = sklearn_utils.classification_report2(
+            y_true, y_pred, target_names, sample_weight, verbose=False)
+        metric_df = report['metrics']
+        confusion_df = report['confusion']
+
+        print(metric_df)
+        print(confusion_df)
+
+        # df = self.task_confusion[task_key]
+        df = confusion_df
+        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
+        df = df.rename_axis(self.task_nice_lookup[task_key], 1)
+        df.index.name = None
+        df.columns.name = None
+        # import utool
+        # utool.embed()
+
+        latex_str = df.to_latex(
+            float_format=lambda x: '' if np.isnan(x) else str(int(x)),
+        )
+        sum_pred = df.index[-1]
+        sum_real = df.columns[-1]
+        latex_str = latex_str.replace(sum_pred, r'$\sum$ predicted')
+        latex_str = latex_str.replace(sum_real, r'$\sum$ real')
+        # latex_str = latex_str.replace(sum_pred, r'$\textstyle\sum$ predicted')
+        # latex_str = latex_str.replace(sum_real, r'$\textstyle\sum$ real')
+        colfmt = '|l|' + 'r' * (len(df) - 1) + '|l|'
+        newheader = '\\begin{tabular}{%s}' % (colfmt,)
+        latex_str = '\n'.join([newheader] + latex_str.split('\n')[1:])
+        lines = latex_str.split('\n')
+        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
+        latex_str = '\n'.join(lines)
+        latex_str = latex_str.replace('midrule', 'hline')
+        latex_str = latex_str.replace('toprule', 'hline')
+        latex_str = latex_str.replace('bottomrule', 'hline')
+        confusion_tex = latex_str
+
+        df = metric_df
+        # df = self.task_metrics[task_key]
+        df = df.rename_axis(self.task_nice_lookup[task_key], 0)
+        df = df.drop(['markedness', 'bookmaker'], axis=1)
+        df.index.name = None
+        df.columns.name = None
+        df['support'] = df['support'].astype(np.int)
+        latex_str = df.to_latex(
+            float_format=lambda x: '%.2f' % (x)
+        )
+        lines = latex_str.split('\n')
+        lines = lines[0:-4] + ['\\midrule'] + lines[-4:]
+        latex_str = '\n'.join(lines)
+        import re
+        latex_str = re.sub(' -0.00 ', '  0.00 ', latex_str)
         metrics_tex = latex_str
 
         print(confusion_tex)
@@ -2304,7 +2422,10 @@ class Chap4(DBInputs, IOContract):
     def write_importance(self, task_key):
         """
         python -m ibeis Chap4.draw importance GZ_Master1 match_state
-        python -m ibeis Chap4.draw importance GZ_Master1 photobomb_state --diskshow
+        python -m ibeis Chap4.draw importance GZ_Master1 photobomb_state
+
+        python -m ibeis Chap4.draw importance PZ_Master1 match_state
+        python -m ibeis Chap4.draw importance PZ_Master1 photobomb_state
         """
         # Print info for latex table
         results = self.ensure_results('all')
@@ -2313,7 +2434,8 @@ class Chap4(DBInputs, IOContract):
         items = importances.items()
         top_dims = ut.sortedby(items, vals)[::-1]
         lines = []
-        for k, v in top_dims[:5]:
+        num_top = 10
+        for k, v in top_dims[:num_top]:
             k = feat_alias(k)
             k = k.replace('_', '\\_')
             lines.append('{} & {:.4f} \\\\'.format(k, v))
@@ -2321,7 +2443,7 @@ class Chap4(DBInputs, IOContract):
 
         fname = 'feat_importance_{}'.format(task_key)
 
-        print('TOP 5 importances for ' + task_key)
+        print('TOP {} importances for {}'.format(num_top, task_key))
         print('# of dimensions: %d' % (len(importances)))
         print(latex_str)
         print()
@@ -2448,22 +2570,69 @@ class Chap4(DBInputs, IOContract):
         vt.imwrite(join(str(self.dpath), fname),
                    pt.render_figure_to_image(fig2, dpi=DPI))
 
-    def draw_roc(self, task_key):
+    def draw_mcc_thresh(self, task_key):
+        """
+        python -m ibeis Chap4.draw mcc_thresh GZ_Master1 match_state
+        python -m ibeis Chap4.draw mcc_thresh PZ_Master1 match_state
+
+        python -m ibeis Chap4.draw mcc_thresh GZ_Master1 photobomb_state
+        python -m ibeis Chap4.draw mcc_thresh PZ_Master1 photobomb_state
+
+        """
         mpl.rcParams.update(TMP_RC)
 
-        # def measure_roc_data_photobomb(self, pblm):
-        #     expt_name = 'roc_data_photobomb'
-        #     pblm = self.pblm
-        #     task_key = 'photobomb_state'
-        #     target_class = 'pb'
-        #     res = pblm.task_combo_res[task_key][self.clf_key][self.data_key]
-        #     c1 = res.confusions(target_class)
-        #     results = {
-        #         'target_class': target_class,
-        #         'curves': [
-        #             {'label': 'learned', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
-        #         ]
-        #     }
+        results = self.ensure_results('all')
+        data_key = results['data_key']
+        clf_key = results['clf_key']
+
+        task_combo_res = results['task_combo_res']
+
+        code_to_nice = self.task_nice_lookup[task_key]
+
+        if task_key == 'photobomb_state':
+            classes = ['pb']
+        elif task_key == 'match_state':
+            classes = [POSTV, NEGTV, INCMP]
+
+        res = task_combo_res[task_key][clf_key][data_key]
+
+        roc_curves = []
+
+        for class_name in classes:
+            c1 = res.confusions(class_name)
+            if len(c1.thresholds) <= 2:
+                continue
+            class_nice = code_to_nice[class_name]
+            idx = c1.mcc.argmax()
+            t = c1.thresholds[idx]
+            mcc = c1.mcc[idx]
+            roc_curves += [
+                {'label': class_nice + ', t={:.2f}, mcc={:.2f}'.format(t, mcc),
+                 'thresh': c1.thresholds, 'mcc': c1.mcc},
+            ]
+
+        fig = pt.figure(fnum=1)  # NOQA
+        ax = pt.gca()
+        for data in roc_curves:
+            ax.plot(data['thresh'], data['mcc'], label='%s' % (data['label']))
+        ax.set_xlabel('threshold')
+        ax.set_ylabel('MCC')
+        # ax.set_title('%s ROC for %s' % (target_class.title(), self.species))
+        ax.legend()
+        pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
+        fig.set_size_inches([W, H])
+
+        fname = 'mcc_thresh_{}.png'.format(task_key)
+        fig_fpath = join(str(self.dpath), fname)
+        vt.imwrite(fig_fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fig_fpath)
+
+    def draw_roc(self, task_key):
+        """
+        python -m ibeis Chap4.draw roc GZ_Master1 photobomb_state
+        """
+        mpl.rcParams.update(TMP_RC)
 
         results = self.ensure_results('all')
         data_key = results['data_key']
@@ -2471,19 +2640,26 @@ class Chap4(DBInputs, IOContract):
 
         task_combo_res = results['task_combo_res']
         lnbnn_xy = results['lnbnn_xy']
-        scores = lnbnn_xy['score_lnbnn_1vM'].values
-        y = lnbnn_xy[POSTV].values
 
-        task_key = 'match_state'
-        target_class = POSTV
-
-        res = task_combo_res[task_key][clf_key][data_key]
-        c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
-        c3 = res.confusions(target_class)
-        roc_curves = [
-            {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
-            {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
-        ]
+        if task_key == 'match_state':
+            scores = lnbnn_xy['score_lnbnn_1vM'].values
+            y = lnbnn_xy[POSTV].values
+            # task_key = 'match_state'
+            target_class = POSTV
+            res = task_combo_res[task_key][clf_key][data_key]
+            c2 = vt.ConfusionMetrics.from_scores_and_labels(scores, y)
+            c3 = res.confusions(target_class)
+            roc_curves = [
+                {'label': 'LNBNN', 'fpr': c2.fpr, 'tpr': c2.tpr, 'auc': c2.auc},
+                {'label': 'learned', 'fpr': c3.fpr, 'tpr': c3.tpr, 'auc': c3.auc},
+            ]
+        else:
+            target_class = 'pb'
+            res = task_combo_res[task_key][clf_key][data_key]
+            c1 = res.confusions(target_class)
+            roc_curves = [
+                {'label': 'learned', 'fpr': c1.fpr, 'tpr': c1.tpr, 'auc': c1.auc},
+            ]
 
         fig = pt.figure(fnum=1)  # NOQA
         ax = pt.gca()
@@ -4033,10 +4209,10 @@ def label_alias(k):
 
 def feat_alias(k):
     # presentation values for feature dimension
-    k = k.replace('weighted_', 'wgt_')
-    k = k.replace('norm_x', 'x')
-    k = k.replace('norm_y', 'y')
-    k = k.replace('yaw', 'view')
+    # k = k.replace('weighted_', 'wgt_')
+    # k = k.replace('norm_x', 'x')
+    # k = k.replace('norm_y', 'y')
+    # k = k.replace('yaw', 'view')
     return k
 
 
