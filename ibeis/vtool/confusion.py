@@ -25,7 +25,7 @@ def nan_to_num(arr, num):
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
-class ConfusionMetrics(object):
+class ConfusionMetrics(ut.NiceRepr):
     r"""
     Can compute average percision using the PASCAL definition
 
@@ -178,6 +178,9 @@ class ConfusionMetrics(object):
         # Can be set to weight the cost of errors
         self.cp = 1.0
         self.cn = 1.0
+
+    # def __nice__(self):
+    #     return '{}'.format(cfms.n_samples)
 
     # ----
 
@@ -536,6 +539,39 @@ class ConfusionMetrics(object):
         thresh = interpolate_replbounds(metric_values, self.thresholds, value,
                                         maximize=maximize)
         return thresh
+
+    def get_metric_at_metric(self, get_metric, at_metric, at_value,
+                             subindex=False):
+        """
+        get_metric = 'fpr'
+        at_metric = 'tpr'
+        at_value = .25
+        self.rrr()
+
+        self.get_metric_at_metric('fpr', 'tpr', .25)
+        self.get_metric_at_metric('n_false_pos', 'tpr', .25)
+        self.get_metric_at_metric('n_true_pos', 'tpr', .25)
+        """
+        import vtool as vt
+        at_arr = getattr(self, at_metric)
+        get_arr = getattr(self, get_metric)
+
+        if at_value in {'max', 'maximize'}:
+            at_value = at_arr.max()
+        elif at_value in {'min', 'minimize'}:
+            at_value = at_arr.min()
+
+        # Find point closest to the value
+        distance = np.abs(at_arr - at_value)
+
+        if subindex:
+            submin_x, submin_y = vt.argsubmin2(distance, xdata=get_arr)
+            get_value = submin_x
+        else:
+            idx = distance.argmin()
+            min_x = get_arr[idx]
+            get_value = min_x
+        return get_value
 
     def get_metric_at_thresh(self, metric, thresh):
         r"""
