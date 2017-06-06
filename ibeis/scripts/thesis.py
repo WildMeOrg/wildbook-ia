@@ -452,7 +452,7 @@ class Chap5Commands(object):
             >>> self = Chap5('PZ_MTEST')
         """
         import ibeis
-        sim_params = self._setup_simulation()
+        sim_params = self._setup()
 
         ibs = self.ibs
 
@@ -2225,7 +2225,7 @@ class Chap4(DBInputs, IOContract):
 
         mpl.rcParams.update(TMP_RC)
 
-        pz_gt_errors = {
+        pz_gt_errors = {  # NOQA
             # The true state of these pairs are:
             NEGTV: [
                 (239, 3745),
@@ -2241,7 +2241,6 @@ class Chap4(DBInputs, IOContract):
             POSTV: [
                 (6919, 7192),
             ]
-
         }
 
         prog = ut.ProgIter(cases, 'draw {} hard case'.format(task_key),
@@ -2260,7 +2259,7 @@ class Chap4(DBInputs, IOContract):
             probstr = ut.repr2(probs, precision=2, strkeys=True, nobr=True)
             xlabel = 'real={}, pred={},\n{}'.format(real_nice, pred_nice,
                                                     probstr)
-            fig = pt.figure(fnum=1, clf=True)
+            fig = pt.figure(fnum=1000, clf=True)
             ax = pt.gca()
             # Draw with feature overlay
             match.show(ax, vert=False, heatmask=True,
@@ -2300,6 +2299,7 @@ class Chap4(DBInputs, IOContract):
 
         # pred_enc = res.clf_probs.argmax(axis=1)
         # y_pred = pred_enc
+        res.augment_if_needed()
         sample_weight = res.sample_weight
         target_names = res.class_names
 
