@@ -980,24 +980,43 @@ class CandidateSearch(object):
         infr.assert_consistency_invariant()
 
     @profile
-    def _make_task_probs(infr, edges):
+    def _make_task_probs(infr, edges, data_key=None):
         """
         Predict edge probs for each pairwise classifier task
         GZ_Master1xwusomqdrrgoszenlearn(sum,glob)
         GZ_Master1xwusomqdrrgoszenlearn
         """
+        import ubelt as ub
         pblm = infr.classifiers
         data_key = pblm.default_data_key
+
         # TODO: find a good way to cache this
-        cfgstr = infr.ibs.dbname + ut.hashstr27(repr(edges)) + data_key
-        import ubelt as ub
+        info = pblm.feat_construct_info[data_key]
+        feat_construct_config = info[0]
+        feat_dims = info[1]
+        cfgstr = '_'.join([
+            infr.ibs.dbname, data_key,
+            ut.hashid_arr(edges, 'edges'),
+            ut.hashid_arr(feat_dims, 'feat_dims'),
+            ut.repr2(feat_construct_config, stritems=True, itemsep='',
+                     kvsep=':')
+        ])
         cacher = ub.Cacher('foobarclf_taskprobs_' + infr.ibs.dbname,
                            cfgstr=cfgstr, appname=pblm.appname, enabled=1,
+                           meta=[edges, feat_dims,
+                                 ut.repr2(feat_construct_config)],
                            verbose=pblm.verbose)
         X = cacher.tryload()
+        if cacher.exists():
+            fpath = cacher.get_fpath()
+            print('Bulk cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         if X is None:
             X = infr._pblm_pairwise_features(edges, data_key)
             cacher.save(X)
+            fpath = cacher.get_fpath()
+            print('Saved bulk cache of size: {}'.format(
+                ut.get_file_nBytes_str(fpath)))
+
         task_keys = list(pblm.samples.subtasks.keys())
         task_probs = pblm.predict_proba_deploy(X, task_keys)
         return task_probs

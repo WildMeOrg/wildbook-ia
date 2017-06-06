@@ -305,8 +305,8 @@ class Chap5(DBInputs):
 
         Example:
             >>> from ibeis.scripts.thesis import *
-            >>> self = Chap5('PZ_MTEST')
             >>> self = Chap5('GZ_Master1')
+            >>> self = Chap5('PZ_MTEST')
         """
         self._precollect()
 
@@ -319,13 +319,9 @@ class Chap5(DBInputs):
 
         pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids)
         pblm.set_pandas_options()
-        import utool
-        utool.embed()
         pblm.load_samples()
         pblm.load_features(with_simple=False)
         pblm.build_feature_subsets()
-        import utool
-        utool.embed()
 
         pblm.learn_evaluation_classifiers()
 
