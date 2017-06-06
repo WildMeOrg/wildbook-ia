@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import re
 import functools
 import operator as op
 import utool as ut
@@ -102,7 +103,6 @@ class Config(ut.NiceRepr, ut.DictLike):
     def get_config_name(cfg, **kwargs):
         """ the user might want to overwrite this function """
         # VERY HACKY
-        import re
         config_name = cfg.__class__.__name__.replace('Config', '')
         config_name = re.sub('_$', '', config_name)
         return config_name
@@ -134,23 +134,103 @@ class Config(ut.NiceRepr, ut.DictLike):
         # FIXME: currently can't update subconfigs based on namespaces
         # and non-namespaced vars are in the context of the root level.
         #self_keys = set(cfg.__dict__.keys())
-        self_keys = set(cfg.keys())
         #self_keys.append(cfg.get_varnames())
-        name = cfg.get_config_name()
-        prefix = name + '_'
+        _aliases = cfg._make_key_alias_checker()
+        self_keys = set(cfg.keys())
         for key, val in six.iteritems(kwargs):
             # update only existing keys or namespace prefixed keys
-            key_alias = None
-            if key.startswith(prefix):
-                key_alias = key[len(prefix):]
-            if key in self_keys:
-                #print("SETTING")
-                #setattr(cfg, key, val)
-                cfg.setitem(key, val)
-            if key_alias in self_keys:
-                #print("SETTING")
-                cfg.setitem(key_alias, val)
-                #setattr(cfg, key, val)
+            for k in _aliases(key):
+                if k in self_keys:
+                    cfg.setitem(k, val)
+                    break
+
+    def _make_key_alias_checker(cfg):
+        prefixes = (cfg.get_config_name(), cfg.__class__.__name__)
+        def _aliases(key):
+            yield key
+            for part in prefixes:
+                prefix = part + '_'
+                if key.startswith(prefix):
+                    key_alias = key[len(prefix):]
+                    yield key_alias
+        return _aliases
+
+    def update2(cfg, *args, **kwargs):
+        """
+        Overwrites default DictLike update for only keys that exist.
+        Non-existing key are ignored.
+        Also updates nested configs.
+
+        Note:
+            prefixed keys in the form <classname>_<key> will be just be
+            interpreted as <key>
+
+        CommandLine:
+            python -m dtool.base update --show
+
+        Example:
+            >>> # ENABLE_DOCTEST
+            >>> from dtool.base import *  # NOQA
+            >>> import dtool as dt
+            >>> cfg = dt.Config.from_dict({
+            >>>     'a': 1,
+            >>>     'b': 2,
+            >>>     'c': 3,
+            >>>     'sub1': dt.Config.from_dict({
+            >>>         'x': 'x',
+            >>>         'y': {'z', 'x'},
+            >>>         'c': 33,
+            >>>     }),
+            >>>     'sub2': dt.Config.from_dict({
+            >>>         's': [1, 2, 3],
+            >>>         't': (1, 2, 3),
+            >>>         'c': 42,
+            >>>         'sub3': dt.Config.from_dict({
+            >>>             'b': 99,
+            >>>             'c': 88,
+            >>>         }),
+            >>>     }),
+            >>> })
+            >>> kwargs = {'c': 10}
+            >>> cfg.update2(c=10, y={1,2})
+            >>> assert cfg.c == 10
+            >>> assert cfg.sub1.c == 10
+            >>> assert cfg.sub2.c == 10
+            >>> assert cfg.sub2.sub3.c == 10
+            >>> assert cfg.sub1.y == {1, 2}
+        """
+        if len(args) > 1:
+            raise ValueError('only specify one arg')
+        elif len(args) == 1:
+            kwargs.update(args[0])
+        return list(cfg._update2(kwargs))
+
+    def _update2(cfg, kwargs):
+        # yields a list of keys updated as they happen
+        _aliases = cfg._make_key_alias_checker()
+        for key, val in cfg.native_items():
+            for k in _aliases(key):
+                if k in kwargs:
+                    cfg.setitem(k, kwargs[k])
+                    yield k
+                    break
+        for key, val in cfg.nested_items():
+            val = cfg[key]
+            if isinstance(val, Config):
+                for k in val._update2(kwargs):
+                    yield k
+
+    def nested_items(cfg):
+        for key in cfg.keys():
+            val = cfg[key]
+            if isinstance(val, Config):
+                yield key, val
+
+    def native_items(cfg):
+        for key in cfg.keys():
+            val = cfg[key]
+            if not isinstance(val, Config):
+                yield key, val
 
     def initialize_params(cfg, **kwargs):
         """ Initializes config class attributes based on params info list """
@@ -493,6 +573,10 @@ def make_configclass(dict_, tablename):
                     'Given varname=%r does not match key=%r' % (pi.varname, key))
             return pi
         else:
+            if isinstance(val, Config):
+                # Set table name from key when doing nested from dicts
+                if val.__class__.__name__ == 'UnnamedConfig':
+                    val.__class__.__name__ = key + 'Config'
             return ut.ParamInfo(key, val, type_=type(val))
 
     param_info_list = [rectify_item(key, val) for key, val in dict_.items()]
