@@ -327,7 +327,7 @@ class AnnotInfrMatching(object):
                                 appname=pblm.appname, verbose=20)
         if feat_cacher.exists():
             fpath = feat_cacher.get_fpath()
-            print('Cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
+            print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         data = feat_cacher.tryload()
         if data is None:
             config = feat_construct_config['match_config']
@@ -340,6 +340,8 @@ class AnnotInfrMatching(object):
                                                 global_keys, need_lnbnn,
                                                 multi_index)
             feat_cacher.save(data)
+            fpath = feat_cacher.get_fpath()
+            print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         matches, feats = data
 
         # # Take the filtered subset of columns

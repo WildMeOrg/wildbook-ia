@@ -275,28 +275,52 @@ def classification_report2(y_true, y_pred, target_names=None,
     from sklearn.preprocessing import LabelEncoder
 
     if target_names is None:
-        lb = LabelEncoder()
-        lb.fit(np.hstack([y_true, y_pred]))
-        y_true_ = lb.transform(y_true)
-        y_pred_ = lb.transform(y_pred)
-        target_names = lb.classes_
+        unique_labels = np.unique(np.hstack([y_true, y_pred]))
+        if len(unique_labels) == 1 and (unique_labels[0] == 0 or unique_labels[0] == 1):
+            target_names = np.array([False, True])
+            y_true_ = y_true
+            y_pred_ = y_pred
+        else:
+            lb = LabelEncoder()
+            lb.fit(unique_labels)
+            y_true_ = lb.transform(y_true)
+            y_pred_ = lb.transform(y_pred)
+            target_names = lb.classes_
     else:
         y_true_ = y_true
         y_pred_ = y_pred
+
+    # Real data is on the rows,
+    # Pred data is on the cols.
 
     cm = sklearn.metrics.confusion_matrix(
         y_true_, y_pred_, sample_weight=sample_weight)
     confusion = cm  # NOQA
 
-    k = len(cm)
-    N = cm.sum()
+    k = len(cm)  # number of classes
+    N = cm.sum()  # number of examples
 
     real_total = cm.sum(axis=1)
     pred_total = cm.sum(axis=0)
 
+    # the number of "positive" cases **per class**
+    n_pos = real_total  # NOQA
+    # the number of times a class was predicted.
+    n_neg = N - n_pos  # NOQA
+
+    # number of true positives per class
     n_tps = np.diag(cm)
-    tprs = n_tps / real_total
-    tpas = n_tps / pred_total
+    # number of true negatives per class
+    n_fps = (cm - np.diagflat(np.diag(cm))).sum(axis=0)
+
+    tprs = n_tps / real_total  # true pos rate (recall)
+    tpas = n_tps / pred_total  # true pos accuracy (precision)
+
+    unused = (real_total + pred_total) == 0
+
+    fprs = n_fps / n_neg  # false pose rate
+    fprs[unused] = np.nan
+    # tnrs = 1 - fprs
 
     rprob = real_total / N
     pprob = pred_total / N
@@ -323,6 +347,7 @@ def classification_report2(y_true, y_pred, target_names=None,
     perclass_data = ut.odict([
         ('precision', tpas),
         ('recall', tprs),
+        ('fpr', fprs),
         ('markedness', mks),
         ('bookmaker', bms),
         ('mcc', mccs),
@@ -331,8 +356,30 @@ def classification_report2(y_true, y_pred, target_names=None,
 
     tpa = np.nansum(tpas * rprob)
     tpr = np.nansum(tprs * rprob)
+
+    fpr = np.nansum(fprs * rprob)
+
     mk = np.nansum(mks * rprob)
     bm = np.nansum(bms * pprob)
+
+    # The simple mean seems to do the best
+    mccs_ = mccs[~np.isnan(mccs)]
+    if len(mccs_) == 0:
+        mcc_combo = np.nan
+    else:
+        mcc_combo = np.nanmean(mccs_)
+
+    combined_data = ut.odict([
+        ('precision', tpa),
+        ('recall', tpr),
+        ('fpr', fpr),
+        ('markedness', mk),
+        ('bookmaker', bm),
+        # ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+        ('mcc', mcc_combo),
+        # np.sign(bm) * np.sqrt(np.abs(bm * mk))),
+        ('support', real_total.sum())
+    ])
 
     # Not sure how to compute this. Should it agree with the sklearn impl?
     if verbose == 'hack':
@@ -395,26 +442,13 @@ def classification_report2(y_true, y_pred, target_names=None,
         # print('mcc_combo2 = %r' % (mcc_combo2,))
         # print('mcc_combo3 = %r' % (mcc_combo3,))
 
-    # The simple mean seems to do the best
-    mcc_combo = np.nanmean(mccs)
-
-    combined_data = ut.odict([
-        ('precision', tpa),
-        ('recall', tpr),
-        ('markedness', mk),
-        ('bookmaker', bm),
-        # ('mcc', np.sign(bm) * np.sqrt(np.abs(bm * mk))),
-        ('mcc', mcc_combo),
-        # np.sign(bm) * np.sqrt(np.abs(bm * mk))),
-        ('support', real_total.sum())
-    ])
-
-    if target_names is None:
-        target_names = list(range(k))
-    index = pd.Series(target_names, name='class')
+    # if target_names is None:
+    #     target_names = list(range(k))
+    index = pd.Index(target_names, name='class')
 
     perclass_df = pd.DataFrame(perclass_data, index=index)
     combined_df = pd.DataFrame(combined_data, index=['ave/sum'])
+
     metric_df = pd.concat([perclass_df, combined_df])
     metric_df.index.name = 'class'
     metric_df.columns.name = 'metric'
@@ -422,11 +456,19 @@ def classification_report2(y_true, y_pred, target_names=None,
     pred_id = ['%s' % m for m in target_names]
     real_id = ['%s' % m for m in target_names]
     confusion_df = pd.DataFrame(confusion, columns=pred_id, index=real_id)
+
     confusion_df = confusion_df.append(pd.DataFrame(
         [confusion.sum(axis=0)], columns=pred_id, index=['Σp']))
-    confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), [np.nan]])
+    confusion_df['Σr'] = np.hstack([confusion.sum(axis=1), [0]])
     confusion_df.index.name = 'real'
     confusion_df.columns.name = 'pred'
+
+    if np.all(confusion_df - np.floor(confusion_df) < .000001):
+        confusion_df = confusion_df.astype(np.int)
+    confusion_df.iloc[(-1, -1)] = N
+    if np.all(confusion_df - np.floor(confusion_df) < .000001):
+        confusion_df = confusion_df.astype(np.int)
+    # np.nan
 
     if verbose:
         cfsm_str = confusion_df.to_string(float_format=lambda x: '%.1f' % (x,))
@@ -488,8 +530,15 @@ def predict_from_probs(probs, method='argmax', target_names=None, **kwargs):
     return pred_enc
 
 
-def predict_with_thresh(probs, threshes, target_names=None, force=False):
+def predict_with_thresh(probs, threshes, target_names=None, force=False,
+                        multi=True, return_flags=False):
     """
+
+    if force is true, everything will make a prediction, even if nothing passes
+    the thresholds. In that case it will use argmax.
+
+    if more than one thing passes the thresold we take the highest one if
+    multi=True, and return nan otherwise.
 
     >>> from ibeis.scripts.sklearn_utils import *
     >>> probs = np.array([
@@ -526,16 +575,28 @@ def predict_with_thresh(probs, threshes, target_names=None, force=False):
     pred_enc = bin_flags.argmax(axis=1)
 
     if np.any(no_predict):
-        if force:
+        if force or return_flags:
             pred_enc[no_predict] = probs[no_predict].argmax(axis=1)
         else:
             pred_enc = pred_enc.astype(np.float)
             pred_enc[no_predict] = np.nan
 
     if np.any(multi_predict):
-        pred_enc[multi_predict] = probs[multi_predict].argmax(axis=1)
+        if multi or return_flags:
+            pred_enc[multi_predict] = probs[multi_predict].argmax(axis=1)
+        else:
+            pred_enc = pred_enc.astype(np.float)
+            pred_enc[multi_predict] = np.nan
 
     if df_index is not None:
         pred_enc = pd.Series(pred_enc, index=df_index)
         # pred = pred_enc.apply(lambda x: target_names[x])
-    return pred_enc
+    if return_flags:
+        flags = np.ones(len(probs), dtype=np.bool)
+        if not force:
+            flags[no_predict] = False
+        if not multi:
+            flags[no_predict] = False
+        return pred_enc, flags
+    else:
+        return pred_enc

@@ -867,11 +867,21 @@ class ClfResult(ut.NiceRepr):
         get_metric = 'thresholds'
         at_metric = metric = 'mcc'
         at_value = value = 'maximize'
+
+        a = []
+        b = []
+        for x in np.linspace(0, 1, 1000):
+            a += [cfms.get_metric_at_metric('thresholds', 'fpr', x, subindex=True)]
+            b += [cfms.get_thresh_at_metric('fpr', x)]
+        a = np.array(a)
+        b = np.array(b)
+        d = (a - b)
+        print((d.min(), d.max()))
         """
         threshes = {}
         for class_name in res.class_names:
             cfms = res.confusions(class_name)
-            thresh = cfms.get_metric_at_metric('thresholds', metric, value)
+            thresh = cfms.get_metric_at_metric('thresh', metric, value)
             threshes[class_name] = thresh
         return threshes
 
@@ -892,8 +902,10 @@ class ClfResult(ut.NiceRepr):
             priors = {name: float(not maximize) for name in res.class_names}
         for class_name in res.class_names:
             cfms = res.confusions(class_name)
-            learned_thresh = cfms.get_thresh_at_metric(
-                metric, value, maximize=maximize)
+
+            learned_thresh = cfms.get_metric_at_metric('thresh', metric, value)
+            # learned_thresh = cfms.get_thresh_at_metric(
+            #     metric, value, maximize=maximize)
 
             prior_thresh = priors[class_name]
             n_support = cfms.n_pos
@@ -917,11 +929,11 @@ class ClfResult(ut.NiceRepr):
         return pos_threshes
 
     def report_thresholds(res, warmup=200):
-        import vtool as vt
+        # import vtool as vt
         ut.cprint('Threshold Report', 'yellow')
         y_test_bin = res.target_bin_df.values
         # y_test_enc = y_test_bin.argmax(axis=1)
-        clf_probs = res.probs_df.values
+        # clf_probs = res.probs_df.values
 
         # The maximum allowed false positive rate
         # We expect that we will make 1 error every 1,000 decisions
@@ -929,6 +941,15 @@ class ClfResult(ut.NiceRepr):
         # thresh_df['foo'][res.class_names[k]] = 1
 
         # for k in [2, 0, 1]:
+        choice_mv = ut.odict([
+            ('@fpr=.01', ('fpr', .01)),
+            ('@fpr=.0001', ('fpr', 1E-4)),
+            ('@fpr=.0000', ('fpr', 0)),
+            ('@max(mcc)', ('mcc', 'max')),
+            # (class_name + '@max(acc)', ('acc', 'max')),
+            # (class_name + '@max(mk)', ('mk', 'max')),
+            # (class_name + '@max(bm)', ('bm', 'max')),
+        ])
         for k in range(y_test_bin.shape[1]):
             thresh_dict = ut.odict()
             class_name = res.class_names[k]
@@ -936,91 +957,99 @@ class ClfResult(ut.NiceRepr):
             # probs, labels = clf_probs.T[k], y_test_bin.T[k]
             # cfms = vt.ConfusionMetrics.from_scores_and_labels(probs, labels)
 
-            threshes = ut.odict([
-                # (class_name + '@tpr=1', cfms.get_thresh_at_metric('tpr', 1)),
-                # (class_name + '@fpr=0', cfms.get_thresh_at_metric('fpr', 0)),
-                (class_name + '@fpr=.01', cfms.get_thresh_at_metric('fpr', .01)),
-                (class_name + '@fpr=.001', cfms.get_thresh_at_metric('fpr', 1E-4)),
-                (class_name + '@fpr=0', cfms.get_thresh_at_metric('fpr', 0)),
-                # (class_name + '@fpr=.0001', cfms.get_thresh_at_metric('fpr', .0001)),
-                # (class_name + '@max(mcc)', cfms.get_thresh_at_metric_max('mcc')),
-                # (class_name + '@max(acc)', cfms.get_thresh_at_metric_max('acc')),
-                # (class_name + '@max(mk)', cfms.get_thresh_at_metric_max('mk')),
-                # (class_name + '@max(bm)', cfms.get_thresh_at_metric_max('bm')),
-                # (class_name + '@max(sep*)', maxsep_thresh),
-            ])
-            for key, thresh in threshes.items():
+            for k, mv in choice_mv.items():
+                metric, value = mv
+                idx = cfms.get_index_at_metric(metric, value)
+                key = class_name + k
                 thresh_dict[key] = ut.odict()
-                thresh_dict[key]['thresh'] = thresh
-                for metric in ['fpr', 'tpr', 'tpa', 'bm', 'mk', 'mcc']:
-                    thresh_dict[key][metric] = cfms.get_metric_at_thresh(metric, thresh)
+                for metric in ['thresh', 'fpr', 'tpr', 'tpa', 'bm', 'mk', 'mcc']:
+                    thresh_dict[key][metric] = cfms.get_metric_at_index(metric, idx)
             thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='index')
-            thresh_df = thresh_df.loc[list(threshes.keys())]
-            print('Raw 1vR {} Thresholds'.format(class_name))
-            print(ut.indent(
-                thresh_df.to_string(float_format='{:.4f}'.format)
-            ))
-            # chosen_type = class_name + '@fpr=0'
-            # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
+            thresh_df = thresh_df.loc[list(thresh_dict.keys())]
+            if cfms.n_pos > 0 and cfms.n_neg > 0:
+                print('Raw 1vR {} Thresholds'.format(class_name))
+                print(ut.indent(
+                    thresh_df.to_string(float_format='{:.4f}'.format)
+                ))
+                # chosen_type = class_name + '@fpr=0'
+                # pos_threshes[class_name] = thresh_df.loc[chosen_type]['thresh']
 
-        pos_threshes = res.get_pos_threshes(warmup=warmup)
-
+        choice_k, choice_mv = next(iter(choice_mv.items()))
+        metric, value = choice_mv
+        pos_threshes = res.get_pos_threshes(metric, value, warmup=warmup)
+        print('Choosing threshold based on %s' % (choice_k,))
         print('Chosen thresholds = %s' % (ut.repr2(
-            pos_threshes, nl=1, precision=4),))
-        # print('neg_threshes = %r' % (neg_threshes,))
-        # Actually we need negative pos_threshes?
-        # So if ALL probs are under pos_threshes then its ok
-        # See how many automated decisions can be made
-        pos_ts = np.array(ut.take(pos_threshes, res.class_names))
-        # TODO, choose neg thresholds
-        neg_ts = np.array([.5] * len(res.class_names))
+            pos_threshes, nl=1, precision=4, align=True),))
 
-        above_pos_thresh = clf_probs > pos_ts[None, :]
-        under_neg_thresh = clf_probs < neg_ts[None, :]
-        # auto_chosen = clf_probs > pos_ts[None, :]
-        # assert np.all(auto_chosen.sum(axis=1) <= 1)
+        from ibeis.scripts import sklearn_utils
+        res.augment_if_needed()
+        target_names = res.class_names
+        sample_weight = res.sample_weight
+        y_true = res.y_test_enc.ravel()
+        y_pred, can_autodecide = sklearn_utils.predict_from_probs(
+            res.clf_probs, pos_threshes, res.class_names,
+            force=False, multi=False, return_flags=True)
+        can_autodecide[res.sample_weight == 0] = False
 
-        # Choose samples where all but one class is under the negative
-        # threshold and that class is above a positive threshold
-        can_autodecide = ((above_pos_thresh.sum(axis=1) > 0) &
-                          (under_neg_thresh.sum(axis=1) >= len(res.class_names) - 1))
+        auto_pred = y_pred[can_autodecide].astype(np.int)
+        auto_true = y_true[can_autodecide].ravel()
+        auto_probs = res.clf_probs[can_autodecide]
 
-        perclass_autodecide_num_total = np.array([
-            (can_autodecide[y_test_bin.T[k]].sum(), y_test_bin.T[k].sum())
-            for k in range(y_test_bin.shape[1])
-        ])
-        num, total = perclass_autodecide_num_total.sum(axis=0)
-        # TODO: put this in context of how true/false predictions
-        print('Auto %r thresholds passed by %d/%d = %.2f%%' % (
-            res.task_key, num, total, num / total))
-        for k in range(y_test_bin.shape[1]):
-            num, total = perclass_autodecide_num_total[k]
-            print(' * %d/%d = %.2f%% of class %r' % (
-                num, total, num / total, res.class_names[k]))
+        total_cases = int(sample_weight.sum())
+        print('Will autodecide for %r/%r cases' % (can_autodecide.sum(),
+                                                     (total_cases)))
 
-        auto_probs = clf_probs[can_autodecide]
-        auto_truth_bin = y_test_bin[can_autodecide]
-        auto_truth_enc = auto_truth_bin.argmax(axis=1)
+        def frac_str(a, b):
+            return '{:}/{:} = {:.2f}%'.format(int(a), int(b), a / b)
 
-        class_xs, groupxs = vt.group_indices(auto_truth_enc)
+        supported_class_idxs = [
+            k for k, y in enumerate(y_test_bin.T) if y.sum() > 0]
 
-        auto_pred_enc = auto_probs.argmax(axis=1)
-        print('Autoclassify Confusion Matrix:')
-        print(sklearn.metrics.confusion_matrix(auto_truth_enc, auto_pred_enc))
+        for k in supported_class_idxs:
+            # Look at fail/succs in threshold
+            name = res.class_names[k]
+            # number of times this class appears overall
+            n_total_k = (y_test_bin.T[k]).sum()
+            # get the cases where this class was predicted
+            auto_true_k = (auto_true == k)
+            auto_pred_k = (auto_pred == k)
+            # number of cases auto predicted
+            n_pred_k = auto_pred_k.sum()
+            # number of times auto was right
+            n_tp = (auto_true_k & auto_pred_k).sum()
+            # number of times auto was wrong
+            n_fp = (~auto_true_k & auto_pred_k).sum()
+            fail_str = frac_str(n_fp, n_pred_k)
+            pass_str = frac_str(n_tp, n_total_k)
+            fmtstr = (
+                ' * {}:\n'
+                '    {} samples existed, and did {} auto predictions\n'
+                '    made {} errors,\n'
+                '    and got {} right'
+            )
+            print(fmtstr.format(name, n_total_k, n_pred_k, fail_str, pass_str))
+
+        report = sklearn_utils.classification_report2(
+            y_true, y_pred, target_names=target_names,
+            sample_weight=can_autodecide.astype(np.float), verbose=False)
+        print(' * Auto-Decide Confusion')
+        print(ut.indent(str(report['confusion'])))
+        print(' * Auto-Decide Metrics')
+        print(ut.indent(str(report['metrics'])))
+        if 'mcc' in report:
+            print(ut.indent(str(report['mcc'])))
+
         try:
-            print('Autoclassify MCC: ' + str(
-                sklearn.metrics.matthews_corrcoef(auto_truth_enc, auto_pred_enc)))
+            auto_truth_bin = res.y_test_bin[can_autodecide]
+            for k in supported_class_idxs:
+                auto_truth_k = auto_truth_bin.T[k]
+                auto_probs_k = auto_probs.T[k]
+                if auto_probs_k.sum():
+                    auc = sklearn.metrics.roc_auc_score(auto_truth_k, auto_probs_k)
+                    print(' * Auto AUC(Macro): {:.4f} for class={}'.format(
+                        auc, res.class_names[k]))
         except ValueError:
             pass
-        try:
-            print('Autoclassify AUC(Macro): ' + str(
-                sklearn.metrics.roc_auc_score(auto_truth_bin, auto_probs)))
-        except ValueError:
-            pass
-        # return pos_threshes
-
-        # print('hist of auto_truth labels' + str(ut.dict_hist(auto_pred_enc)))
-        # thresh_df = pd.DataFrame.from_dict(thresh_dict, orient='columns')
 
     def confusions(res, class_name):
         import vtool as vt

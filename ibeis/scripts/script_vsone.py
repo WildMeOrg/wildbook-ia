@@ -94,7 +94,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
     """
     appname = 'vsone_rf_train'
 
-    def __init__(pblm, infr=None, verbose=None):
+    def __init__(pblm, infr=None, verbose=None, **params):
         super(OneVsOneProblem, pblm).__init__()
         if verbose is None:
             verbose = 2
@@ -121,6 +121,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             ('vsone_kpts', VsOneFeatConfig()),
             ('vsone_match', VsOneMatchConfig()),
             ('pairwise_feats', PairFeatureConfig()),
+            ('sample_method', 'lnbnn'),
             ('sample_search', dict(
                 K=4, Knorm=1, requery=True, score_method='csum',
                 prescore_method='csum')),
@@ -172,9 +173,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         }
 
         pblm.hyper_params = hyper_params
+        updated = pblm.hyper_params.update2(params)
+        if updated:
+            print('Externally updated params = %r' % (updated,))
 
     @classmethod
-    def from_aids(OneVsOneProblem, ibs, aids, verbose=None):
+    def from_aids(OneVsOneProblem, ibs, aids, verbose=None, **params):
         # TODO: If the graph structure is defined, this should load the most
         # recent state, so the infr object has all the right edges.  If the
         # graph structure is not defined, it should apply the conversion
@@ -189,11 +193,11 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             infr.ensure_mst()
         # if infr.needs_conversion():
         #     infr.ensure_mst()
-        pblm = OneVsOneProblem(infr=infr)
+        pblm = OneVsOneProblem(infr=infr, **params)
         return pblm
 
     @classmethod
-    def from_empty(OneVsOneProblem, defaultdb=None):
+    def from_empty(OneVsOneProblem, defaultdb=None, **params):
         """
         >>> from ibeis.scripts.script_vsone import *  # NOQA
         >>> defaultdb = 'GIRM_Master1'
@@ -205,7 +209,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             # defaultdb = 'PZ_MTEST'
         import ibeis
         ibs, aids = ibeis.testdata_aids(defaultdb)
-        pblm = OneVsOneProblem.from_aids(ibs, aids)
+        pblm = OneVsOneProblem.from_aids(ibs, aids, **params)
         return pblm
 
     def _make_lnbnn_qreq(pblm, aids=None):
@@ -306,6 +310,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         Randomized sample that does not require LNBNN
         """
+
+        if pblm.verbose > 0:
+            print('[pblm] Using randomized training pairs')
         # from ibeis.algo.graph import nx_utils as nxu
         infr = pblm.infr
         infr.status()
@@ -367,8 +374,14 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if pblm.verbose > 0:
             print('[pblm] gathering training pairs')
 
-        aid_pairs_ = pblm.make_lnbnn_training_pairs()
-        # aid_pairs_ = pblm.make_randomized_training_pairs()
+        sample_method = pblm.hyper_params['sample_method']
+
+        if sample_method == 'lnbnn':
+            aid_pairs_ = pblm.make_lnbnn_training_pairs()
+        elif sample_method == 'random':
+            aid_pairs_ = pblm.make_randomized_training_pairs()
+        else:
+            raise KeyError('Unknown sample_method={}'.format(sample_method))
 
         # TODO: it would be nice to have a ibs database proprty that changes
         # whenever any value in a primary table changes
@@ -543,27 +556,46 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.raw_simple_scores = simple_scores
         pblm.samples.set_simple_scores(copy.deepcopy(pblm.raw_simple_scores))
 
-    def evaluate_classifiers(pblm):
+    def deploy(pblm):
         """
-        CommandLine:
-            python -m ibeis.scripts.script_vsone evaluate_classifiers
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GIRM_Master1
+        Trains and saves a classifier for deployment
+
+        Notes:
+            A deployment consists of the following information
+                * The classifier itself
+                * Information needed to construct the input to the classifier
+                    - TODO: can this be encoded as an sklearn pipeline?
+                * Metadata concerning what data the classifier was trained with
 
         Example:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
-            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
-            >>> pblm.evaluate_classifiers()
+            >>> params = dict(sample_method='random')
+            >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
+            >>> pblm.setup(with_simple=False)
+            >>> pblm.evaluate_classifiers(with_simple=False)
+            >>> pblm.deploy()
         """
-        pblm.setup_evaluation()
+        if pblm.samples is None:
+            pblm.setup()
+        task_keys = list(pblm.samples.subtasks.keys())
+        clf_key = pblm.default_clf_key
+        data_key = pblm.default_data_key
 
-        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
-        # For each task / classifier type
-        for task_key in pblm.eval_task_keys:
-            pblm.task_evaluation_report(task_key)
+        # Save the classifie
+        data_info = pblm.feat_construct_info[data_key]
+        feat_construct_config, feat_dims = data_info
 
-    def setup_evaluation(pblm, with_simple=True):
+        deploy_task_clfs = pblm.learn_deploy_classifiers(
+            task_keys, clf_key, data_key)
+
+        for task, clf in deploy_task_clfs.items():
+            pass
+
+        # deploy_info = {
+        #     'clf':
+        # }
+
+    def setup(pblm, with_simple=False):
         pblm.set_pandas_options()
 
         ut.cprint('\n--- LOADING DATA ---', 'blue')
@@ -580,6 +612,29 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.build_feature_subsets()
 
         pblm.samples.print_featinfo()
+
+    def evaluate_classifiers(pblm, with_simple=True):
+        """
+        CommandLine:
+            python -m ibeis.scripts.script_vsone evaluate_classifiers
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GIRM_Master1
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm.evaluate_classifiers()
+        """
+        pblm.setup_evaluation(with_simple=with_simple)
+
+        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
+        # For each task / classifier type
+        for task_key in pblm.eval_task_keys:
+            pblm.task_evaluation_report(task_key)
+
+    def setup_evaluation(pblm, with_simple=True):
+        pblm.setup(with_simple)
 
         task_keys = pblm.eval_task_keys
         clf_keys = pblm.eval_clf_keys
@@ -601,8 +656,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 print('No data to train task_key = %r' % (task_key,))
                 task_keys.remove(task_key)
 
-        ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
-        pblm.evaluate_simple_scores(task_keys)
+        if pblm.samples.simple_scores is not None:
+            ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
+            pblm.evaluate_simple_scores(task_keys)
+        else:
+            print('no simple scores')
+            print('...skipping simple evaluation')
 
         ut.cprint('\n--- LEARN CROSS-VALIDATED RANDOM FORESTS ---', 'blue')
         pblm.learn_evaluation_classifiers(task_keys, clf_keys, data_keys)
@@ -618,7 +677,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         print('data_keys = %r' % (data_keys,))
         ut.cprint('--- TASK = %s' % (ut.repr2(task_key),), 'turquoise')
         labels = pblm.samples.subtasks[task_key]
-        if hasattr(pblm, 'simple_aucs'):
+        if getattr(pblm, 'simple_aucs', None) is not None:
             pblm.report_simple_scores(task_key)
         for clf_key in clf_keys:
             # Combine results over datasets
@@ -806,8 +865,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             print('[pblm] predicting %s probabilities' % (task_key,))
             clf = pblm.deploy_task_clfs[task_key]
             labels = pblm.samples.subtasks[task_key]
-            probs_df = clf_helpers.predict_proba_df(
-                clf, X, labels.class_names)
+            class_names = labels.class_names
+            probs_df = clf_helpers.predict_proba_df(clf, X, class_names)
             # columns = ut.take(labels.class_names, clf.classes_)
             # probs_df = pd.DataFrame(
             #     clf.predict_proba(X),
@@ -955,8 +1014,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.feat_construct_info = {}
         def register_data_key(data_key, cols):
             feat_dims = sorted(cols)
-            info = (pblm.feat_construct_config, feat_dims)
-            pblm.feat_construct_info[data_key] = info
+            data_info = (pblm.feat_construct_config, feat_dims)
+            pblm.feat_construct_info[data_key] = data_info
             X_dict[data_key] = X[feat_dims]
 
         register_data_key('learn(all)', list(X.columns))
