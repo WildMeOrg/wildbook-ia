@@ -965,7 +965,7 @@ class AnnotPairFeatInfo(object):
         Examples:
             >>> featinfo.select_columns([
             >>>     ('measure_type', '==', 'local'),
-            >>>     ('local_sorter', 'in', ['weighted_ratio', 'lnbnn_norm_dist']),
+            >>>     ('local_sorter', 'in', ['weighted_ratio_score', 'lnbnn_norm_dist']),
             >>> ], op='and')
         """
         if op == 'and':
