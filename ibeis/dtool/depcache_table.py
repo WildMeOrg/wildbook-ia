@@ -23,6 +23,7 @@ FIXME:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import utool as ut
 import six
+import itertools as it
 from dtool.sql_control import SQLDatabaseController
 from six.moves import zip, range
 from os.path import join, exists
@@ -265,6 +266,46 @@ class _TableConfigHelper(object):
             if ancestor_configs is not None:
                 ret_list.extend(ancestor_configs)
         return ret_list
+
+    def __remove_old_configs(table):
+        """
+        table = ibs.depc['pairwise_match']
+        """
+        # developing
+        # c = table.db.get_table_as_pandas('config')
+        # t = table.db.get_table_as_pandas(table.tablename)
+
+        # config_rowids = table.db.get_all_rowids(CONFIG_TABLE)
+        # cfgdict_list = table.db.get(
+        #     CONFIG_TABLE, colnames=(CONFIG_DICT,), id_iter=config_rowids,
+        #     id_colname=CONFIG_ROWID)
+        # bad_rowids = []
+        # for rowid, cfgdict in zip(config_rowids, cfgdict_list):
+        #     if cfgdict['version'] < 7:
+        #         bad_rowids.append(rowid)
+
+        command = ut.codeblock(
+            '''
+            SELECT rowid, {} from {}
+            ''').format(CONFIG_DICT, CONFIG_TABLE)
+        table.db.cur.execute(command)
+
+        bad_rowids = []
+        for rowid, cfgdict in table.db.cur.fetchall():
+            # MAKE GENERAL CONDITION
+            if cfgdict['version'] < 7:
+                bad_rowids.append(rowid)
+
+        in_str = '(' + ', '.join(map(str, bad_rowids)) + ')'
+        command = ut.codeblock(
+            '''
+            SELECT rowid from {tablename}
+            WHERE config_rowid IN {bad_rowids}
+            ''').format(tablename=table.tablename, bad_rowids=in_str)
+        # print(command)
+        table.db.cur.execute(command)
+        rowids = ut.flatten(table.db.cur.fetchall())
+        table.delete_rows(rowids, dry=True, verbose=True, delete_extern=True)
 
     def get_ancestor_rowids(table, rowid_list, target_table):
         parent_rowids = table.get_parent_rowids(rowid_list)
@@ -2105,7 +2146,8 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         table.db.add_table(**table._get_addtable_kw())
 
     #@profile
-    def delete_rows(table, rowid_list, delete_extern=None, verbose=None):
+    def delete_rows(table, rowid_list, delete_extern=None, dry=False,
+                    verbose=None):
         """
         CommandLine:
             python -m dtool.depcache_table --exec-delete_rows
@@ -2141,14 +2183,18 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         """
         #import networkx as nx
         #from dtool.algo.preproc import preproc_feat
-        if table.on_delete is not None:
+        if table.on_delete is not None and not dry:
             table.on_delete()
         if delete_extern is None:
             delete_extern = table.rm_extern_on_delete
+        if verbose is None:
+            verbose = True
         if ut.NOT_QUIET:
             if ut.VERBOSE or len(rowid_list) > 0:
                 print('Requested delete of %d rows from %s' % (
                     len(rowid_list), table.tablename))
+                if dry:
+                    print('Dry run')
             # print('delete_extern = %r' % (delete_extern,))
         depc = table.depc
 
@@ -2158,24 +2204,21 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
         is_extern = table.get_intern_data_col_attr('is_external_pointer')
         extern_colnames = tuple(ut.compress(internal_colnames, is_extern))
         if len(extern_colnames) > 0:
-
-            uri_list = table.get_internal_columns(rowid_list,
-                                                  extern_colnames,
-                                                  unpack_scalars=False,
-                                                  keepwrap=False)
-            fpath_list = ut.flatten(uri_list)
-            abs_fpath_list = [
-                join(table.extern_dpath, fpath)
-                for fpath in fpath_list
-            ]
+            uris = table.get_internal_columns(
+                rowid_list, extern_colnames, unpack_scalars=False, eager=True,
+                keepwrap=False)
+            absuris = (join(table.extern_dpath, uri)
+                       for uri in it.chain.from_iterable(uris))
+            fpaths = [fpath for fpath in absuris if exists(fpath)]
             if delete_extern:
-                if ut.VERBOSE or len(abs_fpath_list) > 0:
-                    print('abs_fpath_list = %r' % (abs_fpath_list,))
-                    print('deleting internal files')
-                ut.remove_file_list(abs_fpath_list)
+                if ut.VERBOSE or len(fpaths) > 0:
+                    print('deleting {} existing internal files'.format(
+                        len(fpaths)))
+                if not dry:
+                    ut.remove_fpaths(fpaths, verbose=verbose)
             else:
-                if ut.VERBOSE or len(abs_fpath_list) > 0:
-                    print('would delete abs_fpath_list = %r' % (abs_fpath_list,))
+                if ut.VERBOSE or len(fpaths) > 0:
+                    print('Leaving {} dangling filepaths'.format(len(fpaths)))
 
         # DELETE EXPLICITLY DEFINED CHILDREN
         # (TODO: handle implicit definitions)
@@ -2193,6 +2236,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                 child_rowids = ut.flatten(child_unflat_rowids)
                 return child_rowids
 
+            if table.children:
+                print('Deleting from %r children' % (len(table.children),))
+            else:
+                print('Table is a leaf node')
+
             for child in table.children:
                 child_table = table.depc[child]
                 if not child_table.ismulti:
@@ -2201,7 +2249,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                     child_rowids = get_child_partial_rowids(child_table,
                                                             rowid_list,
                                                             parent_colnames)
-                    child_table.delete_rows(child_rowids)
+                    child_table.delete_rows(child_rowids, dry=dry)
 
         if ut.NOT_QUIET:
             non_none_rowids = ut.filter_Nones(rowid_list)
@@ -2210,8 +2258,11 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
                     len(non_none_rowids), table.tablename))
 
         # Finalize: Delete rows from this table
-        table.db.delete_rowids(table.tablename, rowid_list)
-        num_deleted = len(ut.filter_Nones(rowid_list))
+        if not dry:
+            table.db.delete_rowids(table.tablename, rowid_list)
+            num_deleted = len(ut.filter_Nones(rowid_list))
+        else:
+            num_deleted = 0
         return num_deleted
 
     def _resolve_requested_columns(table, requested_colnames):
@@ -2298,7 +2349,7 @@ class DependencyCacheTable(_TableGeneralHelper, _TableInternalSetup,
             >>> tbl_rowids = depc.get_rowids('chip', aids, config=config)
             >>> data_fpaths = depc.get('chip', aids, 'chip', config=config, read_extern=False)
             >>> # Ensure data is recomputed if an external file is missing
-            >>> ut.remove_file_list(data_fpaths)
+            >>> ut.remove_fpaths(data_fpaths)
             >>> data = table.get_row_data(tbl_rowids, 'chip', read_extern=False, ensure=False)
             >>> data = table.get_row_data(tbl_rowids, 'chip', read_extern=False, ensure=True)
         """
