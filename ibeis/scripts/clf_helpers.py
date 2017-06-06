@@ -726,8 +726,28 @@ class ClfResult(ut.NiceRepr):
 
         # TODO MWE with sklearn data
 
-        ClfResult.make_single(ClfResult, clf, X_df, test_idx, labels, data_key,
-        feat_dims=None):
+            # ClfResult.make_single(ClfResult, clf, X_df, test_idx, labels,
+            # data_key, feat_dims=None):
+
+            import sklearn.datasets
+            iris = sklearn.datasets.load_iris()
+
+            # TODO: make this setup simpler
+            pblm = ClfProblem()
+            task_key, clf_key, data_key = 'iris', 'RF', 'learn(all)'
+            X_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+            samples = MultiTaskSamples(X_df.index)
+            samples.apply_indicators({'iris': {name: iris.target == idx
+                         for idx, name in enumerate(iris.target_names)}})
+            samples.X_dict = {'learn(all)': X_df}
+
+            pblm.samples = samples
+            pblm.xval_kw['type'] = 'StratifiedKFold'
+            clf_list, res_list = pblm._train_evaluation_clf(
+                task_key, data_key, clf_key)
+            labels = pblm.samples.subtasks[task_key]
+            res = ClfResult.combine_results(res_list, labels)
+
 
         res.get_thresholds('mcc', 'maximize')
 
@@ -1102,12 +1122,31 @@ class MultiTaskSamples(ut.NiceRepr):
         samples.index = index
         samples.subtasks = ut.odict()
 
+    # def set_simple_scores(samples, simple_scores):
+    #     if simple_scores is not None:
+    #         edges = ut.emap(tuple, samples.aid_pairs.tolist())
+    #         assert (edges == simple_scores.index.tolist())
+    #     samples.simple_scores = simple_scores
+
+    # def set_feats(samples, X_dict):
+    #     if X_dict is not None:
+    #         edges = ut.emap(tuple, samples.aid_pairs.tolist())
+    #         for X in X_dict.values():
+    #             assert np.all(edges == X.index.tolist())
+    #     samples.X_dict = X_dict
+
     def apply_indicators(samples, tasks_to_indicators):
+        n_samples = None
         samples.n_tasks = len(tasks_to_indicators)
         for task_name, indicator in tasks_to_indicators.items():
             labels = MultiClassLabels.from_indicators(
                 indicator, task_name=task_name, index=samples.index)
             samples.subtasks[task_name] = labels
+            if n_samples is None:
+                n_samples = labels.n_samples
+            elif n_samples != labels.n_samples:
+                raise ValueError('numer of samples is different')
+        samples.n_samples = n_samples
 
     # @ut.memoize
     def encoded_2d(samples):

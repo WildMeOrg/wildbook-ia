@@ -287,16 +287,18 @@ class IOContract(object):
             return self.expt_results[expt_name]
 
 
-class Chap5Commands(object):
+@ut.reloadable_class
+class Chap5(DBInputs):
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
 
     def _setup(self):
         """
         CommandLine:
-            python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
-            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show --aug=test
-            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show --aug=test
-            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show
-            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show
+            python -m ibeis Chap5.measure simulation PZ_MTEST --show
+            python -m ibeis Chap5.measure simulation GZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure simulation PZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure simulation GZ_Master1 --show
+            python -m ibeis Chap5.measure simulation PZ_Master1 --show
 
             python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
             python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
@@ -317,9 +319,13 @@ class Chap5Commands(object):
 
         pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids)
         pblm.set_pandas_options()
+        import utool
+        utool.embed()
         pblm.load_samples()
         pblm.load_features(with_simple=False)
         pblm.build_feature_subsets()
+        import utool
+        utool.embed()
 
         pblm.learn_evaluation_classifiers()
 
@@ -422,11 +428,12 @@ class Chap5Commands(object):
     def measure_simulation(self, aug=''):
         """
         CommandLine:
-            python -m ibeis Chap5.measure_simulation --db PZ_MTEST --show
-            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show --aug=test
-            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show --aug=test
-            python -m ibeis Chap5.measure_simulation --db GZ_Master1 --show
-            python -m ibeis Chap5.measure_simulation --db PZ_Master1 --show
+            python -m ibeis Chap5.measure simulation --db PZ_MTEST --show
+            python -m ibeis Chap5.measure simulation --db GZ_Master1 --show --aug=test
+            python -m ibeis Chap5.measure simulation --db PZ_Master1 --show --aug=test
+
+            python -m ibeis Chap5.measure simulation GZ_Master1 --show
+            python -m ibeis Chap5.measure simulation PZ_Master1 --show
 
             python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
             python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
@@ -1498,11 +1505,6 @@ class Chap5Commands(object):
         #     pt.figure(fnum=fnum, pnum=(2, 2, 4))
         #     overlay_actions(ymax=1)
         pt.set_figtitle(self.dbname)
-
-
-@ut.reloadable_class
-class Chap5(DBInputs, Chap5Commands):
-    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
 
 
 @ut.reloadable_class

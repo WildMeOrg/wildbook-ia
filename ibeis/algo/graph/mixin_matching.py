@@ -75,6 +75,8 @@ class AnnotInfrMatching(object):
 
     def exec_vsone(infr, prog_hook=None):
         r"""
+        DEPRICATE and use _exec_pairwise_match instead
+
         Args:
             prog_hook (None): (default = None)
 
@@ -150,7 +152,7 @@ class AnnotInfrMatching(object):
         # TODO: ensure feat/chip configs are resepected
         match_list = infr.ibs.depc.get('pairwise_match', (qaids, daids),
                                        'match', config=config)
-        # recompute=True)
+
         # Hack: Postprocess matches to re-add annotation info in lazy-dict format
         from ibeis import core_annots
         config = ut.hashdict(config)
@@ -235,8 +237,9 @@ class AnnotInfrMatching(object):
         prog_hook = None
         """
         if global_keys is None:
+            raise ValueError('specify global keys')
             # global_keys = ['yaw', 'qual', 'gps', 'time']
-            global_keys = ['view', 'qual', 'gps', 'time']
+            # global_keys = ['view', 'qual', 'gps', 'time']
         matches = infr._exec_pairwise_match(edges, config=config,
                                             prog_hook=prog_hook)
         infr.print('enriching matches')
@@ -307,16 +310,14 @@ class AnnotInfrMatching(object):
             feat_construct_config = info[0]
             feat_dims = info[1]
 
+        match_configclass = ibs.depc_annot.configclass_dict['pairwise_match']
+
         feat_cfgstr = '_'.join([
             edge_hashid,
             make_cfg_lbl(feat_construct_config['match_config']),
             make_cfg_lbl(feat_construct_config['pairfeat_cfg']),
             'global(' + make_cfg_lbl(feat_construct_config['global_keys']) + ')',
-            # hyper_params['vsone_kpts'].get_cfgstr(),
-            # hyper_params['vsone_match'].get_cfgstr(),
-            # hyper_params['pairwise_feats'].get_cfgstr(),
-            # 'local(' + tmprepr(pairfeat_cfg) + ')',
-            # 'global(' + tmprepr(global_keys) + ')'
+            'pairwise_match_version=%r' % (match_configclass().version,)
         ])
         use_cache = not feat_construct_config['need_lnbnn']
 
@@ -324,6 +325,9 @@ class AnnotInfrMatching(object):
         feat_cacher = ub.Cacher('bulk_pairfeats_v2_' + infr.ibs.dbname,
                                 feat_cfgstr, enabled=use_cache,
                                 appname=pblm.appname, verbose=20)
+        if feat_cacher.exists():
+            fpath = feat_cacher.get_fpath()
+            print('Cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
         data = feat_cacher.tryload()
         if data is None:
             config = feat_construct_config['match_config']
@@ -331,16 +335,24 @@ class AnnotInfrMatching(object):
             global_keys = feat_construct_config['global_keys']
             need_lnbnn = feat_construct_config['need_lnbnn']
 
+            multi_index = True
             data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
-                                                global_keys, need_lnbnn)
+                                                global_keys, need_lnbnn,
+                                                multi_index)
             feat_cacher.save(data)
         matches, feats = data
 
-        # assert set(featinfo.columns).issubset(feats.columns), (
-        #     'inconsistent feature dimensions')
-
         # # Take the filtered subset of columns
         if feat_dims is not None:
+            missing = set(feat_dims).difference(feats.columns)
+            if any(missing):
+                # print('We have: ' + ut.repr4(feats.columns))
+                alt = feats.columns.difference(feat_dims)
+                mis_msg = ('Missing feature dims: ' + ut.repr4(missing))
+                alt_msg = ('Did you mean? ' + ut.repr4(alt))
+                print(mis_msg)
+                print(alt_msg)
+                raise KeyError(mis_msg)
             feats = feats[feat_dims]
 
         # assert np.all(featinfo.columns == feats.columns), (
@@ -440,7 +452,7 @@ class AnnotInfrMatching(object):
             prog_hook (None): (default = None)
 
         CommandLine:
-            python -m ibeis.algo.graph.core exec_vsone
+            python -m ibeis.algo.graph.core exec_vsone_subset
 
         Example:
             >>> # ENABLE_DOCTEST

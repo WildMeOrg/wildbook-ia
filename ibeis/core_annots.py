@@ -1224,7 +1224,7 @@ class VsOneConfig(dtool.Config):
         >>> print(result)
     """
     _param_info_list = vt.matching.VSONE_DEFAULT_CONFIG + [
-        ut.ParamInfo('version', 4),
+        ut.ParamInfo('version', 7),
         ut.ParamInfo('query_rotation_heuristic', False),
     ]
     #     #ut.ParamInfo('sver_xy_thresh', .01),
@@ -1252,6 +1252,8 @@ class VsOneConfig(dtool.Config):
 )
 def compute_one_vs_one(depc, qaids, daids, config):
     r"""
+    DEPRICATE
+
     CommandLine:
         python -m ibeis.core_annots --test-compute_one_vs_one:1 --show
         python -m ibeis.core_annots --test-compute_one_vs_one
@@ -1501,6 +1503,7 @@ def make_configured_annots(ibs, qaids, daids, qannot_cfg, dannot_cfg,
 def compute_pairwise_vsone(depc, qaids, daids, config):
     """
     Hack that mirrors vsone, but returns vt.PairwiseMatch objects
+    TODO: USE THIS!, and DEPRICATE vsone
     """
     ibs = depc.controller
     qannot_cfg = config

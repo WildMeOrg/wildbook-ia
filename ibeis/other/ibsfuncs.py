@@ -1515,7 +1515,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> default = True
         >>> infodict_list = ibs.get_annot_info(1, default)
-        >>> result = ('infodict_list = %s' % (ut.obj_str(infodict_list, nl=4),))
+        >>> result = ('infodict_list = %s' % (ut.repr2(infodict_list, nl=4),))
         >>> print(result)
     """
     # TODO rectify and combine with viz_helpers.get_annot_texts

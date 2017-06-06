@@ -150,7 +150,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             hyper_params.pairwise_feats['sorters'] = ut.unique(
                 hyper_params.pairwise_feats['sorters'] +
                 [
-                    # 'weighted_ratio',
+                    # 'weighted_ratio_score',
                     # 'weighted_lnbnn'
                 ]
             )
@@ -475,7 +475,6 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # assert X_all.index.tolist() == aid_pairs, 'index disagrees'
 
         pblm.raw_X_dict = {'learn(all)': X_all}
-
         pblm.samples.set_feats(copy.deepcopy(pblm.raw_X_dict))
 
         if with_simple:
@@ -505,7 +504,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         if data is None:
             # ---------------
             X_all = pblm.raw_X_dict['learn(all)']
-            featinfo = AnnotPairFeatInfo(X_all)
+            featinfo = vt.AnnotPairFeatInfo(X_all)
             simple_cols = featinfo.find('summary_op', '==', 'sum')
             simple_cols += featinfo.find('summary_op', '==', 'len', hack=False)
 
@@ -675,7 +674,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         # ut.cprint('\n--- FEATURE INFO ---', 'blue')
         # for best_data_key in selected_data_keys:
         #     print('data_key=(%s)' % (best_data_key,))
-        #     print(ut.indent(AnnotPairFeatInfo(
+        #     print(ut.indent(vt.AnnotPairFeatInfo(
         #           pblm.samples.X_dict[best_data_key]).get_infostr()))
 
         # TODO: view failure / success cases
@@ -948,16 +947,19 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         if pblm.verbose:
             ut.cprint('[pblm] build_feature_subsets', color='blue')
-        X_dict = pblm.samples.X_dict
-        X = X_dict['learn(all)']
-        featinfo = AnnotPairFeatInfo(X)
+        orig_dict = pblm.samples.X_dict
+        X = orig_dict['learn(all)']
+        featinfo = vt.AnnotPairFeatInfo(X)
 
+        X_dict = pblm.samples.X_dict = ut.odict()
         pblm.feat_construct_info = {}
         def register_data_key(data_key, cols):
             feat_dims = sorted(cols)
             info = (pblm.feat_construct_config, feat_dims)
             pblm.feat_construct_info[data_key] = info
             X_dict[data_key] = X[feat_dims]
+
+        register_data_key('learn(all)', list(X.columns))
 
         if False:
             # Use only summary stats
@@ -1138,7 +1140,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             return
 
         importances = pblm.feature_info(task_key, clf_key, data_key)
-        featinfo = AnnotPairFeatInfo(importances=importances)
+        featinfo = vt.AnnotPairFeatInfo(importances=importances)
 
         # Take average feature importance
         ut.cprint('MARGINAL IMPORTANCE INFO for %s on task %s' % (
@@ -1171,7 +1173,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         X = pblm.samples.X_dict[data_key]
         assert len(clf.feature_importances_) == len(X.columns)
         importances = ut.dzip(X.columns, clf.feature_importances_)
-        featinfo = AnnotPairFeatInfo(X, importances)
+        featinfo = vt.AnnotPairFeatInfo(X, importances)
         featinfo.print_margins('feature')
         featinfo.print_margins('measure_type')
         featinfo.print_margins('summary_op')
@@ -1824,11 +1826,8 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
     def print_featinfo(samples):
         for data_key in samples.X_dict.keys():
             print('\nINFO(samples.X_dict[%s])' % (data_key,))
-            featinfo = AnnotPairFeatInfo(samples.X_dict[data_key])
+            featinfo = vt.AnnotPairFeatInfo(samples.X_dict[data_key])
             print(ut.indent(featinfo.get_infostr()))
-
-
-AnnotPairFeatInfo = vt.AnnotPairFeatInfo
 
 
 def demo_single_pairwise_feature_vector():

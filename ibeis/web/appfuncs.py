@@ -279,7 +279,7 @@ def get_turk_annot_args(is_reviewed_func, speed_hack=False):
 
     print('aid = %r' % (aid,))
     #print(ut.dict_str(ibs.get_annot_info(aid)))
-    print(ut.obj_str(ibs.get_annot_info(aid, default=True, nl=True)))
+    print(ut.repr2(ibs.get_annot_info(aid, default=True, nl=True)))
     return aid_list, reviewed_list, imgsetid, src_ag, dst_ag, progress, aid, previous
 
 

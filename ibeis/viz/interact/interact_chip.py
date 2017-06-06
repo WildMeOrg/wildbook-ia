@@ -310,7 +310,7 @@ def build_annot_context_options(ibs, aid, refresh_func=None,
         exemplar=False)
 
     def print_annot_info():
-        print('[interact_chip] Annotation Info = ' + ut.obj_str(annot_info, nl=4))
+        print('[interact_chip] Annotation Info = ' + ut.repr2(annot_info, nl=4))
         print('config2_ = %r' % (config2_,))
         if config2_ is not None:
             print('config2_.__dict__ = %s' % (ut.repr3(config2_.__dict__),))
