@@ -214,7 +214,7 @@ def argsubmaxima2(ydata, xdata=None, maxima_thresh=None, _debug=False,
     """
     argmaxima = scipy.signal.argrelextrema(ydata, np.greater)[0]
     if len(argmaxima) == 0:
-        argmaxima = ydata.argmax()
+        argmaxima = [ydata.argmax()]
     if maxima_thresh is not None:
         # threshold maxima to be within a factor of the maximum
         maxima_y = ydata[argmaxima]
@@ -225,73 +225,109 @@ def argsubmaxima2(ydata, xdata=None, maxima_thresh=None, _debug=False,
     maxima_x = argmaxima if xdata is None else xdata[argmaxima]
 
     argmaxima = np.asarray(argmaxima)
-    if _debug:
-        print('Argmaxima: ')
-        print(' * maxima_x = %r' % (maxima_x))
-        print(' * maxima_y = %r' % (maxima_y))
-        print(' * argmaxima = %r' % (argmaxima))
     boundry_flags = (argmaxima == 0) | (argmaxima == len(ydata) - 1)
 
-    mid_argmaxima = argmaxima[~boundry_flags]
+    if _debug:
+        print('Argmaxima: ')
+        print(' * maxima_x      = %r' % (maxima_x))
+        print(' * maxima_y      = %r' % (maxima_y))
+        print(' * argmaxima     = %r' % (argmaxima))
+        print(' * boundry_flags = %r' % (boundry_flags,))
+        print(' * len(ydata)    = %r' % (len(ydata)))
+    mid_flags = ~boundry_flags
 
-    neighbs = np.vstack((mid_argmaxima - 1, mid_argmaxima, mid_argmaxima + 1))
-    y123 = ydata[neighbs]
-    if normalize_x or xdata is None:
-        x123 = neighbs
-    else:
-        x123 = xdata[neighbs]
+    if np.any(mid_flags):
+        # We can do 2nd order interpolation in the middle zone
+        mid_argmaxima = argmaxima[mid_flags]
 
-    # Fit parabola around points
-    coeff_list = []
-    for (x, y) in zip(x123.T, y123.T):
-        coeff = np.polyfit(x, y, deg=2)
-        coeff_list.append(coeff)
-
-    A, B, C = np.vstack(coeff_list).T
-
-    # Maximum x point is where the derivative is 0
-    submaxima_x = -B / (2 * A)
-    submaxima_y = C - B * B / (4 * A)
-
-    if xdata is None:
-        submaxima_idx = submaxima_x
-    elif normalize_x and xdata is not None:
-        # Convert x back to data coordinates if we normalized durring polynimal
-        # fitting.
-        submaxima_idx = submaxima_x
-        idx1 = np.floor(submaxima_x).astype(np.int)
-        idx2 = np.floor(submaxima_x + 1).astype(np.int)
-        alpha = submaxima_idx - idx1
-        submaxima_x = xdata[idx1] * (1 - alpha) + xdata[idx2] * alpha
-    else:
-        submaxima_idx = None  # NOQA
-
-    # Check to make sure submaxima is not less than original maxima
-    # (can be the case only if the maxima is incorrectly given)
-    # In this case just return what the user wanted as the maxima
-    maxima_y = y123[1, :]
-    invalid = submaxima_y < maxima_y
-    if np.any(invalid):
-        if xdata is not None:
-            submaxima_x[invalid] = xdata[argmaxima[invalid]]
+        neighbs = np.vstack((mid_argmaxima - 1, mid_argmaxima, mid_argmaxima + 1))
+        y123 = ydata[neighbs]
+        if normalize_x or xdata is None:
+            x123 = neighbs
         else:
-            submaxima_x[invalid] = argmaxima[invalid]
-        submaxima_y[invalid] = ydata[argmaxima[invalid]]
+            x123 = xdata[neighbs]
+
+        # Fit parabola around points
+        coeff_list = []
+        for (x, y) in zip(x123.T, y123.T):
+            coeff = np.polyfit(x, y, deg=2)
+            coeff_list.append(coeff)
+
+        A, B, C = np.vstack(coeff_list).T
+
+        # Maximum x point is where the derivative is 0
+        submaxima_x = -B / (2 * A)
+        submaxima_y = C - B * B / (4 * A)
+
+        if xdata is None:
+            submaxima_idx = submaxima_x
+        elif normalize_x and xdata is not None:
+            # Convert x back to data coordinates if we normalized durring polynimal
+            # fitting. Do linear interpoloation.
+            submaxima_idx = submaxima_x
+            submaxima_x = linear_interpolation(xdata, submaxima_idx)
+        else:
+            submaxima_idx = None  # NOQA
+
+        # Check to make sure submaxima is not less than original maxima
+        # (can be the case only if the maxima is incorrectly given)
+        # In this case just return what the user wanted as the maxima
+        invalid = submaxima_y < ydata[mid_argmaxima]
+        if np.any(invalid):
+            print('[vt] Warning argsubmaxima2 found submaxima less than originals')
+            print('[vt] Something may be wrong')
+            if xdata is not None:
+                submaxima_x[invalid] = xdata[argmaxima[invalid]]
+            else:
+                submaxima_x[invalid] = argmaxima[invalid]
+            submaxima_y[invalid] = ydata[argmaxima[invalid]]
+    else:
+        submaxima_x = []
+        submaxima_y = []
 
     # submaxima_x_, submaxima_y_ = interpolate_submaxima(argmaxima, ydata, xdata)
     if np.any(boundry_flags):
-        raise NotImplementedError('boundary conditions')
-        # endpts = argmaxima[boundry_flags]
-        # submaxima_x = (np.hstack([submaxima_x, xdata[endpts]])
-        #                if xdata is not None else
-        #                np.hstack([submaxima_x, endpts]))
-        # submaxima_y = np.hstack([submaxima_y, ydata[endpts]])
+        endpts = argmaxima[boundry_flags]
+        if xdata is None:
+            submaxima_x = np.hstack([submaxima_x, endpts])
+        else:
+            submaxima_x = np.hstack([submaxima_x, xdata[endpts]])
+        submaxima_y = np.hstack([submaxima_y, ydata[endpts]])
+
+    # Nicely order the submaxima
+    sortx = submaxima_x.argsort()
+    submaxima_x = submaxima_x[sortx]
+    submaxima_y = submaxima_y[sortx]
 
     if _debug:
         print('Submaxima: ')
         print(' * submaxima_x = %r' % (submaxima_x))
         print(' * submaxima_y = %r' % (submaxima_y))
     return submaxima_x, submaxima_y
+
+
+def linear_interpolation(arr, subindices):
+    """
+    Does linear interpolation to lookup subindex values
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from vtool.histogram import *  # NOQA
+        >>> arr = np.array([0, 1, 2, 3])
+        >>> subindices = np.array([0, .1, 1, 1.8, 2, 2.5, 3] )
+        >>> subvalues = linear_interpolation(arr, subindices)
+        >>> assert np.allclose(subindices, subvalues)
+        >>> assert np.allclose(2.3, linear_interpolation(arr, 2.3))
+    """
+    idx1 = np.floor(subindices).astype(np.int)
+    idx2 = np.floor(subindices + 1).astype(np.int)
+    idx2 = np.minimum(idx2, len(arr) - 1)
+    alpha = idx2 - subindices
+    subvalues = arr[idx1] * (alpha) + arr[idx2] * (1 - alpha)
+    return subvalues
+
+
+# subindex_take = linear_interpolation
 
 
 def hist_argmaxima(hist, centers=None, maxima_thresh=None):

@@ -182,6 +182,10 @@ class ConfusionMetrics(ut.NiceRepr):
     # def __nice__(self):
     #     return '{}'.format(cfms.n_samples)
 
+    @property
+    def thresh(self):
+        return self.thresholds
+
     # ----
 
     @property
@@ -540,6 +544,36 @@ class ConfusionMetrics(ut.NiceRepr):
                                         maximize=maximize)
         return thresh
 
+    def get_index_at_metric(self, at_metric, at_value, subindex=True):
+        import vtool as vt
+        at_arr = getattr(self, at_metric)
+
+        if at_value in {'max', 'maximize'}:
+            at_value = at_arr.max()
+        elif at_value in {'min', 'minimize'}:
+            at_value = at_arr.min()
+
+        # Find point closest to the value
+        distance = np.abs(at_arr - at_value)
+
+        # TODO: need to be able to figure out how to correctly break ties
+
+        if subindex:
+            submin_x, submin_y = vt.argsubmin2(distance)
+            return submin_x
+        else:
+            idx = distance.argmin()
+            return idx
+
+    def get_metric_at_index(self, metric, subindex):
+        import vtool as vt
+        arr = getattr(self, metric)
+        if isinstance(subindex, int):
+            value = arr[subindex]
+        else:
+            value = vt.linear_interpolation(arr, subindex)
+        return value
+
     def get_metric_at_metric(self, get_metric, at_metric, at_value,
                              subindex=False):
         """
@@ -552,25 +586,8 @@ class ConfusionMetrics(ut.NiceRepr):
         self.get_metric_at_metric('n_false_pos', 'tpr', .25)
         self.get_metric_at_metric('n_true_pos', 'tpr', .25)
         """
-        import vtool as vt
-        at_arr = getattr(self, at_metric)
-        get_arr = getattr(self, get_metric)
-
-        if at_value in {'max', 'maximize'}:
-            at_value = at_arr.max()
-        elif at_value in {'min', 'minimize'}:
-            at_value = at_arr.min()
-
-        # Find point closest to the value
-        distance = np.abs(at_arr - at_value)
-
-        if subindex:
-            submin_x, submin_y = vt.argsubmin2(distance, xdata=get_arr)
-            get_value = submin_x
-        else:
-            idx = distance.argmin()
-            min_x = get_arr[idx]
-            get_value = min_x
+        index = self.get_index_at_metric(at_metric, at_value, subindex=subindex)
+        get_value = self.get_metric_at_index(get_metric, index)
         return get_value
 
     def get_metric_at_thresh(self, metric, thresh):
