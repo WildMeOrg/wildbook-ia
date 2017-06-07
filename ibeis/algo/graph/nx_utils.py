@@ -38,18 +38,29 @@ def edges_inside(graph, nodes):
     return result
 
 
-def edges_outgoing(graph, nodes1):
+def edges_outgoing(graph, nodes):
     """
-    Finds edges between two sets of disjoint nodes.
-    Running time is O(len(nodes1) * len(nodes2))
+    Finds edges leaving a set of nodes.
+    Average running time is O(len(nodes) * ave_degree(nodes))
+    Worst case running time is O(G.number_of_edges()).
 
     Args:
-        graph (nx.Graph): an undirected graph
-        nodes1 (set): set of nodes disjoint from `nodes2`
-        nodes2 (set): set of nodes disjoint from `nodes1`.
+        graph (nx.Graph): a graph
+        nodes (set): set of nodes
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> import utool as ut
+        >>> G = demodata_bridge()
+        >>> bridges = find_bridges(G)
+        >>> nodes = {1, 2, 3, 4}
+        >>> outgoing = edges_outgoing(G, nodes)
+        >>> assert outgoing == {(3, 5), (4, 8)}
     """
-    nodes1 = set(nodes1)
-    return {e_(u, v) for u in nodes1 for v in graph.adj[u] if v not in nodes1}
+    if not isinstance(nodes, set):
+        nodes = set(nodes)
+    return {e_(u, v) for u in nodes for v in graph.adj[u] if v not in nodes}
 
 
 def edges_cross(graph, nodes1, nodes2):
@@ -64,6 +75,218 @@ def edges_cross(graph, nodes1, nodes2):
     """
     return {e_(u, v) for u in nodes1
             for v in nodes2.intersection(graph.adj[u])}
+
+
+def edges_between(graph, nodes1, nodes2=None, assume_disjoint=False,
+                  assume_dense=True):
+    r"""
+    Get edges between two components or within a single component
+
+    Args:
+        graph (nx.Graph): the graph
+        nodes1 (set): list of nodes
+        nodes2 (set): if None it is equivlanet to nodes2=nodes1 (default=None)
+        assume_disjoint (bool): skips expensive check to ensure edges arnt
+            returned twice (default=False)
+
+    CommandLine:
+        python -m ibeis.algo.graph.nx_utils --test-edges_between
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> import utool as ut
+        >>> edges = [
+        >>>     (1, 2), (2, 3), (3, 4), (4, 1), (4, 3),  # cc 1234
+        >>>     (1, 5), (7, 2), (5, 1),  # cc 567 / 5678
+        >>>     (7, 5), (5, 6), (8, 7),
+        >>> ]
+        >>> digraph = nx.DiGraph(edges)
+        >>> graph = nx.Graph(edges)
+        >>> nodes1 = [1, 2, 3, 4]
+        >>> nodes2 = [5, 6, 7]
+        >>> n2 = sorted(edges_between(graph, nodes1, nodes2))
+        >>> n4 = sorted(edges_between(graph, nodes1))
+        >>> n5 = sorted(edges_between(graph, nodes1, nodes1))
+        >>> n1 = sorted(edges_between(digraph, nodes1, nodes2))
+        >>> n3 = sorted(edges_between(digraph, nodes1))
+        >>> print('n2 == %r' % (n2,))
+        >>> print('n4 == %r' % (n4,))
+        >>> print('n5 == %r' % (n5,))
+        >>> print('n1 == %r' % (n1,))
+        >>> print('n3 == %r' % (n3,))
+        >>> assert n2 == ([(1, 5), (2, 7)]), '2'
+        >>> assert n4 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '4'
+        >>> assert n5 == ([(1, 2), (1, 4), (2, 3), (3, 4)]), '5'
+        >>> assert n1 == ([(1, 5), (5, 1), (7, 2)]), '1'
+        >>> assert n3 == ([(1, 2), (2, 3), (3, 4), (4, 1), (4, 3)]), '3'
+        >>> n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=False))
+        >>> print('n6 = %r' % (n6,))
+        >>> n6 = sorted(edges_between(digraph, nodes1 + [6], nodes2 + [1, 2], assume_dense=True))
+        >>> print('n6 = %r' % (n6,))
+        >>> assert n6 == ([(1, 2), (1, 5), (2, 3), (4, 1), (5, 1), (5, 6), (7, 2)]), '6'
+    """
+    if assume_dense:
+        edges = _edges_between_dense(graph, nodes1, nodes2, assume_disjoint)
+    else:
+        edges = _edges_between_sparse(graph, nodes1, nodes2, assume_disjoint)
+    if graph.is_directed():
+        for u, v in edges:
+            yield u, v
+    else:
+        for u, v in edges:
+            yield e_(u, v)
+
+
+def _edges_between_dense(graph, nodes1, nodes2=None, assume_disjoint=False):
+    """
+    The dense method is where we enumerate all possible edges and just take the
+    ones that exist (faster for very dense graphs)
+    """
+    if nodes2 is None or nodes2 is nodes1:
+        # Case where we are looking at internal nodes only
+        edge_iter = it.combinations(nodes1, 2)
+    elif assume_disjoint:
+        # We assume len(isect(nodes1, nodes2)) == 0
+        edge_iter = it.product(nodes1, nodes2)
+    else:
+        # make sure a single edge is not returned twice
+        # in the case where len(isect(nodes1, nodes2)) > 0
+        if not isinstance(nodes1, set):
+            nodes1 = set(nodes1)
+        if not isinstance(nodes2, set):
+            nodes2 = set(nodes2)
+        nodes_isect = nodes1.intersection(nodes2)
+        nodes_only1 = nodes1 - nodes_isect
+        nodes_only2 = nodes2 - nodes_isect
+        edge_sets = [it.product(nodes_only1, nodes_only2),
+                     it.product(nodes_only1, nodes_isect),
+                     it.product(nodes_only2, nodes_isect),
+                     it.combinations(nodes_isect, 2)]
+        edge_iter = it.chain.from_iterable(edge_sets)
+
+    if graph.is_directed():
+        for n1, n2 in edge_iter:
+            if graph.has_edge(n1, n2):
+                yield n1, n2
+            if graph.has_edge(n2, n1):
+                yield n2, n1
+    else:
+        for n1, n2 in edge_iter:
+            if graph.has_edge(n1, n2):
+                yield n1, n2
+
+
+def _edges_inside_lower(graph, both_adj):
+    """ finds lower triangular edges inside the nodes """
+    both_lower = set([])
+    for u, neighbs in both_adj.items():
+        neighbsBB_lower = neighbs.intersection(both_lower)
+        for v in neighbsBB_lower:
+            yield (u, v)
+        both_lower.add(u)
+
+
+def _edges_inside_upper(graph, both_adj):
+    """ finds upper triangular edges inside the nodes """
+    both_upper = set(both_adj.keys())
+    for u, neighbs in both_adj.items():
+        neighbsBB_upper = neighbs.intersection(both_upper)
+        for v in neighbsBB_upper:
+            yield (u, v)
+        both_upper.remove(u)
+
+
+def _edges_between_disjoint(graph, only1_adj, only2):
+    """ finds edges between disjoint nodes """
+    for u, neighbs in only1_adj.items():
+        # Find the neighbors of u in only1 that are also in only2
+        neighbs12 = neighbs.intersection(only2)
+        for v in neighbs12:
+            yield (u, v)
+
+
+def _edges_between_sparse(graph, nodes1, nodes2=None, assume_disjoint=False):
+    """
+    In this version we check the intersection of existing edges and the edges
+    in the second set (faster for sparse graphs)
+    """
+    # Notes:
+    # 1 = edges only in `nodes1`
+    # 2 = edges only in `nodes2`
+    # B = edges only in both `nodes1` and `nodes2`
+
+    # Test for special cases
+    if nodes2 is None or nodes2 is nodes1:
+        # Case where we just are finding internal edges
+        both = set(nodes1)
+        both_adj  = {u: set(graph.adj[u]) for u in both}
+        if graph.is_directed():
+            edge_sets = (
+                _edges_inside_upper(graph, both_adj),  # B-to-B (u)
+                _edges_inside_lower(graph, both_adj),  # B-to-B (l)
+            )
+        else:
+            edge_sets = (
+                _edges_inside_upper(graph, both_adj),  # B-to-B (u)
+            )
+    elif assume_disjoint:
+        # Case where we find edges between disjoint sets
+        if not isinstance(nodes1, set):
+            nodes1 = set(nodes1)
+        if not isinstance(nodes2, set):
+            nodes2 = set(nodes2)
+        only1 = nodes1
+        only2 = nodes2
+        if graph.is_directed():
+            only1_adj = {u: set(graph.adj[u]) for u in only1}
+            only2_adj = {u: set(graph.adj[u]) for u in only2}
+            edge_sets = (
+                _edges_between_disjoint(graph, only1, only2),  # 1-to-2
+                _edges_between_disjoint(graph, only2, only1),  # 2-to-1
+            )
+        else:
+            only1_adj = {u: set(graph.adj[u]) for u in only1}
+            edge_sets = (
+                _edges_between_disjoint(graph, only1, only2),  # 1-to-2
+            )
+    else:
+        # Full general case
+        if not isinstance(nodes1, set):
+            nodes1 = set(nodes1)
+        if nodes2 is None:
+            nodes2 = nodes1
+        elif not isinstance(nodes2, set):
+            nodes2 = set(nodes2)
+        both = nodes1.intersection(nodes2)
+        only1 = nodes1 - both
+        only2 = nodes2 - both
+
+        # Precompute all calls to set(graph.adj[u]) to avoid duplicate calls
+        only1_adj = {u: set(graph.adj[u]) for u in only1}
+        only2_adj = {u: set(graph.adj[u]) for u in only2}
+        both_adj  = {u: set(graph.adj[u]) for u in both}
+        if graph.is_directed():
+            edge_sets = (
+                _edges_between_disjoint(graph, only1_adj, only2),  # 1-to-2
+                _edges_between_disjoint(graph, only1_adj, both),   # 1-to-B
+                _edges_inside_upper(graph, both_adj),              # B-to-B (u)
+                _edges_inside_lower(graph, both_adj),              # B-to-B (l)
+                _edges_between_disjoint(graph, both_adj, only1),   # B-to-1
+                _edges_between_disjoint(graph, both_adj, only2),   # B-to-2
+                _edges_between_disjoint(graph, only2_adj, both),   # 2-to-B
+                _edges_between_disjoint(graph, only2_adj, only1),  # 2-to-1
+            )
+        else:
+            edge_sets = (
+                _edges_between_disjoint(graph, only1_adj, only2),  # 1-to-2
+                _edges_between_disjoint(graph, only1_adj, both),   # 1-to-B
+                _edges_inside_upper(graph, both_adj),              # B-to-B (u)
+                _edges_between_disjoint(graph, only2_adj, both),   # 2-to-B
+            )
+
+    for u, v in it.chain.from_iterable(edge_sets):
+        yield u, v
 
 
 def group_name_edges(g, node_to_label):
@@ -142,7 +365,9 @@ def is_edge_connected(G, k):
            * reduces 3-edge-connectivity to 3-vertex-connectivity
 
     """
-    if k == 0:
+    if k < 0:
+        raise ValueError('k must be an integer greater than 0, not=%r' % (k,))
+    elif k == 0:
         return True
     elif k == 1:
         return nx.is_connected(G)
@@ -167,7 +392,8 @@ def is_bridge_connected(G):
         >>> assert not is_bridge_connected(G1)
         >>> assert is_bridge_connected(G2)
     """
-    return not any(find_bridges(G))
+    # Check that G has edges and none of them are bridges
+    return not any(find_bridges(G)) and any(G.edges())
 
 
 @profile
@@ -328,12 +554,113 @@ def complement_edges(G):
             for n2 in G if n2 not in nbrs if n != n2)
 
 
+def greedy_edge_augmentation(G, k, avail=None, return_anyway=False):
+    """
+    Randomly add edges that are not locally k-edge-connected until we satisfy
+    connectivity in general. Then try and remove edges to reduce the size.
+
+    Ignore:
+        >>> ut.qtensure()
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> G = nx.Graph()
+        >>> G.add_nodes_from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        >>> aug_edges1 = greedy_edge_augmentation(G, k=1)
+        >>> aug_edges2 = greedy_edge_augmentation(G, k=2)
+        >>> aug_edges3 = greedy_edge_augmentation(G, k=3)
+        >>> aug_edges4 = greedy_edge_augmentation(G, k=4)
+        >>> ut.quit_if_noshow()
+        >>> len(aug_edges_opt)
+        >>> len(aug_edges_greedy)
+        >>> import plottool as pt
+        >>> def aug_graph(G, edges):
+        >>>     H = G.copy()
+        >>>     H.add_edges_from(edges)
+        >>>     return H
+        >>> pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
+        >>> fnum = 1
+        >>> pt.show_nx(aug_graph(G, aug_edges1), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges2), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges3), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges4), fnum=fnum, pnum=pnum_())
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> G = nx.Graph()
+        >>> G.add_nodes_from([1, 2, 3])
+        >>> aug_edges1 = greedy_edge_augmentation(G, k=1, return_anyway=True)
+        >>> aug_edges2 = greedy_edge_augmentation(G, k=2, return_anyway=True)
+        >>> aug_edges3 = greedy_edge_augmentation(G, k=3, return_anyway=True)
+        >>> aug_edges4 = greedy_edge_augmentation(G, k=4, return_anyway=True)
+        >>> ut.quit_if_noshow()
+        >>> len(aug_edges_opt)
+        >>> len(aug_edges_greedy)
+        >>> import plottool as pt
+        >>> def aug_graph(G, edges):
+        >>>     H = G.copy()
+        >>>     H.add_edges_from(edges)
+        >>>     return H
+        >>> pnum_ = pt.make_pnum_nextgen(nRows=2, nCols=2)
+        >>> fnum = 1
+        >>> pt.show_nx(aug_graph(G, aug_edges1), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges2), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges3), fnum=fnum, pnum=pnum_())
+        >>> pt.show_nx(aug_graph(G, aug_edges4), fnum=fnum, pnum=pnum_())
+    """
+    # Because I have not implemented a better algorithm yet:
+    # randomly add edges until we satisfy the criteria
+    import random
+    # very hacky and not minimal
+    done = is_edge_connected(G, k)
+    if done:
+        return []
+    if avail is None:
+        avail = list(complement_edges(G))
+    else:
+        avail = list(avail)
+    aug_edges = []
+    rng = random.Random(0)
+    avail = list({e_(u, v) for u, v in avail})
+    avail = ut.shuffle(avail, rng=rng)
+    H = G.copy()
+    # Randomly throw edges in until we are k-connected
+    for edge in avail:
+        local_k = nx.connectivity.local_edge_connectivity(H, *edge)
+        if local_k < k:
+            aug_edges.append(edge)
+            H.add_edge(*edge)
+        done = is_edge_connected(H, k)
+        if done:
+            break
+    if not done:
+        if not return_anyway:
+            raise ValueError('not able to k-connect with available nodes')
+        else:
+            return avail
+    aug_edges = ut.shuffle(aug_edges, rng=rng)
+    # Greedy attempt to reduce the size
+    for edge in list(aug_edges):
+        if min(H.degree(edge), key=lambda t: t[1])[1] <= k:
+            continue
+        H.remove_edge(*edge)
+        aug_edges.remove(edge)
+        conn = nx.edge_connectivity(H)
+        if conn < k:
+            # If no longer feasible undo
+            H.add_edge(*edge)
+            aug_edges.append(edge)
+    return aug_edges
+
+
 @profile
 def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=False):
     r"""
     Finds set of edges to k-edge-connect G. In the case of k=1
-    this is a minimum weight set. For k>2 it becomes exact only if avail is
-    None
+    this is a minimum weight set. For k=2 it becomes exact only if avail is
+    None. If k > 2, a greedy algorithm is used.
 
     Args:
         G (nx.Graph): graph to augment
@@ -394,44 +721,8 @@ def edge_connected_augmentation(G, k, avail=None, hack=False, return_anyway=Fals
         aug_edges = weighted_bridge_connected_augmentation(G, avail,
                                                            return_anyway)
     else:
-        # Because I have not implemented a better algorithm yet:
-        # randomly add edges until we satisfy the criteria
-        import random
-        # very hacky and not minimal
-        done = is_edge_connected(G, k)
-        if done:
-            return []
-        if avail is None:
-            avail = list(complement_edges(G))
-        else:
-            avail = list(avail)
-        aug_edges = []
-        rng = random.Random(0)
-        avail = list({e_(u, v) for u, v in avail})
-        avail = ut.shuffle(avail, rng=rng)
-        H = G.copy()
-        # Randomly throw edges in until we are k-connected
-        for edge in avail:
-            aug_edges.append(edge)
-            H.add_edge(*edge)
-            done = is_edge_connected(H, k)
-            if done:
-                break
-        if not done:
-            if return_anyway:
-                return avail
-            raise ValueError('not able to k-connect with available nodes')
-        # Greedy attempt to reduce the size
-        for edge in list(aug_edges):
-            if min(H.degree(edge), key=lambda t: t[1])[1] <= k:
-                continue
-            H.remove_edge(*edge)
-            aug_edges.remove(edge)
-            conn = nx.edge_connectivity(H)
-            if conn < k:
-                # If no longer feasible undo
-                H.add_edge(*edge)
-                aug_edges.append(edge)
+        # Fallback on greedy algorithm when we have no better option
+        aug_edges = greedy_edge_augmentation(G, k, avail, return_anyway)
     aug_edges = list(it.starmap(e_, aug_edges))
     return aug_edges
 
@@ -787,7 +1078,8 @@ def bridge_connected_augmentation(G):
 
 @profile
 def collapse(G, grouped_nodes):
-    """Collapses each group of nodes into a single node.
+    r"""
+    Collapses each group of nodes into a single node.
 
     TODO: submit as PR
 
@@ -814,7 +1106,6 @@ def collapse(G, grouped_nodes):
        attribute 'members' with the set of original nodes in G that form the
        group that the node in C represents.
 
-    Examples
     --------
     Collapses a graph using disjoint groups, but not necesarilly connected
     >>> G = nx.Graph([(1, 0), (2, 3), (3, 1), (3, 4), (4, 5), (5, 6), (5, 7)])
@@ -998,6 +1289,61 @@ def is_complete(G, self_loops=False):
     if self_loops:
         n_need += n_nodes
     return n_edges == n_need
+
+
+def random_k_edge_connected_graph(size, k, p=.1, rng=None):
+    """
+    Super hacky way of getting a random k-connected graph
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> import plottool as pt
+        >>> from ibeis.algo.graph.nx_utils import *  # NOQA
+        >>> size, k, p = 25, 3, .1
+        >>> rng = ut.ensure_rng(0)
+        >>> gs = []
+        >>> for x in range(4):
+        >>>     G = random_k_edge_connected_graph(size, k, p, rng)
+        >>>     gs.append(G)
+        >>> ut.quit_if_noshow()
+        >>> pnum_ = pt.make_pnum_nextgen(nRows=2, nSubplots=len(gs))
+        >>> fnum = 1
+        >>> for g in gs:
+        >>>     pt.show_nx(g, fnum=fnum, pnum=pnum_())
+    """
+    import sys
+    for count in it.count(0):
+        seed = None if rng is None else rng.randint(sys.maxsize)
+        # Randomly generate a graph
+        g = nx.fast_gnp_random_graph(size, p, seed=seed)
+        conn = nx.edge_connectivity(g)
+        # If it has exactly the desired connectivity we are one
+        if conn == k:
+            break
+        # If it has more, then we regenerate the graph with fewer edges
+        elif conn > k:
+            p = p / 2
+        # If it has less then we add a small set of edges to get there
+        elif conn < k:
+            # p = 2 * p - p ** 2
+            # if count == 2:
+            aug_edges = edge_connected_augmentation(g, k)
+            g.add_edges_from(aug_edges)
+            break
+    return g
+
+
+def edge_df(graph, edges, ignore=None):
+    import pandas as pd
+    edge_dict = {e: graph.get_edge_data(*e) for e in edges}
+    df = pd.DataFrame.from_dict(edge_dict, orient='index')
+
+    if len(df):
+        if ignore:
+            ignore = df.columns.intersection(ignore)
+            df = df.drop(ignore, axis=1)
+        df.index.names = ('u', 'v')
+    return df
 
 
 if __name__ == '__main__':

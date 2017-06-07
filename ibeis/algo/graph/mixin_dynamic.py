@@ -6,7 +6,6 @@ import utool as ut
 import itertools as it
 import networkx as nx
 from ibeis.algo.graph import nx_utils
-from ibeis.algo.graph.nx_utils import e_
 from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV, UNKWN,
                                     UNINFERABLE)
 from ibeis.algo.graph.nx_utils import (edges_inside, edges_cross,
@@ -236,7 +235,7 @@ class DynamicUpdate(object):
         test_print(test_action, color=action_color)
         assert test_action is not None, 'what happened?'
 
-    def on_between(infr, edge, decision, nid1, nid2, merge_nid):
+    def on_between(infr, edge, decision, nid1, nid2, merge_nid=None):
         """
         Callback when a review is made between two PCCs
         """
@@ -250,7 +249,7 @@ class DynamicUpdate(object):
             action = []
         return action
 
-    def on_within(infr, edge, decision, nid, split_nids):
+    def on_within(infr, edge, decision, nid, split_nids=None):
         """
         Callback when a review is made inside a PCC
         """
@@ -338,7 +337,8 @@ class DynamicUpdate(object):
                 new_nid = infr.pos_graph.node_label(edge[0])
                 infr.update_extern_neg_redun(new_nid, may_remove=False)
                 infr.update_pos_redun(new_nid, may_remove=False)
-            action = infr.on_between(edge, decision, nid1, nid2, new_nid)
+            action = infr.on_between(edge, decision, nid1, nid2,
+                                     merge_nid=new_nid)
         return action
 
     @profile
@@ -382,7 +382,8 @@ class DynamicUpdate(object):
                     infr._check_inconsistency(new_nid1)
                     infr._check_inconsistency(new_nid2)
                 # Signal that a split occurred
-                action = infr.on_within(edge, decision, nid1, (new_nid1, new_nid2))
+                action = infr.on_within(edge, decision, nid1,
+                                        split_nids=(new_nid1, new_nid2))
             else:
                 if all_consistent:
                     # infr.print('Negative added within clean PCC')
@@ -393,7 +394,7 @@ class DynamicUpdate(object):
                     # infr.print('Negative added within inconsistent PCC')
                     print_('neg-within-dirty')
                     infr._check_inconsistency(new_nid1)
-                action = infr.on_within(edge, decision, new_nid1, None)
+                action = infr.on_within(edge, decision, new_nid1)
         else:
             if all_consistent:
                 # infr.print('Negative added between consistent PCCs')
@@ -405,7 +406,7 @@ class DynamicUpdate(object):
                 # nothing to do if a negative edge is added between two PCCs
                 # where at least one is inconsistent
                 pass
-            action = infr.on_between(edge, decision, new_nid1, new_nid2, None)
+            action = infr.on_between(edge, decision, new_nid1, new_nid2)
         return action
 
     @profile
@@ -469,7 +470,8 @@ class DynamicUpdate(object):
                         infr._check_inconsistency(new_nid1)
                         infr._check_inconsistency(new_nid2)
                     # Signal that a split occurred
-                    action = infr.on_within(edge, decision, nid1, (new_nid1, new_nid2))
+                    action = infr.on_within(edge, decision, nid1,
+                                            split_nids=(new_nid1, new_nid2))
                 else:
                     if all_consistent:
                         # infr.print('Overwrote pos in CC with incomp')
@@ -480,7 +482,7 @@ class DynamicUpdate(object):
                         print_('%s-within-pos-dirty' % prefix)
                         # Overwriting a positive edge that is not a split
                         # in an inconsistent component, means no inference.
-                    action = infr.on_within(edge, decision, new_nid1, None)
+                    action = infr.on_within(edge, decision, new_nid1)
             elif overwrote_negative:
                 # infr.print('Overwrite negative within CC')
                 print_('%s-within-neg-dirty' % prefix)
@@ -494,7 +496,7 @@ class DynamicUpdate(object):
                 else:
                     print_('%s-within-dirty' % prefix)
                     # infr.print('Incomp edge within inconsistent CC')
-                action = infr.on_within(edge, decision, new_nid1, None)
+                action = infr.on_within(edge, decision, nid1)
         else:
             if overwrote_negative:
                 if all_consistent:
@@ -509,7 +511,7 @@ class DynamicUpdate(object):
             else:
                 print_('incon-between')
                 # infr.print('Incomp edge between CCs')
-            action = infr.on_between(edge, decision, nid1, nid2, None)
+            action = infr.on_between(edge, decision, nid1, nid2)
         return action
 
 
@@ -709,6 +711,7 @@ class Consistency(object):
 
 class Completeness(object):
     def prob_complete(infr, cc):
+        raise NotImplementedError('Is not done')
         if infr.term is None:
             assert False
             return 0
@@ -754,6 +757,7 @@ class Completeness(object):
             >>> node = 20
             >>> infr.is_node_complete(node)
         """
+        raise NotImplementedError('Is not done')
         thresh = infr.queue_params['complete_thresh']
         cc = infr.pos_graph.connected_to(node)
         if thresh < 1.0:
@@ -800,6 +804,12 @@ class Completeness(object):
 class Priority(object):
     """
     Handles prioritization of edges for review.
+
+    Example:
+        >>> # ENABLE_DOCTEST
+        >>> from ibeis.algo.graph.mixin_dynamic import *  # NOQA
+        >>> from ibeis.algo.graph import demo
+        >>> infr = demo.demodata_infr(num_pccs=20)
     """
 
     def remaining_reviews(infr):
@@ -856,6 +866,20 @@ class Priority(object):
                 infr.queue[edge] = infr.queue.pop(edge, low) - 10
         infr.print('added %d edges to the queue' % (num_new,), 1)
 
+    def peek_many(infr, n):
+        infr.queue.peek_many(n)
+
+    def push(infr, edge, priority=None):
+        """
+        Push an edge back onto the queue
+        """
+        if priority is None:
+            priority = 'prob_match'
+        if isinstance(priority, six.string_types):
+            prob_match = infr.get_edge_attr(edge, priority, default=1e-9)
+            priority = prob_match
+        infr.queue[edge] = -priority
+
     @profile
     def pop(infr):
         """
@@ -865,17 +889,17 @@ class Priority(object):
         try:
             edge, priority = infr.queue.pop()
         except IndexError:
-            if infr.enable_redundancy:
-                infr.print("ADDING POSITIVE REDUN CANDIDATES")
-                new_edges = infr.find_pos_redun_candidate_edges()
-                if new_edges:
-                    # Add edges to complete redundancy
-                    infr.add_new_candidate_edges(new_edges)
-                    return infr.pop()
-                else:
-                    raise StopIteration('no more to review!')
-            else:
-                raise StopIteration('no more to review!')
+            # if infr.enable_redundancy:
+            #     infr.print("ADDING POSITIVE REDUN CANDIDATES")
+            #     new_edges = infr.find_pos_redun_candidate_edges()
+            #     if new_edges:
+            #         # Add edges to complete redundancy
+            #         infr.add_new_candidate_edges(new_edges)
+            #         return infr.pop()
+            #     else:
+            #         raise StopIteration('no more to review!')
+            # else:
+            raise StopIteration('no more to review!')
         else:
             if infr.enable_redundancy:
                 u, v = edge
@@ -1018,7 +1042,8 @@ class _RedundancyHelpers(object):
             # Find k random negative edges
             check_edges = existing_edges - set(reviewed_edges)
             if len(check_edges) < k:
-                for edge in it.starmap(e_, it.product(c1_nodes, c2_nodes)):
+                edges = it.starmap(nx_utils.e_, it.product(c1_nodes, c2_nodes))
+                for edge in edges:
                     if edge not in reviewed_edges:
                         check_edges.add(edge)
                         if len(check_edges) == k:

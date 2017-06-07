@@ -7,6 +7,8 @@ import numpy as np
 import vtool as vt
 import six
 from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
+from ibeis.algo.graph import nx_utils as nxu
 print, rrr, profile = ut.inject2(__name__)
 
 
@@ -70,9 +72,13 @@ class IBEISIO(object):
         name_labels = list(infr.gen_node_values('name_label', aids))
         old_ccs = list(ut.group_items(aids, name_labels).values())
         new_ccs = list(infr.positive_components())
-        return infr.name_group_delta_stats(old_ccs, new_ccs)
+        df =  infr.name_group_delta_stats(old_ccs, new_ccs)
+        return df
 
     def ibeis_name_group_delta_info(infr, verbose=None):
+        """
+        infr.relabel_using_reviews(rectify=False)
+        """
         aids = infr.aids
         new_names = list(infr.gen_node_values('name_label', aids))
         new_ccs = list(ut.group_items(aids, new_names).values())
@@ -81,7 +87,8 @@ class IBEISIO(object):
             aids, distinguish_unknowns=True)
         old_ccs = list(ut.group_items(aids, old_names).values())
 
-        return infr.name_group_delta_stats(old_ccs, new_ccs, verbose)
+        df = infr.name_group_delta_stats(old_ccs, new_ccs, verbose)
+        return df
 
     def name_group_stats(infr, verbose=None):
         stats = ut.odict()
@@ -119,6 +126,64 @@ class IBEISIO(object):
             print('Name Group changes:')
             print(df.to_string(float_format='%.2f'))
         return df
+
+    def find_unjustified_splits(infr):
+        """
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+            >>> ibs = ibeis.opendb(defaultdb='PZ_Master1')
+            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> infr.reset_feedback('staging', apply=True)
+            >>> infr.relabel_using_reviews(rectify=False)
+            >>> unjustified = infr.find_unjustified_splits()
+            >>> review_edges = []
+            >>> for cc1, cc2 in unjustified:
+            >>>     u = next(iter(cc1))
+            >>>     v = next(iter(cc2))
+            >>>     review_edges.append(e_(u, v))
+            >>> infr.verbose = 100
+            >>> infr.prioritize(
+            >>>     edges=review_edges, scores=[1] * len(review_edges),
+            >>>     reset=True,
+            >>> )
+            >>> infr.qt_review_loop()
+        """
+        ibs = infr.ibs
+        annots = ibs.annots(infr.aids)
+        ibs_ccs = [a.aids for a in annots.group(annots.nids)[1]]
+        infr_ccs = list(infr.positive_components())
+        delta = ut.grouping_delta(ibs_ccs, infr_ccs)
+
+        hyrbid_splits = [ccs for ccs in delta['hybrid']['splits']
+                         if len(ccs) > 1]
+        pure_splits = delta['splits']['new']
+
+        new_splits = hyrbid_splits + pure_splits
+        unjustified = []
+        for ccs in new_splits:
+            for cc1, cc2 in ut.combinations(ccs, 2):
+                edges = list(nxu.edges_between(infr.graph, cc1, cc2))
+                df = infr.get_edge_dataframe(edges)
+                if len(df) == 0 or not (df['decision'] == NEGTV).any(axis=0):
+                    if len(df) > 0:
+                        n_incmp = (df['decision'] == INCMP).sum()
+                        if n_incmp > 0:
+                            continue
+                    unjustified.append((cc1, cc2))
+                    # print('--------------------------------')
+                    # print('No decision to justify splitting')
+                    # print('cc1 = %r' % (cc1,))
+                    # print('cc2 = %r' % (cc2,))
+                    # if len(df):
+                    #     df.index.names = ('aid1', 'aid2')
+                    #     nids = np.array([
+                    #         infr.pos_graph.node_labels(u, v)
+                    #         for u, v in list(df.index)])
+                    #     df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
+                    #     print(df)
+        return unjustified
 
     @profile
     def reset_labels_to_ibeis(infr):

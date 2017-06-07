@@ -473,7 +473,7 @@ class ObjectList1D(ut.NiceRepr, ut.HashComparable2):
 class ObjectView1D(ut.NiceRepr):
     # ut.HashComparable2):
     """
-    Allows for proxy caching
+    Allows for proxy caching.
 
     Example:
         >>> # ENABLE_DOCTEST
@@ -498,6 +498,7 @@ class ObjectView1D(ut.NiceRepr):
             self._cache = ut.ddict(dict)
         else:
             self._cache = cache
+        # Views always cache data for now
         self._caching = True
 
     def __dir__(self):

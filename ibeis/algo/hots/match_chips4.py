@@ -199,13 +199,10 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
     if use_cache:
         if ut.VERBOSE:
             print('[mc4] cache-query is on')
-        if ut.DEBUG2:
-            # sanity check
-            qreq_.assert_self(qreq_.ibs)
         # Try loading as many cached results as possible
         qaid2_cm_hit = {}
         external_qaids = qreq_.qaids
-        fpath_list = qreq_.get_chipmatch_fpaths(external_qaids)
+        fpath_list = list(qreq_.get_chipmatch_fpaths(external_qaids))
         exists_flags = [exists(fpath) for fpath in fpath_list]
         qaids_hit = ut.compress(external_qaids, exists_flags)
         fpaths_hit = ut.compress(fpath_list, exists_flags)
@@ -250,9 +247,6 @@ def execute_query_and_save_L1(qreq_, use_cache, save_qcache, verbose=True,
             print('[mc4] cache-query is off')
         qaid2_cm_hit = {}
     qaid2_cm = execute_query2(qreq_, verbose, save_qcache, batch_size)
-    if ut.DEBUG2:
-        # sanity check
-        qreq_.assert_self(qreq_.ibs)
     # Merge cache hits with computed misses
     if len(qaid2_cm_hit) > 0:
         qaid2_cm.update(qaid2_cm_hit)
@@ -305,7 +299,7 @@ def execute_query2(qreq_, verbose, save_qcache, batch_size=None):
         assert all([qaid == cm.qaid for qaid, cm in
                     zip(sub_qreq_.qaids, sub_cm_list)]), 'not corresonding'
         if save_qcache:
-            fpath_list = qreq_.get_chipmatch_fpaths(sub_qreq_.qaids)
+            fpath_list = list(qreq_.get_chipmatch_fpaths(sub_qreq_.qaids))
             _iter = zip(sub_cm_list, fpath_list)
             _iter = ut.ProgIter(_iter, nTotal=len(sub_cm_list),
                                 lbl='saving chip matches', adjust=True, freq=1)

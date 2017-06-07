@@ -14,7 +14,7 @@ from ibeis.algo.graph import mixin_loops
 from ibeis.algo.graph import mixin_matching
 from ibeis.algo.graph import mixin_groundtruth
 from ibeis.algo.graph import mixin_ibeis
-from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph import nx_utils
 import pandas as pd
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN  # NOQA
 import networkx as nx
@@ -55,7 +55,37 @@ class Feedback(object):
         ibs.set_annot_yaw_texts([aid], [attrs['yaw_texts']])
         ibs.overwrite_annot_case_tags([aid], [attrs['case_tags']])
         ibs.set_annot_multiple([aid], [attrs['multiple']])
-        pass
+
+    def current_feedback(infr, edge):
+        """
+        Current state (or best guess) for the current feedback of an edge
+        """
+        feedback_item = []
+        if edge in infr.internal_feedback:
+            feedback_item += infr.internal_feedback[edge]
+        if edge in infr.external_feedback:
+            feedback_item += infr.external_feedback[edge]
+        if len(feedback_item) == 0:
+            nid1, nid2 = infr.pos_graph.node_labels(*edge)
+            CONFIDENCE = infr.ibs.const.CONFIDENCE
+            feedback = {
+                'confidence': CONFIDENCE.INT_TO_CODE[CONFIDENCE.GUESSING],
+                'decision': POSTV if nid1 == nid2 else NEGTV,
+                'tags': []
+            }
+        else:
+            feedback = infr._rectify_feedback_item(feedback_item)
+        return feedback
+
+    def modify_feedback(infr, edge, **kw):
+        """
+        Current state (or best guess) for the current feedback of an edge
+        """
+        old = infr.current_feedback(edge)
+        new = ut.dict_subset(old, ['decision', 'tags', 'confidence'],
+                             default=None)
+        new.update(kw)
+        infr.add_feedback(edge, **new)
 
     @profile
     def add_feedback(infr, edge, decision, tags=None, user_id=None,
@@ -78,7 +108,7 @@ class Feedback(object):
         prev_verbose = infr.verbose
         if verbose is not None:
             infr.verbose = verbose
-        edge = aid1, aid2 = e_(*edge)
+        edge = aid1, aid2 = nx_utils.e_(*edge)
 
         if not infr.has_edge(edge):
             if True:
@@ -763,8 +793,8 @@ class AltConstructors(object):
         infr.qreq_ = qreq_
         return infr
 
-    def status(infr):
-        return ut.odict([
+    def status(infr, extended=False):
+        status_dict = ut.odict([
             ('nNodes', len(infr.aids)),
             ('nEdges', infr.graph.number_of_edges()),
             ('nCCs', infr.pos_graph.number_of_components()),
@@ -774,9 +804,34 @@ class AltConstructors(object):
             ('nUnrevEdges', infr.unreviewed_graph.number_of_edges()),
             ('nPosRedunCCs', len(infr.pos_redun_nids)),
             ('nNegRedunPairs', infr.neg_redun_nids.number_of_edges()),
-            ('nInconCCs', len(infr.nid_to_errors)),
+            ('nInconsistentCCs', len(infr.nid_to_errors)),
             #('nUnkwnEdges', infr.unknown_graph.number_of_edges()),
         ])
+        if extended:
+            def count_within_between(edges):
+                n_within = 0
+                n_between = 0
+                for u, v in edges:
+                    nid1, nid2 = infr.pos_graph.node_labels(u, v)
+                    if nid1 == nid2:
+                        n_within += 1
+                    else:
+                        n_between += 1
+                return n_within, n_between
+
+            a, b = count_within_between(infr.neg_graph.edges())
+            status_dict['nNegEdgesWithin'] = a
+            status_dict['nNegEdgesBetween'] = b
+
+            a, b = count_within_between(infr.incomp_graph.edges())
+            status_dict['nIncompEdgesWithin'] = a
+            status_dict['nIncompEdgesBetween'] = b
+
+            a, b = count_within_between(infr.unreviewed_graph.edges())
+            status_dict['nUnrevEdgesWithin'] = a
+            status_dict['nUrevEdgesBetween'] = b
+
+        return status_dict
 
     def __nice__(infr):
         if infr.graph is None:
@@ -914,6 +969,7 @@ class AnnotInference(ut.NiceRepr,
 
     def __init__(infr, ibs, aids=[], nids=None, autoinit=True, verbose=False):
         # infr.verbose = verbose
+        infr.classifiers = None
         infr.review_counter = it.count(0)
         infr.verbose = verbose
         infr.init_logging()
@@ -990,7 +1046,6 @@ class AnnotInference(ut.NiceRepr,
         infr.enable_attr_update = True
         infr.enable_auto_prioritize_nonpos = True
 
-        infr.thresh = None
         infr.cm_list = None
         infr.vsone_matches = {}
         infr.qreq_ = None
@@ -1008,6 +1063,46 @@ class AnnotInference(ut.NiceRepr,
         if autoinit:
             infr.initialize_graph()
 
+    def subgraph(infr, aids):
+        """
+        Makes a inference subgraph containing only aids.
+        Note, this is not robust, be careful.
+        """
+        orig_name_labels = list(infr.gen_node_values('orig_name_label', aids))
+        infr2 = AnnotInference(infr.ibs, aids, orig_name_labels,
+                               autoinit=False, verbose=infr.verbose)
+        infr2.graph = infr.graph.copy()
+
+        # TODO:
+        # infr2.external_feedback = copy.deepcopy(infr.external_feedback)
+        # infr2.internal_feedback = copy.deepcopy(infr.internal_feedback)
+
+        infr2.nid_counter = infr.nid_counter
+        infr2.dirty = True
+        infr2.cm_list = None
+        infr2.qreq_ = None
+
+        # infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
+        # infr2.recover_graph = copy.deepcopy(infr.recover_graph)
+        # infr2.recover_prev_neg_nids = copy.deepcopy(infr.recover_prev_neg_nids)
+
+        # infr2.pos_redun_nids = copy.deepcopy(infr.pos_redun_nids)
+        # infr2.neg_redun_nids = copy.deepcopy(infr.neg_redun_nids)
+
+        infr2.review_graphs = {}
+        for k, g in infr.review_graphs.items():
+            if g is None:
+                infr2.review_graphs[k] = None
+            elif k == POSTV:
+                infr2.review_graphs[k] = g.subgraph(aids, dynamic=True)
+            else:
+                infr2.review_graphs[k] = g.subgraph(aids)
+        return infr2
+
+        # TODO:
+        # infr2.nid_to_errors {}  # = copy.deepcopy(infr.nid_to_errors)
+        # infr2.recovery_ccs = []  # = copy.deepcopy(infr.recovery_ccs)
+
     def copy(infr):
         import copy
         # deep copy everything but ibs
@@ -1021,7 +1116,6 @@ class AnnotInference(ut.NiceRepr,
         infr2.cm_list = copy.deepcopy(infr.cm_list)
         infr2.qreq_ = copy.deepcopy(infr.qreq_)
         infr2.nid_counter = infr.nid_counter
-        infr2.thresh = infr.thresh
 
         infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
 
@@ -1033,6 +1127,7 @@ class AnnotInference(ut.NiceRepr,
 
         infr2.review_graphs = copy.deepcopy(infr.review_graphs)
         infr2.nid_to_errors = copy.deepcopy(infr.nid_to_errors)
+        infr2.recovery_ccs = copy.deepcopy(infr.recovery_ccs)
         return infr2
 
 

@@ -1605,6 +1605,17 @@ def get_annot_yaw_texts(ibs, aid_list, assume_unique=False):
 
 
 @register_ibs_method
+@accessor_decors.getter_1to1
+def get_annot_viewpoint_int(ibs, aid_list, assume_unique=False):
+    yaw_texts = ibs.get_annot_yaw_texts(aid_list, assume_unique=assume_unique)
+    VIEW = ibs.const.VIEW
+    UNKNOWN_CODE = VIEW.INT_TO_CODE[VIEW.UNKNOWN]
+    yaw_texts2 = (UNKNOWN_CODE if y is None else y for y in yaw_texts)
+    view_ints = ut.dict_take(ibs.const.VIEW.CODE_TO_INT, yaw_texts2)
+    return view_ints
+
+
+@register_ibs_method
 @accessor_decors.setter
 @accessor_decors.cache_invalidator(const.ANNOTATION_TABLE, [ANNOT_YAW], rowidx=0)
 @register_api('/api/annot/yaw/', methods=['PUT'])

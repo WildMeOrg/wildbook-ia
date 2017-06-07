@@ -234,6 +234,8 @@ class GraphVisualization(object):
                             show_labels=True,
                             reposition=True,
                             use_image=False,
+                            edge_overrides=None,
+                            colorby='name_label',
                             **kwargs
                             # hide_unreviewed_inferred=True
                             ):
@@ -297,7 +299,7 @@ class GraphVisualization(object):
                 nx.set_node_attributes(graph, 'label', annotnode_to_label)
 
         # NODE_COLOR: based on name_label
-        ut.color_nodes(graph, labelattr='name_label', sat_adjust=-.4)
+        ut.color_nodes(graph, labelattr=colorby, sat_adjust=-.4)
 
         # EDGES:
         # Grab different types of edges
@@ -467,6 +469,10 @@ class GraphVisualization(object):
             layoutkw.update(kwargs)
             # print(ut.repr3(graph.edge))
             pt.nx_agraph_layout(graph, inplace=True, **layoutkw)
+
+        if edge_overrides:
+            for key, edge_to_attr in edge_overrides.items():
+                nx_set_edge_attrs(graph, key, edge_to_attr)
 
     @profile
     def show_graph(infr, graph=None, use_image=False, update_attrs=True,

@@ -7,8 +7,8 @@ import numpy as np
 import utool as ut
 import vtool as vt
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP, UNREV, UNKWN
-from ibeis.algo.graph.nx_utils import e_, edges_inside
-from ibeis.algo.graph import nx_utils
+from ibeis.algo.graph.nx_utils import e_
+from ibeis.algo.graph import nx_utils as nxu
 import six
 print, rrr, profile = ut.inject2(__name__)
 
@@ -34,7 +34,7 @@ class AttrAccess(object):
         return ut.util_graph.nx_gen_node_values(
             infr.graph, key, nodes, default=default)
 
-    def gen_edge_values(infr, key, edges, default=ut.NoParam,
+    def gen_edge_values(infr, key, edges=None, default=ut.NoParam,
                         on_missing='error', on_keyerr='default'):
         return ut.util_graph.nx_gen_edge_values(
             infr.graph, key, edges, default=default, on_missing=on_missing,
@@ -103,11 +103,25 @@ class AttrAccess(object):
     def get_edge_data(infr, edge):
         return infr.graph.get_edge_data(*edge)
 
-    def get_nonvisual_edge_data(infr, edge):
+    def get_nonvisual_edge_data(infr, edge, on_missing='filter'):
         data = infr.get_edge_data(edge)
         if data is not None:
             data = ut.delete_dict_keys(data.copy(), infr.visual_edge_attrs)
+        else:
+            if on_missing == 'filter':
+                data = None
+            elif on_missing == 'default':
+                data = {}
+            elif on_missing == 'error':
+                raise KeyError('graph does not have edge %r ' % (edge,))
         return data
+
+    def get_edge_dataframe(infr, edges):
+        import pandas as pd
+        edge_datas = {edge: infr.get_nonvisual_edge_data(edge).copy()
+                      for edge in edges}
+        edge_df = pd.DataFrame.from_dict(edge_datas, orient='index')
+        return edge_df
 
 
 class Convenience(object):
@@ -137,6 +151,139 @@ class Convenience(object):
 
     def print_graph_info(infr):
         print(ut.repr3(ut.graph_info(infr.simplify_graph())))
+
+    def pair_connection_info(infr, aid1, aid2):
+        """
+        Helps debugging when ibs.nids has info that annotmatch/staging do not
+
+        Examples:
+            >>> from ibeis.algo.graph.mixin_helpers import *  # NOQA
+            >>> import ibeis
+            >>> ibs = ibeis.opendb(defaultdb='GZ_Master1')
+            >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
+            >>> infr.reset_feedback('staging', apply=True)
+            >>> infr.relabel_using_reviews(rectify=False)
+            >>> aid1, aid2 = 1349, 3087
+            >>> aid1, aid2 = 1535, 2549
+            >>> infr.pair_connection_info(aid1, aid2)
+
+
+            >>> aid1, aid2 = 4055, 4286
+            >>> aid1, aid2 = 6555, 6882
+            >>> aid1, aid2 = 712, 803
+            >>> aid1, aid2 = 3883, 4220
+            >>> infr.pair_connection_info(aid1, aid2)
+        """
+
+        nid1, nid2 = infr.pos_graph.node_labels(aid1, aid2)
+        cc1 = infr.pos_graph.connected_to(aid1)
+        cc2 = infr.pos_graph.connected_to(aid2)
+        ibs = infr.ibs
+
+        # First check directly relationships
+
+        def get_aug_df(edges):
+            df = infr.get_edge_dataframe(edges)
+            if len(df):
+                df.index.names = ('aid1', 'aid2')
+                nids = np.array([
+                    infr.pos_graph.node_labels(u, v)
+                    for u, v in list(df.index)])
+                df = df.assign(nid1=nids.T[0], nid2=nids.T[1])
+                part = ['nid1', 'nid2', 'decision', 'tags', 'user_id']
+                neworder = ut.partial_order(df.columns, part)
+                df = df.reindex_axis(neworder, axis=1)
+                df = df.drop(['review_id', 'timestamp'], axis=1)
+            return df
+
+        def print_df(df, lbl):
+            df_str = df.to_string()
+            df_str = ut.highlight_regex(df_str, ut.regex_word(str(aid1)), color='blue')
+            df_str = ut.highlight_regex(df_str, ut.regex_word(str(aid2)), color='red')
+            if nid1 not in {aid1, aid2}:
+                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid1)), color='darkblue')
+            if nid2 not in {aid1, aid2}:
+                df_str = ut.highlight_regex(df_str, ut.regex_word(str(nid2)), color='darkred')
+
+            print('\n\n=====')
+            print(lbl)
+            print('=====')
+            print(df_str)
+
+        print('================')
+        print('Pair Connection Info')
+        print('================')
+
+        nid1_, nid2_ = ibs.get_annot_nids([aid1, aid2])
+        print('AIDS        aid1, aid2 = %r, %r' % (aid1, aid2))
+        print('INFR NAMES: nid1, nid2 = %r, %r' % (nid1, nid2))
+        if nid1 == nid2:
+            print('INFR cc = %r' % (sorted(cc1),))
+        else:
+            print('INFR cc1 = %r' % (sorted(cc1),))
+            print('INFR cc2 = %r' % (sorted(cc2),))
+
+        if (nid1 == nid2) != (nid1_ == nid2_):
+            ut.cprint('DISAGREEMENT IN GRAPH AND DB', 'red')
+        else:
+            ut.cprint('GRAPH AND DB AGREE', 'green')
+
+        print('IBS  NAMES: nid1, nid2 = %r, %r' % (nid1_, nid2_))
+        if nid1_ == nid2_:
+            print('IBS CC: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+        else:
+            print('IBS CC1: %r' % (sorted(ibs.get_name_aids(nid1_)),))
+            print('IBS CC2: %r' % (sorted(ibs.get_name_aids(nid2_)),))
+
+        # Does this exist in annotmatch?
+        in_am = ibs.get_annotmatch_rowid_from_undirected_superkey([aid1], [aid2])
+        print('in_am = %r' % (in_am,))
+
+        # Does this exist in staging?
+        staging_rowids = ibs.get_review_rowids_from_edges([(aid1, aid2)])[0]
+        print('staging_rowids = %r' % (staging_rowids,))
+
+        if False:
+            # Make absolutely sure
+            stagedf = ibs.staging.get_table_as_pandas('reviews')
+            aid_cols = ['annot_1_rowid', 'annot_2_rowid']
+            has_aid1 = (stagedf[aid_cols] == aid1).any(axis=1)
+            from_aid1 = stagedf[has_aid1]
+            conn_aid2 = (from_aid1[aid_cols] == aid2).any(axis=1)
+            print('# connections = %r' % (conn_aid2.sum(),))
+
+        # Next check indirect relationships
+        graph = infr.graph
+        if cc1 != cc2:
+            edge_df1 = get_aug_df(nxu.edges_between(graph, cc1))
+            edge_df2 = get_aug_df(nxu.edges_between(graph, cc2))
+            print_df(edge_df1, 'Inside1')
+
+            print_df(edge_df2, 'Inside1')
+
+            out_df1 = get_aug_df(nxu.edges_outgoing(graph, cc1))
+            print_df(out_df1, 'Outgoing1')
+
+            out_df2 = get_aug_df(nxu.edges_outgoing(graph, cc2))
+            print_df(out_df2, 'Outgoing2')
+        else:
+            subgraph = infr.pos_graph.subgraph(cc1)
+            print('Shortest path between endpoints')
+            print(nx.shortest_path(subgraph, aid1, aid2))
+
+        edge_df3 = get_aug_df(nxu.edges_between(graph, cc1, cc2))
+        print_df(edge_df3, 'Between')
+
+    def node_tag_hist(infr):
+        tags_list = infr.ibs.get_annot_case_tags(infr.aids)
+        tag_hist = ut.util_tags.tag_hist(tags_list)
+        return tag_hist
+
+    def edge_tag_hist(infr):
+        tags_list = list(infr.gen_edge_values('tags', None))
+        tag_hist = ut.util_tags.tag_hist(tags_list)
+        # ut.util_tags.tag_coocurrence(tags_list)
+        return tag_hist
 
 
 @six.add_metaclass(ut.ReloadingMetaclass)
@@ -231,13 +378,13 @@ class DummyEdges(object):
         for nid in prog:
             nodes = set(label_to_nodes[nid])
             G = infr.pos_graph.subgraph(nodes, dynamic=False)
-            impossible = edges_inside(infr.neg_graph, nodes)
-            impossible |= edges_inside(infr.incomp_graph, nodes)
+            impossible = nxu.edges_inside(infr.neg_graph, nodes)
+            impossible |= nxu.edges_inside(infr.incomp_graph, nodes)
 
             candidates = set(nx.complement(G).edges())
             candidates.difference_update(impossible)
 
-            aug_edges = nx_utils.edge_connected_augmentation(
+            aug_edges = nxu.edge_connected_augmentation(
                 G, k=k, candidates=candidates, hack=False)
             new_edges += aug_edges
         prog.ensure_newline()
@@ -263,7 +410,7 @@ class DummyEdges(object):
             >>> infr.find_mst_edges()
             >>> infr.ensure_mst()
         """
-        from ibeis.algo.graph import nx_utils
+        from ibeis.algo.graph import nx_utils as nxu
         # import networkx as nx
         # Find clusters by labels
         # name_attr = 'orig_name_label'
@@ -288,12 +435,12 @@ class DummyEdges(object):
             # We want to make this CC connected
             pos_sub = infr.pos_graph.subgraph(nodes, dynamic=False)
             impossible = set(it.starmap(e_, it.chain(
-                edges_inside(infr.neg_graph, nodes),
-                edges_inside(infr.incomp_graph, nodes),
-                # edges_inside(infr.unknown_graph, nodes),
+                nxu.edges_inside(infr.neg_graph, nodes),
+                nxu.edges_inside(infr.incomp_graph, nodes),
+                # nxu.edges_inside(infr.unknown_graph, nodes),
             )))
             if impossible or special_weighting:
-                complement = it.starmap(e_, nx_utils.complement_edges(pos_sub))
+                complement = it.starmap(e_, nxu.complement_edges(pos_sub))
                 avail_uv = [
                     (u, v) for u, v in complement if (u, v) not in impossible
                 ]
@@ -317,10 +464,10 @@ class DummyEdges(object):
                              for (u, v), w in zip(avail_uv, weights)]
                 else:
                     avail = avail_uv
-                aug_edges = list(nx_utils.edge_connected_augmentation(
+                aug_edges = list(nxu.edge_connected_augmentation(
                     pos_sub, k=1, avail=avail))
             else:
-                aug_edges = list(nx_utils.edge_connected_augmentation(
+                aug_edges = list(nxu.edge_connected_augmentation(
                     pos_sub, k=1))
             new_edges.extend(aug_edges)
         prog.ensure_newline()
@@ -339,11 +486,11 @@ class AssertInvariants(object):
 
     def assert_union_invariant(infr, msg=''):
         edge_sets = {
-            key: set(it.starmap(infr.e_, graph.edges()))
+            key: set(it.starmap(e_, graph.edges()))
             for key, graph in infr.review_graphs.items()
         }
         edge_union = set.union(*edge_sets.values())
-        all_edges = set(it.starmap(infr.e_, infr.graph.edges()))
+        all_edges = set(it.starmap(e_, infr.graph.edges()))
         if edge_union != all_edges:
             print('ERROR STATUS DUMP:')
             print(ut.repr4(infr.status()))

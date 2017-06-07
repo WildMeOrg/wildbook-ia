@@ -48,17 +48,118 @@ def predict_proba_df(clf, X_df, class_names=None):
     return probs_df
 
 
+class PrefitEstimatorEnsemble(object):
+    """
+
+    hacks around limitations of sklearn.ensemble.VotingClassifier
+
+    """
+    def __init__(self, clf_list, voting='soft', weights=None):
+        self.clf_list = clf_list
+        self.voting = voting
+        self.weights = None
+
+        classes_list = [clf.classes_ for clf in clf_list]
+        if ut.allsame(classes_list):
+            self.classes_ = classes_list[0]
+            self.class_idx_mappers = None
+        else:
+            # Need to make a mapper from individual clf classes to ensemble
+            self.class_idx_mappers = []
+            classes_ = sorted(set.union(*map(set, classes_list)))
+            for clf in clf_list:
+                # For each index of the clf classes, find that index in the
+                # ensemble classes. Eg. class y=4 might be at cx=1 and ex=0
+                mapper = np.empty(len(clf.classes_), dtype=np.int)
+                for cx, y in enumerate(clf.classes_):
+                    ex = classes_.index(y)
+                    mapper[cx] = ex
+                self.class_idx_mappers.append(mapper)
+            self.classes_ = np.array(classes_)
+
+        for clf in clf_list:
+            clf.classes_
+            pass
+
+    def _collect_probas(self, X):
+        """Collect results from clf.predict calls. """
+        if self.class_idx_mappers is None:
+            probas = np.asarray([clf.predict_proba(X) for clf in self.clf_list])
+        else:
+            n_estimators = len(self.clf_list)
+            n_samples = X.shape[0]
+            n_classes = len(self.classes_)
+            probas = np.zeros((n_estimators, n_samples, n_classes))
+            for ex, (clf, mapper) in enumerate(zip(self.clf_list,
+                                                   self.class_idx_mappers)):
+                proba = clf.predict_proba(X)
+                # Use mapper to map indicies of clf classes to ensemble classes
+                probas[ex][:, mapper] = proba
+        return probas
+
+    def predict_proba(self, X):
+        """Predict class probabilities for X in 'soft' voting """
+        if self.voting == 'hard':
+            raise AttributeError("predict_proba is not available when"
+                                 " voting=%r" % self.voting)
+        avg = np.average(self._collect_probas(X), axis=0, weights=self.weights)
+        return avg
+
+    def predict(self, X):
+        """ Predict class labels for X.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+            Training vectors, where n_samples is the number of samples and
+            n_features is the number of features.
+
+        Returns
+        ----------
+        maj : array-like, shape = [n_samples]
+            Predicted class labels.
+        """
+        if self.voting == 'soft':
+            maj = np.argmax(self.predict_proba(X), axis=1)
+        else:  # 'hard' voting
+            predictions = self._predict(X)
+            maj = np.apply_along_axis(lambda x:
+                                      np.argmax(np.bincount(x,
+                                                weights=self.weights)),
+                                      axis=1,
+                                      arr=predictions.astype('int'))
+        return maj
+
+    def _predict(self, X):
+        """Collect results from clf.predict calls. """
+        return np.asarray([clf.predict(X) for clf in self.clf_list]).T
+
+
 def voting_ensemble(clf_list, voting='hard'):
     """
     hack to construct a VotingClassifier from pretrained classifiers
     TODO: contribute similar functionality to sklearn
     """
-    estimators = [('clf%d' % count, clf) for count, clf in enumerate(clf_list)]
-    eclf = sklearn.ensemble.VotingClassifier(estimators=estimators,
-                                             voting=voting)
-    assert ut.allsame(ut.list_getattr(clf_list, 'classes_'))
-    eclf.classes_ = clf_list[0].classes_
-    eclf.estimators_ = clf_list
+    eclf = PrefitEstimatorEnsemble(clf_list, voting=voting)
+    # classes_ = ut.list_getattr(clf_list, 'classes_')
+    # if not ut.allsame(classes_):
+    #     for clf in clf_list:
+    #         print(clf.predict_proba(X_train))
+    #         pass
+    #     # Note: There is a corner case where one fold doesn't get any labels of
+    #     # a certain class. Because y_train is an encoded integer, the
+    #     # clf.classes_ attribute will cause predictions to agree with other
+    #     # classifiers trained on the same labels. Therefore, the voting
+    #     # classifer will still work. But
+    #     raise ValueError(
+    #         'Classifiers predict different things. classes_={}'.format(
+    #             classes_)
+    #     )
+    # estimators = [('clf%d' % count, clf) for count, clf in enumerate(clf_list)]
+    # eclf = sklearn.ensemble.VotingClassifier(estimators=estimators,
+    #                                          voting=voting)
+    # eclf.classes_ = clf_list[0].classes_
+    # eclf.estimators_ = clf_list
     return eclf
 
 
@@ -112,6 +213,8 @@ class ClfProblem(ut.NiceRepr):
 
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
+        if pblm.verbose:
+            ut.cprint('[pblm] learn_evaluation_classifiers', color='blue')
         pblm.eval_task_clfs = ut.AutoVivification()
         pblm.task_combo_res = ut.AutoVivification()
 
@@ -136,25 +239,30 @@ class ClfProblem(ut.NiceRepr):
         """
         Learns and caches an evaluation (cross-validated) classifier and tests
         and caches the results.
+
+        data_key = 'learn(sum,glob)'
+        clf_key = 'RF'
         """
         # TODO: add in params used to construct features into the cfgstr
         sample_hashid = pblm.samples.sample_hashid()
-        feat_cfgstr = ut.hashstr_arr27(
-            pblm.samples.X_dict[data_key].columns.values.tolist(),
-            'featdims')
+
+        feat_dims = pblm.samples.X_dict[data_key].columns.values.tolist()
         # cfg_prefix = sample_hashid + pblm.qreq_.get_cfgstr() + feat_cfgstr
-        cfg_prefix = sample_hashid + feat_cfgstr
 
         est_kw1, est_kw2 = pblm._estimator_params(clf_key)
         param_id = ut.get_dict_hashid(est_kw1)
         xval_id = pblm.xval_kw.get_cfgstr()
-        cfgstr = '_'.join([cfg_prefix, param_id, xval_id, task_key,
-                           data_key, clf_key])
+        cfgstr = '_'.join([
+            sample_hashid, param_id, xval_id, task_key, data_key, clf_key,
+            ut.hashid_arr(feat_dims, 'feats')
+        ])
 
         cacher_kw = dict(appname='vsone_rf_train', enabled=use_cache,
                          verbose=1)
-        # import ubelt as ub
-        cacher_clf = ut.Cacher('eval_clfres_v13_0', cfgstr=cfgstr, **cacher_kw)
+        import ubelt as ub
+        ibs = pblm.infr.ibs
+        cacher_clf = ub.Cacher('eval_clfres_' + ibs.dbname, cfgstr=cfgstr,
+                               meta=[feat_dims], **cacher_kw)
 
         data = cacher_clf.tryload()
         if not data:
@@ -167,19 +275,22 @@ class ClfProblem(ut.NiceRepr):
         pblm.eval_task_clfs[task_key][clf_key][data_key] = clf_list
         pblm.task_combo_res[task_key][clf_key][data_key] = combo_res
 
-    def _train_evaluation_clf(pblm, task_key, data_key, clf_key):
+    def _train_evaluation_clf(pblm, task_key, data_key, clf_key,
+                              feat_dims=None):
         """
         Learns a cross-validated classifier on the dataset
 
+        Ignore:
             >>> from ibeis.scripts.script_vsone import *  # NOQA
             >>> pblm = OneVsOneProblem()
             >>> pblm.load_features()
             >>> pblm.load_samples()
             >>> data_key = 'learn(all)'
             >>> task_key = 'photobomb_state'
-            >>> task_key = 'match_state'
             >>> clf_key = 'RF-OVR'
-            >>> clf_key = 'RF'
+            >>> task_key = 'match_state'
+            >>> data_key = pblm.default_data_key
+            >>> clf_key = pblm.default_clf_key
         """
         X_df = pblm.samples.X_dict[data_key]
         labels = pblm.samples.subtasks[task_key]
@@ -193,17 +304,30 @@ class ClfProblem(ut.NiceRepr):
         skf_list = pblm.samples.stratified_kfold_indices(**xval_kw)
         skf_prog = ut.ProgIter(skf_list, label='skf-train-eval')
         for train_idx, test_idx in skf_prog:
-            assert (X_df.iloc[train_idx].index.tolist() ==
+            X_df_train = X_df.iloc[train_idx]
+            assert (X_df_train.index.tolist() ==
                     ut.take(pblm.samples.index, train_idx))
             # train_uv = X_df.iloc[train_idx].index
             # X_train = X_df.loc[train_uv]
             # y_train = labels.encoded_df.loc[train_uv]
-            X_train = X_df.iloc[train_idx].values
+
+            if feat_dims is not None:
+                X_df_train = X_df_train[feat_dims]
+
+            X_train = X_df_train.values
             y_train = labels.encoded_df.iloc[train_idx].values.ravel()
+
             clf = clf_partial()
             clf.fit(X_train, y_train)
+
+            # Note: There is a corner case where one fold doesn't get any
+            # labels of a certain class. Because y_train is an encoded integer,
+            # the clf.classes_ attribute will cause predictions to agree with
+            # other classifiers trained on the same labels.
+
             # Evaluate results
-            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key)
+            res = ClfResult.make_single(clf, X_df, test_idx, labels, data_key,
+                                        feat_dims=feat_dims)
             clf_list.append(clf)
             res_list.append(res)
         return clf_list, res_list
@@ -214,7 +338,7 @@ class ClfProblem(ut.NiceRepr):
         Learns on data without any train/validation split
         """
         if pblm.verbose > 0:
-            print('[pblm] learn_deploy_classifiers')
+            ut.cprint('[pblm] learn_deploy_classifiers', color='blue')
         if clf_key is None:
             clf_key = pblm.default_clf_key
         if data_key is None:
@@ -492,11 +616,14 @@ class ClfResult(ut.NiceRepr):
         return res.probs_df.index
 
     @classmethod
-    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key):
+    def make_single(ClfResult, clf, X_df, test_idx, labels, data_key,
+                    feat_dims=None):
         """
         Make a result for a single cross validiation subset
         """
         X_df_test = X_df.iloc[test_idx]
+        if feat_dims is not None:
+            X_df_test = X_df_test[feat_dims]
         index = X_df_test.index
         # clf_probs = clf.predict_proba(X_df_test)
 
@@ -515,6 +642,7 @@ class ClfResult(ut.NiceRepr):
         res.task_key = labels.task_name
         res.data_key = data_key
         res.class_names = ut.lmap(str, labels.class_names)
+        res.feat_dims = feat_dims
 
         res.probs_df = predict_proba_df(clf, X_df_test, res.class_names)
         res.target_bin_df = labels.indicator_df.iloc[test_idx]
@@ -592,19 +720,58 @@ class ClfResult(ut.NiceRepr):
 
         return res
 
-    def hardness_analysis(res, samples, infr=None):
+    def hardness_analysis(res, samples, infr=None, method='argmax'):
         """
         samples = pblm.samples
+
+        # TODO MWE with sklearn data
+
+            # ClfResult.make_single(ClfResult, clf, X_df, test_idx, labels,
+            # data_key, feat_dims=None):
+
+            import sklearn.datasets
+            iris = sklearn.datasets.load_iris()
+
+            # TODO: make this setup simpler
+            pblm = ClfProblem()
+            task_key, clf_key, data_key = 'iris', 'RF', 'learn(all)'
+            X_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+            samples = MultiTaskSamples(X_df.index)
+            samples.apply_indicators({'iris': {name: iris.target == idx
+                         for idx, name in enumerate(iris.target_names)}})
+            samples.X_dict = {'learn(all)': X_df}
+
+            pblm.samples = samples
+            pblm.xval_kw['type'] = 'StratifiedKFold'
+            clf_list, res_list = pblm._train_evaluation_clf(
+                task_key, data_key, clf_key)
+            labels = pblm.samples.subtasks[task_key]
+            res = ClfResult.combine_results(res_list, labels)
+
+
+        res.get_thresholds('mcc', 'maximize')
+
+        predict_method = 'argmax'
+
         """
         meta = {}
         easiness = ut.ziptake(res.probs_df.values, res.target_enc_df.values)
+
+        # pred = sklearn_utils.predict_from_probs(res.probs_df, predict_method)
+        from ibeis.scripts import sklearn_utils
+        if method == 'max-mcc':
+            method = res.get_thresholds('mcc', 'maximize')
+        pred = sklearn_utils.predict_from_probs(res.probs_df, method,
+                                                force=True)
+
         meta['easiness'] = np.array(easiness).ravel()
         meta['hardness'] = 1 - meta['easiness']
         meta['aid1'] = res.probs_df.index.get_level_values(0)
         meta['aid2'] = res.probs_df.index.get_level_values(1)
         # meta['aid1'] = samples.aid_pairs.T[0].take(res.probs_df.index.values)
         # meta['aid2'] = samples.aid_pairs.T[1].take(res.probs_df.index.values)
-        meta['pred'] = res.probs_df.values.argmax(axis=1)
+        # meta['pred'] = res.probs_df.values.argmax(axis=1)
+        meta['pred'] = pred.values
         meta['real'] = res.target_enc_df.values.ravel()
         meta['failed'] = meta['pred'] != meta['real']
         meta = pd.DataFrame(meta)
@@ -681,34 +848,6 @@ class ClfResult(ut.NiceRepr):
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names=target_names,
             sample_weight=sample_weight, verbose=verbose)
-
-        precision = 2
-
-        # FIXME: What is the difference between sklearn multiclass-MCC
-        # and BM * MK MCC?
-        try:
-            mcc = sklearn.metrics.matthews_corrcoef(
-                res.y_test_enc, pred_enc, sample_weight=res.sample_weight)
-            # These scales are chosen somewhat arbitrarily in the context of a
-            # computer vision application with relatively reasonable quality data
-            # https://stats.stackexchange.com/questions/118219/how-to-interpret
-            mcc_significance_scales = ut.odict([
-                (1.0, 'perfect'),
-                (0.9, 'very strong'),
-                (0.7, 'strong'),
-                (0.5, 'significant'),
-                (0.3, 'moderate'),
-                (0.2, 'weak'),
-                (0.0, 'negligible'),
-            ])
-            for k, v in mcc_significance_scales.items():
-                if np.abs(mcc) >= k:
-                    print('classifier correlation is %s' % (v,))
-                    break
-            print(('MCC\' = %.' + str(precision) + 'f') % (mcc,))
-        except ValueError:
-            pass
-
         return report
 
     def print_report(res):
@@ -722,6 +861,19 @@ class ClfResult(ut.NiceRepr):
         )
         print('Precision/Recall Report:')
         print(report)
+
+    def get_thresholds(res, metric='mcc', value='maximize'):
+        """
+        get_metric = 'thresholds'
+        at_metric = metric = 'mcc'
+        at_value = value = 'maximize'
+        """
+        threshes = {}
+        for class_name in res.class_names:
+            cfms = res.confusions(class_name)
+            thresh = cfms.get_metric_at_metric('thresholds', metric, value)
+            threshes[class_name] = thresh
+        return threshes
 
     @profile
     def get_pos_threshes(res, metric='fpr', value=1E-4, maximize=False,
@@ -970,12 +1122,31 @@ class MultiTaskSamples(ut.NiceRepr):
         samples.index = index
         samples.subtasks = ut.odict()
 
+    # def set_simple_scores(samples, simple_scores):
+    #     if simple_scores is not None:
+    #         edges = ut.emap(tuple, samples.aid_pairs.tolist())
+    #         assert (edges == simple_scores.index.tolist())
+    #     samples.simple_scores = simple_scores
+
+    # def set_feats(samples, X_dict):
+    #     if X_dict is not None:
+    #         edges = ut.emap(tuple, samples.aid_pairs.tolist())
+    #         for X in X_dict.values():
+    #             assert np.all(edges == X.index.tolist())
+    #     samples.X_dict = X_dict
+
     def apply_indicators(samples, tasks_to_indicators):
+        n_samples = None
         samples.n_tasks = len(tasks_to_indicators)
         for task_name, indicator in tasks_to_indicators.items():
             labels = MultiClassLabels.from_indicators(
                 indicator, task_name=task_name, index=samples.index)
             samples.subtasks[task_name] = labels
+            if n_samples is None:
+                n_samples = labels.n_samples
+            elif n_samples != labels.n_samples:
+                raise ValueError('numer of samples is different')
+        samples.n_samples = n_samples
 
     # @ut.memoize
     def encoded_2d(samples):
@@ -1058,7 +1229,11 @@ class MultiTaskSamples(ut.NiceRepr):
         return None
 
     def stratified_kfold_indices(samples, **xval_kw):
-        """ TODO: check xval label frequency """
+        """
+        TODO: check xval label frequency
+
+
+        """
         from sklearn import model_selection
         from ibeis.scripts import sklearn_utils
 

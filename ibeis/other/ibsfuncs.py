@@ -1515,7 +1515,7 @@ def get_annot_info(ibs, aid_list, default=False, reference_aid=None, **kwargs):
         >>> aid_list = ibs.get_valid_aids()[0:2]
         >>> default = True
         >>> infodict_list = ibs.get_annot_info(1, default)
-        >>> result = ('infodict_list = %s' % (ut.obj_str(infodict_list, nl=4),))
+        >>> result = ('infodict_list = %s' % (ut.repr2(infodict_list, nl=4),))
         >>> print(result)
     """
     # TODO rectify and combine with viz_helpers.get_annot_texts
@@ -2740,7 +2740,8 @@ def get_yaw_viewtexts(yaw_list):
     index_list = textdists.argmin(axis=1)
     text_list_ = ut.take(stdlbl_list, index_list)
     if has_nones:
-        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)], maxval=len(is_not_none) - 1)
+        text_list = ut.ungroup([text_list_], [ut.where(is_not_none)],
+                               maxval=len(is_not_none) - 1)
     else:
         text_list = text_list_
 

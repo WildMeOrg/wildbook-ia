@@ -227,10 +227,10 @@ def show_qres(ibs, cm, qreq_=None, **kwargs):
     fnum = pt.ensure_fnum(kwargs.get('fnum', None))
 
     if ut.VERBOSE and ut.NOT_QUIET:
-        print('query_info = ' + ut.obj_str(
+        print('query_info = ' + ut.repr2(
             ibs.get_annot_info(cm.qaid, default=True, gname=False, name=False, notes=False,
                                exemplar=False), nl=4))
-        print('top_aids_info = ' + ut.obj_str(
+        print('top_aids_info = ' + ut.repr2(
             ibs.get_annot_info(top_aids, default=True, gname=False, name=False, notes=False,
                                exemplar=False, reference_aid=cm.qaid), nl=4))
 

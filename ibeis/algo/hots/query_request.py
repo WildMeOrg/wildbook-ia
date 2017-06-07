@@ -10,6 +10,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import join
 import dtool
 import itertools as it
+import hashlib
 import vtool as vt
 import utool as ut
 import numpy as np
@@ -76,7 +77,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DPCC_UUIDS-_5_vqxvbivuytaxcadb-
+        PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
 
     Example1:
         >>> # ENABLE_DOCTEST
@@ -93,7 +94,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        NAUT_test_DPCC_UUIDS-_5_zqssbkvqcbpruxgn-
+        NAUT_test_DPCC_UUIDS-a5-n3-rtuyggvzpczvmjcw
 
     Example2:
         >>> # ENABLE_DOCTEST
@@ -109,7 +110,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         ...     'qreq_.qparams.sv_on = %r ' % qreq_.qparams.sv_on)
         >>> result = ibs.get_dbname() + qreq_.get_data_hashid()
         >>> print(result)
-        PZ_MTEST_DPCC_UUIDS-_5_vqxvbivuytaxcadb-
+        PZ_MTEST_DPCC_UUIDS-a5-n2-vpkyggtpzbqbecuq
 
     Ignore:
         # This is supposed to be the beginings of the code to transition the
@@ -170,7 +171,7 @@ def new_ibeis_query_request(ibs, qaid_list, daid_list, cfgdict=None,
         assert custom_nid_lookup is None, 'unsupported'
         qreq_ = request = requestclass.new(  # NOQA
             ibs.depc_annot, qaid_list, daid_list, cfgdict, tablename=tablename)
-    elif piperoot is not None and piperoot not in ['vsone', 'vsmany']:
+    elif piperoot is not None and piperoot not in ['vsmany']:
         assert qreq_.qparams.pipeline_root != 'vsone', 'pipeline vsone is depricated'
         # Hack to ensure that correct depcache style request gets called
         if verbose > 2:
@@ -366,71 +367,114 @@ class QueryRequest(ut.NiceRepr):
                                              qreq_.unique_aids)
         qreq_.unique_nids = np.array(qreq_.unique_nids)
 
-        qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()
-        qreq_.dnid_to_groupuuid = qreq_._make_namegroup_data_uuids()
+        # qreq_.nid_to_groupuuid = qreq_._make_namegroup_uuids()
+        # qreq_.dnid_to_groupuuid = qreq_._make_namegroup_data_uuids()
+        qreq_.nid_to_grouphash = qreq_._make_namegroup_hashes()
+        qreq_.dnid_to_grouphash = qreq_._make_namegroup_data_hashes()
         return qreq_
 
     @profile
-    def _make_namegroup_uuids(qreq_):
-        """
-        Replaces semantic uuids with dynamically created uuid groups
-
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_MTEST')
-        """
-        # annots = qreq_.ibs.annots(qreq_.unique_aids)
-        annots = qreq_._unique_annots
-        visual_uuids = annots.visual_uuids
-        unique_nids, groupxs = vt.group_indices(qreq_.unique_nids)
-        grouped_visual_uuids = ut.apply_grouping(visual_uuids, groupxs)
-        group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
-                       for uuids in grouped_visual_uuids]
-        nid_to_groupuuid = dict(zip(unique_nids, group_uuids))
-        return nid_to_groupuuid
-
-    @profile
-    def _make_namegroup_data_uuids(qreq_):
+    def _make_namegroup_data_hashes(qreq_):
         """
         Replaces semantic uuids with dynamically created uuid groups
         only for database annotations (hacks for iccv).
         """
+        annots = qreq_._unique_dannots
+        nids = np.array(qreq_.get_qreq_annot_nids(annots._rowids))
+        nid_to_grouphash = qreq_._make_anygroup_hashes(annots, nids)
+        return nid_to_grouphash
+
+    @profile
+    def _make_namegroup_hashes(qreq_):
+        """
+        Replaces semantic uuids with dynamically created uuid groups
+        """
+        # annots = qreq_.ibs.annots(qreq_.unique_aids)
+        annots = qreq_._unique_annots
+        nids = qreq_.unique_nids
+        nid_to_grouphash = qreq_._make_anygroup_hashes(annots, nids)
+        return nid_to_grouphash
+
+    @staticmethod
+    def _make_anygroup_hashes(annots, nids):
+        """ helper function
+
+            import ibeis
+            qreq_ = ibeis.testdata_qreq_(
+                defaultdb='PZ_MTEST',
+                qaid_override=[1, 2, 3, 4, 5, 6, 10, 11],
+                daid_override=[2, 3, 5, 6, 20, 21, 22, 23, 24],
+                )
+
+            import ibeis
+            qreq_ = ibeis.testdata_qreq_(defaultdb='PZ_Master1')
+            %timeit qreq_._make_namegroup_data_hashes()
+            %timeit qreq_._make_namegroup_data_uuids()
+
+        """
         # make sure items are sorted to ensure same assignment
         # gives same uuids
         # annots = qreq_.ibs.annots(sorted(qreq_.daids))
-        annots = qreq_._unique_dannots
-        dnids = np.array(qreq_.get_qreq_annot_nids(annots._rowids))
-        unique_dnids, groupxs = vt.group_indices(dnids)
-        groupxs = ut.lmap(sorted, groupxs)
+        unique_nids, groupxs = vt.group_indices(nids)
         grouped_visual_uuids = ut.apply_grouping(annots.visual_uuids, groupxs)
-        group_uuids = [ut.combine_uuids(uuids, ordered=False, salt='name')
-                       for uuids in grouped_visual_uuids]
-        dnid_to_groupuuid = dict(zip(unique_dnids, group_uuids))
-        return dnid_to_groupuuid
+        group_hashes = [
+            ut.combine_hashes(sorted(u.bytes for u in uuids),
+                              hasher=hashlib.sha1())
+            for uuids in grouped_visual_uuids
+        ]
+        nid_to_grouphash = dict(zip(unique_nids, group_hashes))
+        return nid_to_grouphash
+
+    def get_qreq_annot_visual_uuids(qreq_, aids):
+        visual_uuids = qreq_._unique_annots.view(aids).visual_uuids
+        return visual_uuids
 
     @profile
     def get_qreq_pcc_uuids(qreq_, aids):
-        nids = qreq_.get_qreq_annot_nids(aids)
-        zero = ut.util_hash.get_zero_uuid()
-        dannot_name_uuids = ut.dict_take(qreq_.dnid_to_groupuuid, nids, zero)
-        dannot_visual_uuids = qreq_._unique_annots.view(aids).visual_uuids
-        dannot_semantic_uuids = [
-            ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
-            for vuuid, nuuid in zip(dannot_visual_uuids, dannot_name_uuids)
-        ]
-        return dannot_semantic_uuids
+        """
+        replaces get_annot_semantic_uuid.
+        TODO. dont use uuids anymore. they are slow
+        """
+        import uuid
+        for bytes_ in qreq_.get_qreq_pcc_hashes(aids):
+            yield uuid.UUID(bytes=bytes_[0:16])
 
     @profile
-    def get_qreq_pcc_hashid(qreq_, aids, prefix=''):
+    def get_qreq_pcc_hashes(qreq_, aids):
         """
-        hack for iccv
+        replaces get_annot_semantic_uuid
+
+        aids = [1, 2, 3]
+        """
+        nids = qreq_.get_qreq_annot_nids(aids)
+        b = ut.util_hash.b
+        zero = b('\x00' * 16)
+        # Should we just be combining with a hash that represents the entire
+        # database PCC state? Maybe.
+        # For now, only considers grouping of database names
+        dannot_name_hashes = ut.dict_take(qreq_.dnid_to_grouphash, nids, zero)
+        dannot_visual_uuids = qreq_.get_qreq_annot_visual_uuids(aids)
+        dannot_visual_hashes = (u.bytes for u in dannot_visual_uuids)
+        for vuuid, nuuid in zip(dannot_visual_hashes, dannot_name_hashes):
+            bytes_ = ut.combine_hashes((vuuid, nuuid), hasher=hashlib.sha1())
+            yield bytes_
+
+    @profile
+    def get_qreq_pcc_hashid(qreq_, aids, prefix='', with_nids=False):
+        """
+        Gets a combined hash of a group of aids. Each aid hash represents
+        itself in the context of the query database.
+
         only considers grouping of database names
 
         Example:
+            >>> # ENABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
             >>> import ibeis
-            >>> t = ['default:K=2,nameknn=True']
+            >>> p = ['default:K=2,nameknn=True']
             >>> defaultdb = 'testdb1'
             >>> # Test that UUIDS change when you change the name lookup
-            >>> new_ = ut.partial(ibeis.testdata_qreq_, defaultdb=defaultdb, t=t,
+            >>> new_ = ut.partial(ibeis.testdata_qreq_, defaultdb=defaultdb, p=p,
             >>>                   verbose=False)
             >>> # All diff names
             >>> qreq1 = new_(daid_override=[2, 3, 5, 6],
@@ -459,42 +503,26 @@ class QueryRequest(ut.NiceRepr):
             >>> assert qreq1.get_data_hashid() != qreq2.get_data_hashid()
 
         """
-        dannot_semantic_uuids = qreq_.get_qreq_pcc_uuids(sorted(aids))
+        # dannot_semantic_uuids = qreq_.get_qreq_pcc_uuids(sorted(aids))
         label = ''.join(('_', prefix, 'PCC_UUIDS'))
-        semantic_hashid  = ut.hashstr_arr27(dannot_semantic_uuids, label,
-                                            pathsafe=True)
-        return semantic_hashid
+        semantic_hashes = qreq_.get_qreq_pcc_hashes(sorted(aids))
+        semantic_hash = ut.combine_hashes(semantic_hashes,
+                                          hasher=hashlib.sha1())
+        semantic_hashstr = ut.convert_bytes_to_bigbase(semantic_hash)
+        semantic_hashstr = semantic_hashstr[0:16]
 
-    @profile
-    def get_qreq_annot_semantic_hashid(qreq_, aids, prefix=''):
-        """
-        Gets a semantic hashid of a subset of annotations based on the current
-        grouping of names.
-        """
-        # qreq_.ibs.get_annot_hashid_semantic_uuid(aids, prefix=prefix)
-        annot_semantic_uuids = qreq_.get_qreq_annot_semantic_uuids(aids)
-        label = ''.join(('_', prefix, 'SUUIDS'))
-        semantic_hashid  = ut.hashstr_arr27(annot_semantic_uuids, label, pathsafe=True)
-        return semantic_hashid
+        sep = '-'
 
-    def get_qreq_annot_semantic_uuids(qreq_, aids):
-        """
-        Gets a semantic uuids of a subset of annotations based on the current
-        grouping of names.
-        """
-        # TODO: need to speed up this function.
-        # Perhaps freeze the suuids and cache per aid
-        nids = qreq_.get_qreq_annot_nids(aids)
-        annot_name_uuids = ut.take(qreq_.nid_to_groupuuid, nids)
-        # Takes 64ms
-        annot_visual_uuids = qreq_.ibs.get_annot_visual_uuids(aids)
-        # Dynamically create semantic uuids
-        # Also takes 64ms
-        annot_semantic_uuids = [
-            ut.combine_uuids((vuuid, nuuid), ordered=True, salt='semantic')
-            for vuuid, nuuid in zip(annot_visual_uuids, annot_name_uuids)
-        ]
-        return annot_semantic_uuids
+        n_aids = 'a' + str(len(aids))
+
+        if with_nids:
+            unique_nids = set(qreq_.get_qreq_annot_nids(aids))
+            n_nids = 'n' + str(len(unique_nids))
+            semantic_hashid = sep.join(
+                [label, n_aids, n_nids, semantic_hashstr])
+        else:
+            semantic_hashid = sep.join([label, n_aids, semantic_hashstr])
+        return semantic_hashid
 
     def __getstate__(qreq_):
         """
@@ -607,16 +635,10 @@ class QueryRequest(ut.NiceRepr):
     #     return '<' + qreq_._custom_str() + '>'
 
     def set_external_daids(qreq_, daid_list):
-        if qreq_.qparams.vsmany:
-            qreq_._set_internal_daids(daid_list)
-        else:
-            qreq_._set_internal_qaids(daid_list)
+        qreq_._set_internal_daids(daid_list)
 
     def set_external_qaids(qreq_, qaid_list):
-        if qreq_.qparams.vsmany:
-            qreq_._set_internal_qaids(qaid_list)
-        else:
-            qreq_._set_internal_daids(qaid_list)
+        qreq_._set_internal_qaids(qaid_list)
 
     def _set_internal_daids(qreq_, daid_list):
         qreq_.internal_daids_mask = None  # Invalidate mask
@@ -658,7 +680,7 @@ class QueryRequest(ut.NiceRepr):
         qaids = [qaids] if not ut.isiterable(qaids) else qaids
         _intersect = np.intersect1d(qaids, qreq2_.qaids)
         assert len(_intersect) == len(qaids), 'not a subset'
-        qreq2_.set_external_qaids(qaids)  # , quuid_list)
+        qreq2_.set_external_qaids(qaids)
         # The shallow copy does not bring over output / query data
         qreq2_.indexer = None
         #qreq2_.metadata = {}
@@ -752,10 +774,7 @@ class QueryRequest(ut.NiceRepr):
             >>> print(result)
             [1 3]
         """
-        if qreq_.qparams.vsmany:
-            qreq_.set_internal_masked_qaids(masked_qaid_list)
-        else:
-            qreq_.set_internal_masked_daids(masked_qaid_list)
+        qreq_.set_internal_masked_qaids(masked_qaid_list)
 
     # --- Internal Annotation ID Masks ----
 
@@ -797,7 +816,6 @@ class QueryRequest(ut.NiceRepr):
         if masked_qaid_list is None or len(masked_qaid_list) == 0:
             qreq_.internal_qaids_mask = None
         else:
-            #with ut.EmbedOnException():
             # input denotes invalid elements mark all elements not in that
             # list as True
             flags = vt.get_uncovered_mask(qreq_.internal_qaids,
@@ -838,12 +856,10 @@ class QueryRequest(ut.NiceRepr):
             return qreq_.internal_qaids.compress(qreq_.internal_qaids_mask, axis=0)
 
     def get_internal_data_config2(qreq_):
-        return (qreq_.data_config2_ if qreq_.qparams.vsmany else
-                qreq_.query_config2_)
+        return qreq_.data_config2_
 
     def get_internal_query_config2(qreq_):
-        return (qreq_.query_config2_ if qreq_.qparams.vsmany else
-                qreq_.data_config2_)
+        return qreq_.query_config2_
 
     # --- EXTERNAL INTERFACE ---
 
@@ -855,42 +871,27 @@ class QueryRequest(ut.NiceRepr):
     @property
     def qannots(qreq_):
         """ internal query annotation objects """
-        if qreq_.qparams.vsmany:
-            return qreq_.internal_qannots
-        else:
-            return qreq_._internal_dannots
+        return qreq_.internal_qannots
 
     @property
     def dannots(qreq_):
         """ external query annotation objects """
-        if qreq_.qparams.vsmany:
-            return qreq_._internal_dannots
-        else:
-            return qreq_.internal_qannots
+        return qreq_._internal_dannots
 
     @property
     def daids(qreq_):
         """ These are the users daids in vsone mode """
-        if qreq_.qparams.vsmany:
-            return qreq_.get_internal_daids()
-        else:
-            return qreq_.get_internal_qaids()
+        return qreq_.get_internal_daids()
 
     @property
     def qaids(qreq_):
         """ These are the users qaids in vsone mode """
-        if qreq_.qparams.vsmany:
-            return qreq_.get_internal_qaids()
-        else:
-            return qreq_.get_internal_daids()
+        return qreq_.get_internal_qaids()
 
     @ut.accepts_numpy
     def get_qreq_annot_nids(qreq_, aids):
         # Hack uses own internal state to grab name rowids
         # instead of using ibeis.
-        #import utool
-
-        #with utool.embed_on_exception_context:
         idxs = ut.take(qreq_.aid_to_idx, aids)
         nids = ut.take(qreq_.unique_nids, idxs)
         return nids
@@ -910,19 +911,16 @@ class QueryRequest(ut.NiceRepr):
     @property
     def dnids(qreq_):
         """ TODO: save dnids in qreq_ state """
-        #return qreq_.dannots.nids
         return qreq_.get_qreq_annot_nids(qreq_.daids)
 
     @property
     def qnids(qreq_):
         """ TODO: save qnids in qreq_ state """
-        #return qreq_.qannots.nids
         return qreq_.get_qreq_annot_nids(qreq_.qaids)
 
     @property
     def extern_data_config2(qreq_):
         return qreq_.data_config2_
-        #return qreq_.extern_data_config2
 
     @property
     def extern_query_config2(qreq_):
@@ -938,10 +936,21 @@ class QueryRequest(ut.NiceRepr):
     # External id-hashes
 
     def get_data_hashid(qreq_):
+        r"""
+        CommandLine:
+            python -m ibeis.algo.hots.query_request --exec-QueryRequest.get_query_hashid --show
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.algo.hots.query_request import *  # NOQA
+            >>> import ibeis
+            >>> qreq_ = ibeis.testdata_qreq_()
+            >>> data_hashid = qreq_.get_data_hashid()
+            >>> result = ('data_hashid = %s' % (ut.repr2(data_hashid),))
+            >>> print(result)
+        """
         # TODO: SYSTEM : semantic should only be used if name scoring is on
-        data_hashid = qreq_.get_qreq_pcc_hashid(qreq_.daids, prefix='D')
-        # data_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.daids,
-        #                                                    prefix='D')
+        data_hashid = qreq_.get_qreq_pcc_hashid(qreq_.daids, prefix='D', with_nids=True)
         return data_hashid
 
     def get_query_hashid(qreq_):
@@ -960,22 +969,16 @@ class QueryRequest(ut.NiceRepr):
         """
         # TODO: SYSTEM : semantic should only be used if name scoring is on
         query_hashid = qreq_.get_qreq_pcc_hashid(qreq_.qaids, prefix='Q')
-        # query_hashid = qreq_.get_qreq_annot_semantic_hashid(qreq_.qaids,
-        #                                                     prefix='Q')
         return query_hashid
 
     def get_pipe_cfgstr(qreq_):
         """
         FIXME: name
         params only """
-        #query_cfgstr = qreq_.qparams.query_cfgstr
         pipe_cfgstr = qreq_.qparams.query_cfgstr
         return pipe_cfgstr
 
     def get_pipe_hashid(qreq_):
-        # this changes invalidates match_chip4 bibcaches generated before
-        # august 24 2015
-        #pipe_hashstr = ut.hashstr(qreq_.get_pipe_cfgstr())
         pipe_hashstr = ut.hashstr27(qreq_.get_pipe_cfgstr())
         return pipe_hashstr
 
@@ -1070,12 +1073,9 @@ class QueryRequest(ut.NiceRepr):
         """
         print('[qreq] lazy loading')
         qreq_.hasloaded = True
-        #qreq_.ibs = ibs  # HACK
         qreq_.lazy_preload(verbose=verbose)
-        if qreq_.qparams.pipeline_root in ['vsone', 'vsmany']:
+        if qreq_.qparams.pipeline_root in ['vsmany']:
             qreq_.load_indexer(verbose=verbose)
-        #if qreq_.qparams.pipeline_root in ['smk']:
-        #    # TODO load vocabulary indexer
 
     # load query data structures
     @profile
@@ -1170,21 +1170,6 @@ class QueryRequest(ut.NiceRepr):
             config2_=qreq_.extern_data_config2)
         if prog_hook is not None:
             prog_hook(3, 3, 'computed features')
-        #if ut.DEBUG2:
-        #    qkpts = qreq_.ibs.get_annot_kpts(
-        #        external_qaids, ensure=False,
-        #        config2_=qreq_.extern_query_config2)
-        #    dkpts = qreq_.ibs.get_annot_kpts(  # NOQA
-        #        external_daids, ensure=False,
-        #        config2_=qreq_.extern_data_config2)
-        #    #if verbose:
-        #    try:
-        #        assert len(qkpts) > 0, 'no query keypoint'
-        #        assert qkpts[0].size > 0, (
-        #            'Query keypoints are corrupted! qkpts=%r' % (qkpts,))
-        #    except Exception:
-        #        print('qkpts = %r' % (qkpts,))
-        #        raise
 
     @profile
     def ensure_featweights(qreq_, verbose=ut.NOT_QUIET):
@@ -1269,59 +1254,18 @@ class QueryRequest(ut.NiceRepr):
         infostr = '\n'.join(infostr_list)
         return infostr
 
-    def assert_self(qreq_):
-        r"""
-        Args:
-            ibs (ibeis.IBEISController):  image analysis api
-
-        CommandLine:
-            python -m ibeis.algo.hots.query_request assert_self --show
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.algo.hots.query_request import *  # NOQA
-            >>> import ibeis
-            >>> qreq_ = ibeis.testdata_qreq_()
-            >>> result = qreq_.assert_self()
-            >>> print(result)
-            >>> ut.quit_if_noshow()
-            >>> import plottool as pt
-            >>> ut.show_if_requested()
-        """
-        print('[qreq] ASSERT SELF')
-        qaids    = qreq_.qaids
-        qauuids  = qreq_.qannots.semantic_uuids
-        daids    = qreq_.daids
-        dauuids  = qreq_.dannots.semantic_uuids
-        _qaids   = qreq_.get_internal_qaids()
-        _qauuids = qreq_.internal_qannots.semantic_uuids
-        _daids   = qreq_.get_internal_daids()
-        _dauuids = qreq_.internal_dannots.semantic_uuids
-        def assert_uuids(aids, uuids):
-            if ut.NOT_QUIET:
-                print('[qreq_] asserting %s aids' % len(aids))
-            assert len(aids) == len(uuids)
-            assert all([u1 == u2 for u1, u2 in
-                        zip(qreq_.ibs.get_annot_semantic_uuids(aids), uuids)])
-        assert_uuids(qaids, qauuids)
-        assert_uuids(daids, dauuids)
-        assert_uuids(_qaids, _qauuids)
-        assert_uuids(_daids, _dauuids)
-
     def get_chipmatch_fpaths(qreq_, qaid_list):
         r"""
-        Efficient function to get a list of chipmatch paths
+        Generates chipmatch paths for input query annotation rowids
         """
         dpath = qreq_.get_qresdir()
         cfgstr = qreq_.get_cfgstr(with_input=False, with_data=True, with_pipe=True)
-        qauuid_list = qreq_.ibs.get_annot_semantic_uuids(qaid_list)
-        fname_list = [
-            chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,
-                                           cfgstr=cfgstr)
-            for qaid, qauuid in zip(qaid_list, qauuid_list)
-        ]
-        fpath_list = [join(dpath, fname) for fname in fname_list]
-        return fpath_list
+        qauuid_list = qreq_.get_qreq_pcc_uuids(qaid_list)
+        for qaid, qauuid in zip(qaid_list, qauuid_list):
+            fname = chip_match.get_chipmatch_fname(qaid, qreq_, qauuid=qauuid,
+                                                   cfgstr=cfgstr)
+            fpath = join(dpath, fname)
+            yield fpath
 
     def execute(qreq_, qaids=None, prog_hook=None, use_cache=None):
         r"""

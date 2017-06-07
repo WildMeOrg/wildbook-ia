@@ -911,7 +911,7 @@ class DevGraphWidget(gt.GuitoolWidget):
 
         if annot_selected:
             ibs = graph_widget.infr.ibs
-            print(ut.obj_str(ibs.get_annot_info(aid, default=True,
+            print(ut.repr2(ibs.get_annot_info(aid, default=True,
                                                 name=True, gname=True)))
             if event.button == 1:
                 graph_widget.toggle_selected_aid(aid)
@@ -1244,6 +1244,7 @@ class AnnotGraphWidget(gt.GuitoolWidget):
         self.repopulate()
 
     def score_edges_vsone(self):
+        # DEPRICATE
         with gt.GuiProgContext('Scoring Edges', self.prog_bar) as ctx:
             self.infr.exec_vsone(prog_hook=ctx.prog_hook)
             # self.infr.apply_match_scores()

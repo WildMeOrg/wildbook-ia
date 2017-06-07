@@ -67,8 +67,8 @@ class RefreshCriteria(object):
             >>> infr = demo.demodata_infr(size_std=0, **demokw)
             >>> edges = list(infr.dummy_matcher.find_candidate_edges(K=100))
             >>> scores = np.array(infr.dummy_matcher.predict_edges(edges))
-            >>> print('edges = %r' % (ut.hashstr3(edges),))
-            >>> print('scores = %r' % (ut.hashstr3(scores),))
+            >>> print('edges = %r' % (ut.hash_data(edges),))
+            >>> print('scores = %r' % (ut.hash_data(scores),))
             >>> sortx = scores.argsort()[::-1]
             >>> edges = ut.take(edges, sortx)
             >>> scores = scores[sortx]
@@ -455,10 +455,6 @@ class InfrLoops(object):
         """
         infr.print('Start inner loop')
         for count in it.count(0):
-            if len(infr.queue) == 0:
-                infr.print('No more edges after %d iterations, need refresh' %
-                           (count,), 1, color='yellow')
-                break
             if infr.is_recovering():
                 infr.print('Still recovering after %d iterations' % (count,),
                            3, color='turquoise')
@@ -468,9 +464,13 @@ class InfrLoops(object):
                     infr.print('Triggered refresh criteria after %d iterations' %
                                (count,), 1, color='yellow')
                     break
-            infr.next_review()
-            # if count > 200:
-            #     return
+            try:
+                infr.next_review()
+            except StopIteration:
+                assert len(infr.queue) == 0
+                infr.print('No more edges after %d iterations, need refresh' %
+                           (count,), 1, color='yellow')
+                break
 
     def lnbnn_priority_loop(infr, use_refresh=True):
         infr.print('============================')
@@ -622,6 +622,7 @@ class InfrReviewers(object):
             >>> infr = ibeis.AnnotInference(ibs, 'all', autoinit=True)
             >>> infr.ensure_mst()
             >>> cfgdict = {'ratio_thresh': .8, 'sv_on': False}
+            >>> # Add dummy priorities to each edge
             >>> infr.set_edge_attrs('prob_match', ut.dzip(infr.edges(), [1]))
             >>> infr.prioritize('prob_match', infr.edges(), reset=True)
             >>> infr.enable_redundancy = False
@@ -641,7 +642,7 @@ class InfrReviewers(object):
         return infr.manual_wgt
 
     def emit_manual_review(infr, edge, priority=None):
-        edge_data = infr.get_nonvisual_edge_data(edge).copy()
+        edge_data = infr.get_nonvisual_edge_data(edge, on_missing='default').copy()
         edge_data['nid_edge'] = infr.pos_graph.node_labels(*edge)
         edge_data['n_ccs'] = (
             len(infr.pos_graph.connected_to(edge[0])),
@@ -666,6 +667,18 @@ class InfrReviewers(object):
         infr.add_feedback(edge, priority=priority, **feedback)
         return True
 
+    def on_accept(infr, feedback, need_next=True):
+        annot1_state = feedback.pop('annot1_state', None)
+        annot2_state = feedback.pop('annot2_state', None)
+        if annot1_state:
+            infr.add_node_feedback(**annot1_state)
+        if annot2_state:
+            infr.add_node_feedback(**annot2_state)
+        infr.add_feedback(**feedback)
+        infr.write_ibeis_staging_feedback()
+        if need_next:
+            infr.continue_review()
+
     def continue_review(infr):
         try:
             while True:
@@ -681,18 +694,6 @@ class InfrReviewers(object):
                 import guitool as gt
                 gt.user_info(infr.manual_wgt, 'Review Complete')
         print('review lop complete')
-
-    def on_accept(infr, feedback, need_next=True):
-        annot1_state = feedback.pop('annot1_state', None)
-        annot2_state = feedback.pop('annot2_state', None)
-        if annot1_state:
-            infr.add_node_feedback(**annot1_state)
-        if annot2_state:
-            infr.add_node_feedback(**annot2_state)
-        infr.add_feedback(**feedback)
-        infr.write_ibeis_staging_feedback()
-        if need_next:
-            infr.continue_review()
 
     def manual_review(infr, edge):
         # OLD

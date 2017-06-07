@@ -405,18 +405,15 @@ def nearest_neighbor_cacheid2(qreq_, Kpad_list):
     internal_qaids = qreq_.get_internal_qaids()
     if requery:
         assert qreq_.qparams.vsmany
-        data_hashid = qreq_.get_qreq_pcc_hashid(internal_daids, prefix='D')
-        # data_hashid = qreq_.get_qreq_annot_semantic_hashid(
-        #     internal_daids, prefix='D')
+        data_hashid = qreq_.get_data_hashid()
     else:
         data_hashid = qreq_.ibs.get_annot_hashid_visual_uuid(
             internal_daids, prefix='D')
     if requery:
         query_hashid_list = qreq_.get_qreq_pcc_uuids(internal_qaids)
-        # query_hashid_list = qreq_.get_qreq_annot_semantic_uuids(internal_qaids)
     else:
         # TODO: get attribute from qreq_, not ibeis
-        query_hashid_list = qreq_.ibs.get_annot_visual_uuids(internal_qaids)
+        query_hashid_list = qreq_.get_qreq_annot_visual_uuids(internal_qaids)
 
     HACK_KCFG = True
     if HACK_KCFG:
