@@ -2026,9 +2026,8 @@ def delete_images(ibs, gid_list, trash_images=True):
                        zip(gname_list, ext_list)]
         ut.copy_list(gpath_list, gpath_list2, ioerr_ok=True, oserror_ok=True,
                      lbl='Trashing Images')
-    else:
-        for gpath in gpath_list:
-            ut.delete(gpath)
+    for gpath in gpath_list:
+        ut.delete(gpath)
         # raise NotImplementedError('must trash images for now')
     #ut.view_directory(trash_dir)
 
