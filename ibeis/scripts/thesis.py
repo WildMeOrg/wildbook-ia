@@ -134,6 +134,7 @@ class Chap5(DBInputs):
             'rankclf_thresh': rankclf_thresh,
             'const_dials': const_dials,
         }
+        self.pblm = pblm
         self.sim_params = sim_params
         return sim_params
 
@@ -159,13 +160,76 @@ class Chap5(DBInputs):
             >>> self = Chap5('GZ_Master1')
         """
         self.ensure_setup()
+        classifiers = self.sim_params['classifiers']
+        clf_meta = classifiers['match_state']['metadata'].copy()
+        clf_meta.pop('data_info')
 
-        # Dump experiment output to disk
-        expt_name = 'simulation'
-        dbstats = {}
+        ibs = self.ibs
+        train_pccs = list(self.pblm.infr.positive_components())
+        train_nper_annot = ut.emap(len, train_pccs)
 
-        self.expt_results['dbstats'] = dbstats
+        test_aids = self.sim_params['test_aids']
+        test_pccs = ibs.group_annots_by_name(test_aids)[0]
+        test_nper_annot = ut.emap(len, test_pccs)
+
+        dbstats = {
+            'testing': {
+                'n_annots': len(test_aids),
+                'n_names': len(test_nper_annot),
+                'annot_size_mean': np.mean(test_nper_annot),
+                'annot_size_std': np.std(test_nper_annot),
+            },
+            'training': {
+                'class_hist': clf_meta['class_hist'],
+                'n_annots': len(self.sim_params['train_aids']),
+                'n_names': len(train_nper_annot),
+                'annot_size_mean': np.mean(train_nper_annot),
+                'annot_size_std': np.std(train_nper_annot),
+                'n_training_pairs': sum(clf_meta['class_hist'].values()),
+            }
+        }
+
+        expt_name = 'dbstats'
+        self.expt_results[expt_name] = dbstats
         ut.save_data(join(self.dpath, expt_name + '.pkl'), dbstats)
+
+    def write_dbstats(self):
+        """
+        # TODO: write info about what dataset was used
+
+        CommandLine:
+            python -m ibeis Chap5.measure simulation GZ_Master1
+            python -m ibeis Chap5.draw dbstats --db GZ_Master1 --diskshow
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
+        """
+        dbstats = self.ensure_results('dbstats')
+
+        d = ut.odict()
+        keys = ['training', 'testing']
+        for k in keys:
+            v = dbstats[k]
+            k = k.capitalize()
+            size_str = ave_str(v['annot_size_mean'], v['annot_size_std'])
+            r = d[k] = ut.odict()
+            r['Names'] = v['n_names']
+            r['Annots'] = v['n_annots']
+            r['Annots size'] = size_str
+            r['Training edges'] =  v.get('n_training_pairs', '-')
+        df = pd.DataFrame.from_dict(d, orient='index').loc[list(d.keys())]
+        tabular = Tabular(df)
+        tabular.colfmt = 'numeric'
+        tabular.caption = self.species_nice.capitalize()
+        print(tabular.as_table())
+        print(tabular.as_tabular())
+
+        ut.writeto(join(self.dpath, 'dbstats.tex'), tabular.as_tabular())
+        ut.render_latex(tabular.as_table(), dpath=self.dpath, fname='dbstats')
+
+        print('dbstats = %r' % (dbstats,))
+        pass
 
     @profile
     def measure_simulation(self):
@@ -219,9 +283,9 @@ class Chap5(DBInputs):
         # ----------
         # Graph test
         dials1 = ut.dict_union(const_dials, {
+            'name'               : 'graph',
             'enable_inference'   : True,
             'match_state_thresh' : graph_thresh,
-            'name'               : 'graph'
         })
         infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
@@ -240,9 +304,9 @@ class Chap5(DBInputs):
         # --------
         # Rank+CLF
         dials2 = ut.dict_union(const_dials, {
+            'name'               : 'rank+clf',
             'enable_inference'   : False,
             'match_state_thresh' : rankclf_thresh,
-            'name'               : 'rank+clf'
         })
         infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
@@ -258,9 +322,9 @@ class Chap5(DBInputs):
         # ------------
         # Ranking test
         dials3 = ut.dict_union(const_dials, {
+            'name'               : 'ranking',
             'enable_inference'   : False,
             'match_state_thresh' : None,
-            'name'               : 'ranking'
         })
         infr3 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
@@ -288,22 +352,6 @@ class Chap5(DBInputs):
 
         # self.draw_simulation()
         # ut.show_if_requested()
-        pass
-
-    def write_dbstats(self):
-        """
-        # TODO: write info about what dataset was used
-
-        CommandLine:
-            python -m ibeis Chap5.measure simulation GZ_Master1
-            python -m ibeis Chap5.draw dbstats --db GZ_Master1 --diskshow
-
-        Ignore:
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap5('GZ_Master1')
-        """
-        dbstats = self.ensure_results('dbstats')
-        print('dbstats = %r' % (dbstats,))
         pass
 
     def draw_error_graph_analysis(self):
@@ -498,14 +546,16 @@ class Chap5(DBInputs):
             # text = text.replace('±', '\pm')
             # print(text)
             top, rest = text.split('\\toprule')
-            header, bot = rest.split('\\midrule')
+            header, rest = rest.split('\\midrule')
+
+            # split_tabular()  # maybe refactor?
 
             new_text = ''.join([
                 top, '\\toprule',
                 '\n{} &\multicolumn{2}{c}{pred} & \multicolumn{2}{c}{real}\\\\',
                 header.replace('pred', '').replace('real', ''),
                 '\\midrule',
-                bot
+                rest
             ])
             new_text = new_text + '\\caption{%s}' % (key,)
             print(new_text)
@@ -547,6 +597,7 @@ class Chap5(DBInputs):
             top, rest = text.split('\\toprule')
             header, rest = rest.split('\\midrule')
             body, bot = rest.split('\\bottomrule')
+            # split_tabular()  # maybe refactor?
 
             body2 = body
             for key in keys:
@@ -663,7 +714,7 @@ class Chap5(DBInputs):
             else:
                 mu = np.mean(lens)
                 sigma = np.std(lens)
-                return '{:.1f}±{:.1f}'.format(mu, sigma)
+                return ave_str(mu, sigma, precision=1)
 
         def unchanged_measures(unchanged):
             pred = true = unchanged
@@ -2592,7 +2643,8 @@ class Chap3Measures(object):
             cdf = (np.cumsum(hist) / sum(hist))
             cdfs.append(cdf)
             qsize = str(group['qsize'].sum())
-            dsize = '{:.1f}±{:.1f}'.format(group['dsize'].mean(), group['dsize'].std())
+            u, s = group['dsize'].mean(), group['dsize'].std()
+            dsize = ave_str(u, s, precision=1)
 
         fig = plot_cmcs(cdfs, labels, ymin=.5)
         fig.set_size_inches([W, H * .6])
@@ -2831,11 +2883,14 @@ class Chap3Measures(object):
         enc_info['species_nice'] = self.species_nice
         enc_info['n_singleton_names'] = len(single_encs)
         enc_info['n_resighted_names'] = len(multi_encs)
-        enc_info['n_encounter_per_resighted_name'] = '{:.1f}±{:.1f}'.format(
-            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']))
+        enc_info['n_encounter_per_resighted_name'] = ave_str(
+            *ut.take(multi_stats['enc_per_name'], ['mean', 'std']),
+            precision=1)
         n_annots_per_enc = ut.lmap(len, encounters)
-        enc_info['n_annots_per_encounter'] = '{:.1f}±{:.1f}'.format(
-            np.mean(n_annots_per_enc), np.std(n_annots_per_enc))
+        enc_info['n_annots_per_encounter'] = ave_str(
+            np.mean(n_annots_per_enc), np.std(n_annots_per_enc),
+            precision=1,
+        )
         enc_info['n_annots'] = sum(n_annots_per_enc)
 
         # qual_info = ut.odict()
@@ -3268,6 +3323,7 @@ class Chap3(DBInputs, Chap3Draw, Chap3Measures):
         df[pd.isnull(df)] = 0
         df = df.astype(np.int).reset_index()
         view_text = df.to_latex(index=False, na_repr='nan')
+        # ut.render_latex(latex_text, dpath=self.dpath, fname='dbstats')
 
         ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
         ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
@@ -3762,6 +3818,134 @@ def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
     fig.set_size_inches([W, H])
     return fig
+
+
+def ave_str(mean, std, precision=2):
+    ffmt = ''.join(['{:.', str(precision), 'f}'])
+    # fmtstr = ''.join(['$', ffmt, '±', ffmt, '$'])
+    fmtstr = ''.join([ffmt, '±', ffmt])
+    str_ = fmtstr.format(mean, std)
+    return str_
+
+
+def split_tabular(text):
+    top, rest = text.split('\\toprule')
+    header, *body1, rest = rest.split('\\midrule')
+    *body2, bot = rest.split('\\bottomrule')
+    top = top.strip('\n')
+    header = header.strip('\n')
+    mid = [b.strip('\n') for b in body1 + body2]
+    bot = bot.strip('\n')
+    # print(top)
+    # print(header)
+    # print(body)
+    # print(bot)
+    parts = (top, header, mid, bot)
+    return parts
+
+
+@ut.reloadable_class
+class Tabular(object):
+    def __init__(self, data=None, colfmt=None, hline=None, caption=''):
+        self._data = data
+        self.index = None
+        self.n_cols = None
+        self.n_rows = None
+        self.df = None
+        self.text = None
+        self.parts = None
+        self.colfmt = colfmt
+        self.hline = hline
+        self.caption = caption
+
+        if data is not None:
+            if isinstance(data, pd.DataFrame):
+                self.set_dataframe(data)
+            elif isinstance(data, str):
+                self.set_text(data)
+
+    def _rectify_colfmt(self, colfmt=None):
+        if colfmt is None:
+            colfmt = self.colfmt
+        if colfmt == 'numeric':
+            assert self.n_cols is not None, 'need ncols for numeric'
+            colfmt = 'l' * self.index + 'r' * (self.n_cols)
+        return colfmt
+
+    @classmethod
+    def from_pandas(Tabular, data, **kw):
+        self = Tabular(data, **kw)
+        return self
+
+    def set_text(self, text):
+        text = text.replace('±', '\pm')
+        self.text = text
+
+    def set_dataframe(self, df):
+        self.df = df
+        self.index = True
+        text = df.to_latex(
+            index=self.index, escape=False, float_format=lambda x: '%.2f' % (x))
+        self.n_rows = df.shape[0]
+        self.n_cols = df.shape[1]
+        self.set_text(text)
+        return self
+
+    def as_parts(self):
+        top, header, mid, bot = split_tabular(self.text)
+        colfmt = self._rectify_colfmt()
+        if colfmt is not None:
+            top = '\\begin{tabular}{%s}' % (colfmt,)
+        parts = (top, header, mid, bot)
+        return parts
+
+    def as_tabular(self):
+        parts = self.as_parts()
+        tabular = join_tabular(parts, hline=self.hline)
+        return tabular
+
+    def as_table(self, caption=None):
+        if caption is None:
+            caption = self.caption
+        tabular = self.as_tabular()
+        table = ut.codeblock(
+            r'''
+            \begin{{table}}[h]
+                \centering
+                \caption{{{caption}}}
+            ''').format(caption=caption)
+        if tabular:
+            table += '\n' + ut.indent(tabular)
+        table += '\n' + ut.codeblock(
+            '''
+            \end{{table}}
+            ''').format()
+        return table
+
+
+def join_tabular(parts, hline=False, align=True):
+    top, header, mid, bot = parts
+
+    if hline:
+        toprule = midrule = botrule = '\\hline'
+    else:
+        toprule = '\\toprule'
+        midrule = '\\midrule'
+        botrule = '\\bottomrule'
+
+    ut.flatten(ut.bzip(['a', 'b', 'c'], ['-']))
+
+    top_parts = [top, toprule, header]
+    if mid:
+        mid_parts = ut.flatten(ut.bzip([midrule], mid))
+    else:
+        mid_parts = []
+    # middle_parts = ut.flatten(list(ut.bzip(body_parts, ['\\midrule'])))
+    bot_parts = [botrule, bot]
+    text = '\n'.join(top_parts + mid_parts + bot_parts)
+    if align:
+        text = ut.align(text, '&', pos=None)
+    return text
 
 
 if __name__ == '__main__':

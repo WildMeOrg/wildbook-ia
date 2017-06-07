@@ -49,7 +49,8 @@ class DBInputs(object):
         if 'GIRM' in dbname:
             self.species_nice = "Masai giraffes"
         if 'humpback' in dbname:
-            self.species_nice = "Humpbacks"
+            self.species_nice = "humpbacks"
+            # self.species_nice = "humpback whales"
         self.ibs = None
         if dbname is not None:
             self.dpath = join(self.base_dpath, self.dbname)
