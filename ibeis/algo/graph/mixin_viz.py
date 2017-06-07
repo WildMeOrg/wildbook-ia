@@ -134,7 +134,8 @@ class GraphVisualization(object):
         if len(weights) > 0:
             # give nans threshold value
             nan_idxs = np.where(np.isnan(weights))[0]
-            weights[nan_idxs] = infr.thresh
+            thresh = .5
+            weights[nan_idxs] = thresh
         #weights = weights.compress(is_valid, axis=0)
         #edges = ut.compress(edges, is_valid)
         colors = infr.get_colored_weights(weights)
@@ -157,7 +158,8 @@ class GraphVisualization(object):
         cmap_ = infr._get_cmap()
         # cmap_ = pt.plt.cm.RdYlBu
         #cmap_ = pt.plt.get_cmap(cmap_)
-        weights[np.isnan(weights)] = infr.thresh
+        thresh = .5
+        weights[np.isnan(weights)] = thresh
         #colors = pt.scores_to_color(weights, cmap_=cmap_, logscale=True)
         colors = pt.scores_to_color(weights, cmap_=cmap_, score_range=(0, 1),
                                     logscale=False, cmap_range=None)
@@ -504,9 +506,10 @@ class GraphVisualization(object):
                              ticklabels=_normal_ticks)
 
             # point to threshold location
-            if infr.thresh is not None:
-                xy = (1, infr.thresh)
-                xytext = (2.5, .3 if infr.thresh < .5 else .7)
+            thresh = None
+            if thresh is not None:
+                xy = (1, thresh)
+                xytext = (2.5, .3 if thresh < .5 else .7)
                 cb.ax.annotate('threshold', xy=xy, xytext=xytext,
                                arrowprops=dict(
                                    alpha=.5, fc="0.6",

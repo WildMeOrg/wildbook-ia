@@ -61,17 +61,21 @@ class Groundtruth(object):
         return match_state_df
 
     def match_state_gt(infr, edge):
-        # if edge in infr.edge_truth:
-        #     return infr.edge_truth[edge]
-        aid_pairs = np.asarray([edge])
-        is_same = infr.is_same(aid_pairs)[0]
-        is_comp = infr.is_comparable(aid_pairs)[0]
-        match_state = pd.Series(dict([
-            (NEGTV, ~is_same & is_comp),
-            (POSTV,  is_same & is_comp),
-            (INCMP, ~is_comp),
-        ]))
-        return match_state
+        if edge in infr.edge_truth:
+            truth = infr.edge_truth[edge]
+        elif hasattr(infr, 'dummy_matcher'):
+            truth = infr.dummy_matcher._get_truth(edge)
+        else:
+            aid_pairs = np.asarray([edge])
+            is_same = infr.is_same(aid_pairs)[0]
+            is_comp = infr.is_comparable(aid_pairs)[0]
+            match_state = pd.Series(dict([
+                (NEGTV, ~is_same & is_comp),
+                (POSTV,  is_same & is_comp),
+                (INCMP, ~is_comp),
+            ]))
+            truth = match_state.idxmax()
+        return truth
 
     def edge_attr_df(infr, key, edges=None, default=ut.NoParam):
         """ constructs DataFrame using current predictions """

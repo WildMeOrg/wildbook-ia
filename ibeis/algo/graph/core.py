@@ -690,28 +690,6 @@ class MiscHelpers(object):
 
         infr.update_node_attributes()
 
-    def init_test_mode(infr):
-        infr.print('init_test_mode')
-        infr.test_mode = True
-        infr.edge_truth = {}
-        infr.metrics_list = []
-        infr.test_state = {
-            'n_decision': 0,
-            'n_auto': 0,
-            'n_manual': 0,
-            'n_true_merges': 0,
-            'n_error_edges': 0,
-            'confusion': None,
-        }
-        infr.test_gt_pos_graph = nx_dynamic_graph.DynConnGraph()
-        infr.test_gt_pos_graph.add_nodes_from(infr.aids)
-        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
-        infr.node_truth = ut.dzip(infr.aids, infr.orig_name_labels)
-        infr.real_n_pcc_mst_edges = sum(
-            len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
-        ut.cprint('real_n_pcc_mst_edges = %r' % (
-            infr.real_n_pcc_mst_edges,), 'red')
-
     def init_logging(infr):
         import collections
         infr.logs = collections.deque(maxlen=10000)
@@ -1054,7 +1032,6 @@ class AnnotInference(ut.NiceRepr,
         infr.queue_params = {
             'pos_redun': 2,
             'neg_redun': 2,
-            'complete_thresh': 1.0,
         }
         infr.add_aids(aids, nids)
 

@@ -9,11 +9,6 @@ from ibeis.algo.graph.state import (POSTV, NEGTV, INCMP, UNREV)
 print, rrr, profile = ut.inject2(__name__)
 
 
-class TerminationCriteria(object):
-    def __init__(term, phis):
-        term.phis = phis
-
-
 class RefreshCriteria(object):
     """
     Determine when to re-query for candidate edges
@@ -582,8 +577,7 @@ class InfrReviewers(object):
                 # decision = decision_flags.argmax()
                 decision = ut.argmax(decision_probs)
                 review['decision'] = decision
-                truth = infr.edge_truth[edge]
-                # truth = infr.match_state_gt(edge).idxmax()
+                truth = infr.match_state_gt(edge)
                 if review['decision'] != truth:
                     infr.print('AUTOMATIC ERROR edge=%r, truth=%r, decision=%r' %
                                (edge, truth, review['decision']), 2, color='darkred')
@@ -714,9 +708,7 @@ class InfrReviewers(object):
 
     @profile
     def request_oracle_review(infr, edge):
-        truth = infr.edge_truth[edge]
-        # true_state = infr.match_state_gt(edge)
-        # truth = true_state.idxmax()
+        truth = infr.match_state_gt(edge)
         feedback = infr.oracle.review(edge, truth, infr)
         return feedback
 
@@ -731,12 +723,12 @@ class InfrReviewers(object):
 class SimulationHelpers(object):
     def init_simulation(infr, oracle_accuracy=1.0, k_redun=2,
                         enable_autoreview=True, enable_inference=True,
-                        classifiers=None, phis=None, complete_thresh=None,
-                        match_state_thresh=None, max_outer_loops=None, name=None):
+                        classifiers=None, match_state_thresh=None,
+                        max_outer_loops=None, name=None):
+        infr.print('INIT SIMULATION', color='yellow')
 
         infr.name = name
-
-        infr.print('INIT SIMULATION', color='yellow')
+        infr.simulation_mode = True
 
         infr.classifiers = classifiers
         infr.enable_inference = enable_inference
@@ -744,13 +736,10 @@ class SimulationHelpers(object):
 
         infr.queue_params['pos_redun'] = k_redun
         infr.queue_params['neg_redun'] = k_redun
-        infr.queue_params['complete_thresh'] = complete_thresh
 
         infr.queue = ut.PriorityQueue()
 
         infr.oracle = UserOracle(oracle_accuracy, rng=infr.name)
-        if phis is not None:
-            infr.term = TerminationCriteria(phis)
 
         infr.task_thresh = {
             'photobomb_state': pd.Series({
@@ -759,15 +748,33 @@ class SimulationHelpers(object):
             }),
             'match_state': pd.Series(match_state_thresh)
         }
-
         infr._max_outer_loops = max_outer_loops
-        infr.simulation_mode = True
+
+    def init_test_mode(infr):
+        from ibeis.algo.graph import nx_dynamic_graph
+        infr.print('init_test_mode')
+        infr.test_mode = True
         # infr.edge_truth = {}
         infr.metrics_list = []
         infr.test_state = {
+            'n_decision': 0,
             'n_auto': 0,
             'n_manual': 0,
+            'n_true_merges': 0,
+            'n_error_edges': 0,
+            'confusion': None,
         }
+        infr.test_gt_pos_graph = nx_dynamic_graph.DynConnGraph()
+        infr.test_gt_pos_graph.add_nodes_from(infr.aids)
+        infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
+        infr.node_truth = ut.dzip(infr.aids, infr.orig_name_labels)
+
+        # infr.real_n_pcc_mst_edges = sum(
+        #     len(cc) - 1 for cc in infr.nid_to_gt_cc.values())
+        # ut.cprint('real_n_pcc_mst_edges = %r' % (
+        #     infr.real_n_pcc_mst_edges,), 'red')
+
+        infr.metrics_list = []
         infr.nid_to_gt_cc = ut.group_items(infr.aids, infr.orig_name_labels)
         infr.real_n_pcc_mst_edges = sum(
             len(cc) - 1 for cc in infr.nid_to_gt_cc.values())

@@ -438,19 +438,39 @@ class Chap5(DBInputs):
 
         classifiers = sim_params['classifiers']
         test_aids = sim_params['test_aids']
+
         rankclf_thresh = sim_params['rankclf_thresh']
         graph_thresh = sim_params['graph_thresh']
+
         const_dials = sim_params['const_dials']
+
+        def collect_results(infr, dials):
+            pred_confusion = pd.DataFrame(infr.test_state['confusion'])
+            pred_confusion.index.name = 'real'
+            pred_confusion.columns.name = 'pred'
+            print('Edge confusion')
+            print(pred_confusion)
+
+            expt_data = {
+                'real_ccs': list(infr.nid_to_gt_cc.values()),
+                'pred_ccs': list(infr.pos_graph.connected_components()),
+                'graph': infr.graph.copy(),
+                'dials': dials,
+                'refresh_thresh': infr.refresh._prob_any_remain_thresh,
+                'metrics': infr.metrics_list,
+            }
+            return expt_data
+
+        expt_results = {}
+        verbose = 100
 
         # ----------
         # Graph test
-        varied_dials = {
+        dials1 = ut.dict_union(const_dials, {
             'enable_inference'   : True,
             'match_state_thresh' : graph_thresh,
             'name'               : 'graph'
-        }
-        dials = ut.dict_union(const_dials, varied_dials)
-        verbose = 1
+        })
         infr1 = ibeis.AnnotInference(ibs=ibs, aids=test_aids, autoinit=True,
                                      verbose=verbose)
         infr1.enable_auto_prioritize_nonpos = True
@@ -458,87 +478,53 @@ class Chap5(DBInputs):
         infr1._refresh_params['thresh'] = np.exp(-2)
         infr1._refresh_params['patience'] = 20
 
-        infr1.init_simulation(classifiers=classifiers, **dials)
+        infr1.init_simulation(classifiers=classifiers, **dials1)
         infr1.init_test_mode()
         infr1.reset(state='empty')
+
         infr1.main_loop()
-
-        expt_results = {}
-        refresh_thresh = infr1.refresh._prob_any_remain_thresh
-        graph_expt_data = {
-            'real_ccs': list(infr1.nid_to_gt_cc.values()),
-            'pred_ccs': list(infr1.pos_graph.connected_components()),
-            'graph': infr1.graph.copy(),
-            'dials': dials,
-            'refresh_thresh': refresh_thresh,
-            'metrics': infr1.metrics_list,
-        }
-        expt_results['graph'] = graph_expt_data
-
-        pred_confusion = pd.DataFrame(infr1.test_state['confusion'])
-        pred_confusion.index.name = 'real'
-        pred_confusion.columns.name = 'pred'
-        print('Edge confusion')
-        print(pred_confusion)
+        expt_results['graph'] = collect_results(infr1, dials1)
 
         # --------
         # Rank+CLF
-        varied_dials = {
+        dials2 = ut.dict_union(const_dials, {
             'enable_inference'   : False,
             'match_state_thresh' : rankclf_thresh,
             'name'               : 'rank+clf'
-        }
-        dials = ut.dict_union(const_dials, varied_dials)
-        verbose = 1
+        })
         infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
-        infr2.init_simulation(classifiers=classifiers, **dials)
+        infr2.init_simulation(classifiers=classifiers, **dials2)
         infr2.init_test_mode()
         infr2.enable_redundancy = False
         infr2.enable_autoreview = True
         infr2.reset(state='empty')
 
         infr2.main_loop(max_loops=1, use_refresh=False)
-
-        verifier_expt_data = {
-            'real_ccs': list(infr2.nid_to_gt_cc.values()),
-            'pred_ccs': list(infr2.pos_graph.connected_components()),
-            'graph': infr2.graph.copy(),
-            'dials': dials,
-            'refresh_thresh': refresh_thresh,
-            'metrics': infr2.metrics_list,
-        }
-        expt_results['rank+clf'] = verifier_expt_data
+        expt_results['rank+clf'] = collect_results(infr2, dials2)
 
         # ------------
         # Ranking test
-        varied_dials = {
+        dials3 = ut.dict_union(const_dials, {
             'enable_inference'   : False,
             'match_state_thresh' : None,
             'name'               : 'ranking'
-        }
-        dials = ut.dict_union(const_dials, varied_dials)
-        verbose = 1
+        })
         infr3 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
-        infr3.init_simulation(classifiers=None, **dials)
+        infr3.init_simulation(classifiers=None, **dials3)
         infr3.init_test_mode()
         infr3.enable_redundancy = False
         infr3.enable_autoreview = False
         infr3.reset(state='empty')
-        infr3.main_loop(max_loops=1, use_refresh=False)
-        ranking_expt_data = {
-            'real_ccs': list(infr3.nid_to_gt_cc.values()),
-            'pred_ccs': list(infr3.pos_graph.connected_components()),
-            'graph': infr3.graph.copy(),
-            'dials': dials,
-            'refresh_thresh': refresh_thresh,
-            'metrics': infr3.metrics_list,
-        }
-        expt_results['ranking'] = ranking_expt_data
 
+        infr3.main_loop(max_loops=1, use_refresh=False)
+        expt_results['ranking'] = collect_results(infr3, dials3)
+
+        # ------------
+        # Dump experiment output to disk
         expt_name = 'simulation' + aug
-        full_fname = expt_name + ut.get_dict_hashid(const_dials)
+        full_fname = expt_name + '_' + ut.get_dict_hashid(const_dials)
 
         ut.ensuredir(self.dpath)
         ut.save_data(join(self.dpath, full_fname + '.pkl'), expt_results)
@@ -553,6 +539,12 @@ class Chap5(DBInputs):
 
         # self.draw_simulation()
         # ut.show_if_requested()
+        pass
+
+    def write_expt_dataset(self):
+        """
+        # TODO: write info about what dataset was used
+        """
         pass
 
     def draw_error_graph_analysis(self):

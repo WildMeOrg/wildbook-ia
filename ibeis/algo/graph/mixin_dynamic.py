@@ -758,7 +758,7 @@ class Completeness(object):
             >>> infr.is_node_complete(node)
         """
         raise NotImplementedError('Is not done')
-        thresh = infr.queue_params['complete_thresh']
+        thresh = None
         cc = infr.pos_graph.connected_to(node)
         if thresh < 1.0:
             p_complete = infr.prob_complete(cc)
@@ -783,7 +783,8 @@ class Completeness(object):
             >>> result = non_complete_pcc_pairs(infr)
             >>> print(result)
         """
-        thresh = infr.queue_params['complete_thresh']
+        raise NotImplementedError('')
+        thresh = 1.0
         pcc_set = list(infr.positive_connected_compoments())
         # Remove anything under the probabilistic threshold
         if thresh < 1.0:

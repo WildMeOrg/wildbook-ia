@@ -32,11 +32,17 @@ def demodata_mtest_infr(state='empty'):
     return infr
 
 
-@profile
 def demo2():
     """
     CommandLine:
         python -m ibeis.algo.graph.demo demo2 --viz
+        python -m ibeis.algo.graph.demo demo2
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from ibeis.algo.graph.demo import *  # NOQA
+        >>> result = demo2()
+        >>> print(result)
     """
     import plottool as pt
 
