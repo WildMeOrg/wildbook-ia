@@ -33,24 +33,12 @@ function add_species() {
   $('select[name="ia-annotation-species"] option[value="' + value + '"]').prop('selected', true)
 }
 
-var hotkeys_disabled = false;
-
-$('#species-add').on('shown.bs.modal', function() {
-  $('input[name="species-add"]').val('')
-  hotkeys_disabled = true;
-});
-
-$('#species-add').on('hidden.bs.modal', function() {
-  hotkeys_disabled = false;
-});
-
-
 $(window).keydown(function(event) {
   key = event.which;
   console.log(key);
-  console.log('disabled ' + hotkeys_disabled);
+  console.log('disabled ' + hotkeys_global_disabled);
 
-  if (!hotkeys_disabled) {
+  if (!hotkeys_global_disabled) {
     if (key == 13) {
       // Enter key pressed, submit form as accept
       $('input#ia-turk-submit-accept').click();

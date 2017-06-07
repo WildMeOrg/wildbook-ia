@@ -117,6 +117,17 @@
   <script type="text/javascript">
     update_label();
 
+    var hotkeys_global_disabled = false;
+
+    $('#species-add').on('shown.bs.modal', function() {
+        $('input[name="species-add"]').val('')
+        hotkeys_global_disabled = true;
+    });
+
+    $('#species-add').on('hidden.bs.modal', function() {
+        hotkeys_global_disabled = false;
+    });
+
     {% if display_instructions %}
       $('#ia-turk-instructions').modal('show');
     {% endif %}

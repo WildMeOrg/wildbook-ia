@@ -424,7 +424,7 @@ $(window).keydown(function(event) {
                 var children = element.children('option')
                 var length = children.length;
                 var index = element.find("option:selected").index()
-                    // Increment
+                // Increment
                 if(event.shiftKey) {
                     index -= 1
                 } else {
