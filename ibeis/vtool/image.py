@@ -1739,8 +1739,11 @@ def resize_imagelist_to_sqrtarea(gpath_list, new_gpath_list=None,
             # Create an output directory if not specified
             output_dir      = 'resized_sqrtarea%r' % sqrt_area
         ut.ensuredir(output_dir)
-        size_suffix_list = ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
-        new_gname_list = ut.append_suffixlist_to_namelist(gpath_list, size_suffix_list)
+        size_suffixs =  ['_' + repr(newsize).replace(' ', '') for newsize in newsize_list]
+        from os.path import basename
+        old_gnames = [basename(p) for p in gpath_list]
+        new_gname_list = [ut.augpath(p, suffix=s)
+                          for p, s in zip(old_gnames, size_suffixs)]
         new_gpath_list = [join(output_dir, gname) for gname in new_gname_list]
         new_gpath_list = list(map(ut.unixpath, new_gpath_list))
     assert len(new_gpath_list) == len(gpath_list), 'unequal len'
