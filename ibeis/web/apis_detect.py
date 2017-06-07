@@ -284,8 +284,29 @@ def process_detection_html(ibs, **kwargs):
 
 @register_ibs_method
 @accessor_decors.default_decorator
+@register_api('/api/detect/cnn/yolo/json/', methods=['POST'])
+def detect_cnn_yolo_json_wrapper(ibs, image_uuid_list, **kwargs):
+    """
+    REST:
+        Method: GET
+        URL: /api/detect/cnn/yolo/json/
+
+    Args:
+        image_uuid_list (list) : list of image uuids to detect on.
+    """
+    from ibeis.web.apis_engine import ensure_uuid_list
+
+    # Check UUIDs
+    ibs.web_check_uuids(image_uuid_list=image_uuid_list)
+    image_uuid_list = ensure_uuid_list(image_uuid_list)
+    gid_list = ibs.get_image_gids_from_uuid(image_uuid_list)
+    return ibs.detect_cnn_yolo_json(gid_list, **kwargs)
+
+
+@register_ibs_method
+@accessor_decors.default_decorator
 @accessor_decors.getter_1to1
-def detect_cnn_yolo_json(ibs, gid_list, config={}):
+def detect_cnn_yolo_json(ibs, gid_list, config={}, **kwargs):
     """
     Runs animal detection in each image and returns json-ready formatted
         results, does not return annotations
