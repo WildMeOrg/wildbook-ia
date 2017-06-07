@@ -120,7 +120,7 @@ def detection_yolo_test(ibs):
 
 
 @register_api('/api/review/detect/cnn/yolo/', methods=['GET'])
-def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST', include_jquery=False):
+def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_method='POST', include_jquery=False, config=None):
     """
     Returns the detection review interface for a particular image UUID and a list of
     results for that image.
@@ -145,6 +145,14 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
 
     if gid is None:
         return 'INVALID IMAGE UUID'
+
+    if config is None:
+        config = {
+            'autointerest': False,
+            'interest_bypass': False,
+            'metadata': True,
+            'parts': True,
+        }
 
     gpath = ibs.get_image_thumbpath(gid, ensure_paths=True, draw_annots=False)
     image = ibs.get_image_imgdata(gid)
@@ -203,12 +211,32 @@ def review_detection_html(ibs, image_uuid, result_list, callback_url, callback_m
         with open(join(*json_filepath_list)) as json_file:
             EMBEDDED_JAVASCRIPT += json_template_fmtstr % (json_file.read(), )
 
+    orientation_flag = '0'
+    if species is not None and 'zebra' in species:
+        orientation_flag = '1'
+
+    settings_key_list = [
+        ('ia-detection-setting-orientation', orientation_flag),
+        ('ia-detection-setting-parts-assignments', '1'),
+        ('ia-detection-setting-toggle-annotations', '1'),
+        ('ia-detection-setting-toggle-parts', '0'),
+        ('ia-detection-setting-parts-show', '0'),
+        ('ia-detection-setting-parts-hide', '0'),
+    ]
+
+    settings = {
+        settings_key: request.cookies.get(settings_key, settings_default) == '1'
+        for (settings_key, settings_default) in settings_key_list
+    }
+
     return appf.template('turk', 'detection_insert',
                          gid=gid,
                          refer_aid=None,
                          species=species,
                          image_path=gpath,
                          image_src=image_src,
+                         config=config,
+                         settings=settings,
                          annotation_list=annotation_list,
                          callback_url=callback_url,
                          callback_method=callback_method,
