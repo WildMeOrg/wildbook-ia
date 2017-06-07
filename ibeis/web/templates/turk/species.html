@@ -68,7 +68,7 @@
 
           <div style="margin-top:-19px;">
             Species:
-            <select id="ia-species-species" class="form-control" name="ia-species-species" style="width: 200px;">
+            <select id="ia-species-species" class="form-control" name="ia-species-species" style="width: 200px;" autofocus="autofocus">
               {% for species_nice, species_text, species_selected in species_list %}
                 <option value="{{ species_text }}" {% if species_selected %}selected{% endif %}>{{ species_nice }}</option>
               {% endfor %}
@@ -149,6 +149,8 @@
     var hotkeys_global_disabled = false;
 
     $(document).ready(function() {
+
+      $("#ia-species-species").focus()
 
       $('#species-add').on('shown.bs.modal', function() {
           $('input[name="species-add"]').val('')
