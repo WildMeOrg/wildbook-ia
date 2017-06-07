@@ -446,6 +446,76 @@ def submit_annotation(**kwargs):
                                 dst_ag=dst_ag, previous=aid))
 
 
+@register_route('/submit/species/', methods=['POST'])
+def submit_species(**kwargs):
+    ibs = current_app.ibs
+    method = request.form.get('ia-species-submit', '')
+    imgsetid = request.args.get('imgsetid', '')
+    imgsetid = None if imgsetid == 'None' or imgsetid == '' else int(imgsetid)
+
+    src_ag = request.args.get('src_ag', '')
+    src_ag = None if src_ag == 'None' or src_ag == '' else int(src_ag)
+    dst_ag = request.args.get('dst_ag', '')
+    dst_ag = None if dst_ag == 'None' or dst_ag == '' else int(dst_ag)
+
+    aid = int(request.form['ia-species-aid'])
+    turk_id = request.cookies.get('ia-turk_id', -1)
+    if method.lower() == 'delete':
+        ibs.delete_annots(aid)
+        print('[web] (DELETED) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        aid = None  # Reset AID to prevent previous
+    elif method.lower() == u'left 90\xb0':
+        theta = ibs.get_annot_thetas(aid)
+        theta = (theta + PI / 2) % TAU
+        ibs.set_annot_thetas(aid, theta)
+        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
+        diffx = int(round((w / 2.0) - (h / 2.0)))
+        diffy = int(round((h / 2.0) - (w / 2.0)))
+        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
+        print('[web] (ROTATED LEFT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    elif method.lower() == u'right 90\xb0':
+        theta = ibs.get_annot_thetas(aid)
+        theta = (theta - PI / 2) % TAU
+        ibs.set_annot_thetas(aid, theta)
+        (xtl, ytl, w, h) = ibs.get_annot_bboxes(aid)
+        diffx = int(round((w / 2.0) - (h / 2.0)))
+        diffy = int(round((h / 2.0) - (w / 2.0)))
+        xtl, ytl, w, h = xtl + diffx, ytl + diffy, h, w
+        ibs.set_annot_bboxes([aid], [(xtl, ytl, w, h)])
+        print('[web] (ROTATED RIGHT) turk_id: %s, aid: %d' % (turk_id, aid, ))
+        redirection = request.referrer
+        if 'aid' not in redirection:
+            # Prevent multiple clears
+            if '?' in redirection:
+                redirection = '%s&aid=%d' % (redirection, aid, )
+            else:
+                redirection = '%s?aid=%d' % (redirection, aid, )
+        return redirect(redirection)
+    else:
+        if src_ag is not None and dst_ag is not None:
+            appf.movegroup_aid(ibs, aid, src_ag, dst_ag)
+        species_text = request.form['ia-species-species']
+        ibs.set_annot_species([aid], [species_text])
+        ibs.set_annot_reviewed([aid], [1])
+        print('[web] turk_id: %s, aid: %d, species: %r' % (turk_id, aid, species_text))
+    # Return HTML
+    refer = request.args.get('refer', '')
+    if len(refer) > 0:
+        return redirect(appf.decode_refer_url(refer))
+    else:
+        return redirect(url_for('turk_species', imgsetid=imgsetid, src_ag=src_ag,
+                                dst_ag=dst_ag, previous=aid))
+
+
 @register_route('/submit/quality/', methods=['POST'])
 def submit_quality(**kwargs):
     ibs = current_app.ibs
