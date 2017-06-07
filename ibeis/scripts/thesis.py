@@ -1,302 +1,33 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals  # NOQA
 from ibeis.scripts import script_vsone
+from ibeis.scripts._thesis_helpers import DBInputs
+from ibeis.scripts._thesis_helpers import TMP_RC, W, H, DPI
 import ibeis.constants as const
 from ibeis.algo.graph import nx_utils as nxu
 import ubelt as ub
 import pandas as pd
 import numpy as np
-from os.path import basename, join, splitext, exists
+from os.path import basename, join, splitext, exists  # NOQA
 import utool as ut
 import plottool as pt
 import vtool as vt
 import pathlib
 import matplotlib as mpl
 import random
-import six
 import sys
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP  # NOQA
 (print, rrr, profile) = ut.inject2(__name__)
 
-DPI = 300
-
-TMP_RC = {
-    'axes.titlesize': 12,
-    'axes.labelsize': 12,
-    'font.family': 'DejaVu Sans',
-    'xtick.labelsize': 12,
-    'ytick.labelsize': 12,
-    # 'legend.fontsize': 18,
-    # 'legend.alpha': .8,
-    'legend.fontsize': 12,
-    'legend.facecolor': 'w',
-}
-
-TMP_RC = {
-    'axes.titlesize': 12,
-    'axes.labelsize': ut.get_argval('--labelsize', default=12),
-    'font.family': 'sans-serif',
-    'font.serif': 'CMU Serif',
-    'font.sans-serif': 'CMU Sans Serif',
-    'font.monospace': 'CMU Typewriter Text',
-    'xtick.labelsize': 12,
-    'ytick.labelsize': 12,
-    # 'legend.alpha': .8,
-    'legend.fontsize': 12,
-    'legend.facecolor': 'w',
-}
-
-W, H = 7.4375, 3.0
-
-
-class DBInputs(object):
-
-    def __init__(self, dbname=None):
-        self.dbname = dbname
-        if 'GZ' in dbname:
-            self.species_nice = "Grévy's zebras"
-        if 'PZ' in dbname:
-            self.species_nice = "plains zebras"
-        if 'GIRM' in dbname:
-            self.species_nice = "Masai giraffes"
-        if 'humpback' in dbname:
-            self.species_nice = "Humpbacks"
-        self.ibs = None
-        if dbname is not None:
-            self.dpath = join(self.base_dpath, self.dbname)
-            # ut.ensuredir(self.dpath)
-        self.expt_results = {}
-
-    @classmethod
-    def measure(ChapX, expt_name, dbnames, *args):
-        """
-        CommandLine:
-            python -m ibeis Chap3.measure all --dbs=GZ_Master1
-            python -m ibeis Chap3.measure all --dbs=PZ_Master1
-
-            python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
-
-        # Example:
-        #     >>> # Script
-        #     >>> from ibeis.scripts.thesis import *  # NOQA
-        #     >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
-        #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
-        #     >>> ChapX.measure(expt_name, dbnames)
-        """
-        print('expt_name = %r' % (expt_name,))
-        print('dbnames = %r' % (dbnames,))
-        print('args = %r' % (args,))
-        dbnames = ut.smart_cast(dbnames, list)
-        for dbname in dbnames:
-            self = ChapX(dbname)
-            if self.ibs is None:
-                self._setup()
-                # self._precollect()
-            if expt_name == 'all':
-                self.measure_all(*args)
-            else:
-                getattr(self, 'measure_' + expt_name)(*args)
-
-    @classmethod
-    def draw(ChapX, expt_name, dbnames, *args):
-        """
-        CommandLine:
-            python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
-            python -m ibeis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
-
-            python -m ibeis Chap4.draw importance GZ_Master1
-
-            python -m ibeis Chap4.draw hard_cases GZ_Master1,PZ_Master1 match_state,photobomb_state
-            --diskshow
-
-        # Example:
-        #     >>> # Script
-        #     >>> from ibeis.scripts.thesis import *  # NOQA
-        #     >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
-        #     >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
-        #     >>> Chap3.draw(expt_name, dbnames)
-        """
-        print('expt_name = %r' % (expt_name,))
-        print('dbnames = %r' % (dbnames,))
-        print('args = %r' % (args,))
-        dbnames = ut.smart_cast(dbnames, list)
-
-        if len(dbnames) > 1:
-            from concurrent import futures
-            multi_args = [ut.smart_cast(a, list) for a in args]
-            with futures.ProcessPoolExecutor(max_workers=6) as executor:
-                list(futures.as_completed([
-                    executor.submit(ChapX.draw, expt_name, *fsargs)
-                    for fsargs in ut.product(dbnames, *multi_args)
-                ]))
-            print('\n\n Completed multiple tasks')
-        else:
-            for dbname in dbnames:
-                self = ChapX(dbname)
-                if expt_name == 'all':
-                    self.draw_all()
-                else:
-                    draw_func = getattr(self, 'draw_' + expt_name, None)
-                    if draw_func is None:
-                        draw_func = getattr(self, 'write_' + expt_name, None)
-                    if draw_func is None:
-                        raise ValueError('Cannot find a way to draw ' + expt_name)
-                    fpath = draw_func(*args)
-                    if ut.get_argflag('--diskshow'):
-                        if isinstance(fpath, six.text_type):
-                            ut.startfile(fpath)
-                        else:
-                            fpath_list = fpath
-                            for fpath in fpath_list:
-                                ut.startfile(fpath)
-
-    @profile
-    def _precollect(self):
-        """
-        Sets up an ibs object with an aids_pool
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap3('humpbacks_fb')
-            >>> self = Chap3('GZ_Master1')
-            >>> self = Chap3('GIRM_Master1')
-            >>> self = Chap3('PZ_MTEST')
-            >>> self = Chap3('PZ_PB_RF_TRAIN')
-            >>> self = Chap3('PZ_Master1')
-            >>> self._precollect()
-
-            >>> from ibeis.scripts.thesis import *
-            >>> self = Chap4('PZ_Master1')
-            >>> self._precollect()
-        """
-        import ibeis
-        from ibeis.init import main_helpers
-        self.dbdir = ibeis.sysres.lookup_dbdir(self.dbname)
-        ibs = ibeis.opendb(dbdir=self.dbdir)
-        if ibs.dbname.startswith('PZ_PB_RF_TRAIN'):
-            aids = ibs.get_valid_aids()
-        elif ibs.dbname.startswith('PZ_Master'):
-            if False:
-                # OLD WAY OF RUNNING THAT WAS USED TO GENERATE CHAPTER 3
-                # EXPERIMENTS.
-                aids = ibs.filter_annots_general(
-                    # FIXME view_ext does not work
-                    require_timestamp=True, is_known=True, species='primary',
-                    min_pername=2, minqual='poor')
-                # We need to do our best to select a small sample here
-                flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
-                aids = ut.compress(aids, flags)
-                # This produces 6474 annotations
-                # print(len(aids))
-            else:
-                # NEW WAY OF RUNNING FOR CHAPTERS 4 and 5.  WE REALLY SHOULD DO
-                # ALL CHAPTERS WITH THE SAME.  IF POSSIBLE.
-
-                # PZ_Master is too big to run in full.  Select a smaller sample.
-                # Be sure to include photobomb and incomparable cases.
-                aids = ibs.filter_annots_general(
-                    require_timestamp=True, species='primary', is_known=True,
-                    minqual='poor',
-                )
-                infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
-                infr.reset_feedback('staging', apply=True)
-                minority_ccs = find_minority_class_ccs(infr)
-                minority_aids = set(ut.flatten(minority_ccs))
-
-                # We need to do our best to select a small sample here
-                flags = ['left' in text for text in ibs.annots(aids).yaw_texts]
-                left_aids = ut.compress(aids, flags)
-
-                majority_aids = set(ibs.filter_annots_general(
-                    left_aids, require_timestamp=True, species='primary',
-                    minqual='poor', require_quality=True, min_pername=2,
-                    max_pername=15
-                ))
-                # This produces 5720 annotations
-                aids = sorted(majority_aids.union(minority_aids))
-                # print(len(majority_aids))
-                # print(len(minority_aids))
-                # print(len(minority_aids.intersection(majority_aids)))
-                # ibs.print_annot_stats(list(minority_aids), prefix='P')
-                # ibs.print_annot_stats(list(majority_aids), prefix='P')
-                # ibs.print_annot_stats(list(aids), prefix='P')
-
-                # infr = ibeis.AnnotInference(ibs=ibs, aids=aids)
-                # infr.reset_feedback('staging', apply=True)
-                # print('# photobombs: %r' % infr.edge_tag_hist().get(
-                #     'photobomb', 0))
-                # print(ut.repr4(infr.status()))
-            # flags = ['right' not in text for text in ibs.annots(aids).yaw_texts]
-            # sum(['left' == text for text in ibs.annots(aids).yaw_texts])
-        # elif ibs.dbname == 'GZ_Master1':
-        else:
-            aids = ibs.filter_annots_general(require_timestamp=True,
-                                             is_known=True,
-                                             species='primary',
-                                             minqual='poor')
-        # ibs.print_annot_stats(aids, prefix='P')
-        main_helpers.monkeypatch_encounters(ibs, aids, minutes=30)
-        print('post monkey patch')
-        if False:
-            ibs.print_annot_stats(aids, prefix='P')
-        self.ibs = ibs
-        self.aids_pool = aids
-        if False:
-            # check encounter stats
-            annots = ibs.annots(aids)
-            encounters = annots.group(annots.encounter_text)[1]
-            nids = ut.take_column(ibs._annot_groups(encounters).nids, 0)
-            nid_to_enc = ut.group_items(encounters, nids)
-            nenc_list = ut.lmap(len, nid_to_enc.values())
-            hist = ut.range_hist(nenc_list, [1, 2, 3, (4, np.inf)])
-            print('enc per name hist:')
-            print(ut.repr2(hist))
-
-            # singletons = [a for a in encounters if len(a) == 1]
-            multitons = [a for a in encounters if len(a) > 1]
-            deltas = []
-            for a in multitons:
-                times = a.image_unixtimes_asfloat
-                deltas.append(max(times) - min(times))
-            ut.lmap(ut.get_posix_timedelta_str, sorted(deltas))
-
-
-@ut.reloadable_class
-class IOContract(object):
-    """
-    Subclasses must obey the measure_<expt_name>, draw_<expt_name> contract
-    """
-
-    def ensure_results(self, expt_name=None):
-        if expt_name is None and exists(self.dpath):
-            # Load all
-            fpaths = ut.glob(str(self.dpath), '*.pkl')
-            expt_names = [splitext(basename(fpath))[0] for fpath in fpaths]
-            for fpath, expt_name in zip(fpaths, expt_names):
-                self.expt_results[expt_name] = ut.load_data(fpath)
-        else:
-            fpath = join(str(self.dpath), expt_name + '.pkl')
-            expt_name = splitext(basename(fpath))[0]
-            if not exists(fpath):
-                if self.ibs is None:
-                    self._precollect()
-                getattr(self, 'measure_' + expt_name)()
-            self.expt_results[expt_name] = ut.load_data(fpath)
-            return self.expt_results[expt_name]
-
 
 @ut.reloadable_class
 class Chap5(DBInputs):
-    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresGraph')
+    base_dpath = ut.truepath('~/latex/crall-thesis-2017/figures5')
 
     def _setup(self):
         """
         CommandLine:
             python -m ibeis Chap5.measure simulation PZ_MTEST --show
-            python -m ibeis Chap5.measure simulation GZ_Master1 --show --aug=test
-            python -m ibeis Chap5.measure simulation PZ_Master1 --show --aug=test
             python -m ibeis Chap5.measure simulation GZ_Master1 --show
             python -m ibeis Chap5.measure simulation PZ_Master1 --show
 
@@ -357,12 +88,8 @@ class Chap5(DBInputs):
             graph_thresh = res.get_pos_threshes('fpr', value=.0014)
             rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
         elif ibs.dbname == 'PZ_Master1':
-            # graph_thresh = res.get_pos_threshes('fpr', value=.0014)
-            # rankclf_thresh = res.get_pos_threshes('fpr', value=.001)
             graph_thresh = res.get_pos_threshes('fpr', value=.03)
             rankclf_thresh = res.get_pos_threshes('fpr', value=.01)
-            # graph_thresh = res.get_pos_threshes('fpr', value=.1)
-            # rankclf_thresh = res.get_pos_threshes('fpr', value=.03)
 
         print('\n--- Graph thresholds ---')
         res.report_auto_thresholds(graph_thresh)
@@ -388,9 +115,6 @@ class Chap5(DBInputs):
         # Load or create the deploy classifiers
         clf_dpath = ut.ensuredir((self.dpath, 'clf'))
         classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
-        # infr = pblm.infr
-        # edges = pblm.samples.aid_pairs[0:10]
-        # pblm.infr.classifiers = classifiers
 
         # ut.get_nonconflicting_path(dpath, suffix='_old')
         const_dials = {
@@ -404,6 +128,7 @@ class Chap5(DBInputs):
 
         sim_params = {
             'test_aids': test_aids,
+            'train_aids': train_aids,
             'classifiers': classifiers,
             'graph_thresh': graph_thresh,
             'rankclf_thresh': rankclf_thresh,
@@ -412,8 +137,38 @@ class Chap5(DBInputs):
         self.sim_params = sim_params
         return sim_params
 
+    def draw_all(self):
+        r"""
+        CommandLine:
+            python -m ibeis Chap5.draw all GZ_Master1
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap4('GZ_Master1')
+        """
+        self.ensure_results('simulation')
+        self.draw_simulation()
+        self.draw_refresh()
+        self.write_dbstats()
+
     @profile
-    def measure_simulation(self, aug=''):
+    def measure_dbstats(self):
+        """
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
+        """
+        self.ensure_setup()
+
+        # Dump experiment output to disk
+        expt_name = 'simulation'
+        dbstats = {}
+
+        self.expt_results['dbstats'] = dbstats
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), dbstats)
+
+    @profile
+    def measure_simulation(self):
         """
         CommandLine:
             python -m ibeis Chap5.measure simulation PZ_MTEST
@@ -425,17 +180,14 @@ class Chap5(DBInputs):
 
         Ignore:
             >>> from ibeis.scripts.thesis import *
-            >>> aug = ''
             >>> self = Chap5('GZ_Master1')
             >>> self = Chap5('PZ_MTEST')
         """
         import ibeis
-        sim_params = getattr(self, 'sim_params', None)
-        if sim_params is None:
-            sim_params = self._setup()
+        self.ensure_setup()
 
         ibs = self.ibs
-
+        sim_params = self.sim_params
         classifiers = sim_params['classifiers']
         test_aids = sim_params['test_aids']
 
@@ -461,8 +213,8 @@ class Chap5(DBInputs):
             }
             return expt_data
 
-        expt_results = {}
-        verbose = 100
+        sim_results = {}
+        verbose = 2
 
         # ----------
         # Graph test
@@ -483,7 +235,7 @@ class Chap5(DBInputs):
         infr1.reset(state='empty')
 
         infr1.main_loop()
-        expt_results['graph'] = collect_results(infr1, dials1)
+        sim_results['graph'] = collect_results(infr1, dials1)
 
         # --------
         # Rank+CLF
@@ -501,7 +253,7 @@ class Chap5(DBInputs):
         infr2.reset(state='empty')
 
         infr2.main_loop(max_loops=1, use_refresh=False)
-        expt_results['rank+clf'] = collect_results(infr2, dials2)
+        sim_results['rank+clf'] = collect_results(infr2, dials2)
 
         # ------------
         # Ranking test
@@ -519,17 +271,14 @@ class Chap5(DBInputs):
         infr3.reset(state='empty')
 
         infr3.main_loop(max_loops=1, use_refresh=False)
-        expt_results['ranking'] = collect_results(infr3, dials3)
+        sim_results['ranking'] = collect_results(infr3, dials3)
 
         # ------------
         # Dump experiment output to disk
-        expt_name = 'simulation' + aug
-        full_fname = expt_name + '_' + ut.get_dict_hashid(const_dials)
-
+        expt_name = 'simulation'
+        self.expt_results[expt_name] = sim_results
         ut.ensuredir(self.dpath)
-        ut.save_data(join(self.dpath, full_fname + '.pkl'), expt_results)
-        ut.save_data(join(self.dpath, expt_name + '.pkl'), expt_results)
-        self.expt_results = expt_results
+        ut.save_data(join(self.dpath, expt_name + '.pkl'), sim_results)
 
         # metrics_df = pd.DataFrame.from_dict(graph_expt_data['metrics'])
         # for user, group in metrics_df.groupby('user_id'):
@@ -541,10 +290,20 @@ class Chap5(DBInputs):
         # ut.show_if_requested()
         pass
 
-    def write_expt_dataset(self):
+    def write_dbstats(self):
         """
         # TODO: write info about what dataset was used
+
+        CommandLine:
+            python -m ibeis Chap5.measure simulation GZ_Master1
+            python -m ibeis Chap5.draw dbstats --db GZ_Master1 --diskshow
+
+        Ignore:
+            >>> from ibeis.scripts.thesis import *
+            >>> self = Chap5('GZ_Master1')
         """
+        dbstats = self.ensure_results('dbstats')
+        print('dbstats = %r' % (dbstats,))
         pass
 
     def draw_error_graph_analysis(self):
@@ -554,14 +313,12 @@ class Chap5(DBInputs):
             >>> self = Chap5('GZ_Master1')
         """
         import ibeis
-        from ibeis.algo.graph import nx_utils as nxu
 
-        expt_name = 'simulation'
-        expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
+        sim_results = self.ensure_results('simulation')
 
         key = 'graph'
-        real_ccs = expt_results[key]['real_ccs']
-        pred_ccs = expt_results[key]['pred_ccs']
+        real_ccs = sim_results[key]['real_ccs']
+        pred_ccs = sim_results[key]['pred_ccs']
 
         delta = ut.grouping_delta(pred_ccs, real_ccs)
         # unchanged = delta['unchanged']
@@ -576,7 +333,7 @@ class Chap5(DBInputs):
         splits = [ut.sortedby(ss, ut.emap(len, ss)) for ss in splits]
         merges = [ut.sortedby(ss, ut.emap(len, ss)) for ss in merges]
 
-        graph = expt_results[key]['graph']
+        graph = sim_results[key]['graph']
         if True:
             print('\nsplits = ' + ut.repr4(splits))
 
@@ -678,28 +435,20 @@ class Chap5(DBInputs):
                   show_recent_review=False,
                   edge_overrides=edge_overrides)
 
-    def print_measures(self, aug=''):
+    def write_error_tables(self):
         """
         CommandLine:
-            python -m ibeis Chap5.print_measures --db PZ_MTEST --diskshow
-            python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
-            python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> aug = ut.get_argval('--aug', default='')
-            >>> self = Chap5(dbname)
-            >>> self.print_measures(aug)
+            python -m ibeis Chap5.draw error_tables --db PZ_MTEST --diskshow
+            python -m ibeis Chap5.draw error_tables --db GZ_Master1 --diskshow
+            python -m ibeis Chap5.draw error_tables --db PZ_Master1 --diskshow
         """
-        expt_name = 'simulation' + aug
-        expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
+        sim_results = self.ensure_results('simulation')
         keys = ['ranking', 'rank+clf', 'graph']
         infos = {}
         for key in keys:
             print('!!!!!!!!!!!!')
             print('key = %r' % (key,))
-            expt_data = expt_results[key]
+            expt_data = sim_results[key]
             info = self.print_error_sizes(expt_data, allow_hist=False)
             infos[key] = info
 
@@ -838,7 +587,7 @@ class Chap5(DBInputs):
                 bot,
             ])
             print(latex_str)
-            fname = 'error_size' + aug + '.tex'
+            fname = 'error_size.tex'
             ut.write_to(join(self.dpath, fname), latex_str)
 
             ut.render_latex_text(latex_str, preamb_extra=[
@@ -884,11 +633,10 @@ class Chap5(DBInputs):
             #     '\\usepackage{makecell}',
             # ])
 
-            fname = 'error_size' + aug + '.tex'
+            fname = 'error_size.tex'
             ut.write_to(join(self.dpath, fname), latex_str)
 
     def print_error_sizes(self, expt_data, allow_hist=False):
-
         real_ccs = expt_data['real_ccs']
         pred_ccs = expt_data['pred_ccs']
         graph = expt_data['graph']
@@ -901,7 +649,6 @@ class Chap5(DBInputs):
         merges = delta['merges']['old']
 
         # hybrids can be done by first splitting and then merging
-        hybrid = delta['hybrid']
         hybrid_splits = delta['hybrid']['splits']
         hybrid_merges = delta['hybrid']['merges']
 
@@ -1025,135 +772,31 @@ class Chap5(DBInputs):
             ])
             return hybrid_info
 
-        # lookup = {a: n for n, aids in enumerate(hybrid['new']) for a in aids}
-        # hybrid_splits = []
-        # for aids in hybrid['old']:
-        #     nids = ut.take(lookup, aids)
-        #     split_part = list(ut.group_items(aids, nids).values())
-        #     hybrid_splits.append(split_part)
-
-        # hybrid_merge_parts = ut.flatten(hybrid_splits)
-        # part_nids = [lookup[aids[0]] for aids in hybrid_merge_parts]
-        # hybrid_merges = list(ut.group_items(hybrid_merge_parts,
-        #                                     part_nids).values())
-
-        if True:
-            info = {
-                'unchanged': unchanged_measures(unchanged),
-                'split': split_measures(all_splits),
-                'merge': merge_measures(all_merges),
-            }
-            return info
-
         info = {
             'unchanged': unchanged_measures(unchanged),
-            'psplit': split_measures(splits),
-            'pmerge': merge_measures(merges),
-            'hybrid': hybrid_measures(hybrid),
-            'hsplit': split_measures(hybrid_splits),
-            'hmerge': merge_measures(hybrid_merges),
+            'split': split_measures(all_splits),
+            'merge': merge_measures(all_merges),
         }
-
-        formater = ut.partial(
-            # ut.format_multiple_paragraph_sentences,
-            ut.format_single_paragraph_sentences,
-            max_width=110, sentence_break=False,
-            sepcolon=False
-        )
-        def print_measures(text, info):
-            print(formater(text.format(**info)))
-
-        split_text = ut.codeblock(
-            '''
-            Split cases are false positives.
-
-            There are {n_pred_pccs} PCCs with average size {size_pred_pccs}
-            that should be split into {n_real_pccs} PCCs with average size
-            {size_real_pccs}.
-
-            On average, there are {n_true_per_pred} true PCCs per predicted
-            PCC.
-
-            Within each split, the average size of the smallest PCC is
-            {ave_small} and the average size of the largest PCC is {ave_large}
-            '''
-        )
-
-        merge_text = ut.codeblock(
-            '''
-            Merges cases are false negatives.
-            There are {n_pred_pccs} PCCs with average size {size_pred_pccs}
-            that should be merged into {n_real_pccs} PCCs with average size
-            {size_real_pccs}.
-
-            On average, there are {n_true_per_pred} predicted PCCs per
-            real PCC.
-
-            Within each merge, the average size of the smallest PCC is
-            {ave_small} and the average size of the largest PCC is
-            {ave_large}
-
-            The average number of predicted negative edges within real PCCs
-            is {ave_incon_edges}.
-
-            There are {n_bad_pairs} pairs of predicted PCCs spanning
-            {n_bad_pccs} total PCCs, that have incorrect negative edges.
-
-            There are {n_neg_redun} predicted PCCs that are incorrectly
-            k-negative-redundant.
-            '''
-        )
-
-        hybrid_text = ut.codeblock(
-            '''
-            For hybrid cases there are {n_pred_pccs} PCCs with average size
-            {size_pred_pccs} that should be transformed into {n_real_pccs} PCCs
-            with average size {size_real_pccs}.
-            To do this, we must first split and then merge.
-            '''
-        )
-
-        print('For pure split/merge cases:')
-        print('------------')
-        print_measures(split_text, info['psplit'])
-        print('------------')
-        print_measures(merge_text, info['pmerge'])
-        print('------------')
-        print('=============')
-        print('For hybrid cases, we first split them and then merge them.')
-        print_measures(hybrid_text, info['hybrid'])
-        print('------------')
-        print_measures(split_text, info['hsplit'])
-        print('------------')
-        print_measures(merge_text, info['hmerge'])
-        print('------------')
         return info
 
-    def draw_simulation(self, aug=''):
+    def draw_simulation(self):
         """
         CommandLine:
-            python -m ibeis Chap5.draw_simulation --db PZ_MTEST --diskshow
-            python -m ibeis Chap5.draw_simulation --db GZ_Master1 --diskshow
-            python -m ibeis Chap5.draw_simulation --db PZ_Master1 --diskshow
+            python -m ibeis Chap5.draw simulation PZ_MTEST --diskshow
+            python -m ibeis Chap5.draw simulation GZ_Master1 --diskshow
+            python -m ibeis Chap5.draw simulation PZ_Master1 --diskshow
 
-        Example:
+        Ignore:
             >>> from ibeis.scripts.thesis import *
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> self = Chap5(dbname)
-            >>> self.draw_simulation()
+            >>> self = Chap5('GZ_Master')
         """
-
-        expt_name = 'simulation' + aug
-        if not self.expt_results:
-            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
-        else:
-            expt_results = self.expt_results
+        sim_results = self.ensure_results('simulation')
 
         keys = ['ranking', 'rank+clf', 'graph']
         colors = ut.dzip(keys, ['red', 'orange', 'b'])
         def _metrics(col):
             return {k: ut.take_column(v['metrics'], col)
-                    for k, v in expt_results.items()}
+                    for k, v in sim_results.items()}
 
         fnum = 1
 
@@ -1191,7 +834,7 @@ class Chap5(DBInputs):
         fig.set_size_inches([W, H * .75])
         pt.adjust_subplots(wspace=.25, fig=fig)
 
-        fpath = join(self.dpath, expt_name + aug + '.png')
+        fpath = join(self.dpath, 'simulation.png')
         vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
         if ut.get_argflag('--diskshow'):
             ut.startfile(fpath)
@@ -1209,21 +852,15 @@ class Chap5(DBInputs):
             >>> self = Chap5(dbname)
             >>> self.draw_refresh()
         """
-
-        expt_name = 'simulation'
-        if not self.expt_results:
-            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
-        else:
-            expt_results = self.expt_results
+        sim_results = self.ensure_results('simulation')
 
         keys = ['ranking', 'rank+clf', 'graph']
         colors = ut.dzip(keys, ['red', 'orange', 'b'])
         def _metrics(col):
             return {k: ut.take_column(v['metrics'], col)
-                    for k, v in expt_results.items()}
+                    for k, v in sim_results.items()}
 
         fnum = 1
-
         xdatas = _metrics('n_manual')
         pnum_ = pt.make_pnum_nextgen(nSubplots=1)
 
@@ -1261,12 +898,8 @@ class Chap5(DBInputs):
         """
         mpl.rcParams.update(TMP_RC)
 
-        expt_name = 'simulation'
-        if not self.expt_results:
-            expt_results = ut.load_data(join(self.dpath, expt_name + '.pkl'))
-        else:
-            expt_results = self.expt_results
-        expt_data = expt_results['graph']
+        sim_results = ut.ensure_results('simulation')
+        expt_data = sim_results['graph']
 
         metrics_df = pd.DataFrame.from_dict(expt_data['metrics'])
 
@@ -1457,7 +1090,7 @@ class Chap5(DBInputs):
 
 
 @ut.reloadable_class
-class Chap4(DBInputs, IOContract):
+class Chap4(DBInputs):
     """
     Collect data from experiments to visualize
 
@@ -1520,21 +1153,6 @@ class Chap4(DBInputs, IOContract):
                 pblm.samples.print_info()
 
             aids = self.aids_pool
-            # infr = ibeis.AnnotInference(ibs, aids=self.aids_pool)
-            # infr.reset_feedback('staging', apply=True)
-            # minority_ccs = find_minority_class_ccs(infr)
-
-            # # Need to reduce sample size for this data
-            # annots = ibs.annots(self.aids_pool)
-            # names = list(annots.group_items(annots.nids).values())
-            # ut.shuffle(names, rng=321)
-            # # Use same aids as the Chapter5 training set
-            # aids = ut.flatten(names[0::2])
-            # # test_aids = ut.flatten(names[1::2])
-
-            # # Add in the minority cases
-            # minority_aids = set(ut.flatten(minority_ccs))
-            # aids = sorted(set(minority_aids).union(set(aids)))
         else:
             aids = self.aids_pool
 
@@ -2905,221 +2523,6 @@ class Chap4(DBInputs, IOContract):
 
 
 @ut.reloadable_class
-class Chap3Commands(object):
-    @classmethod
-    def vd(Chap3):
-        """
-        CommandLine:
-            python -m ibeis Chap3.vd
-        """
-        ut.vd(Chap3.base_dpath)
-
-    @classmethod
-    def run_all(Chap3):
-        """
-        CommandLine:
-            python -m ibeis Chap3.run_all
-        """
-        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
-                       'humpbacks_fb']
-        agg_dbnames = agg_dbnames[::-1]
-
-        for dbname in agg_dbnames:
-            self = Chap3(dbname)
-            self.measure_all()
-            self.draw_time_distri()
-
-        Chap3.agg_dbstats()
-        Chap3.draw_agg_baseline()
-
-    def _setup(self):
-        self._precollect()
-
-    def measure_all(self):
-        """
-        Example:
-            from ibeis.scripts.thesis import *
-            self = Chap3('PZ_Master1')
-            self.measure_all()
-            self = Chap3('GZ_Master1')
-            self.measure_all()
-            self = Chap3('GIRM_Master1')
-            self.measure_all()
-        """
-        if self.ibs is None:
-            self._precollect()
-        self.measure_baseline()
-        if self.dbname in {'PZ_Master1', 'GZ_Master1'}:
-            self.measure_foregroundness()
-            self.measure_smk()
-            self.measure_nsum()
-            # self.measure_dbsize()
-            self.measure_kexpt()
-            self.measure_invar()
-
-    @classmethod
-    def measure(Chap3, expt_name, dbnames):
-        """
-        CommandLine:
-            python -m ibeis Chap3.measure all --dbs=GZ_Master1
-            python -m ibeis Chap3.measure all --dbs=PZ_Master1
-
-            python -m ibeis Chap3.measure nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis Chap3.measure foregroundness --dbs=GZ_Master1,PZ_Master1
-
-        Example:
-            >>> # Script
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
-            >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
-            >>> Chap3.measure(expt_name, dbnames)
-        """
-        for dbname in dbnames:
-            self = Chap3(dbname)
-            if self.ibs is None:
-                self._precollect()
-            if expt_name == 'all':
-                self.measure_all()
-            else:
-                getattr(self, 'measure_' + expt_name)()
-
-    @classmethod
-    def draw(Chap3, expt_name, dbnames):
-        """
-        CommandLine:
-            python -m ibeis Chap3.draw nsum --dbs=GZ_Master1,PZ_Master1
-            python -m ibeis Chap3.draw foregroundness --dbs=GZ_Master1,PZ_Master1 --diskshow
-            python -m ibeis Chap3.draw kexpt --dbs=GZ_Master1 --diskshow
-
-        Example:
-            >>> # Script
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> expt_name = ut.get_argval('--expt', type_=str, pos=1)
-            >>> dbnames = ut.get_argval(('--dbs', '--db'), type_=list, default=[])
-            >>> Chap3.draw(expt_name, dbnames)
-        """
-        print('dbnames = %r' % (dbnames,))
-        print('expt_name = %r' % (expt_name,))
-        super(Chap3.__class__, Chap3).draw(expt_name, dbnames)
-        # for dbname in dbnames:
-        #     self = Chap3(dbname)
-        #     if expt_name == 'all':
-        #         self.draw_all()
-        #     else:
-        #         draw_func = getattr(self, 'draw_' + expt_name, None)
-        #         if draw_func is None:
-        #             draw_func = getattr(self, 'write_' + expt_name, None)
-        #         if draw_func is None:
-        #             raise ValueError('Cannot find a way to draw ' + expt_name)
-        #         fpath = draw_func()
-        #         if ut.get_argflag('--diskshow'):
-        #             if isinstance(fpath, six.text_type):
-        #                 ut.startfile(fpath)
-        #             else:
-        #                 fpath_list = fpath
-        #                 for fpath in fpath_list:
-        #                     ut.startfile(fpath)
-
-
-@ut.reloadable_class
-class Chap3Agg(object):
-    @classmethod
-    def agg_dbstats(Chap3):
-        """
-        CommandLine:
-            python -m ibeis Chap3.agg_dbstats
-            python -m ibeis Chap3.measure_dbstats
-
-        Example:
-            >>> # DISABLE_DOCTEST
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> result = Chap3.agg_dbstats()
-            >>> print(result)
-        """
-        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
-        infos = ut.ddict(list)
-        for dbname in agg_dbnames:
-            self = Chap3(dbname)
-            info = self.ensure_results('dbstats')
-            infos['enc'].append(info['enc'])
-            infos['qual'].append(info['qual'])
-            infos['view'].append(info['view'])
-            # labels.append(self.species_nice.capitalize())
-
-        df = pd.DataFrame(infos['enc'])
-        # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
-        df = df.rename(columns={'species_nice': 'Database'})
-        text = df.to_latex(index=False, na_repr='nan').replace('±', '\pm')
-        text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
-        text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
-        text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
-        text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
-        text = text.replace(r'n\_annots', r'\thead{\#annots}')
-        enc_text = text.replace('lrrllr', 'lrrrrr')
-        # ut.render_latex_text(text, preamb_extra='\\usepackage{makecell}')
-
-        df = pd.DataFrame(infos['qual'])
-        df = df.rename(columns={'species_nice': 'Database'})
-        df = df.reindex_axis(ut.partial_order(
-            df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
-        qual_text = df.to_latex(index=False, na_repr='nan')
-
-        df = pd.DataFrame(infos['view'])
-        df = df.rename(columns={
-            'species_nice': 'Database',
-            'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
-            'backleft': 'BL', 'backright': 'BR', 'frontright': 'FR',
-            'frontleft': 'FL',
-        })
-        order = ut.partial_order(
-            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
-                         'B', 'None'])
-        df = df.reindex_axis(order, axis=1)
-        df = df.set_index('Database')
-        df[pd.isnull(df)] = 0
-        df = df.astype(np.int).reset_index()
-        view_text = df.to_latex(index=False, na_repr='nan')
-
-        ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
-        ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
-        ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
-
-    @classmethod
-    def draw_agg_baseline(Chap3):
-        """
-        CommandLine:
-            python -m ibeis Chap3.draw_agg_baseline --diskshow
-
-        Example:
-            >>> # SCRIPT
-            >>> from ibeis.scripts.thesis import *  # NOQA
-            >>> Chap3.draw_agg_baseline()
-        """
-        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
-        cdfs = []
-        labels = []
-        for dbname in agg_dbnames:
-            self = Chap3(dbname)
-            results = self.ensure_results('baseline')
-            cdf, config = results[0]
-            dsize = config['dsize']
-            qsize = config['t_n_names']
-            baseline_cdf = results[0][0]
-            cdfs.append(baseline_cdf)
-            labels.append('{},qsize={},dsize={}'.format(
-                self.species_nice, qsize, dsize))
-            # labels.append(self.species_nice.capitalize())
-
-        mpl.rcParams.update(TMP_RC)
-        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
-        fig.set_size_inches([W, H * 1.5])
-        fpath = join(Chap3.base_dpath, 'agg-baseline.png')
-        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
-        if ut.get_argflag('--diskshow'):
-            ut.startfile(fpath)
-
-
-@ut.reloadable_class
 class Chap3Measures(object):
     def measure_baseline(self):
         """
@@ -3764,13 +3167,148 @@ class Chap3Draw(object):
 
 
 @ut.reloadable_class
-class Chap3(DBInputs, IOContract, Chap3Agg, Chap3Draw, Chap3Measures,
-            Chap3Commands):
+class Chap3(DBInputs, Chap3Draw, Chap3Measures):
     base_dpath = ut.truepath('~/latex/crall-thesis-2017/figuresY')
+    def _setup(self):
+        self._precollect()
+
+    @classmethod
+    def run_all(Chap3):
+        """
+        CommandLine:
+            python -m ibeis Chap3.run_all
+        """
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1',
+                       'humpbacks_fb']
+        agg_dbnames = agg_dbnames[::-1]
+
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            self.measure_all()
+            self.draw_time_distri()
+
+        Chap3.agg_dbstats()
+        Chap3.draw_agg_baseline()
+
+    def measure_all(self):
+        """
+        Example:
+            from ibeis.scripts.thesis import *
+            self = Chap3('PZ_Master1')
+            self.measure_all()
+            self = Chap3('GZ_Master1')
+            self.measure_all()
+            self = Chap3('GIRM_Master1')
+            self.measure_all()
+        """
+        if self.ibs is None:
+            self._precollect()
+        self.measure_baseline()
+        if self.dbname in {'PZ_Master1', 'GZ_Master1'}:
+            self.measure_foregroundness()
+            self.measure_smk()
+            self.measure_nsum()
+            # self.measure_dbsize()
+            self.measure_kexpt()
+            self.measure_invar()
+
+    @classmethod
+    def agg_dbstats(Chap3):
+        """
+        CommandLine:
+            python -m ibeis Chap3.agg_dbstats
+            python -m ibeis Chap3.measure_dbstats
+
+        Example:
+            >>> # DISABLE_DOCTEST
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> result = Chap3.agg_dbstats()
+            >>> print(result)
+        """
+        agg_dbnames = ['PZ_Master1', 'GZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+        infos = ut.ddict(list)
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            info = self.ensure_results('dbstats')
+            infos['enc'].append(info['enc'])
+            infos['qual'].append(info['qual'])
+            infos['view'].append(info['view'])
+            # labels.append(self.species_nice.capitalize())
+
+        df = pd.DataFrame(infos['enc'])
+        # df = df.reindex_axis(ut.partial_order(df.columns, ['species_nice']), axis=1)
+        df = df.rename(columns={'species_nice': 'Database'})
+        text = df.to_latex(index=False, na_repr='nan').replace('±', '\pm')
+        text = text.replace(r'n\_singleton\_names', r'\thead{\#names\\(singleton)}')
+        text = text.replace(r'n\_resighted\_names', r'\thead{\#names\\(resighted)}')
+        text = text.replace(r'n\_encounter\_per\_resighted\_name', r'\thead{\#encounter per\\name (resighted)}')
+        text = text.replace(r'n\_annots\_per\_encounter', r'\thead{\#annots per\\encounter}')
+        text = text.replace(r'n\_annots', r'\thead{\#annots}')
+        enc_text = text.replace('lrrllr', 'lrrrrr')
+        # ut.render_latex_text(text, preamb_extra='\\usepackage{makecell}')
+
+        df = pd.DataFrame(infos['qual'])
+        df = df.rename(columns={'species_nice': 'Database'})
+        df = df.reindex_axis(ut.partial_order(
+            df.columns, ['Database', 'excellent', 'good', 'ok', 'poor', 'None']), axis=1)
+        qual_text = df.to_latex(index=False, na_repr='nan')
+
+        df = pd.DataFrame(infos['view'])
+        df = df.rename(columns={
+            'species_nice': 'Database',
+            'back': 'B', 'left': 'L', 'right': 'R', 'front': 'F',
+            'backleft': 'BL', 'backright': 'BR', 'frontright': 'FR',
+            'frontleft': 'FL',
+        })
+        order = ut.partial_order(
+            df.columns, ['Database', 'BL', 'L', 'FL', 'F', 'FR', 'R', 'BR',
+                         'B', 'None'])
+        df = df.reindex_axis(order, axis=1)
+        df = df.set_index('Database')
+        df[pd.isnull(df)] = 0
+        df = df.astype(np.int).reset_index()
+        view_text = df.to_latex(index=False, na_repr='nan')
+
+        ut.write_to(join(Chap3.base_dpath, 'agg-enc.tex'), enc_text)
+        ut.write_to(join(Chap3.base_dpath, 'agg-view.tex'), view_text)
+        ut.write_to(join(Chap3.base_dpath, 'agg-qual.tex'), qual_text)
+
+    @classmethod
+    def draw_agg_baseline(Chap3):
+        """
+        CommandLine:
+            python -m ibeis Chap3.draw_agg_baseline --diskshow
+
+        Example:
+            >>> # SCRIPT
+            >>> from ibeis.scripts.thesis import *  # NOQA
+            >>> Chap3.draw_agg_baseline()
+        """
+        agg_dbnames = ['GZ_Master1', 'PZ_Master1', 'GIRM_Master1', 'humpbacks_fb']
+        cdfs = []
+        labels = []
+        for dbname in agg_dbnames:
+            self = Chap3(dbname)
+            results = self.ensure_results('baseline')
+            cdf, config = results[0]
+            dsize = config['dsize']
+            qsize = config['t_n_names']
+            baseline_cdf = results[0][0]
+            cdfs.append(baseline_cdf)
+            labels.append('{},qsize={},dsize={}'.format(
+                self.species_nice, qsize, dsize))
+            # labels.append(self.species_nice.capitalize())
+
+        mpl.rcParams.update(TMP_RC)
+        fig = plot_cmcs(cdfs, labels, fnum=1, ymin=.5)
+        fig.set_size_inches([W, H * 1.5])
+        fpath = join(Chap3.base_dpath, 'agg-baseline.png')
+        vt.imwrite(fpath, pt.render_figure_to_image(fig, dpi=DPI))
+        if ut.get_argflag('--diskshow'):
+            ut.startfile(fpath)
 
 
 class Sampler(object):
-
     @staticmethod
     def _same_occur_split(ibs, aids):
         """
@@ -3873,26 +3411,6 @@ class Sampler(object):
             sample = SplitSample(qaids, daids)
             samples.append(sample)
         return samples
-
-        #         nid = enc.nids[0]
-        #         if len(nid_to_splits[nid]) == 0:
-        #             chosen = pyrng.sample(enc.aids, min(len(enc), 2))
-        #             nid_to_splits[nid].extend(chosen)
-
-        #     qaids = []
-        #     dname_encs = []
-        #     confusor_pool = []
-        #     for nid, aids_ in nid_to_splits.items():
-        #         if len(aids_) < 2:
-        #             confusor_pool.extend(aids_)
-        #         else:
-        #             pyrng.shuffle(aids_)
-        #             qaids.append(aids_[0])
-        #             dname_encs.append([[aids_[1]]])
-        #     confusor_pool = ut.shuffle(confusor_pool, rng=0)
-        #     self = ExpandingSample(qaids, dname_encs, confusor_pool)
-        #     query_samples.append(self)
-        # return query_samples
 
     @staticmethod
     def _same_enc_split(ibs, aids):
@@ -4171,84 +3689,6 @@ class SplitSample(ut.NiceRepr):
         )
 
 
-class ExpandingSample(ut.NiceRepr):
-    def __init__(sample, qaids, dname_encs, confusor_pool):
-        sample.qaids = qaids
-        sample.dname_encs = dname_encs
-        sample.confusor_pool = confusor_pool
-
-    def __nice__(sample):
-        denc_pername = ut.lmap(len, sample.dname_encs)
-        n_denc_pername = np.mean(denc_pername)
-        return 'nQaids={}, nDEncPerName={}, nConfu={}'.format(
-            len(sample.qaids), n_denc_pername, len(sample.confusor_pool)
-        )
-
-    def expand(sample, denc_per_name=[1], extra_dbsize_fracs=[0]):
-        # Vary the number of database encounters in each sample
-        target_daids_list = []
-        target_info_list_ = []
-        for num in denc_per_name:
-            dname_encs_ = ut.take_column(sample.dname_encs, slice(0, num))
-            dnames_ = ut.lmap(ut.flatten, dname_encs_)
-            daids_ = ut.total_flatten(dname_encs_)
-            target_daids_list.append(daids_)
-            name_lens = ut.lmap(len, dnames_)
-            dpername = (name_lens[0] if ut.allsame(name_lens) else
-                        np.mean(name_lens))
-            target_info_list_.append(ut.odict([
-                ('qsize', len(sample.qaids)),
-                ('t_n_names', len(dname_encs_)),
-                ('t_dpername', dpername),
-                ('t_denc_pername', num),
-                ('t_dsize', len(daids_)),
-            ]))
-
-        # Append confusors to maintain a constant dbsize in each base sample
-        dbsize_list = ut.lmap(len, target_daids_list)
-        max_dsize = max(dbsize_list)
-        n_need = max_dsize - min(dbsize_list)
-        n_extra_avail = len(sample.confusor_pool) - n_need
-        assert len(sample.confusor_pool) > n_need, 'not enough confusors'
-        padded_daids_list = []
-        padded_info_list_ = []
-        for daids_, info_ in zip(target_daids_list, target_info_list_):
-            num_take = max_dsize - len(daids_)
-            pad_aids = sample.confusor_pool[:num_take]
-            new_aids = daids_ + pad_aids
-            info_ = info_.copy()
-            info_['n_pad'] = len(pad_aids)
-            info_['pad_dsize'] = len(new_aids)
-            padded_info_list_.append(info_)
-            padded_daids_list.append(new_aids)
-
-        # Vary the dbsize by appending extra confusors
-        if extra_dbsize_fracs is None:
-            extra_dbsize_fracs = [1.]
-        extra_fracs = np.array(extra_dbsize_fracs)
-        n_extra_list = np.unique(extra_fracs * n_extra_avail).astype(np.int)
-        daids_list = []
-        info_list = []
-        for n in n_extra_list:
-            for daids_, info_ in zip(padded_daids_list, padded_info_list_):
-                extra_aids = sample.confusor_pool[len(sample.confusor_pool) - n:]
-                daids = sorted(daids_ + extra_aids)
-                daids_list.append(daids)
-                info = info_.copy()
-                info['n_extra'] = len(extra_aids)
-                info['dsize'] = len(daids)
-                info_list.append(info)
-
-        import pandas as pd
-        verbose = 0
-        if verbose:
-            print(pd.DataFrame.from_records(info_list))
-            print('#qaids = %r' % (len(sample.qaids),))
-            print('num_need = %r' % (n_need,))
-            print('max_dsize = %r' % (max_dsize,))
-        return sample.qaids, daids_list, info_list
-
-
 def _ranking_hist(ibs, qaids, daids, cfgdict):
     # Execute the ranking algorithm
     qaids = sorted(qaids)
@@ -4282,49 +3722,6 @@ def feat_alias(k):
     # k = k.replace('norm_y', 'y')
     # k = k.replace('yaw', 'view')
     return k
-
-
-def find_minority_class_ccs(infr):
-    # Finds ccs involved in photobombs and incomparble cases
-    pb_edges = [
-        edge for edge, tags in infr.gen_edge_attrs('tags')
-        if 'photobomb'in tags
-    ]
-    incomp_edges = list(infr.incomp_graph.edges())
-    minority_edges = pb_edges + incomp_edges
-    minority_nids = set(infr.node_labels(*set(ut.flatten(minority_edges))))
-    minority_ccs = [infr.pos_graph._ccs[nid] for nid in minority_nids]
-    return minority_ccs
-
-
-def test_mcc():
-    num = 100
-    xdata = np.linspace(0, 1, num * 2)
-    ydata = np.linspace(1, -1, num * 2)
-    pt.plt.plot(xdata, ydata, '--k',
-                label='linear')
-
-    y_true = [1] * num + [0] * num
-    y_pred = y_true[:]
-    import sklearn.metrics
-    xs = []
-    for i in range(0, len(y_true)):
-        y_pred[-i] = 1 - y_pred[-i]
-        xs.append(sklearn.metrics.matthews_corrcoef(y_true, y_pred))
-
-    import plottool as pt
-    pt.plot(xdata, xs, label='change one class at a time')
-
-    y_true = ut.flatten(zip([1] * num, [0] * num))
-    y_pred = y_true[:]
-    import sklearn.metrics
-    xs = []
-    for i in range(0, len(y_true)):
-        y_pred[-i] = 1 - y_pred[-i]
-        xs.append(sklearn.metrics.matthews_corrcoef(y_true, y_pred))
-
-    pt.plot(xdata, xs, label='change classes evenly')
-    pt.gca().legend()
 
 
 def prepare_cdfs(cdfs, labels):
@@ -4365,11 +3762,6 @@ def plot_cmcs2(cdfs, labels, fnum=1, **kwargs):
     pt.adjust_subplots(top=.8, bottom=.2, left=.12, right=.9)
     fig.set_size_inches([W, H])
     return fig
-
-
-# NEED FOR OLD PICKLES
-class ExptChapter4(object):
-    pass
 
 
 if __name__ == '__main__':
