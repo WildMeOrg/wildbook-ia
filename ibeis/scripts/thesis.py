@@ -317,30 +317,37 @@ class Chap5(DBInputs):
         train_aids = ut.flatten(names[0::2])
         test_aids = ut.flatten(names[1::2])
 
-        pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids)
-        pblm.set_pandas_options()
-        pblm.load_samples()
-        pblm.load_features(with_simple=False)
-        pblm.build_feature_subsets()
+        if ibs.dbname == 'PZ_MTEST':
+            params = dict(sample_method='random')
+        else:
+            params = dict()
 
-        pblm.learn_evaluation_classifiers()
-
+        pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids, **params)
         task_key = 'match_state'
         data_key = pblm.default_data_key
         clf_key = pblm.default_clf_key
-        res = pblm.task_combo_res[task_key][clf_key][data_key]
 
-        if False:
-            pblm.learn_evaluation_classifiers(task_keys=['photobomb_state'])
-            pb_res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
-            pb_res  # TODO?
+        pblm.eval_data_keys = [data_key]
+        pblm.setup(with_simple=False)
+        pblm.learn_evaluation_classifiers()
+
+        res = pblm.task_combo_res[task_key][clf_key][data_key]
+        pblm.report_evaluation()
+
+        # if False:
+        #     pblm.learn_evaluation_classifiers(task_keys=['photobomb_state'])
+        #     pb_res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
+        #     pb_res  # TODO?
 
         if True:
-            # Remove results that are photobombs
+            # Remove results that are photobombs for now
+            # res = pblm.task_combo_res['photobomb_state'][clf_key][data_key]
             pb_task = pblm.samples.subtasks['photobomb_state']
-            flags = pb_task.indicator_df.loc[res.index]['notpb'].values
-            notpb_res = res.compress(flags)
-            res = notpb_res
+            import utool
+            with utool.embed_on_exception_context:
+                flags = pb_task.indicator_df.loc[res.index]['notpb'].values
+                notpb_res = res.compress(flags)
+                res = notpb_res
 
         # TODO: need more principled way of selecting thresholds
         graph_thresh = res.get_pos_threshes('fpr', value=.002)
@@ -357,96 +364,64 @@ class Chap5(DBInputs):
             # graph_thresh = res.get_pos_threshes('fpr', value=.1)
             # rankclf_thresh = res.get_pos_threshes('fpr', value=.03)
 
-        # Build deploy classifiers
-        samples = pblm.samples
-        clf_cfgstr = '_'.join([
-            samples.sample_hashid(),
-            ut.hashid_arr(samples.X_dict[data_key].columns.values.tolist(), 'featdims')
-        ])
-        clf_cacher = ub.Cacher('deploy_clf_v3_',
-                               appname=pblm.appname,
-                               cfgstr=clf_cfgstr)
-        pblm.deploy_task_clfs = clf_cacher.tryload()
-        if pblm.deploy_task_clfs is None:
-            pblm.deploy_task_clfs = pblm.learn_deploy_classifiers()  # NOQA
-            clf_cacher.save(pblm.deploy_task_clfs)
+        print('\n--- Graph thresholds ---')
+        res.report_auto_thresholds(graph_thresh)
 
-        print('graph_thresh = %r' % (graph_thresh,))
-        print('rankclf_thresh = %r' % (rankclf_thresh,))
+        print('\n --- Ranking thresholds ---')
+        res.report_auto_thresholds(rankclf_thresh)
 
-        # eval_clfs = pblm._train_evaluation_clf(task_key, data_key, clf_key)
-        # deploy_clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
-        # pblm._ensure_evaluation_clf(task_key, data_key, clf_key, use_cache=False)
+        # Setup directory
+        from os.path import expanduser
+        dbcode = '{}_{}_{}'.format(ibs.dbname, len(test_aids), len(train_aids))
+        dpath = expanduser(self.base_dpath + '/' + dbcode)
+        link = expanduser(self.base_dpath + '/' + self.dbname)
+        ut.ensuredir(dpath)
+        self.real_dpath = dpath
+        try:
+            self.link = ut.symlink(dpath, link, overwrite=True)
+        except Exception:
+            if exists(dpath):
+                newpath = ut.non_existing_path(dpath, suffix='_old')
+                ut.move(link, newpath)
+                self.link = ut.symlink(dpath, link)
 
-        def _test_weird_error_difference(infr1, infr2):
-            # First load infr1, and infr2 in ipython
-            new_edges1 = infr1.find_new_candidate_edges()
-            new_edges2 = infr2.find_new_candidate_edges()
+        # Load or create the deploy classifiers
+        clf_dpath = ut.ensuredir((self.dpath, 'clf'))
+        classifiers = pblm.ensure_deploy_classifiers(dpath=clf_dpath)
+        # infr = pblm.infr
+        # edges = pblm.samples.aid_pairs[0:10]
+        # pblm.infr.classifiers = classifiers
 
-            assert new_edges2 == new_edges1
-
-            task_probs1 = infr1._make_task_probs(new_edges1)
-            task_probs2 = infr2._make_task_probs(new_edges2)
-            assert np.all(task_probs1['match_state'] ==
-                          task_probs1['match_state'])
-            assert np.all(task_probs2['photobomb_state'] ==
-                          task_probs2['photobomb_state'])
-
-            # hack to make both methods fail when manual review happens
-            infr1.oracle = None
-            infr2.oracle = None
-
-            infr1.lnbnn_priority_loop()
-            infr2.lnbnn_priority_loop()
-
-            infr1.metrics_list1[0] == infr2.metrics_list1[0]
-            relevant = ['user_id', 'n_true_merges']
-            x = ut.take_column(infr1.metrics_list, relevant)
-            y = ut.take_column(infr2.metrics_list, relevant)
-            x[0:10] == y[0:10]
-
-            infr1.metrics_list[-1]
-            infr2.metrics_list[-1]
-
-        if False:
-            cfms = res.confusions('match')
-            cfms.plot_vs('thresholds', 'fpr')
+        # ut.get_nonconflicting_path(dpath, suffix='_old')
+        const_dials = {
+            # 'oracle_accuracy' : (0.98, 1.0),
+            # 'oracle_accuracy' : (0.98, .98),
+            'oracle_accuracy' : (0.98, .98),
+            'k_redun'         : 2,
+            'max_outer_loops' : np.inf,
+            # 'max_outer_loops' : 1,
+        }
 
         sim_params = {
             'test_aids': test_aids,
-            'pblm': pblm,
+            'classifiers': classifiers,
             'graph_thresh': graph_thresh,
             'rankclf_thresh': rankclf_thresh,
+            'const_dials': const_dials,
         }
+        self.sim_params = sim_params
         return sim_params
 
     @profile
     def measure_simulation(self, aug=''):
         """
         CommandLine:
-            python -m ibeis Chap5.measure simulation --db PZ_MTEST --show
-            python -m ibeis Chap5.measure simulation --db GZ_Master1 --show --aug=test
-            python -m ibeis Chap5.measure simulation --db PZ_Master1 --show --aug=test
-
-            python -m ibeis Chap5.measure simulation GZ_Master1 --show
+            python -m ibeis Chap5.measure simulation PZ_MTEST
+            python -m ibeis Chap5.measure simulation GZ_Master1
             python -m ibeis Chap5.measure simulation PZ_Master1 --show
 
             python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
             python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
-
-        Example:
-            >>> from ibeis.scripts.thesis import *
-            >>> #dbname = ut.get_argval('--db', default='PZ_Master1')
-            >>> dbname = ut.get_argval('--db', default='GZ_Master1')
-            >>> aug = 'test'
-            >>> aug = ''
-            >>> aug = ut.get_argval('--aug', default='')
-            >>> self = Chap5(dbname)
-            >>> self.measure_simulation(aug)
-            >>> ut.quit_if_noshow()
-            >>> self.draw_simulation(aug)
-            >>> #self.draw_simulation2()
-            >>> ut.show_if_requested()
 
         Ignore:
             >>> from ibeis.scripts.thesis import *
@@ -455,28 +430,20 @@ class Chap5(DBInputs):
             >>> self = Chap5('PZ_MTEST')
         """
         import ibeis
-        sim_params = self._setup()
+        sim_params = getattr(self, 'sim_params', None)
+        if sim_params is None:
+            sim_params = self._setup()
 
         ibs = self.ibs
 
-        pblm = sim_params['pblm']
+        classifiers = sim_params['classifiers']
         test_aids = sim_params['test_aids']
         rankclf_thresh = sim_params['rankclf_thresh']
         graph_thresh = sim_params['graph_thresh']
-
-        const_dials = {
-            # 'oracle_accuracy' : (0.98, 1.0),
-            # 'oracle_accuracy' : (0.98, .98),
-            'oracle_accuracy' : (0.98, .98),
-            'k_redun'         : 2,
-            # 'max_outer_loops' : 1,
-            'max_outer_loops' : np.inf,
-        }
+        const_dials = sim_params['const_dials']
 
         # ----------
         # Graph test
-        # ----------
-
         varied_dials = {
             'enable_inference'   : True,
             'match_state_thresh' : graph_thresh,
@@ -491,7 +458,7 @@ class Chap5(DBInputs):
         infr1._refresh_params['thresh'] = np.exp(-2)
         infr1._refresh_params['patience'] = 20
 
-        infr1.init_simulation(classifiers=pblm, **dials)
+        infr1.init_simulation(classifiers=classifiers, **dials)
         infr1.init_test_mode()
         infr1.reset(state='empty')
         infr1.main_loop()
@@ -514,16 +481,7 @@ class Chap5(DBInputs):
         print('Edge confusion')
         print(pred_confusion)
 
-        # metrics_df = pd.DataFrame.from_dict(graph_expt_data['metrics'])
-        # for user, group in metrics_df.groupby('user_id'):
-        #     print('actions of user = %r' % (user,))
-        #     user_actions = group['action']
-        #     print(ut.repr4(ut.dict_hist(user_actions), stritems=True))
-
-        # ----------
-        # Graph test
-        # ----------
-
+        # --------
         # Rank+CLF
         varied_dials = {
             'enable_inference'   : False,
@@ -534,7 +492,7 @@ class Chap5(DBInputs):
         verbose = 1
         infr2 = ibeis.AnnotInference(ibs=ibs, aids=test_aids,
                                      autoinit=True, verbose=verbose)
-        infr2.init_simulation(classifiers=pblm, **dials)
+        infr2.init_simulation(classifiers=classifiers, **dials)
         infr2.init_test_mode()
         infr2.enable_redundancy = False
         infr2.enable_autoreview = True
@@ -552,10 +510,7 @@ class Chap5(DBInputs):
         }
         expt_results['rank+clf'] = verifier_expt_data
 
-        # ----------
-        # Graph test
-        # ----------
-
+        # ------------
         # Ranking test
         varied_dials = {
             'enable_inference'   : False,
@@ -590,8 +545,16 @@ class Chap5(DBInputs):
         ut.save_data(join(self.dpath, expt_name + '.pkl'), expt_results)
         self.expt_results = expt_results
 
+        # metrics_df = pd.DataFrame.from_dict(graph_expt_data['metrics'])
+        # for user, group in metrics_df.groupby('user_id'):
+        #     print('actions of user = %r' % (user,))
+        #     user_actions = group['action']
+        #     print(ut.repr4(ut.dict_hist(user_actions), stritems=True))
+
         # self.draw_simulation()
         # ut.show_if_requested()
+        pass
+
     def draw_error_graph_analysis(self):
         """
         Ignore:
@@ -668,8 +631,6 @@ class Chap5(DBInputs):
                 for cc1, cc2 in ut.combinations(merge, 2):
                     x = list(nxu.edges_between(err_graph, cc1, cc2))
                     err_graph.remove_edges_from(x)
-                    break
-                break
 
         # Find edges that were completely missed
         missing_edges = []
@@ -1630,7 +1591,13 @@ class Chap4(DBInputs, IOContract):
         link = expanduser(self.base_dpath + '/' + self.dbname)
         ut.ensuredir(dpath)
         self.real_dpath = dpath
-        self.link = ut.symlink(dpath, link)
+        try:
+            self.link = ut.symlink(dpath, link, overwrite=True)
+        except Exception:
+            if exists(dpath):
+                newpath = ut.non_existing_path(dpath, suffix='_old')
+                ut.move(link, newpath)
+                self.link = ut.symlink(dpath, link)
 
     def measure_all(self):
         r"""

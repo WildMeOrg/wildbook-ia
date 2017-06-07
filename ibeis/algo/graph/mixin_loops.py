@@ -562,6 +562,7 @@ class InfrReviewers(object):
             hasone = sum(decision_flags) == 1
             # decision = decision_flags.argmax()
         else:
+            # TODO: don't autodecide if secondary classifiers are on
             decision_probs = infr.task_probs[primary_task][edge]
             primary_thresh = infr.task_thresh[primary_task]
             decision_flags = {k: decision_probs[k] > thresh

@@ -14,153 +14,9 @@ import pandas as pd
 import sklearn
 import sklearn.metrics
 import sklearn.ensemble
+from ibeis.scripts import sklearn_utils
 from six.moves import range
 print, rrr, profile = ut.inject2(__name__)
-
-
-@profile
-def predict_proba_df(clf, X_df, class_names=None):
-    """
-    Calls sklearn classifier predict_proba but then puts results in a dataframe
-    using the same index as X_df and incorporating all possible class_names
-    given
-    """
-    if class_names is not None:
-        columns = ut.take(class_names, clf.classes_)
-    else:
-        columns = None
-    try:
-        probs = clf.predict_proba(X_df)
-    except ValueError:
-        # solves a problem when values are infinity for whatever reason
-        X = X_df.values.copy()
-        X[~np.isfinite(X)] = np.nan
-        probs = clf.predict_proba(X)
-
-    probs_df = pd.DataFrame(probs, columns=columns, index=X_df.index)
-    # add in zero probability for classes without training data
-    if class_names is not None:
-        missing = ut.setdiff(class_names, columns)
-        if missing:
-            for classname in missing:
-                probs_df = probs_df.assign(**{
-                    classname: np.zeros(len(probs_df))})
-    return probs_df
-
-
-class PrefitEstimatorEnsemble(object):
-    """
-
-    hacks around limitations of sklearn.ensemble.VotingClassifier
-
-    """
-    def __init__(self, clf_list, voting='soft', weights=None):
-        self.clf_list = clf_list
-        self.voting = voting
-        self.weights = None
-
-        classes_list = [clf.classes_ for clf in clf_list]
-        if ut.allsame(classes_list):
-            self.classes_ = classes_list[0]
-            self.class_idx_mappers = None
-        else:
-            # Need to make a mapper from individual clf classes to ensemble
-            self.class_idx_mappers = []
-            classes_ = sorted(set.union(*map(set, classes_list)))
-            for clf in clf_list:
-                # For each index of the clf classes, find that index in the
-                # ensemble classes. Eg. class y=4 might be at cx=1 and ex=0
-                mapper = np.empty(len(clf.classes_), dtype=np.int)
-                for cx, y in enumerate(clf.classes_):
-                    ex = classes_.index(y)
-                    mapper[cx] = ex
-                self.class_idx_mappers.append(mapper)
-            self.classes_ = np.array(classes_)
-
-        for clf in clf_list:
-            clf.classes_
-            pass
-
-    def _collect_probas(self, X):
-        """Collect results from clf.predict calls. """
-        if self.class_idx_mappers is None:
-            probas = np.asarray([clf.predict_proba(X) for clf in self.clf_list])
-        else:
-            n_estimators = len(self.clf_list)
-            n_samples = X.shape[0]
-            n_classes = len(self.classes_)
-            probas = np.zeros((n_estimators, n_samples, n_classes))
-            for ex, (clf, mapper) in enumerate(zip(self.clf_list,
-                                                   self.class_idx_mappers)):
-                proba = clf.predict_proba(X)
-                # Use mapper to map indicies of clf classes to ensemble classes
-                probas[ex][:, mapper] = proba
-        return probas
-
-    def predict_proba(self, X):
-        """Predict class probabilities for X in 'soft' voting """
-        if self.voting == 'hard':
-            raise AttributeError("predict_proba is not available when"
-                                 " voting=%r" % self.voting)
-        avg = np.average(self._collect_probas(X), axis=0, weights=self.weights)
-        return avg
-
-    def predict(self, X):
-        """ Predict class labels for X.
-
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
-            Training vectors, where n_samples is the number of samples and
-            n_features is the number of features.
-
-        Returns
-        ----------
-        maj : array-like, shape = [n_samples]
-            Predicted class labels.
-        """
-        if self.voting == 'soft':
-            maj = np.argmax(self.predict_proba(X), axis=1)
-        else:  # 'hard' voting
-            predictions = self._predict(X)
-            maj = np.apply_along_axis(lambda x:
-                                      np.argmax(np.bincount(x,
-                                                weights=self.weights)),
-                                      axis=1,
-                                      arr=predictions.astype('int'))
-        return maj
-
-    def _predict(self, X):
-        """Collect results from clf.predict calls. """
-        return np.asarray([clf.predict(X) for clf in self.clf_list]).T
-
-
-def voting_ensemble(clf_list, voting='hard'):
-    """
-    hack to construct a VotingClassifier from pretrained classifiers
-    TODO: contribute similar functionality to sklearn
-    """
-    eclf = PrefitEstimatorEnsemble(clf_list, voting=voting)
-    # classes_ = ut.list_getattr(clf_list, 'classes_')
-    # if not ut.allsame(classes_):
-    #     for clf in clf_list:
-    #         print(clf.predict_proba(X_train))
-    #         pass
-    #     # Note: There is a corner case where one fold doesn't get any labels of
-    #     # a certain class. Because y_train is an encoded integer, the
-    #     # clf.classes_ attribute will cause predictions to agree with other
-    #     # classifiers trained on the same labels. Therefore, the voting
-    #     # classifer will still work. But
-    #     raise ValueError(
-    #         'Classifiers predict different things. classes_={}'.format(
-    #             classes_)
-    #     )
-    # estimators = [('clf%d' % count, clf) for count, clf in enumerate(clf_list)]
-    # eclf = sklearn.ensemble.VotingClassifier(estimators=estimators,
-    #                                          voting=voting)
-    # eclf.classes_ = clf_list[0].classes_
-    # eclf.estimators_ = clf_list
-    return eclf
 
 
 class XValConfig(dt.Config):
@@ -213,10 +69,15 @@ class ClfProblem(ut.NiceRepr):
 
         python -m ibeis.scripts.script_vsone evaluate_classifiers --db PZ_PB_RF_TRAIN --show
         """
-        if pblm.verbose:
-            ut.cprint('[pblm] learn_evaluation_classifiers', color='blue')
         pblm.eval_task_clfs = ut.AutoVivification()
         pblm.task_combo_res = ut.AutoVivification()
+
+        if task_keys is None:
+            task_keys = pblm.eval_task_keys
+        if data_keys is None:
+            data_keys = pblm.eval_data_keys
+        if clf_keys is None:
+            clf_keys = pblm.eval_clf_keys
 
         if task_keys is None:
             task_keys = [pblm.primary_task_key]
@@ -224,6 +85,12 @@ class ClfProblem(ut.NiceRepr):
             data_keys = [pblm.default_data_key]
         if clf_keys is None:
             clf_keys = [pblm.default_clf_key]
+
+        if pblm.verbose:
+            ut.cprint('[pblm] learn_evaluation_classifiers', color='blue')
+            ut.cprint('[pblm] task_keys = {}'.format(task_keys))
+            ut.cprint('[pblm] data_keys = {}'.format(data_keys))
+            ut.cprint('[pblm] clf_keys = {}'.format(clf_keys))
 
         Prog = ut.ProgPartial(freq=1, adjust=False, prehack='%s')
         task_prog = Prog(task_keys, label='Task')
@@ -344,16 +211,20 @@ class ClfProblem(ut.NiceRepr):
         if data_key is None:
             data_key = pblm.default_data_key
         if task_keys is None:
-            task_keys = list(pblm.samples.subtasks.keys())
+            task_keys = list(pblm.samples.supported_tasks())
+
+        if pblm.deploy_task_clfs is None:
+            pblm.deploy_task_clfs = ut.AutoVivification()
 
         Prog = ut.ProgPartial(freq=1, adjust=False, prehack='%s')
         task_prog = Prog(task_keys, label='Task')
-        deploy_task_clfs = {}
+        task_clfs = {}
         for task_key in task_prog:
             clf = pblm._train_deploy_clf(task_key, data_key, clf_key)
-            deploy_task_clfs[task_key] = clf
-        pblm.deploy_task_clfs = deploy_task_clfs
-        return deploy_task_clfs
+            task_clfs[task_key] = clf
+            pblm.deploy_task_clfs[task_key][clf_key][data_key] = clf
+
+        return task_clfs
 
     def _estimator_params(pblm, clf_key):
         est_type = clf_key.split('-')[0]
@@ -529,7 +400,6 @@ class ClfProblem(ut.NiceRepr):
         from sklearn.ensemble import RandomForestClassifier
         from sklearn.calibration import CalibratedClassifierCV
         from sklearn.calibration import calibration_curve
-        from ibeis.scripts import sklearn_utils
         from sklearn.metrics import log_loss, brier_score_loss
 
         # Load data
@@ -644,7 +514,8 @@ class ClfResult(ut.NiceRepr):
         res.class_names = ut.lmap(str, labels.class_names)
         res.feat_dims = feat_dims
 
-        res.probs_df = predict_proba_df(clf, X_df_test, res.class_names)
+        res.probs_df = sklearn_utils.predict_proba_df(clf, X_df_test,
+                                                      res.class_names)
         res.target_bin_df = labels.indicator_df.iloc[test_idx]
         res.target_enc_df = labels.encoded_df.iloc[test_idx]
 
@@ -758,7 +629,6 @@ class ClfResult(ut.NiceRepr):
         easiness = ut.ziptake(res.probs_df.values, res.target_enc_df.values)
 
         # pred = sklearn_utils.predict_from_probs(res.probs_df, predict_method)
-        from ibeis.scripts import sklearn_utils
         if method == 'max-mcc':
             method = res.get_thresholds('mcc', 'maximize')
         pred = sklearn_utils.predict_from_probs(res.probs_df, method,
@@ -838,7 +708,6 @@ class ClfResult(ut.NiceRepr):
         res.sample_weight = sample_weight
 
     def extended_clf_report(res, verbose=True):
-        from ibeis.scripts import sklearn_utils
         res.augment_if_needed()
         pred_enc = res.clf_probs.argmax(axis=1)
         y_pred = pred_enc
@@ -978,16 +847,18 @@ class ClfResult(ut.NiceRepr):
         metric, value = choice_mv
         pos_threshes = res.get_pos_threshes(metric, value, warmup=warmup)
         print('Choosing threshold based on %s' % (choice_k,))
-        print('Chosen thresholds = %s' % (ut.repr2(
-            pos_threshes, nl=1, precision=4, align=True),))
+        res.report_auto_thresholds(pos_threshes)
 
-        from ibeis.scripts import sklearn_utils
+    def report_auto_thresholds(res, threshes):
+        print('Chosen thresholds = %s' % (ut.repr2(
+            threshes, nl=1, precision=4, align=True),))
+
         res.augment_if_needed()
         target_names = res.class_names
         sample_weight = res.sample_weight
         y_true = res.y_test_enc.ravel()
         y_pred, can_autodecide = sklearn_utils.predict_from_probs(
-            res.clf_probs, pos_threshes, res.class_names,
+            res.clf_probs, threshes, res.class_names,
             force=False, multi=False, return_flags=True)
         can_autodecide[res.sample_weight == 0] = False
 
@@ -1002,9 +873,11 @@ class ClfResult(ut.NiceRepr):
         def frac_str(a, b):
             return '{:}/{:} = {:.2f}%'.format(int(a), int(b), a / b)
 
+        y_test_bin = res.target_bin_df.values
         supported_class_idxs = [
             k for k, y in enumerate(y_test_bin.T) if y.sum() > 0]
 
+        print(' * Auto-Decide Per-Class Summary')
         for k in supported_class_idxs:
             # Look at fail/succs in threshold
             name = res.class_names[k]
@@ -1021,13 +894,13 @@ class ClfResult(ut.NiceRepr):
             n_fp = (~auto_true_k & auto_pred_k).sum()
             fail_str = frac_str(n_fp, n_pred_k)
             pass_str = frac_str(n_tp, n_total_k)
-            fmtstr = (
-                ' * {}:\n'
-                '    {} samples existed, and did {} auto predictions\n'
-                '    made {} errors,\n'
-                '    and got {} right'
-            )
-            print(fmtstr.format(name, n_total_k, n_pred_k, fail_str, pass_str))
+            fmtstr = '\n'.join([
+                '{name}:',
+                '    {n_total_k} samples existed, and did {n_pred_k} auto predictions',
+                '    got {pass_str} right',
+                '    made {fail_str} errors',
+            ])
+            print(ut.indent(fmtstr.format(**locals())))
 
         report = sklearn_utils.classification_report2(
             y_true, y_pred, target_names=target_names,
@@ -1164,6 +1037,12 @@ class MultiTaskSamples(ut.NiceRepr):
     #             assert np.all(edges == X.index.tolist())
     #     samples.X_dict = X_dict
 
+    def supported_tasks(samples):
+        for task_key, labels in samples.subtasks.items():
+            labels = samples.subtasks[task_key]
+            if labels.has_support():
+                yield task_key
+
     def apply_indicators(samples, tasks_to_indicators):
         n_samples = None
         samples.n_tasks = len(tasks_to_indicators)
@@ -1264,7 +1143,6 @@ class MultiTaskSamples(ut.NiceRepr):
 
         """
         from sklearn import model_selection
-        from ibeis.scripts import sklearn_utils
 
         X = np.empty((len(samples), 0))
         y = samples.encoded_1d().values
@@ -1305,6 +1183,9 @@ class MultiClassLabels(ut.NiceRepr):
         labels.indicator_df = None
         labels.encoded_df = None
         labels.default_class = None
+
+    def has_support(labels):
+        return len(labels.make_histogram()) > 1
 
     def lookup_class_idx(labels, class_name):
         return ut.dzip(labels.class_names, labels.classes_)[class_name]

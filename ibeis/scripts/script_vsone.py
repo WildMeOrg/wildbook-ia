@@ -23,6 +23,7 @@ import sklearn.model_selection
 import sklearn.multiclass
 import sklearn.ensemble
 from ibeis.scripts import clf_helpers
+from ibeis.scripts import sklearn_utils
 from ibeis.algo.graph.state import POSTV, NEGTV, INCMP
 from six.moves import zip
 print, rrr, profile = ut.inject2(__name__)
@@ -450,7 +451,8 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         infr.classifiers = pblm
 
         edges = ut.emap(tuple, pblm.samples.aid_pairs.tolist())
-        X_all = infr._pblm_pairwise_features(edges)
+        data_info = (pblm.feat_construct_config, None)
+        X_all = infr._cached_pairwise_features(edges, data_info)
 
         # hyper_params = pblm.hyper_params
         # TODO: features should also rely on global attributes
@@ -556,7 +558,104 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.raw_simple_scores = simple_scores
         pblm.samples.set_simple_scores(copy.deepcopy(pblm.raw_simple_scores))
 
-    def deploy(pblm):
+    def _make_deploy_metadata(pblm, task_key=None):
+        if pblm.samples is None:
+            pblm.setup()
+
+        if task_key is None:
+            task_key = pblm.primary_task_key
+
+        # task_keys = list(pblm.samples.supported_tasks())
+        clf_key = pblm.default_clf_key
+        data_key = pblm.default_data_key
+
+        # Save the classifie
+        data_info = pblm.feat_construct_info[data_key]
+        feat_construct_config, feat_dims = data_info
+
+        samples = pblm.samples
+        labels = samples.subtasks[task_key]
+
+        edge_hashid = samples.edge_set_hashid()
+        label_hashid = samples.task_label_hashid(task_key)
+        tasksamp_hashid = samples.task_sample_hashid(task_key)
+
+        annot_hashid = ut.hashid_arr(samples._unique_annots.visual_uuids,
+                                     'annots')
+
+        metadata = {
+            'tasksamp_hashid': tasksamp_hashid,
+            'edge_hashid': edge_hashid,
+            'label_hashid': label_hashid,
+            'annot_hashid': annot_hashid,
+            'class_hist': labels.make_histogram(),
+            'class_names': labels.class_names,
+            'data_info': data_info
+            # 'aid_pairs': samples.aid_pairs,
+        }
+
+        fmtkw = {
+            'task_key': task_key,
+            'data_key': data_key,
+            'clf_key': clf_key,
+            'n_dims': len(feat_dims),
+        }
+        metadata.update(fmtkw)
+
+        meta_cfgstr = ut.repr2(metadata, kvsep=':', itemsep='',
+                               stritems=True)
+        hashid = ut.hash_data(meta_cfgstr)[0:16]
+
+        deploy_fname = (
+            'deploy_{task_key}_{data_key}_{n_dims}_{clf_key}_{hashid}.cPkl'
+        ).format(hashid=hashid, **fmtkw)
+
+        deploy_metadata = metadata.copy()
+        deploy_metadata['hashid'] = hashid
+        deploy_metadata['fname'] = deploy_fname
+        return deploy_metadata, deploy_fname
+
+    def _make_deploy_info(pblm, task_key=None):
+        if pblm.samples is None:
+            pblm.setup()
+
+        if task_key is None:
+            task_key = pblm.primary_task_key
+
+        deploy_metadata, deploy_fname = pblm._make_deploy_metadata(task_key)
+        clf_key = deploy_metadata['clf_key']
+        data_key = deploy_metadata['data_key']
+
+        clf = None
+        if pblm.deploy_task_clfs:
+            clf = pblm.deploy_task_clfs[task_key][clf_key][data_key]
+        if not clf:
+            pblm.learn_deploy_classifiers([task_key], clf_key, data_key)
+            clf = pblm.deploy_task_clfs[task_key][clf_key][data_key]
+
+        deploy_info = {
+            'clf': clf,
+            'metadata': deploy_metadata,
+        }
+        return deploy_info
+
+    def ensure_deploy_classifiers(pblm, dpath='.'):
+        from os.path import join, exists
+        classifiers = {}
+        task_keys = list(pblm.samples.supported_tasks())
+        for task_key in task_keys:
+            _, fname = pblm._make_deploy_metadata(task_key=task_key)
+            fpath = join(dpath, fname)
+            if exists(fpath):
+                deploy_info = ut.load_data(fpath)
+                assert bool(deploy_info['clf']), 'must have clf'
+            else:
+                deploy_info = pblm.deploy(dpath, task_key=task_key)
+                assert exists(fpath), 'must now exist'
+            classifiers[task_key] = deploy_info
+        return classifiers
+
+    def deploy(pblm, dpath='.', task_key=None):
         """
         Trains and saves a classifier for deployment
 
@@ -572,69 +671,42 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             >>> params = dict(sample_method='random')
             >>> pblm = OneVsOneProblem.from_empty('PZ_MTEST', **params)
             >>> pblm.setup(with_simple=False)
-            >>> pblm.evaluate_classifiers(with_simple=False)
+            >>> task_key = pblm.primary_task_key
             >>> pblm.deploy()
+
+        Ignore:
+            pblm.evaluate_classifiers(with_simple=False)
+            res = pblm.task_combo_res[pblm.primary_task_key]['RF']['learn(sum,glob)']
+
         """
-        if pblm.samples is None:
-            pblm.setup()
-        task_keys = list(pblm.samples.subtasks.keys())
-        clf_key = pblm.default_clf_key
-        data_key = pblm.default_data_key
+        deploy_info = pblm._make_deploy_info(task_key=task_key)
+        deploy_fname = deploy_info['metadata']['fname']
 
-        # Save the classifie
-        data_info = pblm.feat_construct_info[data_key]
-        feat_construct_config, feat_dims = data_info
+        from os.path import join
+        deploy_fpath = join(dpath, deploy_fname)
+        meta_fpath = deploy_fpath + '.meta.json'
 
-        deploy_task_clfs = pblm.learn_deploy_classifiers(
-            task_keys, clf_key, data_key)
-
-        for task, clf in deploy_task_clfs.items():
-            pass
-
-        # deploy_info = {
-        #     'clf':
-        # }
+        ut.save_json(meta_fpath, deploy_info['metadata'])
+        ut.save_data(deploy_fpath, deploy_info)
+        return deploy_info
 
     def setup(pblm, with_simple=False):
         pblm.set_pandas_options()
 
-        ut.cprint('\n--- LOADING DATA ---', 'blue')
+        ut.cprint('\n[pblm] --- LOADING DATA ---', 'blue')
         pblm.load_samples()
         # pblm.samples.print_info()
         pblm.load_features(with_simple=with_simple)
 
         # pblm.samples.print_info()
-        ut.cprint('\n--- CURATING DATA ---', 'blue')
+        ut.cprint('\n[pblm] --- CURATING DATA ---', 'blue')
         pblm.samples.print_info()
         print('---------------')
 
-        ut.cprint('\n--- FEATURE INFO ---', 'blue')
+        ut.cprint('\n[pblm] --- FEATURE INFO ---', 'blue')
         pblm.build_feature_subsets()
 
         pblm.samples.print_featinfo()
-
-    def evaluate_classifiers(pblm, with_simple=True):
-        """
-        CommandLine:
-            python -m ibeis.scripts.script_vsone evaluate_classifiers
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1
-            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GIRM_Master1
-
-        Example:
-            >>> from ibeis.scripts.script_vsone import *  # NOQA
-            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
-            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
-            >>> pblm.evaluate_classifiers()
-        """
-        pblm.setup_evaluation(with_simple=with_simple)
-
-        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
-        # For each task / classifier type
-        for task_key in pblm.eval_task_keys:
-            pblm.task_evaluation_report(task_key)
-
-    def setup_evaluation(pblm, with_simple=True):
-        pblm.setup(with_simple)
 
         task_keys = pblm.eval_task_keys
         clf_keys = pblm.eval_clf_keys
@@ -650,11 +722,17 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         pblm.eval_data_keys = data_keys
 
         # Remove any tasks that cant be done
-        for task_key in task_keys[:]:
-            labels = pblm.samples.subtasks[task_key]
-            if len(labels.make_histogram()) < 2:
-                print('No data to train task_key = %r' % (task_key,))
-                task_keys.remove(task_key)
+        unsupported = set(task_keys) - set(pblm.samples.supported_tasks())
+        for task_key in unsupported:
+            print('No data to train task_key = %r' % (task_key,))
+            task_keys.remove(task_key)
+
+    def setup_evaluation(pblm, with_simple=True):
+        pblm.setup(with_simple=with_simple)
+
+        task_keys = pblm.eval_task_keys
+        clf_keys = pblm.eval_clf_keys
+        data_keys = pblm.eval_data_keys
 
         if pblm.samples.simple_scores is not None:
             ut.cprint('\n--- EVALUTE SIMPLE SCORES ---', 'blue')
@@ -665,6 +743,28 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
 
         ut.cprint('\n--- LEARN CROSS-VALIDATED RANDOM FORESTS ---', 'blue')
         pblm.learn_evaluation_classifiers(task_keys, clf_keys, data_keys)
+
+    def report_evaluation(pblm):
+        ut.cprint('\n--- EVALUATE LEARNED CLASSIFIERS ---', 'blue')
+        # For each task / classifier type
+        for task_key in pblm.eval_task_keys:
+            pblm.task_evaluation_report(task_key)
+
+    def evaluate_classifiers(pblm, with_simple=True):
+        """
+        CommandLine:
+            python -m ibeis.scripts.script_vsone evaluate_classifiers
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GZ_Master1
+            python -m ibeis.scripts.script_vsone evaluate_classifiers --db GIRM_Master1
+
+        Example:
+            >>> from ibeis.scripts.script_vsone import *  # NOQA
+            >>> pblm = OneVsOneProblem.from_empty('PZ_PB_RF_TRAIN')
+            >>> #pblm = OneVsOneProblem.from_empty('GZ_Master1')
+            >>> pblm.evaluate_classifiers()
+        """
+        pblm.setup_evaluation(with_simple=with_simple)
+        pblm.report_evaluation()
 
     def task_evaluation_report(pblm, task_key):
         """
@@ -866,7 +966,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             clf = pblm.deploy_task_clfs[task_key]
             labels = pblm.samples.subtasks[task_key]
             class_names = labels.class_names
-            probs_df = clf_helpers.predict_proba_df(clf, X, class_names)
+            probs_df = sklearn_utils.predict_proba_df(clf, X, class_names)
             # columns = ut.take(labels.class_names, clf.classes_)
             # probs_df = pd.DataFrame(
             #     clf.predict_proba(X),
@@ -954,7 +1054,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
             assert set(have_edges) | set(need_edges) == set(want_edges)
 
             infr.classifiers = pblm
-            X_need = infr._pblm_pairwise_features(need_edges, data_key)
+            data_info = pblm.feat_construct_info[data_key]
+            X_need = infr._cached_pairwise_features(need_edges, data_info)
+            # X_need = infr._pblm_pairwise_features(need_edges, data_key)
             # Make an ensemble of the evaluation classifiers
             # (todo: use a classifier that hasn't seen any of this data)
             task_need_probs = {}
@@ -964,9 +1066,9 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 labels = pblm.samples.subtasks[task_key]
                 import utool
                 with utool.embed_on_exception_context:
-                    eclf = clf_helpers.voting_ensemble(clf_list, voting='soft')
-                eclf_probs = clf_helpers.predict_proba_df(eclf, X_need,
-                                                          labels.class_names)
+                    eclf = sklearn_utils.voting_ensemble(clf_list, voting='soft')
+                eclf_probs = sklearn_utils.predict_proba_df(eclf, X_need,
+                                                            labels.class_names)
                 task_need_probs[task_key] = eclf_probs
 
             # Combine probabilities --- get probabilites for each sample
@@ -1006,11 +1108,12 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
         """
         if pblm.verbose:
             ut.cprint('[pblm] build_feature_subsets', color='blue')
-        orig_dict = pblm.samples.X_dict
-        X = orig_dict['learn(all)']
+        # orig_dict = pblm.samples.X_dict
+        # X = orig_dict
+        X = pblm.raw_X_dict['learn(all)']
         featinfo = vt.AnnotPairFeatInfo(X)
 
-        X_dict = pblm.samples.X_dict = ut.odict()
+        X_dict = ut.odict()
         pblm.feat_construct_info = {}
         def register_data_key(data_key, cols):
             feat_dims = sorted(cols)
@@ -1091,7 +1194,7 @@ class OneVsOneProblem(clf_helpers.ClfProblem):
                 noview_cols = set.difference(cols, view_cols)
                 register_data_key('learn(sum,glob,-view)', noview_cols)
 
-        pblm.samples.X_dict = X_dict
+        pblm.samples.set_feats(X_dict)
 
     def evaluate_simple_scores(pblm, task_keys=None):
         """
@@ -1677,6 +1780,7 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         samples.infr = infr
         samples.ibs = ibs
         _unique_annots = ibs.annots(np.unique(samples.aid_pairs)).view()
+        samples._unique_annots = _unique_annots
         samples.annots1 = _unique_annots.view(samples.aid_pairs.T[0])
         samples.annots2 = _unique_annots.view(samples.aid_pairs.T[1])
         samples.n_samples = len(aid_pairs)
@@ -1717,9 +1821,9 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
             hasher.update(uuid1.bytes)
             hasher.update(uuid2.bytes)
             hasher.update(b'-')
-        edge_hash = hasher.digest()
-        edge_hashstr = ut.util_hash.convert_bytes_to_bigbase(edge_hash)
-        edge_hashstr = edge_hashstr[0:16]
+        edge_bytes = hasher.digest()
+        edge_hash = ut.util_hash.convert_bytes_to_bigbase(edge_bytes)
+        edge_hashstr = edge_hash[0:16]
         edge_hashid = 'e{}-{}'.format(len(samples), edge_hashstr)
         return edge_hashid
 
@@ -1732,6 +1836,22 @@ class AnnotPairSamples(clf_helpers.MultiTaskSamples):
         label_hash = ut.hash_data(samples.encoded_1d().values)[0:16]
         sample_hash = visual_hash + '_' + label_hash
         return sample_hash
+
+    def task_label_hashid(samples, task_key):
+        labels = samples.subtasks[task_key]
+        label_hashid = ut.hashid_arr(labels.y_enc, 'labels')
+        return label_hashid
+
+    @ut.memoize
+    @profile
+    def task_sample_hashid(samples, task_key):
+        labels = samples.subtasks[task_key]
+        edge_hashid = samples.edge_set_hashid()
+        label_hashid = samples.task_label_hashid(task_key)
+        tasksamp_hashstr = ut.hash_data([edge_hashid, label_hashid])[0:16]
+        tasksamp_hashid = 'tasksamp-{},{}-{}'.format(
+            len(samples), labels.n_classes, tasksamp_hashstr)
+        return tasksamp_hashid
 
     def set_simple_scores(samples, simple_scores):
         if simple_scores is not None:

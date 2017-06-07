@@ -255,112 +255,6 @@ class AnnotInfrMatching(object):
             match.add_local_measures()
         return matches
 
-    def _pblm_pairwise_features(infr, edges, data_key=None):
-        """
-        Create pairwise features for annotations in a test inference object
-        based on the features used to learn here
-
-        TODO: need a more systematic way of specifying which feature dimensions
-        need to be computed
-
-        Notes:
-            Given a edge (u, v), we need to:
-            * Check which classifiers we have
-            * Check which feat-cols the classifier needs,
-               and construct a configuration that can acheive that.
-                * Construct the chip/feat config
-                * Construct the vsone config
-                * Additional LNBNN enriching config
-                * Pairwise feature construction config
-            * Then we can apply the feature to the classifier
-
-        edges = [(1, 2)]
-        """
-        infr.print('Requesting %d cached pairwise features' % len(edges))
-        pblm = infr.classifiers
-        edges = list(edges)
-        # Parse the data_key to build the appropriate feature
-        # Do one-vs-one scoring on candidate edges
-        # Find the kwargs to make the desired feature subset
-        # if False:
-        #     if data_key is not None:
-        #         data_key = pblm.default_data_key
-        #     columns = list(pblm.samples.X_dict[data_key].columns)
-        #     featinfo = vt.AnnotPairFeatInfo(columns)
-        #     pairfeat_cfg, global_keys = featinfo.make_pairfeat_cfg()
-        #     need_lnbnn = any('lnbnn' in key for key in pairfeat_cfg['local_keys'])
-        #     print(featinfo.get_infostr())
-        print('Building need features')
-        ibs = infr.ibs
-        edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
-        edge_hashid = ut.hashstr_arr27(edge_uuids, 'edges', hashlen=32)
-
-        pairfeat_cfg = pblm.hyper_params['pairwise_feats']
-        # global_keys = ['yaw', 'qual', 'gps', 'time']
-        global_keys = ['view', 'qual', 'gps', 'time']
-
-        make_cfg_lbl = ut.partial(ut.repr2, nobr=True, stritems=True,
-                                  itemsep='', explicit=True, strvals=True)
-
-        if data_key is None:
-            feat_construct_config = pblm.feat_construct_config
-            feat_dims = None
-        else:
-            info = pblm.feat_construct_info[data_key]
-            feat_construct_config = info[0]
-            feat_dims = info[1]
-
-        match_configclass = ibs.depc_annot.configclass_dict['pairwise_match']
-
-        feat_cfgstr = '_'.join([
-            edge_hashid,
-            make_cfg_lbl(feat_construct_config['match_config']),
-            make_cfg_lbl(feat_construct_config['pairfeat_cfg']),
-            'global(' + make_cfg_lbl(feat_construct_config['global_keys']) + ')',
-            'pairwise_match_version=%r' % (match_configclass().version,)
-        ])
-        use_cache = not feat_construct_config['need_lnbnn']
-
-        import ubelt as ub
-        feat_cacher = ub.Cacher('bulk_pairfeats_v2_' + infr.ibs.dbname,
-                                feat_cfgstr, enabled=use_cache,
-                                appname=pblm.appname, verbose=20)
-        if feat_cacher.exists():
-            fpath = feat_cacher.get_fpath()
-            print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        data = feat_cacher.tryload()
-        if data is None:
-            config = feat_construct_config['match_config']
-            pairfeat_cfg = feat_construct_config['pairfeat_cfg']
-            global_keys = feat_construct_config['global_keys']
-            need_lnbnn = feat_construct_config['need_lnbnn']
-
-            multi_index = True
-            data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
-                                                global_keys, need_lnbnn,
-                                                multi_index)
-            feat_cacher.save(data)
-            fpath = feat_cacher.get_fpath()
-            print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        matches, feats = data
-
-        # # Take the filtered subset of columns
-        if feat_dims is not None:
-            missing = set(feat_dims).difference(feats.columns)
-            if any(missing):
-                # print('We have: ' + ut.repr4(feats.columns))
-                alt = feats.columns.difference(feat_dims)
-                mis_msg = ('Missing feature dims: ' + ut.repr4(missing))
-                alt_msg = ('Did you mean? ' + ut.repr4(alt))
-                print(mis_msg)
-                print(alt_msg)
-                raise KeyError(mis_msg)
-            feats = feats[feat_dims]
-
-        # assert np.all(featinfo.columns == feats.columns), (
-        #     'inconsistent feature dimensions')
-        return feats
-
     def _make_pairwise_features(infr, edges, config={}, pairfeat_cfg={},
                                 global_keys=None, need_lnbnn=True,
                                 multi_index=True):
@@ -728,7 +622,8 @@ class InfrLearning(object):
         cfg_prefix = (pblm.samples.make_sample_hashid() +
                       pblm.qreq_.get_cfgstr() + feat_cfgstr)
         pblm.learn_evaluation_classifiers(cfg_prefix=cfg_prefix)
-        infr.classifiers = pblm
+        infr.pblm = pblm
+        # infr.classifiers = pblm
 
     def photobomb_samples(infr):
         edges = list(infr.edges())
@@ -981,6 +876,83 @@ class CandidateSearch(object):
         infr.add_new_candidate_edges(new_edges)
         infr.assert_consistency_invariant()
 
+    def _cached_pairwise_features(infr, edges, data_info):
+        """
+        Create pairwise features for annotations in a test inference object
+        based on the features used to learn here
+
+        TODO: need a more systematic way of specifying which feature dimensions
+        need to be computed
+
+        Notes:
+            Given a edge (u, v), we need to:
+            * Check which classifiers we have
+            * Check which feat-cols the classifier needs,
+               and construct a configuration that can acheive that.
+                * Construct the chip/feat config
+                * Construct the vsone config
+                * Additional LNBNN enriching config
+                * Pairwise feature construction config
+            * Then we can apply the feature to the classifier
+
+        edges = [(1, 2)]
+        """
+        import ubelt as ub
+        infr.print('Requesting %d cached pairwise features' % len(edges))
+        edges = list(edges)
+        ibs = infr.ibs
+        edge_uuids = ibs.unflat_map(ibs.get_annot_visual_uuids, edges)
+        edge_hashid = ut.hashid_arr(edge_uuids, 'edges')
+
+        feat_construct_config, feat_dims = data_info
+        _cfg_lbl = ut.partial(ut.repr2, stritems=True, itemsep='', kvsep=':')
+        match_configclass = ibs.depc_annot.configclass_dict['pairwise_match']
+
+        feat_cfgstr = '_'.join([
+            edge_hashid,
+            _cfg_lbl(feat_construct_config['match_config']),
+            _cfg_lbl(feat_construct_config['pairfeat_cfg']),
+            'global(' + _cfg_lbl(feat_construct_config['global_keys']) + ')',
+            'pairwise_match_version=%r' % (match_configclass().version,)
+        ])
+        use_cache = not feat_construct_config['need_lnbnn']
+        cache_dir = ut.ensuredir(infr.ibs.get_cachedir(), 'infr_bulk_cache')
+        feat_cacher = ub.Cacher('bulk_pairfeats_v3',
+                                feat_cfgstr, enabled=use_cache,
+                                dpath=cache_dir, verbose=20)
+        if feat_cacher.exists():
+            fpath = feat_cacher.get_fpath()
+            print('Load match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
+        data = feat_cacher.tryload()
+        if data is None:
+            config = feat_construct_config['match_config']
+            pairfeat_cfg = feat_construct_config['pairfeat_cfg']
+            global_keys = feat_construct_config['global_keys']
+            need_lnbnn = feat_construct_config['need_lnbnn']
+
+            multi_index = True
+            data = infr._make_pairwise_features(edges, config, pairfeat_cfg,
+                                                global_keys, need_lnbnn,
+                                                multi_index)
+            feat_cacher.save(data)
+            fpath = feat_cacher.get_fpath()
+            print('Save match cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
+        matches, feats = data
+
+        # # Take the filtered subset of columns
+        if feat_dims is not None:
+            missing = set(feat_dims).difference(feats.columns)
+            if any(missing):
+                # print('We have: ' + ut.repr4(feats.columns))
+                alt = feats.columns.difference(feat_dims)
+                mis_msg = ('Missing feature dims: ' + ut.repr4(missing))
+                alt_msg = ('Did you mean? ' + ut.repr4(alt))
+                print(mis_msg)
+                print(alt_msg)
+                raise KeyError(mis_msg)
+            feats = feats[feat_dims]
+        return feats
+
     @profile
     def _make_task_probs(infr, edges, data_key=None):
         """
@@ -988,39 +960,62 @@ class CandidateSearch(object):
         GZ_Master1xwusomqdrrgoszenlearn(sum,glob)
         GZ_Master1xwusomqdrrgoszenlearn
         """
-        import ubelt as ub
-        pblm = infr.classifiers
-        data_key = pblm.default_data_key
+        # import ubelt as ub
+        from ibeis.scripts import sklearn_utils
+        if infr.classifiers is None:
+            raise ValueError('no classifiers exist')
 
-        # TODO: find a good way to cache this
-        info = pblm.feat_construct_info[data_key]
-        feat_construct_config = info[0]
-        feat_dims = info[1]
-        cfgstr = '_'.join([
-            infr.ibs.dbname, data_key,
-            ut.hashid_arr(edges, 'edges'),
-            ut.hashid_arr(feat_dims, 'feat_dims'),
-            ut.repr2(feat_construct_config, stritems=True, itemsep='',
-                     kvsep=':')
-        ])
-        cacher = ub.Cacher('foobarclf_taskprobs_' + infr.ibs.dbname,
-                           cfgstr=cfgstr, appname=pblm.appname, enabled=1,
-                           meta=[edges, feat_dims,
-                                 ut.repr2(feat_construct_config)],
-                           verbose=pblm.verbose)
-        X = cacher.tryload()
-        if cacher.exists():
-            fpath = cacher.get_fpath()
-            print('Bulk cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
-        if X is None:
-            X = infr._pblm_pairwise_features(edges, data_key)
-            cacher.save(X)
-            fpath = cacher.get_fpath()
-            print('Saved bulk cache of size: {}'.format(
-                ut.get_file_nBytes_str(fpath)))
+        if not isinstance(infr.classifiers, dict):
+            raise NotImplementedError(
+                'need to deploy or implement eval prediction')
 
-        task_keys = list(pblm.samples.subtasks.keys())
-        task_probs = pblm.predict_proba_deploy(X, task_keys)
+        prev_data_info = None
+        task_keys = list(infr.classifiers.keys())
+        task_probs = {}
+        for task_key in task_keys:
+            deploy_info = infr.classifiers[task_key]
+            data_info = deploy_info['metadata']['data_info']
+            class_names = deploy_info['metadata']['class_names']
+            clf = deploy_info['clf']
+            if prev_data_info != data_info:
+                X_df = infr._cached_pairwise_features(edges, data_info)
+                prev_data_info = data_info
+            infr.print('predict {}'.format(task_key))
+            probs_df = sklearn_utils.predict_proba_df(clf, X_df, class_names)
+            task_probs[task_key] = probs_df
+        # pblm = infr.classifiers
+        # data_key = pblm.default_data_key
+        # # TODO: find a good way to cache this
+        # data_info = pblm.feat_construct_info[data_key]
+        # X_df = infr._cached_pairwise_features(edges, data_info)
+
+        # feat_construct_config, feat_dims = data_info
+        # cfgstr = '_'.join([
+        #     infr.ibs.dbname, data_key,
+        #     ut.hashid_arr(edges, 'edges'),
+        #     ut.hashid_arr(feat_dims, 'feat_dims'),
+        #     ut.repr2(feat_construct_config, stritems=True, itemsep='',
+        #              kvsep=':')
+        # ])
+        # cache_dir = ut.ensuredir(infr.ibs.get_cachedir(), 'infr_bulk_cache')
+        # cacher = ub.Cacher('foobarclf_taskprobs_' + infr.ibs.dbname,
+        #                    cfgstr=cfgstr, dpath=cache_dir, enabled=1,
+        #                    meta=[edges, feat_dims,
+        #                          ut.repr2(feat_construct_config)],
+        #                    verbose=pblm.verbose)
+        # X = cacher.tryload()
+        # if cacher.exists():
+        #     fpath = cacher.get_fpath()
+        #     print('Bulk cache size: {}'.format(ut.get_file_nBytes_str(fpath)))
+        # if X is None:
+        #     X = infr._pblm_pairwise_features(edges, data_key)
+        #     cacher.save(X)
+        #     fpath = cacher.get_fpath()
+        #     print('Saved bulk cache of size: {}'.format(
+        #         ut.get_file_nBytes_str(fpath)))
+
+        # task_keys = list(pblm.samples.subtasks.keys())
+        # task_probs = pblm.predict_proba_deploy(X_df, task_keys)
         return task_probs
 
     @profile
