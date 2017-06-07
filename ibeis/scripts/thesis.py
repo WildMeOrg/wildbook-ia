@@ -27,12 +27,9 @@ class Chap5(DBInputs):
     def _setup(self):
         """
         CommandLine:
-            python -m ibeis Chap5.measure simulation PZ_MTEST --show
-            python -m ibeis Chap5.measure simulation GZ_Master1 --show
-            python -m ibeis Chap5.measure simulation PZ_Master1 --show
-
-            python -m ibeis Chap5.print_measures --db GZ_Master1 --diskshow
-            python -m ibeis Chap5.print_measures --db PZ_Master1 --diskshow
+            python -m ibeis Chap5.measure all PZ_MTEST --show
+            python -m ibeis Chap5.measure all GZ_Master1 --show
+            python -m ibeis Chap5.measure all PZ_Master1 --show
 
         Example:
             >>> from ibeis.scripts.thesis import *
@@ -41,17 +38,18 @@ class Chap5(DBInputs):
         """
         self._precollect()
 
+        # Split data into a training and testing test
         ibs = self.ibs
         annots = ibs.annots(self.aids_pool)
         names = list(annots.group_items(annots.nids).values())
         ut.shuffle(names, rng=321)
+        train_names, test_names = names[0::2], names[1::2]
         train_aids = ut.flatten(names[0::2])
         test_aids = ut.flatten(names[1::2])
 
+        params = {}
         if ibs.dbname == 'PZ_MTEST':
-            params = dict(sample_method='random')
-        else:
-            params = dict()
+            params['sample_method'] = 'random'
 
         pblm = script_vsone.OneVsOneProblem.from_aids(ibs, train_aids, **params)
         task_key = 'match_state'
@@ -138,6 +136,10 @@ class Chap5(DBInputs):
         self.sim_params = sim_params
         return sim_params
 
+    def measure_all(self):
+        self.measure_dbstats()
+        self.measure_simulation()
+
     def draw_all(self):
         r"""
         CommandLine:
@@ -155,6 +157,9 @@ class Chap5(DBInputs):
     @profile
     def measure_dbstats(self):
         """
+        python -m ibeis Chap5.draw dbstats GZ_Master1
+        python -m ibeis Chap5.draw dbstats PZ_Master1
+
         Ignore:
             >>> from ibeis.scripts.thesis import *
             >>> self = Chap5('GZ_Master1')
@@ -164,29 +169,39 @@ class Chap5(DBInputs):
         clf_meta = classifiers['match_state']['metadata'].copy()
         clf_meta.pop('data_info')
 
-        ibs = self.ibs
-        train_pccs = list(self.pblm.infr.positive_components())
-        train_nper_annot = ut.emap(len, train_pccs)
-
-        test_aids = self.sim_params['test_aids']
-        test_pccs = ibs.group_annots_by_name(test_aids)[0]
-        test_nper_annot = ut.emap(len, test_pccs)
-
-        dbstats = {
-            'testing': {
-                'n_annots': len(test_aids),
-                'n_names': len(test_nper_annot),
-                'annot_size_mean': np.mean(test_nper_annot),
-                'annot_size_std': np.std(test_nper_annot),
-            },
-            'training': {
-                'class_hist': clf_meta['class_hist'],
-                'n_annots': len(self.sim_params['train_aids']),
-                'n_names': len(train_nper_annot),
-                'annot_size_mean': np.mean(train_nper_annot),
-                'annot_size_std': np.std(train_nper_annot),
-                'n_training_pairs': sum(clf_meta['class_hist'].values()),
+        def ibs_stats(aids):
+            pccs = self.ibs.group_annots_by_name(aids)[0]
+            nper_annot = ut.emap(len, pccs)
+            return {
+                'n_annots': len(aids),
+                'n_names': len(pccs),
+                'annot_size_mean': np.mean(nper_annot),
+                'annot_size_std': np.std(nper_annot),
             }
+        train_aids = self.sim_params['train_aids']
+        test_aids = self.sim_params['test_aids']
+        dbstats = {
+            'testing': ibs_stats(test_aids),
+            'training': ibs_stats(train_aids),
+        }
+        traininfo = dbstats['training']
+        traininfo['class_hist'] = clf_meta['class_hist']
+        traininfo['n_training_pairs'] = sum(clf_meta['class_hist'].values())
+
+        infr = self.pblm.infr
+        pblm_pccs = list(self.pblm.infr.positive_components())
+        pblm_nper_annot = ut.emap(len, pblm_pccs)
+        traininfo['pblm_info'] = {
+            'n_annots': infr.graph.number_of_nodes(),
+            'n_names': len(pblm_pccs),
+            'annot_size_mean': np.mean(pblm_nper_annot),
+            'annot_size_std': np.std(pblm_nper_annot),
+            'notes': ut.textblock(
+                '''
+                if this (the real training data) is different from the parents
+                (ibeis) info, that means the staging database is ahead of
+                annotmatch. Report the ibeis one for clarity.
+                ''')
         }
 
         expt_name = 'dbstats'
@@ -198,6 +213,9 @@ class Chap5(DBInputs):
         # TODO: write info about what dataset was used
 
         CommandLine:
+            python -m ibeis Chap5.measure dbstats PZ_Master1
+            python -m ibeis Chap5.measure dbstats PZ_Master1
+
             python -m ibeis Chap5.measure simulation GZ_Master1
             python -m ibeis Chap5.draw dbstats --db GZ_Master1 --diskshow
 
