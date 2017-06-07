@@ -115,22 +115,20 @@
   {% endif %}
 
   <script type="text/javascript">
-    update_label();
-
     var hotkeys_global_disabled = false;
 
     $(document).ready(function() {
 
       $('#species-add').on('shown.bs.modal', function() {
-          console.log('SHOWN')
           $('input[name="species-add"]').val('')
           hotkeys_global_disabled = true;
       });
 
       $('#species-add').on('hidden.bs.modal', function() {
-          console.log('HIDDEN')
           hotkeys_global_disabled = false;
       });
+
+      update_label();
 
       {% if display_instructions %}
         $('#ia-turk-instructions').modal('show');
